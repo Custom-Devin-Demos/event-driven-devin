@@ -1,0 +1,79 @@
+{
+  "scenarios": {
+    "healthy": {
+      "description": "All systems operating normally. Default state.",
+      "errorRate": 0.01,
+      "slowRate": 0.03,
+      "affectedEndpoints": []
+    },
+    "slow-db": {
+      "description": "Database queries are slow. /checkout and /search have 1.5-3s latency.",
+      "errorRate": 0.02,
+      "slowRate": 0.85,
+      "affectedEndpoints": ["/checkout", "/search"]
+    },
+    "checkout-regression": {
+      "description": "Release v1.0.1 introduced a null reference bug in calculateTax. /checkout throws intermittent errors.",
+      "errorRate": 0.40,
+      "slowRate": 0.05,
+      "affectedEndpoints": ["/checkout"],
+      "releaseCorrelation": {
+        "badRelease": "acme-checkout@1.0.1",
+        "goodRelease": "acme-checkout@1.0.0",
+        "fixRelease": "acme-checkout@1.0.2"
+      },
+      "errors": [
+        "TypeError: Cannot read properties of null (reading 'taxRate')",
+        "InventoryReservationError: Inventory reservation conflict",
+        "PaymentGatewayTimeoutError: Payment gateway timed out"
+      ]
+    },
+    "dependency-timeout": {
+      "description": "External payment gateway is timing out. /checkout has 30% failure rate with 504 errors.",
+      "errorRate": 0.30,
+      "slowRate": 0.60,
+      "affectedEndpoints": ["/checkout"],
+      "errors": [
+        "PaymentGatewayTimeoutError: Payment gateway timed out after 30000ms"
+      ]
+    }
+  },
+  "personas": {
+    "buyer_1": {
+      "userId": "usr_b1_acme",
+      "name": "Alice Chen",
+      "role": "buyer",
+      "journeys": ["browse", "search", "checkout"]
+    },
+    "buyer_2": {
+      "userId": "usr_b2_acme",
+      "name": "Bob Martinez",
+      "role": "buyer",
+      "journeys": ["browse", "search", "checkout"]
+    },
+    "admin_ops": {
+      "userId": "usr_admin_acme",
+      "name": "Carol Nguyen",
+      "role": "admin",
+      "journeys": ["browse", "login", "orders"]
+    }
+  },
+  "trafficProfile": {
+    "perMinute": {
+      "search": 6,
+      "login": 3,
+      "orderLookup": 2,
+      "checkout": 2
+    },
+    "burstInterval": {
+      "slowBurst": "10m",
+      "errorCluster": "30m",
+      "simulatedDeploy": "24h"
+    },
+    "targetRatios": {
+      "success": "92-96%",
+      "slow": "3-6%",
+      "failure": "1-2%"
+    }
+  }
+}
