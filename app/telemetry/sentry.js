@@ -18,12 +18,13 @@ function initSentry() {
     tracesSampleRate: 1.0,
     profilesSampleRate: 1.0,
     beforeSend(event) {
+      const { getScenario } = require('../incidentModes');
       event.tags = {
-        ...event.tags,
-        scenario: process.env.APP_SCENARIO || 'healthy',
+        scenario: getScenario(),
         tenant: 'synthetic',
         customer: 'acme-demo',
         service: process.env.DD_SERVICE || 'checkout-api',
+        ...event.tags,
       };
       return event;
     },

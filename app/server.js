@@ -23,8 +23,12 @@ const webhookRoutes = require('./routes/webhook');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware: parse JSON
-app.use(express.json());
+// Middleware: parse JSON (capture raw body for webhook signature verification)
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    req.rawBody = buf;
+  },
+}));
 
 // Middleware: request ID and logging
 app.use((req, res, next) => {

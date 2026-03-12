@@ -26,7 +26,6 @@ function initDatadog() {
       env,
       service,
       version,
-      scenario: process.env.APP_SCENARIO || 'healthy',
     },
     errorHandler(error) {
       console.warn('[dogstatsd] Error:', error.message);

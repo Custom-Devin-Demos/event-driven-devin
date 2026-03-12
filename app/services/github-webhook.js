@@ -8,7 +8,10 @@ function verifySignature(payload, signature, secret) {
   if (!secret || !signature) return false;
   const hmac = crypto.createHmac('sha256', secret);
   const digest = 'sha256=' + hmac.update(payload).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  const sigBuffer = Buffer.from(signature);
+  const digestBuffer = Buffer.from(digest);
+  if (sigBuffer.length !== digestBuffer.length) return false;
+  return crypto.timingSafeEqual(sigBuffer, digestBuffer);
 }
 
 /**

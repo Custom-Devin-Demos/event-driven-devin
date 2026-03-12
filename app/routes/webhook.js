@@ -14,8 +14,12 @@ router.post('/webhook/github', express.raw({ type: 'application/json' }), (req, 
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
 
   // Verify signature if secret is configured
-  if (secret && signature) {
-    const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+  if (secret) {
+    if (!signature) {
+      logger.warn('GitHub webhook missing signature header', { deliveryId });
+      return res.status(401).json({ error: 'Missing signature' });
+    }
+    const rawBody = req.rawBody || (typeof req.body === 'string' ? req.body : JSON.stringify(req.body));
     if (!verifySignature(rawBody, signature, secret)) {
       logger.warn('GitHub webhook signature verification failed', { deliveryId });
       return res.status(401).json({ error: 'Invalid signature' });
