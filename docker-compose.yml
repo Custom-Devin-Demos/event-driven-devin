@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # ─── Acme Commerce API ───────────────────────────────
+  checkout-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - APP_VERSION=${APP_VERSION:-1.0.0}
+      - APP_SCENARIO=${APP_SCENARIO:-healthy}
+      # Sentry
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-demo}
+      - SENTRY_RELEASE=${SENTRY_RELEASE:-acme-checkout@1.0.0}
+      # Datadog
+      - DD_ENV=${DD_ENV:-demo}
+      - DD_SERVICE=${DD_SERVICE:-checkout-api}
+      - DD_VERSION=${DD_VERSION:-1.0.0}
+      - DD_AGENT_HOST=datadog-agent
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_DOGSTATSD_PORT=8125
+      # GitHub
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET:-}
+    depends_on:
+      - datadog-agent
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── Traffic Generator ───────────────────────────────
+  loadgen:
+    build:
+      context: .
+      dockerfile: Dockerfile.loadgen
+    environment:
+      - LOADGEN_TARGET_URL=http://checkout-api:3000
+      - LOADGEN_INTERVAL_MS=${LOADGEN_INTERVAL_MS:-60000}
+    depends_on:
+      checkout-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Datadog Agent ──────────────────────────────────
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:7
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=${DD_SITE:-datadoghq.com}
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE="name:datadog-agent"
+      - DD_PROCESS_AGENT_ENABLED=true
+    ports:
+      - "8126:8126"   # APM traces
+      - "8125:8125/udp" # DogStatsD
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    restart: unless-stopped
