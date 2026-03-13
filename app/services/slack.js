@@ -260,7 +260,7 @@ function startSessionPoller(sessionId, channel, threadTs) {
         return;
       }
 
-      const status = session.status || session.status_enum || 'unknown';
+      const status = session.status_enum || session.status || 'unknown';
 
       // Notify on status change
       if (status !== lastStatus) {
@@ -285,13 +285,13 @@ function startSessionPoller(sessionId, channel, threadTs) {
         const prUrl = session.pull_request.url || session.pull_request.html_url || '';
         if (prUrl) {
           await postThreadReply(token, channel, threadTs,
-            `:github: Devin created a PR: <${prUrl}|View Pull Request>`,
+            `:link: Devin created a PR: <${prUrl}|View Pull Request>`,
             [
               {
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: `:github: *Pull Request Created*\n<${prUrl}|${session.pull_request.title || 'View PR'}>`,
+                  text: `:link: *Pull Request Created*\n<${prUrl}|${session.pull_request.title || 'View PR'}>`,
                 },
               },
             ],
