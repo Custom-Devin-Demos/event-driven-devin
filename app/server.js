@@ -19,9 +19,14 @@ const checkoutRoutes = require('./routes/checkout');
 const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const webhookRoutes = require('./routes/webhook');
+const storefrontRoutes = require('./routes/storefront');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Serve static storefront UI
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware: parse JSON (capture raw body for webhook signature verification)
 app.use(express.json({
@@ -62,6 +67,7 @@ app.use(checkoutRoutes);
 app.use(ordersRoutes);
 app.use(adminRoutes);
 app.use(webhookRoutes);
+app.use(storefrontRoutes);
 
 // 404 handler
 app.use((req, res) => {
