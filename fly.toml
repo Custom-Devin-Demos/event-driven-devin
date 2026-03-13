@@ -1,0 +1,38 @@
+# Fly.io deployment config for Acme Commerce checkout-api
+# Deploy with: fly launch --copy-config --no-deploy
+#              fly secrets set SENTRY_DSN=... DD_API_KEY=... DD_SITE=...
+#              fly deploy
+
+app = "acme-checkout-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+  APP_VERSION = "1.0.0"
+  APP_SCENARIO = "healthy"
+  DD_ENV = "demo"
+  DD_SERVICE = "checkout-api"
+  DD_VERSION = "1.0.0"
+  SENTRY_ENVIRONMENT = "demo"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+  method = "GET"
+  path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
