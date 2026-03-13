@@ -17,61 +17,115 @@ function buildPrompt(alertData) {
     count, shortId, project, release, environment, triggeredRule,
   } = alertData;
 
-  const tagLines = tags && tags.length > 0
+  // Build the error details table rows (only include rows with values)
+  const detailRows = [
+    ['Error', issueTitle],
+    ['Location', culprit],
+    ['Type', errorType],
+    ['Message', errorValue],
+    ['Level', level],
+    ['Platform', platform],
+    ['Short ID', shortId],
+    ['Sentry Issue', issueUrl ? `[${issueUrl}](${issueUrl})` : ''],
+    ['Triggered Rule', triggeredRule],
+  ].filter(([, v]) => v);
+
+  const detailTable = [
+    '| Field | Value |',
+    '|-------|-------|',
+    ...detailRows.map(([k, v]) => `| ${k} | ${v} |`),
+  ].join('\n');
+
+  // Build the occurrence info table rows
+  const occurrenceRows = [
+    ['First Seen', firstSeen],
+    ['Last Seen', lastSeen],
+    ['Event Count', count ? String(count) : ''],
+    ['Project', project],
+    ['Release', release],
+    ['Environment', environment],
+  ].filter(([, v]) => v);
+
+  const occurrenceTable = occurrenceRows.length > 0
+    ? [
+      '| Field | Value |',
+      '|-------|-------|',
+      ...occurrenceRows.map(([k, v]) => `| ${k} | ${v} |`),
+    ].join('\n')
+    : '';
+
+  // Build tags table
+  const tagRows = tags && tags.length > 0
     ? tags.map((t) => {
       const key = t.key || t[0] || '';
       const value = t.value || t[1] || '';
-      return `  - ${key}: ${value}`;
-    }).join('\n')
-    : '  (none available in webhook payload — check Sentry MCP for full tags)';
+      return `| ${key} | ${value} |`;
+    })
+    : [];
 
-  const extraLines = extra && Object.keys(extra).length > 0
-    ? Object.entries(extra).map(([k, v]) => `  - ${k}: ${JSON.stringify(v)}`).join('\n')
+  const tagTable = tagRows.length > 0
+    ? ['| Tag | Value |', '|-----|-------|', ...tagRows].join('\n')
+    : '_No tags available in webhook payload — use Sentry MCP to retrieve full tags._';
+
+  // Build extra context as code block
+  const extraBlock = extra && Object.keys(extra).length > 0
+    ? '```json\n' + JSON.stringify(extra, null, 2) + '\n```'
     : '';
 
-  const lines = [
-    'A Sentry alert just fired for the checkout-api service. Investigate this error immediately.',
+  // Error message in a code block for readability
+  const errorBlock = errorValue
+    ? '```\n' + errorValue + '\n```'
+    : '';
+
+  const sections = [
+    '# Sentry Alert — Investigate Immediately',
+    '',
+    `> A Sentry alert just fired for the **checkout-api** service.${triggeredRule ? ` Triggered by rule: **${triggeredRule}**.` : ''}`,
     '',
     '## Error Details',
-    `**Error:** ${issueTitle}`,
-    culprit ? `**Location:** ${culprit}` : '',
-    errorType ? `**Type:** ${errorType}` : '',
-    errorValue ? `**Message:** ${errorValue}` : '',
-    level ? `**Level:** ${level}` : '',
-    platform ? `**Platform:** ${platform}` : '',
-    shortId ? `**Short ID:** ${shortId}` : '',
-    issueUrl ? `**Sentry Issue:** ${issueUrl}` : '',
-    triggeredRule ? `**Triggered Rule:** ${triggeredRule}` : '',
     '',
-    '## Occurrence Info',
-    firstSeen ? `**First Seen:** ${firstSeen}` : '',
-    lastSeen ? `**Last Seen:** ${lastSeen}` : '',
-    count ? `**Event Count:** ${count}` : '',
-    project ? `**Project:** ${project}` : '',
-    release ? `**Release:** ${release}` : '',
-    environment ? `**Environment:** ${environment}` : '',
+    detailTable,
+    '',
+    errorBlock ? '### Error Message\n\n' + errorBlock : '',
+    '',
+    occurrenceTable ? '## Occurrence Info\n\n' + occurrenceTable : '',
     '',
     '## Tags',
-    tagLines,
-    extraLines ? `\n## Extra Context\n${extraLines}` : '',
+    '',
+    tagTable,
+    '',
+    extraBlock ? '## Extra Context\n\n' + extraBlock : '',
+    '',
+    '---',
     '',
     '## Investigation Steps',
-    '1. Use your Sentry MCP integration to look up this issue. Examine the full stack trace, breadcrumbs, affected releases, and any related events.',
-    '2. Use your Datadog MCP integration to check APM traces for the checkout-api service around the time of this error. Look at error rates, latency spikes, and correlated logs.',
-    '3. Look at the source code in the COG-GTM/event-driven-devin repository to find the root cause. The error is in the checkout flow.',
-    '4. Identify the exact line of code causing the issue and explain the root cause.',
-    '5. Implement a fix in the code.',
-    '6. Run the application locally (npm install && npm start) and test your fix to make sure it works before submitting anything.',
-    '7. Once you have verified the fix works locally, create a PR with the fix.',
+    '',
+    '1. **Sentry** — Use your Sentry MCP integration to look up this issue. Examine the full stack trace, breadcrumbs, affected releases, and any related events.',
+    '2. **Datadog** — Use your Datadog MCP integration to check APM traces for the `checkout-api` service around the time of this error. Look at error rates, latency spikes, and correlated logs.',
+    '3. **Source Code** — Look at the source code in the [`COG-GTM/event-driven-devin`](https://github.com/COG-GTM/event-driven-devin) repository to find the root cause. The error is in the checkout flow.',
+    '4. **Root Cause** — Identify the exact line of code causing the issue and explain the root cause.',
+    '5. **Fix** — Implement a fix in the code.',
+    '6. **Test Locally** — Run the application locally (`npm install && npm start`) and test your fix to make sure it works before submitting anything.',
+    '7. **Create PR** — Once you have verified the fix works locally, create a PR with the fix.',
+    '',
+    '---',
     '',
     '## Context',
-    'Repository: https://github.com/COG-GTM/event-driven-devin',
-    'Service: checkout-api',
-    'Environment: demo',
-    'Datadog Dashboard: https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg',
+    '',
+    '| Resource | Link |',
+    '|----------|------|',
+    '| Repository | [COG-GTM/event-driven-devin](https://github.com/COG-GTM/event-driven-devin) |',
+    '| Datadog Dashboard | [checkout-api overview](https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg) |',
+    issueUrl ? `| Sentry Issue | [View in Sentry](${issueUrl}) |` : '',
+    '',
+    '> **Service:** checkout-api  ',
+    '> **Environment:** demo',
   ];
 
-  return lines.filter((l) => l !== false && l !== null && l !== undefined).join('\n');
+  return sections
+    .filter((l) => l !== false && l !== null && l !== undefined)
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n');
 }
 
 /**
