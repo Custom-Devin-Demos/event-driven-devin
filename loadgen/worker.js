@@ -5,6 +5,12 @@ const INTERVAL_MS = parseInt(process.env.LOADGEN_INTERVAL_MS, 10) || 60000;
 
 const PERSONAS = ['buyer_1', 'buyer_2', 'admin_ops'];
 
+const PERSONA_USER_IDS = {
+  buyer_1: 'usr_b1_acme',
+  buyer_2: 'usr_b2_acme',
+  admin_ops: 'usr_admin_acme',
+};
+
 const SEARCH_QUERIES = ['widget', 'gadget', 'tool', 'premium', 'pro', 'mini', 'accessory', 'kit'];
 
 const REGIONS = ['US', 'EU', 'UK', 'CA'];
@@ -100,7 +106,7 @@ async function sendCheckoutRequests(count) {
     const region = randomFrom(REGIONS);
     promises.push(
       makeRequest('post', '/checkout', {
-        userId: `usr_${persona}_acme`,
+        userId: PERSONA_USER_IDS[persona],
         items: [item],
         subtotal: item.price * item.qty,
         region,
