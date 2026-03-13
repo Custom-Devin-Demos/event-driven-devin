@@ -34,10 +34,11 @@ const TAX_REGIONS = {
 
 /**
  * Look up tax region configuration.
- * Returns the region config for the given region code.
+ * Returns the region config for the given region code, defaulting to US
+ * if the region is not found or not provided.
  */
 function getTaxRegion(regionCode) {
-  return TAX_REGIONS[regionCode];
+  return TAX_REGIONS[regionCode] || TAX_REGIONS['US'];
 }
 
 /**
@@ -56,7 +57,7 @@ function calculateTax(order) {
     }
   }
 
-  const region = getTaxRegion(order.region);
+  const region = getTaxRegion(order.region || 'US');
   return order.subtotal * region.taxRate;
 }
 
