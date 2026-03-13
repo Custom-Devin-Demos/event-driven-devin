@@ -78,14 +78,7 @@ const alerts = [
     ],
     actionMatch: 'all',
     filterMatch: 'all',
-    filters: [
-      {
-        id: 'sentry.rules.filters.tagged_event.TaggedEventFilter',
-        key: 'scenario',
-        match: 'eq',
-        value: 'checkout-regression',
-      },
-    ],
+    filters: [],
     frequency: 5,
     environment: 'prod',
   },
