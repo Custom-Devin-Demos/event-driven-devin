@@ -1,6 +1,7 @@
 const axios = require('axios');
 
-const TARGET_URL = process.env.LOADGEN_TARGET_URL || 'http://localhost:3000';
+const TARGET_URL_RAW = process.env.LOADGEN_TARGET_URL || 'http://localhost:3000';
+const TARGET_URL = TARGET_URL_RAW.startsWith('http') ? TARGET_URL_RAW : `http://${TARGET_URL_RAW}`;
 const INTERVAL_MS = parseInt(process.env.LOADGEN_INTERVAL_MS, 10) || 60000;
 
 const PERSONAS = ['buyer_1', 'buyer_2', 'admin_ops'];
