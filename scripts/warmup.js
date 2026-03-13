@@ -12,6 +12,12 @@ const WARMUP_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 const CYCLE_INTERVAL_MS = 30 * 1000; // every 30 seconds
 
 const PERSONAS = ['buyer_1', 'buyer_2', 'admin_ops'];
+
+const PERSONA_USER_IDS = {
+  buyer_1: 'usr_b1_acme',
+  buyer_2: 'usr_b2_acme',
+  admin_ops: 'usr_admin_acme',
+};
 const QUERIES = ['widget', 'gadget', 'tool', 'premium', 'pro'];
 const REGIONS = ['US', 'EU', 'UK', 'CA'];
 
@@ -49,7 +55,7 @@ async function warmupCycle(cycleNum) {
   // 2 checkout requests
   for (let i = 0; i < 2; i++) {
     promises.push(sendRequest('post', '/checkout', {
-      userId: `usr_${randomFrom(['buyer_1', 'buyer_2'])}_acme`,
+      userId: PERSONA_USER_IDS[randomFrom(['buyer_1', 'buyer_2'])],
       subtotal: 19.99 + Math.random() * 70,
       region: randomFrom(REGIONS),
       persona: randomFrom(['buyer_1', 'buyer_2']),
