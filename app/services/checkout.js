@@ -43,7 +43,7 @@ function calculateTax(order) {
     UK: { taxRate: 0.20 },
     CA: { taxRate: 0.13 },
   };
-  const region = taxRegions[order.region || 'US'];
+  const region = taxRegions[order.region || 'US'] || taxRegions['US'];
   return order.subtotal * region.taxRate;
 }
 
