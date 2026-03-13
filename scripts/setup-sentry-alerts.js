@@ -86,7 +86,7 @@ const alerts = [
         value: 'checkout-regression',
       },
     ],
-    frequency: 30,
+    frequency: 5,
     environment: 'demo',
   },
   {
@@ -104,7 +104,25 @@ const alerts = [
     actionMatch: 'all',
     filterMatch: 'all',
     filters: [],
-    frequency: 30,
+    frequency: 5,
+    environment: 'demo',
+  },
+  {
+    name: '[Acme Demo] Regression Detected',
+    conditions: [
+      {
+        id: 'sentry.rules.conditions.regression_event.RegressionEventCondition',
+      },
+    ],
+    actions: [
+      {
+        id: 'sentry.rules.actions.notify_event.NotifyEventAction',
+      },
+    ],
+    actionMatch: 'all',
+    filterMatch: 'all',
+    filters: [],
+    frequency: 5,
     environment: 'demo',
   },
 ];
