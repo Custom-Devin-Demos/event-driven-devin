@@ -104,7 +104,7 @@ app.listen(PORT, () => {
   logger.info('Acme Commerce API started', {
     port: PORT,
     version: process.env.DD_VERSION || process.env.APP_VERSION || '1.0.0',
-    environment: process.env.DD_ENV || 'demo',
+    environment: process.env.DD_ENV || 'prod',
     scenario: getScenario(),
     service: process.env.DD_SERVICE || 'checkout-api',
   });
@@ -114,7 +114,7 @@ app.listen(PORT, () => {
   ║                                              ║
   ║  Port:        ${String(PORT).padEnd(30)}║
   ║  Version:     ${(process.env.DD_VERSION || process.env.APP_VERSION || '1.0.0').padEnd(30)}║
-  ║  Environment: ${(process.env.DD_ENV || 'demo').padEnd(30)}║
+  ║  Environment: ${(process.env.DD_ENV || 'prod').padEnd(30)}║
   ║  Scenario:    ${getScenario().padEnd(30)}║
   ║                                              ║
   ║  Endpoints:                                  ║

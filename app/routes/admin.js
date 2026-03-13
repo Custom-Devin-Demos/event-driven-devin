@@ -50,7 +50,7 @@ router.get('/admin/info', (req, res) => {
   res.json({
     service: process.env.DD_SERVICE || 'checkout-api',
     version: process.env.DD_VERSION || process.env.APP_VERSION || '1.0.0',
-    environment: process.env.DD_ENV || 'demo',
+    environment: process.env.DD_ENV || 'prod',
     scenario: getScenarioInfo(),
     node: process.version,
     uptime: process.uptime(),

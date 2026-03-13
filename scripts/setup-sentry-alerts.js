@@ -63,7 +63,7 @@ if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
 
 const alerts = [
   {
-    name: '[Acme Demo] Checkout Error Spike',
+    name: 'Checkout Error Spike',
     conditions: [
       {
         id: 'sentry.rules.conditions.event_frequency.EventFrequencyCondition',
@@ -87,10 +87,10 @@ const alerts = [
       },
     ],
     frequency: 5,
-    environment: 'demo',
+    environment: 'prod',
   },
   {
-    name: '[Acme Demo] New Issue on Release',
+    name: 'New Issue on Release',
     conditions: [
       {
         id: 'sentry.rules.conditions.first_seen_event.FirstSeenEventCondition',
@@ -105,10 +105,10 @@ const alerts = [
     filterMatch: 'all',
     filters: [],
     frequency: 5,
-    environment: 'demo',
+    environment: 'prod',
   },
   {
-    name: '[Acme Demo] Regression Detected',
+    name: 'Regression Detected',
     conditions: [
       {
         id: 'sentry.rules.conditions.regression_event.RegressionEventCondition',
@@ -123,7 +123,7 @@ const alerts = [
     filterMatch: 'all',
     filters: [],
     frequency: 5,
-    environment: 'demo',
+    environment: 'prod',
   },
 ];
 
