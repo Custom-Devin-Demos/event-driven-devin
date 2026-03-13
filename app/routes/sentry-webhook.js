@@ -39,6 +39,7 @@ function buildPrompt(alertData) {
     '3. Look at the source code in the COG-GTM/event-driven-devin repository to find the root cause. The error is in the checkout flow.',
     '4. Identify the exact line of code causing the issue and explain the root cause.',
     '5. Propose a fix (as a PR if possible) that resolves the error without breaking existing functionality.',
+    '6. If you are able to fix it, run the application in localhost and test yourself to ensure the change works.',
     '',
     'Repository: https://github.com/COG-GTM/event-driven-devin',
     'Service: checkout-api',
