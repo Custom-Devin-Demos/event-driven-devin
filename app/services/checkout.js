@@ -23,7 +23,6 @@ class InventoryReservationError extends Error {
 
 /**
  * Tax region configuration
- * Optimized: moved to module scope to avoid re-creating on every call
  */
 const TAX_REGIONS = {
   US: { taxRate: 0.08, currency: 'USD' },
@@ -43,15 +42,11 @@ function getTaxRegion(regionCode) {
 
 /**
  * Calculate tax for an order based on region.
- * Optimized to use direct region lookup instead of rebuilding map per call.
  */
 function calculateTax(order) {
-  // In checkout-regression scenario, region can be null which causes the bug
   if (isScenarioActive('checkout-regression')) {
-    // Simulate the bug: sometimes region is null
     if (Math.random() < 0.4) {
-      const region = null; // Bug: missing null check
-      // This will throw: Cannot read properties of null (reading 'taxRate')
+      const region = null;
       const taxRate = region.taxRate;
       return order.subtotal * taxRate;
     }
@@ -107,15 +102,12 @@ async function processCheckout(orderData) {
       }
     }
 
-    // Simulate checkout-regression scenario (the "bad deploy" story)
     if (isScenarioActive('checkout-regression')) {
-      // Intermittent errors at ~40% rate when regression is active
       if (Math.random() < 0.15) {
         throw new InventoryReservationError();
       }
     }
 
-    // Calculate tax (may throw in checkout-regression scenario)
     const tax = calculateTax(order);
     const total = order.subtotal + tax;
 

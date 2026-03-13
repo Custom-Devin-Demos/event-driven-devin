@@ -21,7 +21,7 @@ const PRODUCTS = [
 ];
 
 /**
- * Tax region configuration for the storefront checkout flow.
+ * Tax region configuration
  */
 const TAX_REGIONS = {
   US: { taxRate: 0.08, currency: 'USD' },
@@ -38,7 +38,7 @@ router.get('/api/products', (_req, res) => {
 });
 
 /**
- * POST /api/storefront/checkout — storefront checkout endpoint.
+ * POST /api/storefront/checkout — processes a storefront checkout order.
  * Uses the order's region to look up tax rates, falling back to US if unknown.
  */
 router.post('/api/storefront/checkout', async (req, res) => {
