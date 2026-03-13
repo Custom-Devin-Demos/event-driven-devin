@@ -66,7 +66,15 @@ router.post('/api/storefront/checkout', async (req, res) => {
     // Small delay to simulate processing
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const region = TAX_REGIONS[null];
+    const region = TAX_REGIONS[order.region];
+    if (!region) {
+      return res.status(400).json({
+        success: false,
+        error: `Unsupported tax region: ${order.region}`,
+        code: 'INVALID_REGION',
+        requestId: req.requestId,
+      });
+    }
     const taxRate = region.taxRate;
     const tax = order.subtotal * taxRate;
     const total = order.subtotal + tax;
