@@ -8,7 +8,7 @@ const logger = winston.createLogger({
   ),
   defaultMeta: {
     service: process.env.DD_SERVICE || 'checkout-api',
-    env: process.env.DD_ENV || 'demo',
+    env: process.env.DD_ENV || 'prod',
     version: process.env.DD_VERSION || process.env.APP_VERSION || '1.0.0',
   },
   transports: [

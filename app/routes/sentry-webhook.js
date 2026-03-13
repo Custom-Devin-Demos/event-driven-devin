@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
+const { postAlertToSlack, startSessionPoller } = require('../services/slack');
 
 const router = express.Router();
 
@@ -105,8 +106,8 @@ function buildPrompt(alertData) {
     '3. **Source Code** — Look at the source code in the [`COG-GTM/event-driven-devin`](https://github.com/COG-GTM/event-driven-devin) repository to find the root cause. The error is in the checkout flow.',
     '4. **Root Cause** — Identify the exact line of code causing the issue and explain the root cause.',
     '5. **Fix** — Implement a fix in the code.',
-    '6. **Test Locally** — Run the application locally (`npm install && npm start`) and test your fix to make sure it works before submitting anything.',
-    '7. **Create PR** — Once you have verified the fix works locally, create a PR with the fix.',
+    '6. **Test Locally in Browser** — Run the application locally with `npm install && npm start`. Open your browser to `http://localhost:3000`. Browse the storefront, add an item to your cart, and complete the full checkout flow. Verify the checkout succeeds without errors. Do NOT test via curl or API calls — use the browser UI to confirm the fix works end-to-end as a real user would.',
+    '7. **Create PR** — Once you have verified the fix works in the browser, create a PR with the fix.',
     '',
     '---',
     '',
@@ -119,7 +120,7 @@ function buildPrompt(alertData) {
     issueUrl ? `| Sentry Issue | [View in Sentry](${issueUrl}) |` : '',
     '',
     '> **Service:** checkout-api  ',
-    '> **Environment:** demo',
+    '> **Environment:** prod',
   ];
 
   return sections
@@ -302,6 +303,18 @@ router.post('/webhooks/sentry', async (req, res) => {
       sessionUrl: session.url,
       issueTitle: alertData.issueTitle,
     });
+
+    // Post alert to Slack with Devin session link (non-blocking)
+    const slackChannel = process.env.SLACK_CHANNEL_ID;
+    postAlertToSlack(alertData, session.url)
+      .then((threadTs) => {
+        if (threadTs && session.session_id) {
+          startSessionPoller(session.session_id, slackChannel, threadTs);
+        }
+      })
+      .catch((err) => {
+        logger.error('Slack post failed (non-blocking)', { error: err.message });
+      });
 
     return res.json({
       received: true,

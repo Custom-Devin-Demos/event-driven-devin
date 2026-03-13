@@ -91,8 +91,8 @@ npm start
                               │
                               ▼
                         ┌──────────────┐
-                        │  Devin API   │
-                        │  (auto-fix)  │
+                        │  Devin API   │──────▶  Slack #alerts
+                        │  (auto-fix)  │        (session updates)
                         └──────────────┘
 ```
 
@@ -135,6 +135,17 @@ When a Sentry alert fires, the `/webhooks/sentry` endpoint automatically creates
 - Tags and extra context from the Sentry event
 - Instructions to use Sentry and Datadog MCP integrations for investigation
 
+### Slack Notifications
+
+When configured, alerts are also posted to a Slack channel with rich Block Kit formatting:
+
+- **Initial alert** — Error details, severity, release, and buttons to view the Devin session and Sentry issue
+- **Session updates** — Status changes (running, blocked, completed) posted as thread replies
+- **PR notifications** — When Devin creates a fix PR, the link is posted to the thread
+- **Completion** — Final message with link to the full investigation session
+
+Requires `SLACK_BOT_TOKEN` and `SLACK_CHANNEL_ID` environment variables.
+
 ## Setup Scripts
 
 ```bash
@@ -154,6 +165,8 @@ SENTRY_AUTH_TOKEN=xxx SENTRY_ORG=xxx SENTRY_PROJECT=xxx node scripts/setup-sentr
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes |
 | `DEVIN_API_KEY` | Devin API key for auto-investigation | No |
 | `DEVIN_ORG_ID` | Devin organization ID | No |
+| `SLACK_BOT_TOKEN` | Slack bot OAuth token for alert notifications | No |
+| `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | No |
 | `APP_VERSION` | App version for telemetry tagging | No (default: `1.0.0`) |
 | `PORT` | API port | No (default: `3000`) |
 

@@ -10,7 +10,7 @@ function initSentry() {
 
   Sentry.init({
     dsn,
-    environment: process.env.SENTRY_ENVIRONMENT || process.env.DD_ENV || 'demo',
+    environment: process.env.SENTRY_ENVIRONMENT || process.env.DD_ENV || 'prod',
     release: process.env.SENTRY_RELEASE || `acme-checkout@${process.env.APP_VERSION || '1.0.0'}`,
     integrations: [
       nodeProfilingIntegration(),
@@ -31,7 +31,7 @@ function initSentry() {
   });
 
   console.log('[sentry] Initialized', {
-    environment: process.env.SENTRY_ENVIRONMENT || 'demo',
+    environment: process.env.SENTRY_ENVIRONMENT || 'prod',
     release: process.env.SENTRY_RELEASE || `acme-checkout@${process.env.APP_VERSION || '1.0.0'}`,
   });
 }

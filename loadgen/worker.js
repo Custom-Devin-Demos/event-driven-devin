@@ -123,15 +123,13 @@ async function runTrafficCycle() {
   const searchCount = Math.max(1, Math.round(6 * multiplier));
   const loginCount = Math.max(1, Math.round(3 * multiplier));
   const orderCount = Math.max(1, Math.round(2 * multiplier));
-  const checkoutCount = Math.max(1, Math.round(2 * multiplier));
 
   console.log(`\n[loadgen] ---- Traffic cycle @ ${new Date().toISOString()} (multiplier: ${multiplier}) ----`);
-  console.log(`[loadgen] Sending: ${searchCount} search, ${loginCount} login, ${orderCount} orders, ${checkoutCount} checkout`);
+  console.log(`[loadgen] Sending: ${searchCount} search, ${loginCount} login, ${orderCount} orders (checkout excluded — manual only)`);
 
   await sendSearchRequests(searchCount);
   await sendLoginRequests(loginCount);
   await sendOrderLookups(orderCount);
-  await sendCheckoutRequests(checkoutCount);
 
   console.log('[loadgen] ---- Cycle complete ----\n');
 }
@@ -188,18 +186,12 @@ async function main() {
     }
   }, INTERVAL_MS);
 
-  // Every 10 minutes: slow burst (send 3 extra slow-hitting requests rapidly)
+  // Every 10 minutes: slow burst (send 3 extra search requests rapidly)
   setInterval(async () => {
     console.log('[loadgen] === SLOW BURST (10-min interval) ===');
-    await sendCheckoutRequests(3);
     await sendSearchRequests(3);
+    await sendLoginRequests(2);
   }, 10 * 60 * 1000);
-
-  // Every 30 minutes: error cluster (send rapid checkout requests to trigger errors)
-  setInterval(async () => {
-    console.log('[loadgen] === ERROR CLUSTER (30-min interval) ===');
-    await sendCheckoutRequests(5);
-  }, 30 * 60 * 1000);
 }
 
 main().catch((error) => {

@@ -4,7 +4,7 @@ const StatsD = require('hot-shots');
 let dogstatsd = null;
 
 function initDatadog() {
-  const env = process.env.DD_ENV || 'demo';
+  const env = process.env.DD_ENV || 'prod';
   const service = process.env.DD_SERVICE || 'checkout-api';
   const version = process.env.DD_VERSION || process.env.APP_VERSION || '1.0.0';
 
