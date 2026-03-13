@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
+const { postAlertToSlack, startSessionPoller } = require('../services/slack');
 
 const router = express.Router();
 
@@ -302,6 +303,18 @@ router.post('/webhooks/sentry', async (req, res) => {
       sessionUrl: session.url,
       issueTitle: alertData.issueTitle,
     });
+
+    // Post alert to Slack with Devin session link (non-blocking)
+    const slackChannel = process.env.SLACK_CHANNEL_ID;
+    postAlertToSlack(alertData, session.url)
+      .then((threadTs) => {
+        if (threadTs && session.session_id) {
+          startSessionPoller(session.session_id, slackChannel, threadTs);
+        }
+      })
+      .catch((err) => {
+        logger.error('Slack post failed (non-blocking)', { error: err.message });
+      });
 
     return res.json({
       received: true,
