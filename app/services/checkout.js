@@ -22,7 +22,27 @@ class InventoryReservationError extends Error {
 }
 
 /**
- * Simulates tax calculation - this is the function that has the "null reference" bug in v1.0.1
+ * Tax region configuration
+ * Optimized: moved to module scope to avoid re-creating on every call
+ */
+const TAX_REGIONS = {
+  US: { taxRate: 0.08, currency: 'USD' },
+  EU: { taxRate: 0.20, currency: 'EUR' },
+  UK: { taxRate: 0.20, currency: 'GBP' },
+  CA: { taxRate: 0.13, currency: 'CAD' },
+};
+
+/**
+ * Look up tax region configuration.
+ * Returns the region config for the given region code.
+ */
+function getTaxRegion(regionCode) {
+  return TAX_REGIONS[regionCode];
+}
+
+/**
+ * Calculate tax for an order based on region.
+ * Optimized to use direct region lookup instead of rebuilding map per call.
  */
 function calculateTax(order) {
   // In checkout-regression scenario, region can be null which causes the bug
@@ -36,14 +56,7 @@ function calculateTax(order) {
     }
   }
 
-  // Normal path
-  const taxRegions = {
-    US: { taxRate: 0.08 },
-    EU: { taxRate: 0.20 },
-    UK: { taxRate: 0.20 },
-    CA: { taxRate: 0.13 },
-  };
-  const region = taxRegions[order.region || 'US'];
+  const region = getTaxRegion(order.region);
   return order.subtotal * region.taxRate;
 }
 
