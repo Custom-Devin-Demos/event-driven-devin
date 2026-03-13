@@ -1,0 +1,50 @@
+# Render Blueprint for Acme Commerce
+# Deploy: Connect repo in Render dashboard, it will auto-detect this file
+# Set env vars SENTRY_DSN, DD_API_KEY, DD_SITE in Render dashboard
+
+services:
+  # Checkout API
+  - type: web
+    name: acme-checkout-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: NODE_ENV
+        value: production
+      - key: APP_VERSION
+        value: "1.0.0"
+      - key: APP_SCENARIO
+        value: healthy
+      - key: DD_ENV
+        value: demo
+      - key: DD_SERVICE
+        value: checkout-api
+      - key: DD_VERSION
+        value: "1.0.0"
+      - key: SENTRY_ENVIRONMENT
+        value: demo
+      - key: SENTRY_DSN
+        sync: false  # Set manually in dashboard
+      - key: DD_API_KEY
+        sync: false
+      - key: DD_SITE
+        sync: false
+
+  # Traffic Generator (background worker)
+  - type: worker
+    name: acme-loadgen
+    runtime: docker
+    dockerfilePath: ./Dockerfile.loadgen
+    plan: starter
+    envVars:
+      - key: LOADGEN_TARGET_URL
+        fromService:
+          name: acme-checkout-api
+          type: web
+          property: hostport
+      - key: LOADGEN_INTERVAL_MS
+        value: "60000"

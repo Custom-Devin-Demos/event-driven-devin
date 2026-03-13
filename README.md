@@ -196,6 +196,100 @@ Target ratios: 92-96% success, 3-6% slow, 1-2% failures.
 8. Devin proposes a fix
 9. Reset: `node scripts/trigger.js healthy`
 
+## Deployment
+
+Deployment configs are provided for multiple platforms. Choose one:
+
+### Option A: Docker Compose (local or VM)
+
+Best for EC2 / any VM with Docker installed:
+
+```bash
+cp .env.example .env
+# Fill in SENTRY_DSN, DD_API_KEY, DD_SITE
+docker-compose up --build -d
+```
+
+### Option B: Railway
+
+1. Connect this repo in the [Railway dashboard](https://railway.app)
+2. Railway auto-detects `railway.json`
+3. Set environment variables in the Railway dashboard: `SENTRY_DSN`, `DD_API_KEY`, `DD_SITE`
+4. Deploy the loadgen as a separate service using `Dockerfile.loadgen`
+
+### Option C: Render
+
+1. Connect this repo in the [Render dashboard](https://dashboard.render.com)
+2. Render auto-detects `render.yaml` (Blueprint)
+3. Set secret env vars (`SENTRY_DSN`, `DD_API_KEY`, `DD_SITE`) in the Render dashboard
+
+### Option D: Fly.io
+
+```bash
+fly launch --copy-config --no-deploy
+fly secrets set SENTRY_DSN=... DD_API_KEY=... DD_SITE=...
+fly deploy
+```
+
+> **Note:** The Datadog Agent requires Docker socket access and is best run via Docker Compose (Option A) or as a sidecar. For Railway/Render/Fly.io, you can run the app and loadgen without the agent and use Datadog's agentless APM or deploy the agent separately.
+
+## Observability Dashboards
+
+### Datadog Dashboard (automated)
+
+Create the pre-built "Acme Commerce - Checkout API Overview" dashboard:
+
+```bash
+DD_API_KEY=xxx DD_APP_KEY=xxx DD_SITE=datadoghq.com node scripts/setup-datadog-dashboard.js
+```
+
+This creates a dashboard with:
+- Request throughput and error rate
+- p95 latency
+- Checkout success/failure counters (DogStatsD)
+- Error rate and latency by version (for release regression story)
+- Log stream filtered to `service:checkout-api env:demo`
+
+> You need a **Datadog Application Key** (not just API key) for dashboard creation. Create one at [Organization Settings > Application Keys](https://app.datadoghq.com/organization-settings/application-keys).
+
+### Sentry Alerts (automated)
+
+Create alert rules for the demo:
+
+```bash
+SENTRY_AUTH_TOKEN=xxx SENTRY_ORG=xxx SENTRY_PROJECT=xxx node scripts/setup-sentry-alerts.js
+```
+
+This creates:
+- **Checkout Error Spike** — triggers when >5 checkout-regression errors in 5 minutes
+- **New Issue on Release** — triggers on first-seen issues
+
+> Create a Sentry auth token at [Settings > Auth Tokens](https://sentry.io/settings/auth-tokens/) with `project:read` and `alerts:write` scopes.
+
+### Sentry Dashboard (manual)
+
+Sentry dashboards must be created in the UI. Go to **Dashboards > Create Dashboard** and add:
+
+| Widget | Type | Query |
+|--------|------|-------|
+| Issues by Release | Table | `is:unresolved`, group by `release` |
+| Error Trend (24h) | Line chart | `event.type:error`, Y: `count()` |
+| Checkout API Traces | Line chart | `transaction:/checkout`, Y: `p95(transaction.duration)` |
+| Top Failing Endpoints | Table | `event.type:error`, group by `transaction` |
+| Latest Regressions | Table | `is:unresolved is:regression` |
+
+## Demo Narrative (Git History)
+
+The repo contains a realistic git history for the investigation story:
+
+| Version | PR | Description |
+|---------|-----|-------------|
+| `v1.0.0` | — | Stable checkout, all scenarios working |
+| `v1.0.1` | PR #3: "optimize tax calculation" | Introduces null reference bug (removes region fallback) |
+| `v1.0.2` | PR #4: "fix nil tax region in checkout" | Fixes the bug (restores fallback) |
+
+This lets Devin trace the regression from Sentry/Datadog back to the specific PR and commit.
+
 ## Environment Variables
 
 See `.env.example` for the full list. Key variables:
