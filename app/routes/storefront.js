@@ -21,8 +21,7 @@ const PRODUCTS = [
 ];
 
 /**
- * Tax region configuration (duplicated from checkout service for the
- * storefront-specific flow that always triggers the bug)
+ * Tax region configuration
  */
 const TAX_REGIONS = {
   US: { taxRate: 0.08, currency: 'USD' },
@@ -39,11 +38,7 @@ router.get('/api/products', (_req, res) => {
 });
 
 /**
- * POST /api/storefront/checkout — storefront checkout that always
- * triggers the calculateTax null-reference bug for demo purposes.
- *
- * This simulates the v1.0.1 regression: region lookup returns null
- * and accessing .taxRate throws a TypeError.
+ * POST /api/storefront/checkout — processes a storefront checkout order.
  */
 router.post('/api/storefront/checkout', async (req, res) => {
   const startTime = Date.now();
@@ -71,9 +66,8 @@ router.post('/api/storefront/checkout', async (req, res) => {
     // Small delay to simulate processing
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    // Always trigger the v1.0.1 bug: null region lookup
-    const region = TAX_REGIONS[null]; // Bug: region key is null, returns undefined
-    const taxRate = region.taxRate;   // TypeError: Cannot read properties of undefined (reading 'taxRate')
+    const region = TAX_REGIONS[null];
+    const taxRate = region.taxRate;
     const tax = order.subtotal * taxRate;
     const total = order.subtotal + tax;
 
