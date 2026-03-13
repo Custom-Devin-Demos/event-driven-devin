@@ -84,6 +84,22 @@ function extractAlertData(payload) {
     };
   }
 
+  // Sentry "issue" webhook event (action = "created" / "resolved" / etc.)
+  // Payload shape: { action, data: { issue: ... }, installation: ... }
+  // But also handles integration webhook where issue is at top level
+  if (payload.action && payload.data) {
+    const issue = payload.data.issue || payload.data;
+    return {
+      issueTitle: issue.title || issue.metadata?.title || 'Unknown error',
+      issueUrl: issue.permalink || issue.web_url || '',
+      culprit: issue.culprit || '',
+      errorType: issue.type || issue.metadata?.type || '',
+      errorValue: issue.metadata?.value || issue.shortId || '',
+      tags: Array.isArray(issue.tags) ? issue.tags : [],
+      extra: {},
+    };
+  }
+
   // Legacy / simple webhook (top-level fields)
   return {
     issueTitle: payload.message || payload.title || 'Sentry alert',
