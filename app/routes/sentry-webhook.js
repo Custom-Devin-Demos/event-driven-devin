@@ -100,20 +100,22 @@ function extractAlertData(payload) {
  * a Devin session to investigate the error automatically.
  */
 router.post('/webhooks/sentry', async (req, res) => {
+  const payload = req.body;
+
+  // Sentry sends a POST with action: "verification" when first setting up.
+  // This must run before the API-key check so verification succeeds even
+  // when DEVIN_API_KEY / DEVIN_ORG_ID are not yet configured.
+  if (payload.action === 'verification') {
+    logger.info('Sentry webhook verification request received');
+    return res.json({ received: true, verification: true });
+  }
+
   const apiKey = process.env.DEVIN_API_KEY;
   const orgId = process.env.DEVIN_ORG_ID;
 
   if (!apiKey || !orgId) {
     logger.error('Sentry webhook received but DEVIN_API_KEY or DEVIN_ORG_ID not configured');
     return res.status(500).json({ error: 'Devin API not configured' });
-  }
-
-  const payload = req.body;
-
-  // Sentry sends a POST with action: "verification" when first setting up
-  if (payload.action === 'verification') {
-    logger.info('Sentry webhook verification request received');
-    return res.json({ received: true, verification: true });
   }
 
   logger.info('Sentry webhook received', {
