@@ -22,28 +22,31 @@ class InventoryReservationError extends Error {
 }
 
 /**
- * Simulates tax calculation - this is the function that has the "null reference" bug in v1.0.1
+ * Calculate tax for an order based on the customer's region.
+ * Falls back to the default US tax rate if the region is unknown.
  */
 function calculateTax(order) {
-  // In checkout-regression scenario, region can be null which causes the bug
-  if (isScenarioActive('checkout-regression')) {
-    // Simulate the bug: sometimes region is null
-    if (Math.random() < 0.4) {
-      const region = null; // Bug: missing null check
-      // This will throw: Cannot read properties of null (reading 'taxRate')
-      const taxRate = region.taxRate;
-      return order.subtotal * taxRate;
-    }
-  }
+  const DEFAULT_TAX_RATE = 0.08;
 
-  // Normal path
   const taxRegions = {
     US: { taxRate: 0.08 },
     EU: { taxRate: 0.20 },
     UK: { taxRate: 0.20 },
     CA: { taxRate: 0.13 },
   };
-  const region = taxRegions[order.region || 'US'];
+
+  const regionKey = order.region || 'US';
+  const region = taxRegions[regionKey];
+
+  if (!region) {
+    logger.warn('Unknown tax region, using default rate', {
+      region: regionKey,
+      defaultTaxRate: DEFAULT_TAX_RATE,
+      orderId: order.orderId,
+    });
+    return order.subtotal * DEFAULT_TAX_RATE;
+  }
+
   return order.subtotal * region.taxRate;
 }
 
