@@ -112,11 +112,11 @@ function buildAlertBlocks(alertData, sessionUrl) {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*Release:*\n${alertData.release || 'unknown'}`,
+        text: `*Release:*\n${alertData.release || process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2'}`,
       },
       {
         type: 'mrkdwn',
-        text: `*Environment:*\n${alertData.environment || 'unknown'}`,
+        text: `*Environment:*\n${alertData.environment || process.env.DD_ENV || 'prod'}`,
       },
     ],
   });
@@ -138,6 +138,11 @@ function buildAlertBlocks(alertData, sessionUrl) {
       url: alertData.issueUrl,
     });
   }
+  actions.push({
+    type: 'button',
+    text: { type: 'plain_text', text: ':bar_chart: View in Datadog', emoji: true },
+    url: 'https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg',
+  });
   if (actions.length > 0) {
     blocks.push({ type: 'actions', elements: actions });
   }
