@@ -20,6 +20,7 @@ const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const webhookRoutes = require('./routes/webhook');
 const storefrontRoutes = require('./routes/storefront');
+const sentryWebhookRoutes = require('./routes/sentry-webhook');
 const path = require('path');
 
 const app = express();
@@ -68,6 +69,7 @@ app.use(ordersRoutes);
 app.use(adminRoutes);
 app.use(webhookRoutes);
 app.use(storefrontRoutes);
+app.use(sentryWebhookRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -124,6 +126,7 @@ app.listen(PORT, () => {
   ║    GET  /admin/scenario                       ║
   ║    POST /admin/scenario                       ║
   ║    POST /webhook/github                        ║
+  ║    POST /webhooks/sentry                        ║
   ╚══════════════════════════════════════════════╝
   `);
 });
