@@ -303,13 +303,14 @@ function startSessionPoller(sessionId, channel, threadTs) {
       // Stop polling on terminal states
       if (['stopped', 'finished', 'failed'].includes(status)) {
         logger.info('Session reached terminal state, stopping poller', { sessionId, status });
+        clearInterval(interval);
 
         const sessionUrl = session.url || `https://app.devin.ai/sessions/${sessionId}`;
         await postThreadReply(token, channel, threadTs,
           `:checkered_flag: Investigation complete — <${sessionUrl}|View full session>`,
-        );
-
-        clearInterval(interval);
+        ).catch((err) => {
+          logger.error('Failed to post completion message to Slack', { error: err.message });
+        });
       }
     } catch (error) {
       logger.error('Session poll error', {
