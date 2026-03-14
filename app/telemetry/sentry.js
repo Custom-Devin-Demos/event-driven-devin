@@ -1,5 +1,4 @@
 const Sentry = require('@sentry/node');
-const { dedupeIntegration } = require('@sentry/node');
 const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 function initSentry() {
@@ -13,9 +12,9 @@ function initSentry() {
     dsn,
     environment: process.env.SENTRY_ENVIRONMENT || process.env.DD_ENV || 'prod',
     release: process.env.SENTRY_RELEASE || `acme-checkout@${process.env.APP_VERSION || '1.0.0'}`,
-    integrations: [
+    integrations: (defaults) => [
+      ...defaults.filter((i) => i.name !== 'Dedupe'),
       nodeProfilingIntegration(),
-      dedupeIntegration({ enabled: false }),
     ],
     tracesSampleRate: 1.0,
     profilesSampleRate: 1.0,
