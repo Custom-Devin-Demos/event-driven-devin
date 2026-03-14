@@ -162,7 +162,7 @@ async function createSessionAndAlert(alertData) {
   }
 
   // Cooldown check
-  const cooldownKey = `${alertData.issueTitle}:${alertData.issueUrl || alertData.shortId || ''}`.toLowerCase().trim();
+  const cooldownKey = `${alertData.issueTitle}`.toLowerCase().trim();
   const lastCreated = sessionCooldowns.get(cooldownKey);
   if (lastCreated && (Date.now() - lastCreated) < COOLDOWN_MS) {
     const remainingMin = Math.round((COOLDOWN_MS - (Date.now() - lastCreated)) / 60000);
