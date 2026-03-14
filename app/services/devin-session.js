@@ -1,12 +1,9 @@
-const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postAlertToSlack, startSessionPoller } = require('./slack');
-
-const DEVIN_API_BASE = 'https://api.devin.ai/v3';
+const { postAlertToSlack, postDevinReply } = require('./slack');
 
 /**
- * In-memory cooldown map to prevent duplicate Devin sessions.
- * Key: normalized issue identifier, Value: timestamp of last session created.
+ * In-memory cooldown map to prevent duplicate alerts.
+ * Key: normalized issue identifier, Value: timestamp of last alert.
  * Cooldown: 5 minutes (matches alert rule frequency).
  */
 const sessionCooldowns = new Map();
@@ -24,7 +21,8 @@ setInterval(() => {
 
 /**
  * Build a rich investigation prompt from alert data.
- * Includes every detail available so Devin has full context.
+ * This prompt is sent as a @Devin reply in the Slack thread so the
+ * native Devin Slack integration picks it up and starts a session.
  */
 function buildPrompt(alertData) {
   const {
@@ -140,33 +138,28 @@ function buildPrompt(alertData) {
 }
 
 /**
- * Create a Devin session and post an alert to Slack.
+ * Post an alert to Slack and trigger Devin via native Slack integration.
  *
- * This is the shared core that both the Sentry webhook handler and the
- * storefront checkout error handler call. It handles:
- *   - Cooldown check (prevent duplicate sessions)
- *   - Devin API call to create session
- *   - Slack alert post with session link
- *   - Session poller for thread updates
+ * Flow:
+ *   1. Post the rich alert message using the bot token (appears as "Automated Alerts")
+ *   2. Reply in the thread using a user token with @Devin + investigation prompt
+ *      — Slack treats user-token messages as coming from a real human
+ *      — The Devin Slack app picks up the @mention and starts a session natively
+ *
+ * This replaces the previous API-based session creation + custom poller approach.
+ * The native Devin Slack integration provides live thread updates, PR links,
+ * and interactive conversation — much richer than our custom poller.
  *
  * @param {Object} alertData - Normalized alert data (issueTitle, errorType, etc.)
- * @returns {Object|null} - { sessionId, url, status } or null if skipped/failed
+ * @returns {Object|null} - { triggered: true, threadTs } or null if skipped/failed
  */
 async function createSessionAndAlert(alertData) {
-  const apiKey = process.env.DEVIN_API_KEY;
-  const orgId = process.env.DEVIN_ORG_ID;
-
-  if (!apiKey || !orgId) {
-    logger.error('DEVIN_API_KEY or DEVIN_ORG_ID not configured — skipping session creation');
-    return null;
-  }
-
   // Cooldown check
   const cooldownKey = `${alertData.issueTitle}`.toLowerCase().trim();
   const lastCreated = sessionCooldowns.get(cooldownKey);
   if (lastCreated && (Date.now() - lastCreated) < COOLDOWN_MS) {
     const remainingMin = Math.round((COOLDOWN_MS - (Date.now() - lastCreated)) / 60000);
-    logger.info('Skipping duplicate — session already created recently', {
+    logger.info('Skipping duplicate — alert already sent recently', {
       issueTitle: alertData.issueTitle,
       cooldownRemainingMin: remainingMin,
     });
@@ -179,54 +172,35 @@ async function createSessionAndAlert(alertData) {
   try {
     const prompt = buildPrompt(alertData);
 
-    logger.info('Creating Devin session', {
+    logger.info('Posting alert and triggering Devin via Slack', {
       issueTitle: alertData.issueTitle,
       errorType: alertData.errorType,
       errorValue: alertData.errorValue,
     });
 
-    const response = await axios.post(
-      `${DEVIN_API_BASE}/organizations/${orgId}/sessions`,
-      { prompt },
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 30000,
-      }
-    );
+    // Step 1: Post the rich alert message (bot token)
+    const threadTs = await postAlertToSlack(alertData);
 
-    const session = response.data;
+    if (!threadTs) {
+      logger.warn('Alert post returned no thread timestamp — cannot trigger Devin reply');
+      sessionCooldowns.delete(cooldownKey);
+      return null;
+    }
 
-    logger.info('Devin session created successfully', {
-      sessionId: session.session_id,
-      sessionUrl: session.url,
+    // Step 2: Reply with @Devin + prompt using user token (triggers native Devin integration)
+    await postDevinReply(threadTs, prompt);
+
+    logger.info('Devin triggered via native Slack integration', {
       issueTitle: alertData.issueTitle,
+      threadTs,
     });
 
-    // Post alert to Slack with Devin session link (non-blocking)
-    const slackChannel = process.env.SLACK_CHANNEL_ID;
-    postAlertToSlack(alertData, session.url)
-      .then((threadTs) => {
-        if (threadTs && session.session_id) {
-          startSessionPoller(session.session_id, slackChannel, threadTs);
-        }
-      })
-      .catch((err) => {
-        logger.error('Slack post failed (non-blocking)', { error: err.message });
-      });
-
-    return {
-      sessionId: session.session_id,
-      url: session.url,
-      status: session.status,
-    };
+    return { triggered: true, threadTs };
   } catch (error) {
     // Clear cooldown so the next attempt can retry
     sessionCooldowns.delete(cooldownKey);
 
-    logger.error('Failed to create Devin session', {
+    logger.error('Failed to post alert or trigger Devin', {
       error: error.message,
       status: error.response?.status,
       data: error.response?.data,
