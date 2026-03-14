@@ -135,7 +135,7 @@ router.post('/api/storefront/checkout', async (req, res) => {
     // Immediately trigger Devin session + Slack alert on checkout error (non-blocking)
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: '',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
       culprit: 'app/routes/storefront.js — POST /api/storefront/checkout',
       errorType: error.name || 'Error',
       errorValue: error.message,
