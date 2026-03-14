@@ -339,14 +339,26 @@ router.post('/webhooks/sentry', async (req, res) => {
       sessionId: session.session_id,
       sessionUrl: session.url,
       issueTitle: alertData.issueTitle,
+      responseKeys: Object.keys(session),
     });
 
     // Post alert to Slack with Devin session link (non-blocking)
     const slackChannel = process.env.SLACK_CHANNEL_ID;
     postAlertToSlack(alertData, session.url)
       .then((threadTs) => {
+        logger.info('Slack post completed, checking poller conditions', {
+          hasThreadTs: !!threadTs,
+          threadTs,
+          hasSessionId: !!session.session_id,
+          sessionId: session.session_id,
+          slackChannel,
+        });
         if (threadTs && session.session_id) {
           startSessionPoller(session.session_id, slackChannel, threadTs);
+        } else {
+          logger.warn('Skipping session poller — missing threadTs or session_id', {
+            threadTs, sessionId: session.session_id,
+          });
         }
       })
       .catch((err) => {

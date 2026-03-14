@@ -240,6 +240,9 @@ async function fetchSessionStatus(sessionId) {
 function startSessionPoller(sessionId, channel, threadTs) {
   const token = process.env.SLACK_BOT_TOKEN;
   if (!token || !channel || !threadTs) {
+    logger.warn('Session poller not started — missing config', {
+      hasToken: !!token, hasChannel: !!channel, hasThreadTs: !!threadTs, sessionId,
+    });
     return;
   }
 
@@ -261,6 +264,7 @@ function startSessionPoller(sessionId, channel, threadTs) {
     try {
       const session = await fetchSessionStatus(sessionId);
       if (!session) {
+        logger.warn('Session poller got null response, stopping', { sessionId, pollCount });
         clearInterval(interval);
         return;
       }
