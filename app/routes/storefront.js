@@ -66,9 +66,8 @@ router.post('/api/storefront/checkout', async (req, res) => {
     // Small delay to simulate processing
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const region = TAX_REGIONS[null];
-    const taxRate = region.taxRate;
-    const tax = order.subtotal * taxRate;
+    const region = TAX_REGIONS[order.region] || TAX_REGIONS['US'];
+    const tax = order.subtotal * region.taxRate;
     const total = order.subtotal + tax;
 
     const duration = Date.now() - startTime;
