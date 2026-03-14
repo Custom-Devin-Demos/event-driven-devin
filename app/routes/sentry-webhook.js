@@ -11,10 +11,10 @@ const DEVIN_API_BASE = 'https://api.devin.ai/v3';
  * In-memory cooldown map to prevent duplicate Devin sessions.
  * Key: Sentry issue title (normalized), Value: timestamp of last session created.
  * Sentry fires a webhook for every matching event, but we only want one
- * Devin session per incident. Default cooldown: 30 minutes.
+ * Devin session per incident. Default cooldown: 5 minutes (matches alert rule frequency).
  */
 const sessionCooldowns = new Map();
-const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes (matches alert rule frequency)
 
 // Periodically evict expired cooldown entries to prevent unbounded Map growth
 setInterval(() => {
