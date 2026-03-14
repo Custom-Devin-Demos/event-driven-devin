@@ -290,11 +290,13 @@ router.post('/webhooks/sentry', async (req, res) => {
     hookResource: req.headers['sentry-hook-resource'] || 'unknown',
   });
 
+  let cooldownKey = null;
+
   try {
     const alertData = extractAlertData(payload);
 
     // Cooldown check: skip if we already created a session for this issue recently
-    const cooldownKey = alertData.issueTitle.toLowerCase().trim();
+    cooldownKey = `${alertData.issueTitle}:${alertData.issueUrl || alertData.shortId || ''}`.toLowerCase().trim();
     const lastCreated = sessionCooldowns.get(cooldownKey);
     if (lastCreated && (Date.now() - lastCreated) < COOLDOWN_MS) {
       const remainingMin = Math.round((COOLDOWN_MS - (Date.now() - lastCreated)) / 60000);
@@ -361,8 +363,9 @@ router.post('/webhooks/sentry', async (req, res) => {
     });
   } catch (error) {
     // Clear cooldown so the next webhook can retry
-    const failedKey = extractAlertData(payload).issueTitle.toLowerCase().trim();
-    sessionCooldowns.delete(failedKey);
+    if (cooldownKey) {
+      sessionCooldowns.delete(cooldownKey);
+    }
 
     logger.error('Failed to create Devin session', {
       error: error.message,
