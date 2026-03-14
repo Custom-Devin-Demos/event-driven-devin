@@ -16,6 +16,16 @@ const DEVIN_API_BASE = 'https://api.devin.ai/v3';
 const sessionCooldowns = new Map();
 const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
 
+// Periodically evict expired cooldown entries to prevent unbounded Map growth
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of sessionCooldowns) {
+    if (now - ts >= COOLDOWN_MS) {
+      sessionCooldowns.delete(key);
+    }
+  }
+}, COOLDOWN_MS);
+
 /**
  * Build a rich investigation prompt from Sentry alert data.
  * Includes every detail available so Devin has full context.
