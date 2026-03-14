@@ -44,14 +44,6 @@ function getTaxRegion(regionCode) {
  * Calculate tax for an order based on region.
  */
 function calculateTax(order) {
-  if (isScenarioActive('checkout-regression')) {
-    if (Math.random() < 0.4) {
-      const region = null;
-      const taxRate = region.taxRate;
-      return order.subtotal * taxRate;
-    }
-  }
-
   const region = getTaxRegion(order.region || 'US');
   return order.subtotal * region.taxRate;
 }
