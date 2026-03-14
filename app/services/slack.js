@@ -2,7 +2,6 @@ const axios = require('axios');
 const logger = require('../telemetry/logger');
 
 const SLACK_API_BASE = 'https://slack.com/api';
-const DEVIN_API_BASE = 'https://api.devin.ai/v3';
 
 /**
  * Post a message to a Slack channel.
@@ -56,7 +55,7 @@ async function postThreadReply(token, channel, threadTs, text, blocks) {
 /**
  * Build Slack blocks for the initial Sentry alert message.
  */
-function buildAlertBlocks(alertData, sessionUrl) {
+function buildAlertBlocks(alertData) {
   const blocks = [
     {
       type: 'header',
@@ -121,16 +120,19 @@ function buildAlertBlocks(alertData, sessionUrl) {
     ],
   });
 
+  const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
+  blocks.push({
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*On-Call:*\n<@${devinUserId}>`,
+      },
+    ],
+  });
+
   // Action buttons
   const actions = [];
-  if (sessionUrl) {
-    actions.push({
-      type: 'button',
-      text: { type: 'plain_text', text: ':robot_face: View Devin Session', emoji: true },
-      url: sessionUrl,
-      style: 'primary',
-    });
-  }
   if (alertData.issueUrl) {
     actions.push({
       type: 'button',
@@ -163,14 +165,11 @@ function buildAlertBlocks(alertData, sessionUrl) {
 /**
  * Build a plain-text fallback for the alert message.
  */
-function buildAlertText(alertData, sessionUrl) {
+function buildAlertText(alertData) {
   let text = `:rotating_light: *Sentry Alert — ${alertData.issueTitle}*\n`;
   text += `Type: ${alertData.errorType || 'unknown'} | Level: ${alertData.level || 'error'}\n`;
   if (alertData.errorValue) {
     text += `Message: ${alertData.errorValue}\n`;
-  }
-  if (sessionUrl) {
-    text += `Devin Session: ${sessionUrl}\n`;
   }
   if (alertData.issueUrl) {
     text += `Sentry Issue: ${alertData.issueUrl}`;
@@ -181,7 +180,7 @@ function buildAlertText(alertData, sessionUrl) {
 /**
  * Post the initial alert to Slack and return the thread timestamp.
  */
-async function postAlertToSlack(alertData, sessionUrl) {
+async function postAlertToSlack(alertData) {
   const token = process.env.SLACK_BOT_TOKEN;
   const channel = process.env.SLACK_CHANNEL_ID;
 
@@ -191,11 +190,11 @@ async function postAlertToSlack(alertData, sessionUrl) {
   }
 
   try {
-    const text = buildAlertText(alertData, sessionUrl);
-    const blocks = buildAlertBlocks(alertData, sessionUrl);
+    const text = buildAlertText(alertData);
+    const blocks = buildAlertBlocks(alertData);
     const threadTs = await postMessage(token, channel, text, blocks);
 
-    logger.info('Alert posted to Slack', { channel, threadTs, sessionUrl });
+    logger.info('Alert posted to Slack', { channel, threadTs });
     return threadTs;
   } catch (error) {
     logger.error('Failed to post alert to Slack', {
@@ -208,136 +207,73 @@ async function postAlertToSlack(alertData, sessionUrl) {
 }
 
 /**
- * Fetch the current status and latest messages from a Devin session.
+ * Reply in the alert thread with @Devin + prompt using the user token.
+ * Because the message comes from a user token (not a bot), Slack treats it
+ * as a human message and the Devin app responds to the @mention natively.
  */
-async function fetchSessionStatus(sessionId) {
-  const apiKey = process.env.DEVIN_API_KEY;
-  const orgId = process.env.DEVIN_ORG_ID;
+async function postDevinReply(threadTs, prompt) {
+  const userToken = process.env.SLACK_USER_TOKEN;
+  const channel = process.env.SLACK_CHANNEL_ID;
+  const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
 
-  if (!apiKey || !orgId) {
+  if (!userToken || !channel) {
+    logger.warn('SLACK_USER_TOKEN not configured — cannot trigger Devin via Slack');
     return null;
   }
 
-  const devinId = sessionId.startsWith('devin-') ? sessionId : `devin-${sessionId}`;
+  try {
+    const text = `<@${devinUserId}> ${prompt}`;
+    const replyTs = await postThreadReply(userToken, channel, threadTs, text);
 
-  const response = await axios.get(
-    `${DEVIN_API_BASE}/organizations/${orgId}/sessions/${devinId}`,
-    {
-      headers: { 'Authorization': `Bearer ${apiKey}` },
-      timeout: 15000,
+    logger.info('Devin reply posted via user token', { channel, threadTs, replyTs });
+
+    // Auto-delete the trigger message after a short delay so it looks like
+    // Devin responded to the alert directly without a visible human prompt
+    if (replyTs) {
+      setTimeout(async () => {
+        try {
+          await deleteMessage(userToken, channel, replyTs);
+          logger.info('Trigger message auto-deleted', { channel, replyTs });
+        } catch (err) {
+          logger.warn('Failed to auto-delete trigger message', { error: err.message });
+        }
+      }, 5000);
     }
-  );
 
-  return response.data;
+    return replyTs;
+  } catch (error) {
+    logger.error('Failed to post Devin reply', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return null;
+  }
 }
 
 /**
- * Poll a Devin session for updates and post them back to a Slack thread.
- *
- * Tracks: status changes, PR creation, and completion.
- * Stops polling when session reaches a terminal state.
+ * Delete a Slack message. Used to clean up the @Devin trigger message
+ * after Devin has acknowledged it.
  */
-function startSessionPoller(sessionId, channel, threadTs) {
-  const token = process.env.SLACK_BOT_TOKEN;
-  if (!token || !channel || !threadTs) {
-    logger.warn('Session poller not started — missing config', {
-      hasToken: !!token, hasChannel: !!channel, hasThreadTs: !!threadTs, sessionId,
-    });
-    return;
+async function deleteMessage(token, channel, ts) {
+  const response = await axios.post(`${SLACK_API_BASE}/chat.delete`, {
+    channel,
+    ts,
+  }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
   }
-
-  let lastStatus = null;
-  let prNotified = false;
-  let pollCount = 0;
-  const MAX_POLLS = 120; // 120 * 30s = 60 minutes max
-  const POLL_INTERVAL_MS = 30000;
-
-  const interval = setInterval(async () => {
-    pollCount++;
-
-    if (pollCount > MAX_POLLS) {
-      logger.info('Session poller max polls reached, stopping', { sessionId });
-      clearInterval(interval);
-      return;
-    }
-
-    try {
-      const session = await fetchSessionStatus(sessionId);
-      if (!session) {
-        logger.warn('Session poller got null response, stopping', { sessionId, pollCount });
-        clearInterval(interval);
-        return;
-      }
-
-      const status = session.status_enum || session.status || 'unknown';
-
-      // Notify on status change
-      if (status !== lastStatus) {
-        const statusEmoji = {
-          'running': ':hourglass_flowing_sand:',
-          'blocked': ':warning:',
-          'stopped': ':white_check_mark:',
-          'finished': ':white_check_mark:',
-          'failed': ':x:',
-          'suspended': ':zzz:',
-        };
-        const emoji = statusEmoji[status] || ':information_source:';
-
-        await postThreadReply(token, channel, threadTs,
-          `${emoji} Devin session status: *${status}*`,
-        );
-        lastStatus = status;
-      }
-
-      // Notify about PR creation (API returns pull_requests array, not pull_request object)
-      const prs = session.pull_requests || [];
-      if (!prNotified && prs.length > 0) {
-        const pr = prs[0];
-        const prUrl = pr.url || pr.html_url || '';
-        if (prUrl) {
-          await postThreadReply(token, channel, threadTs,
-            `:link: Devin created a PR: <${prUrl}|View Pull Request>`,
-            [
-              {
-                type: 'section',
-                text: {
-                  type: 'mrkdwn',
-                  text: `:link: *Pull Request Created*\n<${prUrl}|${pr.title || 'View PR'}>`,
-                },
-              },
-            ],
-          );
-          prNotified = true;
-        }
-      }
-
-      // Stop polling on terminal states
-      if (['stopped', 'finished', 'failed'].includes(status)) {
-        logger.info('Session reached terminal state, stopping poller', { sessionId, status });
-        clearInterval(interval);
-
-        const sessionUrl = session.url || `https://app.devin.ai/sessions/${sessionId}`;
-        await postThreadReply(token, channel, threadTs,
-          `:checkered_flag: Investigation complete — <${sessionUrl}|View full session>`,
-        ).catch((err) => {
-          logger.error('Failed to post completion message to Slack', { error: err.message });
-        });
-      }
-    } catch (error) {
-      logger.error('Session poll error', {
-        sessionId,
-        error: error.message,
-        pollCount,
-      });
-      // Don't stop polling on transient errors
-    }
-  }, POLL_INTERVAL_MS);
-
-  logger.info('Session poller started', { sessionId, channel, threadTs });
 }
 
 module.exports = {
   postAlertToSlack,
+  postDevinReply,
   postThreadReply,
-  startSessionPoller,
 };
