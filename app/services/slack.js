@@ -246,7 +246,7 @@ function startSessionPoller(sessionId, channel, threadTs) {
     return;
   }
 
-  let lastStatus = 'running';
+  let lastStatus = null;
   let prNotified = false;
   let pollCount = 0;
   const MAX_POLLS = 120; // 120 * 30s = 60 minutes max
@@ -289,9 +289,11 @@ function startSessionPoller(sessionId, channel, threadTs) {
         lastStatus = status;
       }
 
-      // Notify about PR creation
-      if (!prNotified && session.pull_request) {
-        const prUrl = session.pull_request.url || session.pull_request.html_url || '';
+      // Notify about PR creation (API returns pull_requests array, not pull_request object)
+      const prs = session.pull_requests || [];
+      if (!prNotified && prs.length > 0) {
+        const pr = prs[0];
+        const prUrl = pr.url || pr.html_url || '';
         if (prUrl) {
           await postThreadReply(token, channel, threadTs,
             `:link: Devin created a PR: <${prUrl}|View Pull Request>`,
@@ -300,7 +302,7 @@ function startSessionPoller(sessionId, channel, threadTs) {
                 type: 'section',
                 text: {
                   type: 'mrkdwn',
-                  text: `:link: *Pull Request Created*\n<${prUrl}|${session.pull_request.title || 'View PR'}>`,
+                  text: `:link: *Pull Request Created*\n<${prUrl}|${pr.title || 'View PR'}>`,
                 },
               },
             ],
