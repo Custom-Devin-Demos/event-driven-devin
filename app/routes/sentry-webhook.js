@@ -8,6 +8,25 @@ const router = express.Router();
 const DEVIN_API_BASE = 'https://api.devin.ai/v3';
 
 /**
+ * In-memory cooldown map to prevent duplicate Devin sessions.
+ * Key: Sentry issue title (normalized), Value: timestamp of last session created.
+ * Sentry fires a webhook for every matching event, but we only want one
+ * Devin session per incident. Default cooldown: 30 minutes.
+ */
+const sessionCooldowns = new Map();
+const COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+
+// Periodically evict expired cooldown entries to prevent unbounded Map growth
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, ts] of sessionCooldowns) {
+    if (now - ts >= COOLDOWN_MS) {
+      sessionCooldowns.delete(key);
+    }
+  }
+}, COOLDOWN_MS);
+
+/**
  * Build a rich investigation prompt from Sentry alert data.
  * Includes every detail available so Devin has full context.
  */
@@ -271,8 +290,26 @@ router.post('/webhooks/sentry', async (req, res) => {
     hookResource: req.headers['sentry-hook-resource'] || 'unknown',
   });
 
+  let cooldownKey = null;
+
   try {
     const alertData = extractAlertData(payload);
+
+    // Cooldown check: skip if we already created a session for this issue recently
+    cooldownKey = `${alertData.issueTitle}:${alertData.issueUrl || alertData.shortId || ''}`.toLowerCase().trim();
+    const lastCreated = sessionCooldowns.get(cooldownKey);
+    if (lastCreated && (Date.now() - lastCreated) < COOLDOWN_MS) {
+      const remainingMin = Math.round((COOLDOWN_MS - (Date.now() - lastCreated)) / 60000);
+      logger.info('Skipping duplicate webhook — session already created recently', {
+        issueTitle: alertData.issueTitle,
+        cooldownRemainingMin: remainingMin,
+      });
+      return res.json({ received: true, skipped: true, reason: 'cooldown', cooldownRemainingMin: remainingMin });
+    }
+
+    // Mark cooldown immediately (before API call) to prevent races
+    sessionCooldowns.set(cooldownKey, Date.now());
+
     const prompt = buildPrompt(alertData);
 
     logger.info('Creating Devin session for Sentry alert', {
@@ -325,6 +362,11 @@ router.post('/webhooks/sentry', async (req, res) => {
       },
     });
   } catch (error) {
+    // Clear cooldown so the next webhook can retry
+    if (cooldownKey) {
+      sessionCooldowns.delete(cooldownKey);
+    }
+
     logger.error('Failed to create Devin session', {
       error: error.message,
       status: error.response?.status,
