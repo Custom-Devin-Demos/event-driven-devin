@@ -121,6 +121,17 @@ function buildAlertBlocks(alertData, sessionUrl) {
     ],
   });
 
+  const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
+  blocks.push({
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*On-Call:*\n<@${devinUserId}>`,
+      },
+    ],
+  });
+
   // Action buttons
   const actions = [];
   if (sessionUrl) {
