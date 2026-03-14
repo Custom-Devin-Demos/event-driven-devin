@@ -46,7 +46,7 @@ function getTaxRegion(regionCode) {
 function calculateTax(order) {
   if (isScenarioActive('checkout-regression')) {
     if (Math.random() < 0.4) {
-      const region = null;
+      const region = getTaxRegion(order.region);
       const taxRate = region.taxRate;
       return order.subtotal * taxRate;
     }
