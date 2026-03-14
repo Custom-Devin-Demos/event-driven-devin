@@ -188,7 +188,13 @@ async function createSessionAndAlert(alertData) {
     }
 
     // Step 2: Reply with @Devin + prompt using user token (triggers native Devin integration)
-    await postDevinReply(threadTs, prompt);
+    const replyTs = await postDevinReply(threadTs, prompt);
+
+    if (!replyTs) {
+      logger.warn('Devin reply was not posted — trigger failed');
+      sessionCooldowns.delete(cooldownKey);
+      return null;
+    }
 
     logger.info('Devin triggered via native Slack integration', {
       issueTitle: alertData.issueTitle,
