@@ -8,11 +8,11 @@ const { createSessionAndAlert } = require('../devin-session');
  * Mobile plans for the demo
  */
 const PLANS = [
-  { id: 'BASIC-12', name: 'Basic', monthlyRate: 29.99, dataGB: 5, code: 'BASIC-12' },
-  { id: 'PLUS-24', name: 'Plus', monthlyRate: 49.99, dataGB: 15, code: 'PLUS-24' },
-  { id: 'ULTRA-36', name: 'Ultra', monthlyRate: 79.99, dataGB: 50, code: 'ULTRA-36' },
-  { id: 'FAMILY-PLUS-12', name: 'Family Plus', monthlyRate: 99.99, dataGB: 100, code: 'FAMILY-PLUS-12' },
-  { id: 'UNLIMITED-24', name: 'Unlimited', monthlyRate: 119.99, dataGB: -1, code: 'UNLIMITED-24' },
+  { id: 'BASIC-12', name: 'Basic', monthlyRate: 29.99, dataGB: 5 },
+  { id: 'PLUS-24', name: 'Plus', monthlyRate: 49.99, dataGB: 15 },
+  { id: 'ULTRA-36', name: 'Ultra', monthlyRate: 79.99, dataGB: 50 },
+  { id: 'FAMILY-PLUS-12', name: 'Family Plus', monthlyRate: 99.99, dataGB: 100 },
+  { id: 'UNLIMITED-24', name: 'Unlimited', monthlyRate: 119.99, dataGB: -1 },
 ];
 
 /**

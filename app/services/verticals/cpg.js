@@ -58,8 +58,9 @@ function selectFulfillmentHub(fulfillmentZone) {
  */
 function buildShippingManifest(hub, orderItems) {
   const totalUnits = orderItems.reduce((sum, item) => sum + item.qty, 0);
+  const hubCode = hub.hub.substring(0, 3);
   return {
-    originHub: hub.hub,
+    originHub: hubCode,
     capacity: hub.capacity,
     totalUnits,
     estimatedDays: totalUnits > 200 ? 5 : 3,
