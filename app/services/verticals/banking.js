@@ -30,37 +30,39 @@ const TRANSACTIONS = [
  * Transfer fee tiers by account type
  */
 const FEE_TIERS = {
-  premium:  0,
-  standard: 2.50,
-  basic:    4.99,
+  premium:  { rate: 0, flat: 0 },
+  standard: { rate: 0.001, flat: 2.50 },
+  basic:    { rate: 0.002, flat: 4.99 },
 };
 
 /**
- * Compute a dynamic fee for account types not in the static schedule.
+ * Resolve the fee structure for a given account tier.
  */
-function computeDynamicFee(tier) {
-  if (tier === 'enterprise') return 1.00;
-  if (tier === 'institutional') return 0.50;
+function resolveFeeTier(accountTier) {
+  const tier = FEE_TIERS[accountTier];
+  if (!tier) return null;
+  return [tier.rate, tier.flat];
 }
 
 /**
- * Look up the transfer fee for a given account tier.
+ * Calculate the transfer fee from the resolved tier data.
  */
-function getTransferFee(accountTier) {
-  return FEE_TIERS[accountTier] || computeDynamicFee(accountTier);
+function calculateTransferFee(tierData, amount) {
+  const { rate, flat } = tierData;
+  return Math.max(amount * rate, flat);
 }
 
 /**
  * Format a transfer receipt for the response.
  */
-function formatReceipt(transfer, fee, total) {
+function formatReceipt(transfer, feeBreakdown) {
   return {
     receiptId: `RCP-${Date.now()}`,
     from: transfer.fromAccount,
     to: transfer.toAccount,
     amount: transfer.amount,
-    fee: fee.toFixed(2),
-    totalDebit: total.toFixed(2),
+    fee: feeBreakdown.fee.toFixed(2),
+    totalDebit: feeBreakdown.totalDebit.toFixed(2),
     timestamp: new Date().toISOString(),
   };
 }
@@ -83,9 +85,10 @@ async function processTransfer(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const fee = getTransferFee(data.accountTier);
+    const tierData = resolveFeeTier(data.accountTier);
+    const fee = calculateTransferFee(tierData, data.amount);
     const totalDebit = data.amount + fee;
-    const receipt = formatReceipt(data, fee, totalDebit);
+    const receipt = formatReceipt(data, { fee, totalDebit });
 
     const duration = Date.now() - startTime;
 

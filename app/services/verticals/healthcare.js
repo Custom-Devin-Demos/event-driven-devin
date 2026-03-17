@@ -19,16 +19,17 @@ const PROVIDERS = [
  * Patient insurance plans — coverage periods end on 2026-12-31
  */
 const PATIENT_PLANS = {
-  'PAT-2001': { plan: 'Gold', copayAmount: 20, coverageEndDate: '2026-12-31', deductibleRemaining: 250 },
-  'PAT-2002': { plan: 'Silver', copayAmount: 35, coverageEndDate: '2026-12-31', deductibleRemaining: 800 },
-  'PAT-2003': { plan: 'Bronze', copayAmount: 50, coverageEndDate: '2026-12-31', deductibleRemaining: 1500 },
+  'PAT-2001': { plan: 'Gold', copayAmount: 20, coverageEnd: '2026-12-31', deductibleRemaining: 250 },
+  'PAT-2002': { plan: 'Silver', copayAmount: 35, coverageEnd: '2026-12-31', deductibleRemaining: 800 },
+  'PAT-2003': { plan: 'Bronze', copayAmount: 50, coverageEnd: '2026-12-31', deductibleRemaining: 1500 },
 };
 
 /**
  * Build an appointment date from form inputs.
  */
-function buildAppointmentDate(year, month, day) {
-  return new Date(year, month, day);
+function buildAppointmentDate(dateStr) {
+  const parts = dateStr.split('-');
+  return new Date(parts[0], parts[1], parts[2]);
 }
 
 /**
@@ -62,7 +63,7 @@ async function scheduleAppointment(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const apptDate = buildAppointmentDate(data.year, data.month, data.day);
+    const apptDate = buildAppointmentDate(data.appointmentDate);
     const coverage = getCoveragePeriod(data.patientId, apptDate);
 
     const copay = coverage.copayAmount;

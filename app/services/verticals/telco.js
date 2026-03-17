@@ -29,22 +29,30 @@ const ACCOUNTS = [
  * Plan codes follow the format: NAME-TERM (e.g., "BASIC-12", "PLUS-24")
  */
 function parsePlanCode(planCode) {
-  const match = planCode.match(/^([A-Z]+)-(\d+)$/);
-  return {
-    planName: match[1],
-    termMonths: parseInt(match[2], 10),
-  };
+  const segments = planCode.split('-');
+  const termMonths = parseInt(segments.pop(), 10);
+  const planName = segments.join('-');
+  return { planName, termMonths };
 }
 
 /**
- * Calculate remaining days until next billing cycle.
+ * Calculate the proration for a plan change.
  */
-function getDaysRemaining(billingDay) {
+function calculateProration(currentRate, targetRate, billingDay) {
   const today = new Date();
   const currentDay = today.getDate();
-  if (billingDay > currentDay) return billingDay - currentDay;
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  return daysInMonth - currentDay + billingDay;
+  let daysRemaining;
+  if (billingDay > currentDay) {
+    daysRemaining = billingDay - currentDay;
+  } else {
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    daysRemaining = daysInMonth - currentDay + billingDay;
+  }
+  const dailyDifference = (targetRate - currentRate) / 30;
+  return {
+    daysRemaining,
+    amount: Math.round(dailyDifference * daysRemaining * 100) / 100,
+  };
 }
 
 /**
@@ -68,12 +76,14 @@ async function upgradePlan(data) {
     const targetParsed = parsePlanCode(data.targetPlanCode);
     const currentParsed = parsePlanCode(data.currentPlanCode);
 
-    const targetPlan = PLANS.find((p) => p.id === data.targetPlanCode);
-    const currentPlan = PLANS.find((p) => p.id === data.currentPlanCode);
+    const targetPlan = PLANS.find((p) => p.code === data.targetPlanCode);
+    const currentPlan = PLANS.find((p) => p.code === data.currentPlanCode);
 
-    const daysRemaining = getDaysRemaining(data.billingDay || 15);
-    const dailyDifference = (targetPlan.monthlyRate - currentPlan.monthlyRate) / 30;
-    const prorationAmount = Math.round(dailyDifference * daysRemaining * 100) / 100;
+    const proration = calculateProration(
+      currentPlan.monthlyRate,
+      targetPlan.monthlyRate,
+      data.billingDay || 15,
+    );
 
     const duration = Date.now() - startTime;
 
@@ -92,7 +102,7 @@ async function upgradePlan(data) {
       previousPlan: currentParsed.planName,
       newPlan: targetParsed.planName,
       newTermMonths: targetParsed.termMonths,
-      prorationCharge: prorationAmount,
+      prorationCharge: proration.amount,
       newMonthlyRate: targetPlan.monthlyRate,
       newDataGB: targetPlan.dataGB === -1 ? 'Unlimited' : `${targetPlan.dataGB} GB`,
       effectiveDate: new Date().toISOString().split('T')[0],

@@ -35,17 +35,13 @@ const WAREHOUSE_TIERS = [
 function rankWarehouses(fulfillmentZone) {
   const sorted = [...WAREHOUSE_TIERS].sort((a, b) => b.capacity - a.capacity);
 
-  const ranked = sorted.forEach((tier, index) => {
-    return {
-      region: tier.region,
-      hub: tier.hubs[0],
-      capacity: tier.capacity,
-      rank: index + 1,
-      isPreferred: tier.region === fulfillmentZone,
-    };
-  });
-
-  return ranked;
+  return sorted.map((tier, index) => ({
+    region: tier.region,
+    primaryHub: tier.hubs[0],
+    capacity: tier.capacity,
+    rank: index + 1,
+    isPreferred: tier.region === fulfillmentZone,
+  }));
 }
 
 /**
@@ -53,10 +49,21 @@ function rankWarehouses(fulfillmentZone) {
  */
 function selectFulfillmentHub(fulfillmentZone) {
   const options = rankWarehouses(fulfillmentZone);
-
   const preferred = options.find((o) => o.isPreferred);
-
   return preferred || options[0];
+}
+
+/**
+ * Build a shipping manifest from the selected fulfillment hub.
+ */
+function buildShippingManifest(hub, orderItems) {
+  const totalUnits = orderItems.reduce((sum, item) => sum + item.qty, 0);
+  return {
+    originHub: hub.hub,
+    capacity: hub.capacity,
+    totalUnits,
+    estimatedDays: totalUnits > 200 ? 5 : 3,
+  };
 }
 
 /**
@@ -79,6 +86,7 @@ async function processOrder(orderData) {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
     const fulfillment = selectFulfillmentHub(orderData.fulfillmentZone);
+    const manifest = buildShippingManifest(fulfillment, orderData.items);
 
     const subtotal = orderData.items.reduce((sum, item) => {
       const product = CATALOG.find((p) => p.sku === item.sku);
@@ -106,9 +114,9 @@ async function processOrder(orderData) {
       distributorId: orderData.distributorId,
       subtotal: Math.round(subtotal * 100) / 100,
       totalWeight: Math.round(totalWeight * 10) / 10,
-      availableCapacity: fulfillment.capacity,
-      fulfillmentHub: fulfillment.hub,
-      leadTimeDays: 3,
+      availableCapacity: manifest.capacity,
+      fulfillmentHub: manifest.originHub,
+      leadTimeDays: manifest.estimatedDays,
       status: 'confirmed',
       processedAt: new Date().toISOString(),
     };
