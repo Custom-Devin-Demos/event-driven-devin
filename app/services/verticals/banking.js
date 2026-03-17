@@ -51,9 +51,8 @@ function computeDynamicFee(tier) {
  * Look up the transfer fee for a given account tier.
  */
 function getTransferFee(accountTier) {
-  // BUG: || treats 0 (premium's free fee) as falsy, falls through to computeDynamicFee
-  // which returns undefined for known tiers since they're expected to be in FEE_TIERS
-  return FEE_TIERS[accountTier] || computeDynamicFee(accountTier);
+  // Use ?? (nullish coalescing) so that 0 (premium's free fee) is not treated as falsy
+  return FEE_TIERS[accountTier] ?? computeDynamicFee(accountTier);
 }
 
 /**
