@@ -28,7 +28,7 @@ const PATIENT_PLANS = {
  * Build an appointment date from form inputs.
  */
 function buildAppointmentDate(year, month, day) {
-  return new Date(year, month, day);
+  return new Date(year, month - 1, day);
 }
 
 /**
