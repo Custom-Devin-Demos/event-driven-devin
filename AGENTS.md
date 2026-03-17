@@ -101,17 +101,6 @@ npm run lint
 
 This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this before committing.
 
-## Known Bug
-
-The checkout flow in `app/routes/storefront.js` has a bug that causes every checkout to fail with a `TypeError`. This was introduced in release `v1.0.2`.
-
-If you are investigating or fixing this bug:
-1. Use the Sentry and Datadog MCP integrations to gather context (stack traces, APM traces, error rates).
-2. Read the source code to identify the root cause.
-3. Implement a fix.
-4. Test by running the app locally (`npm start`), opening `http://localhost:3000` in a browser, and completing a full checkout flow through the UI. Verify the checkout succeeds without errors. Do NOT test via curl — use the browser UI.
-5. Create a PR with the fix.
-
 ## Alert Pipeline Architecture
 
 ```
