@@ -31,20 +31,10 @@ const WAREHOUSE_TIERS = [
 /**
  * Ranks warehouses by available capacity for a given fulfillment zone,
  * returning a sorted list of options with rank metadata.
- *
- * ROOT CAUSE of the bug: Uses .forEach() instead of .map().
- * Array.prototype.forEach() always returns undefined, regardless of
- * what the callback does. The developer intended .map() to build a
- * new array of ranked options, but .forEach() discards all return values.
- *
- * The callback IS doing meaningful work (computing rank, preferred flag),
- * which makes the mistake harder to spot during code review.
  */
 function rankWarehouses(fulfillmentZone) {
   const sorted = [...WAREHOUSE_TIERS].sort((a, b) => b.capacity - a.capacity);
 
-  // BUG: .forEach() returns undefined — should be .map()
-  // The callback constructs valid objects, but forEach discards them all.
   const ranked = sorted.forEach((tier, index) => {
     return {
       region: tier.region,
@@ -55,22 +45,16 @@ function rankWarehouses(fulfillmentZone) {
     };
   });
 
-  return ranked; // always undefined
+  return ranked;
 }
 
 /**
  * Selects the best fulfillment option from the ranked warehouse list.
- *
- * CRASH LOCATION: rankWarehouses() returns undefined (because forEach),
- * so calling .find() on undefined throws TypeError.
  */
 function selectFulfillmentHub(fulfillmentZone) {
   const options = rankWarehouses(fulfillmentZone);
 
-  // options is undefined because rankWarehouses uses forEach instead of map
   const preferred = options.find((o) => o.isPreferred);
-  //                ^^^^^^^^^^^^^ TypeError: Cannot read properties of
-  //                undefined (reading 'find')
 
   return preferred || options[0];
 }

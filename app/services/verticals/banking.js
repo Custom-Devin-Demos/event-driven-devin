@@ -28,23 +28,19 @@ const TRANSACTIONS = [
 
 /**
  * Transfer fee tiers by account type
- * NOTE: premium accounts have a $0 fee (free transfers)
  */
 const FEE_TIERS = {
-  premium:  0,       // Free transfers for premium accounts
+  premium:  0,
   standard: 2.50,
   basic:    4.99,
 };
 
 /**
  * Compute a dynamic fee for account types not in the static schedule.
- * Handles enterprise and institutional tiers that have volume-based pricing.
  */
 function computeDynamicFee(tier) {
   if (tier === 'enterprise') return 1.00;
   if (tier === 'institutional') return 0.50;
-  // For known tiers (premium, standard, basic) the static schedule should handle them
-  // so this function is not expected to be called for those tiers
 }
 
 /**
