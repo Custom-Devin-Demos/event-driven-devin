@@ -21,13 +21,15 @@ const adminRoutes = require('./routes/admin');
 const webhookRoutes = require('./routes/webhook');
 const storefrontRoutes = require('./routes/storefront');
 const sentryWebhookRoutes = require('./routes/sentry-webhook');
+const verticalRoutes = require('./routes/verticals');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static storefront UI
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static assets (CSS, JS, images) but NOT index.html at root
+// The hub landing page is served by the verticals router at /
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // Middleware: parse JSON (capture raw body for webhook signature verification)
 app.use(express.json({
@@ -70,6 +72,7 @@ app.use(adminRoutes);
 app.use(webhookRoutes);
 app.use(storefrontRoutes);
 app.use(sentryWebhookRoutes);
+app.use(verticalRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -127,6 +130,17 @@ app.listen(PORT, () => {
   ║    POST /admin/scenario                       ║
   ║    POST /webhook/github                        ║
   ║    POST /webhooks/sentry                        ║
+  ║                                              ║
+  ║  Verticals:                                  ║
+  ║    /retail              eCommerce            ║
+  ║    /banking             Apex Bank            ║
+  ║    /financial-services  Meridian Capital      ║
+  ║    /insurance           Shield Insurance     ║
+  ║    /cpg                 Harvest Goods        ║
+  ║    /hightech            NovaSoft             ║
+  ║    /industrials         Titan Manufacturing  ║
+  ║    /healthcare          CarePoint Health     ║
+  ║    /telco               WaveConnect          ║
   ╚══════════════════════════════════════════════╝
   `);
 });

@@ -32,6 +32,115 @@ const TAX_REGIONS = {
 };
 
 /**
+ * Discount schedule — recently migrated from a flat 10% to a tiered structure.
+ * The migration updated the data shape but not all callers.
+ */
+const DISCOUNT_SCHEDULE = [
+  { minSubtotal: 0,   maxSubtotal: 49.99,  rate: 0 },
+  { minSubtotal: 50,  maxSubtotal: 99.99,  rate: 0.05 },
+  { minSubtotal: 100, maxSubtotal: 199.99, rate: 0.10 },
+  { minSubtotal: 200, maxSubtotal: Infinity, rate: 0.15 },
+];
+
+/**
+ * Active promotions — "free gift with any purchase" campaign.
+ * Applied server-side so it appears in the order confirmation.
+ */
+const ACTIVE_PROMOTIONS = [
+  { sku: 'PROMO-GIFT-2026', name: 'Free Spring Gift', price: 0, qty: 1 },
+];
+
+/**
+ * Looks up the discount tier for a given subtotal.
+ *
+ * BUG: This function is correct in isolation, but it's called with the
+ * output of a subtotal calculation that can produce 0 (when the cart
+ * contains ONLY free promotional items). The `||` operator in the caller
+ * treats 0 as falsy and falls through to a string fallback — same
+ * pattern as the Banking vertical's falsy-zero bug, but here it cascades
+ * through two more functions before crashing.
+ */
+function getApplicableDiscount(subtotal) {
+  const tier = DISCOUNT_SCHEDULE.find(
+    (t) => subtotal >= t.minSubtotal && subtotal <= t.maxSubtotal,
+  );
+  return tier;
+}
+
+/**
+ * Merges promotional items into the order line items.
+ * Returns a new items array that includes both customer items and promos.
+ */
+function applyPromotions(items) {
+  return [...items, ...ACTIVE_PROMOTIONS];
+}
+
+/**
+ * Computes the final order total.
+ *
+ * BUG CHAIN (requires tracing 3 functions to find root cause):
+ *
+ * 1. applyPromotions() adds a $0 promo item to the cart
+ * 2. In the checkout handler, computedSubtotal uses `reduce` on ALL items
+ *    (including the $0 promo). If the customer's real items sum to $0
+ *    (shouldn't happen normally), or we accidentally compute only the promo
+ *    items, the subtotal is 0.
+ * 3. The `|| order.subtotal` fallback treats 0 as falsy — same JS gotcha
+ *    as Banking. It falls through to order.subtotal which is fine for
+ *    normal cases.
+ * 4. BUT: the real crash path is different. The `reduce` gives a valid
+ *    number (e.g., 29.99). The `||` doesn't trigger. computeOrderTotal
+ *    is called with a valid subtotal. getApplicableDiscount returns a
+ *    valid tier. Everything works...
+ *
+ * EXCEPT: The actual bug is that applyPromotions() is called but the
+ * promo items have no `sku` field matching PRODUCTS — and later,
+ * formatReceipt() (below) tries to look up each item in PRODUCTS by
+ * sku to get the category. PRODUCTS.find() returns undefined for the
+ * promo SKU, and we access undefined.category → TypeError.
+ */
+function computeOrderTotal(subtotal, region) {
+  const taxConfig = TAX_REGIONS[region];
+  if (!taxConfig) {
+    throw Object.assign(new Error(`Unknown tax region: ${region}`), { code: 'INVALID_REGION' });
+  }
+  const tax = subtotal * taxConfig.taxRate;
+  const discount = getApplicableDiscount(subtotal);
+  const discountAmount = (subtotal + tax) * discount.rate;
+  return {
+    subtotal,
+    tax: Math.round(tax * 100) / 100,
+    discount: Math.round(discountAmount * 100) / 100,
+    total: Math.round((subtotal + tax - discountAmount) * 100) / 100,
+    currency: taxConfig.currency,
+  };
+}
+
+/**
+ * Formats a receipt for the order confirmation.
+ *
+ * BUG: Iterates over ALL items (including promo items from applyPromotions).
+ * Promo items have sku='PROMO-GIFT-2026' which doesn't exist in PRODUCTS.
+ * PRODUCTS.find(p => p.id === item.sku) returns undefined.
+ * Then we access undefined.category → TypeError!
+ *
+ * The crash happens HERE, but the root cause is in applyPromotions()
+ * adding items with SKUs that don't exist in PRODUCTS.
+ */
+function formatReceipt(allItems) {
+  return allItems.map((item) => {
+    const product = PRODUCTS.find((p) => p.id === item.sku);
+    return {
+      sku: item.sku,
+      name: product.name,       // TypeError: Cannot read properties of undefined (reading 'name')
+      category: product.category,
+      qty: item.qty,
+      lineTotal: item.price * item.qty,
+    };
+  });
+}
+
+/**
  * GET /api/products — returns the product catalog
  */
 router.get('/api/products', (_req, res) => {
@@ -67,10 +176,25 @@ router.post('/api/storefront/checkout', async (req, res) => {
     // Small delay to simulate processing
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const region = TAX_REGIONS[null];
-    const taxRate = region.taxRate;
-    const tax = order.subtotal * taxRate;
-    const total = order.subtotal + tax;
+    // Apply active promotions (adds free gift items to the order)
+    const allItems = applyPromotions(order.items);
+
+    // Compute subtotal from all items (customer + promo)
+    const computedSubtotal = allItems.reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0,
+    ) || order.subtotal;
+
+    const finalSubtotal = typeof computedSubtotal === 'string'
+      ? parseFloat(computedSubtotal)
+      : computedSubtotal;
+
+    const result = computeOrderTotal(finalSubtotal, order.region);
+
+    // Build receipt with line-item details for confirmation
+    // BUG: formatReceipt iterates allItems which includes promo items
+    // whose SKU doesn't exist in PRODUCTS → crash on product.name
+    const receipt = formatReceipt(allItems);
 
     const duration = Date.now() - startTime;
 
@@ -87,8 +211,10 @@ router.post('/api/storefront/checkout', async (req, res) => {
     return res.json({
       success: true,
       orderId,
-      total: Math.round(total * 100) / 100,
-      tax: Math.round(tax * 100) / 100,
+      total: result.total,
+      tax: result.tax,
+      discount: result.discount,
+      receipt,
       status: 'confirmed',
       processedAt: new Date().toISOString(),
     });

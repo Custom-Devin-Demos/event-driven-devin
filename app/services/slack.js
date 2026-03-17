@@ -61,7 +61,7 @@ function buildAlertBlocks(alertData) {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: ':rotating_light: Sentry Alert — Checkout Error',
+        text: `:rotating_light: Sentry Alert — ${alertData.verticalLabel || 'Checkout'} Error`,
         emoji: true,
       },
     },
@@ -154,7 +154,7 @@ function buildAlertBlocks(alertData) {
     elements: [
       {
         type: 'mrkdwn',
-        text: `Service: \`checkout-api\` | ${new Date().toISOString()}`,
+        text: `Service: \`${alertData.service || 'checkout-api'}\` | ${new Date().toISOString()}`,
       },
     ],
   });

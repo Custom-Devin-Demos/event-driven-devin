@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Titan Manufacturing &mdash; Equipment Maintenance</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0e0f10; --bg-elevated: #161718; --bg-card: #1e1f22;
+      --surface: #28292e; --border: #303136; --border-light: #40414a;
+      --text: #e8e9ec; --text-muted: #8a8b95; --text-dim: #5a5b65;
+      --accent: #6C757D; --accent-dim: rgba(108,117,125,0.15); --accent-hover: #8a949e;
+      --orange: #f59e0b; --orange-dim: rgba(245,158,11,0.12);
+      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
+      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
+      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+
+    header { position: sticky; top: 0; z-index: 100; background: rgba(14,15,16,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { color: var(--orange); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: var(--text); }
+
+    .dashboard { max-width: 1200px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
+    .welcome { margin-bottom: 2rem; }
+    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
+    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .equipment-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @media (max-width: 900px) { .equipment-grid { grid-template-columns: 1fr 1fr; } }
+    .equip-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; transition: border-color 0.3s; }
+    .equip-card:hover { border-color: var(--border-light); }
+    .equip-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .equip-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .equip-id { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .equip-status { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 20px; display: inline-block; }
+    .status-ok { background: rgba(92,184,138,0.15); color: var(--success); }
+    .status-warn { background: var(--orange-dim); color: var(--orange); }
+    .equip-reading { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem; }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 650px; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input, .form-group textarea { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
+    .form-group textarea { min-height: 70px; resize: vertical; }
+    .form-group select:focus, .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--orange); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit { width: 100%; padding: 0.85rem; background: var(--orange); color: #000; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
+    .btn-submit:hover { background: #fbbf24; transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--orange); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🏭 <span>Titan</span> Manufacturing</div>
+    <nav><a href="#">Equipment</a><a href="#">Work Orders</a><a href="#">Reports</a><a href="#">Safety</a></nav>
+  </header>
+
+  <div class="dashboard">
+    <a href="/" class="back-link animate-up">← All Demos</a>
+    <div class="welcome animate-up delay-1">
+      <h1>Plant Floor Dashboard</h1>
+      <p>Maintenance Operator &bull; Plant A — Chicago Facility</p>
+    </div>
+
+    <div class="equipment-grid animate-up delay-2">
+      <div class="equip-card">
+        <div class="equip-icon">⚙️</div>
+        <div class="equip-name">CNC Mill #3</div>
+        <div class="equip-id">EQ-001</div>
+        <div class="equip-status status-ok">Operational</div>
+        <div class="equip-reading">Temp: 142°F | Vibration: 0.3mm/s</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🔌</div>
+        <div class="equip-name">Main Transformer</div>
+        <div class="equip-id">EQ-002</div>
+        <div class="equip-status status-warn">Warning</div>
+        <div class="equip-reading">Load: 87% | Temp: 185°F</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🔧</div>
+        <div class="equip-name">Hydraulic Press A</div>
+        <div class="equip-id">EQ-003</div>
+        <div class="equip-status status-ok">Operational</div>
+        <div class="equip-reading">Pressure: 2400 PSI</div>
+      </div>
+      <div class="equip-card">
+        <div class="equip-icon">🏗️</div>
+        <div class="equip-name">Overhead Crane #1</div>
+        <div class="equip-id">EQ-004</div>
+        <div class="equip-status status-ok">Operational</div>
+        <div class="equip-reading">Load: 2.1 tons / 5 tons max</div>
+      </div>
+    </div>
+
+    <div class="card animate-up delay-3">
+      <div class="card-title">🔧 Create Work Order</div>
+      <form id="workOrderForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Equipment</label>
+            <select id="equipmentId">
+              <option value="EQ-001">EQ-001 — CNC Mill #3</option>
+              <option value="EQ-002">EQ-002 — Main Transformer</option>
+              <option value="EQ-003">EQ-003 — Hydraulic Press A</option>
+              <option value="EQ-004">EQ-004 — Overhead Crane #1</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Equipment Category</label>
+            <select id="equipmentCategory">
+              <option value="Rotating">Rotating</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Hydraulic">Hydraulic</option>
+              <option value="Structural">Structural</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Issue Type</label>
+            <select id="issueType">
+              <option value="preventive">Preventive Maintenance</option>
+              <option value="corrective">Corrective Repair</option>
+              <option value="emergency">Emergency</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="priority">
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Estimated Hours</label>
+            <input type="number" id="estimatedHours" value="4" min="1" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>Parts Estimate ($)</label>
+            <input type="number" id="partsEstimate" value="500" min="0" step="50">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="description" placeholder="Describe the maintenance issue...">Scheduled preventive maintenance — bearing inspection and lubrication required per 90-day cycle.</textarea>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Create Work Order</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('workOrderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Creating...';
+      result.className = 'result-box'; result.style.display = 'none';
+      try {
+        const res = await fetch('/api/maintenance/workorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            equipmentId: document.getElementById('equipmentId').value,
+            equipmentCategory: document.getElementById('equipmentCategory').value,
+            issueType: document.getElementById('issueType').value,
+            priority: document.getElementById('priority').value,
+            estimatedHours: parseFloat(document.getElementById('estimatedHours').value),
+            partsEstimate: parseFloat(document.getElementById('partsEstimate').value),
+            description: document.getElementById('description').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Work Order Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Work Order Created</div><div class="error-detail">WO #${data.workOrderId} — Est. cost: $${data.estimatedCost} (${data.certRequired} cert required)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Create Work Order';
+      }
+    });
+  </script>
+</body>
+</html>
