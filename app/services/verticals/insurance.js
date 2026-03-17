@@ -27,9 +27,6 @@ const CLAIM_TYPES = [
 
 /**
  * Look up a policy by ID.
- *
- * REFACTORED: now returns a wrapped result with metadata for audit logging.
- * Previously returned the flat policy object directly.
  */
 function lookupPolicy(policyId) {
   const policy = POLICIES.find((p) => p.id === policyId);
@@ -73,9 +70,6 @@ async function processClaim(claimData) {
 
     const result = lookupPolicy(claimData.policyId);
 
-    // BUG: destructures from top level — coverage and deductible are undefined
-    // lookupPolicy was refactored to return { policy: {...}, meta: {...} }
-    // but this caller was never updated to use result.policy
     const { coverage, deductible } = result;
 
     const netClaimable = claimData.amount - deductible;
