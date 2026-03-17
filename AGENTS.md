@@ -1,0 +1,228 @@
+# AGENTS.md — Guide for AI Software Engineering Agents
+
+This document describes the **Acme Commerce** repository for AI agents that are asked to investigate, fix, or extend the codebase.
+
+## What This Repo Is
+
+A Node.js/Express e-commerce application ("Acme Commerce") with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The checkout flow currently has a production bug that produces a `TypeError` on every checkout attempt. When a checkout error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
+
+## Repository Structure
+
+```
+├── app/
+│   ├── server.js                  # Express app entry point
+│   ├── incidentModes.js           # Scenario state management (healthy, checkout-regression, etc.)
+│   ├── public/
+│   │   └── index.html             # Single-file storefront UI (vanilla HTML/CSS/JS)
+│   ├── routes/
+│   │   ├── storefront.js          # Storefront product catalog + checkout
+│   │   ├── checkout.js            # Legacy checkout endpoint
+│   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
+│   │   ├── webhook.js             # GitHub webhook handler
+│   │   ├── health.js              # Health check endpoint
+│   │   ├── login.js               # Auth endpoint
+│   │   ├── search.js              # Product search
+│   │   ├── orders.js              # Order lookup
+│   │   └── admin.js               # Scenario management (GET/POST /admin/scenario)
+│   ├── services/
+│   │   ├── devin-session.js       # Builds investigation prompt, posts Slack alert, triggers Devin
+│   │   ├── slack.js               # Slack API helpers (post messages, thread replies, delete messages)
+│   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
+│   │   ├── github-webhook.js      # GitHub webhook processing
+│   │   ├── auth.js                # Auth service
+│   │   ├── orders.js              # Order service
+│   │   └── search.js              # Search service
+│   └── telemetry/
+│       ├── datadog.js             # Datadog APM + custom metrics init
+│       ├── sentry.js              # Sentry SDK init
+│       └── logger.js              # Winston structured JSON logger
+├── loadgen/
+│   └── worker.js                  # Synthetic traffic generator (search, login, orders — NOT checkout)
+├── scripts/
+│   ├── setup-datadog-dashboard.js # Creates Datadog dashboard via API
+│   ├── setup-sentry-alerts.js     # Creates Sentry alert rules via API
+│   ├── trigger.js                 # Manually trigger error scenarios
+│   ├── warmup.js                  # Pre-warm the app
+│   ├── reset.js                   # Reset scenario to healthy
+│   └── cleanup.js                 # Clean up resources
+├── config/
+│   └── scenarios.json             # Scenario definitions
+├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
+├── Dockerfile                     # checkout-api container
+├── Dockerfile.loadgen             # loadgen container
+├── eslint.config.mjs              # ESLint flat config
+├── REVIEW.md                      # Instructions for automated code review (Devin Review)
+└── .env.example                   # Template for environment variables
+```
+
+## Tech Stack
+
+- **Runtime:** Node.js 18+ (CommonJS — `require`/`module.exports`)
+- **Framework:** Express 5.x
+- **Error Tracking:** Sentry (`@sentry/node`)
+- **APM/Metrics/Logs:** Datadog (`dd-trace`, `hot-shots` for StatsD)
+- **Logging:** Winston (structured JSON)
+- **HTTP Client:** Axios
+- **Linting:** ESLint 10 (flat config)
+- **Containerization:** Docker + Docker Compose
+
+## How to Run Locally
+
+```bash
+# Install dependencies
+npm install
+
+# Start the app (no Docker, no Datadog agent)
+npm start
+
+# The app runs on http://localhost:3000
+```
+
+Open `http://localhost:3000` in a browser to see the storefront. You can browse products, add items to cart, and attempt checkout.
+
+### With Docker (full stack)
+
+```bash
+cp .env.example .env
+# Fill in SENTRY_DSN, DD_API_KEY, DD_SITE at minimum
+docker compose up --build -d
+```
+
+This starts 3 services:
+- `checkout-api` — Express app on port 3000
+- `loadgen` — Synthetic traffic generator (search/login/orders only, no checkout)
+- `datadog-agent` — APM traces, metrics, log collection
+
+## How to Lint
+
+```bash
+npm run lint
+```
+
+This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this before committing.
+
+## Alert Pipeline Architecture
+
+```
+Checkout Error
+    ├──▶ Sentry (captureException)
+    │       └──▶ Sentry Alert Rule fires
+    │               └──▶ Webhook to POST /webhooks/sentry
+    │                       └──▶ createSessionAndAlert() [fallback path]
+    │
+    └──▶ createSessionAndAlert() [instant path, non-blocking]
+            ├──▶ postAlertToSlack() — bot token posts rich alert card
+            └──▶ postDevinReply() — user token posts @Devin + prompt in thread
+                    └──▶ Native Devin Slack integration picks up @mention
+                            └──▶ Devin investigates, creates PR
+```
+
+**Two trigger paths exist:**
+1. **Instant (storefront):** `app/routes/storefront.js` calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
+2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
+
+Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to prevent duplicate alerts.
+
+## Key Services
+
+### `app/services/devin-session.js`
+- `buildPrompt(alertData)` — Builds a rich Markdown investigation prompt with error details, occurrence info, tags, investigation steps, and context links.
+- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: cooldown check → post Slack alert → @Devin reply → native Devin session.
+- `sessionCooldowns` — In-memory `Map` for deduplication (5-minute TTL, auto-evicted).
+
+### `app/services/slack.js`
+- `postAlertToSlack(alertData)` — Posts the rich Block Kit alert message using `SLACK_BOT_TOKEN`. Returns thread timestamp.
+- `postDevinReply(threadTs, prompt)` — Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Auto-deletes the reply after 5 seconds so it appears Devin responded directly.
+- `postMessage()`, `postThreadReply()`, `deleteMessage()` — Low-level Slack API helpers.
+
+### `app/incidentModes.js`
+- Manages the current scenario state. Valid scenarios: `healthy`, `slow-db`, `checkout-regression`, `dependency-timeout`.
+- The storefront checkout does NOT use scenario modes — it always fails regardless of the current scenario.
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SENTRY_DSN` | Sentry project DSN | Yes |
+| `DD_API_KEY` | Datadog API key | Yes (for Docker) |
+| `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
+| `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
+| `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For Devin |
+| `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
+| `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID (default: `U08RNEJ4877`) | No |
+| `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
+| `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
+| `DD_ENV` | Datadog environment tag | No (default: `prod`) |
+| `PORT` | Server port | No (default: `3000`) |
+
+## Deployment
+
+The app is deployed on an EC2 instance at `3.144.232.30:3000` via Docker Compose. To redeploy:
+
+1. Build a tarball (excluding `node_modules`, `.git`, `.env`)
+2. SCP to the EC2 instance
+3. Extract over the existing code (preserve `.env`)
+4. Run `docker compose up -d --build`
+
+The `.env` file on EC2 contains all production secrets and should never be overwritten.
+
+## NPM Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm start` | Start the Express app |
+| `npm run dev` | Start with nodemon (auto-reload) |
+| `npm run lint` | Run ESLint |
+| `npm run loadgen` | Run traffic generator standalone |
+| `npm run demo:trigger` | Trigger an error scenario |
+| `npm run demo:reset` | Reset to healthy state |
+| `npm run demo:warmup` | Pre-warm the app |
+| `npm run demo:cleanup` | Clean up resources |
+
+## Conventions
+
+- **CommonJS modules** — Use `require()` and `module.exports`, not ES module syntax.
+- **Structured logging** — Use the Winston logger (`require('../telemetry/logger')`) for all log output. Do not use `console.log` in app code.
+- **Environment variables** — All secrets and configuration come from env vars. Never hardcode credentials.
+- **Error handling** — Errors are captured with `Sentry.captureException()` and logged with the structured logger. Metrics are recorded via Datadog StatsD.
+- **Lint before commit** — Always run `npm run lint` before committing. The ESLint config uses flat config format (`eslint.config.mjs`).
+- **No force pushes** — Never force push. Use new commits to fix issues.
+- **Prefix unused params** — Prefix unused function parameters with `_` (e.g. `_req`, `_next`) to satisfy the ESLint `no-unused-vars` rule.
+
+## Testing
+
+There are no automated tests in this repo. Verification is done manually:
+
+1. Run `npm start` or `docker compose up`
+2. Open `http://localhost:3000` in a browser
+3. Browse products, add to cart, and attempt checkout
+4. Verify error appears (before fix) or checkout succeeds (after fix)
+5. Check Sentry for captured exceptions
+6. Check Datadog for APM traces and metrics
+7. Check Slack for alert messages (if configured)
+
+## External Integrations
+
+| Service | Purpose | Config |
+|---------|---------|--------|
+| [Sentry](https://devin-gtm.sentry.io) | Error tracking, alert rules, webhooks | `SENTRY_DSN` |
+| [Datadog](https://app.us5.datadoghq.com) | APM, metrics, logs, dashboard | `DD_API_KEY`, `DD_SITE` |
+| Slack (`#automated-alerts`) | Alert notifications, Devin triggering | `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, `SLACK_CHANNEL_ID` |
+| [Datadog Dashboard](https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg) | checkout-api overview | Read-only link |
+
+## Common Tasks
+
+### Adding a new API endpoint
+1. Create a route file in `app/routes/`
+2. Mount it in `app/server.js`
+3. Add structured logging and Sentry/Datadog instrumentation
+4. Run `npm run lint`
+
+### Modifying the Slack alert format
+Edit `buildAlertBlocks()` in `app/services/slack.js`. The function returns Slack Block Kit JSON. See [Block Kit Builder](https://app.slack.com/block-kit-builder) for visual editing.
+
+### Modifying the Devin investigation prompt
+Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Markdown tables for structured data. Keep it detailed — this is the only context Devin gets when starting an investigation.
+
+### Changing the cooldown duration
+Edit `COOLDOWN_MS` in `app/services/devin-session.js`. Currently 5 minutes (300000 ms). This should match the Sentry alert rule frequency.
