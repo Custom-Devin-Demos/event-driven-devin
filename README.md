@@ -102,11 +102,13 @@ npm start
 
 ```bash
 cp .env.example .env
-# Fill in SENTRY_DSN, DD_API_KEY, DD_SITE
+# Fill in SENTRY_DSN, DD_API_KEY, DD_SITE, SLACK_BOT_TOKEN, SLACK_USER_TOKEN, SLACK_CHANNEL_ID
 docker-compose up --build -d
 ```
 
 The application runs on port 3000. Make sure to open port 3000 in your security group / firewall.
+
+**Redeploying to EC2:** See the detailed redeploy steps in [AGENTS.md](AGENTS.md#deployment). The key requirement is to back up the `.env` file before extracting a new tarball — if the `.env` is lost, Slack alerts and all integrations will silently stop working.
 
 ## Observability
 

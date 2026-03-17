@@ -4,14 +4,15 @@
 
 The following patterns are intentional and should NOT be flagged as bugs:
 
-- `TAX_REGIONS[null]` in `app/routes/storefront.js` — This is intentional. The storefront checkout is designed to always produce a `TypeError` so that errors flow to Sentry and Datadog for observability monitoring. The success path below the null lookup is unreachable by design.
-- `const region = null; const taxRate = region.taxRate;` in `app/services/checkout.js` — This is an intentional null dereference inside the `checkout-regression` scenario path. It produces a `TypeError` to simulate a production regression for observability tooling.
-- Dead code after intentional throws — Any code paths that follow the above null dereferences (e.g., success responses, metric increments) are unreachable by design and should not be flagged.
+- Each of the 9 industry verticals (`app/services/verticals/*.js` and `app/routes/storefront.js`) contains an intentional bug that produces a `TypeError` when the vertical's primary action is triggered. These bugs exist so that errors flow to Sentry and Datadog for observability monitoring, and trigger automated Devin investigation sessions via Slack. Do not fix these bugs unless explicitly asked to investigate a specific vertical's error.
+- Dead code after intentional error paths — Any code paths that follow the bug-triggered exceptions (e.g., success responses, metric increments) are unreachable by design and should not be flagged.
+- `app/services/checkout.js` contains scenario-based bugs (e.g., `checkout-regression`) that are intentional for the same observability demo purpose.
 
 ## Ignore
 
 - Lock files (`package-lock.json`) do not need review.
-- `app/public/index.html` is a single-file vanilla HTML/CSS/JS storefront — standard web review rules apply but framework-specific conventions do not.
+- `app/public/index.html` and `app/public/verticals/*.html` are single-file vanilla HTML/CSS/JS frontends — standard web review rules apply but framework-specific conventions do not.
+- `app/public/hub.html` is the landing page linking to all 9 verticals.
 - `scripts/` contains one-off setup utilities and does not need deep review.
 - `loadgen/` is a synthetic traffic generator and does not need production-quality review.
 

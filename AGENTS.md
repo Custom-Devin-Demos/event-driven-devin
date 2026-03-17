@@ -1,21 +1,60 @@
 # AGENTS.md — Guide for AI Software Engineering Agents
 
-This document describes the **Acme Commerce** repository for AI agents that are asked to investigate, fix, or extend the codebase.
+This document describes the **Event-Driven Devin** demo repository for AI agents that are asked to investigate, fix, or extend the codebase.
 
 ## What This Repo Is
 
-A Node.js/Express e-commerce application ("Acme Commerce") with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The checkout flow currently has a production bug that produces a `TypeError` on every checkout attempt. When a checkout error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
+A Node.js/Express application with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The app serves **9 industry vertical demos**, each with its own frontend, API routes, and business logic. Each vertical has a production bug that produces a `TypeError` when its primary action is triggered. When an error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
+
+## Industry Verticals
+
+The app hosts 9 verticals, each accessible at its own URL:
+
+| Vertical | URL Path | Frontend | API Endpoint | Service File |
+|----------|----------|----------|--------------|-------------|
+| **Hub** (landing page) | `/` | `app/public/hub.html` | — | — |
+| **Retail eCommerce** | `/retail` | `app/public/index.html` | `POST /api/storefront/checkout` | `app/routes/storefront.js` |
+| **Banking** | `/banking` | `app/public/verticals/banking.html` | `POST /api/banking/transfer` | `app/services/verticals/banking.js` |
+| **Financial Services** | `/financial-services` | `app/public/verticals/financial-services.html` | `POST /api/trading/execute` | `app/services/verticals/financial-services.js` |
+| **Insurance** | `/insurance` | `app/public/verticals/insurance.html` | `POST /api/insurance/claim` | `app/services/verticals/insurance.js` |
+| **CPG** | `/cpg` | `app/public/verticals/cpg.html` | `POST /api/cpg/order` | `app/services/verticals/cpg.js` |
+| **High Tech** | `/hightech` | `app/public/verticals/hightech.html` | `POST /api/licenses/provision` | `app/services/verticals/hightech.js` |
+| **Industrials** | `/industrials` | `app/public/verticals/industrials.html` | `POST /api/maintenance/workorder` | `app/services/verticals/industrials.js` |
+| **Healthcare** | `/healthcare` | `app/public/verticals/healthcare.html` | `POST /api/healthcare/appointment` | `app/services/verticals/healthcare.js` |
+| **Telco** | `/telco` | `app/public/verticals/telco.html` | `POST /api/telco/upgrade` | `app/services/verticals/telco.js` |
+
+Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
 ## Repository Structure
 
 ```
 ├── app/
-│   ├── server.js                  # Express app entry point
+│   ├── server.js                  # Express app entry point (mounts all vertical routes)
 │   ├── incidentModes.js           # Scenario state management (healthy, checkout-regression, etc.)
 │   ├── public/
-│   │   └── index.html             # Single-file storefront UI (vanilla HTML/CSS/JS)
+│   │   ├── hub.html               # Landing page with cards for all 9 verticals
+│   │   ├── index.html             # Retail eCommerce storefront UI
+│   │   └── verticals/
+│   │       ├── banking.html       # Apex Bank — Online Banking
+│   │       ├── financial-services.html  # Meridian Capital — Trading Platform
+│   │       ├── insurance.html     # Shield Insurance — Claims Portal
+│   │       ├── cpg.html           # Harvest Goods — Distributor Orders
+│   │       ├── hightech.html      # NovaSoft — SaaS License Management
+│   │       ├── industrials.html   # Titan Mfg — Equipment Maintenance
+│   │       ├── healthcare.html    # CarePoint — Patient Portal
+│   │       └── telco.html         # WaveConnect — Telecom Self-Service
 │   ├── routes/
-│   │   ├── storefront.js          # Storefront product catalog + checkout
+│   │   ├── storefront.js          # Retail: product catalog + checkout
+│   │   ├── verticals/
+│   │   │   ├── index.js           # Mounts all vertical route files
+│   │   │   ├── banking.js         # Banking: accounts + transfer
+│   │   │   ├── financial-services.js  # Financial Services: portfolio + trade
+│   │   │   ├── insurance.js       # Insurance: policies + claims
+│   │   │   ├── cpg.js             # CPG: catalog + bulk orders
+│   │   │   ├── hightech.js        # High Tech: subscriptions + license provisioning
+│   │   │   ├── industrials.js     # Industrials: equipment + work orders
+│   │   │   ├── healthcare.js      # Healthcare: providers + appointments
+│   │   │   └── telco.js           # Telco: plans + upgrades
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -27,6 +66,15 @@ A Node.js/Express e-commerce application ("Acme Commerce") with integrated obser
 │   ├── services/
 │   │   ├── devin-session.js       # Builds investigation prompt, posts Slack alert, triggers Devin
 │   │   ├── slack.js               # Slack API helpers (post messages, thread replies, delete messages)
+│   │   ├── verticals/
+│   │   │   ├── banking.js         # Banking business logic
+│   │   │   ├── financial-services.js  # Trading business logic
+│   │   │   ├── insurance.js       # Claims business logic
+│   │   │   ├── cpg.js             # CPG order business logic
+│   │   │   ├── hightech.js        # License provisioning business logic
+│   │   │   ├── industrials.js     # Maintenance work order business logic
+│   │   │   ├── healthcare.js      # Appointment scheduling business logic
+│   │   │   └── telco.js           # Plan upgrade business logic
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
 │   │   ├── github-webhook.js      # GitHub webhook processing
 │   │   ├── auth.js                # Auth service
@@ -78,7 +126,7 @@ npm start
 # The app runs on http://localhost:3000
 ```
 
-Open `http://localhost:3000` in a browser to see the storefront. You can browse products, add items to cart, and attempt checkout.
+Open `http://localhost:3000` in a browser to see the hub landing page with all 9 industry verticals. Click any vertical card to open its demo.
 
 ### With Docker (full stack)
 
@@ -104,7 +152,7 @@ This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this befo
 ## Alert Pipeline Architecture
 
 ```
-Checkout Error
+Vertical Error (any of 9 verticals)
     ├──▶ Sentry (captureException)
     │       └──▶ Sentry Alert Rule fires
     │               └──▶ Webhook to POST /webhooks/sentry
@@ -118,7 +166,7 @@ Checkout Error
 ```
 
 **Two trigger paths exist:**
-1. **Instant (storefront):** `app/routes/storefront.js` calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
+1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
 
 Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to prevent duplicate alerts.
@@ -157,14 +205,41 @@ Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to preve
 
 ## Deployment
 
-The app is deployed on an EC2 instance at `3.144.232.30:3000` via Docker Compose. To redeploy:
+The app is deployed on an EC2 instance at `3.144.232.30:3000` via Docker Compose. The application code lives directly in `/home/ubuntu/` on the EC2 host (not in a subdirectory).
 
-1. Build a tarball (excluding `node_modules`, `.git`, `.env`)
-2. SCP to the EC2 instance
-3. Extract over the existing code (preserve `.env`)
-4. Run `docker compose up -d --build`
+### EC2 Redeploy Steps
 
-The `.env` file on EC2 contains all production secrets and should never be overwritten.
+```bash
+# 1. Build tarball from latest main (locally or on your dev machine)
+git checkout main && git pull origin main
+tar czf /tmp/acme-demo.tar.gz --exclude=node_modules --exclude=.git --exclude=.env -C . .
+
+# 2. Back up the .env on EC2 BEFORE extracting (critical — secrets live here)
+ssh ubuntu@3.144.232.30 "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
+
+# 3. SCP the tarball to EC2
+scp /tmp/acme-demo.tar.gz ubuntu@3.144.232.30:/home/ubuntu/acme-demo.tar.gz
+
+# 4. Extract over existing code (the --exclude above ensures .env is not in the tarball)
+ssh ubuntu@3.144.232.30 "cd /home/ubuntu && tar xzf acme-demo.tar.gz"
+
+# 5. Verify .env is still present (if missing, restore from backup)
+ssh ubuntu@3.144.232.30 "test -f /home/ubuntu/.env || cp /home/ubuntu/.env.bak /home/ubuntu/.env"
+
+# 6. Stop old containers, rebuild, and start
+ssh ubuntu@3.144.232.30 "cd /home/ubuntu && docker compose down && docker compose up -d --build"
+
+# 7. Verify the app is healthy
+ssh ubuntu@3.144.232.30 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health"
+# Should return 200
+```
+
+### Important Notes
+
+- **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, etc.) and must never be overwritten or deleted.
+- **Backup before deploy:** Always back up `.env` before extracting the tarball. If the `.env` is accidentally removed, Slack alerts, Sentry, and Datadog will silently stop working.
+- **Port conflicts:** If `docker compose up` fails with port-in-use errors, run `docker compose down` first or `docker rm -f $(docker ps -aq)` to clean up stale containers from previous deployments.
+- **Old deploy path:** An earlier deployment used `/home/ubuntu/acme-demo/` as the app directory. If you find a `.env` at that path but not at `/home/ubuntu/.env`, copy it: `cp /home/ubuntu/acme-demo/.env /home/ubuntu/.env`.
 
 ## NPM Scripts
 
@@ -194,12 +269,30 @@ The `.env` file on EC2 contains all production secrets and should never be overw
 There are no automated tests in this repo. Verification is done manually:
 
 1. Run `npm start` or `docker compose up`
-2. Open `http://localhost:3000` in a browser
-3. Browse products, add to cart, and attempt checkout
-4. Verify error appears (before fix) or checkout succeeds (after fix)
-5. Check Sentry for captured exceptions
-6. Check Datadog for APM traces and metrics
-7. Check Slack for alert messages (if configured)
+2. Open `http://localhost:3000` in a browser — you'll see the hub landing page
+3. Click any vertical card to open its demo
+4. Perform the primary action for that vertical (e.g., transfer funds, execute trade, submit claim)
+5. Verify error appears (before fix) or action succeeds (after fix)
+6. Check Sentry for captured exceptions
+7. Check Datadog for APM traces and metrics
+8. Check Slack for alert messages (if configured)
+
+### Vertical URLs for Quick Access
+
+When the app is running (locally or on EC2 at `3.144.232.30:3000`):
+
+| Vertical | URL |
+|----------|-----|
+| Hub | `http://<host>:3000/` |
+| Retail | `http://<host>:3000/retail` |
+| Banking | `http://<host>:3000/banking` |
+| Financial Services | `http://<host>:3000/financial-services` |
+| Insurance | `http://<host>:3000/insurance` |
+| CPG | `http://<host>:3000/cpg` |
+| High Tech | `http://<host>:3000/hightech` |
+| Industrials | `http://<host>:3000/industrials` |
+| Healthcare | `http://<host>:3000/healthcare` |
+| Telco | `http://<host>:3000/telco` |
 
 ## External Integrations
 
