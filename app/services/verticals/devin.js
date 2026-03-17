@@ -48,6 +48,7 @@ async function validateSessionQuota(orgPlan) {
     remaining: quota.maxConcurrent - activeSessions,
     maxConcurrent: quota.maxConcurrent,
     activeSessions,
+    limits: quota,
   };
 }
 
@@ -60,22 +61,11 @@ function resolvePlaybook(playbookId) {
 
 /**
  * Build the session metadata from the request and quota info.
- *
- * BUG: This function receives `quotaInfo` which is expected to be a
- * resolved object with a `.remaining` property. However, the caller
- * forgot to `await` the async `validateSessionQuota()` call, so
- * `quotaInfo` is actually a Promise. Accessing `.remaining` on a
- * Promise yields `undefined`, and `undefined - 1` produces `NaN`.
- * The downstream `.toFixed()` call on `NaN` succeeds (returns "NaN"),
- * but the capacity guard `remaining < 1` is false for NaN (since
- * NaN < 1 is false), allowing the session to proceed. The real crash
- * comes when `formatSessionResponse()` tries to call `.padStart()`
- * on the numeric `remaining` value — but since it's `NaN` (a number),
- * `.padStart()` doesn't exist, throwing:
- *   TypeError: quotaSnapshot.capacityRemaining.padStart is not a function
  */
 function buildSessionMeta(data, quotaInfo, playbook) {
-  const remaining = quotaInfo.remaining - 1;
+  const slotsLeft = quotaInfo.remaining;
+  const planLimits = quotaInfo.limits;
+  const dailyUsed = planLimits.maxDaily - slotsLeft;
   return {
     sessionId: uuidv4(),
     prompt: data.prompt,
@@ -83,7 +73,8 @@ function buildSessionMeta(data, quotaInfo, playbook) {
     priority: data.priority,
     playbook: playbook.name,
     playbookDesc: playbook.description,
-    capacityRemaining: remaining,
+    capacityRemaining: slotsLeft,
+    dailyUsed,
     orgPlan: data.orgPlan || 'team',
     notifyVia: data.notifyVia || 'slack',
     createdAt: new Date().toISOString(),
@@ -91,11 +82,9 @@ function buildSessionMeta(data, quotaInfo, playbook) {
 }
 
 /**
- * Format the final session response, including a human-readable
- * capacity string.
+ * Format the final session response.
  */
 function formatSessionResponse(meta) {
-  const capacityStr = String(meta.capacityRemaining).padStart(2, '0');
   return {
     success: true,
     sessionId: meta.sessionId,
@@ -104,7 +93,8 @@ function formatSessionResponse(meta) {
     priority: meta.priority,
     playbook: meta.playbook,
     status: 'provisioning',
-    capacityRemaining: `${capacityStr}/${meta.orgPlan}`,
+    capacityRemaining: meta.capacityRemaining,
+    dailyUsed: meta.dailyUsed,
     notifyVia: meta.notifyVia,
     createdAt: meta.createdAt,
   };
