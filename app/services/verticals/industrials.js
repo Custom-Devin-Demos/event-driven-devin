@@ -19,15 +19,15 @@ const EQUIPMENT = [
 /**
  * Equipment class configurations.
  */
-const EQUIPMENT_CLASSES = {
-  rotating: { laborRate: 85, minHours: 4, certRequired: 'mechanical', partsMultiplier: 1.2 },
-  electrical: { laborRate: 95, minHours: 2, certRequired: 'electrical', partsMultiplier: 1.5 },
-  hydraulic: { laborRate: 110, minHours: 3, certRequired: 'hydraulic', partsMultiplier: 1.3 },
-  structural: { laborRate: 75, minHours: 6, certRequired: 'civil', partsMultiplier: 1.0 },
-};
+const EQUIPMENT_CLASSES = [
+  { category: 'rotating', laborRate: 85, minHours: 4, certRequired: 'mechanical', partsMultiplier: 1.2 },
+  { category: 'electrical', laborRate: 95, minHours: 2, certRequired: 'electrical', partsMultiplier: 1.5 },
+  { category: 'hydraulic', laborRate: 110, minHours: 3, certRequired: 'hydraulic', partsMultiplier: 1.3 },
+  { category: 'structural', laborRate: 75, minHours: 6, certRequired: 'civil', partsMultiplier: 1.0 },
+];
 
 /**
- * Look up the equipment class configuration.
+ * Look up the equipment class configuration by category name.
  */
 function getEquipmentClass(category) {
   return EQUIPMENT_CLASSES[category];
@@ -88,7 +88,7 @@ async function createWorkOrder(data) {
       issueType: data.issueType,
       priority: data.priority,
       costEstimate,
-      certRequired: EQUIPMENT_CLASSES[data.equipmentCategory.toLowerCase()]?.certRequired || 'general',
+      certRequired: getEquipmentClass(data.equipmentCategory)?.certRequired || 'general',
       status: 'created',
       createdAt: new Date().toISOString(),
     };

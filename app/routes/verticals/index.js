@@ -12,7 +12,6 @@ const hightechRoutes = require('./hightech');
 const industrialsRoutes = require('./industrials');
 const healthcareRoutes = require('./healthcare');
 const telcoRoutes = require('./telco');
-const barclaysCardsRoutes = require('./barclays-cards');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -23,7 +22,6 @@ router.use(hightechRoutes);
 router.use(industrialsRoutes);
 router.use(healthcareRoutes);
 router.use(telcoRoutes);
-router.use(barclaysCardsRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -51,7 +49,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'barclays-cards'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));

@@ -33,12 +33,13 @@ function lookupPolicy(policyId) {
   if (!policy) return null;
 
   return {
-    policy: {
+    policyData: {
       id: policy.id,
       type: policy.type,
       holder: policy.holder,
       deductible: policy.deductible,
-      coverage: policy.coverage,
+      maxPayout: policy.coverage.maxPayout,
+      liability: policy.coverage.liability,
       premium: policy.premium,
       status: policy.status,
     },
@@ -47,6 +48,18 @@ function lookupPolicy(policyId) {
       source: 'policy-cache',
       version: '2.0',
     },
+  };
+}
+
+/**
+ * Extract coverage limits from a policy lookup result.
+ */
+function extractCoverageLimits(policyResult) {
+  const limits = policyResult.policy;
+  return {
+    maxPayout: limits.coverage.maxPayout,
+    liability: limits.coverage.liability,
+    deductible: limits.deductible,
   };
 }
 
@@ -69,11 +82,10 @@ async function processClaim(claimData) {
     await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 150));
 
     const result = lookupPolicy(claimData.policyId);
+    const limits = extractCoverageLimits(result);
 
-    const { coverage, deductible } = result;
-
-    const netClaimable = claimData.amount - deductible;
-    const payout = Math.min(netClaimable, coverage.maxPayout);
+    const netClaimable = claimData.amount - limits.deductible;
+    const payout = Math.min(netClaimable, limits.maxPayout);
 
     const duration = Date.now() - startTime;
 
@@ -90,7 +102,7 @@ async function processClaim(claimData) {
       claimId,
       policyId: claimData.policyId,
       claimAmount: claimData.amount,
-      deductible: deductible,
+      deductible: limits.deductible,
       payout: Math.round(payout * 100) / 100,
       status: 'approved',
       processedAt: new Date().toISOString(),

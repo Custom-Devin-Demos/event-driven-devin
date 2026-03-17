@@ -5,19 +5,14 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
- * Valid plan names for license provisioning
+ * Plan tier configurations keyed by plan name.
  */
-const VALID_PLANS = ['starter', 'professional', 'enterprise', 'unlimited'];
-
-/**
- * Plan tier configurations (indexed to match VALID_PLANS order)
- */
-const PLAN_CONFIGS = [
-  { seats: 5, pricePerSeat: 10, features: ['basic'], supportLevel: 'community' },
-  { seats: 25, pricePerSeat: 8, features: ['basic', 'analytics'], supportLevel: 'email' },
-  { seats: -1, pricePerSeat: 6, features: ['basic', 'analytics', 'sso', 'audit'], supportLevel: 'priority' },
-  { seats: -1, pricePerSeat: 12, features: ['basic', 'analytics', 'sso', 'audit', 'dedicated-csm'], supportLevel: '24/7' },
-];
+const PLAN_CONFIGS = {
+  starter:      { seats: 5, pricePerSeat: 10, features: ['basic'], supportLevel: 'community', tier: 1 },
+  professional: { seats: 25, pricePerSeat: 8, features: ['basic', 'analytics'], supportLevel: 'email', tier: 2 },
+  enterprise:   { seats: -1, pricePerSeat: 6, features: ['basic', 'analytics', 'sso', 'audit'], supportLevel: 'priority', tier: 3 },
+  unlimited:    { seats: -1, pricePerSeat: 12, features: ['basic', 'analytics', 'sso', 'audit', 'dedicated-csm'], supportLevel: '24/7', tier: 4 },
+};
 
 /**
  * Active subscriptions for the demo
@@ -29,10 +24,22 @@ const SUBSCRIPTIONS = [
 ];
 
 /**
- * Look up the plan index from the plan name.
+ * Retrieve the plan configuration for a given plan name.
  */
-function getPlanIndex(planName) {
-  return VALID_PLANS.indexOf(planName);
+function getPlanConfig(planName) {
+  return PLAN_CONFIGS[planName];
+}
+
+/**
+ * Compute billing details from the plan config and requested seats.
+ */
+function computeBilling(config, seats, billingCycle) {
+  const monthlyCost = seats * config.pricePerSeat;
+  const annual = monthlyCost * 12 * 0.8;
+  return {
+    monthlyCost,
+    billingAmount: billingCycle === 'annual' ? annual : monthlyCost,
+  };
 }
 
 /**
@@ -53,10 +60,10 @@ async function provisionLicense(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 130));
 
-    const planIndex = getPlanIndex(data.planName);
-    const tierConfig = PLAN_CONFIGS[planIndex];
-    const totalCost = data.seats * tierConfig.pricePerSeat;
-    const billingAmount = data.billingCycle === 'annual' ? totalCost * 12 * 0.8 : totalCost;
+    const config = getPlanConfig(data.planName);
+    const billing = computeBilling(config, data.seats, data.billingCycle);
+    const seatLimit = config.seats;
+    const withinLimit = seatLimit === -1 || data.seats <= seatLimit;
 
     const duration = Date.now() - startTime;
 
@@ -74,10 +81,11 @@ async function provisionLicense(data) {
       orgName: data.orgName,
       plan: data.planName,
       seats: data.seats,
-      features: tierConfig.features,
-      supportLevel: tierConfig.supportLevel,
-      monthlyCost: Math.round(totalCost * 100) / 100,
-      billingAmount: Math.round(billingAmount * 100) / 100,
+      withinLimit,
+      features: config.features,
+      supportLevel: config.supportLevel,
+      monthlyCost: Math.round(billing.monthlyCost * 100) / 100,
+      billingAmount: Math.round(billing.billingAmount * 100) / 100,
       billingCycle: data.billingCycle,
       status: 'provisioned',
       activatedAt: new Date().toISOString(),
@@ -142,4 +150,4 @@ async function provisionLicense(data) {
   }
 }
 
-module.exports = { provisionLicense, SUBSCRIPTIONS, VALID_PLANS, PLAN_CONFIGS };
+module.exports = { provisionLicense, SUBSCRIPTIONS, PLAN_CONFIGS };

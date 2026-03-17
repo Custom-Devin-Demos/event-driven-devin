@@ -20,16 +20,24 @@ const PORTFOLIO = [
  * Commission tier schedule
  */
 const COMMISSION_TIERS = new Map([
-  [1, { rate: 0.0050, label: 'Standard', minFee: 4.95 }],
-  [2, { rate: 0.0035, label: 'Active Trader', minFee: 2.95 }],
-  [3, { rate: 0.0010, label: 'VIP', minFee: 0.00 }],
+  ['standard', { rate: 0.0050, label: 'Standard', minFee: 4.95 }],
+  ['active', { rate: 0.0035, label: 'Active Trader', minFee: 2.95 }],
+  ['vip', { rate: 0.0010, label: 'VIP', minFee: 0.00 }],
 ]);
 
 /**
- * Look up the commission tier for a given tier ID.
+ * Resolve the tier label from a numeric tier ID.
  */
-function getCommissionRate(tierId) {
-  const tier = COMMISSION_TIERS.get(tierId);
+function resolveTierLabel(tierId) {
+  const labels = { 1: 'Standard', 2: 'Active Trader', 3: 'VIP' };
+  return labels[tierId];
+}
+
+/**
+ * Look up the commission tier for a given tier label.
+ */
+function getCommissionRate(tierLabel) {
+  const tier = COMMISSION_TIERS.get(tierLabel);
   return tier;
 }
 
@@ -51,7 +59,8 @@ async function executeTrade(tradeData) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 140));
 
-    const commission = getCommissionRate(tradeData.tierId);
+    const tierLabel = resolveTierLabel(tradeData.tierId);
+    const commission = getCommissionRate(tierLabel);
     const tradeValue = tradeData.quantity * tradeData.price;
     const fee = Math.max(tradeValue * commission.rate, commission.minFee);
     const totalCost = tradeData.side === 'buy' ? tradeValue + fee : tradeValue - fee;
