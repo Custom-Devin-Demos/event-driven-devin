@@ -97,7 +97,7 @@ async function processLogin(data) {
       throw err;
     }
 
-    const authResult = validateCredentials(data.username, data.password);
+    const authResult = await validateCredentials(data.username, data.password);
     if (!authResult.valid) {
       const err = new Error('Invalid username or password');
       err.code = 'AUTH_FAILED';
