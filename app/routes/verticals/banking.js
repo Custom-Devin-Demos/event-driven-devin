@@ -19,7 +19,7 @@ router.post('/api/banking/transfer', async (req, res) => {
       fromAccount: req.body.fromAccount || 'ACCT-1001',
       toAccount: req.body.toAccount || 'ACCT-1002',
       amount: req.body.amount || 500,
-      accountTier: req.body.accountTier || 'premium',
+      accountTier: req.body.accountTier || 'Premium',
       userId: req.body.userId || 'usr_banking_1',
     });
     res.json(result);
