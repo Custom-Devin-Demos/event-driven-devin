@@ -33,37 +33,39 @@ function buildPrompt(alertData) {
     count, shortId, project, release, environment, triggeredRule,
   } = alertData;
 
+  // Use null as skip sentinel for optional fields so that intentional
+  // blank-line separators ('') are preserved by the filter.
   const lines = [
-    `!sentry_investigation`,
+    '!sentry_investigation',
     '',
-    `**Error:** ${issueTitle}`,
-    culprit ? `**Location:** \`${culprit}\`` : '',
-    errorType ? `**Type:** ${errorType}` : '',
-    errorValue ? `**Message:** ${errorValue}` : '',
-    alertData.service ? `**Service:** ${alertData.service}` : '',
-    `**Level:** ${level || 'error'}`,
-    shortId ? `**Short ID:** ${shortId}` : '',
-    triggeredRule ? `**Triggered Rule:** ${triggeredRule}` : '',
-    firstSeen ? `**First Seen:** ${firstSeen}` : '',
-    lastSeen ? `**Last Seen:** ${lastSeen}` : '',
-    count ? `**Event Count:** ${count}` : '',
-    project ? `**Project:** ${project}` : '',
-    release ? `**Release:** ${release}` : '',
-    environment ? `**Environment:** ${environment}` : '',
-    issueUrl ? `**Sentry Issue:** ${issueUrl}` : '',
+    `*Error:* ${issueTitle}`,
+    culprit ? `*Location:* \`${culprit}\`` : null,
+    errorType ? `*Type:* ${errorType}` : null,
+    errorValue ? `*Message:* ${errorValue}` : null,
+    alertData.service ? `*Service:* ${alertData.service}` : null,
+    `*Level:* ${level || 'error'}`,
+    shortId ? `*Short ID:* ${shortId}` : null,
+    triggeredRule ? `*Triggered Rule:* ${triggeredRule}` : null,
+    firstSeen ? `*First Seen:* ${firstSeen}` : null,
+    lastSeen ? `*Last Seen:* ${lastSeen}` : null,
+    count ? `*Event Count:* ${count}` : null,
+    project ? `*Project:* ${project}` : null,
+    release ? `*Release:* ${release}` : null,
+    environment ? `*Environment:* ${environment}` : null,
+    issueUrl ? `*Sentry Issue:* ${issueUrl}` : null,
   ];
 
   if (tags && tags.length > 0) {
-    lines.push('', '**Tags:**');
+    lines.push('', '*Tags:*');
     tags.forEach((t) => {
       const key = t.key || t[0] || '';
       const value = t.value || t[1] || '';
-      if (key) lines.push(`- ${key}: ${value}`);
+      if (key) lines.push(`  ${key}: ${value}`);
     });
   }
 
   return lines
-    .filter((l) => l !== '')
+    .filter((l) => l !== null)
     .join('\n');
 }
 
