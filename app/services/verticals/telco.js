@@ -29,9 +29,6 @@ const ACCOUNTS = [
  * Plan codes follow the format: NAME-TERM (e.g., "BASIC-12", "PLUS-24")
  */
 function parsePlanCode(planCode) {
-  // BUG: regex only handles single-word names ([A-Z]+)
-  // New plan "FAMILY-PLUS-12" has a hyphen in the name portion
-  // The regex fails to match, returning null
   const match = planCode.match(/^([A-Z]+)-(\d+)$/);
   return {
     planName: match[1],
