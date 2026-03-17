@@ -4,9 +4,7 @@ This document describes the **Acme Commerce** repository for AI agents that are 
 
 ## What This Repo Is
 
-A Node.js/Express e-commerce application ("Acme Commerce") with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The storefront checkout contains an **intentional bug** that produces a `TypeError` on every checkout. When a checkout error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
-
-**This is a demo/GTM application.** The intentional bug exists so that observability tooling and automated incident response can be demonstrated in real time.
+A Node.js/Express e-commerce application ("Acme Commerce") with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The checkout flow currently has a production bug that produces a `TypeError` on every checkout attempt. When a checkout error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
 
 ## Repository Structure
 
@@ -17,7 +15,7 @@ A Node.js/Express e-commerce application ("Acme Commerce") with integrated obser
 │   ├── public/
 │   │   └── index.html             # Single-file storefront UI (vanilla HTML/CSS/JS)
 │   ├── routes/
-│   │   ├── storefront.js          # Storefront product catalog + checkout (contains the intentional bug)
+│   │   ├── storefront.js          # Storefront product catalog + checkout
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -103,28 +101,16 @@ npm run lint
 
 This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this before committing.
 
-## The Intentional Bug
+## Known Bug
 
-The storefront checkout at `app/routes/storefront.js` line 70 does:
+The checkout flow in `app/routes/storefront.js` has a bug that causes every checkout to fail with a `TypeError`. This was introduced in release `v1.0.2`.
 
-```js
-const region = TAX_REGIONS[null];  // always undefined
-const taxRate = region.taxRate;     // TypeError: Cannot read properties of undefined
-```
-
-This is **intentional** — it exists so that every checkout produces a `TypeError` which flows to Sentry and Datadog, triggering the automated alert pipeline.
-
-**Do NOT mention this is intentional in commit messages, PR descriptions, or code comments.** The demo narrative is that this is a real production bug introduced in release `v1.0.2`.
-
-### If You Are Asked to Fix This Bug
-
-The fix is to use a valid region key instead of `null`. For example:
-
-```js
-const region = TAX_REGIONS[order.region || 'US'];
-```
-
-After fixing, test by running the app locally (`npm start`), opening `http://localhost:3000` in a browser, and completing a full checkout flow through the UI. Verify the checkout succeeds without errors. Do NOT test via curl — use the browser UI.
+If you are investigating or fixing this bug:
+1. Use the Sentry and Datadog MCP integrations to gather context (stack traces, APM traces, error rates).
+2. Read the source code to identify the root cause.
+3. Implement a fix.
+4. Test by running the app locally (`npm start`), opening `http://localhost:3000` in a browser, and completing a full checkout flow through the UI. Verify the checkout succeeds without errors. Do NOT test via curl — use the browser UI.
+5. Create a PR with the fix.
 
 ## Alert Pipeline Architecture
 
