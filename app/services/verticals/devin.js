@@ -126,9 +126,7 @@ async function createDevinSession(data) {
       );
     }
 
-    // BUG: Missing `await` — validateSessionQuota is async but the
-    // result is used as if it were the resolved value.
-    const quotaCheck = validateSessionQuota(data.orgPlan || 'team');
+    const quotaCheck = await validateSessionQuota(data.orgPlan || 'team');
 
     const meta = buildSessionMeta(data, quotaCheck, playbook);
     const response = formatSessionResponse(meta);
