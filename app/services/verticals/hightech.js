@@ -50,9 +50,10 @@ async function provisionLicense(data) {
     service: 'licensing-api',
   });
 
+  const planName = data.planName.trim();
+
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 130));
-
     const planIndex = getPlanIndex(data.planName);
     const tierConfig = PLAN_CONFIGS[planIndex];
     const totalCost = data.seats * tierConfig.pricePerSeat;
@@ -62,7 +63,7 @@ async function provisionLicense(data) {
 
     incrementMetric('provision.success', {
       route: '/api/licenses/provision',
-      plan: data.planName,
+      plan: planName,
     });
     recordTiming('provision.latency', duration, {
       route: '/api/licenses/provision',
@@ -72,7 +73,7 @@ async function provisionLicense(data) {
       success: true,
       licenseId,
       orgName: data.orgName,
-      plan: data.planName,
+      plan: planName,
       seats: data.seats,
       pricePerSeat: tierConfig.pricePerSeat,
       features: tierConfig.features,
@@ -107,7 +108,7 @@ async function provisionLicense(data) {
       tags: {
         route: '/api/licenses/provision',
         service: 'licensing-api',
-        plan: data.planName,
+        plan: planName,
       },
       extra: { licenseId, orgName: data.orgName, seats: data.seats },
     });
