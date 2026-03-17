@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barclays US &mdash; Credit Cards, Savings &amp; Personal Loans</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-elevated: #f5f7fa;
+      --bg-card: #ffffff;
+      --surface: #eef1f6;
+      --border: #d9dee5;
+      --border-light: #e8ecf1;
+      --text: #1a1a2e;
+      --text-muted: #5a6377;
+      --text-dim: #8c95a6;
+      --accent: #00aeef;
+      --accent-dim: rgba(0,174,239,0.08);
+      --accent-hover: #0098d4;
+      --accent-dark: #005eb8;
+      --danger: #d63031;
+      --danger-bg: rgba(214,48,49,0.06);
+      --danger-border: rgba(214,48,49,0.18);
+      --success: #00a86b;
+      --success-bg: rgba(0,168,107,0.06);
+      --hero-bg: #e8f4fa;
+      --nav-bg: #1a1a2e;
+      --footer-bg: #f5f7fa;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'Courier New', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; } .delay-5 { animation-delay: 0.5s; }
+
+    header {
+      background: var(--nav-bg);
+      padding: 0 clamp(1.5rem, 4vw, 3rem); height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-icon { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 16px; height: 16px; fill: #fff; }
+    .logo-text { font-size: 1.35rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+    nav { display: flex; gap: 1.8rem; }
+    nav a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.82rem; font-weight: 500; transition: color 0.3s; }
+    nav a:hover { color: #fff; }
+    .nav-login { display: flex; align-items: center; gap: 0.4rem; color: var(--accent); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+    .nav-login:hover { color: var(--accent-hover); }
+
+    .fdic-bar {
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 0.4rem clamp(1.5rem, 4vw, 3rem);
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.7rem; color: var(--text-muted); font-style: italic;
+    }
+    .fdic-bar strong { font-style: normal; font-weight: 700; font-size: 0.75rem; color: var(--text); }
+
+    .hero {
+      background: linear-gradient(135deg, var(--hero-bg) 0%, #dbeef8 100%);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+      display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: center;
+      max-width: 1200px; margin: 0 auto;
+    }
+    @media (max-width: 768px) { .hero { grid-template-columns: 1fr; } }
+    .hero-content h1 { font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 700; line-height: 1.3; margin-bottom: 1rem; color: var(--text); }
+    .hero-content p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    .hero-content .highlight { color: var(--accent-dark); font-weight: 600; }
+    .btn-primary {
+      display: inline-block; padding: 0.75rem 2rem;
+      background: var(--accent); color: #fff; border: none; border-radius: 4px;
+      font-size: 0.85rem; font-weight: 600; font-family: var(--sans);
+      cursor: pointer; text-decoration: none; transition: background 0.3s;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .card-image { text-align: center; }
+    .card-image .card-visual {
+      width: 260px; height: 164px; background: linear-gradient(145deg, #1a1a2e 0%, #2d2d5e 100%);
+      border-radius: 12px; display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 1.2rem; color: #fff; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      margin: 0 auto; position: relative; overflow: hidden;
+    }
+    .card-visual::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 100px; height: 100px; border-radius: 50%;
+      background: rgba(0,174,239,0.2);
+    }
+    .card-visual .card-brand { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.7; }
+    .card-visual .card-number { font-size: 0.8rem; letter-spacing: 0.2em; margin: 0.5rem 0; font-family: var(--mono); }
+    .card-visual .card-holder { font-size: 0.7rem; opacity: 0.8; }
+
+    .signin-box {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .signin-box h3 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; color: var(--text); }
+    .signin-box input {
+      width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border);
+      border-radius: 4px; font-size: 0.85rem; font-family: var(--sans);
+      margin-bottom: 0.6rem; color: var(--text);
+    }
+    .signin-box input::placeholder { color: var(--text-dim); }
+    .signin-box input:focus { outline: none; border-color: var(--accent); }
+    .signin-row { display: flex; justify-content: space-between; align-items: center; margin: 0.6rem 0; }
+    .signin-row label { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem; }
+    .signin-row input[type="checkbox"] { width: auto; margin: 0; }
+    .btn-signin {
+      padding: 0.6rem 1.5rem; background: var(--accent); color: #fff;
+      border: none; border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+      font-family: var(--sans); cursor: pointer; transition: background 0.3s;
+    }
+    .btn-signin:hover { background: var(--accent-hover); }
+    .signin-links { margin-top: 0.8rem; }
+    .signin-links a { display: block; font-size: 0.78rem; color: var(--accent); text-decoration: none; margin-bottom: 0.3rem; }
+    .signin-links a:hover { text-decoration: underline; }
+
+    .product-explorer {
+      text-align: center; padding: 3rem clamp(1.5rem, 4vw, 3rem);
+      max-width: 1200px; margin: 0 auto;
+    }
+    .product-explorer h2 { font-size: 1.5rem; font-weight: 600; color: var(--accent); margin-bottom: 2rem; }
+    .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    @media (max-width: 768px) { .product-grid { grid-template-columns: 1fr; } }
+    .product-card {
+      text-align: center; padding: 2rem 1.5rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      transition: box-shadow 0.3s, border-color 0.3s; cursor: pointer;
+    }
+    .product-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); border-color: var(--accent); }
+    .product-card .icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+    .product-card h3 { font-size: 1rem; font-weight: 600; color: var(--text); }
+
+    .promo-section {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+      padding: 3rem clamp(1.5rem, 4vw, 3rem); max-width: 1200px; margin: 0 auto;
+      align-items: center;
+    }
+    @media (max-width: 768px) { .promo-section { grid-template-columns: 1fr; } }
+    .promo-content h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; border-left: 3px solid var(--accent); padding-left: 1rem; }
+    .promo-content p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem; line-height: 1.7; }
+    .promo-image {
+      width: 100%; height: 240px; background: linear-gradient(135deg, var(--hero-bg), #c5dff0);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; opacity: 0.6;
+    }
+
+    .rewards-section {
+      background: var(--bg-elevated); border-top: 1px solid var(--border);
+      padding: 3rem clamp(1.5rem, 4vw, 3rem);
+    }
+    .rewards-inner { max-width: 700px; margin: 0 auto; }
+    .rewards-inner h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .rewards-inner p.subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+      transition: border-color 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit {
+      width: 100%; padding: 0.85rem; background: var(--accent); color: #fff;
+      border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+      font-family: var(--sans); letter-spacing: 0.03em; cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box {
+      margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 6px;
+      font-size: 0.85rem; display: none;
+    }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(0,168,107,0.18); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+
+    .help-section {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+      padding: 3rem clamp(1.5rem, 4vw, 3rem); max-width: 1200px; margin: 0 auto;
+      align-items: center;
+    }
+    @media (max-width: 768px) { .help-section { grid-template-columns: 1fr; } }
+    .help-image {
+      width: 100%; height: 220px; background: linear-gradient(135deg, #f0e6d3, #e8dcc8);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; opacity: 0.6;
+    }
+    .help-content h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; }
+    .help-content p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 1.5rem; }
+
+    footer {
+      background: var(--footer-bg); border-top: 1px solid var(--border);
+      padding: 2rem clamp(1.5rem, 4vw, 3rem);
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-social { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .footer-social span { font-size: 0.85rem; color: var(--text-muted); }
+    .footer-social a { color: var(--text-muted); text-decoration: none; font-size: 1.1rem; transition: color 0.3s; }
+    .footer-social a:hover { color: var(--text); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: 1rem; }
+    .footer-links a { font-size: 0.75rem; color: var(--text-muted); text-decoration: none; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-legal { font-size: 0.7rem; color: var(--text-dim); line-height: 1.6; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin: 1rem 0 0 clamp(1.5rem, 4vw, 3rem); }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+  <header>
+    <a href="#" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <span class="logo-text">BARCLAYS</span>
+    </a>
+    <nav>
+      <a href="#">Credit Cards</a>
+      <a href="#">Savings &amp; CDs</a>
+      <a href="#">Personal Loans</a>
+      <a href="#">Help Center</a>
+      <a href="#">About Us</a>
+    </nav>
+    <a href="#" class="nav-login">&#x2192; Log in</a>
+  </header>
+
+  <div class="fdic-bar animate-up">
+    <strong>FDIC</strong> FDIC-Insured &ndash; Backed by the full faith and credit of the U.S. Government
+  </div>
+
+  <div style="background: linear-gradient(135deg, var(--hero-bg) 0%, #dbeef8 100%);">
+    <div class="hero animate-up delay-1">
+      <div class="hero-content">
+        <h1>The most rewarding card for retail apparel purchases everywhere</h1>
+        <p>Get <span class="highlight">30% off</span> your first purchase at Old Navy<br>
+        + Earn <span class="highlight">5X points</span> at our family of brands<br>
+        + Earn <span class="highlight">3X points</span> at all eligible retail apparel brands</p>
+        <a href="#" class="btn-primary">Learn More</a>
+        <div style="margin-top: 1.5rem;">
+          <div class="card-visual">
+            <div class="card-brand">Barclays</div>
+            <div class="card-number">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4829</div>
+            <div class="card-holder">CARDMEMBER</div>
+          </div>
+        </div>
+      </div>
+      <div class="signin-box">
+        <h3>Sign In</h3>
+        <input type="text" placeholder="Enter your username">
+        <input type="password" placeholder="Enter your password">
+        <div class="signin-row">
+          <label><input type="checkbox"> Remember username</label>
+          <button class="btn-signin">Log in</button>
+        </div>
+        <div class="signin-links">
+          <a href="#">Forgot username or password?</a>
+          <span style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; display: block;">Already applied?</span>
+          <a href="#">Check your application status</a>
+          <a href="#">Activate your new card</a>
+          <a href="#">Set up online access</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="product-explorer animate-up delay-2">
+    <h2>Find a product that fits your life</h2>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="icon">&#x1F4B3;</div>
+        <h3>Credit Cards</h3>
+      </div>
+      <div class="product-card">
+        <div class="icon">&#x1F4B0;</div>
+        <h3>Savings &amp; CDs</h3>
+      </div>
+      <div class="product-card">
+        <div class="icon">&#x1F3E6;</div>
+        <h3>Personal Loans</h3>
+      </div>
+    </div>
+  </section>
+
+  <div class="promo-section animate-up delay-3">
+    <div class="promo-content">
+      <h2>Elevate your savings with Barclays Tiered Savings</h2>
+      <p>Get a <strong>$200 Bonus</strong> after depositing $30,000 now through 3/31/2026.</p>
+      <p>For new Barclays Tiered Savings customers.</p>
+      <p style="font-size: 0.8rem; color: var(--text-dim);">Terms Apply.</p>
+      <a href="#" class="btn-primary" style="margin-top: 1rem;">Learn more</a>
+    </div>
+    <div class="promo-image">&#x1F3D4;</div>
+  </div>
+
+  <section class="rewards-section animate-up delay-4">
+    <div class="rewards-inner">
+      <h2>&#x1F4B3; Check Your Rewards</h2>
+      <p class="subtitle">Enter your card details to view your current rewards balance and estimated cashback.</p>
+      <form id="rewardsForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Card Type</label>
+            <select id="cardType">
+              <option value="visa-signature">Visa Signature</option>
+              <option value="world-elite">World Elite Mastercard</option>
+              <option value="rewards-plus">Barclays Rewards+</option>
+              <option value="aadvantage">AAdvantage Aviator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Statement Period</label>
+            <select id="statementPeriod">
+              <option value="2026-03">March 2026</option>
+              <option value="2026-02">February 2026</option>
+              <option value="2026-01">January 2026</option>
+              <option value="2025-12">December 2025</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Monthly Spend ($)</label>
+          <input type="number" id="monthlySpend" value="2500" min="0" step="100" placeholder="Enter monthly spend">
+        </div>
+        <div class="form-group">
+          <label>Rewards Tier</label>
+          <select id="rewardsTier">
+            <option value="platinum">Platinum</option>
+            <option value="gold">Gold</option>
+            <option value="silver">Silver</option>
+            <option value="standard">Standard</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Check Rewards</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </section>
+
+  <div class="help-section animate-up delay-5">
+    <div class="help-image">&#x1F4DE;</div>
+    <div class="help-content">
+      <h2>Visit our Help Center</h2>
+      <p>From FAQs to how-to videos to your credit card account access, the Help Center is your go-to resource for all your banking needs. We're also available anytime at 877-523-0478.</p>
+      <a href="#" class="btn-primary">Help Center</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-social">
+        <span>Connect with us:</span>
+        <a href="#">f</a>
+        <a href="#">&#x1D54F;</a>
+        <a href="#">&#x25B6;</a>
+        <a href="#">&#x1F4F7;</a>
+      </div>
+      <div class="footer-links">
+        <a href="#">Cardmember Agreements</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Security Center</a>
+        <a href="#">Accessibility</a>
+        <a href="#">FAQs</a>
+        <a href="#">Contact Us</a>
+        <a href="#">Careers</a>
+        <a href="#">Investments</a>
+      </div>
+      <div class="footer-legal">
+        &copy; 2026 Barclays Bank Delaware, Member FDIC<br>
+        Credit Card Customer Support: 877-523-0478
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('rewardsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'Calculating...';
+      result.className = 'result-box';
+
+      try {
+        const res = await fetch('/api/barclays/rewards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cardType: document.getElementById('cardType').value,
+            statementPeriod: document.getElementById('statementPeriod').value,
+            monthlySpend: parseFloat(document.getElementById('monthlySpend').value),
+            rewardsTier: document.getElementById('rewardsTier').value,
+            userId: 'usr_barclays_1',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Rewards Lookup Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Rewards Summary</div><div class="error-detail">Points earned: ${data.pointsEarned} | Cashback value: $${data.cashbackValue}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Check Rewards';
+      }
+    });
+  </script>
+</body>
+</html>
