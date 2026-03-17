@@ -32,9 +32,11 @@ const COMMISSION_TIERS = new Map([
  * Look up the commission tier for a given tier ID.
  */
 function getCommissionRate(tierId) {
-  // BUG: tierId from JSON body is a string "1", not number 1
-  // Map.get("1") !== Map.get(1) → returns undefined
-  const tier = COMMISSION_TIERS.get(tierId);
+  const numericId = Number(tierId);
+  const tier = COMMISSION_TIERS.get(numericId);
+  if (!tier) {
+    throw new Error(`Unknown commission tier: ${tierId}`);
+  }
   return tier;
 }
 
