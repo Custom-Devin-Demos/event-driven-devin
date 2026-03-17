@@ -33,8 +33,8 @@ function buildPrompt(alertData) {
     count, shortId, project, release, environment, triggeredRule,
   } = alertData;
 
-  // Use null as skip sentinel for optional fields so that intentional
-  // blank-line separators ('') are preserved by the filter.
+  // Build a compact, scannable prompt.
+  // Use null as skip sentinel so intentional blank-line separators ('') are preserved.
   const lines = [
     '!sentry_investigation',
     '',
@@ -43,25 +43,48 @@ function buildPrompt(alertData) {
     errorType ? `*Type:* ${errorType}` : null,
     errorValue ? `*Message:* ${errorValue}` : null,
     alertData.service ? `*Service:* ${alertData.service}` : null,
-    `*Level:* ${level || 'error'}`,
-    shortId ? `*Short ID:* ${shortId}` : null,
-    triggeredRule ? `*Triggered Rule:* ${triggeredRule}` : null,
-    firstSeen ? `*First Seen:* ${firstSeen}` : null,
-    lastSeen ? `*Last Seen:* ${lastSeen}` : null,
-    count ? `*Event Count:* ${count}` : null,
-    project ? `*Project:* ${project}` : null,
-    release ? `*Release:* ${release}` : null,
-    environment ? `*Environment:* ${environment}` : null,
-    issueUrl ? `*Sentry Issue:* ${issueUrl}` : null,
   ];
 
+  // Compact metadata line — combine small fields with pipe separators
+  const metaParts = [
+    `Level: ${level || 'error'}`,
+    project ? `Project: ${project}` : null,
+    environment ? `Env: ${environment}` : null,
+    release ? `Release: ${release}` : null,
+  ].filter(Boolean);
+  if (metaParts.length > 0) {
+    lines.push('', metaParts.join(' | '));
+  }
+
+  // Event history line
+  const historyParts = [
+    count ? `Events: ${count}` : null,
+    firstSeen ? `First: ${firstSeen}` : null,
+    lastSeen ? `Last: ${lastSeen}` : null,
+  ].filter(Boolean);
+  if (historyParts.length > 0) {
+    lines.push(historyParts.join(' | '));
+  }
+
+  // Extra identifiers
+  if (shortId) lines.push(`Short ID: ${shortId}`);
+  if (triggeredRule) lines.push(`Rule: ${triggeredRule}`);
+
+  // Sentry link
+  if (issueUrl) lines.push('', issueUrl);
+
+  // Tags — inline comma-separated for compactness
   if (tags && tags.length > 0) {
-    lines.push('', '*Tags:*');
-    tags.forEach((t) => {
-      const key = t.key || t[0] || '';
-      const value = t.value || t[1] || '';
-      if (key) lines.push(`  ${key}: ${value}`);
-    });
+    const tagPairs = tags
+      .map((t) => {
+        const key = t.key || t[0] || '';
+        const value = t.value || t[1] || '';
+        return key ? `${key}: ${value}` : null;
+      })
+      .filter(Boolean);
+    if (tagPairs.length > 0) {
+      lines.push('', `*Tags:* ${tagPairs.join(', ')}`);
+    }
   }
 
   return lines
