@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaveConnect &mdash; Telecom Self-Service</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #081018; --bg-elevated: #0e1822; --bg-card: #142230;
+      --surface: #1e3248; --border: #1e3850; --border-light: #2e4860;
+      --text: #e4eef5; --text-muted: #8aa0b8; --text-dim: #5a7088;
+      --accent: #118AB2; --accent-dim: rgba(17,138,178,0.12); --accent-hover: #14a8d8;
+      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
+      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
+      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+
+    header { position: sticky; top: 0; z-index: 100; background: rgba(8,16,24,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: var(--text); }
+
+    .dashboard { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
+    .welcome { margin-bottom: 2rem; }
+    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
+    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .plan-overview { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    @media (max-width: 768px) { .plan-overview { grid-template-columns: 1fr; } }
+
+    .current-plan { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .plan-badge { display: inline-block; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); background: var(--accent-dim); padding: 0.2rem 0.6rem; border-radius: 20px; margin-bottom: 0.75rem; }
+    .plan-name-big { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .plan-price-big { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .plan-price-big span { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+    .plan-features { list-style: none; }
+    .plan-features li { font-size: 0.85rem; color: var(--text-muted); padding: 0.2rem 0; }
+    .plan-features li::before { content: '✓ '; color: var(--accent); }
+
+    .usage-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .usage-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
+    .usage-item { margin-bottom: 1rem; }
+    .usage-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.3rem; }
+    .usage-label span:first-child { color: var(--text-muted); }
+    .usage-bar { height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+    .usage-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s var(--ease-out); }
+    .fill-data { background: var(--accent); }
+    .fill-calls { background: var(--success); }
+    .fill-texts { background: #a78bfa; }
+
+    .plans-section { margin-bottom: 2rem; }
+    .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .plans-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    @media (max-width: 900px) { .plans-grid { grid-template-columns: 1fr 1fr; } }
+    .plan-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; transition: all 0.3s; cursor: pointer; }
+    .plan-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .plan-card.highlighted { border-color: var(--accent); background: var(--accent-dim); }
+    .plan-card .plan-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .plan-card .plan-code { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .plan-card .plan-price { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .plan-card .plan-data { font-size: 0.8rem; color: var(--text-muted); }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 550px; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+
+    .btn-submit { width: 100%; padding: 0.85rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
+    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">📱 <span>Wave</span>Connect</div>
+    <nav><a href="#">My Plan</a><a href="#">Usage</a><a href="#">Devices</a><a href="#">Support</a></nav>
+  </header>
+
+  <div class="dashboard">
+    <a href="/" class="back-link animate-up">← All Demos</a>
+    <div class="welcome animate-up delay-1">
+      <h1>Welcome back, Jordan Lee</h1>
+      <p>Account CUST-3001 &bull; Member since 2022</p>
+    </div>
+
+    <div class="plan-overview animate-up delay-2">
+      <div class="current-plan">
+        <div class="plan-badge">Current Plan</div>
+        <div class="plan-name-big">Basic 12-Month</div>
+        <div class="plan-price-big">$45 <span>/month</span></div>
+        <ul class="plan-features">
+          <li>5 GB data</li>
+          <li>Unlimited calls & texts</li>
+          <li>12-month contract</li>
+          <li>Plan code: BASIC-12</li>
+        </ul>
+      </div>
+      <div class="usage-card">
+        <div class="usage-title">Current Usage</div>
+        <div class="usage-item">
+          <div class="usage-label"><span>Data</span><span>3.2 / 5 GB</span></div>
+          <div class="usage-bar"><div class="usage-bar-fill fill-data" style="width:64%"></div></div>
+        </div>
+        <div class="usage-item">
+          <div class="usage-label"><span>Calls</span><span>142 min (unlimited)</span></div>
+          <div class="usage-bar"><div class="usage-bar-fill fill-calls" style="width:25%"></div></div>
+        </div>
+        <div class="usage-item">
+          <div class="usage-label"><span>Texts</span><span>89 (unlimited)</span></div>
+          <div class="usage-bar"><div class="usage-bar-fill fill-texts" style="width:15%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="plans-section animate-up delay-3">
+      <div class="section-title">📶 Upgrade Your Plan</div>
+      <div class="plans-grid">
+        <div class="plan-card">
+          <div class="plan-name">Plus</div>
+          <div class="plan-code">PLUS-12</div>
+          <div class="plan-price">$65/mo</div>
+          <div class="plan-data">15 GB data</div>
+        </div>
+        <div class="plan-card">
+          <div class="plan-name">Ultra</div>
+          <div class="plan-code">ULTRA-24</div>
+          <div class="plan-price">$85/mo</div>
+          <div class="plan-data">Unlimited data</div>
+        </div>
+        <div class="plan-card highlighted">
+          <div class="plan-name">Family Plus</div>
+          <div class="plan-code">FAMILY-PLUS-12</div>
+          <div class="plan-price">$120/mo</div>
+          <div class="plan-data">Shared 50 GB</div>
+        </div>
+        <div class="plan-card">
+          <div class="plan-name">Business</div>
+          <div class="plan-code">BIZ-36</div>
+          <div class="plan-price">$99/mo</div>
+          <div class="plan-data">Unlimited + hotspot</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card animate-up delay-4">
+      <div class="card-title">⚡ Upgrade Plan</div>
+      <form id="upgradeForm">
+        <div class="form-group">
+          <label>Current Plan</label>
+          <input type="text" id="currentDisplay" value="Basic 12-Month (BASIC-12)" readonly style="background: var(--surface); color: var(--text-muted);">
+        </div>
+        <div class="form-group">
+          <label>Upgrade To</label>
+          <select id="targetPlan">
+            <option value="PLUS-12">Plus 12-Month ($65/mo)</option>
+            <option value="ULTRA-24">Ultra 24-Month ($85/mo)</option>
+            <option value="FAMILY-PLUS-12" selected>Family Plus 12-Month ($120/mo)</option>
+            <option value="BIZ-36">Business 36-Month ($99/mo)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Upgrade Plan</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/telco/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: 'CUST-3001',
+            currentPlanCode: 'BASIC-12',
+            targetPlanCode: document.getElementById('targetPlan').value,
+            billingDay: 15,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Upgrade Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Plan Upgraded</div><div class="error-detail">Upgraded to ${data.newPlan} — Prorated charge: $${data.proratedCharge}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Upgrade Plan';
+      }
+    });
+  </script>
+</body>
+</html>

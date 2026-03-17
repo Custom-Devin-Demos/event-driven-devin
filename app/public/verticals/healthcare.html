@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePoint Health &mdash; Patient Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #081210; --bg-elevated: #0e1a16; --bg-card: #142820;
+      --surface: #1e3828; --border: #1e4030; --border-light: #2e5040;
+      --text: #e4f0ea; --text-muted: #8aaa98; --text-dim: #5a7a68;
+      --accent: #06D6A0; --accent-dim: rgba(6,214,160,0.1); --accent-hover: #10e8b0;
+      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
+      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
+      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+
+    header { position: sticky; top: 0; z-index: 100; background: rgba(8,18,16,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: var(--text); }
+
+    .dashboard { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
+    .welcome { margin-bottom: 2rem; }
+    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
+    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+    @media (max-width: 768px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .info-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .info-value { font-size: 1rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .info-sub { font-size: 0.8rem; color: var(--text-dim); }
+
+    .appt-list { margin-bottom: 2rem; }
+    .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .appt-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .appt-info { display: flex; align-items: center; gap: 1rem; }
+    .appt-date { text-align: center; min-width: 50px; }
+    .appt-date .month { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; color: var(--accent); }
+    .appt-date .day { font-size: 1.3rem; font-weight: 700; }
+    .appt-details .appt-doc { font-weight: 600; font-size: 0.9rem; }
+    .appt-details .appt-dept { font-size: 0.8rem; color: var(--text-muted); }
+    .appt-time { font-family: var(--mono); font-size: 0.8rem; color: var(--text-muted); }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 600px; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+
+    .btn-submit { width: 100%; padding: 0.85rem; background: var(--accent); color: #000; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
+    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🏥 <span>CarePoint</span> Health</div>
+    <nav><a href="#">Dashboard</a><a href="#">Appointments</a><a href="#">Records</a><a href="#">Messages</a></nav>
+  </header>
+
+  <div class="dashboard">
+    <a href="/" class="back-link animate-up">← All Demos</a>
+    <div class="welcome animate-up delay-1">
+      <h1>Welcome, Sarah Johnson</h1>
+      <p>Patient ID: PAT-2001 &bull; Gold Plan</p>
+    </div>
+
+    <div class="info-grid animate-up delay-2">
+      <div class="info-card">
+        <div class="info-label">Insurance Plan</div>
+        <div class="info-value">Gold PPO</div>
+        <div class="info-sub">$30 copay &bull; Coverage ends Dec 31, 2026</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Primary Care</div>
+        <div class="info-value">Dr. Emily Rodriguez</div>
+        <div class="info-sub">Internal Medicine</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Next Appointment</div>
+        <div class="info-value">March 20, 2026</div>
+        <div class="info-sub">Annual Physical</div>
+      </div>
+    </div>
+
+    <div class="appt-list animate-up delay-3">
+      <div class="section-title">📅 Upcoming Appointments</div>
+      <div class="appt-item">
+        <div class="appt-info">
+          <div class="appt-date"><div class="month">Mar</div><div class="day">20</div></div>
+          <div class="appt-details"><div class="appt-doc">Dr. Emily Rodriguez</div><div class="appt-dept">Internal Medicine — Annual Physical</div></div>
+        </div>
+        <div class="appt-time">10:30 AM</div>
+      </div>
+      <div class="appt-item">
+        <div class="appt-info">
+          <div class="appt-date"><div class="month">Apr</div><div class="day">5</div></div>
+          <div class="appt-details"><div class="appt-doc">Dr. James Chen</div><div class="appt-dept">Dermatology — Follow-up</div></div>
+        </div>
+        <div class="appt-time">2:15 PM</div>
+      </div>
+    </div>
+
+    <div class="card animate-up delay-4">
+      <div class="card-title">📋 Schedule New Appointment</div>
+      <form id="appointmentForm">
+        <div class="form-group">
+          <label>Provider</label>
+          <select id="providerId">
+            <option value="DR-101">Dr. Emily Rodriguez — Internal Medicine</option>
+            <option value="DR-102">Dr. James Chen — Dermatology</option>
+            <option value="DR-103">Dr. Maria Santos — Cardiology</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <select id="department">
+            <option value="primary-care">Primary Care</option>
+            <option value="dermatology">Dermatology</option>
+            <option value="cardiology">Cardiology</option>
+            <option value="orthopedics">Orthopedics</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Year</label>
+            <select id="year">
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Month</label>
+            <select id="month">
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12" selected>December</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Day</label>
+            <input type="number" id="day" value="15" min="1" max="31">
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Schedule Appointment</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Scheduling...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/healthcare/appointment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientId: 'PAT-2001',
+            providerId: document.getElementById('providerId').value,
+            department: document.getElementById('department').value,
+            year: parseInt(document.getElementById('year').value),
+            month: parseInt(document.getElementById('month').value),
+            day: parseInt(document.getElementById('day').value),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Scheduling Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Appointment Scheduled</div><div class="error-detail">Confirmation #${data.confirmationId} — Copay: $${data.copay}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Schedule Appointment';
+      }
+    });
+  </script>
+</body>
+</html>

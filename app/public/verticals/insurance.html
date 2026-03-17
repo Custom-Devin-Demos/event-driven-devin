@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shield Insurance &mdash; Claims Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #120a0a; --bg-elevated: #1a1010; --bg-card: #221818;
+      --surface: #2e2020; --border: #3a2020; --border-light: #4a3030;
+      --text: #f0e8e8; --text-muted: #a89090; --text-dim: #786060;
+      --accent: #E84855; --accent-dim: rgba(232,72,85,0.12); --accent-hover: #f06070;
+      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
+      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
+      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+
+    header { position: sticky; top: 0; z-index: 100; background: rgba(18,10,10,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: var(--text); }
+
+    .dashboard { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
+    .welcome { margin-bottom: 2rem; }
+    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
+    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .policies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @media (max-width: 768px) { .policies { grid-template-columns: 1fr; } }
+    .policy-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.3s; }
+    .policy-card:hover { border-color: var(--border-light); }
+    .policy-type { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    .policy-id { font-family: var(--mono); font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .policy-coverage { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .policy-premium { font-size: 0.8rem; color: var(--text-dim); }
+    .policy-status { display: inline-block; margin-top: 0.5rem; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 20px; background: rgba(92,184,138,0.15); color: var(--success); }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input, .form-group textarea { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-group select:focus, .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit { width: 100%; padding: 0.85rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
+    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🛡️ <span>Shield</span> Insurance</div>
+    <nav><a href="#">Policies</a><a href="#">Claims</a><a href="#">Documents</a><a href="#">Support</a></nav>
+  </header>
+
+  <div class="dashboard">
+    <a href="/" class="back-link animate-up">← All Demos</a>
+    <div class="welcome animate-up delay-1">
+      <h1>Welcome, David Park</h1>
+      <p>Policyholder &bull; Customer since 2021</p>
+    </div>
+
+    <div class="policies animate-up delay-2">
+      <div class="policy-card">
+        <div class="policy-type">🚗 Auto Insurance</div>
+        <div class="policy-id">POL-5001</div>
+        <div class="policy-coverage">$100,000</div>
+        <div class="policy-premium">$145/mo premium</div>
+        <div class="policy-status">Active</div>
+      </div>
+      <div class="policy-card">
+        <div class="policy-type">🏠 Home Insurance</div>
+        <div class="policy-id">POL-5002</div>
+        <div class="policy-coverage">$450,000</div>
+        <div class="policy-premium">$210/mo premium</div>
+        <div class="policy-status">Active</div>
+      </div>
+      <div class="policy-card">
+        <div class="policy-type">☂️ Umbrella Policy</div>
+        <div class="policy-id">POL-5003</div>
+        <div class="policy-coverage">$1,000,000</div>
+        <div class="policy-premium">$35/mo premium</div>
+        <div class="policy-status">Active</div>
+      </div>
+    </div>
+
+    <div class="card animate-up delay-3" style="max-width: 650px;">
+      <div class="card-title">📝 Submit a Claim</div>
+      <form id="claimForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Policy</label>
+            <select id="policyId">
+              <option value="POL-5001">POL-5001 — Auto Insurance</option>
+              <option value="POL-5002">POL-5002 — Home Insurance</option>
+              <option value="POL-5003">POL-5003 — Umbrella</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Claim Type</label>
+            <select id="claimType">
+              <option value="collision">Collision</option>
+              <option value="comprehensive">Comprehensive</option>
+              <option value="liability">Liability</option>
+              <option value="property-damage">Property Damage</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Claim Amount ($)</label>
+          <input type="number" id="amount" value="5000" min="100" step="100">
+        </div>
+        <div class="form-group">
+          <label>Incident Description</label>
+          <textarea id="description" placeholder="Describe the incident...">Rear-ended at intersection on Oak St. Bumper and taillight damage. Police report filed (#2026-03-1455).</textarea>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Submit Claim</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            policyId: document.getElementById('policyId').value,
+            claimType: document.getElementById('claimType').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            description: document.getElementById('description').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Claim Submission Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Claim Submitted</div><div class="error-detail">Claim #${data.claimId} — Estimated payout: $${data.estimatedPayout}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Submit Claim';
+      }
+    });
+  </script>
+</body>
+</html>

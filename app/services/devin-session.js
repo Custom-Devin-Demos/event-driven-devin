@@ -89,7 +89,7 @@ function buildPrompt(alertData) {
   const sections = [
     '# Sentry Alert — Investigate Immediately',
     '',
-    `> A Sentry alert just fired for the **checkout-api** service.${triggeredRule ? ` Triggered by rule: **${triggeredRule}**.` : ''}`,
+    `> A Sentry alert just fired for the **${alertData.service || 'checkout-api'}** service.${triggeredRule ? ` Triggered by rule: **${triggeredRule}**.` : ''}`,
     '',
     '## Error Details',
     '',
@@ -110,8 +110,8 @@ function buildPrompt(alertData) {
     '## Investigation Steps',
     '',
     '1. **Sentry** — Use your Sentry MCP integration to look up this issue. Examine the full stack trace, breadcrumbs, affected releases, and any related events.',
-    '2. **Datadog** — Use your Datadog MCP integration to check APM traces for the `checkout-api` service around the time of this error. Look at error rates, latency spikes, and correlated logs.',
-    '3. **Source Code** — Look at the source code in the [`COG-GTM/event-driven-devin`](https://github.com/COG-GTM/event-driven-devin) repository to find the root cause. The error is in the checkout flow.',
+    `2. **Datadog** — Use your Datadog MCP integration to check APM traces for the \`${alertData.service || 'checkout-api'}\` service around the time of this error. Look at error rates, latency spikes, and correlated logs.`,
+    '3. **Source Code** — Look at the source code in the [`COG-GTM/event-driven-devin`](https://github.com/COG-GTM/event-driven-devin) repository to find the root cause. Trace the error through the call stack — the root cause may be in a different function or file than where the error is thrown.',
     '4. **Root Cause** — Identify the exact line of code causing the issue and explain the root cause.',
     '5. **Fix** — Implement a fix in the code.',
     '6. **Test Locally in Browser** — Run the application locally with `npm install && npm start`. Open your browser to `http://localhost:3000`. Browse the storefront, add an item to your cart, and complete the full checkout flow. Verify the checkout succeeds without errors. Do NOT test via curl or API calls — use the browser UI to confirm the fix works end-to-end as a real user would.',
@@ -127,7 +127,7 @@ function buildPrompt(alertData) {
     '| Datadog Dashboard | [checkout-api overview](https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg) |',
     issueUrl ? `| Sentry Issue | [View in Sentry](${issueUrl}) |` : '',
     '',
-    '> **Service:** checkout-api  ',
+    `> **Service:** ${alertData.service || 'checkout-api'}  `,
     '> **Environment:** prod',
   ];
 

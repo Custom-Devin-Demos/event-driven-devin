@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harvest Goods &mdash; Distributor Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #120e08; --bg-elevated: #1a1610; --bg-card: #221e16;
+      --surface: #302a1e; --border: #3a3020; --border-light: #4a4030;
+      --text: #f0ece4; --text-muted: #a89880; --text-dim: #786850;
+      --accent: #F18F01; --accent-dim: rgba(241,143,1,0.12); --accent-hover: #ffa020;
+      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
+      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
+      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+
+    header { position: sticky; top: 0; z-index: 100; background: rgba(18,14,8,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: var(--text); }
+
+    .dashboard { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
+    .welcome { margin-bottom: 2rem; }
+    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
+    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.3s; }
+    .product-card:hover { border-color: var(--border-light); }
+    .product-emoji { font-size: 2rem; margin-bottom: 0.5rem; }
+    .product-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .product-sku { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .product-price { font-size: 1rem; font-weight: 700; color: var(--accent); }
+    .product-unit { font-size: 0.75rem; color: var(--text-muted); }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 600px; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit { width: 100%; padding: 0.85rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
+    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
+
+    .note { margin-top: 1rem; padding: 0.75rem 1rem; background: var(--accent-dim); border: 1px solid rgba(241,143,1,0.2); border-radius: 8px; font-size: 0.8rem; color: var(--accent); }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">📦 <span>Harvest</span> Goods</div>
+    <nav><a href="#">Catalog</a><a href="#">Orders</a><a href="#">Inventory</a><a href="#">Reports</a></nav>
+  </header>
+
+  <div class="dashboard">
+    <a href="/" class="back-link animate-up">← All Demos</a>
+    <div class="welcome animate-up delay-1">
+      <h1>Northeast Distribution Hub</h1>
+      <p>Distributor DIST-001 &bull; Region: Northeast</p>
+    </div>
+
+    <div class="catalog animate-up delay-2">
+      <div class="product-card"><div class="product-emoji">🥤</div><div class="product-name">Harvest Sparkling Water</div><div class="product-sku">BEV-001</div><div class="product-price">$18.50 <span class="product-unit">/ case</span></div></div>
+      <div class="product-card"><div class="product-emoji">🍿</div><div class="product-name">Golden Kettle Chips</div><div class="product-sku">SNK-001</div><div class="product-price">$24.00 <span class="product-unit">/ case</span></div></div>
+      <div class="product-card"><div class="product-emoji">🧴</div><div class="product-name">Pure Clean Detergent</div><div class="product-sku">HHL-001</div><div class="product-price">$32.00 <span class="product-unit">/ case</span></div></div>
+      <div class="product-card"><div class="product-emoji">☕</div><div class="product-name">Morning Brew Coffee</div><div class="product-sku">BEV-002</div><div class="product-price">$42.00 <span class="product-unit">/ case</span></div></div>
+    </div>
+
+    <div class="card animate-up delay-3">
+      <div class="card-title">📋 Place Bulk Order</div>
+      <form id="orderForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product</label>
+            <select id="sku">
+              <option value="BEV-001">BEV-001 — Sparkling Water</option>
+              <option value="SNK-001">SNK-001 — Kettle Chips</option>
+              <option value="HHL-001">HHL-001 — Detergent</option>
+              <option value="BEV-002">BEV-002 — Coffee</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantity (cases)</label>
+            <input type="number" id="qty" value="50" min="1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Warehouse Region</label>
+            <select id="region">
+              <option value="northeast">Northeast (NYC Hub)</option>
+              <option value="southeast">Southeast (ATL Hub)</option>
+              <option value="midwest">Midwest (CHI Hub)</option>
+              <option value="west">West (LAX Hub)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fulfillment Zone</label>
+            <select id="fulfillmentZone">
+              <option value="northeast">Northeast</option>
+              <option value="southeast" selected>Southeast</option>
+              <option value="midwest">Midwest</option>
+              <option value="west">West</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Place Order</button>
+      </form>
+      <div id="result" class="result-box"></div>
+      <div class="note">⚠️ Note: The forEach() bug returns undefined instead of a mapped array. All orders fail because rankWarehouses() silently discards the ranked list.</div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/cpg/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            distributorId: 'DIST-001',
+            region: document.getElementById('region').value,
+            fulfillmentZone: document.getElementById('fulfillmentZone').value,
+            items: [{ sku: document.getElementById('sku').value, qty: parseInt(document.getElementById('qty').value) }],
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Order Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Order Placed</div><div class="error-detail">Order #${data.orderId} — ${data.totalItems} items from ${data.warehouse} hub. Lead time: ${data.leadTimeDays} days</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Place Order';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Bank &mdash; Online Banking</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0f1a;
+      --bg-elevated: #111827;
+      --bg-card: #1a2332;
+      --surface: #243044;
+      --border: #2a3a50;
+      --border-light: #3a4a60;
+      --text: #e8edf5;
+      --text-muted: #8a95a8;
+      --text-dim: #5a6578;
+      --accent: #2E86AB;
+      --accent-dim: rgba(46,134,171,0.15);
+      --accent-hover: #3da0c8;
+      --danger: #e85d4a;
+      --danger-bg: rgba(232,93,74,0.08);
+      --danger-border: rgba(232,93,74,0.2);
+      --success: #5cb88a;
+      --success-bg: rgba(92,184,138,0.08);
+      --sans: 'DM Sans', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; } .delay-5 { animation-delay: 0.5s; }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,15,26,0.9); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 1.5rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
+    nav a:hover { color: var(--text); }
+
+    .dashboard { max-width: 1200px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
+    .welcome { margin-bottom: 2rem; }
+    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
+    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.5rem; transition: border-color 0.3s;
+    }
+    .card:hover { border-color: var(--border-light); }
+    .card-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .card-amount { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .card-sub { font-size: 0.8rem; color: var(--text-dim); }
+
+    .transactions-section { margin-bottom: 2rem; }
+    .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    .txn-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    .txn-table tr:hover td { background: var(--accent-dim); }
+    .amount-pos { color: var(--success); }
+    .amount-neg { color: var(--text); }
+
+    .transfer-section {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 2rem; max-width: 600px;
+    }
+    .transfer-section h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem;
+      transition: border-color 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-transfer {
+      width: 100%; padding: 0.85rem; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+      font-family: var(--sans); letter-spacing: 0.03em; cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-transfer:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .result-box {
+      margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px;
+      font-size: 0.85rem; display: none;
+    }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🏦 <span>Apex</span> Bank</div>
+    <nav>
+      <a href="#">Accounts</a>
+      <a href="#">Payments</a>
+      <a href="#">Transfers</a>
+      <a href="#">Settings</a>
+    </nav>
+  </header>
+
+  <div class="dashboard">
+    <a href="/" class="back-link animate-up">← All Demos</a>
+
+    <div class="welcome animate-up delay-1">
+      <h1>Good morning, Alice Chen</h1>
+      <p>Premium Account Holder &bull; Member since 2019</p>
+    </div>
+
+    <div class="grid">
+      <div class="card animate-up delay-2">
+        <div class="card-label">Checking Account</div>
+        <div class="card-amount">$24,850.00</div>
+        <div class="card-sub">ACCT-1001 &bull; Premium</div>
+      </div>
+      <div class="card animate-up delay-3">
+        <div class="card-label">Savings Account</div>
+        <div class="card-amount">$142,300.00</div>
+        <div class="card-sub">ACCT-1002 &bull; High-Yield</div>
+      </div>
+    </div>
+
+    <div class="transactions-section animate-up delay-3">
+      <div class="section-title">📋 Recent Transactions</div>
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <table class="txn-table">
+          <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody>
+            <tr><td>Mar 15</td><td>Direct Deposit — Payroll</td><td class="amount-pos">+$4,200.00</td><td>$24,850.00</td></tr>
+            <tr><td>Mar 14</td><td>Whole Foods Market</td><td class="amount-neg">-$127.43</td><td>$20,650.00</td></tr>
+            <tr><td>Mar 13</td><td>Electric Bill — ConEdison</td><td class="amount-neg">-$89.50</td><td>$20,777.43</td></tr>
+            <tr><td>Mar 12</td><td>Transfer from Savings</td><td class="amount-pos">+$2,000.00</td><td>$20,866.93</td></tr>
+            <tr><td>Mar 10</td><td>Amazon.com</td><td class="amount-neg">-$54.99</td><td>$18,866.93</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="transfer-section animate-up delay-4">
+      <h2>💸 Transfer Funds</h2>
+      <form id="transferForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>From Account</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Checking — ACCT-1001</option>
+              <option value="ACCT-1002">Savings — ACCT-1002</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>To Account</label>
+            <select id="toAccount">
+              <option value="ACCT-1002">Savings — ACCT-1002</option>
+              <option value="ACCT-1001">Checking — ACCT-1001</option>
+              <option value="ACCT-EXT-001">External — Chase ****4921</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="Enter amount">
+        </div>
+        <div class="form-group">
+          <label>Account Tier</label>
+          <select id="accountTier">
+            <option value="premium">Premium (Free transfers)</option>
+            <option value="standard">Standard ($2.50/transfer)</option>
+            <option value="basic">Basic ($4.99/transfer)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-transfer" id="submitBtn">Transfer Funds</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      result.className = 'result-box';
+     
+
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_alice_chen',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transfer Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transfer Complete</div><div class="error-detail">Debited $${data.debitAmount} (includes $${data.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Transfer Funds';
+      }
+    });
+  </script>
+</body>
+</html>
