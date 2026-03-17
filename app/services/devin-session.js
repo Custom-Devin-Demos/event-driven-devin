@@ -20,121 +20,53 @@ setInterval(() => {
 }, COOLDOWN_MS);
 
 /**
- * Build a rich investigation prompt from alert data.
- * This prompt is sent as a @Devin reply in the Slack thread so the
- * native Devin Slack integration picks it up and starts a session.
+ * Build the investigation prompt from alert data.
+ * Uses the ! sentry_investigation playbook macro so Devin follows
+ * the standardized investigation & remediation workflow automatically.
+ * Only the essential alert context is included — the playbook handles
+ * the investigation steps, Sentry/Datadog queries, and fix process.
  */
 function buildPrompt(alertData) {
   const {
     issueTitle, issueUrl, culprit, errorType, errorValue,
-    tags, extra, level, platform, firstSeen, lastSeen,
+    tags, level, firstSeen, lastSeen,
     count, shortId, project, release, environment, triggeredRule,
   } = alertData;
 
-  const detailRows = [
-    ['Error', issueTitle],
-    ['Location', culprit],
-    ['Type', errorType],
-    ['Message', errorValue],
-    ['Level', level],
-    ['Platform', platform],
-    ['Short ID', shortId],
-    ['Sentry Issue', issueUrl ? `[${issueUrl}](${issueUrl})` : ''],
-    ['Triggered Rule', triggeredRule],
-  ].filter(([, v]) => v);
+  const service = alertData.service || 'checkout-api';
 
-  const detailTable = [
-    '| Field | Value |',
-    '|-------|-------|',
-    ...detailRows.map(([k, v]) => `| ${k} | ${v} |`),
-  ].join('\n');
-
-  const occurrenceRows = [
-    ['First Seen', firstSeen],
-    ['Last Seen', lastSeen],
-    ['Event Count', count ? String(count) : ''],
-    ['Project', project],
-    ['Release', release],
-    ['Environment', environment],
-  ].filter(([, v]) => v);
-
-  const occurrenceTable = occurrenceRows.length > 0
-    ? [
-      '| Field | Value |',
-      '|-------|-------|',
-      ...occurrenceRows.map(([k, v]) => `| ${k} | ${v} |`),
-    ].join('\n')
-    : '';
-
-  const tagRows = tags && tags.length > 0
-    ? tags.map((t) => {
-      const key = t.key || t[0] || '';
-      const value = t.value || t[1] || '';
-      return `| ${key} | ${value} |`;
-    })
-    : [];
-
-  const tagTable = tagRows.length > 0
-    ? ['| Tag | Value |', '|-----|-------|', ...tagRows].join('\n')
-    : '_No tags available — use Sentry MCP to retrieve full tags._';
-
-  const extraBlock = extra && Object.keys(extra).length > 0
-    ? '```json\n' + JSON.stringify(extra, null, 2) + '\n```'
-    : '';
-
-  const errorBlock = errorValue
-    ? '```\n' + errorValue + '\n```'
-    : '';
-
-  const sections = [
-    '# Sentry Alert — Investigate Immediately',
+  const lines = [
+    `! sentry_investigation`,
     '',
-    `> A Sentry alert just fired for the **${alertData.service || 'checkout-api'}** service.${triggeredRule ? ` Triggered by rule: **${triggeredRule}**.` : ''}`,
-    '',
-    '## Error Details',
-    '',
-    detailTable,
-    '',
-    errorBlock ? '### Error Message\n\n' + errorBlock : '',
-    '',
-    occurrenceTable ? '## Occurrence Info\n\n' + occurrenceTable : '',
-    '',
-    '## Tags',
-    '',
-    tagTable,
-    '',
-    extraBlock ? '## Extra Context\n\n' + extraBlock : '',
-    '',
-    '---',
-    '',
-    '## Investigation Steps',
-    '',
-    '1. **Sentry** — Use your Sentry MCP integration to look up this issue. Examine the full stack trace, breadcrumbs, affected releases, and any related events.',
-    `2. **Datadog** — Use your Datadog MCP integration to check APM traces for the \`${alertData.service || 'checkout-api'}\` service around the time of this error. Look at error rates, latency spikes, and correlated logs.`,
-    '3. **Source Code** — Look at the source code in the [`COG-GTM/event-driven-devin`](https://github.com/COG-GTM/event-driven-devin) repository to find the root cause. Trace the error through the call stack — the root cause may be in a different function or file than where the error is thrown.',
-    '4. **Root Cause** — Identify the exact line of code causing the issue and explain the root cause.',
-    '5. **Fix** — Implement a fix in the code.',
-    '6. **Test Locally in Browser** — Run the application locally with `npm install && npm start`. Open your browser to `http://localhost:3000`. Browse the storefront, add an item to your cart, and complete the full checkout flow. Verify the checkout succeeds without errors. Do NOT test via curl or API calls — use the browser UI to confirm the fix works end-to-end as a real user would.',
-    '7. **Create PR** — Once you have verified the fix works in the browser, create a PR with the fix.',
-    '',
-    '---',
-    '',
-    '## Context',
-    '',
-    '| Resource | Link |',
-    '|----------|------|',
-    '| Repository | [COG-GTM/event-driven-devin](https://github.com/COG-GTM/event-driven-devin) |',
-    '| Datadog Dashboard | [checkout-api overview](https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg) |',
-    issueUrl ? `| Sentry Issue | [View in Sentry](${issueUrl}) |` : '',
-    '',
-    `> **Service:** ${alertData.service || 'checkout-api'}  `,
-    '> **Environment:** prod',
+    `**Error:** ${issueTitle}`,
+    culprit ? `**Location:** \`${culprit}\`` : '',
+    errorType ? `**Type:** ${errorType}` : '',
+    errorValue ? `**Message:** ${errorValue}` : '',
+    `**Service:** ${service}`,
+    `**Level:** ${level || 'error'}`,
+    shortId ? `**Short ID:** ${shortId}` : '',
+    triggeredRule ? `**Triggered Rule:** ${triggeredRule}` : '',
+    firstSeen ? `**First Seen:** ${firstSeen}` : '',
+    lastSeen ? `**Last Seen:** ${lastSeen}` : '',
+    count ? `**Event Count:** ${count}` : '',
+    project ? `**Project:** ${project}` : '',
+    release ? `**Release:** ${release}` : '',
+    environment ? `**Environment:** ${environment}` : '',
+    issueUrl ? `**Sentry Issue:** ${issueUrl}` : '',
   ];
 
-  return sections
-    .filter((l) => l !== false && l !== null && l !== undefined)
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n');
+  if (tags && tags.length > 0) {
+    lines.push('', '**Tags:**');
+    tags.forEach((t) => {
+      const key = t.key || t[0] || '';
+      const value = t.value || t[1] || '';
+      if (key) lines.push(`- ${key}: ${value}`);
+    });
+  }
+
+  return lines
+    .filter((l) => l !== '')
+    .join('\n');
 }
 
 /**
