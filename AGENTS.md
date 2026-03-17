@@ -205,14 +205,41 @@ Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to preve
 
 ## Deployment
 
-The app is deployed on an EC2 instance at `3.144.232.30:3000` via Docker Compose. To redeploy:
+The app is deployed on an EC2 instance at `3.144.232.30:3000` via Docker Compose. The application code lives directly in `/home/ubuntu/` on the EC2 host (not in a subdirectory).
 
-1. Build a tarball (excluding `node_modules`, `.git`, `.env`)
-2. SCP to the EC2 instance
-3. Extract over the existing code (preserve `.env`)
-4. Run `docker compose up -d --build`
+### EC2 Redeploy Steps
 
-The `.env` file on EC2 contains all production secrets and should never be overwritten.
+```bash
+# 1. Build tarball from latest main (locally or on your dev machine)
+git checkout main && git pull origin main
+tar czf /tmp/acme-demo.tar.gz --exclude=node_modules --exclude=.git --exclude=.env -C . .
+
+# 2. Back up the .env on EC2 BEFORE extracting (critical — secrets live here)
+ssh ubuntu@3.144.232.30 "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
+
+# 3. SCP the tarball to EC2
+scp /tmp/acme-demo.tar.gz ubuntu@3.144.232.30:/home/ubuntu/acme-demo.tar.gz
+
+# 4. Extract over existing code (the --exclude above ensures .env is not in the tarball)
+ssh ubuntu@3.144.232.30 "cd /home/ubuntu && tar xzf acme-demo.tar.gz"
+
+# 5. Verify .env is still present (if missing, restore from backup)
+ssh ubuntu@3.144.232.30 "test -f /home/ubuntu/.env || cp /home/ubuntu/.env.bak /home/ubuntu/.env"
+
+# 6. Stop old containers, rebuild, and start
+ssh ubuntu@3.144.232.30 "cd /home/ubuntu && docker compose down && docker compose up -d --build"
+
+# 7. Verify the app is healthy
+ssh ubuntu@3.144.232.30 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health"
+# Should return 200
+```
+
+### Important Notes
+
+- **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, etc.) and must never be overwritten or deleted.
+- **Backup before deploy:** Always back up `.env` before extracting the tarball. If the `.env` is accidentally removed, Slack alerts, Sentry, and Datadog will silently stop working.
+- **Port conflicts:** If `docker compose up` fails with port-in-use errors, run `docker compose down` first or `docker rm -f $(docker ps -aq)` to clean up stale containers from previous deployments.
+- **Old deploy path:** An earlier deployment used `/home/ubuntu/acme-demo/` as the app directory. If you find a `.env` at that path but not at `/home/ubuntu/.env`, copy it: `cp /home/ubuntu/acme-demo/.env /home/ubuntu/.env`.
 
 ## NPM Scripts
 
