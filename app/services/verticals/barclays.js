@@ -101,7 +101,7 @@ async function processRewardsCheck(data) {
     await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 100));
 
     const card = getCardProduct(data.cardType);
-    const tierConfig = fetchTierConfig(data.rewardsTier);
+    const tierConfig = await fetchTierConfig(data.rewardsTier);
 
     const points = calculatePoints(data.monthlySpend, card.baseRate, tierConfig.rates.multiplier);
     const cashback = pointsToCashback(points, 0.01);
