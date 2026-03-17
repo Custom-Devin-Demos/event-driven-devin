@@ -95,8 +95,8 @@ function formatReceipt(allItems) {
     const product = PRODUCTS.find((p) => p.id === item.sku);
     return {
       sku: item.sku,
-      name: product.name,
-      category: product.category,
+      name: product ? product.name : item.name || 'Unknown Product',
+      category: product ? product.category : item.category || 'promo',
       qty: item.qty,
       lineTotal: item.price * item.qty,
     };
