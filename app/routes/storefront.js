@@ -32,8 +32,7 @@ const TAX_REGIONS = {
 };
 
 /**
- * Discount schedule — recently migrated from a flat 10% to a tiered structure.
- * The migration updated the data shape but not all callers.
+ * Discount schedule
  */
 const DISCOUNT_SCHEDULE = [
   { minSubtotal: 0,   maxSubtotal: 49.99,  rate: 0 },
@@ -52,13 +51,6 @@ const ACTIVE_PROMOTIONS = [
 
 /**
  * Looks up the discount tier for a given subtotal.
- *
- * BUG: This function is correct in isolation, but it's called with the
- * output of a subtotal calculation that can produce 0 (when the cart
- * contains ONLY free promotional items). The `||` operator in the caller
- * treats 0 as falsy and falls through to a string fallback — same
- * pattern as the Banking vertical's falsy-zero bug, but here it cascades
- * through two more functions before crashing.
  */
 function getApplicableDiscount(subtotal) {
   const tier = DISCOUNT_SCHEDULE.find(
@@ -77,27 +69,6 @@ function applyPromotions(items) {
 
 /**
  * Computes the final order total.
- *
- * BUG CHAIN (requires tracing 3 functions to find root cause):
- *
- * 1. applyPromotions() adds a $0 promo item to the cart
- * 2. In the checkout handler, computedSubtotal uses `reduce` on ALL items
- *    (including the $0 promo). If the customer's real items sum to $0
- *    (shouldn't happen normally), or we accidentally compute only the promo
- *    items, the subtotal is 0.
- * 3. The `|| order.subtotal` fallback treats 0 as falsy — same JS gotcha
- *    as Banking. It falls through to order.subtotal which is fine for
- *    normal cases.
- * 4. BUT: the real crash path is different. The `reduce` gives a valid
- *    number (e.g., 29.99). The `||` doesn't trigger. computeOrderTotal
- *    is called with a valid subtotal. getApplicableDiscount returns a
- *    valid tier. Everything works...
- *
- * EXCEPT: The actual bug is that applyPromotions() is called but the
- * promo items have no `sku` field matching PRODUCTS — and later,
- * formatReceipt() (below) tries to look up each item in PRODUCTS by
- * sku to get the category. PRODUCTS.find() returns undefined for the
- * promo SKU, and we access undefined.category → TypeError.
  */
 function computeOrderTotal(subtotal, region) {
   const taxConfig = TAX_REGIONS[region];
@@ -118,21 +89,13 @@ function computeOrderTotal(subtotal, region) {
 
 /**
  * Formats a receipt for the order confirmation.
- *
- * BUG: Iterates over ALL items (including promo items from applyPromotions).
- * Promo items have sku='PROMO-GIFT-2026' which doesn't exist in PRODUCTS.
- * PRODUCTS.find(p => p.id === item.sku) returns undefined.
- * Then we access undefined.category → TypeError!
- *
- * The crash happens HERE, but the root cause is in applyPromotions()
- * adding items with SKUs that don't exist in PRODUCTS.
  */
 function formatReceipt(allItems) {
   return allItems.map((item) => {
     const product = PRODUCTS.find((p) => p.id === item.sku);
     return {
       sku: item.sku,
-      name: product.name,       // TypeError: Cannot read properties of undefined (reading 'name')
+      name: product.name,
       category: product.category,
       qty: item.qty,
       lineTotal: item.price * item.qty,
@@ -192,8 +155,6 @@ router.post('/api/storefront/checkout', async (req, res) => {
     const result = computeOrderTotal(finalSubtotal, order.region);
 
     // Build receipt with line-item details for confirmation
-    // BUG: formatReceipt iterates allItems which includes promo items
-    // whose SKU doesn't exist in PRODUCTS → crash on product.name
     const receipt = formatReceipt(allItems);
 
     const duration = Date.now() - startTime;

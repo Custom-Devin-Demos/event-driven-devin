@@ -17,10 +17,7 @@ const PORTFOLIO = [
 ];
 
 /**
- * Commission tier schedule — stored as a Map for "performance" (recently refactored)
- *
- * NOTE: Map keys are numbers. JSON body parsing delivers string values.
- * Map.get() uses strict equality (===), so Map.get("1") !== Map.get(1).
+ * Commission tier schedule
  */
 const COMMISSION_TIERS = new Map([
   [1, { rate: 0.0050, label: 'Standard', minFee: 4.95 }],

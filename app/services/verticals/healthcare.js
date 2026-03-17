@@ -28,9 +28,6 @@ const PATIENT_PLANS = {
  * Build an appointment date from form inputs.
  */
 function buildAppointmentDate(year, month, day) {
-  // BUG: JavaScript Date months are 0-indexed (0=Jan, 11=Dec)
-  // but the form sends 1-indexed months (1=Jan, 12=Dec)
-  // December (month=12) becomes January of NEXT YEAR (month 12 in JS = Jan next year)
   return new Date(year, month, day);
 }
 
@@ -42,7 +39,6 @@ function getCoveragePeriod(patientId, appointmentDate) {
   if (!plan) return null;
 
   const coverageEnd = new Date(plan.coverageEndDate);
-  // If appointmentDate is in next year (due to month off-by-one), it's outside coverage
   if (appointmentDate > coverageEnd) return null;
 
   return plan;
@@ -69,7 +65,6 @@ async function scheduleAppointment(data) {
     const apptDate = buildAppointmentDate(data.year, data.month, data.day);
     const coverage = getCoveragePeriod(data.patientId, apptDate);
 
-    // coverage is null because the month bug pushed the date outside coverage
     const copay = coverage.copayAmount;
     const provider = PROVIDERS.find((p) => p.id === data.providerId);
 
