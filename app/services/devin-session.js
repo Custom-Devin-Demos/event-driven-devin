@@ -21,7 +21,7 @@ setInterval(() => {
 
 /**
  * Build the investigation prompt from alert data.
- * Uses the ! sentry_investigation playbook macro so Devin follows
+ * Uses the !sentry_investigation playbook macro so Devin follows
  * the standardized investigation & remediation workflow automatically.
  * Only the essential alert context is included — the playbook handles
  * the investigation steps, Sentry/Datadog queries, and fix process.
@@ -33,16 +33,14 @@ function buildPrompt(alertData) {
     count, shortId, project, release, environment, triggeredRule,
   } = alertData;
 
-  const service = alertData.service || 'checkout-api';
-
   const lines = [
-    `! sentry_investigation`,
+    `!sentry_investigation`,
     '',
     `**Error:** ${issueTitle}`,
     culprit ? `**Location:** \`${culprit}\`` : '',
     errorType ? `**Type:** ${errorType}` : '',
     errorValue ? `**Message:** ${errorValue}` : '',
-    `**Service:** ${service}`,
+    alertData.service ? `**Service:** ${alertData.service}` : '',
     `**Level:** ${level || 'error'}`,
     shortId ? `**Short ID:** ${shortId}` : '',
     triggeredRule ? `**Triggered Rule:** ${triggeredRule}` : '',
