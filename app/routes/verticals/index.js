@@ -38,7 +38,6 @@ const VERTICALS = [
   { id: 'industrials', name: 'Industrials', brand: 'Titan Manufacturing', path: '/industrials', icon: '\u{1F3ED}', color: '#6C757D' },
   { id: 'healthcare', name: 'Health Care', brand: 'CarePoint Health', path: '/healthcare', icon: '\u{1F3E5}', color: '#06D6A0' },
   { id: 'telco', name: 'Telco', brand: 'WaveConnect', path: '/telco', icon: '\u{1F4F1}', color: '#118AB2' },
-  { id: 'devin', name: 'AI Software Engineering', brand: 'Devin AI', path: '/devin', icon: '\u{1F916}', color: '#00C853' },
 ];
 
 /**
