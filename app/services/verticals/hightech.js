@@ -32,8 +32,6 @@ const SUBSCRIPTIONS = [
  * Look up the plan index from the plan name.
  */
 function getPlanIndex(planName) {
-  // BUG: plan name from HTML select has trailing whitespace ("enterprise ")
-  // indexOf returns -1 for non-matching strings
   return VALID_PLANS.indexOf(planName);
 }
 
@@ -56,8 +54,6 @@ async function provisionLicense(data) {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 130));
 
     const planIndex = getPlanIndex(data.planName);
-    // BUG: PLAN_CONFIGS[-1] returns undefined in JavaScript (no error thrown)
-    // This happens when getPlanIndex returns -1 due to trailing whitespace
     const tierConfig = PLAN_CONFIGS[planIndex];
     const totalCost = data.seats * tierConfig.pricePerSeat;
     const billingAmount = data.billingCycle === 'annual' ? totalCost * 12 * 0.8 : totalCost;

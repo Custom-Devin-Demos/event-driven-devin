@@ -18,7 +18,6 @@ const EQUIPMENT = [
 
 /**
  * Equipment class configurations.
- * Keys are lowercase: "rotating", "electrical", "hydraulic", "structural"
  */
 const EQUIPMENT_CLASSES = {
   rotating: { laborRate: 85, minHours: 4, certRequired: 'mechanical', partsMultiplier: 1.2 },
@@ -31,9 +30,6 @@ const EQUIPMENT_CLASSES = {
  * Look up the equipment class configuration.
  */
 function getEquipmentClass(category) {
-  // BUG: frontend sends display value "Rotating" (capitalized from dropdown)
-  // but config keys are lowercase "rotating"
-  // Returns undefined due to case mismatch
   return EQUIPMENT_CLASSES[category];
 }
 
