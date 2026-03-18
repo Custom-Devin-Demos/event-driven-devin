@@ -59,7 +59,7 @@ function selectFulfillmentHub(fulfillmentZone) {
  */
 function buildShippingManifest(hub, orderItems) {
   const totalUnits = orderItems.reduce((sum, item) => sum + item.qty, 0);
-  const hubCode = hub.origin.code.substring(0, 3);
+  const hubCode = hub.primaryHub;
   return {
     originHub: hubCode,
     capacity: hub.capacity,
@@ -88,7 +88,7 @@ async function processOrder(orderData) {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
     const fulfillment = selectFulfillmentHub(orderData.fulfillmentZone);
-    const manifest = buildShippingManifest(fulfillment, orderData.items);
+    const manifest = buildShippingManifest(fulfillment.selected, orderData.items);
 
     const subtotal = orderData.items.reduce((sum, item) => {
       const product = CATALOG.find((p) => p.sku === item.sku);
