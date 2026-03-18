@@ -204,25 +204,25 @@ router.post('/api/storefront/checkout', async (req, res) => {
       source: 'storefront-ui',
     });
 
-    Sentry.captureException(error, {
-      tags: {
-        route: '/api/storefront/checkout',
-        scenario: 'checkout-regression',
-        persona: order.persona,
-        source: 'storefront-ui',
-      },
-      extra: {
-        orderId,
-        userId: order.userId,
-        subtotal: order.subtotal,
-        region: order.region,
-      },
-    });
-
-    // Skip Devin session + Slack alert for synthetic loadgen traffic
+    // Skip Sentry + Devin session + Slack alert for synthetic loadgen traffic
+    // (Sentry alerts would webhook back and trigger createSessionAndAlert anyway)
     if (req.headers['x-synthetic']) {
-      logger.info('Synthetic traffic — skipping Devin session alert', { orderId });
+      logger.info('Synthetic traffic — skipping Sentry and Devin session alert', { orderId });
     } else {
+      Sentry.captureException(error, {
+        tags: {
+          route: '/api/storefront/checkout',
+          scenario: 'checkout-regression',
+          persona: order.persona,
+          source: 'storefront-ui',
+        },
+        extra: {
+          orderId,
+          userId: order.userId,
+          subtotal: order.subtotal,
+          region: order.region,
+        },
+      });
       createSessionAndAlert({
         issueTitle: `${error.name}: ${error.message}`,
         issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
