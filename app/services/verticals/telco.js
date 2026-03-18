@@ -76,8 +76,8 @@ async function upgradePlan(data) {
     const targetParsed = parsePlanCode(data.targetPlanCode);
     const currentParsed = parsePlanCode(data.currentPlanCode);
 
-    const targetPlan = PLANS.find((p) => p.code === data.targetPlanCode);
-    const currentPlan = PLANS.find((p) => p.code === data.currentPlanCode);
+    const targetPlan = PLANS.find((p) => p.code === targetParsed.planName);
+    const currentPlan = PLANS.find((p) => p.code === currentParsed.planName);
 
     const proration = calculateProration(
       currentPlan.monthlyRate,

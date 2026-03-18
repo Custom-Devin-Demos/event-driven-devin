@@ -17,8 +17,8 @@ router.post('/api/telco/upgrade', async (req, res) => {
   try {
     const result = await upgradePlan({
       accountId: req.body.accountId || 'CUST-3001',
-      currentPlanCode: req.body.currentPlanCode || 'BASIC-12',
-      targetPlanCode: req.body.targetPlanCode || 'FAMILY-PLUS-12',
+      currentPlanCode: req.body.currentPlanCode || 'basic-12',
+      targetPlanCode: req.body.targetPlanCode || 'family-plus-12',
       billingDay: req.body.billingDay || 15,
     });
     res.json(result);

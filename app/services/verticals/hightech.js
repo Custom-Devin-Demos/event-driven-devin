@@ -37,8 +37,8 @@ function computeBilling(config, seats, billingCycle) {
   const monthlyCost = seats * config.pricePerSeat;
   const annual = monthlyCost * 12 * 0.8;
   return {
-    monthlyCost,
-    billingAmount: billingCycle === 'annual' ? annual : monthlyCost,
+    costs: { monthly: monthlyCost, annual },
+    selected: billingCycle === 'annual' ? annual : monthlyCost,
   };
 }
 
@@ -84,8 +84,8 @@ async function provisionLicense(data) {
       withinLimit,
       features: config.features,
       supportLevel: config.supportLevel,
-      monthlyCost: Math.round(billing.monthlyCost * 100) / 100,
-      billingAmount: Math.round(billing.billingAmount * 100) / 100,
+      monthlyCost: Math.round(billing.pricing.monthly * 100) / 100,
+      billingAmount: Math.round(billing.pricing.total * 100) / 100,
       billingCycle: data.billingCycle,
       status: 'provisioned',
       activatedAt: new Date().toISOString(),
