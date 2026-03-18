@@ -27,7 +27,8 @@ const SUBSCRIPTIONS = [
  * Retrieve the plan configuration for a given plan name.
  */
 function getPlanConfig(planName) {
-  return PLAN_CONFIGS[planName];
+  if (!planName) return undefined;
+  return PLAN_CONFIGS[planName.toLowerCase()];
 }
 
 /**
@@ -61,6 +62,9 @@ async function provisionLicense(data) {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 130));
 
     const config = getPlanConfig(data.planName);
+    if (!config) {
+      throw new Error(`Unknown plan: '${data.planName}'. Valid plans: ${Object.keys(PLAN_CONFIGS).join(', ')}`);
+    }
     const billing = computeBilling(config, data.seats, data.billingCycle);
     const seatLimit = config.seats;
     const withinLimit = seatLimit === -1 || data.seats <= seatLimit;
@@ -84,8 +88,9 @@ async function provisionLicense(data) {
       withinLimit,
       features: config.features,
       supportLevel: config.supportLevel,
-      monthlyCost: Math.round(billing.pricing.monthly * 100) / 100,
-      billingAmount: Math.round(billing.pricing.total * 100) / 100,
+      pricePerSeat: config.pricePerSeat,
+      monthlyCost: Math.round(billing.costs.monthly * 100) / 100,
+      billingAmount: Math.round(billing.selected * 100) / 100,
       billingCycle: data.billingCycle,
       status: 'provisioned',
       activatedAt: new Date().toISOString(),
