@@ -24,7 +24,7 @@ router.post('/api/healthcare/appointment', async (req, res) => {
       patientId: req.body.patientId || 'PAT-2001',
       providerId: req.body.providerId || 'DR-101',
       department: req.body.department || 'primary-care',
-      appointmentDate: req.body.appointmentDate || '2026-06-15',
+      appointmentDate: req.body.appointmentDate || '2026-12-15',
     });
     res.json(result);
   } catch (error) {

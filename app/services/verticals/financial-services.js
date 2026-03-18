@@ -38,7 +38,8 @@ function resolveTierLabel(tierId) {
  */
 function getCommissionRate(tierLabel) {
   const tier = COMMISSION_TIERS.get(tierLabel);
-  return tier;
+  if (!tier) return null;
+  return { base: tier.rate, minimum: tier.minFee };
 }
 
 /**
@@ -62,7 +63,7 @@ async function executeTrade(tradeData) {
     const tierLabel = resolveTierLabel(tradeData.tierId);
     const commission = getCommissionRate(tierLabel);
     const tradeValue = tradeData.quantity * tradeData.price;
-    const fee = Math.max(tradeValue * commission.rate, commission.minFee);
+    const fee = Math.max(tradeValue * commission.fees.base, commission.fees.minimum);
     const totalCost = tradeData.side === 'buy' ? tradeValue + fee : tradeValue - fee;
 
     const duration = Date.now() - startTime;

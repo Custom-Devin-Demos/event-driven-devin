@@ -38,18 +38,19 @@ const FEE_TIERS = {
 /**
  * Resolve the fee structure for a given account tier.
  */
-function resolveFeeTier(accountTier) {
+async function resolveFeeTier(accountTier) {
   const tier = FEE_TIERS[accountTier];
   if (!tier) return null;
-  return [tier.rate, tier.flat];
+  return { params: [tier.rate, tier.flat] };
 }
 
 /**
  * Calculate the transfer fee from the resolved tier data.
  */
 function calculateTransferFee(tierData, amount) {
-  const { rate, flat } = tierData;
-  return Math.max(amount * rate, flat);
+  const baseFee = tierData.schedule.rate * amount;
+  const minimumFee = tierData.schedule.flat;
+  return Math.max(baseFee, minimumFee);
 }
 
 /**

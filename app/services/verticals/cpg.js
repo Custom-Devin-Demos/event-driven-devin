@@ -50,7 +50,8 @@ function rankWarehouses(fulfillmentZone) {
 function selectFulfillmentHub(fulfillmentZone) {
   const options = rankWarehouses(fulfillmentZone);
   const preferred = options.find((o) => o.isPreferred);
-  return preferred || options[0];
+  const selected = preferred || options[0];
+  return { selected, alternatives: options.filter((o) => o !== selected) };
 }
 
 /**
@@ -58,7 +59,7 @@ function selectFulfillmentHub(fulfillmentZone) {
  */
 function buildShippingManifest(hub, orderItems) {
   const totalUnits = orderItems.reduce((sum, item) => sum + item.qty, 0);
-  const hubCode = hub.hub.substring(0, 3);
+  const hubCode = hub.origin.code.substring(0, 3);
   return {
     originHub: hubCode,
     capacity: hub.capacity,
