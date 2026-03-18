@@ -22,7 +22,11 @@ router.post('/api/banking/transfer', async (req, res) => {
       accountTier: req.body.accountTier || 'Premium',
       userId: req.body.userId || 'usr_banking_1',
     });
-    res.json(result);
+    res.json({
+      ...result,
+      fee: result.receipt.fee,
+      debitAmount: result.receipt.totalDebit,
+    });
   } catch (error) {
     const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
     res.status(statusCode).json({

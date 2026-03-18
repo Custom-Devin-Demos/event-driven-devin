@@ -39,9 +39,10 @@ const FEE_TIERS = {
  * Resolve the fee structure for a given account tier.
  */
 async function resolveFeeTier(accountTier) {
-  const tier = FEE_TIERS[accountTier];
+  const normalizedTier = accountTier ? accountTier.toLowerCase() : accountTier;
+  const tier = FEE_TIERS[normalizedTier];
   if (!tier) return null;
-  return { params: [tier.rate, tier.flat] };
+  return { schedule: { rate: tier.rate, flat: tier.flat } };
 }
 
 /**
@@ -86,7 +87,10 @@ async function processTransfer(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const tierData = resolveFeeTier(data.accountTier);
+    const tierData = await resolveFeeTier(data.accountTier);
+    if (!tierData || !tierData.schedule) {
+      throw new Error(`Unknown account tier: ${data.accountTier}`);
+    }
     const fee = calculateTransferFee(tierData, data.amount);
     const totalDebit = data.amount + fee;
     const receipt = formatReceipt(data, { fee, totalDebit });
