@@ -29,7 +29,7 @@ const PATIENT_PLANS = {
  */
 function buildAppointmentDate(dateStr) {
   const parts = dateStr.split('-');
-  return new Date(parts[0], parts[1], parts[2]);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
 }
 
 /**
@@ -39,7 +39,7 @@ function getCoveragePeriod(patientId, appointmentDate) {
   const plan = PATIENT_PLANS[patientId];
   if (!plan) return null;
 
-  const coverageEnd = new Date(plan.coverageEndDate);
+  const coverageEnd = new Date(plan.coverageEnd);
   if (isNaN(coverageEnd.getTime()) || appointmentDate > coverageEnd) return null;
 
   return plan;
