@@ -3,176 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shield Insurance &mdash; Claims Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>Shield Insurance &mdash; My Policy Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #120a0a; --bg-elevated: #1a1010; --bg-card: #221818;
-      --surface: #2e2020; --border: #3a2020; --border-light: #4a3030;
-      --text: #f0e8e8; --text-muted: #a89090; --text-dim: #786060;
-      --accent: #E84855; --accent-dim: rgba(232,72,85,0.12); --accent-hover: #f06070;
-      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
-      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
-      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --teal: #0d9488; --teal-light: #14b8a6; --teal-dim: rgba(13,148,136,0.06);
+      --warm: #fefbf6; --warm-card: #ffffff; --warm-accent: #f0ebe3;
+      --peach: #fb923c; --peach-dim: rgba(251,146,60,0.08);
+      --navy: #1e293b; --gray-50: #f8fafc; --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0; --gray-300: #cbd5e1; --gray-400: #94a3b8;
+      --gray-500: #64748b; --gray-600: #475569; --gray-700: #334155;
+      --danger: #ef4444; --danger-bg: #fef2f2; --danger-border: #fecaca;
+      --success: #10b981; --success-bg: #ecfdf5; --success-border: #a7f3d0;
+      --heading: 'DM Serif Display', Georgia, serif;
+      --body: 'Nunito', -apple-system, sans-serif;
+      --mono: 'Fira Code', monospace;
+      --radius: 16px; --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
-    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+    body { font-family: var(--body); background: var(--warm); color: var(--navy); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .su { animation: slideUp 0.5s ease-out both; }
+    .su1 { animation-delay: 0.05s; } .su2 { animation-delay: 0.1s; } .su3 { animation-delay: 0.15s; } .su4 { animation-delay: 0.2s; } .su5 { animation-delay: 0.25s; }
 
-    header { position: sticky; top: 0; z-index: 100; background: rgba(18,10,10,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
-    .logo span { color: var(--accent); }
-    nav { display: flex; gap: 1.5rem; }
-    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
-    nav a:hover { color: var(--text); }
+    header { background: #fff; border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--teal), var(--teal-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 20px; height: 20px; fill: #fff; }
+    .logo-text { font-family: var(--heading); font-size: 1.3rem; color: var(--navy); }
+    nav { display: flex; gap: 0.2rem; }
+    nav a { color: var(--gray-500); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 0.45rem 0.9rem; border-radius: 8px; transition: all 0.2s; }
+    nav a:hover { background: var(--teal-dim); color: var(--teal); }
+    nav a.active { background: var(--teal); color: #fff; }
 
-    .dashboard { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
-    .welcome { margin-bottom: 2rem; }
-    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
-    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+    .page { max-width: 1080px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--teal); text-decoration: none; font-size: 0.8rem; font-weight: 700; margin-bottom: 1rem; }
 
-    .policies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
-    @media (max-width: 768px) { .policies { grid-template-columns: 1fr; } }
-    .policy-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.3s; }
-    .policy-card:hover { border-color: var(--border-light); }
-    .policy-type { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
-    .policy-id { font-family: var(--mono); font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
-    .policy-coverage { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .policy-premium { font-size: 0.8rem; color: var(--text-dim); }
-    .policy-status { display: inline-block; margin-top: 0.5rem; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 20px; background: rgba(92,184,138,0.15); color: var(--success); }
+    .welcome-banner { background: linear-gradient(135deg, var(--teal), #0f766e); border-radius: var(--radius); padding: 2rem 2.5rem; color: #fff; margin-bottom: 1.5rem; position: relative; overflow: hidden; }
+    .welcome-banner::after { content: ''; position: absolute; right: -30px; top: -30px; width: 180px; height: 180px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+    .welcome-banner h1 { font-family: var(--heading); font-size: 1.5rem; font-weight: 400; margin-bottom: 0.25rem; }
+    .welcome-banner p { opacity: 0.8; font-size: 0.88rem; }
 
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; }
-    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .policy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 700px) { .policy-grid { grid-template-columns: 1fr; } }
+    .policy-card { background: var(--warm-card); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 1.5rem; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; }
+    .policy-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+    .policy-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .policy-type { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); background: var(--teal-dim); padding: 0.2rem 0.6rem; border-radius: 20px; }
+    .policy-status { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; }
+    .status-active { background: var(--success-bg); color: var(--success); }
+    .policy-detail { display: flex; justify-content: space-between; align-items: flex-end; }
+    .policy-premium { font-family: var(--heading); font-size: 1.8rem; color: var(--navy); }
+    .policy-premium span { font-family: var(--body); font-size: 0.8rem; color: var(--gray-400); font-weight: 400; }
+    .policy-id { font-family: var(--mono); font-size: 0.72rem; color: var(--gray-400); }
+    .policy-meta { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--gray-100); display: flex; gap: 1.5rem; }
+    .policy-meta div { font-size: 0.78rem; color: var(--gray-500); }
+    .policy-meta strong { color: var(--navy); font-weight: 700; }
 
-    .form-group { margin-bottom: 1.25rem; }
-    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
-    .form-group select, .form-group input, .form-group textarea { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
-    .form-group textarea { min-height: 80px; resize: vertical; }
-    .form-group select:focus, .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .section-title { font-family: var(--heading); font-size: 1.15rem; color: var(--navy); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+    .section-title::before { content: ''; width: 4px; height: 20px; background: var(--teal); border-radius: 2px; }
 
-    .btn-submit { width: 100%; padding: 0.85rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
-    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
+    .claim-form-card { background: var(--warm-card); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 2rem; box-shadow: var(--shadow); max-width: 560px; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--gray-600); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.6rem 0.85rem; border: 1.5px solid var(--gray-200); border-radius: 8px; font-family: var(--body); font-size: 0.88rem; color: var(--navy); background: #fff; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .btn-claim { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, var(--teal), var(--teal-light)); color: #fff; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 700; font-family: var(--body); cursor: pointer; transition: transform 0.15s, box-shadow 0.2s; }
+    .btn-claim:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,148,136,0.3); }
+    .btn-claim:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .result-box { margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.82rem; display: none; }
     .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
-    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
-    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
-    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
-
-    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
-    .back-link:hover { text-decoration: underline; }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 800; margin-bottom: 0.15rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.72rem; opacity: 0.85; word-break: break-all; }
+    .trust-bar { margin-top: 1.5rem; display: flex; gap: 1.5rem; color: var(--gray-400); font-size: 0.72rem; font-weight: 600; }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">🛡️ <span>Shield</span> Insurance</div>
-    <nav><a href="#">Policies</a><a href="#">Claims</a><a href="#">Documents</a><a href="#">Support</a></nav>
+    <div class="logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg></div>
+      <div class="logo-text">Shield Insurance</div>
+    </div>
+    <nav><a href="#" class="active">Dashboard</a><a href="#">Policies</a><a href="#">Claims</a><a href="#">Documents</a><a href="#">Help</a></nav>
   </header>
-
-  <div class="dashboard">
-    <a href="/" class="back-link animate-up">← All Demos</a>
-    <div class="welcome animate-up delay-1">
-      <h1>Welcome, David Park</h1>
-      <p>Policyholder &bull; Customer since 2021</p>
+  <div class="page">
+    <a href="/" class="back-link su">&larr; All Demos</a>
+    <div class="welcome-banner su su1">
+      <h1>Welcome back, Jordan</h1>
+      <p>All policies active &middot; No pending claims &middot; Next payment: Apr 1</p>
     </div>
-
-    <div class="policies animate-up delay-2">
-      <div class="policy-card">
-        <div class="policy-type">🚗 Auto Insurance</div>
-        <div class="policy-id">POL-5001</div>
-        <div class="policy-coverage">$100,000</div>
-        <div class="policy-premium">$145/mo premium</div>
-        <div class="policy-status">Active</div>
+    <div class="policy-grid">
+      <div class="policy-card su su2">
+        <div class="policy-header">
+          <div class="policy-type">Auto Insurance</div>
+          <div class="policy-status status-active">Active</div>
+        </div>
+        <div class="policy-detail">
+          <div><div class="policy-premium">$148 <span>/mo</span></div><div class="policy-id">POL-AUTO-8821</div></div>
+        </div>
+        <div class="policy-meta"><div>Coverage: <strong>Full</strong></div><div>Deductible: <strong>$500</strong></div><div>Vehicles: <strong>2</strong></div></div>
       </div>
-      <div class="policy-card">
-        <div class="policy-type">🏠 Home Insurance</div>
-        <div class="policy-id">POL-5002</div>
-        <div class="policy-coverage">$450,000</div>
-        <div class="policy-premium">$210/mo premium</div>
-        <div class="policy-status">Active</div>
-      </div>
-      <div class="policy-card">
-        <div class="policy-type">☂️ Umbrella Policy</div>
-        <div class="policy-id">POL-5003</div>
-        <div class="policy-coverage">$1,000,000</div>
-        <div class="policy-premium">$35/mo premium</div>
-        <div class="policy-status">Active</div>
+      <div class="policy-card su su3">
+        <div class="policy-header">
+          <div class="policy-type">Home Insurance</div>
+          <div class="policy-status status-active">Active</div>
+        </div>
+        <div class="policy-detail">
+          <div><div class="policy-premium">$215 <span>/mo</span></div><div class="policy-id">POL-HOME-4410</div></div>
+        </div>
+        <div class="policy-meta"><div>Coverage: <strong>$450K</strong></div><div>Deductible: <strong>$1,000</strong></div><div>Type: <strong>HO-3</strong></div></div>
       </div>
     </div>
-
-    <div class="card animate-up delay-3" style="max-width: 650px;">
-      <div class="card-title">📝 Submit a Claim</div>
-      <form id="claimForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Policy</label>
-            <select id="policyId">
-              <option value="POL-5001">POL-5001 — Auto Insurance</option>
-              <option value="POL-5002">POL-5002 — Home Insurance</option>
-              <option value="POL-5003">POL-5003 — Umbrella</option>
-            </select>
+    <div class="su su4">
+      <div class="section-title">File a Claim</div>
+      <div class="claim-form-card">
+        <form id="claimForm">
+          <div class="form-group"><label>Policy</label><select id="policyId"><option value="POL-5001">Auto &mdash; POL-5001</option><option value="POL-5002">Home &mdash; POL-5002</option></select></div>
+          <div class="form-row">
+            <div class="form-group"><label>Claim Type</label><select id="claimType"><option value="collision">Collision</option><option value="comprehensive">Comprehensive</option><option value="liability">Liability</option><option value="property_damage">Property Damage</option></select></div>
+            <div class="form-group"><label>Estimated Amount</label><input type="number" id="amount" value="2500" min="1" step="0.01" placeholder="$0.00"></div>
           </div>
-          <div class="form-group">
-            <label>Claim Type</label>
-            <select id="claimType">
-              <option value="collision">Collision</option>
-              <option value="comprehensive">Comprehensive</option>
-              <option value="liability">Liability</option>
-              <option value="property-damage">Property Damage</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Claim Amount ($)</label>
-          <input type="number" id="amount" value="5000" min="100" step="100">
-        </div>
-        <div class="form-group">
-          <label>Incident Description</label>
-          <textarea id="description" placeholder="Describe the incident...">Rear-ended at intersection on Oak St. Bumper and taillight damage. Police report filed (#2026-03-1455).</textarea>
-        </div>
-        <button type="submit" class="btn-submit" id="submitBtn">Submit Claim</button>
-      </form>
-      <div id="result" class="result-box"></div>
+          <div class="form-group"><label>Description</label><input type="text" id="description" value="Vehicle damage from collision" placeholder="Describe the incident"></div>
+          <button type="submit" class="btn-claim" id="submitBtn">Submit Claim</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="trust-bar"><span>24/7 Claims Support</span><span>A+ AM Best Rating</span><span>Licensed in 50 States</span></div>
+      </div>
     </div>
   </div>
-
   <script>
     document.getElementById('claimForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
-      btn.disabled = true; btn.textContent = 'Processing...';
+      btn.disabled = true; btn.textContent = 'Submitting...';
       result.className = 'result-box';
       try {
         const res = await fetch('/api/insurance/claim', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            policyId: document.getElementById('policyId').value,
-            claimType: document.getElementById('claimType').value,
-            amount: parseFloat(document.getElementById('amount').value),
-            description: document.getElementById('description').value,
-          }),
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value }),
         });
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Claim Submission Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="error-title">Claim Denied</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Claim Submitted</div><div class="error-detail">Claim #${data.claimId} — Estimated payout: $${data.estimatedPayout}</div>`;
+          result.innerHTML = `<div class="error-title">Claim Filed Successfully</div><div class="error-detail">Claim #${data.claimId} &mdash; Payout: $${data.payout} (after $${data.deductible} deductible)</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
         result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Submit Claim';
-      }
+      } finally { btn.disabled = false; btn.textContent = 'Submit Claim'; }
     });
   </script>
 </body>
