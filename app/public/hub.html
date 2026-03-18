@@ -4,169 +4,516 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Event-Driven Devin &mdash; Industry Demos</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #09090b; --bg-card: #18181b; --border: #27272a; --border-light: #3f3f46;
-      --text: #fafafa; --text-muted: #a1a1aa; --text-dim: #71717a;
-      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg: #050508;
+      --bg-subtle: #0a0a0f;
+      --bg-card: rgba(255,255,255,0.03);
+      --bg-card-hover: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.06);
+      --border-hover: rgba(255,255,255,0.12);
+      --text: #ededef;
+      --text-secondary: #8b8b96;
+      --text-tertiary: #55555e;
+      --accent: #6366f1;
+      --accent-soft: rgba(99,102,241,0.12);
+      --display: 'Instrument Serif', Georgia, serif;
+      --body: 'Outfit', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      opacity: 0.015;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes glow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
 
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 56px;
+      background: rgba(5,5,8,0.8);
+      backdrop-filter: blur(16px) saturate(1.3);
+      -webkit-backdrop-filter: blur(16px) saturate(1.3);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 0.75rem; }
+    .topbar-logo {
+      width: 22px; height: 22px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.7rem; color: #fff;
+    }
+    .topbar-title { font-size: 0.85rem; font-weight: 600; letter-spacing: -0.01em; }
+    .topbar-sep { color: var(--text-tertiary); font-size: 1.2rem; font-weight: 200; }
+    .topbar-subtitle { font-size: 0.85rem; color: var(--text-secondary); }
+    .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .gh-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.75rem; font-weight: 500;
+      transition: all 0.2s;
+    }
+    .gh-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); border-color: var(--border-hover); }
+    .gh-btn svg { width: 15px; height: 15px; }
 
-    .hero { text-align: center; padding: 4rem 2rem 2rem; }
-    .hero h1 { font-size: 2.2rem; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-    .hero h1 strong { font-weight: 700; }
-    .hero p { color: var(--text-muted); font-size: 1rem; max-width: 600px; margin: 0 auto 0.5rem; }
-    .hero .subtitle { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); }
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: clamp(4rem, 8vw, 7rem) 2rem clamp(2rem, 4vw, 3rem);
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.3rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.7rem; font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 1.75rem;
+      animation: fadeUp 0.7s var(--ease) both;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #22c55e;
+      animation: glow 2s ease-in-out infinite;
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.7s var(--ease) 0.08s both;
+    }
+    .hero h1 em {
+      font-style: italic;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.7;
+      animation: fadeUp 0.7s var(--ease) 0.16s both;
+    }
 
-    .flow { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin: 2rem auto; flex-wrap: wrap; max-width: 700px; }
-    .flow-step { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); padding: 0.35rem 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; }
-    .flow-arrow { color: var(--text-dim); font-size: 0.8rem; }
+    .pipeline {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem clamp(1rem, 3vw, 2rem) 0;
+      animation: fadeUp 0.7s var(--ease) 0.24s both;
+    }
+    .pipeline-label {
+      font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 0.75rem; text-align: center;
+    }
+    .pipeline-track {
+      display: flex; align-items: center; gap: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.15rem;
+      overflow-x: auto;
+    }
+    .pipeline-step {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.72rem; font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      position: relative;
+      border-radius: 10px;
+      transition: all 0.25s;
+    }
+    .pipeline-step:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .pipeline-step .step-num {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 700;
+      color: var(--text-tertiary); flex-shrink: 0;
+    }
+    .pipeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute; right: -1px; top: 25%; bottom: 25%;
+      width: 1px; background: var(--border);
+    }
 
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; max-width: 1000px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem) 4rem; }
+    .section {
+      max-width: 1120px; margin: 0 auto;
+      padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem) 3rem;
+    }
+    .section-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.7s var(--ease) 0.32s both;
+    }
+    .section-title {
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .section-count {
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--text-tertiary);
+    }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 550px) { .grid { grid-template-columns: 1fr; } }
 
     .card {
-      display: block; text-decoration: none; color: var(--text);
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-      padding: 1.75rem; transition: all 0.35s var(--ease-out);
-      position: relative; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+      text-decoration: none; color: var(--text);
+      background: var(--bg-subtle);
+      padding: 1.5rem 1.5rem 1.25rem;
+      min-height: 200px; position: relative;
+      transition: background 0.3s var(--ease);
     }
-    .card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: var(--card-color); opacity: 0; transition: opacity 0.35s;
+    .card:hover { background: var(--bg-card-hover); }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto; }
+    .card-icon {
+      font-size: 1.5rem; width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
     }
-    .card:hover { border-color: var(--border-light); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
-    .card:hover::before { opacity: 1; }
+    .card-arrow {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; background: transparent;
+      color: var(--text-tertiary);
+      transition: all 0.3s var(--ease);
+      opacity: 0; transform: translate(-4px, 4px);
+    }
+    .card:hover .card-arrow {
+      opacity: 1; transform: translate(0, 0);
+      background: rgba(255,255,255,0.06);
+      color: var(--text-secondary);
+    }
+    .card-arrow svg { width: 14px; height: 14px; }
+    .card-body { margin-top: 1.25rem; }
+    .card-vertical {
+      font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      margin-bottom: 0.2rem;
+    }
+    .card-brand {
+      font-family: var(--display);
+      font-size: 1.35rem; font-weight: 400;
+      letter-spacing: -0.02em; margin-bottom: 0.4rem;
+    }
+    .card-desc {
+      font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;
+    }
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 1rem; padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .card-path {
+      font-family: var(--mono); font-size: 0.68rem;
+      color: var(--text-tertiary);
+    }
+    .card-bug-tag {
+      font-size: 0.6rem; font-weight: 500;
+      padding: 0.2rem 0.5rem; border-radius: 100px;
+      background: rgba(239,68,68,0.08);
+      color: #f87171;
+      border: 1px solid rgba(239,68,68,0.12);
+    }
 
-    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
-    .card-vertical { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.25rem; }
-    .card-brand { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .card-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0.75rem; }
-    .card-url { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); display: flex; align-items: center; gap: 0.3rem; }
-    .card-url::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--card-color); }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
+    }
+    .footer-inner {
+      max-width: 1120px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-left { font-size: 0.78rem; color: var(--text-tertiary); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      font-size: 0.75rem; color: var(--text-tertiary);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
 
-    .card-bug { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.7rem; color: var(--text-dim); }
-    .card-bug strong { color: var(--text-muted); }
+    .card { animation: fadeUp 0.6s var(--ease) both; }
+    .card:nth-child(1) { animation-delay: 0.35s; }
+    .card:nth-child(2) { animation-delay: 0.4s; }
+    .card:nth-child(3) { animation-delay: 0.45s; }
+    .card:nth-child(4) { animation-delay: 0.5s; }
+    .card:nth-child(5) { animation-delay: 0.55s; }
+    .card:nth-child(6) { animation-delay: 0.6s; }
+    .card:nth-child(7) { animation-delay: 0.65s; }
+    .card:nth-child(8) { animation-delay: 0.7s; }
+    .card:nth-child(9) { animation-delay: 0.75s; }
 
-    footer { text-align: center; padding: 2rem; color: var(--text-dim); font-size: 0.75rem; }
-    footer a { color: var(--text-muted); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
+    @media (max-width: 640px) {
+      .topbar-sep, .topbar-subtitle { display: none; }
+      .topbar-right a:not(.gh-btn) { display: none; }
+      .pipeline-step { font-size: 0.65rem; padding: 0.5rem 0.4rem; }
+      .pipeline-step .step-num { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+    }
   </style>
 </head>
 <body>
-  <div class="hero animate-up">
-    <h1><strong>Event-Driven Devin</strong></h1>
-    <p>Automated incident response demos across 9 industry verticals. Pick a vertical, trigger a bug, watch Devin investigate and fix it.</p>
-    <div class="subtitle">COG-GTM / event-driven-devin</div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">D</div>
+      <span class="topbar-title">Event-Driven Devin</span>
+      <span class="topbar-sep">/</span>
+      <span class="topbar-subtitle">Industry Demos</span>
+    </div>
+    <div class="topbar-right">
+      <a href="https://github.com/COG-GTM/event-driven-devin" class="gh-btn" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
   </div>
 
-  <div class="flow animate-up" style="animation-delay: 0.15s">
-    <div class="flow-step">Web Frontend</div>
-    <div class="flow-arrow">&rarr;</div>
-    <div class="flow-step">Trigger Error</div>
-    <div class="flow-arrow">&rarr;</div>
-    <div class="flow-step">Sentry / Datadog</div>
-    <div class="flow-arrow">&rarr;</div>
-    <div class="flow-step">Slack Alert</div>
-    <div class="flow-arrow">&rarr;</div>
-    <div class="flow-step">Devin Investigates</div>
-    <div class="flow-arrow">&rarr;</div>
-    <div class="flow-step">PR Submitted</div>
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      9 verticals live
+    </div>
+    <h1>Automated incident<br>response, <em>demonstrated</em></h1>
+    <p class="hero-desc">Pick an industry vertical, trigger a realistic bug, and watch Devin investigate the error, trace root cause, and submit a fix.</p>
+  </section>
+
+  <div class="pipeline">
+    <div class="pipeline-label">How it works</div>
+    <div class="pipeline-track">
+      <div class="pipeline-step"><span class="step-num">1</span> Trigger Error</div>
+      <div class="pipeline-step"><span class="step-num">2</span> Sentry Alert</div>
+      <div class="pipeline-step"><span class="step-num">3</span> Webhook Fires</div>
+      <div class="pipeline-step"><span class="step-num">4</span> Devin Session</div>
+      <div class="pipeline-step"><span class="step-num">5</span> Root Cause</div>
+      <div class="pipeline-step"><span class="step-num">6</span> PR Submitted</div>
+    </div>
   </div>
 
-  <div class="grid">
-    <a href="/retail" class="card animate-up" style="--card-color: #c8a97e; animation-delay: 0.1s">
-      <div class="card-icon">🛒</div>
-      <div class="card-vertical">Retail eCommerce</div>
-      <div class="card-brand">ACME Commerce</div>
-      <div class="card-desc">Luxury storefront checkout. Add items to cart, place order.</div>
-      <div class="card-url">/retail</div>
-      <div class="card-bug"><strong>Bug:</strong> Promo item SKU missing from catalog &rarr; formatReceipt crash</div>
-    </a>
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">Verticals</span>
+      <span class="section-count">9 demos</span>
+    </div>
 
-    <a href="/banking" class="card animate-up" style="--card-color: #2E86AB; animation-delay: 0.15s">
-      <div class="card-icon">🏦</div>
-      <div class="card-vertical">Banking</div>
-      <div class="card-brand">Apex Bank</div>
-      <div class="card-desc">Online banking dashboard. Transfer funds between accounts.</div>
-      <div class="card-url">/banking</div>
-      <div class="card-bug"><strong>Bug:</strong> Falsy zero trap &mdash; <code>||</code> vs <code>??</code></div>
-    </a>
+    <div class="grid">
 
-    <a href="/financial-services" class="card animate-up" style="--card-color: #1B998B; animation-delay: 0.2s">
-      <div class="card-icon">📈</div>
-      <div class="card-vertical">Financial Services</div>
-      <div class="card-brand">Meridian Capital</div>
-      <div class="card-desc">Investment platform. Execute buy/sell trades.</div>
-      <div class="card-url">/financial-services</div>
-      <div class="card-bug"><strong>Bug:</strong> Map key type mismatch &mdash; string vs number</div>
-    </a>
+      <a href="/retail" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #c8a97e;">&#x1F6D2;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #c8a97e;">Retail eCommerce</div>
+          <div class="card-brand">ACME Commerce</div>
+          <div class="card-desc">Luxury storefront checkout. Add items to cart, place an order.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/retail</span>
+          <span class="card-bug-tag">Promo SKU crash</span>
+        </div>
+      </a>
 
-    <a href="/insurance" class="card animate-up" style="--card-color: #E84855; animation-delay: 0.25s">
-      <div class="card-icon">🛡️</div>
-      <div class="card-vertical">Insurance</div>
-      <div class="card-brand">Shield Insurance</div>
-      <div class="card-desc">Claims portal. Submit an insurance claim.</div>
-      <div class="card-url">/insurance</div>
-      <div class="card-bug"><strong>Bug:</strong> Incomplete refactor &mdash; wrong destructure level</div>
-    </a>
+      <a href="/banking" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #2E86AB;">&#x1F3E6;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #2E86AB;">Banking</div>
+          <div class="card-brand">Apex Bank</div>
+          <div class="card-desc">Online banking dashboard. Transfer funds between accounts.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/banking</span>
+          <span class="card-bug-tag">Falsy zero trap</span>
+        </div>
+      </a>
 
-    <a href="/cpg" class="card animate-up" style="--card-color: #F18F01; animation-delay: 0.3s">
-      <div class="card-icon">📦</div>
-      <div class="card-vertical">CPG</div>
-      <div class="card-brand">Harvest Goods</div>
-      <div class="card-desc">Distributor portal. Place bulk orders.</div>
-      <div class="card-url">/cpg</div>
-      <div class="card-bug"><strong>Bug:</strong> forEach() returns undefined &mdash; should be .map()</div>
-    </a>
+      <a href="/financial-services" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #1B998B;">&#x1F4C8;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #1B998B;">Financial Services</div>
+          <div class="card-brand">Meridian Capital</div>
+          <div class="card-desc">Investment trading platform. Execute buy and sell trades.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/financial-services</span>
+          <span class="card-bug-tag">Map key mismatch</span>
+        </div>
+      </a>
 
-    <a href="/hightech" class="card animate-up" style="--card-color: #7B2CBF; animation-delay: 0.35s">
-      <div class="card-icon">💻</div>
-      <div class="card-vertical">High Tech</div>
-      <div class="card-brand">NovaSoft</div>
-      <div class="card-desc">SaaS admin console. Provision a license.</div>
-      <div class="card-url">/hightech</div>
-      <div class="card-bug"><strong>Bug:</strong> indexOf returns -1 &rarr; array[-1] is undefined</div>
-    </a>
+      <a href="/insurance" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #E84855;">&#x1F6E1;&#xFE0F;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #E84855;">Insurance</div>
+          <div class="card-brand">Shield Insurance</div>
+          <div class="card-desc">Claims portal. Submit and track insurance claims.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/insurance</span>
+          <span class="card-bug-tag">Wrong destructure</span>
+        </div>
+      </a>
 
-    <a href="/industrials" class="card animate-up" style="--card-color: #f59e0b; animation-delay: 0.4s">
-      <div class="card-icon">🏭</div>
-      <div class="card-vertical">Industrials</div>
-      <div class="card-brand">Titan Manufacturing</div>
-      <div class="card-desc">Plant floor dashboard. Create a work order.</div>
-      <div class="card-url">/industrials</div>
-      <div class="card-bug"><strong>Bug:</strong> Case-sensitive key mismatch</div>
-    </a>
+      <a href="/cpg" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #F18F01;">&#x1F4E6;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #F18F01;">CPG</div>
+          <div class="card-brand">Harvest Goods</div>
+          <div class="card-desc">Distributor portal. Place and manage bulk orders.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/cpg</span>
+          <span class="card-bug-tag">forEach undefined</span>
+        </div>
+      </a>
 
-    <a href="/healthcare" class="card animate-up" style="--card-color: #06D6A0; animation-delay: 0.45s">
-      <div class="card-icon">🏥</div>
-      <div class="card-vertical">Health Care</div>
-      <div class="card-brand">CarePoint Health</div>
-      <div class="card-desc">Patient portal. Schedule an appointment.</div>
-      <div class="card-url">/healthcare</div>
-      <div class="card-bug"><strong>Bug:</strong> JS Date month off-by-one (0-indexed)</div>
-    </a>
+      <a href="/hightech" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #7B2CBF;">&#x1F4BB;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #7B2CBF;">High Tech</div>
+          <div class="card-brand">NovaSoft</div>
+          <div class="card-desc">SaaS admin console. Provision and manage licenses.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/hightech</span>
+          <span class="card-bug-tag">indexOf -1</span>
+        </div>
+      </a>
 
-    <a href="/telco" class="card animate-up" style="--card-color: #118AB2; animation-delay: 0.5s">
-      <div class="card-icon">📱</div>
-      <div class="card-vertical">Telco</div>
-      <div class="card-brand">WaveConnect</div>
-      <div class="card-desc">Self-service portal. Upgrade your mobile plan.</div>
-      <div class="card-url">/telco</div>
-      <div class="card-bug"><strong>Bug:</strong> Regex doesn't match hyphenated plan codes</div>
-    </a>
+      <a href="/industrials" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #f59e0b;">&#x1F3ED;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #f59e0b;">Industrials</div>
+          <div class="card-brand">Titan Manufacturing</div>
+          <div class="card-desc">Plant floor dashboard. Create and dispatch work orders.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/industrials</span>
+          <span class="card-bug-tag">Case mismatch</span>
+        </div>
+      </a>
 
-  </div>
+      <a href="/healthcare" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #06D6A0;">&#x1F3E5;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #06D6A0;">Health Care</div>
+          <div class="card-brand">CarePoint Health</div>
+          <div class="card-desc">Patient portal. Schedule and manage appointments.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/healthcare</span>
+          <span class="card-bug-tag">Date off-by-one</span>
+        </div>
+      </a>
+
+      <a href="/telco" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="color: #118AB2;">&#x1F4F1;</div>
+          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>
+        </div>
+        <div class="card-body">
+          <div class="card-vertical" style="color: #118AB2;">Telco</div>
+          <div class="card-brand">WaveConnect</div>
+          <div class="card-desc">Self-service portal. Upgrade your mobile plan.</div>
+        </div>
+        <div class="card-footer">
+          <span class="card-path">/telco</span>
+          <span class="card-bug-tag">Regex mismatch</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
 
   <footer>
-    <p>Event-Driven Devin Demo &bull; <a href="https://github.com/COG-GTM/event-driven-devin">GitHub</a></p>
+    <div class="footer-inner">
+      <div class="footer-left">Event-Driven Devin &copy; 2026</div>
+      <div class="footer-links">
+        <a href="https://github.com/COG-GTM/event-driven-devin" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a>
+        <a href="https://cognition.ai" target="_blank" rel="noopener">Cognition</a>
+      </div>
+    </div>
   </footer>
+
 </body>
 </html>
