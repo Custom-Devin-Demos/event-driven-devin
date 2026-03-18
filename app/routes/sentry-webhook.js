@@ -141,7 +141,7 @@ router.post('/webhooks/sentry', async (req, res) => {
 
   // Only create Devin sessions for actionable alert events.
   // Skip resolved/ignored/assigned/etc — those are status changes, not new errors.
-  const actionableActions = ['triggered', 'created'];
+  const actionableActions = ['triggered', 'created', 'critical', 'warning'];
   if (!actionableActions.includes(action)) {
     logger.info('Sentry webhook skipped — non-actionable action', { action, hookResource });
     return res.json({ received: true, skipped: true, reason: `action_${action}_not_actionable` });
