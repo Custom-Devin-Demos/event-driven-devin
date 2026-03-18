@@ -57,11 +57,11 @@ function lookupPolicy(policyId) {
  * Extract coverage limits from a policy lookup result.
  */
 function extractCoverageLimits(policyResult) {
-  const limits = policyResult.policy;
+  const limits = policyResult.policyData;
   return {
-    maxPayout: limits.coverage.maxPayout,
-    liability: limits.coverage.liability,
-    deductible: limits.deductible,
+    maxPayout: limits.terms.maxPayout,
+    liability: limits.terms.liability,
+    deductible: limits.terms.deductible,
   };
 }
 
@@ -105,7 +105,7 @@ async function processClaim(claimData) {
       policyId: claimData.policyId,
       claimAmount: claimData.amount,
       deductible: parseFloat(limits.deductible.toFixed(2)),
-      payout: Math.round(payout * 100) / 100,
+      estimatedPayout: Math.round(payout * 100) / 100,
       status: 'approved',
       processedAt: new Date().toISOString(),
     };
