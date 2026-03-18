@@ -29,7 +29,7 @@ const COMMISSION_TIERS = new Map([
  * Resolve the tier label from a numeric tier ID.
  */
 function resolveTierLabel(tierId) {
-  const labels = { 1: 'Standard', 2: 'Active Trader', 3: 'VIP' };
+  const labels = { 1: 'standard', 2: 'active', 3: 'vip' };
   return labels[tierId];
 }
 
@@ -63,7 +63,7 @@ async function executeTrade(tradeData) {
     const tierLabel = resolveTierLabel(tradeData.tierId);
     const commission = getCommissionRate(tierLabel);
     const tradeValue = tradeData.quantity * tradeData.price;
-    const fee = Math.max(tradeValue * commission.fees.base, commission.fees.minimum);
+    const fee = Math.max(tradeValue * commission.base, commission.minimum);
     const totalCost = tradeData.side === 'buy' ? tradeValue + fee : tradeValue - fee;
 
     const duration = Date.now() - startTime;
