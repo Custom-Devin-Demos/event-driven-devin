@@ -22,7 +22,7 @@ router.get('/api/licenses/subscriptions', (_req, res) => {
  */
 router.post('/api/licenses/provision', async (req, res) => {
   try {
-    const planName = (req.body.planName || 'Professional').trim();
+    const planName = (req.body.planName || 'professional').trim().toLowerCase();
     const result = await provisionLicense({
       orgName: req.body.orgName || 'New Customer Inc',
       planName,
