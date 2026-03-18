@@ -39,7 +39,8 @@ function getCoveragePeriod(patientId, appointmentDate) {
   const plan = PATIENT_PLANS[patientId];
   if (!plan) return null;
 
-  const coverageEnd = new Date(plan.coverageEnd);
+  const endParts = plan.coverageEnd.split('-');
+  const coverageEnd = new Date(endParts[0], endParts[1] - 1, endParts[2]);
   if (isNaN(coverageEnd.getTime()) || appointmentDate > coverageEnd) return null;
 
   return plan;
