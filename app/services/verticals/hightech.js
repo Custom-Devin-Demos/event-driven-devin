@@ -27,7 +27,7 @@ const SUBSCRIPTIONS = [
  * Retrieve the plan configuration for a given plan name.
  */
 function getPlanConfig(planName) {
-  return PLAN_CONFIGS[planName];
+  return PLAN_CONFIGS[planName.trim().toLowerCase()];
 }
 
 /**
@@ -84,8 +84,9 @@ async function provisionLicense(data) {
       withinLimit,
       features: config.features,
       supportLevel: config.supportLevel,
-      monthlyCost: Math.round(billing.pricing.monthly * 100) / 100,
-      billingAmount: Math.round(billing.pricing.total * 100) / 100,
+      pricePerSeat: config.pricePerSeat,
+      monthlyCost: Math.round(billing.costs.monthly * 100) / 100,
+      billingAmount: Math.round(billing.selected * 100) / 100,
       billingCycle: data.billingCycle,
       status: 'provisioned',
       activatedAt: new Date().toISOString(),
