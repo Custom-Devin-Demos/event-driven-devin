@@ -108,9 +108,9 @@
           <div class="form-group"><label>Product</label><select id="productId"><option value="SKU-OG-0012">Organic Oat Clusters &mdash; $4.29</option><option value="SKU-BV-0034">Cold-Press Lemonade 12pk &mdash; $18.99</option><option value="SKU-SN-0089">Trail Mix Variety Box &mdash; $32.50</option></select></div>
           <div class="form-row">
             <div class="form-group"><label>Quantity (cases)</label><input type="number" id="quantity" value="50" min="1"></div>
-            <div class="form-group"><label>Distributor Tier</label><select id="tier"><option value="gold">Gold (15% off)</option><option value="silver">Silver (10% off)</option><option value="bronze">Bronze (5% off)</option></select></div>
+            <div class="form-group"><label>Region</label><select id="tier"><option value="northeast">Northeast</option><option value="southeast">Southeast</option><option value="midwest">Midwest</option><option value="west">West</option></select></div>
           </div>
-          <div class="form-group"><label>Shipping Priority</label><select id="priority"><option value="standard">Standard (5-7 days)</option><option value="express">Express (2-3 days, +$45)</option><option value="overnight">Overnight (+$120)</option></select></div>
+          <div class="form-group"><label>Fulfillment Zone</label><select id="priority"><option value="southeast">Southeast</option><option value="northeast">Northeast</option><option value="central">Central</option><option value="pacific">Pacific</option></select></div>
           <button type="submit" class="btn-order" id="submitBtn">Place Order</button>
         </form>
         <div id="result" class="result-box"></div>
@@ -127,7 +127,7 @@
       try {
         const res = await fetch('/api/cpg/order', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: document.getElementById('productId').value, quantity: parseInt(document.getElementById('quantity').value), tier: document.getElementById('tier').value, priority: document.getElementById('priority').value, distributorId: 'DIST-WC-001' }),
+          body: JSON.stringify({ distributorId: 'DIST-001', region: document.getElementById('tier').value, fulfillmentZone: document.getElementById('priority').value, items: [{ sku: document.getElementById('productId').value, qty: parseInt(document.getElementById('quantity').value) }] }),
         });
         const data = await res.json();
         if (!res.ok) {
