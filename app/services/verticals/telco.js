@@ -76,8 +76,15 @@ async function upgradePlan(data) {
     const targetParsed = parsePlanCode(data.targetPlanCode);
     const currentParsed = parsePlanCode(data.currentPlanCode);
 
-    const targetPlan = PLANS.find((p) => p.code === targetParsed.planName);
-    const currentPlan = PLANS.find((p) => p.code === currentParsed.planName);
+    const targetPlan = PLANS.find((p) => p.id.toUpperCase() === data.targetPlanCode.toUpperCase());
+    const currentPlan = PLANS.find((p) => p.id.toUpperCase() === data.currentPlanCode.toUpperCase());
+
+    if (!currentPlan) {
+      throw new Error(`Unknown current plan: ${data.currentPlanCode}`);
+    }
+    if (!targetPlan) {
+      throw new Error(`Unknown target plan: ${data.targetPlanCode}`);
+    }
 
     const proration = calculateProration(
       currentPlan.monthlyRate,
