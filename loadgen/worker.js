@@ -106,7 +106,7 @@ async function sendCheckoutRequests(count) {
     const item = randomFrom(ITEMS);
     const region = randomFrom(REGIONS);
     promises.push(
-      makeRequest('post', '/checkout', {
+      makeRequest('post', '/api/storefront/checkout', {
         userId: PERSONA_USER_IDS[persona],
         items: [item],
         subtotal: item.price * item.qty,
