@@ -3,188 +3,164 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NovaSoft &mdash; SaaS License Management</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>NovaSoft &mdash; License Management Console</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0e0a18; --bg-elevated: #161022; --bg-card: #1e162e;
-      --surface: #2a2040; --border: #302848; --border-light: #403858;
-      --text: #ece8f5; --text-muted: #9a90b0; --text-dim: #6a5a88;
-      --accent: #7B2CBF; --accent-dim: rgba(123,44,191,0.12); --accent-hover: #9b40e0;
-      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
-      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
-      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg: #fafafa; --white: #ffffff;
+      --violet: #6d28d9; --violet-light: #7c3aed; --violet-dim: rgba(109,40,217,0.04);
+      --violet-border: rgba(109,40,217,0.12);
+      --gray-50: #fafafa; --gray-100: #f4f4f5; --gray-200: #e4e4e7;
+      --gray-300: #d4d4d8; --gray-400: #a1a1aa; --gray-500: #71717a;
+      --gray-600: #52525b; --gray-700: #3f3f46; --gray-800: #27272a; --gray-900: #18181b;
+      --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+      --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+      --amber: #d97706; --amber-bg: #fffbeb; --amber-border: #fde68a;
+      --sans: 'Sora', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
-    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
 
-    header { position: sticky; top: 0; z-index: 100; background: rgba(14,10,24,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
-    .logo span { color: var(--accent); }
-    nav { display: flex; gap: 1.5rem; }
-    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
-    nav a:hover { color: var(--text); }
+    .app-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    @media (max-width: 800px) { .app-shell { grid-template-columns: 1fr; } .sidebar-nav { display: none; } }
 
-    .dashboard { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
-    .welcome { margin-bottom: 2rem; }
-    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
-    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+    .sidebar-nav { background: var(--white); border-right: 1px solid var(--gray-200); padding: 1.25rem 0; display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 0 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .sidebar-logo { width: 28px; height: 28px; background: var(--violet); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-logo svg { width: 16px; height: 16px; fill: #fff; }
+    .sidebar-name { font-size: 0.95rem; font-weight: 700; color: var(--gray-900); letter-spacing: -0.03em; }
+    .nav-section { padding: 0 0.75rem; margin-bottom: 0.5rem; }
+    .nav-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-400); padding: 0 0.5rem; margin-bottom: 0.25rem; }
+    .nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: var(--gray-500); text-decoration: none; border-radius: 6px; transition: all 0.15s; margin-bottom: 1px; }
+    .nav-item:hover { background: var(--gray-100); color: var(--gray-800); }
+    .nav-item.active { background: var(--violet-dim); color: var(--violet); font-weight: 600; border: 1px solid var(--violet-border); }
+    .nav-item .badge { margin-left: auto; font-size: 0.6rem; font-weight: 700; background: var(--violet); color: #fff; padding: 0.1rem 0.4rem; border-radius: 10px; }
+    .sidebar-footer { margin-top: auto; padding: 0.75rem 1.25rem; border-top: 1px solid var(--gray-200); }
+    .sidebar-user { font-size: 0.78rem; font-weight: 600; color: var(--gray-700); }
+    .sidebar-role { font-size: 0.68rem; color: var(--gray-400); }
 
-    .subs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
-    @media (max-width: 768px) { .subs { grid-template-columns: 1fr; } }
-    .sub-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: border-color 0.3s; }
-    .sub-card:hover { border-color: var(--border-light); }
-    .sub-plan { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
-    .sub-org { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; }
-    .sub-seats { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-    .seat-bar { height: 4px; background: var(--surface); border-radius: 2px; margin-top: 0.5rem; overflow: hidden; }
-    .seat-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s var(--ease-out); }
-    .sub-status { display: inline-block; margin-top: 0.5rem; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 20px; background: rgba(92,184,138,0.15); color: var(--success); }
+    .main { padding: 1.5rem 2rem; overflow-y: auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--violet); text-decoration: none; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; color: var(--gray-900); }
+    .page-header p { font-size: 0.82rem; color: var(--gray-500); margin-top: 0.15rem; }
 
-    .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    @media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .metric { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.15rem; }
+    .metric-label { font-size: 0.68rem; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .metric-val { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; color: var(--gray-900); }
+    .metric-change { font-size: 0.7rem; font-weight: 600; margin-top: 0.15rem; }
+    .metric-change.up { color: var(--success); }
+    .metric-change.down { color: var(--danger); }
 
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
-    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .section-title { font-size: 0.85rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
 
-    .plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
-    .plan-option { padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.3s; text-align: center; }
-    .plan-option:hover { border-color: var(--accent); background: var(--accent-dim); }
-    .plan-option.selected { border-color: var(--accent); background: var(--accent-dim); }
-    .plan-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.15rem; }
-    .plan-price { font-size: 0.75rem; color: var(--text-muted); }
+    .table-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-400); padding: 0.7rem 1rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+    .data-table td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--gray-100); font-size: 0.82rem; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: var(--violet-dim); }
+    .badge-active { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 600; color: var(--success); background: var(--success-bg); padding: 0.15rem 0.5rem; border-radius: 20px; }
+    .badge-active::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+    .badge-warn { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 600; color: var(--amber); background: var(--amber-bg); padding: 0.15rem 0.5rem; border-radius: 20px; }
+    .mono { font-family: var(--mono); font-size: 0.75rem; color: var(--gray-500); }
 
-    .form-group { margin-bottom: 1rem; }
-    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
-    .form-group select, .form-group input { width: 100%; padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.85rem; }
-    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); }
-
-    .btn-submit { width: 100%; padding: 0.75rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
-    .btn-submit:hover { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-    .result-box { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.8rem; display: none; }
+    .provision-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; max-width: 520px; }
+    .provision-card h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1.15rem; color: var(--gray-900); }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 0.2rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--gray-200); border-radius: 8px; font-family: var(--sans); font-size: 0.82rem; color: var(--gray-800); background: #fff; transition: all 0.15s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--violet); box-shadow: 0 0 0 3px rgba(109,40,217,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .btn-provision { width: 100%; padding: 0.65rem; background: var(--violet); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.15s; }
+    .btn-provision:hover { background: var(--violet-light); transform: translateY(-1px); }
+    .btn-provision:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.78rem; display: none; }
     .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
-    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
-    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
-    .result-box .error-detail { font-family: var(--mono); font-size: 0.7rem; opacity: 0.85; }
-
-    .features-list { list-style: none; margin-top: 0.5rem; }
-    .features-list li { font-size: 0.8rem; color: var(--text-muted); padding: 0.2rem 0; }
-    .features-list li::before { content: '✓ '; color: var(--accent); }
-
-    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
-    .back-link:hover { text-decoration: underline; }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.68rem; opacity: 0.85; word-break: break-all; }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">💻 <span>Nova</span>Soft</div>
-    <nav><a href="#">Subscriptions</a><a href="#">Billing</a><a href="#">Team</a><a href="#">Settings</a></nav>
-  </header>
-
-  <div class="dashboard">
-    <a href="/" class="back-link animate-up">← All Demos</a>
-    <div class="welcome animate-up delay-1">
-      <h1>Admin Console</h1>
-      <p>IT Administrator &bull; TechCorp Solutions</p>
-    </div>
-
-    <div class="subs animate-up delay-2">
-      <div class="sub-card">
-        <div class="sub-plan">Professional</div>
-        <div class="sub-org">Engineering Team</div>
-        <div class="sub-seats">18 / 25 seats used</div>
-        <div class="seat-bar"><div class="seat-bar-fill" style="width:72%"></div></div>
-        <div class="sub-status">Active</div>
+  <div class="app-shell">
+    <aside class="sidebar-nav">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo"><svg viewBox="0 0 24 24"><polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/></svg></div>
+        <div class="sidebar-name">NovaSoft</div>
       </div>
-      <div class="sub-card">
-        <div class="sub-plan">Starter</div>
-        <div class="sub-org">Marketing Team</div>
-        <div class="sub-seats">4 / 5 seats used</div>
-        <div class="seat-bar"><div class="seat-bar-fill" style="width:80%"></div></div>
-        <div class="sub-status">Active</div>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="#" class="nav-item active">Dashboard</a>
+        <a href="#" class="nav-item">Analytics</a>
       </div>
-      <div class="sub-card">
-        <div class="sub-plan">Enterprise</div>
-        <div class="sub-org">Executive Suite</div>
-        <div class="sub-seats">12 / unlimited seats</div>
-        <div class="seat-bar"><div class="seat-bar-fill" style="width:35%"></div></div>
-        <div class="sub-status">Active</div>
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <a href="#" class="nav-item">Licenses <span class="badge">24</span></a>
+        <a href="#" class="nav-item">Users</a>
+        <a href="#" class="nav-item">Teams</a>
+        <a href="#" class="nav-item">Provisioning</a>
       </div>
-    </div>
-
-    <div class="content-grid">
-      <div class="card animate-up delay-3">
-        <div class="card-title">📋 Available Plans</div>
-        <div class="plan-grid">
-          <div class="plan-option" onclick="selectPlan(this, 'starter')">
-            <div class="plan-name">Starter</div>
-            <div class="plan-price">$10/seat/mo</div>
-            <ul class="features-list"><li>5 seats max</li><li>Basic features</li></ul>
-          </div>
-          <div class="plan-option" onclick="selectPlan(this, 'professional')">
-            <div class="plan-name">Professional</div>
-            <div class="plan-price">$8/seat/mo</div>
-            <ul class="features-list"><li>25 seats max</li><li>Analytics</li></ul>
-          </div>
-          <div class="plan-option selected" onclick="selectPlan(this, 'enterprise ')">
-            <div class="plan-name">Enterprise</div>
-            <div class="plan-price">$6/seat/mo</div>
-            <ul class="features-list"><li>Unlimited seats</li><li>SSO + Analytics</li></ul>
-          </div>
-          <div class="plan-option" onclick="selectPlan(this, 'unlimited')">
-            <div class="plan-name">Unlimited</div>
-            <div class="plan-price">$12/seat/mo</div>
-            <ul class="features-list"><li>Unlimited seats</li><li>Premium support</li></ul>
-          </div>
+      <div class="nav-section">
+        <div class="nav-label">Settings</div>
+        <a href="#" class="nav-item">Billing</a>
+        <a href="#" class="nav-item">API Keys</a>
+        <a href="#" class="nav-item">Integrations</a>
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">Sarah Kim</div>
+        <div class="sidebar-role">Platform Admin</div>
+      </div>
+    </aside>
+    <main class="main">
+      <a href="/" class="back-link fi">&larr; All Demos</a>
+      <div class="page-header fi fi1">
+        <div><h1>License Management</h1><p>Manage SaaS licenses, seats, and provisioning</p></div>
+      </div>
+      <div class="metrics fi fi2">
+        <div class="metric"><div class="metric-label">Total Licenses</div><div class="metric-val">2,450</div><div class="metric-change up">+8% this quarter</div></div>
+        <div class="metric"><div class="metric-label">Active Users</div><div class="metric-val">1,892</div><div class="metric-change up">77% utilization</div></div>
+        <div class="metric"><div class="metric-label">Annual Spend</div><div class="metric-val">$284K</div><div class="metric-change down">+12% vs budget</div></div>
+        <div class="metric"><div class="metric-label">Renewals Due</div><div class="metric-val">6</div><div class="metric-change">next 30 days</div></div>
+      </div>
+      <div class="fi fi3">
+        <div class="section-title">License Inventory</div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr><th>Product</th><th>License Key</th><th>Seats</th><th>Status</th><th>Renewal</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Enterprise Suite Pro</strong></td><td class="mono">LIC-ENT-2024-001</td><td>500 / 500</td><td><span class="badge-active">Active</span></td><td>Jun 2025</td></tr>
+              <tr><td><strong>DevOps Platform</strong></td><td class="mono">LIC-DEV-2024-003</td><td>120 / 150</td><td><span class="badge-active">Active</span></td><td>Sep 2025</td></tr>
+              <tr><td><strong>Analytics Cloud</strong></td><td class="mono">LIC-ANA-2024-007</td><td>85 / 100</td><td><span class="badge-active">Active</span></td><td>Dec 2025</td></tr>
+              <tr><td><strong>Security Gateway</strong></td><td class="mono">LIC-SEC-2024-012</td><td>48 / 50</td><td><span class="badge-warn">96% used</span></td><td>Apr 2025</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <div class="card animate-up delay-4">
-        <div class="card-title">⚡ Provision New License</div>
-        <form id="provisionForm">
-          <div class="form-group">
-            <label>Organization Name</label>
-            <input type="text" id="orgName" value="New Department">
-          </div>
-          <div class="form-group">
-            <label>Selected Plan</label>
-            <input type="text" id="planDisplay" value="enterprise" readonly style="background: var(--surface); color: var(--text-muted);">
-            <input type="hidden" id="planName" value="enterprise ">
-          </div>
-          <div class="form-group">
-            <label>Number of Seats</label>
-            <input type="number" id="seats" value="15" min="1">
-          </div>
-          <div class="form-group">
-            <label>Billing Cycle</label>
-            <select id="billingCycle">
-              <option value="monthly">Monthly</option>
-              <option value="annual">Annual (20% off)</option>
-            </select>
-          </div>
-          <button type="submit" class="btn-submit" id="submitBtn">Provision License</button>
-        </form>
-        <div id="result" class="result-box"></div>
+      <div class="fi fi4">
+        <div class="section-title">Provision License</div>
+        <div class="provision-card">
+          <h2>Add New License Seats</h2>
+          <form id="provisionForm">
+            <div class="form-group"><label>Product</label><select id="product"><option value="enterprise_suite">Enterprise Suite Pro</option><option value="devops_platform">DevOps Platform</option><option value="analytics_cloud">Analytics Cloud</option><option value="security_gateway">Security Gateway</option></select></div>
+            <div class="form-row">
+              <div class="form-group"><label>Additional Seats</label><input type="number" id="seats" value="25" min="1"></div>
+              <div class="form-group"><label>Plan Tier</label><select id="planTier"><option value="enterprise">Enterprise</option><option value="business">Business</option><option value="starter">Starter</option></select></div>
+            </div>
+            <div class="form-group"><label>Deployment Region</label><select id="region"><option value="us-east">US East</option><option value="us-west">US West</option><option value="eu-west">EU West</option><option value="ap-south">AP South</option></select></div>
+            <button type="submit" class="btn-provision" id="submitBtn">Provision Seats</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
       </div>
-    </div>
+    </main>
   </div>
-
   <script>
-    let selectedPlan = 'enterprise ';
-    function selectPlan(el, plan) {
-      document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedPlan = plan;
-      document.getElementById('planName').value = plan;
-      document.getElementById('planDisplay').value = plan.trim();
-    }
-
     document.getElementById('provisionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -192,15 +168,9 @@
       btn.disabled = true; btn.textContent = 'Provisioning...';
       result.className = 'result-box';
       try {
-        const res = await fetch('/api/licenses/provision', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orgName: document.getElementById('orgName').value,
-            planName: document.getElementById('planName').value,
-            seats: parseInt(document.getElementById('seats').value),
-            billingCycle: document.getElementById('billingCycle').value,
-          }),
+        const res = await fetch('/api/hightech/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ product: document.getElementById('product').value, seats: parseInt(document.getElementById('seats').value), planTier: document.getElementById('planTier').value, region: document.getElementById('region').value, adminId: 'usr_sarah_kim' }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -208,14 +178,12 @@
           result.innerHTML = `<div class="error-title">Provisioning Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">License Provisioned</div><div class="error-detail">License #${data.licenseId} — ${data.seats} seats @ $${data.pricePerSeat}/seat</div>`;
+          result.innerHTML = `<div class="error-title">Seats Provisioned</div><div class="error-detail">${data.seatsAdded} seats added to ${data.product} &mdash; Total: $${data.annualCost}/yr</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
         result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Provision License';
-      }
+      } finally { btn.disabled = false; btn.textContent = 'Provision Seats'; }
     });
   </script>
 </body>

@@ -3,215 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Titan Manufacturing &mdash; Equipment Maintenance</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>Titan Manufacturing &mdash; Plant Operations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0e0f10; --bg-elevated: #161718; --bg-card: #1e1f22;
-      --surface: #28292e; --border: #303136; --border-light: #40414a;
-      --text: #e8e9ec; --text-muted: #8a8b95; --text-dim: #5a5b65;
-      --accent: #6C757D; --accent-dim: rgba(108,117,125,0.15); --accent-hover: #8a949e;
-      --orange: #f59e0b; --orange-dim: rgba(245,158,11,0.12);
-      --danger: #e85d4a; --danger-bg: rgba(232,93,74,0.08); --danger-border: rgba(232,93,74,0.2);
-      --success: #5cb88a; --success-bg: rgba(92,184,138,0.08);
-      --sans: 'DM Sans', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --steel: #1a1d23; --steel-panel: #22262e; --steel-cell: #2a2f38;
+      --border: #363c47; --border-hi: #454d5a;
+      --text: #b8bcc4; --text-bright: #e2e5ea; --text-dim: #6b7280;
+      --safety-yellow: #f59e0b; --safety-dim: rgba(245,158,11,0.06);
+      --safety-border: rgba(245,158,11,0.2);
+      --ok-green: #22c55e; --ok-dim: rgba(34,197,94,0.06);
+      --alert-red: #ef4444; --alert-dim: rgba(239,68,68,0.06);
+      --alert-border: rgba(239,68,68,0.2);
+      --blue: #3b82f6; --blue-dim: rgba(59,130,246,0.06);
+      --condensed: 'Barlow Condensed', -apple-system, sans-serif;
+      --body: 'Barlow', -apple-system, sans-serif;
+      --mono: 'Share Tech Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-up { animation: fadeUp 0.8s var(--ease-out) both; }
-    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; }
+    body { font-family: var(--body); background: var(--steel); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; font-size: 13px; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .fi { animation: fadeIn 0.3s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
 
-    header { position: sticky; top: 0; z-index: 100; background: rgba(14,15,16,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 1.3rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
-    .logo span { color: var(--orange); }
-    nav { display: flex; gap: 1.5rem; }
-    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.3s; }
-    nav a:hover { color: var(--text); }
+    .topbar { background: var(--safety-yellow); height: 4px; }
+    header { background: var(--steel-panel); border-bottom: 1px solid var(--border); padding: 0 1.25rem; height: 48px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: var(--condensed); font-size: 1.15rem; font-weight: 700; color: var(--text-bright); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; gap: 0.6rem; }
+    .logo-badge { background: var(--safety-yellow); color: #000; font-size: 0.6rem; font-weight: 800; padding: 0.15rem 0.4rem; letter-spacing: 0.1em; }
+    nav { display: flex; gap: 0.15rem; }
+    nav a { color: var(--text-dim); text-decoration: none; font-family: var(--condensed); font-size: 0.82rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.4rem 0.7rem; transition: all 0.15s; }
+    nav a:hover { color: var(--text-bright); background: var(--steel-cell); }
+    nav a.active { color: var(--safety-yellow); border-bottom: 2px solid var(--safety-yellow); }
+    .status-bar { display: flex; align-items: center; gap: 0.4rem; font-family: var(--mono); font-size: 10px; color: var(--ok-green); }
+    .status-dot { width: 7px; height: 7px; background: var(--ok-green); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-    .dashboard { max-width: 1200px; margin: 0 auto; padding: 2rem clamp(1.5rem, 4vw, 3rem); }
-    .welcome { margin-bottom: 2rem; }
-    .welcome h1 { font-size: 1.6rem; font-weight: 300; margin-bottom: 0.25rem; }
-    .welcome p { color: var(--text-muted); font-size: 0.9rem; }
+    .page { max-width: 1200px; margin: 0 auto; padding: 1rem 1.25rem; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--safety-yellow); text-decoration: none; font-family: var(--condensed); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; opacity: 0.7; }
+    .back-link:hover { opacity: 1; }
 
-    .equipment-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
-    @media (max-width: 900px) { .equipment-grid { grid-template-columns: 1fr 1fr; } }
-    .equip-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; transition: border-color 0.3s; }
-    .equip-card:hover { border-color: var(--border-light); }
-    .equip-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    .equip-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
-    .equip-id { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem; }
-    .equip-status { font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 20px; display: inline-block; }
-    .status-ok { background: rgba(92,184,138,0.15); color: var(--success); }
-    .status-warn { background: var(--orange-dim); color: var(--orange); }
-    .equip-reading { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem; }
+    .plant-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border); }
+    .plant-header h1 { font-family: var(--condensed); font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-bright); }
+    .plant-header .shift { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
 
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; max-width: 650px; }
-    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .gauge-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    @media (max-width: 900px) { .gauge-row { grid-template-columns: repeat(3, 1fr); } }
+    .gauge { background: var(--steel-panel); border: 1px solid var(--border); padding: 0.75rem; text-align: center; }
+    .gauge-label { font-family: var(--condensed); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-dim); margin-bottom: 0.3rem; }
+    .gauge-value { font-family: var(--mono); font-size: 1.5rem; color: var(--text-bright); }
+    .gauge-unit { font-family: var(--mono); font-size: 0.6rem; color: var(--text-dim); }
+    .gauge.warn .gauge-value { color: var(--safety-yellow); }
+    .gauge.alert .gauge-value { color: var(--alert-red); }
+    .gauge-bar { height: 3px; background: var(--border); margin-top: 0.4rem; position: relative; overflow: hidden; }
+    .gauge-fill { height: 100%; background: var(--ok-green); transition: width 0.3s; }
+    .gauge.warn .gauge-fill { background: var(--safety-yellow); }
+    .gauge.alert .gauge-fill { background: var(--alert-red); }
 
-    .form-group { margin-bottom: 1.25rem; }
-    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.3rem; }
-    .form-group select, .form-group input, .form-group textarea { width: 100%; padding: 0.7rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 0.9rem; }
-    .form-group textarea { min-height: 70px; resize: vertical; }
-    .form-group select:focus, .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--orange); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .section-label { font-family: var(--condensed); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--safety-yellow); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+    .section-label::before { content: ''; width: 12px; height: 2px; background: var(--safety-yellow); }
 
-    .btn-submit { width: 100%; padding: 0.85rem; background: var(--orange); color: #000; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.3s; }
-    .btn-submit:hover { background: #fbbf24; transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .asset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.25rem; }
+    @media (max-width: 700px) { .asset-grid { grid-template-columns: 1fr; } }
+    .asset-card { background: var(--steel-panel); border: 1px solid var(--border); padding: 1rem; }
+    .asset-id { font-family: var(--mono); font-size: 0.65rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+    .asset-name { font-family: var(--condensed); font-size: 1rem; font-weight: 700; color: var(--text-bright); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .asset-stats { display: flex; gap: 1.25rem; }
+    .asset-stat { font-size: 0.72rem; }
+    .asset-stat .label { color: var(--text-dim); }
+    .asset-stat .val { font-family: var(--mono); color: var(--text-bright); font-weight: 500; }
+    .asset-stat .val.ok { color: var(--ok-green); }
+    .asset-stat .val.caution { color: var(--safety-yellow); }
 
-    .result-box { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 8px; font-size: 0.85rem; display: none; }
-    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
-    .result-box.success { display: block; background: var(--success-bg); border: 1px solid rgba(92,184,138,0.2); color: var(--success); }
-    .result-box .error-title { font-weight: 700; margin-bottom: 0.25rem; }
-    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; }
-
-    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--orange); text-decoration: none; font-size: 0.8rem; font-weight: 500; margin-bottom: 1rem; }
-    .back-link:hover { text-decoration: underline; }
+    .wo-card { background: var(--steel-panel); border: 1px solid var(--border); padding: 1.25rem; max-width: 520px; }
+    .wo-card h2 { font-family: var(--condensed); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-bright); margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group label { display: block; font-family: var(--condensed); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.2rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.5rem 0.6rem; background: var(--steel-cell); border: 1px solid var(--border); color: var(--text); font-family: var(--mono); font-size: 12px; transition: border-color 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--safety-yellow); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .btn-wo { width: 100%; padding: 0.6rem; background: var(--safety-yellow); color: #000; border: none; font-family: var(--condensed); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: all 0.15s; }
+    .btn-wo:hover { background: #fbbf24; }
+    .btn-wo:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-box { margin-top: 0.5rem; padding: 0.5rem 0.6rem; font-family: var(--mono); font-size: 11px; display: none; }
+    .result-box.error { display: block; background: var(--alert-dim); border: 1px solid var(--alert-border); color: var(--alert-red); }
+    .result-box.success { display: block; background: var(--ok-dim); border: 1px solid rgba(34,197,94,0.2); color: var(--ok-green); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-size: 10px; opacity: 0.85; word-break: break-all; }
+    .safety-strip { margin-top: 1rem; padding: 0.5rem 0.6rem; background: var(--safety-dim); border: 1px solid var(--safety-border); font-family: var(--condensed); font-size: 0.7rem; color: var(--safety-yellow); text-transform: uppercase; letter-spacing: 0.08em; }
   </style>
 </head>
 <body>
+  <div class="topbar"></div>
   <header>
-    <div class="logo">🏭 <span>Titan</span> Manufacturing</div>
-    <nav><a href="#">Equipment</a><a href="#">Work Orders</a><a href="#">Reports</a><a href="#">Safety</a></nav>
+    <div class="logo"><span class="logo-badge">CMMS</span> Titan Manufacturing</div>
+    <nav><a href="#" class="active">Dashboard</a><a href="#">Assets</a><a href="#">Work Orders</a><a href="#">Inventory</a><a href="#">Reports</a></nav>
+    <div class="status-bar"><div class="status-dot"></div>ALL SYSTEMS NOMINAL</div>
   </header>
-
-  <div class="dashboard">
-    <a href="/" class="back-link animate-up">← All Demos</a>
-    <div class="welcome animate-up delay-1">
-      <h1>Plant Floor Dashboard</h1>
-      <p>Maintenance Operator &bull; Plant A — Chicago Facility</p>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+    <div class="plant-header fi fi1">
+      <h1>Plant Floor &mdash; Columbus Facility</h1>
+      <div class="shift">SHIFT B &middot; 14:00&ndash;22:00 &middot; 2025-03-15</div>
     </div>
-
-    <div class="equipment-grid animate-up delay-2">
-      <div class="equip-card">
-        <div class="equip-icon">⚙️</div>
-        <div class="equip-name">CNC Mill #3</div>
-        <div class="equip-id">EQ-001</div>
-        <div class="equip-status status-ok">Operational</div>
-        <div class="equip-reading">Temp: 142°F | Vibration: 0.3mm/s</div>
-      </div>
-      <div class="equip-card">
-        <div class="equip-icon">🔌</div>
-        <div class="equip-name">Main Transformer</div>
-        <div class="equip-id">EQ-002</div>
-        <div class="equip-status status-warn">Warning</div>
-        <div class="equip-reading">Load: 87% | Temp: 185°F</div>
-      </div>
-      <div class="equip-card">
-        <div class="equip-icon">🔧</div>
-        <div class="equip-name">Hydraulic Press A</div>
-        <div class="equip-id">EQ-003</div>
-        <div class="equip-status status-ok">Operational</div>
-        <div class="equip-reading">Pressure: 2400 PSI</div>
-      </div>
-      <div class="equip-card">
-        <div class="equip-icon">🏗️</div>
-        <div class="equip-name">Overhead Crane #1</div>
-        <div class="equip-id">EQ-004</div>
-        <div class="equip-status status-ok">Operational</div>
-        <div class="equip-reading">Load: 2.1 tons / 5 tons max</div>
+    <div class="gauge-row fi fi2">
+      <div class="gauge"><div class="gauge-label">OEE</div><div class="gauge-value">87.3</div><div class="gauge-unit">%</div><div class="gauge-bar"><div class="gauge-fill" style="width:87%"></div></div></div>
+      <div class="gauge"><div class="gauge-label">Throughput</div><div class="gauge-value">1,240</div><div class="gauge-unit">units/hr</div><div class="gauge-bar"><div class="gauge-fill" style="width:92%"></div></div></div>
+      <div class="gauge warn"><div class="gauge-label">Downtime</div><div class="gauge-value">4.2</div><div class="gauge-unit">hrs today</div><div class="gauge-bar"><div class="gauge-fill" style="width:35%"></div></div></div>
+      <div class="gauge"><div class="gauge-label">Quality</div><div class="gauge-value">99.1</div><div class="gauge-unit">% yield</div><div class="gauge-bar"><div class="gauge-fill" style="width:99%"></div></div></div>
+      <div class="gauge"><div class="gauge-label">Active WOs</div><div class="gauge-value">12</div><div class="gauge-unit">open</div><div class="gauge-bar"><div class="gauge-fill" style="width:48%"></div></div></div>
+    </div>
+    <div class="fi fi3">
+      <div class="section-label">Critical Assets</div>
+      <div class="asset-grid">
+        <div class="asset-card"><div class="asset-id">AST-CNC-001</div><div class="asset-name">CNC Mill &mdash; Line A</div><div class="asset-stats"><div class="asset-stat"><div class="label">Status</div><div class="val ok">RUNNING</div></div><div class="asset-stat"><div class="label">Runtime</div><div class="val">4,210 hrs</div></div><div class="asset-stat"><div class="label">Next PM</div><div class="val caution">12 days</div></div></div></div>
+        <div class="asset-card"><div class="asset-id">AST-HYD-003</div><div class="asset-name">Hydraulic Press #3</div><div class="asset-stats"><div class="asset-stat"><div class="label">Status</div><div class="val ok">RUNNING</div></div><div class="asset-stat"><div class="label">Runtime</div><div class="val">2,880 hrs</div></div><div class="asset-stat"><div class="label">Next PM</div><div class="val">45 days</div></div></div></div>
+        <div class="asset-card"><div class="asset-id">AST-WLD-007</div><div class="asset-name">Robotic Welder &mdash; Cell 2</div><div class="asset-stats"><div class="asset-stat"><div class="label">Status</div><div class="val caution">IDLE</div></div><div class="asset-stat"><div class="label">Runtime</div><div class="val">1,560 hrs</div></div><div class="asset-stat"><div class="label">Next PM</div><div class="val">8 days</div></div></div></div>
+        <div class="asset-card"><div class="asset-id">AST-CVR-012</div><div class="asset-name">Conveyor System &mdash; Main</div><div class="asset-stats"><div class="asset-stat"><div class="label">Status</div><div class="val ok">RUNNING</div></div><div class="asset-stat"><div class="label">Runtime</div><div class="val">6,400 hrs</div></div><div class="asset-stat"><div class="label">Next PM</div><div class="val">30 days</div></div></div></div>
       </div>
     </div>
-
-    <div class="card animate-up delay-3">
-      <div class="card-title">🔧 Create Work Order</div>
-      <form id="workOrderForm">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Equipment</label>
-            <select id="equipmentId">
-              <option value="EQ-001">EQ-001 — CNC Mill #3</option>
-              <option value="EQ-002">EQ-002 — Main Transformer</option>
-              <option value="EQ-003">EQ-003 — Hydraulic Press A</option>
-              <option value="EQ-004">EQ-004 — Overhead Crane #1</option>
-            </select>
+    <div class="fi fi4">
+      <div class="section-label">Create Work Order</div>
+      <div class="wo-card">
+        <h2>Maintenance Request</h2>
+        <form id="woForm">
+          <div class="form-group"><label>Asset</label><select id="assetId"><option value="AST-CNC-001">CNC Mill &mdash; Line A</option><option value="AST-HYD-003">Hydraulic Press #3</option><option value="AST-WLD-007">Robotic Welder &mdash; Cell 2</option><option value="AST-CVR-012">Conveyor System &mdash; Main</option></select></div>
+          <div class="form-row">
+            <div class="form-group"><label>Work Type</label><select id="workType"><option value="preventive">Preventive</option><option value="corrective">Corrective</option><option value="emergency">Emergency</option><option value="inspection">Inspection</option></select></div>
+            <div class="form-group"><label>Priority</label><select id="priority"><option value="P1">P1 &mdash; Critical</option><option value="P2">P2 &mdash; High</option><option value="P3">P3 &mdash; Medium</option><option value="P4">P4 &mdash; Low</option></select></div>
           </div>
-          <div class="form-group">
-            <label>Equipment Category</label>
-            <select id="equipmentCategory">
-              <option value="Rotating">Rotating</option>
-              <option value="Electrical">Electrical</option>
-              <option value="Hydraulic">Hydraulic</option>
-              <option value="Structural">Structural</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Issue Type</label>
-            <select id="issueType">
-              <option value="preventive">Preventive Maintenance</option>
-              <option value="corrective">Corrective Repair</option>
-              <option value="emergency">Emergency</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Priority</label>
-            <select id="priority">
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-              <option value="critical">Critical</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Estimated Hours</label>
-            <input type="number" id="estimatedHours" value="4" min="1" step="0.5">
-          </div>
-          <div class="form-group">
-            <label>Parts Estimate ($)</label>
-            <input type="number" id="partsEstimate" value="500" min="0" step="50">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Description</label>
-          <textarea id="description" placeholder="Describe the maintenance issue...">Scheduled preventive maintenance — bearing inspection and lubrication required per 90-day cycle.</textarea>
-        </div>
-        <button type="submit" class="btn-submit" id="submitBtn">Create Work Order</button>
-      </form>
-      <div id="result" class="result-box"></div>
+          <div class="form-group"><label>Estimated Hours</label><input type="number" id="hours" value="4" min="0.5" step="0.5"></div>
+          <button type="submit" class="btn-wo" id="submitBtn">Create Work Order</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="safety-strip">All maintenance requires LOTO procedure compliance &mdash; See SOP-4200</div>
+      </div>
     </div>
   </div>
-
   <script>
-    document.getElementById('workOrderForm').addEventListener('submit', async (e) => {
+    document.getElementById('woForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
-      btn.disabled = true; btn.textContent = 'Creating...';
+      btn.disabled = true; btn.textContent = 'CREATING...';
       result.className = 'result-box';
       try {
-        const res = await fetch('/api/maintenance/workorder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            equipmentId: document.getElementById('equipmentId').value,
-            equipmentCategory: document.getElementById('equipmentCategory').value,
-            issueType: document.getElementById('issueType').value,
-            priority: document.getElementById('priority').value,
-            estimatedHours: parseFloat(document.getElementById('estimatedHours').value),
-            partsEstimate: parseFloat(document.getElementById('partsEstimate').value),
-            description: document.getElementById('description').value,
-          }),
+        const res = await fetch('/api/industrials/work-order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ assetId: document.getElementById('assetId').value, workType: document.getElementById('workType').value, priority: document.getElementById('priority').value, estimatedHours: parseFloat(document.getElementById('hours').value), technicianId: 'TECH-042', plantId: 'PLT-COLUMBUS-01' }),
         });
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Work Order Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="error-title">WO CREATION FAILED</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Work Order Created</div><div class="error-detail">WO #${data.workOrderId} — Est. cost: $${data.estimatedCost} (${data.certRequired} cert required)</div>`;
+          result.innerHTML = `<div class="error-title">WO CREATED</div><div class="error-detail">Work Order ${data.workOrderId} &mdash; ETA: ${data.estimatedCompletion}</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Create Work Order';
-      }
+        result.innerHTML = `<div class="error-title">SYSTEM ERROR</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'CREATE WORK ORDER'; }
     });
   </script>
 </body>
