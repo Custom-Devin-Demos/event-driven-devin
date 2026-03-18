@@ -219,32 +219,36 @@ router.post('/api/storefront/checkout', async (req, res) => {
       },
     });
 
-    // Immediately trigger Devin session + Slack alert on checkout error (non-blocking)
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/routes/storefront.js — POST /api/storefront/checkout',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      tags: [
-        { key: 'route', value: '/api/storefront/checkout' },
-        { key: 'scenario', value: 'checkout-regression' },
-        { key: 'source', value: 'storefront-ui' },
-      ],
-      extra: { orderId, userId: order.userId, subtotal: order.subtotal, region: order.region },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2',
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((err) => {
-      logger.error('Failed to trigger Devin session from checkout error', { error: err.message });
-    });
+    // Skip Devin session + Slack alert for synthetic loadgen traffic
+    if (req.headers['x-synthetic']) {
+      logger.info('Synthetic traffic — skipping Devin session alert', { orderId });
+    } else {
+      createSessionAndAlert({
+        issueTitle: `${error.name}: ${error.message}`,
+        issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
+        culprit: 'app/routes/storefront.js — POST /api/storefront/checkout',
+        errorType: error.name || 'Error',
+        errorValue: error.message,
+        tags: [
+          { key: 'route', value: '/api/storefront/checkout' },
+          { key: 'scenario', value: 'checkout-regression' },
+          { key: 'source', value: 'storefront-ui' },
+        ],
+        extra: { orderId, userId: order.userId, subtotal: order.subtotal, region: order.region },
+        level: 'error',
+        platform: 'node',
+        firstSeen: '',
+        lastSeen: new Date().toISOString(),
+        count: '',
+        shortId: '',
+        project: 'event-driven-devin',
+        release: process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2',
+        environment: process.env.DD_ENV || 'prod',
+        triggeredRule: '',
+      }).catch((err) => {
+        logger.error('Failed to trigger Devin session from checkout error', { error: err.message });
+      });
+    }
 
     const statusCode = error.code === 'PAYMENT_TIMEOUT' ? 504
       : error.code === 'INVENTORY_CONFLICT' ? 409

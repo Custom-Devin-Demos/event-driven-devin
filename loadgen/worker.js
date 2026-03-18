@@ -45,7 +45,7 @@ async function makeRequest(method, path, data, label) {
       method,
       url,
       timeout: 15000,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Synthetic': 'true' },
     };
     if (data) config.data = data;
 
@@ -106,7 +106,7 @@ async function sendCheckoutRequests(count) {
     const item = randomFrom(ITEMS);
     const region = randomFrom(REGIONS);
     promises.push(
-      makeRequest('post', '/checkout', {
+      makeRequest('post', '/api/storefront/checkout', {
         userId: PERSONA_USER_IDS[persona],
         items: [item],
         subtotal: item.price * item.qty,
@@ -125,11 +125,14 @@ async function runTrafficCycle() {
   const orderCount = Math.max(1, Math.round(2 * multiplier));
 
   console.log(`\n[loadgen] ---- Traffic cycle @ ${new Date().toISOString()} (multiplier: ${multiplier}) ----`);
-  console.log(`[loadgen] Sending: ${searchCount} search, ${loginCount} login, ${orderCount} orders (checkout excluded — manual only)`);
+  const checkoutCount = Math.max(1, Math.round(2 * multiplier));
+
+  console.log(`[loadgen] Sending: ${searchCount} search, ${loginCount} login, ${orderCount} orders, ${checkoutCount} checkout`);
 
   await sendSearchRequests(searchCount);
   await sendLoginRequests(loginCount);
   await sendOrderLookups(orderCount);
+  await sendCheckoutRequests(checkoutCount);
 
   console.log('[loadgen] ---- Cycle complete ----\n');
 }
