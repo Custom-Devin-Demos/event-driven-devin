@@ -163,6 +163,7 @@ async function getStyleRecommendations(data) {
       errorValue: error.message,
       service: 'wayfair-api',
       verticalLabel: 'Wayfair Style Recommendations',
+      customer: 'wayfair',
       tags: [
         { key: 'route', value: '/api/wayfair/recommendations' },
         { key: 'service', value: 'wayfair-api' },

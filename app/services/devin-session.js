@@ -2,6 +2,7 @@ const logger = require('../telemetry/logger');
 const { postAlertToSlack, postDevinReply, postDevinSessionLink } = require('./slack');
 const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
+const { getCustomerConfig } = require('../../config/customers');
 
 /**
  * In-memory cooldown map to prevent duplicate alerts.
@@ -97,7 +98,7 @@ function buildPrompt(alertData) {
 /**
  * Post an alert to Slack and trigger Devin investigation.
  *
- * Supports two trigger modes (set via DEVIN_TRIGGER_MODE env var):
+ * Supports two trigger modes, resolved per-customer via config/customers.js:
  *
  *   "slack" (default) — Native Slack integration:
  *     1. Post the rich alert message using the bot token
@@ -112,7 +113,11 @@ function buildPrompt(alertData) {
  *        — No user token or Devin Slack app needed
  *        — Ideal for customer-specific demos in separate Devin orgs
  *
+ * Per-customer config is resolved from alertData.customer (see config/customers.js).
+ * If no customer is specified, the default global env vars are used.
+ *
  * @param {Object} alertData - Normalized alert data (issueTitle, errorType, etc.)
+ * @param {string} [alertData.customer] - Customer slug for per-customer config
  * @returns {Object|null} - { triggered: true, threadTs } or null if skipped/failed
  */
 async function createSessionAndAlert(alertData) {
@@ -134,12 +139,19 @@ async function createSessionAndAlert(alertData) {
   try {
     const prompt = buildPrompt(alertData);
 
-    const triggerMode = process.env.DEVIN_TRIGGER_MODE || 'slack';
+    // Resolve per-customer Devin configuration
+    const config = getCustomerConfig(alertData.customer);
+
+    // Attach config to alertData so downstream functions (e.g. buildAlertBlocks)
+    // can use it without additional parameters
+    alertData.customerConfig = config;
 
     logger.info('Posting alert and triggering Devin', {
       issueTitle: alertData.issueTitle,
       errorType: alertData.errorType,
       errorValue: alertData.errorValue,
+      customer: config.customer,
+      triggerMode: config.triggerMode,
     });
 
     // Step 1: Post the rich alert message (bot token)
@@ -151,24 +163,32 @@ async function createSessionAndAlert(alertData) {
       return null;
     }
 
-    // Step 2: Trigger Devin based on configured mode
-    if (triggerMode === 'api') {
+    // Step 2: Trigger Devin based on resolved customer config
+    if (config.triggerMode === 'api') {
       // API mode: create session via Devin API, post "View in Devin" button
-      const session = await createDevinSession(prompt);
+      const session = await createDevinSession(prompt, {
+        apiKey: config.apiKey,
+        playbookId: config.playbookId,
+      });
 
       if (session) {
         await postDevinSessionLink(threadTs, session.url);
         logger.info('Devin session created and linked in Slack thread', {
           issueTitle: alertData.issueTitle,
           sessionId: session.sessionId,
+          customer: config.customer,
           threadTs,
         });
       } else {
-        logger.warn('Devin session was not created — API call failed or not configured');
+        logger.warn('Devin session was not created — API call failed or not configured', {
+          customer: config.customer,
+        });
       }
     } else {
       // Slack mode (default): reply with @Devin mention to trigger native integration
-      const replyTs = await postDevinReply(threadTs, prompt);
+      const replyTs = await postDevinReply(threadTs, prompt, {
+        slackUserId: config.slackUserId,
+      });
 
       if (!replyTs) {
         logger.warn('Devin reply was not posted — trigger failed');
@@ -178,6 +198,7 @@ async function createSessionAndAlert(alertData) {
 
       logger.info('Devin triggered via native Slack integration', {
         issueTitle: alertData.issueTitle,
+        customer: config.customer,
         threadTs,
       });
     }
