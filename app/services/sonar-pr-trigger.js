@@ -179,28 +179,9 @@ async function createVulnerablePR(options = {}) {
 
   logger.info('Vulnerable PR created in etl-pipeline-demo', result);
 
-  // 6. Dispatch the sonarqube-scan workflow via repository_dispatch.
-  // PRs created via the API don't trigger pull_request events,
-  // so we use repository_dispatch to kick off the scan + Devin remediation.
-  // (workflow_dispatch doesn't work if GitHub's workflow registry is stale.)
-  try {
-    await gh.post(`/repos/${TARGET_REPO}/dispatches`, {
-      event_type: 'sonar-scan',
-      client_payload: {
-        pr_number: String(result.prNumber),
-        pr_branch: branchName,
-      },
-    });
-    logger.info('Dispatched sonar-scan repository event', {
-      prNumber: result.prNumber,
-      branch: branchName,
-    });
-  } catch (dispatchErr) {
-    logger.error('Failed to dispatch sonar-scan repository event', {
-      error: dispatchErr.message,
-      status: dispatchErr.response?.status,
-    });
-  }
+  // The sonar-scan.yml workflow in etl-pipeline-demo triggers on push
+  // events for demo/** branches.  The push in step 4 already fired that
+  // trigger, so no explicit dispatch call is needed here.
 
   return result;
 }
