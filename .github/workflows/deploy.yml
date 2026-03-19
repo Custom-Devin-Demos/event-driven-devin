@@ -1,0 +1,79 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Back up .env on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
+            "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
+
+      - name: Create deployment tarball
+        run: |
+          tar czf /tmp/acme-demo.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.env \
+            -C . .
+
+      - name: Upload tarball to EC2
+        run: |
+          scp -i ~/.ssh/ec2_key \
+            /tmp/acme-demo.tar.gz \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/acme-demo.tar.gz
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} bash -s <<'EOF'
+          set -e
+          cd /home/ubuntu
+
+          # Extract new code
+          tar xzf acme-demo.tar.gz
+
+          # Restore .env if it was overwritten
+          if [ ! -f /home/ubuntu/.env ]; then
+            cp /home/ubuntu/.env.bak /home/ubuntu/.env
+          fi
+
+          # Rebuild and restart containers
+          docker compose down
+          docker compose up -d --build
+
+          # Wait for the app to become healthy
+          echo "Waiting for health check..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check passed (HTTP 200)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $STATUS - retrying in 5s..."
+            sleep 5
+          done
+
+          echo "Health check failed after 30 attempts"
+          exit 1
+          EOF
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f ~/.ssh/ec2_key
