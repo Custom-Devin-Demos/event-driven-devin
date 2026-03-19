@@ -179,14 +179,13 @@ async function createVulnerablePR(options = {}) {
 
   logger.info('Vulnerable PR created in etl-pipeline-demo', result);
 
-  // 6. Dispatch the sonar-ci workflow via workflow_dispatch.
+  // 6. Dispatch sonar-dispatch.yml via workflow_dispatch.
   // PRs created via the API don't trigger pull_request events, and
   // push/repository_dispatch produce 0-job ghost runs on this repo.
-  // sonar-ci.yml was created with workflow_dispatch from its first commit
-  // so GitHub's registry recognizes the trigger (unlike sonar-scan.yml
-  // where the trigger was added after initial creation and the registry
-  // never updated).
-  const WORKFLOW_FILE = 'sonar-ci.yml';
+  // GitHub rejects workflow_dispatch on files that also have pull_request
+  // or push triggers, so sonar-dispatch.yml is a dedicated dispatch-only
+  // workflow file.
+  const WORKFLOW_FILE = 'sonar-dispatch.yml';
   try {
     await gh.post(
       `/repos/${TARGET_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
