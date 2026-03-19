@@ -179,30 +179,34 @@ async function createVulnerablePR(options = {}) {
 
   logger.info('Vulnerable PR created in etl-pipeline-demo', result);
 
-  // 6. Dispatch sonar-dispatch.yml via workflow_dispatch.
+  // 6. Dispatch devin-scan.yml via workflow_dispatch.
   // PRs created via the API don't trigger pull_request events, and
   // push/repository_dispatch produce 0-job ghost runs on this repo.
-  // GitHub rejects workflow_dispatch on files that also have pull_request
-  // or push triggers, so sonar-dispatch.yml is a dedicated dispatch-only
-  // workflow file.
-  const WORKFLOW_FILE = 'sonar-dispatch.yml';
+  // GitHub's workflow registry caches trigger definitions from the first
+  // commit a file appears under a given filename. Files created via PR
+  // merges (especially renames) inherit stale registry entries that reject
+  // workflow_dispatch. Only files created directly on main via the
+  // Contents API get fresh, working registry entries.
+  // devin-scan.yml was bootstrapped this way and must be dispatched
+  // against ref:'main' (the branch where the registry entry lives).
+  const WORKFLOW_FILE = 'devin-scan.yml';
   try {
     await gh.post(
       `/repos/${TARGET_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
       {
-        ref: branchName,
+        ref: 'main',
         inputs: {
           pr_number: String(result.prNumber),
           pr_branch: branchName,
         },
       },
     );
-    logger.info('Dispatched sonar-scan workflow via workflow_dispatch', {
+    logger.info('Dispatched devin-scan workflow via workflow_dispatch', {
       prNumber: result.prNumber,
       branch: branchName,
     });
   } catch (dispatchErr) {
-    logger.error('Failed to dispatch sonar-scan workflow', {
+    logger.error('Failed to dispatch devin-scan workflow', {
       error: dispatchErr.message,
       status: dispatchErr.response?.status,
     });
