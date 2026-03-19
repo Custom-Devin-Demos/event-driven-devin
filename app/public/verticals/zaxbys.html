@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zaxby's - Famous Chicken Finger Meals, Wings & More</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Semi+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --zax-navy: rgb(4, 30, 66);
+      --zax-red: rgb(228, 0, 43);
+      --zax-gold: #C8A951;
+      --zax-white: #ffffff;
+      --zax-cream: #F5F0E8;
+      --zax-gray: #BBBCBC;
+      --zax-text: rgb(0, 0, 0);
+      --zax-font-serif: Georgia, 'Times New Roman', serif;
+      --zax-font-barlow: 'Barlow', sans-serif;
+      --zax-font-barlow-sc: 'Barlow Semi Condensed', sans-serif;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--zax-font-serif); background: var(--zax-white); color: var(--zax-text); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* Top Auth Bar */
+    .auth-bar { position: absolute; top: 12px; right: 24px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+    .auth-btn { background: var(--zax-red); color: var(--zax-white); font-family: var(--zax-font-barlow); font-size: 12px; font-weight: 800; padding: 6px 16px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+    .auth-btn:hover { opacity: 0.9; }
+
+    /* Header */
+    .header { background: var(--zax-navy); position: relative; z-index: 50; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 130px; max-width: 1400px; margin: 0 auto; }
+    .logo { display: flex; align-items: center; flex-shrink: 0; }
+    .logo img { height: 60px; width: auto; }
+
+    /* Main Nav */
+    .main-nav { display: flex; align-items: center; gap: 32px; }
+    .main-nav a { color: var(--zax-white); font-family: var(--zax-font-barlow-sc); font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; transition: opacity 0.2s; }
+    .main-nav a:hover { opacity: 0.8; }
+
+    /* Location Button */
+    .location-btn { display: flex; align-items: center; gap: 8px; color: var(--zax-white); font-family: var(--zax-font-barlow-sc); font-size: 20px; font-weight: 600; text-transform: uppercase; background: none; border: none; cursor: pointer; }
+    .location-btn:hover { opacity: 0.8; }
+    .location-dot { width: 12px; height: 12px; background: var(--zax-red); border-radius: 50%; display: inline-block; }
+
+    /* Hero Section */
+    .hero { position: relative; width: 100%; overflow: hidden; }
+    .hero-slide { position: relative; width: 100%; }
+    .hero-slide img { width: 100%; height: auto; display: block; }
+    .hero-mask { position: relative; margin-top: -60px; z-index: 5; }
+    .hero-mask img { width: 100%; display: block; }
+
+    /* Carousel Controls */
+    .carousel-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; cursor: pointer; z-index: 10; background: none; border: none; padding: 0; }
+    .carousel-arrow img { width: 100%; height: 100%; }
+    .carousel-arrow.left { left: 16px; }
+    .carousel-arrow.right { right: 16px; }
+    .carousel-dots { display: flex; justify-content: center; gap: 8px; padding: 4px 0; position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 10; }
+    .carousel-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--zax-gray); cursor: pointer; border: none; padding: 0; }
+    .carousel-dot.active { background: var(--zax-navy); }
+
+    /* Order Section */
+    .order-section { text-align: center; padding: 0 0 32px; background: var(--zax-white); position: relative; z-index: 6; margin-top: -30px; }
+    .order-title { font-family: var(--zax-font-barlow-sc); font-size: 22px; font-weight: 700; color: var(--zax-red); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px; }
+    .order-btns { display: flex; justify-content: center; gap: 0; }
+    .order-btn { background: var(--zax-red); color: var(--zax-white); font-family: var(--zax-font-barlow-sc); font-size: 20px; font-weight: 700; text-transform: uppercase; padding: 12px 36px; border: none; cursor: pointer; transition: opacity 0.2s; }
+    .order-btn:first-child { border-radius: 30px 0 0 30px; }
+    .order-btn:last-child { border-radius: 0 30px 30px 0; }
+    .order-btn:hover { opacity: 0.9; }
+
+    /* Rewards Section */
+    .rewards-section { text-align: center; padding: 32px 24px; background: var(--zax-white); }
+    .rewards-logo { max-width: 300px; margin: 0 auto 24px; }
+    .rewards-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 900px; margin: 0 auto; }
+    .rewards-card { border-radius: 12px; overflow: hidden; cursor: pointer; }
+    .rewards-card img { width: 100%; height: auto; display: block; }
+
+    /* Menu Categories */
+    .menu-section { padding: 40px 24px; background: var(--zax-white); }
+    .menu-section-title { font-family: var(--zax-font-barlow-sc); font-size: 28px; font-weight: 700; color: var(--zax-navy); text-transform: uppercase; text-align: center; margin-bottom: 24px; letter-spacing: 1px; }
+    .menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto; }
+    .menu-card { position: relative; cursor: pointer; text-align: center; }
+    .menu-card-img { border-radius: 12px; overflow: hidden; margin-bottom: 8px; background: var(--zax-cream); }
+    .menu-card-img img { width: 100%; aspect-ratio: 3/1; object-fit: contain; padding: 12px; }
+    .menu-card-name { font-family: var(--zax-font-barlow-sc); font-size: 16px; font-weight: 700; color: var(--zax-navy); text-transform: uppercase; }
+
+    /* Content Cards */
+    .content-section { padding: 40px 24px; background: var(--zax-white); }
+    .content-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto; }
+    .content-card { border-radius: 12px; overflow: hidden; cursor: pointer; }
+    .content-card img { width: 100%; height: auto; display: block; transition: transform 0.3s; }
+    .content-card:hover img { transform: scale(1.02); }
+
+    /* Rewards Checker Form */
+    .checker-section { background: var(--zax-cream); padding: 48px 24px; }
+    .checker-container { max-width: 500px; margin: 0 auto; background: var(--zax-white); border-radius: 12px; padding: 32px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); }
+    .checker-container h2 { font-family: var(--zax-font-barlow-sc); font-size: 24px; font-weight: 700; color: var(--zax-navy); text-transform: uppercase; margin-bottom: 4px; text-align: center; letter-spacing: 1px; }
+    .checker-subtitle { font-family: var(--zax-font-barlow); color: #666; font-size: 14px; text-align: center; margin-bottom: 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-family: var(--zax-font-barlow); font-size: 14px; font-weight: 600; color: var(--zax-navy); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; font-family: var(--zax-font-barlow); font-size: 16px; color: var(--zax-text); transition: border-color 0.2s; appearance: none; -webkit-appearance: none; }
+    .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--zax-navy); box-shadow: 0 0 0 3px rgba(4, 30, 66, 0.1); }
+    .form-group input::placeholder { color: #999; }
+    .btn-check { width: 100%; padding: 14px; background: var(--zax-red); color: var(--zax-white); border: none; border-radius: 30px; font-family: var(--zax-font-barlow-sc); font-size: 18px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; letter-spacing: 0.5px; }
+    .btn-check:hover { opacity: 0.9; }
+    .btn-check:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { margin-top: 16px; padding: 14px 18px; border-radius: 8px; font-size: 14px; font-family: var(--zax-font-barlow); display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 12px; opacity: 0.85; word-break: break-all; }
+
+    /* Footer */
+    .footer { background: var(--zax-navy); padding: 0; color: var(--zax-white); }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-nav { display: flex; align-items: center; justify-content: center; gap: 24px; padding: 24px 40px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.15); }
+    .footer-nav a { font-family: var(--zax-font-barlow-sc); font-size: 16px; font-weight: 800; text-transform: uppercase; color: var(--zax-white); letter-spacing: 0.5px; }
+    .footer-nav a:hover { opacity: 0.8; }
+    .footer-social-row { display: flex; justify-content: center; gap: 16px; padding: 20px 0; }
+    .footer-social-row a { width: 32px; height: 32px; background: var(--zax-white); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .footer-social-row a svg { width: 16px; height: 16px; fill: var(--zax-navy); }
+    .footer-bottom { padding: 32px 40px; }
+    .footer-bottom-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; max-width: 1200px; margin: 0 auto; }
+    .footer-bottom-left { font-family: var(--zax-font-barlow); font-size: 11px; color: rgba(255,255,255,0.5); line-height: 18px; }
+    .footer-bottom-left a { color: rgba(255,255,255,0.5); text-decoration: underline; font-family: var(--zax-font-barlow-sc); font-size: 14px; font-weight: 700; text-transform: uppercase; display: block; line-height: 28px; }
+    .footer-bottom-center { display: flex; flex-direction: column; align-items: center; }
+    .footer-bottom-center .rewards-badge { max-width: 260px; margin-bottom: 12px; }
+    .footer-bottom-center .app-badges { display: flex; gap: 8px; }
+    .footer-bottom-center .app-badges img { height: 36px; }
+    .footer-bottom-right { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .footer-logo { text-align: center; margin: 24px 0; }
+    .footer-logo img { height: 80px; margin: 0 auto; }
+    .footer-legal { text-align: center; font-family: var(--zax-font-barlow); font-size: 12px; color: rgba(255,255,255,0.6); line-height: 20px; padding: 0 40px 24px; }
+    .footer-legal a { color: rgba(255,255,255,0.6); text-decoration: underline; }
+
+    /* Back link */
+    .back-link { position: fixed; bottom: 16px; left: 16px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 6px 12px; border-radius: 4px; z-index: 1000; opacity: 0.6; transition: opacity 0.2s; font-family: var(--zax-font-barlow); }
+    .back-link:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; All Demos</a>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="auth-bar">
+      <button class="auth-btn">SIGN UP</button>
+      <button class="auth-btn">LOG IN</button>
+    </div>
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <img src="https://www.zaxbys.com/uploads/Frame_23_120d00451f.png" alt="Zaxby's">
+      </a>
+      <nav class="main-nav">
+        <a href="#">Menu</a>
+        <a href="#">Rewards</a>
+        <a href="#">Catering</a>
+        <a href="#">Gift Cards</a>
+        <a href="#">More</a>
+      </nav>
+      <button class="location-btn">
+        Select a Location <span class="location-dot"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Carousel -->
+  <div class="hero">
+    <div class="hero-slide">
+      <img src="https://www.zaxbys.com/uploads/Zax_Digital_Hompage_Hero_Images_Desktop_Dry_Rubs_c6d9ab8a5f.png" alt="Dry Rubs - Available on Fingerz and Wings">
+      <button class="carousel-arrow left">
+        <img src="https://www.zaxbys.com/_next/static/media/chevron-rounded-left-red.0f1d5599.svg" alt="Previous">
+      </button>
+      <button class="carousel-arrow right">
+        <img src="https://www.zaxbys.com/_next/static/media/chevron-rounded-right-red.42b2b7e5.svg" alt="Next">
+      </button>
+      <div class="carousel-dots">
+        <button class="carousel-dot active"></button>
+        <button class="carousel-dot"></button>
+        <button class="carousel-dot"></button>
+        <button class="carousel-dot"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Curved Mask -->
+  <div class="hero-mask">
+    <img src="https://www.zaxbys.com/_next/static/media/home-mask-lg.334c5e4f.svg" alt="">
+  </div>
+
+  <!-- Start Your Order -->
+  <div class="order-section">
+    <div class="order-title">Start Your Order</div>
+    <div class="order-btns">
+      <button class="order-btn">Pickup</button>
+      <button class="order-btn">Delivery</button>
+    </div>
+  </div>
+
+  <!-- Zax Rewardz -->
+  <div class="rewards-section">
+    <img src="https://www.zaxbys.com/_next/static/media/ScrollableRewardsLogo.463ca6b8.svg" alt="Zax Rewardz" class="rewards-logo">
+    <div class="rewards-cards">
+      <div class="rewards-card">
+        <img src="https://www.zaxbys.com/uploads/ZAX_Digital_Rewards_Content_Cards_Desktop_New_User_Mobile_App_43d71f599a.png" alt="Sign up for Zax Rewardz and get Five Chicken Fingerz when you spend $5 or more">
+      </div>
+      <div class="rewards-card">
+        <img src="https://www.zaxbys.com/uploads/Rewards_Card_Mobile_Guest_1_afe15bd548.png" alt="Start Earning Free Food! Sign Up Today">
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Categories -->
+  <div class="menu-section">
+    <h2 class="menu-section-title">Explore Our Menu</h2>
+    <div class="menu-grid">
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/1d/1df49a7dcdd74ed2b546d957865fb568.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=dc63e796bf4af352b8ee3cdb99971831" alt="Specials"></div>
+        <div class="menu-card-name">Specials</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/cf/cf5368fc820e45738872575a36661100.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=e85cd86bf65328b340f7faff8482bff1" alt="Fingerz &amp; Wings Meals"></div>
+        <div class="menu-card-name">Fingerz &amp; Wings Meals</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/3e/3e6b35ae6b98493ebbcadaaf0834bede.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=947aa75bbd3db0f538cd6576e20fc09e" alt="Sandwich Meals"></div>
+        <div class="menu-card-name">Sandwich Meals</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/6a/6ac635ec796e4f5c9f4f5963064a45d8.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=c1e4cb80db1fb7942b7ae413221a5631" alt="Zalads"></div>
+        <div class="menu-card-name">Zalads</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/c0/c0db8ead1c134e02b447892446d8f2fd.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=8a778861806ac8abe88c5c23de9bf913" alt="Sides, Fingerz, Wings &amp; Extras"></div>
+        <div class="menu-card-name">Sides &amp; Extras</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/8a/8a33c620f36b4a968808970bfeab3134.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=1bd91323eefe2958c7451d9db49ecbd1" alt="Treats"></div>
+        <div class="menu-card-name">Treats</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/d2/d200691cb062450686862710be5c31c8.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=884a1465584e3e1605268702125aad59" alt="Kids Meals"></div>
+        <div class="menu-card-name">Kids Meals</div>
+      </div>
+      <div class="menu-card">
+        <div class="menu-card-img"><img src="https://olo-images-live.imgix.net/71/71f4cbc80a5e41caa62654c082c650bb.png?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1536&h=512&fit=fill&fm=png32&bg=transparent&s=b947583242183b47b7fb6d2f695b29e5" alt="Platters"></div>
+        <div class="menu-card-name">Platters</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Cards -->
+  <div class="content-section">
+    <div class="content-grid">
+      <div class="content-card">
+        <a href="#"><img src="https://www.zaxbys.com/uploads/ZAX_Digital_Content_Cards_General_Rewards_95a1c0d820.webp" alt="Join Zax Rewardz and start earning points with every order"></a>
+      </div>
+      <div class="content-card">
+        <a href="#"><img src="https://www.zaxbys.com/uploads/ZAX_Digital_Content_Cards_General_Delivery_Update_c840b0a302.png" alt="Zaxby's Delivers. Order now"></a>
+      </div>
+      <div class="content-card">
+        <a href="#"><img src="https://www.zaxbys.com/uploads/ZAX_Digital_Content_Cards_General_Gift_Cards_53258b32f0.webp" alt="The gift that keeps on giving. Zaxby's Gift Cards"></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rewards Checker (Form for Bug Trigger) -->
+  <div class="checker-section">
+    <div class="checker-container">
+      <h2>Zax Rewardz Lookup</h2>
+      <p class="checker-subtitle">Check your rewards balance and tier status</p>
+      <form id="checkerForm">
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="phoneNumber" placeholder="(555) 123-4567" value="(555) 867-5309">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="lastName" placeholder="Enter your last name" value="Johnson">
+        </div>
+        <div class="form-group">
+          <label>Preferred Location</label>
+          <select id="location">
+            <option value="athens-ga">Athens, GA - Baxter St</option>
+            <option value="atlanta-ga">Atlanta, GA - Peachtree St</option>
+            <option value="dallas-tx">Dallas, TX - Mockingbird Ln</option>
+            <option value="nashville-tn">Nashville, TN - Broadway</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-check" id="submitBtn">Check My Rewardz</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <nav class="footer-nav">
+        <a href="#">Franchising</a>
+        <a href="#">About Us</a>
+        <a href="#">Newsroom</a>
+        <a href="#">Contact</a>
+        <a href="#">FAQs</a>
+        <a href="#">Nutrition/Allergens</a>
+      </nav>
+      <div class="footer-social-row">
+        <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg></a>
+        <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+        <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-bottom-grid">
+          <div class="footer-bottom-left">
+            <p style="margin-bottom:12px;">2,000 calories a day is used for general nutritional advice, but calorie needs vary. Substitutions may alter nutrition.</p>
+            <a href="#">Menu</a>
+            <a href="#">Faves</a>
+            <a href="#">Recent Orders</a>
+            <a href="#">Careers</a>
+            <a href="#">About Us</a>
+            <a href="#">Nutrition/Allergens</a>
+            <a href="#">Newsroom</a>
+            <a href="#">Gift Cards</a>
+            <a href="#">FAQs</a>
+            <a href="#">Delivery</a>
+          </div>
+          <div class="footer-bottom-center">
+            <div style="font-family:var(--zax-font-barlow-sc);font-size:12px;color:rgba(255,255,255,0.5);line-height:24px;text-align:left;">
+              <a href="#" style="display:block;">Mobile Text Terms of Use</a>
+              <a href="#" style="display:block;">Privacy Statement</a>
+              <a href="#" style="display:block;">Accessibility Statement</a>
+              <a href="#" style="display:block;">Terms of Use</a>
+              <a href="#" style="display:block;">Site Map</a>
+              <a href="#" style="display:block;">Animal Welfare</a>
+              <a href="#" style="display:block;">Do Not Sell or Share My Personal Information</a>
+              <a href="#" style="display:block;">Cookie Settings</a>
+            </div>
+          </div>
+          <div class="footer-bottom-right">
+            <img src="https://www.zaxbys.com/_next/static/media/ScrollableRewardsLogo.463ca6b8.svg" alt="Zax Rewardz" style="max-width:200px;margin-bottom:4px;filter:brightness(0) invert(1);">
+            <div style="font-family:var(--zax-font-barlow-sc);font-size:14px;font-weight:700;text-transform:uppercase;margin-bottom:12px;">Rewards &amp; Free Stuff</div>
+            <div style="font-family:var(--zax-font-barlow-sc);font-size:14px;font-weight:700;text-transform:uppercase;margin-bottom:8px;"><span style="color:var(--zax-red);">Download</span> the Zaxbys App</div>
+            <div class="app-badges" style="display:flex;gap:8px;">
+              <a href="#"><img src="https://www.zaxbys.com/_next/static/media/icon-app-store.3696bc9a.svg" alt="App Store" style="height:36px;"></a>
+              <a href="#"><img src="https://www.zaxbys.com/_next/static/media/icon-google-play.c1797a09.svg" alt="Google Play" style="height:36px;"></a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-logo">
+        <img src="https://www.zaxbys.com/uploads/Group_579_2ff120ca1a.png" alt="Zaxby's">
+      </div>
+      <div class="footer-legal">
+        &copy; 2025 Zaxby's SPE Franchisor LLC
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('checkerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Looking up your Rewardz...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/zaxbys/rewards', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: document.getElementById('phoneNumber').value, lastName: document.getElementById('lastName').value, location: document.getElementById('location').value, userId: 'usr_zaxbys_1' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Something went wrong</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Rewardz Found!</div><div class="error-detail">Welcome back, ' + data.memberName + '! You have ' + data.totalPoints + ' points (' + data.currentTier + ' tier).</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Check My Rewardz'; }
+    });
+  </script>
+</body>
+</html>
