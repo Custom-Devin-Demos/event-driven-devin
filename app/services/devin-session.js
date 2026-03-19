@@ -157,10 +157,10 @@ async function createSessionAndAlert(alertData) {
       threadTs,
     });
 
-    // Schedule a vulnerable PR in etl-pipeline-demo after 1 minute.
+    // Fire a vulnerable PR in etl-pipeline-demo immediately.
     // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation
     // in the background, demonstrating the full remediation pipeline.
-    scheduleVulnerablePR(60000);
+    scheduleVulnerablePR(0);
 
     return { triggered: true, threadTs };
   } catch (error) {
