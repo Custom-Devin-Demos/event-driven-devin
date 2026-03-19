@@ -4,6 +4,7 @@ const logger = require('../telemetry/logger');
 const GITHUB_API = 'https://api.github.com';
 const TARGET_REPO = 'COG-GTM/etl-pipeline-demo';
 const TARGET_FILE = 'src/extract.py';
+const TARGET_WORKFLOW = 'sonarqube-scan.yml';
 
 /**
  * The vulnerable version of extract.py that triggers SonarCloud quality gate failure.
@@ -179,6 +180,29 @@ async function createVulnerablePR(options = {}) {
   };
 
   logger.info('Vulnerable PR created in etl-pipeline-demo', result);
+
+  // 6. Dispatch the sonarqube-scan workflow manually.
+  // PRs created via the API don't trigger pull_request events,
+  // so we use workflow_dispatch to kick off the scan + Devin remediation.
+  try {
+    await gh.post(`/repos/${TARGET_REPO}/actions/workflows/${TARGET_WORKFLOW}/dispatches`, {
+      ref: 'main',
+      inputs: {
+        pr_number: String(result.prNumber),
+        pr_branch: branchName,
+      },
+    });
+    logger.info('Dispatched sonarqube-scan workflow', {
+      prNumber: result.prNumber,
+      branch: branchName,
+    });
+  } catch (dispatchErr) {
+    logger.error('Failed to dispatch sonarqube-scan workflow', {
+      error: dispatchErr.message,
+      status: dispatchErr.response?.status,
+    });
+  }
+
   return result;
 }
 
