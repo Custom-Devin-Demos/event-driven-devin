@@ -160,27 +160,37 @@ Vertical Error (any of 9 verticals)
     │
     └──▶ createSessionAndAlert() [instant path, non-blocking]
             ├──▶ postAlertToSlack() — bot token posts rich alert card
-            └──▶ postDevinReply() — user token posts @Devin + prompt in thread
-                    └──▶ Native Devin Slack integration picks up @mention
-                            └──▶ Devin investigates, creates PR
+            └──▶ DEVIN_TRIGGER_MODE decides next step:
+                    ├── "slack" (default): postDevinReply() — user token @Devin mention
+                    │       └──▶ Native Devin Slack integration picks up @mention
+                    └── "api": createDevinSession() — POST /v1/sessions
+                            └──▶ postDevinSessionLink() — "View in Devin" button in thread
 ```
 
-**Two trigger paths exist:**
+**Two error-detection paths exist:**
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
 
 Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to prevent duplicate alerts.
 
+**Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var):
+1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
+2. **`api`:** Calls `POST https://api.devin.ai/v1/sessions` directly via `DEVIN_API_KEY`. Posts a "View in Devin" button in the Slack thread. No user token or Devin Slack app needed — ideal for customer-specific demos running against a different Devin org.
+
 ## Key Services
 
 ### `app/services/devin-session.js`
 - `buildPrompt(alertData)` — Builds a rich Markdown investigation prompt with error details, occurrence info, tags, investigation steps, and context links.
-- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: cooldown check → post Slack alert → @Devin reply → native Devin session.
+- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: cooldown check → post Slack alert → trigger Devin (via Slack @mention or API, based on `DEVIN_TRIGGER_MODE`).
 - `sessionCooldowns` — In-memory `Map` for deduplication (5-minute TTL, auto-evicted).
+
+### `app/services/devin-api.js`
+- `createDevinSession(prompt)` — Creates a Devin session via `POST /v1/sessions`. Returns `{ sessionId, url }`. Used in `api` trigger mode.
 
 ### `app/services/slack.js`
 - `postAlertToSlack(alertData)` — Posts the rich Block Kit alert message using `SLACK_BOT_TOKEN`. Returns thread timestamp.
-- `postDevinReply(threadTs, prompt)` — Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Auto-deletes the reply after 5 seconds so it appears Devin responded directly.
+- `postDevinReply(threadTs, prompt)` — (slack mode) Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Auto-deletes the reply after 5 seconds.
+- `postDevinSessionLink(threadTs, sessionUrl)` — (api mode) Posts a "View in Devin" button in the alert thread using `SLACK_BOT_TOKEN`.
 - `postMessage()`, `postThreadReply()`, `deleteMessage()` — Low-level Slack API helpers.
 
 ### `app/incidentModes.js`
@@ -195,9 +205,13 @@ Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to preve
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
-| `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For Devin |
+| `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
-| `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID (default: `U08RNEJ4877`) | No |
+| `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
+| `DEVIN_API_KEY` | Devin API key | For api mode |
+| `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID (default: `U08RNEJ4877`) | For slack mode |
+| `DEVIN_PLAYBOOK_ID` | Devin playbook ID for API sessions | No |
+| `SONAR_TARGET_REPO` | Target repo for SonarCloud PR (default: `COG-GTM/etl-pipeline-demo`) | No |
 | `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
@@ -300,7 +314,8 @@ When the app is running (locally or on EC2 at `3.144.232.30:3000`):
 |---------|---------|--------|
 | [Sentry](https://devin-gtm.sentry.io) | Error tracking, alert rules, webhooks | `SENTRY_DSN` |
 | [Datadog](https://app.us5.datadoghq.com) | APM, metrics, logs, dashboard | `DD_API_KEY`, `DD_SITE` |
-| Slack (`#automated-alerts`) | Alert notifications, Devin triggering | `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, `SLACK_CHANNEL_ID` |
+| Slack (`#automated-alerts`) | Alert notifications, Devin triggering | `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN` (slack mode), `SLACK_CHANNEL_ID` |
+| [Devin API](https://api.devin.ai) | Direct session creation (api mode) | `DEVIN_API_KEY` |
 | [Datadog Dashboard](https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg) | checkout-api overview | Read-only link |
 
 ## Common Tasks

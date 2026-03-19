@@ -1,5 +1,6 @@
 const logger = require('../telemetry/logger');
-const { postAlertToSlack, postDevinReply } = require('./slack');
+const { postAlertToSlack, postDevinReply, postDevinSessionLink } = require('./slack');
+const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 
 /**
@@ -94,17 +95,22 @@ function buildPrompt(alertData) {
 }
 
 /**
- * Post an alert to Slack and trigger Devin via native Slack integration.
+ * Post an alert to Slack and trigger Devin investigation.
  *
- * Flow:
- *   1. Post the rich alert message using the bot token (appears as "Automated Alerts")
- *   2. Reply in the thread using a user token with @Devin + investigation prompt
- *      — Slack treats user-token messages as coming from a real human
- *      — The Devin Slack app picks up the @mention and starts a session natively
+ * Supports two trigger modes (set via DEVIN_TRIGGER_MODE env var):
  *
- * This replaces the previous API-based session creation + custom poller approach.
- * The native Devin Slack integration provides live thread updates, PR links,
- * and interactive conversation — much richer than our custom poller.
+ *   "slack" (default) — Native Slack integration:
+ *     1. Post the rich alert message using the bot token
+ *     2. Reply in the thread using a user token with @Devin + prompt
+ *        — Slack treats user-token messages as coming from a real human
+ *        — The Devin Slack app picks up the @mention and starts a session
+ *
+ *   "api" — Direct Devin API:
+ *     1. Post the rich alert message using the bot token
+ *     2. Create a Devin session via POST /v1/sessions
+ *     3. Post a "View in Devin" button in the Slack thread
+ *        — No user token or Devin Slack app needed
+ *        — Ideal for customer-specific demos in separate Devin orgs
  *
  * @param {Object} alertData - Normalized alert data (issueTitle, errorType, etc.)
  * @returns {Object|null} - { triggered: true, threadTs } or null if skipped/failed
@@ -128,7 +134,9 @@ async function createSessionAndAlert(alertData) {
   try {
     const prompt = buildPrompt(alertData);
 
-    logger.info('Posting alert and triggering Devin via Slack', {
+    const triggerMode = process.env.DEVIN_TRIGGER_MODE || 'slack';
+
+    logger.info('Posting alert and triggering Devin', {
       issueTitle: alertData.issueTitle,
       errorType: alertData.errorType,
       errorValue: alertData.errorValue,
@@ -143,19 +151,36 @@ async function createSessionAndAlert(alertData) {
       return null;
     }
 
-    // Step 2: Reply with @Devin + prompt using user token (triggers native Devin integration)
-    const replyTs = await postDevinReply(threadTs, prompt);
+    // Step 2: Trigger Devin based on configured mode
+    if (triggerMode === 'api') {
+      // API mode: create session via Devin API, post "View in Devin" button
+      const session = await createDevinSession(prompt);
 
-    if (!replyTs) {
-      logger.warn('Devin reply was not posted — trigger failed');
-      sessionCooldowns.delete(cooldownKey);
-      return null;
+      if (session) {
+        await postDevinSessionLink(threadTs, session.url);
+        logger.info('Devin session created and linked in Slack thread', {
+          issueTitle: alertData.issueTitle,
+          sessionId: session.sessionId,
+          threadTs,
+        });
+      } else {
+        logger.warn('Devin session was not created — API call failed or not configured');
+      }
+    } else {
+      // Slack mode (default): reply with @Devin mention to trigger native integration
+      const replyTs = await postDevinReply(threadTs, prompt);
+
+      if (!replyTs) {
+        logger.warn('Devin reply was not posted — trigger failed');
+        sessionCooldowns.delete(cooldownKey);
+        return null;
+      }
+
+      logger.info('Devin triggered via native Slack integration', {
+        issueTitle: alertData.issueTitle,
+        threadTs,
+      });
     }
-
-    logger.info('Devin triggered via native Slack integration', {
-      issueTitle: alertData.issueTitle,
-      threadTs,
-    });
 
     // Fire a vulnerable PR in etl-pipeline-demo immediately.
     // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation

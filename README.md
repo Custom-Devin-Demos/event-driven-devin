@@ -36,8 +36,9 @@ Set the following in `.env`:
 | `SENTRY_DSN` | Sentry project DSN |
 | `DD_API_KEY` | Datadog API key |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) |
-| `DEVIN_API_KEY` | Devin API key for auto-investigation (optional) |
-| `DEVIN_ORG_ID` | Devin organization ID (optional) |
+| `DEVIN_API_KEY` | Devin API key for auto-investigation |
+| `DEVIN_ORG_ID` | Devin organization ID |
+| `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered |
 
 ### 2. Start the application
 
@@ -102,7 +103,9 @@ npm start
 
 ```bash
 cp .env.example .env
-# Fill in SENTRY_DSN, DD_API_KEY, DD_SITE, SLACK_BOT_TOKEN, SLACK_USER_TOKEN, SLACK_CHANNEL_ID
+# Fill in SENTRY_DSN, DD_API_KEY, DD_SITE, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
+# Set DEVIN_TRIGGER_MODE=api and DEVIN_API_KEY for direct API mode
+# Or set DEVIN_TRIGGER_MODE=slack (default) with SLACK_USER_TOKEN for @mention mode
 docker-compose up --build -d
 ```
 
@@ -165,8 +168,10 @@ SENTRY_AUTH_TOKEN=xxx SENTRY_ORG=xxx SENTRY_PROJECT=xxx node scripts/setup-sentr
 | `SENTRY_DSN` | Sentry project DSN | Yes |
 | `DD_API_KEY` | Datadog API key | Yes |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes |
-| `DEVIN_API_KEY` | Devin API key for auto-investigation | No |
+| `DEVIN_API_KEY` | Devin API key for auto-investigation | For api mode |
 | `DEVIN_ORG_ID` | Devin organization ID | No |
+| `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
+| `SONAR_TARGET_REPO` | Target repo for SonarCloud PR (default: `COG-GTM/etl-pipeline-demo`) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token for alert notifications | No |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | No |
 | `APP_VERSION` | App version for telemetry tagging | No (default: `1.0.0`) |

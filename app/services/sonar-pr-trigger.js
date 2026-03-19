@@ -2,7 +2,7 @@ const axios = require('axios');
 const logger = require('../telemetry/logger');
 
 const GITHUB_API = 'https://api.github.com';
-const TARGET_REPO = 'COG-GTM/etl-pipeline-demo';
+const TARGET_REPO = process.env.SONAR_TARGET_REPO || 'COG-GTM/etl-pipeline-demo';
 const TARGET_FILE = 'src/extract.py';
 /**
  * The vulnerable version of extract.py that triggers SonarCloud quality gate failure.

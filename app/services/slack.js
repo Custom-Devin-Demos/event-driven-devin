@@ -120,16 +120,30 @@ function buildAlertBlocks(alertData) {
     ],
   });
 
-  const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
-  blocks.push({
-    type: 'section',
-    fields: [
-      {
-        type: 'mrkdwn',
-        text: `*On-Call:*\n<@${devinUserId}>`,
-      },
-    ],
-  });
+  // On-Call section: show @Devin mention in slack mode, plain text in api mode
+  const triggerMode = process.env.DEVIN_TRIGGER_MODE || 'slack';
+  if (triggerMode === 'api') {
+    blocks.push({
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
+        },
+      ],
+    });
+  } else {
+    const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
+    blocks.push({
+      type: 'section',
+      fields: [
+        {
+          type: 'mrkdwn',
+          text: `*On-Call:*\n<@${devinUserId}>`,
+        },
+      ],
+    });
+  }
 
   // Action buttons
   const actions = [];
@@ -210,6 +224,8 @@ async function postAlertToSlack(alertData) {
  * Reply in the alert thread with @Devin + prompt using the user token.
  * Because the message comes from a user token (not a bot), Slack treats it
  * as a human message and the Devin app responds to the @mention natively.
+ *
+ * Used in "slack" trigger mode (DEVIN_TRIGGER_MODE=slack, the default).
  */
 async function postDevinReply(threadTs, prompt) {
   const userToken = process.env.SLACK_USER_TOKEN;
@@ -252,8 +268,60 @@ async function postDevinReply(threadTs, prompt) {
 }
 
 /**
+ * Post a thread reply with a link to the Devin investigation session.
+ * Uses the bot token — no user token needed.
+ *
+ * Used in "api" trigger mode (DEVIN_TRIGGER_MODE=api).
+ */
+async function postDevinSessionLink(threadTs, sessionUrl) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_CHANNEL_ID;
+
+  if (!token || !channel) {
+    logger.warn('Slack not configured — skipping Devin session link post');
+    return null;
+  }
+
+  try {
+    const blocks = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: ':robot_face: *Devin is investigating this issue.*',
+        },
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: ':computer: View in Devin', emoji: true },
+            url: sessionUrl,
+            style: 'primary',
+          },
+        ],
+      },
+    ];
+
+    const text = `Devin is investigating: ${sessionUrl}`;
+    const replyTs = await postThreadReply(token, channel, threadTs, text, blocks);
+
+    logger.info('Devin session link posted to Slack thread', { channel, threadTs, replyTs, sessionUrl });
+    return replyTs;
+  } catch (error) {
+    logger.error('Failed to post Devin session link', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return null;
+  }
+}
+
+/**
  * Delete a Slack message. Used to clean up the @Devin trigger message
- * after Devin has acknowledged it.
+ * after Devin has acknowledged it (slack trigger mode only).
  */
 async function deleteMessage(token, channel, ts) {
   const response = await axios.post(`${SLACK_API_BASE}/chat.delete`, {
@@ -275,5 +343,6 @@ async function deleteMessage(token, channel, ts) {
 module.exports = {
   postAlertToSlack,
   postDevinReply,
+  postDevinSessionLink,
   postThreadReply,
 };
