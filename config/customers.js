@@ -32,6 +32,10 @@ const CUSTOMERS = {
     label: 'Wayfair',
     triggerMode: 'api',
   },
+  zaxbys: {
+    label: "Zaxby's",
+    triggerMode: 'api',
+  },
 };
 
 /**
