@@ -179,9 +179,32 @@ async function createVulnerablePR(options = {}) {
 
   logger.info('Vulnerable PR created in etl-pipeline-demo', result);
 
-  // The sonar-scan.yml workflow in etl-pipeline-demo triggers on push
-  // events for demo/** branches.  The push in step 4 already fired that
-  // trigger, so no explicit dispatch call is needed here.
+  // 6. Dispatch the sonar-scan workflow via workflow_dispatch.
+  // PRs created via the API don't trigger pull_request events, and
+  // push/repository_dispatch produce 0-job ghost runs on this repo.
+  // workflow_dispatch on the renamed sonar-scan.yml (fresh registry) works.
+  const WORKFLOW_FILE = 'sonar-scan.yml';
+  try {
+    await gh.post(
+      `/repos/${TARGET_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+      {
+        ref: branchName,
+        inputs: {
+          pr_number: String(result.prNumber),
+          pr_branch: branchName,
+        },
+      },
+    );
+    logger.info('Dispatched sonar-scan workflow via workflow_dispatch', {
+      prNumber: result.prNumber,
+      branch: branchName,
+    });
+  } catch (dispatchErr) {
+    logger.error('Failed to dispatch sonar-scan workflow', {
+      error: dispatchErr.message,
+      status: dispatchErr.response?.status,
+    });
+  }
 
   return result;
 }
