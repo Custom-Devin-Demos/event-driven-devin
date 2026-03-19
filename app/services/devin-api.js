@@ -9,11 +9,16 @@ const DEVIN_API_BASE = 'https://api.devin.ai/v1';
  * Calls POST /v1/sessions with the investigation prompt.
  * Returns the session URL so it can be linked in Slack alerts.
  *
+ * Accepts an optional `options` object for per-customer overrides:
+ *   - options.apiKey     — override the default DEVIN_API_KEY
+ *   - options.playbookId — override the default DEVIN_PLAYBOOK_ID
+ *
  * @param {string} prompt - The investigation prompt for Devin
+ * @param {Object} [options] - Per-customer overrides
  * @returns {Object|null} - { sessionId, url } or null if failed/not configured
  */
-async function createDevinSession(prompt) {
-  const apiKey = process.env.DEVIN_API_KEY;
+async function createDevinSession(prompt, options = {}) {
+  const apiKey = options.apiKey || process.env.DEVIN_API_KEY;
   if (!apiKey) {
     logger.warn('DEVIN_API_KEY not configured — skipping Devin session creation');
     return null;
@@ -23,7 +28,7 @@ async function createDevinSession(prompt) {
     const body = { prompt };
 
     // Include playbook if configured
-    const playbook = process.env.DEVIN_PLAYBOOK_ID;
+    const playbook = options.playbookId || process.env.DEVIN_PLAYBOOK_ID;
     if (playbook) {
       body.playbook_id = playbook;
     }

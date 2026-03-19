@@ -173,23 +173,30 @@ Vertical Error (any of 9 verticals)
 
 Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to prevent duplicate alerts.
 
-**Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var):
+**Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var or per-customer config):
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
 2. **`api`:** Calls `POST https://api.devin.ai/v1/sessions` directly via `DEVIN_API_KEY`. Posts a "View in Devin" button in the Slack thread. No user token or Devin Slack app needed — ideal for customer-specific demos running against a different Devin org.
+
+**Per-customer configuration** (see `config/customers.js`):
+Multiple customers can run simultaneously in a single deployment, each with their own Devin org/API key. Verticals pass `customer: '<slug>'` in their `alertData` to route to the correct config. Customer-specific env vars use a `_<SLUG>` suffix (e.g. `DEVIN_API_KEY_WAYFAIR`). See [Adding a new customer demo](#adding-a-new-customer-demo) below.
 
 ## Key Services
 
 ### `app/services/devin-session.js`
 - `buildPrompt(alertData)` — Builds a rich Markdown investigation prompt with error details, occurrence info, tags, investigation steps, and context links.
-- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: cooldown check → post Slack alert → trigger Devin (via Slack @mention or API, based on `DEVIN_TRIGGER_MODE`).
+- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: cooldown check → resolve per-customer config → post Slack alert → trigger Devin (via Slack @mention or API).
 - `sessionCooldowns` — In-memory `Map` for deduplication (5-minute TTL, auto-evicted).
 
+### `config/customers.js`
+- `getCustomerConfig(customerSlug)` — Resolves Devin trigger config for a customer. Returns `{ triggerMode, apiKey, playbookId, slackUserId, targetRepo }`. Falls back to global env vars for the default customer.
+- `CUSTOMERS` — Registry of customer slugs and their config overrides.
+
 ### `app/services/devin-api.js`
-- `createDevinSession(prompt)` — Creates a Devin session via `POST /v1/sessions`. Returns `{ sessionId, url }`. Used in `api` trigger mode.
+- `createDevinSession(prompt, options)` — Creates a Devin session via `POST /v1/sessions`. Accepts per-customer `apiKey` and `playbookId` via `options`. Returns `{ sessionId, url }`.
 
 ### `app/services/slack.js`
 - `postAlertToSlack(alertData)` — Posts the rich Block Kit alert message using `SLACK_BOT_TOKEN`. Returns thread timestamp.
-- `postDevinReply(threadTs, prompt)` — (slack mode) Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Auto-deletes the reply after 5 seconds.
+- `postDevinReply(threadTs, prompt, options)` — (slack mode) Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Accepts per-customer `slackUserId` via `options`. Auto-deletes the reply after 5 seconds.
 - `postDevinSessionLink(threadTs, sessionUrl)` — (api mode) Posts a "View in Devin" button in the alert thread using `SLACK_BOT_TOKEN`.
 - `postMessage()`, `postThreadReply()`, `deleteMessage()` — Low-level Slack API helpers.
 
@@ -212,6 +219,9 @@ Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to preve
 | `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID (default: `U08RNEJ4877`) | For slack mode |
 | `DEVIN_PLAYBOOK_ID` | Devin playbook ID for API sessions | No |
 | `SONAR_TARGET_REPO` | Target repo for SonarCloud PR (default: `COG-GTM/etl-pipeline-demo`) | No |
+| `DEVIN_API_KEY_<SLUG>` | Per-customer Devin API key (e.g. `DEVIN_API_KEY_WAYFAIR`) | Per-customer |
+| `DEVIN_PLAYBOOK_ID_<SLUG>` | Per-customer playbook ID | No |
+| `SONAR_TARGET_REPO_<SLUG>` | Per-customer SonarCloud target repo | No |
 | `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
@@ -334,3 +344,19 @@ Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Mar
 
 ### Changing the cooldown duration
 Edit `COOLDOWN_MS` in `app/services/devin-session.js`. Currently 5 minutes (300000 ms). This should match the Sentry alert rule frequency.
+
+### Adding a new customer demo
+1. Add the customer slug to `config/customers.js` in the `CUSTOMERS` object:
+   ```js
+   acme: {
+     label: 'Acme Corp',
+     triggerMode: 'api',
+   },
+   ```
+2. Set the customer's env vars (suffixed with `_<SLUG>`):
+   ```
+   DEVIN_API_KEY_ACME=dv-abc123...
+   SONAR_TARGET_REPO_ACME=COG-GTM/acme-etl-pipeline
+   ```
+3. Pass `customer: 'acme'` in the vertical's `alertData` when calling `createSessionAndAlert()`.
+4. Add the env vars to `docker-compose.yml` and `.env.example`.

@@ -121,7 +121,8 @@ function buildAlertBlocks(alertData) {
   });
 
   // On-Call section: show @Devin mention in slack mode, plain text in api mode
-  const triggerMode = process.env.DEVIN_TRIGGER_MODE || 'slack';
+  const customerConfig = alertData.customerConfig || {};
+  const triggerMode = customerConfig.triggerMode || process.env.DEVIN_TRIGGER_MODE || 'slack';
   if (triggerMode === 'api') {
     blocks.push({
       type: 'section',
@@ -133,7 +134,7 @@ function buildAlertBlocks(alertData) {
       ],
     });
   } else {
-    const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
+    const devinUserId = customerConfig.slackUserId || process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
     blocks.push({
       type: 'section',
       fields: [
@@ -227,10 +228,10 @@ async function postAlertToSlack(alertData) {
  *
  * Used in "slack" trigger mode (DEVIN_TRIGGER_MODE=slack, the default).
  */
-async function postDevinReply(threadTs, prompt) {
+async function postDevinReply(threadTs, prompt, options = {}) {
   const userToken = process.env.SLACK_USER_TOKEN;
   const channel = process.env.SLACK_CHANNEL_ID;
-  const devinUserId = process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
+  const devinUserId = options.slackUserId || process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
 
   if (!userToken || !channel) {
     logger.warn('SLACK_USER_TOKEN not configured — cannot trigger Devin via Slack');
