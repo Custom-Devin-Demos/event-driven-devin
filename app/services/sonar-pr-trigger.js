@@ -2,6 +2,9 @@ const axios = require('axios');
 const logger = require('../telemetry/logger');
 
 const GITHUB_API = 'https://api.github.com';
+const SONARCLOUD_API = 'https://sonarcloud.io/api';
+const SONARCLOUD_PROJECT_KEY = 'COG-GTM_etl-pipeline-demo';
+const DEVIN_API = 'https://api.devin.ai/v1';
 const TARGET_REPO = 'COG-GTM/etl-pipeline-demo';
 const TARGET_FILE = 'src/extract.py';
 /**
@@ -179,30 +182,132 @@ async function createVulnerablePR(options = {}) {
 
   logger.info('Vulnerable PR created in etl-pipeline-demo', result);
 
-  // 6. Dispatch the sonarqube-scan workflow via repository_dispatch.
-  // PRs created via the API don't trigger pull_request events,
-  // so we use repository_dispatch to kick off the scan + Devin remediation.
-  // (workflow_dispatch doesn't work if GitHub's workflow registry is stale.)
-  try {
-    await gh.post(`/repos/${TARGET_REPO}/dispatches`, {
-      event_type: 'sonar-scan',
-      client_payload: {
-        pr_number: String(result.prNumber),
-        pr_branch: branchName,
-      },
-    });
-    logger.info('Dispatched sonar-scan repository event', {
+  // 6. Poll SonarCloud for the quality gate result, then trigger Devin directly.
+  // GitHub's workflow registry is stale and won't honour workflow_dispatch or
+  // repository_dispatch for this repo, so we bypass GitHub Actions entirely.
+  pollAndTriggerDevin(result.prNumber, branchName).catch((err) => {
+    logger.error('SonarCloud poll / Devin trigger failed', {
+      error: err.message,
       prNumber: result.prNumber,
-      branch: branchName,
     });
-  } catch (dispatchErr) {
-    logger.error('Failed to dispatch sonar-scan repository event', {
-      error: dispatchErr.message,
-      status: dispatchErr.response?.status,
-    });
-  }
+  });
 
   return result;
+}
+
+/**
+ * Poll SonarCloud until the quality gate result is available for the given PR,
+ * then create a Devin remediation session if the gate failed.
+ */
+async function pollAndTriggerDevin(prNumber, branchName) {
+  const maxAttempts = 30;
+  const intervalMs = 20000; // 20 seconds between polls
+
+  logger.info('Starting SonarCloud quality gate poll', { prNumber, branchName });
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+
+    try {
+      const resp = await axios.get(
+        `${SONARCLOUD_API}/qualitygates/project_status`,
+        { params: { projectKey: SONARCLOUD_PROJECT_KEY, pullRequest: String(prNumber) }, timeout: 10000 }
+      );
+      const status = resp.data.projectStatus && resp.data.projectStatus.status;
+      logger.info('SonarCloud quality gate poll', { attempt, maxAttempts, status, prNumber });
+
+      if (status === 'ERROR') {
+        logger.info('Quality gate FAILED — triggering Devin remediation', { prNumber });
+        await createDevinSession(prNumber, branchName);
+        return;
+      }
+      if (status === 'OK') {
+        logger.info('Quality gate passed — no remediation needed', { prNumber });
+        return;
+      }
+      // status is still NONE / undefined — analysis not ready yet
+    } catch (pollErr) {
+      logger.warn('SonarCloud poll error (will retry)', {
+        attempt,
+        error: pollErr.message,
+        prNumber,
+      });
+    }
+  }
+
+  logger.warn('Timed out waiting for SonarCloud quality gate', { prNumber, maxAttempts });
+}
+
+/**
+ * Create a Devin remediation session for the given PR via the Devin API,
+ * then post a comment on the PR linking to the session.
+ */
+async function createDevinSession(prNumber, branchName) {
+  const devinApiKey = process.env.DEVIN_API_KEY;
+  if (!devinApiKey) {
+    logger.warn('No DEVIN_API_KEY configured — skipping Devin session creation');
+    return;
+  }
+
+  const prompt = [
+    `# SonarQube Vulnerability Remediation — PR #${prNumber}`,
+    '',
+    '## Context',
+    `SonarCloud detected security vulnerabilities in PR #${prNumber} on branch \`${branchName}\` of \`${TARGET_REPO}\`.`,
+    '',
+    'The Quality Gate **FAILED**. You must fix the issues so the gate passes on re-scan.',
+    '',
+    '## Instructions',
+    '',
+    `1. Clone the repo and check out the branch \`${branchName}\`.`,
+    `2. Focus ONLY on files changed in this PR (use \`git diff --name-only origin/main\`).`,
+    '3. For each vulnerability or bug, apply the secure fix (e.g. parameterized queries for SQL injection, remove hardcoded credentials, etc.).',
+    '4. After fixing, run any available linters or tests to make sure nothing is broken.',
+    `5. Commit all fixes in a SINGLE commit with message: \`fix: [devin-fix] Remediate SonarQube vulnerabilities in PR #${prNumber}\``,
+    `6. Push to the branch \`${branchName}\`. Do NOT create a new PR.`,
+    `7. Post a comment on PR #${prNumber} in \`${TARGET_REPO}\` explaining what you fixed and why.`,
+    '',
+    '## Important',
+    '- Do NOT use `gh pr view` or any interactive GitHub CLI commands.',
+    '- Use `git diff --name-only` to verify which files you changed.',
+    '- Tag your commit with [devin-fix] so the workflow does not re-trigger.',
+  ].join('\n');
+
+  const devinResp = await axios.post(
+    `${DEVIN_API}/sessions`,
+    {
+      prompt,
+      repo_url: `https://github.com/${TARGET_REPO}`,
+      branch: branchName,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${devinApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    }
+  );
+
+  const sessionUrl = devinResp.data.url;
+  const sessionId = devinResp.data.session_id;
+  logger.info('Devin remediation session created', { sessionId, sessionUrl, prNumber });
+
+  // Post a comment on the PR linking to the Devin session
+  const gh = githubClient();
+  const commentBody = [
+    '## Devin AI — Automated Vulnerability Remediation',
+    '',
+    'SonarCloud Quality Gate **failed** on this PR. A Devin session has been created to automatically remediate the detected issues.',
+    '',
+    `**Devin Session:** [Monitor progress](${sessionUrl})`,
+    `**SonarCloud:** [View dashboard](https://sonarcloud.io/dashboard?id=${SONARCLOUD_PROJECT_KEY}&pullRequest=${prNumber})`,
+    '',
+    'Devin will push a fix to this branch. The workflow will re-run automatically to verify the quality gate passes.',
+  ].join('\n');
+
+  await gh.post(`/repos/${TARGET_REPO}/issues/${prNumber}/comments`, { body: commentBody });
+  logger.info('Posted Devin remediation comment on PR', { prNumber });
 }
 
 /**
