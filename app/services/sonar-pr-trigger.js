@@ -7,75 +7,110 @@ const TARGET_FILE = 'src/extract.py';
 /**
  * The vulnerable version of extract.py that triggers SonarCloud quality gate failure.
  *
- * Intentional vulnerabilities:
- *   1. Hardcoded credential in os.getenv() fallback (python:S2068)
- *   2. SQL injection via string concatenation
+ * Scenario: A data engineer adds vehicle valuation API enrichment to the
+ * extraction pipeline. The code contains realistic security issues that
+ * professionals commonly introduce:
  *
- * When pushed as a PR, SonarCloud Automatic Analysis detects the credential,
- * fails the quality gate, and the repo's sonarqube-scan.yml workflow
- * triggers a Devin remediation session to fix it automatically.
+ *   1. Hardcoded API key with production-looking value (python:S2068)
+ *   2. SSL verification disabled for internal CA compatibility (python:S4830)
+ *   3. MD5 used for record checksums / deduplication (python:S4790)
+ *   4. SQL injection via f-string interpolation in WHERE clause
+ *
+ * When pushed as a PR, SonarCloud Automatic Analysis detects these issues,
+ * fails the quality gate, and the devin-scan.yml workflow triggers a Devin
+ * remediation session to fix them automatically.
  */
 const VULNERABLE_EXTRACT_PY = `import os
+import hashlib
 
+import requests
 import psycopg2
 import pandas as pd
 
 
-# Database configuration — uses environment variables with development defaults
-DB_HOST = os.getenv("ETL_DB_HOST", "localhost")
+# Warehouse connection
+DB_HOST = os.getenv("ETL_DB_HOST", "data-warehouse.internal.acme.com")
 DB_PORT = int(os.getenv("ETL_DB_PORT", "5432"))
+DB_NAME = os.getenv("ETL_DB_NAME", "vehicle_analytics")
 DB_USER = os.getenv("ETL_DB_USER", "etl_service")
-DB_PASSWORD = os.getenv("ETL_DB_PASSWORD", "etl_s3cure#2024")
+
+# Vehicle valuation enrichment API
+VALUATION_API_URL = os.getenv("VALUATION_API_URL", "https://api.vehicledata.io/v2")
+VALUATION_API_KEY = os.getenv("VALUATION_API_KEY", "vk_live_9kXr4Qm7YbT2wN8sLpG5") # TODO: move to vault
 
 
-def connect_to_postgres(dbname, host=None, port=None, user=None, password=None):
-    """Connects to a local or remote PostgreSQL database"""
+def connect_to_warehouse():
+    """Connect to the analytics data warehouse."""
     conn = psycopg2.connect(
-        dbname=dbname,
-        host=host or DB_HOST,
-        port=port or DB_PORT,
-        user=user or DB_USER,
-        password=password or DB_PASSWORD
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=os.getenv("ETL_DB_PASSWORD"),
     )
-    print("\\u2705 Connected to PostgreSQL")
     return conn
 
 
-def extract_vehicle_sales_data(dbname, host, port, user, password, region_filter=None):
+def generate_record_checksum(record_data):
+    """Generate a checksum for deduplication during incremental loads."""
+    return hashlib.md5(str(record_data).encode()).hexdigest()
+
+
+def fetch_vehicle_valuation(vin):
+    """Fetch current market valuation from the enrichment API."""
+    resp = requests.get(
+        f"{VALUATION_API_URL}/valuation/{vin}",
+        headers={"X-Api-Key": VALUATION_API_KEY},
+        verify=False,   # internal CA not in runner trust store
+        timeout=10,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def extract_vehicle_sales_data(region_filter=None):
     """
-    Extract and transform vehicle sales and service data.
-    - Joins vehicles, dealerships, sales_transactions, and service_records
-    - Optionally filters by dealership region
-    - Replaces null service type/cost with defaults
-    - Computes total sales revenue per transaction
-    - Formats dates as datetime
+    Extract vehicle sales data and enrich with market valuations.
+
+    Joins vehicles, dealerships, sales_transactions and service_records,
+    then calls the valuation API per VIN for current market pricing.
     """
-    conn = connect_to_postgres(dbname, host, port, user, password)
+    conn = connect_to_warehouse()
     cursor = conn.cursor()
 
-    query = "SELECT v.vin, v.model, v.year, d.name AS dealership_name, d.region, " \\
-            "s.sale_date, s.sale_price, s.buyer_name, " \\
-            "COALESCE(sr.service_date, NULL) AS service_date, " \\
-            "COALESCE(sr.service_type, 'Unknown') AS service_type, " \\
-            "COALESCE(sr.service_cost, 0) AS service_cost " \\
-            "FROM vehicles v " \\
-            "JOIN dealerships d ON v.dealership_id = d.id " \\
-            "LEFT JOIN sales_transactions s ON v.vin = s.vin " \\
-            "LEFT JOIN service_records sr ON v.vin = sr.vin"
+    query = (
+        "SELECT v.vin, v.model, v.year, d.name AS dealership_name, d.region, "
+        "s.sale_date, s.sale_price, s.buyer_name, "
+        "COALESCE(sr.service_date, NULL) AS service_date, "
+        "COALESCE(sr.service_type, 'Unknown') AS service_type, "
+        "COALESCE(sr.service_cost, 0) AS service_cost "
+        "FROM vehicles v "
+        "JOIN dealerships d ON v.dealership_id = d.id "
+        "LEFT JOIN sales_transactions s ON v.vin = s.vin "
+        "LEFT JOIN service_records sr ON v.vin = sr.vin"
+    )
 
     if region_filter:
-        query = query + " WHERE d.region = '" + region_filter + "'"
+        query += f" WHERE d.region = '{region_filter}'"
 
     cursor.execute(query)
     columns = [desc[0] for desc in cursor.description]
     rows = cursor.fetchall()
     df = pd.DataFrame(rows, columns=columns)
 
-    # Convert dates to datetime objects
-    df['sale_date'] = pd.to_datetime(df['sale_date'], errors='coerce')
-    df['service_date'] = pd.to_datetime(df['service_date'], errors='coerce')
+    # Enrich with market valuations
+    for idx, row in df.iterrows():
+        try:
+            valuation = fetch_vehicle_valuation(row["vin"])
+            df.at[idx, "market_value"] = valuation.get("estimated_value")
+            df.at[idx, "valuation_checksum"] = generate_record_checksum(valuation)
+        except Exception:
+            df.at[idx, "market_value"] = None
+            df.at[idx, "valuation_checksum"] = None
 
-    print("\\U0001f50d Extracted rows:", df.shape[0])
+    df["sale_date"] = pd.to_datetime(df["sale_date"], errors="coerce")
+    df["service_date"] = pd.to_datetime(df["service_date"], errors="coerce")
+
     return df
 `;
 
@@ -143,7 +178,7 @@ async function createVulnerablePR(options = {}) {
   // 4. Push the vulnerable file
   const content = Buffer.from(VULNERABLE_EXTRACT_PY).toString('base64');
   await gh.put(`/repos/${TARGET_REPO}/contents/${TARGET_FILE}`, {
-    message: 'feat: add region filter with development credential defaults',
+    message: 'feat: add vehicle valuation enrichment to extraction pipeline',
     content,
     sha: fileSha,
     branch: branchName,
@@ -152,19 +187,23 @@ async function createVulnerablePR(options = {}) {
 
   // 5. Create the PR
   const prResponse = await gh.post(`/repos/${TARGET_REPO}/pulls`, {
-    title: 'feat: add region filter to vehicle sales extraction',
+    title: 'feat: add vehicle valuation enrichment to extraction pipeline',
     body: [
       '## Summary',
       '',
-      'Adds an optional `region_filter` parameter to `extract_vehicle_sales_data()` ',
-      'and configures database connection defaults via environment variables.',
+      'Enriches vehicle sales extraction with live market valuations from the',
+      'vehicle data API. Each VIN is looked up at extraction time so downstream',
+      'analytics can compare sale price to current market value.',
       '',
       '### Changes',
-      '- Added `os.getenv()` with development defaults for DB config',
-      '- Added `region_filter` parameter with WHERE clause support',
-      '- Refactored query execution to use `cursor.execute()` for flexibility',
+      '- Added `fetch_vehicle_valuation()` — calls enrichment API per VIN',
+      '- Added `generate_record_checksum()` for incremental load dedup',
+      '- Added optional `region_filter` to scope extraction by dealership region',
+      '- Refactored DB connection to use warehouse defaults',
       '',
-      '_Auto-generated PR for SonarCloud/Devin remediation demo._',
+      '### Testing',
+      '- Verified against staging warehouse with 500-row sample',
+      '- Valuation API returns within SLA (p99 < 200ms)',
     ].join('\n'),
     head: branchName,
     base: 'main',
