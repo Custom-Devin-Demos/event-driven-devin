@@ -1,5 +1,6 @@
 const logger = require('../telemetry/logger');
 const { postAlertToSlack, postDevinReply } = require('./slack');
+const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 
 /**
  * In-memory cooldown map to prevent duplicate alerts.
@@ -155,6 +156,11 @@ async function createSessionAndAlert(alertData) {
       issueTitle: alertData.issueTitle,
       threadTs,
     });
+
+    // Schedule a vulnerable PR in etl-pipeline-demo after 1 minute.
+    // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation
+    // in the background, demonstrating the full remediation pipeline.
+    scheduleVulnerablePR(60000);
 
     return { triggered: true, threadTs };
   } catch (error) {
