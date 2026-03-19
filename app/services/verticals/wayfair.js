@@ -49,12 +49,12 @@ function matchProducts(roomType, styleTags) {
 function rankByStyle(matchedProducts, styleFactor) {
   return matchedProducts
     .map(entry => ({
-      sku: entry.sku,
-      name: entry.name,
-      price: entry.price,
-      rating: entry.rating,
-      score: entry.tagScore * styleFactor * (entry.rating || 0),
-      styleTags: entry.tags.slice(),
+      sku: entry.item.sku,
+      name: entry.item.name,
+      price: entry.item.price,
+      rating: entry.item.rating,
+      score: entry.tagScore * styleFactor * (entry.item.rating || 0),
+      styleTags: entry.item.tags.slice(),
     }))
     .sort((a, b) => b.score - a.score);
 }
