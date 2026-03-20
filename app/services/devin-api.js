@@ -141,10 +141,11 @@ async function listEnterpriseOrgs() {
     }
   }
 
-  // Last resort: return the single configured org
+  // Last resort: return the single configured org with a friendly name
   const defaultOrgId = process.env.DEVIN_ORG_ID;
   if (defaultOrgId) {
-    return [{ org_id: defaultOrgId, name: defaultOrgId }];
+    const defaultName = process.env.DEVIN_ORG_NAME || 'Devin GTM';
+    return [{ org_id: defaultOrgId, name: defaultName }];
   }
 
   return [];
