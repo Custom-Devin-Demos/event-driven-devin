@@ -63,22 +63,17 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ${NGINX_CONF:-./nginx/nginx.conf}:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
       - ./certbot/conf:/etc/letsencrypt:ro
       - ./certbot/www:/var/www/certbot:ro
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
       # Only substitute DOMAIN_NAME — leave nginx variables ($host, $scheme, etc.) untouched
-      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
       - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
     depends_on:
       checkout-api:
         condition: service_healthy
     restart: unless-stopped
-    # Reload nginx config every 6 hours to pick up renewed certs
-    command: >-
-      /bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'
 
   # ─── Certbot (Let's Encrypt certificate renewal) ──────
   certbot:
@@ -86,9 +81,11 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    # Check for renewal every 12 hours
+    # Check for renewal every 12 hours; reload nginx after each attempt
     entrypoint: >-
-      /bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done'
+      /bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; wget -qO- http://nginx:80/ > /dev/null 2>&1; sleep 12h & wait $${!}; done'
+    depends_on:
+      - nginx
     restart: unless-stopped
 
   # ─── Traffic Generator ───────────────────────────────
