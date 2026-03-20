@@ -202,10 +202,12 @@ async function createSessionAndAlert(alertData) {
       });
     }
 
-    // Fire a vulnerable PR in etl-pipeline-demo immediately.
+    // Fire a vulnerable PR in the target repo immediately.
     // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation
     // in the background, demonstrating the full remediation pipeline.
-    scheduleVulnerablePR(0);
+    // Pass the customer slug so the workflow dispatch includes it,
+    // allowing devin-scan.yml to select the correct per-customer Devin API key.
+    scheduleVulnerablePR(0, config.customer);
 
     return { triggered: true, threadTs };
   } catch (error) {
