@@ -39,7 +39,7 @@ function matchProducts(roomType, styleTags) {
   const roomItems = ROOM_PRODUCTS.filter(p => p.room === roomType);
   return roomItems.map(product => {
     const overlap = product.tags.filter(t => styleTags.includes(t));
-    return { item: product, tagScore: overlap.length / styleTags.length };
+    return { ...product, tagScore: overlap.length / styleTags.length };
   });
 }
 
@@ -94,8 +94,7 @@ async function getStyleRecommendations(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 100));
 
-    const profile = STYLE_PROFILES[data.style];
-    if (!profile) throw new Error(`Unknown style: ${data.style}`);
+    const profile = STYLE_PROFILES[data.style] || STYLE_PROFILES.modern;
 
     const matched = matchProducts(data.room, profile.tags);
     const ranked = rankByStyle(matched, profile.factor);
