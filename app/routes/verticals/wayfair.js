@@ -18,10 +18,22 @@ router.get('/api/wayfair/catalog', (_req, res) => {
  * POST /api/wayfair/recommendations — get personalized style recommendations
  */
 router.post('/api/wayfair/recommendations', async (req, res) => {
+  const validStyles = Object.keys(STYLE_PROFILES);
+  const style = req.body.style || 'modern';
+
+  if (!validStyles.includes(style)) {
+    return res.status(400).json({
+      success: false,
+      error: `Unknown style: ${style}. Valid styles are: ${validStyles.join(', ')}`,
+      errorClass: 'ValidationError',
+      code: 'INVALID_STYLE',
+    });
+  }
+
   try {
     const result = await getStyleRecommendations({
       room: req.body.room || 'living-room',
-      style: req.body.style || 'modern',
+      style,
       budget: req.body.budget || 1000,
       userId: req.body.userId || 'usr_wayfair_1',
     });
