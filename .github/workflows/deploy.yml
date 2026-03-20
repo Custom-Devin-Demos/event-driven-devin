@@ -32,6 +32,7 @@ jobs:
             --exclude=node_modules \
             --exclude=.git \
             --exclude=.env \
+            --exclude=certbot \
             -C . .
 
       - name: Upload tarball to EC2
@@ -53,6 +54,9 @@ jobs:
           if [ ! -f /home/ubuntu/.env ]; then
             cp /home/ubuntu/.env.bak /home/ubuntu/.env
           fi
+
+          # Ensure certbot directories exist (certs persist across deploys)
+          mkdir -p /home/ubuntu/certbot/conf /home/ubuntu/certbot/www
 
           # Rebuild and restart containers
           docker compose down
