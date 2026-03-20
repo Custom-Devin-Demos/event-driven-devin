@@ -120,31 +120,16 @@ function buildAlertBlocks(alertData) {
     ],
   });
 
-  // On-Call section: show @Devin mention in slack mode, plain text in api mode
-  const customerConfig = alertData.customerConfig || {};
-  const triggerMode = customerConfig.triggerMode || process.env.DEVIN_TRIGGER_MODE || 'slack';
-  if (triggerMode === 'api') {
-    blocks.push({
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
-        },
-      ],
-    });
-  } else {
-    const devinUserId = customerConfig.slackUserId || process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
-    blocks.push({
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: `*On-Call:*\n<@${devinUserId}>`,
-        },
-      ],
-    });
-  }
+  // On-Call section: always show Devin AI (v3 API mode — no @mention spoofing)
+  blocks.push({
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
+      },
+    ],
+  });
 
   // Action buttons
   const actions = [];
@@ -343,7 +328,6 @@ async function deleteMessage(token, channel, ts) {
 
 module.exports = {
   postAlertToSlack,
-  postDevinReply,
   postDevinSessionLink,
   postThreadReply,
 };

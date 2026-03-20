@@ -123,6 +123,8 @@ async function executeTrade(tradeData) {
       culprit: 'app/services/verticals/financial-services.js — executeTrade',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: tradeData.devinUserId,
+      devinOrgId: tradeData.devinOrgId,
       service: 'trading-api',
       verticalLabel: 'Trade Execution',
       tags: [

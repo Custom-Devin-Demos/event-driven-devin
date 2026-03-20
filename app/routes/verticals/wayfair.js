@@ -24,6 +24,8 @@ router.post('/api/wayfair/recommendations', async (req, res) => {
       style: req.body.style || 'modern',
       budget: req.body.budget || 1000,
       userId: req.body.userId || 'usr_wayfair_1',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

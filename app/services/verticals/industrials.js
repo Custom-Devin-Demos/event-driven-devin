@@ -127,6 +127,8 @@ async function createWorkOrder(data) {
       culprit: 'app/services/verticals/industrials.js — createWorkOrder',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'maintenance-api',
       verticalLabel: 'Work Order',
       tags: [

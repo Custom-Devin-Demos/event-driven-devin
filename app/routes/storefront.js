@@ -229,6 +229,8 @@ router.post('/api/storefront/checkout', async (req, res) => {
         culprit: 'app/routes/storefront.js — POST /api/storefront/checkout',
         errorType: error.name || 'Error',
         errorValue: error.message,
+        devinUserId: req.body.devinUserId,
+        devinOrgId: req.body.devinOrgId,
         tags: [
           { key: 'route', value: '/api/storefront/checkout' },
           { key: 'scenario', value: 'checkout-regression' },

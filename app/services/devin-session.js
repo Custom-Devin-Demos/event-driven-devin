@@ -1,5 +1,5 @@
 const logger = require('../telemetry/logger');
-const { postAlertToSlack, postDevinReply, postDevinSessionLink } = require('./slack');
+const { postAlertToSlack, postDevinSessionLink } = require('./slack');
 const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
@@ -96,28 +96,21 @@ function buildPrompt(alertData) {
 }
 
 /**
- * Post an alert to Slack and trigger Devin investigation.
+ * Post an alert to Slack and trigger Devin investigation via the v3 API.
  *
- * Supports two trigger modes, resolved per-customer via config/customers.js:
- *
- *   "slack" (default) — Native Slack integration:
- *     1. Post the rich alert message using the bot token
- *     2. Reply in the thread using a user token with @Devin + prompt
- *        — Slack treats user-token messages as coming from a real human
- *        — The Devin Slack app picks up the @mention and starts a session
- *
- *   "api" — Direct Devin API:
- *     1. Post the rich alert message using the bot token
- *     2. Create a Devin session via POST /v1/sessions
- *     3. Post a "View in Devin" button in the Slack thread
- *        — No user token or Devin Slack app needed
- *        — Ideal for customer-specific demos in separate Devin orgs
+ * Flow:
+ *   1. Post the rich alert message to Slack using the bot token
+ *   2. Create a Devin session via POST /v3/organizations/{org_id}/sessions
+ *      — Uses create_as_user_id so the session appears in the selected user's account
+ *   3. Post a "View in Devin" button in the Slack thread
  *
  * Per-customer config is resolved from alertData.customer (see config/customers.js).
  * If no customer is specified, the default global env vars are used.
  *
  * @param {Object} alertData - Normalized alert data (issueTitle, errorType, etc.)
  * @param {string} [alertData.customer] - Customer slug for per-customer config
+ * @param {string} [alertData.devinUserId] - Devin user ID for per-user session creation
+ * @param {string} [alertData.devinOrgId] - Devin org ID for per-org session creation
  * @returns {Object|null} - { triggered: true, threadTs } or null if skipped/failed
  */
 async function createSessionAndAlert(alertData) {
@@ -151,7 +144,8 @@ async function createSessionAndAlert(alertData) {
       errorType: alertData.errorType,
       errorValue: alertData.errorValue,
       customer: config.customer,
-      triggerMode: config.triggerMode,
+      devinUserId: alertData.devinUserId || 'none',
+      devinOrgId: alertData.devinOrgId || 'default',
     });
 
     // Step 1: Post the rich alert message (bot token)
@@ -163,51 +157,35 @@ async function createSessionAndAlert(alertData) {
       return null;
     }
 
-    // Step 2: Trigger Devin based on resolved customer config
-    if (config.triggerMode === 'api') {
-      // API mode: create session via Devin API, post "View in Devin" button
-      const session = await createDevinSession(prompt, {
-        apiKey: config.apiKey,
-      });
+    // Step 2: Create Devin session via v3 API and post "View in Devin" link
+    const session = await createDevinSession(prompt, {
+      apiKey: config.apiKey,
+      orgId: alertData.devinOrgId,
+      userId: alertData.devinUserId,
+    });
 
-      if (session) {
-        await postDevinSessionLink(threadTs, session.url);
-        logger.info('Devin session created and linked in Slack thread', {
-          issueTitle: alertData.issueTitle,
-          sessionId: session.sessionId,
-          customer: config.customer,
-          threadTs,
-        });
-      } else {
-        logger.warn('Devin session was not created — API call failed or not configured', {
-          customer: config.customer,
-        });
-      }
-    } else {
-      // Slack mode (default): reply with @Devin mention to trigger native integration
-      const replyTs = await postDevinReply(threadTs, prompt, {
-        slackUserId: config.slackUserId,
-      });
-
-      if (!replyTs) {
-        logger.warn('Devin reply was not posted — trigger failed');
-        sessionCooldowns.delete(cooldownKey);
-        return null;
-      }
-
-      logger.info('Devin triggered via native Slack integration', {
+    if (session) {
+      await postDevinSessionLink(threadTs, session.url);
+      logger.info('Devin session created and linked in Slack thread', {
         issueTitle: alertData.issueTitle,
+        sessionId: session.sessionId,
         customer: config.customer,
+        devinUserId: alertData.devinUserId || 'service-user',
+        devinOrgId: alertData.devinOrgId || 'default',
         threadTs,
+      });
+    } else {
+      logger.warn('Devin session was not created — API call failed or not configured', {
+        customer: config.customer,
       });
     }
 
     // Fire a vulnerable PR in the target repo immediately.
     // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation
     // in the background, demonstrating the full remediation pipeline.
-    // Pass the customer slug so the workflow dispatch includes it,
-    // allowing devin-scan.yml to select the correct per-customer Devin API key.
-    scheduleVulnerablePR(0, config.customer);
+    // Pass the customer slug and devinUserId so the workflow dispatch includes them,
+    // allowing devin-scan.yml to create the remediation session as the selected user.
+    scheduleVulnerablePR(0, config.customer, alertData.devinUserId, alertData.devinOrgId);
 
     return { triggered: true, threadTs };
   } catch (error) {

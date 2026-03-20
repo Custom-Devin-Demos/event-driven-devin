@@ -25,6 +25,8 @@ router.post('/api/healthcare/appointment', async (req, res) => {
       providerId: req.body.providerId || 'DR-101',
       department: req.body.department || 'primary-care',
       appointmentDate: req.body.appointmentDate || '2026-12-15',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

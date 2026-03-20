@@ -161,6 +161,8 @@ async function getStyleRecommendations(data) {
       culprit: 'app/services/verticals/wayfair.js — getStyleRecommendations',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'wayfair-api',
       verticalLabel: 'Wayfair Style Recommendations',
       customer: 'wayfair',

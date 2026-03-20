@@ -149,6 +149,16 @@ router.post('/webhooks/sentry', async (req, res) => {
 
   try {
     const alertData = extractAlertData(payload);
+
+    // If a devinUserId/devinOrgId was forwarded via query param (e.g. from the instant path),
+    // attach it so the Devin session is created under the correct user/org.
+    if (req.query.devinUserId) {
+      alertData.devinUserId = req.query.devinUserId;
+    }
+    if (req.query.devinOrgId) {
+      alertData.devinOrgId = req.query.devinOrgId;
+    }
+
     const result = await createSessionAndAlert(alertData);
 
     if (!result) {

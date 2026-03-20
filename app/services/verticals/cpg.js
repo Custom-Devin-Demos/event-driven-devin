@@ -157,6 +157,8 @@ async function processOrder(orderData) {
       culprit: 'app/services/verticals/cpg.js — selectFulfillmentHub',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: orderData.devinUserId,
+      devinOrgId: orderData.devinOrgId,
       service: 'cpg-api',
       verticalLabel: 'Distributor Order',
       tags: [

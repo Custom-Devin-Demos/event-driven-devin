@@ -125,6 +125,8 @@ async function provisionLicense(data) {
       culprit: 'app/services/verticals/hightech.js — provisionLicense',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'licensing-api',
       verticalLabel: 'License Provisioning',
       tags: [

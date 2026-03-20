@@ -178,6 +178,8 @@ async function processRewardsLookup(data) {
       culprit: 'app/services/verticals/zaxbys.js — processRewardsLookup',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'zaxbys-api',
       verticalLabel: 'Zaxby\'s Rewards Lookup',
       customer: 'zaxbys',

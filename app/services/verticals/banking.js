@@ -150,6 +150,8 @@ async function processTransfer(data) {
       culprit: 'app/services/verticals/banking.js — processTransfer',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'banking-api',
       verticalLabel: 'Banking Transfer',
       tags: [

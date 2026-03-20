@@ -20,6 +20,8 @@ router.post('/api/telco/upgrade', async (req, res) => {
       currentPlanCode: req.body.currentPlanCode || 'basic-12',
       targetPlanCode: req.body.targetPlanCode || 'family-plus-12',
       billingDay: req.body.billingDay || 15,
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

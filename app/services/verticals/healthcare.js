@@ -125,6 +125,8 @@ async function scheduleAppointment(data) {
       culprit: 'app/services/verticals/healthcare.js — scheduleAppointment',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'healthcare-api',
       verticalLabel: 'Appointment Scheduling',
       tags: [
