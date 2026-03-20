@@ -80,7 +80,7 @@ docker compose down 2>/dev/null || true
 # Generate a temporary HTTP-only nginx config with DOMAIN_NAME substituted.
 # We write it directly and mount it as a plain config file (not a template),
 # avoiding the nginx:alpine entrypoint template-processing requirement.
-INIT_CONF="./nginx/nginx-init-rendered.conf"
+INIT_CONF="nginx/nginx-init-rendered.conf"
 sed "s/\${DOMAIN_NAME}/${DOMAIN_NAME}/g" ./nginx/nginx-init.conf > "$INIT_CONF"
 echo "  Generated temporary config: $INIT_CONF"
 
@@ -112,7 +112,7 @@ fi
 
 # ── Step 3: Obtain certificate via certbot ───────────────────────────────────
 echo "Step 3/4: Requesting certificate from Let's Encrypt..."
-docker compose run --rm certbot certonly \
+docker compose run --rm --no-deps certbot certonly \
   --webroot \
   --webroot-path=/var/www/certbot \
   --email "${CERT_EMAIL}" \
