@@ -79,11 +79,11 @@ async function fetchRewardsBalance(memberId) {
 /**
  * Determine the rewards tier based on net points.
  */
-function computeTierStatus(memberId) {
-  const balance = fetchRewardsBalance(memberId);
+async function computeTierStatus(memberId) {
+  const balance = await fetchRewardsBalance(memberId);
   const netPoints = balance.earned - balance.redeemed;
   const tier = TIER_THRESHOLDS.find(t => netPoints >= t.minimum);
-  return { name: tier.name, points: netPoints, bonus: tier.multiplier };
+  return { tier: tier.level, points: netPoints, bonus: tier.multiplier };
 }
 
 /**
@@ -118,7 +118,7 @@ async function processRewardsLookup(data) {
     await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 100));
 
     const member = lookupMember(data.phone);
-    const tierStatus = computeTierStatus(member.id);
+    const tierStatus = await computeTierStatus(member.id);
     const summary = formatRewardsSummary(member, tierStatus);
 
     const duration = Date.now() - startTime;
