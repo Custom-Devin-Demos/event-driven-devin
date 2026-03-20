@@ -1,8 +1,8 @@
 const axios = require('axios');
 const logger = require('../telemetry/logger');
+const { getCustomerConfig } = require('../../config/customers');
 
 const GITHUB_API = 'https://api.github.com';
-const TARGET_REPO = process.env.SONAR_TARGET_REPO || 'COG-GTM/etl-pipeline-demo';
 const TARGET_FILE = 'src/extract.py';
 /**
  * The vulnerable version of extract.py that triggers SonarCloud quality gate failure.
@@ -148,36 +148,40 @@ function githubClient() {
  *
  * @param {Object} [options] - Optional overrides
  * @param {string} [options.branchPrefix] - Branch name prefix (default: 'demo/sonar-remediation')
+ * @param {string} [options.customer] - Customer slug for per-customer target repo and workflow input
  * @returns {Object} - { prNumber, prUrl, branch, htmlUrl }
  */
 async function createVulnerablePR(options = {}) {
   const gh = githubClient();
+  const customerSlug = options.customer || 'default';
+  const config = getCustomerConfig(customerSlug);
+  const targetRepo = config.targetRepo;
   const prefix = options.branchPrefix || 'demo/sonar-remediation';
   const timestamp = Math.floor(Date.now() / 1000);
   const branchName = `${prefix}-${timestamp}`;
 
-  logger.info('Creating vulnerable PR in etl-pipeline-demo', { branch: branchName });
+  logger.info('Creating vulnerable PR in target repo', { branch: branchName, targetRepo, customer: customerSlug });
 
   // 1. Get main branch HEAD SHA
-  const mainRef = await gh.get(`/repos/${TARGET_REPO}/git/ref/heads/main`);
+  const mainRef = await gh.get(`/repos/${targetRepo}/git/ref/heads/main`);
   const mainSha = mainRef.data.object.sha;
 
   // 2. Create a new branch
-  await gh.post(`/repos/${TARGET_REPO}/git/refs`, {
+  await gh.post(`/repos/${targetRepo}/git/refs`, {
     ref: `refs/heads/${branchName}`,
     sha: mainSha,
   });
   logger.info('Branch created', { branch: branchName, baseSha: mainSha.substring(0, 8) });
 
   // 3. Get current file to obtain its blob SHA (needed for update)
-  const currentFile = await gh.get(`/repos/${TARGET_REPO}/contents/${TARGET_FILE}`, {
+  const currentFile = await gh.get(`/repos/${targetRepo}/contents/${TARGET_FILE}`, {
     params: { ref: branchName },
   });
   const fileSha = currentFile.data.sha;
 
   // 4. Push the vulnerable file
   const content = Buffer.from(VULNERABLE_EXTRACT_PY).toString('base64');
-  await gh.put(`/repos/${TARGET_REPO}/contents/${TARGET_FILE}`, {
+  await gh.put(`/repos/${targetRepo}/contents/${TARGET_FILE}`, {
     message: 'feat: add vehicle valuation enrichment to extraction pipeline',
     content,
     sha: fileSha,
@@ -186,7 +190,7 @@ async function createVulnerablePR(options = {}) {
   logger.info('Vulnerable file pushed', { file: TARGET_FILE, branch: branchName });
 
   // 5. Create the PR
-  const prResponse = await gh.post(`/repos/${TARGET_REPO}/pulls`, {
+  const prResponse = await gh.post(`/repos/${targetRepo}/pulls`, {
     title: 'feat: add vehicle valuation enrichment to extraction pipeline',
     body: [
       '## Summary',
@@ -216,7 +220,7 @@ async function createVulnerablePR(options = {}) {
     branch: branchName,
   };
 
-  logger.info('Vulnerable PR created in etl-pipeline-demo', result);
+  logger.info('Vulnerable PR created', { ...result, targetRepo, customer: customerSlug });
 
   // 6. Dispatch devin-scan.yml via workflow_dispatch.
   // PRs created via the API don't trigger pull_request events, and
@@ -231,12 +235,13 @@ async function createVulnerablePR(options = {}) {
   const WORKFLOW_FILE = 'devin-scan.yml';
   try {
     await gh.post(
-      `/repos/${TARGET_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
+      `/repos/${targetRepo}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
       {
         ref: 'main',
         inputs: {
           pr_number: String(result.prNumber),
           pr_branch: branchName,
+          customer: customerSlug,
         },
       },
     );
@@ -259,25 +264,27 @@ async function createVulnerablePR(options = {}) {
  * Called from the alert flow so it runs in the background.
  *
  * @param {number} [delayMs=60000] - Delay before creating the PR (default: 1 minute)
+ * @param {string} [customer] - Customer slug for per-customer target repo
  */
-function scheduleVulnerablePR(delayMs = 60000) {
+function scheduleVulnerablePR(delayMs = 60000, customer) {
   const token = process.env.GITHUB_PAT || process.env.github_mcp_pat;
   if (!token) {
     logger.warn('No GitHub token configured — skipping SonarCloud PR trigger');
     return;
   }
 
-  logger.info('Scheduling vulnerable PR creation', { delayMs });
+  logger.info('Scheduling vulnerable PR creation', { delayMs, customer: customer || 'default' });
 
   setTimeout(async () => {
     try {
-      const result = await createVulnerablePR();
+      const result = await createVulnerablePR({ customer });
       logger.info('SonarCloud remediation demo PR created successfully', {
         prNumber: result.prNumber,
         htmlUrl: result.htmlUrl,
+        customer: customer || 'default',
       });
     } catch (error) {
-      logger.error('Failed to create vulnerable PR in etl-pipeline-demo', {
+      logger.error('Failed to create vulnerable PR', {
         error: error.message,
         status: error.response?.status,
         data: error.response?.data,
