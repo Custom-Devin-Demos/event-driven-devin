@@ -84,10 +84,15 @@ npm start
 ## Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+                        ┌─────────────┐
+ Internet ──▶ DNS ──▶   │   nginx     │  :80 (→ HTTPS redirect)
+                        │   (SSL)     │  :443 (SSL termination)
+                        └──────┬──────┘
+                               │ proxy_pass
+┌─────────────────┐     ┌──────┴───────────┐     ┌─────────────────┐
 │  Traffic         │────▶│  Checkout API    │────▶│  Sentry         │
 │  Generator       │     │  (Express/Node)  │────▶│  Datadog Agent  │
-│  (loadgen)       │     │  Port 3000       │     │  (APM + Logs)   │
+│  (loadgen)       │     │  :3000 (internal)│     │  (APM + Logs)   │
 └─────────────────┘     └──────────────────┘     └─────────────────┘
                               │
                               ▼
@@ -104,12 +109,28 @@ npm start
 ```bash
 cp .env.example .env
 # Fill in SENTRY_DSN, DD_API_KEY, DD_SITE, SLACK_BOT_TOKEN, SLACK_CHANNEL_ID
+# Set DOMAIN_NAME and CERT_EMAIL for SSL
 # Set DEVIN_TRIGGER_MODE=api and DEVIN_API_KEY for direct API mode
 # Or set DEVIN_TRIGGER_MODE=slack (default) with SLACK_USER_TOKEN for @mention mode
 docker-compose up --build -d
 ```
 
-The application runs on port 3000. Make sure to open port 3000 in your security group / firewall.
+This starts five services:
+- **nginx** — Reverse proxy with SSL termination (ports 80/443)
+- **checkout-api** — Express app (port 3000, internal only)
+- **certbot** — Automatic Let's Encrypt certificate renewal
+- **loadgen** — Synthetic traffic generator
+- **datadog-agent** — APM traces, metrics, and log collection
+
+### Domain & SSL Setup
+
+1. Point a DNS A record to your EC2 public IP
+2. Open ports 80 and 443 in the security group
+3. Set `DOMAIN_NAME` and `CERT_EMAIL` in `.env`
+4. Run `bash scripts/init-ssl.sh` once to obtain the initial SSL certificate
+5. Certificates auto-renew via certbot every 12 hours
+
+See [AGENTS.md](AGENTS.md#domain--ssl-setup-one-time) for detailed instructions.
 
 **Redeploying to EC2:** See the detailed redeploy steps in [AGENTS.md](AGENTS.md#deployment). The key requirement is to back up the `.env` file before extracting a new tarball — if the `.env` is lost, Slack alerts and all integrations will silently stop working.
 
@@ -174,6 +195,8 @@ SENTRY_AUTH_TOKEN=xxx SENTRY_ORG=xxx SENTRY_PROJECT=xxx node scripts/setup-sentr
 | `SONAR_TARGET_REPO` | Target repo for SonarCloud PR (default: `COG-GTM/etl-pipeline-demo`) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token for alert notifications | No |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | No |
+| `DOMAIN_NAME` | Domain for Nginx + SSL (e.g. `devindemos.com`) | For SSL |
+| `CERT_EMAIL` | Email for Let's Encrypt certificate notifications | For SSL |
 | `APP_VERSION` | App version for telemetry tagging | No (default: `1.0.0`) |
 | `PORT` | API port | No (default: `3000`) |
 

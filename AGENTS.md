@@ -222,6 +222,8 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DEVIN_API_KEY_<SLUG>` | Per-customer Devin API key (e.g. `DEVIN_API_KEY_WAYFAIR`) | Per-customer |
 | `DEVIN_PLAYBOOK_ID_<SLUG>` | Per-customer playbook ID | No |
 | `SONAR_TARGET_REPO_<SLUG>` | Per-customer SonarCloud target repo | No |
+| `DOMAIN_NAME` | Domain for Nginx reverse proxy + SSL (e.g. `devindemos.com`) | For SSL |
+| `CERT_EMAIL` | Email for Let's Encrypt certificate notifications | For SSL |
 | `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
@@ -229,38 +231,80 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 
 ## Deployment
 
-The app is deployed on an EC2 instance at `3.144.232.30:3000` via Docker Compose. The application code lives directly in `/home/ubuntu/` on the EC2 host (not in a subdirectory).
+The app is deployed on an EC2 instance via Docker Compose with Nginx reverse proxy and SSL. The application code lives directly in `/home/ubuntu/` on the EC2 host (not in a subdirectory).
+
+### Architecture
+
+```
+Internet → DNS (A record) → EC2 Public IP
+                              │
+                        ┌─────┴─────┐
+                        │   nginx   │  :80 (→ HTTPS redirect)
+                        │           │  :443 (SSL termination)
+                        └─────┬─────┘
+                              │ proxy_pass
+                        ┌─────┴──────────┐
+                        │  checkout-api  │  :3000 (internal only)
+                        └────────────────┘
+                        ┌────────────────┐
+                        │   certbot      │  (auto-renews certs every 12h)
+                        └────────────────┘
+```
+
+5 containers: `nginx` (reverse proxy + SSL), `checkout-api` (Express app), `certbot` (certificate renewal), `loadgen` (traffic generator), `datadog-agent` (telemetry).
+
+### Domain & SSL Setup (one-time)
+
+1. **Register a domain** (or use a subdomain of an existing domain)
+2. **Create a DNS A record** pointing the domain to the EC2 public IP
+3. **Open ports 80 and 443** in the EC2 security group (port 3000 can be closed)
+4. **Set env vars** in `/home/ubuntu/.env` on EC2:
+   ```bash
+   DOMAIN_NAME=devindemos.com
+   CERT_EMAIL=shawn.d.azman@gmail.com
+   ```
+5. **Run the SSL init script** (once, on the EC2 host):
+   ```bash
+   cd /home/ubuntu && bash scripts/init-ssl.sh
+   ```
+   This starts nginx in HTTP-only mode, obtains a Let's Encrypt certificate via certbot, then restarts the full stack with SSL enabled.
+6. **Update Sentry webhook URL** to `https://devindemos.com/webhooks/sentry`
+
+After the initial setup, certificate renewal is fully automatic (certbot checks every 12 hours, nginx reloads every 6 hours).
 
 ### EC2 Redeploy Steps
+
+Deployments are automated via GitHub Actions on push to `main`. For manual redeploy:
 
 ```bash
 # 1. Build tarball from latest main (locally or on your dev machine)
 git checkout main && git pull origin main
-tar czf /tmp/acme-demo.tar.gz --exclude=node_modules --exclude=.git --exclude=.env -C . .
+tar czf /tmp/acme-demo.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
 
 # 2. Back up the .env on EC2 BEFORE extracting (critical — secrets live here)
-ssh ubuntu@3.144.232.30 "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
+ssh ubuntu@<EC2_IP> "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
 
 # 3. SCP the tarball to EC2
-scp /tmp/acme-demo.tar.gz ubuntu@3.144.232.30:/home/ubuntu/acme-demo.tar.gz
+scp /tmp/acme-demo.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/acme-demo.tar.gz
 
-# 4. Extract over existing code (the --exclude above ensures .env is not in the tarball)
-ssh ubuntu@3.144.232.30 "cd /home/ubuntu && tar xzf acme-demo.tar.gz"
+# 4. Extract over existing code (the --exclude above ensures .env and certs are not in the tarball)
+ssh ubuntu@<EC2_IP> "cd /home/ubuntu && tar xzf acme-demo.tar.gz"
 
 # 5. Verify .env is still present (if missing, restore from backup)
-ssh ubuntu@3.144.232.30 "test -f /home/ubuntu/.env || cp /home/ubuntu/.env.bak /home/ubuntu/.env"
+ssh ubuntu@<EC2_IP> "test -f /home/ubuntu/.env || cp /home/ubuntu/.env.bak /home/ubuntu/.env"
 
 # 6. Stop old containers, rebuild, and start
-ssh ubuntu@3.144.232.30 "cd /home/ubuntu && docker compose down && docker compose up -d --build"
+ssh ubuntu@<EC2_IP> "cd /home/ubuntu && docker compose down && docker compose up -d --build"
 
 # 7. Verify the app is healthy
-ssh ubuntu@3.144.232.30 "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health"
+ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health"
 # Should return 200
 ```
 
 ### Important Notes
 
-- **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, etc.) and must never be overwritten or deleted.
+- **`.env` location:** The production `.env` file lives at `/home/ubuntu/.env` on EC2. It contains all secrets (`SENTRY_DSN`, `DD_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN`, `DOMAIN_NAME`, `CERT_EMAIL`, etc.) and must never be overwritten or deleted.
+- **SSL certificates:** Stored in `./certbot/conf/` on EC2. These persist across deploys — the tarball and deploy workflow explicitly exclude this directory. Never delete this directory or you'll need to re-run `scripts/init-ssl.sh`.
 - **Backup before deploy:** Always back up `.env` before extracting the tarball. If the `.env` is accidentally removed, Slack alerts, Sentry, and Datadog will silently stop working.
 - **Port conflicts:** If `docker compose up` fails with port-in-use errors, run `docker compose down` first or `docker rm -f $(docker ps -aq)` to clean up stale containers from previous deployments.
 - **Old deploy path:** An earlier deployment used `/home/ubuntu/acme-demo/` as the app directory. If you find a `.env` at that path but not at `/home/ubuntu/.env`, copy it: `cp /home/ubuntu/acme-demo/.env /home/ubuntu/.env`.
@@ -303,20 +347,20 @@ There are no automated tests in this repo. Verification is done manually:
 
 ### Vertical URLs for Quick Access
 
-When the app is running (locally or on EC2 at `3.144.232.30:3000`):
+When the app is running (locally at `localhost:3000` or on EC2 via `https://<DOMAIN_NAME>`):
 
 | Vertical | URL |
 |----------|-----|
-| Hub | `http://<host>:3000/` |
-| Retail | `http://<host>:3000/retail` |
-| Banking | `http://<host>:3000/banking` |
-| Financial Services | `http://<host>:3000/financial-services` |
-| Insurance | `http://<host>:3000/insurance` |
-| CPG | `http://<host>:3000/cpg` |
-| High Tech | `http://<host>:3000/hightech` |
-| Industrials | `http://<host>:3000/industrials` |
-| Healthcare | `http://<host>:3000/healthcare` |
-| Telco | `http://<host>:3000/telco` |
+| Hub | `https://<DOMAIN_NAME>/` |
+| Retail | `https://<DOMAIN_NAME>/retail` |
+| Banking | `https://<DOMAIN_NAME>/banking` |
+| Financial Services | `https://<DOMAIN_NAME>/financial-services` |
+| Insurance | `https://<DOMAIN_NAME>/insurance` |
+| CPG | `https://<DOMAIN_NAME>/cpg` |
+| High Tech | `https://<DOMAIN_NAME>/hightech` |
+| Industrials | `https://<DOMAIN_NAME>/industrials` |
+| Healthcare | `https://<DOMAIN_NAME>/healthcare` |
+| Telco | `https://<DOMAIN_NAME>/telco` |
 
 ## External Integrations
 
