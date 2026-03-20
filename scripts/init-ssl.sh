@@ -118,7 +118,10 @@ fi
 
 # ── Step 3: Obtain certificate via certbot ───────────────────────────────────
 echo "Step 3/4: Requesting certificate from Let's Encrypt..."
-docker compose run --rm --no-deps certbot certonly \
+# Override the entrypoint because docker-compose.yml sets it to the
+# renewal loop script; without this, "certonly" is passed as args to
+# that loop and certbot never actually runs.
+docker compose run --rm --no-deps --entrypoint certbot certbot certonly \
   --webroot \
   --webroot-path=/var/www/certbot \
   --email "${CERT_EMAIL}" \
