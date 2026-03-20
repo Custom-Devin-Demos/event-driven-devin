@@ -77,16 +77,36 @@ mkdir -p ./certbot/www
 echo "Step 2/4: Starting nginx with HTTP-only config for ACME challenge..."
 docker compose down 2>/dev/null || true
 
-# Start only checkout-api and nginx (with init config)
-# We override the nginx config via the NGINX_CONF env var
-NGINX_CONF=./nginx/nginx-init.conf docker compose up -d checkout-api nginx
+# Generate a temporary HTTP-only nginx config with DOMAIN_NAME substituted.
+# We write it directly and mount it as a plain config file (not a template),
+# avoiding the nginx:alpine entrypoint template-processing requirement.
+INIT_CONF="./nginx/nginx-init-rendered.conf"
+sed "s/\${DOMAIN_NAME}/${DOMAIN_NAME}/g" ./nginx/nginx-init.conf > "$INIT_CONF"
+echo "  Generated temporary config: $INIT_CONF"
+
+# Start nginx with the rendered init config mounted directly into conf.d
+# (bypasses the template system entirely — no envsubst needed)
+docker compose -f docker-compose.yml -f - up -d checkout-api nginx <<EOF
+services:
+  nginx:
+    volumes:
+      - ./${INIT_CONF}:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+EOF
 
 # Wait for nginx to be ready
 echo "  Waiting for nginx to start..."
-sleep 5
+for i in $(seq 1 15); do
+  if curl -sf http://localhost/ > /dev/null 2>&1; then
+    echo "  nginx is ready!"
+    break
+  fi
+  sleep 2
+done
 
-# Verify nginx is responding
-if ! curl -sf http://localhost/.well-known/acme-challenge/ > /dev/null 2>&1; then
+# Verify nginx is serving correctly
+if ! curl -sf http://localhost/ > /dev/null 2>&1; then
   echo "  Warning: nginx may not be fully ready yet, proceeding anyway..."
 fi
 
@@ -114,6 +134,9 @@ if [ ! -f "./certbot/conf/live/${DOMAIN_NAME}/fullchain.pem" ]; then
 fi
 
 echo "  Certificate obtained successfully!"
+
+# Clean up temporary init config
+rm -f "$INIT_CONF"
 
 # ── Step 4: Restart with full SSL config ─────────────────────────────────────
 echo "Step 4/4: Restarting with full SSL configuration..."
