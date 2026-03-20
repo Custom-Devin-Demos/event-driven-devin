@@ -222,7 +222,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DEVIN_API_KEY_<SLUG>` | Per-customer Devin API key (e.g. `DEVIN_API_KEY_WAYFAIR`) | Per-customer |
 | `DEVIN_PLAYBOOK_ID_<SLUG>` | Per-customer playbook ID | No |
 | `SONAR_TARGET_REPO_<SLUG>` | Per-customer SonarCloud target repo | No |
-| `DOMAIN_NAME` | Domain for Nginx reverse proxy + SSL (e.g. `demo.yourdomain.com`) | For SSL |
+| `DOMAIN_NAME` | Domain for Nginx reverse proxy + SSL (e.g. `devindemos.com`) | For SSL |
 | `CERT_EMAIL` | Email for Let's Encrypt certificate notifications | For SSL |
 | `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
@@ -260,15 +260,15 @@ Internet → DNS (A record) → EC2 Public IP
 3. **Open ports 80 and 443** in the EC2 security group (port 3000 can be closed)
 4. **Set env vars** in `/home/ubuntu/.env` on EC2:
    ```bash
-   DOMAIN_NAME=your-domain.com
-   CERT_EMAIL=admin@your-domain.com
+   DOMAIN_NAME=devindemos.com
+   CERT_EMAIL=shawn.d.azman@gmail.com
    ```
 5. **Run the SSL init script** (once, on the EC2 host):
    ```bash
    cd /home/ubuntu && bash scripts/init-ssl.sh
    ```
    This starts nginx in HTTP-only mode, obtains a Let's Encrypt certificate via certbot, then restarts the full stack with SSL enabled.
-6. **Update Sentry webhook URL** to `https://your-domain.com/webhooks/sentry`
+6. **Update Sentry webhook URL** to `https://devindemos.com/webhooks/sentry`
 
 After the initial setup, certificate renewal is fully automatic (certbot checks every 12 hours, nginx reloads every 6 hours).
 

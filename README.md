@@ -195,7 +195,7 @@ SENTRY_AUTH_TOKEN=xxx SENTRY_ORG=xxx SENTRY_PROJECT=xxx node scripts/setup-sentr
 | `SONAR_TARGET_REPO` | Target repo for SonarCloud PR (default: `COG-GTM/etl-pipeline-demo`) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token for alert notifications | No |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | No |
-| `DOMAIN_NAME` | Domain for Nginx + SSL (e.g. `demo.yourdomain.com`) | For SSL |
+| `DOMAIN_NAME` | Domain for Nginx + SSL (e.g. `devindemos.com`) | For SSL |
 | `CERT_EMAIL` | Email for Let's Encrypt certificate notifications | For SSL |
 | `APP_VERSION` | App version for telemetry tagging | No (default: `1.0.0`) |
 | `PORT` | API port | No (default: `3000`) |
