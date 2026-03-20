@@ -57,7 +57,7 @@ echo ""
 
 # ── Check if certs already exist ─────────────────────────────────────────────
 CERT_DIR="./certbot/conf/live/${DOMAIN_NAME}"
-if [ -d "$CERT_DIR" ] && [ -f "$CERT_DIR/fullchain.pem" ]; then
+if sudo test -d "$CERT_DIR" && sudo test -f "$CERT_DIR/fullchain.pem"; then
   echo "Certificates already exist at ${CERT_DIR}."
   echo "To force renewal, run: docker compose run --rm certbot renew --force-renewal"
   echo ""
@@ -129,8 +129,9 @@ docker compose run --rm --no-deps --entrypoint certbot certbot certonly \
   --no-eff-email \
   -d "${DOMAIN_NAME}"
 
-# Verify certificate was obtained
-if [ ! -f "./certbot/conf/live/${DOMAIN_NAME}/fullchain.pem" ]; then
+# Verify certificate was obtained (use sudo because certbot creates
+# files as root with restricted permissions on the live/ directory)
+if ! sudo test -f "./certbot/conf/live/${DOMAIN_NAME}/fullchain.pem"; then
   echo ""
   echo "ERROR: Certificate was not obtained. Common causes:"
   echo "  - DNS A record not pointing to this server"
