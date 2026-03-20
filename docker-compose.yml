@@ -6,8 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    expose:
-      - "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
     environment:
       - PORT=3000
       - NODE_ENV=production
@@ -68,6 +68,10 @@ services:
       - ./certbot/www:/var/www/certbot:ro
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+      # Only substitute DOMAIN_NAME — leave nginx variables ($host, $scheme, etc.) untouched
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
     depends_on:
       checkout-api:
         condition: service_healthy
