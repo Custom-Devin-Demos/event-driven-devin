@@ -84,11 +84,17 @@ INIT_CONF="nginx/nginx-init-rendered.conf"
 sed "s/\${DOMAIN_NAME}/${DOMAIN_NAME}/g" ./nginx/nginx-init.conf > "$INIT_CONF"
 echo "  Generated temporary config: $INIT_CONF"
 
-# Start nginx with the rendered init config mounted directly into conf.d
-# (bypasses the template system entirely — no envsubst needed)
+# Start nginx with the rendered init config mounted directly into conf.d.
+# We must also override the entrypoint to skip the default nginx:alpine
+# template-processing step, which would try to overwrite our config file
+# with envsubst output from the SSL template (docker compose merges volumes
+# from all -f files, so the template mount from docker-compose.yml is still
+# present even with this override).
 docker compose -f docker-compose.yml -f - up -d checkout-api nginx <<EOF
 services:
   nginx:
+    entrypoint: [""]
+    command: ["nginx", "-g", "daemon off;"]
     volumes:
       - ./${INIT_CONF}:/etc/nginx/conf.d/default.conf:ro
       - ./certbot/conf:/etc/letsencrypt:ro
