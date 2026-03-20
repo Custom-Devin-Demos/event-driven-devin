@@ -28,6 +28,8 @@ router.post('/api/licenses/provision', async (req, res) => {
       planName,
       seats: parseInt(req.body.seats, 10) || 10,
       billingCycle: req.body.billingCycle || 'monthly',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

@@ -144,6 +144,8 @@ async function upgradePlan(data) {
       culprit: 'app/services/verticals/telco.js — upgradePlan',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
       service: 'telco-api',
       verticalLabel: 'Plan Upgrade',
       tags: [

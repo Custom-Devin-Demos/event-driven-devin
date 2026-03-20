@@ -237,12 +237,14 @@ async function createVulnerablePR(options = {}) {
     await gh.post(
       `/repos/${targetRepo}/actions/workflows/${WORKFLOW_FILE}/dispatches`,
       {
-        ref: 'main',
-        inputs: {
-          pr_number: String(result.prNumber),
-          pr_branch: branchName,
-          customer: customerSlug,
-        },
+          ref: 'main',
+          inputs: {
+            pr_number: String(result.prNumber),
+            pr_branch: branchName,
+            customer: customerSlug,
+            user_id: options.devinUserId || '',
+            org_id: options.devinOrgId || '',
+          },
       },
     );
     logger.info('Dispatched devin-scan workflow via workflow_dispatch', {
@@ -265,19 +267,21 @@ async function createVulnerablePR(options = {}) {
  *
  * @param {number} [delayMs=60000] - Delay before creating the PR (default: 1 minute)
  * @param {string} [customer] - Customer slug for per-customer target repo
+ * @param {string} [devinUserId] - Devin user ID for per-user session creation
+ * @param {string} [devinOrgId] - Devin org ID for per-org session creation
  */
-function scheduleVulnerablePR(delayMs = 60000, customer) {
+function scheduleVulnerablePR(delayMs = 60000, customer, devinUserId, devinOrgId) {
   const token = process.env.GITHUB_PAT || process.env.github_mcp_pat;
   if (!token) {
     logger.warn('No GitHub token configured — skipping SonarCloud PR trigger');
     return;
   }
 
-  logger.info('Scheduling vulnerable PR creation', { delayMs, customer: customer || 'default' });
+  logger.info('Scheduling vulnerable PR creation', { delayMs, customer: customer || 'default', devinUserId: devinUserId || 'none', devinOrgId: devinOrgId || 'default' });
 
   setTimeout(async () => {
     try {
-      const result = await createVulnerablePR({ customer });
+      const result = await createVulnerablePR({ customer, devinUserId, devinOrgId });
       logger.info('SonarCloud remediation demo PR created successfully', {
         prNumber: result.prNumber,
         htmlUrl: result.htmlUrl,

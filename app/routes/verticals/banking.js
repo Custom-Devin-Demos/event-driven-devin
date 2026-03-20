@@ -21,6 +21,8 @@ router.post('/api/banking/transfer', async (req, res) => {
       amount: req.body.amount || 500,
       accountTier: req.body.accountTier || 'Premium',
       userId: req.body.userId || 'usr_banking_1',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

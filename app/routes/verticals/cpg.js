@@ -20,6 +20,8 @@ router.post('/api/cpg/order', async (req, res) => {
       region: req.body.region || 'northeast',
       fulfillmentZone: req.body.fulfillmentZone || 'southeast',
       items: req.body.items || [{ sku: 'BEV-001', qty: 50 }],
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

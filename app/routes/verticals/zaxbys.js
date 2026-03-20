@@ -20,6 +20,8 @@ router.post('/api/zaxbys/rewards', async (req, res) => {
       lastName: req.body.lastName || 'Johnson',
       location: req.body.location || 'athens-ga',
       userId: req.body.userId || 'usr_zaxbys_1',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

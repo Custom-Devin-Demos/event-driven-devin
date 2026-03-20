@@ -28,6 +28,8 @@ router.post('/api/trading/execute', async (req, res) => {
       price: req.body.price || 227.63,
       tierId: req.body.tierId || 1,
       accountId: req.body.accountId || 'ACCT-INV-001',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
     });
     res.json(result);
   } catch (error) {

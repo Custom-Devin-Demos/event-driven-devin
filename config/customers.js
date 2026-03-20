@@ -16,7 +16,6 @@ const logger = require('../app/telemetry/logger');
  * Env var naming convention for customer-specific vars:
  *   DEVIN_API_KEY_<SLUG>       — Devin API key for that customer's org
  *   DEVIN_PLAYBOOK_ID_<SLUG>   — Optional playbook ID
- *   DEVIN_SLACK_USER_ID_<SLUG> — Slack user ID (only for slack trigger mode)
  *   SONAR_TARGET_REPO_<SLUG>   — Target repo for SonarCloud PR
  *
  * Example: For customer slug "wayfair":
@@ -64,14 +63,13 @@ function getCustomerConfig(customerSlug) {
   const config = {
     customer: slug,
     label: entry.label || slug,
-    triggerMode: entry.triggerMode
-      || (suffix ? 'api' : (process.env.DEVIN_TRIGGER_MODE || 'slack')),
-    apiKey: process.env[`DEVIN_API_KEY${suffix}`]
+    triggerMode: 'api',
+    apiKey: process.env[`DEVIN_SERVICE_KEY${suffix}`]
+      || process.env.DEVIN_SERVICE_KEY
+      || process.env[`DEVIN_API_KEY${suffix}`]
       || process.env.DEVIN_API_KEY || '',
     playbookId: process.env[`DEVIN_PLAYBOOK_ID${suffix}`]
       || process.env.DEVIN_PLAYBOOK_ID || '',
-    slackUserId: process.env[`DEVIN_SLACK_USER_ID${suffix}`]
-      || process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877',
     targetRepo: process.env[`SONAR_TARGET_REPO${suffix}`]
       || process.env.SONAR_TARGET_REPO || 'COG-GTM/etl-pipeline-demo',
   };

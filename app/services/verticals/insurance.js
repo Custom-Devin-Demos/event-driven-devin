@@ -144,6 +144,8 @@ async function processClaim(claimData) {
       culprit: 'app/services/verticals/insurance.js — processClaim',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      devinUserId: claimData.devinUserId,
+      devinOrgId: claimData.devinOrgId,
       service: 'insurance-api',
       verticalLabel: 'Insurance Claim',
       tags: [
