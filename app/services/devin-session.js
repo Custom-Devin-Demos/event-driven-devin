@@ -168,7 +168,6 @@ async function createSessionAndAlert(alertData) {
       // API mode: create session via Devin API, post "View in Devin" button
       const session = await createDevinSession(prompt, {
         apiKey: config.apiKey,
-        playbookId: config.playbookId,
       });
 
       if (session) {
