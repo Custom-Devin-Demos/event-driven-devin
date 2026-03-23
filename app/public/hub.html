@@ -577,7 +577,8 @@
     (function () {
       var orgSel = document.getElementById('orgSelect');
       var userSel = document.getElementById('userSelect');
-      var DEFAULT_ORG_ID = 'org_69IXJFLrljx8zSAw';
+      var orgWrap = orgSel.closest('.user-select-wrap');
+      var userWrap = userSel.closest('.user-select-wrap');
 
       /* ---- helpers ---- */
       function loadUsers(orgId) {
@@ -602,6 +603,37 @@
           });
       }
 
+      function loadOrgs(defaultOrgId) {
+        fetch('/api/devin/orgs')
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var orgs = data.orgs || [];
+            orgSel.innerHTML = '';
+            orgs.forEach(function (o) {
+              var opt = document.createElement('option');
+              opt.value = o.org_id;
+              opt.textContent = o.name || o.org_id;
+              orgSel.appendChild(opt);
+            });
+            if (!orgs.length) {
+              orgSel.innerHTML = '<option value="">(no orgs found)</option>';
+              return;
+            }
+            var storedOrg = localStorage.getItem('devinOrgId');
+            if (storedOrg) {
+              orgSel.value = storedOrg;
+            } else if (defaultOrgId) {
+              orgSel.value = defaultOrgId;
+            }
+            if (!orgSel.value && orgs.length) orgSel.value = orgs[0].org_id;
+            localStorage.setItem('devinOrgId', orgSel.value);
+            loadUsers(orgSel.value);
+          })
+          .catch(function () {
+            orgSel.innerHTML = '<option value="">(could not load orgs)</option>';
+          });
+      }
+
       /* ---- org selector ---- */
       orgSel.addEventListener('change', function () {
         if (orgSel.value) {
@@ -612,7 +644,6 @@
           localStorage.removeItem('devinOrgId');
           localStorage.removeItem('devinOrgName');
         }
-        // Reset user when org changes
         localStorage.removeItem('devinUserId');
         localStorage.removeItem('devinUserName');
         loadUsers(orgSel.value);
@@ -630,37 +661,48 @@
         }
       });
 
-      /* ---- init: load orgs, then auto-select default ---- */
-      fetch('/api/devin/orgs')
+      /* ---- init: fetch server config, then set up org/user selectors ---- */
+      fetch('/api/config')
         .then(function (r) { return r.json(); })
-        .then(function (data) {
-          var orgs = data.orgs || [];
-          orgSel.innerHTML = '';
-          orgs.forEach(function (o) {
-            var opt = document.createElement('option');
-            opt.value = o.org_id;
-            opt.textContent = o.name || o.org_id;
-            orgSel.appendChild(opt);
+        .then(function (cfg) {
+          // Update page title if customized
+          if (cfg.appTitle && cfg.appTitle !== 'Event-Driven Devin') {
+            document.querySelector('.topbar-title').textContent = cfg.appTitle;
+            document.querySelector('.footer-left').textContent = cfg.appTitle + ' \u00A9 2026';
+          }
+
+          // Update GitHub links to point to correct org
+          var ghUrl = 'https://github.com/' + cfg.githubOrg + '/event-driven-devin';
+          document.querySelectorAll('a[href*="COG-GTM/event-driven-devin"]').forEach(function (a) {
+            a.href = ghUrl;
           });
-          if (!orgs.length) {
-            orgSel.innerHTML = '<option value="">(no orgs found)</option>';
-            return;
-          }
-          // Default to stored org, or Devin GTM, or first
-          var storedOrg = localStorage.getItem('devinOrgId');
-          if (storedOrg) {
-            orgSel.value = storedOrg;
+
+          if (cfg.lockOrg) {
+            // Locked org: hide selector, set fixed orgId
+            orgWrap.style.display = 'none';
+            localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.defaultOrgName) localStorage.setItem('devinOrgName', cfg.defaultOrgName);
+
+            if (cfg.lockUser) {
+              // Locked user: hide selector, set fixed userId
+              userWrap.style.display = 'none';
+              localStorage.setItem('devinUserId', cfg.defaultUserId);
+            } else {
+              // Org locked but user selectable — load users for locked org
+              loadUsers(cfg.defaultOrgId);
+            }
           } else {
-            orgSel.value = DEFAULT_ORG_ID;
+            // Multi-org mode: load all orgs, populate dropdown
+            if (cfg.lockUser) {
+              userWrap.style.display = 'none';
+              localStorage.setItem('devinUserId', cfg.defaultUserId);
+            }
+            loadOrgs(cfg.defaultOrgId);
           }
-          // If the value didn't match any option, fall back to first
-          if (!orgSel.value && orgs.length) orgSel.value = orgs[0].org_id;
-          // Persist and load users
-          localStorage.setItem('devinOrgId', orgSel.value);
-          loadUsers(orgSel.value);
         })
         .catch(function () {
-          orgSel.innerHTML = '<option value="">(could not load orgs)</option>';
+          // Fallback: load orgs without config (backwards compat)
+          loadOrgs('');
         });
     })();
   </script>

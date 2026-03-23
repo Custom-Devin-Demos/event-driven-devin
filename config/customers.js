@@ -16,11 +16,15 @@ const logger = require('../app/telemetry/logger');
  * Env var naming convention for customer-specific vars:
  *   DEVIN_API_KEY_<SLUG>       — Devin API key for that customer's org
  *   DEVIN_PLAYBOOK_ID_<SLUG>   — Optional playbook ID
+ *   GITHUB_ORG_<SLUG>          — GitHub org for repo references
+ *   DEVIN_USER_ID_<SLUG>       — Pre-configured Devin user ID
  *   SONAR_TARGET_REPO_<SLUG>   — Target repo for SonarCloud PR
  *
  * Example: For customer slug "wayfair":
  *   DEVIN_API_KEY_WAYFAIR=dv-abc123...
- *   SONAR_TARGET_REPO_WAYFAIR=COG-GTM/wayfair-etl-pipeline
+ *   GITHUB_ORG_WAYFAIR=WayfairGitHubOrg
+ *   DEVIN_USER_ID_WAYFAIR=cog_wayfair_user
+ *   SONAR_TARGET_REPO_WAYFAIR=WayfairGitHubOrg/etl-pipeline-demo
  */
 const CUSTOMERS = {
   default: {
@@ -48,7 +52,7 @@ const CUSTOMERS = {
  * of per-customer config is running against a different Devin org).
  *
  * @param {string} [customerSlug] - Customer identifier (e.g. "wayfair")
- * @returns {Object} Resolved config with triggerMode, apiKey, playbookId, slackUserId, targetRepo
+ * @returns {Object} Resolved config with triggerMode, apiKey, playbookId, githubOrg, devinUserId, targetRepo
  */
 function getCustomerConfig(customerSlug) {
   const slug = customerSlug || 'default';
@@ -60,6 +64,9 @@ function getCustomerConfig(customerSlug) {
     ? `_${slug.toUpperCase().replace(/-/g, '_')}`
     : '';
 
+  const githubOrg = process.env[`GITHUB_ORG${suffix}`]
+    || process.env.GITHUB_ORG || 'COG-GTM';
+
   const config = {
     customer: slug,
     label: entry.label || slug,
@@ -70,8 +77,11 @@ function getCustomerConfig(customerSlug) {
       || process.env.DEVIN_API_KEY || '',
     playbookId: process.env[`DEVIN_PLAYBOOK_ID${suffix}`]
       || process.env.DEVIN_PLAYBOOK_ID || '',
+    githubOrg,
+    devinUserId: process.env[`DEVIN_USER_ID${suffix}`]
+      || process.env.DEVIN_USER_ID || '',
     targetRepo: process.env[`SONAR_TARGET_REPO${suffix}`]
-      || process.env.SONAR_TARGET_REPO || 'COG-GTM/etl-pipeline-demo',
+      || process.env.SONAR_TARGET_REPO || `${githubOrg}/etl-pipeline-demo`,
   };
 
   if (slug !== 'default') {
@@ -80,6 +90,8 @@ function getCustomerConfig(customerSlug) {
       triggerMode: config.triggerMode,
       hasApiKey: !!config.apiKey,
       hasPlaybook: !!config.playbookId,
+      githubOrg: config.githubOrg,
+      hasDevinUserId: !!config.devinUserId,
       targetRepo: config.targetRepo,
     });
   }

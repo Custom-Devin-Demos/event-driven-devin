@@ -4,6 +4,25 @@ const { listEnterpriseOrgs, listOrgUsers } = require('../services/devin-api');
 const router = express.Router();
 
 /* ------------------------------------------------------------------ */
+/*  GET /api/config                                                   */
+/*  Returns non-secret client configuration for the frontend.         */
+/*  Tells the UI whether org/user selection is locked.                 */
+/* ------------------------------------------------------------------ */
+router.get('/api/config', (_req, res) => {
+  const lockOrg = !!process.env.LOCK_ORG;
+  const lockUser = !!process.env.DEVIN_USER_ID;
+  res.json({
+    defaultOrgId: process.env.DEVIN_ORG_ID || '',
+    defaultOrgName: process.env.DEVIN_ORG_NAME || '',
+    defaultUserId: process.env.DEVIN_USER_ID || '',
+    lockOrg,
+    lockUser,
+    githubOrg: process.env.GITHUB_ORG || 'COG-GTM',
+    appTitle: process.env.APP_TITLE || 'Event-Driven Devin',
+  });
+});
+
+/* ------------------------------------------------------------------ */
 /*  GET /api/devin/orgs                                               */
 /*  Returns the list of organizations in the enterprise.              */
 /*  Results are cached for 5 minutes.                                 */
