@@ -4,398 +4,592 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Event-Driven Devin &mdash; Industry Demos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050508;
-      --bg-subtle: #0a0a0f;
-      --bg-card: rgba(255,255,255,0.03);
-      --bg-card-hover: rgba(255,255,255,0.06);
-      --border: rgba(255,255,255,0.06);
-      --border-hover: rgba(255,255,255,0.12);
-      --text: #ededef;
-      --text-secondary: #8b8b96;
-      --text-tertiary: #55555e;
-      --accent: #6366f1;
-      --accent-soft: rgba(99,102,241,0.12);
-      --display: 'Instrument Serif', Georgia, serif;
-      --body: 'Outfit', -apple-system, sans-serif;
-      --mono: 'IBM Plex Mono', monospace;
-      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg: #f2f5fa;
+      --bg-dark: #0f131c;
+      --bg-hero: #141924;
+      --text-dark: #0f131c;
+      --text-light: #eaf0f9;
+      --text-muted: #6b7280;
+      --text-muted-light: rgba(234,240,249,0.5);
+      --border-light: rgba(15,19,28,0.08);
+      --border-dark: rgba(234,240,249,0.12);
+      --accent: #7c8aff;
+      --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-condensed: 'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      font-family: var(--body);
+      font-family: var(--font-sans);
       background: var(--bg);
-      color: var(--text);
+      color: var(--text-dark);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      overflow-x: hidden;
-    }
-    body::after {
-      content: '';
-      position: fixed; inset: 0; z-index: 9999; pointer-events: none;
-      opacity: 0.015;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat: repeat;
-      background-size: 256px 256px;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes glow {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 0.8; }
     }
 
-    .topbar {
-      position: sticky; top: 0; z-index: 100;
+    /* ---- NAV ---- */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 clamp(1.5rem, 4vw, 3rem);
-      height: 56px;
-      background: rgba(5,5,8,0.8);
-      backdrop-filter: blur(16px) saturate(1.3);
-      -webkit-backdrop-filter: blur(16px) saturate(1.3);
-      border-bottom: 1px solid var(--border);
+      height: 72px;
+      padding: 0 40px;
+      background: var(--bg);
+      transition: box-shadow 0.3s;
     }
-    .topbar-left { display: flex; align-items: center; gap: 0.75rem; }
-    .topbar-logo {
-      width: 22px; height: 22px;
-      background: var(--accent);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.7rem; color: #fff;
+    nav.scrolled {
+      box-shadow: 0 1px 0 var(--border-light);
     }
-    .topbar-title { font-size: 0.85rem; font-weight: 600; letter-spacing: -0.01em; }
-    .topbar-sep { color: var(--text-tertiary); font-size: 1.2rem; font-weight: 200; }
-    .topbar-subtitle { font-size: 0.85rem; color: var(--text-secondary); }
-    .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
-    .user-select-wrap {
-      display: flex; align-items: center; gap: 0.5rem;
+    .nav-left {
+      display: flex; align-items: center; gap: 24px;
     }
-    .user-select-label {
-      font-size: 0.72rem; color: var(--text-tertiary); white-space: nowrap;
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--text-dark);
     }
-    .user-select {
-      appearance: none; -webkit-appearance: none;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-family: var(--body); font-size: 0.75rem; font-weight: 500;
-      padding: 0.35rem 2rem 0.35rem 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8b96' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.5rem center;
-      min-width: 140px;
-      max-width: 220px;
+    .nav-logo svg {
+      width: 28px; height: 28px;
     }
-    .user-select:hover { background-color: rgba(255,255,255,0.1); border-color: var(--border-hover); }
-    .user-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
-    .user-select option { background: #1a1a2e; color: var(--text); }
-    .gh-btn {
-      display: flex; align-items: center; gap: 0.4rem;
-      padding: 0.35rem 0.75rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-secondary);
+    .nav-logo-text {
+      font-family: var(--font-sans);
+      font-size: 16px; font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 24px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-dark);
       text-decoration: none;
-      font-size: 0.75rem; font-weight: 500;
-      transition: all 0.2s;
+      letter-spacing: 0.02em;
+      text-transform: lowercase;
+      transition: opacity 0.2s;
     }
-    .gh-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); border-color: var(--border-hover); }
-    .gh-btn svg { width: 15px; height: 15px; }
+    .nav-links a:hover { opacity: 0.6; }
+    .nav-right {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .nav-select-wrap {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-select-label {
+      font-size: 11px; font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .nav-select {
+      appearance: none; -webkit-appearance: none;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      color: var(--text-dark);
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 500;
+      padding: 6px 28px 6px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      min-width: 130px;
+      max-width: 200px;
+    }
+    .nav-select:hover { border-color: rgba(15,19,28,0.2); }
+    .nav-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,138,255,0.15); }
+    .nav-select option { background: #fff; color: var(--text-dark); }
+    .nav-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 20px;
+      background: var(--text-dark);
+      color: #fff;
+      border: none; border-radius: 100px;
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 500;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+    .nav-cta svg { width: 14px; height: 14px; }
 
+    /* ---- HERO ---- */
     .hero {
       position: relative;
-      text-align: center;
-      padding: clamp(4rem, 8vw, 7rem) 2rem clamp(2rem, 4vw, 3rem);
+      margin-top: 72px;
+      padding: 0;
+      background: var(--bg-hero);
+      overflow: hidden;
+      min-height: 580px;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
     }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -120px; left: 50%; transform: translateX(-50%);
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+    .hero-ascii {
+      position: absolute; inset: 0;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.4;
+      color: rgba(124,138,255,0.12);
+      white-space: pre;
       pointer-events: none;
+      user-select: none;
+    }
+    .hero-ascii-inner {
+      position: absolute;
+      top: -20px; left: -20px; right: -20px; bottom: -20px;
+      animation: asciiScroll 60s linear infinite;
+    }
+    @keyframes asciiScroll {
+      from { transform: translate(0, 0); }
+      to { transform: translate(-200px, -100px); }
+    }
+    .hero-content {
+      position: relative; z-index: 2;
+      padding: 80px 40px 60px;
     }
     .hero-badge {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.3rem 0.9rem;
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      font-size: 0.7rem; font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 1.75rem;
-      animation: fadeUp 0.7s var(--ease) both;
-    }
-    .hero-badge-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #22c55e;
-      animation: glow 2s ease-in-out infinite;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 5px 14px;
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      font-family: var(--font-sans);
+      font-size: 11px; font-weight: 500;
+      color: var(--text-muted-light);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
     }
     .hero h1 {
-      font-family: var(--display);
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-family: var(--font-condensed);
+      font-size: clamp(48px, 7vw, 80px);
       font-weight: 400;
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-      margin-bottom: 1.25rem;
-      animation: fadeUp 0.7s var(--ease) 0.08s both;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--text-light);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      max-width: 800px;
     }
-    .hero h1 em {
-      font-style: italic;
-      background: linear-gradient(135deg, #6366f1, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .hero h1 .bracket {
+      color: var(--text-muted-light);
     }
-    .hero-desc {
-      font-size: 1.05rem;
-      color: var(--text-secondary);
-      max-width: 520px;
-      margin: 0 auto;
-      line-height: 1.7;
-      animation: fadeUp 0.7s var(--ease) 0.16s both;
+    .hero h1 .highlight {
+      color: var(--accent);
     }
+    .hero-sub {
+      font-family: var(--font-sans);
+      font-size: 14px; font-weight: 400;
+      color: var(--text-muted-light);
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-bottom: 48px;
+    }
+    .hero-buttons {
+      display: flex; align-items: center; gap: 16px;
+      flex-wrap: wrap;
+    }
+    .hero-btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px;
+      border: 1px solid var(--border-dark);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--text-light);
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 500;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .hero-btn-primary:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(234,240,249,0.3);
+    }
+    .hero-btn-primary svg { width: 14px; height: 14px; }
+    .hero-btn-secondary {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-muted-light);
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 500;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .hero-btn-secondary:hover { color: var(--text-light); }
+    .hero-btn-secondary svg { width: 14px; height: 14px; }
 
-    .pipeline {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 2.5rem clamp(1rem, 3vw, 2rem) 0;
-      animation: fadeUp 0.7s var(--ease) 0.24s both;
+    /* ---- PIPELINE ---- */
+    .pipeline-section {
+      background: var(--bg-dark);
+      padding: 0 40px 64px;
     }
     .pipeline-label {
-      font-size: 0.65rem; font-weight: 600;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-bottom: 0.75rem; text-align: center;
+      font-family: var(--font-sans);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted-light);
+      margin-bottom: 16px;
     }
     .pipeline-track {
-      display: flex; align-items: center; gap: 0;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.15rem;
-      overflow-x: auto;
+      display: flex; align-items: stretch;
+      border: 1px solid var(--border-dark);
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 900px;
     }
     .pipeline-step {
       flex: 1;
-      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-      padding: 0.6rem 0.75rem;
-      font-size: 0.72rem; font-weight: 500;
-      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 12px;
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 500;
+      color: var(--text-muted-light);
       white-space: nowrap;
-      position: relative;
-      border-radius: 10px;
-      transition: all 0.25s;
+      border-right: 1px solid var(--border-dark);
+      transition: all 0.2s;
     }
-    .pipeline-step:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .pipeline-step:last-child { border-right: none; }
+    .pipeline-step:hover { background: rgba(255,255,255,0.03); color: var(--text-light); }
     .pipeline-step .step-num {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: rgba(255,255,255,0.06);
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(124,138,255,0.12);
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.6rem; font-weight: 700;
-      color: var(--text-tertiary); flex-shrink: 0;
-    }
-    .pipeline-step:not(:last-child)::after {
-      content: '';
-      position: absolute; right: -1px; top: 25%; bottom: 25%;
-      width: 1px; background: var(--border);
+      font-size: 10px; font-weight: 700;
+      color: var(--accent); flex-shrink: 0;
     }
 
-    .section {
-      max-width: 1120px; margin: 0 auto;
-      padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem) 3rem;
+    /* ---- VERTICALS SECTION ---- */
+    .verticals-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 64px 40px 80px;
     }
     .section-header {
       display: flex; align-items: baseline; justify-content: space-between;
-      margin-bottom: 1.5rem;
-      animation: fadeUp 0.7s var(--ease) 0.32s both;
+      margin-bottom: 24px;
     }
     .section-title {
-      font-size: 0.7rem; font-weight: 600;
+      font-family: var(--font-condensed);
+      font-size: 11px; font-weight: 600;
       letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-tertiary);
+      color: var(--text-muted);
     }
     .section-count {
-      font-family: var(--mono); font-size: 0.7rem;
-      color: var(--text-tertiary);
+      font-family: var(--font-mono); font-size: 12px;
+      color: var(--text-muted);
     }
 
+    /* ---- CARDS ---- */
     .grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1px; background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 16px; overflow: hidden;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border-light);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      overflow: hidden;
     }
     @media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 550px) { .grid { grid-template-columns: 1fr; } }
 
     .card {
       display: flex; flex-direction: column; justify-content: space-between;
-      text-decoration: none; color: var(--text);
-      background: var(--bg-subtle);
-      padding: 1.5rem 1.5rem 1.25rem;
-      min-height: 200px; position: relative;
-      transition: background 0.3s var(--ease);
+      text-decoration: none; color: var(--text-dark);
+      background: #fff;
+      padding: 28px 28px 24px;
+      min-height: 200px;
+      position: relative;
+      transition: background 0.2s;
     }
-    .card:hover { background: var(--bg-card-hover); }
-    .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: auto; }
+    .card:hover { background: #f8f9fc; }
+    .card-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: auto;
+    }
     .card-icon {
       font-size: 1.5rem; width: 40px; height: 40px;
       display: flex; align-items: center; justify-content: center;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+      background: var(--bg);
+      border: 1px solid var(--border-light);
       border-radius: 10px;
     }
     .card-arrow {
       width: 28px; height: 28px;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; background: transparent;
-      color: var(--text-tertiary);
-      transition: all 0.3s var(--ease);
+      border-radius: 50%;
+      color: var(--text-muted);
+      transition: all 0.2s;
       opacity: 0; transform: translate(-4px, 4px);
     }
     .card:hover .card-arrow {
       opacity: 1; transform: translate(0, 0);
-      background: rgba(255,255,255,0.06);
-      color: var(--text-secondary);
+      color: var(--text-dark);
     }
     .card-arrow svg { width: 14px; height: 14px; }
-    .card-body { margin-top: 1.25rem; }
+    .card-body { margin-top: 20px; }
     .card-vertical {
-      font-size: 0.6rem; font-weight: 600;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      margin-bottom: 0.2rem;
+      font-family: var(--font-sans);
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 4px;
     }
     .card-brand {
-      font-family: var(--display);
-      font-size: 1.35rem; font-weight: 400;
-      letter-spacing: -0.02em; margin-bottom: 0.4rem;
+      font-family: var(--font-condensed);
+      font-size: 22px; font-weight: 500;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+      color: var(--text-dark);
     }
     .card-desc {
-      font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;
+      font-size: 13px; color: var(--text-muted); line-height: 1.5;
     }
     .card-footer {
       display: flex; align-items: center; justify-content: space-between;
-      margin-top: 1rem; padding-top: 0.75rem;
-      border-top: 1px solid var(--border);
+      margin-top: 16px; padding-top: 12px;
+      border-top: 1px solid var(--border-light);
     }
     .card-path {
-      font-family: var(--mono); font-size: 0.68rem;
-      color: var(--text-tertiary);
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--text-muted);
     }
     .card-bug-tag {
-      font-size: 0.6rem; font-weight: 500;
-      padding: 0.2rem 0.5rem; border-radius: 100px;
-      background: rgba(239,68,68,0.08);
-      color: #f87171;
-      border: 1px solid rgba(239,68,68,0.12);
+      font-family: var(--font-sans);
+      font-size: 10px; font-weight: 500;
+      padding: 3px 8px; border-radius: 100px;
+      background: rgba(239,68,68,0.06);
+      color: #ef4444;
+      border: 1px solid rgba(239,68,68,0.1);
     }
 
+    /* ---- FOOTER ---- */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
+      background: var(--bg-dark);
+      padding: 64px 40px 40px;
+      color: var(--text-light);
     }
-    .footer-inner {
-      max-width: 1120px; margin: 0 auto;
+    .footer-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      gap: 32px;
+    }
+    .footer-brand h3 {
+      font-family: var(--font-condensed);
+      font-size: 28px; font-weight: 400;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .footer-brand h3 .bracket { color: var(--text-muted-light); }
+    .footer-brand h3 .highlight { color: var(--accent); }
+    .footer-brand-sub {
+      font-size: 12px; color: var(--text-muted-light);
+    }
+    .footer-buttons {
+      display: flex; gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .footer-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 22px;
+      border: 1px solid var(--border-dark);
+      border-radius: 100px;
+      background: transparent;
+      color: var(--text-light);
+      font-family: var(--font-sans);
+      font-size: 11px; font-weight: 500;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .footer-btn:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(234,240,249,0.3);
+    }
+    .footer-btn svg { width: 12px; height: 12px; }
+    .footer-links-row {
+      display: flex; gap: 32px; flex-wrap: wrap;
+    }
+    .footer-link-group {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .footer-link-group a {
+      font-size: 12px; color: var(--text-muted-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-link-group a:hover { color: var(--text-light); }
+    .footer-bottom {
       display: flex; align-items: center; justify-content: space-between;
+      padding-top: 32px;
+      border-top: 1px solid var(--border-dark);
+      flex-wrap: wrap;
+      gap: 16px;
     }
-    .footer-left { font-size: 0.78rem; color: var(--text-tertiary); }
-    .footer-links { display: flex; gap: 1.5rem; }
-    .footer-links a {
-      font-size: 0.75rem; color: var(--text-tertiary);
-      text-decoration: none; transition: color 0.2s;
+    .footer-copy {
+      font-size: 11px; color: var(--text-muted-light);
     }
-    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-socials {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .footer-socials span {
+      font-size: 11px; color: var(--text-muted-light);
+      margin-right: 4px;
+    }
+    .footer-socials a {
+      font-size: 11px; color: var(--text-muted-light);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-socials a:hover { color: var(--text-light); }
 
-    .card { animation: fadeUp 0.6s var(--ease) both; }
-    .card:nth-child(1) { animation-delay: 0.35s; }
-    .card:nth-child(2) { animation-delay: 0.4s; }
-    .card:nth-child(3) { animation-delay: 0.45s; }
-    .card:nth-child(4) { animation-delay: 0.5s; }
-    .card:nth-child(5) { animation-delay: 0.55s; }
-    .card:nth-child(6) { animation-delay: 0.6s; }
-    .card:nth-child(7) { animation-delay: 0.65s; }
-    .card:nth-child(8) { animation-delay: 0.7s; }
-    .card:nth-child(9) { animation-delay: 0.75s; }
+    /* ---- ANIMATIONS ---- */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero-content > * {
+      animation: fadeUp 0.6s ease-out both;
+    }
+    .hero-content > *:nth-child(1) { animation-delay: 0s; }
+    .hero-content > *:nth-child(2) { animation-delay: 0.08s; }
+    .hero-content > *:nth-child(3) { animation-delay: 0.16s; }
+    .hero-content > *:nth-child(4) { animation-delay: 0.24s; }
+    .card {
+      animation: fadeUp 0.5s ease-out both;
+    }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.15s; }
+    .card:nth-child(3) { animation-delay: 0.2s; }
+    .card:nth-child(4) { animation-delay: 0.25s; }
+    .card:nth-child(5) { animation-delay: 0.3s; }
+    .card:nth-child(6) { animation-delay: 0.35s; }
+    .card:nth-child(7) { animation-delay: 0.4s; }
+    .card:nth-child(8) { animation-delay: 0.45s; }
+    .card:nth-child(9) { animation-delay: 0.5s; }
 
+    /* ---- RESPONSIVE ---- */
     @media (max-width: 768px) {
-      .topbar {
-        flex-wrap: wrap;
+      nav {
         height: auto;
-        padding: 0.6rem clamp(0.75rem, 3vw, 1.5rem);
-        gap: 0.5rem;
+        padding: 12px 20px;
+        flex-wrap: wrap;
+        gap: 10px;
       }
-      .topbar-left { flex: 0 0 auto; }
-      .topbar-sep, .topbar-subtitle { display: none; }
-      .topbar-right {
+      .nav-links { display: none; }
+      .nav-right {
         flex: 1 1 100%;
         order: 3;
-        gap: 0.5rem;
+        gap: 8px;
+        flex-wrap: wrap;
       }
-      .topbar-right .user-select-wrap { flex: 1; min-width: 0; }
-      .topbar-right .user-select { min-width: 0; width: 100%; max-width: none; font-size: 0.7rem; }
-      .gh-btn { flex-shrink: 0; padding: 0.35rem 0.5rem; }
-      .gh-btn span.gh-label { display: none; }
-      .pipeline-step { font-size: 0.65rem; padding: 0.5rem 0.4rem; }
+      .nav-select-wrap { flex: 1; min-width: 0; }
+      .nav-select { min-width: 0; width: 100%; max-width: none; font-size: 11px; }
+      .hero { margin-top: 100px; min-height: 420px; }
+      .hero-content { padding: 48px 20px 40px; }
+      .hero h1 { font-size: 36px; }
+      .pipeline-section { padding: 0 20px 40px; }
+      .pipeline-step { font-size: 10px; padding: 10px 6px; }
       .pipeline-step .step-num { display: none; }
-      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .verticals-section { padding: 40px 20px 60px; }
+      .footer-top { flex-direction: column; }
+      footer { padding: 40px 20px 32px; }
     }
-    @media (max-width: 420px) {
-      .topbar-right { flex-wrap: wrap; }
-      .topbar-right .user-select-wrap { flex: 1 1 calc(50% - 0.25rem); }
-      .gh-btn { display: none; }
-      .user-select-label { font-size: 0.65rem; }
+    @media (max-width: 480px) {
+      .nav-right .nav-select-wrap { flex: 1 1 calc(50% - 4px); }
+      .nav-cta { display: none; }
+      .hero h1 { font-size: 28px; }
+      .footer-bottom { flex-direction: column; text-align: center; }
     }
   </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <div class="topbar-left">
-      <div class="topbar-logo">D</div>
-      <span class="topbar-title">Event-Driven Devin</span>
-      <span class="topbar-sep">/</span>
-      <span class="topbar-subtitle">Industry Demos</span>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-left">
+      <a href="/" class="nav-logo">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.7"/>
+          <circle cx="24" cy="8" r="3" fill="currentColor" opacity="0.7"/>
+          <circle cx="8" cy="24" r="3" fill="currentColor" opacity="0.7"/>
+          <circle cx="24" cy="24" r="3" fill="currentColor" opacity="0.7"/>
+          <circle cx="16" cy="16" r="4" fill="currentColor"/>
+          <line x1="11" y1="8" x2="21" y2="8" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="11" y1="24" x2="21" y2="24" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="8" y1="11" x2="8" y2="21" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="24" y1="11" x2="24" y2="21" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="22" y1="10" x2="18" y2="14" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="10" y1="22" x2="14" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+          <line x1="22" y1="22" x2="18" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        </svg>
+        <span class="nav-logo-text">Event-Driven Devin</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="https://devin.ai" target="_blank" rel="noopener">devin</a></li>
+        <li><a href="https://cognition.ai" target="_blank" rel="noopener">cognition</a></li>
+        <li><a href="https://github.com/COG-GTM/event-driven-devin" id="ghNavLink" target="_blank" rel="noopener">github</a></li>
+      </ul>
     </div>
-    <div class="topbar-right">
-      <div class="user-select-wrap">
-        <span class="user-select-label">Org:</span>
-        <select id="orgSelect" class="user-select">
-          <option value="">Loading orgs…</option>
+    <div class="nav-right">
+      <div class="nav-select-wrap">
+        <span class="nav-select-label">Org</span>
+        <select id="orgSelect" class="nav-select">
+          <option value="">Loading orgs...</option>
         </select>
       </div>
-      <div class="user-select-wrap">
-        <span class="user-select-label">User:</span>
-        <select id="userSelect" class="user-select">
+      <div class="nav-select-wrap">
+        <span class="nav-select-label">User</span>
+        <select id="userSelect" class="nav-select">
           <option value="">Select org first</option>
         </select>
       </div>
-      <a href="https://github.com/COG-GTM/event-driven-devin" class="gh-btn" target="_blank" rel="noopener">
+      <a href="https://github.com/COG-GTM/event-driven-devin" class="nav-cta" id="ghCta" target="_blank" rel="noopener">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        <span class="gh-label">GitHub</span>
+        GitHub
       </a>
     </div>
-  </div>
+  </nav>
 
+  <!-- HERO -->
   <section class="hero">
-    <div class="hero-badge">
-      <span class="hero-badge-dot"></span>
-      9 verticals live
+    <div class="hero-ascii" aria-hidden="true">
+      <div class="hero-ascii-inner" id="asciiArt"></div>
     </div>
-    <h1>Automated incident<br>response, <em>demonstrated</em></h1>
-    <p class="hero-desc">Pick an industry vertical, trigger a realistic bug, and watch Devin investigate the error, trace root cause, and submit a fix.</p>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-label">[ EVENT-DRIVEN DEVIN ]</span>
+      </div>
+      <h1>AUTOMATED INCIDENT<br>RESPONSE, <span class="bracket">[</span>&nbsp;<span class="highlight">DEVIN</span>&nbsp;<span class="bracket">]</span></h1>
+      <p class="hero-sub">The AI software engineer</p>
+      <div class="hero-buttons">
+        <a href="#verticals" class="hero-btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+          explore demos
+        </a>
+        <a href="https://devin.ai" class="hero-btn-secondary" target="_blank" rel="noopener">
+          learn more about devin
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        </a>
+      </div>
+    </div>
   </section>
 
-  <div class="pipeline">
+  <!-- PIPELINE -->
+  <div class="pipeline-section">
     <div class="pipeline-label">How it works</div>
     <div class="pipeline-track">
       <div class="pipeline-step"><span class="step-num">1</span> Trigger Error</div>
@@ -407,7 +601,8 @@
     </div>
   </div>
 
-  <section class="section">
+  <!-- VERTICALS -->
+  <section class="verticals-section" id="verticals">
     <div class="section-header">
       <span class="section-title">Verticals</span>
       <span class="section-count">9 demos</span>
@@ -562,27 +757,77 @@
     </div>
   </section>
 
+  <!-- FOOTER -->
   <footer>
-    <div class="footer-inner">
-      <div class="footer-left">Event-Driven Devin &copy; 2026</div>
-      <div class="footer-links">
-        <a href="https://github.com/COG-GTM/event-driven-devin" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a>
-        <a href="https://cognition.ai" target="_blank" rel="noopener">Cognition</a>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>TRIGGER. DETECT.<br><span class="bracket">[</span>&nbsp;<span class="highlight">DEVIN</span>&nbsp;FIXES&nbsp;<span class="bracket">]</span></h3>
+        <p class="footer-brand-sub">The AI software engineer</p>
+        <div class="footer-buttons">
+          <a href="#verticals" class="footer-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+            explore demos
+          </a>
+          <a href="https://devin.ai" class="footer-btn" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+            learn about devin
+          </a>
+        </div>
+      </div>
+      <div class="footer-links-row">
+        <div class="footer-link-group">
+          <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a>
+          <a href="https://cognition.ai" target="_blank" rel="noopener">Cognition</a>
+          <a href="https://github.com/COG-GTM/event-driven-devin" id="ghFooterLink" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <div class="footer-link-group">
+          <a href="https://docs.devin.ai" target="_blank" rel="noopener">Documentation</a>
+          <a href="https://devin.ai/pricing" target="_blank" rel="noopener">Pricing</a>
+          <a href="https://devin.ai/enterprise" target="_blank" rel="noopener">Enterprise</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">Event-Driven Devin &copy; 2026</span>
+      <div class="footer-socials">
+        <span>Follow us on:</span>
+        <a href="https://www.linkedin.com/company/cognition-ai-labs" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://x.com/cognition_labs" target="_blank" rel="noopener">X</a>
       </div>
     </div>
   </footer>
 
   <script>
     (function () {
+      // Generate ASCII art background
+      var chars = '+@#%*=-.:';
+      var ascii = '';
+      for (var i = 0; i < 80; i++) {
+        var line = '';
+        for (var j = 0; j < 200; j++) {
+          line += Math.random() > 0.6 ? chars[Math.floor(Math.random() * chars.length)] : ' ';
+        }
+        ascii += line + '\n';
+      }
+      var el = document.getElementById('asciiArt');
+      if (el) el.textContent = ascii;
+
+      // Nav scroll shadow
+      window.addEventListener('scroll', function () {
+        var navEl = document.querySelector('nav');
+        if (navEl) {
+          navEl.classList.toggle('scrolled', window.scrollY > 10);
+        }
+      });
+
       var orgSel = document.getElementById('orgSelect');
       var userSel = document.getElementById('userSelect');
-      var orgWrap = orgSel.closest('.user-select-wrap');
-      var userWrap = userSel.closest('.user-select-wrap');
+      var orgWrap = orgSel.closest('.nav-select-wrap');
+      var userWrap = userSel.closest('.nav-select-wrap');
 
       /* ---- helpers ---- */
       function loadUsers(orgId) {
-        userSel.innerHTML = '<option value="">Loading users…</option>';
+        userSel.innerHTML = '<option value="">Loading users...</option>';
         var url = '/api/devin/users' + (orgId ? '?orgId=' + encodeURIComponent(orgId) : '');
         fetch(url)
           .then(function (r) { return r.json(); })
@@ -667,8 +912,8 @@
         .then(function (cfg) {
           // Update page title if customized
           if (cfg.appTitle && cfg.appTitle !== 'Event-Driven Devin') {
-            document.querySelector('.topbar-title').textContent = cfg.appTitle;
-            document.querySelector('.footer-left').textContent = cfg.appTitle + ' \u00A9 2026';
+            document.querySelector('.nav-logo-text').textContent = cfg.appTitle;
+            document.querySelector('.footer-copy').textContent = cfg.appTitle + ' \u00A9 2026';
           }
 
           // Update GitHub links to point to correct org
@@ -688,7 +933,7 @@
               userWrap.style.display = 'none';
               localStorage.setItem('devinUserId', cfg.defaultUserId);
             } else {
-              // Org locked but user selectable — load users for locked org
+              // Org locked but user selectable
               loadUsers(cfg.defaultOrgId);
             }
           } else {
