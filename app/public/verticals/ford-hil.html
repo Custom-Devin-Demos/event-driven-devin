@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ford Motor Company &mdash; HIL Testing Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ford-blue: #003478;
+      --ford-blue-light: #1a73e8;
+      --ford-dark: #0a0f1a;
+      --panel-bg: #111827;
+      --panel-border: #1f2937;
+      --cell-bg: #1a2332;
+      --text: #d1d5db;
+      --text-bright: #f3f4f6;
+      --text-dim: #6b7280;
+      --pass-green: #22c55e;
+      --pass-dim: rgba(34,197,94,0.08);
+      --fail-red: #ef4444;
+      --fail-dim: rgba(239,68,68,0.08);
+      --fail-border: rgba(239,68,68,0.25);
+      --warn-amber: #f59e0b;
+      --warn-dim: rgba(245,158,11,0.08);
+      --running-blue: #3b82f6;
+      --running-dim: rgba(59,130,246,0.08);
+      --sans: 'Inter', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--ford-dark); color: var(--text); line-height: 1.5; -webkit-font-smoothing: antialiased; font-size: 13px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.3s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; } .fi5 { animation-delay: 0.25s; }
+
+    .brand-bar { background: var(--ford-blue); height: 3px; }
+    header { background: var(--panel-bg); border-bottom: 1px solid var(--panel-border); padding: 0 1.5rem; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .ford-oval { width: 36px; height: 14px; border: 1.5px solid #c0c0c0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .ford-oval span { font-family: 'Georgia', serif; font-size: 8px; font-style: italic; color: #e0e0e0; font-weight: 700; letter-spacing: 0.5px; }
+    .logo-text { font-size: 0.85rem; font-weight: 600; color: var(--text-bright); letter-spacing: 0.02em; }
+    .logo-divider { width: 1px; height: 20px; background: var(--panel-border); }
+    .logo-sub { font-size: 0.7rem; font-weight: 500; color: var(--ford-blue-light); text-transform: uppercase; letter-spacing: 0.08em; }
+    nav { display: flex; gap: 0.1rem; }
+    nav a { color: var(--text-dim); text-decoration: none; font-size: 0.78rem; font-weight: 500; padding: 0.4rem 0.75rem; transition: all 0.15s; border-radius: 4px; }
+    nav a:hover { color: var(--text-bright); background: var(--cell-bg); }
+    nav a.active { color: var(--ford-blue-light); background: rgba(26,115,232,0.08); }
+    .env-badge { font-family: var(--mono); font-size: 10px; color: var(--pass-green); background: var(--pass-dim); border: 1px solid rgba(34,197,94,0.2); padding: 0.15rem 0.5rem; border-radius: 3px; }
+
+    .page { max-width: 1280px; margin: 0 auto; padding: 1.25rem 1.5rem; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-dim); text-decoration: none; font-size: 0.72rem; font-weight: 500; margin-bottom: 0.75rem; opacity: 0.7; transition: opacity 0.15s; }
+    .back-link:hover { opacity: 1; color: var(--ford-blue-light); }
+
+    .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--panel-border); }
+    .dash-header h1 { font-size: 1.15rem; font-weight: 700; color: var(--text-bright); }
+    .dash-header .meta { font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-align: right; }
+    .dash-header .meta .run-id { color: var(--ford-blue-light); }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 1.25rem; }
+    @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+    .kpi { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 0.75rem 1rem; }
+    .kpi-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.25rem; }
+    .kpi-value { font-family: var(--mono); font-size: 1.4rem; color: var(--text-bright); font-weight: 600; }
+    .kpi-unit { font-family: var(--mono); font-size: 0.6rem; color: var(--text-dim); margin-left: 2px; }
+    .kpi.pass .kpi-value { color: var(--pass-green); }
+    .kpi.fail .kpi-value { color: var(--fail-red); }
+    .kpi.warn .kpi-value { color: var(--warn-amber); }
+    .kpi-bar { height: 3px; background: #1f2937; margin-top: 0.4rem; border-radius: 2px; overflow: hidden; }
+    .kpi-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+    .kpi.pass .kpi-fill { background: var(--pass-green); }
+    .kpi.fail .kpi-fill { background: var(--fail-red); }
+    .kpi.warn .kpi-fill { background: var(--warn-amber); }
+    .kpi-fill.neutral { background: var(--ford-blue-light); }
+
+    .section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ford-blue-light); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+    .section-label::before { content: ''; width: 3px; height: 12px; background: var(--ford-blue-light); border-radius: 1px; }
+
+    .test-table { width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; }
+    .test-table th { text-align: left; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--panel-border); background: var(--panel-bg); }
+    .test-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(31,41,55,0.5); font-size: 0.8rem; }
+    .test-table tr:hover td { background: rgba(26,115,232,0.03); }
+    .test-table .mono { font-family: var(--mono); font-size: 0.72rem; }
+    .badge { display: inline-block; padding: 0.1rem 0.45rem; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 3px; }
+    .badge.pass { background: var(--pass-dim); color: var(--pass-green); border: 1px solid rgba(34,197,94,0.2); }
+    .badge.fail { background: var(--fail-dim); color: var(--fail-red); border: 1px solid var(--fail-border); }
+    .badge.running { background: var(--running-dim); color: var(--running-blue); border: 1px solid rgba(59,130,246,0.2); }
+    .badge.skip { background: var(--warn-dim); color: var(--warn-amber); border: 1px solid rgba(245,158,11,0.2); }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem; }
+    @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+
+    .pipeline-card { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 1rem; }
+    .pipeline-card h3 { font-size: 0.8rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.75rem; }
+    .pipeline-step { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0; font-size: 0.78rem; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .step-dot.pass { background: var(--pass-green); }
+    .step-dot.fail { background: var(--fail-red); }
+    .step-dot.running { background: var(--running-blue); animation: pulse 1.5s infinite; }
+    .step-dot.pending { background: var(--text-dim); opacity: 0.4; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .step-name { flex: 1; }
+    .step-dur { font-family: var(--mono); font-size: 0.65rem; color: var(--text-dim); }
+
+    .ecu-list { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 1rem; }
+    .ecu-list h3 { font-size: 0.8rem; font-weight: 700; color: var(--text-bright); margin-bottom: 0.75rem; }
+    .ecu-item { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(31,41,55,0.4); font-size: 0.78rem; }
+    .ecu-item:last-child { border-bottom: none; }
+    .ecu-name { font-weight: 500; color: var(--text-bright); }
+    .ecu-ver { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+
+    .rerun-card { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 1.25rem; max-width: 560px; }
+    .rerun-card h2 { font-size: 0.9rem; font-weight: 700; color: var(--text-bright); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group label { display: block; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.2rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.5rem 0.6rem; background: var(--cell-bg); border: 1px solid var(--panel-border); color: var(--text); font-family: var(--mono); font-size: 12px; border-radius: 3px; transition: border-color 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--ford-blue-light); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .btn-rerun { width: 100%; padding: 0.6rem; background: var(--ford-blue); color: #fff; border: none; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em; cursor: pointer; border-radius: 3px; transition: all 0.15s; }
+    .btn-rerun:hover { background: #00408f; }
+    .btn-rerun:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-box { margin-top: 0.6rem; padding: 0.6rem 0.75rem; font-family: var(--mono); font-size: 11px; display: none; border-radius: 3px; }
+    .result-box.error { display: block; background: var(--fail-dim); border: 1px solid var(--fail-border); color: var(--fail-red); }
+    .result-box.success { display: block; background: var(--pass-dim); border: 1px solid rgba(34,197,94,0.2); color: var(--pass-green); }
+    .result-box .error-title { font-weight: 600; margin-bottom: 0.15rem; }
+    .result-box .error-detail { font-size: 10px; opacity: 0.85; word-break: break-all; }
+
+    .fail-banner { background: var(--fail-dim); border: 1px solid var(--fail-border); padding: 0.6rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; border-radius: 3px; }
+    .fail-banner .icon { font-size: 1rem; }
+    .fail-banner .msg { font-size: 0.78rem; color: var(--fail-red); }
+    .fail-banner .msg strong { color: var(--text-bright); }
+    .fail-banner .ts { font-family: var(--mono); font-size: 0.65rem; color: var(--text-dim); margin-left: auto; }
+
+    footer { margin-top: 1.5rem; padding: 0.75rem 1.5rem; border-top: 1px solid var(--panel-border); text-align: center; }
+    footer .copy { font-size: 0.65rem; color: var(--text-dim); }
+    footer .copy a { color: var(--ford-blue-light); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="brand-bar"></div>
+  <header>
+    <div class="logo">
+      <div class="ford-oval"><span>Ford</span></div>
+      <span class="logo-text">Ford Motor Company</span>
+      <div class="logo-divider"></div>
+      <span class="logo-sub">HIL Test Platform</span>
+    </div>
+    <nav>
+      <a href="#" class="active">Dashboard</a>
+      <a href="#">Test Suites</a>
+      <a href="#">ECU Manager</a>
+      <a href="#">CI/CD Pipeline</a>
+      <a href="#">Reports</a>
+    </nav>
+    <div class="env-badge">PROD &middot; DEARBORN-HIL-04</div>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+
+    <div class="fail-banner fi fi1">
+      <div class="icon">&#9888;</div>
+      <div class="msg"><strong>Nightly HIL Run Failed</strong> &mdash; 1 test failure detected in ADAS Sensor Fusion suite. Investigation required.</div>
+      <div class="ts">2026-03-23 03:14:22 UTC</div>
+    </div>
+
+    <div class="dash-header fi fi1">
+      <div>
+        <h1>Nightly HIL Test Results</h1>
+      </div>
+      <div class="meta">
+        Run <span class="run-id">#NIG-20260323-0042</span><br>
+        Target: F-150 Gen4 PCM &middot; Bench DEARBORN-HIL-04
+      </div>
+    </div>
+
+    <div class="kpi-row fi fi2">
+      <div class="kpi pass"><div class="kpi-label">Total Tests</div><div class="kpi-value">847</div><div class="kpi-bar"><div class="kpi-fill neutral" style="width:100%"></div></div></div>
+      <div class="kpi pass"><div class="kpi-label">Passed</div><div class="kpi-value">839</div><div class="kpi-unit">/ 847</div><div class="kpi-bar"><div class="kpi-fill" style="width:99%"></div></div></div>
+      <div class="kpi fail"><div class="kpi-label">Failed</div><div class="kpi-value">1</div><div class="kpi-bar"><div class="kpi-fill" style="width:5%"></div></div></div>
+      <div class="kpi warn"><div class="kpi-label">Skipped</div><div class="kpi-value">7</div><div class="kpi-bar"><div class="kpi-fill" style="width:8%"></div></div></div>
+      <div class="kpi"><div class="kpi-label">Duration</div><div class="kpi-value">4h 12m</div><div class="kpi-bar"><div class="kpi-fill neutral" style="width:70%"></div></div></div>
+    </div>
+
+    <div class="fi fi3">
+      <div class="section-label">Test Suite Results</div>
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th>Test ID</th>
+            <th>Suite</th>
+            <th>Test Name</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>ECU Module</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">HIL-PCM-001</td>
+            <td>Powertrain Control</td>
+            <td>Engine idle stability at operating temp</td>
+            <td><span class="badge pass">PASS</span></td>
+            <td class="mono">12.4s</td>
+            <td class="mono">PCM_v8.3.1</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-PCM-002</td>
+            <td>Powertrain Control</td>
+            <td>Torque request arbitration under load</td>
+            <td><span class="badge pass">PASS</span></td>
+            <td class="mono">18.7s</td>
+            <td class="mono">PCM_v8.3.1</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-TCM-014</td>
+            <td>Transmission</td>
+            <td>Shift schedule verification (D mode)</td>
+            <td><span class="badge pass">PASS</span></td>
+            <td class="mono">34.2s</td>
+            <td class="mono">TCM_v5.1.0</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-ADAS-031</td>
+            <td>ADAS Sensor Fusion</td>
+            <td>Radar+Camera object correlation (75mph)</td>
+            <td><span class="badge fail">FAIL</span></td>
+            <td class="mono">45.8s</td>
+            <td class="mono">ADAS_v12.0.4</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-ADAS-032</td>
+            <td>ADAS Sensor Fusion</td>
+            <td>Lane departure warning calibration</td>
+            <td><span class="badge pass">PASS</span></td>
+            <td class="mono">22.1s</td>
+            <td class="mono">ADAS_v12.0.4</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-BMS-008</td>
+            <td>Battery Management</td>
+            <td>Cell balancing during fast charge</td>
+            <td><span class="badge pass">PASS</span></td>
+            <td class="mono">58.3s</td>
+            <td class="mono">BMS_v3.2.7</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-BCM-019</td>
+            <td>Body Control</td>
+            <td>CAN bus wake/sleep cycle timing</td>
+            <td><span class="badge pass">PASS</span></td>
+            <td class="mono">8.9s</td>
+            <td class="mono">BCM_v6.0.2</td>
+          </tr>
+          <tr>
+            <td class="mono">HIL-EPS-005</td>
+            <td>Steering</td>
+            <td>EPS torque assist curve validation</td>
+            <td><span class="badge skip">SKIP</span></td>
+            <td class="mono">&mdash;</td>
+            <td class="mono">EPS_v4.1.3</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="two-col fi fi4">
+      <div class="pipeline-card">
+        <h3>CI/CD Pipeline &mdash; HIL Nightly</h3>
+        <div class="pipeline-step"><div class="step-dot pass"></div><span class="step-name">Checkout &amp; Build Firmware</span><span class="step-dur">3m 22s</span></div>
+        <div class="pipeline-step"><div class="step-dot pass"></div><span class="step-name">Flash ECU Targets</span><span class="step-dur">8m 45s</span></div>
+        <div class="pipeline-step"><div class="step-dot pass"></div><span class="step-name">HIL Bench Initialization</span><span class="step-dur">1m 12s</span></div>
+        <div class="pipeline-step"><div class="step-dot pass"></div><span class="step-name">Execute Test Suites</span><span class="step-dur">4h 12m</span></div>
+        <div class="pipeline-step"><div class="step-dot fail"></div><span class="step-name">Validate Results (1 failure)</span><span class="step-dur">0m 08s</span></div>
+        <div class="pipeline-step"><div class="step-dot pending"></div><span class="step-name">Generate Coverage Report</span><span class="step-dur">&mdash;</span></div>
+        <div class="pipeline-step"><div class="step-dot pending"></div><span class="step-name">Archive Artifacts</span><span class="step-dur">&mdash;</span></div>
+      </div>
+      <div class="ecu-list">
+        <h3>ECU Modules Under Test</h3>
+        <div class="ecu-item"><span class="ecu-name">Powertrain Control Module (PCM)</span><span class="ecu-ver">v8.3.1-rc4</span></div>
+        <div class="ecu-item"><span class="ecu-name">Transmission Control Module (TCM)</span><span class="ecu-ver">v5.1.0</span></div>
+        <div class="ecu-item"><span class="ecu-name">ADAS Domain Controller</span><span class="ecu-ver">v12.0.4-nightly</span></div>
+        <div class="ecu-item"><span class="ecu-name">Battery Management System (BMS)</span><span class="ecu-ver">v3.2.7</span></div>
+        <div class="ecu-item"><span class="ecu-name">Body Control Module (BCM)</span><span class="ecu-ver">v6.0.2</span></div>
+        <div class="ecu-item"><span class="ecu-name">Electric Power Steering (EPS)</span><span class="ecu-ver">v4.1.3</span></div>
+        <div class="ecu-item"><span class="ecu-name">Instrument Cluster (IC)</span><span class="ecu-ver">v2.8.0</span></div>
+        <div class="ecu-item"><span class="ecu-name">Gateway Module (GWM)</span><span class="ecu-ver">v1.4.5</span></div>
+      </div>
+    </div>
+
+    <div class="fi fi5">
+      <div class="section-label">Re-Run Failed Test</div>
+      <div class="rerun-card">
+        <h2>&#9654; HIL Test Re-Execution</h2>
+        <form id="rerunForm">
+          <div class="form-group">
+            <label>Failed Test</label>
+            <select id="testId">
+              <option value="HIL-ADAS-031">HIL-ADAS-031 &mdash; Radar+Camera object correlation (75mph)</option>
+              <option value="HIL-PCM-001">HIL-PCM-001 &mdash; Engine idle stability at operating temp</option>
+              <option value="HIL-TCM-014">HIL-TCM-014 &mdash; Shift schedule verification (D mode)</option>
+              <option value="HIL-BMS-008">HIL-BMS-008 &mdash; Cell balancing during fast charge</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>ECU Target</label>
+              <select id="ecuTarget">
+                <option value="ADAS_v12.0.4">ADAS Domain Controller v12.0.4</option>
+                <option value="PCM_v8.3.1">PCM v8.3.1-rc4</option>
+                <option value="TCM_v5.1.0">TCM v5.1.0</option>
+                <option value="BMS_v3.2.7">BMS v3.2.7</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Signal Profile</label>
+              <select id="signalProfile">
+                <option value="highway_75mph">Highway &mdash; 75 mph</option>
+                <option value="urban_35mph">Urban &mdash; 35 mph</option>
+                <option value="parking_5mph">Parking &mdash; 5 mph</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Sensor Sampling Rate (Hz)</label>
+            <input type="number" id="sampleRate" value="200" min="50" max="1000" step="50">
+          </div>
+          <button type="submit" class="btn-rerun" id="submitBtn">Re-Run Test on HIL Bench</button>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="copy">&copy; 2026 Ford Motor Company &mdash; HIL Test Platform v4.2.1 &middot; Dearborn Proving Grounds &middot; <a href="#">System Status</a></div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('rerunForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'EXECUTING TEST...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/ford-hil/rerun', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            testId: document.getElementById('testId').value,
+            ecuTarget: document.getElementById('ecuTarget').value,
+            signalProfile: document.getElementById('signalProfile').value,
+            sampleRate: parseInt(document.getElementById('sampleRate').value, 10),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">TEST EXECUTION FAILED</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">TEST COMPLETE</div><div class="error-detail">Test ' + data.testId + ' completed in ' + data.duration + ' &mdash; Result: ' + data.verdict + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">SYSTEM ERROR</div><div class="error-detail">' + err.message + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Re-Run Test on HIL Bench';
+      }
+    });
+  </script>
+</body>
+</html>
