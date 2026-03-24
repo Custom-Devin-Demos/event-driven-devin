@@ -1,5 +1,5 @@
 const express = require('express');
-const { listEnterpriseOrgs, listOrgUsers } = require('../services/devin-api');
+const { listEnterpriseOrgs, listOrgUsers, listEnterpriseAdmins } = require('../services/devin-api');
 
 const router = express.Router();
 
@@ -65,7 +65,28 @@ router.get('/api/devin/users', async (req, res) => {
       return res.json({ users: cached.users });
     }
 
-    const users = await listOrgUsers(orgId || undefined);
+    // Fetch org members and enterprise admins in parallel, then merge
+    const [orgUsers, admins] = await Promise.all([
+      listOrgUsers(orgId || undefined),
+      listEnterpriseAdmins(),
+    ]);
+
+    // Build a map keyed by user_id so enterprise admins that are already
+    // org members appear only once (with the admin flag attached).
+    const userMap = new Map();
+    orgUsers.forEach((u) => {
+      userMap.set(u.user_id, { ...u, is_enterprise_admin: false });
+    });
+    admins.forEach((a) => {
+      if (userMap.has(a.user_id)) {
+        // User is already an org member — just flag them as an admin
+        userMap.get(a.user_id).is_enterprise_admin = true;
+      } else {
+        userMap.set(a.user_id, { ...a, is_enterprise_admin: true });
+      }
+    });
+
+    const users = Array.from(userMap.values());
     usersCacheByOrg.set(cacheKey, { users, expiry: now + 5 * 60 * 1000 });
 
     return res.json({ users });
