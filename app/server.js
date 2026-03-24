@@ -105,7 +105,7 @@ app.use((err, req, res, _next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   logger.info('Acme Commerce API started', {
     port: PORT,
     version: process.env.DD_VERSION || process.env.APP_VERSION || '1.0.0',
@@ -146,5 +146,28 @@ app.listen(PORT, () => {
   ╚══════════════════════════════════════════════╝
   `);
 });
+
+// ── Graceful shutdown (zero-downtime deploys) ────────────────────
+// When Docker sends SIGTERM, stop accepting new connections and let
+// in-flight requests finish before the process exits.
+function gracefulShutdown(signal) {
+  logger.info(`${signal} received — draining connections`, {
+    service: process.env.DD_SERVICE || 'checkout-api',
+  });
+
+  server.close(() => {
+    logger.info('All connections drained — exiting');
+    process.exit(0);
+  });
+
+  // Force exit if draining takes longer than 10s (Docker stop_grace_period is 15s)
+  setTimeout(() => {
+    logger.warn('Graceful shutdown timed out — forcing exit');
+    process.exit(1);
+  }, 10000).unref();
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 module.exports = app;

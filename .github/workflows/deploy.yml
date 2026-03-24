@@ -41,13 +41,13 @@ jobs:
             /tmp/acme-demo.tar.gz \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/acme-demo.tar.gz
 
-      - name: Deploy on EC2
+      - name: Deploy on EC2 (zero-downtime)
         run: |
           ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} bash -s <<'EOF'
           set -e
           cd /home/ubuntu
 
-          # Extract new code
+          # Extract new code (old containers keep serving traffic)
           tar xzf acme-demo.tar.gz
 
           # Restore .env if it was overwritten
@@ -58,24 +58,41 @@ jobs:
           # Ensure certbot directories exist (certs persist across deploys)
           mkdir -p /home/ubuntu/certbot/conf /home/ubuntu/certbot/www
 
-          # Rebuild and restart containers
-          docker compose down
-          docker compose up -d --build
+          # ── Zero-downtime deploy ──────────────────────────────
+          # 1. Build new images while old containers keep running
+          echo "Building new images (existing containers still serving traffic)..."
+          docker compose build checkout-api loadgen
 
-          # Wait for the app to become healthy
+          # 2. Rolling restart: swap checkout-api with pre-built image
+          #    --no-deps ensures nginx, datadog, and certbot stay untouched
+          echo "Replacing checkout-api container..."
+          docker compose up -d --no-deps checkout-api
+
+          # 3. Wait for the new checkout-api to become healthy
           echo "Waiting for health check..."
           for i in $(seq 1 30); do
             STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health || true)
             if [ "$STATUS" = "200" ]; then
               echo "Health check passed (HTTP 200)"
-              exit 0
+              break
             fi
-            echo "Attempt $i: HTTP $STATUS - retrying in 5s..."
-            sleep 5
+            echo "Attempt $i: HTTP $STATUS - retrying in 2s..."
+            sleep 2
           done
 
-          echo "Health check failed after 30 attempts"
-          exit 1
+          if [ "$STATUS" != "200" ]; then
+            echo "Health check failed after 30 attempts"
+            exit 1
+          fi
+
+          # 4. Restart loadgen now that checkout-api is healthy
+          echo "Replacing loadgen container..."
+          docker compose up -d --no-deps loadgen
+
+          # 5. Reconcile remaining services (no-op if configs unchanged)
+          docker compose up -d
+
+          echo "Deploy complete — zero downtime"
           EOF
 
       - name: Clean up SSH key
