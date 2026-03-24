@@ -57,11 +57,14 @@ services:
     depends_on:
       - datadog-agent
     restart: unless-stopped
+    # Allow in-flight requests to drain before the container is killed
+    stop_grace_period: 15s
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 3
+      start_period: 10s
 
   # ─── Nginx Reverse Proxy (SSL termination) ────────────
   nginx:
