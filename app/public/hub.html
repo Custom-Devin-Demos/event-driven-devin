@@ -85,26 +85,99 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .nav-select {
-      appearance: none; -webkit-appearance: none;
+    /* ---- SEARCHABLE DROPDOWN ---- */
+    .search-dropdown {
+      position: relative;
+      min-width: 150px;
+      max-width: 220px;
+    }
+    .search-dropdown-toggle {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      width: 100%;
       background: #fff;
       border: 1px solid var(--border-light);
       border-radius: 6px;
       color: var(--text-dark);
       font-family: var(--font-sans);
       font-size: 12px; font-weight: 500;
-      padding: 6px 28px 6px 10px;
+      padding: 6px 10px;
       cursor: pointer;
       transition: border-color 0.2s;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 8px center;
-      min-width: 130px;
-      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .nav-select:hover { border-color: rgba(15,19,28,0.2); }
-    .nav-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,138,255,0.15); }
-    .nav-select option { background: #fff; color: var(--text-dark); }
+    .search-dropdown-toggle:hover { border-color: rgba(15,19,28,0.2); }
+    .search-dropdown-toggle.open { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,138,255,0.15); }
+    .search-dropdown-toggle svg { width: 10px; height: 10px; flex-shrink: 0; }
+    .search-dropdown-panel {
+      display: none;
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 1000;
+      min-width: 220px;
+      max-height: 320px;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+    }
+    .search-dropdown-panel.open { display: flex; }
+    .search-dropdown-search {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+    }
+    .search-dropdown-search input {
+      width: 100%;
+      border: 1px solid var(--border-light);
+      border-radius: 5px;
+      padding: 6px 8px;
+      font-family: var(--font-sans);
+      font-size: 12px;
+      outline: none;
+      color: var(--text-dark);
+      transition: border-color 0.2s;
+    }
+    .search-dropdown-search input:focus { border-color: var(--accent); }
+    .search-dropdown-search input::placeholder { color: var(--text-muted); }
+    .search-dropdown-list {
+      overflow-y: auto;
+      max-height: 240px;
+      padding: 4px 0;
+    }
+    .search-dropdown-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 12px;
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 400;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-dropdown-item:hover { background: rgba(124,138,255,0.06); }
+    .search-dropdown-item.selected { font-weight: 600; color: var(--accent); }
+    .search-dropdown-item .admin-badge {
+      font-size: 9px; font-weight: 600;
+      padding: 1px 5px; border-radius: 3px;
+      background: rgba(124,138,255,0.1);
+      color: var(--accent);
+      margin-left: 6px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .search-dropdown-empty {
+      padding: 16px 12px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
     .nav-cta {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 20px;
@@ -546,17 +619,35 @@
       </ul>
     </div>
     <div class="nav-right">
-      <div class="nav-select-wrap">
+      <div class="nav-select-wrap" id="orgWrap">
         <span class="nav-select-label">Org</span>
-        <select id="orgSelect" class="nav-select">
-          <option value="">Loading orgs...</option>
-        </select>
+        <div class="search-dropdown" id="orgDropdown">
+          <button type="button" class="search-dropdown-toggle" id="orgToggle">
+            <span>Loading orgs...</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="search-dropdown-panel" id="orgPanel">
+            <div class="search-dropdown-search">
+              <input type="text" id="orgSearchInput" placeholder="Search orgs..." autocomplete="off" />
+            </div>
+            <div class="search-dropdown-list" id="orgList"></div>
+          </div>
+        </div>
       </div>
-      <div class="nav-select-wrap">
+      <div class="nav-select-wrap" id="userWrap">
         <span class="nav-select-label">User</span>
-        <select id="userSelect" class="nav-select">
-          <option value="">Select org first</option>
-        </select>
+        <div class="search-dropdown" id="userDropdown">
+          <button type="button" class="search-dropdown-toggle" id="userToggle">
+            <span>Select org first</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="search-dropdown-panel" id="userPanel">
+            <div class="search-dropdown-search">
+              <input type="text" id="userSearchInput" placeholder="Search users..." autocomplete="off" />
+            </div>
+            <div class="search-dropdown-list" id="userList"></div>
+          </div>
+        </div>
       </div>
       <a href="https://github.com/COG-GTM/event-driven-devin" class="nav-cta" id="ghCta" target="_blank" rel="noopener">
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -821,31 +912,184 @@
         }
       });
 
-      var orgSel = document.getElementById('orgSelect');
-      var userSel = document.getElementById('userSelect');
-      var orgWrap = orgSel.closest('.nav-select-wrap');
-      var userWrap = userSel.closest('.nav-select-wrap');
+      var orgWrap = document.getElementById('orgWrap');
+      var userWrap = document.getElementById('userWrap');
+      var orgToggle = document.getElementById('orgToggle');
+      var orgPanel = document.getElementById('orgPanel');
+      var orgSearchInput = document.getElementById('orgSearchInput');
+      var orgListEl = document.getElementById('orgList');
+      var userToggle = document.getElementById('userToggle');
+      var userPanel = document.getElementById('userPanel');
+      var userSearchInput = document.getElementById('userSearchInput');
+      var userListEl = document.getElementById('userList');
 
-      /* ---- helpers ---- */
+      // State
+      var orgItems = [];       // { value, label }
+      var userItems = [];      // { value, label, isAdmin }
+      var selectedOrg = { value: '', label: '' };
+      var selectedUser = { value: '', label: '' };
+
+      /* ---- generic searchable-dropdown helpers ---- */
+      function renderDropdownItems(listEl, items, selectedValue, onSelect) {
+        listEl.innerHTML = '';
+        if (!items.length) {
+          var empty = document.createElement('div');
+          empty.className = 'search-dropdown-empty';
+          empty.textContent = 'No results';
+          listEl.appendChild(empty);
+          return;
+        }
+        items.forEach(function (item) {
+          var div = document.createElement('div');
+          div.className = 'search-dropdown-item' + (item.value === selectedValue ? ' selected' : '');
+          var labelSpan = document.createElement('span');
+          labelSpan.textContent = item.label;
+          div.appendChild(labelSpan);
+          if (item.isAdmin) {
+            var badge = document.createElement('span');
+            badge.className = 'admin-badge';
+            badge.textContent = 'Admin';
+            div.appendChild(badge);
+          }
+          div.addEventListener('click', function () { onSelect(item); });
+          listEl.appendChild(div);
+        });
+      }
+
+      function filterItems(items, query) {
+        if (!query) return items;
+        var q = query.toLowerCase();
+        return items.filter(function (item) {
+          return item.label.toLowerCase().indexOf(q) !== -1;
+        });
+      }
+
+      function openPanel(toggle, panel, searchInput) {
+        toggle.classList.add('open');
+        panel.classList.add('open');
+        searchInput.value = '';
+        setTimeout(function () { searchInput.focus(); }, 0);
+      }
+
+      function closePanel(toggle, panel) {
+        toggle.classList.remove('open');
+        panel.classList.remove('open');
+      }
+
+      function setToggleLabel(toggle, text) {
+        toggle.querySelector('span').textContent = text || '';
+      }
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', function (e) {
+        if (!document.getElementById('orgDropdown').contains(e.target)) {
+          closePanel(orgToggle, orgPanel);
+        }
+        if (!document.getElementById('userDropdown').contains(e.target)) {
+          closePanel(userToggle, userPanel);
+        }
+      });
+
+      /* ---- ORG DROPDOWN ---- */
+      orgToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = orgPanel.classList.contains('open');
+        closePanel(userToggle, userPanel);
+        if (isOpen) {
+          closePanel(orgToggle, orgPanel);
+        } else {
+          openPanel(orgToggle, orgPanel, orgSearchInput);
+          renderDropdownItems(orgListEl, orgItems, selectedOrg.value, selectOrg);
+        }
+      });
+
+      orgSearchInput.addEventListener('input', function () {
+        var filtered = filterItems(orgItems, orgSearchInput.value);
+        renderDropdownItems(orgListEl, filtered, selectedOrg.value, selectOrg);
+      });
+
+      orgSearchInput.addEventListener('click', function (e) { e.stopPropagation(); });
+
+      function selectOrg(item) {
+        selectedOrg = item;
+        setToggleLabel(orgToggle, item.label);
+        closePanel(orgToggle, orgPanel);
+        if (item.value) {
+          localStorage.setItem('devinOrgId', item.value);
+          localStorage.setItem('devinOrgName', item.label);
+        } else {
+          localStorage.removeItem('devinOrgId');
+          localStorage.removeItem('devinOrgName');
+        }
+        localStorage.removeItem('devinUserId');
+        localStorage.removeItem('devinUserName');
+        selectedUser = { value: '', label: '' };
+        loadUsers(item.value);
+      }
+
+      /* ---- USER DROPDOWN ---- */
+      userToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = userPanel.classList.contains('open');
+        closePanel(orgToggle, orgPanel);
+        if (isOpen) {
+          closePanel(userToggle, userPanel);
+        } else {
+          openPanel(userToggle, userPanel, userSearchInput);
+          renderDropdownItems(userListEl, userItems, selectedUser.value, selectUser);
+        }
+      });
+
+      userSearchInput.addEventListener('input', function () {
+        var filtered = filterItems(userItems, userSearchInput.value);
+        renderDropdownItems(userListEl, filtered, selectedUser.value, selectUser);
+      });
+
+      userSearchInput.addEventListener('click', function (e) { e.stopPropagation(); });
+
+      function selectUser(item) {
+        selectedUser = item;
+        setToggleLabel(userToggle, item.label);
+        closePanel(userToggle, userPanel);
+        if (item.value) {
+          localStorage.setItem('devinUserId', item.value);
+          localStorage.setItem('devinUserName', item.label);
+        } else {
+          localStorage.removeItem('devinUserId');
+          localStorage.removeItem('devinUserName');
+        }
+      }
+
+      /* ---- data loaders ---- */
       function loadUsers(orgId) {
-        userSel.innerHTML = '<option value="">Loading users...</option>';
+        setToggleLabel(userToggle, 'Loading users...');
+        userItems = [];
         var url = '/api/devin/users' + (orgId ? '?orgId=' + encodeURIComponent(orgId) : '');
         fetch(url)
           .then(function (r) { return r.json(); })
           .then(function (data) {
             var users = data.users || [];
-            userSel.innerHTML = '<option value="">(service account)</option>';
+            userItems = [{ value: '', label: '(service account)', isAdmin: false }];
             users.forEach(function (u) {
-              var opt = document.createElement('option');
-              opt.value = u.user_id;
-              opt.textContent = u.name || u.email || u.user_id;
-              userSel.appendChild(opt);
+              userItems.push({
+                value: u.user_id,
+                label: u.name || u.email || u.user_id,
+                isAdmin: !!u.is_enterprise_admin,
+              });
             });
             var storedUser = localStorage.getItem('devinUserId');
-            if (storedUser) userSel.value = storedUser;
+            var match = userItems.filter(function (i) { return i.value === storedUser; })[0];
+            if (match) {
+              selectedUser = match;
+            } else {
+              selectedUser = userItems[0];
+            }
+            setToggleLabel(userToggle, selectedUser.label);
           })
           .catch(function () {
-            userSel.innerHTML = '<option value="">(could not load users)</option>';
+            userItems = [{ value: '', label: '(could not load users)', isAdmin: false }];
+            selectedUser = userItems[0];
+            setToggleLabel(userToggle, selectedUser.label);
           });
       }
 
@@ -854,62 +1098,38 @@
           .then(function (r) { return r.json(); })
           .then(function (data) {
             var orgs = (data.orgs || []).filter(function (o) {
-              // Filter out duplicate "Devin GTM" entries (keep only the canonical one)
               if (o.name === 'Devin GTM' && o.org_id !== 'org_69IXJFLrljx8zSAw') return false;
               return true;
             });
-            orgSel.innerHTML = '';
-            orgs.forEach(function (o) {
-              var opt = document.createElement('option');
-              opt.value = o.org_id;
-              opt.textContent = o.name || o.org_id;
-              orgSel.appendChild(opt);
+            orgItems = orgs.map(function (o) {
+              return { value: o.org_id, label: o.name || o.org_id };
             });
-            if (!orgs.length) {
-              orgSel.innerHTML = '<option value="">(no orgs found)</option>';
+            if (!orgItems.length) {
+              orgItems = [{ value: '', label: '(no orgs found)' }];
+              selectedOrg = orgItems[0];
+              setToggleLabel(orgToggle, selectedOrg.label);
               return;
             }
             var storedOrg = localStorage.getItem('devinOrgId');
+            var match;
             if (storedOrg) {
-              orgSel.value = storedOrg;
-            } else if (defaultOrgId) {
-              orgSel.value = defaultOrgId;
+              match = orgItems.filter(function (i) { return i.value === storedOrg; })[0];
             }
-            if (!orgSel.value && orgs.length) orgSel.value = orgs[0].org_id;
-            localStorage.setItem('devinOrgId', orgSel.value);
-            loadUsers(orgSel.value);
+            if (!match && defaultOrgId) {
+              match = orgItems.filter(function (i) { return i.value === defaultOrgId; })[0];
+            }
+            if (!match) match = orgItems[0];
+            selectedOrg = match;
+            setToggleLabel(orgToggle, selectedOrg.label);
+            localStorage.setItem('devinOrgId', selectedOrg.value);
+            loadUsers(selectedOrg.value);
           })
           .catch(function () {
-            orgSel.innerHTML = '<option value="">(could not load orgs)</option>';
+            orgItems = [{ value: '', label: '(could not load orgs)' }];
+            selectedOrg = orgItems[0];
+            setToggleLabel(orgToggle, selectedOrg.label);
           });
       }
-
-      /* ---- org selector ---- */
-      orgSel.addEventListener('change', function () {
-        if (orgSel.value) {
-          localStorage.setItem('devinOrgId', orgSel.value);
-          var opt = orgSel.options[orgSel.selectedIndex];
-          localStorage.setItem('devinOrgName', opt.textContent);
-        } else {
-          localStorage.removeItem('devinOrgId');
-          localStorage.removeItem('devinOrgName');
-        }
-        localStorage.removeItem('devinUserId');
-        localStorage.removeItem('devinUserName');
-        loadUsers(orgSel.value);
-      });
-
-      /* ---- user selector ---- */
-      userSel.addEventListener('change', function () {
-        if (userSel.value) {
-          localStorage.setItem('devinUserId', userSel.value);
-          var opt = userSel.options[userSel.selectedIndex];
-          localStorage.setItem('devinUserName', opt.textContent);
-        } else {
-          localStorage.removeItem('devinUserId');
-          localStorage.removeItem('devinUserName');
-        }
-      });
 
       /* ---- init: fetch server config, then set up org/user selectors ---- */
       fetch('/api/config')
@@ -928,21 +1148,17 @@
           });
 
           if (cfg.lockOrg) {
-            // Locked org: hide selector, set fixed orgId
             orgWrap.style.display = 'none';
             localStorage.setItem('devinOrgId', cfg.defaultOrgId);
             if (cfg.defaultOrgName) localStorage.setItem('devinOrgName', cfg.defaultOrgName);
 
             if (cfg.lockUser) {
-              // Locked user: hide selector, set fixed userId
               userWrap.style.display = 'none';
               localStorage.setItem('devinUserId', cfg.defaultUserId);
             } else {
-              // Org locked but user selectable
               loadUsers(cfg.defaultOrgId);
             }
           } else {
-            // Multi-org mode: load all orgs, populate dropdown
             if (cfg.lockUser) {
               userWrap.style.display = 'none';
               localStorage.setItem('devinUserId', cfg.defaultUserId);
@@ -951,7 +1167,6 @@
           }
         })
         .catch(function () {
-          // Fallback: load orgs without config (backwards compat)
           loadOrgs('');
         });
     })();

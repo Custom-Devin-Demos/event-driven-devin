@@ -213,8 +213,69 @@ async function listOrgUsers(orgId) {
   return [];
 }
 
+/**
+ * List enterprise-level admin users.
+ *
+ * Calls GET /v3/enterprise/members/users to retrieve all enterprise admins.
+ * These users can view every org even if they aren't explicitly org members.
+ *
+ * Falls back to DEVIN_ENTERPRISE_ADMINS env var (JSON array) if the API call
+ * fails or the service user lacks permissions.
+ *
+ * @returns {Array} - Array of { user_id, name, email, is_enterprise_admin } objects
+ */
+async function listEnterpriseAdmins() {
+  const { serviceKey } = resolveServiceAuth();
+
+  if (serviceKey) {
+    try {
+      const response = await axios.get(
+        `${DEVIN_API_BASE}/v3/enterprise/members/users`,
+        {
+          headers: { Authorization: `Bearer ${serviceKey}` },
+          timeout: 10000,
+          params: { first: 200, role: 'admin' },
+        },
+      );
+
+      const admins = (response.data.items || []).map((u) => ({
+        user_id: u.user_id,
+        name: u.name || u.email,
+        email: u.email,
+        is_enterprise_admin: true,
+      }));
+
+      logger.info('Fetched enterprise admins from Devin API', { count: admins.length });
+      return admins;
+    } catch (error) {
+      logger.warn('Failed to fetch enterprise admins — falling back to env config', {
+        error: error.message,
+        status: error.response?.status,
+      });
+    }
+  }
+
+  // Fallback: read from DEVIN_ENTERPRISE_ADMINS env var (JSON array)
+  const envAdmins = process.env.DEVIN_ENTERPRISE_ADMINS;
+  if (envAdmins) {
+    try {
+      const admins = JSON.parse(envAdmins).map((u) => ({
+        ...u,
+        is_enterprise_admin: true,
+      }));
+      logger.info('Loaded enterprise admins from DEVIN_ENTERPRISE_ADMINS env var', { count: admins.length });
+      return admins;
+    } catch (parseErr) {
+      logger.error('Failed to parse DEVIN_ENTERPRISE_ADMINS env var', { error: parseErr.message });
+    }
+  }
+
+  return [];
+}
+
 module.exports = {
   createDevinSession,
   listEnterpriseOrgs,
   listOrgUsers,
+  listEnterpriseAdmins,
 };
