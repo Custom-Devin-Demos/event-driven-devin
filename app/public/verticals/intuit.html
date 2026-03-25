@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credit Karma &mdash; Credit Score Dashboard</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ck-green: #008751; --ck-green-light: #00a65a; --ck-green-dim: rgba(0,135,81,0.08);
+      --ck-green-border: rgba(0,135,81,0.25);
+      --bg: #f5f7f9; --bg-white: #ffffff; --bg-dark: #1a1a2e;
+      --text: #2d3436; --text-dim: #636e72; --text-muted: #b2bec3;
+      --border: #e0e6ed; --border-light: #eef1f5;
+      --red: #d63031; --red-dim: rgba(214,48,49,0.08); --red-border: rgba(214,48,49,0.25);
+      --amber: #fdcb6e; --amber-dim: rgba(253,203,110,0.15);
+      --blue: #0984e3; --blue-dim: rgba(9,132,227,0.08);
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; } .d5 { animation-delay: 0.25s; }
+
+    /* ---- TOP BAR ---- */
+    .top-bar { background: var(--bg-dark); padding: 0.5rem 2rem; display: flex; align-items: center; justify-content: space-between; }
+    .top-bar-brand { display: flex; align-items: center; gap: 1.5rem; }
+    .top-bar-logo { font-weight: 800; font-size: 1.1rem; color: #fff; letter-spacing: -0.03em; }
+    .top-bar-logo span { color: var(--ck-green-light); }
+    .top-bar-nav { display: flex; gap: 0.15rem; }
+    .top-bar-nav a { color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.78rem; font-weight: 500; padding: 0.4rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+    .top-bar-nav a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .top-bar-nav a.active { color: #fff; background: var(--ck-green); }
+    .top-bar-right { display: flex; align-items: center; gap: 1rem; }
+    .top-bar-right a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.75rem; }
+    .top-bar-right a:hover { color: #fff; }
+
+    /* ---- PAGE LAYOUT ---- */
+    .page { max-width: 1120px; margin: 0 auto; padding: 1.5rem clamp(1rem, 3vw, 2.5rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--ck-green); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; }
+    .back-link:hover { color: var(--text); }
+
+    .greeting { margin-bottom: 1.5rem; }
+    .greeting h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 0.1rem; }
+    .greeting p { color: var(--text-dim); font-size: 0.85rem; }
+
+    /* ---- SCORE CARD ---- */
+    .score-section { display: grid; grid-template-columns: 340px 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
+    @media (max-width: 800px) { .score-section { grid-template-columns: 1fr; } }
+    .score-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .score-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--ck-green), #00e676); }
+    .score-bureau { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.25rem; }
+    .score-updated { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 1rem; }
+
+    /* ---- GAUGE ---- */
+    .gauge-wrap { position: relative; width: 200px; height: 120px; margin: 0 auto 0.75rem; }
+    .gauge-svg { width: 200px; height: 120px; }
+    .gauge-bg { fill: none; stroke: #e8ecf0; stroke-width: 14; stroke-linecap: round; }
+    .gauge-fill { fill: none; stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke 0.5s ease; }
+    .gauge-score { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); font-size: 2.8rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+    .gauge-range { display: flex; justify-content: space-between; width: 200px; margin: 0 auto; font-size: 0.65rem; color: var(--text-muted); font-weight: 500; }
+
+    .score-label { font-size: 1rem; font-weight: 700; margin-top: 0.5rem; }
+    .score-range-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* ---- DRIFT WARNING ---- */
+    .drift-banner { display: none; background: var(--red-dim); border: 1px solid var(--red-border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--red); }
+    .drift-banner.show { display: flex; align-items: flex-start; gap: 0.5rem; }
+    .drift-banner strong { font-weight: 700; }
+    .drift-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+    /* ---- FACTORS ---- */
+    .factors-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
+    .factors-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
+    .factor-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border-light); }
+    .factor-row:last-child { border-bottom: none; }
+    .factor-left { display: flex; align-items: center; gap: 0.5rem; }
+    .factor-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .factor-name { font-size: 0.82rem; font-weight: 500; }
+    .factor-right { display: flex; align-items: center; gap: 0.6rem; }
+    .factor-value { font-family: var(--mono); font-size: 0.8rem; font-weight: 500; color: var(--text-dim); }
+    .factor-badge { font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge-excellent { background: var(--ck-green-dim); color: var(--ck-green); }
+    .badge-good { background: var(--blue-dim); color: var(--blue); }
+    .badge-fair { background: var(--amber-dim); color: #e17055; }
+
+    /* ---- ACTIONS ROW ---- */
+    .actions-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem; border: none; border-radius: 8px; font-family: var(--sans); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: var(--ck-green); color: #fff; }
+    .btn-primary:hover { background: var(--ck-green-light); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-outline { background: var(--bg-white); color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--ck-green); color: var(--ck-green); }
+    .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+    .btn-danger:hover { background: var(--red); color: #fff; }
+    .btn-icon { font-size: 1rem; }
+
+    /* ---- RECOMMENDATIONS ---- */
+    .recs-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 0.75rem; }
+    .recs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    @media (max-width: 700px) { .recs-grid { grid-template-columns: 1fr; } }
+    .rec-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s, transform 0.2s; }
+    .rec-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .rec-type { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ck-green); margin-bottom: 0.25rem; }
+    .rec-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem; }
+    .rec-issuer { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .rec-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem 1rem; font-size: 0.72rem; }
+    .rec-detail-label { color: var(--text-muted); }
+    .rec-detail-value { font-weight: 600; }
+    .rec-odds { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.5rem; padding: 3px 10px; background: var(--ck-green-dim); border-radius: 100px; font-size: 0.68rem; font-weight: 600; color: var(--ck-green); }
+
+    /* ---- RESULT BOX ---- */
+    .result-box { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.82rem; display: none; margin-bottom: 1rem; }
+    .result-box.error { display: block; background: var(--red-dim); border: 1px solid var(--red-border); color: var(--red); }
+    .result-box.success { display: block; background: var(--ck-green-dim); border: 1px solid var(--ck-green-border); color: var(--ck-green); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.15rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.72rem; opacity: 0.85; word-break: break-all; }
+
+    /* ---- INCIDENT TIMELINE ---- */
+    .timeline-section { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; display: none; }
+    .timeline-section.show { display: block; }
+    .timeline-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
+    .timeline { position: relative; padding-left: 1.5rem; }
+    .timeline::before { content: ''; position: absolute; left: 5px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+    .tl-item { position: relative; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-light); }
+    .tl-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .tl-item::before { content: ''; position: absolute; left: -1.5rem; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ck-green); background: var(--bg-white); }
+    .tl-item.active::before { background: var(--ck-green); }
+    .tl-item.error-state::before { border-color: var(--red); background: var(--red); }
+    .tl-time { font-family: var(--mono); font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.15rem; }
+    .tl-label { font-size: 0.8rem; font-weight: 600; }
+    .tl-desc { font-size: 0.72rem; color: var(--text-dim); }
+    .tl-badge { display: inline-flex; padding: 1px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 0.4rem; }
+    .tl-badge-session { background: var(--blue-dim); color: var(--blue); }
+    .tl-badge-alert { background: var(--red-dim); color: var(--red); }
+    .tl-badge-fix { background: var(--ck-green-dim); color: var(--ck-green); }
+
+    .security-note { margin-top: 0.5rem; padding: 0.6rem 0.85rem; background: #f8f9fa; border-left: 3px solid var(--ck-green); font-size: 0.72rem; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-bar-brand">
+      <div class="top-bar-logo"><span>credit</span>karma</div>
+      <nav class="top-bar-nav">
+        <a href="#" class="active">Credit Scores</a>
+        <a href="#">Credit Cards</a>
+        <a href="#">Loans</a>
+        <a href="#">Auto</a>
+        <a href="#">Home</a>
+        <a href="#">Money</a>
+        <a href="#">Tax</a>
+      </nav>
+    </div>
+    <div class="top-bar-right">
+      <a href="#">Help</a>
+      <a href="#">Settings</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+
+    <div class="greeting fade-in d1">
+      <h1>Welcome back, Jordan</h1>
+      <p>Member since 2021 &middot; Last updated Mar 22, 2026</p>
+    </div>
+
+    <div id="errorBanner" class="drift-banner fade-in">
+      <span class="drift-icon">&#9888;</span>
+      <div>
+        <strong>TypeError: Cannot read properties of undefined</strong> &mdash; The scoring model config returned a different shape than expected.
+        An incident has been triggered and Devin is investigating across <strong>3 parallel sessions</strong>.
+      </div>
+    </div>
+
+    <div id="result" class="result-box"></div>
+
+    <div class="actions-row fade-in d2">
+      <button class="btn btn-primary" id="refreshBtn" onclick="refreshScore()">
+        <span class="btn-icon">&#8635;</span> Refresh Score
+      </button>
+    </div>
+
+    <div class="score-section fade-in d2">
+      <div class="score-card">
+        <div class="score-bureau" id="bureau">TransUnion</div>
+        <div class="score-updated" id="updatedDate">Updated Mar 22, 2026</div>
+        <div class="gauge-wrap">
+          <svg class="gauge-svg" viewBox="0 0 200 120">
+            <path class="gauge-bg" d="M 20 110 A 80 80 0 0 1 180 110" />
+            <path class="gauge-fill" id="gaugeFill" d="M 20 110 A 80 80 0 0 1 180 110" stroke="#008751" />
+          </svg>
+          <div class="gauge-score" id="scoreValue">---</div>
+        </div>
+        <div class="gauge-range"><span>300</span><span>850</span></div>
+        <div class="score-label" id="scoreLabel" style="color: var(--ck-green);">Loading...</div>
+        <div class="score-range-text">300&ndash;850 score range</div>
+      </div>
+
+      <div class="factors-card">
+        <div class="factors-title">&#128202; Score Factors</div>
+        <div id="factorsList">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <div id="incidentTimeline" class="timeline-section fade-in">
+      <div class="timeline-title">&#128680; Incident Response Timeline</div>
+      <div class="timeline" id="timelineContent">
+        <!-- populated by JS on incident -->
+      </div>
+    </div>
+
+    <div class="fade-in d4">
+      <div class="recs-title">Personalized Recommendations</div>
+      <div class="recs-grid" id="recsList">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <div class="security-note fade-in d5">
+      Credit scores are calculated using VantageScore 3.0 model. Your scores may vary when pulled from different bureaus.
+      Credit Karma uses 128-bit encryption. Data is refreshed weekly from TransUnion and Equifax.
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const gaugeArc = document.getElementById('gaugeFill');
+    const arcLength = 251.2; // approximate arc length for the semicircle path
+    gaugeArc.style.strokeDasharray = arcLength;
+    gaugeArc.style.strokeDashoffset = arcLength;
+
+    function setGauge(score) {
+      const pct = (score - 300) / 550;
+      const offset = arcLength * (1 - pct);
+      gaugeArc.style.strokeDashoffset = offset;
+      // color the gauge
+      let color = '#008751';
+      if (score >= 800) color = '#00c853';
+      else if (score >= 740) color = '#2e7d32';
+      else if (score >= 670) color = '#ff9100';
+      else if (score >= 580) color = '#ff6d00';
+      else color = '#d63031';
+      gaugeArc.style.stroke = color;
+      document.getElementById('scoreValue').textContent = score;
+      document.getElementById('scoreValue').style.color = color;
+    }
+
+    function renderFactors(factors) {
+      const container = document.getElementById('factorsList');
+      container.innerHTML = '';
+      const dotColors = { excellent: '#008751', good: '#0984e3', fair: '#e17055', poor: '#d63031' };
+      const badgeClasses = { excellent: 'badge-excellent', good: 'badge-good', fair: 'badge-fair', poor: 'badge-fair' };
+      for (const [key, f] of Object.entries(factors)) {
+        const row = document.createElement('div');
+        row.className = 'factor-row';
+        row.innerHTML = `
+          <div class="factor-left">
+            <div class="factor-dot" style="background:${dotColors[f.status] || '#ccc'}"></div>
+            <div class="factor-name">${f.label}</div>
+          </div>
+          <div class="factor-right">
+            <div class="factor-value">${f.value}${f.unit || ''}</div>
+            <div class="factor-badge ${badgeClasses[f.status] || ''}">${f.status}</div>
+          </div>`;
+        container.appendChild(row);
+      }
+    }
+
+    function renderRecs(recs) {
+      const container = document.getElementById('recsList');
+      container.innerHTML = '';
+      for (const r of recs) {
+        const card = document.createElement('div');
+        card.className = 'rec-card';
+        card.innerHTML = `
+          <div class="rec-type">${r.type}</div>
+          <div class="rec-name">${r.name}</div>
+          <div class="rec-issuer">${r.issuer}</div>
+          <div class="rec-details">
+            <span class="rec-detail-label">APR</span><span class="rec-detail-value">${r.apr}</span>
+            <span class="rec-detail-label">Annual Fee</span><span class="rec-detail-value">${r.annualFee}</span>
+            <span class="rec-detail-label">Highlight</span><span class="rec-detail-value">${r.reward}</span>
+          </div>
+          <div class="rec-odds">&#10003; Approval Odds: ${r.approvalOdds}</div>`;
+        container.appendChild(card);
+      }
+    }
+
+    function updateBugStatus(active) {
+      // Bug status tracked internally; no UI indicator
+    }
+
+    function showIncidentTimeline(data) {
+      const section = document.getElementById('incidentTimeline');
+      const content = document.getElementById('timelineContent');
+      const now = new Date();
+      const fmt = (offset) => {
+        const d = new Date(now.getTime() + offset * 1000);
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      };
+      const errMsg = (data.errorClass || 'TypeError') + ': ' + (data.errorMessage || "Cannot read properties of undefined (reading 'weights')");
+      content.innerHTML = `
+        <div class="tl-item error-state">
+          <div class="tl-time">${fmt(0)}</div>
+          <div class="tl-label">Scoring Service Crashed <span class="tl-badge tl-badge-alert">P1 INCIDENT</span></div>
+          <div class="tl-desc">${errMsg}</div>
+        </div>
+        <div class="tl-item active">
+          <div class="tl-time">${fmt(2)}</div>
+          <div class="tl-label">Sentry Alert &rarr; Slack <span class="tl-badge tl-badge-alert">ALERT</span></div>
+          <div class="tl-desc">Posted to #incidents with Sentry deep link and on-call notification</div>
+        </div>
+        <div class="tl-item active">
+          <div class="tl-time">${fmt(4)}</div>
+          <div class="tl-label">Devin Session 1 &mdash; Root Cause <span class="tl-badge tl-badge-session">SESSION</span></div>
+          <div class="tl-desc">Fixing config shape mismatch in extractWeights() &mdash; credit-score-api</div>
+        </div>
+        <div class="tl-item active">
+          <div class="tl-time">${fmt(5)}</div>
+          <div class="tl-label">Devin Session 2 &mdash; Data Pipeline <span class="tl-badge tl-badge-session">SESSION</span></div>
+          <div class="tl-desc">Validating scoring model config schema in ETL pipeline transforms</div>
+        </div>
+        <div class="tl-item active">
+          <div class="tl-time">${fmt(6)}</div>
+          <div class="tl-label">Devin Session 3 &mdash; Monitoring <span class="tl-badge tl-badge-session">SESSION</span></div>
+          <div class="tl-desc">Adding schema validation alerts and crash rate monitors</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-time">${fmt(120)}</div>
+          <div class="tl-label">PRs Submitted <span class="tl-badge tl-badge-fix">FIX</span></div>
+          <div class="tl-desc">3 parallel PRs across scoring-service, etl-pipeline, and observability-platform repos</div>
+        </div>`;
+      section.classList.add('show');
+    }
+
+    // Initial load
+    async function loadScore() {
+      try {
+        const res = await fetch('/api/intuit/score');
+        const data = await res.json();
+        if (data.success) {
+          setGauge(data.score);
+          document.getElementById('scoreLabel').textContent = data.rating.label;
+          document.getElementById('scoreLabel').style.color = data.rating.color;
+          renderFactors(data.factors);
+          renderRecs(data.recommendations);
+          updateBugStatus(data.bugActive);
+        }
+      } catch (err) {
+        console.error('Failed to load score', err);
+      }
+    }
+
+    async function refreshScore() {
+      const btn = document.getElementById('refreshBtn');
+      const result = document.getElementById('result');
+      const banner = document.getElementById('errorBanner');
+      btn.disabled = true; btn.innerHTML = '<span class="btn-icon">&#8987;</span> Refreshing...';
+      result.className = 'result-box';
+      banner.classList.remove('show');
+
+      try {
+        const res = await fetch('/api/intuit/refresh', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: 'usr_ck_jordan',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setGauge(data.score);
+          document.getElementById('scoreLabel').textContent = data.rating.label;
+          document.getElementById('scoreLabel').style.color = data.rating.color;
+          updateBugStatus(data.bugActive);
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Score Refreshed</div><div class="error-detail">Credit score updated successfully. Score: ' + data.score + '</div>';
+        } else {
+          // Server returned 500 — the bug crashed the scoring service
+          const banner = document.getElementById('errorBanner');
+          banner.classList.add('show');
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">&#128680; Incident Triggered</div><div class="error-detail">' + (data.errorClass || 'TypeError') + ': ' + (data.error || 'Cannot read properties of undefined (reading \'weights\')') + '<br>3 Devin sessions launched for parallel investigation.</div>';
+          showIncidentTimeline({ errorClass: data.errorClass, errorMessage: data.error });
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Connection Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally {
+        btn.disabled = false; btn.innerHTML = '<span class="btn-icon">&#8635;</span> Refresh Score';
+      }
+    }
+
+    // resetBug is available via API only (POST /api/intuit/reset)
+
+    loadScore();
+  </script>
+</body>
+</html>
