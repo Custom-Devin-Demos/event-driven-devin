@@ -187,13 +187,6 @@
       <button class="btn btn-primary" id="refreshBtn" onclick="refreshScore()">
         <span class="btn-icon">&#8635;</span> Refresh Score
       </button>
-      <button class="btn btn-outline" id="resetBtn" onclick="resetBug(false)">
-        <span class="btn-icon">&#10003;</span> Fix Bug
-      </button>
-      <button class="btn btn-danger" id="activateBtn" onclick="resetBug(true)">
-        <span class="btn-icon">&#9888;</span> Activate Bug
-      </button>
-      <span id="bugStatus" style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.75rem;font-weight:600;color:var(--red);"></span>
     </div>
 
     <div class="score-section fade-in d2">
@@ -314,14 +307,7 @@
     }
 
     function updateBugStatus(active) {
-      const el = document.getElementById('bugStatus');
-      if (active) {
-        el.style.color = 'var(--red)';
-        el.innerHTML = '&#9679; Bug Active';
-      } else {
-        el.style.color = 'var(--ck-green)';
-        el.innerHTML = '&#9679; Bug Fixed';
-      }
+      // Bug status tracked internally; no UI indicator
     }
 
     function showIncidentTimeline(data) {
@@ -426,34 +412,7 @@
       }
     }
 
-    async function resetBug(active) {
-      const result = document.getElementById('result');
-      try {
-        const res = await fetch('/api/intuit/reset', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bugActive: active }),
-        });
-        const data = await res.json();
-        updateBugStatus(data.current);
-        result.className = 'result-box success';
-        result.innerHTML = '<div class="error-title">Bug State Updated</div><div class="error-detail">' + data.message + '</div>';
-        // Re-fetch score after reset
-        const scoreRes = await fetch('/api/intuit/score');
-        const scoreData = await scoreRes.json();
-        if (scoreData.success) {
-          setGauge(scoreData.score);
-          document.getElementById('scoreLabel').textContent = scoreData.rating.label;
-          document.getElementById('scoreLabel').style.color = scoreData.rating.color;
-        }
-        if (!active) {
-          document.getElementById('errorBanner').classList.remove('show');
-          document.getElementById('incidentTimeline').classList.remove('show');
-        }
-      } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = '<div class="error-title">Reset Failed</div><div class="error-detail">' + err.message + '</div>';
-      }
-    }
+    // resetBug is available via API only (POST /api/intuit/reset)
 
     loadScore();
   </script>
