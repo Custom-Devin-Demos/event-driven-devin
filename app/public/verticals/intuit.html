@@ -69,12 +69,6 @@
     .score-label { font-size: 1rem; font-weight: 700; margin-top: 0.5rem; }
     .score-range-text { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem; }
 
-    /* ---- DRIFT WARNING ---- */
-    .drift-banner { display: none; background: var(--red-dim); border: 1px solid var(--red-border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.8rem; color: var(--red); }
-    .drift-banner.show { display: flex; align-items: flex-start; gap: 0.5rem; }
-    .drift-banner strong { font-weight: 700; }
-    .drift-icon { font-size: 1.1rem; flex-shrink: 0; }
-
     /* ---- FACTORS ---- */
     .factors-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); }
     .factors-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
@@ -123,25 +117,6 @@
     .result-box .error-title { font-weight: 700; margin-bottom: 0.15rem; }
     .result-box .error-detail { font-family: var(--mono); font-size: 0.72rem; opacity: 0.85; word-break: break-all; }
 
-    /* ---- INCIDENT TIMELINE ---- */
-    .timeline-section { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; display: none; }
-    .timeline-section.show { display: block; }
-    .timeline-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem; }
-    .timeline { position: relative; padding-left: 1.5rem; }
-    .timeline::before { content: ''; position: absolute; left: 5px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
-    .tl-item { position: relative; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-light); }
-    .tl-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-    .tl-item::before { content: ''; position: absolute; left: -1.5rem; top: 6px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ck-green); background: var(--bg-white); }
-    .tl-item.active::before { background: var(--ck-green); }
-    .tl-item.error-state::before { border-color: var(--red); background: var(--red); }
-    .tl-time { font-family: var(--mono); font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.15rem; }
-    .tl-label { font-size: 0.8rem; font-weight: 600; }
-    .tl-desc { font-size: 0.72rem; color: var(--text-dim); }
-    .tl-badge { display: inline-flex; padding: 1px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 0.4rem; }
-    .tl-badge-session { background: var(--blue-dim); color: var(--blue); }
-    .tl-badge-alert { background: var(--red-dim); color: var(--red); }
-    .tl-badge-fix { background: var(--ck-green-dim); color: var(--ck-green); }
-
     .security-note { margin-top: 0.5rem; padding: 0.6rem 0.85rem; background: #f8f9fa; border-left: 3px solid var(--ck-green); font-size: 0.72rem; color: var(--text-dim); border-radius: 0 6px 6px 0; }
   </style>
 </head>
@@ -173,21 +148,7 @@
       <p>Member since 2021 &middot; Last updated Mar 22, 2026</p>
     </div>
 
-    <div id="errorBanner" class="drift-banner fade-in">
-      <span class="drift-icon">&#9888;</span>
-      <div>
-        <strong>TypeError: Cannot read properties of undefined</strong> &mdash; The scoring model config returned a different shape than expected.
-        An incident has been triggered and Devin is investigating across <strong>3 parallel sessions</strong>.
-      </div>
-    </div>
-
     <div id="result" class="result-box"></div>
-
-    <div class="actions-row fade-in d2">
-      <button class="btn btn-primary" id="refreshBtn" onclick="refreshScore()">
-        <span class="btn-icon">&#8635;</span> Refresh Score
-      </button>
-    </div>
 
     <div class="score-section fade-in d2">
       <div class="score-card">
@@ -213,11 +174,10 @@
       </div>
     </div>
 
-    <div id="incidentTimeline" class="timeline-section fade-in">
-      <div class="timeline-title">&#128680; Incident Response Timeline</div>
-      <div class="timeline" id="timelineContent">
-        <!-- populated by JS on incident -->
-      </div>
+    <div class="actions-row fade-in d3">
+      <button class="btn btn-primary" id="refreshBtn" onclick="refreshScore()">
+        <span class="btn-icon">&#8635;</span> Refresh Score
+      </button>
     </div>
 
     <div class="fade-in d4">
@@ -310,49 +270,6 @@
       // Bug status tracked internally; no UI indicator
     }
 
-    function showIncidentTimeline(data) {
-      const section = document.getElementById('incidentTimeline');
-      const content = document.getElementById('timelineContent');
-      const now = new Date();
-      const fmt = (offset) => {
-        const d = new Date(now.getTime() + offset * 1000);
-        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      };
-      const errMsg = (data.errorClass || 'TypeError') + ': ' + (data.errorMessage || "Cannot read properties of undefined (reading 'weights')");
-      content.innerHTML = `
-        <div class="tl-item error-state">
-          <div class="tl-time">${fmt(0)}</div>
-          <div class="tl-label">Scoring Service Crashed <span class="tl-badge tl-badge-alert">P1 INCIDENT</span></div>
-          <div class="tl-desc">${errMsg}</div>
-        </div>
-        <div class="tl-item active">
-          <div class="tl-time">${fmt(2)}</div>
-          <div class="tl-label">Sentry Alert &rarr; Slack <span class="tl-badge tl-badge-alert">ALERT</span></div>
-          <div class="tl-desc">Posted to #incidents with Sentry deep link and on-call notification</div>
-        </div>
-        <div class="tl-item active">
-          <div class="tl-time">${fmt(4)}</div>
-          <div class="tl-label">Devin Session 1 &mdash; Root Cause <span class="tl-badge tl-badge-session">SESSION</span></div>
-          <div class="tl-desc">Fixing config shape mismatch in extractWeights() &mdash; credit-score-api</div>
-        </div>
-        <div class="tl-item active">
-          <div class="tl-time">${fmt(5)}</div>
-          <div class="tl-label">Devin Session 2 &mdash; Data Pipeline <span class="tl-badge tl-badge-session">SESSION</span></div>
-          <div class="tl-desc">Validating scoring model config schema in ETL pipeline transforms</div>
-        </div>
-        <div class="tl-item active">
-          <div class="tl-time">${fmt(6)}</div>
-          <div class="tl-label">Devin Session 3 &mdash; Monitoring <span class="tl-badge tl-badge-session">SESSION</span></div>
-          <div class="tl-desc">Adding schema validation alerts and crash rate monitors</div>
-        </div>
-        <div class="tl-item">
-          <div class="tl-time">${fmt(120)}</div>
-          <div class="tl-label">PRs Submitted <span class="tl-badge tl-badge-fix">FIX</span></div>
-          <div class="tl-desc">3 parallel PRs across scoring-service, etl-pipeline, and observability-platform repos</div>
-        </div>`;
-      section.classList.add('show');
-    }
-
     // Initial load
     async function loadScore() {
       try {
@@ -374,10 +291,8 @@
     async function refreshScore() {
       const btn = document.getElementById('refreshBtn');
       const result = document.getElementById('result');
-      const banner = document.getElementById('errorBanner');
       btn.disabled = true; btn.innerHTML = '<span class="btn-icon">&#8987;</span> Refreshing...';
       result.className = 'result-box';
-      banner.classList.remove('show');
 
       try {
         const res = await fetch('/api/intuit/refresh', {
@@ -397,16 +312,12 @@
           result.className = 'result-box success';
           result.innerHTML = '<div class="error-title">Score Refreshed</div><div class="error-detail">Credit score updated successfully. Score: ' + data.score + '</div>';
         } else {
-          // Server returned 500 — the bug crashed the scoring service
-          const banner = document.getElementById('errorBanner');
-          banner.classList.add('show');
           result.className = 'result-box error';
-          result.innerHTML = '<div class="error-title">&#128680; Incident Triggered</div><div class="error-detail">' + (data.errorClass || 'TypeError') + ': ' + (data.error || 'Cannot read properties of undefined (reading \'weights\')') + '<br>3 Devin sessions launched for parallel investigation.</div>';
-          showIncidentTimeline({ errorClass: data.errorClass, errorMessage: data.error });
+          result.innerHTML = '<div class="error-title">Refresh Failed</div><div class="error-detail">' + (data.errorClass || 'TypeError') + ': ' + (data.error || 'Unknown error') + '</div>';
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = '<div class="error-title">Connection Error</div><div class="error-detail">' + err.message + '</div>';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
       } finally {
         btn.disabled = false; btn.innerHTML = '<span class="btn-icon">&#8635;</span> Refresh Score';
       }
