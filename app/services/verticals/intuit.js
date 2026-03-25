@@ -6,8 +6,9 @@ const { createSessionAndAlert } = require('../devin-session');
 
 /**
  * In-memory bug toggle.
- * When `true`, the credit score calculation uses a faulty weight map
- * that silently inflates scores by ~40-80 points.
+ * When `true`, the credit score refresh uses a mismatched property path
+ * that throws a TypeError — exactly the kind of shape mismatch that
+ * passes code review but crashes in production.
  * Reset via POST /api/intuit/reset
  */
 let bugActive = true;
@@ -60,11 +61,11 @@ const RECOMMENDATIONS = [
 ];
 
 /**
- * Correct FICO weight map (industry-standard weights).
+ * FICO weight map (industry-standard weights).
  * Payment history: 35%, Utilization: 30%, Credit age: 15%,
  * Account mix: 10%, New credit: 10%
  */
-const CORRECT_WEIGHTS = {
+const WEIGHTS = {
   paymentHistory: 0.35,
   creditUtilization: 0.30,
   creditAge: 0.15,
@@ -73,20 +74,38 @@ const CORRECT_WEIGHTS = {
 };
 
 /**
- * Buggy weight map — swaps utilization and payment history weights
- * AND doubles the credit age factor.  The result silently inflates
- * scores by ~40-80 points for most profiles.
+ * Load the scoring model configuration.
  *
- * BUG: weights do not sum to 1.0 (they sum to 1.10) and the
- *      dominant factor is credit age instead of payment history.
+ * Returns the weights nested under a `model` key.
  */
-const BUGGY_WEIGHTS = {
-  paymentHistory: 0.55,
-  creditUtilization: 0.05,
-  creditAge: 0.25,
-  totalAccounts: 0.02,
-  hardInquiries: 0.05,
-};
+function loadScoringModel() {
+  return {
+    model: {
+      weights: WEIGHTS,
+      version: '3.0',
+    },
+    metadata: {
+      lastCalibrated: '2026-03-01',
+      source: 'fico-bureau-v3',
+    },
+  };
+}
+
+/**
+ * Extract weights from the scoring model config.
+ *
+ * BUG: This function accesses `config.scoring.weights` but
+ * loadScoringModel() returns the weights under `config.model.weights`.
+ * The property `config.scoring` is undefined, so `.weights` throws:
+ *   TypeError: Cannot read properties of undefined (reading 'weights')
+ *
+ * This is the same class of bug as the other verticals — a shape mismatch
+ * between producer and consumer that passes code review but crashes at runtime.
+ */
+function extractWeights(config) {
+  const modelConfig = config.scoring;
+  return modelConfig.weights;
+}
 
 /**
  * Normalize a raw factor value to a 0-1 scale.
@@ -105,16 +124,9 @@ function normalizeFactor(factor) {
 }
 
 /**
- * Calculate the credit score from raw factors.
- *
- * When bugActive is true this function uses BUGGY_WEIGHTS, which
- * silently inflates the score.  The bug is realistic: a mistyped
- * weight constant in a config object — exactly the kind of thing
- * that passes code review but causes silent data corruption.
+ * Calculate the credit score from raw factors and a weight map.
  */
-function calculateCreditScore(factors) {
-  const weights = bugActive ? BUGGY_WEIGHTS : CORRECT_WEIGHTS;
-
+function calculateCreditScore(factors, weights) {
   let weightedSum = 0;
   let totalWeight = 0;
 
@@ -147,6 +159,7 @@ function getScoreRating(score) {
 
 /**
  * Fetch the full credit score report.
+ * This endpoint always works (uses the correct path) so the dashboard loads.
  */
 async function getCreditReport(data) {
   const startTime = Date.now();
@@ -163,7 +176,10 @@ async function getCreditReport(data) {
     // Simulate bureau latency
     await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 150));
 
-    const score = calculateCreditScore(SCORE_FACTORS);
+    // Always use the correct path for initial load
+    const config = loadScoringModel();
+    const weights = config.model.weights;
+    const score = calculateCreditScore(SCORE_FACTORS, weights);
     const rating = getScoreRating(score);
 
     const duration = Date.now() - startTime;
@@ -220,10 +236,11 @@ async function getCreditReport(data) {
 
 /**
  * Refresh the credit score — the action that triggers the bug.
- * When the bug is active, the returned score is inflated.
- * The error is that the score doesn't match what the bureau would
- * actually return, and downstream services (loan pre-qualification,
- * credit card offers) make incorrect decisions based on it.
+ *
+ * When bugActive is true, this function calls extractWeights() which
+ * accesses `config.scoring.weights` instead of `config.model.weights`,
+ * throwing a TypeError.  The error is caught, reported to Sentry, and
+ * triggers 3 parallel Devin sessions for cross-repo incident response.
  */
 async function refreshScore(data) {
   const startTime = Date.now();
@@ -240,91 +257,19 @@ async function refreshScore(data) {
     // Simulate bureau API call
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const score = calculateCreditScore(SCORE_FACTORS);
+    const config = loadScoringModel();
+
+    // BUG PATH: extractWeights accesses config.scoring.weights (undefined)
+    // FIX PATH: direct access to config.model.weights (correct)
+    const weights = bugActive
+      ? extractWeights(config)
+      : config.model.weights;
+
+    const score = calculateCreditScore(SCORE_FACTORS, weights);
     const rating = getScoreRating(score);
 
-    // When the bug is active, the score is inflated but no error is thrown.
-    // This is the insidious nature of the bug — it produces a plausible
-    // but incorrect result.  The "incident" is detected by an external
-    // monitor that compares our score against the bureau's raw score.
-    if (bugActive) {
-      const correctScore = (() => {
-        const saved = bugActive;
-        bugActive = false;
-        const s = calculateCreditScore(SCORE_FACTORS);
-        bugActive = saved;
-        return s;
-      })();
-
-      const drift = score - correctScore;
-
-      // If drift > 30 points, treat it as a P1 incident
-      if (drift > 30) {
-        const incidentError = new Error(
-          `Credit score drift detected: reported ${score} but expected ${correctScore} (drift: +${drift} points)`,
-        );
-        incidentError.name = 'CreditScoreDriftError';
-        incidentError.code = 'SCORE_DRIFT';
-
-        logger.error('Credit score drift exceeds threshold', {
-          refreshId,
-          reportedScore: score,
-          expectedScore: correctScore,
-          drift,
-          service: 'credit-score-api',
-        });
-
-        Sentry.captureException(incidentError, {
-          tags: {
-            route: '/api/intuit/refresh',
-            service: 'credit-score-api',
-            severity: 'critical',
-          },
-          extra: {
-            refreshId,
-            reportedScore: score,
-            expectedScore: correctScore,
-            drift,
-            factors: SCORE_FACTORS,
-            weights: BUGGY_WEIGHTS,
-          },
-        });
-
-        // Trigger multiple Devin sessions to simulate cross-repo incident response
-        triggerMultiSessionIncident({
-          refreshId,
-          reportedScore: score,
-          expectedScore: correctScore,
-          drift,
-          error: incidentError,
-          devinUserId: data.devinUserId,
-          devinOrgId: data.devinOrgId,
-        });
-
-        const duration = Date.now() - startTime;
-        incrementMetric('creditscore.refresh.drift', {
-          route: '/api/intuit/refresh',
-        });
-        recordTiming('creditscore.refresh.latency', duration, {
-          route: '/api/intuit/refresh',
-        });
-
-        return {
-          success: true,
-          refreshId,
-          score,
-          rating,
-          drift,
-          correctScore,
-          bugActive,
-          warning: `Score inflated by +${drift} points due to weight misconfiguration`,
-          incidentTriggered: true,
-          generatedAt: new Date().toISOString(),
-        };
-      }
-    }
-
     const duration = Date.now() - startTime;
+
     incrementMetric('creditscore.refresh.success', {
       route: '/api/intuit/refresh',
     });
@@ -359,6 +304,22 @@ async function refreshScore(data) {
       durationMs: duration,
     });
 
+    Sentry.captureException(error, {
+      tags: {
+        route: '/api/intuit/refresh',
+        service: 'credit-score-api',
+      },
+      extra: { refreshId, userId: data.userId || CREDIT_PROFILE.userId },
+    });
+
+    // Trigger multiple Devin sessions to simulate cross-repo incident response
+    triggerMultiSessionIncident({
+      error,
+      refreshId,
+      devinUserId: data.devinUserId,
+      devinOrgId: data.devinOrgId,
+    });
+
     throw error;
   }
 }
@@ -370,32 +331,35 @@ async function refreshScore(data) {
  * Session 1: Root cause analysis in the scoring service repo
  * Session 2: Data validation in the ETL pipeline repo
  * Session 3: Monitoring/alerting rules update
+ *
+ * Each session gets a unique issueTitle (prefixed with verticalLabel)
+ * to avoid the 5-min session cooldown deduplication.
  */
 function triggerMultiSessionIncident(incidentData) {
   const sessions = [
     {
-      verticalLabel: 'Credit Score — Root Cause Fix',
-      culprit: 'app/services/verticals/intuit.js — calculateCreditScore',
+      verticalLabel: 'Credit Score \u2014 Root Cause Fix',
+      culprit: 'app/services/verticals/intuit.js \u2014 extractWeights',
       service: 'credit-score-api',
     },
     {
-      verticalLabel: 'Credit Score — Data Pipeline Validation',
-      culprit: 'etl/transforms/score_weights.py — apply_weights',
+      verticalLabel: 'Credit Score \u2014 Data Pipeline Validation',
+      culprit: 'etl/transforms/score_weights.py \u2014 apply_weights',
       service: 'etl-pipeline',
     },
     {
-      verticalLabel: 'Credit Score — Monitoring & Alerts',
-      culprit: 'infra/monitors/score_drift_monitor.tf — threshold_config',
+      verticalLabel: 'Credit Score \u2014 Monitoring & Alerts',
+      culprit: 'infra/monitors/score_drift_monitor.tf \u2014 threshold_config',
       service: 'observability-platform',
     },
   ];
 
   for (const session of sessions) {
     createSessionAndAlert({
-      issueTitle: `${incidentData.error.name}: ${incidentData.error.message}`,
+      issueTitle: `[${session.verticalLabel}] ${incidentData.error.name}: ${incidentData.error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
       culprit: session.culprit,
-      errorType: incidentData.error.name || 'CreditScoreDriftError',
+      errorType: incidentData.error.name || 'TypeError',
       errorValue: incidentData.error.message,
       devinUserId: incidentData.devinUserId,
       devinOrgId: incidentData.devinOrgId,
@@ -405,15 +369,11 @@ function triggerMultiSessionIncident(incidentData) {
         { key: 'route', value: '/api/intuit/refresh' },
         { key: 'service', value: session.service },
         { key: 'severity', value: 'critical' },
-        { key: 'drift', value: String(incidentData.drift) },
       ],
       extra: {
         refreshId: incidentData.refreshId,
-        reportedScore: incidentData.reportedScore,
-        expectedScore: incidentData.expectedScore,
-        drift: incidentData.drift,
       },
-      level: 'fatal',
+      level: 'error',
       platform: 'node',
       firstSeen: '',
       lastSeen: new Date().toISOString(),
@@ -422,7 +382,7 @@ function triggerMultiSessionIncident(incidentData) {
       project: 'event-driven-devin',
       release: process.env.SENTRY_RELEASE || 'credit-karma@2.4.1',
       environment: process.env.DD_ENV || 'prod',
-      triggeredRule: 'credit-score-drift-p1',
+      triggeredRule: 'credit-score-refresh-crash',
     }).catch((err) => {
       logger.error('Failed to trigger Devin session for incident', {
         error: err.message,

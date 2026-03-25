@@ -173,10 +173,10 @@
       <p>Member since 2021 &middot; Last updated Mar 22, 2026</p>
     </div>
 
-    <div id="driftBanner" class="drift-banner fade-in">
+    <div id="errorBanner" class="drift-banner fade-in">
       <span class="drift-icon">&#9888;</span>
       <div>
-        <strong>Score Drift Detected</strong> &mdash; Your displayed score is <span id="driftAmount"></span> points higher than expected.
+        <strong>TypeError: Cannot read properties of undefined</strong> &mdash; The scoring model config returned a different shape than expected.
         An incident has been triggered and Devin is investigating across <strong>3 parallel sessions</strong>.
       </div>
     </div>
@@ -332,31 +332,32 @@
         const d = new Date(now.getTime() + offset * 1000);
         return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       };
+      const errMsg = (data.errorClass || 'TypeError') + ': ' + (data.errorMessage || "Cannot read properties of undefined (reading 'weights')");
       content.innerHTML = `
         <div class="tl-item error-state">
           <div class="tl-time">${fmt(0)}</div>
-          <div class="tl-label">Score Drift Detected <span class="tl-badge tl-badge-alert">P1 INCIDENT</span></div>
-          <div class="tl-desc">Reported score ${data.score} vs expected ${data.correctScore} (drift: +${data.drift} points)</div>
+          <div class="tl-label">Scoring Service Crashed <span class="tl-badge tl-badge-alert">P1 INCIDENT</span></div>
+          <div class="tl-desc">${errMsg}</div>
         </div>
         <div class="tl-item active">
           <div class="tl-time">${fmt(2)}</div>
-          <div class="tl-label">Slack Alert Fired <span class="tl-badge tl-badge-alert">ALERT</span></div>
+          <div class="tl-label">Sentry Alert &rarr; Slack <span class="tl-badge tl-badge-alert">ALERT</span></div>
           <div class="tl-desc">Posted to #incidents with Sentry deep link and on-call notification</div>
         </div>
         <div class="tl-item active">
           <div class="tl-time">${fmt(4)}</div>
           <div class="tl-label">Devin Session 1 &mdash; Root Cause <span class="tl-badge tl-badge-session">SESSION</span></div>
-          <div class="tl-desc">Investigating weight misconfiguration in credit-score-api service</div>
+          <div class="tl-desc">Fixing config shape mismatch in extractWeights() &mdash; credit-score-api</div>
         </div>
         <div class="tl-item active">
           <div class="tl-time">${fmt(5)}</div>
           <div class="tl-label">Devin Session 2 &mdash; Data Pipeline <span class="tl-badge tl-badge-session">SESSION</span></div>
-          <div class="tl-desc">Validating score weights in ETL pipeline transforms</div>
+          <div class="tl-desc">Validating scoring model config schema in ETL pipeline transforms</div>
         </div>
         <div class="tl-item active">
           <div class="tl-time">${fmt(6)}</div>
           <div class="tl-label">Devin Session 3 &mdash; Monitoring <span class="tl-badge tl-badge-session">SESSION</span></div>
-          <div class="tl-desc">Updating drift detection thresholds and alerting rules</div>
+          <div class="tl-desc">Adding schema validation alerts and crash rate monitors</div>
         </div>
         <div class="tl-item">
           <div class="tl-time">${fmt(120)}</div>
@@ -387,10 +388,10 @@
     async function refreshScore() {
       const btn = document.getElementById('refreshBtn');
       const result = document.getElementById('result');
-      const drift = document.getElementById('driftBanner');
+      const banner = document.getElementById('errorBanner');
       btn.disabled = true; btn.innerHTML = '<span class="btn-icon">&#8987;</span> Refreshing...';
       result.className = 'result-box';
-      drift.classList.remove('show');
+      banner.classList.remove('show');
 
       try {
         const res = await fetch('/api/intuit/refresh', {
@@ -407,17 +408,15 @@
           document.getElementById('scoreLabel').textContent = data.rating.label;
           document.getElementById('scoreLabel').style.color = data.rating.color;
           updateBugStatus(data.bugActive);
-
-          if (data.incidentTriggered) {
-            drift.classList.add('show');
-            document.getElementById('driftAmount').textContent = data.drift;
-            result.className = 'result-box error';
-            result.innerHTML = '<div class="error-title">&#128680; Incident Triggered</div><div class="error-detail">CreditScoreDriftError: Score inflated by +' + data.drift + ' points. 3 Devin sessions launched for parallel investigation.</div>';
-            showIncidentTimeline(data);
-          } else {
-            result.className = 'result-box success';
-            result.innerHTML = '<div class="error-title">Score Refreshed</div><div class="error-detail">Credit score updated successfully. Score: ' + data.score + '</div>';
-          }
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Score Refreshed</div><div class="error-detail">Credit score updated successfully. Score: ' + data.score + '</div>';
+        } else {
+          // Server returned 500 — the bug crashed the scoring service
+          const banner = document.getElementById('errorBanner');
+          banner.classList.add('show');
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">&#128680; Incident Triggered</div><div class="error-detail">' + (data.errorClass || 'TypeError') + ': ' + (data.error || 'Cannot read properties of undefined (reading \'weights\')') + '<br>3 Devin sessions launched for parallel investigation.</div>';
+          showIncidentTimeline({ errorClass: data.errorClass, errorMessage: data.error });
         }
       } catch (err) {
         result.className = 'result-box error';
@@ -447,7 +446,7 @@
           document.getElementById('scoreLabel').style.color = scoreData.rating.color;
         }
         if (!active) {
-          document.getElementById('driftBanner').classList.remove('show');
+          document.getElementById('errorBanner').classList.remove('show');
           document.getElementById('incidentTimeline').classList.remove('show');
         }
       } catch (err) {
