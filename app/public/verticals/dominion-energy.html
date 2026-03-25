@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dominion Energy &mdash; Grid Operations Center</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --de-blue: #10478e; --de-blue-dark: #0b3268; --de-blue-light: #1a5bb8;
+      --de-yellow: #fedb02; --de-yellow-hover: #e6c702;
+      --de-heading: #354d7c; --de-body: #313435;
+      --de-footer-bg: #eef1f5;
+      --bg: #f5f7fa; --white: #ffffff;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+      --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+      --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+      --success: #059669; --success-bg: #ecfdf5; --success-border: #a7f3d0;
+      --amber: #d97706; --amber-bg: #fffbeb; --amber-border: #fde68a;
+      --heading: 'Inter', -apple-system, sans-serif;
+      --body: 'Inter', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 2px 10px rgba(0,0,0,0.03);
+      --radius: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--bg); color: var(--de-body); line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
+
+    header { background: var(--de-blue); height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(1.5rem, 4vw, 3rem); }
+    .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .logo img { height: 32px; }
+    .logo-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.3); }
+    .logo-label { color: #fff; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.02em; opacity: 0.92; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .header-right .env-badge { font-size: 0.6rem; font-weight: 700; color: var(--de-blue); background: var(--de-yellow); padding: 0.15rem 0.5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .header-right .user-info { color: rgba(255,255,255,0.8); font-size: 0.75rem; }
+
+    .nav-bar { background: var(--de-blue-dark); border-bottom: 2px solid var(--de-yellow); display: flex; align-items: center; padding: 0 clamp(1.5rem, 4vw, 3rem); height: 40px; gap: 0; }
+    .nav-bar a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.78rem; font-weight: 500; padding: 0.5rem 1rem; transition: all 0.15s; position: relative; }
+    .nav-bar a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav-bar a.active { color: #fff; font-weight: 600; }
+    .nav-bar a.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--de-yellow); }
+
+    .page { max-width: 1180px; margin: 0 auto; padding: 1.25rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--de-blue); text-decoration: none; font-size: 0.72rem; font-weight: 600; margin-bottom: 0.75rem; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--gray-200); }
+    .page-header h1 { font-family: var(--heading); font-size: 1.25rem; font-weight: 700; color: var(--de-heading); }
+    .page-header p { font-size: 0.78rem; color: var(--gray-500); margin-top: 0.1rem; }
+    .status-indicator { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .status-indicator.ok { color: var(--success); }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+    .kpi { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1rem 1.15rem; box-shadow: var(--shadow); }
+    .kpi-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 0.25rem; }
+    .kpi-value { font-family: var(--heading); font-size: 1.4rem; font-weight: 700; color: var(--gray-800); }
+    .kpi-sub { font-size: 0.68rem; color: var(--gray-400); margin-top: 0.1rem; }
+    .kpi-sub.ok { color: var(--success); font-weight: 600; }
+    .kpi-sub.warn { color: var(--amber); font-weight: 600; }
+    .kpi-sub.danger { color: var(--danger); font-weight: 600; }
+
+    .section-title { font-family: var(--heading); font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.4rem; letter-spacing: -0.01em; }
+
+    .grid-2col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    @media (max-width: 900px) { .grid-2col { grid-template-columns: 1fr; } }
+
+    .table-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); padding: 0.6rem 1rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+    .data-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--gray-100); font-size: 0.78rem; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: rgba(16, 71, 142, 0.03); }
+    .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.58rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 20px; }
+    .badge-online { color: var(--success); background: var(--success-bg); }
+    .badge-online::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+    .badge-warning { color: var(--amber); background: var(--amber-bg); }
+    .badge-warning::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+    .badge-critical { color: var(--danger); background: var(--danger-bg); }
+    .badge-critical::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--danger); }
+    .badge-offline { color: var(--gray-500); background: var(--gray-100); }
+    .mono { font-family: var(--mono); font-size: 0.72rem; color: var(--gray-500); }
+
+    .incident-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .incident-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-100); }
+    .incident-item:last-child { border-bottom: none; }
+    .incident-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
+    .incident-id { font-family: var(--mono); font-size: 0.68rem; color: var(--de-blue); font-weight: 600; }
+    .incident-time { font-size: 0.62rem; color: var(--gray-400); }
+    .incident-title { font-size: 0.78rem; font-weight: 600; color: var(--gray-800); margin-bottom: 0.15rem; }
+    .incident-meta { font-size: 0.65rem; color: var(--gray-400); }
+
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 900px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    .load-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.15rem; box-shadow: var(--shadow); }
+    .load-item { margin-bottom: 0.85rem; }
+    .load-item:last-child { margin-bottom: 0; }
+    .load-header { display: flex; justify-content: space-between; margin-bottom: 0.2rem; }
+    .load-name { font-size: 0.75rem; font-weight: 600; color: var(--gray-700); }
+    .load-vals { font-family: var(--mono); font-size: 0.68rem; color: var(--gray-400); }
+    .load-bar { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+    .load-fill { height: 100%; border-radius: 3px; background: var(--de-blue); transition: width 0.6s ease; }
+    .load-fill.high { background: var(--amber); }
+    .load-fill.critical { background: var(--danger); }
+
+    .dispatch-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+    .dispatch-card h2 { font-family: var(--heading); font-size: 0.82rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.85rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group label { display: block; font-size: 0.65rem; font-weight: 600; color: var(--gray-500); margin-bottom: 0.15rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group select, .form-group input { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid var(--gray-200); border-radius: 6px; font-family: var(--body); font-size: 0.78rem; color: var(--gray-700); background: #fff; transition: all 0.15s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--de-blue); box-shadow: 0 0 0 3px rgba(16,71,142,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .btn-submit { width: 100%; padding: 0.6rem; background: var(--de-blue); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; font-family: var(--body); cursor: pointer; transition: all 0.15s; }
+    .btn-submit:hover { background: var(--de-blue-dark); }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-box { margin-top: 0.5rem; padding: 0.55rem 0.75rem; border-radius: 6px; font-size: 0.75rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.65rem; opacity: 0.85; word-break: break-all; }
+
+    .footer { background: var(--de-footer-bg); border-top: 1px solid var(--gray-200); margin-top: 2rem; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .footer-inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .footer-logo { display: flex; align-items: center; gap: 0.6rem; }
+    .footer-logo img { height: 24px; }
+    .footer-text { font-size: 0.68rem; color: var(--gray-400); }
+    .footer-links { display: flex; gap: 1rem; }
+    .footer-links a { font-size: 0.68rem; color: var(--gray-500); text-decoration: none; }
+    .footer-links a:hover { color: var(--de-blue); }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="https://www.dominionenergy.com" class="logo" target="_blank">
+      <img src="https://cdn-dominionenergy-prd-001.azureedge.net/-/media/project/referencesite/header/header---logo---white.svg?rev=8ed9b3d7491c44b9a10a22e74e98130a&la=en&hash=C6C19F365FB3DDB627D69EFF23DE0E8F" alt="Dominion Energy">
+      <span class="logo-divider"></span>
+      <span class="logo-label">Grid Operations Center</span>
+    </a>
+    <div class="header-right">
+      <span class="env-badge">Production</span>
+      <span class="user-info">J. Mitchell &middot; Grid Reliability Eng</span>
+    </div>
+  </header>
+  <div class="nav-bar">
+    <a href="#" class="active">Overview</a>
+    <a href="#">Substations</a>
+    <a href="#">Outage Map</a>
+    <a href="#">SCADA Telemetry</a>
+    <a href="#">Dispatch</a>
+    <a href="#">Incident Log</a>
+    <a href="#">DER Management</a>
+    <a href="#">Reports</a>
+  </div>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+    <div class="page-header fi fi1">
+      <div>
+        <h1>Grid Reliability Dashboard</h1>
+        <p>Real-time monitoring &middot; Virginia service territory &middot; Updated 5s ago</p>
+      </div>
+      <div class="status-indicator ok"><span class="status-dot"></span> System Normal</div>
+    </div>
+    <div class="kpi-row fi fi2">
+      <div class="kpi"><div class="kpi-label">Active Substations</div><div class="kpi-value">342</div><div class="kpi-sub ok">All reporting</div></div>
+      <div class="kpi"><div class="kpi-label">Grid Load</div><div class="kpi-value">14.8 GW</div><div class="kpi-sub">Peak: 18.2 GW</div></div>
+      <div class="kpi"><div class="kpi-label">Active Outages</div><div class="kpi-value">7</div><div class="kpi-sub warn">1,247 customers</div></div>
+      <div class="kpi"><div class="kpi-label">SAIDI (YTD)</div><div class="kpi-value">68.4</div><div class="kpi-sub ok">Target: &lt; 90 min</div></div>
+      <div class="kpi"><div class="kpi-label">Crew Availability</div><div class="kpi-value">84%</div><div class="kpi-sub">42 / 50 crews</div></div>
+    </div>
+    <div class="grid-2col fi fi3">
+      <div>
+        <div class="section-title">Substation Status</div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr><th>Substation</th><th>Circuit</th><th>Load (MW)</th><th>Voltage (kV)</th><th>Status</th><th>Last Check</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">SUB-2201</td><td>Henrico 230kV</td><td>142.6</td><td>232.1</td><td><span class="badge badge-online">Online</span></td><td>12s ago</td></tr>
+              <tr><td class="mono">SUB-2202</td><td>Chesterfield 115kV</td><td>89.3</td><td>114.8</td><td><span class="badge badge-online">Online</span></td><td>8s ago</td></tr>
+              <tr><td class="mono">SUB-2203</td><td>James River 500kV</td><td>387.1</td><td>498.2</td><td><span class="badge badge-warning">Alarm</span></td><td>3s ago</td></tr>
+              <tr><td class="mono">SUB-2204</td><td>Norfolk Dist 34.5kV</td><td>28.4</td><td>34.1</td><td><span class="badge badge-online">Online</span></td><td>15s ago</td></tr>
+              <tr><td class="mono">SUB-2205</td><td>Virginia Beach 115kV</td><td>94.7</td><td>115.1</td><td><span class="badge badge-online">Online</span></td><td>6s ago</td></tr>
+              <tr><td class="mono">SUB-2206</td><td>Loudoun 230kV</td><td>201.3</td><td>229.8</td><td><span class="badge badge-online">Online</span></td><td>11s ago</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Active Incidents</div>
+        <div class="incident-card">
+          <div class="incident-item">
+            <div class="incident-header">
+              <span class="incident-id">INC-40821</span>
+              <span class="badge badge-critical">P1</span>
+            </div>
+            <div class="incident-title">Transformer fault &mdash; SUB-2203</div>
+            <div class="incident-meta">James River 500kV &middot; 847 customers &middot; 34 min ago</div>
+          </div>
+          <div class="incident-item">
+            <div class="incident-header">
+              <span class="incident-id">INC-40819</span>
+              <span class="badge badge-warning">P2</span>
+            </div>
+            <div class="incident-title">Vegetation contact &mdash; Feeder 4402</div>
+            <div class="incident-meta">Chesterfield area &middot; 312 customers &middot; 1h 12m ago</div>
+          </div>
+          <div class="incident-item">
+            <div class="incident-header">
+              <span class="incident-id">INC-40817</span>
+              <span class="badge badge-warning">P3</span>
+            </div>
+            <div class="incident-title">Recloser lockout &mdash; Circuit 7718</div>
+            <div class="incident-meta">Norfolk district &middot; 88 customers &middot; 2h 45m ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-grid fi fi4">
+      <div>
+        <div class="section-title">Regional Load Distribution</div>
+        <div class="load-card">
+          <div class="load-item"><div class="load-header"><span class="load-name">Northern Virginia</span><span class="load-vals">4.2 GW / 5.0 GW</span></div><div class="load-bar"><div class="load-fill high" style="width:84%"></div></div></div>
+          <div class="load-item"><div class="load-header"><span class="load-name">Richmond Metro</span><span class="load-vals">3.1 GW / 4.5 GW</span></div><div class="load-bar"><div class="load-fill" style="width:69%"></div></div></div>
+          <div class="load-item"><div class="load-header"><span class="load-name">Hampton Roads</span><span class="load-vals">2.8 GW / 3.8 GW</span></div><div class="load-bar"><div class="load-fill" style="width:74%"></div></div></div>
+          <div class="load-item"><div class="load-header"><span class="load-name">Shenandoah Valley</span><span class="load-vals">1.4 GW / 2.0 GW</span></div><div class="load-bar"><div class="load-fill" style="width:70%"></div></div></div>
+          <div class="load-item"><div class="load-header"><span class="load-name">Southside</span><span class="load-vals">1.9 GW / 2.2 GW</span></div><div class="load-bar"><div class="load-fill high" style="width:86%"></div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Outage Dispatch</div>
+        <div class="dispatch-card">
+          <h2>Run Reliability Assessment</h2>
+          <form id="assessmentForm">
+            <div class="form-group"><label>Region</label><select id="region"><option value="NOVA">Northern Virginia</option><option value="RVA">Richmond Metro</option><option value="HR">Hampton Roads</option><option value="SV">Shenandoah Valley</option><option value="SS">Southside</option></select></div>
+            <div class="form-row">
+              <div class="form-group"><label>Assessment Type</label><select id="assessType"><option value="reliability">Grid Reliability</option><option value="capacity">Capacity Planning</option><option value="restoration">Restoration Priority</option></select></div>
+              <div class="form-group"><label>Priority</label><select id="priority"><option value="standard">Standard</option><option value="expedited">Expedited</option><option value="emergency">Emergency</option></select></div>
+            </div>
+            <div class="form-group"><label>Incident Reference</label><input type="text" id="incidentRef" placeholder="INC-XXXXX (optional)"></div>
+            <button type="submit" class="btn-submit" id="submitBtn">Run Assessment</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="https://cdn-dominionenergy-prd-001.azureedge.net/-/media/project/referencesite/header/header---logo---white.svg?rev=8ed9b3d7491c44b9a10a22e74e98130a&la=en&hash=C6C19F365FB3DDB627D69EFF23DE0E8F" alt="Dominion Energy" style="filter: brightness(0) saturate(100%) invert(22%) sepia(63%) saturate(1200%) hue-rotate(196deg) brightness(95%) contrast(95%);">
+        <span class="footer-text">&copy; 2026 Dominion Energy &middot; Internal Use Only &middot; Grid Operations v4.2.1</span>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">System Status</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('assessmentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Analyzing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/dominion-energy/assess', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ region: document.getElementById('region').value, assessType: document.getElementById('assessType').value, priority: document.getElementById('priority').value, incidentRef: document.getElementById('incidentRef').value || null, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Assessment Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Assessment Complete</div><div class="error-detail">Region: ${data.region} &mdash; Score: ${data.reliabilityScore} &mdash; Risk: ${data.riskLevel}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Run Assessment'; }
+    });
+  </script>
+</body>
+</html>
