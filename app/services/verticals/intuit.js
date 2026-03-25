@@ -81,11 +81,11 @@ const CORRECT_WEIGHTS = {
  *      dominant factor is credit age instead of payment history.
  */
 const BUGGY_WEIGHTS = {
-  paymentHistory: 0.15,
-  creditUtilization: 0.20,
-  creditAge: 0.35,
-  totalAccounts: 0.10,
-  hardInquiries: 0.10,
+  paymentHistory: 0.55,
+  creditUtilization: 0.05,
+  creditAge: 0.25,
+  totalAccounts: 0.02,
+  hardInquiries: 0.05,
 };
 
 /**
