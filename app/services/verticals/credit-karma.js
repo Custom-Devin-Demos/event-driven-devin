@@ -9,7 +9,7 @@ const { createSessionAndAlert } = require('../devin-session');
  * When `true`, the credit score refresh uses a mismatched property path
  * that throws a TypeError — exactly the kind of shape mismatch that
  * passes code review but crashes in production.
- * Reset via POST /api/intuit/reset
+ * Reset via POST /api/credit-karma/reset
  */
 let bugActive = true;
 
@@ -185,11 +185,11 @@ async function getCreditReport(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.fetch.success', {
-      route: '/api/intuit/score',
+      route: '/api/credit-karma/score',
       bureau: CREDIT_PROFILE.bureau,
     });
     recordTiming('creditscore.fetch.latency', duration, {
-      route: '/api/intuit/score',
+      route: '/api/credit-karma/score',
     });
 
     return {
@@ -207,11 +207,11 @@ async function getCreditReport(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.fetch.failure', {
-      route: '/api/intuit/score',
+      route: '/api/credit-karma/score',
       errorClass: error.name,
     });
     recordTiming('creditscore.fetch.latency', duration, {
-      route: '/api/intuit/score',
+      route: '/api/credit-karma/score',
       error: 'true',
     });
 
@@ -224,7 +224,7 @@ async function getCreditReport(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/intuit/score',
+        route: '/api/credit-karma/score',
         service: 'credit-score-api',
       },
       extra: { reportId, userId: data.userId },
@@ -271,10 +271,10 @@ async function refreshScore(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.refresh.success', {
-      route: '/api/intuit/refresh',
+      route: '/api/credit-karma/refresh',
     });
     recordTiming('creditscore.refresh.latency', duration, {
-      route: '/api/intuit/refresh',
+      route: '/api/credit-karma/refresh',
     });
 
     return {
@@ -289,11 +289,11 @@ async function refreshScore(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.refresh.failure', {
-      route: '/api/intuit/refresh',
+      route: '/api/credit-karma/refresh',
       errorClass: error.name,
     });
     recordTiming('creditscore.refresh.latency', duration, {
-      route: '/api/intuit/refresh',
+      route: '/api/credit-karma/refresh',
       error: 'true',
     });
 
@@ -306,7 +306,7 @@ async function refreshScore(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/intuit/refresh',
+        route: '/api/credit-karma/refresh',
         service: 'credit-score-api',
       },
       extra: { refreshId, userId: data.userId || CREDIT_PROFILE.userId },
@@ -339,7 +339,7 @@ function triggerMultiSessionIncident(incidentData) {
   const sessions = [
     {
       verticalLabel: 'Credit Score \u2014 Root Cause Fix',
-      culprit: 'app/services/verticals/intuit.js \u2014 extractWeights',
+      culprit: 'app/services/verticals/credit-karma.js \u2014 extractWeights',
       service: 'credit-score-api',
     },
     {
@@ -366,7 +366,7 @@ function triggerMultiSessionIncident(incidentData) {
       service: session.service,
       verticalLabel: session.verticalLabel,
       tags: [
-        { key: 'route', value: '/api/intuit/refresh' },
+        { key: 'route', value: '/api/credit-karma/refresh' },
         { key: 'service', value: session.service },
         { key: 'severity', value: 'critical' },
       ],
