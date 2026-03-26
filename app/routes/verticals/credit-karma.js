@@ -7,14 +7,14 @@ const {
   CREDIT_PROFILE,
   SCORE_FACTORS,
   RECOMMENDATIONS,
-} = require('../../services/verticals/intuit');
+} = require('../../services/verticals/credit-karma');
 
 const router = express.Router();
 
 /**
- * GET /api/intuit/score — returns the full credit report
+ * GET /api/credit-karma/score — returns the full credit report
  */
-router.get('/api/intuit/score', async (req, res) => {
+router.get('/api/credit-karma/score', async (req, res) => {
   try {
     const result = await getCreditReport({
       userId: req.query.userId || CREDIT_PROFILE.userId,
@@ -34,9 +34,9 @@ router.get('/api/intuit/score', async (req, res) => {
 });
 
 /**
- * POST /api/intuit/refresh — refresh score (triggers the bug / incident)
+ * POST /api/credit-karma/refresh — refresh score (triggers the bug / incident)
  */
-router.post('/api/intuit/refresh', async (req, res) => {
+router.post('/api/credit-karma/refresh', async (req, res) => {
   try {
     const result = await refreshScore({
       userId: req.body.userId || CREDIT_PROFILE.userId,
@@ -56,10 +56,10 @@ router.post('/api/intuit/refresh', async (req, res) => {
 });
 
 /**
- * POST /api/intuit/reset — toggle the bug on or off
+ * POST /api/credit-karma/reset — toggle the bug on or off
  * Body: { "bugActive": true|false } or empty to toggle
  */
-router.post('/api/intuit/reset', (req, res) => {
+router.post('/api/credit-karma/reset', (req, res) => {
   const state = resetBug(req.body.bugActive);
   res.json({
     success: true,
@@ -69,9 +69,9 @@ router.post('/api/intuit/reset', (req, res) => {
 });
 
 /**
- * GET /api/intuit/status — check current bug state
+ * GET /api/credit-karma/status — check current bug state
  */
-router.get('/api/intuit/status', (_req, res) => {
+router.get('/api/credit-karma/status', (_req, res) => {
   res.json({
     ...getBugState(),
     profile: CREDIT_PROFILE,

@@ -15,7 +15,7 @@ const telcoRoutes = require('./telco');
 const wayfairRoutes = require('./wayfair');
 const zaxbysRoutes = require('./zaxbys');
 const fordHilRoutes = require('./ford-hil');
-const intuitRoutes = require('./intuit');
+const creditKarmaRoutes = require('./credit-karma');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -29,7 +29,7 @@ router.use(telcoRoutes);
 router.use(wayfairRoutes);
 router.use(zaxbysRoutes);
 router.use(fordHilRoutes);
-router.use(intuitRoutes);
+router.use(creditKarmaRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -44,7 +44,7 @@ const VERTICALS = [
   { id: 'industrials', name: 'Industrials', brand: 'Titan Manufacturing', path: '/industrials', icon: '\u{1F3ED}', color: '#6C757D' },
   { id: 'healthcare', name: 'Health Care', brand: 'CarePoint Health', path: '/healthcare', icon: '\u{1F3E5}', color: '#06D6A0' },
   { id: 'telco', name: 'Telco', brand: 'WaveConnect', path: '/telco', icon: '\u{1F4F1}', color: '#118AB2' },
-  { id: 'intuit', name: 'Financial Technology', brand: 'Credit Karma', path: '/intuit', icon: '\u{1F4B3}', color: '#008751' },
+  { id: 'credit-karma', name: 'Financial Technology', brand: 'Credit Karma', path: '/credit-karma', icon: '\u{1F4B3}', color: '#008751' },
 ];
 
 /**
@@ -58,7 +58,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'wayfair', 'zaxbys', 'ford-hil', 'intuit'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'wayfair', 'zaxbys', 'ford-hil', 'credit-karma'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
