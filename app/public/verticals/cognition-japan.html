@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognition Japan &mdash; お問い合わせ</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa; --white: #ffffff;
+      --primary: #1a1a2e; --primary-light: #16213e; --primary-dim: rgba(26,26,46,0.04);
+      --primary-border: rgba(26,26,46,0.12);
+      --accent: #e94560; --accent-light: #f05a73;
+      --gray-50: #fafafa; --gray-100: #f4f4f5; --gray-200: #e4e4e7;
+      --gray-300: #d4d4d8; --gray-400: #a1a1aa; --gray-500: #71717a;
+      --gray-600: #52525b; --gray-700: #3f3f46; --gray-800: #27272a; --gray-900: #18181b;
+      --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+      --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+      --amber: #d97706; --amber-bg: #fffbeb; --amber-border: #fde68a;
+      --sans: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
+
+    .app-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    @media (max-width: 800px) { .app-shell { grid-template-columns: 1fr; } .sidebar-nav { display: none; } }
+
+    .sidebar-nav { background: var(--primary); border-right: 1px solid var(--gray-200); padding: 1.25rem 0; display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 0 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .sidebar-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; font-weight: 700; }
+    .sidebar-name { font-size: 0.95rem; font-weight: 700; color: #fff; letter-spacing: -0.03em; }
+    .nav-section { padding: 0 0.75rem; margin-bottom: 0.5rem; }
+    .nav-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 0 0.5rem; margin-bottom: 0.25rem; }
+    .nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; border-radius: 6px; transition: all 0.15s; margin-bottom: 1px; }
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: rgba(233,69,96,0.15); color: var(--accent); font-weight: 600; border: 1px solid rgba(233,69,96,0.25); }
+    .nav-item .badge { margin-left: auto; font-size: 0.6rem; font-weight: 700; background: var(--accent); color: #fff; padding: 0.1rem 0.4rem; border-radius: 10px; }
+    .sidebar-footer { margin-top: auto; padding: 0.75rem 1.25rem; border-top: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-user { font-size: 0.78rem; font-weight: 600; color: #fff; }
+    .sidebar-role { font-size: 0.68rem; color: rgba(255,255,255,0.5); }
+
+    .main { padding: 1.5rem 2rem; overflow-y: auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--accent); text-decoration: none; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; color: var(--gray-900); }
+    .page-header p { font-size: 0.82rem; color: var(--gray-500); margin-top: 0.15rem; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .metric { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.15rem; }
+    .metric-label { font-size: 0.68rem; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .metric-val { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; color: var(--gray-900); }
+    .metric-change { font-size: 0.7rem; font-weight: 600; margin-top: 0.15rem; }
+    .metric-change.up { color: var(--success); }
+
+    .section-title { font-size: 0.85rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+
+    .table-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; margin-bottom: 1.5rem; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-400); padding: 0.7rem 1rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+    .data-table td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--gray-100); font-size: 0.82rem; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: var(--primary-dim); }
+    .badge-pending { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 600; color: var(--amber); background: var(--amber-bg); padding: 0.15rem 0.5rem; border-radius: 20px; }
+    .badge-contacted { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 600; color: #2563eb; background: #eff6ff; padding: 0.15rem 0.5rem; border-radius: 20px; }
+    .badge-won { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 600; color: var(--success); background: var(--success-bg); padding: 0.15rem 0.5rem; border-radius: 20px; }
+
+    .contact-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; max-width: 520px; }
+    .contact-card h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1.15rem; color: var(--gray-900); }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 0.2rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--gray-200); border-radius: 8px; font-family: var(--sans); font-size: 0.82rem; color: var(--gray-800); background: #fff; transition: all 0.15s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(233,69,96,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .btn-submit { width: 100%; padding: 0.65rem; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.15s; }
+    .btn-submit:hover { background: var(--accent-light); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.78rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .result-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .result-detail { font-size: 0.68rem; opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar-nav">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">C</div>
+        <div class="sidebar-name">Cognition Japan</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="#" class="nav-item active">Dashboard</a>
+        <a href="#" class="nav-item">Analytics</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Sales</div>
+        <a href="#" class="nav-item">Inquiries <span class="badge">4</span></a>
+        <a href="#" class="nav-item">Customers</a>
+        <a href="#" class="nav-item">Plans</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Settings</div>
+        <a href="#" class="nav-item">Team</a>
+        <a href="#" class="nav-item">Integrations</a>
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">Yuki Tanaka</div>
+        <div class="sidebar-role">Sales Manager</div>
+      </div>
+    </aside>
+    <main class="main">
+      <a href="/" class="back-link fi">&larr; All Demos</a>
+      <div class="page-header fi fi1">
+        <div><h1>Sales Inquiry Portal</h1><p>Manage enterprise contact-sales inquiries</p></div>
+      </div>
+      <div class="metrics fi fi2">
+        <div class="metric"><div class="metric-label">Total Inquiries</div><div class="metric-val">48</div><div class="metric-change up">+15% this month</div></div>
+        <div class="metric"><div class="metric-label">Enterprise Leads</div><div class="metric-val">12</div><div class="metric-change up">25% of total</div></div>
+        <div class="metric"><div class="metric-label">Conversion Rate</div><div class="metric-val">34%</div><div class="metric-change up">+5% vs last quarter</div></div>
+        <div class="metric"><div class="metric-label">Avg Deal Size</div><div class="metric-val">&#165;2.4M</div><div class="metric-change up">+12% YoY</div></div>
+      </div>
+      <div class="fi fi3">
+        <div class="section-title">Recent Inquiries</div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>Company</th><th>Contact</th><th>Plan</th><th>Seats</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>INQ-JP-001</td><td><strong>株式会社テクノロジーズ</strong></td><td>田中太郎</td><td>Enterprise</td><td>200</td><td><span class="badge-pending">Pending</span></td></tr>
+              <tr><td>INQ-JP-002</td><td><strong>グローバルシステムズ</strong></td><td>佐藤花子</td><td>Business</td><td>30</td><td><span class="badge-contacted">Contacted</span></td></tr>
+              <tr><td>INQ-JP-003</td><td><strong>デジタルソリューションズ</strong></td><td>鈴木一郎</td><td>Starter</td><td>10</td><td><span class="badge-won">Won</span></td></tr>
+              <tr><td>INQ-JP-004</td><td><strong>AIイノベーション株式会社</strong></td><td>高橋美咲</td><td>Enterprise</td><td>500</td><td><span class="badge-pending">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="fi fi4">
+        <div class="section-title">New Inquiry</div>
+        <div class="contact-card">
+          <h2>Submit Contact-Sales Request</h2>
+          <form id="contactForm">
+            <div class="form-row">
+              <div class="form-group"><label>Company Name</label><input type="text" id="company" value="株式会社サンプル"></div>
+              <div class="form-group"><label>Contact Name</label><input type="text" id="contact" value="山田太郎"></div>
+            </div>
+            <div class="form-group"><label>Email</label><input type="email" id="email" value="yamada@example.co.jp"></div>
+            <div class="form-row">
+              <div class="form-group"><label>Plan</label><select id="planId"><option value="Enterprise">Enterprise</option><option value="Business">Business</option><option value="Starter">Starter</option></select></div>
+              <div class="form-group"><label>Seats</label><input type="number" id="seats" value="100" min="1"></div>
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">Submit Inquiry</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/cognition-japan/contact-sales', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ company: document.getElementById('company').value, contact: document.getElementById('contact').value, email: document.getElementById('email').value, planId: document.getElementById('planId').value, seats: parseInt(document.getElementById('seats').value), devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">Error</div><div class="result-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="result-title">Inquiry Received</div><div class="result-detail">' + data.message + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Network Error</div><div class="result-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Submit Inquiry'; }
+    });
+  </script>
+</body>
+</html>
