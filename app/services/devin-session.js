@@ -157,11 +157,15 @@ async function createSessionAndAlert(alertData) {
       return null;
     }
 
+    // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
+    const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
+    const resolvedOrgId = alertData.devinOrgId || '';
+
     // Step 2: Create Devin session via v3 API and post "View in Devin" link
     const session = await createDevinSession(prompt, {
       apiKey: config.apiKey,
-      orgId: alertData.devinOrgId,
-      userId: alertData.devinUserId,
+      orgId: resolvedOrgId,
+      userId: resolvedUserId,
     });
 
     if (session) {
@@ -170,8 +174,8 @@ async function createSessionAndAlert(alertData) {
         issueTitle: alertData.issueTitle,
         sessionId: session.sessionId,
         customer: config.customer,
-        devinUserId: alertData.devinUserId || 'service-user',
-        devinOrgId: alertData.devinOrgId || 'default',
+        devinUserId: resolvedUserId || 'service-user',
+        devinOrgId: resolvedOrgId || 'default',
         threadTs,
       });
     } else {
@@ -183,9 +187,8 @@ async function createSessionAndAlert(alertData) {
     // Fire a vulnerable PR in the target repo immediately.
     // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation
     // in the background, demonstrating the full remediation pipeline.
-    // Pass the customer slug and devinUserId so the workflow dispatch includes them,
-    // allowing devin-scan.yml to create the remediation session as the selected user.
-    scheduleVulnerablePR(0, config.customer, alertData.devinUserId, alertData.devinOrgId);
+    // Pass the same resolved user/org IDs so the CI session matches the Slack session.
+    scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
 
     return { triggered: true, threadTs };
   } catch (error) {
