@@ -250,6 +250,9 @@ async function createVulnerablePR(options = {}) {
     logger.info('Dispatched devin-scan workflow via workflow_dispatch', {
       prNumber: result.prNumber,
       branch: branchName,
+      customer: customerSlug,
+      devinUserId: options.devinUserId || 'none',
+      devinOrgId: options.devinOrgId || 'none',
     });
   } catch (dispatchErr) {
     logger.error('Failed to dispatch devin-scan workflow', {
@@ -277,7 +280,12 @@ function scheduleVulnerablePR(delayMs = 60000, customer, devinUserId, devinOrgId
     return;
   }
 
-  logger.info('Scheduling vulnerable PR creation', { delayMs, customer: customer || 'default', devinUserId: devinUserId || 'none', devinOrgId: devinOrgId || 'default' });
+  logger.info('Scheduling vulnerable PR creation', {
+    delayMs,
+    customer: customer || 'default',
+    devinUserId: devinUserId || 'none',
+    devinOrgId: devinOrgId || 'default',
+  });
 
   setTimeout(async () => {
     try {
@@ -286,12 +294,18 @@ function scheduleVulnerablePR(delayMs = 60000, customer, devinUserId, devinOrgId
         prNumber: result.prNumber,
         htmlUrl: result.htmlUrl,
         customer: customer || 'default',
+        devinUserId: devinUserId || 'none',
+        devinOrgId: devinOrgId || 'default',
       });
     } catch (error) {
       logger.error('Failed to create vulnerable PR', {
         error: error.message,
+        stack: error.stack,
         status: error.response?.status,
         data: error.response?.data,
+        customer: customer || 'default',
+        devinUserId: devinUserId || 'none',
+        devinOrgId: devinOrgId || 'default',
       });
     }
   }, delayMs);
