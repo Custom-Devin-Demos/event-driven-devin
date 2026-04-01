@@ -1,3 +1,5 @@
+/* global jest, describe, it, expect */
+
 // Mock uuid before requiring the module (uuid uses ESM exports)
 jest.mock('uuid', () => ({
   v4: () => 'test-uuid-1234',
