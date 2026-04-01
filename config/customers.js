@@ -16,8 +16,11 @@ const logger = require('../app/telemetry/logger');
  * Env var naming convention for customer-specific vars:
  *   DEVIN_API_KEY_<SLUG>       — Devin API key for that customer's org
  *   DEVIN_PLAYBOOK_ID_<SLUG>   — Optional playbook ID
+<<<<<<< Updated upstream
  *   GITHUB_ORG_<SLUG>          — GitHub org for repo references
  *   DEVIN_USER_ID_<SLUG>       — Pre-configured Devin user ID
+=======
+>>>>>>> Stashed changes
  *   SONAR_TARGET_REPO_<SLUG>   — Target repo for SonarCloud PR
  *
  * Example: For customer slug "wayfair":
@@ -70,7 +73,7 @@ function getCustomerConfig(customerSlug) {
   const config = {
     customer: slug,
     label: entry.label || slug,
-    triggerMode: 'api',
+    triggerMode: entry.triggerMode || (slug === 'default' ? 'env' : 'api'),
     apiKey: process.env[`DEVIN_SERVICE_KEY${suffix}`]
       || process.env.DEVIN_SERVICE_KEY
       || process.env[`DEVIN_API_KEY${suffix}`]

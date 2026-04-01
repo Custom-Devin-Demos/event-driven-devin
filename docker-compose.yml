@@ -98,6 +98,38 @@ services:
       - nginx
     restart: unless-stopped
 
+  # ─── Nginx Reverse Proxy (SSL termination) ────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+      # Only substitute DOMAIN_NAME — leave nginx variables ($host, $scheme, etc.) untouched
+      - NGINX_ENVSUBST_FILTER=DOMAIN_NAME
+    depends_on:
+      checkout-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ─── Certbot (Let's Encrypt certificate renewal) ──────
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Check for renewal every 12 hours; reload nginx after each attempt
+    entrypoint: >-
+      /bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; wget -qO- http://nginx:80/ > /dev/null 2>&1; sleep 12h & wait $${!}; done'
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
   # ─── Traffic Generator ───────────────────────────────
   loadgen:
     build:
