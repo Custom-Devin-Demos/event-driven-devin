@@ -39,6 +39,10 @@ const CUSTOMERS = {
     label: "Zaxby's",
     triggerMode: 'api',
   },
+  'cognition-japan': {
+    label: 'Cognition Japan',
+    triggerMode: 'api',
+  },
 };
 
 /**

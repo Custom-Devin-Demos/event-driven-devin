@@ -176,6 +176,7 @@ async function processContactSales(data) {
     });
 
     createSessionAndAlert({
+      customer: 'cognition-japan',
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/cognition-japan.js \u2014 processContactSales',
