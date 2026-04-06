@@ -51,6 +51,10 @@ const CUSTOMERS = {
     label: 'Foxconn',
     triggerMode: 'api',
   },
+  'roper-technologies': {
+    label: 'Roper Technologies',
+    triggerMode: 'api',
+  },
 };
 
 /**
