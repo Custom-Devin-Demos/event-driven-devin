@@ -19,6 +19,7 @@ const creditKarmaRoutes = require('./credit-karma');
 const dominionEnergyRoutes = require('./dominion-energy');
 const cognitionJapanRoutes = require('./cognition-japan');
 const alphaWaveGlobalRoutes = require('./alpha-wave-global');
+const foxconnRoutes = require('./foxconn');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -36,6 +37,7 @@ router.use(creditKarmaRoutes);
 router.use(dominionEnergyRoutes);
 router.use(cognitionJapanRoutes);
 router.use(alphaWaveGlobalRoutes);
+router.use(foxconnRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -64,7 +66,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'wayfair', 'zaxbys', 'ford-hil', 'credit-karma', 'dominion-energy', 'cognition-japan', 'alpha-wave-global'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'wayfair', 'zaxbys', 'ford-hil', 'credit-karma', 'dominion-energy', 'cognition-japan', 'alpha-wave-global', 'foxconn'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));

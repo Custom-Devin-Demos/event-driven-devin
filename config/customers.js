@@ -47,6 +47,10 @@ const CUSTOMERS = {
     label: 'Alpha Wave Global',
     triggerMode: 'api',
   },
+  foxconn: {
+    label: 'Foxconn',
+    triggerMode: 'api',
+  },
 };
 
 /**
