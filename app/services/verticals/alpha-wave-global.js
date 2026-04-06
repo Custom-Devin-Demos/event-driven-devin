@@ -99,7 +99,7 @@ function loadFundConfiguration(strategyId) {
 }
 
 function extractPortfolioMetrics(fundConfig) {
-  const metrics = fundConfig.analytics;
+  const metrics = fundConfig.portfolio;
   return {
     sectors: metrics.sectors,
     benchmark: metrics.benchmark,
