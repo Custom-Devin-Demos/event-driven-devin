@@ -43,6 +43,10 @@ const CUSTOMERS = {
     label: 'Cognition Japan',
     triggerMode: 'api',
   },
+  'alpha-wave-global': {
+    label: 'Alpha Wave Global',
+    triggerMode: 'api',
+  },
 };
 
 /**
