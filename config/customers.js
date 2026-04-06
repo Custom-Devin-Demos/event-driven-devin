@@ -46,14 +46,17 @@ const CUSTOMERS = {
   'alpha-wave-global': {
     label: 'Alpha Wave Global',
     triggerMode: 'api',
+    githubOrg: 'Custom-Devin-Demos',
   },
   foxconn: {
     label: 'Foxconn',
     triggerMode: 'api',
+    githubOrg: 'Custom-Devin-Demos',
   },
   'roper-technologies': {
     label: 'Roper Technologies',
     triggerMode: 'api',
+    githubOrg: 'Custom-Devin-Demos',
   },
 };
 
@@ -80,7 +83,8 @@ function getCustomerConfig(customerSlug) {
     ? `_${slug.toUpperCase().replace(/-/g, '_')}`
     : '';
 
-  const githubOrg = process.env[`GITHUB_ORG${suffix}`]
+  const githubOrg = entry.githubOrg
+    || process.env[`GITHUB_ORG${suffix}`]
     || process.env.GITHUB_ORG || 'COG-GTM';
 
   const config = {
