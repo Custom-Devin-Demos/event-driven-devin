@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foxconn &mdash; Supply Chain Operations Portal</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fc-navy: #0a1628; --fc-navy-light: #111d32; --fc-navy-mid: #162340;
+      --fc-red: #e21a1a; --fc-red-hover: #c41616; --fc-red-dark: #b01212;
+      --fc-white: #ffffff; --fc-off-white: #f0f2f5;
+      --fc-text: #c8cdd4; --fc-text-dim: #8a919c; --fc-text-bright: #eef0f3;
+      --fc-border: rgba(255,255,255,0.08); --fc-border-light: rgba(255,255,255,0.12);
+      --fc-accent-blue: #1a7af8; --fc-accent-teal: #0fb5ba;
+      --bg: #070e1a;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+      --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+      --danger: #ef4444; --danger-bg: rgba(239,68,68,0.08); --danger-border: rgba(239,68,68,0.25);
+      --success: #10b981; --success-bg: rgba(16,185,129,0.08); --success-border: rgba(16,185,129,0.25);
+      --amber: #f59e0b; --amber-bg: rgba(245,158,11,0.08); --amber-border: rgba(245,158,11,0.25);
+      --heading: 'Inter', -apple-system, sans-serif;
+      --body: 'Inter', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.15);
+      --radius: 8px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--bg); color: var(--fc-text); line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
+
+    /* ── Header ── */
+    header {
+      background: var(--fc-navy);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      border-bottom: 1px solid var(--fc-border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .logo img { height: 36px; }
+    .logo-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.2); }
+    .logo-label { color: rgba(255,255,255,0.85); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.03em; line-height: 1.2; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .header-right .env-badge { font-size: 0.58rem; font-weight: 700; color: #fff; background: var(--fc-red); padding: 0.18rem 0.55rem; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .header-right .user-info { color: rgba(255,255,255,0.6); font-size: 0.72rem; }
+
+    /* ── Nav Bar ── */
+    .nav-bar {
+      background: var(--fc-navy-light);
+      border-bottom: 2px solid var(--fc-red);
+      display: flex; align-items: center;
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 42px; gap: 0;
+    }
+    .nav-bar a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.75rem; font-weight: 500; padding: 0.55rem 1rem; transition: all 0.15s; position: relative; }
+    .nav-bar a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+    .nav-bar a.active { color: #fff; font-weight: 600; }
+    .nav-bar a.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--fc-red); }
+
+    /* ── Hero Banner ── */
+    .hero {
+      position: relative;
+      height: 340px;
+      background: linear-gradient(135deg, #0a1628 0%, #0e2040 40%, #0a2a4a 70%, #081828 100%);
+      overflow: hidden;
+      display: flex; align-items: center;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background-image: url('https://image.honhai.com/banners/AI-墊檔圖-PC_1591794213.jpg');
+      background-size: cover; background-position: center;
+      opacity: 0.35;
+    }
+    .hero-content { position: relative; z-index: 2; padding: 0 clamp(2rem, 5vw, 4rem); max-width: 650px; }
+    .hero h1 { font-family: var(--heading); font-size: 2.2rem; font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 0.6rem; letter-spacing: -0.02em; }
+    .hero p { font-size: 0.92rem; color: rgba(255,255,255,0.7); margin-bottom: 1.25rem; line-height: 1.55; }
+    .hero-cta { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--fc-red); color: #fff; text-decoration: none; font-size: 0.82rem; font-weight: 600; padding: 0.55rem 1.4rem; border-radius: 4px; transition: background 0.15s; border: none; cursor: pointer; }
+    .hero-cta:hover { background: var(--fc-red-hover); }
+
+    /* ── Page Content ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--fc-accent-blue); text-decoration: none; font-size: 0.72rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .back-link:hover { text-decoration: underline; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--fc-border); }
+    .page-header h1 { font-family: var(--heading); font-size: 1.2rem; font-weight: 700; color: var(--fc-text-bright); }
+    .page-header p { font-size: 0.75rem; color: var(--fc-text-dim); margin-top: 0.1rem; }
+    .status-indicator { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .status-indicator.ok { color: var(--success); }
+
+    /* ── KPI Row ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    @media (max-width: 900px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+    .kpi { background: var(--fc-navy); border: 1px solid var(--fc-border); border-radius: var(--radius); padding: 1rem 1.15rem; box-shadow: var(--shadow); }
+    .kpi-label { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-dim); margin-bottom: 0.25rem; }
+    .kpi-value { font-family: var(--heading); font-size: 1.4rem; font-weight: 700; color: var(--fc-text-bright); }
+    .kpi-sub { font-size: 0.65rem; color: var(--fc-text-dim); margin-top: 0.1rem; }
+    .kpi-sub.ok { color: var(--success); font-weight: 600; }
+    .kpi-sub.warn { color: var(--amber); font-weight: 600; }
+    .kpi-sub.danger { color: var(--danger); font-weight: 600; }
+
+    .section-title { font-family: var(--heading); font-size: 0.82rem; font-weight: 700; color: var(--fc-text-bright); margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+
+    /* ── Grid Layouts ── */
+    .grid-2col { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    @media (max-width: 900px) { .grid-2col { grid-template-columns: 1fr; } }
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 900px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    /* ── Data Tables ── */
+    .table-card { background: var(--fc-navy); border: 1px solid var(--fc-border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; font-size: 0.56rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-dim); padding: 0.6rem 1rem; border-bottom: 1px solid var(--fc-border); background: var(--fc-navy-mid); }
+    .data-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--fc-border); font-size: 0.75rem; color: var(--fc-text); }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: rgba(26,122,248,0.04); }
+    .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.56rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 20px; }
+    .badge-online { color: var(--success); background: var(--success-bg); }
+    .badge-online::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+    .badge-warning { color: var(--amber); background: var(--amber-bg); }
+    .badge-warning::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+    .badge-critical { color: var(--danger); background: var(--danger-bg); }
+    .badge-critical::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--danger); }
+    .mono { font-family: var(--mono); font-size: 0.7rem; color: var(--fc-text-dim); }
+
+    /* ── News Cards ── */
+    .news-section { margin-bottom: 1.5rem; }
+    .news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) { .news-grid { grid-template-columns: 1fr; } }
+    .news-card { background: var(--fc-navy); border: 1px solid var(--fc-border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.2s, box-shadow 0.2s; }
+    .news-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .news-card img { width: 100%; height: 160px; object-fit: cover; }
+    .news-card-body { padding: 0.85rem 1rem; }
+    .news-card-title { font-size: 0.78rem; font-weight: 600; color: var(--fc-text-bright); line-height: 1.4; margin-bottom: 0.4rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .news-card-date { font-size: 0.65rem; color: var(--fc-text-dim); }
+
+    /* ── Production Line Cards ── */
+    .line-card { background: var(--fc-navy); border: 1px solid var(--fc-border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .line-item { padding: 0.75rem 1rem; border-bottom: 1px solid var(--fc-border); }
+    .line-item:last-child { border-bottom: none; }
+    .line-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
+    .line-id { font-family: var(--mono); font-size: 0.68rem; color: var(--fc-accent-blue); font-weight: 600; }
+    .line-time { font-size: 0.6rem; color: var(--fc-text-dim); }
+    .line-title { font-size: 0.78rem; font-weight: 600; color: var(--fc-text-bright); margin-bottom: 0.15rem; }
+    .line-meta { font-size: 0.62rem; color: var(--fc-text-dim); }
+
+    /* ── Capacity Bars ── */
+    .capacity-card { background: var(--fc-navy); border: 1px solid var(--fc-border); border-radius: var(--radius); padding: 1.15rem; box-shadow: var(--shadow); }
+    .cap-item { margin-bottom: 0.85rem; }
+    .cap-item:last-child { margin-bottom: 0; }
+    .cap-header { display: flex; justify-content: space-between; margin-bottom: 0.2rem; }
+    .cap-name { font-size: 0.75rem; font-weight: 600; color: var(--fc-text); }
+    .cap-vals { font-family: var(--mono); font-size: 0.65rem; color: var(--fc-text-dim); }
+    .cap-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+    .cap-fill { height: 100%; border-radius: 3px; background: var(--fc-accent-blue); transition: width 0.6s ease; }
+    .cap-fill.high { background: var(--amber); }
+    .cap-fill.critical { background: var(--danger); }
+
+    /* ── Inquiry Form ── */
+    .inquiry-card { background: var(--fc-navy); border: 1px solid var(--fc-border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+    .inquiry-card h2 { font-family: var(--heading); font-size: 0.82rem; font-weight: 700; color: var(--fc-text-bright); margin-bottom: 0.85rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group label { display: block; font-size: 0.62rem; font-weight: 600; color: var(--fc-text-dim); margin-bottom: 0.15rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.5rem 0.65rem;
+      border: 1px solid var(--fc-border-light); border-radius: 6px;
+      font-family: var(--body); font-size: 0.78rem;
+      color: var(--fc-text-bright); background: var(--fc-navy-mid);
+      transition: all 0.15s;
+    }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--fc-accent-blue); box-shadow: 0 0 0 3px rgba(26,122,248,0.15); }
+    .form-group select option { background: var(--fc-navy-mid); color: var(--fc-text-bright); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .btn-submit { width: 100%; padding: 0.6rem; background: var(--fc-red); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; font-family: var(--body); cursor: pointer; transition: all 0.15s; }
+    .btn-submit:hover { background: var(--fc-red-hover); }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-box { margin-top: 0.5rem; padding: 0.55rem 0.75rem; border-radius: 6px; font-size: 0.75rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.62rem; opacity: 0.85; word-break: break-all; }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--fc-navy);
+      border-top: 2px solid var(--fc-red);
+      margin-top: 2rem;
+      padding: 2rem clamp(1.5rem, 4vw, 3rem) 1.5rem;
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--fc-border); }
+    .footer-brand { display: flex; align-items: center; gap: 1rem; }
+    .footer-brand img { height: 30px; }
+    .footer-address { font-size: 0.68rem; color: var(--fc-text-dim); line-height: 1.5; }
+    .footer-social { display: flex; gap: 0.75rem; align-items: center; }
+    .footer-social a { color: var(--fc-text-dim); text-decoration: none; font-size: 1.1rem; transition: color 0.15s; }
+    .footer-social a:hover { color: #fff; }
+    .footer-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+    @media (max-width: 768px) { .footer-links { grid-template-columns: repeat(2, 1fr); } }
+    .footer-col h4 { font-size: 0.72rem; font-weight: 700; color: var(--fc-text-bright); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .footer-col a { display: block; font-size: 0.68rem; color: var(--fc-text-dim); text-decoration: none; padding: 0.15rem 0; transition: color 0.15s; }
+    .footer-col a:hover { color: var(--fc-accent-blue); }
+    .footer-bottom { text-align: center; font-size: 0.62rem; color: var(--fc-text-dim); padding-top: 1rem; border-top: 1px solid var(--fc-border); }
+  </style>
+</head>
+<body>
+  <!-- ── Header ── -->
+  <header>
+    <a href="https://www.foxconn.com/en-us" class="logo" target="_blank">
+      <img src="https://image.honhai.com/upload/global/logo-en-us_202311301025578760108.svg" alt="Foxconn">
+      <span class="logo-divider"></span>
+      <span class="logo-label">Supply Chain<br>Operations Portal</span>
+    </a>
+    <div class="header-right">
+      <span class="env-badge">Production</span>
+      <span class="user-info">K. Chen &middot; Supply Chain Ops</span>
+    </div>
+  </header>
+
+  <!-- ── Navigation ── -->
+  <div class="nav-bar">
+    <a href="#" class="active">Dashboard</a>
+    <a href="#">Production Lines</a>
+    <a href="#">Inventory</a>
+    <a href="#">Quality Control</a>
+    <a href="#">Shipments</a>
+    <a href="#">Component Tracking</a>
+    <a href="#">Reports</a>
+  </div>
+
+  <!-- ── Hero Banner ── -->
+  <div class="hero fi">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <h1>Smart Manufacturing<br>Operations Center</h1>
+      <p>Real-time visibility across global production facilities. Monitor component supply, track manufacturing output, and optimize supply chain operations.</p>
+      <a href="https://www.foxconn.com/en-us/services-and-products" class="hero-cta" target="_blank">Learn More &rarr;</a>
+    </div>
+  </div>
+
+  <!-- ── Main Content ── -->
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+
+    <div class="page-header fi fi1">
+      <div>
+        <h1>Global Production Dashboard</h1>
+        <p>Real-time monitoring &middot; All facilities &middot; Updated 8s ago</p>
+      </div>
+      <div class="status-indicator ok"><span class="status-dot"></span> Systems Operational</div>
+    </div>
+
+    <!-- ── KPI Row ── -->
+    <div class="kpi-row fi fi2">
+      <div class="kpi">
+        <div class="kpi-label">Active Lines</div>
+        <div class="kpi-value">847</div>
+        <div class="kpi-sub ok">98.2% uptime</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Daily Output</div>
+        <div class="kpi-value">2.4M</div>
+        <div class="kpi-sub">Units assembled</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Component Stock</div>
+        <div class="kpi-value">94.7%</div>
+        <div class="kpi-sub ok">Above threshold</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Quality Rate</div>
+        <div class="kpi-value">99.6%</div>
+        <div class="kpi-sub ok">First-pass yield</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Open Orders</div>
+        <div class="kpi-value">1,247</div>
+        <div class="kpi-sub warn">12 delayed</div>
+      </div>
+    </div>
+
+    <!-- ── Tables + Production Lines ── -->
+    <div class="grid-2col fi fi3">
+      <div>
+        <div class="section-title">Component Inventory Status</div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead><tr><th>Part No.</th><th>Component</th><th>Stock</th><th>Lead Time</th><th>Status</th><th>Supplier</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">FC-PCB-2201</td><td>Main Logic Board</td><td>14,200</td><td>12 days</td><td><span class="badge badge-online">In Stock</span></td><td>Unimicron</td></tr>
+              <tr><td class="mono">FC-DSP-3302</td><td>Display Assembly</td><td>8,450</td><td>18 days</td><td><span class="badge badge-online">In Stock</span></td><td>Innolux</td></tr>
+              <tr><td class="mono">FC-BAT-4403</td><td>Battery Module</td><td>1,200</td><td>24 days</td><td><span class="badge badge-warning">Low Stock</span></td><td>ATL</td></tr>
+              <tr><td class="mono">FC-CAM-5504</td><td>Camera Module</td><td>22,800</td><td>8 days</td><td><span class="badge badge-online">In Stock</span></td><td>LG Innotek</td></tr>
+              <tr><td class="mono">FC-CHG-6605</td><td>Charging IC</td><td>350</td><td>32 days</td><td><span class="badge badge-critical">Critical</span></td><td>Texas Instruments</td></tr>
+              <tr><td class="mono">FC-MEM-7706</td><td>DRAM Module 8GB</td><td>31,500</td><td>14 days</td><td><span class="badge badge-online">In Stock</span></td><td>Micron</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Production Alerts</div>
+        <div class="line-card">
+          <div class="line-item">
+            <div class="line-header">
+              <span class="line-id">ALT-90821</span>
+              <span class="badge badge-critical">P1</span>
+            </div>
+            <div class="line-title">Charging IC supply shortage &mdash; Line F12</div>
+            <div class="line-meta">Zhengzhou Plant &middot; 3 lines affected &middot; 18 min ago</div>
+          </div>
+          <div class="line-item">
+            <div class="line-header">
+              <span class="line-id">ALT-90819</span>
+              <span class="badge badge-warning">P2</span>
+            </div>
+            <div class="line-title">Battery module yield below target &mdash; QC Hold</div>
+            <div class="line-meta">Shenzhen Campus &middot; Line B08 &middot; 1h 5m ago</div>
+          </div>
+          <div class="line-item">
+            <div class="line-header">
+              <span class="line-id">ALT-90816</span>
+              <span class="badge badge-warning">P3</span>
+            </div>
+            <div class="line-title">Display calibration drift &mdash; Recalibration scheduled</div>
+            <div class="line-meta">Taipei R&D Lab &middot; Test Bay 4 &middot; 3h 12m ago</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── News + Inquiry Form ── -->
+    <div class="bottom-grid fi fi4">
+      <div>
+        <div class="section-title">Facility Utilization</div>
+        <div class="capacity-card">
+          <div class="cap-item"><div class="cap-header"><span class="cap-name">Zhengzhou Campus</span><span class="cap-vals">92% &middot; 340 lines</span></div><div class="cap-bar"><div class="cap-fill high" style="width:92%"></div></div></div>
+          <div class="cap-item"><div class="cap-header"><span class="cap-name">Shenzhen Campus</span><span class="cap-vals">78% &middot; 215 lines</span></div><div class="cap-bar"><div class="cap-fill" style="width:78%"></div></div></div>
+          <div class="cap-item"><div class="cap-header"><span class="cap-name">Chennai Plant</span><span class="cap-vals">81% &middot; 124 lines</span></div><div class="cap-bar"><div class="cap-fill" style="width:81%"></div></div></div>
+          <div class="cap-item"><div class="cap-header"><span class="cap-name">Wisconsin Facility</span><span class="cap-vals">64% &middot; 88 lines</span></div><div class="cap-bar"><div class="cap-fill" style="width:64%"></div></div></div>
+          <div class="cap-item"><div class="cap-header"><span class="cap-name">Vietnam Factory</span><span class="cap-vals">87% &middot; 96 lines</span></div><div class="cap-bar"><div class="cap-fill high" style="width:87%"></div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Component Supply Inquiry</div>
+        <div class="inquiry-card">
+          <h2>Check Component Availability</h2>
+          <form id="inquiryForm">
+            <div class="form-group">
+              <label>Facility</label>
+              <select id="facility">
+                <option value="zhengzhou">Zhengzhou Campus</option>
+                <option value="shenzhen">Shenzhen Campus</option>
+                <option value="chennai">Chennai Plant</option>
+                <option value="wisconsin">Wisconsin Facility</option>
+                <option value="vietnam">Vietnam Factory</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Component Category</label>
+                <select id="category">
+                  <option value="pcb">PCB / Logic Boards</option>
+                  <option value="display">Display Assemblies</option>
+                  <option value="battery">Battery Modules</option>
+                  <option value="semiconductor">Semiconductors</option>
+                  <option value="mechanical">Mechanical Parts</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Priority</label>
+                <select id="priority">
+                  <option value="standard">Standard</option>
+                  <option value="expedited">Expedited</option>
+                  <option value="emergency">Emergency</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Part Number</label>
+              <input type="text" id="partNumber" placeholder="FC-XXXX-XXXX (optional)">
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">Run Inquiry</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <img src="https://image.honhai.com/upload/global/logo-en-us_202311301025578760108.svg" alt="Foxconn">
+          <div class="footer-address">No.2, Ziyou St., Tucheng Dist., New Taipei City 236, Taiwan<br>+886-2-2268-3466</div>
+        </div>
+        <div class="footer-social">
+          <a href="#" title="Facebook"><img src="https://image.honhai.com/upload/global/Facebook_20240715_8602.svg" alt="Facebook" style="height:18px;opacity:0.6"></a>
+          <a href="#" title="Instagram"><img src="https://image.honhai.com/upload/global/IG_20240715_2025.svg" alt="Instagram" style="height:18px;opacity:0.6"></a>
+          <a href="#" title="X"><img src="https://image.honhai.com/upload/global/twitter_20240715_1329.svg" alt="X" style="height:18px;opacity:0.6"></a>
+          <a href="#" title="LinkedIn"><img src="https://image.honhai.com/upload/global/Linkedin_20240715_2587.svg" alt="LinkedIn" style="height:18px;opacity:0.6"></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>About Hon Hai</h4>
+          <a href="#">Vision and Mission</a>
+          <a href="#">Overview</a>
+          <a href="#">Key Milestones</a>
+          <a href="#">Global Footprint</a>
+        </div>
+        <div class="footer-col">
+          <h4>Services &amp; Products</h4>
+          <a href="#">Event Highlights</a>
+          <a href="#">Development Strategy</a>
+          <a href="#">MIH Consortium</a>
+        </div>
+        <div class="footer-col">
+          <h4>R&amp;D and Technology</h4>
+          <a href="#">Hon Hai Research Institute</a>
+          <a href="#">Electric Vehicles</a>
+          <a href="#">Semiconductor</a>
+        </div>
+        <div class="footer-col">
+          <h4>Investor Relations</h4>
+          <a href="#">Leadership Vision</a>
+          <a href="#">Financials</a>
+          <a href="#">Calendar</a>
+          <a href="#">FAQ</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 Hon Hai Precision Industry Co., Ltd. (Foxconn) &middot; Internal Use Only &middot; Supply Chain Ops v3.8.2
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Form Script ── -->
+  <script>
+    document.getElementById('inquiryForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Checking...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/foxconn/inquiry', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            facility: document.getElementById('facility').value,
+            category: document.getElementById('category').value,
+            priority: document.getElementById('priority').value,
+            partNumber: document.getElementById('partNumber').value || null,
+            devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+            devinOrgId: 'org-e603150b74c6424a85717880d7fc30ac',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Inquiry Failed</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Inquiry Complete</div><div class="error-detail">Facility: ' + data.facility + ' &mdash; Available: ' + data.availableUnits + ' &mdash; Lead Time: ' + data.estimatedLeadDays + ' days</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Run Inquiry'; }
+    });
+  </script>
+</body>
+</html>
