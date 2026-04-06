@@ -78,7 +78,7 @@ function getFacilityThroughput(facilityCode) {
 function computeSupplyMetrics(components, facilityCode) {
   const throughput = getFacilityThroughput(facilityCode);
   return components.map((comp) => {
-    const coverageDays = Math.floor(comp.stock / throughput.production.daily);
+    const coverageDays = Math.floor(comp.stock / throughput.output.daily);
     const belowReorder = comp.stock < comp.reorderPoint;
     return {
       partNumber: comp.partNumber,
@@ -97,7 +97,7 @@ function calculateFulfillment(supplyMetrics, priorityConfig, facilityCode) {
   const results = supplyMetrics.map((metric) => {
     const adjustedLead = Math.ceil(metric.coverageDays * priorityConfig.urgencyFactor);
     const expediteSurcharge = metric.unitCost * priorityConfig.expediteFee * metric.currentStock;
-    const dailyThroughput = throughput.production.perShift * throughput.shifts;
+    const dailyThroughput = throughput.output.perShift * throughput.shifts;
 
     return {
       partNumber: metric.partNumber,
