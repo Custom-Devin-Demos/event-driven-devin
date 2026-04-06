@@ -171,11 +171,11 @@ async function rerunHilTest(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('hil.test.rerun', {
-      route: '/api/ford-hil/rerun',
+      route: '/api/velocity-hil/rerun',
       verdict: results.verdict,
     });
     recordTiming('hil.test.latency', duration, {
-      route: '/api/ford-hil/rerun',
+      route: '/api/velocity-hil/rerun',
     });
 
     return {
@@ -193,11 +193,11 @@ async function rerunHilTest(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('hil.test.failure', {
-      route: '/api/ford-hil/rerun',
+      route: '/api/velocity-hil/rerun',
       errorClass: error.name,
     });
     recordTiming('hil.test.latency', duration, {
-      route: '/api/ford-hil/rerun',
+      route: '/api/velocity-hil/rerun',
       error: 'true',
     });
 
@@ -211,7 +211,7 @@ async function rerunHilTest(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/ford-hil/rerun',
+        route: '/api/velocity-hil/rerun',
         service: 'hil-test-platform',
         ecuTarget: data.ecuTarget,
       },
@@ -221,7 +221,7 @@ async function rerunHilTest(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/ford-hil.js — rerunHilTest',
+      culprit: 'app/services/verticals/velocity-hil.js — rerunHilTest',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -229,7 +229,7 @@ async function rerunHilTest(data) {
       service: 'hil-test-platform',
       verticalLabel: 'HIL Test',
       tags: [
-        { key: 'route', value: '/api/ford-hil/rerun' },
+        { key: 'route', value: '/api/velocity-hil/rerun' },
         { key: 'service', value: 'hil-test-platform' },
       ],
       extra: { executionId, testId: data.testId },
@@ -240,7 +240,7 @@ async function rerunHilTest(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'ford-hil@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'velocity-hil@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
