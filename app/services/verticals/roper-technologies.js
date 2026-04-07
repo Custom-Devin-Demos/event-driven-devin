@@ -43,11 +43,11 @@ const BENCHMARK_TARGETS = {
 
 function resolveSegmentKey(displayName) {
   const mapping = {
-    'Application Software': 'application_software',
-    'Network Software': 'network_software',
-    'Technology Enabled Products': 'tech_products',
+    'Application Software': 'app-software',
+    'Network Software': 'network-software',
+    'Technology Enabled Products': 'tech-products',
   };
-  return mapping[displayName] || displayName.toLowerCase().replace(/\s+/g, '_');
+  return mapping[displayName] || displayName.toLowerCase().replace(/\s+/g, '-');
 }
 
 function getPortfolioCompanies(segmentKey) {
