@@ -15,7 +15,7 @@ const MAX_PAGES = 50;
  * The response is expected to contain:
  *   - `items`          — array of results for the current page
  *   - `has_next_page`  — boolean indicating more pages exist
- *   - `next_cursor`    — opaque cursor to pass as `after` for the next page
+ *   - `end_cursor`     — opaque cursor to pass as `after` for the next page
  *
  * @param {string} url - Full endpoint URL
  * @param {Object} headers - Request headers (including Authorization)
@@ -41,10 +41,10 @@ async function fetchAllPages(url, headers, extraParams = {}) {
     const items = response.data.items || [];
     allItems.push(...items);
 
-    if (!response.data.has_next_page || !response.data.next_cursor) {
+    if (!response.data.has_next_page || !response.data.end_cursor) {
       break;
     }
-    cursor = response.data.next_cursor;
+    cursor = response.data.end_cursor;
   }
 
   return allItems;
