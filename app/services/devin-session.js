@@ -5,24 +5,6 @@ const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
 
 /**
- * In-memory cooldown map to prevent duplicate alerts.
- * Key: normalized issue identifier, Value: timestamp of last alert.
- * Cooldown: 5 minutes (matches alert rule frequency).
- */
-const sessionCooldowns = new Map();
-const COOLDOWN_MS = 5 * 60 * 1000;
-
-// Periodically evict expired cooldown entries to prevent unbounded Map growth
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, ts] of sessionCooldowns) {
-    if (now - ts >= COOLDOWN_MS) {
-      sessionCooldowns.delete(key);
-    }
-  }
-}, COOLDOWN_MS);
-
-/**
  * Build the investigation prompt from alert data.
  * Uses the !sentry_investigation playbook macro so Devin follows
  * the standardized investigation & remediation workflow automatically.
@@ -114,21 +96,6 @@ function buildPrompt(alertData) {
  * @returns {Object|null} - { triggered: true, threadTs } or null if skipped/failed
  */
 async function createSessionAndAlert(alertData) {
-  // Cooldown check
-  const cooldownKey = `${alertData.issueTitle}`.toLowerCase().trim();
-  const lastCreated = sessionCooldowns.get(cooldownKey);
-  if (lastCreated && (Date.now() - lastCreated) < COOLDOWN_MS) {
-    const remainingMin = Math.round((COOLDOWN_MS - (Date.now() - lastCreated)) / 60000);
-    logger.info('Skipping duplicate — alert already sent recently', {
-      issueTitle: alertData.issueTitle,
-      cooldownRemainingMin: remainingMin,
-    });
-    return null;
-  }
-
-  // Mark cooldown immediately to prevent races
-  sessionCooldowns.set(cooldownKey, Date.now());
-
   try {
     const prompt = buildPrompt(alertData);
 
@@ -153,7 +120,6 @@ async function createSessionAndAlert(alertData) {
 
     if (!threadTs) {
       logger.warn('Alert post returned no thread timestamp — cannot trigger Devin reply');
-      sessionCooldowns.delete(cooldownKey);
       return null;
     }
 
@@ -192,9 +158,6 @@ async function createSessionAndAlert(alertData) {
 
     return { triggered: true, threadTs };
   } catch (error) {
-    // Clear cooldown so the next attempt can retry
-    sessionCooldowns.delete(cooldownKey);
-
     logger.error('Failed to post alert or trigger Devin', {
       error: error.message,
       status: error.response?.status,
@@ -208,6 +171,4 @@ async function createSessionAndAlert(alertData) {
 module.exports = {
   buildPrompt,
   createSessionAndAlert,
-  sessionCooldowns,
-  COOLDOWN_MS,
 };

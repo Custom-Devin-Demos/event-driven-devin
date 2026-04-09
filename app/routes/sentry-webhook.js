@@ -162,7 +162,7 @@ router.post('/webhooks/sentry', async (req, res) => {
     const result = await createSessionAndAlert(alertData);
 
     if (!result) {
-      return res.json({ received: true, skipped: true, reason: 'cooldown_or_error' });
+      return res.json({ received: true, skipped: true, reason: 'error' });
     }
 
     return res.json({

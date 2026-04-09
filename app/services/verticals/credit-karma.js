@@ -332,8 +332,7 @@ async function refreshScore(data) {
  * Session 2: Data validation in the ETL pipeline repo
  * Session 3: Monitoring/alerting rules update
  *
- * Each session gets a unique issueTitle (prefixed with verticalLabel)
- * to avoid the 5-min session cooldown deduplication.
+ * Each session gets a unique issueTitle (prefixed with verticalLabel).
  */
 function triggerMultiSessionIncident(incidentData) {
   const sessions = [
