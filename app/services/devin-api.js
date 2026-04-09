@@ -3,6 +3,53 @@ const logger = require('../telemetry/logger');
 
 const DEVIN_API_BASE = 'https://api.devin.ai';
 
+// Maximum number of items per page (Devin v3 API cap)
+const PAGE_SIZE = 200;
+// Safety limit on total pages to prevent infinite loops
+const MAX_PAGES = 50;
+
+/**
+ * Generic paginated fetcher for Devin v3 list endpoints.
+ *
+ * Follows cursor-based pagination using `first` / `after` query params.
+ * The response is expected to contain:
+ *   - `items`          — array of results for the current page
+ *   - `has_next_page`  — boolean indicating more pages exist
+ *   - `next_cursor`    — opaque cursor to pass as `after` for the next page
+ *
+ * @param {string} url - Full endpoint URL
+ * @param {Object} headers - Request headers (including Authorization)
+ * @param {Object} [extraParams] - Additional query params (e.g. { role: 'admin' })
+ * @returns {Array} - All items across every page
+ */
+async function fetchAllPages(url, headers, extraParams = {}) {
+  const allItems = [];
+  let cursor = undefined;
+
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const params = { first: PAGE_SIZE, ...extraParams };
+    if (cursor) {
+      params.after = cursor;
+    }
+
+    const response = await axios.get(url, {
+      headers,
+      timeout: 15000,
+      params,
+    });
+
+    const items = response.data.items || [];
+    allItems.push(...items);
+
+    if (!response.data.has_next_page || !response.data.next_cursor) {
+      break;
+    }
+    cursor = response.data.next_cursor;
+  }
+
+  return allItems;
+}
+
 /**
  * Resolve the service key and org ID for Devin v3 API calls.
  *
@@ -105,16 +152,12 @@ async function listEnterpriseOrgs() {
 
   if (serviceKey) {
     try {
-      const response = await axios.get(
+      const items = await fetchAllPages(
         `${DEVIN_API_BASE}/v3/enterprise/organizations`,
-        {
-          headers: { Authorization: `Bearer ${serviceKey}` },
-          timeout: 10000,
-          params: { first: 200 },
-        },
+        { Authorization: `Bearer ${serviceKey}` },
       );
 
-      const orgs = (response.data.items || []).map((o) => ({
+      const orgs = items.map((o) => ({
         org_id: o.org_id,
         name: o.name || o.org_id,
       }));
@@ -171,18 +214,12 @@ async function listOrgUsers(orgId) {
   // Try the API first
   if (serviceKey && targetOrgId) {
     try {
-      const response = await axios.get(
+      const items = await fetchAllPages(
         `${DEVIN_API_BASE}/v3/enterprise/organizations/${targetOrgId}/members/users`,
-        {
-          headers: {
-            Authorization: `Bearer ${serviceKey}`,
-          },
-          timeout: 10000,
-          params: { first: 200 },
-        },
+        { Authorization: `Bearer ${serviceKey}` },
       );
 
-      const users = (response.data.items || []).map((u) => ({
+      const users = items.map((u) => ({
         user_id: u.user_id,
         name: u.name || u.email,
         email: u.email,
@@ -229,16 +266,13 @@ async function listEnterpriseAdmins() {
 
   if (serviceKey) {
     try {
-      const response = await axios.get(
+      const items = await fetchAllPages(
         `${DEVIN_API_BASE}/v3/enterprise/members/users`,
-        {
-          headers: { Authorization: `Bearer ${serviceKey}` },
-          timeout: 10000,
-          params: { first: 200, role: 'admin' },
-        },
+        { Authorization: `Bearer ${serviceKey}` },
+        { role: 'admin' },
       );
 
-      const admins = (response.data.items || []).map((u) => ({
+      const admins = items.map((u) => ({
         user_id: u.user_id,
         name: u.name || u.email,
         email: u.email,
