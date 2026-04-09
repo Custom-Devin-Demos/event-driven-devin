@@ -171,7 +171,7 @@ Vertical Error (any of 9 verticals)
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
 
-Both paths share the same **5-minute cooldown** (keyed on `issueTitle`) to prevent duplicate alerts.
+Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session.
 
 **Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var or per-customer config):
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
@@ -184,8 +184,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 
 ### `app/services/devin-session.js`
 - `buildPrompt(alertData)` — Builds a rich Markdown investigation prompt with error details, occurrence info, tags, investigation steps, and context links.
-- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: cooldown check → resolve per-customer config → post Slack alert → trigger Devin (via Slack @mention or API).
-- `sessionCooldowns` — In-memory `Map` for deduplication (5-minute TTL, auto-evicted).
+- `createSessionAndAlert(alertData)` — Orchestrates the full alert flow: resolve per-customer config → post Slack alert → trigger Devin (via Slack @mention or API).
 
 ### `config/customers.js`
 - `getCustomerConfig(customerSlug)` — Resolves Devin trigger config for a customer. Returns `{ triggerMode, apiKey, playbookId, slackUserId, targetRepo }`. Falls back to global env vars for the default customer.
@@ -385,9 +384,6 @@ Edit `buildAlertBlocks()` in `app/services/slack.js`. The function returns Slack
 
 ### Modifying the Devin investigation prompt
 Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Markdown tables for structured data. Keep it detailed — this is the only context Devin gets when starting an investigation.
-
-### Changing the cooldown duration
-Edit `COOLDOWN_MS` in `app/services/devin-session.js`. Currently 5 minutes (300000 ms). This should match the Sentry alert rule frequency.
 
 ### Adding a new customer demo
 1. Add the customer slug to `config/customers.js` in the `CUSTOMERS` object:
