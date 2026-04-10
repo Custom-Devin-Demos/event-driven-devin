@@ -65,6 +65,9 @@ router.post('/api/resolve-identity', async (req, res) => {
     }
 
     // --- Resolve email → user ID ---
+    if (email && !result.orgId) {
+      return res.status(400).json({ error: 'Org name is required to look up a user by email', field: 'orgName' });
+    }
     if (email && result.orgId) {
       const cacheKey = result.orgId;
       const now = Date.now();
