@@ -4,6 +4,7 @@ const logger = require('../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../telemetry/datadog');
 const { Sentry } = require('../telemetry/sentry');
 const { createSessionAndAlert } = require('../services/devin-session');
+const { verifySessionSecret } = require('../middleware/verify-session-secret');
 
 const router = express.Router();
 
@@ -113,7 +114,7 @@ router.get('/api/products', (_req, res) => {
 /**
  * POST /api/storefront/checkout — processes a storefront checkout order.
  */
-router.post('/api/storefront/checkout', async (req, res) => {
+router.post('/api/storefront/checkout', verifySessionSecret, async (req, res) => {
   const startTime = Date.now();
   const orderId = uuidv4();
 
@@ -225,7 +226,7 @@ router.post('/api/storefront/checkout', async (req, res) => {
       });
       createSessionAndAlert({
         issueTitle: `${error.name}: ${error.message}`,
-        issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
+        issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
         culprit: 'app/routes/storefront.js — POST /api/storefront/checkout',
         errorType: error.name || 'Error',
         errorValue: error.message,

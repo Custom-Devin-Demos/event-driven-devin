@@ -1,19 +1,19 @@
 const express = require('express');
-const { runInquiry, FACILITIES, COMPONENT_CATALOG } = require('../../services/verticals/foxconn');
+const { runInquiry, FACILITIES, COMPONENT_CATALOG } = require('../../services/verticals/acf4303d');
 
 const router = express.Router();
 
 /**
- * GET /api/foxconn/components — returns component catalog and facility data
+ * GET /api/acf4303d/components — returns component catalog and facility data
  */
-router.get('/api/foxconn/components', (_req, res) => {
+router.get('/api/acf4303d/components', (_req, res) => {
   res.json({ facilities: FACILITIES, components: COMPONENT_CATALOG });
 });
 
 /**
- * POST /api/foxconn/inquiry — run a component supply inquiry
+ * POST /api/acf4303d/inquiry — run a component supply inquiry
  */
-router.post('/api/foxconn/inquiry', async (req, res) => {
+router.post('/api/acf4303d/inquiry', async (req, res) => {
   try {
     const result = await runInquiry({
       facility: req.body.facility || 'zhengzhou',

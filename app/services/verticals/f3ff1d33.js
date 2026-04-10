@@ -172,11 +172,11 @@ async function analyzePortfolio(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('portfolio.analysis.success', {
-      route: '/api/roper-technologies/analyze',
+      route: '/api/f3ff1d33/analyze',
       segment: data.segment,
     });
     recordTiming('portfolio.analysis.latency', duration, {
-      route: '/api/roper-technologies/analyze',
+      route: '/api/f3ff1d33/analyze',
     });
 
     return report;
@@ -184,11 +184,11 @@ async function analyzePortfolio(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('portfolio.analysis.failure', {
-      route: '/api/roper-technologies/analyze',
+      route: '/api/f3ff1d33/analyze',
       errorClass: error.name,
     });
     recordTiming('portfolio.analysis.latency', duration, {
-      route: '/api/roper-technologies/analyze',
+      route: '/api/f3ff1d33/analyze',
       error: 'true',
     });
 
@@ -202,7 +202,7 @@ async function analyzePortfolio(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/roper-technologies/analyze',
+        route: '/api/f3ff1d33/analyze',
         service: 'roper-portfolio-analytics',
         segment: data.segment,
       },
@@ -216,17 +216,17 @@ async function analyzePortfolio(data) {
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/roper-technologies.js \u2014 analyzePortfolio',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/f3ff1d33.js \u2014 analyzePortfolio',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       service: 'roper-portfolio-analytics',
       verticalLabel: 'Roper Portfolio Analytics',
-      customer: 'roper-technologies',
+      customer: 'f3ff1d33',
       tags: [
-        { key: 'route', value: '/api/roper-technologies/analyze' },
+        { key: 'route', value: '/api/f3ff1d33/analyze' },
         { key: 'service', value: 'roper-portfolio-analytics' },
         { key: 'segment', value: data.segment },
       ],

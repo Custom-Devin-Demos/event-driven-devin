@@ -1,12 +1,12 @@
 const express = require('express');
-const { processContactSales, PLAN_TIERS, REGION_MULTIPLIERS } = require('../../services/verticals/cognition-japan');
+const { processContactSales, PLAN_TIERS, REGION_MULTIPLIERS } = require('../../services/verticals/e0c16510');
 
 const router = express.Router();
 
 /**
- * GET /api/cognition-japan/plans — returns available plans and regions
+ * GET /api/e0c16510/plans — returns available plans and regions
  */
-router.get('/api/cognition-japan/plans', (_req, res) => {
+router.get('/api/e0c16510/plans', (_req, res) => {
   const plans = Object.entries(PLAN_TIERS).map(([id, tier]) => ({
     id,
     label: tier.label,
@@ -17,9 +17,9 @@ router.get('/api/cognition-japan/plans', (_req, res) => {
 });
 
 /**
- * POST /api/cognition-japan/contact-sales — process a contact sales inquiry
+ * POST /api/e0c16510/contact-sales — process a contact sales inquiry
  */
-router.post('/api/cognition-japan/contact-sales', async (req, res) => {
+router.post('/api/e0c16510/contact-sales', async (req, res) => {
   try {
     const { firstName, lastName, jobTitle, email, company, plan, seats, region, compliance } = req.body;
 

@@ -143,7 +143,7 @@ function buildAlertBlocks(alertData) {
   actions.push({
     type: 'button',
     text: { type: 'plain_text', text: ':bar_chart: View in Datadog', emoji: true },
-    url: 'https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg',
+    url: process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com',
   });
   if (actions.length > 0) {
     blocks.push({ type: 'actions', elements: actions });
@@ -216,7 +216,7 @@ async function postAlertToSlack(alertData) {
 async function postDevinReply(threadTs, prompt, options = {}) {
   const userToken = process.env.SLACK_USER_TOKEN;
   const channel = process.env.SLACK_CHANNEL_ID;
-  const devinUserId = options.slackUserId || process.env.DEVIN_SLACK_USER_ID || 'U08RNEJ4877';
+  const devinUserId = options.slackUserId || process.env.DEVIN_SLACK_USER_ID || '';
 
   if (!userToken || !channel) {
     logger.warn('SLACK_USER_TOKEN not configured — cannot trigger Devin via Slack');

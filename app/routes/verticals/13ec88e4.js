@@ -1,19 +1,19 @@
 const express = require('express');
-const { rerunHilTest, NIGHTLY_RESULTS } = require('../../services/verticals/velocity-hil');
+const { rerunHilTest, NIGHTLY_RESULTS } = require('../../services/verticals/13ec88e4');
 
 const router = express.Router();
 
 /**
- * GET /api/velocity-hil/results — returns nightly HIL test results
+ * GET /api/13ec88e4/results — returns nightly HIL test results
  */
-router.get('/api/velocity-hil/results', (_req, res) => {
+router.get('/api/13ec88e4/results', (_req, res) => {
   res.json({ results: NIGHTLY_RESULTS });
 });
 
 /**
- * POST /api/velocity-hil/rerun — re-run a HIL test on the bench
+ * POST /api/13ec88e4/rerun — re-run a HIL test on the bench
  */
-router.post('/api/velocity-hil/rerun', async (req, res) => {
+router.post('/api/13ec88e4/rerun', async (req, res) => {
   try {
     const result = await rerunHilTest({
       testId: req.body.testId || 'HIL-ADAS-031',

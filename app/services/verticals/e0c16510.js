@@ -138,11 +138,11 @@ async function processContactSales(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('contact_sales.success', {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
       plan: data.plan || 'enterprise',
     });
     recordTiming('contact_sales.latency', duration, {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
     });
 
     return summary;
@@ -150,11 +150,11 @@ async function processContactSales(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('contact_sales.failure', {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
       errorClass: error.name,
     });
     recordTiming('contact_sales.latency', duration, {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
       error: 'true',
     });
 
@@ -168,7 +168,7 @@ async function processContactSales(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/cognition-japan/contact-sales',
+        route: '/api/e0c16510/contact-sales',
         service: 'cognition-japan-sales',
         region: data.region || 'ap-northeast-1',
       },
@@ -176,10 +176,10 @@ async function processContactSales(data) {
     });
 
     createSessionAndAlert({
-      customer: 'cognition-japan',
+      customer: 'e0c16510',
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/cognition-japan.js \u2014 processContactSales',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/e0c16510.js \u2014 processContactSales',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinOrgId: 'org-9a7c9b33de89435997ca87264e9a9403',
@@ -188,7 +188,7 @@ async function processContactSales(data) {
       verticalLabel: '\u304A\u554F\u3044\u5408\u308F\u305B\u51E6\u7406\u30A8\u30E9\u30FC',
       language: 'ja',
       tags: [
-        { key: 'route', value: '/api/cognition-japan/contact-sales' },
+        { key: 'route', value: '/api/e0c16510/contact-sales' },
         { key: 'service', value: 'cognition-japan-sales' },
       ],
       extra: { requestId, email: data.email, company: data.company },

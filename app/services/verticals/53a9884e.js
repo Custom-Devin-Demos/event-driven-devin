@@ -221,11 +221,11 @@ async function runPortfolioAnalysis(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('portfolio_analysis.success', {
-      route: '/api/alpha-wave-global/analyze',
+      route: '/api/53a9884e/analyze',
       strategy: data.fundStrategy,
     });
     recordTiming('portfolio_analysis.latency', duration, {
-      route: '/api/alpha-wave-global/analyze',
+      route: '/api/53a9884e/analyze',
     });
 
     return report;
@@ -233,11 +233,11 @@ async function runPortfolioAnalysis(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('portfolio_analysis.failure', {
-      route: '/api/alpha-wave-global/analyze',
+      route: '/api/53a9884e/analyze',
       errorClass: error.name,
     });
     recordTiming('portfolio_analysis.latency', duration, {
-      route: '/api/alpha-wave-global/analyze',
+      route: '/api/53a9884e/analyze',
       error: 'true',
     });
 
@@ -251,7 +251,7 @@ async function runPortfolioAnalysis(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/alpha-wave-global/analyze',
+        route: '/api/53a9884e/analyze',
         service: 'alpha-wave-portfolio',
         strategy: data.fundStrategy,
       },
@@ -259,10 +259,10 @@ async function runPortfolioAnalysis(data) {
     });
 
     createSessionAndAlert({
-      customer: 'alpha-wave-global',
+      customer: '53a9884e',
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/alpha-wave-global.js \u2014 runPortfolioAnalysis',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/53a9884e.js \u2014 runPortfolioAnalysis',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -270,7 +270,7 @@ async function runPortfolioAnalysis(data) {
       service: 'alpha-wave-portfolio',
       verticalLabel: 'Portfolio Analysis Error',
       tags: [
-        { key: 'route', value: '/api/alpha-wave-global/analyze' },
+        { key: 'route', value: '/api/53a9884e/analyze' },
         { key: 'service', value: 'alpha-wave-portfolio' },
       ],
       extra: { analysisId, fundStrategy: data.fundStrategy, vintageYear: data.vintageYear },

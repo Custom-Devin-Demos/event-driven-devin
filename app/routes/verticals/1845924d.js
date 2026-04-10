@@ -1,19 +1,19 @@
 const express = require('express');
-const { runAssessment, REGIONS, SUBSTATIONS } = require('../../services/verticals/dominion-energy');
+const { runAssessment, REGIONS, SUBSTATIONS } = require('../../services/verticals/1845924d');
 
 const router = express.Router();
 
 /**
- * GET /api/dominion-energy/grid — returns grid data
+ * GET /api/1845924d/grid — returns grid data
  */
-router.get('/api/dominion-energy/grid', (_req, res) => {
+router.get('/api/1845924d/grid', (_req, res) => {
   res.json({ regions: REGIONS, substations: SUBSTATIONS });
 });
 
 /**
- * POST /api/dominion-energy/assess — run a grid reliability assessment
+ * POST /api/1845924d/assess — run a grid reliability assessment
  */
-router.post('/api/dominion-energy/assess', async (req, res) => {
+router.post('/api/1845924d/assess', async (req, res) => {
   try {
     const result = await runAssessment({
       region: req.body.region || 'NOVA',

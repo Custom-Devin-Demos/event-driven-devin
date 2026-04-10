@@ -88,7 +88,7 @@ async function getStyleRecommendations(data) {
     room: data.room,
     style: data.style,
     budget: data.budget,
-    service: 'wayfair-api',
+    service: 'customer-a6b38c63-api',
   });
 
   try {
@@ -104,11 +104,11 @@ async function getStyleRecommendations(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('recommendations.success', {
-      route: '/api/wayfair/recommendations',
+      route: '/api/a6b38c63/recommendations',
       style: data.style,
     });
     recordTiming('recommendations.latency', duration, {
-      route: '/api/wayfair/recommendations',
+      route: '/api/a6b38c63/recommendations',
     });
 
     return {
@@ -123,12 +123,12 @@ async function getStyleRecommendations(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('recommendations.failure', {
-      route: '/api/wayfair/recommendations',
+      route: '/api/a6b38c63/recommendations',
       errorClass: error.name,
       style: data.style,
     });
     recordTiming('recommendations.latency', duration, {
-      route: '/api/wayfair/recommendations',
+      route: '/api/a6b38c63/recommendations',
       error: 'true',
     });
 
@@ -143,8 +143,8 @@ async function getStyleRecommendations(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/wayfair/recommendations',
-        service: 'wayfair-api',
+        route: '/api/a6b38c63/recommendations',
+        service: 'customer-a6b38c63-api',
         style: data.style,
       },
       extra: {
@@ -157,18 +157,18 @@ async function getStyleRecommendations(data) {
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/wayfair.js — getStyleRecommendations',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/a6b38c63.js — getStyleRecommendations',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      service: 'wayfair-api',
+      service: 'customer-a6b38c63-api',
       verticalLabel: 'Wayfair Style Recommendations',
-      customer: 'wayfair',
+      customer: 'a6b38c63',
       tags: [
-        { key: 'route', value: '/api/wayfair/recommendations' },
-        { key: 'service', value: 'wayfair-api' },
+        { key: 'route', value: '/api/a6b38c63/recommendations' },
+        { key: 'service', value: 'customer-a6b38c63-api' },
         { key: 'style', value: data.style },
       ],
       extra: { requestId, room: data.room, style: data.style, budget: data.budget },

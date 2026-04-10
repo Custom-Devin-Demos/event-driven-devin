@@ -1,6 +1,7 @@
 const express = require('express');
 const logger = require('../telemetry/logger');
 const { createSessionAndAlert } = require('../services/devin-session');
+const { verifySentrySignature } = require('../middleware/verify-session-secret');
 
 const router = express.Router();
 
@@ -121,7 +122,7 @@ function extractAlertData(payload) {
  * POST /webhooks/sentry — Receive Sentry alert webhooks and create
  * a Devin session to investigate the error automatically.
  */
-router.post('/webhooks/sentry', async (req, res) => {
+router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
   const payload = req.body;
 
   // Sentry sends a POST with action: "verification" when first setting up.

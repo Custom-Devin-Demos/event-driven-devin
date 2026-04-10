@@ -176,11 +176,11 @@ async function runInquiry(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('inquiry.success', {
-      route: '/api/foxconn/inquiry',
+      route: '/api/acf4303d/inquiry',
       facility: data.facility,
     });
     recordTiming('inquiry.latency', duration, {
-      route: '/api/foxconn/inquiry',
+      route: '/api/acf4303d/inquiry',
     });
 
     return response;
@@ -188,11 +188,11 @@ async function runInquiry(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('inquiry.failure', {
-      route: '/api/foxconn/inquiry',
+      route: '/api/acf4303d/inquiry',
       errorClass: error.name,
     });
     recordTiming('inquiry.latency', duration, {
-      route: '/api/foxconn/inquiry',
+      route: '/api/acf4303d/inquiry',
       error: 'true',
     });
 
@@ -206,7 +206,7 @@ async function runInquiry(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/foxconn/inquiry',
+        route: '/api/acf4303d/inquiry',
         service: 'foxconn-supply-chain',
         facility: data.facility,
       },
@@ -215,17 +215,17 @@ async function runInquiry(data) {
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/foxconn.js — runInquiry',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/acf4303d.js — runInquiry',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       service: 'foxconn-supply-chain',
       verticalLabel: 'Supply Chain Inquiry',
-      customer: 'foxconn',
+      customer: 'acf4303d',
       tags: [
-        { key: 'route', value: '/api/foxconn/inquiry' },
+        { key: 'route', value: '/api/acf4303d/inquiry' },
         { key: 'service', value: 'foxconn-supply-chain' },
         { key: 'facility', value: data.facility },
       ],

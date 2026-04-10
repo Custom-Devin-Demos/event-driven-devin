@@ -1,12 +1,12 @@
 const express = require('express');
 
 const router = express.Router();
-const { getStyleRecommendations, ROOM_PRODUCTS, STYLE_PROFILES } = require('../../services/verticals/wayfair');
+const { getStyleRecommendations, ROOM_PRODUCTS, STYLE_PROFILES } = require('../../services/verticals/a6b38c63');
 
 /**
- * GET /api/wayfair/catalog — return product catalog and style options
+ * GET /api/a6b38c63/catalog — return product catalog and style options
  */
-router.get('/api/wayfair/catalog', (_req, res) => {
+router.get('/api/a6b38c63/catalog', (_req, res) => {
   res.json({
     products: ROOM_PRODUCTS,
     styles: Object.keys(STYLE_PROFILES),
@@ -15,9 +15,9 @@ router.get('/api/wayfair/catalog', (_req, res) => {
 });
 
 /**
- * POST /api/wayfair/recommendations — get personalized style recommendations
+ * POST /api/a6b38c63/recommendations — get personalized style recommendations
  */
-router.post('/api/wayfair/recommendations', async (req, res) => {
+router.post('/api/a6b38c63/recommendations', async (req, res) => {
   try {
     const result = await getStyleRecommendations({
       room: req.body.room || 'living-room',

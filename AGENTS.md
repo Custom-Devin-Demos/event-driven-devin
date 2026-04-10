@@ -215,17 +215,22 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
 | `DEVIN_API_KEY` | Devin API key | For api mode |
-| `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID (default: `U08RNEJ4877`) | For slack mode |
+| `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID | For slack mode |
 | `DEVIN_PLAYBOOK_ID` | Devin playbook ID for API sessions | No |
 | `SONAR_TARGET_REPO` | Target repo for SonarCloud PR (default: `COG-GTM/etl-pipeline-demo`) | No |
-| `DEVIN_API_KEY_<SLUG>` | Per-customer Devin API key (e.g. `DEVIN_API_KEY_WAYFAIR`) | Per-customer |
+| `DEVIN_API_KEY_<SLUG>` | Per-customer Devin API key (e.g. `DEVIN_API_KEY_A6B38C63`) | Per-customer |
 | `DEVIN_PLAYBOOK_ID_<SLUG>` | Per-customer playbook ID | No |
 | `SONAR_TARGET_REPO_<SLUG>` | Per-customer SonarCloud target repo | No |
 | `DOMAIN_NAME` | Domain for Nginx reverse proxy + SSL (e.g. `devindemos.com`) | For SSL |
 | `CERT_EMAIL` | Email for Let's Encrypt certificate notifications | For SSL |
 | `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
+| `SENTRY_ORG_SLUG` | Sentry organization slug (for issue URLs) | No |
+| `SENTRY_PROJECT_ID` | Sentry project ID (for issue URLs) | No |
+| `SENTRY_CLIENT_SECRET` | Sentry webhook client secret (HMAC signature verification) | Recommended |
+| `DD_DASHBOARD_URL` | Datadog dashboard URL | No |
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
+| `SESSION_SECRET` | Shared secret for session-creating endpoints (`x-session-secret` header) | Recommended |
 | `PORT` | Server port | No (default: `3000`) |
 
 ## Deployment
@@ -260,7 +265,7 @@ Internet → DNS (A record) → EC2 Public IP
 4. **Set env vars** in `/home/ubuntu/.env` on EC2:
    ```bash
    DOMAIN_NAME=devindemos.com
-   CERT_EMAIL=shawn.d.azman@gmail.com
+   CERT_EMAIL=your-email@example.com
    ```
 5. **Run the SSL init script** (once, on the EC2 host):
    ```bash
@@ -365,11 +370,11 @@ When the app is running (locally at `localhost:3000` or on EC2 via `https://<DOM
 
 | Service | Purpose | Config |
 |---------|---------|--------|
-| [Sentry](https://devin-gtm.sentry.io) | Error tracking, alert rules, webhooks | `SENTRY_DSN` |
-| [Datadog](https://app.us5.datadoghq.com) | APM, metrics, logs, dashboard | `DD_API_KEY`, `DD_SITE` |
+| Sentry | Error tracking, alert rules, webhooks | `SENTRY_DSN`, `SENTRY_ORG_SLUG` |
+| Datadog | APM, metrics, logs, dashboard | `DD_API_KEY`, `DD_SITE` |
 | Slack (`#automated-alerts`) | Alert notifications, Devin triggering | `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN` (slack mode), `SLACK_CHANNEL_ID` |
 | [Devin API](https://api.devin.ai) | Direct session creation (api mode) | `DEVIN_API_KEY` |
-| [Datadog Dashboard](https://app.us5.datadoghq.com/dashboard/y6q-9d9-7vg) | checkout-api overview | Read-only link |
+| Datadog Dashboard | checkout-api overview | `DD_DASHBOARD_URL` |
 
 ## Common Tasks
 

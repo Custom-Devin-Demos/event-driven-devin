@@ -12,15 +12,15 @@ const hightechRoutes = require('./hightech');
 const industrialsRoutes = require('./industrials');
 const healthcareRoutes = require('./healthcare');
 const telcoRoutes = require('./telco');
-const wayfairRoutes = require('./wayfair');
-const zaxbysRoutes = require('./zaxbys');
-const velocityHilRoutes = require('./velocity-hil');
-const creditKarmaRoutes = require('./credit-karma');
-const dominionEnergyRoutes = require('./dominion-energy');
-const cognitionJapanRoutes = require('./cognition-japan');
-const alphaWaveGlobalRoutes = require('./alpha-wave-global');
-const foxconnRoutes = require('./foxconn');
-const roperTechnologiesRoutes = require('./roper-technologies');
+const customerA6b38c63Routes = require('./a6b38c63');
+const customerEf5d1dc1Routes = require('./ef5d1dc1');
+const customer13ec88e4Routes = require('./13ec88e4');
+const customer8de4a567Routes = require('./8de4a567');
+const customer1845924dRoutes = require('./1845924d');
+const customerE0c16510Routes = require('./e0c16510');
+const customer53a9884eRoutes = require('./53a9884e');
+const customerAcf4303dRoutes = require('./acf4303d');
+const customerF3ff1d33Routes = require('./f3ff1d33');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -31,15 +31,15 @@ router.use(hightechRoutes);
 router.use(industrialsRoutes);
 router.use(healthcareRoutes);
 router.use(telcoRoutes);
-router.use(wayfairRoutes);
-router.use(zaxbysRoutes);
-router.use(velocityHilRoutes);
-router.use(creditKarmaRoutes);
-router.use(dominionEnergyRoutes);
-router.use(cognitionJapanRoutes);
-router.use(alphaWaveGlobalRoutes);
-router.use(foxconnRoutes);
-router.use(roperTechnologiesRoutes);
+router.use(customerA6b38c63Routes);
+router.use(customerEf5d1dc1Routes);
+router.use(customer13ec88e4Routes);
+router.use(customer8de4a567Routes);
+router.use(customer1845924dRoutes);
+router.use(customerE0c16510Routes);
+router.use(customer53a9884eRoutes);
+router.use(customerAcf4303dRoutes);
+router.use(customerF3ff1d33Routes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -54,7 +54,7 @@ const VERTICALS = [
   { id: 'industrials', name: 'Industrials', brand: 'Titan Manufacturing', path: '/industrials', icon: '\u{1F3ED}', color: '#6C757D' },
   { id: 'healthcare', name: 'Health Care', brand: 'CarePoint Health', path: '/healthcare', icon: '\u{1F3E5}', color: '#06D6A0' },
   { id: 'telco', name: 'Telco', brand: 'WaveConnect', path: '/telco', icon: '\u{1F4F1}', color: '#118AB2' },
-  { id: 'credit-karma', name: 'Financial Technology', brand: 'Credit Karma', path: '/credit-karma', icon: '\u{1F4B3}', color: '#008751' },
+  { id: '8de4a567', name: 'Financial Technology', brand: 'FinScore', path: '/8de4a567', icon: '\u{1F4B3}', color: '#008751' },
 ];
 
 /**
@@ -68,7 +68,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'wayfair', 'zaxbys', 'velocity-hil', 'credit-karma', 'dominion-energy', 'cognition-japan', 'alpha-wave-global', 'foxconn', 'roper-technologies'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));

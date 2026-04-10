@@ -111,7 +111,7 @@ async function processRewardsLookup(data) {
     requestId,
     phone: data.phone,
     location: data.location,
-    service: 'zaxbys-api',
+    service: 'customer-ef5d1dc1-api',
   });
 
   try {
@@ -124,11 +124,11 @@ async function processRewardsLookup(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('rewards.lookup.success', {
-      route: '/api/zaxbys/rewards',
+      route: '/api/ef5d1dc1/rewards',
       location: data.location,
     });
     recordTiming('rewards.lookup.latency', duration, {
-      route: '/api/zaxbys/rewards',
+      route: '/api/ef5d1dc1/rewards',
     });
 
     return {
@@ -141,12 +141,12 @@ async function processRewardsLookup(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('rewards.lookup.failure', {
-      route: '/api/zaxbys/rewards',
+      route: '/api/ef5d1dc1/rewards',
       errorClass: error.name,
       location: data.location,
     });
     recordTiming('rewards.lookup.latency', duration, {
-      route: '/api/zaxbys/rewards',
+      route: '/api/ef5d1dc1/rewards',
       error: 'true',
     });
 
@@ -161,8 +161,8 @@ async function processRewardsLookup(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/zaxbys/rewards',
-        service: 'zaxbys-api',
+        route: '/api/ef5d1dc1/rewards',
+        service: 'customer-ef5d1dc1-api',
         location: data.location,
       },
       extra: {
@@ -174,18 +174,18 @@ async function processRewardsLookup(data) {
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/zaxbys.js — processRewardsLookup',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/ef5d1dc1.js — processRewardsLookup',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      service: 'zaxbys-api',
+      service: 'customer-ef5d1dc1-api',
       verticalLabel: 'Zaxby\'s Rewards Lookup',
-      customer: 'zaxbys',
+      customer: 'ef5d1dc1',
       tags: [
-        { key: 'route', value: '/api/zaxbys/rewards' },
-        { key: 'service', value: 'zaxbys-api' },
+        { key: 'route', value: '/api/ef5d1dc1/rewards' },
+        { key: 'service', value: 'customer-ef5d1dc1-api' },
         { key: 'location', value: data.location },
       ],
       extra: { requestId, phone: data.phone, location: data.location },
