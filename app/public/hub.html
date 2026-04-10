@@ -847,6 +847,7 @@
       var saveBtn = document.getElementById('saveIdentityBtn');
       var statusEl = document.getElementById('identityStatus');
       var isUserLocked = false;
+      var lockedOrgId = '';
 
       function setStatus(msg, type) {
         statusEl.textContent = msg;
@@ -867,7 +868,7 @@
           return;
         }
 
-        if (email && !orgName) {
+        if (email && !orgName && !lockedOrgId) {
           setStatus('Org name is required to look up email', 'error');
           orgNameInput.classList.add('error');
           return;
@@ -881,7 +882,7 @@
         fetch('/api/resolve-identity', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orgName: orgName || undefined, email: email || undefined }),
+          body: JSON.stringify({ orgName: orgName || undefined, orgId: lockedOrgId || undefined, email: email || undefined }),
         })
           .then(function (r) {
             if (!r.ok) return r.json().then(function (d) { throw d; });
@@ -929,6 +930,7 @@
 
           if (cfg.lockOrg) {
             orgWrap.style.display = 'none';
+            lockedOrgId = cfg.defaultOrgId;
             localStorage.setItem('devinOrgId', cfg.defaultOrgId);
             if (cfg.defaultOrgName) {
               localStorage.setItem('devinOrgName', cfg.defaultOrgName);

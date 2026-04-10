@@ -34,17 +34,19 @@ let orgsCacheExpiry = 0;
 const usersCacheByOrg = new Map();
 
 router.post('/api/resolve-identity', async (req, res) => {
-  const { orgName, email } = req.body || {};
+  const { orgName, orgId: providedOrgId, email } = req.body || {};
 
-  if (!orgName && !email) {
-    return res.status(400).json({ error: 'orgName or email is required' });
+  if (!orgName && !providedOrgId && !email) {
+    return res.status(400).json({ error: 'orgName, orgId, or email is required' });
   }
 
   const result = { orgId: '', userId: '' };
 
   try {
-    // --- Resolve org name → org ID ---
-    if (orgName) {
+    // --- Use provided orgId directly (e.g. from lockOrg config) ---
+    if (providedOrgId) {
+      result.orgId = providedOrgId;
+    } else if (orgName) {
       const now = Date.now();
       if (!cachedOrgs || now >= orgsCacheExpiry) {
         cachedOrgs = await listEnterpriseOrgs();
@@ -66,7 +68,7 @@ router.post('/api/resolve-identity', async (req, res) => {
 
     // --- Resolve email → user ID ---
     if (email && !result.orgId) {
-      return res.status(400).json({ error: 'Org name is required to look up a user by email', field: 'orgName' });
+      return res.status(400).json({ error: 'Org name or org ID is required to look up a user by email', field: 'orgName' });
     }
     if (email && result.orgId) {
       const cacheKey = result.orgId;
