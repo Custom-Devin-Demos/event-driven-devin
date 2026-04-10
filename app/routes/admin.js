@@ -1,6 +1,7 @@
 const express = require('express');
 const { setScenario, getScenarioInfo } = require('../incidentModes');
 const logger = require('../telemetry/logger');
+const { getSessionStats } = require('../services/session-rate-limiter');
 
 const router = express.Router();
 
@@ -57,6 +58,13 @@ router.get('/admin/info', (req, res) => {
     memory: process.memoryUsage(),
     pid: process.pid,
   });
+});
+
+/**
+ * GET /api/admin/session-stats - Get current session rate-limiter status
+ */
+router.get('/api/admin/session-stats', (_req, res) => {
+  res.json(getSessionStats());
 });
 
 module.exports = router;
