@@ -71,8 +71,30 @@ function canCreateSession() {
 }
 
 /**
+ * Optimistically reserve a session slot BEFORE the async API call.
+ * Returns a release function to call if the API call fails, so the
+ * slot is freed and doesn't consume cap budget.
+ *
+ * This prevents a TOCTOU race where concurrent requests all pass
+ * canCreateSession() during the async gap before recordSession().
+ *
+ * @returns {Function} release — call this if the session creation fails
+ */
+function reserveSession() {
+  const ts = Date.now();
+  sessionTimestamps.push(ts);
+  return function release() {
+    const idx = sessionTimestamps.indexOf(ts);
+    if (idx !== -1) {
+      sessionTimestamps.splice(idx, 1);
+    }
+  };
+}
+
+/**
  * Record that a session was successfully created.
  * Call this AFTER the Devin API call succeeds.
+ * @deprecated Use reserveSession() instead for race-safe reservations.
  */
 function recordSession() {
   pruneWindow();
@@ -103,6 +125,7 @@ function getSessionStats() {
 
 module.exports = {
   canCreateSession,
+  reserveSession,
   recordSession,
   getSessionStats,
 };

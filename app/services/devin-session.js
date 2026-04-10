@@ -3,7 +3,7 @@ const { postAlertToSlack, postDevinSessionLink } = require('./slack');
 const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
-const { canCreateSession, recordSession } = require('./session-rate-limiter');
+const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 
 /**
  * Build the investigation prompt from alert data.
@@ -143,6 +143,10 @@ async function createSessionAndAlert(alertData) {
         retryAfterSeconds: capCheck.retryAfterSeconds,
       });
     } else {
+      // Optimistically reserve a slot to prevent TOCTOU races during
+      // the async createDevinSession() call.  Release on failure.
+      const releaseSlot = reserveSession();
+
       // Create Devin session via v3 API
       session = await createDevinSession(prompt, {
         apiKey: config.apiKey,
@@ -151,7 +155,6 @@ async function createSessionAndAlert(alertData) {
       });
 
       if (session) {
-        recordSession();
         await postDevinSessionLink(threadTs, session.url);
         logger.info('Devin session created and linked in Slack thread', {
           issueTitle: alertData.issueTitle,
@@ -162,6 +165,9 @@ async function createSessionAndAlert(alertData) {
           threadTs,
         });
       } else {
+        // API failed — release the optimistic reservation so the slot
+        // doesn't consume cap budget for a session that never existed.
+        releaseSlot();
         logger.warn('Devin session was not created — API call failed or not configured', {
           customer: config.customer,
         });
