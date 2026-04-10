@@ -846,6 +846,7 @@
       var emailInput = document.getElementById('emailInput');
       var saveBtn = document.getElementById('saveIdentityBtn');
       var statusEl = document.getElementById('identityStatus');
+      var isUserLocked = false;
 
       function setStatus(msg, type) {
         statusEl.textContent = msg;
@@ -894,7 +895,7 @@
             if (data.userId) {
               localStorage.setItem('devinUserId', data.userId);
               localStorage.setItem('devinEmail', email);
-            } else {
+            } else if (!isUserLocked) {
               localStorage.removeItem('devinUserId');
               localStorage.removeItem('devinEmail');
             }
@@ -938,6 +939,7 @@
           }
 
           if (cfg.lockUser) {
+            isUserLocked = true;
             userWrap.style.display = 'none';
             localStorage.setItem('devinUserId', cfg.defaultUserId);
           }
