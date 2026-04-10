@@ -3,6 +3,7 @@ const { postAlertToSlack, postDevinSessionLink } = require('./slack');
 const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
+const { canCreateSession, recordSession } = require('./session-rate-limiter');
 
 /**
  * Build the investigation prompt from alert data.
@@ -127,36 +128,55 @@ async function createSessionAndAlert(alertData) {
     const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
     const resolvedOrgId = alertData.devinOrgId || '';
 
-    // Step 2: Create Devin session via v3 API and post "View in Devin" link
-    const session = await createDevinSession(prompt, {
-      apiKey: config.apiKey,
-      orgId: resolvedOrgId,
-      userId: resolvedUserId,
-    });
+    // Step 2: Check global session cap before creating a Devin session
+    const capCheck = canCreateSession();
+    let session = null;
+    let throttled = false;
 
-    if (session) {
-      await postDevinSessionLink(threadTs, session.url);
-      logger.info('Devin session created and linked in Slack thread', {
+    if (!capCheck.allowed) {
+      throttled = true;
+      logger.warn('Devin session skipped — global cap reached', {
         issueTitle: alertData.issueTitle,
-        sessionId: session.sessionId,
         customer: config.customer,
-        devinUserId: resolvedUserId || 'service-user',
-        devinOrgId: resolvedOrgId || 'default',
-        threadTs,
+        current: capCheck.current,
+        max: capCheck.max,
+        retryAfterSeconds: capCheck.retryAfterSeconds,
       });
     } else {
-      logger.warn('Devin session was not created — API call failed or not configured', {
-        customer: config.customer,
+      // Create Devin session via v3 API
+      session = await createDevinSession(prompt, {
+        apiKey: config.apiKey,
+        orgId: resolvedOrgId,
+        userId: resolvedUserId,
       });
+
+      if (session) {
+        recordSession();
+        await postDevinSessionLink(threadTs, session.url);
+        logger.info('Devin session created and linked in Slack thread', {
+          issueTitle: alertData.issueTitle,
+          sessionId: session.sessionId,
+          customer: config.customer,
+          devinUserId: resolvedUserId || 'service-user',
+          devinOrgId: resolvedOrgId || 'default',
+          threadTs,
+        });
+      } else {
+        logger.warn('Devin session was not created — API call failed or not configured', {
+          customer: config.customer,
+        });
+      }
     }
 
-    // Fire a vulnerable PR in the target repo immediately.
+    // Fire a vulnerable PR in the target repo immediately (only if not throttled).
     // This triggers SonarCloud -> quality gate failure -> Devin auto-remediation
     // in the background, demonstrating the full remediation pipeline.
     // Pass the same resolved user/org IDs so the CI session matches the Slack session.
-    scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
+    if (!throttled) {
+      scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
+    }
 
-    return { triggered: true, threadTs };
+    return { triggered: !throttled, throttled, threadTs };
   } catch (error) {
     logger.error('Failed to post alert or trigger Devin', {
       error: error.message,
