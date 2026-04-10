@@ -159,6 +159,9 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
     if (req.query.devinOrgId) {
       alertData.devinOrgId = req.query.devinOrgId;
     }
+    if (req.query.devinEmail) {
+      alertData.devinEmail = req.query.devinEmail;
+    }
 
     const result = await createSessionAndAlert(alertData);
 

@@ -27,6 +27,7 @@ router.post('/api/healthcare/appointment', async (req, res) => {
       appointmentDate: req.body.appointmentDate || '2026-12-15',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

@@ -162,6 +162,7 @@ async function getStyleRecommendations(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-a6b38c63-api',
       verticalLabel: 'Style Recommendations',

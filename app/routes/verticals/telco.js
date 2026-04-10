@@ -22,6 +22,7 @@ router.post('/api/telco/upgrade', async (req, res) => {
       billingDay: req.body.billingDay || 15,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

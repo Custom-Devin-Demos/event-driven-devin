@@ -53,6 +53,36 @@ async function postThreadReply(token, channel, threadTs, text, blocks) {
 }
 
 /**
+ * Look up a Slack user by their email address.
+ * Returns the Slack member ID (e.g. "U12345") or null if not found.
+ * Uses the Slack `users.lookupByEmail` API.
+ */
+async function lookupSlackUserByEmail(token, email) {
+  if (!token || !email) return null;
+
+  try {
+    const response = await axios.get(`${SLACK_API_BASE}/users.lookupByEmail`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { email },
+      timeout: 10000,
+    });
+
+    if (!response.data.ok) {
+      // users_not_found is expected when the email isn't in the workspace
+      if (response.data.error !== 'users_not_found') {
+        logger.warn('Slack lookupByEmail failed', { error: response.data.error, email });
+      }
+      return null;
+    }
+
+    return response.data.user?.id || null;
+  } catch (error) {
+    logger.warn('Slack lookupByEmail request failed', { error: error.message, email });
+    return null;
+  }
+}
+
+/**
  * Build Slack blocks for the initial Sentry alert message.
  */
 function buildAlertBlocks(alertData) {
@@ -121,14 +151,24 @@ function buildAlertBlocks(alertData) {
   });
 
   // On-Call section: always show Devin AI (v3 API mode — no @mention spoofing)
+  const onCallFields = [
+    {
+      type: 'mrkdwn',
+      text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
+    },
+  ];
+
+  // Tag the demo user so they get a Slack notification for their alert
+  if (alertData.slackMemberId) {
+    onCallFields.push({
+      type: 'mrkdwn',
+      text: `*Triggered by:*\n<@${alertData.slackMemberId}>`,
+    });
+  }
+
   blocks.push({
     type: 'section',
-    fields: [
-      {
-        type: 'mrkdwn',
-        text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
-      },
-    ],
+    fields: onCallFields,
   });
 
   // Action buttons
@@ -179,6 +219,8 @@ function buildAlertText(alertData) {
 
 /**
  * Post the initial alert to Slack and return the thread timestamp.
+ * If alertData.devinEmail is set, resolves the email to a Slack member ID
+ * and @mentions the user in the alert so they get a notification.
  */
 async function postAlertToSlack(alertData) {
   const token = process.env.SLACK_BOT_TOKEN;
@@ -190,6 +232,18 @@ async function postAlertToSlack(alertData) {
   }
 
   try {
+    // Resolve the demo user's email to a Slack member ID for @mentioning
+    if (alertData.devinEmail && !alertData.slackMemberId) {
+      const memberId = await lookupSlackUserByEmail(token, alertData.devinEmail);
+      if (memberId) {
+        alertData.slackMemberId = memberId;
+        logger.info('Resolved demo user Slack ID from email', {
+          email: alertData.devinEmail,
+          slackMemberId: memberId,
+        });
+      }
+    }
+
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData);
     const threadTs = await postMessage(token, channel, text, blocks);
@@ -330,4 +384,5 @@ module.exports = {
   postAlertToSlack,
   postDevinSessionLink,
   postThreadReply,
+  lookupSlackUserByEmail,
 };

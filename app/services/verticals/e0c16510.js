@@ -184,6 +184,7 @@ async function processContactSales(data) {
       errorValue: error.message,
       devinOrgId: 'org-9a7c9b33de89435997ca87264e9a9403',
       devinUserId: 'email|6877f32ae1279dd720593f93',
+      devinEmail: data.devinEmail,
       service: 'customer-e0c16510-sales',
       verticalLabel: '\u304A\u554F\u3044\u5408\u308F\u305B\u51E6\u7406\u30A8\u30E9\u30FC',
       language: 'ja',

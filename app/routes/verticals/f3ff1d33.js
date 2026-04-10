@@ -22,6 +22,7 @@ router.post('/api/f3ff1d33/analyze', async (req, res) => {
       companyFilter: req.body.companyFilter,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

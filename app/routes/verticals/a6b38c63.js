@@ -26,6 +26,7 @@ router.post('/api/a6b38c63/recommendations', async (req, res) => {
       userId: req.body.userId || 'usr_wayfair_1',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

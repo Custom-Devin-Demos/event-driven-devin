@@ -30,6 +30,7 @@ router.post('/api/trading/execute', async (req, res) => {
       accountId: req.body.accountId || 'ACCT-INV-001',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

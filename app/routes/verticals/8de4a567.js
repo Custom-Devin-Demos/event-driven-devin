@@ -20,6 +20,7 @@ router.get('/api/8de4a567/score', async (req, res) => {
       userId: req.query.userId || CREDIT_PROFILE.userId,
       devinUserId: req.query.devinUserId,
       devinOrgId: req.query.devinOrgId,
+      devinEmail: req.query.devinEmail,
     });
     res.json(result);
   } catch (error) {
@@ -42,6 +43,7 @@ router.post('/api/8de4a567/refresh', async (req, res) => {
       userId: req.body.userId || CREDIT_PROFILE.userId,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

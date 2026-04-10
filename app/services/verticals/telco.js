@@ -145,6 +145,7 @@ async function upgradePlan(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'telco-api',
       verticalLabel: 'Plan Upgrade',

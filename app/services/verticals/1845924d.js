@@ -223,6 +223,7 @@ async function runAssessment(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'dominion-grid-ops',
       verticalLabel: 'Grid Reliability Assessment',

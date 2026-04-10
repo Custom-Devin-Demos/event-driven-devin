@@ -22,6 +22,7 @@ router.post('/api/cpg/order', async (req, res) => {
       items: req.body.items || [{ sku: 'BEV-001', qty: 50 }],
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

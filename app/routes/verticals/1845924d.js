@@ -22,6 +22,7 @@ router.post('/api/1845924d/assess', async (req, res) => {
       incidentRef: req.body.incidentRef,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

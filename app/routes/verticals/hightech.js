@@ -30,6 +30,7 @@ router.post('/api/licenses/provision', async (req, res) => {
       billingCycle: req.body.billingCycle || 'monthly',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {
