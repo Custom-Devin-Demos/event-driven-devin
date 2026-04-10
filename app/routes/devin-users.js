@@ -1,5 +1,6 @@
 const express = require('express');
-const { listEnterpriseOrgs, listOrgUsers, listEnterpriseAdmins } = require('../services/devin-api');
+const logger = require('../telemetry/logger');
+const { listEnterpriseOrgs, listOrgUsers } = require('../services/devin-api');
 
 const router = express.Router();
 
@@ -23,75 +24,77 @@ router.get('/api/config', (_req, res) => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  GET /api/devin/orgs                                               */
-/*  Returns the list of organizations in the enterprise.              */
-/*  Results are cached for 5 minutes.                                 */
+/*  POST /api/resolve-identity                                        */
+/*  Accepts { orgName, email } and resolves them to Devin IDs         */
+/*  server-side. No org/user lists are exposed to the browser.        */
+/*  Results are cached for 5 minutes to reduce API calls.             */
 /* ------------------------------------------------------------------ */
 let cachedOrgs = null;
 let orgsCacheExpiry = 0;
-
-router.get('/api/devin/orgs', async (_req, res) => {
-  try {
-    const now = Date.now();
-    if (cachedOrgs && now < orgsCacheExpiry) {
-      return res.json({ orgs: cachedOrgs });
-    }
-
-    const orgs = await listEnterpriseOrgs();
-    cachedOrgs = orgs;
-    orgsCacheExpiry = now + 5 * 60 * 1000;
-
-    return res.json({ orgs });
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to fetch orgs', detail: err.message });
-  }
-});
-
-/* ------------------------------------------------------------------ */
-/*  GET /api/devin/users?orgId=<org_id>                               */
-/*  Returns users for the given org (or default org from env).        */
-/*  Results are cached per-org for 5 minutes.                         */
-/* ------------------------------------------------------------------ */
 const usersCacheByOrg = new Map();
 
-router.get('/api/devin/users', async (req, res) => {
-  try {
-    const orgId = req.query.orgId || '';
-    const cacheKey = orgId || '__default__';
-    const now = Date.now();
+router.post('/api/resolve-identity', async (req, res) => {
+  const { orgName, email } = req.body || {};
 
-    const cached = usersCacheByOrg.get(cacheKey);
-    if (cached && now < cached.expiry) {
-      return res.json({ users: cached.users });
+  if (!orgName && !email) {
+    return res.status(400).json({ error: 'orgName or email is required' });
+  }
+
+  const result = { orgId: '', userId: '' };
+
+  try {
+    // --- Resolve org name → org ID ---
+    if (orgName) {
+      const now = Date.now();
+      if (!cachedOrgs || now >= orgsCacheExpiry) {
+        cachedOrgs = await listEnterpriseOrgs();
+        orgsCacheExpiry = now + 5 * 60 * 1000;
+      }
+
+      const normalizedInput = orgName.trim().toLowerCase();
+      const match = cachedOrgs.find(
+        (o) => (o.name || '').toLowerCase() === normalizedInput,
+      );
+
+      if (match) {
+        result.orgId = match.org_id;
+      } else {
+        logger.warn('Org name not found during identity resolution', { orgName });
+        return res.status(404).json({ error: 'Organization not found', field: 'orgName' });
+      }
     }
 
-    // Fetch org members and enterprise admins in parallel, then merge
-    const [orgUsers, admins] = await Promise.all([
-      listOrgUsers(orgId || undefined),
-      listEnterpriseAdmins(),
-    ]);
+    // --- Resolve email → user ID ---
+    if (email && result.orgId) {
+      const cacheKey = result.orgId;
+      const now = Date.now();
+      let users;
 
-    // Build a map keyed by user_id so enterprise admins that are already
-    // org members appear only once (with the admin flag attached).
-    const userMap = new Map();
-    orgUsers.forEach((u) => {
-      userMap.set(u.user_id, { ...u, is_enterprise_admin: false });
-    });
-    admins.forEach((a) => {
-      if (userMap.has(a.user_id)) {
-        // User is already an org member — just flag them as an admin
-        userMap.get(a.user_id).is_enterprise_admin = true;
+      const cached = usersCacheByOrg.get(cacheKey);
+      if (cached && now < cached.expiry) {
+        users = cached.users;
       } else {
-        userMap.set(a.user_id, { ...a, is_enterprise_admin: true });
+        users = await listOrgUsers(result.orgId);
+        usersCacheByOrg.set(cacheKey, { users, expiry: now + 5 * 60 * 1000 });
       }
-    });
 
-    const users = Array.from(userMap.values());
-    usersCacheByOrg.set(cacheKey, { users, expiry: now + 5 * 60 * 1000 });
+      const normalizedEmail = email.trim().toLowerCase();
+      const userMatch = users.find(
+        (u) => (u.email || '').toLowerCase() === normalizedEmail,
+      );
 
-    return res.json({ users });
+      if (userMatch) {
+        result.userId = userMatch.user_id;
+      } else {
+        logger.warn('Email not found during identity resolution', { email, orgId: result.orgId });
+        return res.status(404).json({ error: 'User not found in this organization', field: 'email' });
+      }
+    }
+
+    return res.json(result);
   } catch (err) {
-    return res.status(500).json({ error: 'Failed to fetch users', detail: err.message });
+    logger.error('Identity resolution failed', { error: err.message });
+    return res.status(500).json({ error: 'Failed to resolve identity', detail: err.message });
   }
 });
 
