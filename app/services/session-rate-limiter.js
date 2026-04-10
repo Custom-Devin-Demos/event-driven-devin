@@ -12,8 +12,10 @@ const logger = require('../telemetry/logger');
  *   SESSION_CAP_WINDOW_MINUTES  — sliding window duration   (default: 10)
  */
 
-const GLOBAL_MAX = parseInt(process.env.SESSION_CAP_GLOBAL_MAX, 10) || 30;
-const WINDOW_MS = (parseInt(process.env.SESSION_CAP_WINDOW_MINUTES, 10) || 10) * 60 * 1000;
+const parsedMax = parseInt(process.env.SESSION_CAP_GLOBAL_MAX, 10);
+const GLOBAL_MAX = Number.isNaN(parsedMax) ? 30 : parsedMax;
+const parsedWindow = parseInt(process.env.SESSION_CAP_WINDOW_MINUTES, 10);
+const WINDOW_MS = (Number.isNaN(parsedWindow) ? 10 : parsedWindow) * 60 * 1000;
 
 // In-memory sliding window — array of timestamps (ms since epoch)
 const sessionTimestamps = [];
