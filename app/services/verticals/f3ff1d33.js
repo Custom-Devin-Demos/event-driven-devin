@@ -223,7 +223,7 @@ async function analyzePortfolio(data) {
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       service: 'roper-portfolio-analytics',
-      verticalLabel: 'Roper Portfolio Analytics',
+      verticalLabel: 'Portfolio Analytics',
       customer: 'f3ff1d33',
       tags: [
         { key: 'route', value: '/api/f3ff1d33/analyze' },

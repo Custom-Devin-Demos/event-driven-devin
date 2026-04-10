@@ -149,7 +149,7 @@ async function runInquiry(data) {
     facility: data.facility,
     category: data.category,
     priority: data.priority,
-    service: 'foxconn-supply-chain',
+    service: 'customer-acf4303d-supply-chain',
   });
 
   try {
@@ -207,7 +207,7 @@ async function runInquiry(data) {
     Sentry.captureException(error, {
       tags: {
         route: '/api/acf4303d/inquiry',
-        service: 'foxconn-supply-chain',
+        service: 'customer-acf4303d-supply-chain',
         facility: data.facility,
       },
       extra: { inquiryId, facility: data.facility, category: data.category },
@@ -221,12 +221,12 @@ async function runInquiry(data) {
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      service: 'foxconn-supply-chain',
+      service: 'customer-acf4303d-supply-chain',
       verticalLabel: 'Supply Chain Inquiry',
       customer: 'acf4303d',
       tags: [
         { key: 'route', value: '/api/acf4303d/inquiry' },
-        { key: 'service', value: 'foxconn-supply-chain' },
+        { key: 'service', value: 'customer-acf4303d-supply-chain' },
         { key: 'facility', value: data.facility },
       ],
       extra: { inquiryId, facility: data.facility, category: data.category },
@@ -237,7 +237,7 @@ async function runInquiry(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'foxconn-scm@3.8.2',
+      release: process.env.SENTRY_RELEASE || 'customer-acf4303d-scm@3.8.2',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

@@ -164,7 +164,7 @@ async function getStyleRecommendations(data) {
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       service: 'customer-a6b38c63-api',
-      verticalLabel: 'Wayfair Style Recommendations',
+      verticalLabel: 'Style Recommendations',
       customer: 'a6b38c63',
       tags: [
         { key: 'route', value: '/api/a6b38c63/recommendations' },
@@ -179,7 +179,7 @@ async function getStyleRecommendations(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'wayfair@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-a6b38c63@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

@@ -9,7 +9,7 @@ const { createSessionAndAlert } = require('../devin-session');
  * When `true`, the credit score refresh uses a mismatched property path
  * that throws a TypeError — exactly the kind of shape mismatch that
  * passes code review but crashes in production.
- * Reset via POST /api/credit-karma/reset
+ * Reset via POST /api/8de4a567/reset
  */
 let bugActive = true;
 
@@ -379,7 +379,7 @@ function triggerMultiSessionIncident(incidentData) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'credit-karma@2.4.1',
+      release: process.env.SENTRY_RELEASE || 'customer-8de4a567@2.4.1',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: 'credit-score-refresh-crash',
     }).catch((err) => {

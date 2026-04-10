@@ -240,7 +240,7 @@ async function rerunHilTest(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'velocity-hil@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-13ec88e4@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

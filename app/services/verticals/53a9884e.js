@@ -201,7 +201,7 @@ async function runPortfolioAnalysis(data) {
     fundStrategy: data.fundStrategy,
     vintageYear: data.vintageYear,
     analysisType: data.analysisType,
-    service: 'alpha-wave-portfolio',
+    service: 'customer-53a9884e-portfolio',
   });
 
   try {
@@ -252,7 +252,7 @@ async function runPortfolioAnalysis(data) {
     Sentry.captureException(error, {
       tags: {
         route: '/api/53a9884e/analyze',
-        service: 'alpha-wave-portfolio',
+        service: 'customer-53a9884e-portfolio',
         strategy: data.fundStrategy,
       },
       extra: { analysisId, fundStrategy: data.fundStrategy, vintageYear: data.vintageYear },
@@ -267,11 +267,11 @@ async function runPortfolioAnalysis(data) {
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      service: 'alpha-wave-portfolio',
+      service: 'customer-53a9884e-portfolio',
       verticalLabel: 'Portfolio Analysis Error',
       tags: [
         { key: 'route', value: '/api/53a9884e/analyze' },
-        { key: 'service', value: 'alpha-wave-portfolio' },
+        { key: 'service', value: 'customer-53a9884e-portfolio' },
       ],
       extra: { analysisId, fundStrategy: data.fundStrategy, vintageYear: data.vintageYear },
       level: 'error',
@@ -281,7 +281,7 @@ async function runPortfolioAnalysis(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'alpha-wave-portfolio@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-53a9884e-portfolio@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

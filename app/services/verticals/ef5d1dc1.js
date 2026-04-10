@@ -181,7 +181,7 @@ async function processRewardsLookup(data) {
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       service: 'customer-ef5d1dc1-api',
-      verticalLabel: 'Zaxby\'s Rewards Lookup',
+      verticalLabel: 'Rewards Lookup',
       customer: 'ef5d1dc1',
       tags: [
         { key: 'route', value: '/api/ef5d1dc1/rewards' },
@@ -196,7 +196,7 @@ async function processRewardsLookup(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'zaxbys@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-ef5d1dc1@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
