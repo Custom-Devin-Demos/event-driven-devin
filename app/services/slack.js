@@ -158,11 +158,11 @@ function buildAlertBlocks(alertData) {
     },
   ];
 
-  // Tag the demo user so they get a Slack notification for their alert
+  // Tag the demo user as on-call so they get a Slack notification for their alert
   if (alertData.slackMemberId) {
     onCallFields.push({
       type: 'mrkdwn',
-      text: `*Triggered by:*\n<@${alertData.slackMemberId}>`,
+      text: `*On-Call:*\n<@${alertData.slackMemberId}>`,
     });
   }
 
