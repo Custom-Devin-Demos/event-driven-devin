@@ -171,11 +171,11 @@ async function rerunHilTest(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('hil.test.rerun', {
-      route: '/api/velocity-hil/rerun',
+      route: '/api/13ec88e4/rerun',
       verdict: results.verdict,
     });
     recordTiming('hil.test.latency', duration, {
-      route: '/api/velocity-hil/rerun',
+      route: '/api/13ec88e4/rerun',
     });
 
     return {
@@ -193,11 +193,11 @@ async function rerunHilTest(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('hil.test.failure', {
-      route: '/api/velocity-hil/rerun',
+      route: '/api/13ec88e4/rerun',
       errorClass: error.name,
     });
     recordTiming('hil.test.latency', duration, {
-      route: '/api/velocity-hil/rerun',
+      route: '/api/13ec88e4/rerun',
       error: 'true',
     });
 
@@ -211,7 +211,7 @@ async function rerunHilTest(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/velocity-hil/rerun',
+        route: '/api/13ec88e4/rerun',
         service: 'hil-test-platform',
         ecuTarget: data.ecuTarget,
       },
@@ -220,8 +220,8 @@ async function rerunHilTest(data) {
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/velocity-hil.js — rerunHilTest',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/13ec88e4.js — rerunHilTest',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -229,7 +229,7 @@ async function rerunHilTest(data) {
       service: 'hil-test-platform',
       verticalLabel: 'HIL Test',
       tags: [
-        { key: 'route', value: '/api/velocity-hil/rerun' },
+        { key: 'route', value: '/api/13ec88e4/rerun' },
         { key: 'service', value: 'hil-test-platform' },
       ],
       extra: { executionId, testId: data.testId },
@@ -240,7 +240,7 @@ async function rerunHilTest(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'velocity-hil@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-13ec88e4@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

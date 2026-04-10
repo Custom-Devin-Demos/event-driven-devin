@@ -116,7 +116,7 @@ async function processContactSales(data) {
     requestId,
     email: data.email,
     company: data.company,
-    service: 'cognition-japan-sales',
+    service: 'customer-e0c16510-sales',
   });
 
   try {
@@ -138,11 +138,11 @@ async function processContactSales(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('contact_sales.success', {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
       plan: data.plan || 'enterprise',
     });
     recordTiming('contact_sales.latency', duration, {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
     });
 
     return summary;
@@ -150,11 +150,11 @@ async function processContactSales(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('contact_sales.failure', {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
       errorClass: error.name,
     });
     recordTiming('contact_sales.latency', duration, {
-      route: '/api/cognition-japan/contact-sales',
+      route: '/api/e0c16510/contact-sales',
       error: 'true',
     });
 
@@ -168,28 +168,28 @@ async function processContactSales(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/cognition-japan/contact-sales',
-        service: 'cognition-japan-sales',
+        route: '/api/e0c16510/contact-sales',
+        service: 'customer-e0c16510-sales',
         region: data.region || 'ap-northeast-1',
       },
       extra: { requestId, email: data.email, company: data.company },
     });
 
     createSessionAndAlert({
-      customer: 'cognition-japan',
+      customer: 'e0c16510',
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/cognition-japan.js \u2014 processContactSales',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/e0c16510.js \u2014 processContactSales',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinOrgId: 'org-9a7c9b33de89435997ca87264e9a9403',
       devinUserId: 'email|6877f32ae1279dd720593f93',
-      service: 'cognition-japan-sales',
+      service: 'customer-e0c16510-sales',
       verticalLabel: '\u304A\u554F\u3044\u5408\u308F\u305B\u51E6\u7406\u30A8\u30E9\u30FC',
       language: 'ja',
       tags: [
-        { key: 'route', value: '/api/cognition-japan/contact-sales' },
-        { key: 'service', value: 'cognition-japan-sales' },
+        { key: 'route', value: '/api/e0c16510/contact-sales' },
+        { key: 'service', value: 'customer-e0c16510-sales' },
       ],
       extra: { requestId, email: data.email, company: data.company },
       level: 'error',
@@ -199,7 +199,7 @@ async function processContactSales(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'cognition-japan-sales@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-e0c16510-sales@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

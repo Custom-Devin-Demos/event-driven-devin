@@ -1,19 +1,19 @@
 const express = require('express');
-const { runPortfolioAnalysis, FUND_STRATEGIES, VINTAGE_PERFORMANCE } = require('../../services/verticals/alpha-wave-global');
+const { runPortfolioAnalysis, FUND_STRATEGIES, VINTAGE_PERFORMANCE } = require('../../services/verticals/53a9884e');
 
 const router = express.Router();
 
 /**
- * GET /api/alpha-wave-global/funds — returns fund strategy and vintage data
+ * GET /api/53a9884e/funds — returns fund strategy and vintage data
  */
-router.get('/api/alpha-wave-global/funds', (_req, res) => {
+router.get('/api/53a9884e/funds', (_req, res) => {
   res.json({ strategies: FUND_STRATEGIES, vintages: VINTAGE_PERFORMANCE });
 });
 
 /**
- * POST /api/alpha-wave-global/analyze — run a portfolio analysis
+ * POST /api/53a9884e/analyze — run a portfolio analysis
  */
-router.post('/api/alpha-wave-global/analyze', async (req, res) => {
+router.post('/api/53a9884e/analyze', async (req, res) => {
   try {
     const result = await runPortfolioAnalysis({
       fundStrategy: req.body.fundStrategy || 'venture-growth',

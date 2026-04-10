@@ -20,41 +20,41 @@ const logger = require('../app/telemetry/logger');
  *   DEVIN_USER_ID_<SLUG>       — Pre-configured Devin user ID
  *   SONAR_TARGET_REPO_<SLUG>   — Target repo for SonarCloud PR
  *
- * Example: For customer slug "wayfair":
- *   DEVIN_API_KEY_WAYFAIR=dv-abc123...
- *   GITHUB_ORG_WAYFAIR=WayfairGitHubOrg
- *   DEVIN_USER_ID_WAYFAIR=cog_wayfair_user
- *   SONAR_TARGET_REPO_WAYFAIR=WayfairGitHubOrg/etl-pipeline-demo
+ * Example: For customer slug "a6b38c63":
+ *   DEVIN_API_KEY_A6B38C63=dv-abc123...
+ *   GITHUB_ORG_A6B38C63=SomeGitHubOrg
+ *   DEVIN_USER_ID_A6B38C63=cog_user_123
+ *   SONAR_TARGET_REPO_A6B38C63=SomeGitHubOrg/etl-pipeline-demo
  */
 const CUSTOMERS = {
   default: {
     label: 'Default (landing page demos)',
     // Uses global env vars — no suffix
   },
-  wayfair: {
-    label: 'Wayfair',
+  a6b38c63: {
+    label: 'Customer A6B3',
     triggerMode: 'api',
   },
-  zaxbys: {
-    label: "Zaxby's",
+  ef5d1dc1: {
+    label: 'Customer EF5D',
     triggerMode: 'api',
   },
-  'cognition-japan': {
-    label: 'Cognition Japan',
+  e0c16510: {
+    label: 'Customer E0C1',
     triggerMode: 'api',
   },
-  'alpha-wave-global': {
-    label: 'Alpha Wave Global',
-    triggerMode: 'api',
-    githubOrg: 'Custom-Devin-Demos',
-  },
-  foxconn: {
-    label: 'Foxconn',
+  '53a9884e': {
+    label: 'Customer 53A9',
     triggerMode: 'api',
     githubOrg: 'Custom-Devin-Demos',
   },
-  'roper-technologies': {
-    label: 'Roper Technologies',
+  acf4303d: {
+    label: 'Customer ACF4',
+    triggerMode: 'api',
+    githubOrg: 'Custom-Devin-Demos',
+  },
+  f3ff1d33: {
+    label: 'Customer F3FF',
     triggerMode: 'api',
     githubOrg: 'Custom-Devin-Demos',
   },

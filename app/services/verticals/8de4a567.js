@@ -9,7 +9,7 @@ const { createSessionAndAlert } = require('../devin-session');
  * When `true`, the credit score refresh uses a mismatched property path
  * that throws a TypeError — exactly the kind of shape mismatch that
  * passes code review but crashes in production.
- * Reset via POST /api/credit-karma/reset
+ * Reset via POST /api/8de4a567/reset
  */
 let bugActive = true;
 
@@ -185,11 +185,11 @@ async function getCreditReport(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.fetch.success', {
-      route: '/api/credit-karma/score',
+      route: '/api/8de4a567/score',
       bureau: CREDIT_PROFILE.bureau,
     });
     recordTiming('creditscore.fetch.latency', duration, {
-      route: '/api/credit-karma/score',
+      route: '/api/8de4a567/score',
     });
 
     return {
@@ -207,11 +207,11 @@ async function getCreditReport(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.fetch.failure', {
-      route: '/api/credit-karma/score',
+      route: '/api/8de4a567/score',
       errorClass: error.name,
     });
     recordTiming('creditscore.fetch.latency', duration, {
-      route: '/api/credit-karma/score',
+      route: '/api/8de4a567/score',
       error: 'true',
     });
 
@@ -224,7 +224,7 @@ async function getCreditReport(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/credit-karma/score',
+        route: '/api/8de4a567/score',
         service: 'credit-score-api',
       },
       extra: { reportId, userId: data.userId },
@@ -271,10 +271,10 @@ async function refreshScore(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.refresh.success', {
-      route: '/api/credit-karma/refresh',
+      route: '/api/8de4a567/refresh',
     });
     recordTiming('creditscore.refresh.latency', duration, {
-      route: '/api/credit-karma/refresh',
+      route: '/api/8de4a567/refresh',
     });
 
     return {
@@ -289,11 +289,11 @@ async function refreshScore(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('creditscore.refresh.failure', {
-      route: '/api/credit-karma/refresh',
+      route: '/api/8de4a567/refresh',
       errorClass: error.name,
     });
     recordTiming('creditscore.refresh.latency', duration, {
-      route: '/api/credit-karma/refresh',
+      route: '/api/8de4a567/refresh',
       error: 'true',
     });
 
@@ -306,7 +306,7 @@ async function refreshScore(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/credit-karma/refresh',
+        route: '/api/8de4a567/refresh',
         service: 'credit-score-api',
       },
       extra: { refreshId, userId: data.userId || CREDIT_PROFILE.userId },
@@ -338,7 +338,7 @@ function triggerMultiSessionIncident(incidentData) {
   const sessions = [
     {
       verticalLabel: 'Credit Score \u2014 Root Cause Fix',
-      culprit: 'app/services/verticals/credit-karma.js \u2014 extractWeights',
+      culprit: 'app/services/verticals/8de4a567.js \u2014 extractWeights',
       service: 'credit-score-api',
     },
     {
@@ -356,7 +356,7 @@ function triggerMultiSessionIncident(incidentData) {
   for (const session of sessions) {
     createSessionAndAlert({
       issueTitle: `[${session.verticalLabel}] ${incidentData.error.name}: ${incidentData.error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: session.culprit,
       errorType: incidentData.error.name || 'TypeError',
       errorValue: incidentData.error.message,
@@ -365,7 +365,7 @@ function triggerMultiSessionIncident(incidentData) {
       service: session.service,
       verticalLabel: session.verticalLabel,
       tags: [
-        { key: 'route', value: '/api/credit-karma/refresh' },
+        { key: 'route', value: '/api/8de4a567/refresh' },
         { key: 'service', value: session.service },
         { key: 'severity', value: 'critical' },
       ],
@@ -379,7 +379,7 @@ function triggerMultiSessionIncident(incidentData) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'credit-karma@2.4.1',
+      release: process.env.SENTRY_RELEASE || 'customer-8de4a567@2.4.1',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: 'credit-score-refresh-crash',
     }).catch((err) => {

@@ -1,19 +1,19 @@
 const express = require('express');
-const { processRewardsLookup, MEMBERS, TIER_THRESHOLDS } = require('../../services/verticals/zaxbys');
+const { processRewardsLookup, MEMBERS, TIER_THRESHOLDS } = require('../../services/verticals/ef5d1dc1');
 
 const router = express.Router();
 
 /**
- * GET /api/zaxbys/menu — returns member list and tier info
+ * GET /api/ef5d1dc1/menu — returns member list and tier info
  */
-router.get('/api/zaxbys/menu', (_req, res) => {
+router.get('/api/ef5d1dc1/menu', (_req, res) => {
   res.json({ members: MEMBERS, tiers: TIER_THRESHOLDS });
 });
 
 /**
- * POST /api/zaxbys/rewards — process a rewards balance lookup
+ * POST /api/ef5d1dc1/rewards — process a rewards balance lookup
  */
-router.post('/api/zaxbys/rewards', async (req, res) => {
+router.post('/api/ef5d1dc1/rewards', async (req, res) => {
   try {
     const result = await processRewardsLookup({
       phone: req.body.phone || '(555) 867-5309',

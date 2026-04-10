@@ -179,11 +179,11 @@ async function runAssessment(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('assessment.success', {
-      route: '/api/dominion-energy/assess',
+      route: '/api/1845924d/assess',
       region: data.region,
     });
     recordTiming('assessment.latency', duration, {
-      route: '/api/dominion-energy/assess',
+      route: '/api/1845924d/assess',
     });
 
     return report;
@@ -191,11 +191,11 @@ async function runAssessment(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('assessment.failure', {
-      route: '/api/dominion-energy/assess',
+      route: '/api/1845924d/assess',
       errorClass: error.name,
     });
     recordTiming('assessment.latency', duration, {
-      route: '/api/dominion-energy/assess',
+      route: '/api/1845924d/assess',
       error: 'true',
     });
 
@@ -209,7 +209,7 @@ async function runAssessment(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/dominion-energy/assess',
+        route: '/api/1845924d/assess',
         service: 'dominion-grid-ops',
         region: data.region,
       },
@@ -218,8 +218,8 @@ async function runAssessment(data) {
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'devin-gtm'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || '4511033758449664'}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/dominion-energy.js — runAssessment',
+      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+      culprit: 'app/services/verticals/1845924d.js — runAssessment',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -227,7 +227,7 @@ async function runAssessment(data) {
       service: 'dominion-grid-ops',
       verticalLabel: 'Grid Reliability Assessment',
       tags: [
-        { key: 'route', value: '/api/dominion-energy/assess' },
+        { key: 'route', value: '/api/1845924d/assess' },
         { key: 'service', value: 'dominion-grid-ops' },
       ],
       extra: { assessmentId, region: data.region, assessType: data.assessType },
