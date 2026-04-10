@@ -4,8 +4,6 @@ const logger = require('../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../telemetry/datadog');
 const { Sentry } = require('../telemetry/sentry');
 const { createSessionAndAlert } = require('../services/devin-session');
-const { verifySessionSecret } = require('../middleware/verify-session-secret');
-
 const router = express.Router();
 
 /**
@@ -114,7 +112,7 @@ router.get('/api/products', (_req, res) => {
 /**
  * POST /api/storefront/checkout — processes a storefront checkout order.
  */
-router.post('/api/storefront/checkout', verifySessionSecret, async (req, res) => {
+router.post('/api/storefront/checkout', async (req, res) => {
   const startTime = Date.now();
   const orderId = uuidv4();
 
