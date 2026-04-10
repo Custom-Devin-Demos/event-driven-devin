@@ -22,6 +22,7 @@ router.post('/api/insurance/claim', async (req, res) => {
       description: req.body.description || 'Vehicle damage from collision',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

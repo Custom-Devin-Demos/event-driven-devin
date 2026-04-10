@@ -145,6 +145,7 @@ async function processClaim(claimData) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: claimData.devinUserId,
+      devinEmail: claimData.devinEmail,
       devinOrgId: claimData.devinOrgId,
       service: 'insurance-api',
       verticalLabel: 'Insurance Claim',

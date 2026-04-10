@@ -126,6 +126,7 @@ async function provisionLicense(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'licensing-api',
       verticalLabel: 'License Provisioning',

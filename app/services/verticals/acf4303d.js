@@ -220,6 +220,7 @@ async function runInquiry(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-acf4303d-supply-chain',
       verticalLabel: 'Supply Chain Inquiry',

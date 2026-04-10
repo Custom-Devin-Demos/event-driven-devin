@@ -225,6 +225,7 @@ async function rerunHilTest(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'hil-test-platform',
       verticalLabel: 'HIL Test',

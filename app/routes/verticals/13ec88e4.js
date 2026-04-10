@@ -22,6 +22,7 @@ router.post('/api/13ec88e4/rerun', async (req, res) => {
       sampleRate: req.body.sampleRate || 200,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

@@ -158,6 +158,7 @@ async function processOrder(orderData) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: orderData.devinUserId,
+      devinEmail: orderData.devinEmail,
       devinOrgId: orderData.devinOrgId,
       service: 'cpg-api',
       verticalLabel: 'Distributor Order',

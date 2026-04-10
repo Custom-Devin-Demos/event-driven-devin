@@ -126,6 +126,7 @@ async function scheduleAppointment(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'healthcare-api',
       verticalLabel: 'Appointment Scheduling',

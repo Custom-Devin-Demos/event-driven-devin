@@ -128,6 +128,7 @@ async function createWorkOrder(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'maintenance-api',
       verticalLabel: 'Work Order',

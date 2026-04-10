@@ -318,6 +318,7 @@ async function refreshScore(data) {
       refreshId,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
+      devinEmail: data.devinEmail,
     });
 
     throw error;
@@ -361,6 +362,7 @@ function triggerMultiSessionIncident(incidentData) {
       errorType: incidentData.error.name || 'TypeError',
       errorValue: incidentData.error.message,
       devinUserId: incidentData.devinUserId,
+      devinEmail: incidentData.devinEmail,
       devinOrgId: incidentData.devinOrgId,
       service: session.service,
       verticalLabel: session.verticalLabel,

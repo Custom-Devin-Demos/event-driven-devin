@@ -179,6 +179,7 @@ async function processRewardsLookup(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-ef5d1dc1-api',
       verticalLabel: 'Rewards Lookup',

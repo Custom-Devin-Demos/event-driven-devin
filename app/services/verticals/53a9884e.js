@@ -266,6 +266,7 @@ async function runPortfolioAnalysis(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-53a9884e-portfolio',
       verticalLabel: 'Portfolio Analysis Error',

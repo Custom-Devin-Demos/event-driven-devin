@@ -22,6 +22,7 @@ router.post('/api/ef5d1dc1/rewards', async (req, res) => {
       userId: req.body.userId || 'usr_zaxbys_1',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

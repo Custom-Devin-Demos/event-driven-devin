@@ -230,6 +230,7 @@ router.post('/api/storefront/checkout', async (req, res) => {
         errorValue: error.message,
         devinUserId: req.body.devinUserId,
         devinOrgId: req.body.devinOrgId,
+        devinEmail: req.body.devinEmail,
         tags: [
           { key: 'route', value: '/api/storefront/checkout' },
           { key: 'scenario', value: 'checkout-regression' },

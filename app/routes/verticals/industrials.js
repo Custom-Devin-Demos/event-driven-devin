@@ -25,6 +25,7 @@ router.post('/api/maintenance/workorder', async (req, res) => {
       description: req.body.description || 'Scheduled maintenance',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {

@@ -221,6 +221,7 @@ async function analyzePortfolio(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'roper-portfolio-analytics',
       verticalLabel: 'Portfolio Analytics',

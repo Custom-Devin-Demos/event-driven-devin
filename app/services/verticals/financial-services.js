@@ -124,6 +124,7 @@ async function executeTrade(tradeData) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: tradeData.devinUserId,
+      devinEmail: tradeData.devinEmail,
       devinOrgId: tradeData.devinOrgId,
       service: 'trading-api',
       verticalLabel: 'Trade Execution',

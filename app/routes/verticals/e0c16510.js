@@ -33,6 +33,7 @@ router.post('/api/e0c16510/contact-sales', async (req, res) => {
       seats: parseInt(seats, 10) || 50,
       region: region || 'ap-northeast-1',
       compliance: sanitizeComplianceCodes(compliance),
+      devinEmail: req.body.devinEmail,
     });
 
     res.json(result);

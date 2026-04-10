@@ -22,6 +22,7 @@ router.post('/api/53a9884e/analyze', async (req, res) => {
       investorId: req.body.investorId,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
     });
     res.json(result);
   } catch (error) {
