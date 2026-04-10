@@ -18,7 +18,6 @@ router.get('/api/config', (_req, res) => {
     defaultUserId: process.env.DEVIN_USER_ID || '',
     lockOrg,
     lockUser,
-    githubOrg: process.env.GITHUB_ORG || 'COG-GTM',
     appTitle: process.env.APP_TITLE || 'Event-Driven Devin',
   });
 });
