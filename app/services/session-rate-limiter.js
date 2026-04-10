@@ -43,7 +43,9 @@ function canCreateSession() {
   if (current >= GLOBAL_MAX) {
     // Calculate how long until the oldest entry expires
     const oldestTs = sessionTimestamps[0];
-    const retryAfterSeconds = Math.ceil(((oldestTs + WINDOW_MS) - Date.now()) / 1000);
+    const retryAfterSeconds = oldestTs != null
+      ? Math.ceil(((oldestTs + WINDOW_MS) - Date.now()) / 1000)
+      : 0;
 
     logger.warn('Session creation throttled — global cap reached', {
       current,
