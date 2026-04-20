@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetPulse &mdash; Network Capacity Assessment</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Spline+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f1b2d; --navy-mid: #1b2e4a;
+      --blue: #2563eb; --blue-light: #3b82f6; --blue-dim: rgba(37,99,235,0.05);
+      --blue-border: rgba(37,99,235,0.15);
+      --bg: #f8f9fb; --white: #ffffff;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+      --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+      --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+      --success: #059669; --success-bg: #ecfdf5; --success-border: #a7f3d0;
+      --amber: #d97706; --amber-bg: #fffbeb; --amber-border: #fde68a;
+      --heading: 'DM Sans', -apple-system, sans-serif;
+      --body: 'Spline Sans', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 2px 10px rgba(0,0,0,0.03);
+      --radius: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--bg); color: var(--gray-700); line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
+
+    .top-strip { background: var(--navy); height: 3px; }
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 60px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); }
+    .logo { font-family: var(--heading); font-size: 1.15rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 0.6rem; }
+    .logo-mark { width: 30px; height: 30px; background: var(--navy); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .logo-mark svg { width: 16px; height: 16px; fill: #fff; }
+    .logo-tag { font-size: 0.55rem; font-weight: 700; color: var(--blue); background: var(--blue-dim); border: 1px solid var(--blue-border); padding: 0.1rem 0.4rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.1em; margin-left: 0.25rem; }
+    nav { display: flex; gap: 0.15rem; }
+    nav a { color: var(--gray-500); text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 0.4rem 0.85rem; border-radius: 6px; transition: all 0.15s; }
+    nav a:hover { background: var(--gray-100); color: var(--gray-800); }
+    nav a.active { background: var(--navy); color: #fff; }
+
+    .page { max-width: 1120px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--blue); text-decoration: none; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; }
+
+    .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--gray-200); }
+    .page-header h1 { font-family: var(--heading); font-size: 1.3rem; font-weight: 700; color: var(--gray-800); }
+    .page-header p { font-size: 0.82rem; color: var(--gray-500); margin-top: 0.1rem; }
+    .status-indicator { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .status-indicator.ok { color: var(--success); }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    @media (max-width: 800px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+    .kpi { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.15rem; box-shadow: var(--shadow); }
+    .kpi-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 0.3rem; }
+    .kpi-value { font-family: var(--heading); font-size: 1.5rem; font-weight: 700; color: var(--gray-800); }
+    .kpi-sub { font-size: 0.72rem; color: var(--gray-400); margin-top: 0.1rem; }
+    .kpi-sub.ok { color: var(--success); font-weight: 600; }
+    .kpi-sub.warn { color: var(--amber); font-weight: 600; }
+
+    .section-title { font-family: var(--heading); font-size: 0.88rem; font-weight: 700; color: var(--gray-800); margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+
+    .table-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 1.5rem; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th { text-align: left; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); padding: 0.65rem 1.15rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+    .data-table td { padding: 0.7rem 1.15rem; border-bottom: 1px solid var(--gray-100); font-size: 0.82rem; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: var(--blue-dim); }
+    .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.62rem; font-weight: 700; padding: 0.12rem 0.5rem; border-radius: 20px; }
+    .badge-active { color: var(--success); background: var(--success-bg); }
+    .badge-active::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
+    .badge-warning { color: var(--amber); background: var(--amber-bg); }
+    .badge-warning::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+    .badge-degraded { color: var(--danger); background: var(--danger-bg); }
+    .badge-degraded::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--danger); }
+    .mono { font-family: var(--mono); font-size: 0.75rem; color: var(--gray-500); }
+
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 800px) { .bottom-grid { grid-template-columns: 1fr; } }
+
+    .coverage-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+    .coverage-item { margin-bottom: 1rem; }
+    .coverage-item:last-child { margin-bottom: 0; }
+    .coverage-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+    .coverage-name { font-size: 0.78rem; font-weight: 600; color: var(--gray-700); }
+    .coverage-vals { font-family: var(--mono); font-size: 0.72rem; color: var(--gray-400); }
+    .coverage-bar { height: 6px; background: var(--gray-100); border-radius: 3px; overflow: hidden; }
+    .coverage-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width 0.6s ease; }
+    .coverage-fill.high { background: var(--amber); }
+
+    .assess-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
+    .assess-card h2 { font-family: var(--heading); font-size: 0.88rem; font-weight: 700; color: var(--gray-800); margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 0.2rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--gray-200); border-radius: 6px; font-family: var(--body); font-size: 0.82rem; color: var(--gray-700); background: #fff; transition: all 0.15s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .btn-submit { width: 100%; padding: 0.65rem; background: var(--navy); color: #fff; border: none; border-radius: 6px; font-size: 0.82rem; font-weight: 600; font-family: var(--body); cursor: pointer; transition: all 0.15s; }
+    .btn-submit:hover { background: var(--navy-mid); }
+    .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-box { margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 6px; font-size: 0.78rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.68rem; opacity: 0.85; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="top-strip"></div>
+  <header>
+    <div class="logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+      NetPulse <span class="logo-tag">5G Platform</span>
+    </div>
+    <nav><a href="#" class="active">Network</a><a href="#">Coverage</a><a href="#">Capacity</a><a href="#">Analytics</a><a href="#">Support</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+    <div class="page-header fi fi1">
+      <div>
+        <h1>Network Operations Dashboard</h1>
+        <p>Real-time capacity monitoring &middot; Global deployment zones</p>
+      </div>
+      <div class="status-indicator ok"><span class="status-dot"></span> All Systems Operational</div>
+    </div>
+    <div class="kpi-row fi fi2">
+      <div class="kpi"><div class="kpi-label">Global Subscribers</div><div class="kpi-value">43.9M</div><div class="kpi-sub ok">+2.1% MoM</div></div>
+      <div class="kpi"><div class="kpi-label">Cell Towers</div><div class="kpi-value">29,400</div><div class="kpi-sub">Across 4 regions</div></div>
+      <div class="kpi"><div class="kpi-label">Avg Latency</div><div class="kpi-value">14.2 ms</div><div class="kpi-sub ok">Below SLA</div></div>
+      <div class="kpi"><div class="kpi-label">Network Uptime</div><div class="kpi-value">99.97%</div><div class="kpi-sub ok">SLA: 99.9%</div></div>
+    </div>
+    <div class="fi fi3">
+      <div class="section-title">Regional Network Status</div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Region</th><th>Subscribers</th><th>Towers</th><th>Latency</th><th>Coverage</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>North America</td><td>12.5M</td><td>8,400</td><td class="mono">12 ms</td><td>97%</td><td><span class="badge badge-active">Optimal</span></td></tr>
+            <tr><td>Europe</td><td>9.8M</td><td>6,200</td><td class="mono">15 ms</td><td>95%</td><td><span class="badge badge-active">Optimal</span></td></tr>
+            <tr><td>Asia Pacific</td><td>15.2M</td><td>11,000</td><td class="mono">18 ms</td><td>93%</td><td><span class="badge badge-warning">Elevated</span></td></tr>
+            <tr><td>Latin America</td><td>6.4M</td><td>3,800</td><td class="mono">&mdash;</td><td>&mdash;</td><td><span class="badge badge-degraded">Degraded</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="bottom-grid fi fi4">
+      <div>
+        <div class="section-title">Coverage by Region</div>
+        <div class="coverage-card">
+          <div class="coverage-item"><div class="coverage-header"><span class="coverage-name">North America</span><span class="coverage-vals">97% coverage</span></div><div class="coverage-bar"><div class="coverage-fill" style="width:97%"></div></div></div>
+          <div class="coverage-item"><div class="coverage-header"><span class="coverage-name">Europe</span><span class="coverage-vals">95% coverage</span></div><div class="coverage-bar"><div class="coverage-fill" style="width:95%"></div></div></div>
+          <div class="coverage-item"><div class="coverage-header"><span class="coverage-name">Asia Pacific</span><span class="coverage-vals">93% coverage</span></div><div class="coverage-bar"><div class="coverage-fill high" style="width:93%"></div></div></div>
+          <div class="coverage-item"><div class="coverage-header"><span class="coverage-name">Latin America</span><span class="coverage-vals">No data</span></div><div class="coverage-bar"><div class="coverage-fill high" style="width:0%"></div></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Run Assessment</div>
+        <div class="assess-card">
+          <h2>Network Capacity Assessment</h2>
+          <form id="assessForm">
+            <div class="form-group"><label>Region</label><select id="region"><option value="north-america">North America</option><option value="europe">Europe</option><option value="asia-pacific">Asia Pacific</option><option value="latin-america">Latin America</option></select></div>
+            <div class="form-row">
+              <div class="form-group"><label>Infrastructure Tier</label><select id="infraTier"><option value="enterprise">Enterprise</option><option value="standard">Standard</option><option value="basic">Basic</option></select></div>
+              <div class="form-group"><label>Network Type</label><select id="networkType"><option value="5G-SA">5G Standalone</option><option value="5G-NSA">5G Non-Standalone</option><option value="4G-LTE">4G LTE</option></select></div>
+            </div>
+            <div class="form-group"><label>Subscriber Count</label><input type="number" id="subscriberCount" value="2500" min="100" max="100000"></div>
+            <button type="submit" class="btn-submit" id="submitBtn">Run Assessment</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('assessForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Analyzing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/430a4200/assess', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ region: document.getElementById('region').value, infraTier: document.getElementById('infraTier').value, networkType: document.getElementById('networkType').value, subscriberCount: parseInt(document.getElementById('subscriberCount').value, 10), devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Assessment Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Assessment Complete</div><div class="error-detail">Region: ${data.region} &mdash; Score: ${data.scores.overall} &mdash; ${data.recommendation}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Run Assessment'; }
+    });
+  </script>
+</body>
+</html>
