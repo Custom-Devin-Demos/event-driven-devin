@@ -42,7 +42,7 @@ function resolveProductLine(productLineId) {
 
 function getInventoryStatus(productLineId) {
   const pool = INVENTORY_POOL[productLineId];
-  if (!pool) return { available: 0, reserved: 0, warehouse: 'unknown' };
+  if (!pool) return { onHand: 0, allocated: 0, netAvailable: 0, location: { warehouse: 'unknown', zone: 'N/A' } };
   return {
     onHand: pool.available,
     allocated: pool.reserved,
@@ -103,7 +103,7 @@ function buildPreorderResponse(product, quantity, inventory, shipping, pricing, 
     inventory: {
       available: inventory.netAvailable,
       allocationPct,
-      warehouse: inventory.warehouse.name,
+      warehouse: inventory.location.warehouse,
     },
     shipping: {
       method: shipping.method,
