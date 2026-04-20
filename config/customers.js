@@ -58,6 +58,10 @@ const CUSTOMERS = {
     triggerMode: 'api',
     githubOrg: 'Custom-Devin-Demos',
   },
+  f2f54159: {
+    label: 'Customer F2F5',
+    triggerMode: 'api',
+  },
 };
 
 /**

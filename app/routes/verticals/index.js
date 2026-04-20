@@ -21,6 +21,7 @@ const customerE0c16510Routes = require('./e0c16510');
 const customer53a9884eRoutes = require('./53a9884e');
 const customerAcf4303dRoutes = require('./acf4303d');
 const customerF3ff1d33Routes = require('./f3ff1d33');
+const customerF2f54159Routes = require('./f2f54159');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -40,6 +41,7 @@ router.use(customerE0c16510Routes);
 router.use(customer53a9884eRoutes);
 router.use(customerAcf4303dRoutes);
 router.use(customerF3ff1d33Routes);
+router.use(customerF2f54159Routes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -68,7 +70,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', 'f2f54159'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
