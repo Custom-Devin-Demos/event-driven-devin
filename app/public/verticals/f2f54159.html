@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collectors Vault &mdash; Pre-Order Portal</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #b91c1c; --primary-light: #dc2626; --primary-dim: rgba(185,28,28,0.06);
+      --cream: #faf6f0; --sand: #f0e9dd; --paper: #ffffff;
+      --accent: #1e40af; --accent-dim: rgba(30,64,175,0.08);
+      --charcoal: #2a2a2a; --gray-100: #f5f2ed; --gray-200: #e8e2d8;
+      --gray-300: #d1c9bc; --gray-400: #a69e8f; --gray-500: #7a7265;
+      --gray-600: #5c564c; --gray-700: #3d3832;
+      --danger: #c0392b; --danger-bg: #fdf0ee; --danger-border: #f5c6c0;
+      --success: #27ae60; --success-bg: #eef9f0; --success-border: #a3e4b8;
+      --display: 'Fraunces', Georgia, serif;
+      --body: 'Work Sans', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--cream); color: var(--charcoal); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.5s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; }
+
+    header { background: var(--primary); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 60px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: var(--display); font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: -0.02em; }
+    .logo span { color: #fbbf24; font-style: italic; }
+    nav { display: flex; gap: 0.2rem; }
+    nav a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 0.4rem 0.8rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+
+    .page { max-width: 1080px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; }
+
+    .page-title { font-family: var(--display); font-size: 1.5rem; font-weight: 700; color: var(--charcoal); margin-bottom: 0.25rem; }
+    .page-subtitle { color: var(--gray-500); font-size: 0.88rem; margin-bottom: 1.5rem; }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 800px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+    .kpi { background: var(--paper); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.15rem; box-shadow: var(--shadow); }
+    .kpi-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-bottom: 0.35rem; }
+    .kpi-value { font-family: var(--display); font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+    .kpi-sub { font-size: 0.72rem; color: var(--gray-400); margin-top: 0.15rem; }
+
+    .section-header { font-family: var(--display); font-size: 1.1rem; font-weight: 600; color: var(--charcoal); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .section-header::before { content: ''; width: 14px; height: 14px; background: var(--primary); border-radius: 3px; }
+
+    .catalog { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 800px) { .catalog { grid-template-columns: 1fr 1fr; } }
+    .product-card { background: var(--paper); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.15rem; box-shadow: var(--shadow); transition: transform 0.2s; }
+    .product-card:hover { transform: translateY(-2px); }
+    .product-sku { font-family: var(--mono); font-size: 0.65rem; color: var(--gray-400); margin-bottom: 0.35rem; }
+    .product-name { font-family: var(--display); font-size: 1rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .product-cat { font-size: 0.72rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; }
+    .product-row { display: flex; justify-content: space-between; align-items: center; }
+    .product-price { font-family: var(--display); font-size: 1.15rem; font-weight: 700; color: var(--primary); }
+    .product-stock { font-size: 0.72rem; color: var(--gray-400); }
+    .stock-low { color: var(--danger); font-weight: 600; }
+
+    .order-card { background: var(--paper); border: 1px solid var(--gray-200); border-radius: 10px; padding: 2rem; box-shadow: var(--shadow); max-width: 520px; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.25rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.6rem 0.75rem; border: 1.5px solid var(--gray-200); border-radius: 8px; font-family: var(--body); font-size: 0.88rem; color: var(--charcoal); background: #fff; transition: border-color 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-dim); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .btn-order { width: 100%; padding: 0.7rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; font-family: var(--body); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-order:hover { background: var(--primary-light); transform: translateY(-1px); }
+    .btn-order:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.82rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.15rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.72rem; opacity: 0.85; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Collectors <span>Vault</span></div>
+    <nav><a href="#" class="active">Dashboard</a><a href="#">Catalog</a><a href="#">Pre-Orders</a><a href="#">Inventory</a><a href="#">Reports</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+    <div class="page-title fi fi1">Pre-Order Portal</div>
+    <div class="page-subtitle fi fi1">Marvel Legends &middot; Wave 2025 &middot; Collectors Vault</div>
+    <div class="kpi-row fi fi2">
+      <div class="kpi"><div class="kpi-label">Active Pre-Orders</div><div class="kpi-value">1,247</div><div class="kpi-sub">+18% vs last wave</div></div>
+      <div class="kpi"><div class="kpi-label">Revenue</div><div class="kpi-value">$42.3K</div><div class="kpi-sub">$33.92 avg order</div></div>
+      <div class="kpi"><div class="kpi-label">SKUs Available</div><div class="kpi-value">8</div><div class="kpi-sub">3 exclusives</div></div>
+      <div class="kpi"><div class="kpi-label">Fill Rate</div><div class="kpi-value">94.7%</div><div class="kpi-sub">Target: 95%</div></div>
+    </div>
+    <div class="fi fi3">
+      <div class="section-header">Featured Figures</div>
+      <div class="catalog">
+        <div class="product-card"><div class="product-sku">ML-001</div><div class="product-name">Spider-Man Retro Collection</div><div class="product-cat">Retro &middot; Standard</div><div class="product-row"><div class="product-price">$24.99</div><div class="product-stock">2,400 units</div></div></div>
+        <div class="product-card"><div class="product-sku">ML-002</div><div class="product-name">Wolverine Premium Figure</div><div class="product-cat">Premium &middot; Deluxe</div><div class="product-row"><div class="product-price">$34.99</div><div class="product-stock stock-low">180 units</div></div></div>
+        <div class="product-card"><div class="product-sku">ML-004</div><div class="product-name">Captain America Shield Edition</div><div class="product-cat">Premium &middot; Exclusive</div><div class="product-row"><div class="product-price">$39.99</div><div class="product-stock">1,100 units</div></div></div>
+      </div>
+    </div>
+    <div class="fi fi4">
+      <div class="section-header">Place Pre-Order</div>
+      <div class="order-card">
+        <form id="orderForm">
+          <div class="form-group"><label>Figure</label><select id="productId"><option value="ML-001">Spider-Man Retro Collection &mdash; $24.99</option><option value="ML-002">Wolverine Premium Figure &mdash; $34.99</option><option value="ML-003">Iron Man Mark VII &mdash; $29.99</option><option value="ML-004">Captain America Shield Edition &mdash; $39.99</option><option value="ML-005">Black Panther Vibranium Series &mdash; $27.99</option><option value="ML-006">Thor Mjolnir Edition &mdash; $44.99</option><option value="ML-007">Deadpool Collector Set &mdash; $49.99</option><option value="ML-008">Hulk Smash Series &mdash; $32.99</option></select></div>
+          <div class="form-row">
+            <div class="form-group"><label>Quantity</label><input type="number" id="quantity" value="1" min="1"></div>
+            <div class="form-group"><label>Region</label><select id="region"><option value="northeast">Northeast</option><option value="southeast">Southeast</option><option value="midwest">Midwest</option><option value="west">West</option></select></div>
+          </div>
+          <div class="form-group"><label>Shipping</label><select id="shipping"><option value="standard">Standard Ground (5-7 days)</option><option value="express">Express 2-Day</option><option value="priority">Priority Overnight</option></select></div>
+          <div class="form-group"><label>Email</label><input type="email" id="email" placeholder="your@email.com"></div>
+          <button type="submit" class="btn-order" id="submitBtn">Place Pre-Order</button>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/f2f54159/preorder', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sku: document.getElementById('productId').value, quantity: parseInt(document.getElementById('quantity').value), region: document.getElementById('region').value, shippingPreference: document.getElementById('shipping').value, productLine: 'marvel-legends', email: document.getElementById('email').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Pre-Order Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Pre-Order Confirmed</div><div class="error-detail">Order #${data.orderId} &mdash; ${data.product.name} x${data.pricing.quantity} &mdash; $${data.pricing.subtotal}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Place Pre-Order'; }
+    });
+  </script>
+</body>
+</html>
