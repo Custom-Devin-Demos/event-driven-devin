@@ -738,6 +738,15 @@
     </div>
   </footer>
 
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
   <!-- ── Form Script ── -->
   <script>
     document.getElementById('orderForm').addEventListener('submit', async (e) => {
@@ -757,6 +766,8 @@
             quantity: parseInt(document.getElementById('quantity').value, 10),
             region: document.getElementById('region').value,
             membership: document.getElementById('membership').value,
+            devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+            devinOrgId: 'org-4b345b37347844c7a9c7fd445db01238',
             devinEmail: localStorage.getItem('devinEmail') || '',
           }),
         });
