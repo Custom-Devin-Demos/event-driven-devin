@@ -203,6 +203,7 @@ async function processRewardsLookup(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
+      slackMemberId: 'U08S7AVJ478',
       service: 'b62fa21d-api',
       verticalLabel: 'Rewards Lookup',
       customer: 'b62fa21d',

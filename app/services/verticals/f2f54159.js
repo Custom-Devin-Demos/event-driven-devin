@@ -203,6 +203,7 @@ async function processPreorder(data) {
       devinOrgId: data.devinOrgId,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
+      slackMemberId: 'U08S7AVJ478',
       service: 'customer-f2f54159-preorder',
       verticalLabel: 'Pre-Order Processing Error',
       tags: [

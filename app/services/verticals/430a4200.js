@@ -152,6 +152,7 @@ async function runAssessment(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
+      slackMemberId: 'U08S7AVJ478',
       service: '430a4200-api',
       verticalLabel: 'Network Assessment',
       tags: [
