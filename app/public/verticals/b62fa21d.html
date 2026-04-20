@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loyalty Rewards - Member Lookup</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-dark: #3730A3;
+      --primary-light: #EEF2FF;
+      --text: #1F2937;
+      --text-muted: #6B7280;
+      --bg: #F9FAFB;
+      --white: #FFFFFF;
+      --border: #E5E7EB;
+      --gold: #D97706;
+      --gold-bg: #FFFBEB;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --danger-border: #FECACA;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.6; }
+
+    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--white); padding: 32px 24px; text-align: center; }
+    .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 14px; opacity: 0.85; }
+
+    .container { max-width: 540px; margin: -24px auto 40px; padding: 0 16px; }
+    .card { background: var(--white); border-radius: 12px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); }
+    .card h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .card .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; color: var(--text); transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .form-group input::placeholder { color: #9CA3AF; }
+
+    .btn { width: 100%; padding: 12px; background: var(--primary); color: var(--white); border: none; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+    .btn:hover { background: var(--primary-dark); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box { margin-top: 16px; padding: 14px 18px; border-radius: 8px; font-size: 14px; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .result-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .result-detail { font-size: 12px; opacity: 0.85; }
+
+    .tier-badges { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .tier-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tier-badge.bronze { background: #FEF3C7; color: #92400E; }
+    .tier-badge.silver { background: #F3F4F6; color: #4B5563; }
+    .tier-badge.gold { background: var(--gold-bg); color: var(--gold); }
+    .tier-badge.platinum { background: var(--primary-light); color: var(--primary); }
+
+    .back-link { position: fixed; bottom: 16px; left: 16px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 6px 12px; border-radius: 4px; z-index: 1000; opacity: 0.6; transition: opacity 0.2s; text-decoration: none; }
+    .back-link:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; All Demos</a>
+
+  <header class="header">
+    <h1>Loyalty Rewards</h1>
+    <p>Member rewards balance lookup</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h2>Rewards Lookup</h2>
+      <p class="subtitle">Enter your email to check your rewards balance and tier status</p>
+
+      <div class="tier-badges">
+        <span class="tier-badge bronze">Bronze 1x</span>
+        <span class="tier-badge silver">Silver 1.5x</span>
+        <span class="tier-badge gold">Gold 2x</span>
+        <span class="tier-badge platinum">Platinum 3x</span>
+      </div>
+
+      <form id="lookupForm">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="emailInput" placeholder="alice.chen@example.com" value="alice.chen@example.com">
+        </div>
+        <button type="submit" class="btn" id="submitBtn">Look Up Rewards</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('lookupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Looking up rewards...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/b62fa21d/rewards', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('emailInput').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">Something went wrong</div><div class="result-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="result-title">Rewards Found!</div><div class="result-detail">'
+            + 'Welcome back, ' + data.memberName + '! '
+            + 'Tier: ' + data.tierLabel + ' (' + data.balance.tierMultiplier + 'x multiplier). '
+            + 'Points: ' + data.balance.currentPoints.toLocaleString()
+            + ' ($' + data.balance.pointsValue + ' value). '
+            + 'Annual bonus: ' + data.balance.annualBonus + ' pts.</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">Network Error</div><div class="result-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Look Up Rewards'; }
+    });
+  </script>
+</body>
+</html>
