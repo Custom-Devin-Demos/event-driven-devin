@@ -47,7 +47,7 @@ function getInventoryStatus(productLineId) {
     onHand: pool.available,
     allocated: pool.reserved,
     netAvailable: pool.available - pool.reserved,
-    warehouse: pool.warehouse,
+    location: { warehouse: pool.warehouse, zone: 'A' },
   };
 }
 
@@ -103,7 +103,7 @@ function buildPreorderResponse(product, quantity, inventory, shipping, pricing, 
     inventory: {
       available: inventory.netAvailable,
       allocationPct,
-      warehouse: inventory.warehouse,
+      warehouse: inventory.warehouse.name,
     },
     shipping: {
       method: shipping.method,
