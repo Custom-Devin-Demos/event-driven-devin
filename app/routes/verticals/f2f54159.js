@@ -23,6 +23,8 @@ router.post('/api/f2f54159/preorder', async (req, res) => {
       quantity: parseInt(req.body.quantity, 10) || 1,
       region: req.body.region || 'us-contiguous',
       membership: req.body.membership || 'standard',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
     });
     res.json(result);
