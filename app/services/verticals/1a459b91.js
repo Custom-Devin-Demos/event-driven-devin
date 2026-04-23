@@ -224,6 +224,7 @@ async function runInquiry(data) {
       service: 'customer-1a459b91-platform-eng',
       verticalLabel: 'Processor Allocation Inquiry',
       customer: '1a459b91',
+      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/1a459b91/inquiry' },
         { key: 'service', value: 'customer-1a459b91-platform-eng' },
