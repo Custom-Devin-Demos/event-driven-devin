@@ -1,16 +1,240 @@
-# Testing Event-Driven Devin Verticals
+# Creating & Testing Event-Driven Devin Verticals
+
+This playbook covers the **full lifecycle** of creating and deploying custom demo verticals — from cloning a public site to verifying Devin sessions trigger on production. Every step is mandatory unless marked optional.
 
 ## Prerequisites
 - Run `npm install` in repo root
 - Start the server: `node app/server.js` (runs on port 3000)
+- For EC2 deployment: `EC2_SSH_KEY` secret must be available
 
-## Hub Landing Page
-- Visit `http://localhost:3000/` to see all 9 vertical demo cards plus any custom verticals
+---
+
+## Part 1: Creating a New Custom Vertical
+
+### Step 1: Generate a Hex Slug
+```bash
+node -e "console.log(require('crypto').randomBytes(4).toString('hex'))"
+```
+This produces a slug like `beb4d43e` used as the URL path, route prefix, and config key.
+
+### Step 2: Clone the Public Site (Pixel-Perfect)
+1. Open the real public site in the browser
+2. Extract exact CSS values using `getComputedStyle()` — do NOT eyeball colors, fonts, or spacing
+3. Create `app/public/verticals/<slug>.html` matching the live site exactly
+4. Use the real site's CDN images first. Test hotlinkability with curl:
+   ```bash
+   curl -s -o /dev/null -w "%{http_code}" "<image-url>"
+   ```
+5. If the CDN returns 403 (blocks hotlinking), use Unsplash alternatives instead
+6. For ANY non-Unsplash image, add an `onerror` fallback:
+   ```html
+   <img src="https://realsite.com/image.jpg"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-xxx?w=800&q=80';"
+        alt="Description">
+   ```
+
+#### Image Verification (CRITICAL — do not skip)
+For every image in the HTML file:
+1. **HTTP check**: `curl -s -o /dev/null -w "%{http_code}" "<url>"` — must return 200
+2. **Visual check**: Open the image URL directly in the browser and confirm it shows the correct subject
+   - Unsplash photo IDs are opaque — `photo-1582167751370` tells you nothing about the content
+   - A URL returning 200 does NOT mean it shows the right city/person/building
+3. **Crop check**: After loading the page, verify images are properly framed:
+   - Hero portraits must show face and upper body, not just the top of the head
+   - City images must show recognizable landmarks, not generic skylines
+   - `object-position: center top` crops from the top — use `center center` for portraits
+4. **Side-by-side check**: Open the real site and the clone side-by-side, confirm they match
+
+**Known CDN hotlinking behavior:**
+| CDN | Hotlinking | Notes |
+|-----|-----------|-------|
+| Unsplash (`images.unsplash.com`) | ✅ Allowed | Preferred fallback source |
+| jpmorganchase.com | ✅ Allowed | Can hotlink directly |
+| marriott.com / cache.marriott.com | ❌ Blocked (403) | Must use Unsplash alternatives |
+| seb.se | ❌ Blocked (403) | Must use Unsplash alternatives |
+
+### Step 3: Create the Route File
+Create `app/routes/verticals/<slug>.js` following the pattern of existing verticals (e.g., `beb4d43e.js`):
+- Serve the HTML page on `GET /<slug>`
+- Create a POST endpoint (e.g., `POST /api/<slug>/inquiry`)
+- Extract `devinUserId`, `devinOrgId`, and `devinEmail` from `req.body` and pass to the service
+
+### Step 4: Create the Service File
+Create `app/services/verticals/<slug>.js` following existing patterns:
+- Include an intentional TypeError bug in the business logic
+- In the `catch` block, call `createSessionAndAlert()` with:
+  ```js
+  createSessionAndAlert({
+    issueTitle: `${error.name}: ${error.message}`,
+    customer: '<slug>',
+    devinUserId: data.devinUserId,
+    devinOrgId: data.devinOrgId,
+    devinEmail: data.devinEmail,
+    slackMemberId: '<slack-member-id>',
+    // ... other required fields
+  })
+  ```
+- Verify `customer: '<slug>'` is passed — this routes to the correct per-customer config
+
+### Step 5: Register the Customer
+1. Add the slug to `config/customers.js`:
+   ```js
+   '<slug>': {
+     label: 'Customer <PREFIX>',
+     triggerMode: 'api',
+   },
+   ```
+2. Add env vars to `docker-compose.yml`:
+   ```yaml
+   - DEVIN_SERVICE_KEY_<SLUG_UPPER>=${DEVIN_SERVICE_KEY_<SLUG_UPPER>:-}
+   - DEVIN_USER_ID_<SLUG_UPPER>=${DEVIN_USER_ID_<SLUG_UPPER>:-}
+   ```
+3. Add env vars to `.env.example`:
+   ```bash
+   # Customer <slug>
+   # DEVIN_SERVICE_KEY_<SLUG_UPPER>=
+   # DEVIN_USER_ID_<SLUG_UPPER>=
+   ```
+
+### Step 6: Mount the Route
+Add the route to `app/routes/verticals/index.js`:
+```js
+const <slug>Routes = require('./<slug>');
+router.use('/', <slug>Routes);
+```
+
+### Step 7: Wire the Frontend CTA
+The HTML file's CTA button must send a POST with:
+```js
+fetch('/api/<slug>/inquiry', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    // business-specific fields...
+    devinUserId: '<clerk-user-id>',
+    devinOrgId: '<org-id>',
+    devinEmail: localStorage.getItem('devinEmail') || '',
+  }),
+})
+```
+
+---
+
+## Part 2: Pre-PR Verification (MANDATORY — do not submit PR without completing)
+
+### Checklist A: Visual Verification
+- [ ] Start the local server (`node app/server.js`)
+- [ ] Open each new/modified vertical page in the browser
+- [ ] Verify ALL images load (no broken image icons)
+- [ ] Verify hero/key images are properly framed (not cropped — faces visible, cities recognizable)
+- [ ] Open the real public site side-by-side and confirm clone is pixel-perfect
+- [ ] Take a full-page screenshot of each vertical (use Puppeteer `take-screenshot` command)
+- [ ] Include screenshots in the PR description
+
+### Checklist B: Image URL Validation
+- [ ] Extract every `src=` URL from the HTML file
+- [ ] Run `curl -s -o /dev/null -w "%{http_code}"` against each — all must return 200
+- [ ] Open each image URL directly in browser — confirm it shows the correct subject
+- [ ] For non-Unsplash sources, verify `onerror` fallback is present
+
+### Checklist C: Functional Verification
+- [ ] Click the CTA button on each vertical in the browser
+- [ ] Verify the error toast/message appears with the correct TypeError text
+- [ ] Verify toast auto-dismisses after ~6 seconds (for custom verticals)
+- [ ] Check server terminal logs for `"Posting alert and triggering Devin"` log line
+- [ ] Verify the curl API endpoint returns 500 with the expected error JSON
+
+### Checklist D: Code Verification
+- [ ] Service file catch block calls `createSessionAndAlert()` with `customer: '<slug>'`
+- [ ] Frontend sends `devinUserId` and `devinOrgId` in the POST body
+- [ ] Customer slug exists in `config/customers.js` with `triggerMode: 'api'`
+- [ ] Per-customer env vars listed in both `docker-compose.yml` AND `.env.example`
+- [ ] Route is mounted in `app/routes/verticals/index.js`
+- [ ] `npm run lint` passes (0 errors)
+
+---
+
+## Part 3: Post-Merge EC2 Deployment (MANDATORY)
+
+After the PR is merged, you MUST update the EC2 production deployment:
+
+### Step 1: Add Per-Customer Env Vars to EC2
+SSH into EC2 and add the per-customer env vars to `/home/ubuntu/.env`:
+```bash
+ssh -i /tmp/ec2_key -o StrictHostKeyChecking=no ubuntu@$(ping -c1 devindemos.com 2>/dev/null | grep -oP '\d+\.\d+\.\d+\.\d+' | head -1) bash -s <<'DEPLOY'
+cd /home/ubuntu
+cp .env .env.bak.$(date +%s)
+
+# Add per-customer vars (use the same service key and user ID as existing customers)
+# Check existing values:
+#   grep 'DEVIN_SERVICE_KEY_ACF4303D' .env   (for the service key)
+#   grep 'DEVIN_USER_ID_F2F54159' .env       (for Russell's user ID)
+# Then add for each new slug:
+grep -q 'DEVIN_SERVICE_KEY_<SLUG_UPPER>' .env || echo 'DEVIN_SERVICE_KEY_<SLUG_UPPER>=<service-key-value>' >> .env
+grep -q 'DEVIN_USER_ID_<SLUG_UPPER>' .env || echo 'DEVIN_USER_ID_<SLUG_UPPER>=<user-id-value>' >> .env
+
+echo "Verifying..."
+grep '<SLUG_UPPER>' .env
+DEPLOY
+```
+
+### Step 2: Rebuild and Restart the Container
+```bash
+ssh -i /tmp/ec2_key ubuntu@<EC2_IP> bash -s <<'RESTART'
+cd /home/ubuntu
+docker compose up -d --build --no-deps checkout-api
+
+# Wait for health check
+for i in $(seq 1 20); do
+  STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health || true)
+  [ "$STATUS" = "200" ] && echo "Healthy on attempt $i" && break
+  sleep 2
+done
+RESTART
+```
+
+### Step 3: Verify Env Vars in Container
+```bash
+ssh -i /tmp/ec2_key ubuntu@<EC2_IP> \
+  "docker exec ubuntu-checkout-api-1 env | grep '<SLUG_UPPER>' | sed 's/=.*/=<SET>/'"
+```
+All per-customer vars must show `=<SET>`.
+
+### Step 4: Verify Devin Session Triggering on Production
+```bash
+ssh -i /tmp/ec2_key ubuntu@<EC2_IP> \
+  'curl -s -X POST http://localhost:3000/api/<slug>/inquiry \
+   -H "Content-Type: application/json" \
+   -d "{\"property\":\"test\",\"devinUserId\":\"<user-id>\",\"devinOrgId\":\"<org-id>\"}"'
+```
+Then check container logs:
+```bash
+ssh -i /tmp/ec2_key ubuntu@<EC2_IP> \
+  "docker logs ubuntu-checkout-api-1 --tail 20 2>&1 | grep -E 'alert|session|Devin'"
+```
+You MUST see ALL of these log lines:
+1. `"Resolved customer-specific Devin config"` with `hasApiKey: true`
+2. `"Posting alert and triggering Devin"`
+3. `"Alert posted to Slack"`
+4. `"Devin session created via v3 API"` with a session ID
+5. `"Devin session link posted to Slack thread"`
+
+If any are missing, debug before reporting completion.
+
+### Step 5: Verify on Public URL
+Open `https://devindemos.com/<slug>` in the browser and:
+- [ ] Confirm the page loads with correct images and layout
+- [ ] Click the CTA button
+- [ ] Verify the error toast appears
+- [ ] Check Slack channel for the alert message with "View in Devin" button
+
+---
+
+## Part 4: Testing Reference
+
+### Hub Landing Page
+- Visit `http://localhost:3000/` to see all vertical demo cards
 - Each card links to its vertical URL
-
-## Testing Each Vertical
-
-For each vertical, navigate to its URL, fill the form (defaults are pre-populated to trigger the bug), and click the submit button. Verify the error message appears in a red error box or toast notification.
 
 ### Standard Verticals
 
@@ -28,7 +252,7 @@ For each vertical, navigate to its URL, fill the form (defaults are pre-populate
 
 ### Custom Customer Verticals
 
-Custom verticals use hex-slug URLs instead of descriptive names. Errors display as a bottom-right toast notification that auto-dismisses after ~6 seconds.
+Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notification that auto-dismisses after ~6 seconds.
 
 | Customer | URL | CTA Button | Expected Error |
 |----------|-----|------------|----------------|
@@ -36,9 +260,7 @@ Custom verticals use hex-slug URLs instead of descriptive names. Errors display 
 | SEB (4feeb7bb) | `/4feeb7bb` | "Aktuella bolåneräntor" | `Cannot read properties of undefined (reading 'riskPremium')` |
 | JPMC (89c1f355) | `/89c1f355` | "Join our team →" | `Cannot read properties of undefined (reading 'totalHeadcount')` |
 
-## API Testing (curl)
-
-You can also test each vertical via curl. Each POST endpoint returns a 500 with error details:
+### API Testing (curl)
 
 ```bash
 # Banking
@@ -68,49 +290,15 @@ curl -s -X POST http://localhost:3000/api/telco/upgrade -H 'Content-Type: applic
 # Retail
 curl -s -X POST http://localhost:3000/api/storefront/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"WDG-001","quantity":1}],"region":"US","persona":"buyer_1"}'
 
-# Custom Verticals — Marriott (beb4d43e)
+# Custom — Marriott (beb4d43e)
 curl -s -X POST http://localhost:3000/api/beb4d43e/inquiry -H 'Content-Type: application/json' -d '{"property":"maui","roomType":"suite","priority":"standard"}'
 
-# Custom Verticals — SEB (4feeb7bb)
+# Custom — SEB (4feeb7bb)
 curl -s -X POST http://localhost:3000/api/4feeb7bb/inquiry -H 'Content-Type: application/json' -d '{"loanType":"mortgage","region":"stockholm","rateType":"variable"}'
 
-# Custom Verticals — JPMC (89c1f355)
+# Custom — JPMC (89c1f355)
 curl -s -X POST http://localhost:3000/api/89c1f355/inquiry -H 'Content-Type: application/json' -d '{"division":"investment-banking","region":"north-america","assetClass":"equities"}'
 ```
-
-## Pre-PR Verification Checklist (MANDATORY)
-
-Before submitting any PR that adds or modifies verticals, you MUST complete ALL of the following:
-
-### 1. Visual Verification
-- [ ] Start the local server (`node app/server.js`)
-- [ ] Open each modified vertical page in the browser
-- [ ] Verify ALL images load (no broken image icons, no 404s)
-- [ ] Verify hero/key images are properly framed (not cropped to show just hair, sky, etc.)
-- [ ] Compare the clone side-by-side with the live public site to confirm pixel-perfect accuracy
-- [ ] Check that hotlinked images from external CDNs return HTTP 200 (many CDNs block hotlinking with 403)
-
-### 2. Image URL Verification
-- [ ] Run `curl -s -o /dev/null -w "%{http_code}"` against every image URL in the HTML file
-- [ ] Any URL returning non-200 must be replaced with a working alternative (prefer Unsplash)
-- [ ] Visually verify replacement images in the browser — confirm they show the correct city/subject (not a random city)
-
-### 3. Functional Verification
-- [ ] Click the CTA button on each vertical
-- [ ] Verify the error toast appears at bottom-right with the correct TypeError message
-- [ ] Verify the toast auto-dismisses after ~6 seconds
-- [ ] Check server logs for `createSessionAndAlert` being called (look for "Posting alert and triggering Devin" log line)
-
-### 4. Devin Session Triggering
-- [ ] Verify the service file's catch block calls `createSessionAndAlert()` with correct parameters
-- [ ] Verify `customer: '<slug>'` is passed in the alertData
-- [ ] Verify the frontend sends `devinUserId` and `devinOrgId` in the POST body
-- [ ] Verify the customer slug exists in `config/customers.js`
-- [ ] Verify per-customer env vars are listed in `docker-compose.yml` and `.env.example`
-
-### 5. Screenshots
-- [ ] Take a screenshot of each vertical page showing correct rendering
-- [ ] Include screenshots in the PR description as evidence
 
 ## Notes
 - All bugs are intentional — they are designed to trigger the Sentry/Slack/Devin investigation pipeline
@@ -118,7 +306,8 @@ Before submitting any PR that adds or modifies verticals, you MUST complete ALL 
 - The frontends pre-populate form values that trigger the bugs by default
 - No Sentry/Slack/Datadog credentials needed for local UI testing
 - Custom verticals display errors as bottom-right toast notifications (not red error boxes)
-- Custom vertical HTML pages are pixel-perfect clones of real public sites — use hotlinked images where possible, fall back to Unsplash with `onerror` handlers when CDNs block hotlinking
-- Image CDNs that block hotlinking (403): marriott.com, cache.marriott.com, seb.se. CDNs that allow it: jpmorganchase.com, Unsplash
-- When replacing images with Unsplash alternatives, always visually verify the image matches the expected subject (city, building, etc.) — Unsplash photo IDs are opaque and cannot be trusted by name alone
-- For Devin session triggering to work on production, the EC2 `.env` must have `SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, and either the global `DEVIN_SERVICE_KEY` or per-customer keys (e.g. `DEVIN_SERVICE_KEY_BEB4D43E`)
+- Custom vertical HTML pages are pixel-perfect clones of real public sites
+- EC2 deployment is at `/home/ubuntu/` on the EC2 host (devindemos.com)
+- The production `.env` is at `/home/ubuntu/.env` — never overwrite or delete it
+- Use the `EC2_SSH_KEY` secret and resolve the IP via `ping -c1 devindemos.com`
+- The deploy GitHub Action runs on push to `main` but does NOT update `.env` — per-customer env vars must be added manually via SSH
