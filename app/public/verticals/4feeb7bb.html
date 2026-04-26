@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nordic Mortgage Bank &mdash; Rate Inquiry</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0C2340; --navy-light: #1a3a5c;
+      --gold: #B5985A; --gold-dim: rgba(181,152,90,0.08);
+      --white: #FFFFFF; --off-white: #F7F5F2; --cream: #FAF8F5;
+      --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+      --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'Source Sans 3', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: var(--navy); color: rgba(255,255,255,0.6); font-size: 0.7rem; padding: 0.4rem 2rem; display: flex; justify-content: flex-end; gap: 1.5rem; }
+    .top-bar a { color: rgba(255,255,255,0.6); text-decoration: none; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 68px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+    .logo { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 0.6rem; letter-spacing: -0.02em; }
+    .logo-mark { width: 32px; height: 32px; background: var(--navy); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--serif); font-weight: 700; font-size: 1.1rem; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--gray-600); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: var(--gray-100); color: var(--navy); }
+    nav a.active { background: var(--navy); color: #fff; }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--gold); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--navy); }
+    .greeting { margin-bottom: 1.75rem; }
+    .greeting h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; color: var(--navy); margin-bottom: 0.15rem; }
+    .greeting p { color: var(--gray-500); font-size: 0.9rem; }
+
+    .section-header { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--gold); display: inline-block; }
+    .inquiry-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 2rem; max-width: 620px; }
+    .inquiry-card h2 { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--gold); display: inline-block; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.35rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.65rem 0.85rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-800); font-family: var(--sans); font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(12,35,64,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .btn-inquiry { width: 100%; padding: 0.8rem; background: var(--navy); color: #fff; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-inquiry:hover { background: var(--navy-light); transform: translateY(-1px); }
+    .btn-inquiry:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+    .rates-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .rates-table th { text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-50); }
+    .rates-table td { padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--gray-100); font-size: 0.85rem; }
+    .rates-table tbody tr:hover td { background: var(--gold-dim); }
+    .competitive { color: var(--success); font-weight: 600; }
+    .security-note { margin-top: 1.5rem; padding: 0.75rem 1rem; background: var(--cream); border-left: 3px solid var(--gold); font-size: 0.78rem; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+  <div class="top-bar"><a href="#">Rates</a><a href="#">Branches</a><a href="#">Contact Us</a></div>
+  <header>
+    <div class="logo"><div class="logo-mark">N</div>Nordic Mortgage Bank</div>
+    <nav><a href="#">Home</a><a href="#" class="active">Mortgages</a><a href="#">Accounts</a><a href="#">Insurance</a><a href="#">Support</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+    <div class="greeting fade-in d1">
+      <h1>Mortgage Rate Inquiry</h1>
+      <p>Compare current mortgage rates across our Nordic branches</p>
+    </div>
+    <div class="fade-in d2">
+      <div class="inquiry-card">
+        <h2>Get Your Rate</h2>
+        <form id="inquiryForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Branch Region</label>
+              <select id="region">
+                <option value="stockholm">Stockholm</option>
+                <option value="oslo">Oslo</option>
+                <option value="copenhagen">Copenhagen</option>
+                <option value="helsinki">Helsinki</option>
+                <option value="reykjavik">Reykjavik</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Loan Type</label>
+              <select id="loanType">
+                <option value="all">All Products</option>
+                <option value="fixed">Fixed Rate</option>
+                <option value="adjustable">Adjustable Rate</option>
+                <option value="jumbo">Jumbo</option>
+                <option value="green">Green Mortgage</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Loan Amount</label>
+            <input type="number" id="principal" value="500000" min="50000" step="10000" placeholder="Enter loan amount">
+          </div>
+          <button type="submit" class="btn-inquiry" id="submitBtn">Check Rates</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="security-note">Rate quotes are for informational purposes. Final rates depend on credit assessment and property valuation. All loans subject to approval.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('inquiryForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Checking Rates...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/4feeb7bb/inquiry', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            region: document.getElementById('region').value,
+            loanType: document.getElementById('loanType').value,
+            principal: parseFloat(document.getElementById('principal').value),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Inquiry Failed</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          let html = '<div class="error-title">Rates from ' + data.branch + '</div>';
+          html += '<table class="rates-table"><thead><tr><th>Product</th><th>Rate</th><th>Monthly Est.</th><th>Term</th></tr></thead><tbody>';
+          data.products.forEach(function (p) {
+            const cls = p.isCompetitive ? ' class="competitive"' : '';
+            html += '<tr><td>' + p.name + '</td><td' + cls + '>' + p.adjustedRate.toFixed(3) + '%</td><td>$' + p.estimatedMonthly.toLocaleString() + '</td><td>' + p.termYears + ' yr</td></tr>';
+          });
+          html += '</tbody></table>';
+          if (data.recommendations.length > 0) {
+            html += '<div style="margin-top:0.75rem;font-size:0.8rem;color:var(--gray-500)">' + data.recommendations.join(' &middot; ') + '</div>';
+          }
+          result.className = 'result-box success';
+          result.innerHTML = html;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Check Rates'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
