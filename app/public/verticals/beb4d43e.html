@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maui Shores Resort - Room Availability</title>
+  <style>
+    :root {
+      --resort-dark: #1a3c5e;
+      --resort-accent: #c8956c;
+      --resort-light: #f7f3ef;
+      --resort-white: #ffffff;
+      --resort-gray: #6b7280;
+      --resort-border: #d1d5db;
+      --font: "Georgia", "Times New Roman", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); color: #1f2937; background: var(--resort-white); -webkit-font-smoothing: antialiased; }
+
+    .header { background: var(--resort-dark); padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .header__brand { color: var(--resort-white); font-family: var(--font); font-size: 22px; letter-spacing: 1px; text-decoration: none; }
+    .header__nav { display: flex; gap: 28px; }
+    .header__nav a { color: rgba(255,255,255,0.85); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+    .header__nav a:hover { color: var(--resort-white); }
+
+    .hero { position: relative; height: 420px; background: linear-gradient(135deg, #1a3c5e 0%, #2d6a9f 50%, #c8956c 100%); display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1400&q=80') center/cover; opacity: 0.35; }
+    .hero__content { position: relative; z-index: 2; color: var(--resort-white); }
+    .hero__title { font-family: var(--font); font-size: 52px; font-weight: 400; margin-bottom: 12px; }
+    .hero__subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 24px; }
+
+    .inquiry-section { max-width: 640px; margin: -60px auto 60px; position: relative; z-index: 3; }
+    .inquiry-card { background: var(--resort-white); border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); padding: 40px; }
+    .inquiry-card h2 { font-family: var(--font); font-size: 24px; color: var(--resort-dark); margin-bottom: 8px; }
+    .inquiry-card .desc { color: var(--resort-gray); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--resort-dark); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group select, .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--resort-border); border-radius: 6px; font-size: 15px; font-family: var(--sans); background: var(--resort-white); transition: border-color 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--resort-accent); }
+
+    .btn-submit { width: 100%; padding: 14px; background: var(--resort-dark); color: var(--resort-white); border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; letter-spacing: 0.5px; }
+    .btn-submit:hover { background: #15304d; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box { margin-top: 20px; padding: 16px 20px; border-radius: 8px; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); }
+    .result-box .error-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .result-box.error .error-title { color: var(--danger); }
+    .result-box.success .error-title { color: var(--success); }
+    .result-box .error-detail { font-size: 14px; color: #374151; line-height: 1.5; }
+
+    .footer { background: var(--resort-dark); color: rgba(255,255,255,0.7); padding: 40px; margin-top: 60px; text-align: center; font-size: 13px; }
+    .footer a { color: rgba(255,255,255,0.85); text-decoration: none; }
+
+    .back-link { position: fixed; bottom: 16px; left: 16px; z-index: 9999; background: rgba(0,0,0,0.7); color: #fff; font-size: 13px; padding: 6px 12px; border-radius: 3px; text-decoration: none; opacity: 0.6; transition: opacity 0.2s; }
+    .back-link:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; All Demos</a>
+
+  <header class="header">
+    <a href="#" class="header__brand">Maui Shores Resort</a>
+    <nav class="header__nav">
+      <a href="#">Rooms</a>
+      <a href="#">Dining</a>
+      <a href="#">Spa</a>
+      <a href="#">Activities</a>
+      <a href="#">Contact</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero__content">
+      <h1 class="hero__title">Paradise Awaits</h1>
+      <p class="hero__subtitle">Experience the beauty of Hawaii at our oceanfront resort</p>
+    </div>
+  </section>
+
+  <section class="inquiry-section">
+    <div class="inquiry-card">
+      <h2>Check Room Availability</h2>
+      <p class="desc">Select your preferred property, room type, and stay duration to check availability and get an instant rate estimate.</p>
+      <form id="inquiryForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Property</label>
+            <select id="property">
+              <option value="maui">Maui Shores Resort</option>
+              <option value="kauai">Kauai Garden Inn</option>
+              <option value="oahu">Oahu Grand Hotel</option>
+              <option value="big-island">Big Island Lodge</option>
+              <option value="lanai">Lanai Hideaway</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Room Type</label>
+            <select id="roomType">
+              <option value="suite">Suite</option>
+              <option value="standard">Standard</option>
+              <option value="deluxe">Deluxe</option>
+              <option value="villa">Villa</option>
+              <option value="penthouse">Penthouse</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Number of Nights</label>
+            <input type="number" id="nights" value="3" min="1" max="30">
+          </div>
+          <div class="form-group">
+            <label>Guests</label>
+            <input type="number" id="guests" value="2" min="1" max="8">
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Check Availability</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 Maui Shores Resort &amp; Spa. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('inquiryForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Checking...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/beb4d43e/inquiry', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            property: document.getElementById('property').value,
+            roomType: document.getElementById('roomType').value,
+            nights: parseInt(document.getElementById('nights').value, 10),
+            guests: parseInt(document.getElementById('guests').value, 10),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Inquiry Failed</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Availability Confirmed</div><div class="error-detail">'
+            + data.property + ' &mdash; ' + data.roomType.charAt(0).toUpperCase() + data.roomType.slice(1)
+            + '<br>Occupancy Rate: ' + data.metrics.occupancyRate + '%'
+            + '<br>Estimated Total: $' + data.stayEstimate.total + ' (' + document.getElementById('nights').value + ' nights)'
+            + '<br>Season Factor: ' + data.stayEstimate.seasonFactor + 'x'
+            + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Check Availability'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
