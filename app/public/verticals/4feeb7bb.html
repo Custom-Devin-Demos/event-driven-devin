@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEB - Pair Banking | 4feeb7bb</title>
+  <link rel="icon" href="https://seb.se/favicon.ico" type="image/x-icon">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --s-font: 'Inter', 'SEBSansSerif', -apple-system, BlinkMacSystemFont, sans-serif;
+      --s-green: #379D00;
+      --s-green-dark: #2C7D00;
+      --s-dark: #1a1a1a;
+      --s-text: #333333;
+      --s-bg: #ffffff;
+      --s-gray: #f5f5f5;
+      --s-border: #e0e0e0;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--s-font); font-size: 16px; color: var(--s-text); background: var(--s-bg); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+    .header { background: var(--s-bg); border-bottom: 1px solid var(--s-border); height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 1000; }
+    .header-left { display: flex; align-items: center; gap: 24px; }
+    .header-logo { text-decoration: none; display: flex; align-items: center; }
+    .header-logo img { height: 24px; width: auto; }
+    .header-logo span { font-size: 28px; font-weight: 700; color: var(--s-dark); letter-spacing: 2px; }
+    .header-nav { display: flex; align-items: center; gap: 0; }
+    .header-nav a { font-size: 14px; font-weight: 500; color: var(--s-text); text-decoration: none; padding: 20px 12px; transition: color 0.15s; }
+    .header-nav a:hover { color: var(--s-green); }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .header-right a { font-size: 14px; color: var(--s-text); text-decoration: none; display: flex; align-items: center; gap: 4px; }
+    .header-login { background: var(--s-green); color: #fff; border: none; border-radius: 6px; padding: 8px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--s-font); }
+    .header-login:hover { background: var(--s-green-dark); }
+
+    .hero { display: flex; align-items: stretch; min-height: 380px; background: var(--s-bg); }
+    .hero-text { flex: 1; padding: 48px 48px 48px 64px; display: flex; flex-direction: column; justify-content: center; }
+    .hero-text h1 { font-size: 40px; font-weight: 700; color: var(--s-dark); line-height: 1.15; margin-bottom: 16px; }
+    .hero-text p { font-size: 16px; color: #555; margin-bottom: 24px; line-height: 1.6; max-width: 440px; }
+    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .hero-btn-primary { background: var(--s-green); color: #fff; border: none; border-radius: 6px; padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--s-font); text-decoration: none; }
+    .hero-btn-primary:hover { background: var(--s-green-dark); }
+    .hero-btn-primary:disabled { opacity: 0.7; cursor: wait; }
+    .hero-btn-secondary { background: transparent; color: var(--s-text); border: 1px solid var(--s-border); border-radius: 6px; padding: 12px 24px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: var(--s-font); text-decoration: none; }
+    .hero-img { flex: 0 0 45%; position: relative; overflow: hidden; }
+    .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+
+    .quick-links { display: flex; justify-content: center; gap: 0; background: var(--s-gray); border-top: 1px solid var(--s-border); border-bottom: 1px solid var(--s-border); padding: 0; }
+    .quick-link { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px 40px; font-size: 13px; font-weight: 500; color: var(--s-text); text-decoration: none; transition: background 0.15s; cursor: pointer; }
+    .quick-link:hover { background: #eaeaea; }
+    .quick-link-icon { font-size: 20px; }
+
+    .section { max-width: 1100px; margin: 48px auto; padding: 0 24px; }
+    .section-title { font-size: 24px; font-weight: 700; color: var(--s-dark); margin-bottom: 6px; }
+    .section-subtitle { font-size: 16px; color: #777; margin-bottom: 24px; }
+
+    .news-hero { border-radius: 12px; overflow: hidden; margin-bottom: 24px; position: relative; height: 400px; }
+    .news-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .news-hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); color: #fff; }
+    .news-hero-tag { display: inline-block; background: var(--s-green); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 8px; }
+    .news-hero-date { font-size: 13px; opacity: 0.8; margin-bottom: 4px; }
+    .news-hero-title { font-size: 22px; font-weight: 700; }
+
+    .news-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .news-card { border-radius: 10px; overflow: hidden; background: var(--s-bg); border: 1px solid var(--s-border); }
+    .news-card img { width: 100%; height: 160px; object-fit: cover; }
+    .news-card-body { padding: 14px; }
+    .news-card-date { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .news-card-title { font-size: 14px; font-weight: 600; color: var(--s-dark); line-height: 1.4; }
+
+    .promo-banner { background: var(--s-gray); border-radius: 12px; padding: 32px 40px; margin: 48px auto; max-width: 1100px; }
+    .promo-banner h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .promo-banner p { font-size: 14px; color: #666; }
+    .promo-arrow { font-size: 18px; color: var(--s-green); margin-top: 12px; display: inline-block; text-decoration: none; }
+
+    .footer { background: var(--s-dark); color: #fff; padding: 48px 0 24px; margin-top: 48px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 32px; }
+    .footer-col h4 { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+    .footer-col a { display: block; font-size: 13px; color: rgba(255,255,255,0.65); text-decoration: none; margin-bottom: 8px; }
+    .footer-col a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.15); padding-top: 16px; font-size: 12px; color: rgba(255,255,255,0.4); }
+
+    .back-link { position: fixed; bottom: 16px; left: 16px; font-size: 12px; color: rgba(255,255,255,0.6); text-decoration: none; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 6px; z-index: 9999; }
+    .back-link:hover { color: #fff; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: rgba(0,0,0,0.88); color: #fff; padding: 16px 24px; border-radius: 10px; font-size: 14px; z-index: 10000; max-width: 420px; opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast-title { font-weight: 600; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; opacity: 0.8; }
+    .toast-close { position: absolute; top: 8px; right: 12px; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; opacity: 0.6; }
+    .toast-close:hover { opacity: 1; }
+    .toast-success { background: rgba(0,120,60,0.9); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <a href="#" class="header-logo">
+        <img src="https://seb.se/static/icons/seb-logo.svg" alt="SEB" onerror="this.onerror=null;this.parentElement.innerHTML='<span>SEB</span>';">
+      </a>
+      <nav class="header-nav">
+        <a href="#">Privat &#9662;</a>
+        <a href="#">F&ouml;retag &#9662;</a>
+        <a href="#">Kundservice</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <a href="#">S&ouml;k &#128269;</a>
+      <a href="#">Bli kund &#128100;</a>
+      <button class="header-login">Logga in &#128274;</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Nu s&auml;nker vi bol&aring;ner&auml;ntan!</h1>
+      <p>Den 24 april s&auml;nker vi den r&ouml;rliga m&aring;nadsr&auml;ntan till 3,94 %. Har du befintligt l&aring;n med r&ouml;rlig r&auml;nta justeras din r&auml;nta vid n&auml;sta r&auml;nte&auml;ndringstillf&auml;lle.</p>
+      <div class="hero-btns">
+        <button class="hero-btn-primary" id="ctaBtn">Aktuella bol&aring;ner&auml;ntor</button>
+        <a href="#" class="hero-btn-secondary">&Auml;ndra om l&aring;n</a>
+      </div>
+    </div>
+    <div class="hero-img">
+      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80" alt="Home">
+    </div>
+  </div>
+
+  <div class="quick-links">
+    <a class="quick-link" href="#">
+      <span class="quick-link-icon">&#128200;</span>
+      B&ouml;rsen idag
+    </a>
+    <a class="quick-link" href="#">
+      <span class="quick-link-icon">&#128176;</span>
+      Fondlista
+    </a>
+    <a class="quick-link" href="#">
+      <span class="quick-link-icon">&#127968;</span>
+      Bol&aring;n
+    </a>
+    <a class="quick-link" href="#">
+      <span class="quick-link-icon">&#128179;</span>
+      Kort
+    </a>
+    <a class="quick-link" href="#">
+      <span class="quick-link-icon">&#128178;</span>
+      Spara och investera
+    </a>
+    <a class="quick-link" href="#">
+      <span class="quick-link-icon">&#128241;</span>
+      Mobilt BankID
+    </a>
+  </div>
+
+  <div class="section">
+    <div class="section-title">V&aring;ra senaste uppdateringar</div>
+  </div>
+
+  <div class="promo-banner" style="margin-left:24px;margin-right:24px;">
+    <h3>Skatte&aring;terb&auml;ring? L&auml;gg en del p&aring; din buffert f&ouml;r en tryggare ekonomi.</h3>
+    <p>Sp&auml;rra ett belopp p&aring; ditt konto och bygg din ekonomiska buffert.</p>
+    <a href="#" class="promo-arrow">&rarr;</a>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Ekonominyheter</div>
+    <div class="news-hero">
+      <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80" alt="News">
+      <div class="news-hero-overlay">
+        <span class="news-hero-tag">Toppnyhet</span>
+        <div class="news-hero-date">2 april 2026</div>
+        <div class="news-hero-title">Nya bol&aring;neregler 2026</div>
+      </div>
+    </div>
+    <a href="#" class="promo-arrow" style="margin-bottom:24px;display:inline-block">&rarr;</a>
+    <div class="news-grid">
+      <div class="news-card">
+        <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&q=80" alt="Economy">
+        <div class="news-card-body">
+          <div class="news-card-date">20 april 2026</div>
+          <div class="news-card-title">Poddavsnitt: St&aring;r svensk ekonomi pall n&auml;r omv&auml;rlden skakar?</div>
+        </div>
+      </div>
+      <div class="news-card">
+        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&q=80" alt="Housing">
+        <div class="news-card-body">
+          <div class="news-card-date">16 april 2026</div>
+          <div class="news-card-title">Spartanken &ndash; har bostaden bytt status fr&aring;n aktie till kontosparande?</div>
+        </div>
+      </div>
+      <div class="news-card">
+        <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=80" alt="Budget">
+        <div class="news-card-body">
+          <div class="news-card-date">13 april 2026</div>
+          <div class="news-card-title">Tre fr&aring;gor och svar om regeringens v&aring;rbudget</div>
+        </div>
+      </div>
+      <div class="news-card">
+        <img src="https://images.unsplash.com/photo-1507679799987-c73b1c51b0f4?w=400&q=80" alt="Savings">
+        <div class="news-card-body">
+          <div class="news-card-date">9 april 2026</div>
+          <div class="news-card-title">Fr&aring;gor och svar om l mellanl&aring;ndern</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>Privatpersoner</h4>
+          <a href="#">Konton</a>
+          <a href="#">Kort</a>
+          <a href="#">L&aring;n</a>
+          <a href="#">Sparande</a>
+          <a href="#">F&ouml;rs&auml;kringar</a>
+        </div>
+        <div class="footer-col">
+          <h4>F&ouml;retag</h4>
+          <a href="#">F&ouml;retagskonton</a>
+          <a href="#">F&ouml;retagsl&aring;n</a>
+          <a href="#">Betalningar</a>
+          <a href="#">Handel &amp; Valuta</a>
+        </div>
+        <div class="footer-col">
+          <h4>Om SEB</h4>
+          <a href="#">Om oss</a>
+          <a href="#">Press</a>
+          <a href="#">Investor Relations</a>
+          <a href="#">H&aring;llbarhet</a>
+        </div>
+        <div class="footer-col">
+          <h4>Kundservice</h4>
+          <a href="#">Kontakta oss</a>
+          <a href="#">Kontor</a>
+          <a href="#">Vanliga fr&aring;gor</a>
+          <a href="#">S&auml;kerhet</a>
+        </div>
+      </div>
+      <div class="footer-bottom">&copy; 2026 Skandinaviska Enskilda Banken AB (publ)</div>
+    </div>
+  </div>
+  <a href="/" class="back-link">&larr; All Demos</a>
+  <div class="toast" id="toast">
+    <button class="toast-close" onclick="document.getElementById('toast').classList.remove('visible')">&times;</button>
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+  <script>
+    document.getElementById('ctaBtn').addEventListener('click', async function(e) {
+      e.preventDefault();
+      var btn = this;
+      var origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Laddar...';
+      try {
+        var res = await fetch('/api/4feeb7bb/inquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            loanType: 'mortgage',
+            region: 'stockholm',
+            rateType: 'variable',
+            devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+            devinOrgId: 'org-f74496524f954fb0a846e2ef8d975f41',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        var toast = document.getElementById('toast');
+        var title = document.getElementById('toastTitle');
+        var detail = document.getElementById('toastDetail');
+        if (!res.ok) {
+          toast.className = 'toast';
+          title.textContent = data.errorClass + ': ' + data.error;
+          detail.textContent = 'Beg\u00e4ran misslyckades \u2014 incident loggad';
+          toast.classList.add('visible');
+        } else {
+          toast.className = 'toast toast-success';
+          title.textContent = 'R\u00e4ntor h\u00e4mtade';
+          detail.textContent = data.region + ' \u2014 ' + data.currentRate + '% r\u00f6rlig r\u00e4nta';
+          toast.classList.add('visible');
+        }
+        setTimeout(function() { toast.classList.remove('visible'); }, 6000);
+      } catch (err) {
+        var toastEl = document.getElementById('toast');
+        document.getElementById('toastTitle').textContent = 'N\u00e4tverksfel';
+        document.getElementById('toastDetail').textContent = err.message;
+        toastEl.className = 'toast visible';
+        setTimeout(function() { toastEl.classList.remove('visible'); }, 6000);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
