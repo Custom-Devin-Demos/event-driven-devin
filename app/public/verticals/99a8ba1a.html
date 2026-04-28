@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwiftRide - Rideshare Signup</title>
+  <style>
+    :root {
+      --ride-dark: #1a1a2e;
+      --ride-accent: #e94560;
+      --ride-light: #f8f9fa;
+      --ride-white: #ffffff;
+      --ride-gray: #6b7280;
+      --ride-border: #d1d5db;
+      --font: "Georgia", "Times New Roman", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); color: #1f2937; background: var(--ride-white); -webkit-font-smoothing: antialiased; }
+
+    .header { background: var(--ride-dark); padding: 0 40px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .header__brand { color: var(--ride-white); font-family: var(--font); font-size: 22px; letter-spacing: 1px; text-decoration: none; }
+    .header__nav { display: flex; gap: 28px; }
+    .header__nav a { color: rgba(255,255,255,0.85); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+    .header__nav a:hover { color: var(--ride-white); }
+
+    .hero { position: relative; height: 380px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #e94560 100%); display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+    .hero__content { position: relative; z-index: 2; color: var(--ride-white); }
+    .hero__title { font-family: var(--font); font-size: 48px; font-weight: 400; margin-bottom: 12px; }
+    .hero__subtitle { font-size: 18px; opacity: 0.9; margin-bottom: 24px; }
+
+    .signup-section { max-width: 580px; margin: -50px auto 60px; position: relative; z-index: 3; }
+    .signup-card { background: var(--ride-white); border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); padding: 40px; }
+    .signup-card h2 { font-family: var(--font); font-size: 24px; color: var(--ride-dark); margin-bottom: 8px; }
+    .signup-card .desc { color: var(--ride-gray); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--ride-dark); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group select, .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--ride-border); border-radius: 6px; font-size: 15px; font-family: var(--sans); background: var(--ride-white); transition: border-color 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--ride-accent); }
+
+    .btn-submit { width: 100%; padding: 14px; background: var(--ride-accent); color: var(--ride-white); border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; letter-spacing: 0.5px; }
+    .btn-submit:hover { background: #c73852; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-box { margin-top: 20px; padding: 16px 20px; border-radius: 8px; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); }
+    .result-box .error-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .result-box.error .error-title { color: var(--danger); }
+    .result-box.success .error-title { color: var(--success); }
+    .result-box .error-detail { font-size: 14px; color: #374151; line-height: 1.5; }
+
+    .footer { background: var(--ride-dark); color: rgba(255,255,255,0.7); padding: 40px; margin-top: 60px; text-align: center; font-size: 13px; }
+    .footer a { color: rgba(255,255,255,0.85); text-decoration: none; }
+
+    .back-link { position: fixed; bottom: 16px; left: 16px; z-index: 9999; background: rgba(0,0,0,0.7); color: #fff; font-size: 13px; padding: 6px 12px; border-radius: 3px; text-decoration: none; opacity: 0.6; transition: opacity 0.2s; }
+    .back-link:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; All Verticals</a>
+
+  <header class="header">
+    <a href="#" class="header__brand">SwiftRide</a>
+    <nav class="header__nav">
+      <a href="#">Ride</a>
+      <a href="#">Drive</a>
+      <a href="#">Fleet</a>
+      <a href="#">Support</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero__content">
+      <h1 class="hero__title">Your Ride, Your Way</h1>
+      <p class="hero__subtitle">Sign up for SwiftRide and get moving in minutes</p>
+    </div>
+  </section>
+
+  <section class="signup-section">
+    <div class="signup-card">
+      <h2>Create Your Account</h2>
+      <p class="desc">Choose your plan and region to get started with SwiftRide. Riders get free credits, drivers earn on every trip.</p>
+      <form id="signupForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Plan</label>
+            <select id="plan">
+              <option value="rider">Rider (Free)</option>
+              <option value="rider-plus">Rider Plus ($9.99/mo)</option>
+              <option value="driver">Driver (Free)</option>
+              <option value="fleet">Fleet Manager ($49.99/mo)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Region</label>
+            <select id="region">
+              <option value="us-west">US West</option>
+              <option value="us-east">US East</option>
+              <option value="us-central">US Central</option>
+              <option value="eu-west">EU West</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Promo Code (optional)</label>
+          <input type="text" id="promoCode" placeholder="e.g. SWIFT10">
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">Sign Up</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 SwiftRide Inc. &mdash; <a href="#">Terms</a> &bull; <a href="#">Privacy</a> &bull; <a href="#">Safety</a></p>
+  </footer>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const resultBox = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      resultBox.className = 'result-box';
+      resultBox.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/99a8ba1a/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan: document.getElementById('plan').value,
+            region: document.getElementById('region').value,
+            promoCode: document.getElementById('promoCode').value || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.style.display = '';
+          resultBox.innerHTML = `<div class="error-title">${data.errorClass || 'Error'}: ${data.error}</div><div class="error-detail">Code: ${data.code || 'UNKNOWN'}</div>`;
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.style.display = '';
+          resultBox.innerHTML = `<div class="error-title">Signup Successful</div><div class="error-detail">Plan: ${data.plan} &bull; Region: ${data.region} &bull; Spots left: ${data.spotsRemaining}<br>Monthly fee: $${data.discountedFee}${data.promo ? ' (' + data.promo + ')' : ''}<br>Ride credits: ${data.rideCredits} &bull; Surge protection: ${data.surgeProtection ? 'Yes' : 'No'}<br>Signup ID: ${data.signupId}</div>`;
+        }
+      } catch (err) {
+        resultBox.className = 'result-box error';
+        resultBox.style.display = '';
+        resultBox.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign Up';
+      }
+    });
+  </script>
+</body>
+</html>
