@@ -67,7 +67,7 @@ function resolveTierBenefits(memberData, requestedTier) {
 
   return {
     tier: tierKey,
-    benefits: [config.multiplier, config.annualBonus, config.minSpend],
+    config,
   };
 }
 
@@ -231,4 +231,11 @@ async function processRewardsLookup(data) {
   }
 }
 
-module.exports = { processRewardsLookup, MEMBERS, RECENT_PURCHASES };
+module.exports = {
+  processRewardsLookup,
+  MEMBERS,
+  RECENT_PURCHASES,
+  findMember,
+  resolveTierBenefits,
+  calculateRewardsBalance,
+};
