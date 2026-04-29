@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Platform | b3e22436</title>
+  <link rel="icon" href="https://a.sfdcstatic.com/shared/images/c360-nav/salesforce-no-type-logo.svg" type="image/svg+xml">
+  <style>
+    @font-face {
+      font-family: 'Salesforce Sans';
+      src: url('https://a.sfdcstatic.com/shared/fonts/salesforce-sans/SalesforceSans-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Salesforce Sans';
+      src: url('https://a.sfdcstatic.com/shared/fonts/salesforce-sans/SalesforceSans-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'ITC Avant Garde';
+      src: url('https://a.sfdcstatic.com/shared/fonts/avant-garde/AvantGardeForSalesforceW05-Dm.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --v-white: #ffffff;
+      --v-black: #080707;
+      --v-blue: #0176D3;
+      --v-dark-blue: #032D60;
+      --v-hero-bg: #0b1d3a;
+      --v-green: #2E844A;
+      --v-light-blue: #0D9DDA;
+      --v-gray-text: #444444;
+      --v-font-body: 'Salesforce Sans', Arial, sans-serif;
+      --v-font-heading: 'ITC Avant Garde', sans-serif, arial;
+      --v-nav-height: 64px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--v-font-body);
+      font-size: 16px;
+      color: var(--v-black);
+      background: var(--v-white);
+      line-height: 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ─── Back link ─── */
+    .back-link {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      z-index: 10001;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      text-decoration: none;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover { opacity: 1; }
+
+    /* ─── Header / Nav ─── */
+    .sf-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--v-white);
+      height: var(--v-nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .sf-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sf-logo {
+      height: 22px;
+      display: block;
+    }
+    .sf-nav {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-left: 12px;
+    }
+    .sf-nav a {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--v-black);
+      text-decoration: none;
+      padding: 8px 12px;
+      transition: color 0.15s;
+      font-family: var(--v-font-body);
+    }
+    .sf-nav a:hover { color: var(--v-blue); }
+    .sf-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sf-header-right .search-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--v-dark-blue);
+      border: 1px solid #c9c7c5;
+      border-radius: 4px;
+      padding: 8px 16px;
+      background: var(--v-white);
+      cursor: pointer;
+      font-family: var(--v-font-body);
+    }
+    .sf-header-right .search-btn svg { width: 16px; height: 16px; fill: var(--v-dark-blue); }
+    .sf-header-link {
+      font-size: 14px;
+      color: var(--v-black);
+      text-decoration: none;
+      padding: 8px 12px;
+      font-family: var(--v-font-body);
+    }
+    .sf-header-link:hover { color: var(--v-blue); }
+    .sf-login-link {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      color: var(--v-black);
+      text-decoration: none;
+      padding: 8px 12px;
+      font-family: var(--v-font-body);
+    }
+    .sf-login-link svg { width: 16px; height: 16px; fill: var(--v-black); }
+    .sf-cta-btn {
+      background: var(--v-blue);
+      color: var(--v-white);
+      border: none;
+      border-radius: 4px;
+      padding: 10px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+      display: inline-block;
+    }
+    .sf-cta-btn:hover { background: #014486; }
+    .sf-cta-btn:disabled { opacity: 0.7; cursor: wait; }
+
+    /* ─── Promo bar ─── */
+    .promo-bar {
+      margin-top: var(--v-nav-height);
+      background: var(--v-green);
+      color: var(--v-white);
+      text-align: center;
+      padding: 10px 24px;
+      font-size: 14px;
+      line-height: 20px;
+    }
+    .promo-bar a {
+      color: var(--v-white);
+      font-weight: 700;
+      text-decoration: underline;
+      margin-left: 4px;
+    }
+
+    /* ─── Agentforce Chat Section ─── */
+    .af-section {
+      background: linear-gradient(135deg, #032D60 0%, #0B5CAD 40%, #0176D3 100%);
+      padding: 40px 24px 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 32px;
+    }
+    .af-mascot {
+      width: 140px;
+      height: auto;
+      flex-shrink: 0;
+    }
+    .af-content {
+      max-width: 560px;
+    }
+    .af-title {
+      color: var(--v-white);
+      font-size: 22px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      margin-bottom: 12px;
+    }
+    .af-input-row {
+      display: flex;
+      align-items: center;
+      background: var(--v-white);
+      border-radius: 8px;
+      padding: 12px 16px;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .af-input-row svg { width: 20px; height: 20px; fill: var(--v-blue); flex-shrink: 0; }
+    .af-input-row span {
+      color: #706E6B;
+      font-size: 14px;
+      font-family: var(--v-font-body);
+      flex: 1;
+    }
+    .af-input-row .send-btn {
+      width: 32px;
+      height: 32px;
+      background: var(--v-blue);
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .af-input-row .send-btn svg { fill: var(--v-white); width: 16px; height: 16px; }
+    .af-quick-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .af-quick-btn {
+      border: 1px solid rgba(255,255,255,0.4);
+      background: transparent;
+      color: var(--v-white);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: var(--v-font-body);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .af-quick-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* ─── Hero Section ─── */
+    .hero-section {
+      background: linear-gradient(180deg, #0B5CAD 0%, #032D60 30%, #001833 100%);
+      text-align: center;
+      padding: 64px 24px 48px;
+      color: var(--v-white);
+    }
+    .hero-eyebrow {
+      font-size: 16px;
+      font-family: var(--v-font-body);
+      color: var(--v-white);
+      margin-bottom: 4px;
+    }
+    .hero-eyebrow a {
+      color: var(--v-white);
+      text-decoration: underline;
+    }
+    .hero-h1 {
+      font-family: var(--v-font-heading);
+      font-size: 80px;
+      font-weight: 400;
+      line-height: 88px;
+      letter-spacing: -0.29px;
+      color: var(--v-white);
+      margin: 8px auto 16px;
+      max-width: 900px;
+    }
+    .hero-subtitle {
+      font-family: var(--v-font-heading);
+      font-size: 25px;
+      font-weight: 400;
+      color: var(--v-light-blue);
+      margin-bottom: 20px;
+    }
+    .hero-body {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--v-white);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .hero-body a {
+      color: var(--v-white);
+      text-decoration: underline;
+    }
+
+    /* ─── Product Cards ─── */
+    .products-section {
+      background: linear-gradient(180deg, #001833 0%, #032D60 100%);
+      padding: 48px 24px 56px;
+      text-align: center;
+      color: var(--v-white);
+    }
+    .product-cards {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+    }
+    .product-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: left;
+      flex: 1;
+      max-width: 230px;
+      text-decoration: none;
+      color: var(--v-white);
+      transition: background 0.15s;
+    }
+    .product-card:hover { background: rgba(255,255,255,0.14); }
+    .product-card-icon {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 16px;
+    }
+    .product-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      margin-bottom: 6px;
+    }
+    .product-card p {
+      font-size: 14px;
+      line-height: 20px;
+      color: rgba(255,255,255,0.8);
+    }
+    .products-text {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--v-white);
+      max-width: 640px;
+      margin: 0 auto 24px;
+    }
+    .products-cta-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .cta-primary {
+      background: var(--v-blue);
+      color: var(--v-white);
+      border: none;
+      border-radius: 4px;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .cta-primary:hover { background: #014486; }
+    .cta-secondary {
+      background: transparent;
+      color: var(--v-white);
+      border: 2px solid var(--v-white);
+      border-radius: 4px;
+      padding: 10px 28px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .cta-secondary:hover { background: rgba(255,255,255,0.1); }
+    .slackbot-icon { width: 24px; height: 24px; }
+
+    /* ─── Trust Section ─── */
+    .trust-section {
+      background: linear-gradient(180deg, #032D60 0%, #001833 100%);
+      padding: 64px 24px;
+      text-align: center;
+      color: var(--v-white);
+    }
+    .trust-h2 {
+      font-family: var(--v-font-heading);
+      font-size: 46px;
+      font-weight: 400;
+      line-height: 54px;
+      letter-spacing: -0.29px;
+      color: var(--v-white);
+      max-width: 800px;
+      margin: 0 auto 40px;
+    }
+    .trust-cards {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .trust-card {
+      border-radius: 12px;
+      overflow: hidden;
+      flex: 1;
+      max-width: 350px;
+      position: relative;
+      cursor: pointer;
+    }
+    .trust-card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+    .trust-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    }
+    .trust-card-logo {
+      height: 24px;
+      margin-bottom: 4px;
+    }
+    .trust-card-name {
+      font-size: 13px;
+      color: var(--v-white);
+      line-height: 1.3;
+    }
+
+    /* ─── Grow Section ─── */
+    .grow-section {
+      background: var(--v-white);
+      padding: 64px 24px;
+      text-align: center;
+    }
+    .grow-h2 {
+      font-family: var(--v-font-heading);
+      font-size: 46px;
+      font-weight: 400;
+      line-height: 54px;
+      letter-spacing: -0.29px;
+      color: var(--v-dark-blue);
+      max-width: 800px;
+      margin: 0 auto 16px;
+    }
+    .grow-h2 strong { font-weight: 700; }
+    .grow-body {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--v-gray-text);
+      max-width: 640px;
+      margin: 0 auto 8px;
+    }
+    .grow-body a {
+      color: var(--v-blue);
+      text-decoration: underline;
+    }
+    .grow-body em {
+      font-style: normal;
+      font-weight: 700;
+      color: var(--v-black);
+    }
+    .grow-pricing-link {
+      color: var(--v-blue);
+      text-decoration: underline;
+      font-size: 16px;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+    .grow-cta-row {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .cta-blue {
+      background: var(--v-blue);
+      color: var(--v-white);
+      border: none;
+      border-radius: 4px;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cta-blue:hover { background: #014486; }
+    .cta-outline-blue {
+      background: transparent;
+      color: var(--v-blue);
+      border: 2px solid var(--v-blue);
+      border-radius: 4px;
+      padding: 10px 28px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--v-font-body);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .cta-outline-blue:hover { background: rgba(1,118,211,0.05); }
+
+    /* ─── Footer ─── */
+    .sf-footer {
+      background: #032D60;
+      color: var(--v-white);
+      padding: 48px 24px 24px;
+    }
+    .footer-top {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+      padding-bottom: 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+    .footer-brand {
+      flex: 0 0 200px;
+    }
+    .footer-logo {
+      height: 32px;
+      margin-bottom: 16px;
+      filter: brightness(0) invert(1);
+    }
+    .footer-social {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .footer-social a {
+      color: var(--v-white);
+      opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    .footer-social a:hover { opacity: 1; }
+    .footer-social svg { width: 20px; height: 20px; fill: currentColor; }
+    .footer-phone {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 4px;
+    }
+    .footer-contact a {
+      font-size: 13px;
+      color: var(--v-white);
+      text-decoration: underline;
+    }
+    .footer-cols {
+      display: flex;
+      gap: 48px;
+      flex: 1;
+    }
+    .footer-col h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--v-white);
+      margin-bottom: 12px;
+      font-family: var(--v-font-body);
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col li { margin-bottom: 6px; }
+    .footer-col a {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-col a:hover { color: var(--v-white); }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 16px auto 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-legal-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-legal-links a {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+    }
+    .footer-legal-links a:hover { color: var(--v-white); }
+    .footer-copyright {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      max-width: 600px;
+      line-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">← All Demos</a>
+
+  <!-- Header -->
+  <header class="sf-header">
+    <div class="sf-header-left">
+      <a href="#">
+        <img src="https://a.sfdcstatic.com/shared/images/c360-nav/salesforce-with-type-logo.svg"
+             onerror="this.onerror=null;this.src='https://a.sfdcstatic.com/shared/images/c360-nav/salesforce-no-type-logo.svg';"
+             alt="Salesforce Home" class="sf-logo">
+      </a>
+      <nav class="sf-nav">
+        <a href="#">Products</a>
+        <a href="#">Industries</a>
+        <a href="#">Customers</a>
+        <a href="#">Events</a>
+        <a href="#">Learning</a>
+        <a href="#">Support</a>
+        <a href="#">Company</a>
+      </nav>
+    </div>
+    <div class="sf-header-right">
+      <button class="search-btn">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        Ask Agentforce any...
+      </button>
+      <a href="#" class="sf-header-link">Contact Us</a>
+      <a href="#" class="sf-login-link">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Login
+      </a>
+      <button id="startForFreeBtn" class="sf-cta-btn">Start for free</button>
+    </div>
+  </header>
+
+  <!-- Promo Bar -->
+  <div class="promo-bar">
+    Try the all-in-one AI CRM for small business free for 30 days.<a href="#">Start now</a>
+  </div>
+
+  <!-- Agentforce Chat Section -->
+  <section class="af-section">
+    <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/02/agentforce-dark.png?w=290"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1677442136019-21780ecad995?w=290&q=80';"
+         alt="Agentforce" class="af-mascot">
+    <div class="af-content">
+      <div class="af-title">Product needs? Pricing questions? Ask away.</div>
+      <div class="af-input-row">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/><path d="M12 2L2 7l10 5 10-5-10-5z" fill="none" stroke="#0176D3" stroke-width="1.5"/></svg>
+        <span>Agentforce can answer almost anything — or connect you with a sales rep.</span>
+        <button class="send-btn">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+      <div class="af-quick-btns">
+        <button class="af-quick-btn">Connect me with a sales rep</button>
+        <button class="af-quick-btn">Try Salesforce for free</button>
+        <button class="af-quick-btn">How can Salesforce help my business</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <p class="hero-eyebrow">Salesforce. The #1 AI CRM. <a href="#">Start for free.</a></p>
+    <h1 class="hero-h1">Welcome to the<br>Agentic Enterprise.</h1>
+    <p class="hero-subtitle">Where humans and agents drive customer success together.</p>
+    <p class="hero-body">
+      Salesforce brings together Slack, Agentforce, Customer 360, and Data 360 on one
+      trusted platform, so teams move faster and act with confidence – with humans
+      and <a href="#">agents</a> working inside the systems that run your business.
+    </p>
+  </section>
+
+  <!-- Product Cards Section -->
+  <section class="products-section">
+    <div class="product-cards">
+      <a href="#" class="product-card">
+        <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/02/slack-flat-icon.svg?w=1024"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=40&q=80';"
+             alt="Slack" class="product-card-icon">
+        <h3>Slack</h3>
+        <p>Where humans and agents work together.</p>
+      </a>
+      <a href="#" class="product-card">
+        <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/02/af-flat-icon.svg?w=1024"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1677442136019-21780ecad995?w=40&q=80';"
+             alt="Agentforce" class="product-card-icon">
+        <h3>Agentforce</h3>
+        <p>Delivers always-on agents for customers and employees.</p>
+      </a>
+      <a href="#" class="product-card">
+        <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/02/360-flat-icon.svg?w=1024"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=40&q=80';"
+             alt="Customer 360" class="product-card-icon">
+        <h3>Customer 360</h3>
+        <p>Helps teams sell, serve, and operate at scale.</p>
+      </a>
+      <a href="#" class="product-card">
+        <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/02/data-flat-icon.svg?w=1024"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=40&q=80';"
+             alt="Data 360" class="product-card-icon">
+        <h3>Data 360</h3>
+        <p>Gives everyone real-time context.</p>
+      </a>
+    </div>
+    <p class="products-text">
+      The result: faster decisions, stronger customer relationships, and non-stop growth,
+      all delivered with Slackbot, your personal AI agent.
+    </p>
+    <div class="products-cta-row">
+      <a href="#" class="cta-primary">See Agentforce in action</a>
+      <a href="#" class="cta-secondary">
+        Meet Slackbot
+        <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/02/homepage__slackbot-icon.gif"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=24&q=80';"
+             alt="" class="slackbot-icon">
+      </a>
+    </div>
+  </section>
+
+  <!-- Trust / Testimonials Section -->
+  <section class="trust-section">
+    <h2 class="trust-h2">See why companies trust us to help them grow.</h2>
+    <div class="trust-cards">
+      <div class="trust-card">
+        <img src="https://play.vidyard.com/gMcjD37p174DSe5PSUoGzX.jpg"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=80';"
+             alt="Customer testimonial">
+        <div class="trust-card-overlay">
+          <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/04/homepage__video-eyebrow-beast-white-bg.png?w=248"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560472355-536de3962603?w=100&q=80';"
+               alt="Mr. Beast" class="trust-card-logo">
+          <div class="trust-card-name">Sinan Deriş<br>Head of Beast Games Marketing</div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <img src="https://play.vidyard.com/MSKqjoikKSbGQi86sKPLhp.jpg"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80';"
+             alt="Customer testimonial">
+        <div class="trust-card-overlay">
+          <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/04/Pandora-logo.png?w=326"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&q=80';"
+               alt="Pandora" class="trust-card-logo">
+          <div class="trust-card-name">David Walmsley<br>Chief Digital &amp; Technology Officer, Pandora</div>
+        </div>
+      </div>
+      <div class="trust-card">
+        <img src="https://play.vidyard.com/gFGGZTVXQaT2cug9U2ETaP.jpg"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80';"
+             alt="Customer testimonial">
+        <div class="trust-card-overlay">
+          <img src="https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2026/04/Williams-Sonoma-logo.png?w=426"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&q=80';"
+               alt="Williams Sonoma" class="trust-card-logo">
+          <div class="trust-card-name">Sameer Hassan<br>SVP, Technology, Williams Sonoma</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grow Faster Section -->
+  <section class="grow-section">
+    <h2 class="grow-h2">Grow faster and <strong>work smarter.</strong></h2>
+    <p class="grow-body">
+      Start with <a href="#">Starter Suite</a> — a CRM made for small business with built-in AI to help you sell, market, and support from day one, then scale as your business grows on a platform designed to grow with you. <em>$25 USD/user/month.</em>
+    </p>
+    <a href="#" class="grow-pricing-link">See full pricing.</a>
+    <div class="grow-cta-row">
+      <a href="#" class="cta-blue">Start for free →</a>
+      <a href="#" class="cta-outline-blue">Start demo →</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="sf-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="https://a.sfdcstatic.com/shared/images/c360-nav/salesforce-with-type-logo.svg"
+             onerror="this.onerror=null;this.src='https://a.sfdcstatic.com/shared/images/c360-nav/salesforce-no-type-logo.svg';"
+             alt="Salesforce" class="footer-logo">
+        <div class="footer-social">
+          <a href="#" title="Facebook"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></a>
+          <a href="#" title="X"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+          <a href="#" title="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+          <a href="#" title="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+          <a href="#" title="YouTube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+          <a href="#" title="TikTok"><svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
+        </div>
+        <div class="footer-phone">Call us at 1-800-664-9073</div>
+        <div class="footer-contact"><a href="#">See all ways to contact us</a></div>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h3>New to Salesforce?</h3>
+          <ul>
+            <li><a href="#">What is CRM?</a></li>
+            <li><a href="#">Agentic Enterprise</a></li>
+            <li><a href="#">Digital Marketing</a></li>
+            <li><a href="#">Customer Service Software</a></li>
+            <li><a href="#">Email Marketing</a></li>
+            <li><a href="#">Ecommerce</a></li>
+            <li><a href="#">Artificial Intelligence</a></li>
+            <li><a href="#">AI Agents</a></li>
+            <li><a href="#">SaaS</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>About Salesforce</h3>
+          <ul>
+            <li><a href="#">What is Salesforce?</a></li>
+            <li><a href="#">Newsroom</a></li>
+            <li><a href="#">Customer Success</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Trust</a></li>
+            <li><a href="#">Sustainability</a></li>
+            <li><a href="#">Investors</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Popular Links</h3>
+          <ul>
+            <li><a href="#">Salesforce Login</a></li>
+            <li><a href="#">New Release Features</a></li>
+            <li><a href="#">Find or Become a Partner</a></li>
+            <li><a href="#">Dreamforce</a></li>
+            <li><a href="#">Salesforce+</a></li>
+            <li><a href="#">CRM Software</a></li>
+            <li><a href="#">All Cloud Products</a></li>
+            <li><a href="#">Product Pricing</a></li>
+            <li><a href="#">Newsletter Sign-Up</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-legal-links">
+        <a href="#">Legal</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Privacy Information</a>
+        <a href="#">Responsible Disclosure</a>
+        <a href="#">Trust</a>
+        <a href="#">Contact</a>
+        <a href="#">Cookie Preferences</a>
+        <a href="#">Your Privacy Choices</a>
+      </div>
+      <div class="footer-copyright">
+        &copy; Copyright 2026 Salesforce, Inc. All rights reserved. Various trademarks held by their respective owners. Salesforce, Inc. Salesforce Tower, 415 Mission Street, 3rd Floor, San Francisco, CA 94105, United States
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(0,0,0,0.85);color:#fff;padding:14px 24px;border-radius:8px;font-size:14px;z-index:10000;opacity:0;transform:translateY(20px);transition:opacity 0.3s,transform 0.3s;max-width:400px;font-family:Salesforce Sans,Arial,sans-serif;';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function() { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+      setTimeout(function() { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(function() { toast.remove(); }, 300); }, 6000);
+    }
+
+    document.getElementById('startForFreeBtn').addEventListener('click', async function(e) {
+      e.preventDefault();
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+      try {
+        var res = await fetch('/api/b3e22436/inquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+            devinOrgId: 'org-ea20e81905c4472cb91db78d9a4492ca'
+          })
+        });
+        var data = await res.json();
+        if (data.error) showToast(data.error);
+      } catch (err) {
+        showToast('An unexpected error occurred');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Start for free';
+      }
+    });
+  </script>
+</body>
+</html>
