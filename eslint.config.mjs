@@ -28,6 +28,22 @@ export default [
     },
   },
   {
+    files: ["**/*.test.js"],
+    languageOptions: {
+      globals: {
+        jest: "readonly",
+        describe: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        fetch: "readonly",
+      },
+    },
+  },
+  {
     ignores: ["node_modules/", "dist/", "coverage/"],
   },
 ];

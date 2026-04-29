@@ -48,13 +48,13 @@ router.post('/api/e0c16510/contact-sales', async (req, res) => {
 });
 
 function normalizePlanId(planId) {
-  return planId.trim().charAt(0).toUpperCase() + planId.trim().slice(1);
+  return planId.trim().toLowerCase();
 }
 
 function sanitizeComplianceCodes(codes) {
-  if (!codes) return 'SOC2,ISO27001,ISMAP';
-  if (Array.isArray(codes)) return codes.join(',');
-  return String(codes);
+  if (!codes) return ['SOC2', 'ISO27001', 'ISMAP'];
+  if (Array.isArray(codes)) return codes;
+  return String(codes).split(',').map((c) => c.trim());
 }
 
 module.exports = router;
