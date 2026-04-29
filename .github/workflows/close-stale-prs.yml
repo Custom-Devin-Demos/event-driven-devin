@@ -1,0 +1,30 @@
+name: Close Stale PRs
+
+on:
+  schedule:
+    # Run every hour to catch PRs that cross the 24-hour threshold
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close-stale-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          # Only process pull requests, not issues
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+          # Mark PRs stale after 24 hours of inactivity
+          days-before-pr-stale: 1
+          # Close immediately once marked stale
+          days-before-pr-close: 0
+          stale-pr-message: >
+            This PR has been automatically closed due to 24 hours of inactivity.
+            Feel free to reopen it if work resumes.
+          stale-pr-label: 'stale'
+          # Don't process issues
+          only-pr: true
