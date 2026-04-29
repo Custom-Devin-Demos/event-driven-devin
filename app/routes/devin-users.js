@@ -1,6 +1,6 @@
 const express = require('express');
 const logger = require('../telemetry/logger');
-const { listEnterpriseOrgs, listOrgUsers } = require('../services/devin-api');
+const { listEnterpriseOrgs, listOrgUsers, listEnterpriseAdmins } = require('../services/devin-api');
 
 const router = express.Router();
 
@@ -31,6 +31,8 @@ router.get('/api/config', (_req, res) => {
 let cachedOrgs = null;
 let orgsCacheExpiry = 0;
 const usersCacheByOrg = new Map();
+let cachedEnterpriseAdmins = null;
+let enterpriseAdminsCacheExpiry = 0;
 
 router.post('/api/resolve-identity', async (req, res) => {
   const { orgName, orgId: providedOrgId, email } = req.body || {};
@@ -90,8 +92,24 @@ router.post('/api/resolve-identity', async (req, res) => {
       if (userMatch) {
         result.userId = userMatch.user_id;
       } else {
-        logger.warn('Email not found during identity resolution', { email, orgId: result.orgId });
-        return res.status(404).json({ error: 'User not found in this organization', field: 'email' });
+        // Fall back to enterprise admins — they have access to all orgs
+        // even if they aren't explicit org members.
+        const now2 = Date.now();
+        if (!cachedEnterpriseAdmins || now2 >= enterpriseAdminsCacheExpiry) {
+          cachedEnterpriseAdmins = await listEnterpriseAdmins();
+          enterpriseAdminsCacheExpiry = now2 + 5 * 60 * 1000;
+        }
+
+        const adminMatch = cachedEnterpriseAdmins.find(
+          (a) => (a.email || '').toLowerCase() === normalizedEmail,
+        );
+
+        if (adminMatch) {
+          result.userId = adminMatch.user_id;
+        } else {
+          logger.warn('Email not found during identity resolution', { email, orgId: result.orgId });
+          return res.status(404).json({ error: 'User not found in this organization', field: 'email' });
+        }
       }
     }
 
