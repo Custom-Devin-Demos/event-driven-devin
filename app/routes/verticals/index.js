@@ -32,6 +32,7 @@ const customer89c1f355Routes = require('./89c1f355');
 const customer99a8ba1aRoutes = require('./99a8ba1a');
 const customerB3e22436Routes = require('./b3e22436');
 const customerD5fc3172Routes = require('./d5fc3172');
+const customerA30498aeRoutes = require('./a30498ae');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -62,6 +63,7 @@ router.use(customer89c1f355Routes);
 router.use(customer99a8ba1aRoutes);
 router.use(customerB3e22436Routes);
 router.use(customerD5fc3172Routes);
+router.use(customerA30498aeRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -77,6 +79,7 @@ const VERTICALS = [
   { id: 'healthcare', name: 'Health Care', brand: 'CarePoint Health', path: '/healthcare', icon: '\u{1F3E5}', color: '#06D6A0' },
   { id: 'telco', name: 'Telco', brand: 'WaveConnect', path: '/telco', icon: '\u{1F4F1}', color: '#118AB2' },
   { id: '8de4a567', name: 'Financial Technology', brand: 'FinScore', path: '/8de4a567', icon: '\u{1F4B3}', color: '#008751' },
+  { id: 'a30498ae', name: 'Retirement Services', brand: 'Vanguard', path: '/a30498ae', icon: '\u{1F4B0}', color: '#96151D' },
 ];
 
 /**
@@ -90,7 +93,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
