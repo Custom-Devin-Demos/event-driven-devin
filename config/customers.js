@@ -98,6 +98,10 @@ const CUSTOMERS = {
     label: 'Customer B3E2',
     triggerMode: 'api',
   },
+  d5fc3172: {
+    label: 'Customer D5FC',
+    triggerMode: 'api',
+  },
 };
 
 /**
