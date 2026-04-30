@@ -89,7 +89,7 @@ function computeOnboardingPackage(plan, region, promo) {
 
   packageDetails.allocationTier = riderTier;
   packageDetails.regionScore = allocationScore;
-  packageDetails.capacityRemaining = regionCapacity.onboarding.remaining;
+  packageDetails.capacityRemaining = regionCapacity.remaining;
 
   return packageDetails;
 }
