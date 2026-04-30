@@ -126,10 +126,11 @@ function getCustomerConfig(customerSlug) {
 
   // Non-default customers target Custom-Devin-Demos by default;
   // the default customer (landing page demos) targets COG-GTM.
-  const orgFallback = slug !== 'default' ? 'Custom-Devin-Demos' : 'COG-GTM';
-  const githubOrg = entry.githubOrg
-    || process.env[`GITHUB_ORG${suffix}`]
-    || process.env.GITHUB_ORG || orgFallback;
+  // For non-default customers, skip the global GITHUB_ORG env var
+  // so it doesn't shadow the per-customer default.
+  const githubOrg = slug !== 'default'
+    ? (entry.githubOrg || process.env[`GITHUB_ORG${suffix}`] || 'Custom-Devin-Demos')
+    : (entry.githubOrg || process.env.GITHUB_ORG || 'COG-GTM');
 
   const config = {
     customer: slug,
