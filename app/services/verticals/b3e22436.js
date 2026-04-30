@@ -104,6 +104,17 @@ function generateProvisioningPlan(pricing, tier, bundle) {
     plan.aiCredits = pricing.seatCount * 250;
   }
 
+  const certLevel = tier.id === 'unlimited' ? 'SOC2_ISO27001_HIPAA'
+    : tier.id === 'enterprise' ? 'SOC2_ISO27001'
+      : tier.id === 'professional' ? 'SOC2'
+        : 'BASIC';
+
+  plan.governance = {
+    certificationLevel: certLevel,
+    dataResidency: pricing.seatCount > 100 ? 'dedicated' : 'shared',
+    complianceReview: tier.id === 'enterprise' || tier.id === 'unlimited',
+  };
+
   return plan;
 }
 
