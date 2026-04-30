@@ -46,17 +46,14 @@ const CUSTOMERS = {
   '53a9884e': {
     label: 'Customer 53A9',
     triggerMode: 'api',
-    githubOrg: 'Custom-Devin-Demos',
   },
   acf4303d: {
     label: 'Customer ACF4',
     triggerMode: 'api',
-    githubOrg: 'Custom-Devin-Demos',
   },
   f3ff1d33: {
     label: 'Customer F3FF',
     triggerMode: 'api',
-    githubOrg: 'Custom-Devin-Demos',
   },
   '430a4200': {
     label: 'Customer 430A',
@@ -127,9 +124,12 @@ function getCustomerConfig(customerSlug) {
     ? `_${slug.toUpperCase().replace(/-/g, '_')}`
     : '';
 
+  // Non-default customers target Custom-Devin-Demos by default;
+  // the default customer (landing page demos) targets COG-GTM.
+  const orgFallback = slug !== 'default' ? 'Custom-Devin-Demos' : 'COG-GTM';
   const githubOrg = entry.githubOrg
     || process.env[`GITHUB_ORG${suffix}`]
-    || process.env.GITHUB_ORG || 'COG-GTM';
+    || process.env.GITHUB_ORG || orgFallback;
 
   const config = {
     customer: slug,
