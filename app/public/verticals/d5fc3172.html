@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One platform to connect | d5fc3172</title>
+  <link rel="icon" href="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/logo-zoom@2x.png" type="image/png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --v-navy: #00053d;
+      --v-blue: #0b5cff;
+      --v-white: #ffffff;
+      --v-hero-dark: #00031d;
+      --v-light-bg: #f3f8ff;
+      --v-border: #d1def2;
+      --v-gray: #6b7a99;
+      --v-nav-height: 78px;
+      --v-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--v-font);
+      font-size: 16px;
+      color: var(--v-navy);
+      background: var(--v-white);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .v-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--v-nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: transparent;
+      transition: background 0.2s;
+    }
+    .v-header.scrolled { background: rgba(0, 3, 29, 0.95); backdrop-filter: blur(12px); }
+    .v-header-left { display: flex; align-items: center; gap: 32px; }
+    .v-logo { height: 26px; }
+    .v-nav { display: flex; gap: 8px; list-style: none; }
+    .v-nav li a, .v-nav li button {
+      background: none; border: none; cursor: pointer;
+      color: var(--v-white); font-size: 14px; font-weight: 500;
+      font-family: var(--v-font); padding: 8px 12px; border-radius: 8px;
+      text-decoration: none; transition: background 0.15s;
+    }
+    .v-nav li a:hover, .v-nav li button:hover { background: rgba(255,255,255,0.1); }
+    .v-header-right { display: flex; align-items: center; gap: 12px; }
+    .v-header-link {
+      color: var(--v-white); text-decoration: none; font-size: 14px; font-weight: 500;
+      padding: 8px 12px; border-radius: 8px; transition: background 0.15s;
+    }
+    .v-header-link:hover { background: rgba(255,255,255,0.1); }
+    .v-btn-outline {
+      display: inline-flex; align-items: center;
+      color: var(--v-white); font-size: 14px; font-weight: 600;
+      padding: 10px 20px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.35); background: transparent;
+      text-decoration: none; transition: background 0.15s; cursor: pointer;
+    }
+    .v-btn-outline:hover { background: rgba(255,255,255,0.1); }
+    .v-btn-primary {
+      display: inline-flex; align-items: center;
+      background: var(--v-blue); color: var(--v-white);
+      font-size: 14px; font-weight: 600;
+      padding: 10px 20px; border-radius: 8px; border: none;
+      text-decoration: none; transition: background 0.15s; cursor: pointer;
+    }
+    .v-btn-primary:hover { background: #0a4fdd; }
+
+    /* ── Banner ── */
+    .v-banner {
+      background: rgba(255,255,255,0.1);
+      text-align: center; padding: 10px 20px;
+      font-size: 14px; color: var(--v-white);
+    }
+    .v-banner a {
+      display: inline-block; margin-left: 12px; padding: 4px 16px;
+      background: var(--v-blue); color: var(--v-white); border-radius: 20px;
+      text-decoration: none; font-size: 13px; font-weight: 600;
+    }
+    .v-banner-close {
+      float: right; background: none; border: none; color: var(--v-white);
+      cursor: pointer; font-size: 18px; opacity: 0.6; line-height: 1;
+    }
+    .v-banner-close:hover { opacity: 1; }
+
+    /* ── Hero Section ── */
+    .v-hero {
+      background: radial-gradient(400% 240% at 50% 100%, #fff, #fff 10%, #c7c5fd 16%, rgba(154,103,250,0.6) 17%, #264cab 28%, var(--v-hero-dark) 45%, var(--v-hero-dark));
+      text-align: center;
+      padding: 0 20px 60px;
+    }
+    .v-hero h1 {
+      color: var(--v-white); font-size: 54px; font-weight: 500;
+      line-height: 1.12; letter-spacing: -0.5px;
+      max-width: 700px; margin: 0 auto;
+      padding-top: 48px;
+    }
+    .v-hero-sub {
+      color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.6;
+      max-width: 600px; margin: 20px auto 28px;
+    }
+    .v-hero-ctas { display: flex; gap: 12px; justify-content: center; margin-bottom: 48px; }
+    .v-cta-dark {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--v-navy); color: var(--v-white);
+      font-size: 16px; font-weight: 600; padding: 12px 28px;
+      border-radius: 12px; border: none;
+      text-decoration: none; cursor: pointer; transition: background 0.15s;
+    }
+    .v-cta-dark:hover { background: #000a5c; }
+    .v-cta-light {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--v-light-bg); color: var(--v-navy);
+      font-size: 16px; font-weight: 600; padding: 12px 28px;
+      border-radius: 12px; border: 1px solid var(--v-border);
+      text-decoration: none; cursor: pointer; transition: background 0.15s;
+    }
+    .v-cta-light:hover { background: #e8f0ff; }
+
+    /* ── Product Carousel ── */
+    .v-products {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: nowrap;
+      overflow-x: auto; padding: 0 40px 20px; max-width: 1200px; margin: 0 auto;
+      scrollbar-width: none;
+    }
+    .v-products::-webkit-scrollbar { display: none; }
+    .v-product-card {
+      flex: 0 0 180px; height: 220px;
+      border-radius: 16px; overflow: hidden; position: relative;
+      text-decoration: none; color: var(--v-white);
+      transition: transform 0.2s;
+    }
+    .v-product-card:hover { transform: translateY(-4px); }
+    .v-product-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      position: absolute; top: 0; left: 0;
+    }
+    .v-product-label {
+      position: absolute; top: 14px; left: 14px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; font-weight: 600; z-index: 1;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .v-product-label img { height: 18px; width: 18px; }
+
+    /* ── Carousel Nav ── */
+    .v-carousel-nav {
+      display: flex; align-items: center; justify-content: center; gap: 20px;
+      padding: 24px 0 0;
+    }
+    .v-carousel-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid var(--v-border); background: var(--v-white);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; color: var(--v-navy);
+      transition: background 0.15s;
+    }
+    .v-carousel-btn:hover { background: var(--v-light-bg); }
+    .v-dots { display: flex; gap: 6px; }
+    .v-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--v-border); transition: background 0.2s;
+    }
+    .v-dot.active { background: var(--v-navy); width: 20px; border-radius: 4px; }
+
+    /* ── AI Companion Section ── */
+    .v-ai-section {
+      background: linear-gradient(180deg, #fff 0%, #f0f2ff 100%);
+      padding: 80px 40px;
+    }
+    .v-ai-inner {
+      max-width: 1100px; margin: 0 auto;
+      text-align: center;
+    }
+    .v-ai-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-bottom: 16px;
+    }
+    .v-ai-badge img { height: 32px; }
+    .v-ai-section h2 {
+      font-size: 40px; font-weight: 500; color: var(--v-navy);
+      margin-bottom: 16px; line-height: 1.2;
+    }
+    .v-ai-section h2 span { color: var(--v-blue); }
+    .v-ai-desc {
+      color: var(--v-gray); font-size: 16px; max-width: 600px;
+      margin: 0 auto 24px; line-height: 1.6;
+    }
+    .v-learn-more {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--v-blue); color: var(--v-white);
+      font-size: 16px; font-weight: 600; padding: 12px 28px;
+      border-radius: 12px; border: none;
+      text-decoration: none; cursor: pointer;
+    }
+    .v-learn-more:hover { background: #0a4fdd; }
+    .v-ai-content {
+      display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px;
+      margin-top: 48px; text-align: left; align-items: center;
+    }
+    .v-ai-img {
+      width: 100%; border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    }
+    .v-ai-features h3 {
+      font-size: 18px; font-weight: 600; color: var(--v-navy);
+      margin-bottom: 16px;
+    }
+    .v-ai-features ul {
+      list-style: disc; padding-left: 20px;
+      color: var(--v-gray); font-size: 15px; line-height: 2;
+    }
+    .v-ai-quote {
+      margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--v-border);
+    }
+    .v-ai-quote img { height: 40px; margin-bottom: 12px; }
+    .v-ai-quote blockquote {
+      font-size: 16px; color: var(--v-blue); font-weight: 500;
+      font-style: italic; line-height: 1.6; margin-bottom: 8px;
+    }
+    .v-ai-quote cite { font-size: 13px; color: var(--v-gray); font-style: normal; }
+
+    /* ── Awards Section ── */
+    .v-awards {
+      background: var(--v-white); padding: 60px 40px;
+    }
+    .v-awards-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    }
+    .v-award-card {
+      background: var(--v-light-bg); border-radius: 16px; overflow: hidden;
+      text-decoration: none; color: var(--v-navy); transition: transform 0.2s;
+    }
+    .v-award-card:hover { transform: translateY(-4px); }
+    .v-award-card img { width: 100%; height: 200px; object-fit: cover; }
+    .v-award-card h3 {
+      font-size: 16px; font-weight: 600; padding: 20px 20px 4px;
+      line-height: 1.4;
+    }
+    .v-award-card p {
+      font-size: 13px; color: var(--v-blue); font-weight: 600;
+      padding: 0 20px 20px;
+    }
+
+    /* ── Platform Section ── */
+    .v-platform {
+      background: var(--v-light-bg); padding: 80px 40px;
+    }
+    .v-platform-inner { max-width: 1100px; margin: 0 auto; text-align: center; }
+    .v-platform h2 {
+      font-size: 40px; font-weight: 500; color: var(--v-navy);
+      margin-bottom: 12px;
+    }
+    .v-platform-desc {
+      color: var(--v-gray); font-size: 16px; max-width: 700px;
+      margin: 0 auto 40px; line-height: 1.6;
+    }
+    .v-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+    .v-tab {
+      padding: 10px 20px; border-radius: 24px; border: 1px solid var(--v-border);
+      background: var(--v-white); color: var(--v-navy); font-size: 14px;
+      font-weight: 500; cursor: pointer; transition: all 0.15s;
+    }
+    .v-tab:hover { border-color: var(--v-blue); }
+    .v-tab.active { background: var(--v-navy); color: var(--v-white); border-color: var(--v-navy); }
+    .v-tab-content {
+      display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px;
+      text-align: left; align-items: center;
+    }
+    .v-tab-text h3 {
+      font-size: 15px; font-weight: 600; color: var(--v-navy);
+      margin-bottom: 12px;
+    }
+    .v-tab-text p {
+      color: var(--v-gray); font-size: 14px; line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .v-tab-text ul {
+      list-style: none; padding: 0;
+    }
+    .v-tab-text ul li {
+      font-size: 14px; color: var(--v-gray); padding: 6px 0;
+      line-height: 1.5;
+    }
+    .v-tab-text ul li strong { color: var(--v-navy); }
+    .v-tab-img { width: 100%; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+
+    /* ── Trusted By ── */
+    .v-trusted {
+      background: var(--v-white); padding: 60px 40px; text-align: center;
+    }
+    .v-trusted h2 {
+      font-size: 32px; font-weight: 500; color: var(--v-navy);
+      margin-bottom: 40px;
+    }
+    .v-logos {
+      display: flex; gap: 48px; justify-content: center; align-items: center;
+      flex-wrap: wrap; opacity: 0.5;
+    }
+    .v-logos img { height: 28px; filter: grayscale(1); }
+
+    /* ── Final CTA ── */
+    .v-final-cta {
+      background: radial-gradient(400% 240% at 50% 100%, #fff, #fff 10%, #c7c5fd 16%, rgba(154,103,250,0.6) 17%, #264cab 28%, var(--v-hero-dark) 45%, var(--v-hero-dark));
+      text-align: center; padding: 80px 40px;
+    }
+    .v-final-cta h2 {
+      font-size: 40px; font-weight: 500; color: var(--v-white);
+      margin-bottom: 24px;
+    }
+    .v-final-ctas { display: flex; gap: 12px; justify-content: center; }
+
+    /* ── Footer ── */
+    .v-footer {
+      background: var(--v-navy); color: rgba(255,255,255,0.7);
+      padding: 60px 40px 32px; font-size: 13px;
+    }
+    .v-footer-inner { max-width: 1100px; margin: 0 auto; }
+    .v-footer-top {
+      display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 40px;
+      margin-bottom: 40px;
+    }
+    .v-footer-brand { display: flex; flex-direction: column; gap: 16px; }
+    .v-footer-brand img { height: 24px; align-self: flex-start; }
+    .v-footer-col h4 {
+      color: var(--v-white); font-size: 14px; font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .v-footer-col a {
+      display: block; color: rgba(255,255,255,0.6); text-decoration: none;
+      font-size: 13px; padding: 3px 0; transition: color 0.15s;
+    }
+    .v-footer-col a:hover { color: var(--v-white); }
+    .v-footer-social { display: flex; gap: 16px; margin-top: 8px; }
+    .v-footer-social a { display: flex; }
+    .v-footer-social img { height: 20px; opacity: 0.6; transition: opacity 0.15s; }
+    .v-footer-social a:hover img { opacity: 1; }
+    .v-footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .v-footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+    .v-footer-links a {
+      color: rgba(255,255,255,0.5); text-decoration: none; font-size: 12px;
+      transition: color 0.15s;
+    }
+    .v-footer-links a:hover { color: var(--v-white); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .v-hero h1 { font-size: 32px; }
+      .v-hero-ctas { flex-direction: column; align-items: center; }
+      .v-ai-content { grid-template-columns: 1fr; }
+      .v-awards-inner { grid-template-columns: 1fr; }
+      .v-tab-content { grid-template-columns: 1fr; }
+      .v-footer-top { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Hero + Header ── -->
+  <div class="v-hero">
+    <header class="v-header" id="siteHeader">
+      <div class="v-header-left">
+        <a href="#">
+          <img class="v-logo" src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/logo-zoom-white@2x.png" alt="Zoom">
+        </a>
+        <ul class="v-nav">
+          <li><button type="button">Products</button></li>
+          <li><button type="button">AI</button></li>
+          <li><button type="button">Solutions</button></li>
+          <li><a href="#">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="v-header-right">
+        <a href="#" class="v-header-link">Meet</a>
+        <a href="#" class="v-header-link">Sign In</a>
+        <a href="#" class="v-header-link">Support</a>
+        <a href="#" class="v-btn-outline">Contact Sales</a>
+        <a href="#" class="v-btn-primary">Sign Up Free</a>
+      </div>
+    </header>
+
+    <div class="v-banner">
+      <span>Join the Zoom Scale-UP Summit EMEA - grow with AI Tools</span>
+      <a href="#">Register now</a>
+      <button class="v-banner-close" id="closeBanner">&times;</button>
+    </div>
+
+    <h1>Find out what's possible when work connects</h1>
+    <p class="v-hero-sub">Whether you're chatting with teammates or supporting customers, Zoom makes it easier to connect, collaborate, and reach goals &mdash; all with built-in AI doing the heavy lifting.</p>
+    <div class="v-hero-ctas">
+      <a href="#" class="v-cta-dark" id="exploreProductsBtn">Explore products</a>
+      <a href="#" class="v-cta-light">Find your plan</a>
+    </div>
+
+    <!-- Product Cards -->
+    <div class="v-products">
+      <a href="#" class="v-product-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/meetings.jpg" alt="Meetings" onerror="this.style.background='#264cab'">
+        <span class="v-product-label">Meetings</span>
+      </a>
+      <a href="#" class="v-product-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/AIC.jpg" alt="AI Companion" onerror="this.style.background='#264cab'">
+        <span class="v-product-label"><img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/icon-aic.svg" alt=""> AI Companion</span>
+      </a>
+      <a href="#" class="v-product-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/my-notes-carousel-2.webp" alt="My Notes" onerror="this.style.background='#264cab'">
+        <span class="v-product-label">My Notes</span>
+      </a>
+      <a href="#" class="v-product-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/phone.jpg" alt="Phone" onerror="this.style.background='#264cab'">
+        <span class="v-product-label">Phone</span>
+      </a>
+      <a href="#" class="v-product-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/whiteboard.jpg" alt="Whiteboard" onerror="this.style.background='#264cab'">
+        <span class="v-product-label">Whiteboard</span>
+      </a>
+      <a href="#" class="v-product-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/clips.jpg" alt="Clips" onerror="this.style.background='#264cab'">
+        <span class="v-product-label">Clips</span>
+      </a>
+    </div>
+
+    <div class="v-carousel-nav">
+      <button class="v-carousel-btn">&larr;</button>
+      <div class="v-dots">
+        <div class="v-dot active"></div>
+        <div class="v-dot"></div>
+        <div class="v-dot"></div>
+        <div class="v-dot"></div>
+        <div class="v-dot"></div>
+        <div class="v-dot"></div>
+      </div>
+      <button class="v-carousel-btn">&rarr;</button>
+    </div>
+  </div>
+
+  <!-- ── AI Companion Section ── -->
+  <section class="v-ai-section">
+    <div class="v-ai-inner">
+      <div class="v-ai-badge">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/icon-aic.svg" alt="AI">
+      </div>
+      <h2>Introducing <span>Zoom AI Companion 3.0</span></h2>
+      <p class="v-ai-desc">AI Companion does more than save you time. It captures context, uncovers insights, and helps you deliver better work.</p>
+      <a href="#" class="v-learn-more">Learn more</a>
+
+      <div class="v-ai-content">
+        <img class="v-ai-img" src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/collaboration.jpg" alt="AI Companion" onerror="this.style.background='#e8f0ff'">
+        <div class="v-ai-features">
+          <h3>Zoom AI Companion helps by:</h3>
+          <ul>
+            <li>Capturing and summarizing conversations wherever your meeting takes place.</li>
+            <li>Turning meeting notes and insights into ready-to-use docs, briefs, and more.</li>
+            <li>Automating prep, follow-up, and documentation so you can focus on impact.</li>
+          </ul>
+          <div class="v-ai-quote">
+            <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/couch-cork.png" alt="couch + cork" onerror="this.style.display='none'">
+            <blockquote>"It always comes down to 'I want to work on my business, not in my business.' Zoom AI Companion allows me to have that time back to do the work that only I can do."</blockquote>
+            <cite>Nancy Koziol, Founder, couch + cork</cite>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Awards Section ── -->
+  <section class="v-awards">
+    <div class="v-awards-inner">
+      <a href="#" class="v-award-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/gartner-magic-quadrant.webp" alt="Gartner Magic Quadrant" onerror="this.style.background='#e8f0ff'">
+        <h3>A Leader in the Gartner&reg; Magic Quadrant&trade; for UCaaS, Worldwide 2025. 6th year in a row!</h3>
+        <p>Read the report &rarr;</p>
+      </a>
+      <a href="#" class="v-award-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/forrest.jpg" alt="Forrester Wave" onerror="this.style.background='#e8f0ff'">
+        <h3>Zoom named a leader in The Forrester Wave&trade;: UCaaS 2025</h3>
+        <p>Read Forrester report &rarr;</p>
+      </a>
+      <a href="#" class="v-award-card">
+        <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/contact-center.jpg" alt="CCaaS" onerror="this.style.background='#e8f0ff'">
+        <h3>Zoom recognized in the 2025 Gartner&reg; Magic Quadrant&trade; for CCaaS</h3>
+        <p>Explore the report &rarr;</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Platform Section ── -->
+  <section class="v-platform">
+    <div class="v-platform-inner">
+      <h2>One platform. Endless ways to work together.</h2>
+      <p class="v-platform-desc">From client pitches to global all-hands, patient consults to classrooms, Zoom delivers the flexibility and reliability you need. And with AI built in, every interaction is faster, easier, and more productive.</p>
+      <div class="v-tabs">
+        <button class="v-tab active">Collaboration</button>
+        <button class="v-tab">Customer support</button>
+        <button class="v-tab">Marketing</button>
+        <button class="v-tab">Sales</button>
+        <button class="v-tab">Employee engagement</button>
+      </div>
+      <div class="v-tab-content">
+        <div class="v-tab-text">
+          <p>AI-first UCaaS for team collaboration lets you work together without friction using Meetings, Chat, Docs, and more, all built into Zoom Workplace.</p>
+          <ul>
+            <li><strong>Unify how teams connect</strong>: Meetings, Phone, Chat, and more are all in one UCaaS platform, so communication feels seamless.</li>
+            <li><strong>Consolidate your tools</strong>: Replace scattered apps with an all-in-one solution that saves time, reduces costs, and keeps work in sync.</li>
+            <li><strong>Support hybrid and remote work</strong>: Keep even global teams engaged with reliable video conferencing, persistent chat, shared docs, and more.</li>
+            <li><strong>Do more with AI</strong>: Built-in AI summarizes meetings, drafts follow-ups, and shares next steps, so your team spends more time creating.</li>
+          </ul>
+          <a href="#" class="v-cta-dark" style="margin-top: 16px;">Get started</a>
+        </div>
+        <img class="v-tab-img" src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/collaboration.jpg" alt="Collaboration" onerror="this.style.background='#e8f0ff'">
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Trusted By ── -->
+  <section class="v-trusted">
+    <h2>Trusted by millions. Built for you.</h2>
+    <div class="v-logos">
+      <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/nt.jpg" alt="The New York Times" onerror="this.style.display='none'">
+      <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/mf.jpg" alt="Moffitt" onerror="this.style.display='none'">
+      <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/exm.jpg" alt="ExxonMobil" onerror="this.style.display='none'">
+      <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/co.jpg" alt="Capital One" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <!-- ── Final CTA ── -->
+  <section class="v-final-cta">
+    <h2>See what Zoom can do for your business</h2>
+    <div class="v-final-ctas">
+      <a href="#" class="v-cta-dark" style="background: var(--v-blue);">Get started today</a>
+      <a href="#" class="v-cta-light" style="color: var(--v-white); border-color: rgba(255,255,255,0.3); background: transparent;">Find your plan</a>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer class="v-footer">
+    <div class="v-footer-inner">
+      <div class="v-footer-top">
+        <div class="v-footer-brand">
+          <img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/logo-zoom-white@2x.png" alt="Zoom">
+          <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px;">Download Center<br><span style="font-size: 11px;">Get the most out of Zoom</span></a>
+          <div class="v-footer-social">
+            <a href="#"><img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/social-linkedin.svg" alt="LinkedIn"></a>
+            <a href="#"><img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/twitter-x.svg" alt="X"></a>
+            <a href="#"><img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/social-youtube.svg" alt="YouTube"></a>
+            <a href="#"><img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/social-facebook.svg" alt="Facebook"></a>
+            <a href="#"><img src="https://st1.zoom.us/homepage/20260413-1449/primary/dist/assets/zoommedia/social-instagram.svg" alt="Instagram"></a>
+          </div>
+          <div style="font-size: 12px; margin-top: 8px;">
+            Get in touch<br>
+            <a href="#" style="color: rgba(255,255,255,0.7); text-decoration: none;">1.888.799.9666</a>
+          </div>
+        </div>
+        <div class="v-footer-col">
+          <h4>About</h4>
+          <a href="#">Zoom Blog</a>
+          <a href="#">Customers</a>
+          <a href="#">Our Team</a>
+          <a href="#">Careers</a>
+          <a href="#">Integrations</a>
+          <a href="#">Partners</a>
+          <a href="#">Investors</a>
+          <a href="#">Press</a>
+        </div>
+        <div class="v-footer-col">
+          <h4>Download</h4>
+          <a href="#">Zoom Workplace App</a>
+          <a href="#">Zoom Rooms App</a>
+          <a href="#">Browser Extension</a>
+          <a href="#">Outlook Plug-in</a>
+          <a href="#">iPhone/iPad App</a>
+          <a href="#">Android App</a>
+        </div>
+        <div class="v-footer-col">
+          <h4>Sales</h4>
+          <a href="#">1.888.799.9666</a>
+          <a href="#">Contact Sales</a>
+          <a href="#">Plans &amp; Pricing</a>
+          <a href="#">Request a Demo</a>
+          <a href="#">Webinars and Events</a>
+        </div>
+        <div class="v-footer-col">
+          <h4>Support</h4>
+          <a href="#">Test Zoom</a>
+          <a href="#">Account</a>
+          <a href="#">Support Center</a>
+          <a href="#">Learning Center</a>
+          <a href="#">Zoom Community</a>
+          <a href="#">Feedback</a>
+          <a href="#">Contact Us</a>
+          <a href="#">Accessibility</a>
+        </div>
+      </div>
+      <div class="v-footer-bottom">
+        <span>Copyright &copy;2026 Zoom Communications, Inc. All rights reserved.</span>
+        <div class="v-footer-links">
+          <a href="#">Terms</a>
+          <a href="#">Privacy</a>
+          <a href="#">Trust Center</a>
+          <a href="#">Acceptable Use Guidelines</a>
+          <a href="#">Legal &amp; Compliance</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var header = document.getElementById('siteHeader');
+    window.addEventListener('scroll', function() {
+      header.classList.toggle('scrolled', window.scrollY > 10);
+    });
+
+    var banner = document.getElementById('closeBanner');
+    if (banner) {
+      banner.addEventListener('click', function() {
+        banner.parentElement.style.display = 'none';
+      });
+    }
+
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(0,3,29,0.92);color:#fff;padding:14px 24px;border-radius:12px;font-size:14px;z-index:10000;opacity:0;transform:translateY(20px);transition:opacity 0.3s,transform 0.3s;max-width:400px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.3);';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function() { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+      setTimeout(function() { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(function() { toast.remove(); }, 300); }, 6000);
+    }
+
+    function triggerInquiry(el) {
+      if (el._inquiryRunning) return;
+      el._inquiryRunning = true;
+      var origText = el.textContent;
+      el.style.pointerEvents = 'none';
+      el.textContent = 'Loading...';
+      fetch('/api/d5fc3172/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-ac3b347fc517433ab7593cfec928b14d'
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) { if (data.error) showToast(data.error); })
+      .catch(function() { showToast('An unexpected error occurred'); })
+      .finally(function() { el.textContent = origText; el.style.pointerEvents = ''; el._inquiryRunning = false; });
+    }
+
+    document.querySelectorAll('a[href="#"], button:not(#closeBanner):not(.v-banner-close)').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        triggerInquiry(el);
+      });
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
