@@ -82,7 +82,7 @@ async function processRebalance(data) {
     requestId,
     riskProfile: data.riskProfile,
     contributionRate: data.contributionRate,
-    service: 'customer-a30498ae-api',
+    service: 'a30498ae-api',
   });
 
   try {
