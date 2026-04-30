@@ -133,7 +133,7 @@ async function processRebalance(data) {
     Sentry.captureException(error, {
       tags: {
         route: '/api/a30498ae/rebalance',
-        service: 'customer-a30498ae-api',
+        service: 'a30498ae-api',
         riskProfile: data.riskProfile,
       },
       extra: {
@@ -152,12 +152,11 @@ async function processRebalance(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      service: 'customer-a30498ae-api',
+      service: 'a30498ae-api',
       verticalLabel: '401k Rebalance',
-      customer: 'a30498ae',
       tags: [
         { key: 'route', value: '/api/a30498ae/rebalance' },
-        { key: 'service', value: 'customer-a30498ae-api' },
+        { key: 'service', value: 'a30498ae-api' },
         { key: 'riskProfile', value: data.riskProfile },
       ],
       extra: { requestId, riskProfile: data.riskProfile, contributionRate: data.contributionRate },
@@ -168,7 +167,7 @@ async function processRebalance(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-a30498ae@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'a30498ae@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
