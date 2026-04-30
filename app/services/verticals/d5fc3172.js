@@ -89,7 +89,7 @@ function buildDeploymentPlan(licensing, plan, bundle) {
 
   for (const item of bundle) {
     deployment.workspaces.push({
-      addon: item.addon,
+      addon: item.name,
       edition: plan.label,
       status: 'pending_activation',
     });
