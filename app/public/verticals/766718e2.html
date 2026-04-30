@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TIAA &mdash; 401(k) Retirement Plan</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tiaa-blue: #14144B; --tiaa-blue-light: #1e1e6e;
+      --tiaa-red: #C8102E; --tiaa-red-light: #e0243f;
+      --tiaa-sky: #0077C8; --tiaa-sky-dim: rgba(0,119,200,0.07);
+      --white: #FFFFFF; --off-white: #F5F6FA; --cream: #FAFBFD;
+      --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+      --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --sans: 'Libre Franklin', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: var(--tiaa-blue); color: rgba(255,255,255,0.6); font-size: 0.7rem; padding: 0.4rem 2rem; display: flex; justify-content: flex-end; gap: 1.5rem; }
+    .top-bar a { color: rgba(255,255,255,0.6); text-decoration: none; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 68px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+    .logo { font-family: var(--sans); font-size: 1.4rem; font-weight: 800; color: var(--tiaa-blue); display: flex; align-items: center; gap: 0.6rem; letter-spacing: -0.03em; }
+    .logo-mark { width: 40px; height: 40px; border-radius: 4px; object-fit: contain; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--gray-600); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: var(--gray-100); color: var(--tiaa-blue); }
+    nav a.active { background: var(--tiaa-blue); color: #fff; }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--tiaa-sky); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--tiaa-blue); }
+    .greeting { margin-bottom: 1.75rem; }
+    .greeting h1 { font-family: var(--sans); font-size: 1.6rem; font-weight: 700; color: var(--tiaa-blue); margin-bottom: 0.15rem; }
+    .greeting p { color: var(--gray-500); font-size: 0.9rem; }
+
+    .summary-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+    @media (max-width: 700px) { .summary-bar { grid-template-columns: 1fr; } }
+    .summary-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow 0.3s; }
+    .summary-card:hover { box-shadow: var(--shadow-md); }
+    .summary-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--tiaa-blue), var(--tiaa-red)); }
+    .summary-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--tiaa-sky); margin-bottom: 0.6rem; }
+    .summary-value { font-family: var(--sans); font-size: 2rem; font-weight: 700; color: var(--tiaa-blue); margin-bottom: 0.2rem; }
+    .summary-sub { font-size: 0.78rem; color: var(--gray-400); }
+
+    .section-header { font-family: var(--sans); font-size: 1.15rem; font-weight: 700; color: var(--tiaa-blue); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--tiaa-red); display: inline-block; }
+    .fund-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 2rem; }
+    .fund-table { width: 100%; border-collapse: collapse; }
+    .fund-table thead { background: var(--gray-50); }
+    .fund-table th { text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); }
+    .fund-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--gray-100); font-size: 0.88rem; }
+    .fund-table tbody tr:hover td { background: var(--tiaa-sky-dim); }
+    .fund-table tbody tr:last-child td { border-bottom: none; }
+    .return-pos { color: var(--success); font-weight: 600; }
+    .return-neg { color: var(--danger); font-weight: 600; }
+
+    .rebalance-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 2rem; max-width: 580px; }
+    .rebalance-card h2 { font-family: var(--sans); font-size: 1.15rem; font-weight: 700; color: var(--tiaa-blue); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--tiaa-red); display: inline-block; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.35rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.65rem 0.85rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-800); font-family: var(--sans); font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--tiaa-blue); box-shadow: 0 0 0 3px rgba(20,20,75,0.08); }
+    .btn-rebalance { width: 100%; padding: 0.8rem; background: var(--tiaa-blue); color: #fff; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-rebalance:hover { background: var(--tiaa-blue-light); transform: translateY(-1px); }
+    .btn-rebalance:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+    .disclaimer { margin-top: 1.5rem; padding: 0.75rem 1rem; background: var(--cream); border-left: 3px solid var(--tiaa-red); font-size: 0.78rem; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+  <div class="top-bar"><a href="#">Retirement Plans</a><a href="#">Advice &amp; Planning</a><a href="#">Support</a></div>
+  <header>
+    <div class="logo"><img class="logo-mark" src="https://www.tiaa.org/content/dam/tiaa/global/logo/tiaa_apple_icon_180.png" alt="TIAA" onerror="this.onerror=null;this.style.display='none';">TIAA 401(k)</div>
+    <nav><a href="#" class="active">My Plan</a><a href="#">Investments</a><a href="#">Contributions</a><a href="#">Tools</a><a href="#">Documents</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+    <div class="greeting fade-in d1">
+      <h1>Welcome back, Michael Torres</h1>
+      <p>Employer Plan: Acme University &middot; Plan ID 401K-7892 &middot; Enrolled since 2018</p>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-card fade-in d2">
+        <div class="summary-label">Total Balance</div>
+        <div class="summary-value" id="totalBalance">$269,902.20</div>
+        <div class="summary-sub">As of Apr 30, 2026</div>
+      </div>
+      <div class="summary-card fade-in d2">
+        <div class="summary-label">YTD Return</div>
+        <div class="summary-value" style="color: var(--success);">+5.7%</div>
+        <div class="summary-sub">+$14,530.12 year to date</div>
+      </div>
+      <div class="summary-card fade-in d2">
+        <div class="summary-label">Contribution Rate</div>
+        <div class="summary-value">10%</div>
+        <div class="summary-sub">6% employer match (100% vested)</div>
+      </div>
+    </div>
+    <div class="fade-in d3">
+      <div class="section-header">Fund Holdings</div>
+      <div class="fund-card">
+        <table class="fund-table">
+          <thead><tr><th>Fund</th><th>Ticker</th><th>Category</th><th>Balance</th><th>YTD Return</th></tr></thead>
+          <tbody id="fundTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="fade-in d4">
+      <div class="rebalance-card">
+        <h2>Rebalance Portfolio</h2>
+        <form id="rebalanceForm">
+          <div class="form-group">
+            <label>Account</label>
+            <select id="accountId">
+              <option value="ACCT-401K-7892">401(k) &mdash; Plan 7892</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Risk Profile</label>
+            <select id="riskProfile">
+              <option value="moderate">Moderate &mdash; Balanced Growth</option>
+              <option value="aggressive">Aggressive &mdash; Maximum Growth</option>
+              <option value="conservative">Conservative &mdash; Capital Preservation</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-rebalance" id="submitBtn">Rebalance Portfolio</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="disclaimer">Investment, insurance, and annuity products are not FDIC insured, are not bank guaranteed, are not deposits, are not insured by any federal government agency, are not a condition to any banking service or activity, and may lose value.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.lockEmail && cfg.defaultEmail) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (async function loadFunds() {
+      try {
+        const res = await fetch('/api/766718e2/funds');
+        const data = await res.json();
+        const tbody = document.getElementById('fundTableBody');
+        data.funds.forEach(function (f) {
+          const retClass = f.returnYTD >= 0 ? 'return-pos' : 'return-neg';
+          const retSign = f.returnYTD >= 0 ? '+' : '';
+          const row = document.createElement('tr');
+          row.innerHTML = '<td>' + f.name + '</td><td>' + f.ticker + '</td><td>' + f.category + '</td><td>$' + f.balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) + '</td><td class="' + retClass + '">' + retSign + f.returnYTD + '%</td>';
+          tbody.appendChild(row);
+        });
+      } catch (e) { /* silent */ }
+    })();
+
+    document.getElementById('rebalanceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/766718e2/rebalance', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: document.getElementById('accountId').value, riskProfile: document.getElementById('riskProfile').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Rebalance Failed</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Rebalance Complete</div><div class="error-detail">Plan ' + data.planId + ' submitted for ' + data.riskProfile + ' profile</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.textContent = 'Rebalance Portfolio'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
