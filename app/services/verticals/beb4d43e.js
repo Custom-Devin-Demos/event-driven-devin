@@ -77,7 +77,7 @@ function getRoomAvailability(propertyCode) {
 function computeBookingMetrics(rooms, propertyCode) {
   const availability = getRoomAvailability(propertyCode);
   return rooms.map((room) => {
-    const adjustedRate = room.nightlyRate * availability.capacity.available;
+    const adjustedRate = room.nightlyRate * availability.inventory.available;
     const belowThreshold = room.available < 5;
     return {
       sku: room.sku,
@@ -95,7 +95,7 @@ function calculateStayEstimate(bookingMetrics, tierConfig, propertyCode) {
   const availability = getRoomAvailability(propertyCode);
   const results = bookingMetrics.map((metric) => {
     const discountedRate = metric.adjustedRate * tierConfig.discountFactor;
-    const seasonalRate = discountedRate * availability.capacity.reserved;
+    const seasonalRate = discountedRate * availability.inventory.reserved;
     const totalEstimate = seasonalRate + (metric.nightlyRate * tierConfig.surcharge);
 
     return {
