@@ -79,7 +79,7 @@ const VERTICALS = [
   { id: 'healthcare', name: 'Health Care', brand: 'CarePoint Health', path: '/healthcare', icon: '\u{1F3E5}', color: '#06D6A0' },
   { id: 'telco', name: 'Telco', brand: 'WaveConnect', path: '/telco', icon: '\u{1F4F1}', color: '#118AB2' },
   { id: '8de4a567', name: 'Financial Technology', brand: 'FinScore', path: '/8de4a567', icon: '\u{1F4B3}', color: '#008751' },
-  { id: 'a30498ae', name: 'Retirement Services', brand: 'Vanguard', path: '/a30498ae', icon: '\u{1F4B0}', color: '#96151D' },
+
 ];
 
 /**
