@@ -73,7 +73,7 @@ function computeRecruitmentMetrics(roles, divisionCode) {
   const metrics = getDivisionMetrics(divisionCode);
   return roles.map((role) => {
     const demandScore = role.compensation / metrics.staffing.totalHeadcount;
-    const isUrgent = demandScore > 0.01;
+    const isUrgent = demandScore > 30;
     return {
       roleId: role.id,
       title: role.title,
@@ -238,7 +238,7 @@ async function runInquiry(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'acme-checkout@1.0.2',
+      release: process.env.SENTRY_RELEASE || 'customer-89c1f355-careers@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
