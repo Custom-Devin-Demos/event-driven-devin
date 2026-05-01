@@ -77,6 +77,14 @@ describe('89c1f355 — Recruitment Inquiry', () => {
     it('should handle null division gracefully', async () => {
       await expect(runInquiry({ division: null })).rejects.toThrow();
     });
+
+    it('should handle operations division with no roles without NaN', async () => {
+      const result = await runInquiry({ division: 'operations' });
+      expect(result.divisionCode).toBe('operations');
+      expect(result.roles).toEqual([]);
+      expect(Number.isFinite(result.pipeline.avgDemandScore)).toBe(true);
+      expect(result.pipeline.avgDemandScore).toBe(0);
+    });
   });
 
   describe('DIVISIONS', () => {

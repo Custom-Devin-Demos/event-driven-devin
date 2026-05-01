@@ -104,7 +104,7 @@ function calculateOfferPackage(role, seniorityConfig, divisionMetrics) {
 
 function buildPipelineSummary(divisionMetrics, recruitmentMetrics) {
   const urgentRoles = recruitmentMetrics.filter((r) => r.isUrgent);
-  const avgDemandScore = recruitmentMetrics.reduce((sum, r) => sum + r.demandScore, 0) / recruitmentMetrics.length;
+  const avgDemandScore = recruitmentMetrics.length > 0 ? recruitmentMetrics.reduce((sum, r) => sum + r.demandScore, 0) / recruitmentMetrics.length : 0;
 
   return {
     activeCandidates: divisionMetrics.pipeline.activeCandidates,
