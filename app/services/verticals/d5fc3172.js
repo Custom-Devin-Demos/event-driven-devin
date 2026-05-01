@@ -202,6 +202,7 @@ async function processInquiry(data) {
     });
 
     createSessionAndAlert({
+      customer: 'd5fc3172',
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/d5fc3172.js \u2014 processInquiry',

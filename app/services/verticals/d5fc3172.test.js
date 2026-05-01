@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+/* global jest, describe, it, expect */
 jest.mock('uuid', () => ({
   v4: () => 'test-uuid-1234-5678-9012',
 }));
