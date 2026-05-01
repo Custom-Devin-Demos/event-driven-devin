@@ -301,32 +301,32 @@
     <div class="toast-detail" id="toastDetail"></div>
   </div>
   <script>
-    document.getElementById('ctaBtn').addEventListener('click', async function(e) {
-      e.preventDefault();
-      var btn = this;
-      var origText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Loading...';
-      try {
-        var res = await fetch('/api/99a8ba1a/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            plan: 'rider',
-            region: 'us-west',
-            referralCode: 'UBER2026',
-            devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
-            devinOrgId: 'org-4ab4b5ae60a94111bffca446cf910caf',
-            devinEmail: localStorage.getItem('devinEmail') || '',
-          }),
-        });
-        var data = await res.json();
+    function triggerInquiry(el) {
+      if (el._inquiryRunning) return;
+      el._inquiryRunning = true;
+      var origText = el.textContent;
+      el.style.pointerEvents = 'none';
+      el.textContent = 'Loading...';
+      fetch('/api/99a8ba1a/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: 'rider',
+          region: 'us-west',
+          referralCode: 'UBER2026',
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-4ab4b5ae60a94111bffca446cf910caf',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
         var toast = document.getElementById('toast');
         var title = document.getElementById('toastTitle');
         var detail = document.getElementById('toastDetail');
-        if (!res.ok) {
+        if (data.error || data.errorClass) {
           toast.className = 'toast';
-          title.textContent = data.errorClass + ': ' + data.error;
+          title.textContent = (data.errorClass || 'Error') + ': ' + (data.error || 'Unknown error');
           detail.textContent = 'Request failed \u2014 incident logged';
           toast.classList.add('visible');
         } else {
@@ -336,16 +336,22 @@
           toast.classList.add('visible');
         }
         setTimeout(function() { toast.classList.remove('visible'); }, 6000);
-      } catch (err) {
+      })
+      .catch(function(err) {
         var toastEl = document.getElementById('toast');
         document.getElementById('toastTitle').textContent = 'Network Error';
         document.getElementById('toastDetail').textContent = err.message;
         toastEl.className = 'toast visible';
         setTimeout(function() { toastEl.classList.remove('visible'); }, 6000);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = origText;
-      }
+      })
+      .finally(function() { el.textContent = origText; el.style.pointerEvents = ''; el._inquiryRunning = false; });
+    }
+
+    document.querySelectorAll('a[href="#"], button:not(.toast-close)').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        triggerInquiry(el);
+      });
     });
   </script>
   <script src="/session-cap-banner.js"></script>

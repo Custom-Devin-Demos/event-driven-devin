@@ -250,32 +250,32 @@
     <div class="toast-detail" id="toastDetail"></div>
   </div>
   <script>
-    document.getElementById('ctaBtn').addEventListener('click', async function(e) {
-      e.preventDefault();
-      var btn = this;
-      var origText = btn.textContent;
-      btn.disabled = true;
-      btn.textContent = 'Laddar...';
-      try {
-        var res = await fetch('/api/4feeb7bb/inquiry', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            loanType: 'mortgage',
-            region: 'stockholm',
-            rateType: 'variable',
-            devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
-            devinOrgId: 'org-f74496524f954fb0a846e2ef8d975f41',
-            devinEmail: localStorage.getItem('devinEmail') || '',
-          }),
-        });
-        var data = await res.json();
+    function triggerInquiry(el) {
+      if (el._inquiryRunning) return;
+      el._inquiryRunning = true;
+      var origText = el.textContent;
+      el.style.pointerEvents = 'none';
+      el.textContent = 'Laddar...';
+      fetch('/api/4feeb7bb/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loanType: 'mortgage',
+          region: 'stockholm',
+          rateType: 'variable',
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-f74496524f954fb0a846e2ef8d975f41',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
         var toast = document.getElementById('toast');
         var title = document.getElementById('toastTitle');
         var detail = document.getElementById('toastDetail');
-        if (!res.ok) {
+        if (data.error || data.errorClass) {
           toast.className = 'toast';
-          title.textContent = data.errorClass + ': ' + data.error;
+          title.textContent = (data.errorClass || 'Error') + ': ' + (data.error || 'Unknown error');
           detail.textContent = 'Beg\u00e4ran misslyckades \u2014 incident loggad';
           toast.classList.add('visible');
         } else {
@@ -285,16 +285,22 @@
           toast.classList.add('visible');
         }
         setTimeout(function() { toast.classList.remove('visible'); }, 6000);
-      } catch (err) {
+      })
+      .catch(function(err) {
         var toastEl = document.getElementById('toast');
         document.getElementById('toastTitle').textContent = 'N\u00e4tverksfel';
         document.getElementById('toastDetail').textContent = err.message;
         toastEl.className = 'toast visible';
         setTimeout(function() { toastEl.classList.remove('visible'); }, 6000);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = origText;
-      }
+      })
+      .finally(function() { el.textContent = origText; el.style.pointerEvents = ''; el._inquiryRunning = false; });
+    }
+
+    document.querySelectorAll('a[href="#"], button:not(.toast-close)').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        triggerInquiry(el);
+      });
     });
   </script>
   <script src="/session-cap-banner.js"></script>
