@@ -89,7 +89,7 @@ function computeOnboardingPackage(plan, region, promo) {
 
   packageDetails.allocationTier = riderTier;
   packageDetails.regionScore = allocationScore;
-  packageDetails.capacityRemaining = regionCapacity.onboarding.remaining;
+  packageDetails.capacityRemaining = regionCapacity.remaining;
 
   return packageDetails;
 }
@@ -221,4 +221,4 @@ async function processSignup(data) {
   }
 }
 
-module.exports = { processSignup, REGIONS, PLANS };
+module.exports = { processSignup, computeOnboardingPackage, checkSignupCapacity, REGIONS, PLANS };
