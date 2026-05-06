@@ -98,7 +98,7 @@ function buildPrompt(alertData) {
  */
 async function createSessionAndAlert(alertData) {
   try {
-    const prompt = buildPrompt(alertData);
+    let prompt = buildPrompt(alertData);
 
     // Resolve per-customer Devin configuration
     const config = getCustomerConfig(alertData.customer);
@@ -122,6 +122,13 @@ async function createSessionAndAlert(alertData) {
     if (!threadTs) {
       logger.warn('Alert post returned no thread timestamp — cannot trigger Devin reply');
       return null;
+    }
+
+    // Append Slack thread context to the prompt so Devin can post investigation
+    // findings back to the alert thread using curl + SLACK_BOT_TOKEN.
+    const slackChannel = process.env.SLACK_CHANNEL_ID || '';
+    if (slackChannel && threadTs) {
+      prompt += `\n\n*Slack Thread:* channel=${slackChannel} thread_ts=${threadTs}`;
     }
 
     // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
