@@ -152,6 +152,7 @@ async function createSessionAndAlert(alertData) {
         apiKey: config.apiKey,
         orgId: resolvedOrgId,
         userId: resolvedUserId,
+        playbookId: config.playbookId,
       });
 
       if (session) {
