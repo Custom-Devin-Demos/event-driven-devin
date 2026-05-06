@@ -82,6 +82,7 @@ function resolveServiceAuth(options = {}) {
  * @param {string} [options.apiKey] - Override the default service key
  * @param {string} [options.orgId] - Override the default org ID (for multi-org support)
  * @param {string} [options.userId] - Devin user ID to create the session as
+ * @param {string} [options.playbookId] - Playbook ID to attach to the session
  * @returns {Object|null} - { sessionId, url } or null if failed/not configured
  */
 async function createDevinSession(prompt, options = {}) {
@@ -99,6 +100,11 @@ async function createDevinSession(prompt, options = {}) {
 
   try {
     const body = { prompt };
+
+    // Attach playbook so Devin follows the structured investigation workflow
+    if (options.playbookId) {
+      body.playbook_id = options.playbookId;
+    }
 
     // Create session on behalf of a specific user so it appears in their account
     if (options.userId) {
@@ -124,6 +130,7 @@ async function createDevinSession(prompt, options = {}) {
       sessionId,
       url,
       userId: options.userId || 'service-user',
+      playbookId: options.playbookId || 'none',
     });
 
     return { sessionId, url };
