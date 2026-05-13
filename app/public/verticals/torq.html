@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torq &mdash; Security Automation</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #7c3aed; --purple-light: #8b5cf6; --purple-dim: rgba(124,58,237,0.06);
+      --purple-border: rgba(124,58,237,0.15);
+      --bg: #0f0f1a; --bg-card: #1a1a2e; --bg-surface: #16162a;
+      --white: #ffffff; --text: #e2e8f0; --text-muted: #94a3b8;
+      --border: rgba(255,255,255,0.08); --border-hover: rgba(255,255,255,0.15);
+      --green: #10b981; --green-bg: rgba(16,185,129,0.1); --green-border: rgba(16,185,129,0.25);
+      --red: #ef4444; --red-bg: rgba(239,68,68,0.1); --red-border: rgba(239,68,68,0.3);
+      --amber: #f59e0b; --amber-bg: rgba(245,158,11,0.1);
+      --cyan: #06b6d4; --cyan-bg: rgba(6,182,212,0.1);
+      --body: 'Inter', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.2);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; } .fi5 { animation-delay: 0.25s; }
+
+    header { background: var(--bg-surface); border-bottom: 1px solid var(--border); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--purple), var(--purple-light)); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 16px; height: 16px; fill: #fff; }
+    .logo-text { font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: -0.02em; }
+    nav { display: flex; gap: 0.1rem; }
+    nav a { color: var(--text-muted); text-decoration: none; font-size: 0.78rem; font-weight: 500; padding: 0.4rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+    nav a.active { background: var(--purple-dim); color: var(--purple-light); }
+
+    .page { max-width: 1120px; margin: 0 auto; padding: 1.25rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--purple-light); text-decoration: none; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.75rem; }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.65rem; margin-bottom: 1rem; }
+    @media (max-width: 800px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem 1rem; box-shadow: var(--shadow); }
+    .stat-label { font-size: 0.62rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.2rem; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--white); }
+    .stat-value .trend { font-size: 0.65rem; font-weight: 600; margin-left: 0.35rem; }
+    .trend.up { color: var(--green); }
+    .trend.down { color: var(--red); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 1rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .section-title { font-size: 0.82rem; font-weight: 700; color: var(--white); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+    .section-title::before { content: ''; width: 3px; height: 14px; background: var(--purple); border-radius: 2px; }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .card-table { width: 100%; border-collapse: collapse; }
+    .card-table th { text-align: left; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
+    .card-table td { padding: 0.55rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.78rem; }
+    .card-table tbody tr:last-child td { border-bottom: none; }
+    .card-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .wf-name { font-weight: 600; color: var(--white); }
+    .badge { font-size: 0.58rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .badge-critical { color: var(--red); background: var(--red-bg); }
+    .badge-high { color: var(--amber); background: var(--amber-bg); }
+    .badge-medium { color: var(--cyan); background: var(--cyan-bg); }
+    .badge-low { color: var(--green); background: var(--green-bg); }
+    .badge-connected { color: var(--green); background: var(--green-bg); }
+    .badge-active { color: var(--green); background: var(--green-bg); }
+
+    .int-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .int-row:last-child { border-bottom: none; }
+    .int-info { display: flex; flex-direction: column; }
+    .int-name { font-size: 0.78rem; font-weight: 600; color: var(--white); }
+    .int-cat { font-size: 0.62rem; color: var(--text-muted); }
+    .int-events { font-family: var(--mono); font-size: 0.72rem; color: var(--text-muted); }
+
+    .events-feed { max-height: 280px; overflow-y: auto; }
+    .event-item { padding: 0.6rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .event-item:last-child { border-bottom: none; }
+    .event-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.15rem; }
+    .event-source { font-size: 0.65rem; font-weight: 600; color: var(--text-muted); }
+    .event-time { font-size: 0.6rem; font-family: var(--mono); color: var(--text-muted); }
+    .event-summary { font-size: 0.75rem; color: var(--text); }
+
+    .run-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+    .run-card h2 { font-size: 0.88rem; font-weight: 700; color: var(--white); margin-bottom: 0.85rem; }
+    .form-group { margin-bottom: 0.65rem; }
+    .form-group label { display: block; font-size: 0.65rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-group select { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--body); font-size: 0.8rem; color: var(--text); background: var(--bg-surface); transition: border-color 0.2s; }
+    .form-group select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 2px rgba(124,58,237,0.15); }
+    .btn-run { width: 100%; padding: 0.6rem; background: linear-gradient(135deg, var(--purple), var(--purple-light)); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 700; font-family: var(--body); cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; }
+    .btn-run:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-run:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 0.5rem; padding: 0.55rem 0.7rem; border-radius: 6px; font-size: 0.72rem; display: none; }
+    .result-box.error { display: block; background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); }
+    .result-box.success { display: block; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+    .result-box .error-title { font-weight: 800; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.62rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 0.75rem; padding: 0.45rem 0.65rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; font-size: 0.6rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div class="logo-text">Torq</div>
+    </div>
+    <nav>
+      <a href="#" class="active">Workflows</a>
+      <a href="#">Cases</a>
+      <a href="#">Integrations</a>
+      <a href="#">Analytics</a>
+      <a href="#">Settings</a>
+    </nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+
+    <div class="stats-row fi fi1">
+      <div class="stat-card">
+        <div class="stat-label">Active Workflows</div>
+        <div class="stat-value">5 <span class="trend up">+2 this week</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Events Processed (24h)</div>
+        <div class="stat-value">11.4K <span class="trend up">+18%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Response Time</div>
+        <div class="stat-value">1.2s <span class="trend down">-340ms</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Connected Integrations</div>
+        <div class="stat-value">6</div>
+      </div>
+    </div>
+
+    <div class="fi fi2">
+      <div class="section-title">Automation Workflows</div>
+      <div class="card" style="margin-bottom: 1rem;">
+        <table class="card-table">
+          <thead><tr><th>Workflow</th><th>Trigger</th><th>Severity</th><th>Steps</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="wf-name">Phishing Email Triage</td><td style="font-size:0.7rem;color:var(--text-muted)">email_report</td><td><span class="badge badge-high">High</span></td><td>6</td><td><span class="badge badge-active">Active</span></td></tr>
+            <tr><td class="wf-name">Suspicious Login Enrichment</td><td style="font-size:0.7rem;color:var(--text-muted)">siem_alert</td><td><span class="badge badge-critical">Critical</span></td><td>8</td><td><span class="badge badge-active">Active</span></td></tr>
+            <tr><td class="wf-name">Malware Containment</td><td style="font-size:0.7rem;color:var(--text-muted)">edr_detection</td><td><span class="badge badge-critical">Critical</span></td><td>12</td><td><span class="badge badge-active">Active</span></td></tr>
+            <tr><td class="wf-name">Cloud IAM Anomaly Review</td><td style="font-size:0.7rem;color:var(--text-muted)">cspm_alert</td><td><span class="badge badge-medium">Medium</span></td><td>5</td><td><span class="badge badge-active">Active</span></td></tr>
+            <tr><td class="wf-name">Vulnerability Scan Dispatch</td><td style="font-size:0.7rem;color:var(--text-muted)">schedule</td><td><span class="badge badge-low">Low</span></td><td>4</td><td><span class="badge badge-active">Active</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2 fi fi3">
+      <div>
+        <div class="section-title">Connected Integrations</div>
+        <div class="card">
+          <div class="int-row"><div class="int-info"><div class="int-name">CrowdStrike Falcon</div><div class="int-cat">EDR</div></div><div><span class="badge badge-connected">Connected</span></div><div class="int-events">1,247</div></div>
+          <div class="int-row"><div class="int-info"><div class="int-name">Splunk SIEM</div><div class="int-cat">SIEM</div></div><div><span class="badge badge-connected">Connected</span></div><div class="int-events">8,934</div></div>
+          <div class="int-row"><div class="int-info"><div class="int-name">Okta</div><div class="int-cat">Identity</div></div><div><span class="badge badge-connected">Connected</span></div><div class="int-events">562</div></div>
+          <div class="int-row"><div class="int-info"><div class="int-name">AWS Security Hub</div><div class="int-cat">CSPM</div></div><div><span class="badge badge-connected">Connected</span></div><div class="int-events">321</div></div>
+          <div class="int-row"><div class="int-info"><div class="int-name">ServiceNow</div><div class="int-cat">ITSM</div></div><div><span class="badge badge-connected">Connected</span></div><div class="int-events">89</div></div>
+          <div class="int-row"><div class="int-info"><div class="int-name">Slack</div><div class="int-cat">Communication</div></div><div><span class="badge badge-connected">Connected</span></div><div class="int-events">204</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Recent Security Events</div>
+        <div class="card events-feed">
+          <div class="event-item"><div class="event-header"><span class="event-source">Email Gateway &middot; <span class="badge badge-high">High</span></span><span class="event-time">19:22 UTC</span></div><div class="event-summary">Suspicious attachment in email from external sender</div></div>
+          <div class="event-item"><div class="event-header"><span class="event-source">Splunk SIEM &middot; <span class="badge badge-critical">Critical</span></span><span class="event-time">19:18 UTC</span></div><div class="event-summary">Brute-force login attempts detected &mdash; 48 failures in 2 min</div></div>
+          <div class="event-item"><div class="event-header"><span class="event-source">CrowdStrike &middot; <span class="badge badge-critical">Critical</span></span><span class="event-time">19:12 UTC</span></div><div class="event-summary">Cobalt Strike beacon detected on endpoint WS-DEV-0142</div></div>
+          <div class="event-item"><div class="event-header"><span class="event-source">AWS Security Hub &middot; <span class="badge badge-medium">Medium</span></span><span class="event-time">18:55 UTC</span></div><div class="event-summary">S3 bucket policy changed to allow public read access</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fi fi4">
+      <div class="section-title">Execute Workflow</div>
+      <div class="run-card" style="max-width: 520px;">
+        <h2>Run Security Automation</h2>
+        <form id="runForm">
+          <div class="form-group">
+            <label>Workflow</label>
+            <select id="workflowId">
+              <option value="WF-001">Phishing Email Triage</option>
+              <option value="WF-002">Suspicious Login Enrichment</option>
+              <option value="WF-003">Malware Containment</option>
+              <option value="WF-004">Cloud IAM Anomaly Review</option>
+              <option value="WF-005">Vulnerability Scan Dispatch</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Trigger Event</label>
+            <select id="eventId">
+              <option value="EVT-4401">EVT-4401 &mdash; Suspicious attachment from external sender</option>
+              <option value="EVT-4402">EVT-4402 &mdash; Brute-force login attempts (48 failures)</option>
+              <option value="EVT-4403">EVT-4403 &mdash; Cobalt Strike beacon on WS-DEV-0142</option>
+              <option value="EVT-4404">EVT-4404 &mdash; S3 bucket policy changed to public</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-run" id="submitBtn">Execute Workflow</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="security-note">Workflow actions are executed in a sandboxed environment with full audit logging.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('runForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Executing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/torq/execute', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId: document.getElementById('workflowId').value, eventId: document.getElementById('eventId').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Workflow Execution Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Workflow Completed</div><div class="error-detail">${data.workflowName} &mdash; ${data.stepsCompleted} steps &mdash; ${data.status}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Execute Workflow'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
