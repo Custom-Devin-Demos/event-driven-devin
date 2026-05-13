@@ -115,7 +115,7 @@ async function executeWorkflow(data) {
     executionId,
     workflowId: data.workflowId,
     eventId: data.eventId,
-    service: 'torq-api',
+    service: 'threatly-api',
   });
 
   try {
@@ -132,11 +132,11 @@ async function executeWorkflow(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('workflow.execution.success', {
-      route: '/api/torq/execute',
+      route: '/api/threatly/execute',
       workflowId: data.workflowId,
     });
     recordTiming('workflow.execution.latency', duration, {
-      route: '/api/torq/execute',
+      route: '/api/threatly/execute',
     });
 
     return {
@@ -154,11 +154,11 @@ async function executeWorkflow(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('workflow.execution.failure', {
-      route: '/api/torq/execute',
+      route: '/api/threatly/execute',
       errorClass: error.name,
     });
     recordTiming('workflow.execution.latency', duration, {
-      route: '/api/torq/execute',
+      route: '/api/threatly/execute',
       error: 'true',
     });
 
@@ -172,8 +172,8 @@ async function executeWorkflow(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/torq/execute',
-        service: 'torq-api',
+        route: '/api/threatly/execute',
+        service: 'threatly-api',
         workflowId: data.workflowId,
       },
       extra: { executionId, workflowId: data.workflowId, eventId: data.eventId },
@@ -182,17 +182,17 @@ async function executeWorkflow(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/torq.js — executeWorkflow',
+      culprit: 'app/services/verticals/threatly.js — executeWorkflow',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      service: 'torq-api',
+      service: 'threatly-api',
       verticalLabel: 'Workflow Execution',
       tags: [
-        { key: 'route', value: '/api/torq/execute' },
-        { key: 'service', value: 'torq-api' },
+        { key: 'route', value: '/api/threatly/execute' },
+        { key: 'service', value: 'threatly-api' },
       ],
       extra: { executionId, workflowId: data.workflowId, eventId: data.eventId },
       level: 'error',
@@ -202,7 +202,7 @@ async function executeWorkflow(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'torq@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'threatly@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {

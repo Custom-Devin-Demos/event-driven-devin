@@ -1,19 +1,19 @@
 const express = require('express');
-const { executeWorkflow, WORKFLOWS, INTEGRATIONS, EVENTS } = require('../../services/verticals/torq');
+const { executeWorkflow, WORKFLOWS, INTEGRATIONS, EVENTS } = require('../../services/verticals/threatly');
 
 const router = express.Router();
 
 /**
- * GET /api/torq/workflows — returns workflows, integrations, and recent events
+ * GET /api/threatly/workflows — returns workflows, integrations, and recent events
  */
-router.get('/api/torq/workflows', (_req, res) => {
+router.get('/api/threatly/workflows', (_req, res) => {
   res.json({ workflows: WORKFLOWS, integrations: INTEGRATIONS, events: EVENTS });
 });
 
 /**
- * POST /api/torq/execute — execute a security automation workflow
+ * POST /api/threatly/execute — execute a security automation workflow
  */
-router.post('/api/torq/execute', async (req, res) => {
+router.post('/api/threatly/execute', async (req, res) => {
   try {
     const result = await executeWorkflow({
       workflowId: req.body.workflowId || 'WF-001',
