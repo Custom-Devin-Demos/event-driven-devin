@@ -656,11 +656,11 @@
       submitQuery();
     }
 
-    function submitQuery() {
+    async function submitQuery() {
       const input = document.getElementById('queryInput');
       const btn = document.getElementById('queryBtn');
       const result = document.getElementById('queryResult');
-      const query = input.value.trim().toLowerCase();
+      const query = input.value.trim();
       if (!query) return;
 
       btn.disabled = true;
@@ -668,30 +668,42 @@
       result.className = 'query-result';
       result.innerHTML = '';
 
-      setTimeout(() => {
-        const match = NL_RESPONSES[query];
-        if (match) {
-          result.innerHTML = `<h4>${match.title}</h4>${match.html}`;
+      try {
+        const res = await fetch('/api/mars/query', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, region: '', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.innerHTML = `<h4 style="color:#F87171">Query Failed</h4><p style="color:#F87171;font-weight:600">${data.errorClass}: ${data.error}</p>`;
         } else {
-          const keywords = query.split(/\s+/);
-          let found = null;
-          for (const [key, val] of Object.entries(NL_RESPONSES)) {
-            const keyWords = key.split(/\s+/);
-            const overlap = keywords.filter(w => keyWords.includes(w)).length;
-            if (overlap >= 3) { found = val; break; }
-          }
-          if (found) {
-            result.innerHTML = `<h4>${found.title}</h4>${found.html}`;
+          const nlKey = query.toLowerCase();
+          const match = NL_RESPONSES[nlKey];
+          if (match) {
+            result.innerHTML = `<h4>${match.title}</h4>${match.html}`;
           } else {
-            result.innerHTML = `<h4>Query Result</h4><p>Searching across 3 legacy systems (SAP WMS, Oracle TMS, Kinaxis RapidResponse)...</p>
-            <p style="margin-top:0.5rem">Found <strong>1,247 active SKUs</strong> across <strong>6 distribution centers</strong>. Current network fill rate: <strong>96.8%</strong>.</p>
-            <p style="margin-top:0.5rem;color:var(--text-muted);font-size:0.75rem">Try one of the suggested queries above for detailed results, or refine your question.</p>`;
+            const keywords = nlKey.split(/\s+/);
+            let found = null;
+            for (const [key, val] of Object.entries(NL_RESPONSES)) {
+              const keyWords = key.split(/\s+/);
+              const overlap = keywords.filter(w => keyWords.includes(w)).length;
+              if (overlap >= 3) { found = val; break; }
+            }
+            if (found) {
+              result.innerHTML = `<h4>${found.title}</h4>${found.html}`;
+            } else {
+              result.innerHTML = `<h4>Query Result</h4><p>Searching across 3 legacy systems (SAP WMS, Oracle TMS, Kinaxis RapidResponse)...</p>
+              <p style="margin-top:0.5rem">Found <strong>${data.totalDCs} distribution centers</strong>. Network fill rate: <strong>${data.avgFillRate}%</strong>. Active stockouts: <strong>${data.totalStockouts}</strong>.</p>`;
+            }
           }
         }
+      } catch (err) {
+        result.innerHTML = `<h4 style="color:#F87171">Network Error</h4><p style="color:#F87171">${err.message}</p>`;
+      } finally {
         result.className = 'query-result visible';
         btn.disabled = false;
         btn.textContent = 'Ask';
-      }, 800 + Math.random() * 600);
+      }
     }
 
     document.getElementById('queryInput').addEventListener('keydown', (e) => {
