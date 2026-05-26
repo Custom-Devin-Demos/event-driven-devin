@@ -49,6 +49,26 @@ function queryInventory(region) {
 }
 
 /**
+ * Aggregates region-level metrics from the distribution center results.
+ */
+function aggregateRegionMetrics(dcResults) {
+  const totalFillRate = dcResults.reduce((s, r) => s + r.fillRate, 0) / dcResults.length;
+  const totalStockouts = dcResults.reduce((s, r) => s + r.stockouts, 0);
+  return { metrics: { fillRate: Math.round(totalFillRate * 10) / 10, stockouts: totalStockouts, dcCount: dcResults.length } };
+}
+
+/**
+ * Formats the final query response using the aggregated region summary.
+ */
+function formatQuerySummary(aggregated) {
+  return {
+    avgFillRate: aggregated.summary.fillRate,
+    totalStockouts: aggregated.summary.stockouts,
+    totalDCs: aggregated.summary.dcCount,
+  };
+}
+
+/**
  * Process a supply chain query (simulates NL query against legacy systems).
  */
 async function processQuery(queryData) {
@@ -66,6 +86,8 @@ async function processQuery(queryData) {
     await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 100));
 
     const results = queryInventory(queryData.region);
+    const aggregated = aggregateRegionMetrics(results);
+    const summary = formatQuerySummary(aggregated);
 
     const duration = Date.now() - startTime;
 
@@ -82,9 +104,9 @@ async function processQuery(queryData) {
       queryId,
       query: queryData.query,
       results,
-      totalDCs: results.length,
-      avgFillRate: Math.round((results.reduce((s, r) => s + r.fillRate, 0) / results.length) * 10) / 10,
-      totalStockouts: results.reduce((s, r) => s + r.stockouts, 0),
+      totalDCs: summary.totalDCs,
+      avgFillRate: summary.avgFillRate,
+      totalStockouts: summary.totalStockouts,
       processedAt: new Date().toISOString(),
     };
   } catch (error) {
