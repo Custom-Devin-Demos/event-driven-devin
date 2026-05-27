@@ -3,602 +3,441 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Levi Strauss &amp; Co. &mdash; Supply Chain Visibility</title>
+  <title>Levi's&reg; &mdash; Checkout</title>
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
+      --bg: #faf9f7;
+      --bg-card: #ffffff;
+      --bg-elevated: #f5f4f2;
+      --surface: #eeedeb;
+      --border: #e0dfdd;
+      --border-light: #d4d3d1;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --text-dim: #999;
       --levis-red: #c41230;
-      --levis-red-light: #e0243f;
+      --levis-red-hover: #a50f28;
       --levis-red-dim: rgba(196,18,48,0.08);
-      --levis-tan: #d4a76a;
-      --levis-tan-dim: rgba(212,167,106,0.10);
-      --levis-gold: #c8a04e;
-      --levis-gold-dim: rgba(200,160,78,0.10);
-      --levis-denim: #3b5998;
-      --levis-denim-dim: rgba(59,89,152,0.10);
-      --levis-green: #2ecc71;
-      --levis-green-dim: rgba(46,204,113,0.10);
-      --bg: #0F172A;
-      --card-bg: #1E293B;
-      --card-bg-alt: #243449;
-      --text-primary: #FFFFFF;
-      --text-secondary: #CBD5E1;
-      --text-muted: #94A3B8;
-      --text-header: #E2E8F0;
-      --accent-1: #22D3EE;
-      --accent-2: #60A5FA;
-      --accent-3: #818CF8;
-      --accent-4: #A78BFA;
-      --positive: #4ADE80;
-      --negative: #F87171;
-      --border: rgba(255,255,255,0.08);
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --levis-red-border: rgba(196,18,48,0.2);
+      --danger: #c41230;
+      --danger-bg: rgba(196,18,48,0.06);
+      --danger-border: rgba(196,18,48,0.15);
+      --success: #2d8659;
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text-primary); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .fi { animation: fadeIn 0.5s ease both; }
-    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; } .fi5 { animation-delay: 0.25s; } .fi6 { animation-delay: 0.3s; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
 
-    /* HEADER */
-    header {
+    /* ── Promo Banner ── */
+    .promo-banner {
       background: var(--levis-red);
+      color: #fff;
+      text-align: center;
+      padding: 0.6rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
       padding: 0 clamp(1.5rem, 4vw, 3rem);
       height: 64px;
       display: flex; align-items: center; justify-content: space-between;
-      border-bottom: 3px solid var(--levis-tan);
     }
-    .logo {
-      display: flex; align-items: center; gap: 14px;
-    }
-    .logo-mark {
-      width: 40px; height: 40px;
-      background: #fff;
-      border-radius: 50%;
+    .logo-wrap { display: flex; align-items: center; gap: 0.25rem; }
+    .logo-batwing {
+      width: 56px; height: 24px;
+      background: var(--levis-red);
+      clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 15% 100%);
       display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 18px; color: var(--levis-red);
-      letter-spacing: -0.5px;
     }
-    .logo-text {
-      font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: 0.04em; text-transform: uppercase;
+    .logo-batwing span {
+      color: #fff; font-size: 0.55rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; margin-top: -1px;
     }
-    .logo-text span { font-weight: 400; opacity: 0.7; font-size: 0.78rem; letter-spacing: 0.06em; display: block; text-transform: none; }
-    .header-nav { display: flex; gap: 0.2rem; }
-    .header-nav a {
-      color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.8rem; font-weight: 500;
-      padding: 0.4rem 0.8rem; border-radius: 6px; transition: all 0.2s;
+    nav { display: flex; align-items: center; gap: 1.75rem; }
+    nav a {
+      color: var(--text); text-decoration: none; font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      transition: color 0.2s;
     }
-    .header-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .header-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    nav a:hover { color: var(--levis-red); }
+    .nav-icons { display: flex; align-items: center; gap: 1.25rem; }
+    .nav-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      color: var(--text); transition: color 0.2s; cursor: pointer;
+    }
+    .nav-icon:hover { color: var(--levis-red); }
 
-    /* PAGE */
-    .page { max-width: 1280px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
-    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--accent-1); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; opacity: 0.8; }
-    .back-link:hover { opacity: 1; }
+    /* ── Page ── */
+    .page {
+      max-width: 860px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--levis-red); text-decoration: none; font-size: 0.8rem;
+      font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--levis-red-hover); }
 
-    .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-    .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
-    .page-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.15rem; }
-    .live-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 14px; border-radius: 100px;
-      background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.25);
-      font-size: 0.72rem; font-weight: 600; color: var(--positive); text-transform: uppercase; letter-spacing: 0.06em;
+    .page-title {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700; line-height: 1.2; margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
     }
-    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--positive); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .page-title em { font-style: normal; color: var(--levis-red); }
+    .page-desc {
+      font-size: 0.92rem; color: var(--text-muted); max-width: 520px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
 
-    /* KPI CARDS */
-    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
-    @media (max-width: 1000px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
-    .kpi {
-      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 1.15rem; position: relative; overflow: hidden;
+    /* ── Order Card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    .kpi-highlight {
-      background: linear-gradient(135deg, var(--levis-red), var(--accent-3));
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .kpi-highlight .kpi-label { color: rgba(255,255,255,0.8); }
-    .kpi-highlight .kpi-value { color: #fff; }
-    .kpi-highlight .kpi-sub { color: rgba(255,255,255,0.7); }
-    .kpi-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
-    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
-    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
-    .kpi-sub.positive { color: var(--positive); }
-    .kpi-sub.negative { color: var(--negative); }
-
-    /* SECTION HEADER */
-    .section-header {
-      font-size: 0.95rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem;
-      display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
+    .order-header h2 {
+      font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;
     }
-    .section-header .dot { width: 10px; height: 10px; border-radius: 3px; }
-
-    /* ALERTS */
-    .alerts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.75rem; }
-    @media (max-width: 700px) { .alerts-row { grid-template-columns: 1fr; } }
-    .alert-card {
-      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 1rem 1.15rem; display: flex; gap: 0.85rem; align-items: flex-start;
+    .order-header .item-count {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
     }
-    .alert-card.critical { border-left: 3px solid var(--negative); }
-    .alert-card.warning { border-left: 3px solid var(--levis-gold); }
-    .alert-icon {
-      width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; flex-shrink: 0;
-    }
-    .alert-icon.critical { background: rgba(248,113,113,0.12); }
-    .alert-icon.warning { background: var(--levis-gold-dim); }
-    .alert-body { flex: 1; }
-    .alert-title { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; }
-    .alert-detail { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
-    .alert-time { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--mono); }
-
-    /* FACILITY TABLE */
-    .table-wrap {
-      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      overflow: hidden; margin-bottom: 1.75rem;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead th {
-      background: var(--card-bg); color: var(--text-header); font-size: 0.7rem; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase; text-align: left;
-      padding: 0.85rem 1rem; border-bottom: 1px solid var(--border);
-    }
-    tbody tr { transition: background 0.15s; }
-    tbody tr:nth-child(even) { background: var(--card-bg-alt); }
-    tbody tr:hover { background: rgba(34,211,238,0.04); }
-    td {
-      padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text-secondary);
-      border-bottom: 1px solid var(--border); white-space: nowrap;
-    }
-    .status-badge {
-      display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
-      border-radius: 100px; font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .status-badge.optimal { background: rgba(74,222,128,0.12); color: var(--positive); }
-    .status-badge.low { background: rgba(248,113,113,0.12); color: var(--negative); }
-    .status-badge.overstock { background: rgba(200,160,78,0.12); color: var(--levis-gold); }
-    .status-badge.in-transit { background: rgba(96,165,250,0.12); color: var(--accent-2); }
-
-    .bar-wrap { width: 100px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
-    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-    .bar-fill.high { background: var(--positive); }
-    .bar-fill.mid { background: var(--levis-gold); }
-    .bar-fill.low { background: var(--negative); }
-
-    /* SHIPMENTS PANEL */
-    .two-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0.75rem; margin-bottom: 1.75rem; }
-    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
-    .panel {
-      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 1.15rem; overflow: hidden;
-    }
-    .panel-title { font-size: 0.78rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
-    .shipment-item {
-      display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0;
+    .order-items { padding: 0; }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
       border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
     }
-    .shipment-item:last-child { border-bottom: none; }
-    .shipment-icon { font-size: 1.1rem; width: 32px; text-align: center; }
-    .shipment-info { flex: 1; }
-    .shipment-route { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
-    .shipment-details { font-size: 0.7rem; color: var(--text-muted); }
-    .shipment-eta {
-      font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 100px;
-      background: rgba(34,211,238,0.1); color: var(--accent-1);
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-swatch {
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; flex-shrink: 0;
+      font-size: 1.6rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
     }
-    .shipment-eta.delayed { background: rgba(248,113,113,0.12); color: var(--negative); }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.15rem; }
+    .item-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-wash { font-size: 0.75rem; color: var(--text-muted); }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; }
 
-    /* DEMAND FORECAST MINI-CHART (CSS-only) */
-    .forecast-bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding-top: 8px; }
-    .forecast-bar {
-      flex: 1; border-radius: 4px 4px 0 0; position: relative; min-width: 0;
-      transition: height 0.6s ease;
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
     }
-    .forecast-bar .bar-label {
-      position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
-      font-size: 0.58rem; color: var(--text-muted); white-space: nowrap;
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
     }
-    .forecast-bar .bar-value {
-      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-      font-size: 0.6rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 1rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .redtab-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--levis-red-dim); color: var(--levis-red);
+      font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.6rem;
+      border-radius: 4px; margin-top: 0.5rem;
     }
 
-    /* NL QUERY */
-    .query-section { margin-bottom: 1.75rem; }
-    .query-card {
-      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
-      padding: 1.25rem;
+    /* ── Checkout Form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    .query-input-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .query-input {
-      flex: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
-      padding: 0.7rem 1rem; font-family: var(--font); font-size: 0.88rem; color: var(--text-primary);
-      outline: none; transition: border-color 0.2s;
+    .action-section h3 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 1rem;
     }
-    .query-input::placeholder { color: var(--text-muted); }
-    .query-input:focus { border-color: var(--levis-red); box-shadow: 0 0 0 3px rgba(196,18,48,0.15); }
-    .query-btn {
-      padding: 0 1.5rem; background: var(--levis-red); color: #fff; border: none; border-radius: 8px;
-      font-family: var(--font); font-size: 0.82rem; font-weight: 600; cursor: pointer;
-      transition: opacity 0.2s; white-space: nowrap;
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 600; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase;
     }
-    .query-btn:hover { opacity: 0.85; }
-    .query-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .query-suggestions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
-    .query-chip {
-      padding: 5px 12px; border-radius: 100px; background: rgba(196,18,48,0.08);
-      border: 1px solid rgba(196,18,48,0.2); color: var(--levis-red-light);
-      font-size: 0.7rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-    .query-chip:hover { background: rgba(196,18,48,0.18); }
-    .query-result {
-      display: none; background: var(--bg); border-radius: 8px; padding: 1rem;
-      font-size: 0.82rem; line-height: 1.6; color: var(--text-secondary);
-      border: 1px solid var(--border); max-height: 300px; overflow-y: auto;
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--levis-red);
+      box-shadow: 0 0 0 3px var(--levis-red-dim);
     }
-    .query-result.visible { display: block; }
-    .query-result h4 { color: var(--accent-1); font-size: 0.78rem; margin-bottom: 0.5rem; }
-    .query-result table { margin-top: 0.5rem; }
-    .query-result table th { padding: 0.5rem 0.75rem; font-size: 0.68rem; }
-    .query-result table td { padding: 0.45rem 0.75rem; font-size: 0.75rem; }
 
-    /* FOOTER */
-    .page-footer {
-      text-align: center; padding: 2rem 1rem; font-size: 0.7rem; color: var(--text-muted);
-      border-top: 1px solid var(--border); margin-top: 1rem;
+    .place-order-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--levis-red); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
     }
-    .page-footer a { color: var(--levis-red-light); text-decoration: none; }
+    .place-order-btn:hover { background: var(--levis-red-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--levis-red); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+    }
+    .result-box.success {
+      display: block;
+      background: rgba(45,134,89,0.06); border: 1px solid rgba(45,134,89,0.2);
+    }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--levis-red-dim); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 10px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 860px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.82rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.03em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin {
+      margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim);
+    }
+    .footer-devin a { color: var(--levis-red); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav a { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .promo-banner { font-size: 0.72rem; }
+    }
   </style>
 </head>
 <body>
+
+  <div class="promo-banner">
+    Red Tab&trade; Members: Free Shipping on Orders $75+ &nbsp;|&nbsp; Buy 2+ Get 30% Off Select Styles
+  </div>
+
   <header>
-    <div class="logo">
-      <div class="logo-mark">LS</div>
-      <div class="logo-text">
-        Levi Strauss &amp; Co.
-        <span>Global Supply Chain Command Center</span>
+    <div class="logo-wrap">
+      <div class="logo-batwing"><span>Levi&rsquo;s</span></div>
+    </div>
+    <nav>
+      <a href="#">New</a>
+      <a href="#">Men</a>
+      <a href="#">Women</a>
+      <a href="#">Sale</a>
+    </nav>
+    <div class="nav-icons">
+      <div class="nav-icon" title="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="nav-icon" title="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="nav-icon" title="Cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       </div>
     </div>
-    <nav class="header-nav">
-      <a href="#" class="active">Dashboard</a>
-      <a href="#">Inventory</a>
-      <a href="#">Shipments</a>
-      <a href="#">Forecasting</a>
-      <a href="#">Reports</a>
-    </nav>
   </header>
 
   <div class="page">
-    <a href="/" class="back-link fi">&larr; All Demos</a>
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
 
-    <div class="page-header fi fi1">
-      <div>
-        <div class="page-title">Real-Time Supply Chain Visibility</div>
-        <div class="page-subtitle">North America Region &middot; All Distribution Centers &middot; Updated every 30s</div>
-      </div>
-      <div class="live-badge"><div class="live-dot"></div> Live Feed</div>
-    </div>
+    <h1 class="page-title animate-up delay-1"><em>Levi&rsquo;s</em> Checkout</h1>
+    <p class="page-desc animate-up delay-2">Your bag is ready. Click <strong>Place Order</strong> to run the checkout pipeline and watch the bug surface in real time.</p>
 
-    <!-- KPIs -->
-    <div class="kpi-row fi fi2">
-      <div class="kpi kpi-highlight">
-        <div class="kpi-label">Overall Fill Rate</div>
-        <div class="kpi-value">96.0%</div>
-        <div class="kpi-sub">Target: 95.0%</div>
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Your Bag</h2>
+        <span class="item-count">3 items</span>
       </div>
-      <div class="kpi">
-        <div class="kpi-label">Active SKUs</div>
-        <div class="kpi-value">2,332</div>
-        <div class="kpi-sub positive">+87 this week</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">In-Transit Shipments</div>
-        <div class="kpi-value">134</div>
-        <div class="kpi-sub">18 arriving today</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Stockout Alerts</div>
-        <div class="kpi-value" style="color: var(--negative);">8</div>
-        <div class="kpi-sub negative">4 critical</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Overstock Warnings</div>
-        <div class="kpi-value" style="color: var(--levis-gold);">3</div>
-        <div class="kpi-sub">$218K excess value</div>
-      </div>
-    </div>
-
-    <!-- ALERTS -->
-    <div class="section-header fi fi2"><div class="dot" style="background: var(--negative);"></div> Active Alerts</div>
-    <div class="alerts-row fi fi3">
-      <div class="alert-card critical">
-        <div class="alert-icon critical">&#x26A0;&#xFE0F;</div>
-        <div class="alert-body">
-          <div class="alert-title">STOCKOUT: 501 Original Fit 32&quot; (LEV-501-OG32)</div>
-          <div class="alert-detail">Atlanta DC &mdash; Stock depleted. 2 POs pending. Demand forecast: 6,200 units/week. Estimated restock: 72hrs.</div>
-          <div class="alert-time">3 min ago &middot; auto-detected</div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-swatch">&#x1F456;</div>
+          <div class="item-details">
+            <div class="item-name">501&reg; Original Fit Jeans</div>
+            <div class="item-wash">Medium Indigo &middot; W32 L32</div>
+            <div class="item-sku">LEV-501-OG</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$69.50</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F456;</div>
+          <div class="item-details">
+            <div class="item-name">512&trade; Slim Taper Fit Jeans</div>
+            <div class="item-wash">Headed South &middot; W30 L30</div>
+            <div class="item-sku">LEV-512-TP</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$79.50</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F9E5;</div>
+          <div class="item-details">
+            <div class="item-name">Trucker Jacket</div>
+            <div class="item-wash">Medium Wash</div>
+            <div class="item-sku">LEV-TRK-JK</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$89.50</div>
+          </div>
         </div>
       </div>
-      <div class="alert-card critical">
-        <div class="alert-icon critical">&#x26A0;&#xFE0F;</div>
-        <div class="alert-body">
-          <div class="alert-title">STOCKOUT: 511 Slim Fit 30&quot; (LEV-511-SL30)</div>
-          <div class="alert-detail">Henderson DC &mdash; Below safety stock (180 units remaining, safety: 800). Reorder triggered automatically.</div>
-          <div class="alert-time">11 min ago &middot; auto-detected</div>
-        </div>
-      </div>
-      <div class="alert-card warning">
-        <div class="alert-icon warning">&#x1F4E6;</div>
-        <div class="alert-body">
-          <div class="alert-title">OVERSTOCK: 505 Regular Fit 34&quot; (LEV-505-RG34)</div>
-          <div class="alert-detail">Newark DC &mdash; 280% above target. 22,400 units on hand vs. 8,000 target. $104K excess inventory value.</div>
-          <div class="alert-time">22 min ago &middot; threshold breach</div>
-        </div>
-      </div>
-      <div class="alert-card warning">
-        <div class="alert-icon warning">&#x1F6A2;</div>
-        <div class="alert-body">
-          <div class="alert-title">DELAYED: Inbound Shipment SH-4021 from Lesotho Factory</div>
-          <div class="alert-detail">Originally ETA Jun 2. Port congestion &mdash; revised ETA Jun 5. Contains 501 &amp; 721 replenishment for South region.</div>
-          <div class="alert-time">45 min ago &middot; carrier update</div>
-        </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Subtotal</span><span>$238.50</span></div>
+        <div class="total-line"><span>Tax</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Discount</span><span>15% (order &gt; $150)</span></div>
+        <div class="total-line grand"><span>Est. Total</span><span>$238.50+</span></div>
+        <div class="redtab-badge">&#x2B50; Red Tab&trade; Member &mdash; Free Shipping Applied</div>
       </div>
     </div>
 
-    <!-- FACILITY TABLE -->
-    <div class="section-header fi fi3"><div class="dot" style="background: var(--accent-1);"></div> Distribution Center Inventory</div>
-    <div class="table-wrap fi fi4">
-      <table>
-        <thead>
-          <tr>
-            <th>Facility</th>
-            <th>Location</th>
-            <th>SKUs Stocked</th>
-            <th>Capacity</th>
-            <th>Fill Rate</th>
-            <th>Stockouts</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-weight: 600; color: var(--text-primary);">Levi's DC &mdash; San Francisco</td>
-            <td>San Francisco, CA</td>
-            <td>428</td>
-            <td>82%<div class="bar-wrap"><div class="bar-fill high" style="width:82%"></div></div></td>
-            <td>97.4%</td>
-            <td>0</td>
-            <td><span class="status-badge optimal">Optimal</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight: 600; color: var(--text-primary);">Levi's DC &mdash; Henderson</td>
-            <td>Henderson, NV</td>
-            <td>385</td>
-            <td>91%<div class="bar-wrap"><div class="bar-fill mid" style="width:91%"></div></div></td>
-            <td>94.8%</td>
-            <td>2</td>
-            <td><span class="status-badge low">Low Stock</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight: 600; color: var(--text-primary);">Levi's DC &mdash; Dallas</td>
-            <td>Dallas, TX</td>
-            <td>372</td>
-            <td>76%<div class="bar-wrap"><div class="bar-fill high" style="width:76%"></div></div></td>
-            <td>96.1%</td>
-            <td>1</td>
-            <td><span class="status-badge optimal">Optimal</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight: 600; color: var(--text-primary);">Levi's DC &mdash; Atlanta</td>
-            <td>Atlanta, GA</td>
-            <td>341</td>
-            <td>88%<div class="bar-wrap"><div class="bar-fill mid" style="width:88%"></div></div></td>
-            <td>93.2%</td>
-            <td>4</td>
-            <td><span class="status-badge low">Stockout</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight: 600; color: var(--text-primary);">Levi's DC &mdash; Chicago</td>
-            <td>Chicago, IL</td>
-            <td>396</td>
-            <td>69%<div class="bar-wrap"><div class="bar-fill high" style="width:69%"></div></div></td>
-            <td>98.5%</td>
-            <td>0</td>
-            <td><span class="status-badge optimal">Optimal</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight: 600; color: var(--text-primary);">Levi's DC &mdash; Newark</td>
-            <td>Newark, NJ</td>
-            <td>410</td>
-            <td>95%<div class="bar-wrap"><div class="bar-fill mid" style="width:95%"></div></div></td>
-            <td>95.9%</td>
-            <td>1</td>
-            <td><span class="status-badge overstock">Overstock</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- SHIPMENTS + DEMAND FORECAST -->
-    <div class="two-col fi fi4">
-      <div class="panel">
-        <div class="panel-title">Inbound Shipments</div>
-        <div class="shipment-item">
-          <div class="shipment-icon">&#x1F69A;</div>
-          <div class="shipment-info">
-            <div class="shipment-route">Canton, MS Plant &#x2192; Atlanta DC</div>
-            <div class="shipment-details">SH-4018 &middot; 501 Original, 511 Slim &middot; 4,800 units</div>
+    <div class="action-section animate-up delay-4">
+      <h3>Shipping &amp; Payment</h3>
+      <form id="checkoutForm" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" value="Jordan Rivera" readonly>
           </div>
-          <div class="shipment-eta">ETA Today</div>
-        </div>
-        <div class="shipment-item">
-          <div class="shipment-icon">&#x1F69A;</div>
-          <div class="shipment-info">
-            <div class="shipment-route">San Antonio Finishing &#x2192; Henderson DC</div>
-            <div class="shipment-details">SH-4019 &middot; 512 Slim Taper, 502 Taper &middot; 6,200 units</div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" value="jordan.rivera@example.com" readonly>
           </div>
-          <div class="shipment-eta">ETA Tomorrow</div>
         </div>
-        <div class="shipment-item">
-          <div class="shipment-icon">&#x1F6A2;</div>
-          <div class="shipment-info">
-            <div class="shipment-route">Lesotho Factory &#x2192; Newark DC</div>
-            <div class="shipment-details">SH-4021 &middot; 501 Original, 721 High Rise &middot; 12,000 units</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Shipping Region</label>
+            <select id="regionSelect">
+              <option value="US" selected>United States</option>
+              <option value="EU">Europe</option>
+              <option value="UK">United Kingdom</option>
+              <option value="CA">Canada</option>
+            </select>
           </div>
-          <div class="shipment-eta delayed">Delayed +3d</div>
-        </div>
-        <div class="shipment-item">
-          <div class="shipment-icon">&#x1F69A;</div>
-          <div class="shipment-info">
-            <div class="shipment-route">Henderson DC &#x2192; San Francisco DC</div>
-            <div class="shipment-details">SH-4023 &middot; Trucker Jacket, 505 Regular &middot; 3,100 units</div>
+          <div class="form-group">
+            <label>Payment</label>
+            <input type="text" value="**** **** **** 4242" readonly>
           </div>
-          <div class="shipment-eta">ETA Jun 4</div>
         </div>
-        <div class="shipment-item">
-          <div class="shipment-icon">&#x1F69A;</div>
-          <div class="shipment-info">
-            <div class="shipment-route">Mexi-Stitch JV &#x2192; Dallas DC</div>
-            <div class="shipment-details">SH-4025 &middot; 501 Crop, Ex-Boyfriend Jacket &middot; 2,800 units</div>
-          </div>
-          <div class="shipment-eta">ETA Jun 6</div>
-        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Place Order</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Processing your order&hellip;</span>
       </div>
-
-      <div class="panel">
-        <div class="panel-title">Weekly Demand Forecast (Units, K)</div>
-        <div class="forecast-bar-chart" style="margin-bottom: 28px;">
-          <div class="forecast-bar" style="height:60%; background: var(--accent-1);">
-            <div class="bar-value">38K</div>
-            <div class="bar-label">W22</div>
-          </div>
-          <div class="forecast-bar" style="height:72%; background: var(--accent-2);">
-            <div class="bar-value">46K</div>
-            <div class="bar-label">W23</div>
-          </div>
-          <div class="forecast-bar" style="height:88%; background: var(--accent-3);">
-            <div class="bar-value">56K</div>
-            <div class="bar-label">W24</div>
-          </div>
-          <div class="forecast-bar" style="height:100%; background: linear-gradient(to top, var(--accent-3), var(--negative));">
-            <div class="bar-value">64K</div>
-            <div class="bar-label">W25</div>
-          </div>
-          <div class="forecast-bar" style="height:85%; background: var(--accent-4);">
-            <div class="bar-value">54K</div>
-            <div class="bar-label">W26</div>
-          </div>
-          <div class="forecast-bar" style="height:68%; background: var(--accent-2);">
-            <div class="bar-value">43K</div>
-            <div class="bar-label">W27</div>
-          </div>
-        </div>
-        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px;">
-          <span style="color: var(--negative); font-weight: 600;">&#x25B2; Week 25:</span> Back-to-school surge expected. Pre-position 501 &amp; 511 at South &amp; West DCs.
-        </div>
-      </div>
+      <div class="result-box" id="resultBox"></div>
     </div>
 
-    <!-- SKU BELOW SAFETY STOCK (South Region) -->
-    <div class="section-header fi fi5"><div class="dot" style="background: var(--negative);"></div> SKUs Below Safety Stock &mdash; South Region</div>
-    <div class="table-wrap fi fi5">
-      <table>
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>Product</th>
-            <th>Line</th>
-            <th>DC</th>
-            <th>On Hand</th>
-            <th>Safety Stock</th>
-            <th>Deficit</th>
-            <th>Reorder Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-family: var(--mono); font-size: 0.75rem;">LEV-501-OG32</td>
-            <td style="font-weight: 600; color: var(--text-primary);">501 Original Fit 32&quot;</td>
-            <td>501 Original</td>
-            <td>Atlanta</td>
-            <td style="color: var(--negative); font-weight: 700;">0</td>
-            <td>1,200</td>
-            <td style="color: var(--negative);">-1,200</td>
-            <td><span class="status-badge in-transit">PO In Transit</span></td>
-          </tr>
-          <tr>
-            <td style="font-family: var(--mono); font-size: 0.75rem;">LEV-511-SL30</td>
-            <td style="font-weight: 600; color: var(--text-primary);">511 Slim Fit 30&quot;</td>
-            <td>511 Slim</td>
-            <td>Henderson</td>
-            <td style="color: var(--negative); font-weight: 700;">180</td>
-            <td>800</td>
-            <td style="color: var(--negative);">-620</td>
-            <td><span class="status-badge in-transit">Reorder Sent</span></td>
-          </tr>
-          <tr>
-            <td style="font-family: var(--mono); font-size: 0.75rem;">LEV-721-HR28</td>
-            <td style="font-weight: 600; color: var(--text-primary);">721 High Rise Skinny 28&quot;</td>
-            <td>721 High Rise</td>
-            <td>Atlanta</td>
-            <td style="color: var(--negative); font-weight: 700;">290</td>
-            <td>650</td>
-            <td style="color: var(--negative);">-360</td>
-            <td><span class="status-badge in-transit">PO In Transit</span></td>
-          </tr>
-          <tr>
-            <td style="font-family: var(--mono); font-size: 0.75rem;">LEV-512-TP32</td>
-            <td style="font-weight: 600; color: var(--text-primary);">512 Slim Taper 32&quot;</td>
-            <td>512 Slim Taper</td>
-            <td>Dallas</td>
-            <td style="color: var(--levis-gold); font-weight: 700;">410</td>
-            <td>600</td>
-            <td style="color: var(--levis-gold);">-190</td>
-            <td><span class="status-badge low">Pending Review</span></td>
-          </tr>
-          <tr>
-            <td style="font-family: var(--mono); font-size: 0.75rem;">LEV-TRK-JKM</td>
-            <td style="font-weight: 600; color: var(--text-primary);">Trucker Jacket &mdash; Medium Wash</td>
-            <td>Trucker Jacket</td>
-            <td>Atlanta</td>
-            <td style="color: var(--levis-gold); font-weight: 700;">95</td>
-            <td>200</td>
-            <td style="color: var(--levis-gold);">-105</td>
-            <td><span class="status-badge low">Pending Review</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- NATURAL LANGUAGE QUERY -->
-    <div class="section-header fi fi5"><div class="dot" style="background: var(--levis-red);"></div> Ask the Supply Chain</div>
-    <div class="query-section fi fi6">
-      <div class="query-card">
-        <div class="query-suggestions">
-          <div class="query-chip" onclick="askQuery(this.textContent)">Show me all SKUs below safety stock in the South region</div>
-          <div class="query-chip" onclick="askQuery(this.textContent)">Which DCs have overstock conditions?</div>
-          <div class="query-chip" onclick="askQuery(this.textContent)">What shipments are delayed this week?</div>
-          <div class="query-chip" onclick="askQuery(this.textContent)">Demand forecast for 501 Original next 4 weeks</div>
-        </div>
-        <div class="query-input-row">
-          <input type="text" class="query-input" id="queryInput" placeholder="Ask a question about your supply chain..." />
-          <button class="query-btn" id="queryBtn" onclick="submitQuery()">Ask</button>
-        </div>
-        <div class="query-result" id="queryResult"></div>
-      </div>
-    </div>
-
-    <div class="page-footer">
-      Levi Strauss &amp; Co. &middot; Supply Chain Command Center &middot; Data refreshed every 30 seconds<br>
-      Powered by <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a> &middot; Built in &lt;1 day from 3 legacy system integrations
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The checkout pipeline injects a promotional item (<code>PROMO-REDTAB-2026</code>) that doesn&rsquo;t exist in the product catalog. When the receipt formatter tries to look up its name, it crashes with a <code>TypeError</code>.
     </div>
   </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Levi Strauss &amp; Co. &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Returns</a>
+      </div>
+    </div>
+  </footer>
 
   <script>
     (function () {
@@ -610,103 +449,77 @@
     })();
   </script>
   <script>
-    const NL_RESPONSES = {
-      'show me all skus below safety stock in the south region': {
-        title: 'SKUs Below Safety Stock — South Region (Atlanta + Dallas DCs)',
-        html: `<table><thead><tr><th>SKU</th><th>Product</th><th>DC</th><th>On Hand</th><th>Safety Stock</th><th>Deficit</th></tr></thead><tbody>
-          <tr><td>LEV-501-OG32</td><td>501 Original Fit 32"</td><td>Atlanta</td><td style="color:#F87171;font-weight:700">0</td><td>1,200</td><td style="color:#F87171">-1,200</td></tr>
-          <tr><td>LEV-721-HR28</td><td>721 High Rise Skinny 28"</td><td>Atlanta</td><td style="color:#F87171;font-weight:700">290</td><td>650</td><td style="color:#F87171">-360</td></tr>
-          <tr><td>LEV-512-TP32</td><td>512 Slim Taper 32"</td><td>Dallas</td><td style="color:#F87171;font-weight:700">410</td><td>600</td><td style="color:#F87171">-190</td></tr>
-          <tr><td>LEV-TRK-JKM</td><td>Trucker Jacket — Medium Wash</td><td>Atlanta</td><td style="color:#c8a04e;font-weight:700">95</td><td>200</td><td style="color:#c8a04e">-105</td></tr>
-        </tbody></table>
-        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">4 SKUs below safety stock across 2 DCs in South region. 1 fully stocked out (501 Original at Atlanta). Automatic reorder POs have been triggered for the top 3.</p>`
-      },
-      'which dcs have overstock conditions?': {
-        title: 'Distribution Centers with Overstock Conditions',
-        html: `<table><thead><tr><th>DC</th><th>SKU</th><th>Product</th><th>On Hand</th><th>Target</th><th>Excess</th><th>Value</th></tr></thead><tbody>
-          <tr><td>Newark</td><td>LEV-505-RG34</td><td>505 Regular Fit 34"</td><td>22,400</td><td>8,000</td><td style="color:#c8a04e;font-weight:700">+14,400</td><td>$104,000</td></tr>
-          <tr><td>Newark</td><td>LEV-502-TP33</td><td>502 Taper 33"</td><td>11,800</td><td>5,200</td><td style="color:#c8a04e;font-weight:700">+6,600</td><td>$62,700</td></tr>
-          <tr><td>Chicago</td><td>LEV-EX-BF30</td><td>Ex-Boyfriend Trucker Jacket</td><td>4,200</td><td>1,800</td><td style="color:#c8a04e;font-weight:700">+2,400</td><td>$51,200</td></tr>
-        </tbody></table>
-        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">3 overstock conditions across Newark and Chicago DCs. Total excess inventory value: $217,900. Recommendation: Redirect 505 Regular replenishment to Atlanta/Henderson to balance network.</p>`
-      },
-      'what shipments are delayed this week?': {
-        title: 'Delayed Shipments — Current Week',
-        html: `<table><thead><tr><th>Shipment</th><th>Route</th><th>Contents</th><th>Original ETA</th><th>Revised ETA</th><th>Reason</th></tr></thead><tbody>
-          <tr><td style="font-weight:600">SH-4021</td><td>Lesotho Factory &rarr; Newark DC</td><td>501 Original, 721 High Rise — 12,000 units</td><td>Jun 2</td><td style="color:#F87171;font-weight:700">Jun 5</td><td>Port congestion (Long Beach, CA)</td></tr>
-        </tbody></table>
-        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">1 shipment delayed this week. SH-4021 impacts 501 Original and 721 High Rise replenishment for Newark DC. Consider emergency inter-DC transfer from San Francisco DC.</p>`
-      },
-      'demand forecast for 501 original next 4 weeks': {
-        title: '501 Original Demand Forecast — Next 4 Weeks (All DCs)',
-        html: `<table><thead><tr><th>Week</th><th>Forecast (Units)</th><th>Trend</th><th>Notes</th></tr></thead><tbody>
-          <tr><td>W23 (Jun 2-8)</td><td>8,400</td><td style="color:var(--text-muted)">Baseline</td><td>Normal seasonal demand</td></tr>
-          <tr><td>W24 (Jun 9-15)</td><td>9,600</td><td style="color:#4ADE80;font-weight:600">&#x25B2; +14%</td><td>Father's Day promotional push</td></tr>
-          <tr><td>W25 (Jun 16-22)</td><td>11,200</td><td style="color:#F87171;font-weight:600">&#x25B2; +17%</td><td>Father's Day week — peak demand</td></tr>
-          <tr><td>W26 (Jun 23-29)</td><td>7,800</td><td style="color:var(--text-muted)">&#x25BC; -30%</td><td>Post-holiday normalization</td></tr>
-        </tbody></table>
-        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">Total 4-week forecast: 37,000 units. Current network inventory: 18,200 units. Gap: 18,800 units. Recommendation: Expedite Canton plant production runs and redirect SH-4021 priority to pre-position by W24.</p>`
-      }
-    };
+    var ORDER_ITEMS = [
+      { sku: 'LEV-501-OG', qty: 1, price: 69.50 },
+      { sku: 'LEV-512-TP', qty: 1, price: 79.50 },
+      { sku: 'LEV-TRK-JK', qty: 1, price: 89.50 }
+    ];
+    var SUBTOTAL = 238.50;
 
-    function askQuery(text) {
-      document.getElementById('queryInput').value = text;
-      submitQuery();
-    }
-
-    async function submitQuery() {
-      const input = document.getElementById('queryInput');
-      const btn = document.getElementById('queryBtn');
-      const result = document.getElementById('queryResult');
-      const query = input.value.trim();
-      if (!query) return;
-
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
       btn.disabled = true;
-      btn.textContent = 'Analyzing...';
-      result.className = 'query-result';
-      result.innerHTML = '';
+      btn.style.display = 'none';
+      processing.classList.add('visible');
 
-      try {
-        const res = await fetch('/api/levis/query', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, region: '', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          result.innerHTML = `<h4 style="color:#F87171">Query Failed</h4><p style="color:#F87171;font-weight:600">${data.errorClass}: ${data.error}</p>`;
+      var region = document.getElementById('regionSelect').value;
+
+      fetch('/api/levis/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_levis_demo',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: ORDER_ITEMS,
+          subtotal: SUBTOTAL,
+          region: region
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Order Failed</h3>' +
+            '<p>Your order could not be processed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
         } else {
-          const nlKey = query.toLowerCase();
-          const match = NL_RESPONSES[nlKey];
-          if (match) {
-            result.innerHTML = `<h4>${match.title}</h4>${match.html}`;
-          } else {
-            const keywords = nlKey.split(/\s+/);
-            let found = null;
-            for (const [key, val] of Object.entries(NL_RESPONSES)) {
-              const keyWords = key.split(/\s+/);
-              const overlap = keywords.filter(w => keyWords.includes(w)).length;
-              if (overlap >= 3) { found = val; break; }
-            }
-            if (found) {
-              result.innerHTML = `<h4>${found.title}</h4>${found.html}`;
-            } else {
-              result.innerHTML = `<h4>Query Result</h4><p>Searching across 3 legacy systems (SAP EWM, Oracle TMS, Blue Yonder)...</p>
-              <p style="margin-top:0.5rem">Found <strong>${data.totalDCs} distribution centers</strong>. Network fill rate: <strong>${data.avgFillRate}%</strong>. Active stockouts: <strong>${data.totalStockouts}</strong>.</p>`;
-            }
-          }
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Order Confirmed</h3>' +
+            '<p>Order <strong>' + result.data.orderId + '</strong> confirmed.<br>' +
+            'Total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.tax.toFixed(2) + ' tax)</p>';
         }
-      } catch (err) {
-        result.innerHTML = `<h4 style="color:#F87171">Network Error</h4><p style="color:#F87171">${err.message}</p>`;
-      } finally {
-        result.className = 'query-result visible';
+        btn.style.display = 'block';
         btn.disabled = false;
-        btn.textContent = 'Ask';
-      }
+        btn.textContent = 'Place Order';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
     }
-
-    document.getElementById('queryInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submitQuery();
-    });
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>

@@ -97,7 +97,7 @@ const VERTICALS = [
   { id: '8de4a567', name: 'Financial Technology', brand: 'FinScore', path: '/8de4a567', icon: '\u{1F4B3}', color: '#008751' },
   { id: 'c65e3d81', name: 'Health Insurance', brand: 'CVS Health', path: '/c65e3d81', icon: '\u{2764}\u{FE0F}', color: '#CC0000' },
   { id: 'mars', name: 'Supply Chain', brand: 'Mars, Inc.', path: '/mars', icon: '\u{1F4E6}', color: '#002855' },
-  { id: 'levis', name: 'Apparel Supply Chain', brand: "Levi's", path: '/levis', icon: '\u{1F456}', color: '#c41230' },
+  { id: 'levis', name: 'Apparel eCommerce', brand: "Levi's", path: '/levis', icon: '\u{1F456}', color: '#c41230' },
   { id: 'threatly', name: 'Security Automation', brand: 'Threatly', path: '/threatly', icon: '\u{26A1}', color: '#7c3aed' },
   { id: 'b3587482', name: 'Catering', brand: 'Chick-fil-A', path: '/b3587482', icon: '\u{1F414}', color: '#E51636' },
 

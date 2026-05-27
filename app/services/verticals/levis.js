@@ -5,154 +5,196 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
- * Levi's product catalog — denim SKUs across distribution centers
+ * Levi's product catalog — consumer e-commerce SKUs
  */
 const CATALOG = [
-  { sku: 'LEV-501-OG32', name: "Levi's 501 Original Fit 32\"", line: '501 Original', category: 'mens-jeans', unitPrice: 69.50, caseQty: 24 },
-  { sku: 'LEV-511-SL30', name: "Levi's 511 Slim Fit 30\"", line: '511 Slim', category: 'mens-jeans', unitPrice: 69.50, caseQty: 24 },
-  { sku: 'LEV-512-TP32', name: "Levi's 512 Slim Taper 32\"", line: '512 Slim Taper', category: 'mens-jeans', unitPrice: 79.50, caseQty: 24 },
-  { sku: 'LEV-505-RG34', name: "Levi's 505 Regular Fit 34\"", line: '505 Regular', category: 'mens-jeans', unitPrice: 59.50, caseQty: 24 },
-  { sku: 'LEV-502-TP33', name: "Levi's 502 Taper 33\"", line: '502 Taper', category: 'mens-jeans', unitPrice: 69.50, caseQty: 24 },
-  { sku: 'LEV-721-HR28', name: "Levi's 721 High Rise Skinny 28\"", line: '721 High Rise', category: 'womens-jeans', unitPrice: 69.50, caseQty: 24 },
-  { sku: 'LEV-501-WC26', name: "Levi's 501 Original Cropped 26\"", line: '501 Crop', category: 'womens-jeans', unitPrice: 79.50, caseQty: 24 },
-  { sku: 'LEV-TRK-JKM', name: "Levi's Trucker Jacket — Medium Wash", line: 'Trucker Jacket', category: 'outerwear', unitPrice: 89.50, caseQty: 12 },
-  { sku: 'LEV-EX-BF30', name: "Levi's Ex-Boyfriend Trucker Jacket", line: 'Outerwear', category: 'outerwear', unitPrice: 98.00, caseQty: 12 },
+  { id: 'LEV-501-OG', name: "501\u00AE Original Fit Jeans", price: 69.50, category: 'mens-jeans', wash: 'Medium Indigo' },
+  { id: 'LEV-511-SL', name: "511\u2122 Slim Fit Jeans", price: 69.50, category: 'mens-jeans', wash: 'Clean Dark' },
+  { id: 'LEV-512-TP', name: "512\u2122 Slim Taper Fit Jeans", price: 79.50, category: 'mens-jeans', wash: 'Headed South' },
+  { id: 'LEV-505-RG', name: "505\u2122 Regular Fit Jeans", price: 59.50, category: 'mens-jeans', wash: 'Medium Stonewash' },
+  { id: 'LEV-721-HR', name: "721\u2122 High Rise Skinny Jeans", price: 69.50, category: 'womens-jeans', wash: 'Blue Story' },
+  { id: 'LEV-501-CR', name: "501\u00AE Original Cropped Jeans", price: 79.50, category: 'womens-jeans', wash: 'Ojai Luxor' },
+  { id: 'LEV-TRK-JK', name: "Trucker Jacket", price: 89.50, category: 'outerwear', wash: 'Medium Wash' },
+  { id: 'LEV-EX-BF', name: "Ex-Boyfriend Trucker Jacket", price: 98.00, category: 'womens-outerwear', wash: 'Concrete Indigo' },
 ];
 
 /**
- * Distribution centers with inventory levels
+ * Tax region configuration
  */
-const DISTRIBUTION_CENTERS = [
-  { id: 'DC-SFO', name: 'Levi\'s DC — San Francisco', location: 'San Francisco, CA', region: 'west', skus: 428, capacity: 82, fillRate: 97.4, stockouts: 0, status: 'optimal' },
-  { id: 'DC-HEN', name: 'Levi\'s DC — Henderson', location: 'Henderson, NV', region: 'west', skus: 385, capacity: 91, fillRate: 94.8, stockouts: 2, status: 'low-stock' },
-  { id: 'DC-DAL', name: 'Levi\'s DC — Dallas', location: 'Dallas, TX', region: 'south', skus: 372, capacity: 76, fillRate: 96.1, stockouts: 1, status: 'optimal' },
-  { id: 'DC-ATL', name: 'Levi\'s DC — Atlanta', location: 'Atlanta, GA', region: 'south', skus: 341, capacity: 88, fillRate: 93.2, stockouts: 4, status: 'stockout' },
-  { id: 'DC-CHI', name: 'Levi\'s DC — Chicago', location: 'Chicago, IL', region: 'midwest', skus: 396, capacity: 69, fillRate: 98.5, stockouts: 0, status: 'optimal' },
-  { id: 'DC-EWR', name: 'Levi\'s DC — Newark', location: 'Newark, NJ', region: 'northeast', skus: 410, capacity: 95, fillRate: 95.9, stockouts: 1, status: 'overstock' },
+const TAX_REGIONS = {
+  US: { taxRate: 0.08, currency: 'USD' },
+  EU: { taxRate: 0.20, currency: 'EUR' },
+  UK: { taxRate: 0.20, currency: 'GBP' },
+  CA: { taxRate: 0.13, currency: 'CAD' },
+};
+
+/**
+ * Active promotions — "Red Tab Member exclusive" campaign.
+ * Applied server-side so it appears in the order confirmation.
+ */
+const ACTIVE_PROMOTIONS = [
+  { sku: 'PROMO-REDTAB-2026', name: 'Red Tab\u2122 Member Gift', price: 0, qty: 1 },
 ];
 
 /**
- * Queries inventory status for a given region and returns DC-level summaries.
+ * Looks up the discount tier for a given subtotal.
  */
-function queryInventory(region) {
-  const dcs = region
-    ? DISTRIBUTION_CENTERS.filter((dc) => dc.region === region.toLowerCase())
-    : DISTRIBUTION_CENTERS;
-
-  return dcs.map((dc) => ({
-    dcId: dc.id,
-    name: dc.name,
-    fillRate: dc.fillRate,
-    stockouts: dc.stockouts,
-    status: dc.status,
-  }));
+function getApplicableDiscount(subtotal) {
+  if (subtotal >= 150) return { rate: 0.15, label: '15% off orders $150+' };
+  if (subtotal >= 100) return { rate: 0.10, label: '10% off orders $100+' };
+  return { rate: 0, label: 'None' };
 }
 
 /**
- * Aggregates region-level metrics from the distribution center results.
+ * Merges promotional items into the order line items.
  */
-function aggregateRegionMetrics(dcResults) {
-  const totalFillRate = dcResults.reduce((s, r) => s + r.fillRate, 0) / dcResults.length;
-  const totalStockouts = dcResults.reduce((s, r) => s + r.stockouts, 0);
-  return { metrics: { fillRate: Math.round(totalFillRate * 10) / 10, stockouts: totalStockouts, dcCount: dcResults.length } };
+function applyPromotions(items) {
+  return [...items, ...ACTIVE_PROMOTIONS];
 }
 
 /**
- * Formats the final query response using the aggregated region summary.
+ * Computes the final order total.
  */
-function formatQuerySummary(aggregated) {
+function computeOrderTotal(subtotal, region) {
+  const taxConfig = TAX_REGIONS[region];
+  if (!taxConfig) {
+    throw Object.assign(new Error(`Unknown tax region: ${region}`), { code: 'INVALID_REGION' });
+  }
+  const tax = subtotal * taxConfig.taxRate;
+  const discount = getApplicableDiscount(subtotal);
+  const discountAmount = (subtotal + tax) * discount.rate;
   return {
-    avgFillRate: aggregated.summary.fillRate,
-    totalStockouts: aggregated.summary.stockouts,
-    totalDCs: aggregated.summary.dcCount,
+    subtotal,
+    tax: Math.round(tax * 100) / 100,
+    discount: Math.round(discountAmount * 100) / 100,
+    discountLabel: discount.label,
+    total: Math.round((subtotal + tax - discountAmount) * 100) / 100,
+    currency: taxConfig.currency,
   };
 }
 
 /**
- * Process a supply chain query (simulates NL query against inventory systems).
+ * Formats a receipt for the order confirmation.
+ * BUG: PROMO-REDTAB-2026 is not in CATALOG, so product.name crashes.
  */
-async function processQuery(queryData) {
-  const startTime = Date.now();
-  const queryId = uuidv4();
+function formatReceipt(allItems) {
+  return allItems.map((item) => {
+    const product = CATALOG.find((p) => p.id === item.sku);
+    return {
+      sku: item.sku,
+      name: product.name,
+      category: product.category,
+      qty: item.qty,
+      lineTotal: item.price * item.qty,
+    };
+  });
+}
 
-  logger.info('Processing supply chain query', {
-    queryId,
-    query: queryData.query,
-    region: queryData.region,
-    service: 'levis-supply-chain',
+/**
+ * Processes a Levi's e-commerce checkout order.
+ */
+async function processCheckout(orderData) {
+  const startTime = Date.now();
+  const orderId = uuidv4();
+
+  logger.info('Processing Levi\'s checkout', {
+    orderId,
+    userId: orderData.userId,
+    subtotal: orderData.subtotal,
+    service: 'levis-ecommerce',
+    route: '/api/levis/checkout',
   });
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 100));
+    await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const results = queryInventory(queryData.region);
-    const aggregated = aggregateRegionMetrics(results);
-    const summary = formatQuerySummary(aggregated);
+    const allItems = applyPromotions(orderData.items);
+
+    const computedSubtotal = allItems.reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0,
+    ) || orderData.subtotal;
+
+    const finalSubtotal = typeof computedSubtotal === 'string'
+      ? parseFloat(computedSubtotal)
+      : computedSubtotal;
+
+    const result = computeOrderTotal(finalSubtotal, orderData.region);
+    const receipt = formatReceipt(allItems);
 
     const duration = Date.now() - startTime;
 
-    incrementMetric('query.success', {
-      route: '/api/levis/query',
-      region: queryData.region || 'all',
+    incrementMetric('checkout.success', {
+      route: '/api/levis/checkout',
+      source: 'levis-storefront',
     });
-    recordTiming('query.latency', duration, {
-      route: '/api/levis/query',
+    recordTiming('checkout.latency', duration, {
+      route: '/api/levis/checkout',
     });
 
     return {
       success: true,
-      queryId,
-      query: queryData.query,
-      results,
-      totalDCs: summary.totalDCs,
-      avgFillRate: summary.avgFillRate,
-      totalStockouts: summary.totalStockouts,
+      orderId,
+      total: result.total,
+      tax: result.tax,
+      discount: result.discount,
+      discountLabel: result.discountLabel,
+      receipt,
+      status: 'confirmed',
       processedAt: new Date().toISOString(),
     };
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    incrementMetric('query.failure', {
-      route: '/api/levis/query',
+    incrementMetric('checkout.failure', {
+      route: '/api/levis/checkout',
       errorClass: error.name,
+      source: 'levis-storefront',
     });
-    recordTiming('query.latency', duration, {
-      route: '/api/levis/query',
+    recordTiming('checkout.latency', duration, {
+      route: '/api/levis/checkout',
       error: 'true',
     });
 
-    logger.error('Supply chain query failed', {
-      queryId,
+    logger.error('Levi\'s checkout failed', {
+      orderId,
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
+      userId: orderData.userId,
+      service: 'levis-ecommerce',
     });
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/levis/query',
-        service: 'levis-supply-chain',
-        region: queryData.region || 'all',
+        route: '/api/levis/checkout',
+        service: 'levis-ecommerce',
+        source: 'levis-storefront',
       },
-      extra: { queryId, query: queryData.query },
+      extra: {
+        orderId,
+        userId: orderData.userId,
+        subtotal: orderData.subtotal,
+        region: orderData.region,
+      },
     });
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/levis.js \u2014 queryInventory',
+      culprit: 'app/services/verticals/levis.js \u2014 formatReceipt',
       errorType: error.name || 'Error',
       errorValue: error.message,
-      devinUserId: queryData.devinUserId,
-      devinEmail: queryData.devinEmail,
-      devinOrgId: queryData.devinOrgId,
-      service: 'levis-supply-chain',
-      verticalLabel: 'Supply Chain Query',
+      devinUserId: orderData.devinUserId,
+      devinEmail: orderData.devinEmail,
+      devinOrgId: orderData.devinOrgId,
+      service: 'levis-ecommerce',
+      verticalLabel: 'Levi\u2019s Checkout',
       tags: [
-        { key: 'route', value: '/api/levis/query' },
-        { key: 'service', value: 'levis-supply-chain' },
+        { key: 'route', value: '/api/levis/checkout' },
+        { key: 'service', value: 'levis-ecommerce' },
       ],
-      extra: { queryId, query: queryData.query },
+      extra: { orderId, userId: orderData.userId, subtotal: orderData.subtotal },
       level: 'error',
       platform: 'node',
       firstSeen: '',
@@ -160,15 +202,15 @@ async function processQuery(queryData) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'levis-supply-chain@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'levis-ecommerce@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
-      logger.error('Failed to trigger Devin session from supply chain query error', { error: err.message });
+      logger.error('Failed to trigger Devin session from Levi\'s checkout error', { error: err.message });
     });
 
     throw error;
   }
 }
 
-module.exports = { processQuery, queryInventory, CATALOG, DISTRIBUTION_CENTERS };
+module.exports = { processCheckout, computeOrderTotal, formatReceipt, applyPromotions, CATALOG, TAX_REGIONS };
