@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chick-fil-A | Catering &mdash; Order for Your Next Event</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    :root {
+      --cfa-red: #E51636;
+      --cfa-dark-red: #C41230;
+      --cfa-white: #FFFFFF;
+      --cfa-black: #1A1A1A;
+      --cfa-dark: #333333;
+      --cfa-gray: #5C5C5C;
+      --cfa-light-gray: #F7F7F7;
+      --cfa-border: #E0E0E0;
+      --cfa-warm-bg: #FFF8F5;
+      --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', monospace;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --danger-border: #FECACA;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-primary);
+      color: var(--cfa-black);
+      font-size: 14px;
+      line-height: 1.5;
+      background: var(--cfa-white);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Back link */
+    .back-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 10000;
+      background: rgba(229, 22, 54, 0.85);
+      color: #fff;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 3px;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover { opacity: 1; }
+
+    /* Top Banner */
+    .top-banner {
+      background: var(--cfa-red);
+      color: var(--cfa-white);
+      text-align: center;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    /* Header */
+    .site-header {
+      background: var(--cfa-white);
+      border-bottom: 1px solid var(--cfa-border);
+      padding: 0 40px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+    .cfa-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .cfa-logo-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--cfa-red);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+    }
+    .cfa-logo-text {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--cfa-red);
+      letter-spacing: -0.3px;
+    }
+    .cfa-logo-text span {
+      display: block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--cfa-gray);
+    }
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .header-nav a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--cfa-dark);
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: var(--cfa-red); }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .header-right .order-btn {
+      padding: 8px 20px;
+      background: var(--cfa-red);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .header-right .order-btn:hover { background: var(--cfa-dark-red); }
+    .header-right .sign-in {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cfa-dark);
+      cursor: pointer;
+    }
+
+    /* Sub-nav */
+    .sub-nav {
+      background: var(--cfa-white);
+      border-bottom: 1px solid var(--cfa-border);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      height: 44px;
+      overflow-x: auto;
+    }
+    .sub-nav a {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--cfa-gray);
+      white-space: nowrap;
+      padding: 10px 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .sub-nav a:hover, .sub-nav a.active {
+      color: var(--cfa-red);
+      border-bottom-color: var(--cfa-red);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      width: 100%;
+      min-height: 420px;
+      background: linear-gradient(135deg, var(--cfa-warm-bg) 0%, #FFFFFF 50%, #FFF5F0 100%);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    .hero-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      width: 100%;
+    }
+    .hero-text h1 {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--cfa-black);
+      margin-bottom: 16px;
+    }
+    .hero-text h1 span { color: var(--cfa-red); }
+    .hero-text p {
+      font-size: 16px;
+      color: var(--cfa-gray);
+      line-height: 1.6;
+      margin-bottom: 24px;
+      max-width: 440px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: var(--cfa-red);
+      color: var(--cfa-white);
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hero-cta:hover { background: var(--cfa-dark-red); }
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .hero-image-box {
+      width: 100%;
+      max-width: 460px;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #FFE0D0 0%, #FFD1BC 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 72px;
+      box-shadow: 0 20px 60px rgba(229,22,54,0.1);
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      background: var(--cfa-black);
+      padding: 24px 40px;
+    }
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .stat-item {
+      text-align: center;
+      color: var(--cfa-white);
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Order Form */
+    .order-section {
+      background: var(--cfa-light-gray);
+      padding: 60px 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .order-card {
+      max-width: 620px;
+      width: 100%;
+      background: var(--cfa-white);
+      border-radius: 12px;
+      padding: 36px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .order-card h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--cfa-black);
+      margin-bottom: 6px;
+    }
+    .order-card .order-desc {
+      font-size: 13px;
+      color: var(--cfa-gray);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--cfa-dark);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      height: 44px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-family: var(--font-primary);
+      color: var(--cfa-dark);
+      border: 1px solid var(--cfa-border);
+      border-radius: 8px;
+      background: var(--cfa-white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--cfa-red);
+      box-shadow: 0 0 0 2px rgba(229,22,54,0.1);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Menu Items Selector */
+    .menu-section {
+      margin-bottom: 20px;
+    }
+    .menu-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--cfa-dark);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--cfa-border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--cfa-white);
+    }
+    .menu-item:hover { border-color: var(--cfa-red); background: var(--cfa-warm-bg); }
+    .menu-item.selected { border-color: var(--cfa-red); background: rgba(229,22,54,0.05); }
+    .menu-item input[type="checkbox"] { display: none; }
+    .menu-check {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--cfa-border);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .menu-item.selected .menu-check {
+      background: var(--cfa-red);
+      border-color: var(--cfa-red);
+    }
+    .menu-item.selected .menu-check::after {
+      content: '\2713';
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .menu-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .menu-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cfa-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .menu-price {
+      font-size: 11px;
+      color: var(--cfa-gray);
+    }
+    .menu-qty {
+      width: 50px;
+      height: 32px;
+      border: 1px solid var(--cfa-border);
+      border-radius: 6px;
+      text-align: center;
+      font-size: 13px;
+      font-family: var(--font-primary);
+      outline: none;
+      flex-shrink: 0;
+    }
+    .menu-qty:focus { border-color: var(--cfa-red); }
+
+    .btn-submit {
+      width: 100%;
+      height: 48px;
+      background: var(--cfa-red);
+      color: var(--cfa-white);
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--cfa-dark-red); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box {
+      margin-top: 16px;
+      padding: 14px 18px;
+      font-size: 13px;
+      border-radius: 8px;
+      display: none;
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+    .result-box.success {
+      display: block;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+    }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-family: var(--font-mono); font-size: 11px; opacity: 0.85; word-break: break-all; }
+
+    /* Popular Packages */
+    .packages-section {
+      padding: 60px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .packages-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--cfa-black);
+      margin-bottom: 8px;
+    }
+    .packages-section .section-desc {
+      font-size: 14px;
+      color: var(--cfa-gray);
+      margin-bottom: 32px;
+    }
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .package-card {
+      background: var(--cfa-white);
+      border: 1px solid var(--cfa-border);
+      border-radius: 12px;
+      padding: 28px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .package-card:hover {
+      border-color: var(--cfa-red);
+      box-shadow: 0 4px 16px rgba(229,22,54,0.08);
+    }
+    .package-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--cfa-warm-bg);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    .package-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--cfa-black);
+      margin-bottom: 8px;
+    }
+    .package-card p {
+      font-size: 13px;
+      color: var(--cfa-gray);
+      line-height: 1.5;
+    }
+    .package-card .pkg-price {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--cfa-red);
+    }
+
+    /* Footer */
+    .site-footer {
+      background: var(--cfa-light-gray);
+      padding: 48px 40px 24px;
+      border-top: 1px solid var(--cfa-border);
+    }
+    .footer-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 36px;
+    }
+    .footer-col h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cfa-black);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 8px; }
+    .footer-col ul li a {
+      color: var(--cfa-gray);
+      font-size: 12px;
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: var(--cfa-red); }
+    .footer-brand-desc {
+      font-size: 12px;
+      color: var(--cfa-gray);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      border-top: 1px solid var(--cfa-border);
+      padding-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-bottom-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-bottom-links a {
+      font-size: 11px;
+      color: var(--cfa-gray);
+    }
+    .footer-bottom-links a:hover { color: var(--cfa-red); }
+    .footer-copyright {
+      font-size: 11px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; All Demos</a>
+
+  <!-- Top Banner -->
+  <div class="top-banner">
+    Chick-fil-A Catering &mdash; Order online for your next meeting, party, or event. 24-hour advance ordering available.
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-left">
+      <a href="#" class="cfa-logo">
+        <div class="cfa-logo-icon">&#x1F414;</div>
+        <div class="cfa-logo-text">
+          Chick-fil-A
+          <span>Catering</span>
+        </div>
+      </a>
+      <nav class="header-nav">
+        <a href="#">Menu</a>
+        <a href="#">Catering</a>
+        <a href="#">Locations</a>
+        <a href="#">About</a>
+        <a href="#">Rewards</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="sign-in">Sign in</span>
+      <button class="order-btn" onclick="document.getElementById('orderForm').scrollIntoView({behavior:'smooth'})">Order Catering</button>
+    </div>
+  </header>
+
+  <!-- Sub Navigation -->
+  <nav class="sub-nav">
+    <a href="#">Nugget Trays</a>
+    <a href="#" class="active">Catering</a>
+    <a href="#">Entrée Trays</a>
+    <a href="#">Sides &amp; Salads</a>
+    <a href="#">Beverages</a>
+    <a href="#">Desserts</a>
+    <a href="#">Packaged Meals</a>
+    <a href="#">Delivery Info</a>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Catering that makes <span>every event special</span></h1>
+        <p>From nugget trays to boxed meals, Chick-fil-A Catering brings our signature taste to your next meeting, celebration, or get-together. Order online with just 24 hours notice.</p>
+        <button class="hero-cta" onclick="document.getElementById('orderForm').scrollIntoView({behavior:'smooth'})">
+          Start Your Order
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="hero-image">
+        <div class="hero-image-box">&#x1F357;</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-value">3,000+</div>
+        <div class="stat-label">Restaurants Nationwide</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">24hr</div>
+        <div class="stat-label">Advance Ordering</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">15+</div>
+        <div class="stat-label">Catering Menu Items</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">4.8</div>
+        <div class="stat-label">Customer Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Form -->
+  <section class="order-section">
+    <div class="order-card">
+      <h2>Place a Catering Order</h2>
+      <p class="order-desc">Select your items, choose a pickup location, and let us know your event details. We will have everything ready for you.</p>
+      <form id="orderForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pickup Location</label>
+            <select id="locationId">
+              <option value="LOC-ATL-001">CFA Midtown &mdash; Atlanta</option>
+              <option value="LOC-ATL-002">CFA Buckhead &mdash; Atlanta</option>
+              <option value="LOC-DAL-001">CFA Uptown &mdash; Dallas</option>
+              <option value="LOC-NYC-001">CFA Fulton St &mdash; New York</option>
+              <option value="LOC-CHI-001">CFA Michigan Ave &mdash; Chicago</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Event Date</label>
+            <input type="date" id="deliveryDate" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Contact Name</label>
+            <input type="text" id="contactName" placeholder="Your name" value="Jordan Mitchell" required>
+          </div>
+          <div class="form-group">
+            <label>Headcount</label>
+            <input type="number" id="headcount" placeholder="Guests" value="25" min="1" required>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <h3>Entr&eacute;es</h3>
+          <div class="menu-grid" id="entreesGrid"></div>
+        </div>
+        <div class="menu-section">
+          <h3>Sides &amp; Salads</h3>
+          <div class="menu-grid" id="sidesGrid"></div>
+        </div>
+        <div class="menu-section">
+          <h3>Beverages</h3>
+          <div class="menu-grid" id="beveragesGrid"></div>
+        </div>
+        <div class="menu-section">
+          <h3>Desserts</h3>
+          <div class="menu-grid" id="dessertsGrid"></div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Submit Catering Order</button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </section>
+
+  <!-- Popular Packages -->
+  <section class="packages-section">
+    <h2>Popular Catering Packages</h2>
+    <p class="section-desc">Pre-built packages for events of all sizes, ready for easy ordering.</p>
+    <div class="packages-grid">
+      <div class="package-card">
+        <div class="package-icon">&#x1F4BC;</div>
+        <h3>Office Meeting</h3>
+        <p>Nugget tray (64 ct), fruit tray, gallon of iced tea, and cookie 6-pack. Feeds 8-10 guests.</p>
+        <span class="pkg-price">Starting at $67.19</span>
+      </div>
+      <div class="package-card">
+        <div class="package-icon">&#x1F389;</div>
+        <h3>Team Celebration</h3>
+        <p>Nugget tray (120 ct), sandwich tray (12 ct), mac &amp; cheese tray, 2 gallons of lemonade, and brownie 6-pack. Feeds 20-25.</p>
+        <span class="pkg-price">Starting at $138.29</span>
+      </div>
+      <div class="package-card">
+        <div class="package-icon">&#x1F3C6;</div>
+        <h3>Grand Event</h3>
+        <p>Double nugget trays, wrap tray, garden salad, fruit tray, 3 gallons of beverages, cookies and brownies. Feeds 40+.</p>
+        <span class="pkg-price">Starting at $275.48</span>
+      </div>
+      <div class="package-card">
+        <div class="package-icon">&#x1F30E;</div>
+        <h3>Breakfast Gathering</h3>
+        <p>Chick-n-Minis tray, fruit tray, gallon of coffee, and assorted pastries. Perfect morning kickoff for 12-15.</p>
+        <span class="pkg-price">Starting at $72.50</span>
+      </div>
+      <div class="package-card">
+        <div class="package-icon">&#x1F3C8;</div>
+        <h3>Game Day</h3>
+        <p>Two nugget trays (64 ct), strips tray, mac &amp; cheese, 2 gallons of lemonade, and cookie packs. Feeds 15-20.</p>
+        <span class="pkg-price">Starting at $118.00</span>
+      </div>
+      <div class="package-card">
+        <div class="package-icon">&#x2764;&#xFE0F;</div>
+        <h3>Family Reunion</h3>
+        <p>Nugget tray (120 ct), sandwich tray, wrap tray, 2 sides, 3 beverages, and desserts. Feeds 30-40.</p>
+        <span class="pkg-price">Starting at $248.00</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>Chick-fil-A</h3>
+        <p class="footer-brand-desc">Chick-fil-A, Inc. is a family-owned restaurant company dedicated to serving guests with hand-crafted food and genuine hospitality. Our catering brings the same quality and care to events of all sizes.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Catering Help</h3>
+        <ul>
+          <li><a href="#">Catering FAQ</a></li>
+          <li><a href="#">Order Support</a></li>
+          <li><a href="#">Delivery Info</a></li>
+          <li><a href="#">Allergen Info</a></li>
+          <li><a href="#">Nutrition</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Company</h3>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Franchise</a></li>
+          <li><a href="#">Press Room</a></li>
+          <li><a href="#">Community</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Connect</h3>
+        <ul>
+          <li><a href="#">Chick-fil-A One</a></li>
+          <li><a href="#">Gift Cards</a></li>
+          <li><a href="#">Find a Restaurant</a></li>
+          <li><a href="#">Mobile App</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-bottom-links">
+        <a href="#">Terms &amp; Conditions</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Accessibility</a>
+        <a href="#">Do Not Sell My Info</a>
+      </div>
+      <span class="footer-copyright">&copy; 2026 Chick-fil-A, Inc. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    // Menu data (matches server-side CATERING_MENU)
+    var MENU = [
+      { id: 'CFA-NUG-30', name: 'Nuggets (30 ct)', category: 'Entrees', price: 15.25 },
+      { id: 'CFA-NUG-64', name: 'Nuggets (64 ct)', category: 'Entrees', price: 29.00 },
+      { id: 'CFA-NUG-120', name: 'Nuggets (120 ct)', category: 'Entrees', price: 54.00 },
+      { id: 'CFA-CST-12', name: 'Chick-n-Strips Tray', category: 'Entrees', price: 24.50 },
+      { id: 'CFA-SWT-12', name: 'Sandwich Tray (12)', category: 'Entrees', price: 54.00 },
+      { id: 'CFA-WRP-8', name: 'Cool Wrap Tray (8)', category: 'Entrees', price: 57.00 },
+      { id: 'CFA-FRT-LG', name: 'Fruit Tray (Large)', category: 'Sides & Salads', price: 32.50 },
+      { id: 'CFA-GAR-LG', name: 'Garden Salad Tray', category: 'Sides & Salads', price: 28.00 },
+      { id: 'CFA-MAC-LG', name: 'Mac & Cheese Tray', category: 'Sides & Salads', price: 26.00 },
+      { id: 'CFA-BRO-1G', name: 'Iced Tea (Gallon)', category: 'Beverages', price: 7.50 },
+      { id: 'CFA-LEM-1G', name: 'Lemonade (Gallon)', category: 'Beverages', price: 10.00 },
+      { id: 'CFA-COO-6', name: 'Cookies (6-pack)', category: 'Desserts', price: 7.69 },
+      { id: 'CFA-BRW-6', name: 'Brownies (6-pack)', category: 'Desserts', price: 8.29 },
+    ];
+
+    var categoryGridMap = {
+      'Entrees': 'entreesGrid',
+      'Sides & Salads': 'sidesGrid',
+      'Beverages': 'beveragesGrid',
+      'Desserts': 'dessertsGrid',
+    };
+
+    // Build menu items into grids
+    MENU.forEach(function(item) {
+      var gridId = categoryGridMap[item.category];
+      if (!gridId) return;
+      var grid = document.getElementById(gridId);
+      var div = document.createElement('div');
+      div.className = 'menu-item';
+      div.dataset.itemId = item.id;
+      div.innerHTML = '<div class="menu-check"></div>'
+        + '<div class="menu-info"><div class="menu-name">' + item.name + '</div>'
+        + '<div class="menu-price">$' + item.price.toFixed(2) + '</div></div>'
+        + '<input type="number" class="menu-qty" value="1" min="1" max="20" onclick="event.stopPropagation()">';
+      div.addEventListener('click', function() {
+        div.classList.toggle('selected');
+      });
+      grid.appendChild(div);
+    });
+
+    // Pre-select first entree + first beverage for demo convenience
+    var firstEntree = document.querySelector('#entreesGrid .menu-item');
+    if (firstEntree) firstEntree.classList.add('selected');
+    var firstBev = document.querySelector('#beveragesGrid .menu-item');
+    if (firstBev) firstBev.classList.add('selected');
+
+    // Set default date to tomorrow
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('deliveryDate').value = tomorrow.toISOString().split('T')[0];
+
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting Order...';
+      result.className = 'result-box';
+
+      var selectedItems = [];
+      document.querySelectorAll('.menu-item.selected').forEach(function(el) {
+        selectedItems.push({
+          itemId: el.dataset.itemId,
+          qty: parseInt(el.querySelector('.menu-qty').value, 10) || 1,
+        });
+      });
+
+      try {
+        var res = await fetch('/api/b3587482/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            locationId: document.getElementById('locationId').value,
+            deliveryDate: document.getElementById('deliveryDate').value,
+            contactName: document.getElementById('contactName').value,
+            headcount: parseInt(document.getElementById('headcount').value, 10),
+            items: selectedItems,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Order Failed</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Order Confirmed!</div><div class="error-detail">Order #' + data.orderId.slice(0,8).toUpperCase()
+            + ' &bull; Items: ' + data.itemCount
+            + ' &bull; Total: $' + data.total
+            + ' &bull; Pickup: ' + data.pickup.locationName + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Catering Order';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
