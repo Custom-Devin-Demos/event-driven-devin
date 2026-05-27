@@ -1,30 +1,19 @@
 const express = require('express');
-const { processQuery, CATALOG, DISTRIBUTION_CENTERS } = require('../../services/verticals/levis');
+const { processCheckout, CATALOG } = require('../../services/verticals/levis');
 
 const router = express.Router();
 
-/**
- * GET /api/levis/catalog — returns the Levi's product catalog
- */
 router.get('/api/levis/catalog', (_req, res) => {
   res.json({ products: CATALOG });
 });
 
-/**
- * GET /api/levis/facilities — returns all distribution center statuses
- */
-router.get('/api/levis/facilities', (_req, res) => {
-  res.json({ facilities: DISTRIBUTION_CENTERS });
-});
-
-/**
- * POST /api/levis/query — process a natural language supply chain query
- */
-router.post('/api/levis/query', async (req, res) => {
+router.post('/api/levis/checkout', async (req, res) => {
   try {
-    const result = await processQuery({
-      query: req.body.query || '',
-      region: req.body.region || '',
+    const result = await processCheckout({
+      userId: req.body.userId || 'anonymous',
+      items: req.body.items || [{ sku: 'LEV-501-OG', qty: 1, price: 69.50 }],
+      subtotal: req.body.subtotal || 69.50,
+      region: req.body.region || 'US',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
@@ -35,7 +24,7 @@ router.post('/api/levis/query', async (req, res) => {
       success: false,
       error: error.message,
       errorClass: error.name,
-      code: error.code || 'QUERY_FAILED',
+      code: error.code || 'CHECKOUT_FAILED',
       requestId: req.requestId,
     });
   }
