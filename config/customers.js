@@ -111,6 +111,10 @@ const CUSTOMERS = {
     label: 'Chick-fil-A',
     triggerMode: 'api',
   },
+  levis: {
+    label: "Levi's",
+    triggerMode: 'api',
+  },
 };
 
 /**
