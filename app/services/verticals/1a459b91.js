@@ -77,7 +77,7 @@ function getDatacenterThroughput(dcCode) {
 function computeAllocationMetrics(processors, dcCode) {
   const throughput = getDatacenterThroughput(dcCode);
   return processors.map((proc) => {
-    const coverageDays = Math.floor(proc.stock / throughput.fabrication.daily);
+    const coverageDays = Math.floor(proc.stock / throughput.waferOutput.daily);
     const belowReorder = proc.stock < proc.reorderPoint;
     return {
       partNumber: proc.partNumber,
@@ -96,7 +96,7 @@ function calculateFulfillment(allocationMetrics, priorityConfig, dcCode) {
   const results = allocationMetrics.map((metric) => {
     const adjustedLead = Math.ceil(metric.coverageDays * priorityConfig.urgencyFactor);
     const expediteSurcharge = metric.unitCost * priorityConfig.expediteFee * metric.currentStock;
-    const dailyThroughput = throughput.fabrication.perShift * throughput.shifts;
+    const dailyThroughput = throughput.waferOutput.perShift * throughput.shifts;
 
     return {
       partNumber: metric.partNumber,
@@ -249,4 +249,4 @@ async function runInquiry(data) {
   }
 }
 
-module.exports = { runInquiry, DATACENTERS, PROCESSOR_CATALOG };
+module.exports = { runInquiry, DATACENTERS, PROCESSOR_CATALOG, getDatacenterThroughput, computeAllocationMetrics, calculateFulfillment };
