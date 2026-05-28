@@ -89,7 +89,7 @@ function generateProvisioningPlan(pricing, tier, bundle) {
 
   for (const item of bundle) {
     plan.instances.push({
-      product: item.product,
+      product: item.name,
       edition: tier.label,
       status: 'pending_provision',
     });

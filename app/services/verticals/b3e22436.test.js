@@ -87,6 +87,8 @@ describe('b3e22436 — Platform Inquiry', () => {
       expect(plan.governance).toBeDefined();
       expect(plan.governance.certificationLevel).toBe('standard');
       expect(plan.instances).toBeDefined();
+      expect(plan.instances[0].product).toBe('Sales Cloud');
+      expect(plan.instances[1].product).toBe('Marketing Cloud');
       expect(plan.dataAllocation).toBeDefined();
     });
 
