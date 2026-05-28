@@ -104,6 +104,13 @@ function buildDeploymentPlan(licensing, plan, bundle) {
     deployment.aiCapacity = licensing.seatCount * 200;
   }
 
+  const certLevel = plan.id === 'enterprise' ? 'soc2-type2' : plan.id === 'business' ? 'soc2-type1' : 'basic';
+  deployment.governance = {
+    certificationLevel: certLevel,
+    dataResidency: 'regional',
+    auditLogging: plan.id === 'enterprise' || plan.id === 'business',
+  };
+
   return deployment;
 }
 
