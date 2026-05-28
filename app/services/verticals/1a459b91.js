@@ -66,7 +66,7 @@ function getDatacenterThroughput(dcCode) {
   const capacity = DATACENTER_CAPACITY[dcCode];
   const dc = DATACENTERS.find((d) => d.code === dcCode);
   return {
-    waferOutput: {
+    fabrication: {
       daily: dc.nodes * capacity.yieldMultiplier,
       perShift: dc.nodes * capacity.yieldMultiplier / capacity.shiftCount,
     },
