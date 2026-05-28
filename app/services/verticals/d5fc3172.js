@@ -104,6 +104,17 @@ function buildDeploymentPlan(licensing, plan, bundle) {
     deployment.aiCapacity = licensing.seatCount * 200;
   }
 
+  const certificationMap = {
+    enterprise: 'SOC2-Type2',
+    business: 'SOC2-Type1',
+    pro: 'ISO-27001',
+    basic: 'Basic',
+  };
+  deployment.governance = {
+    certificationLevel: certificationMap[plan.id] || 'Basic',
+    complianceReviewRequired: plan.id === 'enterprise' || plan.id === 'business',
+  };
+
   return deployment;
 }
 
