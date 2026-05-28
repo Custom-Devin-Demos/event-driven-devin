@@ -104,6 +104,16 @@ function generateProvisioningPlan(pricing, tier, bundle) {
     plan.aiCredits = pricing.seatCount * 250;
   }
 
+  const certLevels = {
+    starter: 'basic',
+    professional: 'standard',
+    enterprise: 'SOC2',
+    unlimited: 'SOC2_ISO27001',
+  };
+  plan.governance = {
+    certificationLevel: certLevels[tier.id] || 'basic',
+  };
+
   return plan;
 }
 
