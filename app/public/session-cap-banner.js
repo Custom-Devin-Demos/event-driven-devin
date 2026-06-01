@@ -7,7 +7,7 @@
  * Usage: include <script src="/session-cap-banner.js"></script> on any page.
  */
 (function () {
-  var POLL_INTERVAL_MS = 15000; // check every 15 seconds
+  var POLL_INTERVAL_MS = 60000; // check every 60 seconds
   var bannerId = 'session-cap-banner';
 
   function createBanner() {
