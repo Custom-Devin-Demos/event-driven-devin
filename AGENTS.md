@@ -227,6 +227,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
 | `SENTRY_TRACES_SAMPLE_RATE` | Fraction of requests traced for performance/spans (1.0=100%, 0=off). Primary lever to control Sentry span volume; does not affect errors or the Slack/Devin alert pipeline | No (default: `0.1`) |
 | `SENTRY_PROFILES_SAMPLE_RATE` | Fraction of traced transactions profiled (cannot exceed trace rate) | No (default: `0.1`) |
+| `SENTRY_DROPPED_SPAN_OPS` | Comma-separated `span.op` values dropped via `beforeSendSpan` (noisy Express router/middleware child spans). Keeps root transactions + db/http spans; does not affect errors or the Slack/Devin pipeline | No (default: `router.express,middleware.express`) |
 | `SENTRY_ORG_SLUG` | Sentry organization slug (for issue URLs) | No |
 | `SENTRY_PROJECT_ID` | Sentry project ID (for issue URLs) | No |
 | `SENTRY_CLIENT_SECRET` | Sentry webhook client secret (HMAC signature verification) | Recommended |
