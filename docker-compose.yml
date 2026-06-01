@@ -95,6 +95,8 @@ services:
       - DEVIN_USER_ID_D5FC3172=${DEVIN_USER_ID_D5FC3172:-}
       - DEVIN_SERVICE_KEY_BBVA=${DEVIN_SERVICE_KEY_BBVA:-}
       - DEVIN_USER_ID_BBVA=${DEVIN_USER_ID_BBVA:-}
+      # Eli Lilly demo — legacy on-prem inventory system (cloud-migration target)
+      - ONPREM_BASE_URL=${ONPREM_BASE_URL:-http://onprem-legacy:4001}
     depends_on:
       - datadog-agent
     restart: unless-stopped
@@ -151,6 +153,19 @@ services:
       checkout-api:
         condition: service_healthy
     restart: unless-stopped
+
+  # ─── Legacy On-Prem Inventory System (Eli Lilly demo) ───
+  # Simulates an on-prem mainframe/ERP inventory service targeted for cloud migration.
+  onprem-legacy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["node", "onprem/legacy-inventory-server.js"]
+    environment:
+      - ONPREM_PORT=4001
+    restart: unless-stopped
+    expose:
+      - "4001"
 
   # ─── Datadog Agent ──────────────────────────────────
   datadog-agent:
