@@ -123,6 +123,10 @@ const CUSTOMERS = {
     label: 'BBVA Banking',
     triggerMode: 'api',
   },
+  bestbuy: {
+    label: 'Best Buy',
+    triggerMode: 'api',
+  },
 };
 
 /**

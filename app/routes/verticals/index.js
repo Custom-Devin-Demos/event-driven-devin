@@ -43,6 +43,7 @@ const levisRoutes = require('./levis');
 const threatlyRoutes = require('./threatly');
 const customerB3587482Routes = require('./b3587482');
 const customerBbvaRoutes = require('./bbva');
+const bestbuyRoutes = require('./bestbuy');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -84,6 +85,7 @@ router.use(levisRoutes);
 router.use(threatlyRoutes);
 router.use(customerB3587482Routes);
 router.use(customerBbvaRoutes);
+router.use(bestbuyRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -105,6 +107,7 @@ const VERTICALS = [
   { id: 'levis', name: 'Apparel eCommerce', brand: "Levi's", path: '/levis', icon: '\u{1F456}', color: '#c41230' },
   { id: 'threatly', name: 'Security Automation', brand: 'Threatly', path: '/threatly', icon: '\u{26A1}', color: '#7c3aed' },
   { id: 'b3587482', name: 'Catering', brand: 'Chick-fil-A', path: '/b3587482', icon: '\u{1F414}', color: '#E51636' },
+  { id: 'bestbuy', name: 'Retail Supply Chain', brand: 'Best Buy', path: '/bestbuy', icon: '\u{1F3F7}\u{FE0F}', color: '#0046BE' },
 
 ];
 
@@ -119,7 +122,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'threatly', 'b3587482', 'bbva'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'threatly', 'b3587482', 'bbva', 'bestbuy'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
