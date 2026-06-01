@@ -1,9 +1,9 @@
 const express = require('express');
-const { processApplication, ACCOUNT_TYPES } = require('../../services/verticals/32850e60');
+const { processApplication, ACCOUNT_TYPES } = require('../../services/verticals/bbva');
 
 const router = express.Router();
 
-router.get('/api/32850e60/products', (_req, res) => {
+router.get('/api/bbva/products', (_req, res) => {
   const products = Object.entries(ACCOUNT_TYPES).map(([id, spec]) => ({
     id,
     monthlyFee: spec.monthlyFee,
@@ -13,7 +13,7 @@ router.get('/api/32850e60/products', (_req, res) => {
   res.json({ products });
 });
 
-router.post('/api/32850e60/apply', async (req, res) => {
+router.post('/api/bbva/apply', async (req, res) => {
   try {
     const result = await processApplication({
       applicantType: req.body.applicantType || 'personal',
