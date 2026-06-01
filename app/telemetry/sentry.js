@@ -1,6 +1,26 @@
 const Sentry = require('@sentry/node');
 const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
+// High-frequency, low-value transactions (UI polling, health checks, config)
+// that otherwise dominate span volume. These are dropped from tracing entirely
+// via tracesSampler, regardless of any inbound trace-sampling decision. Error
+// capture and the Slack/Devin alert pipeline are unaffected.
+const UNTRACED_TRANSACTION_PATTERNS = [
+  '/api/admin/session-stats',
+  '/api/config',
+  '/health',
+];
+
+function makeTracesSampler(defaultRate) {
+  return (samplingContext) => {
+    const name = (samplingContext && samplingContext.name) || '';
+    if (UNTRACED_TRANSACTION_PATTERNS.some((pattern) => name.includes(pattern))) {
+      return 0;
+    }
+    return defaultRate;
+  };
+}
+
 function initSentry() {
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) {
@@ -16,7 +36,7 @@ function initSentry() {
       ...defaults.filter((i) => i.name !== 'Dedupe'),
       nodeProfilingIntegration(),
     ],
-    tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? 0.1),
+    tracesSampler: makeTracesSampler(Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? 0.1)),
     profilesSampleRate: Number(process.env.SENTRY_PROFILES_SAMPLE_RATE ?? 0.1),
     beforeSend(event) {
       const { getScenario } = require('../incidentModes');
