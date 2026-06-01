@@ -39,6 +39,24 @@ function makeTracesSampler(defaultRate) {
   };
 }
 
+// Framework-internal child spans (one per Express router/middleware layer the
+// request walks) that add little APM value but dominate span volume — a single
+// traced request through the 9 mounted vertical routers emits ~100+ of them.
+// Dropping them keeps the root request transaction plus the meaningful spans
+// (db, outbound http.client) while cutting the bulk of span volume. Error
+// capture and the Slack/Devin alert pipeline are unaffected (they are not spans).
+const DROPPED_SPAN_OPS = new Set(
+  (process.env.SENTRY_DROPPED_SPAN_OPS ?? 'router.express,middleware.express')
+    .split(',')
+    .map((op) => op.trim())
+    .filter(Boolean),
+);
+
+function shouldDropSpan(span) {
+  const op = span && (span.op || (span.data && span.data['sentry.op']));
+  return Boolean(op) && DROPPED_SPAN_OPS.has(op);
+}
+
 function initSentry() {
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) {
@@ -56,6 +74,14 @@ function initSentry() {
     ],
     tracesSampler: makeTracesSampler(Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? 0.1)),
     profilesSampleRate: Number(process.env.SENTRY_PROFILES_SAMPLE_RATE ?? 0.1),
+    beforeSendSpan(span) {
+      // Drops noisy framework child spans only; the root transaction span is
+      // never passed here in a droppable way, so request-level tracing stays.
+      if (shouldDropSpan(span)) {
+        return null;
+      }
+      return span;
+    },
     beforeSend(event) {
       const { getScenario } = require('../incidentModes');
       event.tags = {
