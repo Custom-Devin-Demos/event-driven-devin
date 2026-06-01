@@ -120,12 +120,12 @@ async function sendCheckoutRequests(count) {
 
 async function runTrafficCycle() {
   const multiplier = getTimeMultiplier();
-  const searchCount = Math.max(1, Math.round(6 * multiplier));
-  const loginCount = Math.max(1, Math.round(3 * multiplier));
-  const orderCount = Math.max(1, Math.round(2 * multiplier));
+  const searchCount = Math.max(1, Math.round(2 * multiplier));
+  const loginCount = Math.max(1, Math.round(1 * multiplier));
+  const orderCount = Math.max(1, Math.round(1 * multiplier));
 
   console.log(`\n[loadgen] ---- Traffic cycle @ ${new Date().toISOString()} (multiplier: ${multiplier}) ----`);
-  const checkoutCount = Math.max(1, Math.round(2 * multiplier));
+  const checkoutCount = Math.max(1, Math.round(1 * multiplier));
 
   console.log(`[loadgen] Sending: ${searchCount} search, ${loginCount} login, ${orderCount} orders, ${checkoutCount} checkout`);
 
@@ -189,11 +189,11 @@ async function main() {
     }
   }, INTERVAL_MS);
 
-  // Every 10 minutes: slow burst (send 3 extra search requests rapidly)
+  // Every 10 minutes: slow burst (send a small extra burst of requests)
   setInterval(async () => {
     console.log('[loadgen] === SLOW BURST (10-min interval) ===');
-    await sendSearchRequests(3);
-    await sendLoginRequests(2);
+    await sendSearchRequests(1);
+    await sendLoginRequests(1);
   }, 10 * 60 * 1000);
 }
 
