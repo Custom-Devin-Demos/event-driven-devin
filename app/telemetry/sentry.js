@@ -11,10 +11,28 @@ const UNTRACED_TRANSACTION_PATTERNS = [
   '/health',
 ];
 
+// Extract the route path from a Sentry transaction name, which is typically
+// "GET /health" or sometimes just "/health". Strips the HTTP method prefix and
+// any query string so patterns are matched against the path alone.
+function transactionPath(name) {
+  const parts = name.trim().split(/\s+/);
+  const raw = parts.length > 1 ? parts[parts.length - 1] : name;
+  return raw.split('?')[0];
+}
+
+function isUntracedTransaction(name) {
+  const path = transactionPath(name);
+  // Boundary-aware match: exact path or a sub-path segment, so '/health' does
+  // NOT match '/healthcare' or '/api/healthcare/...' (a real vertical).
+  return UNTRACED_TRANSACTION_PATTERNS.some(
+    (pattern) => path === pattern || path.startsWith(`${pattern}/`),
+  );
+}
+
 function makeTracesSampler(defaultRate) {
   return (samplingContext) => {
     const name = (samplingContext && samplingContext.name) || '';
-    if (UNTRACED_TRANSACTION_PATTERNS.some((pattern) => name.includes(pattern))) {
+    if (isUntracedTransaction(name)) {
       return 0;
     }
     return defaultRate;
