@@ -24,12 +24,12 @@ const CATALOG = [
  * Distribution centers with inventory + cold-chain status.
  */
 const DISTRIBUTION_CENTERS = [
-  { id: 'DC-IND', name: 'Lilly DC — Indianapolis', location: 'Indianapolis, IN', region: 'midwest', skus: 412, capacity: 88, fillRate: 98.4, stockouts: 0, coldChainC: 4.6, status: 'optimal' },
-  { id: 'DC-BRB', name: 'Lilly DC — Branchburg', location: 'Branchburg, NJ', region: 'northeast', skus: 356, capacity: 91, fillRate: 93.7, stockouts: 2, coldChainC: 5.1, status: 'low-stock' },
-  { id: 'DC-CON', name: 'Lilly DC — Concord', location: 'Concord, NC', region: 'south', skus: 388, capacity: 79, fillRate: 95.1, stockouts: 3, coldChainC: 5.4, status: 'stockout' },
-  { id: 'DC-KC', name: 'Lilly DC — Kansas City', location: 'Kansas City, MO', region: 'midwest', skus: 301, capacity: 72, fillRate: 97.6, stockouts: 1, coldChainC: 4.9, status: 'optimal' },
-  { id: 'DC-SAC', name: 'Lilly DC — Sacramento', location: 'Sacramento, CA', region: 'west', skus: 264, capacity: 84, fillRate: 96.0, stockouts: 1, coldChainC: 7.8, status: 'excursion' },
-  { id: 'DC-MEM', name: 'Lilly DC — Memphis', location: 'Memphis, TN', region: 'south', skus: 295, capacity: 67, fillRate: 99.0, stockouts: 0, coldChainC: 5.0, status: 'optimal' },
+  { id: 'DC-IND', name: 'Lilly DC — Indianapolis', location: 'Indianapolis, IN', region: 'midwest', skus: 412, capacity: 88, fillRate: 98.4, stockouts: 0, coldChainC: 4.6, status: 'optimal', topNdc: 'NDC-0002-1506' },
+  { id: 'DC-BRB', name: 'Lilly DC — Branchburg', location: 'Branchburg, NJ', region: 'northeast', skus: 356, capacity: 91, fillRate: 93.7, stockouts: 2, coldChainC: 5.1, status: 'low-stock', topNdc: 'NDC-0002-1434' },
+  { id: 'DC-CON', name: 'Lilly DC — Concord', location: 'Concord, NC', region: 'south', skus: 388, capacity: 79, fillRate: 95.1, stockouts: 3, coldChainC: 5.4, status: 'stockout', topNdc: 'NDC-0002-9981' },
+  { id: 'DC-KC', name: 'Lilly DC — Kansas City', location: 'Kansas City, MO', region: 'midwest', skus: 301, capacity: 72, fillRate: 97.6, stockouts: 1, coldChainC: 4.9, status: 'optimal', topNdc: 'NDC-0002-7510' },
+  { id: 'DC-SAC', name: 'Lilly DC — Sacramento', location: 'Sacramento, CA', region: 'west', skus: 264, capacity: 84, fillRate: 96.0, stockouts: 1, coldChainC: 7.8, status: 'excursion', topNdc: 'NDC-0002-1495' },
+  { id: 'DC-MEM', name: 'Lilly DC — Memphis', location: 'Memphis, TN', region: 'south', skus: 295, capacity: 67, fillRate: 99.0, stockouts: 0, coldChainC: 5.0, status: 'optimal', topNdc: 'NDC-0002-7714' },
 ];
 
 /**
@@ -57,21 +57,28 @@ async function fetchOnPremInventory() {
 }
 
 /**
- * Queries inventory status for a given region.
+ * Queries inventory status for a given region, enriching each distribution
+ * center with its top-moving SKU pulled from the product catalog.
+ * BUG: DC-CON references NDC-0002-9981, which is not in CATALOG, so
+ * topProduct is undefined and topProduct.name throws a TypeError.
  */
 function queryInventory(region) {
   const dcs = region
     ? DISTRIBUTION_CENTERS.filter((dc) => dc.region === region.toLowerCase())
     : DISTRIBUTION_CENTERS;
 
-  return dcs.map((dc) => ({
-    dcId: dc.id,
-    name: dc.name,
-    fillRate: dc.fillRate,
-    stockouts: dc.stockouts,
-    coldChainC: dc.coldChainC,
-    status: dc.status,
-  }));
+  return dcs.map((dc) => {
+    const topProduct = CATALOG.find((p) => p.ndc === dc.topNdc);
+    return {
+      dcId: dc.id,
+      name: dc.name,
+      topSku: topProduct.name,
+      fillRate: dc.fillRate,
+      stockouts: dc.stockouts,
+      coldChainC: dc.coldChainC,
+      status: dc.status,
+    };
+  });
 }
 
 /**
@@ -173,6 +180,7 @@ async function processQuery(queryData) {
       devinUserId: queryData.devinUserId,
       devinEmail: queryData.devinEmail,
       devinOrgId: queryData.devinOrgId,
+      customer: 'lilly',
       service: 'lilly-supply-chain',
       verticalLabel: 'Supply Chain Query',
       tags: [
