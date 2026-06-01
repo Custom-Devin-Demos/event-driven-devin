@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best Buy &mdash; Retail Supply Chain Visibility</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bby-blue: #0046BE;
+      --bby-blue-light: #0058e6;
+      --bby-blue-dim: rgba(0,70,190,0.10);
+      --bby-yellow: #FFE000;
+      --bby-yellow-dim: rgba(255,224,0,0.12);
+      --bby-gold: #f5a623;
+      --bby-gold-dim: rgba(245,166,35,0.10);
+      --bby-red: #e04040;
+      --bby-red-dim: rgba(224,64,64,0.08);
+      --bby-green: #2ecc71;
+      --bby-green-dim: rgba(46,204,113,0.10);
+      --bg: #0F172A;
+      --card-bg: #1E293B;
+      --card-bg-alt: #243449;
+      --text-primary: #FFFFFF;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+      --text-header: #E2E8F0;
+      --accent-1: #38BDF8;
+      --accent-2: #60A5FA;
+      --accent-3: #818CF8;
+      --accent-4: #A78BFA;
+      --positive: #4ADE80;
+      --negative: #F87171;
+      --border: rgba(255,255,255,0.08);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text-primary); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.5s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; } .fi5 { animation-delay: 0.25s; } .fi6 { animation-delay: 0.3s; }
+
+    /* HEADER */
+    header {
+      background: var(--bby-blue);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 3px solid var(--bby-yellow);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .logo-mark {
+      width: 46px; height: 34px;
+      background: var(--bby-yellow);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 13px; color: #000;
+      letter-spacing: -0.3px;
+      position: relative;
+      clip-path: polygon(0 0, 84% 0, 100% 50%, 84% 100%, 0 100%);
+    }
+    .logo-text {
+      font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: 0.02em; text-transform: uppercase;
+    }
+    .logo-text span { font-weight: 400; opacity: 0.7; font-size: 0.78rem; letter-spacing: 0.06em; display: block; text-transform: none; }
+    .header-nav { display: flex; gap: 0.2rem; }
+    .header-nav a {
+      color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.8rem; font-weight: 500;
+      padding: 0.4rem 0.8rem; border-radius: 6px; transition: all 0.2s;
+    }
+    .header-nav a:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .header-nav a.active { background: rgba(255,224,0,0.2); color: var(--bby-yellow); }
+
+    /* PAGE */
+    .page { max-width: 1280px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--accent-1); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; opacity: 0.8; }
+    .back-link:hover { opacity: 1; }
+
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+    .page-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.15rem; }
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 100px;
+      background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.25);
+      font-size: 0.72rem; font-weight: 600; color: var(--positive); text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--positive); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* KPI CARDS */
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 1000px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+    .kpi {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.15rem; position: relative; overflow: hidden;
+    }
+    .kpi-highlight {
+      background: linear-gradient(135deg, var(--bby-blue), var(--accent-3));
+    }
+    .kpi-highlight .kpi-label { color: rgba(255,255,255,0.8); }
+    .kpi-highlight .kpi-value { color: #fff; }
+    .kpi-highlight .kpi-sub { color: rgba(255,255,255,0.7); }
+    .kpi-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .kpi-sub.positive { color: var(--positive); }
+    .kpi-sub.negative { color: var(--negative); }
+
+    /* SECTION HEADER */
+    .section-header {
+      font-size: 0.95rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem;
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
+    }
+    .section-header .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* ALERTS */
+    .alerts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 700px) { .alerts-row { grid-template-columns: 1fr; } }
+    .alert-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.15rem; display: flex; gap: 0.85rem; align-items: flex-start;
+    }
+    .alert-card.critical { border-left: 3px solid var(--negative); }
+    .alert-card.warning { border-left: 3px solid var(--bby-gold); }
+    .alert-icon {
+      width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .alert-icon.critical { background: rgba(248,113,113,0.12); }
+    .alert-icon.warning { background: var(--bby-gold-dim); }
+    .alert-body { flex: 1; }
+    .alert-title { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; }
+    .alert-detail { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+    .alert-time { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--mono); }
+
+    /* FACILITY TABLE */
+    .table-wrap {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; margin-bottom: 1.75rem;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: var(--card-bg); color: var(--text-header); font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; text-align: left;
+      padding: 0.85rem 1rem; border-bottom: 1px solid var(--border);
+    }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:nth-child(even) { background: var(--card-bg-alt); }
+    tbody tr:hover { background: rgba(56,189,248,0.04); }
+    td {
+      padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text-secondary);
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+      border-radius: 100px; font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-badge.optimal { background: rgba(74,222,128,0.12); color: var(--positive); }
+    .status-badge.low { background: rgba(248,113,113,0.12); color: var(--negative); }
+    .status-badge.overstock { background: rgba(245,166,35,0.12); color: var(--bby-gold); }
+    .status-badge.in-transit { background: rgba(96,165,250,0.12); color: var(--accent-2); }
+
+    .bar-wrap { width: 100px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .bar-fill.high { background: var(--positive); }
+    .bar-fill.mid { background: var(--bby-gold); }
+    .bar-fill.low { background: var(--negative); }
+
+    /* SHIPMENTS PANEL */
+    .two-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.15rem; overflow: hidden;
+    }
+    .panel-title { font-size: 0.78rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .shipment-item {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .shipment-item:last-child { border-bottom: none; }
+    .shipment-icon { font-size: 1.1rem; width: 32px; text-align: center; }
+    .shipment-info { flex: 1; }
+    .shipment-route { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+    .shipment-details { font-size: 0.7rem; color: var(--text-muted); }
+    .shipment-eta {
+      font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+      background: rgba(56,189,248,0.1); color: var(--accent-1);
+    }
+    .shipment-eta.delayed { background: rgba(248,113,113,0.12); color: var(--negative); }
+
+    /* DEMAND FORECAST MINI-CHART (CSS-only) */
+    .forecast-bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding-top: 8px; }
+    .forecast-bar {
+      flex: 1; border-radius: 4px 4px 0 0; position: relative; min-width: 0;
+      transition: height 0.6s ease;
+    }
+    .forecast-bar .bar-label {
+      position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+      font-size: 0.58rem; color: var(--text-muted); white-space: nowrap;
+    }
+    .forecast-bar .bar-value {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 0.6rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;
+    }
+
+    /* NL QUERY */
+    .query-section { margin-bottom: 1.75rem; }
+    .query-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .query-input-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .query-input {
+      flex: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.7rem 1rem; font-family: var(--font); font-size: 0.88rem; color: var(--text-primary);
+      outline: none; transition: border-color 0.2s;
+    }
+    .query-input::placeholder { color: var(--text-muted); }
+    .query-input:focus { border-color: var(--bby-blue-light); box-shadow: 0 0 0 3px rgba(0,70,190,0.25); }
+    .query-btn {
+      padding: 0 1.5rem; background: var(--bby-blue); color: #fff; border: none; border-radius: 8px;
+      font-family: var(--font); font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s; white-space: nowrap;
+    }
+    .query-btn:hover { opacity: 0.85; }
+    .query-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .query-suggestions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .query-chip {
+      padding: 5px 12px; border-radius: 100px; background: rgba(0,70,190,0.12);
+      border: 1px solid rgba(0,70,190,0.35); color: var(--accent-2);
+      font-size: 0.7rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+    }
+    .query-chip:hover { background: rgba(0,70,190,0.25); }
+    .query-result {
+      display: none; background: var(--bg); border-radius: 8px; padding: 1rem;
+      font-size: 0.82rem; line-height: 1.6; color: var(--text-secondary);
+      border: 1px solid var(--border); max-height: 300px; overflow-y: auto;
+    }
+    .query-result.visible { display: block; }
+    .query-result h4 { color: var(--accent-1); font-size: 0.78rem; margin-bottom: 0.5rem; }
+    .query-result table { margin-top: 0.5rem; }
+    .query-result table th { padding: 0.5rem 0.75rem; font-size: 0.68rem; }
+    .query-result table td { padding: 0.45rem 0.75rem; font-size: 0.75rem; }
+
+    /* FOOTER */
+    .page-footer {
+      text-align: center; padding: 2rem 1rem; font-size: 0.7rem; color: var(--text-muted);
+      border-top: 1px solid var(--border); margin-top: 1rem;
+    }
+    .page-footer a { color: var(--accent-1); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-mark">BBY</div>
+      <div class="logo-text">
+        Best Buy
+        <span>Supply Chain Command Center</span>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="#" class="active">Dashboard</a>
+      <a href="#">Inventory</a>
+      <a href="#">Shipments</a>
+      <a href="#">Forecasting</a>
+      <a href="#">Reports</a>
+    </nav>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+
+    <div class="page-header fi fi1">
+      <div>
+        <div class="page-title">Real-Time Retail Supply Chain Visibility</div>
+        <div class="page-subtitle">North America Region &middot; All Distribution Centers &middot; Updated every 30s</div>
+      </div>
+      <div class="live-badge"><div class="live-dot"></div> Live Feed</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row fi fi2">
+      <div class="kpi kpi-highlight">
+        <div class="kpi-label">Overall Fill Rate</div>
+        <div class="kpi-value">96.7%</div>
+        <div class="kpi-sub">Target: 95.0%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Active SKUs</div>
+        <div class="kpi-value">21,800</div>
+        <div class="kpi-sub positive">+412 this week</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">In-Transit Shipments</div>
+        <div class="kpi-value">134</div>
+        <div class="kpi-sub">21 arriving today</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Stockout Alerts</div>
+        <div class="kpi-value" style="color: var(--negative);">8</div>
+        <div class="kpi-sub negative">3 critical</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Overstock Warnings</div>
+        <div class="kpi-value" style="color: var(--bby-gold);">5</div>
+        <div class="kpi-sub">$1.2M excess value</div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section-header fi fi2"><div class="dot" style="background: var(--negative);"></div> Active Alerts</div>
+    <div class="alerts-row fi fi3">
+      <div class="alert-card critical">
+        <div class="alert-icon critical">&#x26A0;&#xFE0F;</div>
+        <div class="alert-body">
+          <div class="alert-title">STOCKOUT: Sony PlayStation 5 Slim (BBY-6566621)</div>
+          <div class="alert-detail">Dinuba DC &mdash; Stock depleted. 3 POs pending. Demand forecast: 2,800 units/week. Estimated restock: 72hrs.</div>
+          <div class="alert-time">2 min ago &middot; auto-detected</div>
+        </div>
+      </div>
+      <div class="alert-card critical">
+        <div class="alert-icon critical">&#x26A0;&#xFE0F;</div>
+        <div class="alert-body">
+          <div class="alert-title">STOCKOUT: Apple AirPods Pro 2nd Gen (BBY-6418599)</div>
+          <div class="alert-detail">Ardmore DC &mdash; Below safety stock (180 units remaining, safety: 1,200). Reorder triggered automatically.</div>
+          <div class="alert-time">9 min ago &middot; auto-detected</div>
+        </div>
+      </div>
+      <div class="alert-card warning">
+        <div class="alert-icon warning">&#x1F4E6;</div>
+        <div class="alert-body">
+          <div class="alert-title">OVERSTOCK: LG 55" C4 OLED TV (BBY-6571399)</div>
+          <div class="alert-detail">Bloomington DC &mdash; 280% above target. 3,400 units on hand vs. 1,200 target. $612K excess inventory value.</div>
+          <div class="alert-time">17 min ago &middot; threshold breach</div>
+        </div>
+      </div>
+      <div class="alert-card warning">
+        <div class="alert-icon warning">&#x1F69A;</div>
+        <div class="alert-body">
+          <div class="alert-title">DELAYED: Inbound Shipment SH-8841 from Long Beach Port</div>
+          <div class="alert-detail">Originally ETA May 7. Customs hold &mdash; revised ETA May 9. Contains Samsung TV &amp; MacBook replenishment for West region.</div>
+          <div class="alert-time">34 min ago &middot; carrier update</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACILITY TABLE -->
+    <div class="section-header fi fi3"><div class="dot" style="background: var(--accent-1);"></div> Distribution Center Inventory</div>
+    <div class="table-wrap fi fi4">
+      <table>
+        <thead>
+          <tr>
+            <th>Facility</th>
+            <th>Location</th>
+            <th>SKUs Stocked</th>
+            <th>Capacity</th>
+            <th>Fill Rate</th>
+            <th>Stockouts</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Best Buy DC &mdash; Findlay</td>
+            <td>Findlay, OH</td>
+            <td>4,120</td>
+            <td>87%<div class="bar-wrap"><div class="bar-fill high" style="width:87%"></div></div></td>
+            <td>98.1%</td>
+            <td>0</td>
+            <td><span class="status-badge optimal">Optimal</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Best Buy DC &mdash; Dinuba</td>
+            <td>Dinuba, CA</td>
+            <td>3,870</td>
+            <td>92%<div class="bar-wrap"><div class="bar-fill mid" style="width:92%"></div></div></td>
+            <td>93.8%</td>
+            <td>4</td>
+            <td><span class="status-badge low">Stockout</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Best Buy DC &mdash; Ardmore</td>
+            <td>Ardmore, OK</td>
+            <td>3,640</td>
+            <td>78%<div class="bar-wrap"><div class="bar-fill high" style="width:78%"></div></div></td>
+            <td>95.4%</td>
+            <td>2</td>
+            <td><span class="status-badge low">Low Stock</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Best Buy DC &mdash; Staten Island</td>
+            <td>Staten Island, NY</td>
+            <td>3,980</td>
+            <td>71%<div class="bar-wrap"><div class="bar-fill high" style="width:71%"></div></div></td>
+            <td>97.6%</td>
+            <td>1</td>
+            <td><span class="status-badge optimal">Optimal</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Best Buy DC &mdash; Nichols</td>
+            <td>Nichols, SC</td>
+            <td>3,210</td>
+            <td>65%<div class="bar-wrap"><div class="bar-fill high" style="width:65%"></div></div></td>
+            <td>99.0%</td>
+            <td>0</td>
+            <td><span class="status-badge optimal">Optimal</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Best Buy DC &mdash; Bloomington</td>
+            <td>Bloomington, MN</td>
+            <td>2,980</td>
+            <td>94%<div class="bar-wrap"><div class="bar-fill mid" style="width:94%"></div></div></td>
+            <td>96.2%</td>
+            <td>1</td>
+            <td><span class="status-badge overstock">Overstock</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SHIPMENTS + DEMAND FORECAST -->
+    <div class="two-col fi fi4">
+      <div class="panel">
+        <div class="panel-title">Inbound Shipments</div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Long Beach Port &#x2192; Dinuba DC</div>
+            <div class="shipment-details">SH-8841 &middot; Samsung TVs, MacBook Air &middot; 1,200 units</div>
+          </div>
+          <div class="shipment-eta">ETA Today</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Columbus Hub &#x2192; Findlay DC</div>
+            <div class="shipment-details">SH-8843 &middot; PS5, Xbox Series X &middot; 3,400 units</div>
+          </div>
+          <div class="shipment-eta">ETA Tomorrow</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x2708;&#xFE0F;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Memphis Air Hub &#x2192; Ardmore DC</div>
+            <div class="shipment-details">SH-8847 &middot; AirPods Pro, Sony XM5 &middot; 6,800 units</div>
+          </div>
+          <div class="shipment-eta delayed">Delayed +2d</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Newark Hub &#x2192; Staten Island DC</div>
+            <div class="shipment-details">SH-8849 &middot; Dell XPS, Nest Thermostat &middot; 2,100 units</div>
+          </div>
+          <div class="shipment-eta">ETA May 10</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Savannah Port &#x2192; Nichols DC</div>
+            <div class="shipment-details">SH-8852 &middot; LG OLED TVs, Soundbars &middot; 980 units</div>
+          </div>
+          <div class="shipment-eta">ETA May 11</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Weekly Demand Forecast (Units, K)</div>
+        <div class="forecast-bar-chart" style="margin-bottom: 28px;">
+          <div class="forecast-bar" style="height:60%; background: var(--accent-1);">
+            <div class="bar-value">38K</div>
+            <div class="bar-label">W19</div>
+          </div>
+          <div class="forecast-bar" style="height:70%; background: var(--accent-2);">
+            <div class="bar-value">44K</div>
+            <div class="bar-label">W20</div>
+          </div>
+          <div class="forecast-bar" style="height:82%; background: var(--accent-3);">
+            <div class="bar-value">52K</div>
+            <div class="bar-label">W21</div>
+          </div>
+          <div class="forecast-bar" style="height:100%; background: linear-gradient(to top, var(--accent-3), var(--negative));">
+            <div class="bar-value">63K</div>
+            <div class="bar-label">W22</div>
+          </div>
+          <div class="forecast-bar" style="height:88%; background: var(--accent-4);">
+            <div class="bar-value">55K</div>
+            <div class="bar-label">W23</div>
+          </div>
+          <div class="forecast-bar" style="height:68%; background: var(--accent-2);">
+            <div class="bar-value">42K</div>
+            <div class="bar-label">W24</div>
+          </div>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px;">
+          <span style="color: var(--negative); font-weight: 600;">&#x25B2; Week 22:</span> Memorial Day TV &amp; laptop promo surge. Pre-position Samsung OLED &amp; MacBook at West &amp; South DCs.
+        </div>
+      </div>
+    </div>
+
+    <!-- SKU BELOW SAFETY STOCK (West Region) -->
+    <div class="section-header fi fi5"><div class="dot" style="background: var(--negative);"></div> SKUs Below Safety Stock &mdash; West Region</div>
+    <div class="table-wrap fi fi5">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Product</th>
+            <th>Brand</th>
+            <th>DC</th>
+            <th>On Hand</th>
+            <th>Safety Stock</th>
+            <th>Deficit</th>
+            <th>Reorder Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">BBY-6566621</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Sony PlayStation 5 Slim</td>
+            <td>Sony</td>
+            <td>Dinuba</td>
+            <td style="color: var(--negative); font-weight: 700;">0</td>
+            <td>1,500</td>
+            <td style="color: var(--negative);">-1,500</td>
+            <td><span class="status-badge in-transit">PO In Transit</span></td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">BBY-6418599</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Apple AirPods Pro (2nd Gen)</td>
+            <td>Apple</td>
+            <td>Ardmore</td>
+            <td style="color: var(--negative); font-weight: 700;">180</td>
+            <td>1,200</td>
+            <td style="color: var(--negative);">-1,020</td>
+            <td><span class="status-badge in-transit">Reorder Sent</span></td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">BBY-6535806</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Apple MacBook Air 13.6" M3</td>
+            <td>Apple</td>
+            <td>Dinuba</td>
+            <td style="color: var(--negative); font-weight: 700;">220</td>
+            <td>700</td>
+            <td style="color: var(--negative);">-480</td>
+            <td><span class="status-badge in-transit">PO In Transit</span></td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">BBY-6509650</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Sony WH-1000XM5 Headphones</td>
+            <td>Sony</td>
+            <td>Ardmore</td>
+            <td style="color: var(--bby-gold); font-weight: 700;">410</td>
+            <td>650</td>
+            <td style="color: var(--bby-gold);">-240</td>
+            <td><span class="status-badge low">Pending Review</span></td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">BBY-6505727</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Google Nest Learning Thermostat</td>
+            <td>Google</td>
+            <td>Dinuba</td>
+            <td style="color: var(--bby-gold); font-weight: 700;">320</td>
+            <td>500</td>
+            <td style="color: var(--bby-gold);">-180</td>
+            <td><span class="status-badge low">Pending Review</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NATURAL LANGUAGE QUERY -->
+    <div class="section-header fi fi5"><div class="dot" style="background: var(--bby-blue-light);"></div> Ask the Supply Chain</div>
+    <div class="query-section fi fi6">
+      <div class="query-card">
+        <div class="query-suggestions">
+          <div class="query-chip" onclick="askQuery(this.textContent)">Show me all SKUs below safety stock in the West region</div>
+          <div class="query-chip" onclick="askQuery(this.textContent)">Which DCs have overstock conditions?</div>
+          <div class="query-chip" onclick="askQuery(this.textContent)">What shipments are delayed this week?</div>
+          <div class="query-chip" onclick="askQuery(this.textContent)">Demand forecast for PlayStation 5 next 4 weeks</div>
+        </div>
+        <div class="query-input-row">
+          <input type="text" class="query-input" id="queryInput" placeholder="Ask a question about your supply chain..." />
+          <button class="query-btn" id="queryBtn" onclick="submitQuery()">Ask</button>
+        </div>
+        <div class="query-result" id="queryResult"></div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      Best Buy &middot; Retail Supply Chain Command Center &middot; Data refreshed every 30 seconds<br>
+      Powered by <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a> &middot; Built in &lt;1 day from 3 legacy system integrations
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const NL_RESPONSES = {
+      'show me all skus below safety stock in the west region': {
+        title: 'SKUs Below Safety Stock — West Region (Dinuba + Ardmore DCs)',
+        html: `<table><thead><tr><th>SKU</th><th>Product</th><th>DC</th><th>On Hand</th><th>Safety Stock</th><th>Deficit</th></tr></thead><tbody>
+          <tr><td>BBY-6566621</td><td>Sony PlayStation 5 Slim</td><td>Dinuba</td><td style="color:#F87171;font-weight:700">0</td><td>1,500</td><td style="color:#F87171">-1,500</td></tr>
+          <tr><td>BBY-6418599</td><td>Apple AirPods Pro (2nd Gen)</td><td>Ardmore</td><td style="color:#F87171;font-weight:700">180</td><td>1,200</td><td style="color:#F87171">-1,020</td></tr>
+          <tr><td>BBY-6535806</td><td>Apple MacBook Air 13.6" M3</td><td>Dinuba</td><td style="color:#F87171;font-weight:700">220</td><td>700</td><td style="color:#F87171">-480</td></tr>
+          <tr><td>BBY-6509650</td><td>Sony WH-1000XM5 Headphones</td><td>Ardmore</td><td style="color:#f5a623;font-weight:700">410</td><td>650</td><td style="color:#f5a623">-240</td></tr>
+          <tr><td>BBY-6505727</td><td>Google Nest Learning Thermostat</td><td>Dinuba</td><td style="color:#f5a623;font-weight:700">320</td><td>500</td><td style="color:#f5a623">-180</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">5 SKUs below safety stock across 2 DCs in West region. 2 are fully stocked out (PS5 at Dinuba, AirPods Pro at Ardmore). Automatic reorder POs have been triggered for the top 3.</p>`
+      },
+      'which dcs have overstock conditions?': {
+        title: 'Distribution Centers with Overstock Conditions',
+        html: `<table><thead><tr><th>DC</th><th>SKU</th><th>Product</th><th>On Hand</th><th>Target</th><th>Excess</th><th>Value</th></tr></thead><tbody>
+          <tr><td>Bloomington</td><td>BBY-6571399</td><td>LG 55" C4 OLED TV</td><td>3,400</td><td>1,200</td><td style="color:#f5a623;font-weight:700">+2,200</td><td>$612K</td></tr>
+          <tr><td>Findlay</td><td>BBY-6560251</td><td>Xbox Series X 1TB</td><td>5,800</td><td>2,400</td><td style="color:#f5a623;font-weight:700">+3,400</td><td>$340K</td></tr>
+          <tr><td>Bloomington</td><td>BBY-6571387</td><td>Dell XPS 13 Laptop</td><td>2,100</td><td>900</td><td style="color:#f5a623;font-weight:700">+1,200</td><td>$156K</td></tr>
+          <tr><td>Findlay</td><td>BBY-6565837</td><td>Samsung 65" S90D OLED</td><td>1,900</td><td>1,100</td><td style="color:#f5a623;font-weight:700">+800</td><td>$128K</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">4 overstock conditions across Bloomington and Findlay DCs. Total excess inventory value: $1.24M. Recommendation: Redirect LG OLED replenishment to Dinuba/Ardmore to balance network.</p>`
+      },
+      'what shipments are delayed this week?': {
+        title: 'Delayed Shipments — Current Week',
+        html: `<table><thead><tr><th>Shipment</th><th>Route</th><th>Contents</th><th>Original ETA</th><th>Revised ETA</th><th>Reason</th></tr></thead><tbody>
+          <tr><td style="font-weight:600">SH-8847</td><td>Memphis Air Hub → Ardmore DC</td><td>AirPods Pro, Sony XM5 — 6,800 units</td><td>May 7</td><td style="color:#F87171;font-weight:700">May 9</td><td>Carrier capacity hold (peak air freight)</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">1 shipment delayed this week. SH-8847 impacts AirPods Pro and Sony XM5 replenishment for Ardmore DC, which already has below-safety-stock levels for both products. Consider emergency transfer from Staten Island DC.</p>`
+      },
+      'demand forecast for playstation 5 next 4 weeks': {
+        title: 'PlayStation 5 Demand Forecast — Next 4 Weeks (All DCs)',
+        html: `<table><thead><tr><th>Week</th><th>Forecast (Units)</th><th>Trend</th><th>Notes</th></tr></thead><tbody>
+          <tr><td>W20 (May 12-18)</td><td>9,800</td><td style="color:var(--text-muted)">Baseline</td><td>Normal seasonal demand</td></tr>
+          <tr><td>W21 (May 19-25)</td><td>11,600</td><td style="color:#4ADE80;font-weight:600">&#x25B2; +18%</td><td>Pre-Memorial Day build</td></tr>
+          <tr><td>W22 (May 26-Jun 1)</td><td>14,900</td><td style="color:#F87171;font-weight:600">&#x25B2; +28%</td><td>Memorial Day week — peak demand</td></tr>
+          <tr><td>W23 (Jun 2-8)</td><td>10,400</td><td style="color:var(--text-muted)">&#x25BC; -30%</td><td>Post-holiday normalization</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">Total 4-week forecast: 46,700 units. Current network inventory: 18,200 units. Gap: 28,500 units. Recommendation: Expedite vendor POs to pre-position inventory by W21.</p>`
+      }
+    };
+
+    function askQuery(text) {
+      document.getElementById('queryInput').value = text;
+      submitQuery();
+    }
+
+    async function submitQuery() {
+      const input = document.getElementById('queryInput');
+      const btn = document.getElementById('queryBtn');
+      const result = document.getElementById('queryResult');
+      const query = input.value.trim();
+      if (!query) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Analyzing...';
+      result.className = 'query-result';
+      result.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/bestbuy/query', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, region: '', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.innerHTML = `<h4 style="color:#F87171">Query Failed</h4><p style="color:#F87171;font-weight:600">${data.errorClass}: ${data.error}</p>`;
+        } else {
+          const nlKey = query.toLowerCase();
+          const match = NL_RESPONSES[nlKey];
+          if (match) {
+            result.innerHTML = `<h4>${match.title}</h4>${match.html}`;
+          } else {
+            const keywords = nlKey.split(/\s+/);
+            let found = null;
+            for (const [key, val] of Object.entries(NL_RESPONSES)) {
+              const keyWords = key.split(/\s+/);
+              const overlap = keywords.filter(w => keyWords.includes(w)).length;
+              if (overlap >= 3) { found = val; break; }
+            }
+            if (found) {
+              result.innerHTML = `<h4>${found.title}</h4>${found.html}`;
+            } else {
+              result.innerHTML = `<h4>Query Result</h4><p>Searching across 3 legacy systems (SAP WMS, Manhattan TMS, Blue Yonder Demand Planning)...</p>
+              <p style="margin-top:0.5rem">Found <strong>${data.totalDCs} distribution centers</strong>. Network fill rate: <strong>${data.avgFillRate}%</strong>. Active stockouts: <strong>${data.totalStockouts}</strong>.</p>`;
+            }
+          }
+        }
+      } catch (err) {
+        result.innerHTML = `<h4 style="color:#F87171">Network Error</h4><p style="color:#F87171">${err.message}</p>`;
+      } finally {
+        result.className = 'query-result visible';
+        btn.disabled = false;
+        btn.textContent = 'Ask';
+      }
+    }
+
+    document.getElementById('queryInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitQuery();
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
