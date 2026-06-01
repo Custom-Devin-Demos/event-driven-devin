@@ -225,6 +225,8 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `CERT_EMAIL` | Email for Let's Encrypt certificate notifications | For SSL |
 | `APP_VERSION` | App version for telemetry | No (default: `1.0.0`) |
 | `SENTRY_RELEASE` | Sentry release tag | No (default: `acme-checkout@1.0.0`) |
+| `SENTRY_TRACES_SAMPLE_RATE` | Fraction of requests traced for performance/spans (1.0=100%, 0=off). Primary lever to control Sentry span volume; does not affect errors or the Slack/Devin alert pipeline | No (default: `0.1`) |
+| `SENTRY_PROFILES_SAMPLE_RATE` | Fraction of traced transactions profiled (cannot exceed trace rate) | No (default: `0.1`) |
 | `SENTRY_ORG_SLUG` | Sentry organization slug (for issue URLs) | No |
 | `SENTRY_PROJECT_ID` | Sentry project ID (for issue URLs) | No |
 | `SENTRY_CLIENT_SECRET` | Sentry webhook client secret (HMAC signature verification) | Recommended |
@@ -232,6 +234,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
 | `SESSION_SECRET` | Shared secret for session-creating endpoints (`x-session-secret` header) | Recommended |
 | `PORT` | Server port | No (default: `3000`) |
+| `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `300000`) |
 
 ## Deployment
 

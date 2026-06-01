@@ -17,6 +17,8 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
       - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-prod}
       - SENTRY_RELEASE=${SENTRY_RELEASE:-acme-checkout@1.0.0}
+      - SENTRY_TRACES_SAMPLE_RATE=${SENTRY_TRACES_SAMPLE_RATE:-0.1}
+      - SENTRY_PROFILES_SAMPLE_RATE=${SENTRY_PROFILES_SAMPLE_RATE:-0.1}
       - SENTRY_ORG_SLUG=${SENTRY_ORG_SLUG:-}
       - SENTRY_PROJECT_ID=${SENTRY_PROJECT_ID:-}
       - SENTRY_CLIENT_SECRET=${SENTRY_CLIENT_SECRET:-}
@@ -148,7 +150,7 @@ services:
       dockerfile: Dockerfile.loadgen
     environment:
       - LOADGEN_TARGET_URL=http://checkout-api:3000
-      - LOADGEN_INTERVAL_MS=${LOADGEN_INTERVAL_MS:-60000}
+      - LOADGEN_INTERVAL_MS=${LOADGEN_INTERVAL_MS:-300000}
     depends_on:
       checkout-api:
         condition: service_healthy
