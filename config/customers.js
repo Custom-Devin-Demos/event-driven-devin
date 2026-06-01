@@ -115,6 +115,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  '32850e60': {
+    label: 'BBVA Banking',
+    triggerMode: 'api',
+  },
 };
 
 /**

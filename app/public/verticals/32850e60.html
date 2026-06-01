@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BBVA &mdash; Personas</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    :root {
+      --bbva-blue: #004481;
+      --bbva-bright: #0C6DFF;
+      --bbva-dark: #070E46;
+      --bbva-navy: #001391;
+      --bbva-white: #FFFFFF;
+      --bbva-light-bg: #F7F8F8;
+      --bbva-border: #E0E0E0;
+      --bbva-gray: #6B7280;
+      --bbva-footer-bg: #1A3A8F;
+      --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --font-serif: Georgia, 'Times New Roman', serif;
+      --danger: #DC2626;
+      --danger-bg: #FEF2F2;
+      --danger-border: #FECACA;
+      --success: #059669;
+      --success-bg: #ECFDF5;
+      --success-border: #A7F3D0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-primary); color: var(--bbva-dark); line-height: 1.6; -webkit-font-smoothing: antialiased; background: var(--bbva-white); }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* Toast */
+    .result-box { position: fixed; bottom: 24px; right: 24px; max-width: 440px; padding: 16px 20px; border-radius: 8px; font-size: 14px; display: none; z-index: 9999; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 12px; opacity: 0.85; word-break: break-all; font-family: 'SF Mono', 'Monaco', monospace; }
+
+    /* Header */
+    .header { background: var(--bbva-white); border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 72px; }
+    .logo img { height: 28px; width: auto; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a, .nav-links button { font-size: 15px; font-weight: 400; color: var(--bbva-dark); background: none; border: none; cursor: pointer; font-family: var(--font-primary); }
+    .nav-links a.active { font-weight: 600; border-bottom: 2px solid var(--bbva-bright); padding-bottom: 2px; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .btn-acceso { font-size: 15px; color: var(--bbva-dark); background: none; border: none; cursor: pointer; font-family: var(--font-primary); }
+    .btn-hazte { background: var(--bbva-bright); color: var(--bbva-white); border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: var(--font-primary); }
+    .btn-hazte:hover { background: #0058CC; }
+    .menu-icon { font-size: 15px; color: var(--bbva-dark); display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-family: var(--font-primary); }
+
+    /* Risk banner */
+    .risk-banner { background: linear-gradient(135deg, #4854FF 0%, #0C6DFF 100%); color: var(--bbva-white); padding: 16px 24px; }
+    .risk-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 32px; font-size: 13px; }
+    .risk-inner .level { font-size: 22px; font-weight: 700; margin-right: 8px; }
+    .risk-inner .level-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; text-align: center; }
+
+    /* Hero */
+    .hero { max-width: 1200px; margin: 0 auto; padding: 48px 24px; display: flex; align-items: center; gap: 48px; }
+    .hero-text { flex: 1; }
+    .hero-text .subhead { color: var(--bbva-bright); font-size: 15px; font-weight: 400; margin-bottom: 8px; }
+    .hero-text h1 { font-family: var(--font-serif); font-size: 36px; font-weight: 700; color: var(--bbva-dark); line-height: 1.2; margin-bottom: 24px; }
+    .hero-text ul { list-style: none; margin-bottom: 16px; }
+    .hero-text ul li { position: relative; padding-left: 16px; margin-bottom: 8px; font-size: 15px; }
+    .hero-text ul li::before { content: '–'; position: absolute; left: 0; color: var(--bbva-bright); }
+    .hero-text .promo-code { display: inline-flex; align-items: center; gap: 8px; background: var(--bbva-light-bg); padding: 8px 16px; border-radius: 6px; font-size: 14px; margin: 12px 0; cursor: pointer; }
+    .hero-text .how-link { color: var(--bbva-bright); font-size: 14px; font-weight: 500; display: block; margin-bottom: 20px; }
+    .hero-btns { display: flex; gap: 12px; margin-bottom: 12px; }
+    .hero-btns .btn-primary { background: var(--bbva-bright); color: var(--bbva-white); border: none; border-radius: 8px; padding: 16px 32px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: var(--font-primary); }
+    .hero-btns .btn-primary:hover { background: #0058CC; }
+    .hero-btns .btn-secondary { background: var(--bbva-light-bg); color: var(--bbva-navy); border: none; border-radius: 8px; padding: 16px 32px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: var(--font-primary); }
+    .hero-note { font-size: 13px; color: var(--bbva-gray); }
+    .hero-image { flex: 1; max-width: 500px; }
+    .hero-image img { border-radius: 12px; width: 100%; }
+
+    /* Quick links carousel */
+    .quick-links { max-width: 1200px; margin: 0 auto; padding: 48px 24px; }
+    .quick-links h2 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 32px; color: var(--bbva-dark); }
+    .quick-grid { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; }
+    .quick-item { min-width: 140px; text-align: center; padding: 20px 12px; border-radius: 12px; background: var(--bbva-light-bg); font-size: 14px; color: var(--bbva-dark); cursor: pointer; transition: box-shadow 0.2s; }
+    .quick-item:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .quick-item .icon { font-size: 28px; margin-bottom: 8px; color: var(--bbva-bright); }
+
+    /* Cards section */
+    .cards-section { max-width: 1200px; margin: 0 auto; padding: 48px 24px; }
+    .cards-section h2 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; text-align: center; margin-bottom: 32px; color: var(--bbva-dark); }
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .card-item { background: var(--bbva-light-bg); border-radius: 16px; overflow: hidden; }
+    .card-item img { width: 100%; height: 280px; object-fit: cover; }
+    .card-item .card-body { padding: 24px; }
+    .card-item h3 { font-family: var(--font-serif); font-size: 24px; font-weight: 700; margin-bottom: 12px; color: var(--bbva-dark); }
+    .card-item p { font-size: 15px; color: var(--bbva-dark); margin-bottom: 16px; line-height: 1.5; }
+    .card-item .card-link { color: var(--bbva-bright); font-size: 14px; font-weight: 500; display: block; margin-bottom: 12px; }
+    .card-item .card-btn { display: inline-block; background: var(--bbva-bright); color: var(--bbva-white); border-radius: 8px; padding: 14px 28px; font-size: 15px; font-weight: 500; cursor: pointer; border: none; font-family: var(--font-primary); }
+
+    /* Banner section */
+    .banner { max-width: 1200px; margin: 0 auto; padding: 0 24px 48px; }
+    .banner-inner { display: flex; border-radius: 16px; overflow: hidden; background: var(--bbva-light-bg); }
+    .banner-inner img { width: 50%; object-fit: cover; }
+    .banner-content { padding: 48px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .banner-content h2 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; margin-bottom: 16px; color: var(--bbva-dark); }
+    .banner-content p { font-size: 15px; color: var(--bbva-dark); margin-bottom: 24px; line-height: 1.5; }
+    .banner-content .btn-outline { color: var(--bbva-bright); font-size: 15px; font-weight: 500; }
+
+    /* Three-column cards */
+    .three-col { max-width: 1200px; margin: 0 auto; padding: 0 24px 48px; }
+    .three-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+    .three-item { background: var(--bbva-light-bg); border-radius: 16px; overflow: hidden; }
+    .three-item img { width: 100%; height: 200px; object-fit: cover; }
+    .three-item .item-body { padding: 20px; }
+    .three-item h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--bbva-dark); }
+    .three-item p { font-size: 14px; color: var(--bbva-dark); line-height: 1.5; }
+
+    /* Youth CTA */
+    .youth-section { max-width: 1200px; margin: 0 auto; padding: 0 24px 48px; }
+    .youth-inner { background: var(--bbva-light-bg); border-radius: 16px; padding: 48px; text-align: center; }
+    .youth-inner h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 700; margin-bottom: 16px; color: var(--bbva-dark); }
+    .youth-inner p { font-size: 15px; color: var(--bbva-dark); max-width: 700px; margin: 0 auto 24px; line-height: 1.5; }
+    .youth-inner .btn-secondary { background: var(--bbva-light-bg); color: var(--bbva-navy); border: 2px solid var(--bbva-navy); border-radius: 8px; padding: 14px 28px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: var(--font-primary); }
+
+    /* Help section */
+    .help-section { max-width: 1200px; margin: 0 auto; padding: 0 24px 48px; }
+    .help-section h2 { font-family: var(--font-serif); font-size: 28px; font-weight: 700; margin-bottom: 24px; color: var(--bbva-dark); }
+    .help-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .help-item { padding: 24px; border-radius: 12px; border: 1px solid var(--bbva-border); }
+    .help-item h3 { font-size: 16px; font-weight: 700; color: var(--bbva-dark); margin-bottom: 4px; }
+    .help-item p { font-size: 14px; color: var(--bbva-gray); }
+
+    /* Footer */
+    .footer-links { max-width: 1200px; margin: 0 auto; padding: 48px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .footer-col h4 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--bbva-dark); }
+    .footer-col a { display: block; font-size: 14px; color: var(--bbva-bright); margin-bottom: 8px; }
+    .footer-bottom { background: var(--bbva-blue); color: var(--bbva-white); padding: 32px 24px; }
+    .footer-bottom-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-bottom .logo-footer img { height: 24px; margin-bottom: 16px; }
+    .footer-bottom .legal-links { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; margin-bottom: 16px; }
+    .footer-bottom .legal-links a { color: rgba(255,255,255,0.8); }
+    .footer-bottom .lang-social { display: flex; justify-content: space-between; align-items: center; }
+    .footer-bottom .langs { display: flex; gap: 12px; font-size: 14px; }
+    .footer-bottom .langs span { font-weight: 600; }
+    .footer-bottom .langs a { color: rgba(255,255,255,0.8); }
+    .footer-bottom .copyright { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 16px; }
+
+    @media (max-width: 768px) {
+      .hero { flex-direction: column; padding: 24px; }
+      .hero-image { max-width: 100%; }
+      .cards-grid, .three-grid, .help-grid, .footer-links { grid-template-columns: 1fr; }
+      .banner-inner { flex-direction: column; }
+      .banner-inner img { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div style="display:flex;align-items:center;gap:28px;">
+        <a href="#" class="logo">
+          <img src="/verticals/assets/32850e60/bbva-logo.png" alt="BBVA" style="height:28px;width:auto;">
+        </a>
+        <nav class="nav-links">
+          <a href="#" class="active">Personas</a>
+          <a href="#">Aut&oacute;nomos y empresas</a>
+        </nav>
+      </div>
+      <div class="nav-right">
+        <button class="btn-acceso">Acceso</button>
+        <button class="btn-hazte" id="ctaHazte">Hazte cliente</button>
+        <button class="menu-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#070E46" stroke-width="1.5"/><path d="M5 8h6M8 5v6" stroke="#070E46" stroke-width="1.5"/></svg>
+        </button>
+        <button class="menu-icon">Men&uacute; &#9776;</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Risk banner -->
+  <div class="risk-banner">
+    <div class="risk-inner">
+      <div>
+        <div class="level-label">NIVEL DE RIESGO</div>
+        <div class="level">1/6</div>
+      </div>
+      <div style="flex:1;font-size:12px;opacity:0.9;">
+        Este n&uacute;mero es indicativo del riesgo del producto, siendo 1/6 indicativo de menor riesgo y 6/6 de mayor riesgo.
+      </div>
+      <div style="flex:1;font-size:12px;opacity:0.9;">
+        BBVA est&aacute; adherido al Fondo de Garant&iacute;a de Dep&oacute;sitos de Entidades de Cr&eacute;dito de Espa&ntilde;a. La cantidad m&aacute;xima garantizada es de 100.000&euro; por la totalidad de dep&oacute;sitos constituidos en BBVA por persona.
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-text">
+      <div class="subhead">Cuenta Online Sin Comisiones</div>
+      <h1>Estrena tu Cuenta Online y ll&eacute;vate desde 100&euro; hasta 1.200&euro;</h1>
+      <ul>
+        <li>Ahora puedes llevarte <b>hasta 600&euro;</b> por usar tu cuenta como una cuenta.</li>
+        <li>Y <b>hasta 1.200&euro;</b> por traer tus ahorros.</li>
+        <li>Adem&aacute;s, tendr&aacute;s <b>tu cuenta y tarjeta por 0&euro;, sin condiciones.</b></li>
+      </ul>
+      <div style="font-size:14px;color:var(--bbva-gray);margin-bottom:8px;">Introduce este c&oacute;digo al abrir la cuenta hasta el 08/06/2026.</div>
+      <div class="promo-code">&#128203; Copiar c&oacute;digo PLAN1200</div>
+      <a href="#" class="how-link">C&oacute;mo funciona</a>
+      <div class="hero-btns">
+        <button class="btn-primary" id="ctaHero">Hazte de BBVA</button>
+        <button class="btn-secondary">Ver Cuenta Online</button>
+      </div>
+      <div class="hero-note">En pocos minutos, solo para nuevos clientes.</div>
+    </div>
+    <div class="hero-image">
+      <img src="/verticals/assets/32850e60/hero.jpg" alt="Cuenta Online BBVA">
+    </div>
+  </section>
+
+  <!-- Quick links -->
+  <section class="quick-links">
+    <h2>Todo lo que necesitas</h2>
+    <div class="quick-grid">
+      <div class="quick-item"><div class="icon">&#127974;</div>Una cuenta sin comisiones</div>
+      <div class="quick-item"><div class="icon">&#9992;</div>Una cuenta joven para viajar</div>
+      <div class="quick-item"><div class="icon">&#128179;</div>Una cuenta para mi n&oacute;mina</div>
+      <div class="quick-item"><div class="icon">&#128118;</div>Una cuenta para mi hijo o hija</div>
+      <div class="quick-item"><div class="icon">&#127970;</div>Una cuenta para mi empresa</div>
+      <div class="quick-item"><div class="icon">&#127968;</div>Calcular mi hipoteca</div>
+      <div class="quick-item"><div class="icon">&#128196;</div>Cambiarme de banco</div>
+      <div class="quick-item"><div class="icon">&#128176;</div>Un pr&eacute;stamo r&aacute;pido y online</div>
+    </div>
+  </section>
+
+  <!-- Cards section — tarjetas -->
+  <section class="cards-section">
+    <h2>Tener una tarjeta que va contigo</h2>
+    <div class="cards-grid">
+      <div class="card-item">
+        <img src="/verticals/assets/32850e60/card-viaja.jpg" alt="Viaja sin comisiones">
+        <div class="card-body">
+          <h3>Viaja sin comisiones</h3>
+          <p>Con la <b>tarjeta Aqua, paga en cualquier moneda sin comisiones</b> ocultas hasta 300&euro; al mes. Adem&aacute;s es <b>segur&iacute;sima</b>, sin datos impresos, con CVV din&aacute;mico y gesti&oacute;n en tiempo real desde la app.</p>
+          <a href="#" class="card-link">Ir a Viajes</a>
+          <button class="card-btn cta-btn">Hazte de BBVA</button>
+        </div>
+      </div>
+      <div class="card-item">
+        <img src="/verticals/assets/32850e60/card-tarjetas.gif" alt="Personaliza tu tarjeta">
+        <div class="card-body">
+          <h3>Y define qui&eacute;n eres</h3>
+          <p>Elige la tarjeta que m&aacute;s se adapte a ti. <b>Personaliza tu Tarjeta Aqua D&eacute;bito</b> con IA y crea una tarjeta &uacute;nica que te acompa&ntilde;e en tu d&iacute;a a d&iacute;a.</p>
+          <button class="card-btn cta-btn">Hazte de BBVA</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hipoteca banner -->
+  <section class="banner">
+    <div class="banner-inner">
+      <img src="/verticals/assets/32850e60/hipoteca-banner.jpg" alt="Fast Track Hipoteca">
+      <div class="banner-content">
+        <h2>Comprar la casa de tus sue&ntilde;os</h2>
+        <p>Con el nuevo <b>Fast Track Hipoteca</b> trae tus documentos oficiales con <b>Cl@ve M&oacute;vil</b> y sabr&aacute;s cu&aacute;nto podemos darte en menos de 8 horas laborables. Sin papeleo ni compromiso.</p>
+        <a href="#" class="btn-outline">Ver Fast Track Hipoteca</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three column cards -->
+  <section class="three-col">
+    <div class="three-grid">
+      <div class="three-item">
+        <img src="/verticals/assets/32850e60/card-viaja-limites.jpg" alt="Viajar sin limites">
+        <div class="item-body">
+          <h3>Viajar sin l&iacute;mites</h3>
+          <p>Tienes <b>pagos ilimitados y 3 retiradas en cajeros</b> de todo el mundo sin l&iacute;mite de importe. Sin comisi&oacute;n incluso los fines de semana.</p>
+        </div>
+      </div>
+      <div class="three-item">
+        <img src="/verticals/assets/32850e60/card-invertir.jpg" alt="Invertir en tu futuro">
+        <div class="item-body">
+          <h3>Invertir en tu futuro</h3>
+          <p>Empieza a <b>invertir con 0&euro; en comisi&oacute;n de custodia y 0,99&euro;</b> por operaci&oacute;n en ETF y acciones. Sin l&iacute;mite mensual de operaciones.</p>
+        </div>
+      </div>
+      <div class="three-item">
+        <img src="/verticals/assets/32850e60/card-hogar.jpg" alt="Construir tu hogar">
+        <div class="item-body">
+          <h3>Construir tu hogar</h3>
+          <p>Si eres <b>menor de 36 a&ntilde;os</b>, financiamos hasta el <b>95% del valor de la vivienda.</b></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Youth section -->
+  <section class="youth-section">
+    <div class="youth-inner">
+      <h2>Y disfrutar de una juventud llena de planes</h2>
+      <p>Si tienes menos de 30 a&ntilde;os tienes incluso m&aacute;s razones para hacerte del BBVA. Viaja con tu tarjeta sin comisiones, empieza a invertir y disfruta de descuentos exclusivos.</p>
+      <button class="btn-secondary">Ver Cuenta Joven</button>
+    </div>
+  </section>
+
+  <!-- Aprendemos juntos banner -->
+  <section class="banner">
+    <div class="banner-inner">
+      <img src="/verticals/assets/32850e60/aprendemos-banner.jpg" alt="Aprendemos Juntos">
+      <div class="banner-content">
+        <h2>Mientras seguimos aprendiendo</h2>
+        <p>En <b>&lsquo;Aprendemos Juntos 2030&rsquo;</b> damos voz a las mentes m&aacute;s brillantes, que nos comparten sus historias inspiradoras para cambiar el mundo.</p>
+        <a href="#" class="btn-outline">Ver m&aacute;s</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Help section -->
+  <section class="help-section">
+    <h2>&iquest;Te ayudamos?</h2>
+    <div class="help-grid">
+      <div class="help-item">
+        <h3>Oficinas y cajeros</h3>
+        <p>Siempre cerca de ti</p>
+      </div>
+      <div class="help-item">
+        <h3>Centro de ayuda</h3>
+        <p>Consultas, reclamaciones e incidencias</p>
+      </div>
+      <div class="help-item">
+        <h3>Ayuda urgente</h3>
+        <p>Operativas de emergencia</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer links -->
+  <div class="footer-links">
+    <div class="footer-col">
+      <h4>M&aacute;s BBVA</h4>
+      <a href="#">Accionistas</a>
+      <a href="#">BBVA Research</a>
+      <a href="#">Empleo en BBVA</a>
+      <a href="#">Red de agentes BBVA</a>
+      <a href="#">bbva.com</a>
+      <a href="#">Negocio responsable</a>
+    </div>
+    <div class="footer-col">
+      <h4>Lo &uacute;ltimo</h4>
+      <a href="#">BBVA para menores</a>
+      <a href="#">BBVA para j&oacute;venes</a>
+      <a href="#">BBVA para seniors</a>
+      <a href="#">BBVA para colectivos</a>
+      <a href="#">Seguridad</a>
+      <a href="#">P&oacute;dcast</a>
+    </div>
+    <div class="footer-col">
+      <h4>Calculadoras y simuladores</h4>
+      <a href="#">Simuladores m&aacute;s usados</a>
+      <a href="#">Simulador Cuenta Elecci&oacute;n</a>
+      <a href="#">Calculadora de IBAN</a>
+      <a href="#">Calculadora de sueldo</a>
+      <a href="#">Divisas y monedas</a>
+    </div>
+    <div class="footer-col">
+      <h4>Utilidades</h4>
+      <a href="#">Tramitaci&oacute;n de Herencias</a>
+      <a href="#">Blog — Finanzas de un vistazo</a>
+      <a href="#">Diccionario econ&oacute;mico</a>
+      <a href="#">Accesibilidad</a>
+    </div>
+  </div>
+
+  <!-- Footer bottom -->
+  <footer class="footer-bottom">
+    <div class="footer-bottom-inner">
+      <div class="logo-footer">
+        <img src="/verticals/assets/32850e60/bbva-logo.png" alt="BBVA" style="height:24px;width:auto;filter:brightness(0) invert(1);">
+      </div>
+      <div class="legal-links">
+        <a href="#">Aviso legal</a>
+        <a href="#">Cookies</a>
+        <a href="#">Datos personales</a>
+        <a href="#">Informes legales</a>
+        <a href="#">Servicios de pago</a>
+        <a href="#">Tarifas</a>
+        <a href="#">Tabl&oacute;n de anuncios</a>
+        <a href="#">Servicio de atenci&oacute;n al cliente</a>
+      </div>
+      <div class="lang-social">
+        <div class="langs">
+          <span>Espa&ntilde;ol</span>
+          <a href="#">Catal&agrave;</a>
+          <a href="#">English</a>
+          <a href="#">Galego</a>
+          <a href="#">Euskara</a>
+        </div>
+      </div>
+      <div class="copyright">Banco Bilbao Vizcaya Argentaria S.A. 2026</div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="result" class="result-box"></div>
+
+  <script>
+    /* Identity resolution — same pattern as all other verticals */
+    (function resolveIdentity() {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultEmail) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      }).catch(function () {});
+    })();
+
+    /* CTA click handler — triggers account application flow */
+    function handleCTA() {
+      var result = document.getElementById('result');
+      result.className = 'result-box';
+      result.innerHTML = '';
+
+      fetch('/api/32850e60/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicantType: 'personal',
+          accountType: 'cuenta-online',
+          income: 35000,
+          employmentYears: 5,
+          region: 'madrid',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }); })
+      .then(function (r) {
+        if (!r.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Error en la solicitud</div><div class="error-detail">' + r.data.errorClass + ': ' + r.data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Solicitud enviada</div><div class="error-detail">ID: ' + r.data.applicationId + '</div>';
+        }
+        setTimeout(function () { result.className = 'result-box'; }, 8000);
+      })
+      .catch(function (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Error de red</div><div class="error-detail">' + err.message + '</div>';
+        setTimeout(function () { result.className = 'result-box'; }, 8000);
+      });
+    }
+
+    /* Wire all CTA buttons */
+    document.getElementById('ctaHero').addEventListener('click', handleCTA);
+    document.getElementById('ctaHazte').addEventListener('click', handleCTA);
+    document.querySelectorAll('.cta-btn').forEach(function (btn) {
+      btn.addEventListener('click', handleCTA);
+    });
+  </script>
+
+</body>
+</html>
