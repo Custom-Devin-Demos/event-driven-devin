@@ -83,7 +83,7 @@ async function processApplication(data) {
     applicationId,
     accountType: data.accountType,
     region: data.region,
-    service: 'customer-32850e60-api',
+    service: 'customer-bbva-api',
   });
 
   try {
@@ -96,11 +96,11 @@ async function processApplication(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('application.success', {
-      route: '/api/32850e60/apply',
+      route: '/api/bbva/apply',
       accountType: data.accountType,
     });
     recordTiming('application.latency', duration, {
-      route: '/api/32850e60/apply',
+      route: '/api/bbva/apply',
     });
 
     return {
@@ -111,12 +111,12 @@ async function processApplication(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('application.failure', {
-      route: '/api/32850e60/apply',
+      route: '/api/bbva/apply',
       errorClass: error.name,
       accountType: data.accountType,
     });
     recordTiming('application.latency', duration, {
-      route: '/api/32850e60/apply',
+      route: '/api/bbva/apply',
       error: 'true',
     });
 
@@ -131,8 +131,8 @@ async function processApplication(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/32850e60/apply',
-        service: 'customer-32850e60-api',
+        route: '/api/bbva/apply',
+        service: 'customer-bbva-api',
         accountType: data.accountType,
       },
       extra: {
@@ -146,19 +146,19 @@ async function processApplication(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/32850e60.js — processApplication',
+      culprit: 'app/services/verticals/bbva.js — processApplication',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      service: 'customer-32850e60-api',
+      service: 'customer-bbva-api',
       verticalLabel: 'Account Application',
-      customer: '32850e60',
+      customer: 'bbva',
       slackMemberId: 'U08S7AVJ478',
       tags: [
-        { key: 'route', value: '/api/32850e60/apply' },
-        { key: 'service', value: 'customer-32850e60-api' },
+        { key: 'route', value: '/api/bbva/apply' },
+        { key: 'service', value: 'customer-bbva-api' },
         { key: 'accountType', value: data.accountType },
       ],
       extra: { applicationId, accountType: data.accountType, region: data.region, income: data.income },
@@ -169,7 +169,7 @@ async function processApplication(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-32850e60@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-bbva@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
