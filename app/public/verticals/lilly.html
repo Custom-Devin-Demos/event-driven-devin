@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eli Lilly &mdash; Pharma Supply Chain Visibility</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --lilly-red: #E1241B;
+      --lilly-red-light: #f0443d;
+      --lilly-red-dim: rgba(225,36,27,0.10);
+      --lilly-navy: #1B2A4A;
+      --lilly-navy-light: #263b66;
+      --lilly-teal: #00b2a9;
+      --lilly-teal-dim: rgba(0,178,169,0.10);
+      --lilly-gold: #f5a623;
+      --lilly-gold-dim: rgba(245,166,35,0.10);
+      --lilly-green: #2ecc71;
+      --lilly-green-dim: rgba(46,204,113,0.10);
+      --bg: #0F172A;
+      --card-bg: #1E293B;
+      --card-bg-alt: #243449;
+      --text-primary: #FFFFFF;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+      --text-header: #E2E8F0;
+      --accent-1: #22D3EE;
+      --accent-2: #60A5FA;
+      --accent-3: #818CF8;
+      --accent-4: #A78BFA;
+      --positive: #4ADE80;
+      --negative: #F87171;
+      --border: rgba(255,255,255,0.08);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text-primary); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.5s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; } .fi5 { animation-delay: 0.25s; } .fi6 { animation-delay: 0.3s; }
+
+    /* HEADER */
+    header {
+      background: var(--lilly-navy);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 3px solid var(--lilly-red);
+    }
+    .logo { display: flex; align-items: center; gap: 14px; }
+    .logo-mark {
+      width: 40px; height: 40px;
+      background: var(--lilly-red);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .logo-text { font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: 0.04em; text-transform: uppercase; }
+    .logo-text span { font-weight: 400; opacity: 0.7; font-size: 0.78rem; letter-spacing: 0.06em; display: block; text-transform: none; }
+    .header-nav { display: flex; gap: 0.2rem; }
+    .header-nav a {
+      color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.8rem; font-weight: 500;
+      padding: 0.4rem 0.8rem; border-radius: 6px; transition: all 0.2s;
+    }
+    .header-nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .header-nav a.active { background: var(--lilly-red-dim); color: var(--lilly-red-light); }
+
+    /* PAGE */
+    .page { max-width: 1280px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--accent-1); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; opacity: 0.8; }
+    .back-link:hover { opacity: 1; }
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+    .page-subtitle { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.15rem; }
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 100px;
+      background: rgba(46,204,113,0.12); border: 1px solid rgba(46,204,113,0.25);
+      font-size: 0.72rem; font-weight: 600; color: var(--positive); text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--positive); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* KPI CARDS */
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 1000px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+    .kpi {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.15rem; position: relative; overflow: hidden;
+    }
+    .kpi-highlight { background: linear-gradient(135deg, var(--lilly-red), var(--accent-3)); }
+    .kpi-highlight .kpi-label { color: rgba(255,255,255,0.8); }
+    .kpi-highlight .kpi-value { color: #fff; }
+    .kpi-highlight .kpi-sub { color: rgba(255,255,255,0.7); }
+    .kpi-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); }
+    .kpi-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .kpi-sub.positive { color: var(--positive); }
+    .kpi-sub.negative { color: var(--negative); }
+
+    /* SECTION HEADER */
+    .section-header {
+      font-size: 0.95rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem;
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;
+    }
+    .section-header .dot { width: 10px; height: 10px; border-radius: 3px; }
+
+    /* ALERTS */
+    .alerts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 700px) { .alerts-row { grid-template-columns: 1fr; } }
+    .alert-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1rem 1.15rem; display: flex; gap: 0.85rem; align-items: flex-start;
+    }
+    .alert-card.critical { border-left: 3px solid var(--negative); }
+    .alert-card.warning { border-left: 3px solid var(--lilly-gold); }
+    .alert-icon {
+      width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .alert-icon.critical { background: rgba(248,113,113,0.12); }
+    .alert-icon.warning { background: var(--lilly-gold-dim); }
+    .alert-body { flex: 1; }
+    .alert-title { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; }
+    .alert-detail { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+    .alert-time { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.35rem; font-family: var(--mono); }
+
+    /* FACILITY TABLE */
+    .table-wrap {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      overflow: hidden; margin-bottom: 1.75rem;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: var(--card-bg); color: var(--text-header); font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; text-align: left;
+      padding: 0.85rem 1rem; border-bottom: 1px solid var(--border);
+    }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:nth-child(even) { background: var(--card-bg-alt); }
+    tbody tr:hover { background: rgba(34,211,238,0.04); }
+    td {
+      padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--text-secondary);
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+      border-radius: 100px; font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-badge.optimal { background: rgba(74,222,128,0.12); color: var(--positive); }
+    .status-badge.low { background: rgba(248,113,113,0.12); color: var(--negative); }
+    .status-badge.overstock { background: rgba(245,166,35,0.12); color: var(--lilly-gold); }
+    .status-badge.in-transit { background: rgba(96,165,250,0.12); color: var(--accent-2); }
+    /* NOTE: .status-badge.excursion is MISSING — UI Bug (UI-3). The excursion badge
+       for Sacramento renders as unstyled text. Tracked in Jira. */
+
+    .bar-wrap { width: 100px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; display: inline-block; vertical-align: middle; margin-left: 8px; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .bar-fill.high { background: var(--positive); }
+    .bar-fill.mid { background: var(--lilly-gold); }
+    .bar-fill.low { background: var(--negative); }
+
+    /* SHIPMENTS PANEL */
+    .two-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0.75rem; margin-bottom: 1.75rem; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.15rem; overflow: hidden;
+    }
+    .panel-title { font-size: 0.78rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+    .shipment-item {
+      display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .shipment-item:last-child { border-bottom: none; }
+    .shipment-icon { font-size: 1.1rem; width: 32px; text-align: center; }
+    .shipment-info { flex: 1; }
+    .shipment-route { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+    .shipment-details { font-size: 0.7rem; color: var(--text-muted); }
+    .shipment-eta {
+      font-size: 0.68rem; font-weight: 600; padding: 3px 10px; border-radius: 100px;
+      background: rgba(34,211,238,0.1); color: var(--accent-1);
+    }
+    .shipment-eta.delayed { background: rgba(248,113,113,0.12); color: var(--negative); }
+
+    /* DEMAND FORECAST MINI-CHART */
+    .forecast-bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; padding-top: 8px; }
+    .forecast-bar {
+      flex: 1; border-radius: 4px 4px 0 0; position: relative; min-width: 0;
+      transition: height 0.6s ease;
+    }
+    .forecast-bar .bar-label {
+      position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+      font-size: 0.58rem; color: var(--text-muted); white-space: nowrap;
+    }
+    .forecast-bar .bar-value {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+      font-size: 0.6rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap;
+    }
+
+    /* NL QUERY */
+    .query-section { margin-bottom: 1.75rem; }
+    .query-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .query-input-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .query-input {
+      flex: 1; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.7rem 1rem; font-family: var(--font); font-size: 0.88rem; color: var(--text-primary);
+      outline: none; transition: border-color 0.2s;
+    }
+    .query-input::placeholder { color: var(--text-muted); }
+    .query-input:focus { border-color: var(--lilly-red); box-shadow: 0 0 0 3px rgba(225,36,27,0.15); }
+    .query-btn {
+      padding: 0 1.5rem; background: var(--lilly-red); color: #fff; border: none; border-radius: 8px;
+      font-family: var(--font); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s; white-space: nowrap;
+    }
+    .query-btn:hover { opacity: 0.85; }
+    .query-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .query-suggestions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .query-chip {
+      padding: 5px 12px; border-radius: 100px; background: var(--lilly-red-dim);
+      border: 1px solid rgba(225,36,27,0.2); color: var(--lilly-red-light);
+      font-size: 0.7rem; font-weight: 500; cursor: pointer; transition: all 0.2s;
+    }
+    .query-chip:hover { background: rgba(225,36,27,0.2); }
+    .query-result {
+      display: none; background: var(--bg); border-radius: 8px; padding: 1rem;
+      font-size: 0.82rem; line-height: 1.6; color: var(--text-secondary);
+      border: 1px solid var(--border); max-height: 300px; overflow-y: auto;
+    }
+    .query-result.visible { display: block; }
+    .query-result h4 { color: var(--accent-1); font-size: 0.78rem; margin-bottom: 0.5rem; }
+    .query-result table { margin-top: 0.5rem; }
+    .query-result table th { padding: 0.5rem 0.75rem; font-size: 0.68rem; }
+    .query-result table td { padding: 0.45rem 0.75rem; font-size: 0.75rem; }
+
+    /* ON-PREM INDICATOR */
+    .onprem-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 100px;
+      background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.25);
+      font-size: 0.72rem; font-weight: 600; color: var(--lilly-gold); text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .onprem-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--lilly-gold); }
+
+    /* FOOTER */
+    .page-footer {
+      text-align: center; padding: 2rem 1rem; font-size: 0.7rem; color: var(--text-muted);
+      border-top: 1px solid var(--border); margin-top: 1rem;
+    }
+    .page-footer a { color: var(--lilly-red-light); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="logo-mark">Ly</div>
+      <div class="logo-text">
+        Eli Lilly
+        <span>Pharma Supply Chain Command Center</span>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="#" class="active">Dashboard</a>
+      <a href="#">Cold Chain</a>
+      <a href="#">Batch Release</a>
+      <a href="#">Forecasting</a>
+      <a href="#">Reports</a>
+    </nav>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+
+    <div class="page-header fi fi1">
+      <div>
+        <div class="page-title">Real-Time Pharma Supply Chain Visibility</div>
+        <div class="page-subtitle">US Distribution Network &middot; All Cold-Chain DCs &middot; Updated every 30s</div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <div class="live-badge"><div class="live-dot"></div> Live Feed</div>
+        <div class="onprem-badge"><div class="onprem-dot"></div> On-Prem Linked</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row fi fi2">
+      <div class="kpi kpi-highlight">
+        <div class="kpi-label">Overall Fill Rate</div>
+        <div class="kpi-value">96.6%</div>
+        <div class="kpi-sub">Target: 95.0%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Active NDCs</div>
+        <div class="kpi-value">412</div>
+        <div class="kpi-sub positive">+18 this quarter</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Cold-Chain Excursions</div>
+        <div class="kpi-value" style="color: var(--negative);">1</div>
+        <div class="kpi-sub negative">Sacramento DC &mdash; 7.8 &deg;C</div>
+      </div>
+      <!-- UI BUG (UI-1): On-Time Delivery KPI renders NaN% — the inline JS
+           below parses from a missing data attribute, producing NaN. Tracked in Jira. -->
+      <div class="kpi" id="kpi-otd">
+        <div class="kpi-label">On-Time Delivery</div>
+        <div class="kpi-value" id="otd-value">—</div>
+        <div class="kpi-sub" id="otd-sub">Loading...</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Stockout Alerts</div>
+        <div class="kpi-value" style="color: var(--negative);">6</div>
+        <div class="kpi-sub negative">2 critical (Zepbound, Trulicity)</div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="section-header fi fi2"><div class="dot" style="background: var(--negative);"></div> Active Alerts</div>
+    <div class="alerts-row fi fi3">
+      <div class="alert-card critical">
+        <div class="alert-icon critical">&#x26A0;&#xFE0F;</div>
+        <div class="alert-body">
+          <div class="alert-title">STOCKOUT: Zepbound 5mg/0.5mL (NDC-0002-1506)</div>
+          <div class="alert-detail">Concord DC &mdash; Stock depleted. Emergency PO dispatched to Indianapolis plant. Demand forecast: 4,200 units/week.</div>
+          <div class="alert-time">3 min ago &middot; auto-detected</div>
+        </div>
+      </div>
+      <div class="alert-card critical">
+        <div class="alert-icon critical">&#x26A0;&#xFE0F;</div>
+        <div class="alert-body">
+          <div class="alert-title">COLD-CHAIN EXCURSION: Taltz 80mg/mL (NDC-0002-3227)</div>
+          <div class="alert-detail">Sacramento DC &mdash; Temp 7.8 &deg;C exceeds 2-8 &deg;C range. QA hold triggered. Lot quarantined pending investigation.</div>
+          <div class="alert-time">6 min ago &middot; sensor alert</div>
+        </div>
+      </div>
+      <div class="alert-card warning">
+        <div class="alert-icon warning">&#x1F4E6;</div>
+        <div class="alert-body">
+          <div class="alert-title">LOW STOCK: Trulicity 1.5mg (NDC-0002-1434)</div>
+          <div class="alert-detail">Branchburg DC &mdash; 6,240 units on hand vs. 8,000 safety stock. Reorder PO submitted.</div>
+          <div class="alert-time">12 min ago &middot; threshold breach</div>
+        </div>
+      </div>
+      <div class="alert-card warning">
+        <div class="alert-icon warning">&#x1F6A2;</div>
+        <div class="alert-body">
+          <div class="alert-title">DELAYED: Inbound Shipment PH-4821 from Indianapolis Plant</div>
+          <div class="alert-detail">Originally ETA Jun 3. Carrier delay &mdash; revised ETA Jun 5. Contains Humalog &amp; Mounjaro for South DCs.</div>
+          <div class="alert-time">28 min ago &middot; carrier update</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACILITY TABLE -->
+    <div class="section-header fi fi3"><div class="dot" style="background: var(--accent-1);"></div> Distribution Center Inventory &amp; Cold-Chain</div>
+    <div class="table-wrap fi fi4">
+      <table>
+        <thead>
+          <tr>
+            <th>Facility</th>
+            <th>Location</th>
+            <th>NDCs Stocked</th>
+            <th>Capacity</th>
+            <th>Fill Rate</th>
+            <th>Stockouts</th>
+            <th>Cold Chain</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Lilly DC &mdash; Indianapolis</td>
+            <td>Indianapolis, IN</td>
+            <td>412</td>
+            <td>88%<div class="bar-wrap"><div class="bar-fill high" style="width:88%"></div></div></td>
+            <td>98.4%</td>
+            <td>0</td>
+            <td>4.6 &deg;C</td>
+            <td><span class="status-badge optimal">Optimal</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Lilly DC &mdash; Branchburg</td>
+            <td>Branchburg, NJ</td>
+            <td>356</td>
+            <!-- UI BUG (UI-2): capacity bar overflows — 128% width is larger than the
+                 100px container. Tracked in Jira. -->
+            <td>91%<div class="bar-wrap"><div class="bar-fill mid" style="width:128%"></div></div></td>
+            <td>93.7%</td>
+            <td>2</td>
+            <td>5.1 &deg;C</td>
+            <td><span class="status-badge low">Low Stock</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Lilly DC &mdash; Concord</td>
+            <td>Concord, NC</td>
+            <td>388</td>
+            <td>79%<div class="bar-wrap"><div class="bar-fill high" style="width:79%"></div></div></td>
+            <td>95.1%</td>
+            <td>3</td>
+            <td>5.4 &deg;C</td>
+            <td><span class="status-badge low">Stockout</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Lilly DC &mdash; Kansas City</td>
+            <td>Kansas City, MO</td>
+            <td>301</td>
+            <td>72%<div class="bar-wrap"><div class="bar-fill high" style="width:72%"></div></div></td>
+            <td>97.6%</td>
+            <td>1</td>
+            <td>4.9 &deg;C</td>
+            <td><span class="status-badge optimal">Optimal</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Lilly DC &mdash; Sacramento</td>
+            <td>Sacramento, CA</td>
+            <td>264</td>
+            <td>84%<div class="bar-wrap"><div class="bar-fill high" style="width:84%"></div></div></td>
+            <td>96.0%</td>
+            <td>1</td>
+            <td style="color: var(--negative); font-weight: 700;">7.8 &deg;C</td>
+            <!-- UI BUG (UI-3): "excursion" status badge uses a CSS class that was never
+                 defined, so it renders as unstyled text instead of a red alarm pill.
+                 Tracked in Jira. -->
+            <td><span class="status-badge excursion">Excursion</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600; color: var(--text-primary);">Lilly DC &mdash; Memphis</td>
+            <td>Memphis, TN</td>
+            <td>295</td>
+            <td>67%<div class="bar-wrap"><div class="bar-fill high" style="width:67%"></div></div></td>
+            <td>99.0%</td>
+            <td>0</td>
+            <td>5.0 &deg;C</td>
+            <td><span class="status-badge optimal">Optimal</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SHIPMENTS + DEMAND FORECAST -->
+    <div class="two-col fi fi4">
+      <div class="panel">
+        <div class="panel-title">Inbound Shipments (Cold-Chain Tracked)</div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Indianapolis Plant &#x2192; Concord DC</div>
+            <div class="shipment-details">PH-4815 &middot; Zepbound, Mounjaro &middot; 4,200 units &middot; 2-8 &deg;C</div>
+          </div>
+          <div class="shipment-eta">ETA Today</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Indianapolis Plant &#x2192; Branchburg DC</div>
+            <div class="shipment-details">PH-4818 &middot; Trulicity, Emgality &middot; 6,800 units &middot; 2-8 &deg;C</div>
+          </div>
+          <div class="shipment-eta">ETA Tomorrow</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F6A2;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Indianapolis Plant &#x2192; Memphis DC</div>
+            <div class="shipment-details">PH-4821 &middot; Humalog, Mounjaro &middot; 5,100 units &middot; 2-8 &deg;C</div>
+          </div>
+          <div class="shipment-eta delayed">Delayed +2d</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Kinsale, Ireland &#x2192; Sacramento DC</div>
+            <div class="shipment-details">PH-4827 &middot; Taltz Replacement &middot; 3,200 units &middot; 2-8 &deg;C (monitored)</div>
+          </div>
+          <div class="shipment-eta">ETA Jun 8</div>
+        </div>
+        <div class="shipment-item">
+          <div class="shipment-icon">&#x1F69A;</div>
+          <div class="shipment-info">
+            <div class="shipment-route">Carolina Plant &#x2192; Kansas City DC</div>
+            <div class="shipment-details">PH-4830 &middot; Verzenio &middot; 8,500 units &middot; Room Temp</div>
+          </div>
+          <div class="shipment-eta">ETA Jun 9</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Weekly Demand Forecast (Units, K)</div>
+        <div class="forecast-bar-chart" style="margin-bottom: 28px;">
+          <div class="forecast-bar" style="height:60%; background: var(--accent-1);">
+            <div class="bar-value">28K</div>
+            <div class="bar-label">W22</div>
+          </div>
+          <div class="forecast-bar" style="height:68%; background: var(--accent-2);">
+            <div class="bar-value">32K</div>
+            <div class="bar-label">W23</div>
+          </div>
+          <div class="forecast-bar" style="height:82%; background: var(--accent-3);">
+            <div class="bar-value">39K</div>
+            <div class="bar-label">W24</div>
+          </div>
+          <div class="forecast-bar" style="height:100%; background: linear-gradient(to top, var(--accent-3), var(--negative));">
+            <div class="bar-value">47K</div>
+            <div class="bar-label">W25</div>
+          </div>
+          <div class="forecast-bar" style="height:75%; background: var(--accent-4);">
+            <div class="bar-value">35K</div>
+            <div class="bar-label">W26</div>
+          </div>
+          <div class="forecast-bar" style="height:62%; background: var(--accent-2);">
+            <div class="bar-value">29K</div>
+            <div class="bar-label">W27</div>
+          </div>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px;">
+          <span style="color: var(--negative); font-weight: 600;">&#x25B2; Week 25:</span> Zepbound ramp-up &amp; Q3 Mounjaro restock. Pre-position at Concord &amp; Branchburg DCs.
+        </div>
+      </div>
+    </div>
+
+    <!-- NDCs BELOW SAFETY STOCK -->
+    <div class="section-header fi fi5"><div class="dot" style="background: var(--negative);"></div> NDCs Below Safety Stock</div>
+    <div class="table-wrap fi fi5">
+      <table>
+        <thead>
+          <tr>
+            <th>NDC</th>
+            <th>Product</th>
+            <th>Brand</th>
+            <th>DC</th>
+            <th>On Hand</th>
+            <th>Safety Stock</th>
+            <th>Deficit</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">NDC-0002-1506</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Zepbound 5mg/0.5mL</td>
+            <td>Zepbound</td>
+            <td>Concord</td>
+            <td style="color: var(--negative); font-weight: 700;">0</td>
+            <td>9,000</td>
+            <td style="color: var(--negative);">-9,000</td>
+            <td><span class="status-badge in-transit">Emergency PO</span></td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">NDC-0002-1434</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Trulicity 1.5mg/0.5mL</td>
+            <td>Trulicity</td>
+            <td>Branchburg</td>
+            <td style="color: var(--negative); font-weight: 700;">6,240</td>
+            <td>8,000</td>
+            <td style="color: var(--negative);">-1,760</td>
+            <td><span class="status-badge in-transit">Reorder Sent</span></td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--mono); font-size: 0.75rem;">NDC-0002-3227</td>
+            <td style="font-weight: 600; color: var(--text-primary);">Taltz 80mg/mL Autoinjector</td>
+            <td>Taltz</td>
+            <td>Sacramento</td>
+            <td style="color: var(--negative); font-weight: 700;">980</td>
+            <td>3,000</td>
+            <td style="color: var(--negative);">-2,020</td>
+            <td><span class="status-badge low">QA Hold</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ON-PREM LEGACY PANEL -->
+    <div class="section-header fi fi5"><div class="dot" style="background: var(--lilly-gold);"></div> Legacy On-Prem Inventory System</div>
+    <div class="panel fi fi6" style="margin-bottom: 1.75rem; border-left: 3px solid var(--lilly-gold);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+        <div class="panel-title" style="margin-bottom:0;">INV-MAINFRAME-01 &middot; On-Prem Oracle Inventory</div>
+        <div id="onprem-status" class="onprem-badge"><div class="onprem-dot"></div> Checking...</div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:0.75rem;">
+        This panel shows live stock from the <strong>legacy on-prem inventory &amp; batch-release system</strong> running
+        at Indianapolis HQ. This system is targeted for <strong>cloud migration</strong> as part of the Lilly Digital
+        Transformation initiative.
+      </div>
+      <div id="onprem-data" style="font-size:0.82rem;color:var(--text-secondary);">
+        <em>Loading on-prem data...</em>
+      </div>
+    </div>
+
+    <!-- NL QUERY -->
+    <div class="section-header fi fi5"><div class="dot" style="background: var(--lilly-red);"></div> Ask the Supply Chain</div>
+    <div class="query-section fi fi6">
+      <div class="query-card">
+        <div class="query-suggestions">
+          <div class="query-chip" onclick="askQuery(this.textContent)">Show me all NDCs below safety stock</div>
+          <div class="query-chip" onclick="askQuery(this.textContent)">Which DCs have cold-chain excursions?</div>
+          <div class="query-chip" onclick="askQuery(this.textContent)">What shipments are delayed this week?</div>
+          <div class="query-chip" onclick="askQuery(this.textContent)">Demand forecast for Zepbound next 4 weeks</div>
+        </div>
+        <div class="query-input-row">
+          <input type="text" class="query-input" id="queryInput" placeholder="Ask a question about your pharma supply chain..." />
+          <button class="query-btn" id="queryBtn" onclick="submitQuery()">Ask</button>
+        </div>
+        <div class="query-result" id="queryResult"></div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      Eli Lilly and Company &middot; Pharma Supply Chain Command Center &middot; Data refreshed every 30 seconds<br>
+      Powered by <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a> &middot; Cloud dashboard + legacy on-prem integration
+    </div>
+  </div>
+
+  <!-- UI BUG (UI-1): This script tries to parse a percentage from a data attribute
+       that does not exist on the element, producing NaN. Tracked in Jira. -->
+  <script>
+    (function () {
+      var el = document.getElementById('kpi-otd');
+      var raw = el.getAttribute('data-otd-pct');
+      var pct = parseFloat(raw) / 100;
+      document.getElementById('otd-value').textContent = (pct * 100).toFixed(1) + '%';
+      document.getElementById('otd-sub').textContent = pct > 0.95 ? 'Above target' : 'Below 95% target';
+    })();
+  </script>
+
+  <!-- On-prem health check + data fetch -->
+  <script>
+    (function () {
+      var statusEl = document.getElementById('onprem-status');
+      var dataEl = document.getElementById('onprem-data');
+      fetch('/api/lilly/onprem-inventory')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.available && d.available === false) {
+            statusEl.innerHTML = '<div class="onprem-dot" style="background:var(--negative)"></div> Offline';
+            statusEl.style.borderColor = 'rgba(248,113,113,0.25)';
+            statusEl.style.background = 'rgba(248,113,113,0.12)';
+            statusEl.style.color = 'var(--negative)';
+            dataEl.innerHTML = '<em style="color:var(--negative)">On-prem system unreachable. Using cached cloud data.</em>';
+            return;
+          }
+          statusEl.innerHTML = '<div class="onprem-dot" style="background:var(--positive)"></div> Connected';
+          statusEl.style.borderColor = 'rgba(46,204,113,0.25)';
+          statusEl.style.background = 'rgba(46,204,113,0.12)';
+          statusEl.style.color = 'var(--positive)';
+          var rows = (d.records || []).map(function (r) {
+            return '<tr><td style="font-family:var(--mono);font-size:0.75rem">' + r.ndc + '</td>'
+              + '<td style="font-weight:600;color:var(--text-primary)">' + r.product + '</td>'
+              + '<td>' + r.dc + '</td>'
+              + '<td>' + r.onHand.toLocaleString() + '</td>'
+              + '<td>' + r.coldChainC + ' &deg;C</td>'
+              + '<td>' + r.status + '</td></tr>';
+          }).join('');
+          dataEl.innerHTML = '<table style="width:100%;border-collapse:collapse;">'
+            + '<thead><tr><th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-header);border-bottom:1px solid var(--border)">NDC</th>'
+            + '<th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-header);border-bottom:1px solid var(--border)">Product</th>'
+            + '<th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-header);border-bottom:1px solid var(--border)">DC</th>'
+            + '<th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-header);border-bottom:1px solid var(--border)">On Hand</th>'
+            + '<th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-header);border-bottom:1px solid var(--border)">Temp</th>'
+            + '<th style="text-align:left;padding:0.5rem 0.75rem;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-header);border-bottom:1px solid var(--border)">Status</th>'
+            + '</tr></thead><tbody>' + rows + '</tbody></table>'
+            + '<p style="margin-top:0.5rem;font-size:0.68rem;color:var(--text-muted)">Source: ' + d.system + ' &middot; ' + d.recordCount + ' records</p>';
+        })
+        .catch(function () {
+          statusEl.innerHTML = '<div class="onprem-dot" style="background:var(--negative)"></div> Offline';
+          statusEl.style.borderColor = 'rgba(248,113,113,0.25)';
+          statusEl.style.background = 'rgba(248,113,113,0.12)';
+          statusEl.style.color = 'var(--negative)';
+          dataEl.innerHTML = '<em style="color:var(--negative)">On-prem system unreachable. Using cached cloud data.</em>';
+        });
+    })();
+  </script>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+
+  <script>
+    const NL_RESPONSES = {
+      'show me all ndcs below safety stock': {
+        title: 'NDCs Below Safety Stock — All Distribution Centers',
+        html: `<table><thead><tr><th>NDC</th><th>Product</th><th>DC</th><th>On Hand</th><th>Safety Stock</th><th>Deficit</th></tr></thead><tbody>
+          <tr><td>NDC-0002-1506</td><td>Zepbound 5mg/0.5mL</td><td>Concord</td><td style="color:#F87171;font-weight:700">0</td><td>9,000</td><td style="color:#F87171">-9,000</td></tr>
+          <tr><td>NDC-0002-1434</td><td>Trulicity 1.5mg/0.5mL</td><td>Branchburg</td><td style="color:#F87171;font-weight:700">6,240</td><td>8,000</td><td style="color:#F87171">-1,760</td></tr>
+          <tr><td>NDC-0002-3227</td><td>Taltz 80mg/mL Autoinjector</td><td>Sacramento</td><td style="color:#F87171;font-weight:700">980</td><td>3,000</td><td style="color:#F87171">-2,020</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">3 NDCs below safety stock across 3 DCs. Zepbound at Concord is fully depleted; emergency PO dispatched. Taltz at Sacramento is on QA hold due to cold-chain excursion.</p>`
+      },
+      'which dcs have cold-chain excursions?': {
+        title: 'Cold-Chain Excursion Report',
+        html: `<table><thead><tr><th>DC</th><th>NDC</th><th>Product</th><th>Current Temp</th><th>Required Range</th><th>Duration</th><th>Action</th></tr></thead><tbody>
+          <tr><td>Sacramento</td><td>NDC-0002-3227</td><td>Taltz 80mg/mL Autoinjector</td><td style="color:#F87171;font-weight:700">7.8 &deg;C</td><td>2-8 &deg;C</td><td>42 min</td><td>QA Hold — lot quarantined</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">1 active cold-chain excursion at Sacramento DC. Taltz lot LT-2024-0891 exceeded the upper temperature boundary. Replacement shipment dispatched from Kinsale, Ireland plant. ETA Jun 8.</p>`
+      },
+      'what shipments are delayed this week?': {
+        title: 'Delayed Shipments — Current Week',
+        html: `<table><thead><tr><th>Shipment</th><th>Route</th><th>Contents</th><th>Original ETA</th><th>Revised ETA</th><th>Reason</th></tr></thead><tbody>
+          <tr><td style="font-weight:600">PH-4821</td><td>Indianapolis Plant &rarr; Memphis DC</td><td>Humalog, Mounjaro &mdash; 5,100 units</td><td>Jun 3</td><td style="color:#F87171;font-weight:700">Jun 5</td><td>Carrier delay (fleet scheduling conflict)</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">1 shipment delayed this week. PH-4821 impacts Humalog and Mounjaro replenishment for Memphis DC. Current stock levels at Memphis are above safety stock — no immediate risk.</p>`
+      },
+      'demand forecast for zepbound next 4 weeks': {
+        title: 'Zepbound Demand Forecast — Next 4 Weeks (All DCs)',
+        html: `<table><thead><tr><th>Week</th><th>Forecast (Units)</th><th>Trend</th><th>Notes</th></tr></thead><tbody>
+          <tr><td>W23 (Jun 2-8)</td><td>4,200</td><td style="color:var(--text-muted)">Baseline</td><td>Post-launch stabilization</td></tr>
+          <tr><td>W24 (Jun 9-15)</td><td>5,800</td><td style="color:#4ADE80;font-weight:600">&#x25B2; +38%</td><td>New insurance formulary approvals</td></tr>
+          <tr><td>W25 (Jun 16-22)</td><td>7,400</td><td style="color:#F87171;font-weight:600">&#x25B2; +28%</td><td>DTC campaign launch &mdash; peak week</td></tr>
+          <tr><td>W26 (Jun 23-29)</td><td>5,100</td><td style="color:var(--text-muted)">&#x25BC; -31%</td><td>Post-campaign normalization</td></tr>
+        </tbody></table>
+        <p style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-muted)">Total 4-week forecast: 22,500 units. Current network inventory: 0 units (stockout at Concord). Gap: 22,500 units. Emergency PO covers W23; Indianapolis plant scaling for W24-W25 surge.</p>`
+      }
+    };
+
+    function askQuery(text) {
+      document.getElementById('queryInput').value = text;
+      submitQuery();
+    }
+
+    async function submitQuery() {
+      const input = document.getElementById('queryInput');
+      const btn = document.getElementById('queryBtn');
+      const result = document.getElementById('queryResult');
+      const query = input.value.trim();
+      if (!query) return;
+
+      btn.disabled = true;
+      btn.textContent = 'Analyzing...';
+      result.className = 'query-result';
+      result.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/lilly/query', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, region: '', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.innerHTML = `<h4 style="color:#F87171">Query Failed</h4><p style="color:#F87171;font-weight:600">${data.errorClass}: ${data.error}</p>`;
+        } else {
+          const nlKey = query.toLowerCase();
+          const match = NL_RESPONSES[nlKey];
+          if (match) {
+            result.innerHTML = `<h4>${match.title}</h4>${match.html}`;
+          } else {
+            const keywords = nlKey.split(/\s+/);
+            let found = null;
+            for (const [key, val] of Object.entries(NL_RESPONSES)) {
+              const keyWords = key.split(/\s+/);
+              const overlap = keywords.filter(w => keyWords.includes(w)).length;
+              if (overlap >= 3) { found = val; break; }
+            }
+            if (found) {
+              result.innerHTML = `<h4>${found.title}</h4>${found.html}`;
+            } else {
+              result.innerHTML = `<h4>Query Result</h4><p>Searching across legacy on-prem inventory (Oracle WMS) and cloud forecasting system...</p>
+              <p style="margin-top:0.5rem">Found <strong>${data.totalDCs} distribution centers</strong>. Network fill rate: <strong>${data.avgFillRate}%</strong>. Active stockouts: <strong>${data.totalStockouts}</strong>.</p>`;
+            }
+          }
+        }
+      } catch (err) {
+        result.innerHTML = `<h4 style="color:#F87171">Network Error</h4><p style="color:#F87171">${err.message}</p>`;
+      } finally {
+        result.className = 'query-result visible';
+        btn.disabled = false;
+        btn.textContent = 'Ask';
+      }
+    }
+
+    document.getElementById('queryInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitQuery();
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

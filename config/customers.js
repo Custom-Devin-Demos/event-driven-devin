@@ -115,6 +115,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  lilly: {
+    label: 'Eli Lilly',
+    triggerMode: 'api',
+  },
   bbva: {
     label: 'BBVA Banking',
     triggerMode: 'api',
