@@ -131,6 +131,10 @@ const CUSTOMERS = {
     label: 'Sysco',
     triggerMode: 'api',
   },
+  vfc: {
+    label: 'VF Corporation',
+    triggerMode: 'api',
+  },
 };
 
 /**
