@@ -159,6 +159,8 @@ Vertical Error (any of 9 verticals)
     │                       └──▶ createSessionAndAlert() [fallback path]
     │
     └──▶ createSessionAndAlert() [instant path, non-blocking]
+            ├──▶ postBugReportToTriage() — mirrors the bug report to
+            │       #automated-devin-triage (report-only, NO Devin session)
             ├──▶ postAlertToSlack() — bot token posts rich alert card
             └──▶ DEVIN_TRIGGER_MODE decides next step:
                     ├── "slack" (default): postDevinReply() — user token @Devin mention
@@ -195,6 +197,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 
 ### `app/services/slack.js`
 - `postAlertToSlack(alertData)` — Posts the rich Block Kit alert message using `SLACK_BOT_TOKEN`. Returns thread timestamp.
+- `postBugReportToTriage(alertData)` — Mirrors the same bug report card to the triage channel (`SLACK_TRIAGE_CHANNEL_ID`, default `#automated-devin-triage`). Report-only: it omits the "Devin AI (auto-investigating)" line and never triggers a Devin session or thread follow-ups. Fire-and-forget; failures (e.g. bot not in channel) are logged and never affect the primary flow.
 - `postDevinReply(threadTs, prompt, options)` — (slack mode) Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Accepts per-customer `slackUserId` via `options`. Auto-deletes the reply after 5 seconds.
 - `postDevinSessionLink(threadTs, sessionUrl)` — (api mode) Posts a "View in Devin" button in the alert thread using `SLACK_BOT_TOKEN`.
 - `postMessage()`, `postThreadReply()`, `deleteMessage()` — Low-level Slack API helpers.
@@ -213,6 +216,8 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
+| `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
+| `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
 | `DEVIN_API_KEY` | Devin API key | For api mode |
 | `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID | For slack mode |

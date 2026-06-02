@@ -84,8 +84,15 @@ async function lookupSlackUserByEmail(token, email) {
 
 /**
  * Build Slack blocks for the initial Sentry alert message.
+ *
+ * @param {Object} alertData - Normalized alert data
+ * @param {Object} [options]
+ * @param {boolean} [options.includeDevinOnCall=true] - Whether to include the
+ *   ":robot_face: Devin AI (auto-investigating)" on-call line. Set to false for
+ *   the triage channel mirror, which is report-only (no Devin session).
  */
-function buildAlertBlocks(alertData) {
+function buildAlertBlocks(alertData, options = {}) {
+  const { includeDevinOnCall = true } = options;
   const blocks = [
     {
       type: 'header',
@@ -150,13 +157,15 @@ function buildAlertBlocks(alertData) {
     ],
   });
 
-  // On-Call section: always show Devin AI (v3 API mode — no @mention spoofing)
-  const onCallFields = [
-    {
+  // On-Call section: show Devin AI (v3 API mode — no @mention spoofing).
+  // Omitted for the triage mirror, which is report-only (no Devin session).
+  const onCallFields = [];
+  if (includeDevinOnCall) {
+    onCallFields.push({
       type: 'mrkdwn',
       text: '*On-Call:*\n:robot_face: Devin AI (auto-investigating)',
-    },
-  ];
+    });
+  }
 
   // Tag the demo user as on-call so they get a Slack notification for their alert
   if (alertData.slackMemberId) {
@@ -166,10 +175,12 @@ function buildAlertBlocks(alertData) {
     });
   }
 
-  blocks.push({
-    type: 'section',
-    fields: onCallFields,
-  });
+  if (onCallFields.length > 0) {
+    blocks.push({
+      type: 'section',
+      fields: onCallFields,
+    });
+  }
 
   // Action buttons
   const actions = [];
@@ -256,6 +267,55 @@ async function postAlertToSlack(alertData) {
       status: error.response?.status,
       data: error.response?.data,
     });
+    return null;
+  }
+}
+
+/**
+ * Mirror the bug report to the dedicated triage channel (#automated-devin-triage).
+ *
+ * This is a report-only copy: it posts the same Sentry alert card (minus the
+ * "Devin AI (auto-investigating)" on-call line) and intentionally does NOT
+ * trigger a Devin session or any thread follow-ups. Fire-and-forget — failures
+ * are logged and never affect the primary alert/Devin flow.
+ *
+ * Channel/token are configurable via env:
+ *   SLACK_TRIAGE_CHANNEL_ID   — target channel (default: #automated-devin-triage)
+ *   SLACK_TRIAGE_BOT_TOKEN    — bot token override (default: SLACK_BOT_TOKEN)
+ *
+ * The bot must be a member of the triage channel (invite it with
+ * `/invite @<bot>` in #automated-devin-triage).
+ */
+async function postBugReportToTriage(alertData) {
+  const token = process.env.SLACK_TRIAGE_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
+  // Defaults to the #automated-devin-triage channel in the Cog GTM [DEMO] workspace.
+  const channel = process.env.SLACK_TRIAGE_CHANNEL_ID || 'C0B74QWEEVD';
+
+  if (!token || !channel) {
+    logger.warn('Triage channel not configured — skipping bug report mirror');
+    return null;
+  }
+
+  try {
+    const text = buildAlertText(alertData);
+    const blocks = buildAlertBlocks(alertData, { includeDevinOnCall: false });
+    const ts = await postMessage(token, channel, text, blocks);
+
+    logger.info('Bug report mirrored to triage channel', { channel, ts });
+    return ts;
+  } catch (error) {
+    const slackError = error.message || '';
+    if (slackError.includes('not_in_channel')) {
+      logger.warn('Bug report mirror failed — bot is not in the triage channel', {
+        channel,
+        hint: 'Invite the bot with `/invite @<bot>` in #automated-devin-triage',
+      });
+    } else {
+      logger.error('Failed to mirror bug report to triage channel', {
+        error: error.message,
+        channel,
+      });
+    }
     return null;
   }
 }
@@ -382,6 +442,7 @@ async function deleteMessage(token, channel, ts) {
 
 module.exports = {
   postAlertToSlack,
+  postBugReportToTriage,
   postDevinSessionLink,
   postThreadReply,
   lookupSlackUserByEmail,
