@@ -127,6 +127,10 @@ const CUSTOMERS = {
     label: 'Best Buy',
     triggerMode: 'api',
   },
+  sysco: {
+    label: 'Sysco',
+    triggerMode: 'api',
+  },
 };
 
 /**
