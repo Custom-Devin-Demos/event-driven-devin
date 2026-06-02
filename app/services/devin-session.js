@@ -1,5 +1,5 @@
 const logger = require('../telemetry/logger');
-const { postAlertToSlack, postDevinSessionLink } = require('./slack');
+const { postAlertToSlack, postBugReportToTriage, postDevinSessionLink } = require('./slack');
 const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
@@ -114,6 +114,13 @@ async function createSessionAndAlert(alertData) {
       customer: config.customer,
       devinUserId: alertData.devinUserId || 'none',
       devinOrgId: alertData.devinOrgId || 'default',
+    });
+
+    // Mirror the bug report to the dedicated triage channel (#automated-devin-triage).
+    // Report-only: this copy never triggers a Devin session. Fire-and-forget so it
+    // can't block or break the primary alert + Devin flow.
+    postBugReportToTriage(alertData).catch((err) => {
+      logger.warn('Triage bug report mirror failed', { error: err.message });
     });
 
     // Step 1: Post the rich alert message (bot token)
