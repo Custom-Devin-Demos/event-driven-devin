@@ -110,9 +110,10 @@ function buildPaymentPlan(account, amort, programs) {
  * Assemble the customer-facing account summary shown on the dashboard.
  */
 function summarizeAccount(plan, account, amort) {
+  const monthlyEscrow = plan.escrow ? plan.escrow.monthlyEscrow : 0;
   const monthlyTotal = plan.monthlyPrincipalInterest
     + plan.programsMonthly
-    + plan.escrow.monthlyEscrow;
+    + monthlyEscrow;
 
   return {
     accountId: account.id,
@@ -121,7 +122,7 @@ function summarizeAccount(plan, account, amort) {
     apr: account.apr,
     termMonths: account.termMonths,
     monthlyPrincipalInterest: plan.monthlyPrincipalInterest,
-    monthlyEscrow: plan.escrow.monthlyEscrow,
+    monthlyEscrow,
     programsMonthly: plan.programsMonthly,
     monthlyTotal: Math.round(monthlyTotal * 100) / 100,
     totalInterest: amort.totalInterest,
