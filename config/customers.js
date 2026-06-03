@@ -135,6 +135,10 @@ const CUSTOMERS = {
     label: 'VF Corporation',
     triggerMode: 'api',
   },
+  '841afdc1': {
+    label: 'Customer 841A',
+    triggerMode: 'api',
+  },
 };
 
 /**
