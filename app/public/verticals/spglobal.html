@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&amp;P Global | Capital IQ Pro</title>
+  <link rel="icon" type="image/png" href="https://www.spglobal.com/favicon.ico">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    :root {
+      --spg-dark: #0B0F1A;
+      --spg-navy: #111828;
+      --spg-slate: #1C2333;
+      --spg-red: #D6001C;
+      --spg-red-hover: #E8243E;
+      --spg-blue: #1A73E8;
+      --spg-white: #FFFFFF;
+      --spg-gray: #9CA3B0;
+      --spg-light-gray: #D1D5DB;
+      --spg-border: #252D3D;
+      --body-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --danger: #EF4444;
+      --danger-bg: #1C1012;
+      --danger-border: #7F1D1D;
+      --success: #10B981;
+      --success-bg: #0C1A14;
+      --success-border: #065F46;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--body-font);
+      color: var(--spg-white);
+      font-size: 14px;
+      line-height: 1.5;
+      background: var(--spg-dark);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* Back link */
+    .back-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 10000;
+      background: rgba(214, 0, 28, 0.85);
+      color: #fff;
+      font-size: 11px;
+      font-family: var(--body-font);
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 3px;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover { opacity: 1; }
+
+    /* Top utility bar */
+    .utility-bar {
+      background: var(--spg-navy);
+      border-bottom: 1px solid var(--spg-border);
+      padding: 8px 40px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 24px;
+      font-size: 12px;
+      color: var(--spg-gray);
+    }
+    .utility-bar a {
+      color: var(--spg-gray);
+      transition: color 0.2s;
+      font-weight: 400;
+    }
+    .utility-bar a:hover { color: var(--spg-white); }
+
+    /* Header */
+    .site-header {
+      background: var(--spg-dark);
+      padding: 0 40px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--spg-border);
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-text {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--spg-white);
+    }
+    .logo-text span { color: var(--spg-red); }
+    .logo-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--spg-border);
+    }
+    .logo-sub {
+      font-size: 13px;
+      color: var(--spg-gray);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .header-nav a {
+      color: var(--spg-light-gray);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: var(--spg-white); }
+    .btn-login {
+      background: var(--spg-red);
+      color: var(--spg-white);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: var(--spg-red-hover); }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      width: 100%;
+      min-height: 420px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, #0B0F1A 0%, #111828 40%, #161d30 70%, #0d1220 100%);
+    }
+    .hero-pattern {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        radial-gradient(ellipse 600px 400px at 80% 50%, rgba(214,0,28,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 300px at 20% 80%, rgba(26,115,232,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(214,0,28,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(214,0,28,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 80px 60px;
+      max-width: 700px;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--spg-red);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: 48px;
+      font-weight: 300;
+      line-height: 1.15;
+      color: var(--spg-white);
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+    .hero-title strong { font-weight: 600; }
+    .hero-desc {
+      font-size: 16px;
+      color: var(--spg-gray);
+      line-height: 1.7;
+      max-width: 540px;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      background: var(--spg-navy);
+      border-top: 1px solid var(--spg-border);
+      border-bottom: 1px solid var(--spg-border);
+      padding: 24px 60px;
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .stat-item { text-align: center; flex: 1; }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--spg-red);
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--spg-gray);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    /* Form Section */
+    .lookup-section {
+      background: var(--spg-dark);
+      padding: 60px 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .lookup-card {
+      max-width: 560px;
+      width: 100%;
+      background: var(--spg-navy);
+      border: 1px solid var(--spg-border);
+      border-radius: 8px;
+      padding: 40px;
+    }
+    .lookup-card h2 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--spg-white);
+      margin-bottom: 8px;
+    }
+    .lookup-card .lookup-desc {
+      font-size: 13px;
+      color: var(--spg-gray);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--spg-gray);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      height: 44px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: var(--body-font);
+      color: var(--spg-white);
+      background: var(--spg-slate);
+      border: 1px solid var(--spg-border);
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .form-group input::placeholder { color: #4B5563; }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--spg-red);
+    }
+    .form-group select option {
+      background: var(--spg-slate);
+      color: var(--spg-white);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .btn-submit {
+      width: 100%;
+      height: 46px;
+      background: var(--spg-red);
+      color: var(--spg-white);
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--body-font);
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover { background: var(--spg-red-hover); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box {
+      margin-top: 20px;
+      padding: 14px 18px;
+      font-size: 13px;
+      border-radius: 6px;
+      display: none;
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+    }
+    .result-box.success {
+      display: block;
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success);
+    }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; opacity: 0.85; word-break: break-all; }
+
+    /* Features */
+    .features-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--spg-border);
+      margin-top: 1px;
+    }
+    .feature-card {
+      background: var(--spg-navy);
+      padding: 48px 40px;
+    }
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(214, 0, 28, 0.1);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .feature-icon svg { width: 20px; height: 20px; stroke: var(--spg-red); fill: none; stroke-width: 1.5; }
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--spg-white);
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: var(--spg-gray);
+      line-height: 1.7;
+    }
+
+    /* Footer */
+    .site-footer {
+      padding: 50px 40px 35px;
+      border-top: 1px solid var(--spg-border);
+      background: var(--spg-dark);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1.3fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .footer-col h3 {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--spg-white);
+      margin-bottom: 16px;
+    }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 8px; }
+    .footer-col ul li a {
+      color: var(--spg-gray);
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: var(--spg-red); }
+    .footer-disclaimer {
+      font-size: 11px;
+      color: #4B5563;
+      line-height: 1.6;
+      border-top: 1px solid var(--spg-border);
+      padding-top: 24px;
+      margin-top: 20px;
+    }
+    .footer-bottom {
+      border-top: 1px solid var(--spg-border);
+      padding-top: 20px;
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--spg-gray);
+    }
+    .footer-bottom-links { display: flex; gap: 20px; }
+    .footer-bottom-links a {
+      color: var(--spg-gray);
+      font-size: 11px;
+      transition: color 0.2s;
+    }
+    .footer-bottom-links a:hover { color: var(--spg-red); }
+  </style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; All Demos</a>
+
+  <!-- Utility Bar -->
+  <div class="utility-bar">
+    <a href="#">Products</a>
+    <a href="#">Support</a>
+    <a href="#">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Search
+    </a>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="logo-area">
+      <div class="logo-text">S&amp;P <span>Global</span></div>
+      <div class="logo-divider"></div>
+      <div class="logo-sub">Capital IQ Pro</div>
+    </div>
+    <nav class="header-nav">
+      <a href="#">Market Intelligence</a>
+      <a href="#">Ratings</a>
+      <a href="#">Indices</a>
+      <a href="#">Commodity Insights</a>
+      <a href="#">Mobility</a>
+    </nav>
+    <button class="btn-login">Sign In</button>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-pattern"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">Market Intelligence &mdash; Capital IQ Pro</div>
+      <h1 class="hero-title">The world's financial data,<br><strong>at your fingertips.</strong></h1>
+      <p class="hero-desc">Capital IQ Pro delivers comprehensive company financials, credit ratings, estimates, and peer-group analytics across 35,000+ public companies and 190+ countries. Power your investment decisions with Essential Intelligence&trade;.</p>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value">35,000+</div>
+      <div class="stat-label">Companies Covered</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">500+</div>
+      <div class="stat-label">Data Items per Company</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">190+</div>
+      <div class="stat-label">Countries &amp; Territories</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">99.9%</div>
+      <div class="stat-label">Platform Availability</div>
+    </div>
+  </div>
+
+  <!-- Company Financials Lookup -->
+  <section class="lookup-section">
+    <div class="lookup-card">
+      <h2>Company Financials Lookup</h2>
+      <p class="lookup-desc">Pull fundamentals, peer-group valuation multiples, and S&amp;P credit ratings for any covered company. Enter a ticker or CIK below to run a Capital IQ Pro analysis.</p>
+      <form id="lookupForm">
+        <div class="form-group">
+          <label>Ticker Symbol</label>
+          <input type="text" id="ticker" placeholder="e.g. AAPL" value="AAPL" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>CIK (optional)</label>
+            <input type="text" id="cik" placeholder="0000320193">
+          </div>
+          <div class="form-group">
+            <label>Sector Override</label>
+            <select id="sector">
+              <option value="">Auto-detect</option>
+              <option value="technology">Technology</option>
+              <option value="financials">Financials</option>
+              <option value="energy">Energy</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="industrials">Industrials</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Run Analysis
+        </button>
+      </form>
+      <div id="result" class="result-box"></div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <div class="features-section">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>S&amp;P Credit Ratings</h3>
+      <p>Access issuer and issue-level credit ratings from S&amp;P Global Ratings, the world's leading credit rating agency, covering sovereign, corporate, and structured finance.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <h3>Index Intelligence</h3>
+      <p>Real-time analytics for the S&amp;P 500, Dow Jones Industrial Average, and 1,000,000+ indices calculated daily by S&amp;P Dow Jones Indices.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h3>AI-Driven Insights</h3>
+      <p>Natural language search across filings, transcripts, and research. Surface signals from earnings calls and 10-K filings in seconds with Kensho-powered AI.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <h3>Data Delivery APIs</h3>
+      <p>Integrate Capital IQ Pro data directly into your models and workflows via RESTful APIs, Excel plug-ins, and bulk data feeds with enterprise SLAs.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3>Divisions</h3>
+        <ul>
+          <li><a href="#">Market Intelligence</a></li>
+          <li><a href="#">S&amp;P Global Ratings</a></li>
+          <li><a href="#">S&amp;P Dow Jones Indices</a></li>
+          <li><a href="#">Commodity Insights</a></li>
+          <li><a href="#">Mobility</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Products</h3>
+        <ul>
+          <li><a href="#">Capital IQ Pro</a></li>
+          <li><a href="#">Ratings360</a></li>
+          <li><a href="#">Platts Connect</a></li>
+          <li><a href="#">AutoCreditInsight</a></li>
+          <li><a href="#">Kensho AI</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Company</h3>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Investor Relations</a></li>
+          <li><a href="#">Newsroom</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3>Resources</h3>
+        <ul>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Developer Portal</a></li>
+          <li><a href="#">Annual Report</a></li>
+          <li><a href="#">SEC Filings</a></li>
+          <li><a href="#">Trust Center</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-disclaimer">
+      S&amp;P Global Inc. and its affiliates. The material on this site is for informational purposes only and is not intended as an offer or solicitation for the purchase or sale of any financial instrument. Copyright &copy; 2026 S&amp;P Global Inc. All rights reserved. S&amp;P, S&amp;P GLOBAL, CAPITAL IQ, and the CAPITAL IQ PRO logo are registered trademarks of S&amp;P Global Inc.
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 S&amp;P Global Inc. All rights reserved.</span>
+      <div class="footer-bottom-links">
+        <a href="#">Terms of Use</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Notice</a>
+        <a href="#">Regulatory Disclosures</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('lookupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.innerHTML = 'Analyzing\u2026';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/spglobal/financials', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticker: document.getElementById('ticker').value, cik: document.getElementById('cik').value, sector: document.getElementById('sector').value || undefined, userId: 'usr_spglobal_analyst', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Financials Lookup Failed</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Analysis Complete</div><div class="error-detail">' + data.company.ticker + ' &mdash; ' + data.company.name + ' &bull; Rating: ' + data.company.rating + ' &bull; Mkt Cap: $' + Number(data.company.marketCap).toLocaleString() + 'M &bull; Revenue: $' + Number(data.fundamentals.revenue).toLocaleString() + 'M &bull; P/E: ' + data.metrics.peRatio + 'x &bull; EV/EBITDA: ' + data.metrics.evEbitda + 'x</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network Error</div><div class="error-detail">' + err.message + '</div>';
+      } finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Run Analysis'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
