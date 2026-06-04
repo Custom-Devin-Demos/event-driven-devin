@@ -139,6 +139,10 @@ const CUSTOMERS = {
     label: 'Visa',
     triggerMode: 'api',
   },
+  spglobal: {
+    label: 'S&P Global',
+    triggerMode: 'api',
+  },
   '841afdc1': {
     label: 'Customer 841A',
     triggerMode: 'api',
