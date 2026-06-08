@@ -115,6 +115,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  cocacola: {
+    label: 'Coca-Cola',
+    triggerMode: 'api',
+  },
   homedepot: {
     label: 'The Home Depot',
     triggerMode: 'api',
