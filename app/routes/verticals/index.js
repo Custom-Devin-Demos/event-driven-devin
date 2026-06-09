@@ -41,6 +41,7 @@ const marsRoutes = require('./mars');
 const lillyRoutes = require('./lilly');
 const levisRoutes = require('./levis');
 const cocacolaRoutes = require('./cocacola');
+const targetRoutes = require('./target');
 const homedepotRoutes = require('./homedepot');
 const threatlyRoutes = require('./threatly');
 const customerB3587482Routes = require('./b3587482');
@@ -90,6 +91,7 @@ router.use(marsRoutes);
 router.use(lillyRoutes);
 router.use(levisRoutes);
 router.use(cocacolaRoutes);
+router.use(targetRoutes);
 router.use(homedepotRoutes);
 router.use(threatlyRoutes);
 router.use(customerB3587482Routes);
@@ -128,6 +130,7 @@ const VERTICALS = [
   { id: 'visa', name: 'Payments & Acceptance', brand: 'Visa', path: '/visa', icon: '\u{1F4B3}', color: '#1434CB' },
   { id: 'spglobal', name: 'Financial Data & Analytics', brand: 'S&P Global', path: '/spglobal', icon: '\u{1F4CA}', color: '#E01E26' },
   { id: 'cocacola', name: 'Beverage eCommerce', brand: 'Coca-Cola', path: '/cocacola', icon: '\u{1F964}', color: '#F40000' },
+  { id: 'target', name: 'General Merchandise Retail', brand: 'Target', path: '/target', icon: '\u{1F3AF}', color: '#CC0000' },
 
 ];
 
@@ -142,7 +145,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'homedepot', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola'];
+const verticalIds = ['banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'homedepot', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola', 'target'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
