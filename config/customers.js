@@ -159,6 +159,10 @@ const CUSTOMERS = {
     label: 'Customer 841A',
     triggerMode: 'api',
   },
+  bnsf: {
+    label: 'BNSF Railway',
+    triggerMode: 'api',
+  },
 };
 
 /**
