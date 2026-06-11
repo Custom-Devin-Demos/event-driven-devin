@@ -163,6 +163,10 @@ const CUSTOMERS = {
     label: 'BNSF Railway',
     triggerMode: 'api',
   },
+  avis: {
+    label: 'Avis',
+    triggerMode: 'api',
+  },
 };
 
 /**

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avis &mdash; Reserve a Car</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf9f7;
+      --bg-card: #ffffff;
+      --bg-elevated: #f5f4f2;
+      --surface: #eeedeb;
+      --border: #e0dfdd;
+      --border-light: #d4d3d1;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --text-dim: #999;
+      --avis-red: #D4002A;
+      --avis-red-hover: #a80021;
+      --avis-red-dim: rgba(212,0,42,0.07);
+      --avis-red-border: rgba(212,0,42,0.2);
+      --danger: #c41230;
+      --danger-bg: rgba(196,18,48,0.06);
+      --danger-border: rgba(196,18,48,0.15);
+      --success: #2d8659;
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Promo Banner ── */
+    .promo-banner {
+      background: var(--avis-red);
+      color: #fff;
+      text-align: center;
+      padding: 0.6rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-mark {
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .logo-mark .swoosh {
+      width: 30px; height: 24px;
+      background: var(--avis-red);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark span {
+      color: #fff; font-size: 1.25rem; font-weight: 700; letter-spacing: 0.02em;
+    }
+    nav { display: flex; align-items: center; gap: 1.75rem; }
+    nav a {
+      color: #ccc; text-decoration: none; font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--avis-red); }
+    .nav-icons { display: flex; align-items: center; gap: 1.25rem; }
+    .nav-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      color: #ccc; transition: color 0.2s; cursor: pointer;
+    }
+    .nav-icon:hover { color: var(--avis-red); }
+
+    /* ── Page ── */
+    .page {
+      max-width: 860px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--avis-red); text-decoration: none; font-size: 0.8rem;
+      font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--avis-red-hover); }
+
+    .page-title {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700; line-height: 1.2; margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .page-title em { font-style: normal; color: var(--avis-red); }
+    .page-desc {
+      font-size: 0.92rem; color: var(--text-muted); max-width: 520px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Shipment Card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h2 {
+      font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;
+    }
+    .order-header .item-count {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .order-items { padding: 0; }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-swatch {
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; flex-shrink: 0;
+      font-size: 1.6rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+    }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.15rem; }
+    .item-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-commodity { font-size: 0.75rem; color: var(--text-muted); }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; }
+
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 1rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .lane-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--avis-red-dim); color: var(--avis-red);
+      font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.6rem;
+      border-radius: 4px; margin-top: 0.5rem;
+    }
+
+    /* ── Booking Form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .action-section h3 {
+      font-size: 1rem; font-weight: 700; margin-bottom: 1rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 600; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--avis-red);
+      box-shadow: 0 0 0 3px var(--avis-red-dim);
+    }
+
+    .place-order-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--avis-red); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+    }
+    .place-order-btn:hover { background: var(--avis-red-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--avis-red); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+    }
+    .result-box.success {
+      display: block;
+      background: rgba(45,134,89,0.06); border: 1px solid rgba(45,134,89,0.2);
+    }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--avis-red-dim); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 10px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 860px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.82rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.03em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin {
+      margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim);
+    }
+    .footer-devin a { color: var(--avis-red); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav a { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .promo-banner { font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="promo-banner">
+    Avis Preferred &nbsp;|&nbsp; Skip the Counter &middot; Free Upgrades for Members &middot; Earn Points on Every Rental
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-mark">
+        <span>Avis</span>
+      </div>
+    </div>
+    <nav>
+      <a href="#">Reserve</a>
+      <a href="#">Locations</a>
+      <a href="#">Deals</a>
+      <a href="#">Support</a>
+    </nav>
+    <div class="nav-icons">
+      <div class="nav-icon" title="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="nav-icon" title="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="nav-icon" title="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1">Reserve a <em>Car</em> with Avis</h1>
+    <p class="page-desc animate-up delay-2">Your rental is ready to confirm. Click <strong>Complete Reservation</strong> to run the pricing pipeline and watch the bug surface in real time.</p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Reservation Summary</h2>
+        <span class="item-count">3 vehicles</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-swatch">&#x1F698;</div>
+          <div class="item-details">
+            <div class="item-name">Intermediate &mdash; Toyota Corolla or similar</div>
+            <div class="item-commodity">Los Angeles Intl (LAX) &middot; 3 days</div>
+            <div class="item-sku">AVIS-MID</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">3 days</div>
+            <div class="item-price">$165.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F699;</div>
+          <div class="item-details">
+            <div class="item-name">Standard SUV &mdash; Ford Escape or similar</div>
+            <div class="item-commodity">Los Angeles Intl (LAX) &middot; 3 days</div>
+            <div class="item-sku">AVIS-SUV</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">3 days</div>
+            <div class="item-price">$267.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F3CE;&#xFE0F;</div>
+          <div class="item-details">
+            <div class="item-name">Convertible &mdash; Ford Mustang or similar</div>
+            <div class="item-commodity">Los Angeles Intl (LAX) &middot; 2 days</div>
+            <div class="item-sku">AVIS-CONV</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">2 days</div>
+            <div class="item-price">$336.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Rental Subtotal</span><span>$768.00</span></div>
+        <div class="total-line"><span>Taxes &amp; Fees</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Loyalty Discount</span><span>10% (Preferred Plus &gt; $500)</span></div>
+        <div class="total-line grand"><span>Est. Total</span><span>$768.00+</span></div>
+        <div class="lane-badge">&#x1F697; LAX Pickup &mdash; Avis Preferred Lane</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Renter Details</h3>
+      <form id="checkoutForm" onsubmit="submitBooking(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Renter Name</label>
+            <input type="text" value="Jordan Avery" readonly>
+          </div>
+          <div class="form-group">
+            <label>Contact Email</label>
+            <input type="email" value="jordan.avery@example.com" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pickup Location</label>
+            <select id="laneSelect">
+              <option value="LAX" selected>Los Angeles (LAX)</option>
+              <option value="JFK">New York (JFK)</option>
+              <option value="ORD">Chicago (ORD)</option>
+              <option value="MIA">Miami (MIA)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Avis Preferred #</label>
+            <input type="text" value="AVIS-PREF-88421" readonly>
+          </div>
+        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Complete Reservation</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Processing your reservation&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The reservation pipeline injects a loyalty reward credit (<code>PROMO-PREFERRED-2026</code>) that doesn&rsquo;t exist in the vehicle catalog. When the summary formatter tries to look up its name, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Avis Budget Group &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Safety</a>
+        <a href="#">Careers</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var RESERVATION_ITEMS = [
+      { sku: 'AVIS-MID', qty: 3, price: 55.00 },
+      { sku: 'AVIS-SUV', qty: 3, price: 89.00 },
+      { sku: 'AVIS-CONV', qty: 2, price: 168.00 }
+    ];
+    var SUBTOTAL = 768.00;
+
+    function submitBooking(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var location = document.getElementById('laneSelect').value;
+
+      fetch('/api/avis/reservation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_avis_demo',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: RESERVATION_ITEMS,
+          subtotal: SUBTOTAL,
+          location: location
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Reservation Failed</h3>' +
+            '<p>Your reservation could not be processed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Reservation Confirmed</h3>' +
+            '<p>Reservation <strong>' + result.data.orderId + '</strong> confirmed.<br>' +
+            'Total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.taxesAndFees.toFixed(2) + ' taxes &amp; fees)</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Complete Reservation';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
