@@ -171,6 +171,10 @@ const CUSTOMERS = {
     label: 'Optum Rx',
     triggerMode: 'api',
   },
+  loblaw: {
+    label: 'Loblaws',
+    triggerMode: 'api',
+  },
 };
 
 /**
