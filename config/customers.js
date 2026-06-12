@@ -167,6 +167,10 @@ const CUSTOMERS = {
     label: 'Avis',
     triggerMode: 'api',
   },
+  optumrx: {
+    label: 'Optum Rx',
+    triggerMode: 'api',
+  },
 };
 
 /**
