@@ -175,6 +175,10 @@ const CUSTOMERS = {
     label: 'Loblaws',
     triggerMode: 'api',
   },
+  walgreens: {
+    label: 'Walgreens',
+    triggerMode: 'api',
+  },
 };
 
 /**
