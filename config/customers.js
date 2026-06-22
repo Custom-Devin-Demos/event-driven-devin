@@ -179,6 +179,10 @@ const CUSTOMERS = {
     label: 'Walgreens',
     triggerMode: 'api',
   },
+  macys: {
+    label: "Macy's",
+    triggerMode: 'api',
+  },
 };
 
 /**
