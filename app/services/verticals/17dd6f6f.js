@@ -94,6 +94,9 @@ function getTrackingHistory(shipment) {
 
 function buildTrackingSummary(shipment, cost, estimate, history) {
   const latestEvent = history[history.length - 1];
+  const deliveryWindow = estimate.deliveryWindow
+    ? estimate.deliveryWindow.start + ' - ' + estimate.deliveryWindow.end
+    : 'Not available';
 
   return {
     trackingNumber: shipment.trackingNumber,
@@ -104,7 +107,7 @@ function buildTrackingSummary(shipment, cost, estimate, history) {
     guaranteedBy: estimate.guaranteedBy,
     estimatedDelivery: estimate.estimatedDelivery,
     transitDays: estimate.transitDays,
-    deliveryWindow: estimate.deliveryWindow.start + ' - ' + estimate.deliveryWindow.end,
+    deliveryWindow,
     billableWeight: cost.billableWeight + ' lbs',
     totalCost: '$' + cost.totalCost.toFixed(2),
     lastScan: latestEvent.description + ' at ' + latestEvent.location,
@@ -216,4 +219,14 @@ async function processTrackShipment(data) {
   }
 }
 
-module.exports = { processTrackShipment, SHIPMENTS, SERVICE_LEVELS, SCAN_EVENTS };
+module.exports = {
+  processTrackShipment,
+  buildDeliveryEstimate,
+  buildTrackingSummary,
+  computeShippingCost,
+  getTrackingHistory,
+  resolveShipment,
+  SHIPMENTS,
+  SERVICE_LEVELS,
+  SCAN_EVENTS,
+};
