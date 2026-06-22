@@ -183,6 +183,10 @@ const CUSTOMERS = {
     label: "Macy's",
     triggerMode: 'api',
   },
+  tdbank: {
+    label: 'TD Bank',
+    triggerMode: 'api',
+  },
 };
 
 /**
