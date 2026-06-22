@@ -71,13 +71,11 @@ function buildDeliveryEstimate(shipment) {
     transitDays: service.maxTransitDays,
   };
 
-  if (shipment.destination.facility) {
-    estimate.deliveryWindow = {
-      start: '8:00 AM',
-      end: service.guaranteedBy || '8:00 PM',
-      facility: shipment.destination.facility,
-    };
-  }
+  estimate.deliveryWindow = {
+    start: '8:00 AM',
+    end: service.guaranteedBy || '8:00 PM',
+    facility: shipment.destination.facility || null,
+  };
 
   return estimate;
 }
@@ -216,4 +214,13 @@ async function processTrackShipment(data) {
   }
 }
 
-module.exports = { processTrackShipment, SHIPMENTS, SERVICE_LEVELS, SCAN_EVENTS };
+module.exports = {
+  processTrackShipment,
+  buildDeliveryEstimate,
+  buildTrackingSummary,
+  computeShippingCost,
+  getTrackingHistory,
+  SHIPMENTS,
+  SERVICE_LEVELS,
+  SCAN_EVENTS,
+};
