@@ -47,11 +47,17 @@ function resolveCompany(companyId) {
 
 function getSectorCompliance(company) {
   const config = SECTOR_CONFIG[company.sector];
+  const now = Date.now();
+  const cycleMs = config.reviewCycleDays * 86400000;
   return {
     complianceTier: config.complianceTier,
     reviewCycleDays: config.reviewCycleDays,
     hazmatRequired: config.hazmatRequired,
-    nextReviewDate: new Date(Date.now() + config.reviewCycleDays * 86400000).toISOString(),
+    nextReviewDate: new Date(now + cycleMs).toISOString(),
+    auditTrail: {
+      lastAuditDate: new Date(now - cycleMs).toISOString(),
+      nextAuditDate: new Date(now + cycleMs).toISOString(),
+    },
   };
 }
 
@@ -195,4 +201,13 @@ async function processSupplyInquiry(data) {
   }
 }
 
-module.exports = { processSupplyInquiry, COMPANIES, SECTOR_CONFIG, SUPPLY_CHAIN_METRICS };
+module.exports = {
+  processSupplyInquiry,
+  resolveCompany,
+  getSectorCompliance,
+  aggregateSubsidiaryMetrics,
+  buildComplianceReport,
+  COMPANIES,
+  SECTOR_CONFIG,
+  SUPPLY_CHAIN_METRICS,
+};
