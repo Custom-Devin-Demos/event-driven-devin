@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipment Tracking | Velocity Logistics</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: #f4f6f9; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1c2733;
+      -webkit-font-smoothing: antialiased;
+    }
+    .site-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 32px;
+      background: #4d148c;
+      color: #fff;
+    }
+    .site-header .mark { font-size: 26px; }
+    .site-header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+    .site-header .accent { color: #ff6600; }
+
+    .hero {
+      background: linear-gradient(120deg, #4d148c 0%, #6a1fb0 100%);
+      color: #fff;
+      padding: 56px 32px 70px;
+      text-align: center;
+    }
+    .hero h2 { font-size: 38px; font-weight: 700; margin-bottom: 14px; }
+    .hero p { font-size: 17px; opacity: 0.92; max-width: 640px; margin: 0 auto; }
+
+    .panel {
+      max-width: 720px;
+      margin: -40px auto 60px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(28,39,51,0.12);
+      padding: 32px;
+    }
+    .panel h3 { font-size: 22px; margin-bottom: 18px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .field label { font-size: 13px; font-weight: 700; color: #5a6776; text-transform: uppercase; letter-spacing: 0.4px; }
+    .field input, .field select {
+      padding: 12px 14px;
+      border: 1px solid #cdd5df;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    .btn {
+      display: inline-block;
+      background: #ff6600;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 13px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn:hover { background: #e65c00; }
+
+    .result {
+      margin-top: 26px;
+      border-top: 1px solid #e6eaef;
+      padding-top: 22px;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f2f5; font-size: 15px; }
+    .result .row span:first-child { color: #5a6776; }
+    .result .row span:last-child { font-weight: 700; }
+
+    .footer { text-align: center; color: #8a96a3; font-size: 13px; padding: 24px; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <span class="mark">&#128666;</span>
+    <h1>Velocity<span class="accent">Logistics</span></h1>
+  </header>
+
+  <section class="hero">
+    <h2>Track Your Shipment</h2>
+    <p>Real-time visibility into every package — pickup, transit, and guaranteed delivery windows across all service levels.</p>
+  </section>
+
+  <section class="panel">
+    <h3>Shipment Lookup</h3>
+    <div class="field">
+      <label for="tracking">Tracking Number</label>
+      <input id="tracking" type="text" value="FX-7829104563" />
+    </div>
+    <div class="field">
+      <label for="service">Service Level</label>
+      <select id="service">
+        <option value="priority_overnight">Priority Overnight</option>
+        <option value="standard_overnight">Standard Overnight</option>
+        <option value="two_day">2Day</option>
+        <option value="ground">Ground</option>
+      </select>
+    </div>
+    <button class="btn" id="trackBtn">Track Shipment</button>
+
+    <div class="result" id="result"></div>
+  </section>
+
+  <div class="footer">&copy; 2026 Velocity Logistics. All rights reserved.</div>
+
+  <script>
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(28,39,51,0.94);color:#fff;padding:14px 22px;border-radius:8px;font-size:14px;z-index:10000;opacity:0;transform:translateY(20px);transition:opacity 0.3s,transform 0.3s;max-width:380px;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+      setTimeout(function () { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(function () { toast.remove(); }, 300); }, 6000);
+    }
+
+    function renderResult(data) {
+      var rows = [
+        ['Tracking Number', data.trackingNumber],
+        ['Service Level', data.serviceLevel],
+        ['Guaranteed By', data.guaranteedBy],
+        ['Estimated Delivery', data.estimatedDelivery],
+        ['Delivery Window', data.deliveryWindow],
+        ['Billable Weight', data.billableWeight],
+        ['Total Cost', data.totalCost],
+        ['Last Scan', data.lastScan],
+      ];
+      var html = '';
+      rows.forEach(function (r) {
+        html += '<div class="row"><span>' + r[0] + '</span><span>' + (r[1] || '\u2014') + '</span></div>';
+      });
+      var el = document.getElementById('result');
+      el.innerHTML = html;
+      el.classList.add('show');
+    }
+
+    document.getElementById('trackBtn').addEventListener('click', function () {
+      var btn = this;
+      if (btn._running) return;
+      btn._running = true;
+      var orig = btn.textContent;
+      btn.textContent = 'Tracking...';
+      btn.disabled = true;
+      fetch('/api/17dd6f6f/track-shipment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingNumber: document.getElementById('tracking').value,
+          serviceType: document.getElementById('service').value
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.error) { showToast('We couldn\u2019t track your shipment right now. Please try again.'); }
+          else { renderResult(data); }
+        })
+        .catch(function () { showToast('We couldn\u2019t track your shipment right now. Please try again.'); })
+        .finally(function () { btn.textContent = orig; btn.disabled = false; btn._running = false; });
+    });
+  </script>
+</body>
+</html>
