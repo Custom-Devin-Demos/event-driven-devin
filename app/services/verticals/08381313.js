@@ -52,6 +52,9 @@ function getSectorCompliance(company) {
     reviewCycleDays: config.reviewCycleDays,
     hazmatRequired: config.hazmatRequired,
     nextReviewDate: new Date(Date.now() + config.reviewCycleDays * 86400000).toISOString(),
+    auditTrail: {
+      lastAuditDate: new Date(Date.now() - config.reviewCycleDays * 86400000).toISOString(),
+    },
   };
 }
 
@@ -195,4 +198,13 @@ async function processSupplyInquiry(data) {
   }
 }
 
-module.exports = { processSupplyInquiry, COMPANIES, SECTOR_CONFIG, SUPPLY_CHAIN_METRICS };
+module.exports = {
+  processSupplyInquiry,
+  resolveCompany,
+  getSectorCompliance,
+  aggregateSubsidiaryMetrics,
+  buildComplianceReport,
+  COMPANIES,
+  SECTOR_CONFIG,
+  SUPPLY_CHAIN_METRICS,
+};
