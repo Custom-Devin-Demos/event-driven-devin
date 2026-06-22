@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FedEx | Track &amp; Ship Online</title>
+  <link rel="icon" href="https://www.fedex.com/content/dam/fedex-com/logos/logo.png" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { background: #ffffff; }
+    body {
+      font-family: 'FedExSans', Arial, sans-serif;
+      color: #333333;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Header */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 75px;
+      padding: 0 40px;
+      background: #4D148C;
+    }
+    .header-left { display: flex; align-items: center; gap: 32px; }
+    .site-header .logo { height: 34px; display: block; }
+    .header-nav { display: flex; gap: 24px; }
+    .header-nav a {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+      cursor: pointer;
+    }
+    .header-nav a:hover { text-decoration: underline; }
+    .header-right { display: flex; align-items: center; gap: 20px; }
+    .header-right a {
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+    }
+    .header-right a:hover { text-decoration: underline; }
+    .search-icon {
+      width: 20px;
+      height: 20px;
+      fill: #ffffff;
+      cursor: pointer;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 460px;
+      overflow: hidden;
+      background: #4D148C;
+    }
+    .hero img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(77,20,140,0.85) 0%, rgba(77,20,140,0.5) 40%, rgba(77,20,140,0) 70%);
+      pointer-events: none;
+    }
+    .hero-content {
+      position: absolute;
+      left: 80px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      max-width: 500px;
+    }
+    .hero-content h1 {
+      color: #ffffff;
+      font-size: 46px;
+      line-height: 52px;
+      font-weight: 400;
+      margin-bottom: 24px;
+    }
+    .hero-content h1 sup {
+      font-size: 14px;
+      vertical-align: super;
+    }
+    .hero-btn {
+      display: inline-block;
+      background: transparent;
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      border-radius: 999px;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .hero-btn:hover { background: rgba(255,255,255,0.15); }
+
+    /* Quick Actions Bar */
+    .quick-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      padding: 28px 40px;
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+      z-index: 3;
+    }
+    .quick-actions { display: flex; gap: 36px; }
+    .quick-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: #333333;
+      font-size: 13px;
+      font-weight: 400;
+      text-align: center;
+    }
+    .quick-action:last-child { color: #FF6200; }
+    .quick-action svg { width: 32px; height: 32px; }
+    .tracking-form { display: flex; align-items: center; gap: 0; }
+    .tracking-input {
+      width: 220px;
+      height: 44px;
+      border: 1px solid #cccccc;
+      border-right: none;
+      border-radius: 4px 0 0 4px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+    }
+    .tracking-input:focus { border-color: #4D148C; }
+    .track-btn {
+      height: 44px;
+      padding: 0 28px;
+      background: #FF6200;
+      color: #ffffff;
+      border: none;
+      border-radius: 0 4px 4px 0;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+    .track-btn:hover { background: #e85800; }
+
+    /* Alert Banner */
+    .alert-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 16px 24px;
+      border: 1px solid #4D148C;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333333;
+    }
+    .alert-banner svg { flex-shrink: 0; width: 22px; height: 22px; fill: #4D148C; }
+    .alert-banner a { color: #333333; text-decoration: underline; }
+
+    /* Content Sections */
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 40px;
+    }
+    .section h3 {
+      font-size: 28px;
+      font-weight: 400;
+      color: #333333;
+      margin-bottom: 28px;
+    }
+    .why-ship {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+    .why-ship-text { flex: 1; }
+    .why-ship-text .cols { display: flex; gap: 30px; margin-bottom: 20px; }
+    .why-ship-text .col { flex: 1; }
+    .why-ship-text .col b { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #333333; }
+    .why-ship-text .col p { font-size: 14px; line-height: 22px; color: #555555; }
+    .why-ship-img {
+      width: 380px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    .ship-now-btn {
+      display: inline-block;
+      margin-top: 32px;
+      background: transparent;
+      color: #FF6200;
+      border: 2px solid #FF6200;
+      border-radius: 999px;
+      padding: 12px 32px;
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .ship-now-btn:hover { background: #FF6200; color: #ffffff; }
+
+    /* Cards Section */
+    .cards-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 40px 56px;
+    }
+    .cards-section h2 {
+      font-size: 32px;
+      font-weight: 300;
+      color: #333333;
+      text-align: center;
+      margin-bottom: 36px;
+      font-style: italic;
+    }
+    .cards { display: flex; gap: 24px; }
+    .card {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+    .card-body { padding: 20px; }
+    .card-body h5 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333333;
+      margin-bottom: 10px;
+    }
+    .card-body p {
+      font-size: 13px;
+      line-height: 20px;
+      color: #555555;
+      margin-bottom: 14px;
+    }
+    .card-link {
+      color: #4D148C;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .card-link:hover { text-decoration: underline; }
+
+    /* Footer */
+    .footer-main {
+      background: #4D148C;
+      color: #ffffff;
+      padding: 40px;
+    }
+    .footer-cols { display: flex; gap: 60px; max-width: 1100px; margin: 0 auto; }
+    .footer-col h4 { font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+    .footer-col a { display: block; font-size: 13px; margin-bottom: 8px; color: #dddddd; }
+    .footer-col a:hover { text-decoration: underline; color: #ffffff; }
+    .footer-bottom {
+      background: #3a0f6a;
+      color: #cccccc;
+      padding: 16px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-links { display: flex; gap: 16px; }
+    .footer-links a { color: #cccccc; }
+    .footer-links a:hover { text-decoration: underline; color: #ffffff; }
+
+    .back-link {
+      display: inline-block;
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.7);
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      z-index: 9999;
+      text-decoration: none;
+    }
+    .back-link:hover { background: rgba(0,0,0,0.85); }
+
+    @media (max-width: 900px) {
+      .hero-content { left: 24px; right: 24px; }
+      .hero-content h1 { font-size: 32px; line-height: 38px; }
+      .quick-bar { flex-wrap: wrap; gap: 20px; }
+      .why-ship { flex-direction: column; }
+      .why-ship-img { width: 100%; }
+      .cards { flex-direction: column; }
+      .footer-cols { flex-direction: column; gap: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-left">
+      <img class="logo" src="https://www.fedex.com/content/dam/fedex-com/logos/logo.png" alt="FedEx" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=140&h=34&fit=crop';" />
+      <nav class="header-nav">
+        <a href="#">Shipping</a>
+        <a href="#">Tracking</a>
+        <a href="#">Design &amp; Print</a>
+        <a href="#">Locations</a>
+        <a href="#">Support</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <a href="#">Sign Up or Log In</a>
+      <svg class="search-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    </div>
+  </header>
+
+  <section class="hero">
+    <img src="https://www.fedex.com/content/dam/fedex/us-united-states/Testing/power_moves_2400x900%201.jpg" alt="" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1400&h=460&fit=crop';" />
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h1>FedEx. The New Power Move.<sup>SM</sup></h1>
+      <a class="hero-btn" data-cta href="#">LEARN MORE</a>
+    </div>
+  </section>
+
+  <div class="quick-bar">
+    <div class="quick-actions">
+      <a class="quick-action" href="#">
+        <svg viewBox="0 0 32 32" fill="#4D148C" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="24" height="24" rx="2" stroke="#4D148C" stroke-width="2" fill="none"/><line x1="8" y1="10" x2="24" y2="10" stroke="#4D148C" stroke-width="2"/><line x1="8" y1="15" x2="24" y2="15" stroke="#4D148C" stroke-width="2"/><line x1="8" y1="20" x2="18" y2="20" stroke="#4D148C" stroke-width="2"/></svg>
+        <span>Get a<br/>quote</span>
+      </a>
+      <a class="quick-action" href="#">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 8h18v16H4z" stroke="#4D148C" stroke-width="2"/><path d="M22 14h4l2 4v6h-6" stroke="#4D148C" stroke-width="2"/><circle cx="10" cy="26" r="2" stroke="#4D148C" stroke-width="2"/><circle cx="24" cy="26" r="2" stroke="#4D148C" stroke-width="2"/></svg>
+        <span>Ship<br/>now</span>
+      </a>
+      <a class="quick-action" href="#">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 2C10.48 2 6 6.48 6 12c0 7 10 18 10 18s10-11 10-18c0-5.52-4.48-10-10-10zm0 14c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="#4D148C"/></svg>
+        <span>FedEx<br/>locations</span>
+      </a>
+      <a class="quick-action" href="#" style="color:#FF6200;">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="10" r="6" stroke="#FF6200" stroke-width="2"/><path d="M6 28c0-5.52 4.48-10 10-10s10 4.48 10 10" stroke="#FF6200" stroke-width="2"/></svg>
+        <span>Contact<br/>support</span>
+      </a>
+    </div>
+    <div class="tracking-form">
+      <input class="tracking-input" type="text" placeholder="Tracking number" />
+      <button class="track-btn" data-cta>TRACK</button>
+    </div>
+  </div>
+
+  <div class="alert-banner">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+    <span>US Supreme Court Tariff Update. <a href="#">See how this may impact you</a>.</span>
+  </div>
+
+  <section class="section">
+    <div class="why-ship">
+      <div class="why-ship-text">
+        <h3>Why ship with FedEx?</h3>
+        <div class="cols">
+          <div class="col">
+            <b>Innovative solutions for reliability &amp; speed</b>
+            <p>Whether it's across states or worldwide, we prioritize the secure and swift arrival of your shipments.</p>
+          </div>
+          <div class="col">
+            <b>Premium shipping at professional rates</b>
+            <p>When you need reliable delivery and careful handling, trust FedEx to get your items where they need to go on time.</p>
+          </div>
+        </div>
+        <div class="cols">
+          <div class="col">
+            <b>We ship everywhere*</b>
+            <p>From major cities to remote locations, your goods can reach worldwide.</p>
+          </div>
+          <div class="col">
+            <b>Wallet-friendly shipping with no weighing</b>
+            <p>FedEx can ship your packages for less than the Post Office. With FedEx One Rate, you get flat-rate, 2-day shipping for packages up to 50 lbs.</p>
+          </div>
+        </div>
+        <a class="ship-now-btn" data-cta href="#">START SHIPPING NOW</a>
+      </div>
+      <img class="why-ship-img" src="https://www.fedex.com/content/dam/fedex/us-united-states/shipping/images/STL250513-MK-FEDEX-7020_1_450x412.jpg" alt="FedEx delivery" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=380&h=400&fit=crop';" />
+    </div>
+  </section>
+
+  <section class="cards-section">
+    <h2>Stay ahead of every delivery moment</h2>
+    <div class="cards">
+      <div class="card">
+        <img src="https://www.fedex.com/content/dam/fedex/us-united-states/shipping/images/ShipInTimeForFathersDay_May_28_2026727x463.jpg" alt="Father's Day shipping" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1531256456869-ce942a665e80?w=400&h=200&fit=crop';" />
+        <div class="card-body">
+          <h5>Ship in time for Father's Day</h5>
+          <p>Check shipping cutoff dates and explore services. Plus, see tips for shipping bulky items.</p>
+          <a class="card-link" data-cta href="#">See the shipping guide</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://www.fedex.com/content/dam/fedex/us-united-states/shipping/images/KeepShipmentsSafe_shutterstock_2155955473_727x463.jpg" alt="Keep shipments safe" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=200&fit=crop';" />
+        <div class="card-body">
+          <h5>Keep shipments safe this season</h5>
+          <p>Place a vacation hold with FedEx Delivery Manager for up to 14 days — for free!</p>
+          <a class="card-link" data-cta href="#">Manage your deliveries</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://www.fedex.com/content/dam/fedex/us-united-states/shipping/images/SeeNarrowerDeliveryWindows_727x463.jpg" alt="Delivery windows" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1526367790999-0150786686a2?w=400&h=200&fit=crop';" />
+        <div class="card-body">
+          <h5>See narrower delivery windows</h5>
+          <p>Get a clearer picture of when your package will arrive — down to a 2-, 3-, or 4-hour window.</p>
+          <a class="card-link" data-cta href="#">Get the app</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-main">
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Our Company</h4>
+          <a href="#">About FedEx</a>
+          <a href="#">Our Portfolio</a>
+          <a href="#">Investor Relations</a>
+          <a href="#">Careers</a>
+          <a href="#">Newsroom</a>
+        </div>
+        <div class="footer-col">
+          <h4>More From FedEx</h4>
+          <a href="#">FedEx Compatible</a>
+          <a href="#">FedEx Developer Portal</a>
+          <a href="#">FedEx Logistics</a>
+          <a href="#">FedEx Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Follow FedEx</h4>
+          <a href="#">Facebook</a>
+          <a href="#">Twitter</a>
+          <a href="#">Instagram</a>
+          <a href="#">LinkedIn</a>
+          <a href="#">YouTube</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; FedEx 1995-2026</span>
+      <div class="footer-links">
+        <a href="#">Site Map</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Privacy &amp; Security</a>
+        <a href="#">Ad Choices</a>
+      </div>
+    </div>
+  </footer>
+
+  <a class="back-link" href="/">&larr; All Demos</a>
+
+  <script>
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(0,0,0,0.88);color:#fff;padding:14px 22px;border-radius:8px;font-size:14px;z-index:10000;opacity:0;transform:translateY(20px);transition:opacity 0.3s,transform 0.3s;max-width:380px;font-family:Arial,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+      setTimeout(function () { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(function () { toast.remove(); }, 300); }, 6000);
+    }
+
+    function triggerShipment(el) {
+      if (el._running) return;
+      el._running = true;
+      var orig = el.innerHTML;
+      el.style.pointerEvents = 'none';
+      el.innerHTML = 'Loading...';
+      fetch('/api/17dd6f6f/track-shipment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trackingNumber: 'FX-7829104563',
+          serviceType: 'priority_overnight',
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-065e163787334d51b60b45cd5f4e1bdf'
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) { if (data.error) showToast('We couldn\u2019t process your request right now. Please try again.'); })
+        .catch(function () { showToast('We couldn\u2019t process your request right now. Please try again.'); })
+        .finally(function () { el.innerHTML = orig; el.style.pointerEvents = ''; el._running = false; });
+    }
+
+    document.querySelectorAll('a, button').forEach(function (el) {
+      if (el.classList.contains('back-link')) return;
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        triggerShipment(el);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -187,6 +187,14 @@ const CUSTOMERS = {
     label: 'TD Bank',
     triggerMode: 'api',
   },
+  '17dd6f6f': {
+    label: 'Customer 17DD',
+    triggerMode: 'api',
+  },
+  '08381313': {
+    label: 'Customer 0838',
+    triggerMode: 'api',
+  },
 };
 
 /**
