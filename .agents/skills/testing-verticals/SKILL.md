@@ -1,3 +1,8 @@
+---
+name: testing-verticals
+description: Create and test Event-Driven Devin industry verticals end-to-end. Use when adding new custom demo verticals or verifying existing ones.
+---
+
 # Creating & Testing Event-Driven Devin Verticals
 
 This playbook covers the **full lifecycle** of creating and deploying custom demo verticals — from cloning a public site to verifying Devin sessions trigger on production. Every step is mandatory unless marked optional.
@@ -48,10 +53,13 @@ For every image in the HTML file:
 **Known CDN hotlinking behavior:**
 | CDN | Hotlinking | Notes |
 |-----|-----------|-------|
-| Unsplash (`images.unsplash.com`) | ✅ Allowed | Preferred fallback source |
-| jpmorganchase.com | ✅ Allowed | Can hotlink directly |
-| marriott.com / cache.marriott.com | ❌ Blocked (403) | Must use Unsplash alternatives |
-| seb.se | ❌ Blocked (403) | Must use Unsplash alternatives |
+| Unsplash (`images.unsplash.com`) | Allowed | Preferred fallback source |
+| fedex.com (`www.fedex.com/content/dam/`) | Allowed | FedEx CDN images hotlink fine |
+| kochinc.com (SVG logos) | Allowed | Koch logo SVGs load directly |
+| kochind.scene7.com | Blocked (403) | Koch scene7 images blocked; use Unsplash fallbacks |
+| jpmorganchase.com | Allowed | Can hotlink directly |
+| marriott.com / cache.marriott.com | Blocked (403) | Must use Unsplash alternatives |
+| seb.se | Blocked (403) | Must use Unsplash alternatives |
 
 ### Step 3: Create the Route File
 Create `app/routes/verticals/<slug>.js` following the pattern of existing verticals (e.g., `beb4d43e.js`):
@@ -259,6 +267,8 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | Marriott (beb4d43e) | `/beb4d43e` | "Book Now" | `Cannot read properties of undefined (reading 'available')` |
 | SEB (4feeb7bb) | `/4feeb7bb` | "Aktuella bolåneräntor" | `Cannot read properties of undefined (reading 'riskPremium')` |
 | JPMC (89c1f355) | `/89c1f355` | "Join our team →" | `Cannot read properties of undefined (reading 'totalHeadcount')` |
+| FedEx (17dd6f6f) | `/17dd6f6f` | "LEARN MORE" | `Cannot read properties of undefined (reading 'start')` |
+| Koch Industries (08381313) | `/08381313` | "Get to know Koch" | `Cannot read properties of undefined (reading 'lastAuditDate')` |
 
 ### API Testing (curl)
 
@@ -298,6 +308,12 @@ curl -s -X POST http://localhost:3000/api/4feeb7bb/inquiry -H 'Content-Type: app
 
 # Custom — JPMC (89c1f355)
 curl -s -X POST http://localhost:3000/api/89c1f355/inquiry -H 'Content-Type: application/json' -d '{"division":"investment-banking","region":"north-america","assetClass":"equities"}'
+
+# Custom — FedEx (17dd6f6f)
+curl -s -X POST http://localhost:3000/api/17dd6f6f/track-shipment -H 'Content-Type: application/json' -d '{"trackingNumber":"FX-7829104563"}'
+
+# Custom — Koch Industries (08381313)
+curl -s -X POST http://localhost:3000/api/08381313/supply-inquiry -H 'Content-Type: application/json' -d '{"companyId":"KII-9204715"}'
 ```
 
 ## Notes
@@ -311,3 +327,6 @@ curl -s -X POST http://localhost:3000/api/89c1f355/inquiry -H 'Content-Type: app
 - The production `.env` is at `/home/ubuntu/.env` — never overwrite or delete it
 - Use the `EC2_SSH_KEY` secret and resolve the IP via `ping -c1 devindemos.com`
 - The deploy GitHub Action runs on push to `main` but does NOT update `.env` — per-customer env vars must be added manually via SSH
+
+## Devin Secrets Needed
+- `EC2_SSH_KEY`: SSH private key for accessing the EC2 production host
