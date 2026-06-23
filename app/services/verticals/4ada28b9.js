@@ -185,7 +185,7 @@ async function processFlightSearch(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/4ada28b9.js \u2014 assemblePricingSummary',
+      culprit: 'app/services/verticals/4ada28b9.js \u2014 buildItinerary',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
