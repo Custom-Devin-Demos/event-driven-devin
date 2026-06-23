@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scotiabank &mdash; Online Banking</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --scotia-red: #EC111A; --scotia-red-dark: #C40D14;
+      --scotia-red-hover: #D80F17;
+      --navy: #1C1C1C; --navy-light: #2D2D2D;
+      --white: #FFFFFF; --off-white: #F5F5F5; --cream: #FAFAFA;
+      --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+      --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: var(--navy); color: rgba(255,255,255,0.7); font-size: 0.72rem; padding: 0.45rem 2rem; display: flex; justify-content: flex-end; gap: 1.5rem; }
+    .top-bar a { color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 500; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 68px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+    .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo-mark { width: 36px; height: 36px; background: var(--scotia-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.2rem; }
+    .logo-text { font-size: 1.25rem; font-weight: 700; color: var(--scotia-red); letter-spacing: -0.02em; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--gray-600); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: var(--gray-100); color: var(--navy); }
+    nav a.active { background: var(--scotia-red); color: #fff; }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--scotia-red); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--scotia-red-dark); }
+    .greeting { margin-bottom: 1.75rem; }
+    .greeting h1 { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 0.15rem; }
+    .greeting p { color: var(--gray-500); font-size: 0.9rem; }
+
+    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+    @media (max-width: 700px) { .accounts { grid-template-columns: 1fr; } }
+    .account-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow 0.3s; }
+    .account-card:hover { box-shadow: var(--shadow-md); }
+    .account-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: var(--scotia-red); }
+    .account-type { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--scotia-red); margin-bottom: 0.6rem; }
+    .account-balance { font-size: 2rem; font-weight: 700; color: var(--navy); margin-bottom: 0.2rem; }
+    .account-number { font-family: var(--mono); font-size: 0.78rem; color: var(--gray-400); }
+
+    .section-header { font-size: 1.15rem; font-weight: 700; color: var(--navy); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--scotia-red); display: inline-block; }
+    .txn-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 2rem; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table thead { background: var(--gray-50); }
+    .txn-table th { text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); }
+    .txn-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--gray-100); font-size: 0.88rem; }
+    .txn-table tbody tr:hover td { background: rgba(236,17,26,0.03); }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .credit { color: var(--success); font-weight: 600; }
+    .debit { color: var(--gray-700); }
+
+    .transfer-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 2rem; max-width: 580px; }
+    .transfer-card h2 { font-size: 1.15rem; font-weight: 700; color: var(--navy); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--scotia-red); display: inline-block; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.35rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.65rem 0.85rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-800); font-family: var(--sans); font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--scotia-red); box-shadow: 0 0 0 3px rgba(236,17,26,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .btn-transfer { width: 100%; padding: 0.8rem; background: var(--scotia-red); color: #fff; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-transfer:hover { background: var(--scotia-red-hover); transform: translateY(-1px); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 1.5rem; padding: 0.75rem 1rem; background: var(--cream); border-left: 3px solid var(--scotia-red); font-size: 0.78rem; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+  <div class="top-bar"><a href="#">Security</a><a href="#">Find a Branch</a><a href="#">Fran&ccedil;ais</a><a href="#">Contact Us</a></div>
+  <header>
+    <a href="#" class="logo"><div class="logo-mark">S</div><span class="logo-text">Scotiabank</span></a>
+    <nav><a href="#" class="active">Accounts</a><a href="#">Payments</a><a href="#">e-Transfers</a><a href="#">Investments</a><a href="#">Credit Cards</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+    <div class="greeting fade-in d1">
+      <h1>Welcome back, James Wilson</h1>
+      <p>Ultimate Package &middot; Scene+ Member &middot; Client since 2017</p>
+    </div>
+    <div class="accounts">
+      <div class="account-card fade-in d2">
+        <div class="account-type">Chequing Account</div>
+        <div class="account-balance">$18,425.30</div>
+        <div class="account-number">4512-XXX-8901 &middot; Ultimate Chequing</div>
+      </div>
+      <div class="account-card fade-in d3">
+        <div class="account-type">Savings Account</div>
+        <div class="account-balance">$67,810.00</div>
+        <div class="account-number">4512-XXX-8902 &middot; Momentum PLUS Savings</div>
+      </div>
+    </div>
+    <div class="fade-in d3">
+      <div class="section-header">Recent Transactions</div>
+      <div class="txn-card">
+        <table class="txn-table">
+          <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+          <tbody>
+            <tr><td>Jun 20</td><td>Direct Deposit &mdash; Payroll</td><td class="credit">+$3,875.00</td><td>$18,425.30</td></tr>
+            <tr><td>Jun 19</td><td>Interac e-Transfer &mdash; Sarah M.</td><td class="debit">-$150.00</td><td>$14,550.30</td></tr>
+            <tr><td>Jun 18</td><td>Loblaws #4421</td><td class="debit">-$98.72</td><td>$14,700.30</td></tr>
+            <tr><td>Jun 17</td><td>Scene+ Redemption &mdash; Cineplex</td><td class="credit">+$12.50</td><td>$14,799.02</td></tr>
+            <tr><td>Jun 15</td><td>Hydro One &mdash; Utilities</td><td class="debit">-$134.20</td><td>$14,786.52</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="fade-in d4">
+      <div class="transfer-card">
+        <h2>Send Interac e-Transfer</h2>
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group"><label>From Account</label><select id="fromAccount"><option value="ACCT-CHQ-4901">Chequing &mdash; 4512-XXX-8901</option><option value="ACCT-SAV-4902">Savings &mdash; 4512-XXX-8902</option></select></div>
+            <div class="form-group"><label>Recipient</label><select id="recipient"><option value="sarah.m@email.ca">Sarah M. (sarah.m@email.ca)</option><option value="mike.t@email.ca">Mike T. (mike.t@email.ca)</option><option value="new">+ Add new recipient</option></select></div>
+          </div>
+          <div class="form-group"><label>Amount (CAD)</label><input type="number" id="amount" value="250" min="0.01" max="3000" step="0.01" placeholder="Enter amount"></div>
+          <div class="form-group"><label>Account Type</label><select id="accountType"><option value="ultimate">Ultimate Package (Free e-Transfers)</option><option value="preferred">Preferred Package ($1.50/transfer)</option><option value="basic">Basic Plus ($1.50/transfer)</option></select></div>
+          <button type="submit" class="btn-transfer" id="submitBtn">Send e-Transfer</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="security-note">Interac e-Transfers are protected by industry-standard encryption. Funds are insured by CDIC up to $100,000 per category.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/scotiabank/etransfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, recipient: document.getElementById('recipient').value, amount: parseFloat(document.getElementById('amount').value), accountType: document.getElementById('accountType').value, userId: 'usr_james_wilson', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">e-Transfer Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">e-Transfer Sent</div><div class="error-detail">$${data.debitAmount} sent to ${data.recipient} (fee: $${data.fee})</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Send e-Transfer'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

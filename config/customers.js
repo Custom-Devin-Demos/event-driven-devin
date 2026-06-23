@@ -199,6 +199,10 @@ const CUSTOMERS = {
     label: 'athenahealth',
     triggerMode: 'api',
   },
+  scotiabank: {
+    label: 'Scotiabank',
+    triggerMode: 'api',
+  },
 };
 
 /**
