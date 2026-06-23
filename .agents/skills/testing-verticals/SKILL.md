@@ -58,6 +58,7 @@ For every image in the HTML file:
 | kochinc.com (SVG logos) | Allowed | Koch logo SVGs load directly |
 | kochind.scene7.com | Blocked (403) | Koch scene7 images blocked; use Unsplash fallbacks |
 | jpmorganchase.com | Allowed | Can hotlink directly |
+| Optimizely (`cdn.optimizely.com`) | Allowed | Images hotlink fine; some are pre-rendered promotional blocks |
 | marriott.com / cache.marriott.com | Blocked (403) | Must use Unsplash alternatives |
 | seb.se | Blocked (403) | Must use Unsplash alternatives |
 
@@ -269,6 +270,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | JPMC (89c1f355) | `/89c1f355` | "Join our team →" | `Cannot read properties of undefined (reading 'totalHeadcount')` |
 | FedEx (17dd6f6f) | `/17dd6f6f` | "LEARN MORE" | `Cannot read properties of undefined (reading 'start')` |
 | Koch Industries (08381313) | `/08381313` | "Get to know Koch" | `Cannot read properties of undefined (reading 'lastAuditDate')` |
+| United Airlines (4ada28b9) | `/4ada28b9` | "Find flights" | `Cannot read properties of undefined (reading 'milesMultiplier')` |
 
 ### API Testing (curl)
 
@@ -314,7 +316,31 @@ curl -s -X POST http://localhost:3000/api/17dd6f6f/track-shipment -H 'Content-Ty
 
 # Custom — Koch Industries (08381313)
 curl -s -X POST http://localhost:3000/api/08381313/supply-inquiry -H 'Content-Type: application/json' -d '{"companyId":"KII-9204715"}'
+
+# Custom — United Airlines (4ada28b9)
+curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Type: application/json' -d '{"origin":"EWR","destination":"LAX","cabin":"economy","passengers":1,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-2cd0ade21d8d4c5886fcea1b701c34e0"}'
 ```
+
+## Common Issues & Troubleshooting
+
+### EC2 env vars are empty after deployment
+The deploy GitHub Action copies code but does NOT update `.env`. Per-customer env vars (`DEVIN_SERVICE_KEY_<SLUG>`, `DEVIN_USER_ID_<SLUG>`) must be added manually via SSH. If the Slack alert posts but no Devin session is created, this is almost always the cause — check with:
+```bash
+docker exec ubuntu-checkout-api-1 env | grep '<SLUG_UPPER>'
+```
+
+### Git pull fails on EC2 (no credentials)
+The EC2 host may not have git credentials configured. If `git pull` fails with "could not read Username", use SCP to copy changed files directly:
+```bash
+scp -i ~/.ssh/ec2_key <local-file> ubuntu@<EC2_IP>:/home/ubuntu/<path>
+```
+Then rebuild the container with `docker compose up -d --build checkout-api`.
+
+### Optimizely CDN images are pre-rendered blocks
+Some CDN images (e.g., credit card promotional blocks) are complete pre-rendered compositions containing text, badges, and buttons baked into the image. Do NOT duplicate this content with separate HTML elements — use a single `<img>` tag. Adding HTML text on top of such images causes visual duplication and overflow.
+
+### Promo cards overflow hero section
+If promotional cards bleed outside the hero section, add `overflow: hidden` to the `.hero` container and ensure the promo card uses `position: absolute` with percentage-based vertical centering (`top: 50%; transform: translateY(-50%)`).
 
 ## Notes
 - All bugs are intentional — they are designed to trigger the Sentry/Slack/Devin investigation pipeline
