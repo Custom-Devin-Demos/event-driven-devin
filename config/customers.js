@@ -203,6 +203,10 @@ const CUSTOMERS = {
     label: 'Scotiabank',
     triggerMode: 'api',
   },
+  '4ada28b9': {
+    label: 'Customer 4ADA',
+    triggerMode: 'api',
+  },
 };
 
 /**
