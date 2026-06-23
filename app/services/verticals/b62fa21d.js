@@ -67,6 +67,7 @@ function resolveTierBenefits(memberData, requestedTier) {
 
   return {
     tier: tierKey,
+    config,
     benefits: [config.multiplier, config.annualBonus, config.minSpend],
   };
 }
