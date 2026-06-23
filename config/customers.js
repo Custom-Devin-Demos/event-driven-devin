@@ -195,6 +195,10 @@ const CUSTOMERS = {
     label: 'Customer 0838',
     triggerMode: 'api',
   },
+  athenahealth: {
+    label: 'athenahealth',
+    triggerMode: 'api',
+  },
 };
 
 /**
