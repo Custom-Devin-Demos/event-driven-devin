@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>athenaOne&reg; &mdash; Patient Referral Management</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f8fc;
+      --bg-card: #ffffff;
+      --bg-elevated: #f3f1f8;
+      --surface: #efeaf7;
+      --border: #ddd8e8;
+      --border-light: #e8e4f0;
+      --text: #1c1249;
+      --text-muted: #5a5277;
+      --text-dim: #8e87a3;
+      --athena-purple: #622fb4;
+      --athena-purple-hover: #4f2590;
+      --athena-purple-dim: rgba(98,47,180,0.08);
+      --athena-purple-border: rgba(98,47,180,0.2);
+      --athena-deep: #1c1249;
+      --athena-green: #3fa648;
+      --danger: #c0392b;
+      --danger-bg: rgba(192,57,43,0.06);
+      --danger-border: rgba(192,57,43,0.15);
+      --success: #27ae60;
+      --sans: 'Source Sans Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #fff;
+      border: 1px solid var(--danger-border);
+      border-left: 4px solid var(--danger);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      max-width: 420px;
+      box-shadow: 0 12px 40px rgba(28,18,73,0.12);
+      z-index: 9999;
+      transform: translateX(120%);
+      transition: transform 0.4s var(--ease-out);
+      font-size: 0.82rem;
+    }
+    .toast.visible { transform: translateX(0); }
+    .toast-title { font-weight: 700; color: var(--danger); margin-bottom: 0.3rem; }
+    .toast-message { color: var(--text-muted); font-family: var(--mono); font-size: 0.75rem; line-height: 1.5; }
+
+    /* Top utility bar */
+    .utility-bar {
+      background: var(--athena-deep);
+      color: #fff;
+      display: flex; align-items: center; justify-content: flex-end;
+      padding: 0.4rem clamp(1.5rem, 4vw, 3rem);
+      font-size: 0.78rem;
+      gap: 1.5rem;
+    }
+    .utility-bar a {
+      color: #fff; text-decoration: none; font-weight: 400;
+      transition: opacity 0.2s;
+    }
+    .utility-bar a:hover { opacity: 0.8; }
+
+    /* Header / Nav */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(28, 18, 73, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-wrap img { height: 28px; }
+    nav { display: flex; align-items: center; gap: 1.75rem; }
+    nav a {
+      color: rgba(255,255,255,0.9); text-decoration: none; font-size: 0.85rem;
+      font-weight: 400; transition: color 0.2s;
+    }
+    nav a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--surface);
+      color: var(--athena-purple) !important;
+      padding: 0.45rem 1.25rem;
+      border-radius: 30px;
+      font-weight: 600 !important;
+      font-size: 0.85rem;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .nav-cta:hover { background: #e5ddf3; transform: translateY(-1px); }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      background: linear-gradient(135deg, var(--athena-deep) 0%, #3a1f7a 100%);
+      padding: 4rem clamp(1.5rem, 4vw, 3rem) 3rem;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1400&q=80') center/cover no-repeat;
+      opacity: 0.1;
+    }
+    .hero-content {
+      position: relative; z-index: 1;
+      max-width: 700px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      color: rgba(255,255,255,0.85);
+      font-size: 1.05rem;
+      max-width: 540px;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .hero-stats {
+      display: flex; gap: 2.5rem; margin-top: 1.5rem;
+    }
+    .hero-stat { text-align: left; }
+    .hero-stat .number { font-size: 1.8rem; font-weight: 900; color: #fff; }
+    .hero-stat .label { font-size: 0.78rem; color: rgba(255,255,255,0.7); font-weight: 400; margin-top: 0.2rem; }
+
+    /* Main content */
+    .main-content {
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Referral form card */
+    .referral-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 12px rgba(28,18,73,0.04);
+    }
+    .referral-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .referral-card h3 .badge {
+      background: var(--athena-purple-dim);
+      color: var(--athena-purple);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--athena-purple);
+      box-shadow: 0 0 0 3px var(--athena-purple-dim);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    /* Patient info panel */
+    .patient-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+    }
+    .patient-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .patient-name {
+      font-size: 1.1rem; font-weight: 700; color: var(--text);
+    }
+    .patient-mrn {
+      font-size: 0.78rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .patient-details {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+    }
+    .patient-detail-item { }
+    .patient-detail-item .detail-label {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .patient-detail-item .detail-value {
+      font-size: 0.88rem; font-weight: 600; color: var(--text); margin-top: 0.2rem;
+    }
+
+    /* Submit button */
+    .submit-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 1.5rem; padding-top: 1.5rem;
+      border-top: 1px solid var(--border-light);
+    }
+    .btn-submit {
+      background: var(--athena-purple);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 0.75rem 2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--sans);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-submit:hover {
+      background: var(--athena-purple-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(98,47,180,0.25);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled {
+      background: var(--text-dim); cursor: not-allowed; transform: none; box-shadow: none;
+    }
+    .submit-note {
+      font-size: 0.78rem; color: var(--text-dim);
+    }
+
+    /* Recent referrals table */
+    .referrals-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .referrals-table th {
+      text-align: left;
+      padding: 0.7rem 1rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border);
+    }
+    .referrals-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text);
+    }
+    .referrals-table tr:last-child td { border-bottom: none; }
+    .status-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-accepted { background: #d4edda; color: #155724; }
+    .status-scheduled { background: var(--surface); color: var(--athena-purple); }
+
+    /* Footer */
+    footer {
+      background: var(--athena-deep);
+      color: rgba(255,255,255,0.7);
+      padding: 2rem clamp(1.5rem, 4vw, 3rem);
+      font-size: 0.78rem;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 3rem;
+    }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .patient-details { grid-template-columns: 1fr 1fr; }
+      .hero-stats { flex-direction: column; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Utility Bar -->
+  <div class="utility-bar">
+    <a href="#">Patient Login</a>
+    <a href="#">athenaOne&reg; Login</a>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-wrap">
+      <img src="https://www.athenahealth.com/resources_ahcom/0223d75b4d0e048c9d8e.svg"
+           onerror="this.onerror=null;this.parentElement.innerHTML='<span style=&quot;color:#fff;font-size:1.25rem;font-weight:700&quot;>&#9880; athena<span style=&quot;font-weight:400&quot;>health</span></span>';"
+           alt="athenahealth">
+    </div>
+    <nav>
+      <a href="#">Solutions</a>
+      <a href="#">Who We Serve</a>
+      <a href="#">Resources</a>
+      <a href="#">About Us</a>
+      <a href="#" class="nav-cta">Request a Demo</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero animate-up">
+    <div class="hero-content">
+      <h1>athenaOne&reg; Referral Management</h1>
+      <p>Streamline specialist referrals with AI-powered matching, real-time authorization tracking, and closed-loop communication across your care network.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="number">170K+</div>
+          <div class="label">Providers on the network</div>
+        </div>
+        <div class="hero-stat">
+          <div class="number">94%</div>
+          <div class="label">Referral close rate</div>
+        </div>
+        <div class="hero-stat">
+          <div class="number">2.1 days</div>
+          <div class="label">Avg. scheduling time</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Patient Context -->
+    <div class="patient-panel animate-up delay-1">
+      <div class="patient-header">
+        <div>
+          <div class="patient-name">Emily Rodriguez</div>
+          <div class="patient-mrn">MRN: ATH-2026-08471</div>
+        </div>
+        <span class="status-badge status-scheduled">Active Patient</span>
+      </div>
+      <div class="patient-details">
+        <div class="patient-detail-item">
+          <div class="detail-label">Date of Birth</div>
+          <div class="detail-value">03/14/1985</div>
+        </div>
+        <div class="patient-detail-item">
+          <div class="detail-label">Primary Insurance</div>
+          <div class="detail-value">Blue Cross Blue Shield</div>
+        </div>
+        <div class="patient-detail-item">
+          <div class="detail-label">PCP</div>
+          <div class="detail-value">Dr. Sarah Chen</div>
+        </div>
+        <div class="patient-detail-item">
+          <div class="detail-label">Last Visit</div>
+          <div class="detail-value">06/18/2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Referral Form -->
+    <div class="referral-card animate-up delay-2">
+      <h3>New Specialist Referral <span class="badge">athenaOne&reg;</span></h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Referring Provider</label>
+          <input type="text" value="Dr. Sarah Chen" readonly>
+        </div>
+        <div class="form-group">
+          <label>Specialty</label>
+          <select id="specialty">
+            <option value="cardiology">Cardiology</option>
+            <option value="orthopedics">Orthopedics</option>
+            <option value="neurology">Neurology</option>
+            <option value="endocrinology">Endocrinology</option>
+            <option value="gastroenterology">Gastroenterology</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Preferred Specialist</label>
+          <select id="specialist">
+            <option value="DR-CARD-401">Dr. Michael Torres — Cardiology</option>
+            <option value="DR-ORTH-502">Dr. Lisa Park — Orthopedics</option>
+            <option value="DR-NEUR-603">Dr. James Wu — Neurology</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="priority">
+            <option value="routine">Routine</option>
+            <option value="urgent">Urgent</option>
+            <option value="stat">STAT</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Authorization Number</label>
+          <input type="text" id="authNumber" value="AUTH-2026-55891" readonly>
+        </div>
+        <div class="form-group">
+          <label>Diagnosis Code (ICD-10)</label>
+          <input type="text" id="diagCode" value="I25.10" placeholder="e.g. I25.10">
+        </div>
+        <div class="form-group full">
+          <label>Clinical Notes</label>
+          <textarea id="clinicalNotes" placeholder="Include relevant history, recent labs, imaging results...">Patient presents with chest pain on exertion. Stress test inconclusive. Recommend cardiology evaluation for possible catheterization. Current medications: Lisinopril 10mg, Metoprolol 25mg BID.</textarea>
+        </div>
+      </div>
+      <div class="submit-row">
+        <span class="submit-note">Referral will be transmitted via athenaNet&reg; secure messaging</span>
+        <button class="btn-submit" id="submitReferral">Submit Referral</button>
+      </div>
+    </div>
+
+    <!-- Recent Referrals -->
+    <div class="referral-card animate-up delay-3">
+      <h3>Recent Referrals</h3>
+      <table class="referrals-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Specialty</th>
+            <th>Specialist</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Michael Thompson</td>
+            <td>Orthopedics</td>
+            <td>Dr. Lisa Park</td>
+            <td>06/20/2026</td>
+            <td><span class="status-badge status-accepted">Accepted</span></td>
+          </tr>
+          <tr>
+            <td>Angela Martinez</td>
+            <td>Endocrinology</td>
+            <td>Dr. Raj Patel</td>
+            <td>06/19/2026</td>
+            <td><span class="status-badge status-scheduled">Scheduled</span></td>
+          </tr>
+          <tr>
+            <td>David Kim</td>
+            <td>Neurology</td>
+            <td>Dr. James Wu</td>
+            <td>06/17/2026</td>
+            <td><span class="status-badge status-pending">Pending Auth</span></td>
+          </tr>
+          <tr>
+            <td>Patricia Williams</td>
+            <td>Gastroenterology</td>
+            <td>Dr. Nina Gupta</td>
+            <td>06/15/2026</td>
+            <td><span class="status-badge status-accepted">Accepted</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <span>&copy; 2026 athenahealth, Inc. All rights reserved.</span>
+    <span>
+      <a href="#">Privacy Policy</a> &middot;
+      <a href="#">Terms of Use</a> &middot;
+      <a href="#">Contact Us</a> &middot;
+      800.981.5084
+    </span>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="errorToast">
+    <div class="toast-title">TypeError in Referral Service</div>
+    <div class="toast-message" id="toastMessage"></div>
+  </div>
+
+  <script>
+    document.getElementById('submitReferral').addEventListener('click', async function() {
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+
+      try {
+        const response = await fetch('/api/athenahealth/referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientMrn: 'ATH-2026-08471',
+            referringProvider: 'DR-PCP-101',
+            specialty: document.getElementById('specialty').value,
+            specialistId: document.getElementById('specialist').value,
+            priority: document.getElementById('priority').value,
+            authNumber: document.getElementById('authNumber').value,
+            diagnosisCode: document.getElementById('diagCode').value,
+            clinicalNotes: document.getElementById('clinicalNotes').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const toast = document.getElementById('errorToast');
+          document.getElementById('toastMessage').textContent = data.error || 'Unknown error';
+          toast.classList.add('visible');
+          setTimeout(() => toast.classList.remove('visible'), 6000);
+        }
+      } catch (err) {
+        const toast = document.getElementById('errorToast');
+        document.getElementById('toastMessage').textContent = err.message;
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 6000);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Referral';
+      }
+    });
+  </script>
+</body>
+</html>
