@@ -115,6 +115,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  lingo: {
+    label: 'Lingo by Abbott',
+    triggerMode: 'api',
+  },
   cocacola: {
     label: 'Coca-Cola',
     triggerMode: 'api',
