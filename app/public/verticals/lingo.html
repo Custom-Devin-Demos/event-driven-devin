@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lingo by Abbott &mdash; Checkout</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9f7f2;
+      --bg-card: #ffffff;
+      --bg-elevated: #f1eee6;
+      --surface: #ebe7da;
+      --surface-low: #e5f5fc;
+      --border: #e7e3d8;
+      --border-light: #d8d4c8;
+      --text: #222731;
+      --text-muted: #787a7e;
+      --text-dim: #a3a4a5;
+      --lingo-blue: #2e4aed;
+      --lingo-blue-hover: #2238c4;
+      --lingo-blue-dim: rgba(46,74,237,0.07);
+      --lingo-blue-border: rgba(46,74,237,0.2);
+      --lingo-cyan: #009cde;
+      --danger: #d62b2b;
+      --danger-bg: rgba(214,43,43,0.06);
+      --danger-border: rgba(214,43,43,0.16);
+      --success: #1f8a5b;
+      --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Promo Banner ── */
+    .promo-banner {
+      background: var(--text);
+      color: #fff;
+      text-align: center;
+      padding: 0.6rem 1rem;
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .promo-banner span { opacity: 0.55; margin: 0 0.6rem; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 72px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; }
+    .logo-wrap svg { height: 34px; width: auto; }
+    nav { display: flex; align-items: center; gap: 1.75rem; }
+    nav a {
+      color: var(--text); text-decoration: none; font-size: 0.86rem;
+      font-weight: 500; letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--lingo-blue); }
+    .buy-now {
+      background: var(--lingo-blue); color: #fff;
+      padding: 0.62rem 1.5rem; border-radius: 999px;
+      font-size: 0.84rem; font-weight: 600; text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .buy-now:hover { background: var(--lingo-blue-hover); transform: translateY(-1px); }
+
+    /* ── Page ── */
+    .page {
+      max-width: 880px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--lingo-blue); text-decoration: none; font-size: 0.82rem;
+      font-weight: 500; letter-spacing: 0.01em; margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--lingo-blue-hover); }
+
+    .page-title {
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      font-weight: 300; line-height: 1.1; margin-bottom: 0.6rem;
+      letter-spacing: -0.02em;
+    }
+    .page-title em { font-style: normal; font-weight: 600; }
+    .page-desc {
+      font-size: 0.95rem; color: var(--text-muted); max-width: 540px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Order Card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(34,39,49,0.04);
+    }
+    .product-hero {
+      display: flex; align-items: center; gap: 1.25rem;
+      padding: 1.5rem; background: var(--surface-low);
+      border-bottom: 1px solid var(--border);
+    }
+    .product-hero img {
+      width: 96px; height: 96px; border-radius: 12px;
+      object-fit: cover; flex-shrink: 0; background: #fff;
+    }
+    .product-hero .ph-text h2 {
+      font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;
+      letter-spacing: -0.01em;
+    }
+    .product-hero .ph-text p {
+      font-size: 0.82rem; color: var(--text-muted); line-height: 1.6;
+    }
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h3 {
+      font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .order-header .item-count {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .order-items { padding: 0; }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-swatch {
+      width: 52px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; flex-shrink: 0;
+      background: radial-gradient(circle at 38% 32%, #ffffff, #e9e7e1);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 -2px 6px rgba(34,39,49,0.06), 0 1px 2px rgba(34,39,49,0.05);
+    }
+    .item-swatch::after {
+      content: ''; width: 13px; height: 13px; border-radius: 50%;
+      border: 2px solid var(--lingo-cyan); opacity: 0.55;
+    }
+    .item-swatch.accessory { background: var(--bg-elevated); }
+    .item-swatch.accessory::after { display: none; }
+    .item-swatch.accessory span { font-size: 1.4rem; }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.15rem; }
+    .item-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-plan { font-size: 0.76rem; color: var(--text-muted); }
+    .badge-popular {
+      display: inline-block; margin-left: 0.5rem;
+      background: var(--lingo-cyan); color: #fff;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em;
+      padding: 0.12rem 0.45rem; border-radius: 4px; vertical-align: middle;
+    }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; }
+
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 1rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .member-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: var(--lingo-blue-dim); color: var(--lingo-blue);
+      font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.7rem;
+      border-radius: 6px; margin-top: 0.6rem;
+    }
+
+    /* ── Checkout Form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(34,39,49,0.04);
+    }
+    .action-section h3 {
+      font-size: 1.05rem; font-weight: 700; margin-bottom: 1.15rem;
+      letter-spacing: -0.01em;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 600; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.72rem 0.95rem;
+      border: 1px solid var(--border-light); border-radius: 10px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--lingo-blue);
+      box-shadow: 0 0 0 3px var(--lingo-blue-dim);
+    }
+    .delivery-note {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-muted); margin: 0.25rem 0 1rem;
+    }
+    .delivery-note strong { color: var(--text); font-weight: 600; }
+
+    .place-order-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--lingo-blue); color: #fff;
+      border: none; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.01em;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+    }
+    .place-order-btn:hover { background: var(--lingo-blue-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .guarantee-row {
+      display: flex; align-items: center; justify-content: center; gap: 1.5rem;
+      margin-top: 1rem; font-size: 0.74rem; color: var(--text-muted);
+    }
+    .guarantee-row span { display: inline-flex; align-items: center; gap: 0.35rem; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--lingo-blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 12px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+    }
+    .result-box.success {
+      display: block;
+      background: rgba(31,138,91,0.06); border: 1px solid rgba(31,138,91,0.2);
+    }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--danger-bg); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 12px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code {
+      background: rgba(214,43,43,0.1); padding: 0.1rem 0.35rem;
+      border-radius: 4px; font-family: var(--mono); font-size: 0.74rem; color: var(--danger);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 880px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.78rem; font-weight: 500; color: var(--text-dim);
+      letter-spacing: 0.01em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.74rem;
+      letter-spacing: 0.01em; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin {
+      margin-top: 0.4rem; font-size: 0.7rem; color: var(--text-dim);
+    }
+    .footer-devin a { color: var(--lingo-blue); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav a { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .promo-banner { font-size: 0.68rem; }
+      .product-hero { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="promo-banner">
+    30-day money-back guarantee&dagger; <span>&bull;</span> Free shipping <span>&bull;</span> HSA/FSA eligible &mdash; No prescription needed
+  </div>
+
+  <header>
+    <a href="#" class="logo-wrap" aria-label="Lingo by Abbott">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193 38" fill="none"><path d="M24.7238 8.2956H26.5582V30.7569H20.7288V12.2905C20.7288 9.70197 22.1148 8.2956 24.7238 8.2956ZM20.3823 3.5669C20.3823 1.56944 21.911 0 23.99 0C26.069 0 27.5977 1.56944 27.5977 3.5669C27.5977 5.56437 26.069 7.1338 23.99 7.1338C21.911 7.1338 20.3823 5.54399 20.3823 3.5669Z" fill="#222731"></path><path d="M34.8946 8.2956V10.7007C36.3825 8.88668 38.7672 7.86757 41.4984 7.86757C46.4717 7.86757 50.5074 11.3326 50.5074 16.9785V30.9199H48.7545C46.1252 30.9199 44.7596 29.5136 44.7596 26.9862V18.2218C44.7596 15.0421 43.0475 13.1873 40.2144 13.1873C37.1162 13.1873 35.1188 15.3071 35.1188 18.6906V30.7569H29.3506V8.2956H34.8946Z" fill="#222731"></path><path d="M70.1966 18.6498C70.1966 15.1848 67.6488 12.6778 64.2042 12.6778C60.7596 12.6778 58.3341 15.1848 58.3341 18.6498C58.3341 22.1148 60.8003 24.6218 64.2042 24.6218C67.608 24.6218 70.1966 22.074 70.1966 18.6498ZM56.0309 35.8932C54.278 34.4461 53.5238 32.2448 54.706 29.697C56.7442 31.6129 60.0666 32.7544 63.1647 32.7544C66.9965 32.7544 70.0946 31.0219 70.0946 26.9046V26.5989C68.3418 28.4129 65.9774 29.3913 63.1647 29.3913C57.1315 29.3913 52.3213 24.7645 52.3213 18.6702C52.3213 12.5759 57.1315 7.82681 63.1647 7.82681C66.059 7.82681 68.5252 8.88668 70.2577 10.8841C70.7265 9.19242 72.0921 8.2956 74.1711 8.2956H75.8221V26.0893C75.8221 33.5493 71.3584 37.9111 63.45 37.9111C60.4131 37.9111 57.6411 37.2385 56.0309 35.8932Z" fill="#222731"></path><path d="M95.8987 19.5262C95.8987 15.9186 93.2693 13.2077 89.8043 13.2077C86.3394 13.2077 83.6897 15.9186 83.6897 19.5262C83.6897 23.1339 86.319 25.8448 89.8043 25.8448C93.2897 25.8448 95.8987 23.1339 95.8987 19.5262ZM77.6973 19.5262C77.6973 12.8409 82.9355 7.86757 89.8247 7.86757C96.7139 7.86757 101.85 12.8612 101.85 19.5262C101.85 26.1913 96.7139 31.1849 89.8247 31.1849C82.9355 31.1849 77.6973 26.232 77.6973 19.5262Z" fill="#222731"></path><path d="M4.34143 1.77326H5.8701V23.7658C5.8701 24.7849 6.46119 25.3352 7.4803 25.3352H18.7925V30.7569H7.09304C2.46626 30.7569 0 28.2499 0 23.6435V6.09431C0 3.30193 1.52867 1.77326 4.34143 1.77326Z" fill="#222731"></path><path d="M128.49 19.3428H116.098V21.218H127.919C128.286 21.218 128.51 21.4626 128.51 21.8294V28.2906C128.51 28.6575 128.286 28.9021 127.919 28.9021H118.564C118.197 28.9021 117.973 28.6575 117.973 28.2906V25.6613C117.973 25.2944 118.197 25.0498 118.564 25.0498H126.574V23.1747H117.993C116.913 23.1747 116.098 23.99 116.098 25.0702V28.8817C116.098 29.9416 116.893 30.7569 117.993 30.7569H128.49C129.57 30.7569 130.365 29.9416 130.365 28.8613V21.218C130.386 20.1581 129.591 19.3428 128.49 19.3428Z" fill="#222731"></path><path d="M161.612 24.7237V24.6422C163.324 24.4588 164.343 23.4804 164.343 21.9721C164.343 20.1377 162.855 19.3428 160.776 19.3428H155.945V19.4243C156.312 19.8116 156.516 20.3415 156.516 21.1161V28.9632C156.516 29.7378 156.312 30.2473 155.945 30.655V30.7365H161.143C163.405 30.7365 164.934 29.5543 164.934 27.5569C164.934 25.6817 163.507 24.8256 161.612 24.7237ZM160.307 29.5543H158.33V20.5454H160.226C161.387 20.5454 162.529 20.8919 162.529 22.2371C162.529 23.6027 161.347 24.1123 160.164 24.1123H159.186V25.3148H160.205C161.51 25.3148 163.1 25.6613 163.1 27.4346C163.1 29.0448 161.775 29.5543 160.307 29.5543Z" fill="#222731"></path><path d="M152.378 24.7237V24.6422C154.09 24.4588 155.109 23.4804 155.109 21.9721C155.109 20.1377 153.622 19.3428 151.543 19.3428H146.712V19.4243C147.079 19.8116 147.283 20.3415 147.283 21.1161V28.9632C147.283 29.7378 147.079 30.2473 146.712 30.655V30.7365H151.909C154.172 30.7365 155.701 29.5543 155.701 27.5569C155.721 25.6817 154.294 24.8256 152.378 24.7237ZM151.094 29.5543H149.117V20.5454H151.013C152.174 20.5454 153.316 20.8919 153.316 22.2371C153.316 23.6027 152.134 24.1123 150.951 24.1123H149.973V25.3148H150.992C152.297 25.3148 153.886 25.6613 153.886 27.4346C153.886 29.0448 152.562 29.5543 151.094 29.5543Z" fill="#222731"></path><path d="M176.633 19.3428V21.3606H176.714C177.02 20.9122 177.57 20.5454 178.712 20.5454H180.465V28.9836C180.465 29.7378 180.261 30.2677 179.894 30.6754V30.7569H182.829V30.6754C182.483 30.2881 182.258 29.7378 182.258 28.9836V20.5454H187.334V28.9836C187.334 29.7378 187.109 30.2677 186.763 30.6754V30.7569H189.718V30.6754C189.351 30.2881 189.148 29.7378 189.148 28.9836V20.5454H190.88C192.042 20.5454 192.592 20.9122 192.898 21.3606H192.979V19.3428H176.633Z" fill="#222731"></path><path d="M171.212 19.139C167.747 19.139 165.321 21.6868 165.321 25.0498C165.321 28.4333 167.747 30.9607 171.212 30.9607C174.677 30.9607 177.102 28.4333 177.102 25.0498C177.102 21.6868 174.677 19.139 171.212 19.139ZM171.212 29.6562C168.746 29.6562 167.217 27.618 167.217 25.0498C167.217 22.4817 168.766 20.4434 171.212 20.4434C173.678 20.4434 175.207 22.4817 175.207 25.0498C175.207 27.618 173.678 29.6562 171.212 29.6562Z" fill="#222731"></path><path d="M141.657 19.3428H139.884L136.337 28.5964C135.828 29.9416 135.461 30.3289 135.155 30.6754V30.7569H137.683V30.6754C137.499 30.4715 137.438 30.1862 137.438 29.9212C137.438 29.4932 137.601 29.004 137.744 28.6167L138.274 27.2307H142.758L143.369 28.8613C143.492 29.1874 143.573 29.4932 143.573 29.7989C143.573 30.0843 143.492 30.3696 143.329 30.6754L143.308 30.7569H146.345V30.6754C145.876 30.2066 145.611 29.6766 145.326 28.9225L141.657 19.3428ZM138.702 26.0078L140.475 21.2995H140.557L142.289 26.0078H138.702Z" fill="#222731"></path><path d="M119.888 6.66501C120.418 6.95036 120.846 7.33762 121.132 7.8268C121.437 8.33636 121.58 8.90706 121.58 9.55929C121.58 10.2115 121.437 10.8026 121.132 11.3122C120.846 11.8217 120.418 12.2294 119.888 12.5147C119.358 12.8001 118.747 12.9428 118.054 12.9428H115.873V12.9224C115.955 12.7593 116.016 12.5963 116.056 12.4536C116.097 12.3109 116.097 12.0867 116.097 11.8217V7.37839C116.097 7.11342 116.077 6.9096 116.056 6.74654C116.016 6.60386 115.975 6.4408 115.873 6.27774V6.25736H118.013C118.727 6.25736 119.338 6.37966 119.888 6.66501ZM119.44 12.0663C119.848 11.8217 120.153 11.4956 120.357 11.0676C120.561 10.6396 120.683 10.13 120.683 9.57968C120.683 9.00897 120.581 8.5198 120.357 8.11215C120.153 7.68412 119.827 7.37839 119.42 7.1338C119.012 6.9096 118.543 6.7873 117.993 6.7873H116.913V12.4128H118.054C118.584 12.4128 119.053 12.2905 119.44 12.0663Z" fill="#222731"></path><path d="M123.007 12.7389C122.681 12.5351 122.416 12.2701 122.233 11.9236C122.049 11.5771 121.968 11.1695 121.968 10.7007C121.968 10.2319 122.07 9.80388 122.253 9.41662C122.437 9.02935 122.702 8.744 123.028 8.5198C123.354 8.29559 123.741 8.19368 124.149 8.19368C124.516 8.19368 124.842 8.27521 125.147 8.43827C125.433 8.60133 125.657 8.84591 125.82 9.13127C125.983 9.41662 126.065 9.76312 126.065 10.1504V10.4561H122.763V10.4969C122.763 10.8841 122.824 11.2103 122.966 11.4956C123.089 11.781 123.272 12.0052 123.517 12.1682C123.761 12.3313 124.026 12.4128 124.332 12.4128C124.903 12.4128 125.351 12.1478 125.698 11.6383L126.024 11.8013C125.637 12.6166 125.005 13.0243 124.169 13.0243C123.741 13.0447 123.354 12.9428 123.007 12.7389ZM125.331 9.98732C125.31 9.57968 125.188 9.25356 124.984 9.02935C124.781 8.80515 124.495 8.68285 124.149 8.68285C123.802 8.68285 123.496 8.80515 123.252 9.02935C123.007 9.25356 122.865 9.57968 122.783 9.98732H125.331Z" fill="#222731"></path><path d="M127.531 12.8408C127.246 12.7185 127.042 12.5555 126.859 12.3313C126.696 12.1071 126.594 11.8625 126.594 11.5975L127.348 11.4956C127.348 11.8013 127.47 12.0459 127.674 12.2294C127.878 12.4128 128.143 12.5147 128.469 12.5147C128.754 12.5147 128.978 12.4536 129.162 12.3109C129.345 12.1682 129.427 11.9848 129.427 11.7606C129.427 11.5771 129.366 11.4345 129.264 11.3122C129.162 11.1899 128.958 11.1083 128.693 11.0268L127.939 10.823C127.552 10.7211 127.246 10.558 127.042 10.3338C126.838 10.1096 126.736 9.84465 126.736 9.51853C126.736 9.13127 126.879 8.80515 127.185 8.56056C127.491 8.31597 127.878 8.19368 128.387 8.19368C128.714 8.19368 129.019 8.25483 129.264 8.35674C129.529 8.47903 129.733 8.62171 129.875 8.82553C130.018 9.02935 130.1 9.25356 130.12 9.51853H129.386C129.366 9.25356 129.284 9.04974 129.101 8.90706C128.917 8.76438 128.673 8.68285 128.387 8.68285C128.102 8.68285 127.878 8.744 127.694 8.88668C127.511 9.00897 127.429 9.19241 127.429 9.41662C127.429 9.57968 127.491 9.72235 127.613 9.84465C127.735 9.94656 127.959 10.0485 128.245 10.13L128.999 10.3338C129.386 10.4357 129.671 10.5988 129.855 10.8026C130.038 11.0064 130.14 11.2714 130.14 11.5771C130.14 11.8625 130.079 12.1071 129.936 12.3109C129.794 12.5147 129.59 12.6982 129.325 12.8205C129.06 12.9428 128.775 13.0039 128.449 13.0039C128.102 13.0447 127.796 12.9631 127.531 12.8408Z" fill="#222731"></path><path d="M131.058 12.474C131.099 12.3313 131.099 12.1071 131.099 11.8421V9.51853C131.099 9.2128 131.078 8.96821 131.038 8.80515C130.997 8.64209 130.915 8.49942 130.813 8.37712V8.35674L131.853 8.21406H131.873V11.8421C131.873 12.1478 131.894 12.3721 131.914 12.5147C131.935 12.6574 131.996 12.7797 132.077 12.9224V12.9428H130.854V12.9224C130.977 12.7797 131.038 12.637 131.058 12.474ZM131.119 7.33762C131.017 7.23571 130.956 7.11342 130.956 6.97074C130.956 6.82807 131.017 6.70577 131.119 6.60386C131.221 6.50195 131.343 6.4408 131.506 6.4408C131.67 6.4408 131.792 6.48157 131.894 6.58348C131.996 6.68539 132.057 6.80768 132.057 6.97074C132.057 7.1338 131.996 7.2561 131.894 7.35801C131.792 7.45992 131.67 7.50068 131.506 7.50068C131.343 7.4803 131.221 7.43954 131.119 7.33762Z" fill="#222731"></path><path d="M133.177 14.5733C132.79 14.3491 132.606 14.0638 132.606 13.7173C132.606 13.4931 132.688 13.3096 132.831 13.167C132.973 13.0039 133.198 12.902 133.463 12.8408V12.8205C133.259 12.7593 133.096 12.6574 132.994 12.5147C132.892 12.3721 132.831 12.209 132.831 12.0459C132.831 11.8421 132.892 11.6383 133.034 11.4752C133.177 11.3122 133.381 11.1695 133.646 11.0676C133.442 10.9249 133.279 10.7415 133.157 10.5376C133.034 10.3338 132.994 10.0892 132.994 9.82427C132.994 9.51853 133.075 9.25356 133.218 9.00897C133.361 8.76439 133.564 8.58095 133.85 8.45865C134.115 8.31598 134.42 8.25483 134.767 8.25483C135.012 8.25483 135.236 8.29559 135.419 8.35674H137.213V8.8663H136.153C136.418 9.13127 136.54 9.45738 136.54 9.84465C136.54 10.1504 136.459 10.4154 136.316 10.6396C136.173 10.8638 135.949 11.0676 135.684 11.1899C135.419 11.3326 135.113 11.3937 134.767 11.3937C134.502 11.3937 134.237 11.3529 134.013 11.251C133.85 11.3122 133.727 11.3937 133.646 11.4956C133.544 11.5975 133.503 11.7198 133.503 11.8421C133.503 11.9644 133.564 12.0663 133.666 12.1478C133.768 12.2294 133.931 12.2498 134.135 12.2498H135.664C136.133 12.2498 136.499 12.3517 136.744 12.5351C137.009 12.7186 137.131 12.9835 137.131 13.33C137.131 13.6561 137.029 13.9211 136.826 14.1657C136.622 14.4103 136.336 14.5937 135.97 14.7364C135.603 14.8791 135.175 14.9402 134.706 14.9402C134.054 14.8995 133.564 14.7772 133.177 14.5733ZM135.888 14.1453C136.173 13.9823 136.316 13.7377 136.316 13.4523C136.316 13.2689 136.255 13.1262 136.112 13.0243C135.97 12.9224 135.766 12.8816 135.501 12.8816H134.278C133.992 12.8816 133.748 12.9428 133.564 13.0854C133.381 13.2281 133.279 13.3912 133.279 13.6154C133.279 13.86 133.401 14.0638 133.666 14.1861C133.931 14.3288 134.278 14.3899 134.726 14.3899C135.215 14.4103 135.603 14.3084 135.888 14.1453ZM135.46 10.558C135.643 10.3542 135.725 10.0892 135.725 9.76312C135.725 9.437 135.643 9.17203 135.46 8.96821C135.277 8.76439 135.032 8.66248 134.726 8.66248C134.42 8.66248 134.176 8.76439 133.992 8.96821C133.809 9.17203 133.727 9.437 133.727 9.76312C133.727 10.0892 133.809 10.3542 133.992 10.558C134.176 10.7619 134.42 10.8638 134.726 10.8638C135.052 10.8638 135.297 10.7619 135.46 10.558Z" fill="#222731"></path><path d="M139.313 8.45865C139.578 8.29559 139.863 8.19368 140.21 8.19368C140.679 8.19368 141.066 8.35674 141.331 8.66247C141.616 8.96821 141.759 9.39623 141.759 9.90579V11.8421C141.759 12.1478 141.779 12.3517 141.8 12.4943C141.82 12.637 141.881 12.7797 141.963 12.902V12.9224H140.76V12.902C140.842 12.7593 140.903 12.6166 140.923 12.474C140.964 12.3313 140.964 12.1071 140.964 11.8421V9.94656C140.964 9.57968 140.883 9.29432 140.699 9.11088C140.516 8.90706 140.271 8.80515 139.945 8.80515C139.578 8.80515 139.293 8.92744 139.068 9.17203C138.844 9.41662 138.742 9.74273 138.742 10.1504V11.8421C138.742 12.1478 138.763 12.3721 138.783 12.5147C138.804 12.6574 138.865 12.7797 138.946 12.9224V12.9428H137.723V12.9224C137.805 12.7797 137.866 12.637 137.907 12.4943C137.947 12.3517 137.947 12.1275 137.947 11.8625V9.51853C137.947 9.21279 137.927 8.96821 137.886 8.80515C137.846 8.64209 137.764 8.49941 137.662 8.37712V8.35674L138.681 8.21406H138.702V9.17203H138.722C138.865 8.8663 139.048 8.62171 139.313 8.45865Z" fill="#222731"></path><path d="M143.552 12.7389C143.226 12.5351 142.961 12.2701 142.778 11.9236C142.594 11.5771 142.513 11.1695 142.513 10.7007C142.513 10.2319 142.615 9.80388 142.798 9.41662C142.981 9.02935 143.246 8.744 143.573 8.5198C143.899 8.29559 144.286 8.19368 144.694 8.19368C145.06 8.19368 145.387 8.27521 145.692 8.43827C145.978 8.60133 146.202 8.84591 146.365 9.13127C146.528 9.41662 146.61 9.76312 146.61 10.1504V10.4561H143.308V10.4969C143.308 10.8841 143.369 11.2103 143.511 11.4956C143.634 11.781 143.817 12.0052 144.062 12.1682C144.306 12.3313 144.571 12.4128 144.877 12.4128C145.448 12.4128 145.896 12.1478 146.243 11.6383L146.548 11.8217C146.161 12.637 145.529 13.0447 144.694 13.0447C144.266 13.0447 143.899 12.9428 143.552 12.7389ZM145.876 9.98732C145.855 9.57968 145.733 9.25356 145.529 9.02935C145.325 8.80515 145.04 8.68285 144.694 8.68285C144.347 8.68285 144.041 8.80515 143.797 9.02935C143.552 9.25356 143.41 9.57968 143.328 9.98732H145.876Z" fill="#222731"></path><path d="M148.077 12.7186C147.771 12.5147 147.527 12.2294 147.343 11.8625C147.16 11.4956 147.078 11.088 147.078 10.6599C147.078 10.1911 147.18 9.7835 147.363 9.39624C147.547 9.02936 147.812 8.72362 148.118 8.5198C148.444 8.31598 148.79 8.21406 149.198 8.21406C149.544 8.21406 149.85 8.29559 150.115 8.47903C150.38 8.64209 150.564 8.88668 150.686 9.2128H150.706V7.4803C150.706 7.17457 150.686 6.92998 150.645 6.7873C150.604 6.62424 150.523 6.48157 150.421 6.37966V6.33889L151.46 6.2166H151.481V11.8013C151.481 12.1071 151.501 12.3313 151.542 12.4943C151.583 12.6574 151.644 12.8001 151.746 12.9224V12.9631L150.727 13.0854H150.706V12.0052C150.584 12.3517 150.38 12.6166 150.095 12.8205C149.809 13.0039 149.483 13.1058 149.116 13.1058C148.729 13.0447 148.383 12.9224 148.077 12.7186ZM150.339 11.9848C150.584 11.6383 150.706 11.1899 150.706 10.6192C150.706 10.0485 150.584 9.57968 150.339 9.25356C150.095 8.90706 149.748 8.744 149.32 8.744C148.892 8.744 148.546 8.90706 148.301 9.25356C148.056 9.60006 147.934 10.0485 147.934 10.6192C147.934 11.1899 148.056 11.6383 148.301 11.9848C148.546 12.3313 148.892 12.4943 149.32 12.4943C149.748 12.4943 150.074 12.3109 150.339 11.9848Z" fill="#222731"></path><path d="M157.229 8.80515H156.087V11.8421C156.087 12.1478 156.108 12.3517 156.128 12.4943C156.169 12.637 156.21 12.7797 156.312 12.902V12.9224H155.089V12.902C155.17 12.7389 155.231 12.5963 155.272 12.4536C155.313 12.3109 155.313 12.1071 155.313 11.8421V8.80515H154.437V8.29559H155.313V7.70451C155.313 7.21533 155.435 6.82807 155.7 6.54272C155.965 6.27775 156.291 6.13507 156.699 6.13507C156.903 6.13507 157.066 6.17584 157.229 6.23698V6.72616C157.107 6.68539 157.005 6.68539 156.903 6.68539C156.658 6.68539 156.454 6.76692 156.312 6.95036C156.169 7.11342 156.108 7.37839 156.108 7.70451V8.29559H157.249V8.80515H157.229Z" fill="#222731"></path><path d="M158.432 12.7186C158.085 12.5147 157.8 12.2294 157.616 11.8625C157.413 11.4956 157.331 11.088 157.331 10.6192C157.331 10.1504 157.433 9.74274 157.616 9.37586C157.82 9.00898 158.085 8.72362 158.432 8.5198C158.778 8.31598 159.186 8.21407 159.614 8.21407C160.042 8.21407 160.45 8.31598 160.796 8.5198C161.143 8.72362 161.428 9.00898 161.611 9.37586C161.815 9.74274 161.897 10.1504 161.897 10.6192C161.897 11.088 161.795 11.4956 161.611 11.8625C161.408 12.2294 161.143 12.5147 160.796 12.7186C160.45 12.9224 160.042 13.0243 159.614 13.0243C159.186 13.0243 158.778 12.9224 158.432 12.7186ZM160.694 11.9848C160.959 11.6587 161.081 11.1899 161.081 10.6192C161.081 10.0485 160.939 9.57968 160.674 9.25356C160.409 8.90706 160.062 8.74401 159.614 8.74401C159.165 8.74401 158.819 8.90706 158.554 9.25356C158.289 9.60006 158.146 10.0485 158.146 10.6192C158.146 11.1899 158.269 11.6587 158.534 11.9848C158.799 12.3109 159.145 12.4943 159.593 12.4943C160.062 12.4943 160.429 12.3109 160.694 11.9848Z" fill="#222731"></path><path d="M162.691 12.474C162.732 12.3313 162.732 12.1071 162.732 11.8421V9.51853C162.732 9.21279 162.711 8.96821 162.67 8.80515C162.63 8.64209 162.548 8.49941 162.446 8.37712V8.35674L163.465 8.21406H163.486V9.51853H163.506C163.608 9.13127 163.771 8.80515 164.036 8.56056C164.281 8.31597 164.586 8.19368 164.933 8.19368C165.035 8.19368 165.116 8.19368 165.198 8.21406V8.96821C165.035 8.94782 164.933 8.92744 164.872 8.92744C164.464 8.92744 164.138 9.0905 163.893 9.41662C163.649 9.74273 163.527 10.1708 163.527 10.7415V11.8421C163.527 12.1478 163.547 12.3721 163.567 12.5147C163.588 12.6574 163.649 12.7797 163.73 12.9224V12.9428H162.507V12.9224C162.589 12.7797 162.65 12.637 162.691 12.474Z" fill="#222731"></path><path d="M167.053 14.7364V14.0842C167.318 14.1861 167.583 14.2472 167.787 14.2472C168.051 14.2472 168.276 14.1657 168.479 14.023C168.683 13.8803 168.846 13.6358 168.969 13.3096L169.132 12.9224L167.685 9.41662C167.562 9.13127 167.46 8.90707 167.399 8.74401C167.318 8.60133 167.236 8.43827 167.134 8.2956V8.27522H168.357V8.2956C168.296 8.37713 168.276 8.45866 168.276 8.56057C168.276 8.62171 168.296 8.72363 168.316 8.82554C168.357 8.92745 168.398 9.07013 168.479 9.25357L169.539 11.944L170.579 9.25357C170.701 8.92745 170.762 8.70324 170.762 8.58095C170.762 8.47904 170.742 8.39751 170.681 8.2956V8.27522H171.639V8.2956C171.537 8.43827 171.435 8.58095 171.374 8.74401C171.292 8.90707 171.211 9.11089 171.109 9.35548L169.478 13.4523C169.091 14.3899 168.541 14.8587 167.787 14.8587C167.522 14.8791 167.277 14.8383 167.053 14.7364Z" fill="#222731"></path><path d="M172.658 12.7186C172.312 12.5147 172.026 12.2294 171.843 11.8625C171.639 11.4956 171.558 11.088 171.558 10.6192C171.558 10.1504 171.66 9.74274 171.843 9.37586C172.047 9.00898 172.312 8.72362 172.658 8.5198C173.005 8.31598 173.412 8.21407 173.84 8.21407C174.289 8.21407 174.676 8.31598 175.023 8.5198C175.369 8.72362 175.654 9.00898 175.838 9.37586C176.042 9.74274 176.123 10.1504 176.123 10.6192C176.123 11.088 176.021 11.4956 175.838 11.8625C175.634 12.2294 175.369 12.5147 175.023 12.7186C174.676 12.9224 174.268 13.0447 173.84 13.0447C173.392 13.0447 173.005 12.9224 172.658 12.7186ZM174.9 11.9848C175.165 11.6587 175.288 11.1899 175.288 10.6192C175.288 10.0485 175.145 9.57968 174.88 9.25356C174.615 8.90706 174.268 8.74401 173.82 8.74401C173.372 8.74401 173.025 8.90706 172.76 9.25356C172.495 9.60006 172.353 10.0485 172.353 10.6192C172.353 11.1899 172.475 11.6587 172.74 11.9848C173.005 12.3109 173.351 12.4943 173.8 12.4943C174.289 12.4943 174.635 12.3109 174.9 11.9848Z" fill="#222731"></path><path d="M177.122 12.5759C176.836 12.2701 176.694 11.8625 176.694 11.3326V9.51853C176.694 9.2128 176.673 8.96821 176.632 8.80515C176.592 8.64209 176.51 8.49942 176.408 8.37712V8.35674L177.448 8.21407H177.468V11.2918C177.468 11.6587 177.55 11.9236 177.733 12.1275C177.916 12.3313 178.161 12.4332 178.487 12.4332C178.854 12.4332 179.139 12.3109 179.384 12.0663C179.608 11.8217 179.731 11.4956 179.731 11.088V9.49815C179.731 9.19242 179.71 8.96821 179.669 8.80515C179.629 8.64209 179.567 8.49942 179.466 8.37712V8.35674L180.485 8.21407H180.505V11.7198C180.505 12.0256 180.525 12.2498 180.566 12.4128C180.607 12.5759 180.668 12.7186 180.77 12.8408V12.8612L179.751 13.0039H179.731V12.0459H179.71C179.588 12.3517 179.404 12.5963 179.139 12.7593C178.874 12.9224 178.589 13.0243 178.243 13.0243C177.794 13.0447 177.407 12.8816 177.122 12.5759Z" fill="#222731"></path><path d="M184.888 12.7593C184.623 12.5759 184.419 12.3313 184.296 11.9848L184.052 12.9428H183.563V7.45992C183.563 7.15419 183.542 6.9096 183.502 6.76692C183.461 6.60387 183.379 6.46119 183.277 6.35928V6.31851L184.317 6.19622H184.337V9.31471C184.46 8.96821 184.663 8.70324 184.949 8.5198C185.214 8.33636 185.54 8.23445 185.907 8.23445C186.294 8.23445 186.64 8.33636 186.967 8.54019C187.272 8.74401 187.517 9.02936 187.7 9.39624C187.884 9.76312 187.965 10.1708 187.965 10.6192C187.965 11.088 187.863 11.4956 187.68 11.8829C187.496 12.2498 187.232 12.5555 186.905 12.7593C186.579 12.9631 186.212 13.0854 185.805 13.0854C185.479 13.0447 185.153 12.9428 184.888 12.7593ZM186.763 11.9848C187.007 11.6383 187.13 11.1899 187.13 10.6192C187.13 10.0485 187.007 9.60006 186.763 9.25357C186.518 8.90707 186.172 8.74401 185.744 8.74401C185.316 8.74401 184.969 8.90707 184.724 9.25357C184.48 9.60006 184.358 10.0485 184.358 10.6192C184.358 11.1899 184.48 11.6587 184.724 11.9848C184.969 12.3313 185.316 12.4944 185.744 12.4944C186.172 12.4944 186.518 12.3313 186.763 11.9848Z" fill="#222731"></path><path d="M187.925 14.7364V14.0842C188.19 14.1861 188.455 14.2472 188.659 14.2472C188.924 14.2472 189.148 14.1657 189.352 14.023C189.555 13.8803 189.718 13.6358 189.841 13.3096L190.004 12.9224L188.557 9.41662C188.434 9.13127 188.332 8.90707 188.271 8.74401C188.19 8.60133 188.108 8.43827 188.006 8.2956V8.27522H189.229V8.2956C189.168 8.37713 189.148 8.45866 189.148 8.56057C189.148 8.62171 189.168 8.72363 189.189 8.82554C189.229 8.92745 189.27 9.07013 189.352 9.25357L190.411 11.944L191.451 9.25357C191.573 8.92745 191.634 8.70324 191.634 8.58095C191.634 8.47904 191.614 8.39751 191.553 8.2956V8.27522H192.511V8.2956C192.409 8.43827 192.307 8.58095 192.246 8.74401C192.164 8.90707 192.083 9.11089 191.981 9.35548L190.35 13.4523C189.963 14.3899 189.413 14.8587 188.659 14.8587C188.394 14.8791 188.149 14.8383 187.925 14.7364Z" fill="#222731"></path></svg>
+    </a>
+    <nav>
+      <a href="#">How it works</a>
+      <a href="#">Why glucose</a>
+      <a href="#">Learn</a>
+      <a href="#">Partner with us</a>
+    </nav>
+    <a href="#" class="buy-now">Buy now</a>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1">Review your <em>Lingo</em> order</h1>
+    <p class="page-desc animate-up delay-2">Your plan is ready. Click <strong>Complete Purchase</strong> to run the checkout pipeline and watch the bug surface in real time.</p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="product-hero">
+        <img src="https://strapi.hellolingo.com/uploads/app_image_f7a45e9f51.png"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80';"
+             alt="Lingo app showing real-time glucose data next to the Lingo biosensor">
+        <div class="ph-text">
+          <h2>Lingo Continuous Glucose Biosensor</h2>
+          <p>An everyday wearable that tracks your glucose 24/7 and turns your data into insights to build healthier habits.</p>
+        </div>
+      </div>
+      <div class="order-header">
+        <h3>Your Order</h3>
+        <span class="item-count">3 items</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-swatch"></div>
+          <div class="item-details">
+            <div class="item-name">Lingo 4-Week Plan<span class="badge-popular">Most Popular</span></div>
+            <div class="item-plan">Shape &middot; 2 biosensors included &middot; Save 17%</div>
+            <div class="item-sku">LIN-SHAPE-4W</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$89.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch"></div>
+          <div class="item-details">
+            <div class="item-name">Lingo App Access</div>
+            <div class="item-plan">Minute-by-minute glucose monitoring &middot; iOS &amp; Android&trade;</div>
+            <div class="item-sku">LIN-APP</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">Included</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch accessory"><span>&#x1FA79;</span></div>
+          <div class="item-details">
+            <div class="item-name">Lingo Adhesive Patches (10-pack)</div>
+            <div class="item-plan">Keeps your biosensor secure for the full 14 days</div>
+            <div class="item-sku">LIN-PATCH-10</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$15.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Subtotal</span><span>$104.00</span></div>
+        <div class="total-line"><span>Tax</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Member savings</span><span>10% (order &gt; $100)</span></div>
+        <div class="total-line grand"><span>Est. Total</span><span>$104.00+</span></div>
+        <div class="member-badge">&#x2728; New member welcome &mdash; Metabolic Reset Coaching included</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Shipping &amp; Payment</h3>
+      <form id="checkoutForm" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" value="Taylor Morgan" readonly>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" value="taylor.morgan@example.com" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Shipping Region</label>
+            <select id="regionSelect">
+              <option value="US" selected>United States</option>
+              <option value="EU">Europe</option>
+              <option value="UK">United Kingdom</option>
+              <option value="CA">Canada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment</label>
+            <input type="text" value="**** **** **** 4242" readonly>
+          </div>
+        </div>
+        <div class="delivery-note">
+          <span>Estimated delivery</span>
+          <strong>2-day delivery &middot; arrives in 2 business days</strong>
+        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Complete Purchase</button>
+      </form>
+      <div class="guarantee-row">
+        <span>&#x1F69A; Free shipping</span>
+        <span>&#x1F6E1;&#xFE0F; 30-day money-back guarantee&dagger;</span>
+      </div>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Processing your order&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The checkout pipeline injects a promotional item (<code>PROMO-METABOLIC-2026</code>) that doesn&rsquo;t exist in the product catalog. When the receipt formatter tries to look up its name, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">&copy; 2026 Abbott. Lingo and related marks are marks of the Abbott group of companies.</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms of Sale</a>
+        <a href="#">Privacy Notice</a>
+        <a href="#">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ORDER_ITEMS = [
+      { sku: 'LIN-SHAPE-4W', qty: 1, price: 89.00 },
+      { sku: 'LIN-APP', qty: 1, price: 0.00 },
+      { sku: 'LIN-PATCH-10', qty: 1, price: 15.00 }
+    ];
+    var SUBTOTAL = 104.00;
+
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var region = document.getElementById('regionSelect').value;
+
+      fetch('/api/lingo/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_lingo_demo',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: ORDER_ITEMS,
+          subtotal: SUBTOTAL,
+          region: region
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Order Failed</h3>' +
+            '<p>Your order could not be processed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Order Confirmed</h3>' +
+            '<p>Order <strong>' + result.data.orderId + '</strong> confirmed.<br>' +
+            'Total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.tax.toFixed(2) + ' tax)</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Complete Purchase';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
