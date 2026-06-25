@@ -49,6 +49,7 @@ function computeFareBreakdown(route, cabin, passengers) {
   const segmentFee = 4.50 * passengers;
   const facilityCharge = 4.50;
   const securityFee = 5.60 * passengers;
+  const loyalty = fareClass.loyalty || { milesMultiplier: 1.0, tierBonus: 0 };
 
   return {
     baseFare: Math.round(baseFare * 100) / 100,
@@ -58,6 +59,7 @@ function computeFareBreakdown(route, cabin, passengers) {
     securityFee,
     fareCode: fareClass.code,
     includedBags: fareClass.bags,
+    loyalty,
   };
 }
 
@@ -222,4 +224,12 @@ async function processFlightSearch(data) {
   }
 }
 
-module.exports = { processFlightSearch, ROUTES, FARE_CLASSES, ANCILLARIES };
+module.exports = {
+  processFlightSearch,
+  computeFareBreakdown,
+  buildItinerary,
+  findRoute,
+  ROUTES,
+  FARE_CLASSES,
+  ANCILLARIES,
+};
