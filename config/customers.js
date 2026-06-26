@@ -223,6 +223,10 @@ const CUSTOMERS = {
     label: 'Comcast Business',
     triggerMode: 'api',
   },
+  '054f8313': {
+    label: 'Banamex',
+    triggerMode: 'api',
+  },
 };
 
 /**
