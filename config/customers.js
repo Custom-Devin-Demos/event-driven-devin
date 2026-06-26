@@ -231,6 +231,10 @@ const CUSTOMERS = {
     label: 'Comarch',
     triggerMode: 'api',
   },
+  '382b34fc': {
+    label: 'GEICO',
+    triggerMode: 'api',
+  },
 };
 
 /**
