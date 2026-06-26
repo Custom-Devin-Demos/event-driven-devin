@@ -235,6 +235,10 @@ const CUSTOMERS = {
     label: 'GEICO',
     triggerMode: 'api',
   },
+  c35ea2e0: {
+    label: 'Terex',
+    triggerMode: 'api',
+  },
 };
 
 /**
