@@ -211,6 +211,10 @@ const CUSTOMERS = {
     label: 'Customer 4ADA',
     triggerMode: 'api',
   },
+  bankofamerica: {
+    label: 'Bank of America',
+    triggerMode: 'api',
+  },
 };
 
 /**
