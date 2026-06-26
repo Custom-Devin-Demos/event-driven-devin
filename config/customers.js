@@ -219,6 +219,26 @@ const CUSTOMERS = {
     label: 'Bank of America',
     triggerMode: 'api',
   },
+  ad960e6a: {
+    label: 'Comcast Business',
+    triggerMode: 'api',
+  },
+  '054f8313': {
+    label: 'Banamex',
+    triggerMode: 'api',
+  },
+  '91e30701': {
+    label: 'Comarch',
+    triggerMode: 'api',
+  },
+  '382b34fc': {
+    label: 'GEICO',
+    triggerMode: 'api',
+  },
+  c35ea2e0: {
+    label: 'Terex',
+    triggerMode: 'api',
+  },
 };
 
 /**
