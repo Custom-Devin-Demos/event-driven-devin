@@ -227,6 +227,10 @@ const CUSTOMERS = {
     label: 'Banamex',
     triggerMode: 'api',
   },
+  '91e30701': {
+    label: 'Comarch',
+    triggerMode: 'api',
+  },
 };
 
 /**
