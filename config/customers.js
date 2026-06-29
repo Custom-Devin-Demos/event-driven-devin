@@ -195,6 +195,10 @@ const CUSTOMERS = {
     label: 'TD Bank',
     triggerMode: 'api',
   },
+  keybank: {
+    label: 'KeyBank',
+    triggerMode: 'api',
+  },
   '17dd6f6f': {
     label: 'Customer 17DD',
     triggerMode: 'api',
