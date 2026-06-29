@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T. Rowe Price &mdash; Managed Account</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --trp-navy: #1A1446; --trp-navy-dark: #120E33; --trp-navy-light: #2A2168;
+      --trp-orange: #FF6A13; --trp-orange-dark: #E85D08;
+      --white: #FFFFFF; --off-white: #F4F5F8; --cream: #FAFAFC;
+      --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+      --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #047857; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: var(--trp-navy); color: rgba(255,255,255,0.78); font-size: 0.72rem; padding: 0.45rem 2rem; display: flex; justify-content: flex-end; gap: 1.5rem; }
+    .top-bar a { color: rgba(255,255,255,0.78); text-decoration: none; font-weight: 500; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--white); border-bottom: 3px solid var(--trp-orange); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 72px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+    .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .logo .mark { width: 34px; height: 34px; border-radius: 50%; background: var(--trp-navy); display: flex; align-items: center; justify-content: center; }
+    .logo .mark span { color: var(--trp-orange); font-weight: 800; font-size: 1.05rem; line-height: 1; }
+    .logo .word { display: flex; flex-direction: column; line-height: 1.05; }
+    .logo .word .t1 { font-size: 1.05rem; font-weight: 700; color: var(--trp-navy); letter-spacing: 0.01em; }
+    .logo .word .t2 { font-size: 0.6rem; font-weight: 600; color: var(--gray-500); letter-spacing: 0.18em; text-transform: uppercase; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--gray-600); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: var(--gray-100); color: var(--trp-navy); }
+    nav a.active { background: var(--trp-navy); color: #fff; }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--trp-orange); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--trp-orange-dark); }
+    .greeting { margin-bottom: 1.75rem; }
+    .greeting h1 { font-size: 1.6rem; font-weight: 700; color: var(--trp-navy); margin-bottom: 0.15rem; }
+    .greeting p { color: var(--gray-500); font-size: 0.9rem; }
+
+    .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+    @media (max-width: 900px) { .summary { grid-template-columns: 1fr; } }
+    .stat-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow 0.3s; }
+    .stat-card:hover { box-shadow: var(--shadow-md); }
+    .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--trp-orange) 0%, var(--trp-navy) 100%); }
+    .stat-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--trp-orange); margin-bottom: 0.6rem; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--trp-navy); margin-bottom: 0.2rem; }
+    .stat-sub { font-family: var(--mono); font-size: 0.78rem; color: var(--gray-400); }
+
+    .section-header { font-size: 1.15rem; font-weight: 700; color: var(--trp-navy); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--trp-orange); display: inline-block; }
+    .holdings-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 2rem; }
+    .holdings-table { width: 100%; border-collapse: collapse; }
+    .holdings-table thead { background: var(--gray-50); }
+    .holdings-table th { text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); }
+    .holdings-table th.num, .holdings-table td.num { text-align: right; }
+    .holdings-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--gray-100); font-size: 0.88rem; }
+    .holdings-table tbody tr:hover td { background: rgba(26,20,70,0.03); }
+    .holdings-table tbody tr:last-child td { border-bottom: none; }
+    .sym { font-weight: 700; color: var(--trp-navy); }
+    .drift-over { color: var(--trp-orange-dark); font-weight: 600; }
+    .drift-under { color: var(--gray-600); font-weight: 600; }
+
+    .rebalance-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 2rem; max-width: 580px; }
+    .rebalance-card h2 { font-size: 1.15rem; font-weight: 700; color: var(--trp-navy); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--trp-orange); display: inline-block; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.35rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.65rem 0.85rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-800); font-family: var(--sans); font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--trp-navy); box-shadow: 0 0 0 3px rgba(26,20,70,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .btn-rebalance { width: 100%; padding: 0.8rem; background: var(--trp-orange); color: #fff; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-rebalance:hover { background: var(--trp-orange-dark); transform: translateY(-1px); }
+    .btn-rebalance:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+    .disclosure { margin-top: 1.5rem; padding: 0.75rem 1rem; background: var(--cream); border-left: 3px solid var(--trp-navy); font-size: 0.78rem; color: var(--gray-500); }
+    .tier-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(26,20,70,0.06); color: var(--trp-navy); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.3rem 0.7rem; border-radius: 999px; margin-left: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="top-bar"><a href="#">Personal Investing</a><a href="#">Workplace Retirement</a><a href="#">Financial Advisors</a><a href="#">Institutional Investors</a><a href="#">About Us</a></div>
+  <header>
+    <a href="#" class="logo">
+      <span class="mark"><span>T</span></span>
+      <span class="word"><span class="t1">T. Rowe Price</span><span class="t2">Invest With Confidence</span></span>
+    </a>
+    <nav><a href="#">Accounts</a><a href="#">Portfolio</a><a href="#" class="active">Rebalance</a><a href="#">Research</a><a href="#">Planning</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+    <div class="greeting fade-in d1">
+      <h1>Good afternoon, Eleanor Whitfield</h1>
+      <p>Managed Account &middot; <span class="tier-badge">Private Asset Management</span> Client since 2014</p>
+    </div>
+    <div class="summary">
+      <div class="stat-card fade-in d2">
+        <div class="stat-label">Portfolio Value</div>
+        <div class="stat-value">$1,098,901</div>
+        <div class="stat-sub">Account ****-4417 &middot; Growth Model</div>
+      </div>
+      <div class="stat-card fade-in d3">
+        <div class="stat-label">YTD Return</div>
+        <div class="stat-value">+11.4%</div>
+        <div class="stat-sub">Benchmark +9.8%</div>
+      </div>
+      <div class="stat-card fade-in d3">
+        <div class="stat-label">Allocation Drift</div>
+        <div class="stat-value">6.2%</div>
+        <div class="stat-sub">Above 5% rebalance threshold</div>
+      </div>
+    </div>
+    <div class="fade-in d3">
+      <div class="section-header">Current Holdings vs. Target</div>
+      <div class="holdings-card">
+        <table class="holdings-table">
+          <thead><tr><th>Fund</th><th>Asset Class</th><th class="num">Market Value</th><th class="num">Target</th><th class="num">Current</th><th class="num">Drift</th></tr></thead>
+          <tbody>
+            <tr><td><span class="sym">PRGFX</span> Growth Stock</td><td>US Equity</td><td class="num">$482,301</td><td class="num">38.0%</td><td class="num">44.0%</td><td class="num drift-over">+6.0%</td></tr>
+            <tr><td><span class="sym">PRWCX</span> Capital Appreciation</td><td>Multi-Asset</td><td class="num">$268,900</td><td class="num">22.0%</td><td class="num">24.5%</td><td class="num drift-over">+2.5%</td></tr>
+            <tr><td><span class="sym">RPMGX</span> Mid-Cap Growth</td><td>US Equity</td><td class="num">$142,500</td><td class="num">12.0%</td><td class="num">13.0%</td><td class="num drift-over">+1.0%</td></tr>
+            <tr><td><span class="sym">PRNHX</span> New Horizons</td><td>US Equity</td><td class="num">$98,200</td><td class="num">8.0%</td><td class="num">8.9%</td><td class="num drift-over">+0.9%</td></tr>
+            <tr><td><span class="sym">RPSIX</span> Spectrum Income</td><td>Fixed Income</td><td class="num">$96,000</td><td class="num">15.0%</td><td class="num">8.7%</td><td class="num drift-under">-6.3%</td></tr>
+            <tr><td><span class="sym">TRBUX</span> Ultra Short-Term Bond</td><td>Cash &amp; Equiv.</td><td class="num">$11,000</td><td class="num">5.0%</td><td class="num">0.9%</td><td class="num drift-under">-4.1%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="fade-in d4">
+      <div class="rebalance-card">
+        <h2>Rebalance Portfolio</h2>
+        <form id="rebalanceForm">
+          <div class="form-row">
+            <div class="form-group"><label>Account</label><select id="accountId"><option value="TRP-MAA-204417">Managed Account &mdash; ****4417</option><option value="TRP-IRA-118820">Rollover IRA &mdash; ****8820</option></select></div>
+            <div class="form-group"><label>Target Model</label><select id="model"><option value="growth">Growth</option><option value="balanced">Balanced</option><option value="income">Income</option></select></div>
+          </div>
+          <div class="form-group"><label>Advisory Program</label><select id="program"><option value="private-asset-mgmt">Private Asset Management (Fee billed out-of-band)</option><option value="select">Personal Strategy &mdash; Select</option><option value="preferred">Personal Strategy &mdash; Preferred</option><option value="standard">Personal Strategy &mdash; Standard</option></select></div>
+          <button type="submit" class="btn-rebalance" id="submitBtn">Rebalance Portfolio</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="disclosure">All investments are subject to market risk, including the possible loss of principal. Rebalancing does not protect against loss or guarantee that an investor's goal will be met. T. Rowe Price Investment Services, Inc.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('rebalanceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/8b5893cb/rebalance', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: document.getElementById('accountId').value, model: document.getElementById('model').value, program: document.getElementById('program').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Rebalance Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Rebalance Submitted</div><div class="error-detail">${data.trades.length} orders queued for ${data.program} (advisory fee: $${data.advisoryFee})</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Rebalance Portfolio'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
