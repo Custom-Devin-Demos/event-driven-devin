@@ -185,7 +185,6 @@ async function processCheckout(orderData) {
       culprit: 'app/services/verticals/timberland.js \u2014 formatReceipt',
       errorType: error.name || 'Error',
       errorValue: error.message,
-      customer: 'timberland',
       devinUserId: orderData.devinUserId,
       devinEmail: orderData.devinEmail,
       devinOrgId: orderData.devinOrgId,
