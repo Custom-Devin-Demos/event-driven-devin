@@ -243,6 +243,11 @@ const CUSTOMERS = {
     label: 'Terex',
     triggerMode: 'api',
   },
+  '8b5893cb': {
+    label: 'T. Rowe Price',
+    triggerMode: 'api',
+    githubOrg: 'COG-GTM',
+  },
 };
 
 /**
