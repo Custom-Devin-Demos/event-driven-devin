@@ -67,7 +67,7 @@ function resolveTierBenefits(memberData, requestedTier) {
 
   return {
     tier: tierKey,
-    benefits: [config.multiplier, config.annualBonus, config.minSpend],
+    config,
   };
 }
 
@@ -136,6 +136,12 @@ async function processRewardsLookup(data) {
     }
 
     const tierBenefits = resolveTierBenefits(memberData, data.tier);
+    if (!tierBenefits) {
+      const err = new Error('Unknown rewards tier. Please specify a valid tier.');
+      err.name = 'InvalidTierError';
+      err.code = 'INVALID_TIER';
+      throw err;
+    }
     const balance = calculateRewardsBalance(memberData, tierBenefits);
 
     const duration = Date.now() - startTime;
@@ -231,4 +237,12 @@ async function processRewardsLookup(data) {
   }
 }
 
-module.exports = { processRewardsLookup, MEMBERS, RECENT_PURCHASES };
+module.exports = {
+  processRewardsLookup,
+  resolveTierBenefits,
+  calculateRewardsBalance,
+  findMember,
+  TIER_CONFIG,
+  MEMBERS,
+  RECENT_PURCHASES,
+};
