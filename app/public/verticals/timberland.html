@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timberland&reg; &mdash; Checkout</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --bg-card: #ffffff;
+      --bg-elevated: #f4f1ec;
+      --surface: #ece7df;
+      --border: #e2ddd4;
+      --border-light: #d6d0c5;
+      --text: #2a1e17;
+      --text-muted: #6f655c;
+      --text-dim: #9a9087;
+      --tbl-brown: #2a1e17;
+      --tbl-brown-hover: #44342a;
+      --tbl-yellow: #cd9a3c;
+      --tbl-rust: #a02822;
+      --tbl-rust-dim: rgba(160,40,34,0.08);
+      --tbl-rust-border: rgba(160,40,34,0.2);
+      --danger: #a02822;
+      --danger-bg: rgba(160,40,34,0.06);
+      --danger-border: rgba(160,40,34,0.15);
+      --success: #3a6b3f;
+      --sans: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --serif: 'Lora', Georgia, 'Times New Roman', serif;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Promo Banner ── */
+    .promo-banner {
+      background: var(--tbl-brown);
+      color: #fff;
+      text-align: center;
+      padding: 0.6rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 66px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; min-width: 150px; }
+    .logo-wrap img { height: 26px; width: auto; display: block; }
+    .logo-fallback {
+      display: none; font-family: var(--serif); font-weight: 600;
+      font-size: 1.25rem; letter-spacing: 0.01em; color: var(--tbl-brown);
+    }
+    nav { display: flex; align-items: center; gap: 1.75rem; flex: 1; justify-content: center; }
+    nav a {
+      color: var(--text); text-decoration: none; font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--tbl-rust); }
+    .nav-icons { display: flex; align-items: center; gap: 1.25rem; min-width: 150px; justify-content: flex-end; }
+    .nav-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      color: var(--text); transition: color 0.2s; cursor: pointer;
+    }
+    .nav-icon:hover { color: var(--tbl-rust); }
+
+    /* ── Page ── */
+    .page {
+      max-width: 860px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--tbl-rust); text-decoration: none; font-size: 0.8rem;
+      font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--tbl-brown); }
+
+    .page-title {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 600; line-height: 1.15; margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .page-title em { font-style: italic; color: var(--tbl-rust); }
+    .page-desc {
+      font-size: 0.92rem; color: var(--text-muted); max-width: 520px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Order Card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(42,30,23,0.04);
+    }
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h2 {
+      font-family: var(--serif);
+      font-size: 1.1rem; font-weight: 600; letter-spacing: -0.01em;
+    }
+    .order-header .item-count {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .order-items { padding: 0; }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-thumb {
+      width: 64px; height: 64px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px; flex-shrink: 0; overflow: hidden;
+      background: #fff; border: 1px solid var(--border);
+    }
+    .item-thumb img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.15rem; }
+    .item-color { font-size: 0.75rem; color: var(--text-muted); }
+    .item-sku { font-size: 0.68rem; color: var(--text-dim); letter-spacing: 0.03em; }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; }
+
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 1rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .member-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(205,154,60,0.14); color: #8a6418;
+      font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.65rem;
+      border-radius: 4px; margin-top: 0.6rem;
+    }
+
+    /* ── Checkout Form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(42,30,23,0.04);
+    }
+    .action-section h3 {
+      font-family: var(--serif);
+      font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 600; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--tbl-brown);
+      box-shadow: 0 0 0 3px rgba(42,30,23,0.08);
+    }
+
+    .place-order-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--tbl-brown); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+    }
+    .place-order-btn:hover { background: var(--tbl-brown-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--tbl-brown); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+    }
+    .result-box.success {
+      display: block;
+      background: rgba(58,107,63,0.06); border: 1px solid rgba(58,107,63,0.2);
+    }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--tbl-rust-dim); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 10px; font-size: 0.8rem; color: #7a322c; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code {
+      background: var(--tbl-rust-dim); padding: 0.1rem 0.35rem;
+      border-radius: 4px; font-size: 0.74rem; font-family: ui-monospace, 'SF Mono', Menlo, monospace; color: var(--danger);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 860px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.82rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.03em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin {
+      margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim);
+    }
+    .footer-devin a { color: var(--tbl-rust); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .promo-banner { font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="promo-banner">
+    Up To 50% Off: 4th Of July Sale &nbsp;|&nbsp; Free Shipping &amp; Free Returns for Timberland Community Members
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <img src="https://assets.timberland.com/image/upload/v1775852707/Timberland_2025_Horizontal_Lock-Up_RGB_Black_R.svg"
+           alt="Timberland"
+           onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='block';">
+      <span class="logo-fallback">Timberland&reg;</span>
+    </div>
+    <nav>
+      <a href="#">New</a>
+      <a href="#">Men</a>
+      <a href="#">Women</a>
+      <a href="#">Workwear</a>
+      <a href="#">Sale</a>
+    </nav>
+    <div class="nav-icons">
+      <div class="nav-icon" title="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="nav-icon" title="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="nav-icon" title="Cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1"><em>Timberland</em> Checkout</h1>
+    <p class="page-desc animate-up delay-2">Your bag is ready. Click <strong>Place Order</strong> to run the checkout pipeline and watch the bug surface in real time.</p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Your Bag</h2>
+        <span class="item-count">3 items</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-thumb">
+            <img src="https://assets.timberland.com/image/upload/q_auto:best,f_auto:image,d_na.png/v1751470221/icons-yellow-boot-white-r2"
+                 alt="Premium 6-Inch Waterproof Boots"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=200&q=80';">
+          </div>
+          <div class="item-details">
+            <div class="item-name">Premium 6-Inch Waterproof Boots</div>
+            <div class="item-color">Wheat Nubuck &middot; M 10.5</div>
+            <div class="item-sku">TBL-PREM-6IN</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$228.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-thumb">
+            <img src="https://assets.timberland.com/image/upload/q_auto:best,f_auto:image,d_na.png/v1751470221/icons-field-boot-white-r2"
+                 alt="Field Boots"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542840410-3092f99611a3?w=200&q=80';">
+          </div>
+          <div class="item-details">
+            <div class="item-name">Field Boots</div>
+            <div class="item-color">Brown / Olive &middot; M 10.5</div>
+            <div class="item-sku">TBL-FIELD-BT</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$200.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-thumb">
+            <img src="https://assets.timberland.com/image/upload/q_auto:best,f_auto:image,d_na.png/v1751470220/icons-boat-shoe-white-r2"
+                 alt="Authentic 3-Eye Classic Boat Shoe"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=200&q=80';">
+          </div>
+          <div class="item-details">
+            <div class="item-name">Authentic 3-Eye Classic Boat Shoe</div>
+            <div class="item-color">Burgundy Full-Grain &middot; M 10</div>
+            <div class="item-sku">TBL-BOAT-3EY</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$135.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Subtotal</span><span>$563.00</span></div>
+        <div class="total-line"><span>Tax</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Discount</span><span>20% (order &gt; $300)</span></div>
+        <div class="total-line grand"><span>Est. Total</span><span>$563.00+</span></div>
+        <div class="member-badge">&#x1F332; Timberland Community Member &mdash; Free Shipping Applied</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Shipping &amp; Payment</h3>
+      <form id="checkoutForm" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" value="Morgan Hayes" readonly>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" value="morgan.hayes@example.com" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Shipping Region</label>
+            <select id="regionSelect">
+              <option value="US" selected>United States</option>
+              <option value="EU">Europe</option>
+              <option value="UK">United Kingdom</option>
+              <option value="CA">Canada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment</label>
+            <input type="text" value="**** **** **** 4242" readonly>
+          </div>
+        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Place Order</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Processing your order&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The checkout pipeline injects a promotional item (<code>PROMO-JULY4-2026</code>) that doesn&rsquo;t exist in the product catalog. When the receipt formatter tries to look up its name, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">The Timberland Company &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Returns</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ORDER_ITEMS = [
+      { sku: 'TBL-PREM-6IN', qty: 1, price: 228.00 },
+      { sku: 'TBL-FIELD-BT', qty: 1, price: 200.00 },
+      { sku: 'TBL-BOAT-3EY', qty: 1, price: 135.00 }
+    ];
+    var SUBTOTAL = 563.00;
+
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var region = document.getElementById('regionSelect').value;
+
+      fetch('/api/timberland/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_timberland_demo',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: ORDER_ITEMS,
+          subtotal: SUBTOTAL,
+          region: region
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Order Failed</h3>' +
+            '<p>Your order could not be processed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Order Confirmed</h3>' +
+            '<p>Order <strong>' + result.data.orderId + '</strong> confirmed.<br>' +
+            'Total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.tax.toFixed(2) + ' tax)</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Place Order';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
