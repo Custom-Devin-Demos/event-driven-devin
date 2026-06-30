@@ -252,6 +252,10 @@ const CUSTOMERS = {
     triggerMode: 'api',
     githubOrg: 'COG-GTM',
   },
+  pepsi: {
+    label: 'Pepsi',
+    triggerMode: 'api',
+  },
 };
 
 /**
