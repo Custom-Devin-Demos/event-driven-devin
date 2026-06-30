@@ -77,6 +77,7 @@ const customerC35ea2e0Routes = require('./c35ea2e0');
 const customer382b34fcRoutes = require('./382b34fc');
 const customer8b5893cbRoutes = require('./8b5893cb');
 const pepsiRoutes = require('./pepsi');
+const thermofisherRoutes = require('./thermofisher');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -152,6 +153,7 @@ router.use(customerC35ea2e0Routes);
 router.use(customer382b34fcRoutes);
 router.use(customer8b5893cbRoutes);
 router.use(pepsiRoutes);
+router.use(thermofisherRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -198,6 +200,7 @@ const VERTICALS = [
   { id: 'bankofamerica', name: 'Consumer Banking & Zelle', brand: 'Bank of America', path: '/bankofamerica', icon: '\u{1F3E6}', color: '#E31837' },
   { id: '8b5893cb', name: 'Asset & Wealth Management', brand: 'T. Rowe Price', path: '/8b5893cb', icon: '\u{1F4BC}', color: '#FF6A13' },
   { id: 'pepsi', name: 'Beverage eCommerce', brand: 'Pepsi', path: '/pepsi', icon: '\u{1F964}', color: '#0000FE' },
+  { id: 'thermofisher', name: 'Life Sciences eCommerce', brand: 'Thermo Fisher Scientific', path: '/thermofisher', icon: '\u{1F9EA}', color: '#E1241B' },
 
 ];
 
@@ -212,7 +215,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'timberland', 'lingo', 'homedepot', 'oreilly', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola', 'target', 'bnsf', 'avis', 'optumrx', 'loblaw', 'walgreens', 'macys', 'tdbank', 'keybank', '17dd6f6f', '08381313', 'athenahealth', 'scotiabank', 'scotiabankchile', '4ada28b9', 'bankofamerica', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', 'pepsi'];
+const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'timberland', 'lingo', 'homedepot', 'oreilly', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola', 'target', 'bnsf', 'avis', 'optumrx', 'loblaw', 'walgreens', 'macys', 'tdbank', 'keybank', '17dd6f6f', '08381313', 'athenahealth', 'scotiabank', 'scotiabankchile', '4ada28b9', 'bankofamerica', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', 'pepsi', 'thermofisher'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));

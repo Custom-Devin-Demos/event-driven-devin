@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thermo Fisher Scientific &mdash; Lab Products Order Management</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    :root {
+      --tf-red: #E1241B; --tf-red-bright: #ED1C24; --tf-red-dark: #B81A13;
+      --tf-blue: #2A6EBB; --tf-navy: #1B3A6B;
+      --black: #1A1A1A;
+      --white: #FFFFFF; --off-white: #F4F6F8; --tint: #FCEEED;
+      --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+      --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+      --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
+      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #047857; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, 'SF Mono', 'Menlo', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: #1B3A6B; color: rgba(255,255,255,0.8); font-size: 0.7rem; padding: 0.4rem 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; }
+    .top-bar .acct { font-weight: 700; color: #fff; }
+    .top-bar .links { display: flex; gap: 1.5rem; }
+    .top-bar a { color: rgba(255,255,255,0.8); text-decoration: none; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--white); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 74px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); border-bottom: 1px solid var(--gray-200); }
+    .logo { display: flex; align-items: center; gap: 0.7rem; }
+    .logo .mark { width: 38px; height: 38px; background: var(--tf-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .logo .mark svg { width: 22px; height: 22px; color: #fff; }
+    .logo .wordmark { display: flex; flex-direction: column; line-height: 1.1; }
+    .logo .wordmark .name { font-size: 1.25rem; font-weight: 800; color: var(--black); letter-spacing: -0.02em; }
+    .logo .wordmark .sub { font-size: 0.72rem; color: var(--gray-500); font-weight: 500; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--gray-700); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 0.5rem 1rem; border-radius: 4px; transition: all 0.2s; }
+    nav a:hover { background: var(--tint); color: var(--tf-red); }
+    nav a.active { color: var(--tf-red); border-bottom: 3px solid var(--tf-red); border-radius: 0; }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--tf-red); text-decoration: none; font-size: 0.8rem; font-weight: 700; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--tf-red-dark); }
+    .greeting { margin-bottom: 1.75rem; }
+    .greeting h1 { font-size: 1.6rem; font-weight: 700; color: var(--black); margin-bottom: 0.15rem; }
+    .greeting p { color: var(--gray-500); font-size: 0.9rem; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @media (max-width: 800px) { .stats { grid-template-columns: 1fr 1fr; } }
+    .stat-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px; padding: 1.25rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--tf-red), var(--tf-red-bright)); }
+    .stat-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 0.5rem; }
+    .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--black); }
+    .stat-sub { font-size: 0.72rem; color: var(--gray-400); margin-top: 0.1rem; }
+
+    .layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+    .section-header { font-size: 1.15rem; font-weight: 700; color: var(--black); margin-bottom: 0.9rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--tf-red); display: inline-block; }
+    .catalog-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .catalog-table { width: 100%; border-collapse: collapse; }
+    .catalog-table thead { background: var(--gray-50); }
+    .catalog-table th { text-align: left; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--gray-500); padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-200); }
+    .catalog-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--gray-100); font-size: 0.84rem; vertical-align: top; }
+    .catalog-table tbody tr:hover td { background: var(--tint); }
+    .catalog-table tbody tr:last-child td { border-bottom: none; }
+    .prod-name { font-weight: 600; color: var(--black); }
+    .prod-cat { font-family: var(--mono); font-size: 0.72rem; color: var(--gray-400); }
+    .brand-tag { display: inline-block; font-size: 0.66rem; font-weight: 700; color: var(--tf-blue); background: #EAF2FB; border: 1px solid #D3E3F5; border-radius: 999px; padding: 0.1rem 0.5rem; margin-top: 0.2rem; }
+    .cold-tag { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.66rem; font-weight: 700; color: #0E7490; background: #ECFEFF; border: 1px solid #A5F3FC; border-radius: 999px; padding: 0.1rem 0.5rem; margin-top: 0.2rem; }
+    .price { font-weight: 700; color: var(--black); white-space: nowrap; }
+
+    .order-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px; box-shadow: var(--shadow-sm); padding: 1.75rem; position: sticky; top: 1rem; }
+    .order-card h2 { font-size: 1.1rem; font-weight: 700; color: var(--black); margin-bottom: 1.1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--tf-red); display: inline-block; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.6rem 0.8rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 4px; color: var(--gray-800); font-family: var(--sans); font-size: 0.88rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--tf-red); box-shadow: 0 0 0 3px rgba(225,36,27,0.10); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .cart { border: 1px solid var(--gray-200); border-radius: 6px; margin-bottom: 1rem; overflow: hidden; }
+    .cart-line { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.55rem 0.8rem; font-size: 0.8rem; border-bottom: 1px solid var(--gray-100); }
+    .cart-line:last-child { border-bottom: none; }
+    .cart-line .li-name { color: var(--gray-700); }
+    .cart-line .li-cat { font-family: var(--mono); font-size: 0.68rem; color: var(--gray-400); }
+    .cart-line .li-qty { color: var(--gray-500); font-size: 0.74rem; }
+    .btn-order { width: 100%; padding: 0.85rem; background: var(--tf-red); color: #fff; border: none; border-radius: 4px; font-size: 0.92rem; font-weight: 700; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-order:hover { background: var(--tf-red-dark); transform: translateY(-1px); }
+    .btn-order:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 4px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 1.25rem; padding: 0.7rem 1rem; background: var(--tint); border-left: 3px solid var(--tf-red); font-size: 0.76rem; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+  <div class="top-bar"><span class="acct">Welcome, Dr. Priya Raman &middot; Stanford University Core Lab</span><span class="links"><a href="#">Quotes</a><a href="#">Order History</a><a href="#">Support</a><a href="#">Sign Out</a></span></div>
+  <header>
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10v2.5l-3.2 5.1 4.7 9.1A2 2 0 0 1 16.7 22H7.3a2 2 0 0 1-1.8-3.3l4.7-9.1L7 4.5V2zm2 1v1.9l3 4.8 3-4.8V3H9z"/></svg></span>
+      <span class="wordmark">
+        <span class="name">Thermo Fisher</span>
+        <span class="sub">SCIENTIFIC &middot; Order Management</span>
+      </span>
+    </div>
+    <nav><a href="#">Products</a><a href="#" class="active">Quick Order</a><a href="#">Quotes</a><a href="#">Cold Chain</a><a href="#">Account</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+    <div class="greeting fade-in d1">
+      <h1>Lab Products &mdash; Quick Order</h1>
+      <p>Account ACCT-TF-90213 &middot; Net-30 Terms &middot; Punchout via Stanford eProcurement</p>
+    </div>
+
+    <div class="stats fade-in d2">
+      <div class="stat-card"><div class="stat-label">Open Orders</div><div class="stat-value">18</div><div class="stat-sub">4 awaiting cold-chain pickup</div></div>
+      <div class="stat-card"><div class="stat-label">Catalog SKUs</div><div class="stat-value">7</div><div class="stat-sub">Across 4 product lines</div></div>
+      <div class="stat-card"><div class="stat-label">Next-Day Coverage</div><div class="stat-value">98.2%</div><div class="stat-sub">From Frederick, MD DC</div></div>
+      <div class="stat-card"><div class="stat-label">YTD Spend</div><div class="stat-value">$214K</div><div class="stat-sub">vs. $182K budget</div></div>
+    </div>
+
+    <div class="layout">
+      <div class="fade-in d3">
+        <div class="section-header">Catalog</div>
+        <div class="catalog-card">
+          <table class="catalog-table">
+            <thead><tr><th>Product</th><th>Brand / Type</th><th>Unit Price</th></tr></thead>
+            <tbody id="catalogBody">
+              <tr><td colspan="3" style="color:var(--gray-400);padding:1.25rem 1rem;">Loading catalog&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="fade-in d4">
+        <div class="order-card">
+          <h2>Submit Purchase Order</h2>
+          <form id="orderForm">
+            <div class="form-row">
+              <div class="form-group"><label>PO Number</label><input type="text" id="poNumber" value="PO-784512"></div>
+              <div class="form-group"><label>Distribution Center</label><select id="distributionCenter"><option value="DC-FRMD">Frederick, MD (DC-FRMD)</option><option value="DC-GRND">Grand Island, NY (DC-GRND)</option><option value="DC-CARL">Carlsbad, CA (DC-CARL)</option><option value="DC-ROCK">Rockford, IL (DC-ROCK)</option></select></div>
+            </div>
+            <div class="form-group">
+              <label>Order Items</label>
+              <div class="cart" id="cart">
+                <div class="cart-line"><span><span class="li-name">Lipofectamine 2000</span><br><span class="li-cat">11668019</span></span><span class="li-qty">Qty 2</span></div>
+                <div class="cart-line"><span><span class="li-name">Alexa Fluor 660 Antibody</span><br><span class="li-cat">A14906</span></span><span class="li-qty">Qty 1</span></div>
+                <div class="cart-line"><span><span class="li-name">Penicillin-Streptomycin</span><br><span class="li-cat">15140122</span></span><span class="li-qty">Qty 4</span></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-order" id="submitBtn">Place Order</button>
+          </form>
+          <div id="result" class="result-box"></div>
+          <div class="security-note">Orders are subject to Thermo Fisher Scientific Terms of Sale. Cold-chain items ship on dry ice with temperature monitoring. Punchout session ID: SU-eProc-44192.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    /* Populate the catalog table */
+    fetch('/api/thermofisher/catalog')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var body = document.getElementById('catalogBody');
+        body.innerHTML = (d.products || []).map(function (p) {
+          var cold = p.coldChain ? '<span class="cold-tag">&#10052; Cold Chain</span>' : '';
+          return '<tr><td><span class="prod-name">' + p.name + '</span><br><span class="prod-cat">' + p.catalogNo + '</span></td>'
+            + '<td><span class="brand-tag">' + p.brand + '</span> ' + cold + '</td>'
+            + '<td class="price">$' + p.unitPrice.toFixed(2) + '</td></tr>';
+        }).join('');
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/thermofisher/order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            poNumber: document.getElementById('poNumber').value,
+            accountId: 'ACCT-TF-90213',
+            distributionCenter: document.getElementById('distributionCenter').value,
+            items: [
+              { catalogNo: '11668019', quantity: 2 },
+              { catalogNo: 'A14906', quantity: 1 },
+              { catalogNo: '15140122', quantity: 4 },
+            ],
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Order Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Order Submitted</div><div class="error-detail">${data.confirmation.orderId} &middot; ${data.confirmation.lineItems.length} items &middot; Total $${data.confirmation.total}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Place Order'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
