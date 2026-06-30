@@ -49,12 +49,13 @@ function computeEditionPricing(edition, seats) {
  * applied to the selected product edition.
  */
 function buildSavingsSummary(edition, pricing, modules) {
-  const seatDiscount = edition.promo.seatDiscount;
+  const promo = edition.promo || { seatDiscount: 0, label: 'Standard pricing' };
+  const seatDiscount = promo.seatDiscount;
   const bundleSavings = modules.reduce((sum, m) => sum + m.saves, 0);
   const promoSavings = seatDiscount * pricing.seatCount;
 
   return {
-    promoLabel: edition.promo.label,
+    promoLabel: promo.label,
     seatDiscount,
     promoSavings: Math.round(promoSavings * 100) / 100,
     bundleSavings,
@@ -194,4 +195,11 @@ async function processQuoteRequest(data) {
   }
 }
 
-module.exports = { processQuoteRequest, EDITIONS, MODULES };
+module.exports = {
+  processQuoteRequest,
+  buildSavingsSummary,
+  computeEditionPricing,
+  findEdition,
+  EDITIONS,
+  MODULES,
+};
