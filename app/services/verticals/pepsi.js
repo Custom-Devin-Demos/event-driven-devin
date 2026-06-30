@@ -190,6 +190,7 @@ async function processCheckout(orderData) {
       devinOrgId: orderData.devinOrgId,
       service: 'pepsi-ecommerce',
       verticalLabel: 'Pepsi Checkout',
+      customer: 'pepsi',
       tags: [
         { key: 'route', value: '/api/pepsi/checkout' },
         { key: 'service', value: 'pepsi-ecommerce' },
