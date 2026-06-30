@@ -51,12 +51,13 @@ function computePlanPricing(plan, term) {
  * applied to the selected plan tier.
  */
 function buildSavingsSummary(plan, pricing, solutions) {
-  const promoDiscount = plan.promo.monthlyDiscount;
+  const promo = plan.promo || { monthlyDiscount: 0, label: 'No current promotion' };
+  const promoDiscount = promo.monthlyDiscount;
   const bundleSavings = solutions.reduce((sum, s) => sum + s.saves, 0);
   const effectiveMonthly = pricing.monthly - promoDiscount;
 
   return {
-    promoLabel: plan.promo.label,
+    promoLabel: promo.label,
     promoDiscount,
     bundleSavings,
     effectiveMonthly: Math.round(effectiveMonthly * 100) / 100,
@@ -196,4 +197,4 @@ async function processQuoteRequest(data) {
   }
 }
 
-module.exports = { processQuoteRequest, PLANS, SOLUTIONS };
+module.exports = { processQuoteRequest, buildSavingsSummary, findPlan, computePlanPricing, PLANS, SOLUTIONS };
