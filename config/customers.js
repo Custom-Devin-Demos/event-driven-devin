@@ -256,6 +256,10 @@ const CUSTOMERS = {
     label: 'Pepsi',
     triggerMode: 'api',
   },
+  thermofisher: {
+    label: 'Thermo Fisher Scientific',
+    triggerMode: 'api',
+  },
 };
 
 /**
