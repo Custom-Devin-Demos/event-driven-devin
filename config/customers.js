@@ -135,6 +135,10 @@ const CUSTOMERS = {
     label: 'The Home Depot',
     triggerMode: 'api',
   },
+  oreilly: {
+    label: "O'Reilly Auto Parts",
+    triggerMode: 'api',
+  },
   lilly: {
     label: 'Eli Lilly',
     triggerMode: 'api',

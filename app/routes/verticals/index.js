@@ -45,6 +45,7 @@ const lingoRoutes = require('./lingo');
 const cocacolaRoutes = require('./cocacola');
 const targetRoutes = require('./target');
 const homedepotRoutes = require('./homedepot');
+const oreillyRoutes = require('./oreilly');
 const threatlyRoutes = require('./threatly');
 const customerB3587482Routes = require('./b3587482');
 const customerBbvaRoutes = require('./bbva');
@@ -119,6 +120,7 @@ router.use(lingoRoutes);
 router.use(cocacolaRoutes);
 router.use(targetRoutes);
 router.use(homedepotRoutes);
+router.use(oreillyRoutes);
 router.use(threatlyRoutes);
 router.use(customerB3587482Routes);
 router.use(customerBbvaRoutes);
@@ -172,6 +174,7 @@ const VERTICALS = [
   { id: 'timberland', name: 'Footwear & Apparel eCommerce', brand: 'Timberland', path: '/timberland', icon: '\u{1F97E}', color: '#a02822' },
   { id: 'lingo', name: 'Consumer Health & Wearables', brand: 'Lingo by Abbott', path: '/lingo', icon: '\u{1FA7A}', color: '#2e4aed' },
   { id: 'homedepot', name: 'Home Improvement Retail', brand: 'The Home Depot', path: '/homedepot', icon: '\u{1F528}', color: '#f96302' },
+  { id: 'oreilly', name: 'Auto Parts eCommerce', brand: "O'Reilly Auto Parts", path: '/oreilly', icon: '\u{1F697}', color: '#007934' },
   { id: 'threatly', name: 'Security Automation', brand: 'Threatly', path: '/threatly', icon: '\u{26A1}', color: '#7c3aed' },
   { id: 'b3587482', name: 'Catering', brand: 'Chick-fil-A', path: '/b3587482', icon: '\u{1F414}', color: '#E51636' },
   { id: 'bestbuy', name: 'Retail Supply Chain', brand: 'Best Buy', path: '/bestbuy', icon: '\u{1F3F7}\u{FE0F}', color: '#0046BE' },
@@ -209,7 +212,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'timberland', 'lingo', 'homedepot', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola', 'target', 'bnsf', 'avis', 'optumrx', 'loblaw', 'walgreens', 'macys', 'tdbank', 'keybank', '17dd6f6f', '08381313', 'athenahealth', 'scotiabank', 'scotiabankchile', '4ada28b9', 'bankofamerica', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', 'pepsi'];
+const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'timberland', 'lingo', 'homedepot', 'oreilly', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola', 'target', 'bnsf', 'avis', 'optumrx', 'loblaw', 'walgreens', 'macys', 'tdbank', 'keybank', '17dd6f6f', '08381313', 'athenahealth', 'scotiabank', 'scotiabankchile', '4ada28b9', 'bankofamerica', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', 'pepsi'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
