@@ -52,12 +52,13 @@ function computeLeasePricing(equipment, term) {
  * reduction applied to the selected equipment line.
  */
 function buildSavingsSummary(equipment, pricing, support) {
-  const rateReduction = equipment.promo.rateReduction;
+  const promo = equipment.promo;
+  const rateReduction = promo ? promo.rateReduction : 0;
   const bundleSavings = support.reduce((sum, s) => sum + s.saves, 0);
   const rateSavings = (pricing.listPrice * (rateReduction / 100));
 
   return {
-    promoLabel: equipment.promo.label,
+    promoLabel: promo ? promo.label : 'No promotion',
     rateReduction,
     rateSavings: Math.round(rateSavings * 100) / 100,
     bundleSavings,
@@ -197,4 +198,4 @@ async function processQuoteRequest(data) {
   }
 }
 
-module.exports = { processQuoteRequest, EQUIPMENT, SUPPORT };
+module.exports = { processQuoteRequest, buildSavingsSummary, EQUIPMENT, SUPPORT };
