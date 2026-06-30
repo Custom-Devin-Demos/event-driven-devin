@@ -50,12 +50,13 @@ function computeCardPricing(card, term) {
  * applied to the selected card product.
  */
 function buildSavingsSummary(card, pricing, benefits) {
-  const waivedMonths = card.promo.monthsWaived;
+  const promo = card.promo || { monthsWaived: 0, label: null };
+  const waivedMonths = promo.monthsWaived;
   const bundleSavings = benefits.reduce((sum, b) => sum + b.saves, 0);
   const promoSavings = (card.annualFee / 12) * waivedMonths;
 
   return {
-    promoLabel: card.promo.label,
+    promoLabel: promo.label,
     waivedMonths,
     promoSavings: Math.round(promoSavings * 100) / 100,
     bundleSavings,
@@ -195,4 +196,4 @@ async function processCardRequest(data) {
   }
 }
 
-module.exports = { processCardRequest, CARDS, BENEFITS };
+module.exports = { processCardRequest, buildSavingsSummary, findCard, CARDS, BENEFITS };
