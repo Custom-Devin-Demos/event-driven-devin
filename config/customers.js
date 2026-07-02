@@ -212,7 +212,7 @@ const CUSTOMERS = {
     triggerMode: 'api',
   },
   'df3f450c': {
-    label: 'df3f450c',
+    label: 'athenahealth',
     triggerMode: 'api',
   },
   'e433d32d': {
