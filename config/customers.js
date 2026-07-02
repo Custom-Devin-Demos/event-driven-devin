@@ -111,59 +111,59 @@ const CUSTOMERS = {
     label: 'Chick-fil-A',
     triggerMode: 'api',
   },
-  levis: {
+  '46d4846d': {
     label: "Levi's",
     triggerMode: 'api',
   },
-  timberland: {
+  'cba5be2d': {
     label: 'Timberland',
     triggerMode: 'api',
   },
-  lingo: {
+  '696ecb91': {
     label: 'Lingo by Abbott',
     triggerMode: 'api',
   },
-  cocacola: {
+  '74124a39': {
     label: 'Coca-Cola',
     triggerMode: 'api',
   },
-  target: {
+  '91fe5a5f': {
     label: 'Target',
     triggerMode: 'api',
   },
-  homedepot: {
+  'eb2f4ad1': {
     label: 'The Home Depot',
     triggerMode: 'api',
   },
-  oreilly: {
+  'a131fea3': {
     label: "O'Reilly Auto Parts",
     triggerMode: 'api',
   },
-  lilly: {
+  '8096ad15': {
     label: 'Eli Lilly',
     triggerMode: 'api',
   },
-  bbva: {
+  '4886afe1': {
     label: 'BBVA Banking',
     triggerMode: 'api',
   },
-  bestbuy: {
+  '6074332d': {
     label: 'Best Buy',
     triggerMode: 'api',
   },
-  sysco: {
+  'eb3df102': {
     label: 'Sysco',
     triggerMode: 'api',
   },
-  vfc: {
+  'f9296fb3': {
     label: 'VF Corporation',
     triggerMode: 'api',
   },
-  visa: {
+  '3699f348': {
     label: 'Visa',
     triggerMode: 'api',
   },
-  spglobal: {
+  '8491be2c': {
     label: 'S&P Global',
     triggerMode: 'api',
   },
@@ -171,35 +171,35 @@ const CUSTOMERS = {
     label: 'Customer 841A',
     triggerMode: 'api',
   },
-  bnsf: {
+  '6f543fa2': {
     label: 'BNSF Railway',
     triggerMode: 'api',
   },
-  avis: {
+  'f91c0df3': {
     label: 'Avis',
     triggerMode: 'api',
   },
-  optumrx: {
+  '058419ac': {
     label: 'Optum Rx',
     triggerMode: 'api',
   },
-  loblaw: {
+  'f5a355e7': {
     label: 'Loblaws',
     triggerMode: 'api',
   },
-  walgreens: {
+  'b683fdf3': {
     label: 'Walgreens',
     triggerMode: 'api',
   },
-  macys: {
+  '0141c475': {
     label: "Macy's",
     triggerMode: 'api',
   },
-  tdbank: {
+  '8d933e67': {
     label: 'TD Bank',
     triggerMode: 'api',
   },
-  keybank: {
+  'ac1752e4': {
     label: 'KeyBank',
     triggerMode: 'api',
   },
@@ -211,15 +211,15 @@ const CUSTOMERS = {
     label: 'Customer 0838',
     triggerMode: 'api',
   },
-  athenahealth: {
-    label: 'athenahealth',
+  'df3f450c': {
+    label: 'df3f450c',
     triggerMode: 'api',
   },
-  scotiabank: {
+  'e433d32d': {
     label: 'Scotiabank',
     triggerMode: 'api',
   },
-  scotiabankchile: {
+  '16ebec74': {
     label: 'Scotiabank Chile',
     triggerMode: 'api',
   },
@@ -227,7 +227,7 @@ const CUSTOMERS = {
     label: 'Customer 4ADA',
     triggerMode: 'api',
   },
-  bankofamerica: {
+  'a8585092': {
     label: 'Bank of America',
     triggerMode: 'api',
   },
@@ -256,11 +256,11 @@ const CUSTOMERS = {
     triggerMode: 'api',
     githubOrg: 'COG-GTM',
   },
-  pepsi: {
+  '12b28f14': {
     label: 'Pepsi',
     triggerMode: 'api',
   },
-  thermofisher: {
+  '220cee45': {
     label: 'Thermo Fisher Scientific',
     triggerMode: 'api',
   },

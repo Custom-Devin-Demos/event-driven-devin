@@ -37,47 +37,47 @@ const customer766718e2Routes = require('./766718e2');
 const customerC4a8e2b7Routes = require('./c4a8e2b7');
 const customer7d2e9f4aRoutes = require('./7d2e9f4a');
 const customerC65e3d81Routes = require('./c65e3d81');
-const marsRoutes = require('./mars');
-const lillyRoutes = require('./lilly');
-const levisRoutes = require('./levis');
-const timberlandRoutes = require('./timberland');
-const lingoRoutes = require('./lingo');
-const cocacolaRoutes = require('./cocacola');
-const targetRoutes = require('./target');
-const homedepotRoutes = require('./homedepot');
-const oreillyRoutes = require('./oreilly');
-const threatlyRoutes = require('./threatly');
+const customer20cd1314Routes = require('./20cd1314');
+const customer8096ad15Routes = require('./8096ad15');
+const customer46d4846dRoutes = require('./46d4846d');
+const customerCba5be2dRoutes = require('./cba5be2d');
+const customer696ecb91Routes = require('./696ecb91');
+const customer74124a39Routes = require('./74124a39');
+const customer91fe5a5fRoutes = require('./91fe5a5f');
+const customerEb2f4ad1Routes = require('./eb2f4ad1');
+const customerA131fea3Routes = require('./a131fea3');
+const customer3a224949Routes = require('./3a224949');
 const customerB3587482Routes = require('./b3587482');
-const customerBbvaRoutes = require('./bbva');
-const bestbuyRoutes = require('./bestbuy');
-const syscoRoutes = require('./sysco');
-const vfcRoutes = require('./vfc');
-const visaRoutes = require('./visa');
-const spglobalRoutes = require('./spglobal');
+const customer4886afe1Routes = require('./4886afe1');
+const customer6074332dRoutes = require('./6074332d');
+const customerEb3df102Routes = require('./eb3df102');
+const customerF9296fb3Routes = require('./f9296fb3');
+const customer3699f348Routes = require('./3699f348');
+const customer8491be2cRoutes = require('./8491be2c');
 const customer841afdc1Routes = require('./841afdc1');
-const bnsfRoutes = require('./bnsf');
-const avisRoutes = require('./avis');
-const optumrxRoutes = require('./optumrx');
-const loblawRoutes = require('./loblaw');
-const walgreensRoutes = require('./walgreens');
-const macysRoutes = require('./macys');
-const tdbankRoutes = require('./tdbank');
-const keybankRoutes = require('./keybank');
+const customer6f543fa2Routes = require('./6f543fa2');
+const customerF91c0df3Routes = require('./f91c0df3');
+const customer058419acRoutes = require('./058419ac');
+const customerF5a355e7Routes = require('./f5a355e7');
+const customerB683fdf3Routes = require('./b683fdf3');
+const customer0141c475Routes = require('./0141c475');
+const customer8d933e67Routes = require('./8d933e67');
+const customerAc1752e4Routes = require('./ac1752e4');
 const customer17dd6f6fRoutes = require('./17dd6f6f');
 const customer08381313Routes = require('./08381313');
-const athenahealthRoutes = require('./athenahealth');
-const scotiabankRoutes = require('./scotiabank');
-const scotiabankchileRoutes = require('./scotiabankchile');
+const customerDf3f450cRoutes = require('./df3f450c');
+const customerE433d32dRoutes = require('./e433d32d');
+const customer16ebec74Routes = require('./16ebec74');
 const customer4ada28b9Routes = require('./4ada28b9');
-const bankofamericaRoutes = require('./bankofamerica');
+const customerA8585092Routes = require('./a8585092');
 const customerAd960e6aRoutes = require('./ad960e6a');
 const customer054f8313Routes = require('./054f8313');
 const customer91e30701Routes = require('./91e30701');
 const customerC35ea2e0Routes = require('./c35ea2e0');
 const customer382b34fcRoutes = require('./382b34fc');
 const customer8b5893cbRoutes = require('./8b5893cb');
-const pepsiRoutes = require('./pepsi');
-const thermofisherRoutes = require('./thermofisher');
+const customer12b28f14Routes = require('./12b28f14');
+const customer220cee45Routes = require('./220cee45');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -113,47 +113,47 @@ router.use(customer766718e2Routes);
 router.use(customerC4a8e2b7Routes);
 router.use(customer7d2e9f4aRoutes);
 router.use(customerC65e3d81Routes);
-router.use(marsRoutes);
-router.use(lillyRoutes);
-router.use(levisRoutes);
-router.use(timberlandRoutes);
-router.use(lingoRoutes);
-router.use(cocacolaRoutes);
-router.use(targetRoutes);
-router.use(homedepotRoutes);
-router.use(oreillyRoutes);
-router.use(threatlyRoutes);
+router.use(customer20cd1314Routes);
+router.use(customer8096ad15Routes);
+router.use(customer46d4846dRoutes);
+router.use(customerCba5be2dRoutes);
+router.use(customer696ecb91Routes);
+router.use(customer74124a39Routes);
+router.use(customer91fe5a5fRoutes);
+router.use(customerEb2f4ad1Routes);
+router.use(customerA131fea3Routes);
+router.use(customer3a224949Routes);
 router.use(customerB3587482Routes);
-router.use(customerBbvaRoutes);
-router.use(bestbuyRoutes);
-router.use(syscoRoutes);
-router.use(vfcRoutes);
-router.use(visaRoutes);
-router.use(spglobalRoutes);
+router.use(customer4886afe1Routes);
+router.use(customer6074332dRoutes);
+router.use(customerEb3df102Routes);
+router.use(customerF9296fb3Routes);
+router.use(customer3699f348Routes);
+router.use(customer8491be2cRoutes);
 router.use(customer841afdc1Routes);
-router.use(bnsfRoutes);
-router.use(avisRoutes);
-router.use(optumrxRoutes);
-router.use(loblawRoutes);
-router.use(walgreensRoutes);
-router.use(macysRoutes);
-router.use(tdbankRoutes);
-router.use(keybankRoutes);
+router.use(customer6f543fa2Routes);
+router.use(customerF91c0df3Routes);
+router.use(customer058419acRoutes);
+router.use(customerF5a355e7Routes);
+router.use(customerB683fdf3Routes);
+router.use(customer0141c475Routes);
+router.use(customer8d933e67Routes);
+router.use(customerAc1752e4Routes);
 router.use(customer17dd6f6fRoutes);
 router.use(customer08381313Routes);
-router.use(athenahealthRoutes);
-router.use(scotiabankRoutes);
-router.use(scotiabankchileRoutes);
+router.use(customerDf3f450cRoutes);
+router.use(customerE433d32dRoutes);
+router.use(customer16ebec74Routes);
 router.use(customer4ada28b9Routes);
-router.use(bankofamericaRoutes);
+router.use(customerA8585092Routes);
 router.use(customerAd960e6aRoutes);
 router.use(customer054f8313Routes);
 router.use(customer91e30701Routes);
 router.use(customerC35ea2e0Routes);
 router.use(customer382b34fcRoutes);
 router.use(customer8b5893cbRoutes);
-router.use(pepsiRoutes);
-router.use(thermofisherRoutes);
+router.use(customer12b28f14Routes);
+router.use(customer220cee45Routes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -168,40 +168,6 @@ const VERTICALS = [
   { id: 'industrials', name: 'Industrials', brand: 'Titan Manufacturing', path: '/industrials', icon: '\u{1F3ED}', color: '#6C757D' },
   { id: 'healthcare', name: 'Health Care', brand: 'CarePoint Health', path: '/healthcare', icon: '\u{1F3E5}', color: '#06D6A0' },
   { id: 'telco', name: 'Telco', brand: 'WaveConnect', path: '/telco', icon: '\u{1F4F1}', color: '#118AB2' },
-  { id: '8de4a567', name: 'Financial Technology', brand: 'FinScore', path: '/8de4a567', icon: '\u{1F4B3}', color: '#008751' },
-  { id: 'c65e3d81', name: 'Health Insurance', brand: 'CVS Health', path: '/c65e3d81', icon: '\u{2764}\u{FE0F}', color: '#CC0000' },
-  { id: 'mars', name: 'Supply Chain', brand: 'Mars, Inc.', path: '/mars', icon: '\u{1F4E6}', color: '#002855' },
-  { id: 'lilly', name: 'Pharma Supply Chain', brand: 'Eli Lilly', path: '/lilly', icon: '\u{1F48A}', color: '#E1241B' },
-  { id: 'levis', name: 'Apparel eCommerce', brand: "Levi's", path: '/levis', icon: '\u{1F456}', color: '#c41230' },
-  { id: 'timberland', name: 'Footwear & Apparel eCommerce', brand: 'Timberland', path: '/timberland', icon: '\u{1F97E}', color: '#a02822' },
-  { id: 'lingo', name: 'Consumer Health & Wearables', brand: 'Lingo by Abbott', path: '/lingo', icon: '\u{1FA7A}', color: '#2e4aed' },
-  { id: 'homedepot', name: 'Home Improvement Retail', brand: 'The Home Depot', path: '/homedepot', icon: '\u{1F528}', color: '#f96302' },
-  { id: 'oreilly', name: 'Auto Parts eCommerce', brand: "O'Reilly Auto Parts", path: '/oreilly', icon: '\u{1F697}', color: '#007934' },
-  { id: 'threatly', name: 'Security Automation', brand: 'Threatly', path: '/threatly', icon: '\u{26A1}', color: '#7c3aed' },
-  { id: 'b3587482', name: 'Catering', brand: 'Chick-fil-A', path: '/b3587482', icon: '\u{1F414}', color: '#E51636' },
-  { id: 'bestbuy', name: 'Retail Supply Chain', brand: 'Best Buy', path: '/bestbuy', icon: '\u{1F3F7}\u{FE0F}', color: '#0046BE' },
-  { id: 'sysco', name: 'Foodservice Supply Chain', brand: 'Sysco', path: '/sysco', icon: '\u{1F371}', color: '#0071CE' },
-  { id: 'vfc', name: 'Outdoor & Apparel eCommerce', brand: 'VF Corporation', path: '/vfc', icon: '\u{1F9E5}', color: '#13294b' },
-  { id: 'visa', name: 'Payments & Acceptance', brand: 'Visa', path: '/visa', icon: '\u{1F4B3}', color: '#1434CB' },
-  { id: 'spglobal', name: 'Financial Data & Analytics', brand: 'S&P Global', path: '/spglobal', icon: '\u{1F4CA}', color: '#E01E26' },
-  { id: 'cocacola', name: 'Beverage eCommerce', brand: 'Coca-Cola', path: '/cocacola', icon: '\u{1F964}', color: '#F40000' },
-  { id: 'target', name: 'General Merchandise Retail', brand: 'Target', path: '/target', icon: '\u{1F3AF}', color: '#CC0000' },
-  { id: 'bnsf', name: 'Freight Rail Logistics', brand: 'BNSF Railway', path: '/bnsf', icon: '\u{1F686}', color: '#f26722' },
-  { id: 'avis', name: 'Car Rental', brand: 'Avis', path: '/avis', icon: '\u{1F697}', color: '#D4002A' },
-  { id: 'optumrx', name: 'Pharmacy Benefits', brand: 'Optum Rx', path: '/optumrx', icon: '\u{1F48A}', color: '#ff612b' },
-  { id: 'loblaw', name: 'Online Grocery', brand: 'Loblaws', path: '/loblaw', icon: '\u{1F6D2}', color: '#e87722' },
-  { id: 'walgreens', name: 'Pharmacy & Wellness Retail', brand: 'Walgreens', path: '/walgreens', icon: '\u{1F48A}', color: '#e31837' },
-  { id: 'macys', name: 'Department Store eCommerce', brand: "Macy's", path: '/macys', icon: '\u{2B50}', color: '#e21a2c' },
-  { id: 'tdbank', name: 'Consumer Payments', brand: 'TD Bank', path: '/tdbank', icon: '\u{1F4B8}', color: '#54B848' },
-  { id: 'keybank', name: 'Consumer Payments & Zelle', brand: 'KeyBank', path: '/keybank', icon: '\u{1F511}', color: '#CC0000' },
-  { id: 'athenahealth', name: 'EHR & Referral Management', brand: 'athenahealth', path: '/athenahealth', icon: '\u{1F3E5}', color: '#622fb4' },
-  { id: 'scotiabank', name: 'Online Banking & e-Transfers', brand: 'Scotiabank', path: '/scotiabank', icon: '\u{1F3E6}', color: '#EC111A' },
-  { id: 'scotiabankchile', name: 'Banca en Línea & Transferencias', brand: 'Scotiabank Chile', path: '/scotiabankchile', icon: '\u{1F3E6}', color: '#EC111A' },
-  { id: 'bankofamerica', name: 'Consumer Banking & Zelle', brand: 'Bank of America', path: '/bankofamerica', icon: '\u{1F3E6}', color: '#E31837' },
-  { id: '8b5893cb', name: 'Asset & Wealth Management', brand: 'T. Rowe Price', path: '/8b5893cb', icon: '\u{1F4BC}', color: '#FF6A13' },
-  { id: 'pepsi', name: 'Beverage eCommerce', brand: 'Pepsi', path: '/pepsi', icon: '\u{1F964}', color: '#0000FE' },
-  { id: 'thermofisher', name: 'Life Sciences eCommerce', brand: 'Thermo Fisher Scientific', path: '/thermofisher', icon: '\u{1F9EA}', color: '#E1241B' },
-
 ];
 
 /**
@@ -215,7 +181,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', 'mars', 'lilly', 'levis', 'timberland', 'lingo', 'homedepot', 'oreilly', 'threatly', 'b3587482', 'bbva', 'bestbuy', 'sysco', 'vfc', 'visa', 'spglobal', '841afdc1', 'cocacola', 'target', 'bnsf', 'avis', 'optumrx', 'loblaw', 'walgreens', 'macys', 'tdbank', 'keybank', '17dd6f6f', '08381313', 'athenahealth', 'scotiabank', 'scotiabankchile', '4ada28b9', 'bankofamerica', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', 'pepsi', 'thermofisher'];
+const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
