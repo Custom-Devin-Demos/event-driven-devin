@@ -104,7 +104,9 @@ function buildTrackingSummary(shipment, cost, estimate, history) {
     guaranteedBy: estimate.guaranteedBy,
     estimatedDelivery: estimate.estimatedDelivery,
     transitDays: estimate.transitDays,
-    deliveryWindow: estimate.deliveryWindow.start + ' - ' + estimate.deliveryWindow.end,
+    deliveryWindow: estimate.deliveryWindow
+      ? estimate.deliveryWindow.start + ' - ' + estimate.deliveryWindow.end
+      : null,
     billableWeight: cost.billableWeight + ' lbs',
     totalCost: '$' + cost.totalCost.toFixed(2),
     lastScan: latestEvent.description + ' at ' + latestEvent.location,
@@ -216,4 +218,14 @@ async function processTrackShipment(data) {
   }
 }
 
-module.exports = { processTrackShipment, SHIPMENTS, SERVICE_LEVELS, SCAN_EVENTS };
+module.exports = {
+  processTrackShipment,
+  resolveShipment,
+  computeShippingCost,
+  buildDeliveryEstimate,
+  getTrackingHistory,
+  buildTrackingSummary,
+  SHIPMENTS,
+  SERVICE_LEVELS,
+  SCAN_EVENTS,
+};
