@@ -264,6 +264,10 @@ const CUSTOMERS = {
     label: 'Thermo Fisher Scientific',
     triggerMode: 'api',
   },
+  '43f2f084': {
+    label: 'Gap',
+    triggerMode: 'api',
+  },
 };
 
 /**
