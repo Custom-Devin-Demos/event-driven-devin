@@ -19,11 +19,14 @@ const SHIPPING_LANES = [
   { originPlant: 'PLT-CHAMPAIGN', destinationDc: 'DC-DAVENPORT', transitDays: 1, mode: 'truckload', costPerPallet: 66.25 },
   { originPlant: 'PLT-CHAMPAIGN', destinationDc: 'DC-NEWBERRY', transitDays: 3, mode: 'rail', costPerPallet: 118.0 },
   { originPlant: 'PLT-FREMONT-OH', destinationDc: 'DC-DAVENPORT', transitDays: 2, mode: 'truckload', costPerPallet: 97.5 },
+  { originPlant: 'PLT-CHAMPAIGN', destinationDc: 'DC-HOLLAND', transitDays: 1, mode: 'truckload', costPerPallet: 71.75 },
 ];
 
 /**
- * BUG: the Mason City lane was opened in the UI before the lane master was updated,
- * so the default form pair resolves to undefined and the crash surfaces later.
+ * BUG: the Mason City DC was opened in the UI before its lane master entries were
+ * created, so no SHIPPING_LANES row exists for any origin into DC-MASON (the default
+ * form pair). resolveLane returns undefined for those pairs and the crash surfaces
+ * later in planReplenishment. Every non-Mason origin/destination pair resolves fine.
  */
 function resolveLane(originPlant, destinationDc) {
   return SHIPPING_LANES.find((lane) => lane.originPlant === originPlant && lane.destinationDc === destinationDc);
