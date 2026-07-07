@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kraft Heinz &mdash; Global Supply Chain Operations</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    :root {
+      --navy: #1D3C6D;
+      --red: #E32726;
+      --red-dark: #c71f1f;
+      --bg: #eef1f5;
+      --panel: #ffffff;
+      --line: #c7ced9;
+      --line-2: #d8dee8;
+      --text: #273142;
+      --muted: #5d6878;
+      --good-bg: #edf8ef;
+      --good: #176b2b;
+      --low-bg: #fff7e0;
+      --low: #8c6500;
+      --crit-bg: #fff0f0;
+      --crit: #a31d1d;
+      --shadow: none;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 12px; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 256px 1fr; }
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid var(--line);
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .brand { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px 8px; border-bottom: 1px solid var(--line-2); }
+    .brand-mark { display: inline-flex; align-items: center; gap: 0; font-weight: 800; letter-spacing: -0.02em; font-size: 1rem; }
+    .brand-mark .kraft { color: var(--navy); }
+    .brand-mark .divider { width: 1px; height: 16px; background: #b4bfd0; margin: 0 6px; }
+    .brand-mark .heinz { color: var(--red); }
+    .brand-tag { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+    .nav-group { display: grid; gap: 4px; }
+    .nav-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); font-weight: 700; padding: 4px 8px; }
+    .nav-item {
+      padding: 8px 9px;
+      border-radius: 3px;
+      color: #364152;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover { background: #f3f5f8; border-color: #dbe0e9; }
+    .nav-item.active { background: #eef2f8; border-color: #ccd6e4; color: var(--red); }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; background: #c8d0dd; }
+    .nav-item.active .nav-dot { background: var(--red); }
+
+    .content { display: flex; flex-direction: column; min-width: 0; }
+    .topbar {
+      height: 72px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px 0 20px;
+      box-shadow: none;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .app-title { font-size: 1rem; font-weight: 700; color: #12223f; white-space: nowrap; }
+    .subtle { font-size: .78rem; color: var(--muted); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .env-badge {
+      border: 1px solid rgba(227,39,38,.2);
+      background: rgba(227,39,38,.09);
+      color: var(--red);
+      font-weight: 800;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      border-radius: 3px;
+      padding: 5px 8px;
+    }
+    .user-chip {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 3px;
+      padding: 6px 10px;
+      color: #344054;
+      font-size: .82rem;
+      font-weight: 600;
+      box-shadow: none;
+    }
+
+    .main { padding: 18px; display: grid; gap: 14px; }
+    .hero {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 16px 16px 14px;
+      box-shadow: none;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .hero h1 { margin: 0; font-size: 1.2rem; line-height: 1.2; }
+    .hero p { margin: 7px 0 0; color: var(--muted); font-size: .92rem; max-width: 68ch; }
+    .hero-kpis { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+    .kpi-pill {
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 6px 10px;
+      background: #fff;
+      font-size: .82rem;
+      color: #344054;
+      font-weight: 700;
+    }
+    .kpi-pill strong { font-family: var(--mono); font-size: .9em; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      box-shadow: none;
+    }
+    .stat { padding: 14px 14px 12px; }
+    .stat .label { color: var(--muted); font-size: .69rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; }
+    .stat .value { font-size: 1.55rem; font-weight: 800; margin-top: 6px; color: #111827; }
+    .stat .sub { margin-top: 4px; color: var(--muted); font-size: .82rem; }
+
+    .grid { display: grid; grid-template-columns: 1.25fr .95fr; gap: 12px; align-items: start; }
+    .section-title {
+      margin: 0 0 12px;
+      font-size: .9rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: #25324b;
+    }
+    .panel { padding: 14px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--muted);
+      background: #eef2f7;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 10px;
+    }
+    tbody td {
+      border-bottom: 1px solid var(--line-2);
+      padding: 8px 10px;
+      vertical-align: top;
+      font-size: .88rem;
+    }
+    tbody tr:hover td { background: #f6f8fb; }
+    tbody tr:last-child td { border-bottom: none; }
+    .code { font-family: var(--mono); font-weight: 700; font-size: .82rem; color: #263248; }
+    .name { font-weight: 700; color: #1f2a44; }
+    .region { color: var(--muted); font-size: .8rem; }
+    .num { font-family: var(--mono); font-weight: 700; text-align: right; white-space: nowrap; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 2px;
+      padding: 2px 7px;
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      border: 1px solid transparent;
+    }
+    .status.optimal { background: var(--good-bg); color: var(--good); border-color: #b9d8bf; }
+    .status.low { background: var(--low-bg); color: var(--low); border-color: #d7c48c; }
+    .status.critical { background: var(--crit-bg); color: var(--crit); border-color: #f0b4b4; }
+    .empty { color: var(--muted); padding: 10px 10px; }
+
+    .form-grid { display: grid; gap: 10px; }
+    .field { display: grid; gap: 5px; }
+    .field label { font-size: .72rem; font-weight: 800; color: #475467; text-transform: uppercase; letter-spacing: .08em; }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid #cfd7e3;
+      background: #fff;
+      border-radius: 3px;
+      padding: 8px 10px;
+      color: #111827;
+      outline: none;
+      transition: none;
+    }
+    .field input:focus, .field select:focus {
+      border-color: rgba(227,39,38,.6);
+      box-shadow: none;
+    }
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .button-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+    .primary {
+      appearance: none;
+      border: none;
+      border-radius: 3px;
+      background: var(--red);
+      color: #fff;
+      font-weight: 800;
+      padding: 10px 14px;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: none;
+      transition: none;
+    }
+    .primary:hover { background: var(--red-dark); }
+    .primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    .helper {
+      margin-top: 10px;
+      border: 1px solid #cfd7e3;
+      background: #fafbfd;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 3px;
+      font-size: .82rem;
+      line-height: 1.45;
+    }
+    .result {
+      margin-top: 10px;
+      display: none;
+      border-radius: 3px;
+      padding: 10px 12px;
+      font-size: .88rem;
+      border: 1px solid #cfd7e3;
+    }
+    .result.error { display: block; background: #fff3f2; border-color: #f4c2be; color: #9d1f1f; }
+    .result.success { display: block; background: #edf9f0; border-color: #c9ead2; color: #146a37; }
+    .result .title { font-weight: 800; margin-bottom: 4px; }
+    .result .detail { font-family: var(--mono); word-break: break-word; font-size: .8rem; }
+
+    @media (max-width: 1100px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--line); }
+      .stats, .grid { grid-template-columns: 1fr; }
+      .topbar, .hero { flex-direction: column; align-items: flex-start; height: auto; }
+      .topbar { padding-top: 14px; padding-bottom: 14px; gap: 10px; }
+    }
+</style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-label="Kraft Heinz">
+          <span class="kraft">Kraft</span><span class="divider"></span><span class="heinz">Heinz</span>
+        </div>
+        <div class="brand-tag">SCM</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-label">Operations</div>
+        <a class="nav-item" href="#"><span class="nav-dot"></span>Dashboard</a>
+        <a class="nav-item active" href="#"><span class="nav-dot"></span>Replenishment</a>
+        <a class="nav-item" href="#"><span class="nav-dot"></span>Inventory</a>
+        <a class="nav-item" href="#"><span class="nav-dot"></span>Suppliers</a>
+        <a class="nav-item" href="#"><span class="nav-dot"></span>Logistics</a>
+        <a class="nav-item" href="#"><span class="nav-dot"></span>Reports</a>
+      </div>
+    </aside>
+
+    <div class="content">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div>
+            <div class="app-title">Global Supply Chain Operations</div>
+            <div class="subtle">Daily exception monitoring · network planning · order release</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="env-badge">PROD</span>
+          <span class="user-chip">m.alvarez@kraftheinz.com · Supply Chain Planner</span>
+        </div>
+      </div>
+
+      <main class="main">
+        <section class="hero">
+          <div>
+            <h1>Kraft Heinz Replenishment Command Center</h1>
+            <p>Internal network view for planners managing fill-rate, inventory positions, and replenishment releases across the North America tomato, condiment, and shelf-stable portfolio.</p>
+          </div>
+          <div class="hero-kpis">
+            <span class="kpi-pill">Planning Horizon <strong>14d</strong></span>
+            <span class="kpi-pill">Wave Cutoff <strong>16:30 CT</strong></span>
+            <span class="kpi-pill">Service Level Target <strong>98.5%</strong></span>
+          </div>
+        </section>
+
+        <section class="stats">
+          <div class="card stat"><div class="label">Network Fill Rate</div><div class="value">96.4%</div><div class="sub">vs. 95.0% threshold</div></div>
+          <div class="card stat"><div class="label">On-Time-In-Full</div><div class="value">92.1%</div><div class="sub">North America distribution</div></div>
+          <div class="card stat"><div class="label">Avg Lead Time</div><div class="value">6.3 days</div><div class="sub">Plant to regional DC</div></div>
+          <div class="card stat"><div class="label">Open POs</div><div class="value">148</div><div class="sub">18 require expediting</div></div>
+        </section>
+
+        <section class="grid">
+          <div class="card panel">
+            <h2 class="section-title">Distribution Network</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Node</th>
+                  <th>Region</th>
+                  <th style="text-align:right;">On-hand Units</th>
+                  <th style="text-align:right;">Days of Supply</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="networkBody">
+                <tr><td class="empty" colspan="6">Loading distribution network…</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card panel">
+            <h2 class="section-title">Release Replenishment Order</h2>
+            <form id="replenishmentForm" class="form-grid">
+              <div class="two-col">
+                <div class="field">
+                  <label for="originPlant">Origin Plant</label>
+                  <select id="originPlant" name="originPlant">
+                    <option value="PLT-FREMONT-OH" selected>PLT-FREMONT-OH · Fremont, OH</option>
+                    <option value="PLT-CHAMPAIGN">PLT-CHAMPAIGN · Champaign, IL</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="destinationDc">Destination DC</label>
+                  <select id="destinationDc" name="destinationDc">
+                    <option value="DC-MASON" selected>DC-MASON · Mason City, IA</option>
+                    <option value="DC-HOLLAND">DC-HOLLAND · Holland, MI</option>
+                    <option value="DC-DAVENPORT">DC-DAVENPORT · Davenport, IA</option>
+                    <option value="DC-NEWBERRY">DC-NEWBERRY · Newberry, SC</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="sku">SKU</label>
+                <input id="sku" name="sku" value="HEINZ-KETCHUP-32OZ" />
+              </div>
+              <div class="field">
+                <label for="quantity">Quantity</label>
+                <input id="quantity" name="quantity" type="number" value="480" min="1" step="1" />
+              </div>
+              <div class="button-row">
+                <button id="submitBtn" class="primary" type="submit">Release Replenishment Order</button>
+              </div>
+            </form>
+            <div id="result" class="result"></div>
+            <div class="helper">
+              Release writes a new planned order to the monthly supply plan and triggers downstream ASN allocation. Default pair is currently in exception review because Mason City DC has no active lane master entry.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    fetch('/api/058bcc4c/network')
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        var body = document.getElementById('networkBody');
+        body.innerHTML = (rows || []).map(function (row) {
+          return '<tr>' +
+            '<td class="code">' + row.code + '</td>' +
+            '<td><div class="name">' + row.name + '</div></td>' +
+            '<td class="region">' + row.region + '</td>' +
+            '<td class="num">' + Number(row.onHand).toLocaleString() + '</td>' +
+            '<td class="num">' + Number(row.daysOfSupply).toFixed(1) + '</td>' +
+            '<td><span class="status ' + row.status + '">' + row.status + '</span></td>' +
+          '</tr>';
+        }).join('') || '<tr><td class="empty" colspan="6">No network nodes returned.</td></tr>';
+      })
+      .catch(function () {
+        document.getElementById('networkBody').innerHTML = '<tr><td class="empty" colspan="6">Failed to load distribution network.</td></tr>';
+      });
+  </script>
+  <script>
+    document.getElementById('replenishmentForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'Releasing...';
+      result.className = 'result';
+      result.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/058bcc4c/replenishment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            originPlant: document.getElementById('originPlant').value,
+            destinationDc: document.getElementById('destinationDc').value,
+            sku: document.getElementById('sku').value,
+            quantity: document.getElementById('quantity').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        result.style.display = 'block';
+        if (!res.ok) {
+          result.className = 'result error';
+          result.innerHTML = '<div class="title">Replenishment Failed</div><div class="detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result success';
+          result.innerHTML = '<div class="title">Order Released</div><div class="detail">' + data.orderId + ' · ' + data.confirmation.quantity + ' units · ' + data.confirmation.destinationDc + '</div>';
+        }
+      } catch (err) {
+        result.style.display = 'block';
+        result.className = 'result error';
+        result.innerHTML = '<div class="title">Network Error</div><div class="detail">' + err.message + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Release Replenishment Order';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

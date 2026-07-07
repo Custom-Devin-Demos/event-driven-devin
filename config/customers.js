@@ -183,6 +183,10 @@ const CUSTOMERS = {
     label: 'Optum Rx',
     triggerMode: 'api',
   },
+  '058bcc4c': {
+    label: 'Kraft Heinz',
+    triggerMode: 'api',
+  },
   'f5a355e7': {
     label: 'Loblaws',
     triggerMode: 'api',
