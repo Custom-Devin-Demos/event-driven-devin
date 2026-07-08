@@ -272,6 +272,10 @@ const CUSTOMERS = {
     label: 'Gap',
     triggerMode: 'api',
   },
+  efbf4b55: {
+    label: 'Customer EFBF',
+    triggerMode: 'api',
+  },
 };
 
 /**
