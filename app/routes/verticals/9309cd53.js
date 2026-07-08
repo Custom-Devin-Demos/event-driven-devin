@@ -1,30 +1,25 @@
 const express = require('express');
-const { processDonation, APPEALS } = require('../../services/verticals/9309cd53');
+const { processOrder, CATALOG } = require('../../services/verticals/9309cd53');
 
 const router = express.Router();
 
 /**
- * GET /api/9309cd53/appeals — returns active humanitarian appeals
+ * GET /api/9309cd53/catalog — returns available relief supplies
  */
-router.get('/api/9309cd53/appeals', (_req, res) => {
-  res.json({
-    appeals: APPEALS.map((a) => ({
-      id: a.id,
-      name: a.name,
-      region: a.region,
-    })),
-  });
+router.get('/api/9309cd53/catalog', (_req, res) => {
+  res.json({ catalog: CATALOG });
 });
 
 /**
- * POST /api/9309cd53/donate — process a donation
+ * POST /api/9309cd53/checkout — dispatch a relief-supply order
  */
-router.post('/api/9309cd53/donate', async (req, res) => {
+router.post('/api/9309cd53/checkout', async (req, res) => {
   try {
-    const result = await processDonation({
-      appealId: req.body.appealId || 'where-needed',
-      frequency: req.body.frequency || 'once',
-      amount: Number(req.body.amount) || 70,
+    const result = await processOrder({
+      userId: req.body.userId || 'usr_icrc_field',
+      items: Array.isArray(req.body.items) ? req.body.items : [],
+      subtotal: Number(req.body.subtotal) || 0,
+      zone: req.body.zone || 'gaza',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
@@ -35,7 +30,7 @@ router.post('/api/9309cd53/donate', async (req, res) => {
       success: false,
       error: error.message,
       errorClass: error.name,
-      code: error.code || 'DONATION_FAILED',
+      code: error.code || 'ORDER_FAILED',
       requestId: req.requestId,
     });
   }

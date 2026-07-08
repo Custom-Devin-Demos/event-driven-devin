@@ -5,209 +5,195 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
- * Donation frequency options and their annualised multiplier
- * (used to project the yearly value of a recurring gift).
+ * ICRC relief supply catalog — life-saving materials dispatched to field operations.
  */
-const FREQUENCIES = {
-  once: { label: 'Single donation', annualMultiplier: 1 },
-  monthly: { label: 'Monthly donation', annualMultiplier: 12 },
+const CATALOG = [
+  { id: 'ICRC-EMK', name: 'Emergency Medical Kit', price: 120.0, category: 'medical', unit: 'kit' },
+  { id: 'ICRC-WPU', name: 'Water Purification Unit', price: 85.0, category: 'water-sanitation', unit: 'unit' },
+  { id: 'ICRC-FFP', name: 'Family Food Parcel', price: 45.0, category: 'food', unit: 'parcel' },
+  { id: 'ICRC-TBL', name: 'Thermal Blankets (pack of 10)', price: 60.0, category: 'shelter', unit: 'pack' },
+  { id: 'ICRC-SHK', name: 'Emergency Shelter Kit', price: 150.0, category: 'shelter', unit: 'kit' },
+  { id: 'ICRC-HYG', name: 'Hygiene Kit', price: 30.0, category: 'water-sanitation', unit: 'kit' },
+];
+
+/**
+ * Field deployment zones and their logistics configuration.
+ */
+const DEPLOYMENT_ZONES = {
+  gaza: { label: 'Gaza & the region', logisticsRate: 0.12, currency: 'CHF' },
+  sudan: { label: 'Sudan', logisticsRate: 0.15, currency: 'CHF' },
+  ukraine: { label: 'Ukraine', logisticsRate: 0.1, currency: 'CHF' },
+  'dr-congo': { label: 'DR Congo', logisticsRate: 0.14, currency: 'CHF' },
 };
 
 /**
- * Active humanitarian appeals. Each appeal carries an `allocation`
- * profile describing how every franc is split across field
- * programmes, logistics and running costs, plus a `unitCost` used
- * to translate a gift into a tangible impact figure.
+ * Mandatory field-logistics line automatically appended to every dispatch so
+ * that in-country transport is funded alongside the supplies themselves.
  */
-const APPEALS = [
-  {
-    id: 'middle-east',
-    name: 'Middle East Crisis',
-    region: 'Gaza, Lebanon & the region',
-    allocation: { field: 0.87, logistics: 0.09, support: 0.04 },
-    unitCost: 45,
-    unitLabel: 'family food parcels',
-  },
-  {
-    id: 'ukraine',
-    name: 'Ukraine Armed Conflict',
-    region: 'Ukraine',
-    allocation: { field: 0.85, logistics: 0.11, support: 0.04 },
-    unitCost: 60,
-    unitLabel: 'winter survival kits',
-  },
-  {
-    id: 'sudan',
-    name: 'Sudan Emergency',
-    region: 'Sudan',
-    allocation: { field: 0.88, logistics: 0.08, support: 0.04 },
-    unitCost: 30,
-    unitLabel: 'clean-water rations',
-  },
-  {
-    id: 'dr-congo',
-    name: 'DR Congo Emergency',
-    region: 'Democratic Republic of the Congo',
-    allocation: { field: 0.86, logistics: 0.10, support: 0.04 },
-    unitCost: 40,
-    unitLabel: 'emergency health consultations',
-  },
-  {
-    id: 'myanmar',
-    name: 'Myanmar Earthquake',
-    region: 'Myanmar',
-    allocation: { field: 0.84, logistics: 0.12, support: 0.04 },
-    unitCost: 55,
-    unitLabel: 'shelter tool kits',
-  },
-  {
-    id: 'where-needed',
-    name: 'Where the need is greatest',
-    region: 'Global operations',
-    unitCost: 50,
-    unitLabel: 'lifesaving aid packages',
-  },
+const DISPATCH_LINES = [
+  { sku: 'ICRC-LOG-2026', qty: 1, price: 0 },
 ];
 
-function findAppeal(appealId) {
-  return APPEALS.find((a) => a.id === appealId) || APPEALS[0];
+/**
+ * Priority handling tiers based on the value of the consignment.
+ */
+function getPriorityTier(subtotal) {
+  if (subtotal >= 500) return { rate: 0.0, label: 'Priority airlift (waived)' };
+  if (subtotal >= 200) return { rate: 0.03, label: 'Expedited road convoy' };
+  return { rate: 0.05, label: 'Standard convoy' };
 }
 
 /**
- * Resolve the allocation profile for an appeal. Unrestricted appeals
- * pool into general operations and are directed by field teams.
+ * Appends the mandatory field-logistics line to the requested supplies.
  */
-function getAllocationProfile(appeal) {
-  return appeal.allocation;
+function applyDispatchLines(items) {
+  return [...items, ...DISPATCH_LINES];
 }
 
 /**
- * Break a gift down across field programmes, logistics and running
- * costs using the appeal's allocation profile.
+ * Computes the funded total for a relief consignment.
  */
-function buildAllocationBreakdown(appeal, amount) {
-  const profile = getAllocationProfile(appeal);
-
+function computeConsignmentTotal(subtotal, zoneId) {
+  const zone = DEPLOYMENT_ZONES[zoneId];
+  if (!zone) {
+    throw Object.assign(new Error(`Unknown deployment zone: ${zoneId}`), { code: 'INVALID_ZONE' });
+  }
+  const logistics = subtotal * zone.logisticsRate;
+  const priority = getPriorityTier(subtotal);
+  const priorityFee = (subtotal + logistics) * priority.rate;
   return {
-    field: Math.round(amount * profile.field * 100) / 100,
-    logistics: Math.round(amount * profile.logistics * 100) / 100,
-    support: Math.round(amount * profile.support * 100) / 100,
-    fieldPct: Math.round(profile.field * 100),
+    subtotal,
+    logistics: Math.round(logistics * 100) / 100,
+    priorityFee: Math.round(priorityFee * 100) / 100,
+    priorityLabel: priority.label,
+    total: Math.round((subtotal + logistics + priorityFee) * 100) / 100,
+    currency: zone.currency,
+    zone: zone.label,
   };
 }
 
 /**
- * Assemble the donation confirmation summary returned to the donor.
+ * Builds the dispatch manifest for the order confirmation.
+ * BUG: ICRC-LOG-2026 is not in CATALOG, so product.name crashes with a TypeError.
  */
-function assembleDonationSummary(appeal, frequency, amount, breakdown) {
-  const freq = FREQUENCIES[frequency] || FREQUENCIES.once;
-  const annualValue = Math.round(amount * freq.annualMultiplier * 100) / 100;
-  const unitsFunded = Math.floor(amount / appeal.unitCost);
-
-  return {
-    receiptId: `ICRC-${uuidv4().slice(0, 8).toUpperCase()}`,
-    appeal: appeal.name,
-    region: appeal.region,
-    frequency: freq.label,
-    amount: Math.round(amount * 100) / 100,
-    currency: 'CHF',
-    annualValue,
-    toField: breakdown.field,
-    toLogistics: breakdown.logistics,
-    toSupport: breakdown.support,
-    fieldPct: breakdown.fieldPct,
-    impact: `${unitsFunded} ${appeal.unitLabel}`,
-    taxDeductible: true,
-  };
+function formatManifest(allItems) {
+  return allItems.map((item) => {
+    const product = CATALOG.find((p) => p.id === item.sku);
+    return {
+      sku: item.sku,
+      name: product.name,
+      category: product.category,
+      qty: item.qty,
+      lineTotal: item.price * item.qty,
+    };
+  });
 }
 
 /**
- * Processes a donation request.
+ * Processes an ICRC relief-supply order (checkout).
  */
-async function processDonation(data) {
+async function processOrder(orderData) {
   const startTime = Date.now();
-  const requestId = uuidv4();
+  const orderId = uuidv4();
 
-  logger.info('Processing donation', {
-    requestId,
-    appealId: data.appealId,
-    frequency: data.frequency,
-    amount: data.amount,
-    service: 'customer-9309cd53-donations',
-    route: '/api/9309cd53/donate',
+  logger.info('Processing ICRC relief order', {
+    orderId,
+    userId: orderData.userId,
+    subtotal: orderData.subtotal,
+    service: 'icrc-relief',
+    route: '/api/9309cd53/checkout',
   });
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const appeal = findAppeal(data.appealId);
-    const breakdown = buildAllocationBreakdown(appeal, data.amount);
-    const summary = assembleDonationSummary(appeal, data.frequency, data.amount, breakdown);
+    const allItems = applyDispatchLines(orderData.items);
 
-    summary.requestId = requestId;
-    summary.donatedAt = new Date().toISOString();
+    const computedSubtotal = orderData.items.reduce(
+      (sum, item) => sum + item.price * item.qty,
+      0,
+    ) || orderData.subtotal;
+
+    const result = computeConsignmentTotal(computedSubtotal, orderData.zone);
+    const manifest = formatManifest(allItems);
 
     const duration = Date.now() - startTime;
 
-    incrementMetric('donation.success', {
-      route: '/api/9309cd53/donate',
-      appeal: data.appealId,
+    incrementMetric('checkout.success', {
+      route: '/api/9309cd53/checkout',
+      source: 'icrc-relief-store',
     });
-    recordTiming('donation.latency', duration, {
-      route: '/api/9309cd53/donate',
+    recordTiming('checkout.latency', duration, {
+      route: '/api/9309cd53/checkout',
     });
 
-    return summary;
+    return {
+      success: true,
+      orderId,
+      total: result.total,
+      logistics: result.logistics,
+      priorityFee: result.priorityFee,
+      priorityLabel: result.priorityLabel,
+      currency: result.currency,
+      zone: result.zone,
+      manifest,
+      status: 'confirmed',
+      processedAt: new Date().toISOString(),
+    };
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    incrementMetric('donation.failure', {
-      route: '/api/9309cd53/donate',
+    incrementMetric('checkout.failure', {
+      route: '/api/9309cd53/checkout',
       errorClass: error.name,
+      source: 'icrc-relief-store',
     });
-    recordTiming('donation.latency', duration, {
-      route: '/api/9309cd53/donate',
+    recordTiming('checkout.latency', duration, {
+      route: '/api/9309cd53/checkout',
       error: 'true',
     });
 
-    logger.error('Donation failed', {
-      requestId,
+    logger.error('ICRC relief order failed', {
+      orderId,
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
-      appealId: data.appealId,
-      amount: data.amount,
-      service: 'customer-9309cd53-donations',
+      userId: orderData.userId,
+      service: 'icrc-relief',
     });
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/9309cd53/donate',
-        service: 'customer-9309cd53-donations',
-        appeal: data.appealId,
+        route: '/api/9309cd53/checkout',
+        service: 'icrc-relief',
+        source: 'icrc-relief-store',
       },
-      extra: { requestId, appealId: data.appealId, amount: data.amount },
+      extra: {
+        orderId,
+        userId: orderData.userId,
+        subtotal: orderData.subtotal,
+        zone: orderData.zone,
+      },
     });
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/9309cd53.js — buildAllocationBreakdown',
+      culprit: 'app/services/verticals/9309cd53.js \u2014 formatManifest',
       errorType: error.name || 'Error',
       errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: 'customer-9309cd53-donations',
-      verticalLabel: 'Donation Checkout',
+      devinUserId: orderData.devinUserId,
+      devinEmail: orderData.devinEmail,
+      devinOrgId: orderData.devinOrgId,
+      service: 'icrc-relief',
+      verticalLabel: 'ICRC Relief Supplies',
       customer: '9309cd53',
       slackMemberId: 'U08S7AVJ478',
       tags: [
-        { key: 'route', value: '/api/9309cd53/donate' },
-        { key: 'service', value: 'customer-9309cd53-donations' },
-        { key: 'appeal', value: data.appealId },
+        { key: 'route', value: '/api/9309cd53/checkout' },
+        { key: 'service', value: 'icrc-relief' },
       ],
-      extra: { requestId, appealId: data.appealId, amount: data.amount },
+      extra: { orderId, userId: orderData.userId, subtotal: orderData.subtotal },
       level: 'error',
       platform: 'node',
       firstSeen: '',
@@ -215,18 +201,15 @@ async function processDonation(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-9309cd53-donations@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'icrc-relief@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
-      logger.error('Failed to create Devin session for donation error', {
-        error: err.message,
-        requestId,
-      });
+      logger.error('Failed to trigger Devin session from ICRC relief order error', { error: err.message });
     });
 
     throw error;
   }
 }
 
-module.exports = { processDonation, APPEALS, FREQUENCIES };
+module.exports = { processOrder, computeConsignmentTotal, formatManifest, applyDispatchLines, CATALOG, DEPLOYMENT_ZONES };
