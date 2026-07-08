@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scène — Billetterie en ligne | Concerts, Théâtre &amp; Conférences à Paris</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --ink: #14121f;
+      --ink-soft: #4d4a5e;
+      --accent: #e63946;
+      --accent-dark: #c62b38;
+      --gold: #e9c46a;
+      --paper: #faf8f5;
+      --card-border: #e8e4dd;
+    }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--paper); color: var(--ink); }
+
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(20, 18, 31, 0.96); backdrop-filter: blur(8px);
+      color: #fff;
+    }
+    .nav-inner {
+      max-width: 1180px; margin: 0 auto; padding: 16px 24px;
+      display: flex; align-items: center; gap: 32px;
+    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 800; letter-spacing: 0.5px; }
+    .logo .accent { color: var(--accent); }
+    .logo-sub { font-size: 10.5px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-top: -2px; }
+    .nav-links { display: flex; gap: 24px; margin-left: auto; align-items: center; }
+    .nav-links a { color: rgba(255,255,255,0.82); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--accent); color: #fff !important; padding: 9px 18px;
+      border-radius: 999px; font-weight: 600 !important;
+    }
+
+    .hero {
+      position: relative; color: #fff; overflow: hidden;
+      background: #14121f;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center center; opacity: 0.42;
+    }
+    .hero-gradient {
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, rgba(20,18,31,0.92) 0%, rgba(20,18,31,0.55) 55%, rgba(230,57,70,0.18) 100%);
+    }
+    .hero-inner {
+      position: relative; max-width: 1180px; margin: 0 auto;
+      padding: 88px 24px 110px; display: grid; grid-template-columns: 1.2fr 0.9fr; gap: 48px; align-items: center;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--gold); font-weight: 600; margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif; font-size: 52px; line-height: 1.1;
+      font-weight: 800; margin-bottom: 16px;
+    }
+    .hero h1 em { font-style: italic; color: var(--gold); }
+    .hero-sub { font-size: 17px; color: rgba(255,255,255,0.78); line-height: 1.6; max-width: 480px; }
+    .hero-sub .en { display: block; font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; }
+    .pills { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+    .pill {
+      padding: 8px 18px; border: 1px solid rgba(255,255,255,0.35); border-radius: 999px;
+      font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,0.9); cursor: pointer;
+      background: transparent; transition: all 0.2s;
+    }
+    .pill.active, .pill:hover { background: #fff; color: var(--ink); border-color: #fff; }
+
+    .booking-card {
+      background: #fff; color: var(--ink); border-radius: 16px;
+      padding: 28px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .booking-card h2 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 4px; }
+    .booking-card .card-sub { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 20px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; }
+    .field select, .field input {
+      width: 100%; padding: 11px 12px; border: 1px solid var(--card-border);
+      border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif;
+      background: #fff; color: var(--ink);
+    }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .reserve-btn {
+      width: 100%; padding: 14px; margin-top: 8px;
+      background: var(--accent); color: #fff; border: none; border-radius: 8px;
+      font-size: 15.5px; font-weight: 700; font-family: 'Inter', sans-serif;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .reserve-btn:hover { background: var(--accent-dark); }
+    .secure-note { text-align: center; font-size: 11.5px; color: var(--ink-soft); margin-top: 12px; }
+
+    .section { max-width: 1180px; margin: 0 auto; padding: 64px 24px; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 28px; }
+    .section-head h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; }
+    .section-head .en { font-size: 13px; color: var(--ink-soft); }
+    .events-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .event-card {
+      background: #fff; border: 1px solid var(--card-border); border-radius: 14px;
+      overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .event-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(20,18,31,0.12); }
+    .event-card img { width: 100%; height: 190px; object-fit: cover; object-position: center center; display: block; }
+    .event-body { padding: 18px 20px 20px; }
+    .event-tag {
+      display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+    }
+    .event-body h3 { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+    .event-meta { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+    .event-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+    .event-price { font-size: 15px; font-weight: 700; }
+    .event-price span { font-size: 11.5px; font-weight: 500; color: var(--ink-soft); }
+    .event-link {
+      font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none;
+      cursor: pointer;
+    }
+
+    .band {
+      background: var(--ink); color: #fff; padding: 56px 24px;
+    }
+    .band-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; text-align: center; }
+    .band-item .num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 800; color: var(--gold); }
+    .band-item .lbl { font-size: 13.5px; color: rgba(255,255,255,0.7); margin-top: 6px; }
+
+    footer { background: #0e0c17; color: rgba(255,255,255,0.6); padding: 36px 24px; }
+    .footer-inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 13px; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; }
+    .footer-links a:hover { color: #fff; }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; padding: 56px 24px 72px; }
+      .hero h1 { font-size: 38px; }
+      .events-grid { grid-template-columns: 1fr; }
+      .band-inner { grid-template-columns: 1fr; gap: 24px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-inner">
+      <div>
+        <div class="logo">Scène<span class="accent">.</span></div>
+        <div class="logo-sub">Billetterie en ligne</div>
+      </div>
+      <nav class="nav-links">
+        <a href="#evenements">Concerts</a>
+        <a href="#evenements">Théâtre</a>
+        <a href="#evenements">Conférences</a>
+        <a href="#evenements">Salles</a>
+        <a href="#reserver" class="nav-cta">Réserver</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <img class="hero-bg" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1600&q=80" alt="Concert à Paris — scène et public">
+    <div class="hero-gradient"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="hero-eyebrow">★ Paris · Été 2026</div>
+        <h1>Vos plus belles <em>soirées</em> commencent ici.</h1>
+        <p class="hero-sub">
+          Concerts, théâtre et conférences dans les plus belles salles parisiennes.
+          Réservez vos places en quelques secondes — billets électroniques, échange gratuit.
+          <span class="en">The simplest way to book live events across Paris.</span>
+        </p>
+        <div class="pills">
+          <button class="pill active">Tout</button>
+          <button class="pill">Concerts</button>
+          <button class="pill">Théâtre</button>
+          <button class="pill">Conférences</button>
+        </div>
+      </div>
+
+      <div class="booking-card" id="reserver">
+        <h2>Réservation rapide</h2>
+        <div class="card-sub">Quick booking — secure checkout in seconds</div>
+        <div class="field">
+          <label for="eventSelect">Événement</label>
+          <select id="eventSelect">
+            <option value="evt-2104" selected>Quartet Manouche — Hommage à Django · Caveau Jazz Rivoli</option>
+            <option value="evt-2101">Nuit Symphonique — Ravel &amp; Debussy · Grand Théâtre Lumière</option>
+            <option value="evt-2102">Électro Paris Festival · Arena Bercy Est</option>
+            <option value="evt-2103">Le Misanthrope · Salle des Augustins</option>
+            <option value="evt-2105">Conférence — L'IA et la création artistique · Salle des Augustins</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="tierSelect">Catégorie</label>
+            <select id="tierSelect">
+              <option value="balcon" selected>Balcon</option>
+              <option value="mezzanine">Mezzanine</option>
+              <option value="orchestre">Orchestre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="qtyInput">Places</label>
+            <input id="qtyInput" type="number" min="1" max="8" value="2">
+          </div>
+        </div>
+        <button class="reserve-btn" id="reserveBtn" data-cta>Réserver mes places</button>
+        <div class="secure-note">🔒 Paiement sécurisé · Billets électroniques · Échange gratuit</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="evenements">
+    <div class="section-head">
+      <h2>À l'affiche cette semaine</h2>
+      <span class="en">This week's featured events</span>
+    </div>
+    <div class="events-grid">
+      <div class="event-card">
+        <img src="https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800&q=80" alt="Quartet de jazz sur scène">
+        <div class="event-body">
+          <span class="event-tag">Concert · Jazz</span>
+          <h3>Quartet Manouche — Hommage à Django</h3>
+          <div class="event-meta">Caveau Jazz Rivoli · 1er arrondissement<br>Vendredi 17 juillet · 21h30</div>
+          <div class="event-foot">
+            <div class="event-price">38&nbsp;€ <span>/ place</span></div>
+            <a class="event-link" data-select="evt-2104">Réserver →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&q=80" alt="Orchestre symphonique en concert">
+        <div class="event-body">
+          <span class="event-tag">Concert · Classique</span>
+          <h3>Nuit Symphonique — Ravel &amp; Debussy</h3>
+          <div class="event-meta">Grand Théâtre Lumière · 2e arrondissement<br>Samedi 18 juillet · 20h00</div>
+          <div class="event-foot">
+            <div class="event-price">68&nbsp;€ <span>/ place</span></div>
+            <a class="event-link" data-select="evt-2101">Réserver →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80" alt="Festival électro — foule et lumières">
+        <div class="event-body">
+          <span class="event-tag">Concert · Électro</span>
+          <h3>Électro Paris Festival — Soirée d'ouverture</h3>
+          <div class="event-meta">Arena Bercy Est · 12e arrondissement<br>Mercredi 22 juillet · 21h00</div>
+          <div class="event-foot">
+            <div class="event-price">89&nbsp;€ <span>/ place</span></div>
+            <a class="event-link" data-select="evt-2102">Réserver →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <img src="https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80" alt="Théâtre à l'italienne — salle historique">
+        <div class="event-body">
+          <span class="event-tag">Théâtre · Classique</span>
+          <h3>Le Misanthrope — Comédie classique</h3>
+          <div class="event-meta">Salle des Augustins · 6e arrondissement<br>Dimanche 19 juillet · 19h30</div>
+          <div class="event-foot">
+            <div class="event-price">52&nbsp;€ <span>/ place</span></div>
+            <a class="event-link" data-select="evt-2103">Réserver →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80" alt="Conférence — auditorium et intervenant">
+        <div class="event-body">
+          <span class="event-tag">Conférence · Tech &amp; Culture</span>
+          <h3>L'IA et la création artistique</h3>
+          <div class="event-meta">Salle des Augustins · 6e arrondissement<br>Mardi 21 juillet · 18h00</div>
+          <div class="event-foot">
+            <div class="event-price">29&nbsp;€ <span>/ place</span></div>
+            <a class="event-link" data-select="evt-2105">Réserver →</a>
+          </div>
+        </div>
+      </div>
+      <div class="event-card">
+        <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80" alt="Paris au crépuscule — Tour Eiffel">
+        <div class="event-body">
+          <span class="event-tag">Scène · Le Mag</span>
+          <h3>Les salles mythiques de Paris</h3>
+          <div class="event-meta">Notre sélection des lieux incontournables,<br>du club de jazz à l'arène de Bercy.</div>
+          <div class="event-foot">
+            <div class="event-price"><span>Lecture · 5 min</span></div>
+            <a class="event-link" href="#">Découvrir →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band-inner">
+      <div class="band-item"><div class="num">120+</div><div class="lbl">salles partenaires à Paris et en Île-de-France</div></div>
+      <div class="band-item"><div class="num">2,4 M</div><div class="lbl">billets vendus depuis 2019 — tickets issued since 2019</div></div>
+      <div class="band-item"><div class="num">4,8/5</div><div class="lbl">satisfaction spectateurs — verified customer rating</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div>Scène SAS © 2026 · Billetterie en ligne — Paris, France</div>
+      <div class="footer-links">
+        <a href="#">CGV</a>
+        <a href="#">Confidentialité</a>
+        <a href="#">Mentions légales</a>
+        <a href="#">Aide</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(20,18,31,0.94);color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:10000;opacity:0;transform:translateY(20px);transition:opacity 0.3s,transform 0.3s;max-width:420px;font-family:Inter,Arial,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,0.35);border-left:4px solid #e63946;';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+      setTimeout(function () { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(function () { toast.remove(); }, 300); }, 6000);
+    }
+
+    function reserveSeats(el) {
+      if (el._running) return;
+      el._running = true;
+      var orig = el.innerHTML;
+      el.style.pointerEvents = 'none';
+      el.innerHTML = 'Réservation en cours…';
+      fetch('/api/efbf4b55/reserve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: document.getElementById('eventSelect').value,
+          tier: document.getElementById('tierSelect').value,
+          quantity: parseInt(document.getElementById('qtyInput').value, 10) || 2,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.error) {
+            showToast('La réservation a échoué — ' + (data.errorClass || 'Error') + ': ' + data.error);
+          } else {
+            showToast('Réservation confirmée ! Référence : ' + data.reservationId);
+          }
+        })
+        .catch(function () { showToast('La réservation a échoué. Veuillez réessayer.'); })
+        .finally(function () { el.innerHTML = orig; el.style.pointerEvents = ''; el._running = false; });
+    }
+
+    document.querySelectorAll('[data-cta]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        reserveSeats(el);
+      });
+    });
+
+    document.querySelectorAll('[data-select]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('eventSelect').value = el.getAttribute('data-select');
+        document.getElementById('reserver').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
