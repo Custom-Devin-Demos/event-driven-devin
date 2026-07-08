@@ -276,6 +276,10 @@ const CUSTOMERS = {
     label: 'Customer EFBF',
     triggerMode: 'api',
   },
+  '9309cd53': {
+    label: 'ICRC (Red Cross Geneva)',
+    triggerMode: 'api',
+  },
 };
 
 /**
