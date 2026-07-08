@@ -198,7 +198,6 @@ async function processReservation(data) {
       service: 'customer-efbf4b55-billetterie',
       verticalLabel: 'Seat Reservation',
       customer: 'efbf4b55',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/efbf4b55/reserve' },
         { key: 'service', value: 'customer-efbf4b55-billetterie' },
