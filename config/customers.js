@@ -284,6 +284,10 @@ const CUSTOMERS = {
     label: 'Louis Dreyfus Company Brazil',
     triggerMode: 'api',
   },
+  'b9612d96': {
+    label: 'Croda',
+    triggerMode: 'api',
+  },
 };
 
 /**
