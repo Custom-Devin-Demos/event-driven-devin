@@ -15,7 +15,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FIELD_LEN = 200;
 
 const WEBINAR_NAME = 'Cognition Platform Webinar for Humana Leaders';
-const WEBINAR_WHEN = 'Thursday, July 24 at 12:00 PM EST';
+const WEBINAR_WHEN = 'Friday, July 24 at 12:00 PM EST';
 const ALERT_FROM = process.env.WEBINAR_FROM_EMAIL || 'quinn.hilgartner@cognition.ai';
 const ALERT_RECIPIENTS = (process.env.WEBINAR_ALERT_RECIPIENTS ||
   'quinn.hilgartner@cognition.ai,bain.schroeder@cognition.ai')
