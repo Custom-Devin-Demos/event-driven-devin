@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Louis Dreyfus Company Brazil &mdash; Trade Desk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0a2540;
+      --navy-deep: #061a30;
+      --blue: #1e4d8c;
+      --blue-bright: #2f6fd0;
+      --green: #4f9d3a;
+      --green-deep: #3d7d2c;
+      --bg: #f4f6f9;
+      --bg-card: #ffffff;
+      --bg-elevated: #eef2f7;
+      --surface: #e6ecf3;
+      --border: #dbe2ec;
+      --border-light: #cbd5e1;
+      --text: #0d1b2a;
+      --text-muted: #4a5a6b;
+      --text-dim: #8a97a6;
+      --danger: #c0392b;
+      --danger-bg: rgba(192,57,43,0.06);
+      --danger-border: rgba(192,57,43,0.18);
+      --success: #3d7d2c;
+      --sans: 'Inter', Arial, Helvetica, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans); background: var(--bg); color: var(--text);
+      line-height: 1.55; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; } .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Market ticker banner ── */
+    .ticker {
+      background: var(--navy-deep); color: #cfe0f5; font-family: var(--mono);
+      font-size: 0.72rem; letter-spacing: 0.02em; padding: 0.5rem 1rem;
+      display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;
+    }
+    .ticker .up { color: #6fce56; } .ticker .down { color: #ef7a6b; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100; background: var(--navy);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 66px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-mark {
+      width: 42px; height: 42px; border-radius: 7px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--sans); font-weight: 800; font-size: 0.92rem; color: var(--navy);
+      letter-spacing: -0.02em;
+    }
+    .brand-text { color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; line-height: 1.35; text-transform: uppercase; }
+    .brand-text span { color: #8fb8ec; font-weight: 600; display: block; font-size: 0.62rem; letter-spacing: 0.06em; }
+    nav { display: flex; align-items: center; gap: 1.75rem; }
+    nav a { color: #c6d4e6; text-decoration: none; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.01em; transition: color 0.2s; }
+    nav a:hover { color: #fff; }
+    nav a.active { color: #fff; }
+    .desk-pill { background: rgba(255,255,255,0.1); color: #cfe0f5; font-size: 0.68rem; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 999px; letter-spacing: 0.04em; }
+
+    /* ── Hero band ── */
+    .hero {
+      position: relative; height: 168px; overflow: hidden;
+      display: flex; align-items: center;
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+    }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 60%; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6,26,48,0.92) 0%, rgba(6,26,48,0.72) 45%, rgba(6,26,48,0.30) 100%); }
+    .hero-inner { position: relative; z-index: 2; color: #fff; max-width: 900px; margin: 0 auto; width: 100%; }
+    .hero-inner .eyebrow { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #7fc96a; margin-bottom: 0.4rem; }
+    .hero-inner h1 { font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 800; letter-spacing: -0.02em; }
+
+    /* ── Page ── */
+    .page { max-width: 900px; margin: 0 auto; padding: clamp(1.75rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 3rem); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem; color: var(--blue);
+      text-decoration: none; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.02em;
+      margin-bottom: 1.5rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--blue-bright); }
+    .page-desc { font-size: 0.92rem; color: var(--text-muted); max-width: 620px; line-height: 1.7; margin-bottom: 2rem; }
+
+    /* ── Trade card ── */
+    .trade-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(10,37,64,0.06); }
+    .trade-header { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg-elevated); }
+    .trade-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .side-badge { font-size: 0.68rem; font-weight: 700; color: #fff; background: var(--green); padding: 0.28rem 0.7rem; border-radius: 5px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .trade-lines { padding: 0; }
+    .trade-line { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+    .trade-line:last-child { border-bottom: none; }
+    .trade-line:hover { background: var(--bg-elevated); }
+    .commodity-swatch { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; font-size: 1.5rem; background: var(--bg-elevated); border: 1px solid var(--border); }
+    .commodity-details { flex: 1; }
+    .commodity-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.15rem; }
+    .commodity-grade { font-size: 0.75rem; color: var(--text-muted); }
+    .commodity-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .line-meta { text-align: right; }
+    .line-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .line-price { font-weight: 700; font-size: 0.95rem; font-family: var(--mono); }
+
+    .trade-totals { padding: 1.1rem 1.5rem; background: var(--bg-elevated); border-top: 1px solid var(--border); }
+    .total-line { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0; font-family: var(--mono); }
+    .total-line.grand { font-weight: 700; color: var(--text); font-size: 1rem; border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem; }
+    .basis-badge { display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(79,157,58,0.1); color: var(--green-deep); font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 4px; margin-top: 0.6rem; }
+
+    /* ── Form ── */
+    .action-section { margin-top: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(10,37,64,0.06); }
+    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label { display: block; font-size: 0.68rem; font-weight: 600; color: var(--text-dim); margin-bottom: 0.4rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .form-group select, .form-group input { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border-light); border-radius: 8px; font-size: 0.88rem; font-family: var(--sans); color: var(--text); background: #fff; transition: border-color 0.3s, box-shadow 0.3s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30,77,140,0.12); }
+
+    .book-btn { width: 100%; padding: 1rem; margin-top: 0.5rem; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 0.8rem; font-weight: 700; font-family: var(--sans); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+    .book-btn:hover { background: var(--green-deep); transform: translateY(-1px); }
+    .book-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing { display: none; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    .processing.visible { display: flex; }
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border-light); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box { margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px; font-size: 0.85rem; display: none; animation: fadeUp 0.4s var(--ease-out); }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: rgba(79,157,58,0.06); border: 1px solid rgba(79,157,58,0.2); }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code { background: var(--danger-bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger); }
+    .error-meta { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border); font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono); }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug hint ── */
+    .bug-hint { margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 10px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6; }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code { background: var(--danger-bg); padding: 0.1rem 0.35rem; border-radius: 4px; font-family: var(--mono); font-size: 0.74rem; color: var(--danger); }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem; }
+    .footer-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .footer-brand { font-size: 0.82rem; font-weight: 600; color: var(--text-dim); letter-spacing: 0.02em; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.02em; text-transform: uppercase; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim); }
+    .footer-devin a { color: var(--blue); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav a { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .ticker { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ticker">
+    <span>SOYBEAN FOB SANTOS <span class="up">428.50 &#9650; 0.8%</span></span>
+    <span>CORN FOB PARANAGUA <span class="down">214.75 &#9660; 0.4%</span></span>
+    <span>SUGAR VHP <span class="up">512.30 &#9650; 1.2%</span></span>
+    <span>ARABICA SANTOS 4/5 <span class="up">6,420 &#9650; 0.5%</span></span>
+    <span>USD/BRL <span class="down">5.42 &#9660; 0.2%</span></span>
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-mark">LDC</div>
+      <div class="brand-text">Louis Dreyfus Company<span>Brazil &middot; Grains &amp; Oilseeds Desk</span></div>
+    </div>
+    <nav>
+      <a href="#" class="active">Trade Desk</a>
+      <a href="#">Positions</a>
+      <a href="#">Logistics</a>
+      <a href="#">Counterparties</a>
+    </nav>
+    <div class="desk-pill">Sao Paulo &middot; SP</div>
+  </header>
+
+  <div class="hero">
+    <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1600&q=80"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80';"
+         alt="Brazilian soybean fields at harvest">
+    <div class="hero-inner">
+      <div class="eyebrow">Physical Commodity Booking</div>
+      <h1>Export Contract &mdash; Trade Ticket</h1>
+    </div>
+  </div>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <p class="page-desc animate-up delay-2">A trader on the S&atilde;o Paulo grains &amp; oilseeds desk is booking a physical export contract for shipment out of a Brazilian port. Click <strong>Book Trade</strong> to run the pricing pipeline and watch the bug surface in real time.</p>
+
+    <div class="trade-card animate-up delay-3">
+      <div class="trade-header">
+        <h2>Contract Ticket &mdash; TKT-2026-BR-0417</h2>
+        <span class="side-badge">SELL &middot; FOB</span>
+      </div>
+      <div class="trade-lines">
+        <div class="trade-line">
+          <div class="commodity-swatch">&#x1FAD8;</div>
+          <div class="commodity-details">
+            <div class="commodity-name">Soybeans</div>
+            <div class="commodity-grade">FOB Santos No.2 &middot; crop 2025/26</div>
+            <div class="commodity-sku">SOYBEAN-BR</div>
+          </div>
+          <div class="line-meta">
+            <div class="line-qty">Qty: 30,000 MT @ 428.50</div>
+            <div class="line-price">USD 12,855,000</div>
+          </div>
+        </div>
+        <div class="trade-line">
+          <div class="commodity-swatch">&#x1F33D;</div>
+          <div class="commodity-details">
+            <div class="commodity-name">Corn</div>
+            <div class="commodity-grade">FOB Paranagua &middot; export grade</div>
+            <div class="commodity-sku">CORN-BR</div>
+          </div>
+          <div class="line-meta">
+            <div class="line-qty">Qty: 25,000 MT @ 214.75</div>
+            <div class="line-price">USD 5,368,750</div>
+          </div>
+        </div>
+      </div>
+      <div class="trade-totals">
+        <div class="total-line"><span>Contract value</span><span>USD 18,223,750.00</span></div>
+        <div class="total-line"><span>Port basis differential</span><span>Calculated at booking</span></div>
+        <div class="total-line"><span>Demurrage provision</span><span>Panamax priority (waived)</span></div>
+        <div class="total-line grand"><span>Est. settlement</span><span>USD 18,223,750.00+</span></div>
+        <div class="basis-badge">&#x1F310; Physical export &middot; SISCOMEX documentary line applies</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Booking &amp; Logistics</h3>
+      <form id="tradeForm" onsubmit="submitTrade(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Trader</label>
+            <input type="text" value="Rafael Cardoso, Origination" readonly>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" value="rafael.cardoso@ldc.com" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Export Terminal</label>
+            <select id="terminalSelect">
+              <option value="santos" selected>Porto de Santos</option>
+              <option value="paranagua">Porto de Paranagua</option>
+              <option value="rio_grande">Porto do Rio Grande</option>
+              <option value="itaqui">Porto do Itaqui (Maranhao)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Counterparty</label>
+            <input type="text" value="Sinograin Trading (CIF China)" readonly>
+          </div>
+        </div>
+        <button type="submit" class="book-btn" id="bookBtn">Book Trade</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Pricing export contract&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The pricing pipeline appends a mandatory documentary line (<code>LDC-EXPORT-DOC-2026</code>) that doesn&rsquo;t exist in the commodity book. When the contract formatter looks up its name, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Louis Dreyfus Company B.V. &middot; Brazil &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var TRADE_LOTS = [
+      { sku: 'SOYBEAN-BR', qty: 30000, price: 428.50 },
+      { sku: 'CORN-BR', qty: 25000, price: 214.75 }
+    ];
+    var CONTRACT_VALUE = 18223750.00;
+    var VOLUME_MT = 55000;
+
+    function submitTrade(e) {
+      e.preventDefault();
+      var btn = document.getElementById('bookBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var terminal = document.getElementById('terminalSelect').value;
+
+      fetch('/api/a1e178ae/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trader: 'Rafael Cardoso',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          lots: TRADE_LOTS,
+          contractValue: CONTRACT_VALUE,
+          volumeMt: VOLUME_MT,
+          terminal: terminal
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Booking Failed</h3>' +
+            '<p>The export contract could not be priced.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Trade Booked</h3>' +
+            '<p>Contract <strong>' + result.data.tradeId + '</strong> booked FOB ' + result.data.terminal + '.<br>' +
+            'Settlement: ' + result.data.currency + ' ' + result.data.total.toFixed(2) + ' (incl. ' + result.data.currency + ' ' + result.data.basisAdj.toFixed(2) + ' basis)</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Book Trade';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
