@@ -52,12 +52,18 @@ function sendEmail({ from, to, subject, text }) {
     const dateStamp = amzDate.slice(0, 8);
     const payloadHash = sha256Hex(body);
 
-    const canonicalHeaders =
+    const sessionToken = process.env.AWS_SESSION_TOKEN;
+    let canonicalHeaders =
       `content-type:application/json\n` +
       `host:${host}\n` +
       `x-amz-content-sha256:${payloadHash}\n` +
       `x-amz-date:${amzDate}\n`;
-    const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
+    let signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
+    // Temporary credentials require x-amz-security-token to be signed too.
+    if (sessionToken) {
+      canonicalHeaders += `x-amz-security-token:${sessionToken}\n`;
+      signedHeaders += ';x-amz-security-token';
+    }
     const canonicalRequest = [
       'POST',
       path,
@@ -92,8 +98,8 @@ function sendEmail({ from, to, subject, text }) {
       'X-Amz-Date': amzDate,
       Authorization: authorization,
     };
-    if (process.env.AWS_SESSION_TOKEN) {
-      headers['X-Amz-Security-Token'] = process.env.AWS_SESSION_TOKEN;
+    if (sessionToken) {
+      headers['X-Amz-Security-Token'] = sessionToken;
     }
 
     const req = https.request({ host, path, method: 'POST', headers }, (res) => {
