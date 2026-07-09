@@ -43,6 +43,7 @@ function computeBilling(plan, billingCycle, seats) {
     tax: Math.round(tax * 100) / 100,
     includedApps: plan.apps,
     storageGb: plan.storageGb,
+    promo: plan.promo,
   };
 }
 
@@ -50,12 +51,22 @@ function computeBilling(plan, billingCycle, seats) {
  * Build the introductory offer summary applied to the first billing cycle.
  */
 function buildIntroOffer(billing, seats) {
-  const discountedMonthly = billing.monthlyRate * (1 - billing.promo.discountRate);
-  const savings = (billing.monthlyRate - discountedMonthly) * billing.promo.months * seats;
+  const { promo } = billing;
+
+  if (!promo) {
+    return {
+      discountedMonthly: billing.monthlyRate,
+      promoMonths: 0,
+      totalSavings: 0,
+    };
+  }
+
+  const discountedMonthly = billing.monthlyRate * (1 - promo.discountRate);
+  const savings = (billing.monthlyRate - discountedMonthly) * promo.months * seats;
 
   return {
     discountedMonthly: Math.round(discountedMonthly * 100) / 100,
-    promoMonths: billing.promo.months,
+    promoMonths: promo.months,
     totalSavings: Math.round(savings * 100) / 100,
   };
 }
@@ -193,4 +204,12 @@ async function processSubscription(data) {
   }
 }
 
-module.exports = { processSubscription, PLANS, ADDONS };
+module.exports = {
+  processSubscription,
+  computeBilling,
+  buildIntroOffer,
+  assembleOrderSummary,
+  findPlan,
+  PLANS,
+  ADDONS,
+};
