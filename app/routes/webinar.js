@@ -4,6 +4,7 @@ const path = require('path');
 
 const logger = require('../telemetry/logger');
 const { sendEmail } = require('../services/email');
+const { appendSignup } = require('../services/sheets');
 
 const router = express.Router();
 
@@ -97,6 +98,10 @@ router.post('/api/webinar/signup', (req, res) => {
 
   // Fire-and-forget alert email; never blocks or fails the registration.
   sendSignupAlert({ name, title, email, registeredAt });
+
+  // Fire-and-forget append to the Google Sheet; never blocks the registration.
+  appendSignup({ name, title, email, registeredAt })
+    .catch((err) => logger.warn('webinar.signup.sheet_error', { error: err.message }));
 
   return res.json({ success: true });
 });
