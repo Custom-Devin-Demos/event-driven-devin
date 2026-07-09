@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Croda &mdash; Sample Dispatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #004438;
+      --green-hover: #013228;
+      --green-dim: rgba(0,68,56,0.06);
+      --green-border: rgba(0,68,56,0.18);
+      --accent: #8bc34a;
+      --bg: #ffffff;
+      --bg-card: #ffffff;
+      --bg-elevated: #f4f6f5;
+      --surface: #eaeeec;
+      --border: #e2e6e4;
+      --border-light: #d3d9d6;
+      --text: #212529;
+      --text-muted: #566;
+      --text-dim: #8a908d;
+      --danger: #b13636;
+      --danger-bg: rgba(177,54,54,0.06);
+      --danger-border: rgba(177,54,54,0.16);
+      --success: #2d8659;
+      --sans: 'Raleway', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans); background: var(--bg); color: var(--text);
+      line-height: 1.55; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; } .delay-4 { animation-delay: 0.4s; } .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Top strip ── */
+    .promo-banner {
+      background: var(--green-hover); color: #fff; text-align: center;
+      padding: 0.55rem 1rem; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100; background: var(--green);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 76px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.7rem; }
+    .logo-mark { width: 40px; height: 40px; flex-shrink: 0; }
+    .brand-block { display: flex; flex-direction: column; line-height: 1; }
+    .brand-word { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.16em; color: #fff; }
+    .brand-tag { font-size: 0.5rem; font-weight: 600; letter-spacing: 0.14em; color: rgba(255,255,255,0.85); text-transform: uppercase; margin-top: 3px; }
+    nav { display: flex; align-items: center; gap: 1.6rem; }
+    nav a { color: #fff; text-decoration: none; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s; }
+    nav a:hover { color: var(--accent); }
+    .nav-icons { display: flex; align-items: center; gap: 1.1rem; }
+    .nav-icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: #fff; transition: color 0.2s; cursor: pointer; }
+    .nav-icon:hover { color: var(--accent); }
+
+    /* ── Page ── */
+    .page { max-width: 860px; margin: 0 auto; padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem); }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem; color: var(--green);
+      text-decoration: none; font-size: 0.76rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      margin-bottom: 2rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--green-hover); }
+    .page-title { font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.15; margin-bottom: 0.6rem; letter-spacing: -0.01em; color: var(--green); }
+    .page-desc { font-size: 0.94rem; color: var(--text-muted); max-width: 580px; line-height: 1.7; margin-bottom: 2.5rem; }
+
+    /* ── Order card ── */
+    .order-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .order-header { padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .order-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; color: var(--green); }
+    .order-header .item-count { font-size: 0.68rem; font-weight: 700; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+    .order-items { padding: 0; }
+    .order-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-swatch { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; font-size: 1.6rem; background: var(--green-dim); border: 1px solid var(--green-border); }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.15rem; color: var(--text); }
+    .item-cat { display: inline-block; font-size: 0.64rem; font-weight: 700; color: var(--green); background: var(--green-dim); padding: 0.1rem 0.45rem; border-radius: 3px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 0.2rem; }
+    .item-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+
+    .order-totals { padding: 1.15rem 1.5rem; background: var(--bg-elevated); border-top: 1px solid var(--border); }
+    .total-line { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0; }
+    .total-line.grand { font-weight: 800; color: var(--green); font-size: 1rem; border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem; }
+    .redtab-badge { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--green-dim); color: var(--green); font-size: 0.7rem; font-weight: 700; padding: 0.28rem 0.65rem; border-radius: 4px; margin-top: 0.6rem; letter-spacing: 0.03em; }
+
+    /* ── Form ── */
+    .action-section { margin-top: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--green); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label { display: block; font-size: 0.66rem; font-weight: 700; color: var(--text-dim); margin-bottom: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .form-group select, .form-group input { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border-light); border-radius: 6px; font-size: 0.88rem; font-family: var(--sans); color: var(--text); background: #fff; transition: border-color 0.3s, box-shadow 0.3s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-dim); }
+
+    .place-order-btn { width: 100%; padding: 1rem; margin-top: 0.5rem; background: var(--green); color: #fff; border: none; border-radius: 4px; font-size: 0.78rem; font-weight: 700; font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.3s, transform 0.2s; }
+    .place-order-btn:hover { background: var(--green-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing { display: none; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    .processing.visible { display: flex; }
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border-light); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box { margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 8px; font-size: 0.85rem; display: none; animation: fadeUp 0.4s var(--ease-out); }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: rgba(45,134,89,0.06); border: 1px solid rgba(45,134,89,0.2); }
+    .result-box h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code { background: var(--danger-bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger); }
+    .error-meta { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border); font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono); }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug hint ── */
+    .bug-hint { margin-top: 1.5rem; padding: 1rem 1.25rem; background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 8px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6; }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code { background: var(--danger-bg); padding: 0.1rem 0.35rem; border-radius: 4px; font-family: var(--mono); font-size: 0.74rem; color: var(--danger); }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem; background: var(--green); }
+    .footer-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .footer-brand { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.9); letter-spacing: 0.03em; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: rgba(255,255,255,0.6); }
+    .footer-devin a { color: var(--accent); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav a { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="promo-banner">
+    Smart science to improve lives&trade; &nbsp;&middot;&nbsp; Formulation samples dispatched worldwide from Croda manufacturing sites
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <svg class="logo-mark" viewBox="0 0 40 40" aria-label="Croda logo">
+        <circle cx="20" cy="20" r="19" fill="#fff"/>
+        <path d="M20 8c-5 3-8 7-8 12 0 4 3 8 8 8-3-3-4-6-4-9s2-8 4-11z" fill="#004438"/>
+        <circle cx="24" cy="15" r="2.4" fill="#8bc34a"/>
+      </svg>
+      <div class="brand-block">
+        <span class="brand-word">CRODA</span>
+        <span class="brand-tag">Smart science to improve lives&trade;</span>
+      </div>
+    </div>
+    <nav>
+      <a href="#">About us</a>
+      <a href="#">Our markets</a>
+      <a href="#">Smart science</a>
+      <a href="#">Sustainability</a>
+    </nav>
+    <div class="nav-icons">
+      <div class="nav-icon" title="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="nav-icon" title="Account">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="nav-icon" title="Cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1">Ingredient Sample Dispatch</h1>
+    <p class="page-desc animate-up delay-2">A customer formulator has requested specialty-ingredient samples for a formulation trial. Click <strong>Dispatch Samples</strong> to run the fulfilment pipeline and watch the bug surface in real time.</p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Sample Request &middot; SR-2026-4471</h2>
+        <span class="item-count">3 items</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-swatch">&#x1F9F4;</div>
+          <div class="item-details">
+            <span class="item-cat">Consumer Care</span>
+            <div class="item-name">Crodamol&trade; GTCC</div>
+            <div class="item-sku">CRODA-CRM-GTCC &middot; 500 ml</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 2</div>
+            <div class="item-price">&pound;84.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x2600;&#xFE0F;</div>
+          <div class="item-details">
+            <span class="item-cat">Consumer Care</span>
+            <div class="item-name">Solaveil&trade; CT-100</div>
+            <div class="item-sku">CRODA-SOL-CT100 &middot; 1 kg</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">&pound;76.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F9EA;</div>
+          <div class="item-details">
+            <span class="item-cat">Life Sciences</span>
+            <div class="item-name">Super Refined&trade; PEG 400</div>
+            <div class="item-sku">CRODA-SR-PEG400 &middot; 2 kg</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">&pound;95.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Sample subtotal</span><span>&pound;255.00</span></div>
+        <div class="total-line"><span>Outbound freight</span><span>Calculated at dispatch</span></div>
+        <div class="total-line"><span>Priority handling</span><span>Expedited courier</span></div>
+        <div class="total-line grand"><span>Est. total</span><span>&pound;255.00+</span></div>
+        <div class="redtab-badge">&#x2744;&#xFE0F; Temperature-sensitive actives &mdash; cold-chain handling applied</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Dispatch &amp; Delivery</h3>
+      <form id="checkoutForm" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Requested by</label>
+            <input type="text" value="Dr. Elena Marsh, Formulation Lead" readonly>
+          </div>
+          <div class="form-group">
+            <label>Account</label>
+            <input type="text" value="Kestrel Beauty Labs &middot; #CRD-88214" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Dispatch Site</label>
+            <select id="siteSelect">
+              <option value="rawcliffe-bridge" selected>Rawcliffe Bridge, UK</option>
+              <option value="mevisa">Mevisa, Spain</option>
+              <option value="atlas-point">Atlas Point, USA</option>
+              <option value="singapore">Singapore</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ship-to Region</label>
+            <input type="text" value="EMEA &middot; Formulation trial" readonly>
+          </div>
+        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Dispatch Samples</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Dispatching ingredient samples&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The dispatch pipeline appends a mandatory cold-chain handling line (<code>CRODA-COLD-2026</code>) that doesn&rsquo;t exist in the ingredient catalogue. When the manifest formatter looks up its name, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Croda International Plc &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ORDER_ITEMS = [
+      { sku: 'CRODA-CRM-GTCC', qty: 2, price: 42.00 },
+      { sku: 'CRODA-SOL-CT100', qty: 1, price: 76.00 },
+      { sku: 'CRODA-SR-PEG400', qty: 1, price: 95.00 }
+    ];
+    var SUBTOTAL = 255.00;
+
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var site = document.getElementById('siteSelect').value;
+
+      fetch('/api/b9612d96/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_croda_formulator',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: ORDER_ITEMS,
+          subtotal: SUBTOTAL,
+          site: site
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Dispatch Failed</h3>' +
+            '<p>The sample consignment could not be processed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Dispatch Confirmed</h3>' +
+            '<p>Consignment <strong>' + result.data.orderId + '</strong> dispatched from ' + result.data.site + '.<br>' +
+            'Total: ' + result.data.currency + ' ' + result.data.total.toFixed(2) + ' (incl. ' + result.data.currency + ' ' + result.data.freight.toFixed(2) + ' freight)</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Dispatch Samples';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
