@@ -280,6 +280,10 @@ const CUSTOMERS = {
     label: 'ICRC (Red Cross Geneva)',
     triggerMode: 'api',
   },
+  a1e178ae: {
+    label: 'Louis Dreyfus Company Brazil',
+    triggerMode: 'api',
+  },
 };
 
 /**
