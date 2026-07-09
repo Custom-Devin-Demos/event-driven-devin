@@ -288,6 +288,10 @@ const CUSTOMERS = {
     label: 'Croda',
     triggerMode: 'api',
   },
+  b634a963: {
+    label: 'Customer B634',
+    triggerMode: 'api',
+  },
 };
 
 /**
