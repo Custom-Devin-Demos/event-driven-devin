@@ -11,6 +11,7 @@ const SIGNUPS_DIR = path.join(__dirname, '..', '..', 'data');
 const SIGNUPS_FILE = path.join(SIGNUPS_DIR, 'webinar-signups.json');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_FIELD_LEN = 200;
 
 const WEBINAR_NAME = 'Cognition Platform Webinar for Humana Leaders';
 const WEBINAR_WHEN = 'Thursday, July 24 at 12:00 PM EST';
@@ -45,9 +46,16 @@ function sendSignupAlert({ name, title, email, registeredAt }) {
 
 function readSignups() {
   try {
-    return JSON.parse(fs.readFileSync(SIGNUPS_FILE, 'utf8'));
-  } catch {
-    return [];
+    const parsed = JSON.parse(fs.readFileSync(SIGNUPS_FILE, 'utf8'));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    // Only treat a missing file as "no signups yet". A parse error means the
+    // file is present but corrupted, so fail loudly rather than silently
+    // overwriting existing registrations.
+    if (err.code === 'ENOENT') {
+      return [];
+    }
+    throw err;
   }
 }
 
@@ -70,14 +78,22 @@ router.post('/api/webinar/signup', (req, res) => {
   if (!name || !title || !email) {
     return res.status(400).json({ success: false, error: 'Name, title, and email are all required.' });
   }
+  if (name.length > MAX_FIELD_LEN || title.length > MAX_FIELD_LEN || email.length > MAX_FIELD_LEN) {
+    return res.status(400).json({ success: false, error: 'One or more fields are too long.' });
+  }
   if (!EMAIL_RE.test(email)) {
     return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
   }
 
   const registeredAt = new Date().toISOString();
-  const signups = readSignups();
-  signups.push({ name, title, email, registeredAt });
-  writeSignups(signups);
+  try {
+    const signups = readSignups();
+    signups.push({ name, title, email, registeredAt });
+    writeSignups(signups);
+  } catch (err) {
+    logger.error('webinar.signup.persist_failed', { error: err.message });
+    return res.status(500).json({ success: false, error: 'Could not save your registration. Please try again in a moment.' });
+  }
 
   // Fire-and-forget alert email; never blocks or fails the registration.
   sendSignupAlert({ name, title, email, registeredAt });
