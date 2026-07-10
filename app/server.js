@@ -23,6 +23,7 @@ const storefrontRoutes = require('./routes/storefront');
 const sentryWebhookRoutes = require('./routes/sentry-webhook');
 const devinUsersRoutes = require('./routes/devin-users');
 const verticalRoutes = require('./routes/verticals');
+const webinarRoutes = require('./routes/webinar');
 const path = require('path');
 
 const app = express();
@@ -74,6 +75,7 @@ app.use(webhookRoutes);
 app.use(storefrontRoutes);
 app.use(sentryWebhookRoutes);
 app.use(devinUsersRoutes);
+app.use(webinarRoutes);
 app.use(verticalRoutes);
 
 // 404 handler
