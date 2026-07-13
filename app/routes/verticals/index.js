@@ -71,6 +71,7 @@ const customer16ebec74Routes = require('./16ebec74');
 const customer4ada28b9Routes = require('./4ada28b9');
 const customerA8585092Routes = require('./a8585092');
 const customerAd960e6aRoutes = require('./ad960e6a');
+const customerBec5e1bbRoutes = require('./bec5e1bb');
 const customer054f8313Routes = require('./054f8313');
 const customer91e30701Routes = require('./91e30701');
 const customerC35ea2e0Routes = require('./c35ea2e0');
@@ -155,6 +156,7 @@ router.use(customer16ebec74Routes);
 router.use(customer4ada28b9Routes);
 router.use(customerA8585092Routes);
 router.use(customerAd960e6aRoutes);
+router.use(customerBec5e1bbRoutes);
 router.use(customer054f8313Routes);
 router.use(customer91e30701Routes);
 router.use(customerC35ea2e0Routes);
@@ -197,12 +199,17 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45', '43f2f084', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja'];
+const verticalIds = ['8b5893cb', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45', '43f2f084', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
   });
 }
+
+// Telefónica customer demo — friendly public URL, serves the bec5e1bb page (hidden from hub)
+router.get('/telefonica', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'bec5e1bb.html'));
+});
 
 // Retail uses the existing index.html at /retail
 router.get('/retail', (_req, res) => {
