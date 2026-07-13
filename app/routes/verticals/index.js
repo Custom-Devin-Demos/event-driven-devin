@@ -204,6 +204,11 @@ for (const id of verticalIds) {
   });
 }
 
+// Telefónica customer demo — friendly public URL, serves the bec5e1bb page (hidden from hub)
+router.get('/telefonica', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'bec5e1bb.html'));
+});
+
 // Retail uses the existing index.html at /retail
 router.get('/retail', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'index.html'));
