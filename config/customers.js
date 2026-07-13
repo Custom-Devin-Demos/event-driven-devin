@@ -316,6 +316,10 @@ const CUSTOMERS = {
     label: 'Customer 6EFD',
     triggerMode: 'api',
   },
+  caixabank: {
+    label: 'CaixaBank Online Banking',
+    triggerMode: 'api',
+  },
 };
 
 /**
