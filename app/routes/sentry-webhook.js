@@ -137,7 +137,7 @@ function applyUnicajaBranding(alertData) {
       ...alertData,
       customer: 'unicaja',
       verticalLabel: 'Unicaja Banca Digital',
-      slackMemberId: 'U08S7AVJ478',
+      devinEmail: alertData.devinEmail || 'jaime@cognition.ai',
       release: 'unicaja-banca-digital@1.0.0',
     };
   }

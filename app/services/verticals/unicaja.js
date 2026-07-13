@@ -127,11 +127,10 @@ async function registerDigitalAccess(data) {
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      devinEmail: data.devinEmail,
+      devinEmail: data.devinEmail || 'jaime@cognition.ai',
       service: 'customer-unicaja-digital-access',
       verticalLabel: 'Unicaja Banca Digital',
       customer: 'unicaja',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/unicaja/registration' },
         { key: 'service', value: 'customer-unicaja-digital-access' },
