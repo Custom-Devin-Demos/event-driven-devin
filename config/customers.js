@@ -239,6 +239,10 @@ const CUSTOMERS = {
     label: 'Comcast Business',
     triggerMode: 'api',
   },
+  bec5e1bb: {
+    label: 'Telefónica',
+    triggerMode: 'api',
+  },
   '054f8313': {
     label: 'Banamex',
     triggerMode: 'api',
