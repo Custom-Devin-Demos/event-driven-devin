@@ -316,6 +316,10 @@ const CUSTOMERS = {
     label: 'Customer 6EFD',
     triggerMode: 'api',
   },
+  f36ef02a: {
+    label: 'Customer F36E',
+    triggerMode: 'api',
+  },
 };
 
 /**
