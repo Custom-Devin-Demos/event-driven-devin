@@ -211,6 +211,11 @@ router.get('/telefonica', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'bec5e1bb.html'));
 });
 
+// Movistar customer demo — purchase flow page for the Telefónica demo
+router.get('/movistar', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'movistar-fibra.html'));
+});
+
 // Retail uses the existing index.html at /retail
 router.get('/retail', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'index.html'));
