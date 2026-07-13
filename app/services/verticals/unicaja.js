@@ -129,7 +129,7 @@ async function registerDigitalAccess(data) {
       devinOrgId: data.devinOrgId,
       devinEmail: data.devinEmail,
       service: 'customer-unicaja-digital-access',
-      verticalLabel: 'Digital Banking Enrollment',
+      verticalLabel: 'Unicaja Banca Digital',
       customer: 'unicaja',
       slackMemberId: 'U08S7AVJ478',
       tags: [
@@ -145,7 +145,7 @@ async function registerDigitalAccess(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-unicaja-digital-access@1.0.0',
+      release: 'unicaja-banca-digital@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((alertError) => {

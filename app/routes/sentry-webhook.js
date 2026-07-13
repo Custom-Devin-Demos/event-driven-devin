@@ -118,6 +118,33 @@ function extractAlertData(payload) {
   };
 }
 
+function applyUnicajaBranding(alertData) {
+  const tagValues = (alertData.tags || []).flatMap((tag) => {
+    if (Array.isArray(tag)) return tag;
+    if (tag && typeof tag === 'object') return Object.values(tag);
+    return [tag];
+  });
+  const searchableText = [alertData.culprit, ...tagValues]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (
+    searchableText.includes('customer-unicaja-digital-access')
+    || searchableText.includes('unicaja')
+  ) {
+    return {
+      ...alertData,
+      customer: 'unicaja',
+      verticalLabel: 'Unicaja Banca Digital',
+      slackMemberId: 'U08S7AVJ478',
+      release: 'unicaja-banca-digital@1.0.0',
+    };
+  }
+
+  return alertData;
+}
+
 /**
  * POST /webhooks/sentry — Receive Sentry alert webhooks and create
  * a Devin session to investigate the error automatically.
@@ -149,7 +176,7 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
   }
 
   try {
-    const alertData = extractAlertData(payload);
+    const alertData = applyUnicajaBranding(extractAlertData(payload));
 
     // If a devinUserId/devinOrgId was forwarded via query param (e.g. from the instant path),
     // attach it so the Devin session is created under the correct user/org.
