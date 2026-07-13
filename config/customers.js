@@ -292,7 +292,7 @@ const CUSTOMERS = {
     label: 'Customer B634',
     triggerMode: 'api',
   },
-  '6df65596': {
+  unicaja: {
     label: 'Unicaja Digital Banking',
     triggerMode: 'api',
   },

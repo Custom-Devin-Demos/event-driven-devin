@@ -3,18 +3,18 @@ const {
   registerDigitalAccess,
   CUSTOMER_PROFILES,
   ACCESS_CHANNELS,
-} = require('../../services/verticals/6df65596');
+} = require('../../services/verticals/unicaja');
 
 const router = express.Router();
 
-router.get('/api/6df65596/mock-data', (_req, res) => {
+router.get('/api/unicaja/mock-data', (_req, res) => {
   res.json({
     profiles: CUSTOMER_PROFILES,
     channels: ACCESS_CHANNELS,
   });
 });
 
-router.post('/api/6df65596/registration', async (req, res) => {
+router.post('/api/unicaja/registration', async (req, res) => {
   try {
     const result = await registerDigitalAccess({
       profileId: req.body.profileId,

@@ -76,8 +76,8 @@ async function registerDigitalAccess(data) {
   logger.info('Processing digital banking enrollment', {
     requestId,
     profileId: profile.id,
-    service: 'customer-6df65596-digital-access',
-    route: '/api/6df65596/registration',
+    service: 'customer-unicaja-digital-access',
+    route: '/api/unicaja/registration',
   });
 
   try {
@@ -86,21 +86,21 @@ async function registerDigitalAccess(data) {
     result.requestId = requestId;
     result.createdAt = new Date().toISOString();
     incrementMetric('digital_enrollment.success', {
-      route: '/api/6df65596/registration',
+      route: '/api/unicaja/registration',
       segment: profile.segment,
     });
     recordTiming('digital_enrollment.latency', Date.now() - startTime, {
-      route: '/api/6df65596/registration',
+      route: '/api/unicaja/registration',
     });
     return result;
   } catch (error) {
     const duration = Date.now() - startTime;
     incrementMetric('digital_enrollment.failure', {
-      route: '/api/6df65596/registration',
+      route: '/api/unicaja/registration',
       errorClass: error.name,
     });
     recordTiming('digital_enrollment.latency', duration, {
-      route: '/api/6df65596/registration',
+      route: '/api/unicaja/registration',
       error: 'true',
     });
     logger.error('Digital banking enrollment failed', {
@@ -109,12 +109,12 @@ async function registerDigitalAccess(data) {
       errorClass: error.name,
       durationMs: duration,
       profileId: profile.id,
-      service: 'customer-6df65596-digital-access',
+      service: 'customer-unicaja-digital-access',
     });
     Sentry.captureException(error, {
       tags: {
-        route: '/api/6df65596/registration',
-        service: 'customer-6df65596-digital-access',
+        route: '/api/unicaja/registration',
+        service: 'customer-unicaja-digital-access',
         profile: profile.segment,
       },
       extra: { requestId, profileId: profile.id },
@@ -122,19 +122,19 @@ async function registerDigitalAccess(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/6df65596.js — createEnrollmentResult',
+      culprit: 'app/services/verticals/unicaja.js — createEnrollmentResult',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
       devinEmail: data.devinEmail,
-      service: 'customer-6df65596-digital-access',
+      service: 'customer-unicaja-digital-access',
       verticalLabel: 'Digital Banking Enrollment',
-      customer: '6df65596',
+      customer: 'unicaja',
       slackMemberId: 'U08S7AVJ478',
       tags: [
-        { key: 'route', value: '/api/6df65596/registration' },
-        { key: 'service', value: 'customer-6df65596-digital-access' },
+        { key: 'route', value: '/api/unicaja/registration' },
+        { key: 'service', value: 'customer-unicaja-digital-access' },
         { key: 'profile', value: profile.segment },
       ],
       extra: { requestId, profileId: profile.id },
@@ -145,7 +145,7 @@ async function registerDigitalAccess(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-6df65596-digital-access@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-unicaja-digital-access@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((alertError) => {
