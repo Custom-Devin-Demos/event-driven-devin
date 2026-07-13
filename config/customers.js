@@ -300,6 +300,10 @@ const CUSTOMERS = {
     label: 'Unicaja Digital Banking',
     triggerMode: 'api',
   },
+  '82df0421': {
+    label: 'Customer 82DF',
+    triggerMode: 'api',
+  },
 };
 
 /**
