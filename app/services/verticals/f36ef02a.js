@@ -145,7 +145,6 @@ async function processDownloadRequest(data) {
       service: 'customer-f36ef02a-download',
       verticalLabel: 'App Download Link',
       customer: 'f36ef02a',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/f36ef02a/download' },
         { key: 'service', value: 'customer-f36ef02a-download' },
