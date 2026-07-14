@@ -320,6 +320,10 @@ const CUSTOMERS = {
     label: 'Customer F36E',
     triggerMode: 'api',
   },
+  caixabank: {
+    label: 'CaixaBank Online Banking',
+    triggerMode: 'api',
+  },
 };
 
 /**

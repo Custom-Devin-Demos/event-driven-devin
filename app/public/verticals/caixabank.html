@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CaixaBank &mdash; Banca online</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --caixa-blue: #007eae;
+      --caixa-blue-dark: #00597c;
+      --caixa-yellow: #ffcd00;
+      --caixa-yellow-dark: #deaf0e;
+      --caixa-orange: #c4471a;
+      --caixa-red: #de3532;
+      --caixa-green: #19818b;
+      --caixa-text: #1a1a1a;
+      --caixa-text-muted: #6a6a68;
+      --caixa-bg: #f6f6f6;
+      --caixa-white: #ffffff;
+      --caixa-gray-50: #f9fafb;
+      --caixa-gray-100: #f0f0f0;
+      --caixa-gray-200: #e6e6e6;
+      --caixa-gray-300: #d6dbdf;
+      --caixa-gray-400: #9d9fa4;
+      --caixa-gray-500: #6b7280;
+      --caixa-gray-600: #4b5563;
+      --caixa-gray-700: #374151;
+      --caixa-gray-800: #1f2937;
+      --danger-bg: #fde8e8;
+      --danger-border: #fecaca;
+      --success-bg: #ecfdf5;
+      --success-border: #a7f3d0;
+      --sans: 'Open Sans', Arial, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--caixa-bg); color: var(--caixa-text); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: var(--caixa-blue); color: rgba(255,255,255,0.85); font-size: 0.7rem; padding: 0.4rem 2rem; display: flex; justify-content: flex-end; gap: 1.5rem; }
+    .top-bar a { color: rgba(255,255,255,0.85); text-decoration: none; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--caixa-white); border-bottom: 1px solid var(--caixa-gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 72px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+    .logo { display: flex; align-items: center; gap: 0.6rem; color: var(--caixa-text); text-decoration: none; }
+    .logo img { height: 34px; width: auto; display: block; }
+    .logo .logo-text { display: none; font-family: var(--sans); font-size: 1.4rem; font-weight: 700; color: var(--caixa-text); }
+    .logo.fallback .logo-text { display: block; }
+    .logo-mark { width: 34px; height: 34px; background: var(--caixa-blue); border-radius: 50%; display: none; align-items: center; justify-content: center; color: var(--caixa-yellow); font-weight: 700; font-size: 1.1rem; }
+    .logo.fallback .logo-mark { display: flex; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--caixa-text-muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 0.5rem 1rem; border-radius: 30px; transition: all 0.2s; }
+    nav a:hover { background: var(--caixa-gray-100); color: var(--caixa-blue); }
+    nav a.active { background: var(--caixa-blue); color: #fff; }
+
+    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--caixa-blue); text-decoration: none; font-size: 0.8rem; font-weight: 700; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--caixa-blue-dark); }
+    .greeting { margin-bottom: 1.75rem; }
+    .greeting h1 { font-family: var(--sans); font-size: 1.6rem; font-weight: 700; color: var(--caixa-text); margin-bottom: 0.15rem; }
+    .greeting p { color: var(--caixa-text-muted); font-size: 0.9rem; }
+
+    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+    @media (max-width: 700px) { .accounts { grid-template-columns: 1fr; } }
+    .account-card { background: var(--caixa-white); border: 1px solid var(--caixa-gray-200); border-radius: 10px; padding: 1.5rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow 0.3s; }
+    .account-card:hover { box-shadow: var(--shadow-md); }
+    .account-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--caixa-blue), var(--caixa-yellow)); }
+    .account-type { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--caixa-blue); margin-bottom: 0.6rem; }
+    .account-balance { font-family: var(--sans); font-size: 2rem; font-weight: 700; color: var(--caixa-text); margin-bottom: 0.2rem; }
+    .account-number { font-family: var(--mono); font-size: 0.78rem; color: var(--caixa-gray-400); }
+
+    .section-header { font-family: var(--sans); font-size: 1.15rem; font-weight: 700; color: var(--caixa-text); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--caixa-blue); display: inline-block; }
+    .txn-card { background: var(--caixa-white); border: 1px solid var(--caixa-gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 2rem; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table thead { background: var(--caixa-gray-50); }
+    .txn-table th { text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--caixa-gray-500); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--caixa-gray-200); }
+    .txn-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--caixa-gray-100); font-size: 0.88rem; }
+    .txn-table tbody tr:hover td { background: rgba(0,126,174,0.06); }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .credit { color: var(--caixa-green); font-weight: 600; }
+    .debit { color: var(--caixa-text); }
+
+    .transfer-card { background: var(--caixa-white); border: 1px solid var(--caixa-gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 2rem; max-width: 580px; }
+    .transfer-card h2 { font-family: var(--sans); font-size: 1.15rem; font-weight: 700; color: var(--caixa-text); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--caixa-blue); display: inline-block; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--caixa-gray-600); margin-bottom: 0.35rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.65rem 0.85rem; background: var(--caixa-white); border: 1px solid var(--caixa-gray-300); border-radius: 6px; color: var(--caixa-text); font-family: var(--sans); font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--caixa-blue); box-shadow: 0 0 0 3px rgba(0,126,174,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .btn-transfer { width: 100%; padding: 0.8rem; background: var(--caixa-blue); color: #fff; border: 2px solid var(--caixa-blue); border-radius: 30px; font-size: 0.88rem; font-weight: 700; font-family: var(--sans); cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; display: flex; align-items: center; justify-content: center; min-height: 48px; }
+    .btn-transfer:hover { background: var(--caixa-blue-dark); border-color: var(--caixa-blue-dark); transform: translateY(-1px); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--caixa-red); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--caixa-green); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 1.5rem; padding: 0.75rem 1rem; background: #eff8fb; border-left: 3px solid var(--caixa-yellow); font-size: 0.78rem; color: var(--caixa-text-muted); }
+  </style>
+</head>
+<body>
+  <div class="top-bar"><a href="#">Centro de seguridad</a><a href="#">Oficinas</a><a href="#">Contacto</a></div>
+  <header>
+    <a href="#" class="logo" aria-label="CaixaBank">
+      <img src="https://www.caixabank.es/deployedfiles/common/R2016/Estaticos/images/gif/logo_laCaixa_principal.gif" alt="CaixaBank" onerror="this.style.display='none'; this.parentElement.classList.add('fallback');">
+      <span class="logo-mark">C</span>
+      <span class="logo-text">CaixaBank</span>
+    </a>
+    <nav><a href="#" class="active">Cuentas</a><a href="#">Pagos</a><a href="#">Transferencias</a><a href="#">Inversiones</a><a href="#">Configuración</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; Todos los demos</a>
+    <div class="greeting fade-in d1">
+      <h1>Buenos días, Ana García</h1>
+      <p>Cliente Particular · Afiliada desde 2019</p>
+    </div>
+    <div class="accounts">
+      <div class="account-card fade-in d2">
+        <div class="account-type">Cuenta Corriente</div>
+        <div class="account-balance">€24,850.00</div>
+        <div class="account-number">ACCT-1001 · Cuenta Corriente Premium</div>
+      </div>
+      <div class="account-card fade-in d3">
+        <div class="account-type">Cuenta de Ahorro</div>
+        <div class="account-balance">€142,300.00</div>
+        <div class="account-number">ACCT-1002 · Cuenta de Ahorro Alto Rendimiento</div>
+      </div>
+    </div>
+    <div class="fade-in d3">
+      <div class="section-header">Transacciones recientes</div>
+      <div class="txn-card">
+        <table class="txn-table">
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Importe</th><th>Saldo</th></tr></thead>
+          <tbody>
+            <tr><td>15 mar</td><td>Domiciliación — Nómina</td><td class="credit">+€4,200.00</td><td>€24,850.00</td></tr>
+            <tr><td>14 mar</td><td>Supermercado</td><td class="debit">-€127.43</td><td>€20,650.00</td></tr>
+            <tr><td>13 mar</td><td>Factura de electricidad</td><td class="debit">-€89.50</td><td>€20,777.43</td></tr>
+            <tr><td>12 mar</td><td>Transferencia desde Ahorro</td><td class="credit">+€2,000.00</td><td>€20,866.93</td></tr>
+            <tr><td>10 mar</td><td>Compra online</td><td class="debit">-€54.99</td><td>€18,866.93</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="fade-in d4">
+      <div class="transfer-card">
+        <h2>Transferir fondos</h2>
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group"><label>Desde la cuenta</label><select id="fromAccount"><option value="ACCT-1001">Cuenta Corriente — ACCT-1001</option><option value="ACCT-1002">Cuenta de Ahorro — ACCT-1002</option></select></div>
+            <div class="form-group"><label>A la cuenta</label><select id="toAccount"><option value="ACCT-1002">Cuenta de Ahorro — ACCT-1002</option><option value="ACCT-1001">Cuenta Corriente — ACCT-1001</option><option value="ACCT-EXT-001">Externa — BBVA ****4921</option></select></div>
+          </div>
+          <div class="form-group"><label>Importe</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="Introduce el importe"></div>
+          <div class="form-group"><label>Tipo de cuenta</label><select id="accountTier"><option value="premium">Premium (Transferencias gratuitas)</option><option value="standard">Estándar (€2,50/transferencia)</option><option value="basic">Básica (€4,99/transferencia)</option></select></div>
+          <button type="submit" class="btn-transfer" id="submitBtn">Transferir fondos</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="security-note">Todas las transferencias están protegidas con cifrado de 256 bits. El Fondo de Garantía de Depósitos cubre hasta €100.000 por depositante.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Procesando...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/caixabank/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_ana_garcia', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: 'org-df79e7b98f9849bea354717441c90a33', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transferencia fallida</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transferencia completada</div><div class="error-detail">Debitado €${data.debitAmount} (incluye €${data.fee} de comisión)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Error de red</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Transferir fondos'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
