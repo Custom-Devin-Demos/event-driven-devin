@@ -227,6 +227,17 @@
     })();
   </script>
   <script>
+    function showResult(result, type, title, detail) {
+      const titleElement = document.createElement('div');
+      const detailElement = document.createElement('div');
+      titleElement.className = 'error-title';
+      titleElement.textContent = title;
+      detailElement.className = 'error-detail';
+      detailElement.textContent = detail;
+      result.replaceChildren(titleElement, detailElement);
+      result.className = `result-box ${type}`;
+    }
+
     document.getElementById('transferForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const button = document.getElementById('submitBtn');
@@ -252,15 +263,12 @@
         });
         const data = await response.json();
         if (!response.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">No pudimos completar la transferencia</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult(result, 'error', 'No pudimos completar la transferencia', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Transferencia completada</div><div class="error-detail">Se transfirieron $${data.debitAmount} con $${data.fee} de comisión.</div>`;
+          showResult(result, 'success', 'Transferencia completada', `Se transfirieron $${data.debitAmount} con $${data.fee} de comisión.`);
         }
       } catch (error) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Error de red</div><div class="error-detail">${error.message}</div>`;
+        showResult(result, 'error', 'Error de red', error.message);
       } finally {
         button.disabled = false;
         button.textContent = 'Transferir ahora';
