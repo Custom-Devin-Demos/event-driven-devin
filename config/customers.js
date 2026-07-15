@@ -324,6 +324,11 @@ const CUSTOMERS = {
     label: 'CaixaBank Online Banking',
     triggerMode: 'api',
   },
+  bbva: {
+    label: 'BBVA Online Banking',
+    triggerMode: 'api',
+    playbookId: '6bf2c8511cbc4ec9850d5a89c69c6f24',
+  },
 };
 
 /**
@@ -366,6 +371,7 @@ function getCustomerConfig(customerSlug) {
       || process.env[`DEVIN_API_KEY${suffix}`]
       || process.env.DEVIN_API_KEY || '',
     playbookId: process.env[`DEVIN_PLAYBOOK_ID${suffix}`]
+      || entry.playbookId
       || process.env.DEVIN_PLAYBOOK_ID || '',
     githubOrg,
     devinUserId: process.env[`DEVIN_USER_ID${suffix}`]

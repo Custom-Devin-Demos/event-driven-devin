@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BBVA | Banca en línea</title>
+  <style>
+    @font-face { font-family: 'Benton Sans BBVA'; src: url('https://www.bbva.mx/content/dam/public-web/global/fonts/BentonSansBBVA-Book-Lite.woff2') format('woff2'); font-display: swap; font-weight: 350; font-style: normal; }
+    @font-face { font-family: 'Benton Sans BBVA'; src: url('https://www.bbva.mx/content/dam/public-web/global/fonts/BentonSansBBVA-Medium-Lite.woff2') format('woff2'); font-display: swap; font-weight: 500; font-style: normal; }
+    @font-face { font-family: 'Tiempos Headline'; src: url('https://www.bbva.mx/content/dam/public-web/global/fonts/tiempos-headline-bold.woff2') format('woff2'); font-display: swap; font-weight: 700; font-style: normal; }
+    :root {
+      --bbva-navy: #001391;
+      --bbva-blue: #0c6dff;
+      --bbva-dark: #070e46;
+      --bbva-aqua: #5ac4c4;
+      --bbva-bg: #f7f8f8;
+      --bbva-white: #ffffff;
+      --bbva-gray-100: #f4f5f6;
+      --bbva-gray-200: #e9eaea;
+      --bbva-gray-300: #d3d5d7;
+      --bbva-gray-500: #62666a;
+      --bbva-success: #197278;
+      --bbva-danger: #b92a45;
+      --sans: 'Benton Sans BBVA', Helvetica, Arial, sans-serif;
+      --serif: 'Tiempos Headline', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: var(--bbva-bg); color: var(--bbva-dark); font-family: var(--sans); font-size: 15px; font-weight: 350; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    @keyframes enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .enter { animation: enter 0.45s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .header-shell { margin: 24px; background: var(--bbva-white); border-radius: 16px; }
+    header { max-width: 1224px; min-height: 88px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; gap: 44px; }
+    .logo { width: 108px; flex: 0 0 auto; color: #004481; text-decoration: none; }
+    .logo svg { display: block; width: 100%; height: auto; }
+    nav { display: flex; align-items: center; gap: 34px; flex: 1; }
+    nav a { position: relative; text-decoration: none; font-weight: 500; color: var(--bbva-dark); }
+    nav a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 2px; background: var(--bbva-navy); }
+    .header-actions { display: flex; gap: 12px; }
+    .header-button { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; }
+    .header-button.secondary { background: var(--bbva-bg); color: var(--bbva-navy); }
+    .header-button.primary { background: var(--bbva-blue); color: var(--bbva-white); }
+
+    main { max-width: 1224px; margin: 0 auto; padding: 24px 24px 64px; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: var(--bbva-navy); text-decoration: none; font-weight: 500; }
+    .greeting { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 32px; }
+    .greeting h1 { max-width: 760px; font-family: var(--serif); font-size: clamp(34px, 5vw, 48px); font-weight: 700; line-height: 1.16; color: var(--bbva-navy); }
+    .greeting p { margin-top: 8px; color: var(--bbva-gray-500); }
+    .secure-session { display: flex; align-items: center; gap: 8px; color: var(--bbva-success); font-size: 14px; font-weight: 500; white-space: nowrap; }
+    .secure-session::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #22a06b; box-shadow: 0 0 0 4px #e3f5ed; }
+
+    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .account-card { position: relative; min-height: 196px; padding: 28px; overflow: hidden; border-radius: 16px; background: var(--bbva-white); }
+    .account-card.primary { background: var(--bbva-navy); color: var(--bbva-white); }
+    .account-card.primary::after { content: ''; position: absolute; width: 190px; height: 190px; right: -58px; top: -76px; border: 24px solid rgba(90,196,196,0.42); border-radius: 50%; }
+    .account-type { position: relative; z-index: 1; margin-bottom: 20px; font-size: 14px; font-weight: 500; }
+    .account-balance { position: relative; z-index: 1; font-family: var(--serif); font-size: 36px; font-weight: 700; line-height: 1.15; }
+    .account-number { position: relative; z-index: 1; margin-top: 16px; color: var(--bbva-gray-500); font-size: 14px; }
+    .primary .account-number { color: rgba(255,255,255,0.76); }
+
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr); gap: 24px; align-items: start; }
+    .panel { background: var(--bbva-white); border-radius: 16px; overflow: hidden; }
+    .panel-header { padding: 24px 28px 18px; }
+    .panel-header h2 { font-family: var(--serif); font-size: 26px; line-height: 1.25; color: var(--bbva-navy); }
+    .panel-header p { margin-top: 4px; color: var(--bbva-gray-500); font-size: 14px; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { padding: 13px 20px; background: var(--bbva-gray-100); color: var(--bbva-gray-500); text-align: left; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+    .txn-table td { padding: 17px 20px; border-bottom: 1px solid var(--bbva-gray-200); font-size: 14px; }
+    .txn-table tbody tr:last-child td { border-bottom: 0; }
+    .txn-table tbody tr:hover td { background: #f8fbff; }
+    .credit { color: var(--bbva-success); font-weight: 500; }
+    .debit { color: var(--bbva-dark); }
+
+    .transfer-panel { padding-bottom: 28px; }
+    .transfer-form { padding: 0 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 7px; color: var(--bbva-dark); font-size: 14px; font-weight: 500; }
+    .form-group select, .form-group input { width: 100%; min-height: 52px; padding: 12px 14px; background: var(--bbva-white); border: 1px solid var(--bbva-gray-300); border-radius: 8px; color: var(--bbva-dark); font: inherit; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--bbva-blue); box-shadow: 0 0 0 3px rgba(12,109,255,0.12); }
+    .btn-transfer { width: 100%; min-height: 56px; padding: 16px 32px; background: var(--bbva-navy); border: 0; border-radius: 8px; color: var(--bbva-white); cursor: pointer; font: 500 15px/24px var(--sans); transition: background 0.2s, transform 0.15s; }
+    .btn-transfer:hover { background: #0726a0; transform: translateY(-1px); }
+    .btn-transfer:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .result-box { display: none; margin: 18px 28px 0; padding: 14px 16px; border-radius: 8px; font-size: 14px; }
+    .result-box.error { display: block; background: #fff1f3; border: 1px solid #f4b8c4; color: var(--bbva-danger); }
+    .result-box.success { display: block; background: #eaf7f4; border: 1px solid #9fd4ca; color: var(--bbva-success); }
+    .result-box .error-title { font-weight: 500; }
+    .result-box .error-detail { margin-top: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; word-break: break-word; }
+    .security-note { margin: 20px 28px 0; padding: 16px; background: #eef5ff; border-radius: 8px; color: #263a78; font-size: 13px; }
+
+    @media (max-width: 900px) {
+      nav { display: none; }
+      .header-actions { margin-left: auto; }
+      .workspace { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 660px) {
+      .header-shell { margin: 12px; }
+      header { min-height: 72px; padding: 12px 16px; }
+      .logo { width: 88px; }
+      .header-button.secondary { display: none; }
+      .header-button.primary { min-height: 44px; padding: 10px 16px; }
+      main { padding: 20px 16px 48px; }
+      .greeting { display: block; }
+      .secure-session { margin-top: 16px; }
+      .accounts { grid-template-columns: 1fr; }
+      .txn-card { overflow-x: auto; }
+      .txn-table { min-width: 620px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-shell">
+    <header>
+      <a href="#" class="logo" aria-label="BBVA">
+        <svg viewBox="0 0 600 180" role="img" aria-hidden="true">
+          <g fill="currentColor">
+            <path d="M432.2 24.4l-51.6 98.2c-1.1 2.1-4.3 2.1-5.4 0l-51.6-98.2c-.5-1-1.5-1.6-2.6-1.6h-25c-1.7 0-2.8 1.8-2 3.3l81.3 152.2c1.1 2.1 4.1 2.1 5.3 0l81.3-152.2c.8-1.5-.3-3.3-2-3.3h-25c-1.2 0-2.2.6-2.7 1.6z"/>
+            <path d="M461.5 155.5l51.6-98.2c1.1-2.1 4.3-2.1 5.4 0l51.6 98.2c.5 1 1.5 1.6 2.6 1.6h25c1.7 0 2.8-1.8 2-3.3L518.4 1.6c-1.1-2.1-4.1-2.1-5.3 0l-81.3 152.2c-.8 1.5.3 3.3 2 3.3h25c1.1-.1 2.2-.7 2.6-1.6z"/>
+            <path d="M108.8 95.2c10.8-5.4 17.5-17.1 17.5-31.4 0-24.5-19.1-41.1-46-41.1H3c-1.7 0-3 1.3-3 3v151.1c0 1.7 1.3 3 3 3h74c37 0 56.5-15.9 56.5-47.1 0-30.4-24.7-37.5-24.7-37.5zM29 45.5h45.9c16.9 0 25.5 7.2 25.5 20.6s-8.6 20.6-25.5 20.6H29c-1.6 0-3-1.3-3-3V48.5c0-1.7 1.3-3 3-3zm46.5 111.5H29c-1.7 0-3-1.3-3-3v-41.7c0-1.6 1.3-3 3-3h46.5c22.2 0 32.1 6.3 32.1 23.8-.1 17.7-9.7 23.9-32.1 23.9z"/>
+            <path d="M267.5 95.2C278.3 89.8 285 78.1 285 63.8c0-24.5-19.1-41.1-46-41.1h-77.4c-1.7 0-3 1.3-3 3v151.1c0 1.7 1.3 3 3 3h74c37 0 56.5-15.9 56.5-47.1.1-30.4-24.6-37.5-24.6-37.5zm-79.8-49.7h45.9c16.9 0 25.5 7.2 25.5 20.6s-8.6 20.6-25.5 20.6h-45.9c-1.7 0-3-1.3-3-3V48.5c0-1.7 1.3-3 3-3zM234.1 157h-46.5c-1.6 0-3-1.3-3-3v-41.7c0-1.6 1.3-3 3-3h46.5c22.2 0 32.1 6.3 32.1 23.8 0 17.7-9.7 23.9-32.1 23.9z"/>
+          </g>
+        </svg>
+      </a>
+      <nav aria-label="Navegación principal">
+        <a href="#" class="active">Cuentas</a>
+        <a href="#">Transferencias</a>
+        <a href="#">Tarjetas</a>
+        <a href="#">Inversiones</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#" class="header-button secondary">Ayuda</a>
+        <a href="#" class="header-button primary">Cerrar sesión</a>
+      </div>
+    </header>
+  </div>
+
+  <main>
+    <a href="/" class="back-link enter">&larr; Todos los demos</a>
+    <section class="greeting enter d1">
+      <div>
+        <h1>Buenas tardes, Ana García</h1>
+        <p>Aquí tienes el resumen de tus finanzas.</p>
+      </div>
+      <div class="secure-session">Sesión segura</div>
+    </section>
+
+    <section class="accounts">
+      <article class="account-card primary enter d2">
+        <div class="account-type">Cuenta BBVA</div>
+        <div class="account-balance">$24,850.00</div>
+        <div class="account-number">Cuenta terminada en 1001 · Saldo disponible</div>
+      </article>
+      <article class="account-card enter d3">
+        <div class="account-type">Meta Ahorro</div>
+        <div class="account-balance">$142,300.00</div>
+        <div class="account-number">Cuenta terminada en 1002 · Rendimiento preferente</div>
+      </article>
+    </section>
+
+    <section class="workspace">
+      <div class="panel txn-card enter d3">
+        <div class="panel-header">
+          <h2>Últimos movimientos</h2>
+          <p>Actividad reciente de tu Cuenta BBVA</p>
+        </div>
+        <table class="txn-table">
+          <thead><tr><th>Fecha</th><th>Descripción</th><th>Importe</th><th>Saldo</th></tr></thead>
+          <tbody>
+            <tr><td>15 mar</td><td>Depósito de nómina</td><td class="credit">+$4,200.00</td><td>$24,850.00</td></tr>
+            <tr><td>14 mar</td><td>Supermercado</td><td class="debit">-$127.43</td><td>$20,650.00</td></tr>
+            <tr><td>13 mar</td><td>Servicio de electricidad</td><td class="debit">-$89.50</td><td>$20,777.43</td></tr>
+            <tr><td>12 mar</td><td>Transferencia desde Meta Ahorro</td><td class="credit">+$2,000.00</td><td>$20,866.93</td></tr>
+            <tr><td>10 mar</td><td>Compra en línea</td><td class="debit">-$54.99</td><td>$18,866.93</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel transfer-panel enter d4">
+        <div class="panel-header">
+          <h2>Hacer una transferencia</h2>
+          <p>Envía dinero entre tus cuentas.</p>
+        </div>
+        <form id="transferForm" class="transfer-form">
+          <div class="form-group">
+            <label for="fromAccount">Cuenta de origen</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Cuenta BBVA · 1001</option>
+              <option value="ACCT-1002">Meta Ahorro · 1002</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="toAccount">Cuenta de destino</label>
+            <select id="toAccount">
+              <option value="ACCT-1002">Meta Ahorro · 1002</option>
+              <option value="ACCT-1001">Cuenta BBVA · 1001</option>
+              <option value="ACCT-EXT-001">Cuenta externa · ****4921</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Importe</label>
+            <input type="number" id="amount" value="500" min="1" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Tipo de cuenta</label>
+            <select id="accountTier">
+              <option value="premium">Premium · Sin comisión</option>
+              <option value="standard">Estándar · $2.50</option>
+              <option value="basic">Básica · $4.99</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-transfer" id="submitBtn">Transferir ahora</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="security-note">Tu información está protegida con cifrado de 256 bits. Nunca compartas tus claves de acceso.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = 'Procesando...';
+      result.className = 'result-box';
+
+      try {
+        const response = await fetch('/api/bbva/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_ana_garcia',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">No pudimos completar la transferencia</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transferencia completada</div><div class="error-detail">Se transfirieron $${data.debitAmount} con $${data.fee} de comisión.</div>`;
+        }
+      } catch (error) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Error de red</div><div class="error-detail">${error.message}</div>`;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transferir ahora';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
