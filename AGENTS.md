@@ -347,7 +347,7 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 
 ## Testing
 
-There are no automated tests in this repo. Verification is done manually:
+Unit tests live in `tests/` and run with `npm test` (Jest; `tests/mocks/uuid.js` maps the ESM-only `uuid` package). Most verification is still done manually:
 
 1. Run `npm start` or `docker compose up`
 2. Open `http://localhost:3000` in a browser — you'll see the hub landing page
