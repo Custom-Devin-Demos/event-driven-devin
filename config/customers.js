@@ -328,6 +328,10 @@ const CUSTOMERS = {
     label: 'BBVA Online Banking',
     triggerMode: 'api',
   },
+  '5697165b': {
+    label: 'Customer 5697',
+    triggerMode: 'api',
+  },
 };
 
 /**
