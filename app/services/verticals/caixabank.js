@@ -154,7 +154,6 @@ async function processTransfer(data) {
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       customer: 'caixabank',
-      slackMemberId: 'U08S7AVJ478',
       service: 'caixabank-online',
       verticalLabel: 'CaixaBank Transfer',
       tags: [
