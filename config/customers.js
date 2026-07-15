@@ -327,6 +327,7 @@ const CUSTOMERS = {
   bbva: {
     label: 'BBVA Online Banking',
     triggerMode: 'api',
+    attachPlaybook: true,
     playbookId: '6bf2c8511cbc4ec9850d5a89c69c6f24',
   },
 };
@@ -342,7 +343,7 @@ const CUSTOMERS = {
  * of per-customer config is running against a different Devin org).
  *
  * @param {string} [customerSlug] - Customer identifier (e.g. "wayfair")
- * @returns {Object} Resolved config with triggerMode, apiKey, playbookId, githubOrg, devinUserId, targetRepo
+ * @returns {Object} Resolved config with triggerMode, apiKey, playbookId, attachPlaybook, githubOrg, devinUserId, targetRepo
  */
 function getCustomerConfig(customerSlug) {
   const slug = customerSlug || 'default';
@@ -373,6 +374,7 @@ function getCustomerConfig(customerSlug) {
     playbookId: process.env[`DEVIN_PLAYBOOK_ID${suffix}`]
       || entry.playbookId
       || process.env.DEVIN_PLAYBOOK_ID || '',
+    attachPlaybook: entry.attachPlaybook === true,
     githubOrg,
     devinUserId: process.env[`DEVIN_USER_ID${suffix}`]
       || process.env.DEVIN_USER_ID || '',
