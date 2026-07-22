@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nubank &mdash; Recompensas</title>
+  <link rel="icon" type="image/png" href="https://nubank.com.br/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #820AD1; --purple-dark: #5C0794; --purple-soft: #F4E8FB;
+      --white: #fff; --ink: #252525; --muted: #707070; --line: #E8E8E8;
+      --danger: #B42318; --danger-bg: #FEF3F2; --danger-line: #FECACA;
+      --success: #087443; --success-bg: #ECFDF3; --success-line: #ABEFC6;
+      --shadow: 0 8px 30px rgba(36, 10, 58, 0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #FAFAFA; color: var(--ink); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; }
+    header { align-items: center; background: var(--white); border-bottom: 1px solid var(--line); display: flex; height: 72px; justify-content: space-between; padding: 0 clamp(1.25rem, 5vw, 4.5rem); }
+    .brand { align-items: center; color: var(--purple); display: flex; font-size: 1.15rem; font-weight: 800; gap: .7rem; letter-spacing: -.04em; }
+    .logo-mark, .logo-fallback { align-items: center; background: var(--purple); border-radius: 12px; color: #fff; display: flex; font-size: 1rem; font-weight: 800; height: 40px; justify-content: center; object-fit: contain; width: 40px; }
+    .back-link { color: var(--muted); font-size: .8rem; font-weight: 600; text-decoration: none; }
+    .back-link:hover { color: var(--purple); }
+    .page { margin: 0 auto; max-width: 1180px; padding: 2rem clamp(1.25rem, 5vw, 4.5rem) 4rem; }
+    .greeting { margin: 1.5rem 0 2rem; }
+    .greeting h1 { font-size: clamp(1.6rem, 3vw, 2.25rem); letter-spacing: -.05em; margin-bottom: .35rem; }
+    .greeting p { color: var(--muted); font-size: .9rem; }
+    .section-title { font-size: 1.1rem; letter-spacing: -.03em; margin-bottom: 1rem; }
+    .accounts { display: grid; gap: 1rem; grid-template-columns: repeat(3, 1fr); margin-bottom: 2.25rem; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+    .account-card { min-height: 160px; padding: 1.35rem; }
+    .account-type { color: var(--muted); font-size: .75rem; font-weight: 600; margin-bottom: 1rem; }
+    .account-balance { font-size: 1.55rem; font-weight: 700; letter-spacing: -.04em; margin-bottom: .5rem; }
+    .account-number { color: #999; font-size: .72rem; }
+    .content-grid { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); }
+    .transactions { overflow: hidden; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; min-width: 520px; width: 100%; }
+    th { background: #FCFCFC; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .07em; padding: .85rem 1.15rem; text-align: left; text-transform: uppercase; }
+    td { border-top: 1px solid var(--line); font-size: .82rem; padding: .9rem 1.15rem; }
+    td.amount { font-weight: 700; text-align: right; }
+    th:last-child { text-align: right; }
+    .redeem-card { padding: 1.5rem; }
+    .redeem-card h2 { font-size: 1.1rem; letter-spacing: -.03em; margin-bottom: .35rem; }
+    .redeem-card > p { color: var(--muted); font-size: .78rem; margin-bottom: 1.35rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { color: #4E4E4E; display: block; font-size: .75rem; font-weight: 600; margin-bottom: .4rem; }
+    select, input { background: #fff; border: 1px solid #D4D4D4; border-radius: 10px; color: var(--ink); font: inherit; font-size: .85rem; padding: .7rem .8rem; width: 100%; }
+    select:focus, input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(130, 10, 209, .12); outline: none; }
+    button { background: var(--purple); border: 0; border-radius: 10px; color: #fff; cursor: pointer; font: inherit; font-size: .85rem; font-weight: 700; padding: .8rem 1rem; transition: background .2s, transform .15s; width: 100%; }
+    button:hover { background: var(--purple-dark); transform: translateY(-1px); }
+    button:disabled { cursor: wait; opacity: .6; transform: none; }
+    .result-box { border-radius: 10px; display: none; font-size: .78rem; margin-top: 1rem; padding: .8rem 1rem; }
+    .result-box.error { background: var(--danger-bg); border: 1px solid var(--danger-line); color: var(--danger); display: block; }
+    .result-box.success { background: var(--success-bg); border: 1px solid var(--success-line); color: var(--success); display: block; }
+    .error-title { font-weight: 700; margin-bottom: .25rem; }
+    .error-detail { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .7rem; overflow-wrap: anywhere; }
+    @media (max-width: 850px) { .accounts, .content-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { header { height: 64px; } .brand { font-size: 1rem; } .logo-mark, .logo-fallback { height: 36px; width: 36px; } .page { padding-top: 1.25rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="logo-mark" src="https://nubank.com.br/favicon.ico" alt="Nubank" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';">
+      <span class="logo-fallback" style="display:none;">Nu</span>
+      <span>Nubank</span>
+    </div>
+    <a class="back-link" href="/">&larr; All Demos</a>
+  </header>
+  <main class="page">
+    <section class="greeting">
+      <h1>Olá, Alice</h1>
+      <p>Veja suas contas, transações e recompensas em um só lugar.</p>
+    </section>
+    <section>
+      <h2 class="section-title">Suas contas</h2>
+      <div class="accounts">
+        <article class="card account-card">
+          <div class="account-type">NuConta</div>
+          <div class="account-balance">R$ 4.820,35</div>
+          <div class="account-number">NUCONTA-8841 &middot; Conta corrente</div>
+        </article>
+        <article class="card account-card">
+          <div class="account-type">Cartão de Crédito</div>
+          <div class="account-balance">R$ 12.000,00</div>
+          <div class="account-number">CARTAO-2290 &middot; Limite disponível</div>
+        </article>
+        <article class="card account-card">
+          <div class="account-type">Caixinha Reserva</div>
+          <div class="account-balance">R$ 15.750,00</div>
+          <div class="account-number">CAIXINHA-1174 &middot; Saldo investido</div>
+        </article>
+      </div>
+    </section>
+    <div class="content-grid">
+      <section>
+        <h2 class="section-title">Transações recentes</h2>
+        <div class="card transactions">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
+              <tbody id="transactionsBody"><tr><td colspan="4">Carregando transações...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section class="card redeem-card">
+        <h2>Resgatar Cashback</h2>
+        <p>Converta seus gastos elegíveis em cashback.</p>
+        <form id="redeemForm">
+          <div class="form-group">
+            <label for="cardProduct">Produto do cartão</label>
+            <select id="cardProduct">
+              <option value="standard">Nubank</option>
+              <option value="ultravioleta" selected>Ultravioleta</option>
+              <option value="pj">PJ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Valor da compra</label>
+            <input id="amount" type="number" value="312.99" min="0.01" step="0.01">
+          </div>
+          <button id="submitBtn" type="submit">Resgatar cashback</button>
+        </form>
+        <div id="result" class="result-box"></div>
+      </section>
+    </div>
+  </main>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+    const dates = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' });
+    const categoryNames = { dining: 'Alimentação', transport: 'Transporte', shopping: 'Compras', fuel: 'Combustível', subscription: 'Assinatura' };
+    fetch('/api/49d841e8/summary').then(function (response) { return response.json(); }).then(function (data) {
+      document.getElementById('transactionsBody').innerHTML = data.recentTransactions.map(function (transaction) {
+        return '<tr><td>' + dates.format(new Date(transaction.date + 'T12:00:00')) + '</td><td>' + transaction.description + '</td><td>' + (categoryNames[transaction.category] || transaction.category) + '</td><td class="amount">' + brl.format(transaction.amount) + '</td></tr>';
+      }).join('');
+    }).catch(function () {
+      document.getElementById('transactionsBody').innerHTML = '<tr><td colspan="4">Não foi possível carregar as transações.</td></tr>';
+    });
+    document.getElementById('redeemForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = 'Processando...';
+      result.className = 'result-box';
+      try {
+        const response = await fetch('/api/49d841e8/redeem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            account: 'CARTAO-2290',
+            cardProduct: document.getElementById('cardProduct').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Falha no resgate</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Cashback resgatado</div><div class="error-detail">Recibo: ' + data.receipt.receiptId + '</div>';
+        }
+      } catch (error) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Erro de rede</div><div class="error-detail">' + error.message + '</div>';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Resgatar cashback';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
