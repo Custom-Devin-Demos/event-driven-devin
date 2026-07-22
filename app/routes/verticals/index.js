@@ -235,6 +235,11 @@ router.get('/telefonica', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'bec5e1bb.html'));
 });
 
+// Nubank customer demo — friendly public URL, serves the 49d841e8 page (hidden from hub)
+router.get('/nubank', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '49d841e8.html'));
+});
+
 // Movistar customer demo — purchase flow page for the Telefónica demo
 router.get('/movistar', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'movistar-fibra.html'));
