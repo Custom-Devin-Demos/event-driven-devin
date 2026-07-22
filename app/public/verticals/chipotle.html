@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Ahead | Chipotle Mexican Grill</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cmg-red: #A81612;
+      --cmg-red-dark: #8f1210;
+      --cmg-black: #1b1b1b;
+      --cmg-cream: #f7f2ea;
+      --cmg-tan: #efe7d8;
+      --cmg-text: #1b1b1b;
+      --cmg-muted: #6b6b6b;
+      --cmg-green: #4b6043;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--cmg-text);
+      background: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Top bar ── */
+    header.nav {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--cmg-black);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; height: 68px;
+    }
+    .brand {
+      color: #fff; font-weight: 900; font-size: 26px;
+      letter-spacing: 2px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .brand .pepper { color: var(--cmg-red); font-size: 22px; }
+    .nav-links { display: flex; gap: 28px; align-items: center; }
+    .nav-links a {
+      color: #fff; font-weight: 600; font-size: 14px;
+      text-transform: uppercase; letter-spacing: .5px; opacity: .9;
+    }
+    .nav-links a:hover { opacity: 1; }
+    .nav-cta {
+      background: var(--cmg-red); color: #fff !important;
+      padding: 10px 20px; border-radius: 4px; font-weight: 800;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative; height: 320px; overflow: hidden;
+      display: flex; align-items: center;
+      background: var(--cmg-black);
+    }
+    .hero img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center 42%; opacity: .55;
+    }
+    .hero-inner { position: relative; z-index: 2; padding: 0 48px; max-width: 760px; }
+    .hero h1 {
+      color: #fff; font-size: 54px; font-weight: 900; line-height: 1.02;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .hero p { color: #f2ead9; font-size: 18px; margin-top: 14px; font-weight: 500; }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+    .order-grid { display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
+    @media (max-width: 900px) { .order-grid { grid-template-columns: 1fr; } }
+
+    .section-title {
+      font-size: 15px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--cmg-red); margin: 26px 0 14px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 560px) { .menu-grid { grid-template-columns: 1fr; } }
+    .menu-item {
+      border: 2px solid var(--cmg-tan); border-radius: 8px;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      cursor: pointer; background: #fff; transition: border-color .12s, box-shadow .12s;
+    }
+    .menu-item:hover { border-color: #d8cbb2; }
+    .menu-item.selected { border-color: var(--cmg-red); box-shadow: 0 0 0 1px var(--cmg-red) inset; }
+    .menu-check {
+      width: 22px; height: 22px; border-radius: 50%; flex: 0 0 22px;
+      border: 2px solid #cfc3ab; position: relative;
+    }
+    .menu-item.selected .menu-check { background: var(--cmg-red); border-color: var(--cmg-red); }
+    .menu-item.selected .menu-check::after {
+      content: '✓'; color: #fff; font-size: 13px; font-weight: 900;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    .menu-info { flex: 1; }
+    .menu-name { font-weight: 700; font-size: 15px; }
+    .menu-price { color: var(--cmg-muted); font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .menu-qty {
+      width: 54px; padding: 6px; border: 1.5px solid var(--cmg-tan);
+      border-radius: 6px; text-align: center; font-family: inherit; font-weight: 700;
+    }
+
+    /* ── Bag / checkout card ── */
+    .bag {
+      background: var(--cmg-cream); border-radius: 12px; padding: 24px;
+      position: sticky; top: 92px; border: 1px solid var(--cmg-tan);
+    }
+    .bag h2 {
+      font-size: 20px; font-weight: 900; text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 18px;
+    }
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block; font-size: 12px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--cmg-muted); margin-bottom: 6px;
+    }
+    .field select, .field input {
+      width: 100%; padding: 11px 12px; border: 1.5px solid #dcd0b8;
+      border-radius: 8px; font-family: inherit; font-size: 14px; background: #fff;
+    }
+    .btn-order {
+      width: 100%; background: var(--cmg-red); color: #fff; border: none;
+      padding: 15px; border-radius: 8px; font-family: inherit; font-size: 16px;
+      font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+      cursor: pointer; margin-top: 6px; transition: background .12s;
+    }
+    .btn-order:hover { background: var(--cmg-red-dark); }
+    .btn-order:disabled { opacity: .6; cursor: not-allowed; }
+    .bag-note { font-size: 12px; color: var(--cmg-muted); text-align: center; margin-top: 12px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 999;
+      max-width: 380px; background: #fff; border-left: 5px solid var(--cmg-red);
+      box-shadow: 0 12px 40px rgba(0,0,0,.22); border-radius: 8px;
+      padding: 16px 18px; transform: translateY(140%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--cmg-green); }
+    .toast-title { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.4; }
+
+    footer.site {
+      background: var(--cmg-black); color: #cfc9c0; padding: 40px 24px;
+      text-align: center; font-size: 13px;
+    }
+    footer.site .brand { justify-content: center; margin-bottom: 12px; }
+    footer.site a { margin: 0 10px; opacity: .85; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#"><span class="pepper">🌶</span> Chipotle</a>
+    <nav class="nav-links">
+      <a href="#">Order</a>
+      <a href="#">Catering</a>
+      <a href="#">Rewards</a>
+      <a href="#">Gift Cards</a>
+      <a class="nav-cta" href="#">Sign In</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <img src="https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=1600&q=80"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=1600&q=80';"
+         alt="Burrito bowl">
+    <div class="hero-inner">
+      <h1>Order Ahead.<br>Skip the Line.</h1>
+      <p>Build your bowl, burrito, or tacos and pick it up at your local Chipotle.</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="order-grid">
+      <!-- Menu -->
+      <div>
+        <div class="section-title">Entrees</div>
+        <div class="menu-grid" id="Entrees"></div>
+        <div class="section-title">Add-Ons</div>
+        <div class="menu-grid" id="Add-Ons"></div>
+        <div class="section-title">Sides</div>
+        <div class="menu-grid" id="Sides"></div>
+        <div class="section-title">Drinks</div>
+        <div class="menu-grid" id="Drinks"></div>
+      </div>
+
+      <!-- Bag -->
+      <form class="bag" id="orderForm">
+        <h2>Your Bag</h2>
+        <div class="field">
+          <label for="storeId">Pickup Restaurant</label>
+          <select id="storeId"></select>
+        </div>
+        <div class="field">
+          <label for="pickupTime">Pickup Time</label>
+          <select id="pickupTime">
+            <option value="ASAP (15–20 min)">ASAP (15–20 min)</option>
+            <option value="In 30 min">In 30 min</option>
+            <option value="In 1 hour">In 1 hour</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="contactName">Name for Order</label>
+          <input type="text" id="contactName" value="Alex" required>
+        </div>
+        <button type="submit" class="btn-order" id="submitBtn">Place Order</button>
+        <div class="bag-note">Real food. Real ingredients. Ready when you are.</div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="brand"><span class="pepper">🌶</span> Chipotle</div>
+    <div>
+      <a href="#">About</a><a href="#">Careers</a><a href="#">Nutrition</a>
+      <a href="#">Rewards</a><a href="#">Contact</a>
+    </div>
+    <p style="margin-top:16px;opacity:.7;">&copy; 2026 Chipotle Mexican Grill. All rights reserved.</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var MENU = [
+      { id: 'ENT-BOWL', name: 'Burrito Bowl', category: 'Entrees', price: 9.65 },
+      { id: 'ENT-BURR', name: 'Burrito', category: 'Entrees', price: 9.65 },
+      { id: 'ENT-TACO', name: 'Tacos (3)', category: 'Entrees', price: 9.65 },
+      { id: 'ENT-SALAD', name: 'Salad', category: 'Entrees', price: 9.65 },
+      { id: 'ENT-QUES', name: 'Quesadilla', category: 'Entrees', price: 11.20 },
+      { id: 'ENT-KIDS', name: 'Kids Build Your Own', category: 'Entrees', price: 5.40 },
+      { id: 'ADD-GUAC', name: 'Add Guacamole', category: 'Add-Ons', price: 2.75 },
+      { id: 'ADD-QUESO', name: 'Add Queso Blanco', category: 'Add-Ons', price: 2.55 },
+      { id: 'ADD-PROTEIN', name: 'Double Protein', category: 'Add-Ons', price: 4.55 },
+      { id: 'SIDE-CHIPS', name: 'Chips & Guacamole', category: 'Sides', price: 4.60 },
+      { id: 'SIDE-QUESO', name: 'Chips & Queso Blanco', category: 'Sides', price: 4.60 },
+      { id: 'DRK-FTN', name: 'Fountain Drink', category: 'Drinks', price: 2.95 },
+      { id: 'DRK-MEXCOKE', name: 'Mexican Coca-Cola', category: 'Drinks', price: 3.35 },
+      { id: 'DRK-AGUA', name: 'Organic Agua Fresca', category: 'Drinks', price: 3.35 },
+    ];
+
+    var STORES = [
+      { id: 'CMG-0420', name: 'Chipotle — Newport Beach' },
+      { id: 'CMG-1187', name: 'Chipotle — Denver LoDo' },
+      { id: 'CMG-2043', name: 'Chipotle — Chicago Loop' },
+      { id: 'CMG-3310', name: 'Chipotle — Austin Domain' },
+      { id: 'CMG-4521', name: 'Chipotle — NYC Union Square' },
+    ];
+
+    MENU.forEach(function (item) {
+      var grid = document.getElementById(item.category);
+      if (!grid) return;
+      var div = document.createElement('div');
+      div.className = 'menu-item';
+      div.dataset.itemId = item.id;
+      div.innerHTML = '<div class="menu-check"></div>'
+        + '<div class="menu-info"><div class="menu-name">' + item.name + '</div>'
+        + '<div class="menu-price">$' + item.price.toFixed(2) + '</div></div>'
+        + '<input type="number" class="menu-qty" value="1" min="1" max="20" onclick="event.stopPropagation()">';
+      div.addEventListener('click', function () { div.classList.toggle('selected'); });
+      grid.appendChild(div);
+    });
+
+    // Pre-select a bowl + drink so the demo action works with one click
+    var firstEntree = document.querySelector('#Entrees .menu-item');
+    if (firstEntree) firstEntree.classList.add('selected');
+    var firstDrink = document.querySelector('#Drinks .menu-item');
+    if (firstDrink) firstDrink.classList.add('selected');
+
+    var storeSelect = document.getElementById('storeId');
+    STORES.forEach(function (s) {
+      var opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.name;
+      storeSelect.appendChild(opt);
+    });
+
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      btn.disabled = true; btn.textContent = 'Placing Order...';
+
+      var selectedItems = [];
+      document.querySelectorAll('.menu-item.selected').forEach(function (el) {
+        selectedItems.push({
+          itemId: el.dataset.itemId,
+          qty: parseInt(el.querySelector('.menu-qty').value, 10) || 1,
+        });
+      });
+
+      try {
+        var res = await fetch('/api/chipotle/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storeId: document.getElementById('storeId').value,
+            pickupTime: document.getElementById('pickupTime').value,
+            contactName: document.getElementById('contactName').value,
+            items: selectedItems,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', 'Order Failed', data.errorClass + ': ' + data.error);
+        } else {
+          showToast('success', 'Order Confirmed!', 'Order #' + data.orderId.slice(0, 8).toUpperCase()
+            + ' • Total $' + data.total + ' • Pickup: ' + data.pickup.storeName);
+        }
+      } catch (err) {
+        showToast('error', 'Network Error', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Place Order';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
