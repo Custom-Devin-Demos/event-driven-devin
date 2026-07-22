@@ -340,6 +340,10 @@ const CUSTOMERS = {
     label: 'Customer 8C0E',
     triggerMode: 'api',
   },
+  chipotle: {
+    label: 'Chipotle Order Ahead',
+    triggerMode: 'api',
+  },
 };
 
 /**
