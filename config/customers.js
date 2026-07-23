@@ -352,6 +352,10 @@ const CUSTOMERS = {
     label: 'Customer 49D8',
     triggerMode: 'api',
   },
+  cd83ac3c: {
+    label: 'Staples',
+    triggerMode: 'api',
+  },
 };
 
 /**
