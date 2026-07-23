@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Checkout | Staples.ca</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --staples-red: #cc0000;
+      --staples-red-dark: #a30000;
+      --ink: #333333;
+      --muted: #6f6f6f;
+      --border: #d9d9d9;
+      --border-light: #e8e8e8;
+      --bg: #f2f2f2;
+      --green: #017a37;
+      --link: #0a6cd4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+    }
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Header ── */
+    header.topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 72px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 900; font-size: 34px; color: var(--staples-red);
+      letter-spacing: -1.2px;
+    }
+    .logo .fold {
+      display: inline-block; width: 0; height: 0;
+      border-left: 13px solid var(--staples-red);
+      border-bottom: 13px solid transparent;
+      margin-left: -3px; align-self: flex-end; margin-bottom: 6px;
+    }
+    .secure {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 17px; font-weight: 700; color: var(--ink);
+    }
+    .secure svg { color: var(--green); }
+    .help { font-size: 13px; color: var(--muted); text-align: right; line-height: 1.4; }
+    .help strong { color: var(--ink); font-size: 15px; }
+    @media (max-width: 720px) { .secure, .help { display: none; } }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 26px 20px 80px; }
+    h1.page-title { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+    .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+    .checkout-grid { display: grid; grid-template-columns: 1fr 360px; gap: 26px; align-items: start; }
+    @media (max-width: 920px) { .checkout-grid { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 18px; overflow: hidden; }
+    .card-head {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 22px; border-bottom: 1px solid var(--border-light);
+    }
+    .step-num {
+      flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%;
+      background: var(--staples-red); color: #fff; font-weight: 700; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card-head h2 { font-size: 17px; font-weight: 700; }
+    .card-head .edit { margin-left: auto; font-size: 13px; font-weight: 500; }
+    .card-body { padding: 20px 22px; }
+
+    /* ── Address / labels ── */
+    .addr-name { font-weight: 700; margin-bottom: 4px; }
+    .addr-line { color: var(--ink); line-height: 1.55; }
+    .badge-default {
+      display: inline-block; background: #eef6ee; color: var(--green);
+      font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+      margin-left: 8px; vertical-align: middle;
+    }
+
+    /* ── Shipping options ── */
+    .ship-opt {
+      display: flex; align-items: flex-start; gap: 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 15px 16px; margin-bottom: 12px; cursor: pointer;
+    }
+    .ship-opt:last-child { margin-bottom: 0; }
+    .ship-opt.selected { border-color: var(--staples-red); box-shadow: 0 0 0 1px var(--staples-red) inset; }
+    .ship-opt .radio {
+      flex: 0 0 18px; width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--border); margin-top: 2px; position: relative;
+    }
+    .ship-opt.selected .radio { border-color: var(--staples-red); }
+    .ship-opt.selected .radio::after {
+      content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--staples-red);
+    }
+    .ship-opt .st-title { font-weight: 700; }
+    .ship-opt .st-eta { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .ship-opt .st-price { margin-left: auto; font-weight: 700; }
+    .ship-opt .st-price.free { color: var(--green); }
+
+    /* ── Payment ── */
+    .pay-row { display: flex; align-items: center; gap: 14px; }
+    .card-chip {
+      width: 46px; height: 30px; border-radius: 5px;
+      background: linear-gradient(135deg,#1a1f71,#3b3fa1); flex: 0 0 46px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .5px;
+    }
+    .pay-meta { line-height: 1.5; }
+    .pay-fields { display: grid; grid-template-columns: 1fr 110px; gap: 12px; margin-top: 16px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+    .field input {
+      width: 100%; border: 1px solid var(--border); border-radius: 6px;
+      padding: 11px 12px; font-family: inherit; font-size: 14px; color: var(--ink);
+    }
+    .field input:focus { outline: none; border-color: var(--staples-red); }
+
+    /* ── Order summary ── */
+    .summary { background: #fff; border: 1px solid var(--border); border-radius: 8px; position: sticky; top: 20px; }
+    .summary .card-head { border-bottom: 1px solid var(--border-light); }
+    .summary h2 { font-size: 18px; font-weight: 900; }
+    .items { padding: 6px 20px; }
+    .line-item { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-light); align-items: center; }
+    .line-item:last-child { border-bottom: none; }
+    .li-thumb { width: 56px; height: 56px; border: 1px solid var(--border-light); border-radius: 6px; object-fit: cover; background: #fff; }
+    .li-name { font-size: 13px; line-height: 1.4; }
+    .li-qty { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .li-price { font-weight: 700; font-size: 14px; }
+    .totals { padding: 16px 20px; border-top: 1px solid var(--border-light); }
+    .sum-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 12px; color: var(--ink); }
+    .sum-line .green { color: var(--green); font-weight: 700; }
+    .sum-total { display: flex; justify-content: space-between; font-weight: 900; font-size: 19px; padding-top: 14px; border-top: 1px solid var(--border-light); }
+    .sum-total small { font-weight: 500; font-size: 12px; color: var(--muted); display: block; }
+    .place-order {
+      width: 100%; background: var(--staples-red); color: #fff; border: none;
+      padding: 16px; border-radius: 6px; font-family: inherit; font-size: 16px;
+      font-weight: 700; cursor: pointer; margin-top: 8px; transition: background .12s;
+    }
+    .place-order:hover { background: var(--staples-red-dark); }
+    .place-order:disabled { opacity: .6; cursor: not-allowed; }
+    .secure-note { display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--muted); font-size: 12px; margin-top: 12px; }
+    .rewards {
+      display: flex; align-items: center; gap: 10px; background: #fff6f6;
+      border: 1px solid #f3d0d0; border-radius: 6px; padding: 12px 14px; margin: 0 20px 16px;
+      font-size: 13px;
+    }
+    .rewards .r-badge { flex: 0 0 auto; background: var(--staples-red); color: #fff; font-weight: 800; font-size: 11px; padding: 4px 8px; border-radius: 4px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 999;
+      max-width: 400px; background: #fff; border-left: 5px solid var(--staples-red);
+      box-shadow: 0 12px 40px rgba(0,0,0,.22); border-radius: 8px;
+      padding: 16px 18px; transform: translateY(180%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--green); }
+    .toast-title { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.45; word-break: break-word; }
+
+    footer.site { background: #fff; border-top: 1px solid var(--border); padding: 26px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+    footer.site a { color: var(--muted); margin: 0 10px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo">Staples<span class="fold"></span></div>
+    <div class="secure">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+      Secure Checkout
+    </div>
+    <div class="help">Need help? Call<br><strong>1-877-360-1892</strong></div>
+  </header>
+
+  <div class="wrap">
+    <h1 class="page-title">Secure Checkout</h1>
+    <div class="breadcrumb">Cart &rsaquo; <strong style="color:var(--ink)">Checkout</strong> &rsaquo; Confirmation</div>
+
+    <div class="checkout-grid">
+      <!-- Left column -->
+      <div>
+        <!-- Delivery address -->
+        <div class="card">
+          <div class="card-head">
+            <span class="step-num">1</span>
+            <h2>Delivery address</h2>
+            <a href="#" class="edit">Edit</a>
+          </div>
+          <div class="card-body">
+            <div class="addr-name">Jordan Mitchell <span class="badge-default">Default</span></div>
+            <div class="addr-line">
+              120 Front Street West, Suite 1400<br>
+              Toronto, ON&nbsp; M5J 1E3<br>
+              Canada &middot; (416) 555-0142
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping method -->
+        <div class="card">
+          <div class="card-head">
+            <span class="step-num">2</span>
+            <h2>Delivery options</h2>
+          </div>
+          <div class="card-body">
+            <label class="ship-opt selected" data-ship="standard">
+              <span class="radio"></span>
+              <span>
+                <span class="st-title">FREE Next-Business-Day Delivery</span>
+                <span class="st-eta">Arrives Fri, Jul 24 &middot; Orders over $45 ship free</span>
+              </span>
+              <span class="st-price free">FREE</span>
+            </label>
+            <label class="ship-opt" data-ship="express">
+              <span class="radio"></span>
+              <span>
+                <span class="st-title">Express Delivery (by 12 PM)</span>
+                <span class="st-eta">Arrives Thu, Jul 23</span>
+              </span>
+              <span class="st-price">$9.99</span>
+            </label>
+            <label class="ship-opt" data-ship="pickup">
+              <span class="radio"></span>
+              <span>
+                <span class="st-title">Pick up in store</span>
+                <span class="st-eta">Ready today &middot; Staples Toronto &ndash; Front St W</span>
+              </span>
+              <span class="st-price free">FREE</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="card">
+          <div class="card-head">
+            <span class="step-num">3</span>
+            <h2>Payment method</h2>
+            <a href="#" class="edit">Edit</a>
+          </div>
+          <div class="card-body">
+            <div class="pay-row">
+              <span class="card-chip">VISA</span>
+              <span class="pay-meta">
+                <strong>Visa ending in 4021</strong><br>
+                <span style="color:var(--muted)">Jordan Mitchell &middot; Exp 08/28</span>
+              </span>
+            </div>
+            <div class="pay-fields">
+              <div class="field">
+                <label>Name on card</label>
+                <input type="text" value="Jordan Mitchell" autocomplete="cc-name">
+              </div>
+              <div class="field">
+                <label>CVV</label>
+                <input type="text" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: order summary -->
+      <aside class="summary">
+        <div class="card-head"><h2>Order Summary</h2></div>
+
+        <div class="items" id="items"></div>
+
+        <div class="rewards">
+          <span class="r-badge">easy<br>Rewards</span>
+          <span>You'll earn <strong id="rewardPts">0</strong> easy Rewards points on this order.</span>
+        </div>
+
+        <div class="totals">
+          <div class="sum-line"><span>Subtotal (<span id="itemCount">0</span> items)</span><span id="subtotal">$0.00</span></div>
+          <div class="sum-line"><span>Shipping</span><span class="green" id="shipping">FREE</span></div>
+          <div class="sum-line"><span>Estimated tax (HST)</span><span id="tax">$0.00</span></div>
+          <div class="sum-total">
+            <span>Order Total<small>Includes tax</small></span>
+            <span id="total">$0.00</span>
+          </div>
+          <button class="place-order" id="placeOrderBtn">Place Order</button>
+          <div class="secure-note">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+            Your payment is encrypted and secure
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div style="margin-bottom:10px;font-weight:700;color:var(--staples-red);font-size:16px;">Staples</div>
+    <div>
+      <a href="#">Return Policy</a><a href="#">Privacy Policy</a><a href="#">Terms of Use</a><a href="#">Contact Us</a>
+    </div>
+    <p style="margin-top:14px;">&copy; 2026 Staples Canada ULC. All rights reserved.</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var CART = [
+      { sku: 'CH-2841-BRN', name: 'Staples Ardfield Fabric Task Chair, Brown', qty: 1, price: 189.99,
+        img: 'https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=200&q=80' },
+      { sku: 'NB-5510-3PK', name: 'Staples 1-Subject Spiral Notebook, 3/Pack', qty: 2, price: 8.49,
+        img: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=200&q=80' },
+      { sku: 'PEN-0071-12', name: 'Staples Gel Ink Retractable Pens, Black, 12/Pack', qty: 1, price: 14.29,
+        img: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=200&q=80' }
+    ];
+    var shipMethod = 'standard';
+
+    function fmt(n) { return '$' + n.toFixed(2); }
+
+    function renderItems() {
+      var el = document.getElementById('items');
+      el.innerHTML = CART.map(function (it) {
+        return '<div class="line-item">'
+          + '<img class="li-thumb" src="' + it.img + '" alt="' + it.name + '">'
+          + '<div><div class="li-name">' + it.name + '</div><div class="li-qty">Qty ' + it.qty + '</div></div>'
+          + '<div class="li-price">' + fmt(it.price * it.qty) + '</div>'
+          + '</div>';
+      }).join('');
+    }
+
+    function renderSummary() {
+      var subtotal = CART.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
+      var count = CART.reduce(function (s, it) { return s + it.qty; }, 0);
+      var ship = shipMethod === 'express' ? 9.99 : 0;
+      var tax = (subtotal + ship) * 0.13; // Ontario HST preview only
+      document.getElementById('itemCount').textContent = count;
+      document.getElementById('subtotal').textContent = fmt(subtotal);
+      var shipEl = document.getElementById('shipping');
+      shipEl.textContent = ship === 0 ? 'FREE' : fmt(ship);
+      shipEl.className = ship === 0 ? 'green' : '';
+      document.getElementById('tax').textContent = fmt(tax);
+      document.getElementById('total').textContent = fmt(subtotal + ship + tax);
+      document.getElementById('rewardPts').textContent = Math.round(subtotal);
+    }
+
+    document.querySelectorAll('.ship-opt').forEach(function (el) {
+      el.addEventListener('click', function () {
+        document.querySelectorAll('.ship-opt').forEach(function (o) { o.classList.remove('selected'); });
+        el.classList.add('selected');
+        shipMethod = el.dataset.ship;
+        renderSummary();
+      });
+    });
+
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('placeOrderBtn').addEventListener('click', async function () {
+      var btn = this;
+      btn.disabled = true; btn.textContent = 'Placing order…';
+      try {
+        var res = await fetch('/api/cd83ac3c/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: CART.map(function (it) { return { sku: it.sku, qty: it.qty }; }),
+            shippingMethod: shipMethod,
+            province: 'ON',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', "We couldn't place your order", (data.errorClass || 'Error') + ': ' + data.error);
+        } else {
+          showToast('success', 'Order placed!', 'Order #' + String(data.orderId).slice(0, 8).toUpperCase()
+            + ' • Total ' + fmt(data.total));
+        }
+      } catch (err) {
+        showToast('error', 'Network error', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Place Order';
+      }
+    });
+
+    renderItems();
+    renderSummary();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
