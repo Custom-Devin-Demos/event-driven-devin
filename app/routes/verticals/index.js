@@ -99,6 +99,7 @@ const customer5697165bRoutes = require('./5697165b');
 const customer8c0e99b1Routes = require('./8c0e99b1');
 const chipotleRoutes = require('./chipotle');
 const customer49d841e8Routes = require('./49d841e8');
+const coppelRoutes = require('./coppel');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -196,6 +197,7 @@ router.use(customer5697165bRoutes);
 router.use(customer8c0e99b1Routes);
 router.use(chipotleRoutes);
 router.use(customer49d841e8Routes);
+router.use(coppelRoutes);
 
 /**
  * Vertical metadata for the landing page and URL routing

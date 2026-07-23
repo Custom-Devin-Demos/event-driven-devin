@@ -344,6 +344,10 @@ const CUSTOMERS = {
     label: 'Chipotle Order Ahead',
     triggerMode: 'api',
   },
+  coppel: {
+    label: 'Coppel Mi Carrito',
+    triggerMode: 'api',
+  },
   '49d841e8': {
     label: 'Customer 49D8',
     triggerMode: 'api',
