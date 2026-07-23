@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi carrito | Coppel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --coppel-blue: #2626d6;
+      --coppel-blue-dark: #1c1cb0;
+      --coppel-yellow: #f5c518;
+      --coppel-red: #e4002b;
+      --coppel-green: #1f8a3b;
+      --coppel-text: #1a2340;
+      --coppel-muted: #6b7280;
+      --coppel-border: #d7dbe8;
+      --coppel-bg: #f3f4f8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Nunito Sans', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--coppel-text);
+      background: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--coppel-blue); text-decoration: none; }
+
+    /* ── Top bar ── */
+    header.nav {
+      background: var(--coppel-blue);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 68px;
+    }
+    .brand {
+      color: #fff; font-weight: 900; font-size: 30px;
+      display: flex; align-items: center; gap: 10px; letter-spacing: -0.5px;
+    }
+    .brand .dots { display: inline-flex; gap: 5px; margin-right: 4px; }
+    .brand .dots span { width: 11px; height: 11px; border-radius: 50%; background: var(--coppel-yellow); }
+    .brand .dots span:last-child { background: #fff; }
+    .cart-btn {
+      width: 56px; height: 56px; border-radius: 8px; background: var(--coppel-yellow);
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 24px 80px; }
+    h1.page-title { font-size: 30px; font-weight: 900; margin-bottom: 22px; }
+    .cart-grid { display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
+    @media (max-width: 960px) { .cart-grid { grid-template-columns: 1fr; } }
+
+    /* ── Tabs ── */
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid var(--coppel-border); margin-bottom: 18px; }
+    .tab { text-align: center; padding: 14px 0; font-weight: 700; font-size: 16px; color: var(--coppel-muted); cursor: pointer; }
+    .tab.active { color: var(--coppel-blue); border-bottom: 3px solid var(--coppel-blue); margin-bottom: -2px; }
+
+    /* ── Info banner ── */
+    .info-banner {
+      display: flex; align-items: center; gap: 12px;
+      border: 1.5px solid var(--coppel-blue); border-radius: 10px;
+      padding: 16px 18px; margin-bottom: 20px; font-weight: 600; font-size: 15px;
+    }
+    .info-icon {
+      flex: 0 0 24px; width: 24px; height: 24px; border-radius: 50%;
+      background: var(--coppel-blue); color: #fff; font-weight: 900; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Cart item ── */
+    .cart-item { border: 1px solid var(--coppel-border); border-radius: 12px; padding: 20px; }
+    .cart-item-top { display: grid; grid-template-columns: 130px 1fr auto auto; gap: 20px; align-items: start; }
+    @media (max-width: 640px) { .cart-item-top { grid-template-columns: 1fr; } }
+    .thumb {
+      width: 130px; height: 130px; border: 1px solid var(--coppel-border); border-radius: 10px;
+      object-fit: contain; background: #fff; padding: 8px;
+    }
+    .item-name { font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 12px; }
+    .seller-chip {
+      display: inline-flex; align-items: center; gap: 6px; background: #fdf1c4;
+      border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 700;
+    }
+    .seller-chip .dots { display: inline-flex; gap: 3px; }
+    .seller-chip .dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--coppel-blue); }
+    .qty-label { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .qty-box { display: inline-flex; border: 1.5px solid var(--coppel-border); border-radius: 10px; overflow: hidden; }
+    .qty-box button {
+      width: 46px; height: 46px; border: none; background: #fff; font-size: 22px;
+      color: var(--coppel-blue); cursor: pointer;
+    }
+    .qty-box button:disabled { color: #c4c8d4; cursor: not-allowed; }
+    .qty-box input {
+      width: 56px; text-align: center; border: none; border-left: 1.5px solid var(--coppel-border);
+      border-right: 1.5px solid var(--coppel-border); font-family: inherit; font-size: 16px; font-weight: 700;
+    }
+    .stock { font-size: 14px; color: var(--coppel-muted); margin-top: 8px; }
+    .price-col { text-align: right; }
+    .price-label { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .price-now { font-size: 26px; font-weight: 900; color: var(--coppel-red); }
+    .price-was { font-size: 15px; color: var(--coppel-muted); text-decoration: line-through; margin-top: 2px; }
+    .item-actions { display: flex; gap: 26px; margin-top: 18px; }
+    .item-actions a { font-weight: 700; font-size: 15px; }
+
+    /* ── Delivery options ── */
+    .delivery-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+    @media (max-width: 640px) { .delivery-row { grid-template-columns: 1fr; } }
+    .delivery-opt { border: 1.5px solid var(--coppel-border); border-radius: 12px; padding: 16px 18px; cursor: pointer; }
+    .delivery-opt.selected { border-color: var(--coppel-blue); box-shadow: 0 0 0 1px var(--coppel-blue) inset; }
+    .delivery-opt .d-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 16px; }
+    .delivery-opt .d-eta { color: var(--coppel-green); font-weight: 700; font-size: 14px; margin-top: 8px; }
+    .delivery-opt .d-note { color: var(--coppel-muted); font-size: 13px; margin-top: 2px; }
+
+    /* ── Summary ── */
+    .summary { border: 1px solid var(--coppel-border); border-radius: 12px; padding: 24px; position: sticky; top: 24px; }
+    .summary h2 { font-size: 22px; font-weight: 900; margin-bottom: 18px; }
+    .sum-line { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 14px; }
+    .sum-line .green { color: var(--coppel-green); font-weight: 800; }
+    .sum-total { background: var(--coppel-bg); border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; font-weight: 900; font-size: 17px; }
+    .btn-continue {
+      width: 100%; background: var(--coppel-blue); color: #fff; border: none;
+      padding: 16px; border-radius: 10px; font-family: inherit; font-size: 17px;
+      font-weight: 900; cursor: pointer; margin-top: 18px; transition: background .12s;
+    }
+    .btn-continue:hover { background: var(--coppel-blue-dark); }
+    .btn-continue:disabled { opacity: .6; cursor: not-allowed; }
+    .ship-banner {
+      display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--coppel-blue);
+      border-radius: 10px; padding: 12px 14px; margin-top: 18px; font-size: 14px; font-weight: 700;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 999;
+      max-width: 400px; background: #fff; border-left: 5px solid var(--coppel-red);
+      box-shadow: 0 12px 40px rgba(0,0,0,.22); border-radius: 10px;
+      padding: 16px 18px; transform: translateY(160%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--coppel-green); }
+    .toast-title { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.4; }
+
+    footer.site { background: var(--coppel-blue); color: #dbe0ff; padding: 34px 24px; text-align: center; font-size: 13px; margin-top: 40px; }
+    footer.site .brand { justify-content: center; margin-bottom: 12px; }
+    footer.site a { color: #fff; margin: 0 10px; opacity: .9; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#"><span class="dots"><span></span><span></span><span></span></span>Coppel</a>
+    <div class="cart-btn">🛒</div>
+  </header>
+
+  <div class="wrap">
+    <h1 class="page-title">Mi carrito</h1>
+    <div class="cart-grid">
+      <!-- Left: items -->
+      <div>
+        <div class="tabs">
+          <div class="tab active">Agregados (<span id="addedCount">1</span>)</div>
+          <div class="tab">Guardados (0)</div>
+        </div>
+
+        <div class="info-banner">
+          <span class="info-icon">i</span>
+          <span>La fecha de entrega puede variar</span>
+        </div>
+
+        <form class="cart-item" id="cartForm">
+          <div class="cart-item-top">
+            <img class="thumb"
+                 src="https://coppel.scene7.com/is/image/CoppelWeb/00000000000000000000"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=400&q=80';"
+                 alt="Depiladora Philips Lumea IPL SC1997-50">
+            <div>
+              <div class="item-name">Depiladora Philips Lumea IPL SC1997-50 con Filtro UV</div>
+              <div class="seller-chip"><span class="dots"><span></span><span></span></span> Vendido por <strong>Coppel</strong></div>
+            </div>
+            <div>
+              <div class="qty-label">Cantidad:</div>
+              <div class="qty-box">
+                <button type="button" id="qtyMinus">−</button>
+                <input type="text" id="qty" value="1" readonly>
+                <button type="button" id="qtyPlus">+</button>
+              </div>
+              <div class="stock">Disponible</div>
+            </div>
+            <div class="price-col">
+              <div class="price-label">Precio:</div>
+              <div class="price-now" id="itemPrice">$7,129</div>
+              <div class="price-was" id="itemWas">$9,599</div>
+            </div>
+          </div>
+          <div class="item-actions">
+            <a href="#" id="removeLink">Eliminar</a>
+            <a href="#">Guardar para después</a>
+          </div>
+
+          <div class="delivery-row">
+            <div class="delivery-opt selected" data-delivery="domicilio">
+              <div class="d-title">🚚 Recibir a domicilio</div>
+              <div class="d-eta">Llega el 30 de julio</div>
+              <div class="d-note">Más adelante podrás elegir el domicilio</div>
+            </div>
+            <div class="delivery-opt" data-delivery="tienda">
+              <div class="d-title">🏬 Recoger en tienda</div>
+              <div class="d-eta">Llega el 30 de julio</div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right: summary -->
+      <aside class="summary">
+        <h2>Resumen de tu compra</h2>
+        <div class="sum-line"><span>Subtotal (<span id="sumCount">1</span> producto)</span><span id="sumSubtotal">$9,599</span></div>
+        <div class="sum-line"><span>Descuento</span><span style="color:var(--coppel-red);font-weight:800">-$2,470</span></div>
+        <div class="sum-line"><span>Envío</span><span class="green">Gratis</span></div>
+        <div class="sum-total"><span>Total de contado (IVA incluido)</span><span id="sumTotal">$7,129</span></div>
+        <div class="ship-banner"><span class="info-icon">i</span> Tu envío es gratis a partir de $499</div>
+        <button type="submit" form="cartForm" class="btn-continue" id="continueBtn">Continuar compra</button>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="brand"><span class="dots"><span></span><span></span><span></span></span>Coppel</div>
+    <div>
+      <a href="#">Ayuda</a><a href="#">Sucursales</a><a href="#">Crédito Coppel</a>
+      <a href="#">Aviso de Privacidad</a><a href="#">Términos y Condiciones</a>
+    </div>
+    <p style="margin-top:16px;opacity:.75;">&copy; 2026 Coppel S.A. de C.V. Todos los derechos reservados.</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var SKU = 'DEP-LUMEA-SC1997';
+    var UNIT_PRICE = 7129;
+    var UNIT_LIST = 9599;
+    var qty = 1;
+    var delivery = 'domicilio';
+
+    function fmt(n) { return '$' + n.toLocaleString('en-US'); }
+
+    function render() {
+      document.getElementById('qty').value = qty;
+      document.getElementById('qtyMinus').disabled = qty <= 1;
+      document.getElementById('itemPrice').textContent = fmt(UNIT_PRICE * qty);
+      document.getElementById('itemWas').textContent = fmt(UNIT_LIST * qty);
+      document.getElementById('sumSubtotal').textContent = fmt(UNIT_LIST * qty);
+      document.getElementById('sumTotal').textContent = fmt(UNIT_PRICE * qty);
+      document.getElementById('sumCount').textContent = qty;
+      document.getElementById('addedCount').textContent = qty;
+      document.querySelector('.sum-line span[style*="coppel-red"]').textContent = '-' + fmt((UNIT_LIST - UNIT_PRICE) * qty);
+    }
+
+    document.getElementById('qtyPlus').addEventListener('click', function () { qty++; render(); });
+    document.getElementById('qtyMinus').addEventListener('click', function () { if (qty > 1) { qty--; render(); } });
+
+    document.querySelectorAll('.delivery-opt').forEach(function (el) {
+      el.addEventListener('click', function () {
+        document.querySelectorAll('.delivery-opt').forEach(function (o) { o.classList.remove('selected'); });
+        el.classList.add('selected');
+        delivery = el.dataset.delivery;
+      });
+    });
+
+    document.getElementById('removeLink').addEventListener('click', function (e) { e.preventDefault(); });
+
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('cartForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('continueBtn');
+      btn.disabled = true; btn.textContent = 'Procesando...';
+      try {
+        var res = await fetch('/api/coppel/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: [{ sku: SKU, qty: qty }],
+            delivery: delivery,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', 'No se pudo continuar', data.errorClass + ': ' + data.error);
+        } else {
+          showToast('success', '¡Compra confirmada!', 'Pedido #' + data.orderId.slice(0, 8).toUpperCase()
+            + ' • Total ' + fmt(data.total));
+        }
+      } catch (err) {
+        showToast('error', 'Error de red', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Continuar compra';
+      }
+    });
+
+    render();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
