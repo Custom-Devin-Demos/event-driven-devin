@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Humana &mdash; Enterprise Information Protection | Vulnerability Management</title>
+  <link rel="icon" type="image/png" href="https://www.humana.com/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --humana-green: #78BE20; --humana-green-contrast: #5C9A1B; --humana-green-dark: #114A21;
+      --humana-blue: #0059B3; --humana-navy: #003057; --humana-slate: #263E55;
+      --white: #FFFFFF; --off-white: #F7F8F9; --cream: #FAFBFC;
+      --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E6ECF0;
+      --gray-300: #BCC3CA; --gray-400: #7E8C9A; --gray-500: #67768B;
+      --gray-600: #4F5658; --gray-700: #374151; --gray-800: #313A45;
+      --danger: #CC0D00; --danger-bg: #FEF2F2; --danger-border: #FECACA;
+      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --warning: #CE3F00; --warning-bg: #FFFBEB; --warning-border: #FDE68A;
+      --critical: #991B1B; --critical-bg: #FEF2F2;
+      --high: #CC0D00; --medium: #ECAD00; --low: #0059B3;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .top-bar { background: var(--humana-navy); color: rgba(255,255,255,0.75); font-size: 0.72rem; padding: 0.45rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .top-bar .left { display: flex; gap: 1.5rem; }
+    .top-bar .right { display: flex; gap: 1rem; align-items: center; }
+    .top-bar a { color: rgba(255,255,255,0.75); text-decoration: none; font-weight: 500; }
+    .top-bar a:hover { color: #fff; }
+    .top-bar .env-badge { background: var(--humana-green); color: var(--humana-navy); padding: 0.15rem 0.5rem; border-radius: 3px; font-weight: 700; font-size: 0.65rem; }
+
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 68px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+    .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+    .logo-mark { width: 34px; height: 34px; border-radius: 50%; background: var(--humana-green); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.15rem; }
+    .logo-text { font-size: 1.35rem; font-weight: 700; color: var(--humana-green-contrast); letter-spacing: -0.01em; }
+    .logo-sub { font-size: 0.68rem; color: var(--gray-500); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--gray-600); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
+    nav a:hover { background: var(--gray-100); color: var(--humana-navy); }
+    nav a.active { background: var(--humana-green); color: var(--humana-navy); font-weight: 600; }
+
+    .page { max-width: 1200px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--humana-blue); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem; }
+    .back-link:hover { color: var(--humana-navy); }
+
+    .page-header { margin-bottom: 1.75rem; }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--humana-navy); margin-bottom: 0.15rem; }
+    .page-header p { color: var(--gray-500); font-size: 0.88rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @media (max-width: 800px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow-sm); }
+    .stat-card .label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 0.4rem; }
+    .stat-card .value { font-size: 1.8rem; font-weight: 700; color: var(--humana-navy); }
+    .stat-card .sub { font-size: 0.75rem; color: var(--gray-400); margin-top: 0.2rem; }
+    .stat-card.critical { border-left: 4px solid var(--critical); }
+    .stat-card.high { border-left: 4px solid var(--high); }
+    .stat-card.in-progress { border-left: 4px solid var(--warning); }
+    .stat-card.remediated { border-left: 4px solid var(--humana-green-contrast); }
+
+    .section-header { font-size: 1.1rem; font-weight: 700; color: var(--humana-navy); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--humana-green); display: inline-block; }
+
+    .vuln-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 2rem; }
+    .vuln-table { width: 100%; border-collapse: collapse; }
+    .vuln-table thead { background: var(--gray-50); }
+    .vuln-table th { text-align: left; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-200); }
+    .vuln-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-100); font-size: 0.85rem; }
+    .vuln-table tbody tr:hover td { background: rgba(120,190,32,0.04); }
+    .vuln-table tbody tr:last-child td { border-bottom: none; }
+    .severity-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; }
+    .severity-badge.critical { background: #FEE2E2; color: #991B1B; }
+    .severity-badge.high { background: #FEE2E2; color: #CC0D00; }
+    .severity-badge.medium { background: #FEF3C7; color: #92400E; }
+    .severity-badge.low { background: #DBEAFE; color: #1E40AF; }
+    .status-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+    .status-badge.open { background: #FEE2E2; color: #991B1B; }
+    .status-badge.in_progress { background: #FEF3C7; color: #92400E; }
+    .status-badge.remediated { background: #D1FAE5; color: #065F46; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+
+    .remediate-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 1.75rem; }
+    .remediate-card h2 { font-size: 1.1rem; font-weight: 700; color: var(--humana-navy); margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--humana-green); display: inline-block; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.35rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.6rem 0.85rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-800); font-family: var(--sans); font-size: 0.88rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--humana-green-contrast); box-shadow: 0 0 0 3px rgba(120,190,32,0.15); }
+    .btn-remediate { width: 100%; padding: 0.8rem; background: var(--humana-green-contrast); color: #fff; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
+    .btn-remediate:hover { background: var(--humana-green-dark); transform: translateY(-1px); }
+    .btn-remediate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
+
+    .pipeline-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 1.75rem; }
+    .pipeline-card h2 { font-size: 1.1rem; font-weight: 700; color: var(--humana-navy); margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--humana-green); display: inline-block; }
+    .pipeline-steps { list-style: none; }
+    .pipeline-steps li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--gray-100); font-size: 0.85rem; }
+    .pipeline-steps li:last-child { border-bottom: none; }
+    .step-num { width: 24px; height: 24px; background: var(--humana-navy); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+    .step-label { font-weight: 500; color: var(--gray-700); }
+    .step-sub { font-size: 0.75rem; color: var(--gray-400); }
+    .step-active .step-num { background: var(--humana-green); color: var(--humana-navy); }
+    .step-done .step-num { background: var(--humana-green-contrast); }
+
+    .security-note { margin-top: 1.5rem; padding: 0.75rem 1rem; background: var(--cream); border-left: 3px solid var(--humana-green); font-size: 0.78rem; color: var(--gray-500); }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="left"><a href="#">MyHumana</a><a href="#">CenterWell</a><a href="#">Go365</a><a href="#" style="color:#fff;font-weight:700">Enterprise Information Protection</a><a href="#">Interoperability</a></div>
+    <div class="right"><span class="env-badge">PROD</span><a href="#">SecOps Portal</a><a href="#">Admin</a></div>
+  </div>
+  <header>
+    <a href="#" class="logo">
+      <div class="logo-mark">H</div>
+      <div>
+        <div class="logo-text">Humana</div>
+        <div class="logo-sub">Vulnerability Management &mdash; EIP SecOps</div>
+      </div>
+    </a>
+    <nav><a href="#">Dashboard</a><a href="#" class="active">CVE Queue</a><a href="#">Patch Windows</a><a href="#">Reports</a><a href="#">HIPAA Compliance</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fade-in">&larr; All Demos</a>
+    <div class="page-header fade-in d1">
+      <h1>CVE Remediation Pipeline</h1>
+      <p>Enterprise Information Protection &mdash; Tenable scan results &bull; Last scan: July 20, 2026 &bull; Next patch window: August 12, 2026</p>
+    </div>
+
+    <div class="stats-grid fade-in d2">
+      <div class="stat-card critical"><div class="label">Critical</div><div class="value">3</div><div class="sub">Expedited release track</div></div>
+      <div class="stat-card high"><div class="label">High</div><div class="value">3</div><div class="sub">Next patch window</div></div>
+      <div class="stat-card in-progress"><div class="label">In Progress</div><div class="value">1</div><div class="sub">Active remediation</div></div>
+      <div class="stat-card remediated"><div class="label">Remediated (July)</div><div class="value">7</div><div class="sub">Deployed in PATCH-2026-07</div></div>
+    </div>
+
+    <div class="fade-in d3">
+      <div class="section-header">Open Vulnerabilities</div>
+      <div class="vuln-card">
+        <table class="vuln-table">
+          <thead><tr><th>CVE ID</th><th>Severity</th><th>Package</th><th>Current</th><th>Fix</th><th>Application</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><code>CVE-2024-38816</code></td><td><span class="severity-badge critical">CRITICAL</span></td><td>spring-webmvc</td><td>5.3.27</td><td>5.3.39</td><td>MyHumana Member Portal</td><td><span class="status-badge open">Open</span></td></tr>
+            <tr><td><code>CVE-2024-52316</code></td><td><span class="severity-badge critical">CRITICAL</span></td><td>tomcat-embed-core</td><td>10.1.24</td><td>10.1.33</td><td>Claims Adjudication Engine</td><td><span class="status-badge open">Open</span></td></tr>
+            <tr><td><code>CVE-2024-47561</code></td><td><span class="severity-badge critical">CRITICAL</span></td><td>apache-avro</td><td>1.11.1</td><td>1.11.4</td><td>Claims Intake Integration Layer</td><td><span class="status-badge open">Open</span></td></tr>
+            <tr><td><code>CVE-2024-22262</code></td><td><span class="severity-badge high">HIGH</span></td><td>spring-web</td><td>5.3.27</td><td>5.3.34</td><td>Medicare Enrollment Platform</td><td><span class="status-badge open">Open</span></td></tr>
+            <tr><td><code>CVE-2024-47554</code></td><td><span class="severity-badge high">HIGH</span></td><td>commons-io</td><td>2.11.0</td><td>2.14.0</td><td>CenterWell Pharmacy Services</td><td><span class="status-badge in_progress">In Progress</span></td></tr>
+            <tr><td><code>CVE-2024-7254</code></td><td><span class="severity-badge high">HIGH</span></td><td>protobuf-java</td><td>3.24.0</td><td>3.25.5</td><td>Interoperability FHIR Gateway</td><td><span class="status-badge open">Open</span></td></tr>
+            <tr><td><code>CVE-2024-25710</code></td><td><span class="severity-badge medium">MEDIUM</span></td><td>commons-compress</td><td>1.24.0</td><td>1.26.0</td><td>Go365 Wellness Platform</td><td><span class="status-badge open">Open</span></td></tr>
+            <tr><td><code>CVE-2024-29025</code></td><td><span class="severity-badge medium">MEDIUM</span></td><td>netty-codec-http</td><td>4.1.94</td><td>4.1.108</td><td>Provider Directory API</td><td><span class="status-badge remediated">Remediated</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col fade-in d4">
+      <div class="remediate-card">
+        <h2>Trigger CVE Remediation</h2>
+        <form id="remediateForm">
+          <div class="form-group"><label>CVE Identifier</label><select id="cveId">
+            <option value="CVE-2024-38816" data-severity="critical" data-pkg="org.springframework:spring-webmvc" data-cur="5.3.27" data-fix="5.3.39" data-app="MyHumana Member Portal">CVE-2024-38816 (CRITICAL) &mdash; spring-webmvc</option>
+            <option value="CVE-2024-52316" data-severity="critical" data-pkg="org.apache.tomcat.embed:tomcat-embed-core" data-cur="10.1.24" data-fix="10.1.33" data-app="Claims Adjudication Engine">CVE-2024-52316 (CRITICAL) &mdash; tomcat-embed-core</option>
+            <option value="CVE-2024-47561" data-severity="critical" data-pkg="org.apache.avro:avro" data-cur="1.11.1" data-fix="1.11.4" data-app="Claims Intake Integration Layer">CVE-2024-47561 (CRITICAL) &mdash; apache-avro</option>
+            <option value="CVE-2024-22262" data-severity="high" data-pkg="org.springframework:spring-web" data-cur="5.3.27" data-fix="5.3.34" data-app="Medicare Enrollment Platform">CVE-2024-22262 (HIGH) &mdash; spring-web</option>
+            <option value="CVE-2024-7254" data-severity="high" data-pkg="com.google.protobuf:protobuf-java" data-cur="3.24.0" data-fix="3.25.5" data-app="Interoperability FHIR Gateway">CVE-2024-7254 (HIGH) &mdash; protobuf-java</option>
+            <option value="CVE-2024-25710" data-severity="medium" data-pkg="org.apache.commons:commons-compress" data-cur="1.24.0" data-fix="1.26.0" data-app="Go365 Wellness Platform">CVE-2024-25710 (MEDIUM) &mdash; commons-compress</option>
+          </select></div>
+          <div class="form-group"><label>Target Application</label><input type="text" id="application" value="MyHumana Member Portal" readonly></div>
+          <div class="form-group"><label>Remediation Priority</label><select id="severity">
+            <option value="critical">Critical &mdash; Expedited release (within 15 days)</option>
+            <option value="high">High &mdash; Next patch window</option>
+            <option value="medium">Medium &mdash; Standard patch window</option>
+          </select></div>
+          <button type="submit" class="btn-remediate" id="submitBtn">Process Remediation</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="security-note">Remediation follows the Change Advisory Board process and HIPAA/CMS compliance validation. Critical CVEs are fast-tracked to an expedited release within 15 days of discovery.</div>
+      </div>
+
+      <div class="pipeline-card">
+        <h2>Remediation Pipeline</h2>
+        <ol class="pipeline-steps">
+          <li class="step-done"><span class="step-num">1</span><div><div class="step-label">Tenable Scan</div><div class="step-sub">Automated twice-weekly scanning across EIP asset inventory</div></div></li>
+          <li class="step-done"><span class="step-num">2</span><div><div class="step-label">EIP SecOps Triage</div><div class="step-sub">CVE prioritization + member-data exposure assessment</div></div></li>
+          <li class="step-done"><span class="step-num">3</span><div><div class="step-label">ServiceNow Ticketing</div><div class="step-sub">VULN ticket created per finding, routed to app team</div></div></li>
+          <li class="step-active"><span class="step-num">4</span><div><div class="step-label">Technical Assessment</div><div class="step-sub">Evaluate applicability &amp; remediation approach</div></div></li>
+          <li><span class="step-num">5</span><div><div class="step-label">Dependency Upgrade</div><div class="step-sub">Update version in build manifest</div></div></li>
+          <li><span class="step-num">6</span><div><div class="step-label">Integration Testing</div><div class="step-sub">Regression suite against member data sandbox</div></div></li>
+          <li><span class="step-num">7</span><div><div class="step-label">Change Advisory Board</div><div class="step-sub">HIPAA/CMS compliance sign-off &amp; deploy approval</div></div></li>
+          <li><span class="step-num">8</span><div><div class="step-label">CI/CD Deployment</div><div class="step-sub">Automated pipeline to production patch window</div></div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const cveSelect = document.getElementById('cveId');
+    const appInput = document.getElementById('application');
+    const sevSelect = document.getElementById('severity');
+
+    cveSelect.addEventListener('change', () => {
+      const opt = cveSelect.selectedOptions[0];
+      appInput.value = opt.dataset.app;
+      sevSelect.value = opt.dataset.severity;
+    });
+
+    document.getElementById('remediateForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      const opt = cveSelect.selectedOptions[0];
+      try {
+        const res = await fetch('/api/7e6bb001/remediate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cveId: cveSelect.value,
+            severity: sevSelect.value,
+            package: opt.dataset.pkg,
+            currentVersion: opt.dataset.cur,
+            fixedVersion: opt.dataset.fix,
+            application: appInput.value,
+            userId: 'usr_7e6bb001_secops',
+            devinUserId: localStorage.getItem('devinUserId') || 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+            devinOrgId: localStorage.getItem('devinOrgId') || 'org-0d6e953938a24727ac5d3de14a98938b',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Remediation Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Remediation Approved</div><div class="error-detail">Plan ${data.plan.planId} &mdash; ${data.plan.cveId} scheduled for ${data.plan.estimatedDeployDate} via ${data.plan.approvalWorkflow} workflow</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Process Remediation'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
