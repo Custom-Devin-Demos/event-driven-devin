@@ -241,7 +241,7 @@ async function createVulnerablePR(options = {}) {
           inputs: {
             pr_number: String(result.prNumber),
             pr_branch: branchName,
-            customer: customerSlug,
+            customer: config.sonarWorkflowCustomer || customerSlug,
             user_id: options.devinUserId || '',
             org_id: options.devinOrgId || '',
           },
@@ -250,7 +250,7 @@ async function createVulnerablePR(options = {}) {
     logger.info('Dispatched devin-scan workflow via workflow_dispatch', {
       prNumber: result.prNumber,
       branch: branchName,
-      customer: customerSlug,
+      customer: config.sonarWorkflowCustomer || customerSlug,
       devinUserId: options.devinUserId || 'none',
       devinOrgId: options.devinOrgId || 'none',
     });

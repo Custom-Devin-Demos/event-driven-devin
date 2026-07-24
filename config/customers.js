@@ -19,6 +19,9 @@ const logger = require('../app/telemetry/logger');
  *   GITHUB_ORG_<SLUG>          — GitHub org for repo references
  *   DEVIN_USER_ID_<SLUG>       — Pre-configured Devin user ID
  *   SONAR_TARGET_REPO_<SLUG>   — Target repo for SonarCloud PR
+ *   SONAR_WORKFLOW_CUSTOMER_<SLUG> — Customer value passed to the devin-scan
+ *                                    workflow dispatch (controls which service
+ *                                    key the workflow uses; defaults to slug)
  *
  * Example: For customer slug "a6b38c63":
  *   DEVIN_API_KEY_A6B38C63=dv-abc123...
@@ -408,6 +411,7 @@ function getCustomerConfig(customerSlug) {
       || process.env.DEVIN_USER_ID || '',
     targetRepo: process.env[`SONAR_TARGET_REPO${suffix}`]
       || process.env.SONAR_TARGET_REPO || `${githubOrg}/etl-pipeline-demo`,
+    sonarWorkflowCustomer: process.env[`SONAR_WORKFLOW_CUSTOMER${suffix}`] || slug,
   };
 
   if (slug !== 'default') {
@@ -419,6 +423,7 @@ function getCustomerConfig(customerSlug) {
       githubOrg: config.githubOrg,
       hasDevinUserId: !!config.devinUserId,
       targetRepo: config.targetRepo,
+      sonarWorkflowCustomer: config.sonarWorkflowCustomer,
     });
   }
 
