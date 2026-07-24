@@ -5,196 +5,200 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
- * Simulated CVE vulnerability list (from Tenable scan results)
- * across Humana's digital health platform applications.
+ * Plan configuration for Humana health plans
  */
-const VULNERABILITIES = [
-  { id: 'CVE-2024-38816', severity: 'CRITICAL', package: 'org.springframework:spring-webmvc', currentVersion: '5.3.27', fixedVersion: '5.3.39', application: 'MyHumana Member Portal', status: 'open', discoveredDate: '2026-07-20' },
-  { id: 'CVE-2024-52316', severity: 'CRITICAL', package: 'org.apache.tomcat.embed:tomcat-embed-core', currentVersion: '10.1.24', fixedVersion: '10.1.33', application: 'Claims Adjudication Engine', status: 'open', discoveredDate: '2026-07-20' },
-  { id: 'CVE-2024-22262', severity: 'HIGH', package: 'org.springframework:spring-web', currentVersion: '5.3.27', fixedVersion: '5.3.34', application: 'Medicare Enrollment Platform', status: 'open', discoveredDate: '2026-07-18' },
-  { id: 'CVE-2024-47554', severity: 'HIGH', package: 'commons-io:commons-io', currentVersion: '2.11.0', fixedVersion: '2.14.0', application: 'CenterWell Pharmacy Services', status: 'in_progress', discoveredDate: '2026-07-18' },
-  { id: 'CVE-2024-7254', severity: 'HIGH', package: 'com.google.protobuf:protobuf-java', currentVersion: '3.24.0', fixedVersion: '3.25.5', application: 'Interoperability FHIR Gateway', status: 'open', discoveredDate: '2026-07-16' },
-  { id: 'CVE-2024-29025', severity: 'MEDIUM', package: 'io.netty:netty-codec-http', currentVersion: '4.1.94', fixedVersion: '4.1.108', application: 'Provider Directory API', status: 'remediated', discoveredDate: '2026-07-13' },
-  { id: 'CVE-2024-25710', severity: 'MEDIUM', package: 'org.apache.commons:commons-compress', currentVersion: '1.24.0', fixedVersion: '1.26.0', application: 'Go365 Wellness Platform', status: 'open', discoveredDate: '2026-07-13' },
-  { id: 'CVE-2024-47561', severity: 'CRITICAL', package: 'org.apache.avro:avro', currentVersion: '1.11.1', fixedVersion: '1.11.4', application: 'Claims Intake Integration Layer', status: 'open', discoveredDate: '2026-07-11' },
-];
-
-/**
- * Simulated ServiceNow SecOps tickets for vulnerability tracking
- */
-const SERVICENOW_TICKETS = [
-  { key: 'VULN-4821', cveId: 'CVE-2024-38816', status: 'New', assignee: 'Digital Experience Team', priority: 'Critical', createdDate: '2026-07-20' },
-  { key: 'VULN-4822', cveId: 'CVE-2024-52316', status: 'New', assignee: 'Claims Platform Team', priority: 'Critical', createdDate: '2026-07-20' },
-  { key: 'VULN-4823', cveId: 'CVE-2024-22262', status: 'New', assignee: 'Medicare Systems Team', priority: 'High', createdDate: '2026-07-18' },
-  { key: 'VULN-4824', cveId: 'CVE-2024-47554', status: 'In Progress', assignee: 'CenterWell Engineering', priority: 'High', createdDate: '2026-07-18' },
-  { key: 'VULN-4825', cveId: 'CVE-2024-29025', status: 'Closed Complete', assignee: 'Provider Data Team', priority: 'Medium', createdDate: '2026-07-13' },
-  { key: 'VULN-4826', cveId: 'CVE-2024-25710', status: 'New', assignee: 'Go365 Platform Team', priority: 'Medium', createdDate: '2026-07-13' },
-];
-
-/**
- * Patch release schedule (CAB-approved change windows)
- */
-const RELEASES = [
-  { id: 'PATCH-2026-08', name: 'August Patch Window', date: '2026-08-12', status: 'planning', cveCount: 4 },
-  { id: 'EXP-2026-07-C', name: 'Expedited Critical Release', date: '2026-07-29', status: 'approved', cveCount: 3 },
-  { id: 'PATCH-2026-07', name: 'July Patch Window', date: '2026-07-15', status: 'deployed', cveCount: 7 },
-];
-
-/**
- * CVE remediation pipeline stages.
- * The pipeline config maps severity to its processing rules.
- * BUG: The "critical" severity has remediationConfig set to null
- * because critical CVEs bypass the standard CAB pipeline and go
- * directly to an expedited release. But the processRemediation
- * function unconditionally accesses .approvalWorkflow on the config,
- * crashing with TypeError.
- */
-const PIPELINE_CONFIG = {
-  critical: { maxDays: 15, releaseTrack: 'expedited', remediationConfig: null },
-  high:     { maxDays: 30, releaseTrack: 'next-patch-window', remediationConfig: { approvalWorkflow: 'cab-standard', testSuite: 'regression', deployGate: 'change-advisory-board' } },
-  medium:   { maxDays: 60, releaseTrack: 'next-patch-window', remediationConfig: { approvalWorkflow: 'cab-standard', testSuite: 'smoke', deployGate: 'auto' } },
-  low:      { maxDays: 90, releaseTrack: 'next-patch-window', remediationConfig: { approvalWorkflow: 'cab-light', testSuite: 'unit', deployGate: 'auto' } },
+const PLAN_CONFIG = {
+  'ma-hmo': { name: 'Humana Gold Plus HMO', deductible: 0, oopMax: 4900, copay: 0, coinsurance: 0.20 },
+  'ma-ppo': { name: 'HumanaChoice PPO', deductible: 500, oopMax: 6700, copay: 15, coinsurance: 0.20 },
+  employer: { name: 'Humana Employer Group PPO', deductible: 1500, oopMax: 5500, copay: 25, coinsurance: 0.20 },
+  'dental-vision': { name: 'Humana Extend Dental + Vision', deductible: 50, oopMax: 1500, copay: 0, coinsurance: 0.20 },
 };
 
 /**
- * Resolve the pipeline config for a given severity.
+ * Mock member database
  */
-function resolvePipeline(severity) {
-  const config = PIPELINE_CONFIG[severity.toLowerCase()];
-  if (!config) return null;
-  return { pipeline: config };
-}
+const MEMBERS = [
+  { id: 'HUM-73920481', email: 'margaret.thompson@example.com', name: 'Margaret Thompson', planType: 'ma-hmo', deductibleMet: 0.00, claimsYTD: 9 },
+  { id: 'HUM-73958204', email: 'robert.chen@example.com', name: 'Robert Chen', planType: 'ma-ppo', deductibleMet: 320.00, claimsYTD: 6 },
+  { id: 'HUM-74012937', email: 'linda.martinez@example.com', name: 'Linda Martinez', planType: 'employer', deductibleMet: 1150.00, claimsYTD: 4 },
+  { id: 'HUM-73987615', email: 'william.davis@example.com', name: 'William Davis', planType: 'dental-vision', deductibleMet: 50.00, claimsYTD: 3 },
+];
 
 /**
- * Determine the approval workflow for a CVE remediation.
- * BUG: For "critical" severity, remediationConfig is null because critical
- * CVEs skip the standard CAB approval pipeline. Accessing .approvalWorkflow
- * on null crashes with TypeError.
+ * Recent claims history for display
  */
-function determineApprovalWorkflow(pipelineData) {
-  const workflow = pipelineData.pipeline.remediationConfig.approvalWorkflow;
-  return workflow || 'expedited';
-}
+const RECENT_CLAIMS = [
+  { date: '2026-07-14', provider: 'CenterWell Pharmacy', service: 'Prescription - Lisinopril 10mg', amount: 0.00, status: 'Covered' },
+  { date: '2026-07-02', provider: 'CenterWell Primary Care', service: 'Annual Wellness Visit', amount: 0.00, status: 'Covered' },
+  { date: '2026-06-19', provider: 'CenterWell Pharmacy', service: 'Prescription - Metformin 500mg', amount: 4.00, status: 'Processed' },
+  { date: '2026-06-05', provider: 'Norton Healthcare', service: 'Specialist Visit - Cardiology', amount: 15.00, status: 'Processed' },
+];
 
 /**
- * Build the remediation plan for a CVE.
+ * Look up a member record by email or member ID.
  */
-function buildRemediationPlan(cveData, workflow) {
+function findMember(query) {
+  const member = MEMBERS.find(
+    (m) => m.email === query.email || m.id === query.memberId
+  );
+  if (!member) return null;
   return {
-    planId: `REM-${Date.now()}`,
-    cveId: cveData.cveId,
-    severity: cveData.severity,
-    package: cveData.package,
-    currentVersion: cveData.currentVersion,
-    fixedVersion: cveData.fixedVersion,
-    application: cveData.application,
-    approvalWorkflow: workflow,
-    estimatedDeployDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    steps: [
-      'Validate fix against HIPAA and CMS compliance requirements',
-      'Update dependency version in build manifest',
-      'Run integration test suite against member data sandbox',
-      'Submit to Change Advisory Board',
-      'Deploy via enterprise CI/CD pipeline',
-    ],
+    profile: {
+      id: member.id,
+      name: member.name,
+      email: member.email,
+      planType: member.planType,
+    },
+    coverage: {
+      deductibleMet: member.deductibleMet,
+      claimsYTD: member.claimsYTD,
+    },
   };
 }
 
 /**
- * Process a CVE remediation request.
+ * Resolve plan details for a member's plan type.
  */
-async function processRemediation(data) {
-  const startTime = Date.now();
-  const remediationId = uuidv4();
+function resolvePlanDetails(memberData, requestedPlanType) {
+  const planKey = requestedPlanType || memberData.profile.planType;
+  const config = PLAN_CONFIG[planKey];
+  if (!config) return null;
 
-  logger.info('Processing CVE remediation', {
-    remediationId,
-    cveId: data.cveId,
-    severity: data.severity,
-    application: data.application,
-    service: '7e6bb001-vms',
+  return {
+    planType: planKey,
+    details: [config.name, config.deductible, config.oopMax, config.copay, config.coinsurance],
+  };
+}
+
+/**
+ * Calculate the coverage summary from member data and plan details.
+ * Computes remaining deductible, out-of-pocket status, and copay info.
+ */
+function calculateCoverageSummary(memberData, planDetails) {
+  const deductibleTotal = planDetails.config.deductible;
+  const deductibleMet = memberData.coverage.deductibleMet;
+  const deductibleRemaining = Math.max(0, deductibleTotal - deductibleMet);
+
+  const oopMax = planDetails.config.oopMax;
+  const copay = planDetails.config.copay;
+  const coinsurance = planDetails.config.coinsurance;
+
+  const deductiblePct = deductibleTotal > 0 ? Math.min(100, (deductibleMet / deductibleTotal) * 100) : 100;
+
+  return {
+    planName: planDetails.config.name,
+    deductible: deductibleTotal.toFixed(2),
+    deductibleMet: deductibleMet.toFixed(2),
+    deductibleRemaining: deductibleRemaining.toFixed(2),
+    deductiblePct: deductiblePct.toFixed(1),
+    oopMax: oopMax.toFixed(2),
+    copay: copay.toFixed(2),
+    coinsurance: (coinsurance * 100).toFixed(0) + '%',
+    claimsYTD: memberData.coverage.claimsYTD,
+  };
+}
+
+/**
+ * Process a coverage status lookup.
+ */
+async function processCoverageLookup(data) {
+  const startTime = Date.now();
+  const lookupId = uuidv4();
+
+  logger.info('Processing coverage lookup', {
+    lookupId,
+    email: data.email,
+    memberId: data.memberId,
+    planType: data.planType,
+    service: '7e6bb001-api',
   });
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 150));
+    await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 100));
 
-    const pipelineData = resolvePipeline(data.severity);
-    const workflow = determineApprovalWorkflow(pipelineData);
-    const plan = buildRemediationPlan(data, workflow);
+    const memberData = findMember(data);
+    if (!memberData) {
+      const err = new Error('Member not found. Please verify your email and Humana member ID.');
+      err.name = 'MemberNotFoundError';
+      err.code = 'MEMBER_NOT_FOUND';
+      throw err;
+    }
+
+    const planDetails = resolvePlanDetails(memberData, data.planType);
+    const summary = calculateCoverageSummary(memberData, planDetails);
 
     const duration = Date.now() - startTime;
 
-    incrementMetric('cve.remediation.success', {
-      route: '/api/7e6bb001/remediate',
-      severity: data.severity,
+    incrementMetric('coverage.lookup.success', {
+      route: '/api/7e6bb001/coverage',
+      planType: data.planType,
     });
-    recordTiming('cve.remediation.latency', duration, {
-      route: '/api/7e6bb001/remediate',
+    recordTiming('coverage.lookup.latency', duration, {
+      route: '/api/7e6bb001/coverage',
     });
 
     return {
       success: true,
-      remediationId,
-      plan,
-      status: 'approved',
+      lookupId,
+      member: memberData.profile.name,
+      ...summary,
+      recentClaims: RECENT_CLAIMS,
       processedAt: new Date().toISOString(),
     };
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    incrementMetric('cve.remediation.failure', {
-      route: '/api/7e6bb001/remediate',
+    incrementMetric('coverage.lookup.failure', {
+      route: '/api/7e6bb001/coverage',
       errorClass: error.name,
-      severity: data.severity,
+      planType: data.planType,
     });
-    recordTiming('cve.remediation.latency', duration, {
-      route: '/api/7e6bb001/remediate',
+    recordTiming('coverage.lookup.latency', duration, {
+      route: '/api/7e6bb001/coverage',
       error: 'true',
     });
 
-    logger.error('CVE remediation processing failed', {
-      remediationId,
+    logger.error('Coverage lookup failed', {
+      lookupId,
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
-      cveId: data.cveId,
-      severity: data.severity,
+      email: data.email,
+      memberId: data.memberId,
     });
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/7e6bb001/remediate',
-        service: '7e6bb001-vms',
-        severity: data.severity,
+        route: '/api/7e6bb001/coverage',
+        service: '7e6bb001-api',
+        planType: data.planType,
       },
       extra: {
-        remediationId,
-        cveId: data.cveId,
-        package: data.package,
-        application: data.application,
+        lookupId,
+        email: data.email,
+        memberId: data.memberId,
       },
     });
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/7e6bb001.js \u2014 determineApprovalWorkflow',
+      culprit: 'app/services/verticals/7e6bb001.js — processCoverageLookup',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       slackMemberId: 'U08S7AVJ478',
-      service: '7e6bb001-vms',
-      verticalLabel: 'CVE Remediation',
+      service: '7e6bb001-api',
+      verticalLabel: 'Coverage Lookup',
       customer: '7e6bb001',
       tags: [
-        { key: 'route', value: '/api/7e6bb001/remediate' },
-        { key: 'service', value: '7e6bb001-vms' },
-        { key: 'severity', value: data.severity },
-        { key: 'cveId', value: data.cveId },
+        { key: 'route', value: '/api/7e6bb001/coverage' },
+        { key: 'service', value: '7e6bb001-api' },
+        { key: 'planType', value: data.planType },
       ],
-      extra: { remediationId, cveId: data.cveId, package: data.package, application: data.application },
+      extra: { lookupId, email: data.email, memberId: data.memberId },
       level: 'error',
       platform: 'node',
       firstSeen: '',
@@ -202,15 +206,15 @@ async function processRemediation(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || '7e6bb001-vms@1.0.0',
+      release: process.env.SENTRY_RELEASE || '7e6bb001@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
-      logger.error('Failed to trigger Devin session from CVE remediation error', { error: err.message });
+      logger.error('Failed to trigger Devin session from coverage lookup error', { error: err.message });
     });
 
     throw error;
   }
 }
 
-module.exports = { processRemediation, VULNERABILITIES, SERVICENOW_TICKETS, RELEASES };
+module.exports = { processCoverageLookup, MEMBERS, RECENT_CLAIMS };

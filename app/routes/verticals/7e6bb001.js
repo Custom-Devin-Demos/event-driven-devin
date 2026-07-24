@@ -1,41 +1,27 @@
 const express = require('express');
-const { processRemediation, VULNERABILITIES, SERVICENOW_TICKETS, RELEASES } = require('../../services/verticals/7e6bb001');
-
 const router = express.Router();
+const { processCoverageLookup, MEMBERS, RECENT_CLAIMS } = require('../../services/verticals/7e6bb001');
 
-/**
- * GET /api/7e6bb001/vulnerabilities — returns CVE list, ServiceNow tickets, and release schedule
- */
-router.get('/api/7e6bb001/vulnerabilities', (_req, res) => {
-  res.json({ vulnerabilities: VULNERABILITIES, tickets: SERVICENOW_TICKETS, releases: RELEASES });
+router.get('/api/7e6bb001/accounts', (_req, res) => {
+  res.json({
+    members: MEMBERS.map((m) => ({
+      id: m.id,
+      name: m.name,
+      planType: m.planType,
+    })),
+    recentClaims: RECENT_CLAIMS,
+  });
 });
 
-/**
- * POST /api/7e6bb001/remediate — process a CVE remediation request
- */
-router.post('/api/7e6bb001/remediate', async (req, res) => {
+router.post('/api/7e6bb001/coverage', async (req, res) => {
   try {
-    const result = await processRemediation({
-      cveId: req.body.cveId || 'CVE-2024-38816',
-      severity: req.body.severity || 'critical',
-      package: req.body.package || 'org.springframework:spring-webmvc',
-      currentVersion: req.body.currentVersion || '5.3.27',
-      fixedVersion: req.body.fixedVersion || '5.3.39',
-      application: req.body.application || 'MyHumana Member Portal',
-      userId: req.body.userId || 'usr_7e6bb001_secops',
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
-    });
+    const result = await processCoverageLookup(req.body);
     res.json(result);
   } catch (error) {
-    const statusCode = error.code === 'CVE_NOT_FOUND' ? 404 : 500;
-    res.status(statusCode).json({
+    res.status(error.code === 'MEMBER_NOT_FOUND' ? 404 : 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,
-      code: error.code || 'REMEDIATION_FAILED',
-      requestId: req.requestId,
     });
   }
 });
