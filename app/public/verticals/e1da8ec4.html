@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defining Possible</title>
+  <link rel="icon" href="https://www.northropgrumman.com/favicon.ico">
+  <style>
+    :root {
+      --v-black: #000;
+      --v-text: rgb(51, 51, 51);
+      --v-white: #fff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Futura PT', Futura, 'Century Gothic', Arial, sans-serif; font-size: 18px; color: var(--v-text); background: #fff; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+
+    header { background: var(--v-black); position: sticky; top: 0; z-index: 100; }
+    .header-inner { display: flex; justify-content: space-between; align-items: center; height: 64px; }
+    .header-inner img { height: 36px; }
+    .search-btn { background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; }
+
+    .hero { position: relative; background: var(--v-black); }
+    .hero video, .hero img.fallback { width: 100%; height: 560px; object-fit: cover; object-position: center center; display: block; }
+
+    .who-section { padding: 72px 0 40px; }
+    .who-section h2 { font-size: 48px; font-weight: 700; letter-spacing: 16px; text-transform: uppercase; color: #000; padding-bottom: 20px; border-bottom: 1px solid #999; }
+    .who-row { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; flex-wrap: wrap; gap: 12px; }
+    .who-row .label { font-size: 14px; letter-spacing: 4px; text-transform: uppercase; color: #000; }
+    .who-row nav { display: flex; gap: 20px; flex-wrap: wrap; }
+    .who-row nav a { font-size: 13px; color: #222; }
+
+    .pill-row { display: flex; gap: 14px; flex-wrap: wrap; padding: 56px 0 24px; }
+    .pill { font-size: 14px; letter-spacing: 2.4px; padding: 7px 14px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.75); background: #fff; color: #000; cursor: pointer; }
+    .pill.active { background: #000; color: #fff; }
+
+    .story-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-bottom: 64px; }
+    .story-card { position: relative; background: var(--v-black); border-radius: 10px; overflow: hidden; min-height: 420px; display: flex; flex-direction: column; justify-content: flex-end; }
+    .story-card img.media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center center; opacity: 0.85; }
+    .story-card .overlay { position: relative; padding: 28px; color: #fff; background: linear-gradient(transparent, rgba(0,0,0,0.7)); }
+    .story-card .kicker { font-size: 13px; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 12px; }
+    .story-card h3 { font-size: 34px; font-weight: 700; letter-spacing: 10px; text-transform: uppercase; line-height: 1.3; margin-bottom: 22px; }
+    .story-card .card-btn { display: inline-flex; align-items: center; gap: 10px; background: rgba(80,80,80,0.7); color: #fff; font-size: 13px; letter-spacing: 2px; padding: 9px 16px; border-radius: 4px; border: 0; cursor: pointer; align-self: flex-start; }
+
+    .careers-section { position: relative; background: var(--v-black); }
+    .careers-section img.media { width: 100%; height: 460px; object-fit: cover; object-position: center center; opacity: 0.8; display: block; }
+    .careers-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .careers-btn { background: rgba(124,124,124,0.4); color: #fff; font-size: 14px; letter-spacing: 4px; padding: 10px 20px; border-radius: 8px; border: 0; cursor: pointer; text-transform: capitalize; }
+    .careers-links { position: absolute; bottom: 24px; left: 0; right: 0; display: flex; justify-content: center; gap: 34px; flex-wrap: wrap; }
+    .careers-links a { color: #fff; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+
+    footer { background: #fff; padding: 40px 0 32px; text-align: center; }
+    .social-row { display: flex; justify-content: center; gap: 18px; margin-bottom: 36px; }
+    .social-row img { width: 40px; height: 40px; }
+    .footer-links { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 22px; }
+    .footer-links a { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #111; }
+    .footer-copy { font-size: 14px; color: #333; margin-top: 10px; }
+    .all-demos { position: fixed; bottom: 16px; left: 16px; font-size: 12px; color: #9aa0ab; z-index: 50; }
+    @media (max-width: 900px) {
+      .story-row { grid-template-columns: 1fr; }
+      .who-section h2 { font-size: 28px; letter-spacing: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <a href="#" data-cta><img src="https://www.northropgrumman.com/images/NGC-logo-white-on-clear.webp" alt="Northrop Grumman" onerror="this.onerror=null;this.style.display='none';"></a>
+      <button class="search-btn" data-cta aria-label="Search">&#128269;</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <video autoplay muted loop playsinline poster="https://media.northropgrumman.com/16bdebd8-e42a-43d8-9007-b38500174625/Arctic-Satellite-Broadband-Mission-slide-01_Original%20file.jpg">
+      <source src="https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/home-content/Harbor_NG_BlowOut_15-1920x1080-A250---NG-site_No-Birthday.mp4" type="video/mp4">
+    </video>
+  </section>
+
+  <section class="who-section">
+    <div class="container">
+      <h2>Accelerating the industry.</h2>
+      <div class="who-row">
+        <span class="label">Who We Are</span>
+        <nav>
+          <a href="#" data-cta>Leadership</a>
+          <a href="#" data-cta>The Facts</a>
+          <a href="#" data-cta>Global Presence</a>
+          <a href="#" data-cta>Investors</a>
+          <a href="#" data-cta>News</a>
+          <a href="#" data-cta>Suppliers</a>
+          <a href="#" data-cta>Sustainability</a>
+        </nav>
+      </div>
+
+      <div class="pill-row">
+        <button class="pill active" data-cta>Space's Swiss Army Tool</button>
+        <button class="pill" data-cta>Sentinel ICBM: Peace Through Power</button>
+        <button class="pill" data-cta>Defeating Drone Threats</button>
+        <button class="pill" data-cta>Future Ready Command and Control</button>
+        <button class="pill" data-cta>The Future of American Defense</button>
+      </div>
+
+      <div class="story-row">
+        <div class="story-card">
+          <img class="media" src="https://media.northropgrumman.com/16bdebd8-e42a-43d8-9007-b38500174625/Arctic-Satellite-Broadband-Mission-slide-01_Original%20file.jpg" alt="Satellite in orbit" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1200&q=80';">
+          <div class="overlay">
+            <div class="kicker">Space</div>
+            <h3>Space's Swiss Army Tool</h3>
+            <button class="card-btn" data-cta>Evolving Satellite Servicing &#8250;</button>
+          </div>
+        </div>
+        <div class="story-card">
+          <img class="media" src="https://media.northropgrumman.com/953d548f-6dc3-4d6d-baf2-b45700d5dd24/world-map-bw_Original%20file.jpg" alt="Advanced weapons" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1518364538800-6bae3c2ea0f2?w=1200&q=80';">
+          <div class="overlay">
+            <div class="kicker">Advanced Weapons</div>
+            <h3>Sentinel ICBM: Peace Through Power</h3>
+            <button class="card-btn" data-cta>Securing Peace &#8250;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="careers-section">
+    <img class="media" src="https://media.northropgrumman.com/ca04c160-4a3e-4e59-8184-b38500312b19/Northrop-Grumman-recruiters-BEYA-2020-1_Original%20file.jpg" alt="Careers at Northrop Grumman" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1600&q=80';">
+    <div class="careers-center">
+      <button class="careers-btn" data-cta>Careers &nbsp;&#8599;</button>
+    </div>
+    <div class="careers-links">
+      <a href="#" data-cta>Early Career</a>
+      <a href="#" data-cta>Professionals</a>
+      <a href="#" data-cta>Veterans</a>
+      <a href="#" data-cta>Search by Location</a>
+      <a href="#" data-cta>Life at Northrop Grumman</a>
+      <a href="#" data-cta>Current Employees</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="social-row">
+        <a href="#" data-cta><img src="https://cdn.northropgrumman.com/-/media/facebook.svg?iar=0&hash=5DDB7A570F5D57ED5308A8331FEEE843" alt="Facebook"></a>
+        <a href="#" data-cta><img src="https://cdn.northropgrumman.com/-/media/instagram.svg?iar=0&hash=E9DD4E61CA57D09B40F4D64586C0A482" alt="Instagram"></a>
+        <a href="#" data-cta><img src="https://cdn.northropgrumman.com/-/media/linkedin.svg?iar=0&hash=99BA7B48B4249DEDF27426F73A0A7C13" alt="LinkedIn"></a>
+        <a href="#" data-cta><img src="https://cdn.northropgrumman.com/-/media/twitter-x.png?h=45&iar=0&w=45&hash=A627D071294E15244DD8F411038D09EF" alt="X"></a>
+        <a href="#" data-cta><img src="https://cdn.northropgrumman.com/-/media/youtube/youtube.svg?iar=0&hash=5A3C63247EAEFA63255A03F3301D3E17" alt="YouTube"></a>
+      </div>
+      <div class="footer-links">
+        <a href="#" data-cta>Who We Are</a>
+        <a href="#" data-cta>What We Do</a>
+        <a href="#" data-cta>Careers</a>
+      </div>
+      <div class="footer-links">
+        <a href="#" data-cta>Company Store</a>
+        <a href="#" data-cta>Investors</a>
+        <a href="#" data-cta>News</a>
+        <a href="#" data-cta>Suppliers</a>
+      </div>
+      <div class="footer-links">
+        <a href="#" data-cta>Privacy Notice</a>
+        <a href="#" data-cta>Manage Cookie Preferences</a>
+        <a href="#" data-cta>Terms of Use</a>
+        <a href="#" data-cta>EEO</a>
+        <a href="#" data-cta>Corporate Governance</a>
+        <a href="#" data-cta>E-Verify</a>
+        <a href="#" data-cta>Contact Us</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 Northrop Grumman. The Northrop Grumman name and logos are registered trademarks of Northrop Grumman.</p>
+    </div>
+  </footer>
+
+  <a class="all-demos" href="/">&larr; All Demos</a>
+
+  <script>
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(0,0,0,0.88);color:#fff;padding:14px 22px;border-radius:8px;font-size:14px;z-index:10000;opacity:0;transform:translateY(20px);transition:opacity 0.3s,transform 0.3s;max-width:380px;font-family:Arial,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
+      document.body.appendChild(toast);
+      requestAnimationFrame(function () { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
+      setTimeout(function () { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(function () { toast.remove(); }, 300); }, 6000);
+    }
+
+    function requestBriefing(el) {
+      if (el._running) return;
+      el._running = true;
+      el.style.pointerEvents = 'none';
+      fetch('/api/e1da8ec4/mission-briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: 'space',
+          clearanceTier: 'public',
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-df93ce964a2042079412db72825a4268'
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) { if (data.error) showToast('We couldn\u2019t load this content right now. Please try again.'); })
+        .catch(function () { showToast('We couldn\u2019t load this content right now. Please try again.'); })
+        .finally(function () { el.style.pointerEvents = ''; el._running = false; });
+    }
+
+    document.querySelectorAll('[data-cta]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        requestBriefing(el);
+      });
+    });
+  </script>
+</body>
+</html>
