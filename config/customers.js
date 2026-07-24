@@ -356,6 +356,10 @@ const CUSTOMERS = {
     label: 'Staples',
     triggerMode: 'api',
   },
+  '7e6bb001': {
+    label: 'Humana',
+    triggerMode: 'api',
+  },
 };
 
 /**
