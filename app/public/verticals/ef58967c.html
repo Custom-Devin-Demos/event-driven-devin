@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charles Schwab &mdash; Trade &amp; Invest</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7f9;
+      --bg-card: #ffffff;
+      --bg-elevated: #eef2f6;
+      --surface: #e5ebf1;
+      --border: #d9e1e9;
+      --border-light: #c6d2de;
+      --text: #0b1f33;
+      --text-muted: #55677a;
+      --text-dim: #8a9bad;
+      --schwab-blue: #009ddc;
+      --schwab-blue-hover: #007fb5;
+      --schwab-navy: #003057;
+      --schwab-blue-dim: rgba(0,157,220,0.09);
+      --schwab-blue-border: rgba(0,157,220,0.26);
+      --danger: #c0322b;
+      --danger-bg: rgba(192,50,43,0.06);
+      --danger-border: rgba(192,50,43,0.16);
+      --success: #1f8a53;
+      --buy: #1f8a53;
+      --sell: #c0322b;
+      --amber: #b26a00;
+      --amber-bg: rgba(178,106,0,0.08);
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Security Banner ── */
+    .security-banner {
+      background: var(--schwab-navy);
+      color: #e6f2fa;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .security-banner svg { flex-shrink: 0; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 66px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-mark {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--schwab-blue), var(--schwab-navy));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 1.05rem;
+    }
+    .logo-text { font-weight: 800; font-size: 1.12rem; letter-spacing: -0.02em; color: var(--schwab-navy); text-transform: uppercase; }
+    .logo-text span { color: var(--schwab-blue); }
+    nav { display: flex; align-items: center; gap: 1.6rem; }
+    nav a {
+      color: var(--text); text-decoration: none; font-size: 0.82rem;
+      font-weight: 600; letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--schwab-blue); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .member-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 999px; padding: 0.3rem 0.75rem 0.3rem 0.35rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
+    }
+    .member-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--schwab-blue); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700;
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 880px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--schwab-blue); text-decoration: none; font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.02em; margin-bottom: 1.75rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--schwab-blue-hover); }
+
+    .page-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--schwab-blue);
+      background: var(--schwab-blue-dim); border: 1px solid var(--schwab-blue-border);
+      padding: 0.3rem 0.7rem; border-radius: 999px; margin-bottom: 1rem;
+    }
+    .page-title {
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+      font-weight: 800; line-height: 1.15; margin-bottom: 0.5rem;
+      letter-spacing: -0.025em; color: var(--schwab-navy);
+    }
+    .page-desc {
+      font-size: 0.94rem; color: var(--text-muted); max-width: 560px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Order Card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(11,31,51,0.05);
+    }
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .order-header .order-tag {
+      font-size: 0.7rem; font-weight: 700; color: var(--schwab-blue);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      background: var(--schwab-blue-dim); padding: 0.2rem 0.55rem; border-radius: 4px;
+    }
+    .ticket-body { padding: 0; }
+    .ticket-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ticket-row:last-child { border-bottom: none; }
+    .sym-badge {
+      width: 52px; height: 52px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-radius: 10px; flex-shrink: 0;
+      background: var(--schwab-navy); color: #fff;
+      font-weight: 800; font-size: 0.82rem; letter-spacing: 0.02em;
+    }
+    .sym-details { flex: 1; }
+    .sym-name { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.15rem; }
+    .sym-meta { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); }
+    .side-pill {
+      display: inline-block; font-size: 0.68rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.24rem 0.6rem; border-radius: 5px;
+    }
+    .side-pill.sell { background: var(--danger-bg); color: var(--sell); }
+    .side-pill.buy { background: rgba(31,138,83,0.08); color: var(--buy); }
+    .ticket-price { text-align: right; }
+    .ticket-price .amt { font-weight: 700; font-size: 0.95rem; }
+    .ticket-price .lbl { font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 0.95rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .audit-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--schwab-blue-dim); color: var(--schwab-blue);
+      font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.65rem;
+      border-radius: 6px; margin-top: 0.65rem;
+    }
+
+    /* ── Action Form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(11,31,51,0.05);
+    }
+    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .action-section .sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.15rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--schwab-blue);
+      box-shadow: 0 0 0 3px var(--schwab-blue-dim);
+    }
+
+    .request-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--schwab-blue); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.06em;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .request-btn:hover { background: var(--schwab-blue-hover); transform: translateY(-1px); }
+    .request-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--schwab-blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: rgba(31,138,83,0.06); border: 1px solid rgba(31,138,83,0.2); }
+    .result-box h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--danger-bg); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 10px; font-size: 0.8rem; color: #7a2f2a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 880px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand { font-size: 0.82rem; font-weight: 700; color: var(--schwab-navy); letter-spacing: 0.01em; }
+    .footer-compliance { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.02em; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim); }
+    .footer-devin a { color: var(--schwab-blue); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .security-banner { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="security-banner">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Brokerage products are not FDIC-insured &middot; every order is best-execution routed and audit-logged
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-mark">S</div>
+      <div class="logo-text">charles<span>&nbsp;schwab</span></div>
+    </div>
+    <nav>
+      <a href="#">Accounts</a>
+      <a href="#">Trade</a>
+      <a href="#">Research</a>
+      <a href="#">Move Money</a>
+    </nav>
+    <div class="nav-right">
+      <div class="member-chip">
+        <div class="member-avatar">MC</div>
+        Morgan Cole
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <div class="page-eyebrow animate-up delay-1">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Trade Order Ticket
+    </div>
+    <h1 class="page-title animate-up delay-1">Review &amp; Place Your Trade</h1>
+    <p class="page-desc animate-up delay-2">
+      You&rsquo;re about to place a sell order in your Schwab One&reg; brokerage account.
+      Click <strong>Place Order</strong> to run the order-execution pipeline and watch the
+      fee-schedule bug surface in real time.
+    </p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Order preview</h2>
+        <span class="order-tag">Market order</span>
+      </div>
+      <div class="ticket-body">
+        <div class="ticket-row">
+          <div class="sym-badge">AAPL</div>
+          <div class="sym-details">
+            <div class="sym-name">Apple Inc. <span class="side-pill sell">Sell</span></div>
+            <div class="sym-meta">NASDAQ &middot; Equity &middot; 100 shares</div>
+          </div>
+          <div class="ticket-price">
+            <div class="amt">$227.52</div>
+            <div class="lbl">Last price</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Account</span><span>Morgan Cole &middot; SCHW-84102299</span></div>
+        <div class="total-line"><span>Estimated principal</span><span>$22,752.00</span></div>
+        <div class="total-line"><span>Commission &amp; fees</span><span>Resolved at execution</span></div>
+        <div class="total-line grand"><span>Order status</span><span>Pending review</span></div>
+        <div class="audit-badge">&#x1F512; Best-execution routed &middot; order will be written to the trade blotter</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Confirm Order</h3>
+      <p class="sub">Review the routing details and place your trade.</p>
+      <form id="orderForm" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Account</label>
+            <input type="text" value="SCHW-84102299" readonly>
+          </div>
+          <div class="form-group">
+            <label>Order Type</label>
+            <select id="orderTypeSelect">
+              <option value="market" selected>Market</option>
+              <option value="limit">Limit</option>
+              <option value="stop">Stop</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Time in Force</label>
+            <select id="tifSelect">
+              <option value="day" selected>Day</option>
+              <option value="gtc">Good &rsquo;til Canceled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Routing Region</label>
+            <select id="regionSelect">
+              <option value="US" selected>Schwab Smart Router</option>
+              <option value="US-EAST">NYSE Arca</option>
+              <option value="US-WEST">Nasdaq BX</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="request-btn" id="requestBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Place Order
+        </button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Routing and executing order&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The execution pipeline force-assesses a mandatory regulatory fee
+      (<code>FEE-SEC-31-2026</code>) on every equity sell order, but that fee code isn&rsquo;t
+      registered in the fee schedule. When the settlement builder resolves the fee&rsquo;s rate,
+      it crashes with a <code>TypeError</code> &mdash; blocking order confirmation and settlement.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Charles Schwab &amp; Co., Inc. &copy; 2026</div>
+        <div class="footer-compliance">Member SIPC &middot; Broker-dealer &middot; Orders best-execution routed &amp; audit-logged</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Disclosures</a>
+        <a href="#">Terms</a>
+        <a href="#">Security</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('requestBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var region = document.getElementById('regionSelect').value;
+      var orderType = document.getElementById('orderTypeSelect').value;
+
+      fetch('/api/ef58967c/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId: 'SCHW-84102299',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          symbol: 'AAPL',
+          side: 'sell',
+          quantity: 100,
+          orderType: orderType,
+          region: region
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Order Rejected &mdash; Execution Failed</h3>' +
+            '<p>Your order could not be placed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'ORDER_FAILED') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Order Filled</h3>' +
+            '<p>Order <strong>' + result.data.orderId + '</strong> executed.<br>' +
+            result.data.quantity + ' shares of ' + result.data.symbol + ' &middot; total fees $' + result.data.totalFees + '.</p>';
+        }
+        btn.style.display = 'flex';
+        btn.disabled = false;
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the order-execution service.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'flex';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
