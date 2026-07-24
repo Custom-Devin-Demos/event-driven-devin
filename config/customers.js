@@ -367,6 +367,10 @@ const CUSTOMERS = {
     label: 'Humana',
     triggerMode: 'api',
   },
+  ef58967c: {
+    label: 'Charles Schwab',
+    triggerMode: 'api',
+  },
 };
 
 /**

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charles Schwab &mdash; Trade</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f4f6f8;
+      --border: #d5dce3;
+      --border-light: #e4e9ee;
+      --text: #16242f;
+      --text-muted: #5b6b78;
+      --text-dim: #8a99a6;
+      --schwab-blue: #0077c8;
+      --schwab-cyan: #00a0df;
+      --schwab-navy: #003057;
+      --schwab-blue-dim: rgba(0,119,200,0.08);
+      --pos: #1a8a1a;
+      --neg: #c0322b;
+      --green-btn: #4b8f2f;
+      --green-btn-hover: #3f7a28;
+      --danger: #c0322b;
+      --danger-bg: rgba(192,50,43,0.06);
+      --danger-border: rgba(192,50,43,0.2);
+      --success: #1a8a1a;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+    }
+    a { color: var(--schwab-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Top Nav ── */
+    .topbar {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0.55rem 1.5rem;
+      border-bottom: 1px solid var(--border-light);
+      background: #fff;
+    }
+    .logo {
+      display: inline-flex; flex-direction: column; align-items: flex-start;
+      background: linear-gradient(180deg, #eaf5fb 0%, #d6ecf7 100%);
+      border: 1px solid #bfe0f0; border-radius: 3px;
+      padding: 0.25rem 0.5rem; line-height: 1; flex-shrink: 0;
+    }
+    .logo .l1 { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 0.82rem; color: var(--schwab-navy); font-weight: 600; }
+    .logo .l2 { font-size: 0.86rem; font-weight: 800; letter-spacing: 0.06em; color: var(--schwab-navy); }
+    .mainnav { display: flex; align-items: center; gap: 1.4rem; }
+    .mainnav a {
+      color: var(--text); font-size: 0.92rem; font-weight: 600;
+      padding: 0.5rem 0; position: relative;
+    }
+    .mainnav a.active { color: var(--schwab-blue); }
+    .mainnav a.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -0.56rem;
+      height: 3px; background: var(--schwab-blue); border-radius: 2px;
+    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 1.1rem; }
+    .search-box {
+      display: flex; align-items: center; gap: 0.5rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.4rem 0.75rem; width: 240px; color: var(--text-dim); font-size: 0.85rem;
+    }
+    .search-box svg { flex-shrink: 0; }
+    .mail { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+
+    /* ── Sub Nav ── */
+    .subnav {
+      display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+      padding: 0.6rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+    .subnav a { color: var(--text); font-size: 0.8rem; font-weight: 600; }
+    .subnav a:first-child { color: var(--schwab-blue); }
+
+    /* ── Layout ── */
+    .layout { display: flex; align-items: flex-start; min-height: calc(100vh - 200px); }
+    .main {
+      flex: 1; min-width: 0;
+      padding: 1.5rem clamp(1rem, 2.5vw, 2rem);
+      background: var(--bg-alt);
+    }
+    .wl-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.1rem; }
+    .wl-head h1 { font-size: 1.9rem; font-weight: 800; color: var(--schwab-navy); letter-spacing: -0.02em; }
+    .wl-head .asof { font-size: 0.78rem; color: var(--text-dim); }
+
+    .wl-controls { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .wl-select {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      padding: 0.6rem 0.85rem; min-width: 250px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    }
+    .wl-link { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; }
+    .wl-add {
+      display: flex; align-items: center; gap: 0.5rem; margin-left: auto;
+      border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      padding: 0.6rem 0.85rem; width: 260px; color: var(--text-dim); font-size: 0.85rem;
+    }
+
+    .wl-tabs { display: flex; align-items: center; gap: 1.6rem; border-bottom: 1px solid var(--border); margin-bottom: 0.25rem; overflow-x: auto; }
+    .wl-tabs a { color: var(--text); font-size: 0.88rem; font-weight: 600; padding: 0.7rem 0; white-space: nowrap; position: relative; }
+    .wl-tabs a.active { color: var(--schwab-blue); }
+    .wl-tabs a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--schwab-blue); }
+
+    /* ── Quotes Table ── */
+    .quotes { width: 100%; border-collapse: collapse; background: #fff; }
+    .quotes thead th {
+      text-align: right; font-size: 0.72rem; font-weight: 700; color: var(--schwab-blue);
+      text-transform: none; letter-spacing: 0; padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .quotes thead th:first-child { text-align: left; }
+    .quotes tbody td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border-light); text-align: right; font-size: 0.88rem; vertical-align: middle; }
+    .quotes tbody tr { cursor: pointer; transition: background 0.15s; }
+    .quotes tbody tr:hover { background: #f0f7fc; }
+    .quotes tbody tr.selected { background: #e6f3fb; }
+    .sym-cell { text-align: left !important; }
+    .sym-tick { color: var(--schwab-blue); font-weight: 700; font-size: 0.92rem; }
+    .sym-name { color: var(--text-muted); font-size: 0.74rem; }
+    .price { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+    .pos { color: var(--pos); font-variant-numeric: tabular-nums; }
+    .neg { color: var(--neg); font-variant-numeric: tabular-nums; }
+    .ba { color: var(--schwab-blue); font-variant-numeric: tabular-nums; }
+    .range-cell { min-width: 150px; }
+    .range-wrap { display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
+    .range-num { font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .range-bar { position: relative; width: 70px; height: 4px; background: #d7dee5; border-radius: 2px; }
+    .range-bar .dot { position: absolute; top: 50%; width: 7px; height: 7px; background: var(--schwab-navy); border-radius: 50%; transform: translate(-50%, -50%); }
+
+    /* ── SnapTicket ── */
+    .snapticket {
+      width: 320px; flex-shrink: 0; background: #fff;
+      border-left: 1px solid var(--border);
+      align-self: stretch;
+      display: flex; flex-direction: column;
+    }
+    .st-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1rem 0.75rem; border-bottom: 1px solid var(--border-light);
+    }
+    .st-title { font-size: 1.15rem; font-weight: 800; color: var(--schwab-navy); }
+    .st-title sup { font-size: 0.6rem; }
+    .st-header-icons { display: flex; align-items: center; gap: 0.9rem; color: var(--text-dim); }
+    .st-header-icons span { cursor: pointer; font-weight: 700; }
+    .st-tabs { display: flex; align-items: center; gap: 1.4rem; padding: 0 1rem; border-bottom: 1px solid var(--border); }
+    .st-tab { font-size: 0.86rem; font-weight: 600; color: var(--text-muted); padding: 0.65rem 0; cursor: pointer; position: relative; }
+    .st-tab.active { color: var(--schwab-blue); }
+    .st-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--schwab-blue); }
+
+    .st-body { padding: 0.85rem 1rem 1rem; flex: 1; }
+    .st-acct {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--schwab-blue); color: #fff; border-radius: 5px;
+      padding: 0.55rem 0.8rem; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.65rem;
+    }
+    .st-cash { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.85rem; display: flex; justify-content: space-between; }
+    .st-cash strong { color: var(--text); font-weight: 700; }
+
+    .st-symbox {
+      display: flex; align-items: center; gap: 0.5rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.55rem 0.75rem; margin-bottom: 0.6rem; font-weight: 700; font-size: 0.88rem;
+    }
+    .st-symbox svg { color: var(--text-dim); flex-shrink: 0; }
+    .st-symbox .x { margin-left: auto; color: var(--text-dim); cursor: pointer; }
+
+    .st-quote { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.35rem; }
+    .st-quote .q-price { font-size: 1.05rem; font-weight: 700; }
+    .st-quote .q-chg { font-size: 0.82rem; }
+    .st-quote .q-ba { text-align: right; font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .st-quote .q-ba b { color: var(--text); font-weight: 700; }
+    .st-meta { display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.9rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--border-light); }
+
+    .st-field { margin-bottom: 0.8rem; }
+    .st-field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .st-field label .info { color: var(--schwab-blue); font-size: 0.7rem; margin-left: 0.15rem; }
+    .st-field select, .st-field input {
+      width: 100%; padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.88rem; font-family: var(--sans); color: var(--text); background: #fff;
+    }
+    .st-field select:focus, .st-field input:focus { outline: none; border-color: var(--schwab-cyan); box-shadow: 0 0 0 3px rgba(0,160,223,0.15); }
+
+    .stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .stepper button { width: 40px; padding: 0.5rem 0; border: none; background: var(--bg-alt); font-size: 1rem; cursor: pointer; color: var(--text-muted); }
+    .stepper input { border: none; text-align: center; border-radius: 0; box-shadow: none !important; }
+    .stepper input:focus { box-shadow: none !important; border: none; }
+
+    .toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .toggle button {
+      flex: 1; padding: 0.5rem 0; border: none; background: #fff; cursor: pointer;
+      font-size: 0.84rem; font-weight: 600; color: var(--text-muted);
+    }
+    .toggle button.active { background: #dff0fa; color: var(--schwab-navy); box-shadow: inset 0 0 0 1px var(--schwab-cyan); }
+
+    .st-est { display: flex; align-items: baseline; justify-content: space-between; margin: 0.9rem 0 0.15rem; }
+    .st-est .lbl { font-size: 0.82rem; color: var(--text-muted); }
+    .st-est .amt { font-size: 1.05rem; font-weight: 800; color: var(--schwab-navy); }
+    .st-est-note { font-size: 0.68rem; color: var(--text-dim); margin-bottom: 0.9rem; }
+
+    .st-actions { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+    .st-actions a { font-size: 0.84rem; font-weight: 600; }
+    .review-btn {
+      background: var(--green-btn); color: #fff; border: none; border-radius: 5px;
+      padding: 0.6rem 1.35rem; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+      font-family: var(--sans); transition: background 0.2s;
+    }
+    .review-btn:hover { background: var(--green-btn-hover); }
+    .review-btn:disabled { background: #b7c3ca; cursor: not-allowed; }
+
+    .st-processing { display: none; align-items: center; gap: 0.6rem; margin-top: 0.9rem; color: var(--text-muted); font-size: 0.82rem; }
+    .st-processing.visible { display: flex; }
+    .spinner { width: 15px; height: 15px; border: 2px solid var(--border); border-top-color: var(--schwab-cyan); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .st-result { display: none; margin-top: 0.9rem; padding: 0.85rem 0.95rem; border-radius: 8px; font-size: 0.82rem; }
+    .st-result.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .st-result.success { display: block; background: rgba(26,138,26,0.07); border: 1px solid rgba(26,138,26,0.25); }
+    .st-result h4 { font-size: 0.85rem; margin-bottom: 0.35rem; }
+    .st-result.error h4 { color: var(--danger); }
+    .st-result.success h4 { color: var(--success); }
+    .st-result p { color: var(--text-muted); line-height: 1.5; }
+    .st-result code { font-family: var(--mono); font-size: 0.74rem; color: var(--danger); background: var(--danger-bg); padding: 0.1rem 0.3rem; border-radius: 3px; }
+    .st-result .meta { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--danger-border); font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .st-result .meta span { display: block; }
+
+    /* ── Bug hint / footer ── */
+    .bug-hint {
+      margin: 1.5rem; padding: 0.9rem 1.15rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 8px; font-size: 0.8rem; color: #7a2f2a; line-height: 1.55;
+    }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code { font-family: var(--mono); font-size: 0.74rem; background: rgba(192,50,43,0.1); padding: 0.05rem 0.3rem; border-radius: 3px; }
+    footer { border-top: 1px solid var(--border); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    footer .fb { font-size: 0.78rem; color: var(--text-muted); }
+    footer .fd { font-size: 0.74rem; color: var(--text-dim); }
+
+    @media (max-width: 980px) {
+      .layout { flex-direction: column; }
+      .snapticket { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+      .topbar-right .search-box { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="logo"><span class="l1">charles</span><span class="l2">SCHWAB</span></div>
+    <div class="mainnav">
+      <a href="#">Accounts</a>
+      <a href="#" class="active">Trade</a>
+      <a href="#">Research</a>
+      <a href="#">Move Money</a>
+      <a href="#">Products</a>
+      <a href="#">Learn</a>
+      <a href="#">How To</a>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+      </div>
+      <span class="mail">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+        Messages
+      </span>
+    </div>
+  </div>
+
+  <div class="subnav">
+    <a href="#">All-In-One Trade Ticket</a>
+    <a href="#">Stocks &amp; ETFs</a>
+    <a href="#">Options</a>
+    <a href="#">Mutual Funds</a>
+    <a href="#">Schwab Stock Slices&trade;</a>
+    <a href="#">Schwab Investing Themes&trade;</a>
+    <a href="#">Order Status</a>
+    <a href="#">Bonds</a>
+    <a href="#">CDs</a>
+    <a href="#">Futures</a>
+  </div>
+
+  <div class="layout">
+    <main class="main">
+      <div class="wl-head">
+        <h1>Watchlist</h1>
+        <div class="asof">As of 02:49:52 PM ET, 07/24/2026 <a href="/">&larr; All Demos</a></div>
+      </div>
+
+      <div class="wl-controls">
+        <div class="wl-select">My Tech &amp; Index Holdings
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <a href="#" class="wl-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Watchlist
+        </a>
+        <a href="#" class="wl-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Edit Watchlist
+        </a>
+        <div class="wl-add">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Add Symbol
+        </div>
+      </div>
+
+      <div class="wl-tabs">
+        <a href="#" class="active">Quotes</a>
+        <a href="#">Earnings</a>
+        <a href="#">Ratings</a>
+        <a href="#">Valuations</a>
+        <a href="#">Profitability</a>
+        <a href="#">News</a>
+        <a href="#">Gain/Loss</a>
+        <a href="#">Custom View</a>
+      </div>
+
+      <table class="quotes">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Last Price</th>
+            <th>Change $</th>
+            <th>Change %</th>
+            <th>Bid</th>
+            <th>Ask</th>
+            <th>Day's Range</th>
+            <th>52 Week Range</th>
+          </tr>
+        </thead>
+        <tbody id="quotesBody"></tbody>
+      </table>
+    </main>
+
+    <aside class="snapticket">
+      <div class="st-header">
+        <div class="st-title">SnapTicket<sup>&reg;</sup></div>
+        <div class="st-header-icons"><span>&hellip;</span><span>&times;</span></div>
+      </div>
+      <div class="st-tabs">
+        <div class="st-tab active">Stock/ETF</div>
+        <div class="st-tab">Options</div>
+        <div class="st-tab">Mutual Funds</div>
+      </div>
+      <div class="st-body">
+        <div class="st-acct">
+          <span>Individual &nbsp;&hellip;781</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="st-cash"><span>Available cash &amp; cash investments</span><strong>$304,570.00</strong></div>
+
+        <div class="st-symbox">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span id="stSym">AAPL - APPLE INC</span>
+          <span class="x">&times;</span>
+        </div>
+
+        <div class="st-quote">
+          <div>
+            <div class="q-price" id="stPrice">$227.52</div>
+            <div class="q-chg pos" id="stChg">+2.14 (+0.95%)</div>
+          </div>
+          <div class="q-ba">Bid <b id="stBid">227.48</b><br>Ask <b id="stAsk">227.55</b></div>
+        </div>
+        <div class="st-meta"><a href="#">More details</a><span>02:49:40 PM ET, 07/24/2026</span></div>
+
+        <form id="orderForm" onsubmit="submitOrder(event)">
+          <div class="st-field">
+            <label>Action <span class="info">&#9432;</span></label>
+            <select id="actionSelect">
+              <option value="sell" selected>Sell</option>
+              <option value="buy">Buy</option>
+              <option value="sell_short">Sell Short</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>Quantity <span class="info">&#9432;</span></label>
+            <input type="number" id="qtyInput" value="100" min="1">
+          </div>
+          <div class="st-field">
+            <label>Order type <span class="info">&#9432;</span></label>
+            <select id="orderTypeSelect">
+              <option value="market" selected>Market</option>
+              <option value="limit">Limit</option>
+              <option value="stop">Stop</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>Timing <span class="info">&#9432;</span></label>
+            <div class="toggle">
+              <button type="button" class="active" id="timDay" onclick="setTiming('day')">Day</button>
+              <button type="button" id="timGtc" onclick="setTiming('gtc')">GTC</button>
+            </div>
+          </div>
+
+          <div class="st-est"><span class="lbl">Estimated amount <span class="info">&#9432;</span></span><span class="amt" id="estAmount">$22,752.00</span></div>
+          <div class="st-est-note">Based on last price (does not include commission or fees)</div>
+
+          <div class="st-actions">
+            <a href="#">Full page ticket</a>
+            <a href="#" onclick="clearTicket(event)">Clear</a>
+            <button type="submit" class="review-btn" id="reviewBtn">Review</button>
+          </div>
+        </form>
+
+        <div class="st-processing" id="stProcessing"><div class="spinner"></div><span>Routing &amp; reviewing order&hellip;</span></div>
+        <div class="st-result" id="stResult"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bug-hint">
+    <strong>&#x1F41E; Demo bug:</strong> The order-execution pipeline force-assesses a mandatory regulatory fee
+    (<code>FEE-SEC-31-2026</code>) on every equity/ETF <em>sell</em> order, but that fee code isn&rsquo;t
+    registered in the fee schedule. When the settlement builder resolves the fee&rsquo;s rate, it crashes with a
+    <code>TypeError</code> &mdash; blocking order review. Click <strong>Review</strong> (with Action = Sell) to
+    surface it and trigger the Sentry &rarr; Slack &rarr; Devin investigation pipeline.
+  </div>
+
+  <footer>
+    <div class="fb">Charles Schwab &amp; Co., Inc. &copy; 2026 &middot; Member SIPC</div>
+    <div class="fd">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var WATCHLIST = [
+      { sym: 'AAPL', name: 'APPLE INC', last: 227.52, chg: 2.14, pct: 0.95, bid: 227.48, ask: 227.55, dl: 224.90, dh: 228.71, yl: 164.08, yh: 237.49 },
+      { sym: 'NVDA', name: 'NVIDIA CORP', last: 178.36, chg: 3.02, pct: 1.72, bid: 178.30, ask: 178.41, dl: 174.10, dh: 179.44, yl: 86.62, yh: 184.48 },
+      { sym: 'MSFT', name: 'MICROSOFT CORP', last: 431.20, chg: -1.85, pct: -0.43, bid: 431.10, ask: 431.28, dl: 428.55, dh: 435.02, yl: 366.50, yh: 468.35 },
+      { sym: 'AMZN', name: 'AMAZON.COM INC', last: 201.45, chg: 1.12, pct: 0.56, bid: 201.40, ask: 201.49, dl: 198.80, dh: 202.66, yl: 151.61, yh: 215.90 },
+      { sym: 'GOOGL', name: 'ALPHABET INC CL A', last: 176.30, chg: -0.42, pct: -0.24, bid: 176.25, ask: 176.34, dl: 175.02, dh: 178.11, yl: 130.67, yh: 191.75 },
+      { sym: 'SCHB', name: 'SCHWAB US BROAD MARKET ETF', last: 24.18, chg: 0.09, pct: 0.37, bid: 24.17, ask: 24.19, dl: 24.02, dh: 24.25, yl: 19.44, yh: 24.48 },
+      { sym: 'SWPPX', name: 'SCHWAB S&P 500 INDEX FUND', last: 92.74, chg: 0.31, pct: 0.34, bid: 92.72, ask: 92.76, dl: 92.31, dh: 92.90, yl: 74.10, yh: 93.15 },
+      { sym: 'VTI', name: 'VANGUARD TOTAL STK MKT ETF', last: 289.60, chg: 0.74, pct: 0.26, bid: 289.55, ask: 289.66, dl: 287.90, dh: 290.48, yl: 232.90, yh: 292.11 }
+    ];
+
+    var selected = WATCHLIST[0];
+    var timing = 'day';
+
+    function fmt(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function rangeBar(low, high, val) {
+      var pct = Math.max(0, Math.min(100, ((val - low) / (high - low)) * 100));
+      return '<div class="range-wrap"><span class="range-num">' + fmt(low) + '</span>' +
+        '<div class="range-bar"><div class="dot" style="left:' + pct + '%"></div></div>' +
+        '<span class="range-num">' + fmt(high) + '</span></div>';
+    }
+
+    function renderTable() {
+      var html = '';
+      WATCHLIST.forEach(function (s, i) {
+        var cls = s.chg >= 0 ? 'pos' : 'neg';
+        var sign = s.chg >= 0 ? '+' : '';
+        html += '<tr data-i="' + i + '" onclick="selectRow(' + i + ')"' + (s.sym === selected.sym ? ' class="selected"' : '') + '>' +
+          '<td class="sym-cell"><div class="sym-tick">' + s.sym + '</div><div class="sym-name">' + s.name + '</div></td>' +
+          '<td class="price">' + fmt(s.last) + '</td>' +
+          '<td class="' + cls + '">' + sign + fmt(s.chg) + '</td>' +
+          '<td class="' + cls + '">' + sign + s.pct.toFixed(2) + '%</td>' +
+          '<td class="ba">' + fmt(s.bid) + '</td>' +
+          '<td class="ba">' + fmt(s.ask) + '</td>' +
+          '<td class="range-cell">' + rangeBar(s.dl, s.dh, s.last) + '</td>' +
+          '<td class="range-cell">' + rangeBar(s.yl, s.yh, s.last) + '</td>' +
+          '</tr>';
+      });
+      document.getElementById('quotesBody').innerHTML = html;
+    }
+
+    function updateTicket() {
+      var s = selected;
+      document.getElementById('stSym').textContent = s.sym + ' - ' + s.name;
+      document.getElementById('stPrice').textContent = '$' + fmt(s.last);
+      var chgEl = document.getElementById('stChg');
+      var sign = s.chg >= 0 ? '+' : '';
+      chgEl.textContent = sign + fmt(s.chg) + ' (' + sign + s.pct.toFixed(2) + '%)';
+      chgEl.className = 'q-chg ' + (s.chg >= 0 ? 'pos' : 'neg');
+      document.getElementById('stBid').textContent = fmt(s.bid);
+      document.getElementById('stAsk').textContent = fmt(s.ask);
+      updateEstimate();
+    }
+
+    function updateEstimate() {
+      var qty = parseFloat(document.getElementById('qtyInput').value) || 0;
+      document.getElementById('estAmount').textContent = '$' + fmt(qty * selected.last);
+    }
+
+    function selectRow(i) {
+      selected = WATCHLIST[i];
+      renderTable();
+      updateTicket();
+      var r = document.getElementById('stResult');
+      r.className = 'st-result'; r.innerHTML = '';
+    }
+
+    function setTiming(t) {
+      timing = t;
+      document.getElementById('timDay').classList.toggle('active', t === 'day');
+      document.getElementById('timGtc').classList.toggle('active', t === 'gtc');
+    }
+
+    function clearTicket(e) {
+      e.preventDefault();
+      var r = document.getElementById('stResult');
+      r.className = 'st-result'; r.innerHTML = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderTable();
+      updateTicket();
+      document.getElementById('qtyInput').addEventListener('input', updateEstimate);
+    });
+
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('reviewBtn');
+      var processing = document.getElementById('stProcessing');
+      var result = document.getElementById('stResult');
+      result.className = 'st-result'; result.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+
+      var side = document.getElementById('actionSelect').value === 'buy' ? 'buy' : 'sell';
+      var qty = parseInt(document.getElementById('qtyInput').value, 10) || 100;
+      var orderType = document.getElementById('orderTypeSelect').value;
+
+      fetch('/api/ef58967c/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId: 'SCHW-84102299',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          symbol: selected.sym,
+          side: side,
+          quantity: qty,
+          orderType: orderType,
+          region: 'US'
+        })
+      })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (r) {
+        processing.classList.remove('visible');
+        if (!r.ok || !r.data.success) {
+          result.className = 'st-result error';
+          result.innerHTML =
+            '<h4>Order Rejected &mdash; Review Failed</h4>' +
+            '<p>This order could not be reviewed.<br><code>' + (r.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="meta">' +
+            '<span>Error: ' + (r.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (r.data.code || 'ORDER_FAILED') + '</span>' +
+            '<span>Request: ' + (r.data.requestId || 'N/A') + '</span>' +
+            '</div>';
+        } else {
+          result.className = 'st-result success';
+          result.innerHTML =
+            '<h4>Order Ready to Submit</h4>' +
+            '<p>' + r.data.side.toUpperCase() + ' ' + r.data.quantity + ' ' + r.data.symbol +
+            ' &middot; est. fees $' + r.data.totalFees + '.<br>Order ' + r.data.orderId + '.</p>';
+        }
+        btn.disabled = false;
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        result.className = 'st-result error';
+        result.innerHTML = '<h4>Network Error</h4><p><code>' + err.message + '</code></p>';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
