@@ -371,6 +371,10 @@ const CUSTOMERS = {
     label: 'Charles Schwab',
     triggerMode: 'api',
   },
+  f26260e1: {
+    label: 'Customer F262',
+    triggerMode: 'api',
+  },
 };
 
 /**
