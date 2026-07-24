@@ -3,445 +3,438 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Charles Schwab &mdash; Trade &amp; Invest</title>
+  <title>Charles Schwab &mdash; Trade</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f5f7f9;
-      --bg-card: #ffffff;
-      --bg-elevated: #eef2f6;
-      --surface: #e5ebf1;
-      --border: #d9e1e9;
-      --border-light: #c6d2de;
-      --text: #0b1f33;
-      --text-muted: #55677a;
-      --text-dim: #8a9bad;
-      --schwab-blue: #009ddc;
-      --schwab-blue-hover: #007fb5;
+      --bg: #ffffff;
+      --bg-alt: #f4f6f8;
+      --border: #d5dce3;
+      --border-light: #e4e9ee;
+      --text: #16242f;
+      --text-muted: #5b6b78;
+      --text-dim: #8a99a6;
+      --schwab-blue: #0077c8;
+      --schwab-cyan: #00a0df;
       --schwab-navy: #003057;
-      --schwab-blue-dim: rgba(0,157,220,0.09);
-      --schwab-blue-border: rgba(0,157,220,0.26);
+      --schwab-blue-dim: rgba(0,119,200,0.08);
+      --pos: #1a8a1a;
+      --neg: #c0322b;
+      --green-btn: #4b8f2f;
+      --green-btn-hover: #3f7a28;
       --danger: #c0322b;
       --danger-bg: rgba(192,50,43,0.06);
-      --danger-border: rgba(192,50,43,0.16);
-      --success: #1f8a53;
-      --buy: #1f8a53;
-      --sell: #c0322b;
-      --amber: #b26a00;
-      --amber-bg: rgba(178,106,0,0.08);
+      --danger-border: rgba(192,50,43,0.2);
+      --success: #1a8a1a;
       --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --mono: 'JetBrains Mono', monospace;
-      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--sans);
       background: var(--bg);
       color: var(--text);
-      line-height: 1.55;
-      overflow-x: hidden;
+      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      font-size: 14px;
     }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
-    .delay-4 { animation-delay: 0.4s; }
-    .delay-5 { animation-delay: 0.5s; }
+    a { color: var(--schwab-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
 
-    /* ── Security Banner ── */
-    .security-banner {
-      background: var(--schwab-navy);
-      color: #e6f2fa;
-      text-align: center;
-      padding: 0.55rem 1rem;
-      font-size: 0.76rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-    }
-    .security-banner svg { flex-shrink: 0; }
-
-    /* ── Header ── */
-    header {
-      position: sticky; top: 0; z-index: 100;
+    /* ── Top Nav ── */
+    .topbar {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0.55rem 1.5rem;
+      border-bottom: 1px solid var(--border-light);
       background: #fff;
-      border-bottom: 1px solid var(--border);
-      padding: 0 clamp(1.5rem, 4vw, 3rem);
-      height: 66px;
-      display: flex; align-items: center; justify-content: space-between;
     }
-    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
-    .logo-mark {
-      width: 34px; height: 34px; border-radius: 8px;
-      background: linear-gradient(135deg, var(--schwab-blue), var(--schwab-navy));
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-weight: 800; font-size: 1.05rem;
+    .logo {
+      display: inline-flex; flex-direction: column; align-items: flex-start;
+      background: linear-gradient(180deg, #eaf5fb 0%, #d6ecf7 100%);
+      border: 1px solid #bfe0f0; border-radius: 3px;
+      padding: 0.25rem 0.5rem; line-height: 1; flex-shrink: 0;
     }
-    .logo-text { font-weight: 800; font-size: 1.12rem; letter-spacing: -0.02em; color: var(--schwab-navy); text-transform: uppercase; }
-    .logo-text span { color: var(--schwab-blue); }
-    nav { display: flex; align-items: center; gap: 1.6rem; }
-    nav a {
-      color: var(--text); text-decoration: none; font-size: 0.82rem;
-      font-weight: 600; letter-spacing: 0.01em;
-      transition: color 0.2s;
+    .logo .l1 { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 0.82rem; color: var(--schwab-navy); font-weight: 600; }
+    .logo .l2 { font-size: 0.86rem; font-weight: 800; letter-spacing: 0.06em; color: var(--schwab-navy); }
+    .mainnav { display: flex; align-items: center; gap: 1.4rem; }
+    .mainnav a {
+      color: var(--text); font-size: 0.92rem; font-weight: 600;
+      padding: 0.5rem 0; position: relative;
     }
-    nav a:hover { color: var(--schwab-blue); }
-    .nav-right { display: flex; align-items: center; gap: 1rem; }
-    .member-chip {
+    .mainnav a.active { color: var(--schwab-blue); }
+    .mainnav a.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -0.56rem;
+      height: 3px; background: var(--schwab-blue); border-radius: 2px;
+    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 1.1rem; }
+    .search-box {
       display: flex; align-items: center; gap: 0.5rem;
-      background: var(--bg-elevated); border: 1px solid var(--border);
-      border-radius: 999px; padding: 0.3rem 0.75rem 0.3rem 0.35rem;
-      font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.4rem 0.75rem; width: 240px; color: var(--text-dim); font-size: 0.85rem;
     }
-    .member-avatar {
-      width: 26px; height: 26px; border-radius: 50%;
-      background: var(--schwab-blue); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.7rem; font-weight: 700;
-    }
+    .search-box svg { flex-shrink: 0; }
+    .mail { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
 
-    /* ── Page ── */
-    .page {
-      max-width: 880px; margin: 0 auto;
-      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
-    }
-    .back-link {
-      display: inline-flex; align-items: center; gap: 0.3rem;
-      color: var(--schwab-blue); text-decoration: none; font-size: 0.8rem;
-      font-weight: 600; letter-spacing: 0.02em; margin-bottom: 1.75rem;
-      transition: color 0.2s;
-    }
-    .back-link:hover { color: var(--schwab-blue-hover); }
-
-    .page-eyebrow {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.12em; color: var(--schwab-blue);
-      background: var(--schwab-blue-dim); border: 1px solid var(--schwab-blue-border);
-      padding: 0.3rem 0.7rem; border-radius: 999px; margin-bottom: 1rem;
-    }
-    .page-title {
-      font-size: clamp(1.7rem, 4vw, 2.3rem);
-      font-weight: 800; line-height: 1.15; margin-bottom: 0.5rem;
-      letter-spacing: -0.025em; color: var(--schwab-navy);
-    }
-    .page-desc {
-      font-size: 0.94rem; color: var(--text-muted); max-width: 560px;
-      line-height: 1.7; margin-bottom: 2.5rem;
-    }
-
-    /* ── Order Card ── */
-    .order-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 14px; overflow: hidden;
-      box-shadow: 0 1px 3px rgba(11,31,51,0.05);
-    }
-    .order-header {
-      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .order-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
-    .order-header .order-tag {
-      font-size: 0.7rem; font-weight: 700; color: var(--schwab-blue);
-      letter-spacing: 0.06em; text-transform: uppercase;
-      background: var(--schwab-blue-dim); padding: 0.2rem 0.55rem; border-radius: 4px;
-    }
-    .ticket-body { padding: 0; }
-    .ticket-row {
-      display: flex; align-items: center; gap: 1rem;
-      padding: 1rem 1.5rem;
+    /* ── Sub Nav ── */
+    .subnav {
+      display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+      padding: 0.6rem 1.5rem;
       border-bottom: 1px solid var(--border);
+      background: #fff;
     }
-    .ticket-row:last-child { border-bottom: none; }
-    .sym-badge {
-      width: 52px; height: 52px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      border-radius: 10px; flex-shrink: 0;
-      background: var(--schwab-navy); color: #fff;
-      font-weight: 800; font-size: 0.82rem; letter-spacing: 0.02em;
-    }
-    .sym-details { flex: 1; }
-    .sym-name { font-weight: 600; font-size: 0.92rem; margin-bottom: 0.15rem; }
-    .sym-meta { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); }
-    .side-pill {
-      display: inline-block; font-size: 0.68rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      padding: 0.24rem 0.6rem; border-radius: 5px;
-    }
-    .side-pill.sell { background: var(--danger-bg); color: var(--sell); }
-    .side-pill.buy { background: rgba(31,138,83,0.08); color: var(--buy); }
-    .ticket-price { text-align: right; }
-    .ticket-price .amt { font-weight: 700; font-size: 0.95rem; }
-    .ticket-price .lbl { font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+    .subnav a { color: var(--text); font-size: 0.8rem; font-weight: 600; }
+    .subnav a:first-child { color: var(--schwab-blue); }
 
-    .order-totals {
-      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
-      border-top: 1px solid var(--border);
+    /* ── Layout ── */
+    .layout { display: flex; align-items: flex-start; min-height: calc(100vh - 200px); }
+    .main {
+      flex: 1; min-width: 0;
+      padding: 1.5rem clamp(1rem, 2.5vw, 2rem);
+      background: var(--bg-alt);
     }
-    .total-line {
-      display: flex; justify-content: space-between;
-      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    .wl-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.1rem; }
+    .wl-head h1 { font-size: 1.9rem; font-weight: 800; color: var(--schwab-navy); letter-spacing: -0.02em; }
+    .wl-head .asof { font-size: 0.78rem; color: var(--text-dim); }
+
+    .wl-controls { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .wl-select {
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      padding: 0.6rem 0.85rem; min-width: 250px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
     }
-    .total-line.grand {
-      font-weight: 700; color: var(--text); font-size: 0.95rem;
-      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
-    }
-    .audit-badge {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      background: var(--schwab-blue-dim); color: var(--schwab-blue);
-      font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.65rem;
-      border-radius: 6px; margin-top: 0.65rem;
+    .wl-link { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.85rem; }
+    .wl-add {
+      display: flex; align-items: center; gap: 0.5rem; margin-left: auto;
+      border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      padding: 0.6rem 0.85rem; width: 260px; color: var(--text-dim); font-size: 0.85rem;
     }
 
-    /* ── Action Form ── */
-    .action-section {
-      margin-top: 1.5rem;
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 14px; padding: 1.5rem;
-      box-shadow: 0 1px 3px rgba(11,31,51,0.05);
-    }
-    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
-    .action-section .sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.15rem; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-    .form-group { margin-bottom: 0; }
-    .form-group label {
-      display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-dim);
-      margin-bottom: 0.4rem; letter-spacing: 0.06em; text-transform: uppercase;
-    }
-    .form-group select, .form-group input {
-      width: 100%; padding: 0.7rem 0.9rem;
-      border: 1px solid var(--border-light); border-radius: 8px;
-      font-size: 0.88rem; font-family: var(--sans);
-      color: var(--text); background: #fff;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    .form-group select:focus, .form-group input:focus {
-      outline: none; border-color: var(--schwab-blue);
-      box-shadow: 0 0 0 3px var(--schwab-blue-dim);
-    }
+    .wl-tabs { display: flex; align-items: center; gap: 1.6rem; border-bottom: 1px solid var(--border); margin-bottom: 0.25rem; overflow-x: auto; }
+    .wl-tabs a { color: var(--text); font-size: 0.88rem; font-weight: 600; padding: 0.7rem 0; white-space: nowrap; position: relative; }
+    .wl-tabs a.active { color: var(--schwab-blue); }
+    .wl-tabs a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--schwab-blue); }
 
-    .request-btn {
-      width: 100%; padding: 1rem; margin-top: 0.5rem;
-      background: var(--schwab-blue); color: #fff;
-      border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700;
-      font-family: var(--sans); letter-spacing: 0.06em;
-      cursor: pointer; transition: background 0.3s, transform 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    /* ── Quotes Table ── */
+    .quotes { width: 100%; border-collapse: collapse; background: #fff; }
+    .quotes thead th {
+      text-align: right; font-size: 0.72rem; font-weight: 700; color: var(--schwab-blue);
+      text-transform: none; letter-spacing: 0; padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
-    .request-btn:hover { background: var(--schwab-blue-hover); transform: translateY(-1px); }
-    .request-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+    .quotes thead th:first-child { text-align: left; }
+    .quotes tbody td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border-light); text-align: right; font-size: 0.88rem; vertical-align: middle; }
+    .quotes tbody tr { cursor: pointer; transition: background 0.15s; }
+    .quotes tbody tr:hover { background: #f0f7fc; }
+    .quotes tbody tr.selected { background: #e6f3fb; }
+    .sym-cell { text-align: left !important; }
+    .sym-tick { color: var(--schwab-blue); font-weight: 700; font-size: 0.92rem; }
+    .sym-name { color: var(--text-muted); font-size: 0.74rem; }
+    .price { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+    .pos { color: var(--pos); font-variant-numeric: tabular-nums; }
+    .neg { color: var(--neg); font-variant-numeric: tabular-nums; }
+    .ba { color: var(--schwab-blue); font-variant-numeric: tabular-nums; }
+    .range-cell { min-width: 150px; }
+    .range-wrap { display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
+    .range-num { font-size: 0.74rem; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .range-bar { position: relative; width: 70px; height: 4px; background: #d7dee5; border-radius: 2px; }
+    .range-bar .dot { position: absolute; top: 50%; width: 7px; height: 7px; background: var(--schwab-navy); border-radius: 50%; transform: translate(-50%, -50%); }
 
-    .processing {
-      display: none; align-items: center; justify-content: center;
-      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    /* ── SnapTicket ── */
+    .snapticket {
+      width: 320px; flex-shrink: 0; background: #fff;
+      border-left: 1px solid var(--border);
+      align-self: stretch;
+      display: flex; flex-direction: column;
     }
-    .processing.visible { display: flex; }
-    .spinner {
-      width: 18px; height: 18px; border: 2px solid var(--border-light);
-      border-top-color: var(--schwab-blue); border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+    .st-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1rem 0.75rem; border-bottom: 1px solid var(--border-light);
     }
+    .st-title { font-size: 1.15rem; font-weight: 800; color: var(--schwab-navy); }
+    .st-title sup { font-size: 0.6rem; }
+    .st-header-icons { display: flex; align-items: center; gap: 0.9rem; color: var(--text-dim); }
+    .st-header-icons span { cursor: pointer; font-weight: 700; }
+    .st-tabs { display: flex; align-items: center; gap: 1.4rem; padding: 0 1rem; border-bottom: 1px solid var(--border); }
+    .st-tab { font-size: 0.86rem; font-weight: 600; color: var(--text-muted); padding: 0.65rem 0; cursor: pointer; position: relative; }
+    .st-tab.active { color: var(--schwab-blue); }
+    .st-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--schwab-blue); }
+
+    .st-body { padding: 0.85rem 1rem 1rem; flex: 1; }
+    .st-acct {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--schwab-blue); color: #fff; border-radius: 5px;
+      padding: 0.55rem 0.8rem; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.65rem;
+    }
+    .st-cash { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.85rem; display: flex; justify-content: space-between; }
+    .st-cash strong { color: var(--text); font-weight: 700; }
+
+    .st-symbox {
+      display: flex; align-items: center; gap: 0.5rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.55rem 0.75rem; margin-bottom: 0.6rem; font-weight: 700; font-size: 0.88rem;
+    }
+    .st-symbox svg { color: var(--text-dim); flex-shrink: 0; }
+    .st-symbox .x { margin-left: auto; color: var(--text-dim); cursor: pointer; }
+
+    .st-quote { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.35rem; }
+    .st-quote .q-price { font-size: 1.05rem; font-weight: 700; }
+    .st-quote .q-chg { font-size: 0.82rem; }
+    .st-quote .q-ba { text-align: right; font-size: 0.76rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .st-quote .q-ba b { color: var(--text); font-weight: 700; }
+    .st-meta { display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.9rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--border-light); }
+
+    .st-field { margin-bottom: 0.8rem; }
+    .st-field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .st-field label .info { color: var(--schwab-blue); font-size: 0.7rem; margin-left: 0.15rem; }
+    .st-field select, .st-field input {
+      width: 100%; padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.88rem; font-family: var(--sans); color: var(--text); background: #fff;
+    }
+    .st-field select:focus, .st-field input:focus { outline: none; border-color: var(--schwab-cyan); box-shadow: 0 0 0 3px rgba(0,160,223,0.15); }
+
+    .stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .stepper button { width: 40px; padding: 0.5rem 0; border: none; background: var(--bg-alt); font-size: 1rem; cursor: pointer; color: var(--text-muted); }
+    .stepper input { border: none; text-align: center; border-radius: 0; box-shadow: none !important; }
+    .stepper input:focus { box-shadow: none !important; border: none; }
+
+    .toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .toggle button {
+      flex: 1; padding: 0.5rem 0; border: none; background: #fff; cursor: pointer;
+      font-size: 0.84rem; font-weight: 600; color: var(--text-muted);
+    }
+    .toggle button.active { background: #dff0fa; color: var(--schwab-navy); box-shadow: inset 0 0 0 1px var(--schwab-cyan); }
+
+    .st-est { display: flex; align-items: baseline; justify-content: space-between; margin: 0.9rem 0 0.15rem; }
+    .st-est .lbl { font-size: 0.82rem; color: var(--text-muted); }
+    .st-est .amt { font-size: 1.05rem; font-weight: 800; color: var(--schwab-navy); }
+    .st-est-note { font-size: 0.68rem; color: var(--text-dim); margin-bottom: 0.9rem; }
+
+    .st-actions { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; }
+    .st-actions a { font-size: 0.84rem; font-weight: 600; }
+    .review-btn {
+      background: var(--green-btn); color: #fff; border: none; border-radius: 5px;
+      padding: 0.6rem 1.35rem; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+      font-family: var(--sans); transition: background 0.2s;
+    }
+    .review-btn:hover { background: var(--green-btn-hover); }
+    .review-btn:disabled { background: #b7c3ca; cursor: not-allowed; }
+
+    .st-processing { display: none; align-items: center; gap: 0.6rem; margin-top: 0.9rem; color: var(--text-muted); font-size: 0.82rem; }
+    .st-processing.visible { display: flex; }
+    .spinner { width: 15px; height: 15px; border: 2px solid var(--border); border-top-color: var(--schwab-cyan); border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .result-box {
-      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
-      font-size: 0.85rem; display: none;
-      animation: fadeUp 0.4s var(--ease-out);
-    }
-    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
-    .result-box.success { display: block; background: rgba(31,138,83,0.06); border: 1px solid rgba(31,138,83,0.2); }
-    .result-box h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .result-box.error h3 { color: var(--danger); }
-    .result-box.success h3 { color: var(--success); }
-    .result-box p { color: var(--text-muted); line-height: 1.6; }
-    .result-box code {
-      background: var(--danger-bg); padding: 0.15rem 0.4rem;
-      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
-    }
-    .error-meta {
-      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
-      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
-    }
-    .error-meta span { display: block; margin-bottom: 0.15rem; }
+    .st-result { display: none; margin-top: 0.9rem; padding: 0.85rem 0.95rem; border-radius: 8px; font-size: 0.82rem; }
+    .st-result.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .st-result.success { display: block; background: rgba(26,138,26,0.07); border: 1px solid rgba(26,138,26,0.25); }
+    .st-result h4 { font-size: 0.85rem; margin-bottom: 0.35rem; }
+    .st-result.error h4 { color: var(--danger); }
+    .st-result.success h4 { color: var(--success); }
+    .st-result p { color: var(--text-muted); line-height: 1.5; }
+    .st-result code { font-family: var(--mono); font-size: 0.74rem; color: var(--danger); background: var(--danger-bg); padding: 0.1rem 0.3rem; border-radius: 3px; }
+    .st-result .meta { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--danger-border); font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .st-result .meta span { display: block; }
 
-    /* ── Bug Hint ── */
+    /* ── Bug hint / footer ── */
     .bug-hint {
-      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      margin: 1.5rem; padding: 0.9rem 1.15rem;
       background: var(--danger-bg); border: 1px solid var(--danger-border);
-      border-radius: 10px; font-size: 0.8rem; color: #7a2f2a; line-height: 1.6;
+      border-radius: 8px; font-size: 0.8rem; color: #7a2f2a; line-height: 1.55;
     }
     .bug-hint strong { color: var(--danger); }
+    .bug-hint code { font-family: var(--mono); font-size: 0.74rem; background: rgba(192,50,43,0.1); padding: 0.05rem 0.3rem; border-radius: 3px; }
+    footer { border-top: 1px solid var(--border); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    footer .fb { font-size: 0.78rem; color: var(--text-muted); }
+    footer .fd { font-size: 0.74rem; color: var(--text-dim); }
 
-    /* ── Footer ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
-    }
-    .footer-inner {
-      max-width: 880px; margin: 0 auto; display: flex;
-      align-items: center; justify-content: space-between;
-    }
-    .footer-brand { font-size: 0.82rem; font-weight: 700; color: var(--schwab-navy); letter-spacing: 0.01em; }
-    .footer-compliance { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem; }
-    .footer-links { display: flex; gap: 1.5rem; }
-    .footer-links a {
-      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
-      letter-spacing: 0.02em; transition: color 0.2s;
-    }
-    .footer-links a:hover { color: var(--text-muted); }
-    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim); }
-    .footer-devin a { color: var(--schwab-blue); text-decoration: none; }
-    .footer-devin a:hover { text-decoration: underline; }
-
-    @media (max-width: 640px) {
-      .form-row { grid-template-columns: 1fr; }
-      nav { display: none; }
-      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
-      .security-banner { font-size: 0.7rem; }
+    @media (max-width: 980px) {
+      .layout { flex-direction: column; }
+      .snapticket { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+      .topbar-right .search-box { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <div class="security-banner">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    Brokerage products are not FDIC-insured &middot; every order is best-execution routed and audit-logged
-  </div>
-
-  <header>
-    <div class="logo-wrap">
-      <div class="logo-mark">S</div>
-      <div class="logo-text">charles<span>&nbsp;schwab</span></div>
-    </div>
-    <nav>
+  <div class="topbar">
+    <div class="logo"><span class="l1">charles</span><span class="l2">SCHWAB</span></div>
+    <div class="mainnav">
       <a href="#">Accounts</a>
-      <a href="#">Trade</a>
+      <a href="#" class="active">Trade</a>
       <a href="#">Research</a>
       <a href="#">Move Money</a>
-    </nav>
-    <div class="nav-right">
-      <div class="member-chip">
-        <div class="member-avatar">MC</div>
-        Morgan Cole
-      </div>
+      <a href="#">Products</a>
+      <a href="#">Learn</a>
+      <a href="#">How To</a>
     </div>
-  </header>
-
-  <div class="page">
-    <a href="/" class="back-link animate-up">&larr; All Demos</a>
-
-    <div class="page-eyebrow animate-up delay-1">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-      Trade Order Ticket
-    </div>
-    <h1 class="page-title animate-up delay-1">Review &amp; Place Your Trade</h1>
-    <p class="page-desc animate-up delay-2">
-      You&rsquo;re about to place a sell order in your Schwab One&reg; brokerage account.
-      Click <strong>Place Order</strong> to run the order-execution pipeline and watch the
-      fee-schedule bug surface in real time.
-    </p>
-
-    <div class="order-card animate-up delay-3">
-      <div class="order-header">
-        <h2>Order preview</h2>
-        <span class="order-tag">Market order</span>
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
       </div>
-      <div class="ticket-body">
-        <div class="ticket-row">
-          <div class="sym-badge">AAPL</div>
-          <div class="sym-details">
-            <div class="sym-name">Apple Inc. <span class="side-pill sell">Sell</span></div>
-            <div class="sym-meta">NASDAQ &middot; Equity &middot; 100 shares</div>
-          </div>
-          <div class="ticket-price">
-            <div class="amt">$227.52</div>
-            <div class="lbl">Last price</div>
-          </div>
+      <span class="mail">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+        Messages
+      </span>
+    </div>
+  </div>
+
+  <div class="subnav">
+    <a href="#">All-In-One Trade Ticket</a>
+    <a href="#">Stocks &amp; ETFs</a>
+    <a href="#">Options</a>
+    <a href="#">Mutual Funds</a>
+    <a href="#">Schwab Stock Slices&trade;</a>
+    <a href="#">Schwab Investing Themes&trade;</a>
+    <a href="#">Order Status</a>
+    <a href="#">Bonds</a>
+    <a href="#">CDs</a>
+    <a href="#">Futures</a>
+  </div>
+
+  <div class="layout">
+    <main class="main">
+      <div class="wl-head">
+        <h1>Watchlist</h1>
+        <div class="asof">As of 02:49:52 PM ET, 07/24/2026 <a href="/">&larr; All Demos</a></div>
+      </div>
+
+      <div class="wl-controls">
+        <div class="wl-select">My Tech &amp; Index Holdings
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <a href="#" class="wl-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Watchlist
+        </a>
+        <a href="#" class="wl-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Edit Watchlist
+        </a>
+        <div class="wl-add">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Add Symbol
         </div>
       </div>
-      <div class="order-totals">
-        <div class="total-line"><span>Account</span><span>Morgan Cole &middot; SCHW-84102299</span></div>
-        <div class="total-line"><span>Estimated principal</span><span>$22,752.00</span></div>
-        <div class="total-line"><span>Commission &amp; fees</span><span>Resolved at execution</span></div>
-        <div class="total-line grand"><span>Order status</span><span>Pending review</span></div>
-        <div class="audit-badge">&#x1F512; Best-execution routed &middot; order will be written to the trade blotter</div>
-      </div>
-    </div>
 
-    <div class="action-section animate-up delay-4">
-      <h3>Confirm Order</h3>
-      <p class="sub">Review the routing details and place your trade.</p>
-      <form id="orderForm" onsubmit="submitOrder(event)">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Account</label>
-            <input type="text" value="SCHW-84102299" readonly>
+      <div class="wl-tabs">
+        <a href="#" class="active">Quotes</a>
+        <a href="#">Earnings</a>
+        <a href="#">Ratings</a>
+        <a href="#">Valuations</a>
+        <a href="#">Profitability</a>
+        <a href="#">News</a>
+        <a href="#">Gain/Loss</a>
+        <a href="#">Custom View</a>
+      </div>
+
+      <table class="quotes">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Last Price</th>
+            <th>Change $</th>
+            <th>Change %</th>
+            <th>Bid</th>
+            <th>Ask</th>
+            <th>Day's Range</th>
+            <th>52 Week Range</th>
+          </tr>
+        </thead>
+        <tbody id="quotesBody"></tbody>
+      </table>
+    </main>
+
+    <aside class="snapticket">
+      <div class="st-header">
+        <div class="st-title">SnapTicket<sup>&reg;</sup></div>
+        <div class="st-header-icons"><span>&hellip;</span><span>&times;</span></div>
+      </div>
+      <div class="st-tabs">
+        <div class="st-tab active">Stock/ETF</div>
+        <div class="st-tab">Options</div>
+        <div class="st-tab">Mutual Funds</div>
+      </div>
+      <div class="st-body">
+        <div class="st-acct">
+          <span>Individual &nbsp;&hellip;781</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="st-cash"><span>Available cash &amp; cash investments</span><strong>$304,570.00</strong></div>
+
+        <div class="st-symbox">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span id="stSym">AAPL - APPLE INC</span>
+          <span class="x">&times;</span>
+        </div>
+
+        <div class="st-quote">
+          <div>
+            <div class="q-price" id="stPrice">$227.52</div>
+            <div class="q-chg pos" id="stChg">+2.14 (+0.95%)</div>
           </div>
-          <div class="form-group">
-            <label>Order Type</label>
+          <div class="q-ba">Bid <b id="stBid">227.48</b><br>Ask <b id="stAsk">227.55</b></div>
+        </div>
+        <div class="st-meta"><a href="#">More details</a><span>02:49:40 PM ET, 07/24/2026</span></div>
+
+        <form id="orderForm" onsubmit="submitOrder(event)">
+          <div class="st-field">
+            <label>Action <span class="info">&#9432;</span></label>
+            <select id="actionSelect">
+              <option value="sell" selected>Sell</option>
+              <option value="buy">Buy</option>
+              <option value="sell_short">Sell Short</option>
+            </select>
+          </div>
+          <div class="st-field">
+            <label>Quantity <span class="info">&#9432;</span></label>
+            <input type="number" id="qtyInput" value="100" min="1">
+          </div>
+          <div class="st-field">
+            <label>Order type <span class="info">&#9432;</span></label>
             <select id="orderTypeSelect">
               <option value="market" selected>Market</option>
               <option value="limit">Limit</option>
               <option value="stop">Stop</option>
             </select>
           </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Time in Force</label>
-            <select id="tifSelect">
-              <option value="day" selected>Day</option>
-              <option value="gtc">Good &rsquo;til Canceled</option>
-            </select>
+          <div class="st-field">
+            <label>Timing <span class="info">&#9432;</span></label>
+            <div class="toggle">
+              <button type="button" class="active" id="timDay" onclick="setTiming('day')">Day</button>
+              <button type="button" id="timGtc" onclick="setTiming('gtc')">GTC</button>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Routing Region</label>
-            <select id="regionSelect">
-              <option value="US" selected>Schwab Smart Router</option>
-              <option value="US-EAST">NYSE Arca</option>
-              <option value="US-WEST">Nasdaq BX</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" class="request-btn" id="requestBtn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-          Place Order
-        </button>
-      </form>
-      <div class="processing" id="processingIndicator">
-        <div class="spinner"></div>
-        <span>Routing and executing order&hellip;</span>
-      </div>
-      <div class="result-box" id="resultBox"></div>
-    </div>
 
-    <div class="bug-hint animate-up delay-5">
-      <strong>&#x1F41E; Bug:</strong> The execution pipeline force-assesses a mandatory regulatory fee
-      (<code>FEE-SEC-31-2026</code>) on every equity sell order, but that fee code isn&rsquo;t
-      registered in the fee schedule. When the settlement builder resolves the fee&rsquo;s rate,
-      it crashes with a <code>TypeError</code> &mdash; blocking order confirmation and settlement.
-    </div>
+          <div class="st-est"><span class="lbl">Estimated amount <span class="info">&#9432;</span></span><span class="amt" id="estAmount">$22,752.00</span></div>
+          <div class="st-est-note">Based on last price (does not include commission or fees)</div>
+
+          <div class="st-actions">
+            <a href="#">Full page ticket</a>
+            <a href="#" onclick="clearTicket(event)">Clear</a>
+            <button type="submit" class="review-btn" id="reviewBtn">Review</button>
+          </div>
+        </form>
+
+        <div class="st-processing" id="stProcessing"><div class="spinner"></div><span>Routing &amp; reviewing order&hellip;</span></div>
+        <div class="st-result" id="stResult"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bug-hint">
+    <strong>&#x1F41E; Demo bug:</strong> The order-execution pipeline force-assesses a mandatory regulatory fee
+    (<code>FEE-SEC-31-2026</code>) on every equity/ETF <em>sell</em> order, but that fee code isn&rsquo;t
+    registered in the fee schedule. When the settlement builder resolves the fee&rsquo;s rate, it crashes with a
+    <code>TypeError</code> &mdash; blocking order review. Click <strong>Review</strong> (with Action = Sell) to
+    surface it and trigger the Sentry &rarr; Slack &rarr; Devin investigation pipeline.
   </div>
 
   <footer>
-    <div class="footer-inner">
-      <div>
-        <div class="footer-brand">Charles Schwab &amp; Co., Inc. &copy; 2026</div>
-        <div class="footer-compliance">Member SIPC &middot; Broker-dealer &middot; Orders best-execution routed &amp; audit-logged</div>
-        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
-      </div>
-      <div class="footer-links">
-        <a href="#">Disclosures</a>
-        <a href="#">Terms</a>
-        <a href="#">Security</a>
-      </div>
-    </div>
+    <div class="fb">Charles Schwab &amp; Co., Inc. &copy; 2026 &middot; Member SIPC</div>
+    <div class="fd">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
   </footer>
 
   <script>
@@ -454,18 +447,102 @@
     })();
   </script>
   <script>
+    var WATCHLIST = [
+      { sym: 'AAPL', name: 'APPLE INC', last: 227.52, chg: 2.14, pct: 0.95, bid: 227.48, ask: 227.55, dl: 224.90, dh: 228.71, yl: 164.08, yh: 237.49 },
+      { sym: 'NVDA', name: 'NVIDIA CORP', last: 178.36, chg: 3.02, pct: 1.72, bid: 178.30, ask: 178.41, dl: 174.10, dh: 179.44, yl: 86.62, yh: 184.48 },
+      { sym: 'MSFT', name: 'MICROSOFT CORP', last: 431.20, chg: -1.85, pct: -0.43, bid: 431.10, ask: 431.28, dl: 428.55, dh: 435.02, yl: 366.50, yh: 468.35 },
+      { sym: 'AMZN', name: 'AMAZON.COM INC', last: 201.45, chg: 1.12, pct: 0.56, bid: 201.40, ask: 201.49, dl: 198.80, dh: 202.66, yl: 151.61, yh: 215.90 },
+      { sym: 'GOOGL', name: 'ALPHABET INC CL A', last: 176.30, chg: -0.42, pct: -0.24, bid: 176.25, ask: 176.34, dl: 175.02, dh: 178.11, yl: 130.67, yh: 191.75 },
+      { sym: 'SCHB', name: 'SCHWAB US BROAD MARKET ETF', last: 24.18, chg: 0.09, pct: 0.37, bid: 24.17, ask: 24.19, dl: 24.02, dh: 24.25, yl: 19.44, yh: 24.48 },
+      { sym: 'SWPPX', name: 'SCHWAB S&P 500 INDEX FUND', last: 92.74, chg: 0.31, pct: 0.34, bid: 92.72, ask: 92.76, dl: 92.31, dh: 92.90, yl: 74.10, yh: 93.15 },
+      { sym: 'VTI', name: 'VANGUARD TOTAL STK MKT ETF', last: 289.60, chg: 0.74, pct: 0.26, bid: 289.55, ask: 289.66, dl: 287.90, dh: 290.48, yl: 232.90, yh: 292.11 }
+    ];
+
+    var selected = WATCHLIST[0];
+    var timing = 'day';
+
+    function fmt(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function rangeBar(low, high, val) {
+      var pct = Math.max(0, Math.min(100, ((val - low) / (high - low)) * 100));
+      return '<div class="range-wrap"><span class="range-num">' + fmt(low) + '</span>' +
+        '<div class="range-bar"><div class="dot" style="left:' + pct + '%"></div></div>' +
+        '<span class="range-num">' + fmt(high) + '</span></div>';
+    }
+
+    function renderTable() {
+      var html = '';
+      WATCHLIST.forEach(function (s, i) {
+        var cls = s.chg >= 0 ? 'pos' : 'neg';
+        var sign = s.chg >= 0 ? '+' : '';
+        html += '<tr data-i="' + i + '" onclick="selectRow(' + i + ')"' + (s.sym === selected.sym ? ' class="selected"' : '') + '>' +
+          '<td class="sym-cell"><div class="sym-tick">' + s.sym + '</div><div class="sym-name">' + s.name + '</div></td>' +
+          '<td class="price">' + fmt(s.last) + '</td>' +
+          '<td class="' + cls + '">' + sign + fmt(s.chg) + '</td>' +
+          '<td class="' + cls + '">' + sign + s.pct.toFixed(2) + '%</td>' +
+          '<td class="ba">' + fmt(s.bid) + '</td>' +
+          '<td class="ba">' + fmt(s.ask) + '</td>' +
+          '<td class="range-cell">' + rangeBar(s.dl, s.dh, s.last) + '</td>' +
+          '<td class="range-cell">' + rangeBar(s.yl, s.yh, s.last) + '</td>' +
+          '</tr>';
+      });
+      document.getElementById('quotesBody').innerHTML = html;
+    }
+
+    function updateTicket() {
+      var s = selected;
+      document.getElementById('stSym').textContent = s.sym + ' - ' + s.name;
+      document.getElementById('stPrice').textContent = '$' + fmt(s.last);
+      var chgEl = document.getElementById('stChg');
+      var sign = s.chg >= 0 ? '+' : '';
+      chgEl.textContent = sign + fmt(s.chg) + ' (' + sign + s.pct.toFixed(2) + '%)';
+      chgEl.className = 'q-chg ' + (s.chg >= 0 ? 'pos' : 'neg');
+      document.getElementById('stBid').textContent = fmt(s.bid);
+      document.getElementById('stAsk').textContent = fmt(s.ask);
+      updateEstimate();
+    }
+
+    function updateEstimate() {
+      var qty = parseFloat(document.getElementById('qtyInput').value) || 0;
+      document.getElementById('estAmount').textContent = '$' + fmt(qty * selected.last);
+    }
+
+    function selectRow(i) {
+      selected = WATCHLIST[i];
+      renderTable();
+      updateTicket();
+      var r = document.getElementById('stResult');
+      r.className = 'st-result'; r.innerHTML = '';
+    }
+
+    function setTiming(t) {
+      timing = t;
+      document.getElementById('timDay').classList.toggle('active', t === 'day');
+      document.getElementById('timGtc').classList.toggle('active', t === 'gtc');
+    }
+
+    function clearTicket(e) {
+      e.preventDefault();
+      var r = document.getElementById('stResult');
+      r.className = 'st-result'; r.innerHTML = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderTable();
+      updateTicket();
+      document.getElementById('qtyInput').addEventListener('input', updateEstimate);
+    });
+
     function submitOrder(e) {
       e.preventDefault();
-      var btn = document.getElementById('requestBtn');
-      var processing = document.getElementById('processingIndicator');
-      var resultBox = document.getElementById('resultBox');
-      resultBox.className = 'result-box';
-      resultBox.innerHTML = '';
+      var btn = document.getElementById('reviewBtn');
+      var processing = document.getElementById('stProcessing');
+      var result = document.getElementById('stResult');
+      result.className = 'st-result'; result.innerHTML = '';
       btn.disabled = true;
-      btn.style.display = 'none';
       processing.classList.add('visible');
 
-      var region = document.getElementById('regionSelect').value;
+      var side = document.getElementById('actionSelect').value === 'buy' ? 'buy' : 'sell';
+      var qty = parseInt(document.getElementById('qtyInput').value, 10) || 100;
       var orderType = document.getElementById('orderTypeSelect').value;
 
       fetch('/api/ef58967c/order', {
@@ -476,47 +553,39 @@
           devinUserId: localStorage.getItem('devinUserId') || '',
           devinOrgId: localStorage.getItem('devinOrgId') || '',
           devinEmail: localStorage.getItem('devinEmail') || '',
-          symbol: 'AAPL',
-          side: 'sell',
-          quantity: 100,
+          symbol: selected.sym,
+          side: side,
+          quantity: qty,
           orderType: orderType,
-          region: region
+          region: 'US'
         })
       })
-      .then(function(res) {
-        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
-      })
-      .then(function(result) {
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (r) {
         processing.classList.remove('visible');
-        if (!result.ok || !result.data.success) {
-          resultBox.className = 'result-box error';
-          resultBox.innerHTML =
-            '<h3>Order Rejected &mdash; Execution Failed</h3>' +
-            '<p>Your order could not be placed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
-            '<div class="error-meta">' +
-            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
-            '<span>Code: ' + (result.data.code || 'ORDER_FAILED') + '</span>' +
-            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
-            '<span>Time: ' + new Date().toISOString() + '</span>' +
+        if (!r.ok || !r.data.success) {
+          result.className = 'st-result error';
+          result.innerHTML =
+            '<h4>Order Rejected &mdash; Review Failed</h4>' +
+            '<p>This order could not be reviewed.<br><code>' + (r.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="meta">' +
+            '<span>Error: ' + (r.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (r.data.code || 'ORDER_FAILED') + '</span>' +
+            '<span>Request: ' + (r.data.requestId || 'N/A') + '</span>' +
             '</div>';
         } else {
-          resultBox.className = 'result-box success';
-          resultBox.innerHTML =
-            '<h3>Order Filled</h3>' +
-            '<p>Order <strong>' + result.data.orderId + '</strong> executed.<br>' +
-            result.data.quantity + ' shares of ' + result.data.symbol + ' &middot; total fees $' + result.data.totalFees + '.</p>';
+          result.className = 'st-result success';
+          result.innerHTML =
+            '<h4>Order Ready to Submit</h4>' +
+            '<p>' + r.data.side.toUpperCase() + ' ' + r.data.quantity + ' ' + r.data.symbol +
+            ' &middot; est. fees $' + r.data.totalFees + '.<br>Order ' + r.data.orderId + '.</p>';
         }
-        btn.style.display = 'flex';
         btn.disabled = false;
       })
-      .catch(function(err) {
+      .catch(function (err) {
         processing.classList.remove('visible');
-        resultBox.className = 'result-box error';
-        resultBox.innerHTML =
-          '<h3>Network Error</h3>' +
-          '<p>Unable to reach the order-execution service.<br><br><code>' + err.message + '</code></p>' +
-          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
-        btn.style.display = 'flex';
+        result.className = 'st-result error';
+        result.innerHTML = '<h4>Network Error</h4><p><code>' + err.message + '</code></p>';
         btn.disabled = false;
       });
     }
