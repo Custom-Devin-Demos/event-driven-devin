@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Highmark &mdash; Secure Member Portal</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --bg-card: #ffffff;
+      --bg-elevated: #eef3f9;
+      --surface: #e6edf5;
+      --border: #dbe4ef;
+      --border-light: #cbd7e6;
+      --text: #0e2436;
+      --text-muted: #5a6b7c;
+      --text-dim: #90a0b1;
+      --hm-blue: #0067b1;
+      --hm-blue-hover: #00538f;
+      --hm-navy: #003a63;
+      --hm-blue-dim: rgba(0,103,177,0.08);
+      --hm-blue-border: rgba(0,103,177,0.22);
+      --danger: #c0322b;
+      --danger-bg: rgba(192,50,43,0.06);
+      --danger-border: rgba(192,50,43,0.16);
+      --success: #1f8a53;
+      --amber: #b26a00;
+      --amber-bg: rgba(178,106,0,0.08);
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Security Banner ── */
+    .security-banner {
+      background: var(--hm-navy);
+      color: #eaf3fb;
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-size: 0.76rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .security-banner svg { flex-shrink: 0; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 66px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-mark {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--hm-blue), var(--hm-navy));
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 800; font-size: 1.05rem;
+    }
+    .logo-text { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; color: var(--hm-navy); }
+    .logo-text span { color: var(--hm-blue); }
+    nav { display: flex; align-items: center; gap: 1.6rem; }
+    nav a {
+      color: var(--text); text-decoration: none; font-size: 0.82rem;
+      font-weight: 600; letter-spacing: 0.01em;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--hm-blue); }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
+    .member-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: 999px; padding: 0.3rem 0.75rem 0.3rem 0.35rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--text-muted);
+    }
+    .member-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--hm-blue); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700;
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 880px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--hm-blue); text-decoration: none; font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.02em; margin-bottom: 1.75rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--hm-blue-hover); }
+
+    .page-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--hm-blue);
+      background: var(--hm-blue-dim); border: 1px solid var(--hm-blue-border);
+      padding: 0.3rem 0.7rem; border-radius: 999px; margin-bottom: 1rem;
+    }
+    .page-title {
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+      font-weight: 800; line-height: 1.15; margin-bottom: 0.5rem;
+      letter-spacing: -0.025em; color: var(--hm-navy);
+    }
+    .page-desc {
+      font-size: 0.94rem; color: var(--text-muted); max-width: 560px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Access Card ── */
+    .access-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(14,36,54,0.05);
+    }
+    .access-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .access-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .access-header .item-count {
+      font-size: 0.7rem; font-weight: 700; color: var(--hm-blue);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      background: var(--hm-blue-dim); padding: 0.2rem 0.55rem; border-radius: 4px;
+    }
+    .access-items { padding: 0; }
+    .access-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .access-item:last-child { border-bottom: none; }
+    .access-item:hover { background: var(--bg-elevated); }
+    .doc-icon {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; flex-shrink: 0;
+      background: var(--hm-blue-dim); color: var(--hm-blue);
+    }
+    .doc-details { flex: 1; }
+    .doc-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.15rem; }
+    .doc-id { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .doc-meta { text-align: right; }
+    .sensitivity {
+      display: inline-block; font-size: 0.66rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 0.22rem 0.5rem; border-radius: 4px;
+    }
+    .sensitivity.phi { background: var(--danger-bg); color: var(--danger); }
+    .sensitivity.restricted { background: var(--amber-bg); color: var(--amber); }
+    .sensitivity.standard { background: var(--hm-blue-dim); color: var(--hm-blue); }
+
+    .access-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 0.95rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .audit-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--hm-blue-dim); color: var(--hm-blue);
+      font-size: 0.72rem; font-weight: 600; padding: 0.3rem 0.65rem;
+      border-radius: 6px; margin-top: 0.65rem;
+    }
+
+    /* ── Verification Form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(14,36,54,0.05);
+    }
+    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .action-section .sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.15rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--hm-blue);
+      box-shadow: 0 0 0 3px var(--hm-blue-dim);
+    }
+
+    .request-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--hm-blue); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.06em;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .request-btn:hover { background: var(--hm-blue-hover); transform: translateY(-1px); }
+    .request-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--hm-blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: rgba(31,138,83,0.06); border: 1px solid rgba(31,138,83,0.2); }
+    .result-box h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--danger-bg); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 10px; font-size: 0.8rem; color: #7a2f2a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 880px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand { font-size: 0.82rem; font-weight: 700; color: var(--hm-navy); letter-spacing: 0.01em; }
+    .footer-compliance { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.25rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.02em; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim); }
+    .footer-devin a { color: var(--hm-blue); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .security-banner { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="security-banner">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Protected Health Information &mdash; every access request is authenticated, authorized, and audit-logged
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-mark">H</div>
+      <div class="logo-text">Highmark<span>&nbsp;Health</span></div>
+    </div>
+    <nav>
+      <a href="#">Coverage</a>
+      <a href="#">Claims</a>
+      <a href="#">Find Care</a>
+      <a href="#">ID Card</a>
+    </nav>
+    <div class="nav-right">
+      <div class="member-chip">
+        <div class="member-avatar">JR</div>
+        Jordan Rivera
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <div class="page-eyebrow animate-up delay-1">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Secure Document Center
+    </div>
+    <h1 class="page-title animate-up delay-1">Request Access to Your Health Records</h1>
+    <p class="page-desc animate-up delay-2">
+      You&rsquo;ve requested access to protected documents on your Highmark member account.
+      Click <strong>Request Access</strong> to run the authorization pipeline and watch the
+      access-control bug surface in real time.
+    </p>
+
+    <div class="access-card animate-up delay-3">
+      <div class="access-header">
+        <h2>Documents in this request</h2>
+        <span class="item-count">4 documents</span>
+      </div>
+      <div class="access-items">
+        <div class="access-item">
+          <div class="doc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+          </div>
+          <div class="doc-details">
+            <div class="doc-name">Explanation of Benefits &mdash; Q2 2026</div>
+            <div class="doc-id">DOC-EOB-Q2</div>
+          </div>
+          <div class="doc-meta"><span class="sensitivity standard">Standard</span></div>
+        </div>
+        <div class="access-item">
+          <div class="doc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+          </div>
+          <div class="doc-details">
+            <div class="doc-name">Claims Summary &mdash; 2026 Plan Year</div>
+            <div class="doc-id">DOC-CLAIMS</div>
+          </div>
+          <div class="doc-meta"><span class="sensitivity standard">Standard</span></div>
+        </div>
+        <div class="access-item">
+          <div class="doc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6l-3 5a4 4 0 0 0 3.5 6h5A4 4 0 0 0 18 13l-3-5V2"/><line x1="9" y1="2" x2="15" y2="2"/></svg>
+          </div>
+          <div class="doc-details">
+            <div class="doc-name">Laboratory Results &mdash; Metabolic Panel</div>
+            <div class="doc-id">DOC-LAB-RESULTS</div>
+          </div>
+          <div class="doc-meta"><span class="sensitivity phi">PHI</span></div>
+        </div>
+        <div class="access-item">
+          <div class="doc-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+          </div>
+          <div class="doc-details">
+            <div class="doc-name">Behavioral Health Notes &mdash; Care Plan</div>
+            <div class="doc-id">DOC-BH-NOTES</div>
+          </div>
+          <div class="doc-meta"><span class="sensitivity restricted">Restricted</span></div>
+        </div>
+      </div>
+      <div class="access-totals">
+        <div class="total-line"><span>Requesting member</span><span>Jordan Rivera &middot; MBR-4471023</span></div>
+        <div class="total-line"><span>Access scopes required</span><span>Resolved at authorization</span></div>
+        <div class="total-line"><span>Data residency</span><span>US &middot; HIPAA-covered</span></div>
+        <div class="total-line grand"><span>Authorization decision</span><span>Pending verification</span></div>
+        <div class="audit-badge">&#x1F512; Session verified &middot; access will be written to the audit log</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Identity Verification</h3>
+      <p class="sub">Confirm your identity to authorize release of these documents.</p>
+      <form id="accessForm" onsubmit="submitRequest(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Member Name</label>
+            <input type="text" value="Jordan Rivera" readonly>
+          </div>
+          <div class="form-group">
+            <label>Member ID</label>
+            <input type="text" value="MBR-4471023" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Verification Method</label>
+            <select id="verifySelect">
+              <option value="mfa_app" selected>Authenticator App (MFA)</option>
+              <option value="sms_otp">SMS One-Time Passcode</option>
+              <option value="email_otp">Email One-Time Passcode</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Data Region</label>
+            <select id="regionSelect">
+              <option value="US" selected>United States</option>
+              <option value="US-EAST">US &mdash; East</option>
+              <option value="US-WEST">US &mdash; West</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="request-btn" id="requestBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Request Access
+        </button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Authorizing access request&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The authorization pipeline injects a mandatory disclosure grant
+      (<code>SCOPE-BH-DISCLOSURE-2026</code>) for restricted behavioral-health records that isn&rsquo;t
+      registered in the access-scope catalog. When the access-manifest builder resolves the scope&rsquo;s
+      permissions, it crashes with a <code>TypeError</code> &mdash; failing open-vs-closed decisions
+      on protected health information.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Highmark Health &copy; 2026</div>
+        <div class="footer-compliance">HIPAA-covered entity &middot; SOC 2 Type II &middot; Access audit-logged</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy Practices</a>
+        <a href="#">Terms</a>
+        <a href="#">Security</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var REQUESTED_DOCS = [
+      { id: 'DOC-EOB-Q2', sensitivity: 'standard' },
+      { id: 'DOC-CLAIMS', sensitivity: 'standard' },
+      { id: 'DOC-LAB-RESULTS', sensitivity: 'phi' },
+      { id: 'DOC-BH-NOTES', sensitivity: 'restricted' }
+    ];
+
+    function submitRequest(e) {
+      e.preventDefault();
+      var btn = document.getElementById('requestBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var region = document.getElementById('regionSelect').value;
+      var verifyMethod = document.getElementById('verifySelect').value;
+
+      fetch('/api/b1c29f25/authorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberId: 'MBR-4471023',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          documents: REQUESTED_DOCS,
+          verifyMethod: verifyMethod,
+          region: region
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Access Denied &mdash; Authorization Failed</h3>' +
+            '<p>Your access request could not be authorized.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'AUTHZ_FAILED') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Access Granted</h3>' +
+            '<p>Request <strong>' + result.data.requestId + '</strong> authorized.<br>' +
+            result.data.grantedCount + ' documents released to your secure inbox.</p>';
+        }
+        btn.style.display = 'flex';
+        btn.disabled = false;
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the authorization service.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'flex';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

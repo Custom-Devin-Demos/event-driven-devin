@@ -118,6 +118,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  b1c29f25: {
+    label: 'Highmark Health',
+    triggerMode: 'api',
+  },
   'cba5be2d': {
     label: 'Timberland',
     triggerMode: 'api',
