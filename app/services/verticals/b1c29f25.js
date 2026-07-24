@@ -194,6 +194,7 @@ async function authorizeAccess(requestData) {
       culprit: 'app/services/verticals/b1c29f25.js \u2014 buildAccessManifest',
       errorType: error.name || 'Error',
       errorValue: error.message,
+      customer: 'b1c29f25',
       devinUserId: requestData.devinUserId,
       devinEmail: requestData.devinEmail,
       devinOrgId: requestData.devinOrgId,
