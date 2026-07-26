@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Agents - Hippocratic AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --hip-blue: #1c2fb9;
+      --hip-blue-deep: #1726a0;
+      --hip-green: #15cc44;
+      --hip-green-dark: #12b23c;
+      --hip-cyan: #31f2fe;
+      --hip-indigo: #4e5ed6;
+      --hip-text: #14152b;
+      --hip-muted: #6b7280;
+      --card-radius: 16px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      background: var(--hip-blue);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    .brand-gradient { background: linear-gradient(to right, #31f2fe 0%, #4e5ed6 50%, #17cc45 100%); }
+
+    /* ── Announcement banner ── */
+    .announce {
+      background: linear-gradient(to right, #31f2fe 0%, #4e5ed6 50%, #17cc45 100%);
+      display: flex; align-items: center; justify-content: center; gap: 26px;
+      padding: 12px 24px; position: relative;
+    }
+    .announce .msg { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 15px; color: #0a1030; }
+    .announce .msg svg { flex: 0 0 26px; }
+    .announce .right { position: absolute; right: 26px; display: flex; align-items: center; gap: 20px; }
+    .announce .right a.login { color: #0a1030; font-weight: 600; font-size: 15px; }
+    .announce .right a.book {
+      background: var(--hip-green); color: #fff; font-weight: 600; font-size: 15px;
+      padding: 9px 20px; border-radius: 24px; box-shadow: 0 3px 10px rgba(0,0,0,.15);
+    }
+
+    /* ── Nav pill ── */
+    .nav-wrap { padding: 22px 32px 0; }
+    header.nav {
+      background: #fff; border-radius: 60px; height: 78px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 34px; box-shadow: 0 10px 30px rgba(0,0,0,.10);
+      max-width: 1360px; margin: 0 auto;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo .logo-txt { display: flex; flex-direction: column; line-height: 1; }
+    .logo .logo-name { color: #14152b; font-weight: 600; font-size: 21px; letter-spacing: .2px; }
+    .logo .logo-sub { color: #8a8f9c; font-weight: 500; font-size: 11px; letter-spacing: 1px; margin-top: 3px; }
+    nav.menu { display: flex; align-items: center; gap: 30px; }
+    nav.menu a { color: #14152b; font-weight: 500; font-size: 16px; }
+    nav.menu a:hover { color: var(--hip-blue); }
+    .life-sci { display: flex; align-items: center; gap: 7px; color: var(--hip-green); font-weight: 600; font-size: 16px; }
+
+    /* ── Controls row ── */
+    .controls {
+      max-width: 1360px; margin: 40px auto 26px; padding: 0 32px;
+      display: flex; align-items: center; justify-content: center; gap: 22px;
+    }
+    .tabbar {
+      background: #fff; border: 2px solid rgba(255,255,255,.6); border-radius: 44px;
+      padding: 8px; display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12); flex: 0 1 620px;
+    }
+    .tab {
+      flex: 1; text-align: center; padding: 15px 10px; border-radius: 36px;
+      font-weight: 700; font-size: 19px; color: #14152b; cursor: pointer;
+      border: none; background: transparent; font-family: inherit; transition: all .18s ease;
+    }
+    .tab.active { background: linear-gradient(120deg, #31f2fe 0%, #4e5ed6 100%); color: #fff; box-shadow: 0 4px 14px rgba(78,94,214,.5); }
+    .specialties-pill {
+      background: #fff; border-radius: 44px; padding: 16px 24px; min-width: 190px;
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12); cursor: pointer; position: relative;
+    }
+    .specialties-pill select {
+      border: none; outline: none; background: transparent; font-family: inherit;
+      font-weight: 600; font-size: 16px; color: #14152b; cursor: pointer;
+      appearance: none; -webkit-appearance: none; width: 100%;
+    }
+    .specialties-pill .chev { color: #14152b; pointer-events: none; }
+
+    /* ── Main grid ── */
+    .layout {
+      max-width: 1360px; margin: 0 auto; padding: 8px 32px 70px;
+      display: grid; grid-template-columns: 210px 1fr; gap: 30px; align-items: start;
+    }
+    .sidebar-title { font-weight: 600; font-size: 15px; text-align: center; margin: 6px 0 18px; }
+    .goals { display: flex; flex-direction: column; gap: 12px; }
+    .goal {
+      background: #fff; color: #14152b; border-radius: 30px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 13.5px;
+      cursor: pointer; border: 2px solid transparent; transition: border-color .15s, transform .1s;
+    }
+    .goal:hover { transform: translateY(-1px); }
+    .goal.active { border-color: var(--hip-green); }
+    .goal .gicon {
+      width: 26px; height: 26px; border-radius: 50%; flex: 0 0 26px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    @media (max-width: 1200px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .cards { grid-template-columns: repeat(2, 1fr); } }
+    .card {
+      background: #fff; color: var(--hip-text); border-radius: var(--card-radius);
+      padding: 20px 20px 18px; min-height: 210px; cursor: pointer;
+      display: flex; flex-direction: column; position: relative;
+      box-shadow: 0 6px 18px rgba(0,0,0,.10); transition: transform .12s, box-shadow .12s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(0,0,0,.18); }
+    .card .shield { position: absolute; top: 18px; right: 18px; }
+    .card h2 { font-size: 16px; font-weight: 600; line-height: 1.25; max-width: 78%; margin-bottom: 14px; color: #14152b; }
+    .card .desc { font-size: 12.5px; color: #5b6270; line-height: 1.5; flex: 1; }
+    .card .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+    .card .cat { font-size: 12px; font-weight: 500; color: #14152b; }
+    .card .cat-icon {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; flex: 0 0 34px;
+    }
+
+    /* ── Footer ── */
+    footer.site { background: #0f153a; padding: 30px 32px; text-align: center; color: #aab0d0; font-size: 13px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 999; max-width: 400px;
+      background: #fff; color: #14152b; border-left: 5px solid #e0342c;
+      box-shadow: 0 14px 44px rgba(0,0,0,.28); border-radius: 10px;
+      padding: 16px 18px; transform: translateY(160%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--hip-green); }
+    .toast-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <!-- Announcement banner -->
+  <div class="announce">
+    <div class="msg">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="#0a1030" stroke-width="1.4"/><path d="M6.5 12.5c2 0 2-2 3.2-2s1.4 4 2.6 4 1.2-4.5 2.3-4.5c.9 0 1 2 2.9 2" stroke="#0a1030" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <a href="#">Polaris 5.0 is here: Built on 200m+ patient interactions, outperforms every major model.</a>
+    </div>
+    <div class="right">
+      <a class="login" href="#">Login</a>
+      <a class="book" href="#">Book A Meeting</a>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-wrap">
+    <header class="nav">
+      <a class="logo" href="#">
+        <svg width="46" height="46" viewBox="0 0 48 48" fill="none">
+          <defs><linearGradient id="shg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#31f2fe"/><stop offset="0.55" stop-color="#4e5ed6"/><stop offset="1" stop-color="#17cc45"/>
+          </linearGradient></defs>
+          <path d="M24 3l16 6v11c0 10.5-6.8 20-16 25C14.8 41 8 31.5 8 21V9l16-6z" fill="url(#shg)"/>
+          <path d="M15 24c3 0 3-3 5-3s2 6 4 6 2-7 4-7c1.4 0 1.6 3 4.5 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="logo-txt">
+          <span class="logo-name">Hippocratic AI</span>
+          <span class="logo-sub">— Do No Harm —</span>
+        </span>
+      </a>
+      <nav class="menu">
+        <a href="#">Safety</a>
+        <a href="#">Benchmarks</a>
+        <a href="#">Products</a>
+        <a href="#">Customers</a>
+        <a href="#">Company</a>
+      </nav>
+      <a class="life-sci" href="#">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 3v6l-4 8a3 3 0 003 4h8a3 3 0 003-4l-4-8V3" stroke="#15cc44" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3h6" stroke="#15cc44" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Life Sciences
+      </a>
+    </header>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="tabbar" id="tabbar">
+      <button class="tab active" data-audience="provider">Provider</button>
+      <button class="tab" data-audience="payor">Payor</button>
+      <button class="tab" data-audience="pharma">Pharma</button>
+    </div>
+    <div class="specialties-pill">
+      <select id="specialties" aria-label="specialties">
+        <option value="">Specialties</option>
+      </select>
+      <span class="chev">▾</span>
+    </div>
+  </div>
+
+  <!-- Layout -->
+  <div class="layout">
+    <aside>
+      <div class="sidebar-title">Organizational Goals</div>
+      <div class="goals" id="goals"></div>
+    </aside>
+    <section class="cards" id="cards"></section>
+  </div>
+
+  <footer class="site">© 2026 Hippocratic AI · Built on 200m+ patient interactions</footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    // Resolve Devin org/user from server config (locked demo org)
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    var SPECIALTIES = ['Allergy','Cardiology','Dental','Diabetes','ENT','Gastroenterology','General','Geriatric','Medicare Advantage','Nephrology','Neurology','OB/GYN','Oncology','Orthopedic','Pharma','Primary Care','Urology'];
+    var GOALS = [
+      { name: 'Quality Improvement', color: '#15cc44' },
+      { name: 'Care Management', color: '#31c9d6' },
+      { name: 'Readmission Prevention', color: '#4e5ed6' },
+      { name: 'Health Equity', color: '#e0655f' },
+      { name: 'Compliance', color: '#3f8cff' },
+      { name: 'Inbound Access Point', color: '#9b6bff' },
+      { name: 'More Time For Care', color: '#6c7bff' },
+      { name: 'Rapid Response', color: '#ff8a3d' },
+      { name: 'CMS Team', color: '#2bb0a6' },
+      { name: 'Access Growth', color: '#f2b705' },
+    ];
+    var AGENTS = [
+      { title: 'Pernicious Anemia Management Call', cat: 'Care Management', desc: 'Discuss pernicious anemia diagnosis, treatment options, and ongoing management strategies.' },
+      { title: 'Appointment Scheduling', cat: 'Inbound Access Point', desc: 'Assist patients with scheduling, confirming details, and completing pre-visit paperwork.' },
+      { title: 'Patient Intake History', cat: 'More Time For Care', desc: 'Collect patient\u2019s med list, allergies, symptoms, and visit reason before appointment.' },
+      { title: 'Colorectal Cancer Screening (COL)', cat: 'Quality Improvement', desc: 'Outreach to patients for FIT or colonoscopy, assist scheduling, and increase timely return rates.' },
+      { title: 'Flu Vaccination (FVA)', cat: 'Quality Improvement', desc: 'Run seasonal campaigns to remind and schedule patients for flu vaccination appointments.' },
+      { title: 'Annual Wellness Visit Outreach and Support', cat: 'Quality Improvement', desc: 'Identify eligibility, schedule Annual Wellness Visits, perform intake, and address barriers such as SDOH challenges for patient access.' },
+      { title: 'Flood Preparedness Outreach', cat: 'Rapid Response', desc: 'Provide flood safety tips, evacuation planning, and emergency contact resources.' },
+      { title: 'Pneumonia Post-Discharge Recovery Support', cat: 'Readmission Prevention', desc: 'Support pneumonia recovery, ensure antibiotic adherence, monitor symptoms, review inhaler use, provide prevention and vaccination advice.' },
+      { title: 'Diabetes Chronic Care Management', cat: 'Care Management', desc: 'Support patients with lifestyle coaching, medication adherence, and lab test reminders.' },
+      { title: 'Heart Failure Care Management', cat: 'Care Management', desc: 'Educate on low-sodium diets, monitor weight, and support adherence to medications and labs.' },
+      { title: 'Chronic Kidney Disease Management', cat: 'Care Management', desc: 'Support CKD patients with diet education, medication review, and adherence to scheduled labs.' },
+      { title: 'Community Health Needs Assessments', cat: 'Compliance', desc: 'Identify unmet health and social needs within the community to guide targeted support.' },
+      { title: 'SDOH Screening & Navigation', cat: 'Health Equity', desc: 'Assess food, housing, and safety needs, then connect patients to appropriate resources.' },
+      { title: 'Mammogram Screening Completion Outreach', cat: 'Access Growth', desc: 'Encourage patients to complete mammogram screening, emphasize prevention, assist with scheduling, and answer questions.' },
+      { title: 'Joint Replacement Post-Surgical Recovery Support', cat: 'Access Growth', desc: 'Support joint replacement patients by reviewing mobility progress, pain management, therapy compliance, and complication prevention.' },
+      { title: 'Lower Extremity Joint Replacement Discharge Call', cat: 'CMS Team', desc: 'Conduct medication review and care coordination following joint replacement discharge.' },
+    ];
+    var GOAL_COLORS = {};
+    GOALS.forEach(function (g) { GOAL_COLORS[g.name] = g.color; });
+
+    var shieldSvg = '<svg class="shield" width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="cs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#31f2fe"/><stop offset="0.55" stop-color="#4e5ed6"/><stop offset="1" stop-color="#17cc45"/></linearGradient></defs><path d="M24 3l16 6v11c0 10.5-6.8 20-16 25C14.8 41 8 31.5 8 21V9l16-6z" fill="url(#cs)"/><path d="M15 24c3 0 3-3 5-3s2 6 4 6 2-7 4-7c1.4 0 1.6 3 4.5 3" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
+
+    var state = { audience: 'provider', specialty: '', goal: '' };
+
+    function renderSpecialties() {
+      var sel = document.getElementById('specialties');
+      SPECIALTIES.forEach(function (s) {
+        var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+      });
+    }
+    function renderGoals() {
+      var box = document.getElementById('goals');
+      box.innerHTML = '';
+      GOALS.forEach(function (g) {
+        var el = document.createElement('div');
+        el.className = 'goal' + (state.goal === g.name ? ' active' : '');
+        el.innerHTML = '<span class="gicon" style="background:' + g.color + '22;">'
+          + '<span style="width:11px;height:11px;border-radius:50%;background:' + g.color + ';display:block;"></span></span>'
+          + '<span>' + g.name + '</span>';
+        el.addEventListener('click', function () { state.goal = state.goal === g.name ? '' : g.name; renderGoals(); applyFilters(); });
+        box.appendChild(el);
+      });
+    }
+    function renderCards() {
+      var box = document.getElementById('cards');
+      box.innerHTML = '';
+      AGENTS.forEach(function (a) {
+        var color = GOAL_COLORS[a.cat] || '#4e5ed6';
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = shieldSvg
+          + '<h2>' + a.title + '</h2>'
+          + '<div class="desc">' + a.desc + '</div>'
+          + '<div class="foot"><span class="cat">' + a.cat + '</span>'
+          + '<span class="cat-icon" style="background:' + color + '22;">'
+          + '<span style="width:14px;height:14px;border-radius:50%;background:' + color + ';display:block;"></span></span></div>';
+        box.appendChild(card);
+      });
+    }
+
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    // Any catalog filter interaction (tab, specialty, or goal) re-queries the
+    // agent catalog on the server.
+    async function applyFilters() {
+      try {
+        var res = await fetch('/api/3d2ef497/filter-agents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            audience: state.audience,
+            specialty: state.specialty,
+            goal: state.goal,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', 'Catalog Error', (data.errorClass || 'Error') + ': ' + (data.error || 'Failed to load agents'));
+        } else {
+          showToast('success', 'Catalog Updated', data.count + ' agents match ' + data.audienceLabel + (data.specialtyLabel ? ' · ' + data.specialtyLabel : ''));
+        }
+      } catch (err) {
+        showToast('error', 'Network Error', err.message);
+      }
+    }
+
+    document.getElementById('tabbar').addEventListener('click', function (e) {
+      var btn = e.target.closest('.tab');
+      if (!btn) return;
+      document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+      btn.classList.add('active');
+      state.audience = btn.dataset.audience;
+      applyFilters();
+    });
+    document.getElementById('specialties').addEventListener('change', function (e) {
+      state.specialty = e.target.value;
+      applyFilters();
+    });
+
+    renderSpecialties();
+    renderGoals();
+    renderCards();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
