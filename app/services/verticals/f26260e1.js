@@ -49,13 +49,13 @@ function collectScoreFactors(profile) {
   const avgAge = profile.tradelines.reduce((sum, t) => sum + t.ageMonths, 0)
     / profile.tradelines.length;
 
-  return [
-    ['utilization', { ratio: totalLimit ? totalBalance / totalLimit : 0, weight: 0.3 }],
-    ['paymentHistory', { ratio: profile.derogatoryMarks ? 0.6 : 1, weight: 0.35 }],
-    ['creditAge', { ratio: Math.min(avgAge / 120, 1), weight: 0.15 }],
-    ['inquiries', { ratio: Math.max(1 - profile.inquiries * 0.1, 0), weight: 0.1 }],
-    ['creditMix', { ratio: profile.tradelines.length > 2 ? 1 : 0.7, weight: 0.1 }],
-  ];
+  return {
+    utilization: { ratio: totalLimit ? totalBalance / totalLimit : 0, weight: 0.3 },
+    paymentHistory: { ratio: profile.derogatoryMarks ? 0.6 : 1, weight: 0.35 },
+    creditAge: { ratio: Math.min(avgAge / 120, 1), weight: 0.15 },
+    inquiries: { ratio: Math.max(1 - profile.inquiries * 0.1, 0), weight: 0.1 },
+    creditMix: { ratio: profile.tradelines.length > 2 ? 1 : 0.7, weight: 0.1 },
+  };
 }
 
 /**
@@ -198,4 +198,10 @@ async function processCreditReportRequest(data) {
   }
 }
 
-module.exports = { processCreditReportRequest, CREDIT_PROFILES, SCORE_BANDS };
+module.exports = {
+  processCreditReportRequest,
+  collectScoreFactors,
+  summarizeFactors,
+  CREDIT_PROFILES,
+  SCORE_BANDS,
+};
