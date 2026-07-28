@@ -383,6 +383,10 @@ const CUSTOMERS = {
     label: 'Customer 3D2E',
     triggerMode: 'api',
   },
+  '6c89c6b0': {
+    label: 'Procurement Resources Library',
+    triggerMode: 'api',
+  },
 };
 
 /**
