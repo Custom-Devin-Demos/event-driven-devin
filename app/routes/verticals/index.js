@@ -107,6 +107,7 @@ const customerEf58967cRoutes = require('./ef58967c');
 const customerF26260e1Routes = require('./f26260e1');
 const customerE1da8ec4Routes = require('./e1da8ec4');
 const customer3d2ef497Routes = require('./3d2ef497');
+const customer6c89c6b0Routes = require('./6c89c6b0');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -212,6 +213,7 @@ router.use(customerEf58967cRoutes);
 router.use(customerF26260e1Routes);
 router.use(customerE1da8ec4Routes);
 router.use(customer3d2ef497Routes);
+router.use(customer6c89c6b0Routes);
 
 /**
  * Vertical metadata for the landing page and URL routing
