@@ -26,8 +26,7 @@ router.post('/api/2ef89b23/authorize', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    const clientErrors = ['INVALID_NETWORK', 'INVALID_CHANNEL'];
-    res.status(clientErrors.includes(error.code) ? 400 : 500).json({
+    res.status(500).json({
       success: false,
       error: error.message,
       errorClass: error.name,
