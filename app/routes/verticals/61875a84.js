@@ -21,11 +21,11 @@ router.get('/api/61875a84/accounts', (_req, res) => {
 router.post('/api/61875a84/transactions', async (req, res) => {
   try {
     const result = await searchTransactions({
-      accountId: req.body.accountId || 'BOA-ADV-7741',
-      period: req.body.period || 'last-30',
+      accountId: req.body.accountId || 'BOA-ADV-7522',
+      period: req.body.period || 'transaction-history',
       category: req.body.category || 'all',
       query: req.body.query || '',
-      userId: req.body.userId || 'usr_robert_thompson',
+      userId: req.body.userId || 'usr_arjun_mishra',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,

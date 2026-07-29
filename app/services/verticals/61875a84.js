@@ -8,25 +8,25 @@ const { createSessionAndAlert } = require('../devin-session');
  * Bank of America customer accounts for the transactions demo
  */
 const ACCOUNTS = [
-  { id: 'BOA-ADV-7741', name: 'Advantage Plus Banking', type: 'checking', balance: 12480.66, currency: 'USD' },
+  { id: 'BOA-ADV-7522', name: 'Adv Plus Banking', type: 'checking', balance: 23202.00, currency: 'USD' },
   { id: 'BOA-SAV-3309', name: 'Advantage Savings', type: 'savings', balance: 48210.40, currency: 'USD' },
   { id: 'BOA-CCR-9920', name: 'Customized Cash Rewards', type: 'credit', balance: -842.17, currency: 'USD' },
 ];
 
 /**
- * Posted and pending activity shown on the account activity page
+ * Posted and processing activity shown on the account activity page
  */
 const TRANSACTIONS = [
-  { id: 'TXN-0001', date: '2026-06-22', description: 'Direct Deposit \u2014 Payroll', merchant: 'Northgate Systems', amount: 3120.00, type: 'credit', category: 'income', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0002', date: '2026-06-21', description: 'Zelle to Maria Gonzalez', merchant: 'Zelle', amount: -200.00, type: 'debit', category: 'transfers', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0003', date: '2026-06-20', description: 'Whole Foods Market', merchant: 'Whole Foods', amount: -134.88, type: 'debit', category: 'groceries', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0004', date: '2026-06-19', description: 'Preferred Rewards Bonus', merchant: 'Bank of America', amount: 18.75, type: 'credit', category: 'rewards', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0005', date: '2026-06-17', description: 'Domestic Wire \u2014 Oak Street Realty', merchant: 'Oak Street Realty', amount: -2500.00, type: 'debit', category: 'transfers', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0006', date: '2026-06-15', description: 'Shell Service Station', merchant: 'Shell', amount: -68.42, type: 'debit', category: 'gas', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0007', date: '2026-06-12', description: 'BankAmericard Payment', merchant: 'Bank of America', amount: -420.00, type: 'debit', category: 'bills', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0008', date: '2026-06-09', description: 'Delta Air Lines 0062', merchant: 'Delta', amount: -612.30, type: 'debit', category: 'travel', status: 'posted', account: 'BOA-ADV-7741' },
-  { id: 'TXN-0009', date: '2026-06-05', description: 'Interest Earned', merchant: 'Bank of America', amount: 41.18, type: 'credit', category: 'income', status: 'posted', account: 'BOA-SAV-3309' },
-  { id: 'TXN-0010', date: '2026-06-02', description: 'Transfer to Advantage Savings', merchant: 'Bank of America', amount: -1000.00, type: 'debit', category: 'transfers', status: 'pending', account: 'BOA-ADV-7741' },
+  { id: 'TXN-0001', date: '2026-07-29', description: 'ACH CREDIT Cognition AI SFHTKP ON 07/29', type: 'Credit', amount: 1034.47, availableBalance: 23202.00, category: 'income', status: 'processing', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0002', date: '2026-07-27', description: 'CHASE CREDIT CRD DES:AUTOPAY ID:XXXXXXXXXX54303 INDN:MISHRA ARJUN...', type: 'Other Payment', amount: -8764.64, availableBalance: 22167.53, category: 'bills', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0003', date: '2026-07-23', description: 'C154099 COGNITIO DES:PAYROLL ID:P3444AB7D0F953A INDN:MISHRA ARJUN...', type: 'Deposit', amount: 9313.04, availableBalance: 30932.17, category: 'income', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0004', date: '2026-07-16', description: 'GOOGLE *Google 07/15 PURCHASE Mountain View CA', type: 'Debit Card', amount: -29.99, availableBalance: 21619.13, category: 'shopping', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0005', date: '2026-07-15', description: 'C154099 COGNITIO DES:PAYROLL ID:PCFFC4DD08382C1 INDN:MISHRA ARJUN...', type: 'Deposit', amount: 5915.21, availableBalance: 21649.12, category: 'income', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0006', date: '2026-07-11', description: 'ZELLE TRANSFER CONF# f9b2c1a04; Maria Gonzalez', type: 'Other Payment', amount: -450.00, availableBalance: 15733.91, category: 'transfers', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0007', date: '2026-07-08', description: 'WHOLEFDS MKT 10228 07/07 PURCHASE San Francisco CA', type: 'Debit Card', amount: -218.44, availableBalance: 16183.91, category: 'shopping', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0008', date: '2026-07-02', description: 'BANK OF AMERICA CREDIT CARD Bill Payment', type: 'Other Payment', amount: -1240.00, availableBalance: 16402.35, category: 'bills', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0009', date: '2026-06-30', description: 'Preferred Rewards Bonus', type: 'Credit', amount: 18.75, availableBalance: 17642.35, category: 'rewards', status: 'posted', account: 'BOA-ADV-7522' },
+  { id: 'TXN-0010', date: '2026-06-26', description: 'DELTA AIR LINES 0062 06/25 PURCHASE Atlanta GA', type: 'Debit Card', amount: -612.30, availableBalance: 17623.60, category: 'travel', status: 'posted', account: 'BOA-ADV-7522' },
 ];
 
 /**
@@ -34,20 +34,21 @@ const TRANSACTIONS = [
  * lookback window used to bound the transaction search.
  */
 const STATEMENT_PERIODS = {
+  'transaction-history': { label: 'Transaction history', days: 90 },
   'last-30': { label: 'Last 30 days', days: 30 },
-  'last-90': { label: 'Last 90 days', days: 90 },
-  'last-12-months': { label: 'Last 12 months', days: 365 },
-  'year-to-date': { label: 'Year to date', days: 174 },
+  'last-60': { label: 'Last 60 days', days: 60 },
+  'this-statement': { label: 'This statement period', days: 31 },
+  'year-to-date': { label: 'Year to date', days: 210 },
 };
 
-const CATEGORIES = ['all', 'income', 'transfers', 'groceries', 'gas', 'bills', 'travel', 'rewards'];
+const CATEGORIES = ['all', 'income', 'transfers', 'bills', 'shopping', 'travel', 'rewards'];
 
 /**
  * Resolve the date bounds for a statement period.
  */
 function resolveStatementPeriod(periodId) {
-  const period = STATEMENT_PERIODS[periodId] || STATEMENT_PERIODS['last-30'];
-  const end = new Date('2026-06-23T00:00:00Z');
+  const period = STATEMENT_PERIODS[periodId] || STATEMENT_PERIODS['transaction-history'];
+  const end = new Date('2026-07-30T00:00:00Z');
   const start = new Date(end.getTime() - period.days * 24 * 60 * 60 * 1000);
   return { label: period.label, window: { start, end } };
 }
