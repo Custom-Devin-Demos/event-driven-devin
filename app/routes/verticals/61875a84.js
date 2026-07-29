@@ -25,7 +25,7 @@ router.post('/api/61875a84/transactions', async (req, res) => {
       period: req.body.period || 'transaction-history',
       category: req.body.category || 'all',
       query: req.body.query || '',
-      userId: req.body.userId || 'usr_arjun_mishra',
+      userId: req.body.userId || 'usr_boa_demo',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
