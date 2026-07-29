@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIS &mdash; Payments One</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f4f5f9;
+      --border: #d8dae6;
+      --border-light: #e6e8f0;
+      --text: #1d1f48;
+      --text-muted: #5a5d7a;
+      --text-dim: #8b8ea8;
+      --fis-navy: #1d1f48;
+      --fis-navy-deep: #090924;
+      --fis-green: #4bcd3e;
+      --fis-green-dark: #37a52c;
+      --fis-teal: #009775;
+      --fis-purple: #431c5b;
+      --fis-magenta: #b21a53;
+      --pos: #0f8a3c;
+      --neg: #c0322b;
+      --danger: #c0322b;
+      --danger-bg: rgba(192,50,43,0.06);
+      --danger-border: rgba(192,50,43,0.22);
+      --success: #0f8a3c;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      font-size: 14px;
+    }
+    a { color: var(--fis-teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Top Nav ── */
+    .topbar {
+      display: flex; align-items: center; gap: 1.75rem;
+      padding: 0.6rem 1.5rem;
+      background: var(--fis-navy);
+      color: #fff;
+    }
+    .logo { display: inline-flex; align-items: baseline; gap: 0.5rem; flex-shrink: 0; }
+    .logo .mark {
+      font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em; color: #fff;
+      border-bottom: 3px solid var(--fis-green); padding-bottom: 1px;
+    }
+    .logo .sub { font-size: 0.78rem; font-weight: 600; color: #b9bcd4; letter-spacing: 0.04em; text-transform: uppercase; }
+    .mainnav { display: flex; align-items: center; gap: 1.4rem; }
+    .mainnav a {
+      color: #d5d7e8; font-size: 0.9rem; font-weight: 600;
+      padding: 0.5rem 0; position: relative;
+    }
+    .mainnav a:hover { color: #fff; text-decoration: none; }
+    .mainnav a.active { color: #fff; }
+    .mainnav a.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -0.62rem;
+      height: 3px; background: var(--fis-green); border-radius: 2px;
+    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 1.1rem; }
+    .search-box {
+      display: flex; align-items: center; gap: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.22); border-radius: 6px;
+      padding: 0.4rem 0.75rem; width: 230px; color: #b9bcd4; font-size: 0.85rem;
+    }
+    .search-box svg { flex-shrink: 0; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--fis-green); color: var(--fis-navy-deep);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 800;
+    }
+
+    /* ── Sub Nav ── */
+    .subnav {
+      display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+      padding: 0.6rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+    .subnav a { color: var(--text); font-size: 0.8rem; font-weight: 600; }
+    .subnav a:first-child { color: var(--fis-teal); }
+
+    /* ── Layout ── */
+    .layout { display: flex; align-items: flex-start; min-height: calc(100vh - 210px); }
+    .main {
+      flex: 1; min-width: 0;
+      padding: 1.5rem clamp(1rem, 2.5vw, 2rem);
+      background: var(--bg-alt);
+    }
+    .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.1rem; }
+    .head h1 { font-size: 1.85rem; font-weight: 800; color: var(--fis-navy); letter-spacing: -0.02em; }
+    .head .asof { font-size: 0.78rem; color: var(--text-dim); }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-bottom: 1.35rem; }
+    .kpi { background: #fff; border: 1px solid var(--border-light); border-radius: 8px; padding: 0.85rem 1rem; }
+    .kpi .l { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
+    .kpi .v { font-size: 1.45rem; font-weight: 800; color: var(--fis-navy); letter-spacing: -0.02em; margin-top: 0.2rem; }
+    .kpi .d { font-size: 0.76rem; font-weight: 600; color: var(--pos); }
+    .kpi .d.neg { color: var(--neg); }
+
+    .tabs { display: flex; align-items: center; gap: 1.6rem; border-bottom: 1px solid var(--border); margin-bottom: 0.25rem; overflow-x: auto; }
+    .tabs a { color: var(--text); font-size: 0.88rem; font-weight: 600; padding: 0.7rem 0; white-space: nowrap; position: relative; }
+    .tabs a.active { color: var(--fis-teal); }
+    .tabs a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; background: var(--fis-teal); }
+
+    /* ── Authorization Table ── */
+    .auths { width: 100%; border-collapse: collapse; background: #fff; }
+    .auths thead th {
+      text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-dim);
+      padding: 0.7rem 0.85rem; border-bottom: 1px solid var(--border);
+      background: #fff; white-space: nowrap;
+    }
+    .auths tbody td { padding: 0.72rem 0.85rem; border-bottom: 1px solid var(--border-light); font-size: 0.86rem; }
+    .auths tbody tr { cursor: pointer; }
+    .auths tbody tr:hover { background: #f7fbf6; }
+    .auths tbody tr.selected { background: rgba(75,205,62,0.09); }
+    .mer-name { font-weight: 700; color: var(--fis-navy); }
+    .mer-id { font-family: var(--mono); font-size: 0.74rem; color: var(--text-dim); }
+    .amt { font-family: var(--mono); font-weight: 600; text-align: right; }
+    .net-badge {
+      display: inline-block; padding: 0.12rem 0.45rem; border-radius: 4px;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+      background: #eef0f8; color: var(--fis-navy);
+    }
+    .chan { font-size: 0.78rem; color: var(--text-muted); }
+    .pill {
+      display: inline-block; padding: 0.14rem 0.5rem; border-radius: 999px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .pill.ok { background: rgba(15,138,60,0.1); color: var(--pos); }
+    .pill.pend { background: rgba(178,26,83,0.09); color: var(--fis-magenta); }
+
+    /* ── Right Rail: Authorization Simulator ── */
+    .simpanel {
+      width: 380px; flex-shrink: 0; background: #fff;
+      border-left: 1px solid var(--border); align-self: stretch;
+    }
+    .sp-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.8rem 1rem; background: var(--fis-navy); color: #fff;
+    }
+    .sp-title { font-size: 0.95rem; font-weight: 700; }
+    .sp-header-icons { display: flex; gap: 0.65rem; color: #b9bcd4; font-size: 1rem; }
+    .sp-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .sp-tab {
+      flex: 1; text-align: center; padding: 0.6rem 0.4rem;
+      font-size: 0.8rem; font-weight: 700; color: var(--text-muted); cursor: pointer;
+    }
+    .sp-tab.active { color: var(--fis-teal); box-shadow: inset 0 -3px 0 var(--fis-teal); }
+    .sp-body { padding: 1rem; }
+    .sp-acct {
+      display: flex; align-items: center; justify-content: space-between;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.55rem 0.7rem; font-weight: 600; font-size: 0.86rem; margin-bottom: 0.6rem;
+    }
+    .sp-cash {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.9rem;
+    }
+    .sp-cash strong { font-family: var(--mono); color: var(--fis-navy); font-size: 0.9rem; }
+    .sp-card {
+      display: flex; align-items: center; gap: 0.55rem;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.55rem 0.7rem; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.86rem;
+    }
+    .sp-card .x { margin-left: auto; color: var(--text-dim); }
+    .sp-quote {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 0.7rem 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);
+    }
+    .q-amt { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; font-family: var(--mono); }
+    .q-sub { font-size: 0.76rem; color: var(--text-muted); }
+    .q-right { text-align: right; font-size: 0.76rem; color: var(--text-muted); line-height: 1.7; }
+    .q-right b { font-family: var(--mono); color: var(--fis-navy); }
+    .sp-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim); padding: 0.45rem 0 0.9rem; }
+
+    .sp-field { margin-bottom: 0.8rem; }
+    .sp-field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.3rem; }
+    .sp-field .info { color: var(--text-dim); font-weight: 400; }
+    .sp-field select, .sp-field input {
+      width: 100%; padding: 0.5rem 0.65rem; font-family: inherit; font-size: 0.88rem;
+      border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text);
+    }
+    .toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .toggle button {
+      flex: 1; padding: 0.45rem 0.5rem; background: #fff; border: none; cursor: pointer;
+      font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(--text-muted);
+    }
+    .toggle button.active { background: var(--fis-navy); color: #fff; }
+
+    .sp-est {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 0; border-top: 1px solid var(--border-light); margin-top: 0.4rem;
+    }
+    .sp-est .lbl { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); }
+    .sp-est .amt { font-size: 1.05rem; font-weight: 800; font-family: var(--mono); }
+    .sp-est-note { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.9rem; }
+
+    .sp-actions { display: flex; align-items: center; gap: 1rem; }
+    .sp-actions a { font-size: 0.8rem; font-weight: 600; }
+    .auth-btn {
+      margin-left: auto; padding: 0.55rem 1.5rem; border: none; border-radius: 6px;
+      background: var(--fis-green); color: var(--fis-navy-deep);
+      font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer;
+    }
+    .auth-btn:hover { background: var(--fis-green-dark); color: #fff; }
+    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .sp-processing {
+      display: none; align-items: center; gap: 0.6rem;
+      margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);
+    }
+    .sp-processing.visible { display: flex; }
+    .spinner {
+      width: 16px; height: 16px; border: 2px solid var(--border);
+      border-top-color: var(--fis-green); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sp-result { margin-top: 1rem; border-radius: 8px; padding: 0; }
+    .sp-result.error { background: var(--danger-bg); border: 1px solid var(--danger-border); padding: 0.85rem; }
+    .sp-result.success { background: rgba(15,138,60,0.06); border: 1px solid rgba(15,138,60,0.22); padding: 0.85rem; }
+    .sp-result h4 { font-size: 0.88rem; margin-bottom: 0.35rem; }
+    .sp-result.error h4 { color: var(--danger); }
+    .sp-result.success h4 { color: var(--success); }
+    .sp-result p { font-size: 0.82rem; color: var(--text-muted); }
+    .sp-result code { font-family: var(--mono); font-size: 0.76rem; color: var(--text); word-break: break-word; }
+    .sp-result .meta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.72rem; color: var(--text-dim); }
+
+    .bug-hint {
+      margin: 1.5rem clamp(1rem, 2.5vw, 2rem);
+      padding: 0.9rem 1.1rem;
+      border: 1px dashed var(--border);
+      border-left: 3px solid var(--fis-green);
+      border-radius: 6px; background: #fafbfd;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    .bug-hint strong { color: var(--fis-navy); }
+    .bug-hint code { font-family: var(--mono); font-size: 0.78rem; color: var(--fis-magenta); }
+
+    footer {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+      padding: 1.1rem clamp(1rem, 2.5vw, 2rem);
+      border-top: 1px solid var(--border); background: #fff;
+    }
+    footer .fb { font-size: 0.78rem; color: var(--text-muted); }
+    footer .fd { font-size: 0.74rem; color: var(--text-dim); }
+
+    @media (max-width: 980px) {
+      .layout { flex-direction: column; }
+      .simpanel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+      .topbar-right .search-box { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="logo"><span class="mark">FIS</span><span class="sub">Payments One</span></div>
+    <div class="mainnav">
+      <a href="#">Dashboard</a>
+      <a href="#" class="active">Authorizations</a>
+      <a href="#">Settlement</a>
+      <a href="#">Merchants</a>
+      <a href="#">Disputes</a>
+      <a href="#">Reporting</a>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search transactions
+      </div>
+      <span class="avatar">AC</span>
+    </div>
+  </div>
+
+  <div class="subnav">
+    <a href="#">Authorization Stream</a>
+    <a href="#">Interchange Programs</a>
+    <a href="#">Network Assessments</a>
+    <a href="#">Chargebacks</a>
+    <a href="#">Funding Batches</a>
+    <a href="#">Risk Rules</a>
+    <a href="#">Tokenization</a>
+    <a href="#">Reconciliation</a>
+  </div>
+
+  <div class="layout">
+    <main class="main">
+      <div class="head">
+        <h1>Authorization Stream</h1>
+        <div class="asof">Live &middot; acquirer BIN 431940 <a href="/">&larr; All Demos</a></div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="l">Auths today</div><div class="v">1,284,907</div><div class="d">+3.4% vs. yesterday</div></div>
+        <div class="kpi"><div class="l">Approval rate</div><div class="v">96.2%</div><div class="d">+0.3 pts</div></div>
+        <div class="kpi"><div class="l">Avg. auth latency</div><div class="v">148 ms</div><div class="d neg">+11 ms</div></div>
+        <div class="kpi"><div class="l">Settled volume</div><div class="v">$84.1M</div><div class="d">+2.1%</div></div>
+      </div>
+
+      <div class="tabs">
+        <a href="#" class="active">Merchants</a>
+        <a href="#">By network</a>
+        <a href="#">By issuer</a>
+        <a href="#">Declines</a>
+        <a href="#">Cross-border</a>
+        <a href="#">Fee exceptions</a>
+      </div>
+
+      <table class="auths">
+        <thead>
+          <tr>
+            <th>Merchant</th>
+            <th>MCC</th>
+            <th>Network</th>
+            <th>Channel</th>
+            <th>Region</th>
+            <th style="text-align:right">Last auth</th>
+            <th style="text-align:right">Today volume</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="merchantsBody"></tbody>
+      </table>
+    </main>
+
+    <aside class="simpanel">
+      <div class="sp-header">
+        <div class="sp-title">Authorization Simulator</div>
+        <div class="sp-header-icons"><span>&hellip;</span><span>&times;</span></div>
+      </div>
+      <div class="sp-tabs">
+        <div class="sp-tab active">Card</div>
+        <div class="sp-tab">ACH</div>
+        <div class="sp-tab">Real-Time Payments</div>
+      </div>
+      <div class="sp-body">
+        <div class="sp-acct">
+          <span>Acquirer &nbsp;&hellip;1940</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="sp-cash"><span>Unsettled merchant balance</span><strong>$1,942,308.55</strong></div>
+
+        <div class="sp-card">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <span id="spMerchant">MID-4471902 &middot; Northwind Outfitters</span>
+          <span class="x">&times;</span>
+        </div>
+
+        <div class="sp-quote">
+          <div>
+            <div class="q-amt" id="spAmount">$248.50</div>
+            <div class="q-sub" id="spProgram">Visa &middot; card-not-present</div>
+          </div>
+          <div class="q-right">MCC <b id="spMcc">5651</b><br>Merchant country <b id="spCountry">GB</b></div>
+        </div>
+        <div class="sp-meta"><a href="#">Interchange qualification detail</a><span>Switch: fis-auth-edge-04</span></div>
+
+        <form id="authForm" onsubmit="submitAuthorization(event)">
+          <div class="sp-field">
+            <label>Transaction amount (USD) <span class="info">&#9432;</span></label>
+            <input type="number" id="amountInput" value="248.50" min="0.01" step="0.01">
+          </div>
+          <div class="sp-field">
+            <label>Issuer country <span class="info">&#9432;</span></label>
+            <select id="issuerSelect">
+              <option value="US" selected>US &mdash; United States</option>
+              <option value="GB">GB &mdash; United Kingdom</option>
+              <option value="EU">EU &mdash; Eurozone</option>
+            </select>
+          </div>
+          <div class="sp-field">
+            <label>Risk score <span class="info">&#9432;</span></label>
+            <input type="number" id="riskInput" value="12" min="0" max="100">
+          </div>
+          <div class="sp-field">
+            <label>Capture mode <span class="info">&#9432;</span></label>
+            <div class="toggle">
+              <button type="button" class="active" id="capAuto" onclick="setCapture('auto')">Auto capture</button>
+              <button type="button" id="capManual" onclick="setCapture('manual')">Auth only</button>
+            </div>
+          </div>
+
+          <div class="sp-est"><span class="lbl">Estimated merchant net <span class="info">&#9432;</span></span><span class="amt" id="estNet">$244.01</span></div>
+          <div class="sp-est-note">Estimate excludes cross-border assessments until the ledger is priced</div>
+
+          <div class="sp-actions">
+            <a href="#">Full auth request</a>
+            <a href="#" onclick="clearResult(event)">Clear</a>
+            <button type="submit" class="auth-btn" id="authBtn">Authorize</button>
+          </div>
+        </form>
+
+        <div class="sp-processing" id="spProcessing"><div class="spinner"></div><span>Routing to issuer &amp; pricing settlement&hellip;</span></div>
+        <div class="sp-result" id="spResult"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="bug-hint">
+    <strong>&#x1F41E; Demo bug:</strong> The authorization pipeline force-assesses a mandatory cross-border fee
+    (<code>NET-ISA-CB-2026</code>) on every card-not-present authorization where the issuer country differs from
+    the merchant country, but that fee code isn&rsquo;t registered in the interchange fee schedule. When the
+    settlement ledger resolves the fee&rsquo;s basis points, it crashes with a <code>TypeError</code> &mdash;
+    blocking the authorization. Click <strong>Authorize</strong> (Northwind Outfitters is a GB card-not-present
+    merchant, issuer country US) to surface it and trigger the Sentry &rarr; Slack &rarr; Devin investigation
+    pipeline.
+  </div>
+
+  <footer>
+    <div class="fb">Fidelity National Information Services, Inc. &copy; 2026 &middot; Payments One</div>
+    <div class="fd">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var MERCHANTS = [
+      { id: 'MID-4471902', name: 'Northwind Outfitters', mcc: '5651', network: 'visa', channel: 'card_not_present', country: 'GB', last: 248.50, volume: 412885.20, status: 'ok' },
+      { id: 'MID-2280455', name: 'Riverside Grocers', mcc: '5411', network: 'visa', channel: 'card_present', country: 'US', last: 63.18, volume: 1284310.75, status: 'ok' },
+      { id: 'MID-9013774', name: 'Atlas Freight Systems', mcc: '4214', network: 'mastercard', channel: 'card_not_present', country: 'US', last: 4820.00, volume: 2740119.40, status: 'pend' },
+      { id: 'MID-6624108', name: 'Lakeshore Dental Group', mcc: '8021', network: 'mastercard', channel: 'card_present', country: 'US', last: 315.00, volume: 98470.10, status: 'ok' }
+    ];
+
+    var selected = MERCHANTS[0];
+    var captureMode = 'auto';
+
+    function fmt(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function channelLabel(c) { return c === 'card_present' ? 'Card present' : 'Card not present'; }
+
+    function renderTable() {
+      var html = '';
+      MERCHANTS.forEach(function (m, i) {
+        html += '<tr data-i="' + i + '" onclick="selectMerchant(' + i + ')"' + (m.id === selected.id ? ' class="selected"' : '') + '>' +
+          '<td><div class="mer-name">' + m.name + '</div><div class="mer-id">' + m.id + '</div></td>' +
+          '<td class="chan">' + m.mcc + '</td>' +
+          '<td><span class="net-badge">' + m.network + '</span></td>' +
+          '<td class="chan">' + channelLabel(m.channel) + '</td>' +
+          '<td class="chan">' + m.country + '</td>' +
+          '<td class="amt">$' + fmt(m.last) + '</td>' +
+          '<td class="amt">$' + fmt(m.volume) + '</td>' +
+          '<td><span class="pill ' + m.status + '">' + (m.status === 'ok' ? 'Settling' : 'Held') + '</span></td>' +
+          '</tr>';
+      });
+      document.getElementById('merchantsBody').innerHTML = html;
+    }
+
+    function updatePanel() {
+      var m = selected;
+      document.getElementById('spMerchant').innerHTML = m.id + ' &middot; ' + m.name;
+      document.getElementById('spProgram').textContent =
+        (m.network === 'visa' ? 'Visa' : 'Mastercard') + ' \u00b7 ' + channelLabel(m.channel).toLowerCase();
+      document.getElementById('spMcc').textContent = m.mcc;
+      document.getElementById('spCountry').textContent = m.country;
+      updateEstimate();
+    }
+
+    function updateEstimate() {
+      var amount = parseFloat(document.getElementById('amountInput').value) || 0;
+      var bps = selected.channel === 'card_present' ? 0.0150 : 0.0195;
+      document.getElementById('spAmount').textContent = '$' + fmt(amount);
+      document.getElementById('estNet').textContent = '$' + fmt(Math.max(0, amount - amount * bps - 0.12));
+    }
+
+    function selectMerchant(i) {
+      selected = MERCHANTS[i];
+      renderTable();
+      updatePanel();
+      var r = document.getElementById('spResult');
+      r.className = 'sp-result'; r.innerHTML = '';
+    }
+
+    function setCapture(mode) {
+      captureMode = mode;
+      document.getElementById('capAuto').classList.toggle('active', mode === 'auto');
+      document.getElementById('capManual').classList.toggle('active', mode === 'manual');
+    }
+
+    function clearResult(e) {
+      e.preventDefault();
+      var r = document.getElementById('spResult');
+      r.className = 'sp-result'; r.innerHTML = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      renderTable();
+      updatePanel();
+      document.getElementById('amountInput').addEventListener('input', updateEstimate);
+    });
+
+    function submitAuthorization(e) {
+      e.preventDefault();
+      var btn = document.getElementById('authBtn');
+      var processing = document.getElementById('spProcessing');
+      var result = document.getElementById('spResult');
+      result.className = 'sp-result'; result.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+
+      var amount = parseFloat(document.getElementById('amountInput').value) || 0;
+      var issuerCountry = document.getElementById('issuerSelect').value;
+      var riskScore = parseInt(document.getElementById('riskInput').value, 10) || 0;
+
+      fetch('/api/2ef89b23/authorize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: selected.id,
+          amount: amount,
+          cardBin: '431940',
+          issuerCountry: issuerCountry,
+          riskScore: riskScore,
+          captureMode: captureMode,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (r) {
+        processing.classList.remove('visible');
+        if (!r.ok || !r.data.success) {
+          result.className = 'sp-result error';
+          result.innerHTML =
+            '<h4>Authorization Failed &mdash; Settlement Not Priced</h4>' +
+            '<p>This authorization could not be completed.<br><code>' + (r.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="meta">' +
+            '<span>Error: ' + (r.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (r.data.code || 'AUTHORIZATION_FAILED') + '</span>' +
+            '<span>Request: ' + (r.data.requestId || 'N/A') + '</span>' +
+            '</div>';
+        } else {
+          result.className = 'sp-result success';
+          result.innerHTML =
+            '<h4>Approved &mdash; ' + r.data.approvalCode + '</h4>' +
+            '<p>$' + fmt(r.data.amount) + ' at ' + r.data.merchantName + ' &middot; fees $' + fmt(r.data.totalFees) +
+            ', net $' + fmt(r.data.netSettlement) + '.<br>' + r.data.railLabel + ' &middot; auth ' + r.data.authId + '.</p>';
+        }
+        btn.disabled = false;
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        result.className = 'sp-result error';
+        result.innerHTML = '<h4>Network Error</h4><p><code>' + err.message + '</code></p>';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
