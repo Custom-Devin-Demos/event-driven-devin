@@ -242,6 +242,10 @@ const CUSTOMERS = {
     label: 'Bank of America',
     triggerMode: 'api',
   },
+  '61875a84': {
+    label: 'Bank of America Transactions',
+    triggerMode: 'api',
+  },
   ad960e6a: {
     label: 'Comcast Business',
     triggerMode: 'api',
