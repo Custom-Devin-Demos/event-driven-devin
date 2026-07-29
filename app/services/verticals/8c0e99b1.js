@@ -66,7 +66,7 @@ const VELOCITY_ADDONS = [
  * Resolve the CloudSuite catalog entry for an industry selection.
  */
 function resolveSuite(industry) {
-  const key = String(industry || '').trim().toUpperCase().replace(/\s+/g, '_');
+  const key = String(industry || '').trim().toLowerCase().replace(/[\s_]+/g, '-');
   return { key, suite: CLOUDSUITES[key] };
 }
 
@@ -74,6 +74,10 @@ function resolveSuite(industry) {
  * Build the deployment plan for the requested modules and region.
  */
 function buildDeploymentPlan(resolved, region, requestedModules) {
+  if (!resolved.suite) {
+    throw new Error(`Unsupported industry: ${resolved.key || 'unknown'}`);
+  }
+
   const { modules, deployment } = resolved.suite;
   const activeModules = requestedModules.filter((m) => modules.includes(m));
   const target = deployment.regions.find((r) => r.id === region) || deployment.regions[0];
