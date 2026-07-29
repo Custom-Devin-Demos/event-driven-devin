@@ -387,6 +387,10 @@ const CUSTOMERS = {
     label: 'Procurement Resources Library',
     triggerMode: 'api',
   },
+  '88ad5a84': {
+    label: 'RBC Online Banking',
+    triggerMode: 'api',
+  },
 };
 
 /**

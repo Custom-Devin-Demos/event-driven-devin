@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accounts Summary | RBC Online Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rbc-blue: #0051A5;
+      --rbc-blue-dark: #003d7d;
+      --rbc-navy: #001E43;
+      --rbc-yellow: #FEDF01;
+      --rbc-link: #006AC3;
+      --ink: #252525;
+      --muted: #5f6a72;
+      --border: #d5dade;
+      --border-light: #e7ebee;
+      --bg: #f3f6f8;
+      --green: #018380;
+      --red: #b3272d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--ink); background: var(--bg); font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--rbc-link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Devin demo disclaimer ── */
+    .devin-demo-banner {
+      background: #111827; color: #fbbf24; text-align: center;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px;
+      padding: 9px 16px; line-height: 1.35;
+    }
+    .devin-demo-banner strong { color: #fff; }
+
+    /* ── Header ── */
+    header.masthead {
+      background: var(--rbc-blue); color: #fff;
+      display: flex; align-items: center; gap: 18px;
+      padding: 0 28px; height: 68px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { height: 38px; display: block; }
+    .brand .fallback { display: none; font-weight: 900; font-size: 24px; letter-spacing: -.5px; color: var(--rbc-yellow); }
+    .brand .wordmark { font-size: 19px; font-weight: 500; line-height: 1.15; }
+    .brand .wordmark small { display: block; font-size: 11px; letter-spacing: .8px; text-transform: uppercase; opacity: .85; }
+    .masthead .spacer { flex: 1; }
+    .masthead .user { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .masthead .user .avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,.18);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+    }
+    .masthead .signout {
+      color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 4px;
+      padding: 7px 14px; font-size: 13px; font-weight: 500;
+    }
+    .masthead .signout:hover { background: rgba(255,255,255,.12); text-decoration: none; }
+    @media (max-width: 760px) { .brand .wordmark, .masthead .user span.name { display: none; } }
+
+    /* ── Primary nav ── */
+    nav.primary {
+      background: #fff; border-bottom: 3px solid var(--rbc-yellow);
+      display: flex; align-items: center; gap: 4px; padding: 0 28px; overflow-x: auto;
+    }
+    nav.primary a {
+      color: var(--ink); font-size: 14px; font-weight: 500; padding: 15px 16px;
+      white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px;
+    }
+    nav.primary a:hover { text-decoration: none; color: var(--rbc-blue); }
+    nav.primary a.active { color: var(--rbc-blue); border-bottom-color: var(--rbc-blue); font-weight: 700; }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 24px 20px 72px; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    h1 { font-size: 26px; font-weight: 700; color: var(--rbc-navy); }
+    .last-signin { color: var(--muted); font-size: 12px; }
+    .secure-flag { display: flex; align-items: center; gap: 7px; color: var(--green); font-size: 13px; font-weight: 500; }
+    .grid { display: grid; grid-template-columns: 1fr 366px; gap: 22px; align-items: start; }
+    @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 18px; overflow: hidden; }
+    .card-head {
+      display: flex; align-items: center; gap: 10px; padding: 14px 20px;
+      border-bottom: 1px solid var(--border-light); background: #fbfcfd;
+    }
+    .card-head h2 { font-size: 15px; font-weight: 700; color: var(--rbc-navy); text-transform: uppercase; letter-spacing: .4px; }
+    .card-head .link { margin-left: auto; font-size: 13px; }
+
+    /* ── Account rows ── */
+    .acct { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
+    .acct:last-child { border-bottom: none; }
+    .acct:hover { background: #f7fbff; }
+    .acct-icon {
+      width: 44px; height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--rbc-blue), #0067cf); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    }
+    .acct-icon.visa { background: linear-gradient(135deg, #1a1f71, #3b3fa1); }
+    .acct-icon.save { background: linear-gradient(135deg, #016b68, #019a95); }
+    .acct-icon.loan { background: linear-gradient(135deg, #4a4f54, #6d747a); }
+    .acct-name { font-weight: 500; color: var(--rbc-link); }
+    .acct-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .acct-amt { text-align: right; font-weight: 700; font-size: 16px; white-space: nowrap; }
+    .acct-amt small { display: block; font-weight: 400; font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .acct-amt.negative { color: var(--red); }
+    .group-total { display: flex; justify-content: space-between; padding: 12px 20px; background: #f4f8fb; font-size: 13px; font-weight: 700; color: var(--rbc-navy); }
+
+    /* ── Transactions ── */
+    table.txn { width: 100%; border-collapse: collapse; }
+    table.txn th {
+      text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+      color: var(--muted); padding: 10px 20px; background: #fbfcfd; border-bottom: 1px solid var(--border-light);
+    }
+    table.txn td { padding: 13px 20px; border-bottom: 1px solid var(--border-light); font-size: 13px; }
+    table.txn tr:last-child td { border-bottom: none; }
+    table.txn td.amt { text-align: right; font-weight: 500; white-space: nowrap; }
+    table.txn td.amt.credit { color: var(--green); }
+
+    /* ── Transfer panel ── */
+    .panel { position: sticky; top: 18px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 5px; }
+    .field select, .field input {
+      width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 11px 12px;
+      font-family: inherit; font-size: 14px; color: var(--ink); background: #fff;
+    }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--rbc-blue); box-shadow: 0 0 0 3px rgba(0,81,165,.12); }
+    .amount-wrap { position: relative; }
+    .amount-wrap span.cur { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .amount-wrap input { padding-left: 26px; }
+    .limit-note { background: #eef5fb; border-radius: 4px; padding: 11px 13px; font-size: 12px; color: #234; line-height: 1.5; margin-bottom: 16px; }
+    .btn-primary {
+      width: 100%; background: var(--rbc-blue); color: #fff; border: none; border-radius: 4px;
+      padding: 14px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--rbc-blue-dark); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .quick-links { padding: 4px 20px 18px; }
+    .quick-links a { display: block; padding: 9px 0; font-size: 13px; border-bottom: 1px solid var(--border-light); }
+    .quick-links a:last-child { border-bottom: none; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 22px; bottom: 22px; z-index: 999; max-width: 400px;
+      background: #fff; border-left: 5px solid var(--red); border-radius: 6px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.22); padding: 15px 18px;
+      transform: translateY(200%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--green); }
+    .toast-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.45; word-break: break-word; }
+
+    footer.site { background: #fff; border-top: 1px solid var(--border); padding: 24px 20px; text-align: center; color: var(--muted); font-size: 12px; }
+    footer.site a { color: var(--muted); margin: 0 9px; }
+    footer.site .legal { margin-top: 12px; line-height: 1.6; max-width: 760px; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+  <div class="devin-demo-banner">
+    <strong>Devin demo copy</strong> — this is a demonstration clone built by Devin, <strong>not the real RBC Royal Bank website</strong> and not affiliated with or endorsed by Royal Bank of Canada. For demo purposes only.
+  </div>
+
+  <header class="masthead">
+    <div class="brand">
+      <img src="https://www.rbcroyalbank.com/dvl/v0.2/assets/images/logos/rbc-logo-shield.svg"
+           alt="RBC Royal Bank"
+           onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='block';">
+      <span class="fallback">RBC</span>
+      <span class="wordmark">Royal Bank<small>Online Banking</small></span>
+    </div>
+    <div class="spacer"></div>
+    <div class="user">
+      <span class="avatar">JM</span>
+      <span class="name">Jordan Mitchell</span>
+    </div>
+    <a href="#" class="signout">Sign Out</a>
+  </header>
+
+  <nav class="primary">
+    <a href="#" class="active">My Accounts</a>
+    <a href="#">Pay Bills &amp; Transfer Funds</a>
+    <a href="#">Interac e-Transfer</a>
+    <a href="#">Investments</a>
+    <a href="#">Borrowing</a>
+    <a href="#">Rewards</a>
+    <a href="#">Customer Service</a>
+  </nav>
+
+  <div class="wrap">
+    <div class="page-head">
+      <div>
+        <h1>Accounts Summary</h1>
+        <div class="last-signin">Last sign in: Tue, Jul 28, 2026 at 8:14 PM ET</div>
+      </div>
+      <div class="secure-flag">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        Secure session
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: accounts + activity -->
+      <div>
+        <div class="card">
+          <div class="card-head"><h2>Bank Accounts</h2><a href="#" class="link">View all</a></div>
+          <div class="acct">
+            <span class="acct-icon">CHQ</span>
+            <div>
+              <div class="acct-name">RBC Day to Day Banking</div>
+              <div class="acct-meta">05812&nbsp;&middot;&nbsp;1004-729</div>
+            </div>
+            <div class="acct-amt">$4,286.51<small>Available</small></div>
+          </div>
+          <div class="acct">
+            <span class="acct-icon save">SAV</span>
+            <div>
+              <div class="acct-name">RBC High Interest eSavings</div>
+              <div class="acct-meta">05812&nbsp;&middot;&nbsp;4471-118</div>
+            </div>
+            <div class="acct-amt">$18,940.22<small>Available</small></div>
+          </div>
+          <div class="group-total"><span>Total bank accounts</span><span>$23,226.73</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Credit Cards</h2><a href="#" class="link">View all</a></div>
+          <div class="acct">
+            <span class="acct-icon visa">VISA</span>
+            <div>
+              <div class="acct-name">RBC Avion Visa Infinite</div>
+              <div class="acct-meta">4519 **** **** 8802&nbsp;&middot;&nbsp;Payment due Aug 12</div>
+            </div>
+            <div class="acct-amt negative">-$1,742.09<small>Balance</small></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Loans &amp; Mortgages</h2><a href="#" class="link">View all</a></div>
+          <div class="acct">
+            <span class="acct-icon loan">MTG</span>
+            <div>
+              <div class="acct-name">RBC Homeline Plan Mortgage</div>
+              <div class="acct-meta">Renews Mar 1, 2029&nbsp;&middot;&nbsp;4.79% fixed</div>
+            </div>
+            <div class="acct-amt negative">-$312,884.10<small>Principal</small></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Recent Activity</h2><a href="#" class="link">Download</a></div>
+          <table class="txn">
+            <thead>
+              <tr><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Jul 28</td><td>Interac e-Transfer sent &mdash; A. Whitfield</td><td class="amt">-$240.00</td></tr>
+              <tr><td>Jul 27</td><td>Payroll Deposit &mdash; NORTHWIND LOGISTICS</td><td class="amt credit">+$2,145.66</td></tr>
+              <tr><td>Jul 26</td><td>Loblaws #1284 Toronto ON</td><td class="amt">-$118.42</td></tr>
+              <tr><td>Jul 25</td><td>Pre-Authorized Payment &mdash; Enbridge Gas</td><td class="amt">-$86.19</td></tr>
+              <tr><td>Jul 24</td><td>Transfer to RBC High Interest eSavings</td><td class="amt">-$500.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: transfer funds -->
+      <aside class="panel">
+        <div class="card">
+          <div class="card-head"><h2>Transfer Funds</h2></div>
+          <div style="padding:18px 20px 20px;">
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="CHQ-1004729">RBC Day to Day Banking (1004-729) — $4,286.51</option>
+                <option value="SAV-4471118">RBC High Interest eSavings (4471-118) — $18,940.22</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="SAV-4471118">RBC High Interest eSavings (4471-118)</option>
+                <option value="CC-8802">RBC Avion Visa Infinite (****8802)</option>
+                <option value="MTG-90114">RBC Homeline Plan Mortgage</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="amount">Amount (CAD)</label>
+              <div class="amount-wrap">
+                <span class="cur">$</span>
+                <input type="text" id="amount" value="750.00" inputmode="decimal">
+              </div>
+            </div>
+            <div class="field">
+              <label for="when">Transfer date</label>
+              <input type="text" id="when" value="Today — Jul 29, 2026" readonly>
+            </div>
+            <div class="limit-note">
+              Transfers between your own RBC accounts are immediate. Daily limits are set by your banking package.
+            </div>
+            <button class="btn-primary" id="transferBtn">Transfer Now</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Quick Links</h2></div>
+          <div class="quick-links">
+            <a href="#">Send an Interac e-Transfer</a>
+            <a href="#">Pay a bill</a>
+            <a href="#">Order cheques</a>
+            <a href="#">Manage Avion Rewards points</a>
+            <a href="#">Book an appointment with an advisor</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div style="margin-bottom:10px;font-weight:700;color:var(--rbc-blue);font-size:16px;">RBC Royal Bank</div>
+    <div>
+      <a href="#">Legal</a><a href="#">Accessibility</a><a href="#">Privacy &amp; Security</a><a href="#">Contact Us</a>
+    </div>
+    <p class="legal">&copy; 2026 Royal Bank of Canada. Demonstration clone for software testing purposes only.</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('transferBtn').addEventListener('click', async function () {
+      var btn = this;
+      btn.disabled = true; btn.textContent = 'Processing transfer…';
+      try {
+        var res = await fetch('/api/88ad5a84/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value.replace(/[^0-9.]/g, '')) || 0,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', "We couldn't complete your transfer", (data.errorClass || 'Error') + ': ' + data.error);
+        } else {
+          showToast('success', 'Transfer complete', 'Confirmation ' + String(data.confirmationNumber)
+            + ' • $' + data.amount.toFixed(2) + ' CAD');
+        }
+      } catch (err) {
+        showToast('error', 'Network error', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Transfer Now';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
