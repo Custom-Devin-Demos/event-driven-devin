@@ -399,6 +399,10 @@ const CUSTOMERS = {
     label: 'FIS Payments One',
     triggerMode: 'api',
   },
+  '9db3d08f': {
+    label: 'Insurance Claims Workspace',
+    triggerMode: 'api',
+  },
 };
 
 /**

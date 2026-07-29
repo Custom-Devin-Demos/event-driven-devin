@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ClaimCenter — Claims Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+.devin-toast { position: fixed; right: 24px; bottom: 24px; z-index: 100000; max-width: 420px; background: #fff; color: #0e191e; border-left: 5px solid #c02b0a; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 16px 18px; transform: translateY(160%); transition: transform .35s ease; font-family: 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.devin-toast.show { transform: translateY(0); }
+.devin-toast.success { border-left-color: #00739d; }
+.devin-toast-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.devin-toast-detail { font-size: 13px; color: #3a3f4a; line-height: 1.45; word-break: break-word; }
+</style>
+<style>
+.devin-demo-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 99999; background: #0e191e; color: #fff; font-family: 'Source Sans 3', system-ui, sans-serif; font-size: 14px; text-align: center; padding: 10px 16px; line-height: 1.4; }
+.devin-demo-banner strong { color: #ffc000; }
+body { padding-top: 38px !important; }
+</style>
+<style>
+:root {
+  --gw-blue: #00739d;
+  --gw-blue-dark: #004d69;
+  --gw-teal: #038898;
+  --gw-cyan: #1eb7df;
+  --gw-yellow: #ffc000;
+  --gw-ink: #0e191e;
+  --gw-ink-2: #165166;
+  --gw-gray-900: #111827;
+  --gw-gray-700: #374151;
+  --gw-gray-600: #4b5563;
+  --gw-gray-500: #6b7280;
+  --gw-gray-400: #9ca3af;
+  --gw-gray-300: #d1d5db;
+  --gw-gray-200: #e5e7eb;
+  --gw-gray-100: #f3f4f6;
+}
+* { box-sizing: border-box; min-width: 0; }
+html { scroll-behavior: smooth; }
+body { margin: 0; padding: 0; background: #f6f8f9; color: var(--gw-ink); font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; }
+h1, h2, h3, .brand-font { font-family: 'brother-1816', 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+/* ---- App shell top bar ---- */
+.gw-topbar { background: var(--gw-ink); color: #fff; display: flex; align-items: center; gap: 28px; padding: 0 24px; height: 56px; }
+.gw-topbar .logo-wrap { display: flex; align-items: center; gap: 12px; }
+.gw-topbar img.gw-logo { height: 24px; width: auto; display: block; filter: brightness(0) invert(1); }
+.gw-topbar .logo-fallback { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .04em; color: #fff; }
+.gw-topbar .product-name { font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 15px; color: #fff; border-left: 1px solid rgba(255,255,255,.28); padding-left: 12px; letter-spacing: .01em; }
+.gw-nav { display: flex; align-items: stretch; height: 100%; margin-left: 8px; }
+.gw-nav a { display: flex; align-items: center; padding: 0 16px; color: rgba(255,255,255,.82); text-decoration: none; font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; }
+.gw-nav a.active { color: #fff; border-bottom-color: var(--gw-yellow); background: rgba(255,255,255,.06); }
+.gw-nav a:hover { color: #fff; }
+.gw-topbar .spacer { flex: 1; }
+.gw-topbar .env-pill { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--gw-ink); background: var(--gw-yellow); border-radius: 3px; padding: 3px 8px; }
+.gw-topbar .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gw-blue); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+
+/* ---- Page header ---- */
+.page-head { background: #fff; border-bottom: 1px solid var(--gw-gray-200); padding: 18px 28px 0; }
+.page-head-row { display: flex; align-items: center; gap: 16px; max-width: 1280px; margin: 0 auto; }
+.page-head h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--gw-ink); }
+.page-head .claim-count { font-size: 13px; color: var(--gw-gray-500); font-weight: 600; margin-top: 4px; }
+.page-head .head-actions { margin-left: auto; display: flex; gap: 10px; }
+.btn { font-family: inherit; font-size: 14px; font-weight: 600; border-radius: 4px; padding: 8px 16px; cursor: pointer; border: 1px solid var(--gw-gray-300); background: #fff; color: var(--gw-gray-700); }
+.btn-primary { background: var(--gw-blue); border-color: var(--gw-blue); color: #fff; }
+.btn-primary:hover { background: var(--gw-blue-dark); border-color: var(--gw-blue-dark); }
+
+/* ---- Status tabs ---- */
+.status-tabs { display: flex; gap: 4px; max-width: 1280px; margin: 14px auto 0; }
+.status-tab { border: none; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--gw-gray-600); padding: 10px 16px; cursor: pointer; border-bottom: 3px solid transparent; }
+.status-tab:hover { color: var(--gw-blue); }
+.status-tab.active { color: var(--gw-blue); border-bottom-color: var(--gw-blue); }
+.status-tab .count { display: inline-block; margin-left: 6px; background: var(--gw-gray-100); color: var(--gw-gray-600); border-radius: 10px; font-size: 12px; padding: 1px 8px; }
+.status-tab.active .count { background: #e0f1f7; color: var(--gw-blue); }
+
+/* ---- Filter bar ---- */
+.filter-bar { max-width: 1280px; margin: 18px auto 0; padding: 0 28px; display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+.filter-field { display: flex; flex-direction: column; gap: 5px; }
+.filter-field label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--gw-gray-500); }
+.filter-field select, .filter-field input[type="search"] { font-family: inherit; font-size: 14px; color: var(--gw-ink); background: #fff; border: 1px solid var(--gw-gray-300); border-radius: 4px; padding: 8px 10px; min-width: 190px; }
+.filter-field select:focus, .filter-field input:focus { outline: 2px solid var(--gw-cyan); outline-offset: 1px; }
+.filter-reset { font-size: 13px; font-weight: 600; color: var(--gw-blue); background: none; border: none; cursor: pointer; padding: 9px 4px; font-family: inherit; }
+
+/* ---- Claims table ---- */
+.claims-wrap { max-width: 1280px; margin: 18px auto 60px; padding: 0 28px; }
+.claims-card { background: #fff; border: 1px solid var(--gw-gray-200); border-radius: 6px; overflow: hidden; box-shadow: 0 1px 2px rgba(14,25,30,.05); }
+table.claims { width: 100%; border-collapse: collapse; }
+table.claims thead th { text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--gw-gray-500); background: var(--gw-gray-100); border-bottom: 1px solid var(--gw-gray-200); padding: 11px 16px; white-space: nowrap; }
+table.claims tbody td { padding: 13px 16px; border-bottom: 1px solid var(--gw-gray-200); font-size: 14px; color: var(--gw-gray-700); white-space: nowrap; }
+table.claims tbody tr:last-child td { border-bottom: none; }
+table.claims tbody tr:hover { background: #f2f9fc; }
+td.claim-no a { color: var(--gw-blue); font-weight: 700; text-decoration: none; }
+td.claim-no a:hover { text-decoration: underline; }
+td .insured { font-weight: 600; color: var(--gw-ink); }
+td .policy { display: block; font-size: 12px; color: var(--gw-gray-500); }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 10px; padding: 3px 10px; }
+.badge.open { background: #e0f1f7; color: var(--gw-blue-dark); }
+.badge.new { background: #fff4d6; color: #8a6400; }
+.badge.litigation { background: #fde8e4; color: #c02b0a; }
+.badge.closed { background: var(--gw-gray-100); color: var(--gw-gray-600); }
+td.incurred { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--gw-ink); text-align: right; }
+.table-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; font-size: 13px; color: var(--gw-gray-500); background: #fff; }
+.table-foot .pager { display: flex; gap: 6px; }
+.table-foot .pager button { border: 1px solid var(--gw-gray-300); background: #fff; color: var(--gw-gray-600); border-radius: 4px; padding: 5px 10px; font-family: inherit; font-size: 13px; cursor: pointer; }
+.table-foot .pager button.current { background: var(--gw-blue); border-color: var(--gw-blue); color: #fff; font-weight: 700; }
+
+/* ---- Footer ---- */
+.gw-footer { border-top: 1px solid var(--gw-gray-200); background: #fff; padding: 16px 28px; font-size: 12px; color: var(--gw-gray-500); text-align: center; }
+</style>
+</head>
+<body>
+<div class="devin-demo-banner"><strong>Devin demo copy</strong> — this is NOT the real Guidewire software. Built for an Event-Driven Devin demonstration only.</div>
+
+<header class="gw-topbar">
+  <div class="logo-wrap">
+    <img class="gw-logo" src="https://edge.sitecorecloud.io/guidewiresodb06-guidewire0f2e-productioncd91-5186/media/project/guidewire/guidewire/header/logo.svg?h=49&amp;iar=0&amp;w=308" alt="Guidewire" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='inline';">
+    <span id="logoFallback" class="logo-fallback" style="display:none;">GUIDEWIRE</span>
+    <span class="product-name">ClaimCenter</span>
+  </div>
+  <nav class="gw-nav">
+    <a href="#" class="active">Desktop</a>
+    <a href="#">Claim</a>
+    <a href="#">Search</a>
+    <a href="#">Address Book</a>
+    <a href="#">Dashboard</a>
+    <a href="#">Administration</a>
+  </nav>
+  <div class="spacer"></div>
+  <span class="env-pill">PROD</span>
+  <div class="avatar">SA</div>
+</header>
+
+<div class="page-head">
+  <div class="page-head-row">
+    <div>
+      <h1>My Claims Workspace</h1>
+      <div class="claim-count">128 claims assigned &middot; 12 require action today</div>
+    </div>
+    <div class="head-actions">
+      <button class="btn" type="button">Export</button>
+      <button class="btn btn-primary" type="button">New Claim</button>
+    </div>
+  </div>
+  <div class="status-tabs" id="statusTabs">
+    <button class="status-tab active" data-value="all" type="button">All Open <span class="count">128</span></button>
+    <button class="status-tab" data-value="new" type="button">New <span class="count">17</span></button>
+    <button class="status-tab" data-value="in-litigation" type="button">In Litigation <span class="count">6</span></button>
+    <button class="status-tab" data-value="reopened" type="button">Reopened <span class="count">3</span></button>
+    <button class="status-tab" data-value="closed" type="button">Closed <span class="count">412</span></button>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-field">
+    <label for="lobFilter">Line of Business</label>
+    <select id="lobFilter" data-filter-type="lob">
+      <option value="">All lines</option>
+      <option value="personal-auto">Personal Auto</option>
+      <option value="homeowners">Homeowners</option>
+      <option value="commercial-property">Commercial Property</option>
+      <option value="general-liability">General Liability</option>
+      <option value="workers-comp">Workers' Compensation</option>
+    </select>
+  </div>
+  <div class="filter-field">
+    <label for="lossCauseFilter">Loss Cause</label>
+    <select id="lossCauseFilter" data-filter-type="lossCause">
+      <option value="">All causes</option>
+      <option value="collision">Collision</option>
+      <option value="hail">Hail</option>
+      <option value="water-damage">Water Damage</option>
+      <option value="fire">Fire</option>
+      <option value="theft">Theft</option>
+      <option value="wind">Wind</option>
+    </select>
+  </div>
+  <div class="filter-field">
+    <label for="adjusterFilter">Assigned Adjuster</label>
+    <select id="adjusterFilter" data-filter-type="adjuster">
+      <option value="">All adjusters</option>
+      <option value="s-alvarez">Sofia Alvarez</option>
+      <option value="m-chen">Marcus Chen</option>
+      <option value="p-okafor">Priya Okafor</option>
+      <option value="d-whitfield">Dana Whitfield</option>
+    </select>
+  </div>
+  <div class="filter-field">
+    <label for="claimSearch">Search</label>
+    <input type="search" id="claimSearch" placeholder="Claim #, insured, policy…">
+  </div>
+  <button class="filter-reset" id="resetFilters" type="button">Reset filters</button>
+</div>
+
+<div class="claims-wrap">
+  <div class="claims-card">
+    <table class="claims">
+      <thead>
+        <tr>
+          <th>Claim Number</th>
+          <th>Insured / Policy</th>
+          <th>Line of Business</th>
+          <th>Loss Date</th>
+          <th>Loss Cause</th>
+          <th>Status</th>
+          <th>Adjuster</th>
+          <th style="text-align:right;">Net Incurred</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425891</a></td>
+          <td><span class="insured">Ray Newton</span><span class="policy">POL-0054-8821 · Personal Auto</span></td>
+          <td>Personal Auto</td>
+          <td>07/21/2026</td>
+          <td>Collision</td>
+          <td><span class="badge open">Open</span></td>
+          <td>Sofia Alvarez</td>
+          <td class="incurred">$18,450.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425904</a></td>
+          <td><span class="insured">Hannah Ortiz</span><span class="policy">POL-0061-2247 · Homeowners</span></td>
+          <td>Homeowners</td>
+          <td>07/19/2026</td>
+          <td>Water Damage</td>
+          <td><span class="badge new">New</span></td>
+          <td>Marcus Chen</td>
+          <td class="incurred">$42,780.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425917</a></td>
+          <td><span class="insured">Kestrel Logistics LLC</span><span class="policy">POL-0090-1175 · Commercial Property</span></td>
+          <td>Commercial Property</td>
+          <td>07/14/2026</td>
+          <td>Fire</td>
+          <td><span class="badge litigation">In Litigation</span></td>
+          <td>Priya Okafor</td>
+          <td class="incurred">$310,925.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425923</a></td>
+          <td><span class="insured">Devon Marsh</span><span class="policy">POL-0032-6610 · Personal Auto</span></td>
+          <td>Personal Auto</td>
+          <td>07/22/2026</td>
+          <td>Hail</td>
+          <td><span class="badge new">New</span></td>
+          <td>Dana Whitfield</td>
+          <td class="incurred">$6,120.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425888</a></td>
+          <td><span class="insured">Brightleaf Cafe Group</span><span class="policy">POL-0077-9034 · General Liability</span></td>
+          <td>General Liability</td>
+          <td>07/08/2026</td>
+          <td>Slip &amp; Fall</td>
+          <td><span class="badge open">Open</span></td>
+          <td>Sofia Alvarez</td>
+          <td class="incurred">$27,300.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425861</a></td>
+          <td><span class="insured">Talia Broussard</span><span class="policy">POL-0044-1902 · Homeowners</span></td>
+          <td>Homeowners</td>
+          <td>06/30/2026</td>
+          <td>Wind</td>
+          <td><span class="badge open">Open</span></td>
+          <td>Marcus Chen</td>
+          <td class="incurred">$15,940.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425712</a></td>
+          <td><span class="insured">Northgate Fabrication</span><span class="policy">POL-0083-5568 · Workers' Compensation</span></td>
+          <td>Workers' Compensation</td>
+          <td>06/12/2026</td>
+          <td>Machinery Injury</td>
+          <td><span class="badge closed">Closed</span></td>
+          <td>Priya Okafor</td>
+          <td class="incurred">$88,610.00</td>
+        </tr>
+        <tr>
+          <td class="claim-no"><a href="#">235-53-425934</a></td>
+          <td><span class="insured">Imani Fletcher</span><span class="policy">POL-0028-3341 · Personal Auto</span></td>
+          <td>Personal Auto</td>
+          <td>07/24/2026</td>
+          <td>Theft</td>
+          <td><span class="badge new">New</span></td>
+          <td>Dana Whitfield</td>
+          <td class="incurred">$23,075.00</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="table-foot">
+      <span>Showing 1–8 of 128 claims</span>
+      <div class="pager">
+        <button type="button" class="current">1</button>
+        <button type="button">2</button>
+        <button type="button">3</button>
+        <button type="button">&rsaquo;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="gw-footer">ClaimCenter &middot; Guidewire-style claims workspace &middot; Devin demo environment</footer>
+
+<div class="devin-toast" id="devinToast">
+  <div class="devin-toast-title" id="devinToastTitle"></div>
+  <div class="devin-toast-detail" id="devinToastDetail"></div>
+</div>
+
+<script>(function() {
+  const slug = '9db3d08f';
+  function showToast(type, title, detail) {
+    var toast = document.getElementById('devinToast');
+    document.getElementById('devinToastTitle').textContent = title;
+    document.getElementById('devinToastDetail').textContent = detail;
+    toast.className = 'devin-toast show' + (type === 'success' ? ' success' : '');
+    setTimeout(function () { toast.className = 'devin-toast' + (type === 'success' ? ' success' : ''); }, 6000);
+  }
+  function sendFilter(filterType, value) {
+    var devinOrgId = localStorage.getItem('devinOrgId') || '';
+    var devinUserId = localStorage.getItem('devinUserId') || '';
+    var devinEmail = localStorage.getItem('devinEmail') || '';
+    fetch('/api/' + slug + '/filter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filterType: filterType, value: value, devinOrgId: devinOrgId, devinUserId: devinUserId, devinEmail: devinEmail })
+    }).then(function(r) { return r.json().then(function(data) { return { r: r, data: data }; }); }).then(function(res) {
+      if (!res.r.ok) {
+        showToast('error', 'Claims Filter Error', (res.data.errorClass || 'Error') + ': ' + (res.data.error || 'Failed to filter claims'));
+      } else {
+        showToast('success', 'Claims Updated', (res.data.count || 0) + ' claims match ' + (res.data.termLabel || 'the selected filter'));
+      }
+    }).catch(function(err) { showToast('error', 'Network Error', err.message); });
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function() {});
+    document.querySelectorAll('.filter-bar select').forEach(function(el) {
+      el.addEventListener('change', function() {
+        sendFilter(el.getAttribute('data-filter-type'), el.value);
+      });
+    });
+    document.querySelectorAll('#statusTabs .status-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('#statusTabs .status-tab').forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        sendFilter('status', tab.getAttribute('data-value'));
+      });
+    });
+    document.getElementById('resetFilters').addEventListener('click', function() {
+      document.querySelectorAll('.filter-bar select').forEach(function(el) { el.value = ''; });
+      sendFilter('lob', '');
+    });
+  });
+})();</script>
+</body>
+</html>
