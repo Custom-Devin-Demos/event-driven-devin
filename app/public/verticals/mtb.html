@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Banking | M&amp;T Bank</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <style>
+    /* Self-hosted: mtb.com serves these fonts without CORS headers, so hotlinking them fails. */
+    @font-face { font-family: 'NickelCity-Book'; src: url('/fonts/nickel-city/NickelCity-Book.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'NickelCity-Light'; src: url('/fonts/nickel-city/NickelCity-Light.woff') format('woff'); font-display: swap; }
+    @font-face { font-family: 'NickelCity-Medium'; src: url('/fonts/nickel-city/NickelCity-Medium.woff') format('woff'); font-display: swap; }
+    :root {
+      --v-primary: #007856;
+      --v-primary-dark: #00654a;
+      --v-secondary: #80bc00;
+      --v-white: #ffffff;
+      --v-page-bg: #f4f4f4;
+      --v-text: #212529;
+      --v-muted: #555555;
+      --v-line: #cccccc;
+      --v-line-soft: #e7e5e3;
+      --v-danger: #b00020;
+      --v-danger-bg: #fdf2f4;
+      --v-danger-line: #f0c3cb;
+      --v-success-bg: #eef7f3;
+      --v-success-line: #b3ddcd;
+      --book: 'NickelCity-Book', Helvetica, Arial, sans-serif;
+      --light: 'NickelCity-Light', 'NickelCity-Book', Helvetica, Arial, sans-serif;
+      --medium: 'NickelCity-Medium', 'NickelCity-Book', Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--v-page-bg); color: var(--v-text); font-family: var(--book); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    .container { width: 100%; max-width: 1320px; margin: 0 auto; padding: 0 12px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.45s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    /* Utility bar */
+    .util-bar { background: var(--v-primary); color: var(--v-white); }
+    .util-bar .container { display: flex; align-items: center; justify-content: space-between; min-height: 36px; padding-top: 8px; padding-bottom: 8px; gap: 16px; }
+    .fdic { font-size: 12px; line-height: 18px; font-style: italic; position: relative; padding-left: 48px; }
+    .fdic::before { content: 'FDIC'; position: absolute; left: 0; top: 1px; display: inline-block; padding: 0 4px; border: 1px solid var(--v-white); font-size: 10px; font-style: normal; line-height: 14px; letter-spacing: 0.04em; }
+    .util-links { display: flex; align-items: center; gap: 24px; }
+    .util-links a { font-size: 12px; line-height: 18px; color: var(--v-white); text-decoration: none; }
+    .util-links a:hover { text-decoration: underline; }
+
+    /* Brand row */
+    .brand-row { background: var(--v-white); }
+    .brand-row .container { display: flex; align-items: center; gap: 44px; padding-top: 10px; padding-bottom: 10px; }
+    .brand-logo { display: block; height: 26px; width: auto; }
+    .brand-wordmark { display: none; font-family: var(--medium); font-size: 22px; line-height: 26px; color: var(--v-primary); }
+    .segments { display: flex; align-items: flex-end; gap: 28px; flex: 1; align-self: stretch; }
+    .segments a { position: relative; padding: 12px 2px 10px; font-size: 16px; line-height: 24px; color: var(--v-text); text-decoration: none; }
+    .segments a.active { color: var(--v-primary); }
+    .segments a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--v-primary); }
+    .login-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 24px; background: var(--v-primary); border: 1px solid var(--v-primary); color: var(--v-white); font-size: 12px; line-height: 12px; text-decoration: none; }
+    .login-btn:hover { background: var(--v-primary-dark); }
+    .login-btn::before { content: ''; width: 10px; height: 8px; border: 1px solid currentColor; border-radius: 1px; box-shadow: inset 0 0 0 1px var(--v-primary); position: relative; }
+
+    /* Product nav */
+    .product-nav { background: var(--v-white); border-bottom: 1px solid var(--v-line); }
+    .product-nav .container { display: flex; align-items: center; gap: 40px; min-height: 48px; overflow-x: auto; }
+    .product-nav a { font-size: 16px; line-height: 24px; color: var(--v-text); text-decoration: none; white-space: nowrap; }
+    .product-nav a:hover { color: var(--v-primary); }
+
+    /* Page */
+    main { padding: 24px 0 64px; }
+    .back-link { display: inline-block; margin-bottom: 20px; color: var(--v-primary); font-size: 14px; text-decoration: none; }
+    .back-link:hover { text-decoration: underline; }
+    .greeting { margin-bottom: 28px; }
+    .greeting h1 { font-family: var(--light); font-size: 50px; line-height: 55px; font-weight: 300; color: var(--v-primary); margin-bottom: 8px; }
+    .greeting p { color: var(--v-muted); font-size: 16px; }
+
+    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+    .account-card { background: var(--v-white); border: 1px solid var(--v-line); border-top: 4px solid var(--v-secondary); padding: 24px; }
+    .account-type { font-size: 12px; line-height: 18px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--v-muted); margin-bottom: 12px; }
+    .account-balance { font-family: var(--light); font-size: 40px; line-height: 42px; font-weight: 300; color: var(--v-primary); }
+    .account-number { margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--v-muted); }
+
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, 0.65fr); gap: 24px; align-items: start; }
+    .panel { background: var(--v-white); border: 1px solid var(--v-line); }
+    .panel-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--v-line-soft); }
+    .panel-header h2 { font-family: var(--light); font-size: 26px; line-height: 32px; font-weight: 300; color: var(--v-primary); }
+    .panel-header p { margin-top: 2px; color: var(--v-muted); font-size: 14px; line-height: 20px; }
+
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { padding: 12px 24px; background: #fafafa; color: var(--v-muted); text-align: left; font-size: 12px; line-height: 18px; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid var(--v-line-soft); }
+    .txn-table td { padding: 16px 24px; border-bottom: 1px solid var(--v-line-soft); font-size: 15px; }
+    .txn-table tbody tr:last-child td { border-bottom: 0; }
+    .txn-table tbody tr:hover td { background: #f6faf8; }
+    .credit { color: var(--v-primary); }
+    .debit { color: var(--v-text); }
+
+    .transfer-form { padding: 20px 24px 24px; }
+    .form-row { display: grid; grid-template-columns: 1fr; gap: 0; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 14px; line-height: 20px; color: var(--v-text); }
+    .form-group select, .form-group input { width: 100%; min-height: 44px; padding: 10px 12px; background: var(--v-white); border: 1px solid #9a9a9a; border-radius: 0; color: var(--v-text); font: inherit; font-size: 15px; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--v-primary); box-shadow: 0 0 0 2px rgba(0,120,86,0.15); }
+    .btn-transfer { width: 100%; min-height: 38px; padding: 10px 40px; background: var(--v-primary); border: 1px solid var(--v-primary); border-radius: 0; color: var(--v-white); font-family: var(--book); font-size: 16px; line-height: 16px; cursor: pointer; transition: background 0.2s; }
+    .btn-transfer:hover { background: var(--v-primary-dark); }
+    .btn-transfer:disabled { opacity: 0.6; cursor: not-allowed; }
+    .result-box { display: none; margin-top: 16px; padding: 12px 16px; font-size: 14px; line-height: 20px; }
+    .result-box.error { display: block; background: var(--v-danger-bg); border: 1px solid var(--v-danger-line); color: var(--v-danger); }
+    .result-box.success { display: block; background: var(--v-success-bg); border: 1px solid var(--v-success-line); color: var(--v-primary); }
+    .result-box .error-title { font-family: var(--medium); }
+    .result-box .error-detail { margin-top: 4px; font-family: var(--mono); font-size: 12px; word-break: break-word; }
+    .security-note { margin: 16px 24px 24px; padding: 12px 16px; background: #f4f8f6; border-left: 4px solid var(--v-secondary); font-size: 13px; line-height: 19px; color: var(--v-muted); }
+
+    /* Footer */
+    footer { background: var(--v-white); border-top: 1px solid var(--v-line); margin-top: 8px; }
+    .footer-top { display: flex; flex-wrap: wrap; gap: 32px; justify-content: space-between; padding: 32px 0 24px; }
+    .footer-col h3 { font-family: var(--medium); font-size: 14px; line-height: 20px; color: var(--v-text); margin-bottom: 10px; }
+    .footer-col a { display: block; font-size: 14px; line-height: 24px; color: var(--v-muted); text-decoration: none; }
+    .footer-col a:hover { color: var(--v-primary); text-decoration: underline; }
+    .footer-bottom { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 0 32px; border-top: 1px solid var(--v-line); font-size: 12px; line-height: 18px; color: var(--v-muted); }
+    .footer-bottom img { height: 34px; width: auto; }
+
+    @media (max-width: 980px) {
+      .segments, .product-nav .container { gap: 22px; }
+      .workspace { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .util-links a:not(:last-child) { display: none; }
+      .brand-row .container { flex-wrap: wrap; gap: 16px; }
+      .segments { order: 3; width: 100%; }
+      .greeting h1 { font-size: 34px; line-height: 40px; }
+      .accounts { grid-template-columns: 1fr; }
+      .txn-card { overflow-x: auto; }
+      .txn-table { min-width: 560px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util-bar">
+    <div class="container">
+      <p class="fdic">FDIC-Insured - Backed by the full faith and credit of the U.S. Government</p>
+      <div class="util-links">
+        <a href="#">Search</a>
+        <a href="#">About M&amp;T Bank</a>
+        <a href="#">Locations</a>
+        <a href="#">Help Center</a>
+        <a href="#">Espa&ntilde;ol</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="brand-row">
+    <div class="container">
+      <a href="#" aria-label="M&amp;T Bank">
+        <img class="brand-logo" src="https://www.mtb.com/content/dam/mtb-web/images/svg/newnavimg/mtb_logo_green.svg" alt="M&amp;T Bank"
+             onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='block';">
+        <span class="brand-wordmark">M&amp;T Bank</span>
+      </a>
+      <nav class="segments" aria-label="Customer segments">
+        <a href="#" class="active">Personal</a>
+        <a href="#">Business</a>
+        <a href="#">Commercial</a>
+      </nav>
+      <a href="#" class="login-btn">Log In</a>
+    </div>
+  </div>
+
+  <div class="product-nav">
+    <div class="container">
+      <a href="#">Checking</a>
+      <a href="#">Savings &amp; CDs</a>
+      <a href="#">Mortgages</a>
+      <a href="#">Loans &amp; Lines of Credit</a>
+      <a href="#">Credit Cards</a>
+      <a href="#">Investments &amp; Retirement</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="container">
+      <a href="/" class="back-link fade-in">&larr; All Demos</a>
+      <section class="greeting fade-in d1">
+        <h1>Good morning, Alice Chen</h1>
+        <p>Premium Account Holder &middot; Member since 2019</p>
+      </section>
+
+      <section class="accounts">
+        <article class="account-card fade-in d2">
+          <div class="account-type">Checking Account</div>
+          <div class="account-balance">$24,850.00</div>
+          <div class="account-number">ACCT-1001 &middot; Premium Checking</div>
+        </article>
+        <article class="account-card fade-in d3">
+          <div class="account-type">Savings Account</div>
+          <div class="account-balance">$142,300.00</div>
+          <div class="account-number">ACCT-1002 &middot; High-Yield Savings</div>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <div class="panel txn-card fade-in d3">
+          <div class="panel-header">
+            <h2>Recent Transactions</h2>
+            <p>Activity on your Premium Checking account</p>
+          </div>
+          <table class="txn-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+            <tbody>
+              <tr><td>Mar 15</td><td>Direct Deposit &mdash; Payroll</td><td class="credit">+$4,200.00</td><td>$24,850.00</td></tr>
+              <tr><td>Mar 14</td><td>Whole Foods Market</td><td class="debit">-$127.43</td><td>$20,650.00</td></tr>
+              <tr><td>Mar 13</td><td>Electric Bill &mdash; National Grid</td><td class="debit">-$89.50</td><td>$20,777.43</td></tr>
+              <tr><td>Mar 12</td><td>Transfer from Savings</td><td class="credit">+$2,000.00</td><td>$20,866.93</td></tr>
+              <tr><td>Mar 10</td><td>Amazon.com</td><td class="debit">-$54.99</td><td>$18,866.93</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel fade-in d4">
+          <div class="panel-header">
+            <h2>Transfer Funds</h2>
+            <p>Move money between your M&amp;T accounts.</p>
+          </div>
+          <form id="transferForm" class="transfer-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fromAccount">From Account</label>
+                <select id="fromAccount">
+                  <option value="ACCT-1001">Checking &mdash; ACCT-1001</option>
+                  <option value="ACCT-1002">Savings &mdash; ACCT-1002</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="toAccount">To Account</label>
+                <select id="toAccount">
+                  <option value="ACCT-1002">Savings &mdash; ACCT-1002</option>
+                  <option value="ACCT-1001">Checking &mdash; ACCT-1001</option>
+                  <option value="ACCT-EXT-001">External &mdash; Chase ****4921</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="amount">Amount</label>
+              <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+              <label for="accountTier">Account Tier</label>
+              <select id="accountTier">
+                <option value="premium">Premium (Free transfers)</option>
+                <option value="standard">Standard ($2.50/transfer)</option>
+                <option value="basic">Basic ($4.99/transfer)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-transfer" id="submitBtn">Transfer Funds</button>
+            <div id="result" class="result-box"></div>
+          </form>
+          <div class="security-note">All transfers are protected by 256-bit encryption. Deposits are FDIC insured up to $250,000 per depositor.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <h3>Contact Us</h3>
+          <a href="#">1-800-724-2440</a>
+          <a href="#">Locations &amp; ATMs</a>
+          <a href="#">Make an Appointment</a>
+          <a href="#">More ways to reach us</a>
+        </div>
+        <div class="footer-col">
+          <h3>About M&amp;T</h3>
+          <a href="#">Careers</a>
+          <a href="#">Investor Relations</a>
+          <a href="#">Newsroom</a>
+          <a href="#">Community</a>
+        </div>
+        <div class="footer-col">
+          <h3>Security</h3>
+          <a href="#">Fraud &amp; Security</a>
+          <a href="#">Privacy &amp; Preference Center</a>
+          <a href="#">Digital Services Agreement</a>
+          <a href="#">ESign Consent</a>
+        </div>
+        <div class="footer-col">
+          <h3>Follow M&amp;T Bank</h3>
+          <a href="#">Facebook</a>
+          <a href="#">Instagram</a>
+          <a href="#">X</a>
+          <a href="#">LinkedIn</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <img src="https://www.mtb.com/content/dam/mtb-web/images/ehl.png" alt="Equal Housing Lender"
+             onerror="this.onerror=null;this.style.display='none';">
+        <span>&copy; 2026 M&amp;T Bank. All Rights Reserved. Member FDIC. Equal Housing Lender.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showResult(result, type, title, detail) {
+      const titleElement = document.createElement('div');
+      const detailElement = document.createElement('div');
+      titleElement.className = 'error-title';
+      titleElement.textContent = title;
+      detailElement.className = 'error-detail';
+      detailElement.textContent = detail;
+      result.replaceChildren(titleElement, detailElement);
+      result.className = `result-box ${type}`;
+    }
+
+    document.getElementById('transferForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = 'Processing...';
+      result.className = 'result-box';
+
+      try {
+        const response = await fetch('/api/mtb/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_alice_chen',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          showResult(result, 'error', 'Transfer Failed', `${data.errorClass}: ${data.error}`);
+        } else {
+          showResult(result, 'success', 'Transfer Complete', `Debited $${data.debitAmount} (includes $${data.fee} fee)`);
+        }
+      } catch (error) {
+        showResult(result, 'error', 'Network Error', error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transfer Funds';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

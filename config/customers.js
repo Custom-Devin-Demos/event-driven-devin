@@ -403,6 +403,10 @@ const CUSTOMERS = {
     label: 'Insurance Claims Workspace',
     triggerMode: 'api',
   },
+  mtb: {
+    label: 'M&T Bank Online Banking',
+    triggerMode: 'api',
+  },
 };
 
 /**
