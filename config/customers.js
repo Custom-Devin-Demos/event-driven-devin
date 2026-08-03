@@ -415,6 +415,10 @@ const CUSTOMERS = {
     label: 'Morgan Stanley',
     triggerMode: 'api',
   },
+  b136ae6e: {
+    label: 'Resource Library',
+    triggerMode: 'api',
+  },
 };
 
 /**
