@@ -411,6 +411,10 @@ const CUSTOMERS = {
     label: 'M&T Bank Online Banking',
     triggerMode: 'api',
   },
+  '15fee237': {
+    label: 'Morgan Stanley',
+    triggerMode: 'api',
+  },
 };
 
 /**
