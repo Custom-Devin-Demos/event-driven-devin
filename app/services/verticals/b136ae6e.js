@@ -164,6 +164,24 @@ function buildFacetSummary(facetLines) {
 }
 
 /**
+ * Parses the publish date out of a card byline ("By Brex, May 2026").
+ */
+function parseBylineDate(byline) {
+  const match = /([A-Z][a-z]+)\s+(\d{4})$/.exec(byline);
+  return match ? Date.parse(`${match[1]} 1, ${match[2]}`) : 0;
+}
+
+/**
+ * Applies the resolved ordering treatment to a narrowed result list.
+ */
+function applySortTreatment(results, sort) {
+  if (sort === 'recency') {
+    return [...results].sort((a, b) => parseBylineDate(b.byline) - parseBylineDate(a.byline));
+  }
+  return results;
+}
+
+/**
  * Filters the resource library for a visitor's tab + taxonomy selection and
  * returns the narrowed card list along with the applied-facet summary.
  */
@@ -191,10 +209,10 @@ async function filterResources(query) {
     const facetLines = applyEntitlementFacets(plan.facetLines, topics, roles);
     const facetSummary = buildFacetSummary(facetLines);
 
-    const results = RESOURCES.filter((resource) => facetSummary.every((facet) => {
-      const facetDef = FACET_REGISTRY.find((f) => f.code === facet.code);
-      return facetMatches(facetDef, facet.term, resource);
-    }));
+    const matching = RESOURCES.filter((resource) => facetSummary.every(
+      (facet) => facetMatches(facet, facet.term, resource)
+    ));
+    const results = applySortTreatment(matching, plan.sort);
 
     const duration = Date.now() - startTime;
 

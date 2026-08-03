@@ -297,7 +297,8 @@
       'Spend Trends': { title: 'Spend Trends', sub: 'Research and explainers on cards, payments, and business spend.' }
     };
 
-    var state = { contentType: 'Articles', topics: [], roles: [], catalog: [], results: [] };
+    var state = { contentType: 'Articles', topics: [], roles: [], results: [] };
+    var requestSeq = 0;
 
     function el(id) { return document.getElementById(id); }
 
@@ -403,6 +404,7 @@
     // the resource library on the server.
     async function applyFilters() {
       setCount('Filtering resources', true);
+      var seq = ++requestSeq;
       try {
         var res = await fetch('/api/b136ae6e/filter', {
           method: 'POST',
@@ -417,6 +419,7 @@
           })
         });
         var data = await res.json();
+        if (seq !== requestSeq) return;
         if (!res.ok) {
           setCount((state.results.length || 0) + ' ' + label() + ' (filters not applied)', false);
           showToast('error', 'Library Filter Error', (data.errorClass || 'Error') + ': ' + (data.error || 'Failed to filter resources'));
@@ -426,6 +429,7 @@
         setCount(data.count + ' ' + label(), false);
         renderGrid();
       } catch (err) {
+        if (seq !== requestSeq) return;
         setCount('Filter unavailable', false);
         showToast('error', 'Network Error', err.message);
       }
@@ -440,7 +444,6 @@
     }
 
     fetch('/api/b136ae6e/resources').then(function (r) { return r.json(); }).then(function (data) {
-      state.catalog = data.resources;
       renderSubtabs(data.contentTypes);
       renderHero();
       renderFacets(data.topics, data.roles);
