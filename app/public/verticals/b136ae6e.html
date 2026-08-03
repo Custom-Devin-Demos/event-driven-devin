@@ -359,6 +359,12 @@
       });
     }
 
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
     function renderFilterCount() {
       el('filterCount').textContent = 'Filter (' + (state.topics.length + state.roles.length) + ')';
     }
@@ -375,12 +381,12 @@
         card.className = 'card';
         card.href = '#';
         var tags = r.topics.concat(r.roles).slice(0, 2).map(function (t) {
-          return '<span class="tag">' + t + '</span>';
+          return '<span class="tag">' + escapeHtml(t) + '</span>';
         }).join('');
-        card.innerHTML = '<div class="thumb"><img src="' + r.img + '" alt="' + r.title.replace(/"/g, '&quot;') + '" loading="lazy"'
+        card.innerHTML = '<div class="thumb"><img src="' + escapeHtml(r.img) + '" alt="' + escapeHtml(r.title) + '" loading="lazy"'
           + ' onerror="this.onerror=null;this.src=\'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&amp;q=80\';"></div>'
-          + '<h3>' + r.title + '</h3>'
-          + '<div class="byline">' + r.byline + '</div>'
+          + '<h3>' + escapeHtml(r.title) + '</h3>'
+          + '<div class="byline">' + escapeHtml(r.byline) + '</div>'
           + '<div class="tags">' + tags + '</div>'
           + '<div class="more">Read more &rarr;</div>';
         grid.appendChild(card);
@@ -448,6 +454,13 @@
       renderHero();
       renderFacets(data.topics, data.roles);
       renderFilterCount();
+      el('resetBtn').addEventListener('click', function () {
+        state.topics = [];
+        state.roles = [];
+        renderFacets(data.topics, data.roles);
+        renderFilterCount();
+        applyFilters();
+      });
       applyFilters();
     });
   </script>
