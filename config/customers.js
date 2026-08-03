@@ -419,6 +419,10 @@ const CUSTOMERS = {
     label: 'Resource Library',
     triggerMode: 'api',
   },
+  '7cc34c73': {
+    label: 'Expenses Inbox',
+    triggerMode: 'api',
+  },
 };
 
 /**
