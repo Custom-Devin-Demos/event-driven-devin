@@ -415,6 +415,10 @@ const CUSTOMERS = {
     label: 'Morgan Stanley',
     triggerMode: 'api',
   },
+  '6a766bce': {
+    label: 'AECOM Projects Library',
+    triggerMode: 'api',
+  },
 };
 
 /**
