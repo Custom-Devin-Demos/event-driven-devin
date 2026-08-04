@@ -5,132 +5,137 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
- * Project-library taxonomies. Each facet carries the terms used to filter the
- * project cards by market, service and location.
+ * Portfolio-filter taxonomies. Each facet carries the terms used to filter the
+ * active-projects table by status, market, region and phase.
  *
- * NOTE: The map keys are intentionally pluralized (markets/services/locations)
- * while the frontend sends singular filterType values (market/service/location).
- * This mismatch is the root cause of the deterministic TypeError on every filter
- * interaction — the selected taxonomy object is undefined, so `.terms` throws.
+ * NOTE: The map keys are intentionally pluralized (statuses/markets/regions/
+ * phases) while the frontend sends singular filterType values (status/market/
+ * region/phase). This mismatch is the root cause of the deterministic
+ * TypeError on every filter interaction — the selected taxonomy object is
+ * undefined, so `.terms` throws.
  */
 const TAXONOMY_MAP = {
+  statuses: {
+    terms: [
+      { slug: 'on-track', label: 'On Track' },
+      { slug: 'at-risk', label: 'At Risk' },
+      { slug: 'delayed', label: 'Delayed' },
+      { slug: 'complete', label: 'Complete' },
+    ],
+  },
   markets: {
     terms: [
-      { slug: 'transportation', label: 'Transportation', count: 6 },
-      { slug: 'water', label: 'Water', count: 4 },
-      { slug: 'energy', label: 'Energy', count: 5 },
-      { slug: 'buildings-places', label: 'Buildings & Places', count: 7 },
-      { slug: 'environment', label: 'Environment', count: 3 },
-      { slug: 'sports-and-venues', label: 'Sports and Venues', count: 2 },
+      { slug: 'transportation', label: 'Transportation' },
+      { slug: 'water', label: 'Water' },
+      { slug: 'energy', label: 'Energy' },
+      { slug: 'buildings-places', label: 'Buildings & Places' },
+      { slug: 'environment', label: 'Environment' },
     ],
   },
-  services: {
+  regions: {
     terms: [
-      { slug: 'program-management', label: 'Program Management', count: 5 },
-      { slug: 'engineering', label: 'Engineering', count: 8 },
-      { slug: 'architecture-and-design', label: 'Architecture and Design', count: 4 },
-      { slug: 'environmental-services', label: 'Environmental Services', count: 6 },
-      { slug: 'cost-management', label: 'Cost Management', count: 3 },
-      { slug: 'digital-infrastructure-services', label: 'Digital Infrastructure Services', count: 2 },
+      { slug: 'americas', label: 'Americas' },
+      { slug: 'emea', label: 'EMEA' },
+      { slug: 'apac', label: 'APAC' },
     ],
   },
-  locations: {
+  phases: {
     terms: [
-      { slug: 'united-states', label: 'United States', count: 9 },
-      { slug: 'united-kingdom', label: 'United Kingdom', count: 6 },
-      { slug: 'australia', label: 'Australia', count: 4 },
-      { slug: 'canada', label: 'Canada', count: 3 },
-      { slug: 'hong-kong', label: 'Hong Kong', count: 3 },
-      { slug: 'worldwide', label: 'Worldwide', count: 5 },
+      { slug: 'planning', label: 'Planning' },
+      { slug: 'design', label: 'Design' },
+      { slug: 'construction', label: 'Construction' },
+      { slug: 'closeout', label: 'Closeout' },
     ],
   },
 };
 
 /**
- * Mock project library. Each item carries the facets the frontend can filter by.
+ * Mock active-project portfolio. Each row carries the facets the frontend can
+ * filter by plus the columns rendered in the dashboard table.
  */
 const PROJECTS = [
-  { id: 'mandalay-airport', title: 'Mandalay International Airport Land Use Feasibility Study', market: 'transportation', service: 'program-management', location: 'worldwide' },
-  { id: 'pg-hangar', title: 'Procter & Gamble Hangar', market: 'buildings-places', service: 'architecture-and-design', location: 'united-states' },
-  { id: 'strategic-rail-roads', title: 'Strategic Studies on Railways and Major Roads beyond 2030', market: 'transportation', service: 'program-management', location: 'hong-kong' },
-  { id: 'heathrow-t2', title: 'Heathrow Airport – Future Terminal 2', market: 'transportation', service: 'engineering', location: 'united-kingdom' },
-  { id: 'york-region', title: 'Connecting communities across York Region', market: 'transportation', service: 'engineering', location: 'canada' },
-  { id: 'new-river-bridge', title: 'New River Bridge', market: 'transportation', service: 'engineering', location: 'united-states' },
+  { id: 'PRJ-4821', name: 'Heathrow Terminal 2 Expansion', client: 'Heathrow Airport Ltd', status: 'on-track', market: 'transportation', region: 'emea', phase: 'construction', budget: 48200000, complete: 62 },
+  { id: 'PRJ-4822', name: 'York Region Transit Corridor', client: 'York Region', status: 'at-risk', market: 'transportation', region: 'americas', phase: 'design', budget: 21500000, complete: 38 },
+  { id: 'PRJ-4823', name: 'Sydney Coastal Resilience Program', client: 'City of Sydney', status: 'on-track', market: 'environment', region: 'apac', phase: 'planning', budget: 9800000, complete: 15 },
+  { id: 'PRJ-4824', name: 'Manchester Metrolink Extension', client: 'Transport for Greater Manchester', status: 'delayed', market: 'transportation', region: 'emea', phase: 'construction', budget: 33100000, complete: 54 },
+  { id: 'PRJ-4825', name: 'IU Health Medical Center Campus', client: 'Indiana University Health', status: 'on-track', market: 'buildings-places', region: 'americas', phase: 'design', budget: 27400000, complete: 41 },
+  { id: 'PRJ-4826', name: 'New River Bridge Replacement', client: 'State DOT', status: 'complete', market: 'transportation', region: 'americas', phase: 'closeout', budget: 15600000, complete: 100 },
+  { id: 'PRJ-4827', name: 'West Link Rail Tunnel MEP', client: 'Trafikverket', status: 'at-risk', market: 'transportation', region: 'emea', phase: 'construction', budget: 41900000, complete: 48 },
+  { id: 'PRJ-4828', name: 'NZ Climate Risk Assessment', client: 'Ministry for the Environment', status: 'on-track', market: 'environment', region: 'apac', phase: 'planning', budget: 6200000, complete: 22 },
 ];
 
 /**
- * Build the filtered project view for the selected taxonomy term.
+ * Build the filtered portfolio view for the selected taxonomy term.
  */
-function buildProjectView(data) {
-  // The frontend sends filterType values like 'market', 'service' and
-  // 'location' (singular). The map is keyed with plural names, so `selected`
-  // is always undefined here and the next line throws the intentional TypeError.
+function buildPortfolioView(data) {
+  // The frontend sends filterType values like 'status', 'market', 'region' and
+  // 'phase' (singular). The map is keyed with plural names, so `selected` is
+  // always undefined here and the next line throws the intentional TypeError.
   const selected = TAXONOMY_MAP[data.filterType];
   const term = selected.terms.find((t) => t.slug === data.value);
 
-  const matches = PROJECTS.filter((p) => {
-    if (data.filterType === 'market') return p.market === data.value;
-    if (data.filterType === 'service') return p.service === data.value;
-    return p.location === data.value;
-  });
+  const matches = data.value === 'all'
+    ? PROJECTS
+    : PROJECTS.filter((p) => p[data.filterType] === data.value);
 
   return {
     filterType: data.filterType,
-    termLabel: term.label,
+    value: data.value,
+    termLabel: term ? term.label : 'All',
     count: matches.length,
-    projects: matches.map((p) => ({ id: p.id, title: p.title })),
+    projects: matches,
   };
 }
 
 /**
- * Handle a project-library filter request.
+ * Handle a portfolio filter request.
  */
-async function filterProjects(data) {
+async function filterPortfolio(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
 
-  logger.info('Filtering AECOM project library', {
+  logger.info('Filtering AECOM project portfolio', {
     requestId,
     filterType: data.filterType,
     value: data.value,
-    service: 'customer-6a766bce-projects',
+    service: 'customer-6a766bce-portfolio',
     route: '/api/6a766bce/filter',
   });
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 60 + Math.random() * 90));
 
-    const view = buildProjectView(data);
+    const view = buildPortfolioView(data);
 
     const duration = Date.now() - startTime;
-    incrementMetric('project_library.filter.success', {
+    incrementMetric('portfolio.filter.success', {
       route: '/api/6a766bce/filter',
       filterType: data.filterType,
     });
-    recordTiming('project_library.filter.latency', duration, { route: '/api/6a766bce/filter' });
+    recordTiming('portfolio.filter.latency', duration, { route: '/api/6a766bce/filter' });
 
     return { ...view, requestId, filteredAt: new Date().toISOString() };
   } catch (error) {
     const duration = Date.now() - startTime;
-    incrementMetric('project_library.filter.failure', {
+    incrementMetric('portfolio.filter.failure', {
       route: '/api/6a766bce/filter',
       errorClass: error.name,
     });
-    recordTiming('project_library.filter.latency', duration, { route: '/api/6a766bce/filter', error: 'true' });
+    recordTiming('portfolio.filter.latency', duration, { route: '/api/6a766bce/filter', error: 'true' });
 
-    logger.error('AECOM project library filter failed', {
+    logger.error('AECOM project portfolio filter failed', {
       requestId,
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
       filterType: data.filterType,
-      service: 'customer-6a766bce-projects',
+      service: 'customer-6a766bce-portfolio',
     });
 
     Sentry.captureException(error, {
       tags: {
         route: '/api/6a766bce/filter',
-        service: 'customer-6a766bce-projects',
+        service: 'customer-6a766bce-portfolio',
         filterType: data.filterType,
       },
       extra: { requestId, filterType: data.filterType, value: data.value },
@@ -139,19 +144,19 @@ async function filterProjects(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/6a766bce.js — buildProjectView',
+      culprit: 'app/services/verticals/6a766bce.js — buildPortfolioView',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      service: 'customer-6a766bce-projects',
-      verticalLabel: 'Project Library Filter',
+      service: 'customer-6a766bce-portfolio',
+      verticalLabel: 'Project Portfolio Filter',
       customer: '6a766bce',
       slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/6a766bce/filter' },
-        { key: 'service', value: 'customer-6a766bce-projects' },
+        { key: 'service', value: 'customer-6a766bce-portfolio' },
         { key: 'filterType', value: data.filterType },
       ],
       extra: { requestId, filterType: data.filterType, value: data.value },
@@ -162,11 +167,11 @@ async function filterProjects(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-6a766bce-projects@1.0.0',
+      release: process.env.SENTRY_RELEASE || 'customer-6a766bce-portfolio@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((err) => {
-      logger.error('Failed to create Devin session for project library error', {
+      logger.error('Failed to create Devin session for portfolio error', {
         error: err.message,
         requestId,
       });
@@ -176,4 +181,4 @@ async function filterProjects(data) {
   }
 }
 
-module.exports = { filterProjects, PROJECTS, TAXONOMY_MAP };
+module.exports = { filterPortfolio, PROJECTS, TAXONOMY_MAP };

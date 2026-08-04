@@ -416,7 +416,7 @@ const CUSTOMERS = {
     triggerMode: 'api',
   },
   '6a766bce': {
-    label: 'AECOM Projects Library',
+    label: 'AECOM Project Portfolio',
     triggerMode: 'api',
   },
 };
