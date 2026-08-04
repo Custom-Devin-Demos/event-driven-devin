@@ -205,6 +205,10 @@ async function filterExpenses(query) {
       error_type: error.constructor.name,
       source: 'expense-inbox',
     });
+    recordTiming('expenses.inbox.filter.latency', duration, {
+      route: '/api/7cc34c73/expenses/filter',
+      error: 'true',
+    });
 
     Sentry.captureException(error, {
       tags: {
