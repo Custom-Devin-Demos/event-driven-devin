@@ -297,7 +297,7 @@
       'Spend Trends': { title: 'Spend Trends', sub: 'Research and explainers on cards, payments, and business spend.' }
     };
 
-    var state = { contentType: 'Articles', topics: [], roles: [], results: [] };
+    var state = { contentType: 'Articles', topics: [], roles: [], results: [], resultsLabel: 'resources' };
     var requestSeq = 0;
 
     function el(id) { return document.getElementById(id); }
@@ -430,12 +430,13 @@
         var data = await res.json();
         if (seq !== requestSeq) return;
         if (!res.ok) {
-          setCount((state.results.length || 0) + ' ' + label() + ' (filters not applied)', false);
+          setCount((state.results.length || 0) + ' ' + state.resultsLabel + ' (filters not applied)', false);
           showToast('error', 'Library Filter Error', (data.errorClass || 'Error') + ': ' + (data.error || 'Failed to filter resources'));
           return;
         }
         state.results = data.results;
-        setCount(data.count + ' ' + label(), false);
+        state.resultsLabel = label();
+        setCount(data.count + ' ' + state.resultsLabel, false);
         renderGrid();
       } catch (err) {
         if (seq !== requestSeq) return;
