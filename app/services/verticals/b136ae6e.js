@@ -242,7 +242,7 @@ async function filterResources(query) {
 
     incrementMetric('resources.filter.failure', {
       route: '/api/b136ae6e/filter',
-      errorClass: error.name,
+      error_type: error.name,
       source: 'resource-library',
     });
     recordTiming('resources.filter.latency', duration, {
@@ -266,6 +266,7 @@ async function filterResources(query) {
         route: '/api/b136ae6e/filter',
         service: 'resource-library',
         source: 'resource-library',
+        customer: 'b136ae6e',
       },
       extra: { requestId, contentType, topics, roles },
     });

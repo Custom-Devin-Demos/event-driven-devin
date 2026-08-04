@@ -237,11 +237,11 @@ async function filterExpenses(query) {
       slackMemberId: 'U08S7AVJ478',
       service: 'expense-inbox',
       verticalLabel: 'Expenses Inbox — Review Queue Filter',
-      tags: {
-        route: '/api/7cc34c73/expenses/filter',
-        queue: queueId,
-        service: 'expense-inbox',
-      },
+      tags: [
+        { key: 'route', value: '/api/7cc34c73/expenses/filter' },
+        { key: 'queue', value: queueId },
+        { key: 'service', value: 'expense-inbox' },
+      ],
       extra: {
         requestId,
         queue: queueId,
