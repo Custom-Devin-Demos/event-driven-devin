@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Portfolio | AECOM Delivery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ae-green:#008768; --ae-ink:#00353e; --ae-ink-2:#0a4550; --ae-lime:#aecc53;
+    --ae-gray:#eef1f2; --ae-line:#e3e7e9; --ae-body:#1d2b2f; --ae-muted:#647278;
+    --ae-font:"Inter",Arial,Helvetica,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--ae-gray);color:var(--ae-body);font-family:var(--ae-font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-top:38px}
+  a{text-decoration:none;color:inherit}
+  h1,h2,h3,h4{margin:0;font-weight:700}
+  button{font-family:var(--ae-font)}
+
+  /* Demo disclaimer banner */
+  .devin-demo-banner{position:fixed;top:0;left:0;right:0;z-index:99999;background:var(--ae-ink);color:#fff;font-size:12.5px;text-align:center;padding:10px 16px;line-height:1.4;letter-spacing:.2px}
+  .devin-demo-banner strong{color:var(--ae-lime)}
+
+  .ae-app{display:flex;min-height:calc(100vh - 38px)}
+
+  /* Sidebar */
+  .ae-side{width:236px;flex:0 0 236px;background:var(--ae-ink);color:#cfe0dc;display:flex;flex-direction:column;position:sticky;top:38px;height:calc(100vh - 38px)}
+  .ae-side-logo{padding:22px 22px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .ae-side-logo .ae-word{font-weight:800;font-size:22px;letter-spacing:1.5px;color:#fff}
+  .ae-side-logo .ae-sub{font-size:10px;letter-spacing:2px;color:var(--ae-lime);text-transform:uppercase;margin-top:2px}
+  .ae-nav{padding:14px 12px;flex:1;overflow-y:auto}
+  .ae-nav-group{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:#6f8a86;padding:14px 12px 6px}
+  .ae-nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:7px;color:#cfe0dc;font-weight:500;font-size:13.5px;cursor:pointer;margin-bottom:2px}
+  .ae-nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .ae-nav a.active{background:var(--ae-green);color:#fff}
+  .ae-nav a .ic{width:16px;height:16px;border:2px solid currentColor;border-radius:4px;opacity:.9;flex:0 0 16px}
+  .ae-nav a.active .ic,.ae-nav a:hover .ic{opacity:1}
+  .ae-side-user{padding:14px 16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:11px}
+  .ae-avatar{width:34px;height:34px;border-radius:50%;background:var(--ae-lime);color:var(--ae-ink);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .ae-side-user .nm{font-size:13px;font-weight:600;color:#fff}
+  .ae-side-user .rl{font-size:11.5px;color:#88a29d}
+
+  /* Main */
+  .ae-main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .ae-topbar{background:#fff;border-bottom:1px solid var(--ae-line);padding:18px 30px;display:flex;align-items:center;justify-content:space-between}
+  .ae-topbar h1{font-size:21px;color:var(--ae-ink)}
+  .ae-topbar .crumb{font-size:12px;color:var(--ae-muted);margin-bottom:3px}
+  .ae-topbar-actions{display:flex;align-items:center;gap:10px}
+  .ae-btn{border:1px solid var(--ae-line);background:#fff;color:var(--ae-ink);font-weight:600;font-size:13px;padding:9px 15px;border-radius:8px;cursor:pointer}
+  .ae-btn.primary{background:var(--ae-green);border-color:var(--ae-green);color:#fff}
+  .ae-btn.primary:hover{background:#00745a}
+
+  .ae-content{padding:26px 30px 40px}
+
+  /* KPI cards */
+  .ae-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+  .ae-kpi{background:#fff;border:1px solid var(--ae-line);border-radius:12px;padding:16px 18px}
+  .ae-kpi .lbl{font-size:12px;color:var(--ae-muted);font-weight:500}
+  .ae-kpi .val{font-size:26px;font-weight:700;color:var(--ae-ink);margin-top:6px}
+  .ae-kpi .val small{font-size:13px;color:var(--ae-green);font-weight:600}
+
+  /* Filter bar */
+  .ae-panel{background:#fff;border:1px solid var(--ae-line);border-radius:12px;overflow:hidden}
+  .ae-filterbar{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--ae-line);flex-wrap:wrap}
+  .ae-filterbar .ttl{font-weight:700;color:var(--ae-ink);font-size:15px;margin-right:6px}
+  .ae-dd{position:relative}
+  .ae-dd-btn{display:flex;align-items:center;gap:9px;border:1px solid var(--ae-line);background:#fff;color:var(--ae-ink);font-weight:600;font-size:13px;padding:9px 13px;border-radius:8px;cursor:pointer}
+  .ae-dd-btn:hover{border-color:var(--ae-green)}
+  .ae-dd-btn .cap{color:var(--ae-muted);font-weight:500}
+  .ae-dd-btn .car{border:solid var(--ae-muted);border-width:0 2px 2px 0;padding:2.5px;display:inline-block;transform:rotate(45deg);margin-left:2px}
+  .ae-dd-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:210px;background:#fff;border:1px solid var(--ae-line);border-radius:10px;box-shadow:0 14px 34px rgba(0,25,30,.14);z-index:60;padding:6px}
+  .ae-dd.open .ae-dd-menu{display:block}
+  .ae-dd-item{padding:9px 11px;border-radius:7px;cursor:pointer;font-size:13.5px;color:var(--ae-body);display:flex;justify-content:space-between;gap:12px}
+  .ae-dd-item:hover{background:var(--ae-gray);color:var(--ae-ink)}
+  .ae-result-note{margin-left:auto;color:var(--ae-muted);font-size:13px}
+  .ae-result-note b{color:var(--ae-ink)}
+
+  /* Table */
+  .ae-table-wrap{overflow-x:auto}
+  table.ae-table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .ae-table thead th{text-align:left;padding:12px 18px;color:var(--ae-muted);font-weight:600;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--ae-line);background:#fafbfb;white-space:nowrap}
+  .ae-table tbody td{padding:14px 18px;border-bottom:1px solid var(--ae-line);vertical-align:middle}
+  .ae-table tbody tr:hover{background:#f7faf9}
+  .ae-table .pid{font-weight:600;color:var(--ae-green)}
+  .ae-table .pname{font-weight:600;color:var(--ae-ink)}
+  .ae-table .pclient{color:var(--ae-muted);font-size:12.5px}
+  .ae-badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+  .b-on-track{background:#e2f4ec;color:#00744f}
+  .b-at-risk{background:#fdf0dc;color:#b7791f}
+  .b-delayed{background:#fce4e4;color:#c0392b}
+  .b-complete{background:#e7edf7;color:#2f5591}
+  .ae-prog{display:flex;align-items:center;gap:9px;min-width:130px}
+  .ae-prog .bar{flex:1;height:7px;background:var(--ae-line);border-radius:6px;overflow:hidden}
+  .ae-prog .fill{height:100%;background:var(--ae-green);border-radius:6px}
+  .ae-prog .pct{font-size:12px;color:var(--ae-muted);width:34px;text-align:right}
+  .ae-amt{font-weight:600;color:var(--ae-ink);white-space:nowrap}
+  .ae-empty{padding:44px 18px;text-align:center;color:var(--ae-muted)}
+
+  /* Toast */
+  .devin-toast{position:fixed;right:24px;bottom:24px;z-index:100000;max-width:440px;background:#fff;color:var(--ae-ink);border-left:5px solid #c0392b;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:15px 18px;transform:translateY(200%);transition:transform .35s ease}
+  .devin-toast.show{transform:translateY(0)}
+  .devin-toast.success{border-left-color:var(--ae-green)}
+  .devin-toast-title{font-weight:700;font-size:14.5px;margin-bottom:3px}
+  .devin-toast-detail{font-size:12.5px;color:#455055;line-height:1.45;word-break:break-word}
+
+  @media(max-width:1000px){
+    .ae-side{display:none}
+    .ae-kpis{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="devin-demo-banner">Internal demo only — <strong>not affiliated with, endorsed by, or a real AECOM product.</strong> Built by Devin for demonstration purposes.</div>
+
+<div class="ae-app">
+  <aside class="ae-side">
+    <div class="ae-side-logo">
+      <div>
+        <div class="ae-word">AECOM</div>
+        <div class="ae-sub">Delivery Hub</div>
+      </div>
+    </div>
+    <nav class="ae-nav">
+      <div class="ae-nav-group">Workspace</div>
+      <a><span class="ic"></span> Dashboard</a>
+      <a class="active"><span class="ic"></span> Project Portfolio</a>
+      <a><span class="ic"></span> Resources</a>
+      <a><span class="ic"></span> Schedules</a>
+      <div class="ae-nav-group">Insights</div>
+      <a><span class="ic"></span> Reports</a>
+      <a><span class="ic"></span> Risk Register</a>
+      <a><span class="ic"></span> Financials</a>
+      <div class="ae-nav-group">Admin</div>
+      <a><span class="ic"></span> Team</a>
+      <a><span class="ic"></span> Settings</a>
+    </nav>
+    <div class="ae-side-user">
+      <div class="ae-avatar">DA</div>
+      <div>
+        <div class="nm">Delivery Analyst</div>
+        <div class="rl">Global PMO</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="ae-main">
+    <div class="ae-topbar">
+      <div>
+        <div class="crumb">Workspace / Delivery Hub</div>
+        <h1>Project Portfolio</h1>
+      </div>
+      <div class="ae-topbar-actions">
+        <button class="ae-btn">Export</button>
+        <button class="ae-btn primary">New Project</button>
+      </div>
+    </div>
+
+    <div class="ae-content">
+      <div class="ae-kpis">
+        <div class="ae-kpi"><div class="lbl">Active Projects</div><div class="val" id="kpiActive">8</div></div>
+        <div class="ae-kpi"><div class="lbl">Portfolio Value</div><div class="val" id="kpiValue">$203.7M</div></div>
+        <div class="ae-kpi"><div class="lbl">On Track</div><div class="val">4 <small>50%</small></div></div>
+        <div class="ae-kpi"><div class="lbl">At Risk / Delayed</div><div class="val">3</div></div>
+      </div>
+
+      <div class="ae-panel">
+        <div class="ae-filterbar">
+          <span class="ttl">Active Projects</span>
+          <div class="ae-dd" data-type="status">
+            <button class="ae-dd-btn"><span class="cap">Status:</span> <span class="lab">All</span> <i class="car"></i></button>
+            <div class="ae-dd-menu"></div>
+          </div>
+          <div class="ae-dd" data-type="market">
+            <button class="ae-dd-btn"><span class="cap">Market:</span> <span class="lab">All</span> <i class="car"></i></button>
+            <div class="ae-dd-menu"></div>
+          </div>
+          <div class="ae-dd" data-type="region">
+            <button class="ae-dd-btn"><span class="cap">Region:</span> <span class="lab">All</span> <i class="car"></i></button>
+            <div class="ae-dd-menu"></div>
+          </div>
+          <div class="ae-dd" data-type="phase">
+            <button class="ae-dd-btn"><span class="cap">Phase:</span> <span class="lab">All</span> <i class="car"></i></button>
+            <div class="ae-dd-menu"></div>
+          </div>
+          <span class="ae-result-note"><b id="resultCount">8</b> of <b id="resultTotal">8</b> projects</span>
+        </div>
+        <div class="ae-table-wrap">
+          <table class="ae-table">
+            <thead>
+              <tr>
+                <th>Project ID</th><th>Project</th><th>Market</th><th>Region</th>
+                <th>Phase</th><th>Status</th><th>Budget</th><th>Progress</th>
+              </tr>
+            </thead>
+            <tbody id="portfolioBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="devin-toast" id="devinToast"><div class="devin-toast-title" id="devinToastTitle"></div><div class="devin-toast-detail" id="devinToastDetail"></div></div>
+
+<script>(function(){
+  var SLUG='6a766bce';
+
+  // Full portfolio (initial render + client-side reference). The server is the
+  // source of truth once a filter is applied — the table re-renders from the
+  // API response so a fixed backend immediately drives the UI.
+  var ALL_PROJECTS=[
+    {id:'PRJ-4821',name:'Heathrow Terminal 2 Expansion',client:'Heathrow Airport Ltd',status:'on-track',market:'transportation',region:'emea',phase:'construction',budget:48200000,complete:62},
+    {id:'PRJ-4822',name:'York Region Transit Corridor',client:'York Region',status:'at-risk',market:'transportation',region:'americas',phase:'design',budget:21500000,complete:38},
+    {id:'PRJ-4823',name:'Sydney Coastal Resilience Program',client:'City of Sydney',status:'on-track',market:'environment',region:'apac',phase:'planning',budget:9800000,complete:15},
+    {id:'PRJ-4824',name:'Manchester Metrolink Extension',client:'Transport for Greater Manchester',status:'delayed',market:'transportation',region:'emea',phase:'construction',budget:33100000,complete:54},
+    {id:'PRJ-4825',name:'IU Health Medical Center Campus',client:'Indiana University Health',status:'on-track',market:'buildings-places',region:'americas',phase:'design',budget:27400000,complete:41},
+    {id:'PRJ-4826',name:'New River Bridge Replacement',client:'State DOT',status:'complete',market:'transportation',region:'americas',phase:'closeout',budget:15600000,complete:100},
+    {id:'PRJ-4827',name:'West Link Rail Tunnel MEP',client:'Trafikverket',status:'at-risk',market:'transportation',region:'emea',phase:'construction',budget:41900000,complete:48},
+    {id:'PRJ-4828',name:'NZ Climate Risk Assessment',client:'Ministry for the Environment',status:'on-track',market:'environment',region:'apac',phase:'planning',budget:6200000,complete:22}
+  ];
+
+  var FILTERS={
+    status:[['all','All'],['on-track','On Track'],['at-risk','At Risk'],['delayed','Delayed'],['complete','Complete']],
+    market:[['all','All'],['transportation','Transportation'],['water','Water'],['energy','Energy'],['buildings-places','Buildings & Places'],['environment','Environment']],
+    region:[['all','All'],['americas','Americas'],['emea','EMEA'],['apac','APAC']],
+    phase:[['all','All'],['planning','Planning'],['design','Design'],['construction','Construction'],['closeout','Closeout']]
+  };
+  var LABELS={};
+  Object.keys(FILTERS).forEach(function(k){LABELS[k]={};FILTERS[k].forEach(function(o){LABELS[k][o[0]]=o[1];});});
+  var STATUS_CLASS={'on-track':'b-on-track','at-risk':'b-at-risk','delayed':'b-delayed','complete':'b-complete'};
+
+  function money(n){
+    if(n>=1000000)return '$'+(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';
+    if(n>=1000)return '$'+Math.round(n/1000)+'K';
+    return '$'+n;
+  }
+  function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+  function renderRows(projects){
+    var body=document.getElementById('portfolioBody');
+    if(!projects||!projects.length){
+      body.innerHTML='<tr><td class="ae-empty" colspan="8">No projects match the selected filters.</td></tr>';
+    }else{
+      body.innerHTML=projects.map(function(p){
+        return '<tr>'+
+          '<td class="pid">'+esc(p.id)+'</td>'+
+          '<td><div class="pname">'+esc(p.name)+'</div><div class="pclient">'+esc(p.client)+'</div></td>'+
+          '<td>'+esc(LABELS.market[p.market]||p.market)+'</td>'+
+          '<td>'+esc(LABELS.region[p.region]||p.region)+'</td>'+
+          '<td>'+esc(LABELS.phase[p.phase]||p.phase)+'</td>'+
+          '<td><span class="ae-badge '+(STATUS_CLASS[p.status]||'')+'">'+esc(LABELS.status[p.status]||p.status)+'</span></td>'+
+          '<td class="ae-amt">'+money(p.budget)+'</td>'+
+          '<td><div class="ae-prog"><div class="bar"><div class="fill" style="width:'+p.complete+'%"></div></div><span class="pct">'+p.complete+'%</span></div></td>'+
+        '</tr>';
+      }).join('');
+    }
+    document.getElementById('resultCount').textContent=projects?projects.length:0;
+  }
+
+  function showToast(type,title,detail){
+    var t=document.getElementById('devinToast');
+    document.getElementById('devinToastTitle').textContent=title;
+    document.getElementById('devinToastDetail').textContent=detail;
+    t.className='devin-toast show'+(type==='success'?' success':'');
+    clearTimeout(t._timer);
+    t._timer=setTimeout(function(){t.className='devin-toast'+(type==='success'?' success':'');},6000);
+  }
+
+  function sendFilter(filterType,value,label){
+    fetch('/api/'+SLUG+'/filter',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        filterType:filterType,value:value,
+        devinOrgId:localStorage.getItem('devinOrgId')||'',
+        devinUserId:localStorage.getItem('devinUserId')||'',
+        devinEmail:localStorage.getItem('devinEmail')||''
+      })
+    }).then(function(r){return r.json().then(function(d){return {r:r,data:d};});})
+    .then(function(res){
+      if(!res.r.ok){
+        showToast('error','Filter Error',(res.data.errorClass||'Error')+': '+(res.data.error||'Failed to filter projects'));
+        return;
+      }
+      // Backend is source of truth: re-render the table from the response.
+      renderRows(res.data.projects||[]);
+      showToast('success','Portfolio Updated',res.data.count+' project'+(res.data.count===1?'':'s')+' • '+(filterType.charAt(0).toUpperCase()+filterType.slice(1))+': '+(res.data.termLabel||label));
+    }).catch(function(err){showToast('error','Network Error',err.message);});
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    fetch('/api/config').then(function(r){return r.json();}).then(function(cfg){
+      if(cfg.lockOrg&&cfg.defaultOrgId)localStorage.setItem('devinOrgId',cfg.defaultOrgId);
+      if(cfg.lockUser&&cfg.defaultUserId)localStorage.setItem('devinUserId',cfg.defaultUserId);
+    }).catch(function(){});
+
+    document.getElementById('resultTotal').textContent=ALL_PROJECTS.length;
+    document.getElementById('kpiActive').textContent=ALL_PROJECTS.length;
+    renderRows(ALL_PROJECTS);
+
+    // Build filter dropdown menus
+    document.querySelectorAll('.ae-dd').forEach(function(dd){
+      var type=dd.getAttribute('data-type');
+      var menu=dd.querySelector('.ae-dd-menu');
+      menu.innerHTML=FILTERS[type].map(function(o){
+        return '<div class="ae-dd-item" data-value="'+o[0]+'">'+o[1]+'</div>';
+      }).join('');
+    });
+
+    function closeAll(){document.querySelectorAll('.ae-dd').forEach(function(d){d.classList.remove('open');});}
+
+    document.querySelectorAll('.ae-dd-btn').forEach(function(btn){
+      btn.addEventListener('click',function(e){
+        e.stopPropagation();
+        var dd=btn.closest('.ae-dd');
+        var wasOpen=dd.classList.contains('open');
+        closeAll();
+        if(!wasOpen)dd.classList.add('open');
+      });
+    });
+
+    document.querySelectorAll('.ae-dd-item').forEach(function(item){
+      item.addEventListener('click',function(e){
+        e.stopPropagation();
+        var dd=item.closest('.ae-dd');
+        var type=dd.getAttribute('data-type');
+        var value=item.getAttribute('data-value');
+        var label=item.textContent;
+        // Server filters on a single facet, so reset the other dropdowns to
+        // 'All' — the bar always reflects the one facet actually applied.
+        document.querySelectorAll('.ae-dd .lab').forEach(function(l){l.textContent='All';});
+        dd.querySelector('.lab').textContent=label;
+        closeAll();
+        sendFilter(type,value,label);
+      });
+    });
+
+    document.addEventListener('click',closeAll);
+  });
+})();</script>
+</body>
+</html>

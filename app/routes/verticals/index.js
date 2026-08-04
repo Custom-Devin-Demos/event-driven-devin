@@ -115,6 +115,7 @@ const customer61875a84Routes = require('./61875a84');
 const customer9db3d08fRoutes = require('./9db3d08f');
 const mtbRoutes = require('./mtb');
 const customer15fee237Routes = require('./15fee237');
+const customer6a766bceRoutes = require('./6a766bce');
 const customerB136ae6eRoutes = require('./b136ae6e');
 const customer7cc34c73Routes = require('./7cc34c73');
 
@@ -230,6 +231,7 @@ router.use(customer61875a84Routes);
 router.use(customer9db3d08fRoutes);
 router.use(mtbRoutes);
 router.use(customer15fee237Routes);
+router.use(customer6a766bceRoutes);
 router.use(customerB136ae6eRoutes);
 router.use(customer7cc34c73Routes);
 
