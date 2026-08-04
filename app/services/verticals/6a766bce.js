@@ -137,6 +137,7 @@ async function filterPortfolio(data) {
         route: '/api/6a766bce/filter',
         service: 'customer-6a766bce-portfolio',
         filterType: data.filterType,
+        customer: '6a766bce',
       },
       extra: { requestId, filterType: data.filterType, value: data.value },
     });
@@ -181,4 +182,4 @@ async function filterPortfolio(data) {
   }
 }
 
-module.exports = { filterPortfolio, PROJECTS, TAXONOMY_MAP };
+module.exports = { filterPortfolio, buildPortfolioView, PROJECTS, TAXONOMY_MAP };
