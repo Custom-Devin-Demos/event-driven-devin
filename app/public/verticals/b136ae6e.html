@@ -398,12 +398,15 @@
       el('countLabel').className = 'count-label' + (loading ? ' loading' : '');
     }
 
+    var toastTimer = null;
+
     function showToast(type, title, detail) {
       var toast = el('toast');
       el('toastTitle').textContent = title;
       el('toastDetail').textContent = detail;
       toast.className = 'toast show' + (type === 'success' ? ' success' : '');
-      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
     }
 
     // Any library facet interaction (content-type tab, topic, or role) re-queries
@@ -462,6 +465,9 @@
         applyFilters();
       });
       applyFilters();
+    }).catch(function (err) {
+      setCount('Resources unavailable', false);
+      showToast('error', 'Could not load resources', err.message);
     });
   </script>
   <script src="/session-cap-banner.js"></script>
