@@ -419,6 +419,14 @@ const CUSTOMERS = {
     label: 'AECOM Project Portfolio',
     triggerMode: 'api',
   },
+  b136ae6e: {
+    label: 'Resource Library',
+    triggerMode: 'api',
+  },
+  '7cc34c73': {
+    label: 'Expenses Inbox',
+    triggerMode: 'api',
+  },
 };
 
 /**

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expenses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #15191e;
+      --muted: #6f737b;
+      --muted-2: #8b8f97;
+      --accent: #ff3d00;
+      --rail: #1b1d21;
+      --rail-ink: #b8bcc4;
+      --surface: #f7f7f9;
+      --hairline: rgba(66, 87, 138, 0.15);
+      --green: #0f7b4f;
+      --amber: #9a6200;
+      --red: #b42318;
+      --blue: #175cd3;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em; font-size: 14px;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ── Devin demo disclaimer ── */
+    .devin-demo-banner {
+      background: #111827; color: #fbbf24; text-align: center;
+      font-size: 13px; font-weight: 600; padding: 9px 16px; line-height: 1.35;
+    }
+    .devin-demo-banner strong { color: #fff; }
+
+    .shell { display: grid; grid-template-columns: 232px 1fr; min-height: calc(100vh - 34px); }
+
+    /* ── Left rail ── */
+    aside.rail { background: var(--rail); color: var(--rail-ink); padding: 16px 12px; display: flex; flex-direction: column; }
+    .org {
+      display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; margin-bottom: 18px;
+    }
+    .org .mark {
+      width: 28px; height: 28px; border-radius: 7px; background: #fff; color: var(--rail);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+    }
+    .org .name { color: #fff; font-weight: 600; font-size: 14px; }
+    .org .plan { font-size: 11px; color: var(--muted-2); }
+    .rail-group { margin-bottom: 18px; }
+    .rail-group h4 {
+      font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+      color: #6b6f78; padding: 0 8px 6px;
+    }
+    .rail-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px;
+      font-size: 13.5px; font-weight: 500; color: var(--rail-ink); width: 100%; background: none; border: none; text-align: left;
+    }
+    .rail-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .rail-item.active { background: rgba(255,255,255,.12); color: #fff; }
+    .rail-item .dot { width: 16px; height: 16px; border-radius: 4px; background: rgba(255,255,255,.22); flex: none; }
+    .rail-item .pill {
+      margin-left: auto; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600;
+      border-radius: 999px; padding: 1px 7px;
+    }
+    .rail-foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 8px; font-size: 13px; }
+    .avatar {
+      width: 26px; height: 26px; border-radius: 50%; background: #3b4048; color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;
+    }
+
+    /* ── Main ── */
+    main { min-width: 0; }
+    .topbar {
+      height: 56px; padding: 0 28px; display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid var(--hairline); position: sticky; top: 0; background: #fff; z-index: 20;
+    }
+    .topbar h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .topbar .spacer { margin-left: auto; }
+    .btn {
+      height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--hairline);
+      background: #fff; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:hover { background: var(--surface); }
+    .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+    .tabs { display: flex; align-items: center; gap: 18px; padding: 0 28px; border-bottom: 1px solid var(--hairline); }
+    .tab {
+      background: none; border: none; height: 44px; font-size: 13.5px; font-weight: 600; color: var(--muted);
+      position: relative; display: flex; align-items: center; gap: 7px; letter-spacing: -0.01em;
+    }
+    .tab .badge {
+      background: var(--surface); color: var(--muted); border-radius: 999px; font-size: 11px;
+      font-weight: 600; padding: 1px 7px;
+    }
+    .tab[aria-selected="true"] { color: var(--ink); }
+    .tab[aria-selected="true"] .badge { background: var(--ink); color: #fff; }
+    .tab[aria-selected="true"]::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ink);
+    }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 14px 28px; flex-wrap: wrap; }
+    .select {
+      height: 32px; border: 1px solid var(--hairline); border-radius: 8px; padding: 0 10px;
+      font-family: inherit; font-size: 13px; color: var(--ink); background: #fff; min-width: 150px;
+    }
+    .select:focus { outline: 2px solid rgba(23,92,211,.25); }
+    .search {
+      display: flex; align-items: center; gap: 6px; height: 32px; border: 1px solid var(--hairline);
+      border-radius: 8px; padding: 0 10px; color: var(--muted); min-width: 210px;
+    }
+    .search input { border: none; outline: none; font-family: inherit; font-size: 13px; width: 100%; }
+    .clear { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--accent); background: none; border: none; }
+
+    .summary { display: flex; align-items: center; gap: 8px; padding: 0 28px 12px; font-size: 13px; color: var(--muted); }
+    .summary .amount { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .summary .spin {
+      width: 13px; height: 13px; border: 2px solid var(--hairline); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite; display: none;
+    }
+    .summary.loading .spin { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .table-wrap { padding: 0 28px 48px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--hairline); white-space: nowrap;
+    }
+    tbody td { padding: 12px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
+    tbody tr:hover { background: var(--surface); cursor: pointer; }
+    .merchant { display: flex; align-items: center; gap: 10px; }
+    .merchant .logo {
+      width: 30px; height: 30px; border-radius: 8px; background: var(--surface); color: var(--muted);
+      display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex: none;
+    }
+    .merchant .who { font-weight: 600; font-size: 13.5px; }
+    .merchant .sub { font-size: 12px; color: var(--muted); }
+    td.amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600;
+      border-radius: 999px; padding: 3px 9px; white-space: nowrap;
+    }
+    .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .chip.compliant { color: var(--green); background: rgba(15,123,79,.09); }
+    .chip.missing-receipt { color: var(--red); background: rgba(180,35,24,.09); }
+    .chip.missing-memo { color: var(--amber); background: rgba(154,98,0,.1); }
+    .chip.over-limit { color: var(--red); background: rgba(180,35,24,.09); }
+    .chip.pending-approval { color: var(--blue); background: rgba(23,92,211,.09); }
+    .muted { color: var(--muted); font-size: 13px; }
+    .empty { padding: 48px 0; text-align: center; color: var(--muted); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; width: 380px; background: #fff;
+      border: 1px solid var(--hairline); border-left: 4px solid var(--red); border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(16, 24, 40, .16); padding: 14px 16px;
+      transform: translateY(140%); transition: transform .28s ease; z-index: 90;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast h4 { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
+    .toast p { font-size: 12.5px; color: var(--muted); line-height: 1.45; word-break: break-word; }
+
+    .demo-note {
+      margin: 0 28px 28px; padding: 14px 16px; border: 1px dashed var(--hairline);
+      border-radius: 12px; background: var(--surface); font-size: 12.5px; color: var(--muted); line-height: 1.5;
+    }
+    .demo-note strong { color: var(--ink); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="devin-demo-banner">
+    <strong>Internal demo only — not actually from Brex.</strong>
+    Devin demo environment for software incident testing; not affiliated with or endorsed by Brex.
+  </div>
+
+  <div class="shell">
+    <aside class="rail">
+      <div class="org">
+        <div class="mark"><span>N</span></div>
+        <div>
+          <div class="name">Northwind Labs</div>
+          <div class="plan">Brex Premium</div>
+        </div>
+      </div>
+
+      <div class="rail-group">
+        <h4>Spend</h4>
+        <button class="rail-item" type="button"><span class="dot"></span>Home</button>
+        <button class="rail-item active" type="button"><span class="dot"></span>Expenses<span class="pill" id="railPill">0</span></button>
+        <button class="rail-item" type="button"><span class="dot"></span>Wallet</button>
+        <button class="rail-item" type="button"><span class="dot"></span>Budgets</button>
+        <button class="rail-item" type="button"><span class="dot"></span>Bill Pay</button>
+        <button class="rail-item" type="button"><span class="dot"></span>Travel</button>
+      </div>
+      <div class="rail-group">
+        <h4>Accounting</h4>
+        <button class="rail-item" type="button"><span class="dot"></span>Accounting</button>
+        <button class="rail-item" type="button"><span class="dot"></span>Reimbursements</button>
+        <button class="rail-item" type="button"><span class="dot"></span>Reports</button>
+      </div>
+
+      <div class="rail-foot">
+        <div class="avatar">RC</div>
+        <div>
+          <div style="color:#fff;font-weight:500">Rae Coleman</div>
+          <div style="font-size:11px;color:var(--muted-2)">Controller</div>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <h1>Expenses</h1>
+        <div class="spacer"></div>
+        <button class="btn" type="button">Export</button>
+        <button class="btn primary" type="button">Request receipt</button>
+      </div>
+
+      <div class="tabs" id="tabs" role="tablist"></div>
+
+      <div class="toolbar">
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+          <input type="text" aria-label="Search expenses" placeholder="Search merchant, memo, or owner">
+        </div>
+        <select class="select" id="budgetSel" aria-label="Budget"></select>
+        <select class="select" id="categorySel" aria-label="Category"></select>
+        <select class="select" id="cardSel" aria-label="Card"></select>
+        <button class="clear" type="button" id="clearBtn">Clear filters</button>
+      </div>
+
+      <div class="summary" id="summary">
+        <span class="spin"></span>
+        <span id="summaryText">Loading expenses</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Merchant</th>
+              <th>Date</th>
+              <th>Budget</th>
+              <th>Category</th>
+              <th>Card</th>
+              <th>Status</th>
+              <th style="text-align:right">Amount</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="demo-note">
+        <strong>Demo bug:</strong> selecting a <em>Budget</em>, <em>Category</em>, or <em>Card</em> filter makes the inbox
+        attach the July 2026 close-period policy rule <code>RULE-PERIOD-CLOSE-LOCK-2026-07</code>, which was never added to
+        <code>FILTER_RULES</code>. Resolving it returns <code>undefined</code> and reading <code>ruleDef.field</code> throws a
+        <code>TypeError</code> — captured by Sentry, alerted to Slack, and handed to Devin. Review-queue tabs still work.
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <h4 id="toastTitle"></h4>
+    <p id="toastDetail"></p>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var STATUS_LABEL = {
+      'compliant': 'Compliant',
+      'missing-receipt': 'Missing receipt',
+      'missing-memo': 'Missing memo',
+      'over-limit': 'Over limit',
+      'pending-approval': 'Pending approval'
+    };
+
+    var state = { queue: 'all', budget: '', category: '', card: '', results: [] };
+    var requestSeq = 0;
+
+    function el(id) { return document.getElementById(id); }
+
+    function money(n) {
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function shortDate(iso) {
+      var d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function renderTabs(queues) {
+      var box = el('tabs');
+      box.innerHTML = '';
+      queues.forEach(function (q) {
+        var b = document.createElement('button');
+        b.className = 'tab';
+        b.type = 'button';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-selected', state.queue === q.id ? 'true' : 'false');
+        b.innerHTML = escapeHtml(q.label) + '<span class="badge">' + q.count + '</span>';
+        b.addEventListener('click', function () {
+          state.queue = q.id;
+          renderTabs(queues);
+          applyFilters();
+        });
+        box.appendChild(b);
+      });
+    }
+
+    function renderSelect(id, label, values, key) {
+      var sel = el(id);
+      sel.innerHTML = '<option value="">' + label + ': All</option>'
+        + values.map(function (v) { return '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>'; }).join('');
+      sel.addEventListener('change', function () {
+        state[key] = sel.value;
+        applyFilters();
+      });
+    }
+
+    function renderRows() {
+      var body = el('rows');
+      body.innerHTML = '';
+      if (!state.results.length) {
+        body.innerHTML = '<tr><td colspan="7"><div class="empty">No expenses match this view.</div></td></tr>';
+        return;
+      }
+      state.results.forEach(function (e) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td><div class="merchant"><div class="logo">' + escapeHtml(e.logo) + '</div>'
+          + '<div><div class="who">' + escapeHtml(e.merchant) + '</div>'
+          + '<div class="sub">' + escapeHtml(e.owner) + (e.memo ? ' · ' + escapeHtml(e.memo) : '') + '</div></div></div></td>'
+          + '<td class="muted">' + escapeHtml(shortDate(e.date)) + '</td>'
+          + '<td class="muted">' + escapeHtml(e.budget) + '</td>'
+          + '<td class="muted">' + escapeHtml(e.category) + '</td>'
+          + '<td class="muted">' + escapeHtml(e.card) + '</td>'
+          + '<td><span class="chip ' + escapeHtml(e.compliance) + '">' + escapeHtml(STATUS_LABEL[e.compliance] || e.compliance) + '</span></td>'
+          + '<td class="amt">' + money(e.amount) + '</td>';
+        body.appendChild(tr);
+      });
+    }
+
+    function setSummary(text, loading) {
+      el('summaryText').innerHTML = text;
+      el('summary').className = 'summary' + (loading ? ' loading' : '');
+    }
+
+    var toastTimer = null;
+
+    function showToast(title, detail) {
+      el('toastTitle').textContent = title;
+      el('toastDetail').textContent = detail;
+      el('toast').className = 'toast show';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el('toast').className = 'toast'; }, 12000);
+    }
+
+    // Any inbox interaction (review-queue tab or budget/category/card filter)
+    // re-queries the expense ledger on the server.
+    async function applyFilters() {
+      setSummary('Filtering expenses', true);
+      var seq = ++requestSeq;
+      try {
+        var res = await fetch('/api/7cc34c73/expenses/filter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            queue: state.queue,
+            budget: state.budget,
+            category: state.category,
+            card: state.card,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await res.json();
+        if (seq !== requestSeq) return;
+        if (!res.ok) {
+          setSummary(state.results.length + ' expenses <em>(filters not applied)</em>', false);
+          showToast('Expense filter error', (data.errorClass || 'Error') + ': ' + (data.error || 'Failed to filter expenses'));
+          return;
+        }
+        state.results = data.results;
+        el('railPill').textContent = data.count;
+        setSummary(data.count + ' expenses in <strong>' + escapeHtml(data.queueLabel) + '</strong> · <span class="amount">'
+          + money(data.total) + '</span> total', false);
+        renderRows();
+      } catch (err) {
+        if (seq !== requestSeq) return;
+        setSummary('Expenses unavailable', false);
+        showToast('Network error', err.message);
+      }
+    }
+
+    fetch('/api/7cc34c73/expenses').then(function (r) { return r.json(); }).then(function (data) {
+      renderTabs(data.queues);
+      renderSelect('budgetSel', 'Budget', data.budgets, 'budget');
+      renderSelect('categorySel', 'Category', data.categories, 'category');
+      renderSelect('cardSel', 'Card', data.cards, 'card');
+      el('clearBtn').addEventListener('click', function () {
+        state.budget = '';
+        state.category = '';
+        state.card = '';
+        el('budgetSel').value = '';
+        el('categorySel').value = '';
+        el('cardSel').value = '';
+        applyFilters();
+      });
+      applyFilters();
+    }).catch(function (err) {
+      setSummary('Expenses unavailable', false);
+      showToast('Could not load expenses', err.message);
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

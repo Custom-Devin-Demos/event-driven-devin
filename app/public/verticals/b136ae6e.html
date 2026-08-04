@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resources</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #15191e;
+      --muted: #6f737b;
+      --muted-2: #60646c;
+      --accent: #ff3d00;
+      --surface: #f9f9fb;
+      --hairline: rgba(66, 87, 138, 0.15);
+      --card-radius: 16px;
+      --pill-radius: 10px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      color: var(--ink);
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: -0.01em;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ── Devin demo disclaimer ── */
+    .devin-demo-banner {
+      background: #111827; color: #fbbf24; text-align: center;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px;
+      padding: 9px 16px; line-height: 1.35;
+    }
+    .devin-demo-banner strong { color: #fff; }
+
+    /* ── Top nav ── */
+    header.site {
+      height: 60px; padding: 0 24px; display: flex; align-items: center;
+      justify-content: space-between; background: #fff; border-bottom: 1px solid var(--hairline);
+      position: sticky; top: 0; z-index: 40;
+    }
+    .nav-left { display: flex; align-items: center; gap: 4px; }
+    .wordmark { display: flex; align-items: center; gap: 8px; margin-right: 20px; }
+    .wordmark .glyph {
+      width: 26px; height: 20px; border-radius: 4px; background: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .wordmark .glyph span { display: block; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 2px; }
+    .wordmark .name { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+    .nav-left a, .nav-left button {
+      font-size: 14px; font-weight: 500; color: var(--ink); background: none; border: none;
+      padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 5px;
+    }
+    .nav-left a:hover, .nav-left button:hover { background: var(--surface); }
+    .nav-right { display: flex; align-items: center; gap: 8px; }
+    .nav-right a { font-size: 14px; font-weight: 500; padding: 8px 12px; }
+    .nav-right a.cta {
+      background: var(--accent); color: #fcfcfd; border: 1px solid var(--accent);
+      border-radius: var(--pill-radius); height: 36px; padding: 0 16px;
+      display: flex; align-items: center; font-size: 14px; line-height: 22px;
+    }
+    .chev { width: 12px; height: 12px; }
+
+    /* ── Resources sub-nav ── */
+    nav.resources {
+      padding: 0 48px; border-bottom: 1px solid var(--hairline); background: #fff;
+    }
+    .crumbs { display: flex; align-items: center; gap: 6px; padding-top: 16px; }
+    .crumbs a, .crumbs span { font-size: 12px; font-weight: 500; letter-spacing: -0.02em; color: var(--muted); }
+    .crumbs span.current { color: var(--ink); }
+    .subtabs { display: flex; align-items: center; gap: 12px; height: 46px; }
+    .subtab {
+      font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink);
+      background: none; border: none; padding: 0 8px; height: 46px; position: relative;
+    }
+    .subtab[aria-selected="true"]::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+      height: 2px; background: var(--ink);
+    }
+    .subtab:hover { color: var(--accent); }
+    .subtab-search {
+      margin-left: auto; display: flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 14px;
+    }
+    .subtab-search input {
+      border: none; outline: none; font-family: inherit; font-size: 14px;
+      letter-spacing: -0.025em; color: var(--ink); width: 120px; background: transparent;
+    }
+
+    /* ── Hero ── */
+    .hero-outer { padding: 0 48px; border-bottom: 1px solid var(--hairline); }
+    .hero { padding: 80px 0 48px; }
+    .hero h1 { font-size: 56px; font-weight: 500; line-height: 60px; letter-spacing: -0.03em; color: var(--ink); }
+    .hero p { font-size: 20px; font-weight: 400; line-height: 28px; letter-spacing: -0.025em; color: var(--muted-2); margin-top: 12px; max-width: 620px; }
+
+    /* ── Layout ── */
+    .layout {
+      padding: 40px 48px 72px; display: grid; grid-template-columns: 320px 1fr; gap: 56px; align-items: start;
+    }
+    @media (max-width: 1080px) { .layout { grid-template-columns: 1fr; gap: 32px; } }
+
+    aside .filter-head {
+      display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;
+      padding-bottom: 16px; border-bottom: 1px solid var(--hairline); margin-bottom: 16px;
+    }
+    aside .filter-head .reset {
+      margin-left: auto; font-size: 13px; font-weight: 500; color: var(--accent);
+      background: none; border: none; padding: 0;
+    }
+    .facet-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 1080px) { .facet-groups { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 700px) { .facet-groups { grid-template-columns: 1fr; } }
+    .facet-group h2 { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; padding-bottom: 8px; }
+    .facet-list { list-style: none; max-height: 380px; overflow-y: auto; }
+    .facet {
+      display: block; width: 100%; text-align: left; background: none; border: none;
+      font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: -0.025em;
+      color: var(--muted); padding: 8px 12px; border-radius: var(--pill-radius);
+    }
+    .facet:hover { background: var(--surface); color: var(--ink); }
+    .facet[aria-pressed="true"] { background: var(--ink); color: #fff; font-weight: 500; }
+
+    /* ── Results ── */
+    .count-label {
+      font-size: 14px; font-weight: 600; line-height: 20px; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--ink); margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .count-label .spin {
+      width: 13px; height: 13px; border: 2px solid var(--hairline); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite; display: none;
+    }
+    .count-label.loading .spin { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    @media (max-width: 1400px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1080px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    .card { display: flex; flex-direction: column; gap: 12px; }
+    .card .thumb {
+      width: 100%; aspect-ratio: 16 / 9; border-radius: var(--card-radius);
+      overflow: hidden; background: var(--surface);
+    }
+    .card .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
+    .card:hover .thumb img { transform: scale(1.02); }
+    .card .thumb img { transition: transform .25s ease; }
+    .card h3 { font-size: 16px; font-weight: 600; line-height: 22px; letter-spacing: -0.015em; color: var(--ink); }
+    .card .byline { font-size: 13px; font-weight: 400; line-height: 18px; color: var(--muted); }
+    .card .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .card .tag {
+      font-size: 11px; font-weight: 500; line-height: 16px; color: var(--muted-2);
+      background: var(--surface); border-radius: 6px; padding: 3px 8px;
+    }
+    .card .more { font-size: 13px; font-weight: 500; color: var(--ink); margin-top: auto; }
+    .card:hover .more { color: var(--accent); }
+    .empty { font-size: 15px; color: var(--muted); }
+
+    /* ── Bug hint ── */
+    .bug-hint {
+      margin: 0 48px 56px; padding: 16px 18px; background: #fff7ed;
+      border: 1px solid #fed7aa; border-radius: 12px; font-size: 13px;
+      line-height: 1.55; color: #7c2d12; max-width: 1100px;
+    }
+    .bug-hint code { background: #ffedd5; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+    /* ── Footer ── */
+    footer.site {
+      border-top: 1px solid var(--hairline); padding: 32px 48px; color: var(--muted);
+      font-size: 12px; line-height: 1.6;
+    }
+    footer.site .fw { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 999; max-width: 420px;
+      background: #fff; color: var(--ink); border-left: 5px solid #e0342c;
+      box-shadow: 0 14px 44px rgba(0,0,0,.24); border-radius: 10px;
+      padding: 16px 18px; transform: translateY(200%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: #12b23c; }
+    .toast-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <div class="devin-demo-banner">
+    <strong>Internal demo only — not actually from Brex.</strong>
+    Demonstration clone built by Devin for software testing; not affiliated with or endorsed by Brex.
+  </div>
+
+  <header class="site">
+    <div class="nav-left">
+      <a class="wordmark" href="#"><span class="glyph"><span></span></span><span class="name">Brex</span></a>
+      <button type="button">Products
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button type="button">Solutions
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <button type="button">Resources
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <a href="#">Customers</a>
+      <a href="#">Pricing</a>
+    </div>
+    <div class="nav-right">
+      <a href="#">Sign in</a>
+      <a href="#">See a demo</a>
+      <a class="cta" href="#">Get started</a>
+    </div>
+  </header>
+
+  <nav class="resources" aria-label="Resources navigation">
+    <div class="crumbs">
+      <a href="#">Resources</a>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6f737b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <span class="current" id="crumbCurrent">Articles</span>
+    </div>
+    <div class="subtabs" id="subtabs" role="tablist"></div>
+  </nav>
+
+  <div class="hero-outer">
+    <div class="hero">
+      <h1 id="heroTitle">Articles</h1>
+      <p id="heroSub">Read the blog for insights and interviews that inform and inspire.</p>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside>
+      <div class="filter-head">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
+        <span id="filterCount">Filter (0)</span>
+        <button class="reset" id="resetBtn" type="button">Reset</button>
+      </div>
+      <div class="facet-groups">
+        <div class="facet-group">
+          <h2>By Topic</h2>
+          <ul class="facet-list" id="topicList"></ul>
+        </div>
+        <div class="facet-group">
+          <h2>By Role</h2>
+          <ul class="facet-list" id="roleList"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <section>
+      <div class="count-label" id="countLabel"><span class="spin"></span><span id="countText">Loading resources</span></div>
+      <div class="grid" id="grid"></div>
+    </section>
+  </div>
+
+  <div class="bug-hint">
+    <strong>&#x1F41E; Demo bug:</strong> Narrowing the resource library by a <strong>Topic</strong> or
+    <strong>Role</strong> facet force-attaches a gated-asset entitlement facet
+    (<code>FACET-GATED-ASSET-ENTITLEMENT-2026</code>) to the query, but that facet code isn&rsquo;t registered in
+    the facet registry. When the summary builder resolves the facet&rsquo;s field, it crashes with a
+    <code>TypeError</code> &mdash; leaving the grid stale. Content-type tabs still filter normally. Click any
+    topic or role filter to surface it and trigger the Sentry &rarr; Slack &rarr; Devin investigation pipeline.
+  </div>
+
+  <footer class="site">
+    <div class="fw">Brex</div>
+    <div>
+      Internal demo copy for software testing purposes only &middot; not affiliated with Brex.
+      Powered by <a href="https://devin.ai" target="_blank" rel="noopener" style="color:var(--accent)">Devin</a> &middot; Built in &lt;1 day
+    </div>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var HERO = {
+      '': { title: 'Resources', sub: 'Actionable guides, case studies, webinars, and other tools to help finance leaders get results.' },
+      'Articles': { title: 'Articles', sub: 'Read the blog for insights and interviews that inform and inspire.' },
+      'E-books': { title: 'E-books', sub: 'In-depth playbooks and guides for finance teams that want to move faster.' },
+      'Case Studies': { title: 'Case Studies', sub: 'How customers use Brex to spend smarter and move faster.' },
+      'Brex Benchmark': { title: 'Brex Benchmark', sub: 'Data-driven looks at how companies actually spend, from real transaction data.' },
+      'Spend Trends': { title: 'Spend Trends', sub: 'Research and explainers on cards, payments, and business spend.' }
+    };
+
+    var state = { contentType: 'Articles', topics: [], roles: [], results: [], resultsLabel: 'resources' };
+    var requestSeq = 0;
+
+    function el(id) { return document.getElementById(id); }
+
+    function renderSubtabs(contentTypes) {
+      var box = el('subtabs');
+      box.innerHTML = '';
+      [''].concat(contentTypes).forEach(function (ct) {
+        var b = document.createElement('button');
+        b.className = 'subtab';
+        b.type = 'button';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-selected', state.contentType === ct ? 'true' : 'false');
+        b.textContent = ct === '' ? 'All' : ct;
+        b.addEventListener('click', function () {
+          state.contentType = ct;
+          renderSubtabs(contentTypes);
+          renderHero();
+          applyFilters();
+        });
+        box.appendChild(b);
+      });
+      var search = document.createElement('div');
+      search.className = 'subtab-search';
+      search.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>'
+        + '<input type="text" aria-label="Search" placeholder="Search">';
+      box.appendChild(search);
+    }
+
+    function renderHero() {
+      var h = HERO[state.contentType] || HERO[''];
+      el('heroTitle').textContent = h.title;
+      el('heroSub').textContent = h.sub;
+      el('crumbCurrent').textContent = state.contentType === '' ? 'All' : state.contentType;
+    }
+
+    function renderFacets(topics, roles) {
+      [['topicList', topics, 'topics'], ['roleList', roles, 'roles']].forEach(function (spec) {
+        var list = el(spec[0]);
+        list.innerHTML = '';
+        spec[1].forEach(function (term) {
+          var li = document.createElement('li');
+          var b = document.createElement('button');
+          b.className = 'facet';
+          b.type = 'button';
+          b.textContent = term;
+          b.setAttribute('aria-pressed', state[spec[2]].indexOf(term) > -1 ? 'true' : 'false');
+          b.addEventListener('click', function () {
+            var arr = state[spec[2]];
+            var i = arr.indexOf(term);
+            if (i > -1) { arr.splice(i, 1); } else { arr.push(term); }
+            renderFacets(topics, roles);
+            renderFilterCount();
+            applyFilters();
+          });
+          li.appendChild(b);
+          list.appendChild(li);
+        });
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function renderFilterCount() {
+      el('filterCount').textContent = 'Filter (' + (state.topics.length + state.roles.length) + ')';
+    }
+
+    function renderGrid() {
+      var grid = el('grid');
+      grid.innerHTML = '';
+      if (!state.results.length) {
+        grid.innerHTML = '<div class="empty">No resources match the current filters.</div>';
+        return;
+      }
+      state.results.forEach(function (r) {
+        var card = document.createElement('a');
+        card.className = 'card';
+        card.href = '#';
+        var tags = r.topics.concat(r.roles).slice(0, 2).map(function (t) {
+          return '<span class="tag">' + escapeHtml(t) + '</span>';
+        }).join('');
+        card.innerHTML = '<div class="thumb"><img src="' + escapeHtml(r.img) + '" alt="' + escapeHtml(r.title) + '" loading="lazy"'
+          + ' onerror="this.onerror=null;this.src=\'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&amp;q=80\';"></div>'
+          + '<h3>' + escapeHtml(r.title) + '</h3>'
+          + '<div class="byline">' + escapeHtml(r.byline) + '</div>'
+          + '<div class="tags">' + tags + '</div>'
+          + '<div class="more">Read more &rarr;</div>';
+        grid.appendChild(card);
+      });
+    }
+
+    function setCount(text, loading) {
+      el('countText').textContent = text;
+      el('countLabel').className = 'count-label' + (loading ? ' loading' : '');
+    }
+
+    var toastTimer = null;
+
+    function showToast(type, title, detail) {
+      var toast = el('toast');
+      el('toastTitle').textContent = title;
+      el('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    // Any library facet interaction (content-type tab, topic, or role) re-queries
+    // the resource library on the server.
+    async function applyFilters() {
+      setCount('Filtering resources', true);
+      var seq = ++requestSeq;
+      try {
+        var res = await fetch('/api/b136ae6e/filter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contentType: state.contentType,
+            topics: state.topics,
+            roles: state.roles,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await res.json();
+        if (seq !== requestSeq) return;
+        if (!res.ok) {
+          setCount((state.results.length || 0) + ' ' + state.resultsLabel + ' (filters not applied)', false);
+          showToast('error', 'Library Filter Error', (data.errorClass || 'Error') + ': ' + (data.error || 'Failed to filter resources'));
+          return;
+        }
+        state.results = data.results;
+        state.resultsLabel = label();
+        setCount(data.count + ' ' + state.resultsLabel, false);
+        renderGrid();
+      } catch (err) {
+        if (seq !== requestSeq) return;
+        setCount('Filter unavailable', false);
+        showToast('error', 'Network Error', err.message);
+      }
+    }
+
+    function label() {
+      var ct = state.contentType;
+      if (ct === 'Case Studies') return 'case studies';
+      if (ct === 'E-books') return 'e-books';
+      if (ct === '') return 'resources';
+      return ct.toLowerCase();
+    }
+
+    fetch('/api/b136ae6e/resources').then(function (r) { return r.json(); }).then(function (data) {
+      renderSubtabs(data.contentTypes);
+      renderHero();
+      renderFacets(data.topics, data.roles);
+      renderFilterCount();
+      el('resetBtn').addEventListener('click', function () {
+        state.topics = [];
+        state.roles = [];
+        renderFacets(data.topics, data.roles);
+        renderFilterCount();
+        applyFilters();
+      });
+      applyFilters();
+    }).catch(function (err) {
+      setCount('Resources unavailable', false);
+      showToast('error', 'Could not load resources', err.message);
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
