@@ -912,7 +912,7 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
 async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
   const { token, alertsChannel } = resolveOncallEnv();
-  const kind = SEV1_INCIDENTS[options.kind] ? options.kind : 'checkout-gateway';
+  const kind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, options.kind) ? options.kind : 'checkout-gateway';
   const story = SEV1_INCIDENTS[kind];
 
   let incident = null;
