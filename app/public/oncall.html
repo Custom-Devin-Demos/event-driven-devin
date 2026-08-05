@@ -582,10 +582,12 @@
         </a>
         <div class="wide-card">
           <div class="wide-title">Major Incident (SEV-1)</div>
-          <div class="wide-desc">Fires a SEV-1 multi-vertical error spike. With Datadog incident keys configured, this declares a real Datadog incident &mdash; Datadog creates the incident channel and the Incident Agent auto-joins. Otherwise the SEV-1 signal posts to the alerts channel.</div>
+          <div class="wide-desc">Declares a real Datadog incident backed by a genuine live degradation. Datadog creates a dedicated Slack incident channel, Devin and you are invited in, and the incident auto-resolves when the degradation window ends. Each click is an independent incident with its own channel.</div>
           <div style="margin-top:auto;">
-            <button class="fire-btn sev" id="incident-btn">Trigger SEV-1 Incident</button>
+            <select id="incident-kind" style="width:100%;margin-bottom:8px;padding:8px 10px;border:1px solid rgba(15,23,42,0.15);border-radius:6px;font:inherit;font-size:13px;background:#fff;"></select>
+            <button class="fire-btn sev" id="incident-btn">Declare SEV-1 Incident</button>
             <div class="status" id="incident-status"></div>
+            <div id="sev1-list" style="margin-top:8px;font-size:12px;line-height:1.6;"></div>
           </div>
         </div>
       </div>
@@ -850,15 +852,50 @@
       });
     })();
 
+    (async function sev1Setup() {
+      const kindSel = document.getElementById('incident-kind');
+      try {
+        const kinds = await fetch('/api/oncall/incident/kinds').then((r) => r.json());
+        kindSel.innerHTML = kinds.map((k) =>
+          '<option value="' + k.id + '">' + k.label + '</option>').join('');
+      } catch (e) { /* selector stays empty; server falls back to default kind */ }
+    })();
+
+    function renderSev1List(items) {
+      const el = document.getElementById('sev1-list');
+      if (!items || !items.length) { el.innerHTML = ''; return; }
+      el.innerHTML = items.slice().reverse().slice(0, 5).map(function (i) {
+        const mins = Math.ceil(i.msRemaining / 60000);
+        const state = i.status === 'resolved'
+          ? '<span style="color:#16a34a;">resolved</span>'
+          : i.status === 'investigating'
+            ? '<span style="color:#7c3aed;">investigating in #' + (i.channelName || '') + '</span>'
+            : '<span style="color:#b45309;">declared \u2014 waiting for Slack channel</span>';
+        return 'IR-' + i.publicId + ' <span style="color:#64748b;">(' + i.runRef + ')</span> ' + state +
+          (i.status !== 'resolved' ? ' <span style="color:#64748b;">\u00b7 ~' + mins + ' min left</span>' : '');
+      }).join('<br>');
+    }
+
+    async function pollSev1State() {
+      try {
+        const items = await fetch('/api/oncall/incident/state').then((r) => r.json());
+        renderSev1List(items);
+      } catch (e) { /* transient */ }
+    }
+    setInterval(pollSev1State, 5000);
+    pollSev1State();
+
     document.getElementById('incident-btn').onclick = async () => {
       const status = document.getElementById('incident-status');
       const btn = document.getElementById('incident-btn');
       btn.disabled = true;
-      show(status, true, 'Firing incident\u2026');
+      show(status, true, 'Declaring incident\u2026');
       try {
-        const { status: code, data } = await post('/api/oncall/incident');
+        const kind = document.getElementById('incident-kind').value || undefined;
+        const { status: code, data } = await post('/api/oncall/incident', { kind: kind });
         if (code === 200 && data.provider === 'datadog') {
-          show(status, true, 'Datadog incident declared (ref ' + data.runRef + ', incident ' + (data.publicId || data.id) + ').');
+          show(status, true, 'SEV-1 declared (IR-' + (data.publicId || data.id) + ', ref ' + data.runRef + '). Slack channel incoming\u2026');
+          pollSev1State();
         } else {
           show(status, code === 200,
             code === 200

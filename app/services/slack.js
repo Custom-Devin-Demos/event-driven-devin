@@ -440,6 +440,56 @@ async function deleteMessage(token, channel, ts) {
   }
 }
 
+/**
+ * Find a public channel whose name matches the given predicate.
+ * Paginates conversations.list; returns { id, name } or null.
+ */
+async function findChannelByName(token, matcher) {
+  let cursor;
+  do {
+    const response = await axios.get(`${SLACK_API_BASE}/conversations.list`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { types: 'public_channel', limit: 200, exclude_archived: true, cursor },
+      timeout: 10000,
+    });
+    if (!response.data.ok) {
+      throw new Error(`Slack API error: ${response.data.error}`);
+    }
+    const match = (response.data.channels || []).find((c) => matcher(c.name));
+    if (match) return { id: match.id, name: match.name };
+    cursor = response.data.response_metadata && response.data.response_metadata.next_cursor;
+  } while (cursor);
+  return null;
+}
+
+/**
+ * Join a public channel as the bot (required before inviting others).
+ */
+async function joinChannel(token, channel) {
+  const response = await axios.post(`${SLACK_API_BASE}/conversations.join`, { channel }, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    timeout: 10000,
+  });
+  if (!response.data.ok && response.data.error !== 'already_in_channel') {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+}
+
+/**
+ * Invite users to a channel. Tolerates already_in_channel.
+ */
+async function inviteToChannel(token, channel, userIds) {
+  const users = userIds.filter(Boolean).join(',');
+  if (!users) return;
+  const response = await axios.post(`${SLACK_API_BASE}/conversations.invite`, { channel, users }, {
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    timeout: 10000,
+  });
+  if (!response.data.ok && response.data.error !== 'already_in_channel') {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+}
+
 module.exports = {
   postMessage,
   postAlertToSlack,
@@ -447,4 +497,7 @@ module.exports = {
   postDevinSessionLink,
   postThreadReply,
   lookupSlackUserByEmail,
+  findChannelByName,
+  joinChannel,
+  inviteToChannel,
 };

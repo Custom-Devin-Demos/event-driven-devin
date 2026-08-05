@@ -12,6 +12,8 @@ const {
   postOncallInfraIncident,
   getInfraState,
   postOncallIncident,
+  SEV1_INCIDENTS,
+  getSev1State,
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 
@@ -276,16 +278,39 @@ router.post('/api/oncall/latency', async (req, res) => {
 });
 
 /**
- * POST /api/oncall/incident — post a SEV-1 incident burst to #oncall-alerts
+ * POST /api/oncall/incident — declare a SEV-1 incident.
+ * Body: { kind?: 'checkout-gateway'|'db-latency'|'error-budget'|'memory-leak', devinEmail?: string }
+ * Activates the matching real degradation, declares a Datadog incident
+ * (Datadog creates the Slack incident channel), invites Devin + the DE,
+ * and auto-resolves when the degradation window ends.
  */
 router.post('/api/oncall/incident', async (req, res) => {
   try {
-    const result = await postOncallIncident({ devinEmail: (req.body || {}).devinEmail });
+    const { kind, devinEmail } = req.body || {};
+    const result = await postOncallIncident({ kind, devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call incident post failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
+});
+
+/**
+ * GET /api/oncall/incident/kinds — available SEV-1 incident stories.
+ */
+router.get('/api/oncall/incident/kinds', (_req, res) => {
+  res.json(Object.entries(SEV1_INCIDENTS).map(([id, s]) => ({
+    id,
+    label: s.label,
+    summary: s.summary,
+  })));
+});
+
+/**
+ * GET /api/oncall/incident/state — live status of declared SEV-1 incidents.
+ */
+router.get('/api/oncall/incident/state', (_req, res) => {
+  res.json(getSev1State());
 });
 
 module.exports = router;

@@ -1,6 +1,12 @@
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail } = require('./slack');
+const {
+  postMessage,
+  lookupSlackUserByEmail,
+  findChannelByName,
+  joinChannel,
+  inviteToChannel,
+} = require('./slack');
 const { setScenario, getScenario } = require('../incidentModes');
 
 /**
@@ -710,45 +716,85 @@ function getInfraState() {
 }
 
 /**
+ * SEV-1 incident stories. Each maps to one of the infra degradations so the
+ * declared incident is backed by a genuinely observable failure, and carries
+ * the Datadog-facing title/summary used for the declared incident.
+ */
+const SEV1_INCIDENTS = {
+  'checkout-gateway': {
+    infraKind: 'dependency-timeout',
+    label: 'Checkout degraded — payments-gateway timeouts',
+    title: 'Checkout degraded — payments-gateway timeouts on checkout-api',
+    summary: 'POST /checkout p99 above 5s; ~30% of checkout calls timing out against payments-gateway. Users see a spinner then a 502.',
+  },
+  'db-latency': {
+    infraKind: 'latency',
+    label: 'Site-wide slowness — DB query latency spike',
+    title: 'Site-wide slowness — database query latency spike on checkout-api',
+    summary: 'p95 latency 10x baseline across storefront search and checkout; app logs show repeated slow-query warnings (1500-3000ms). No elevated error rate — pure latency degradation.',
+  },
+  'error-budget': {
+    infraKind: 'slo-burn',
+    label: 'Checkout availability — SLO fast burn',
+    title: 'Checkout availability SLO fast burn — error budget exhausting on checkout-api',
+    summary: 'Roughly half of POST /checkout requests failing (inventory reservation conflicts + tax-calculation errors). 30d error budget projected to exhaust in under 2 days at current burn rate.',
+  },
+  'memory-leak': {
+    infraKind: 'memory-leak',
+    label: 'Memory growth — checkout-api heading to OOM',
+    title: 'Unbounded memory growth on checkout-api — OOM restart projected',
+    summary: 'Process RSS climbing monotonically without plateau, consistent with an unbounded in-process cache. Latency creep expected as heap pressure grows; OOM restart projected if unaddressed.',
+  },
+};
+
+function ddIncidentEnv() {
+  return {
+    apiKey: process.env.DD_API_KEY,
+    appKey: process.env.DD_INCIDENT_APP_KEY || process.env.DD_APPLICATION_KEY,
+    site: process.env.DD_SITE || 'us5.datadoghq.com',
+  };
+}
+
+function ddHeaders({ apiKey, appKey }) {
+  return {
+    'DD-API-KEY': apiKey,
+    'DD-APPLICATION-KEY': appKey,
+    'Content-Type': 'application/json',
+  };
+}
+
+/**
  * Declare a SEV-1 incident in Datadog Incident Management.
  * With the Datadog Slack app installed and "Create Slack channels for
- * incidents" enabled, Datadog creates the incident-<n> channel itself and the
- * On-Call Incident Agent auto-joins it.
+ * incidents" enabled, Datadog creates the incident channel itself.
  */
-async function declareDatadogIncident(runRef, triggeredBy) {
-  const apiKey = process.env.DD_API_KEY;
-  const appKey = process.env.DD_APPLICATION_KEY;
-  if (!apiKey || !appKey) {
+async function declareDatadogIncident({ title, summary, runRef, triggeredBy }) {
+  const env = ddIncidentEnv();
+  if (!env.apiKey || !env.appKey) {
     return null;
   }
 
-  const site = process.env.DD_SITE || 'us5.datadoghq.com';
   const response = await axios.post(
-    `https://api.${site}/api/v2/incidents`,
+    `https://api.${env.site}/api/v2/incidents`,
     {
       data: {
         type: 'incidents',
         attributes: {
-          title: `SEV-1: acme-demo error rate spike across multiple verticals (${runRef})`,
+          // Severity is carried by the field (and the channel-name template);
+          // keeping it out of the title avoids a doubled-up channel name.
+          title: `${title} (${runRef})`,
           customer_impacted: true,
           fields: {
             severity: { type: 'dropdown', value: 'SEV-1' },
             summary: {
               type: 'textbox',
-              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
+              value: `${summary} Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
             },
           },
         },
       },
     },
-    {
-      headers: {
-        'DD-API-KEY': apiKey,
-        'DD-APPLICATION-KEY': appKey,
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    },
+    { headers: ddHeaders(env), timeout: 10000 },
   );
 
   const incident = response.data && response.data.data;
@@ -759,21 +805,173 @@ async function declareDatadogIncident(runRef, triggeredBy) {
 }
 
 /**
- * Trigger a SEV-1 incident. Preferred path: declare a real Datadog incident
- * so Datadog's Slack integration creates the incident channel and the
- * Incident Agent auto-joins. Fallback (Datadog keys not configured): post a
- * SEV-1 style message to the alerts channel.
+ * Resolve a Datadog incident by id. The Datadog Slack integration then
+ * auto-archives the incident channel on its own schedule.
+ */
+async function resolveDatadogIncident(incidentId) {
+  const env = ddIncidentEnv();
+  if (!env.apiKey || !env.appKey || !incidentId) return false;
+  await axios.patch(
+    `https://api.${env.site}/api/v2/incidents/${incidentId}`,
+    {
+      data: {
+        id: incidentId,
+        type: 'incidents',
+        attributes: { fields: { state: { type: 'dropdown', value: 'resolved' } } },
+      },
+    },
+    { headers: ddHeaders(env), timeout: 10000 },
+  );
+  return true;
+}
+
+/**
+ * Live registry of declared SEV-1 incidents, keyed by runRef, powering the
+ * /oncall page status and the auto-resolve timers. Each demo click is an
+ * independent incident with its own channel and lifecycle.
+ */
+const activeSev1 = new Map();
+const SEV1_HISTORY_MAX = 20;
+
+function pruneSev1() {
+  while (activeSev1.size > SEV1_HISTORY_MAX) {
+    const oldest = activeSev1.keys().next().value;
+    activeSev1.delete(oldest);
+  }
+}
+
+const DEVIN_SLACK_MEMBER_ID = () => process.env.DEVIN_SLACK_MEMBER_ID || 'U08RNEJ4877';
+const SEV1_CHANNEL_POLL_MS = 5000;
+const SEV1_CHANNEL_POLL_TRIES = 24; // ~2 minutes
+
+/**
+ * Background: wait for Datadog's Slack integration to create the incident
+ * channel, then join as the bot and invite Devin plus the DE who clicked.
+ * Best-effort — failures are logged and reflected in state, never thrown.
+ */
+async function attachToIncidentChannel(entry, token, deMemberId) {
+  const publicId = entry.publicId;
+  const matcher = (name) => new RegExp(`(^|-)incident-${publicId}(-|$)`).test(name);
+  for (let i = 0; i < SEV1_CHANNEL_POLL_TRIES; i++) {
+    await new Promise((r) => setTimeout(r, SEV1_CHANNEL_POLL_MS));
+    if (entry.status === 'resolved') return;
+    try {
+      const channel = await findChannelByName(token, matcher);
+      if (!channel) continue;
+      entry.channelId = channel.id;
+      entry.channelName = channel.name;
+      await joinChannel(token, channel.id);
+      await inviteToChannel(token, channel.id, [DEVIN_SLACK_MEMBER_ID(), deMemberId]);
+      const kickoff = [
+        `:fire: *SEV-1 declared — ${entry.label}*`,
+        '',
+        `*Incident Ref:* ${entry.runRef}`,
+        `*Summary:* ${entry.summary}`,
+        '*Env:* production | *Service:* checkout-api',
+        `*Degradation window:* live now, auto-recovers in ~${Math.round(INFRA_WINDOW_MS / 60000)} minutes`,
+        '',
+        `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
+      ].join('\n');
+      await postMessage(token, channel.id, kickoff);
+      entry.status = 'investigating';
+      logger.info('SEV-1 incident channel attached', {
+        runRef: entry.runRef,
+        channel: channel.name,
+        publicId,
+      });
+      return;
+    } catch (error) {
+      logger.warn('SEV-1 channel attach attempt failed', {
+        runRef: entry.runRef,
+        error: error.message,
+      });
+    }
+  }
+  logger.warn('SEV-1 incident channel never appeared', { runRef: entry.runRef, publicId });
+}
+
+/**
+ * Trigger a SEV-1 incident. Preferred path: activate the matching real
+ * degradation, declare a real Datadog incident (Datadog's Slack integration
+ * creates the incident channel), then join the channel and invite Devin plus
+ * the DE who clicked. The incident auto-resolves when the degradation window
+ * ends. Fallback (Datadog keys not configured): post a SEV-1 style message
+ * to the alerts channel.
  */
 async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
   const { token, alertsChannel } = resolveOncallEnv();
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
+  const kind = SEV1_INCIDENTS[options.kind] ? options.kind : 'checkout-gateway';
+  const story = SEV1_INCIDENTS[kind];
 
   try {
-    const incident = await declareDatadogIncident(runRef, options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null);
+    const incident = await declareDatadogIncident({
+      title: story.title,
+      summary: story.summary,
+      runRef,
+      triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
+    });
     if (incident) {
-      logger.info('On-Call Datadog incident declared', { runRef, ...incident });
-      return { ok: true, provider: 'datadog', runRef, ...incident };
+      activateInfraIncident(story.infraKind);
+      const entry = {
+        runRef,
+        kind,
+        label: story.label,
+        summary: story.summary,
+        id: incident.id,
+        publicId: incident.publicId,
+        declaredAt: Date.now(),
+        resolveAt: Date.now() + INFRA_WINDOW_MS,
+        status: 'declared',
+        channelId: null,
+        channelName: null,
+      };
+      activeSev1.set(runRef, entry);
+      pruneSev1();
+
+      if (token) {
+        const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
+          ? await lookupSlackUserByEmail(token, options.devinEmail)
+          : null;
+        attachToIncidentChannel(entry, token, deMemberId).catch((error) => {
+          logger.warn('SEV-1 channel attach failed', { runRef, error: error.message });
+        });
+      }
+
+      const resolveTimer = setTimeout(async () => {
+        try {
+          await resolveDatadogIncident(entry.id);
+          entry.status = 'resolved';
+          logger.info('SEV-1 incident auto-resolved', { runRef, publicId: entry.publicId });
+        } catch (error) {
+          logger.error('SEV-1 auto-resolve failed', { runRef, error: error.message });
+          return;
+        }
+        if (entry.channelId && token) {
+          try {
+            await postMessage(
+              token,
+              entry.channelId,
+              `:white_check_mark: *Incident ${entry.runRef} resolved* — the degradation window ended and service metrics recovered. This channel will auto-archive.`,
+            );
+          } catch (error) {
+            logger.warn('SEV-1 resolved-notice post failed', { runRef, error: error.message });
+          }
+        }
+      }, INFRA_WINDOW_MS);
+      if (resolveTimer.unref) resolveTimer.unref();
+
+      logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
+      return {
+        ok: true,
+        provider: 'datadog',
+        runRef,
+        kind,
+        label: story.label,
+        windowMinutes: Math.round(INFRA_WINDOW_MS / 60000),
+        ...incident,
+      };
     }
   } catch (error) {
     logger.error('Datadog incident declaration failed — falling back to Slack post', {
@@ -802,6 +1000,22 @@ async function postOncallIncident(options = {}) {
   return { ok: true, ts, channel: alertsChannel, runRef };
 }
 
+/**
+ * Live state of declared SEV-1 incidents for the /oncall page.
+ */
+function getSev1State() {
+  return Array.from(activeSev1.values()).map((e) => ({
+    runRef: e.runRef,
+    kind: e.kind,
+    label: e.label,
+    publicId: e.publicId,
+    status: e.status,
+    channelName: e.channelName,
+    declaredAt: e.declaredAt,
+    msRemaining: e.status === 'resolved' ? 0 : Math.max(0, e.resolveAt - Date.now()),
+  }));
+}
+
 module.exports = {
   ALERT_SCENARIOS,
   BUG_REPORTS,
@@ -812,4 +1026,6 @@ module.exports = {
   postOncallInfraIncident,
   getInfraState,
   postOncallIncident,
+  SEV1_INCIDENTS,
+  getSev1State,
 };
