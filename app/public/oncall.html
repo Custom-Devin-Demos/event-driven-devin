@@ -811,6 +811,7 @@
       // strip shows a live success rate as timeouts / 500s appear.
       var CHECKOUT_KINDS = { 'dependency-timeout': true, 'slo-burn': true };
       var checkoutResults = [];
+      var checkoutInFlight = false;
 
       async function probeCheckout(active) {
         var itemEl = document.getElementById('health-checkout-item');
@@ -819,12 +820,22 @@
           itemEl.style.display = 'none';
           return;
         }
-        var res = await fetch('/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-synthetic': '1' },
-          body: JSON.stringify({ persona: 'oncall-health-strip' }),
-        });
-        checkoutResults.push(res.ok);
+        if (checkoutInFlight) return;
+        checkoutInFlight = true;
+        var ok = false;
+        try {
+          var res = await fetch('/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-synthetic': '1' },
+            body: JSON.stringify({ persona: 'oncall-health-strip' }),
+          });
+          ok = res.ok;
+        } catch (e) {
+          ok = false;
+        } finally {
+          checkoutInFlight = false;
+        }
+        checkoutResults.push(ok);
         if (checkoutResults.length > 12) checkoutResults.shift();
         var okCount = checkoutResults.filter(Boolean).length;
         var pct = Math.round((okCount / checkoutResults.length) * 100);
@@ -837,7 +848,8 @@
       async function tick() {
         try {
           var t0 = performance.now();
-          await fetch('/search?q=espresso', { headers: { 'x-synthetic': '1' } });
+          var probeRes = await fetch('/search?q=espresso', { headers: { 'x-synthetic': '1' } });
+          await probeRes.text();
           var ms = Math.round(performance.now() - t0);
           probes.push(ms);
           if (probes.length > HISTORY) probes.shift();
@@ -848,7 +860,7 @@
 
           var state = await (await fetch('/api/oncall/infra/state')).json();
           probeCheckout(Boolean(CHECKOUT_KINDS[state.activeKind])).catch(function () {});
-          var degraded = state.scenario !== 'healthy' || state.memoryGrowth;
+          var degraded = state.scenario !== 'healthy' || state.activeKind !== null;
           document.getElementById('health-dot').className = 'health-dot' + (degraded ? ' degraded' : '');
           document.getElementById('health-scenario').textContent =
             'checkout-api: ' + (degraded ? (KIND_LABELS[state.activeKind] || state.scenario) : 'healthy');
@@ -856,7 +868,9 @@
           var windowEl = document.getElementById('health-window');
           if (degraded && state.msRemaining !== null) {
             windowEl.style.display = '';
-            document.getElementById('health-remaining').textContent = Math.ceil(state.msRemaining / 60000) + ' min';
+            document.getElementById('health-remaining').textContent = state.msRemaining >= 60000
+              ? Math.ceil(state.msRemaining / 60000) + ' min'
+              : Math.ceil(state.msRemaining / 1000) + 's';
           } else {
             windowEl.style.display = 'none';
           }
