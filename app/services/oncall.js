@@ -421,7 +421,15 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ];
   }
 
-  const ts = await postMessage(token, bugsChannel, message, blocks);
+  let ts;
+  try {
+    ts = await postMessage(token, bugsChannel, message, blocks);
+  } catch (error) {
+    // Keep observable state consistent with what was announced: if the ticket
+    // never posted, don't leave the app silently degraded for the full window.
+    if (activated) revertInfraState('bug report post failed');
+    throw error;
+  }
   logger.info('On-Call bug report posted', {
     scenario: scenarioId || 'custom',
     template: templateId || null,
