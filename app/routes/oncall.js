@@ -45,7 +45,10 @@ function sendSkinnedPage(res, next, page, skin) {
   const pagePath = path.join(__dirname, '..', 'public', page);
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
-    const json = JSON.stringify(skin).replace(/</g, '\\u003c');
+    const json = JSON.stringify(skin)
+      .replace(/</g, '\\u003c')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
     const inject = `<script>window.ONCALL_SKIN = ${json};</script>`;
     res.type('html').send(html.replace('</head>', () => `${inject}\n</head>`));
   });
