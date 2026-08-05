@@ -261,6 +261,22 @@
     var templates = {};
     var selectedSeverity = 'Medium';
 
+    // Per-product pre-seeds so a DE only has to pick a product and hit Submit.
+    // Everything stays editable.
+    var personas = {
+      banking: { name: 'Dana Whitfield', email: 'dana.whitfield@brightmail.io', sev: 'High' },
+      insurance: { name: 'Marcus Boone', email: 'm.boone@lakeviewhomes.com', sev: 'High' },
+      hightech: { name: 'Priya Raman', email: 'priya.raman@vertexlabs.co', sev: 'Medium' },
+      telco: { name: 'Caleb Ortiz', email: 'caleb.ortiz@fastmail.com', sev: 'Medium' },
+    };
+
+    function selectSeverity(sev) {
+      document.querySelectorAll('#sev-group .sev').forEach(function (b) {
+        b.classList.toggle('selected', b.dataset.sev === sev);
+      });
+      selectedSeverity = sev;
+    }
+
     fetch('/api/oncall/scenarios')
       .then(function (res) { return res.json(); })
       .then(function (data) {
@@ -272,13 +288,27 @@
     var noteEl = document.getElementById('template-note');
     var descEl = document.getElementById('description');
 
+    var descEdited = false;
+    descEl.addEventListener('input', function () { descEdited = true; });
+
     productEl.addEventListener('change', function () {
       noteEl.style.display = templates[productEl.value] ? 'block' : 'none';
+      var p = personas[productEl.value];
+      if (p) {
+        document.getElementById('name').value = p.name;
+        document.getElementById('email').value = p.email;
+        selectSeverity(p.sev);
+      }
+      var t = templates[productEl.value];
+      if (t && (!descEdited || !descEl.value.trim())) {
+        descEl.value = t;
+        descEdited = false;
+      }
     });
 
     document.getElementById('template-link').addEventListener('click', function () {
       var t = templates[productEl.value];
-      if (t) { descEl.value = t; descEl.focus(); }
+      if (t) { descEl.value = t; descEdited = false; descEl.focus(); }
     });
 
     document.querySelectorAll('#sev-group .sev').forEach(function (btn) {
