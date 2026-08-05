@@ -7,6 +7,8 @@ const {
   BUG_REPORTS,
   postOncallAlert,
   postOncallBugReport,
+  INFRA_INCIDENTS,
+  postOncallInfraIncident,
   postOncallIncident,
 } = require('../services/oncall');
 
@@ -149,6 +151,38 @@ router.post('/api/oncall/bug', async (req, res) => {
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+/**
+ * POST /api/oncall/infra/:kind — fire an infra-style (SRE) incident:
+ * activates the matching built-in scenario (auto-reverts after a window)
+ * and posts a Datadog-monitor-style alert card.
+ * Kinds: latency, dependency-timeout, memory-leak, slo-burn.
+ */
+router.post('/api/oncall/infra/:kind', async (req, res) => {
+  if (!INFRA_INCIDENTS[req.params.kind]) {
+    return res.status(404).json({ ok: false, error: `Unknown infra incident: ${req.params.kind}` });
+  }
+  try {
+    const result = await postOncallInfraIncident(req.params.kind);
+    res.status(result.ok ? 200 : 400).json(result);
+  } catch (error) {
+    logger.error('On-Call infra trigger failed', { kind: req.params.kind, error: error.message });
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+/**
+ * POST /api/oncall/latency — back-compat alias for the latency infra incident.
+ */
+router.post('/api/oncall/latency', async (req, res) => {
+  try {
+    const result = await postOncallInfraIncident('latency');
+    res.status(result.ok ? 200 : 400).json(result);
+  } catch (error) {
+    logger.error('On-Call latency trigger failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
 });
