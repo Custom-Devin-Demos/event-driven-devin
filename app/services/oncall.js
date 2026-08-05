@@ -132,8 +132,12 @@ const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com'
  * Resolve the demo user's hub identity email to a Slack @mention so cards
  * show who launched the trigger (same attribution as the legacy alerts).
  */
+const EMAIL_RE = /^[^\s@<>|]{1,64}@[^\s@<>|]{1,255}$/;
+
 async function resolveTriggeredBy(token, devinEmail) {
-  if (!devinEmail) return null;
+  // Validate shape so a client-supplied value can't inject Slack mrkdwn
+  // (e.g. <!channel>) into the cards.
+  if (!devinEmail || !EMAIL_RE.test(devinEmail)) return null;
   try {
     const memberId = await lookupSlackUserByEmail(token, devinEmail);
     return memberId ? `<@${memberId}>` : devinEmail;
@@ -282,7 +286,8 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
     return { ok: false, error: `No bug report text and unknown scenario: ${scenarioId}` };
   }
 
-  let message = body;
+  const triggeredBy = await resolveTriggeredBy(token, devinEmail);
+  let message = triggeredBy ? `${body}\nTriggered by: ${triggeredBy}` : body;
   let blocks = null;
   if (reporter || severity || productArea) {
     const reportedBy = reporter && (reporter.name || reporter.email)
@@ -293,6 +298,7 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
       reportedBy ? `Reported by: ${reportedBy}` : null,
       productArea ? `Product area: ${productArea}` : null,
       severity ? `Severity: ${severity}` : null,
+      triggeredBy ? `Triggered by: ${triggeredBy}` : null,
       '',
       body,
     ].filter((l) => l !== null).join('\n');
@@ -304,7 +310,7 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
         severity ? ['Severity', severity] : null,
       ]),
       mrkdwnSection(body),
-      contextBlock('acme-support-center', await resolveTriggeredBy(token, devinEmail)),
+      contextBlock('acme-support-center', triggeredBy),
     ];
   }
 
@@ -541,7 +547,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
  * incidents" enabled, Datadog creates the incident-<n> channel itself and the
  * On-Call Incident Agent auto-joins it.
  */
-async function declareDatadogIncident(runRef) {
+async function declareDatadogIncident(runRef, triggeredBy) {
   const apiKey = process.env.DD_API_KEY;
   const appKey = process.env.DD_APPLICATION_KEY;
   if (!apiKey || !appKey) {
@@ -561,7 +567,7 @@ async function declareDatadogIncident(runRef) {
             severity: { type: 'dropdown', value: 'SEV-1' },
             summary: {
               type: 'textbox',
-              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}. Repo: ${REPO_URL}`,
+              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
             },
           },
         },
@@ -592,9 +598,11 @@ async function declareDatadogIncident(runRef) {
  */
 async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
+  const { token, alertsChannel } = resolveOncallEnv();
+  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
 
   try {
-    const incident = await declareDatadogIncident(runRef);
+    const incident = await declareDatadogIncident(runRef, options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null);
     if (incident) {
       logger.info('On-Call Datadog incident declared', { runRef, ...incident });
       return { ok: true, provider: 'datadog', runRef, ...incident };
@@ -605,7 +613,6 @@ async function postOncallIncident(options = {}) {
     });
   }
 
-  const { token, alertsChannel } = resolveOncallEnv();
   if (!token || !alertsChannel) {
     logger.warn('On-Call alerts channel not configured — skipping incident post');
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
@@ -620,7 +627,6 @@ async function postOncallIncident(options = {}) {
     '',
     `Multiple user-facing flows are failing simultaneously. Repo: ${REPO_URL}`,
   ].join('\n');
-  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
 
   const ts = await postMessage(token, alertsChannel, fullText);
