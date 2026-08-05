@@ -270,7 +270,14 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
     const reportedBy = reporter && (reporter.name || reporter.email)
       ? [reporter.name, reporter.email && `<${reporter.email}>`].filter(Boolean).join(' ')
       : null;
-    message = `:inbox_tray: New support ticket — Acme Support Center\n${body}`;
+    message = [
+      ':inbox_tray: New support ticket — Acme Support Center',
+      reportedBy ? `Reported by: ${reportedBy}` : null,
+      productArea ? `Product area: ${productArea}` : null,
+      severity ? `Severity: ${severity}` : null,
+      '',
+      body,
+    ].filter((l) => l !== null).join('\n');
     blocks = [
       headerBlock(':inbox_tray: New support ticket — Acme Support Center'),
       ...fieldPairs([
@@ -295,10 +302,17 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
  * alerts channel, and auto-reverts to healthy after a window so the regular
  * demos are unaffected.
  */
-const INFRA_WINDOW_MS = Number(
-  process.env.ONCALL_INFRA_WINDOW_MS || process.env.ONCALL_LATENCY_WINDOW_MS || 10 * 60 * 1000,
+function envNumber(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
+const INFRA_WINDOW_MS = envNumber(
+  process.env.ONCALL_INFRA_WINDOW_MS || process.env.ONCALL_LATENCY_WINDOW_MS,
+  10 * 60 * 1000,
 );
 let infraRevertTimer = null;
+let activeInfraScenario = null;
 
 /**
  * Bounded, reversible memory-growth mode for the memory-leak incident.
@@ -306,7 +320,7 @@ let infraRevertTimer = null;
  * Datadog, but is strictly capped (ONCALL_MEMLEAK_CAP_MB, default 150MB)
  * well below the container limit and freed when the window ends.
  */
-const MEMLEAK_CAP_MB = Math.min(Number(process.env.ONCALL_MEMLEAK_CAP_MB || 150), 300);
+const MEMLEAK_CAP_MB = Math.min(envNumber(process.env.ONCALL_MEMLEAK_CAP_MB, 150), 300);
 const MEMLEAK_CHUNK_MB = 8;
 let memLeakChunks = [];
 let memLeakInterval = null;
@@ -326,6 +340,20 @@ function startMemoryGrowth(windowMs) {
     });
   }, intervalMs);
   if (memLeakInterval.unref) memLeakInterval.unref();
+}
+
+function revertInfraState(reason) {
+  const hadState = infraRevertTimer || memLeakInterval || memLeakChunks.length > 0 || activeInfraScenario;
+  if (infraRevertTimer) clearTimeout(infraRevertTimer);
+  infraRevertTimer = null;
+  stopMemoryGrowth();
+  if (activeInfraScenario && getScenario() === activeInfraScenario) {
+    setScenario('healthy');
+  }
+  activeInfraScenario = null;
+  if (hadState) {
+    logger.info('On-Call infra incident state reverted to healthy', { reason });
+  }
 }
 
 function stopMemoryGrowth() {
@@ -431,15 +459,14 @@ async function postOncallInfraIncident(kind = 'latency') {
   }
 
   if (incident.scenario !== 'healthy' || incident.memoryGrowth) {
-    if (incident.scenario !== 'healthy') setScenario(incident.scenario);
+    revertInfraState('superseded by new incident');
+    if (incident.scenario !== 'healthy') {
+      setScenario(incident.scenario);
+      activeInfraScenario = incident.scenario;
+    }
     if (incident.memoryGrowth) startMemoryGrowth(INFRA_WINDOW_MS);
-    if (infraRevertTimer) clearTimeout(infraRevertTimer);
     infraRevertTimer = setTimeout(() => {
-      stopMemoryGrowth();
-      if (incident.scenario !== 'healthy' && getScenario() === incident.scenario) {
-        setScenario('healthy');
-      }
-      logger.info('On-Call infra incident window elapsed — reverted to healthy', { kind });
+      revertInfraState(`window elapsed for ${kind}`);
     }, INFRA_WINDOW_MS);
     if (infraRevertTimer.unref) infraRevertTimer.unref();
   }
@@ -475,7 +502,16 @@ async function postOncallInfraIncident(kind = 'latency') {
 
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call infra incident posted', { kind, channel: alertsChannel, ts, runRef, windowMs: INFRA_WINDOW_MS });
-  return { ok: true, ts, channel: alertsChannel, runRef, kind, scenario: incident.scenario, windowMinutes: Math.round(INFRA_WINDOW_MS / 60000) };
+  return {
+    ok: true,
+    ts,
+    channel: alertsChannel,
+    runRef,
+    kind,
+    scenario: incident.scenario,
+    active: incident.scenario !== 'healthy' || Boolean(incident.memoryGrowth),
+    windowMinutes: Math.round(INFRA_WINDOW_MS / 60000),
+  };
 }
 
 /**
