@@ -624,10 +624,12 @@
     }
 
     async function post(url, body) {
+      // Attribute the trigger to the demo user's hub identity (set on the hub page)
+      const payload = Object.assign({ devinEmail: localStorage.getItem('devinEmail') || '' }, body || {});
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body || {}),
+        body: JSON.stringify(payload),
       });
       return { status: res.status, data: await res.json() };
     }
