@@ -1,3 +1,4 @@
+const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage } = require('./slack');
 
@@ -217,19 +218,81 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
 }
 
 /**
- * Post a SEV-1 style incident burst to the alerts channel.
- * Placeholder for the full Datadog Incident Management flow: once the
- * Datadog monitor + incident channel automation is wired up, this will
- * instead push metrics that trip the monitor.
+ * Declare a SEV-1 incident in Datadog Incident Management.
+ * With the Datadog Slack app installed and "Create Slack channels for
+ * incidents" enabled, Datadog creates the incident-<n> channel itself and the
+ * On-Call Incident Agent auto-joins it.
+ */
+async function declareDatadogIncident(runRef) {
+  const apiKey = process.env.DD_API_KEY;
+  const appKey = process.env.DD_APPLICATION_KEY;
+  if (!apiKey || !appKey) {
+    return null;
+  }
+
+  const site = process.env.DD_SITE || 'us5.datadoghq.com';
+  const response = await axios.post(
+    `https://api.${site}/api/v2/incidents`,
+    {
+      data: {
+        type: 'incidents',
+        attributes: {
+          title: `SEV-1: acme-demo error rate spike across multiple verticals (${runRef})`,
+          customer_impacted: true,
+          fields: {
+            severity: { type: 'dropdown', value: 'SEV-1' },
+            summary: {
+              type: 'textbox',
+              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}. Repo: ${REPO_URL}`,
+            },
+          },
+        },
+      },
+    },
+    {
+      headers: {
+        'DD-API-KEY': apiKey,
+        'DD-APPLICATION-KEY': appKey,
+        'Content-Type': 'application/json',
+      },
+      timeout: 10000,
+    },
+  );
+
+  const incident = response.data && response.data.data;
+  return {
+    id: incident && incident.id,
+    publicId: incident && incident.attributes && incident.attributes.public_id,
+  };
+}
+
+/**
+ * Trigger a SEV-1 incident. Preferred path: declare a real Datadog incident
+ * so Datadog's Slack integration creates the incident channel and the
+ * Incident Agent auto-joins. Fallback (Datadog keys not configured): post a
+ * SEV-1 style message to the alerts channel.
  */
 async function postOncallIncident() {
+  const runRef = makeRunRef();
+
+  try {
+    const incident = await declareDatadogIncident(runRef);
+    if (incident) {
+      logger.info('On-Call Datadog incident declared', { runRef, ...incident });
+      return { ok: true, provider: 'datadog', runRef, ...incident };
+    }
+  } catch (error) {
+    logger.error('Datadog incident declaration failed — falling back to Slack post', {
+      error: error.message,
+    });
+  }
+
   const { token, alertsChannel } = resolveOncallEnv();
   if (!token || !alertsChannel) {
     logger.warn('On-Call alerts channel not configured — skipping incident post');
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  const runRef = makeRunRef();
   const text = [
     ':fire: *SEV-1 — acme-demo error rate spike across multiple verticals*',
     '',
