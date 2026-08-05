@@ -866,7 +866,20 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
       if (!channel) continue;
       entry.channelId = channel.id;
       entry.channelName = channel.name;
-      await joinChannel(token, channel.id);
+      try {
+        await joinChannel(token, channel.id);
+      } catch (error) {
+        if (/missing_scope|invalid_auth|not_allowed/.test(error.message)) {
+          entry.status = 'attach_failed';
+          logger.error('SEV-1 channel found but bot cannot join — check Slack bot scopes', {
+            runRef: entry.runRef,
+            channel: channel.name,
+            error: error.message,
+          });
+          return;
+        }
+        throw error;
+      }
       try {
         await inviteToChannel(token, channel.id, [DEVIN_SLACK_MEMBER_ID(), deMemberId]);
       } catch (error) {
@@ -912,7 +925,11 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
 async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
   const { token, alertsChannel } = resolveOncallEnv();
-  const kind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, options.kind) ? options.kind : 'checkout-gateway';
+  const hasKind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, options.kind);
+  if (options.kind != null && !hasKind) {
+    return { ok: false, error: `Unknown incident kind: ${options.kind}` };
+  }
+  const kind = hasKind ? options.kind : 'checkout-gateway';
   const story = SEV1_INCIDENTS[kind];
 
   let incident = null;
@@ -1028,7 +1045,15 @@ async function postOncallIncident(options = {}) {
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
 
-  const ts = await postMessage(token, alertsChannel, fullText);
+  let ts;
+  try {
+    ts = await postMessage(token, alertsChannel, fullText);
+  } catch (error) {
+    // Keep observable state consistent with what was announced: if the SEV-1
+    // never posted, don't leave the app silently degraded for the full window.
+    revertInfraState('SEV-1 fallback post failed');
+    throw error;
+  }
   logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });
   return { ok: true, ts, channel: alertsChannel, runRef };
 }

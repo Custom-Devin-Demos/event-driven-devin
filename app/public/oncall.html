@@ -857,7 +857,7 @@
       try {
         const kinds = await fetch('/api/oncall/incident/kinds').then((r) => r.json());
         kindSel.innerHTML = kinds.map((k) =>
-          '<option value="' + k.id + '">' + k.label + '</option>').join('');
+          '<option value="' + escapeHtml(k.id) + '">' + escapeHtml(k.label) + '</option>').join('');
       } catch (e) { /* selector stays empty; server falls back to default kind */ }
     })();
 
@@ -878,6 +878,8 @@
           ? '<span style="color:#dc2626;">auto-resolve failed \u2014 resolve in Datadog</span>'
           : i.status === 'investigating'
             ? '<span style="color:#7c3aed;">investigating in #' + escapeHtml(i.channelName || '') + '</span>'
+          : i.status === 'attach_failed'
+            ? '<span style="color:#dc2626;">channel #' + escapeHtml(i.channelName || '') + ' created \u2014 bot couldn\u2019t join (check Slack scopes)</span>'
             : '<span style="color:#b45309;">declared \u2014 waiting for Slack channel</span>';
         return 'IR-' + escapeHtml(i.publicId) + ' <span style="color:#64748b;">(' + escapeHtml(i.runRef) + ')</span> ' + state +
           (i.status !== 'resolved' && i.status !== 'resolve_failed' ? ' <span style="color:#64748b;">\u00b7 ~' + mins + ' min left</span>' : '');
