@@ -13,8 +13,42 @@ const {
   getInfraState,
   postOncallIncident,
 } = require('../services/oncall');
+const { getOncallSkin } = require('../../config/oncall-skins');
 
 const router = express.Router();
+
+/**
+ * Serve an on-call page with a customer skin injected as window.ONCALL_SKIN.
+ * The pages apply the skin client-side (branding, copy, portal products);
+ * all mechanics stay shared code.
+ */
+function sendSkinnedPage(res, next, page, skin) {
+  const pagePath = path.join(__dirname, '..', 'public', page);
+  fs.readFile(pagePath, 'utf8', (err, html) => {
+    if (err) return next(err);
+    const inject = `<script>window.ONCALL_SKIN = ${JSON.stringify(skin)};</script>`;
+    res.type('html').send(html.replace('</head>', `${inject}\n</head>`));
+  });
+}
+
+/**
+ * GET /oncall/c/:slug — customer-skinned On-Call demo page.
+ * Registered before /oncall/:vertical so "c" is never treated as a vertical.
+ */
+router.get('/oncall/c/:slug', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  sendSkinnedPage(res, next, 'oncall.html', skin);
+});
+
+/**
+ * GET /oncall/c/:slug/report — customer-skinned support portal.
+ */
+router.get('/oncall/c/:slug/report', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  sendSkinnedPage(res, next, 'oncall-report.html', skin);
+});
 
 /**
  * GET /oncall — On-Call demo control page
@@ -160,8 +194,18 @@ router.post('/api/oncall/alert', async (req, res) => {
  */
 router.post('/api/oncall/bug', async (req, res) => {
   try {
-    const { scenario, templateId, text, reporter, severity, productArea, devinEmail } = req.body || {};
-    const result = await postOncallBugReport({ scenarioId: scenario, templateId, text, reporter, severity, productArea, devinEmail });
+    const { scenario, templateId, text, reporter, severity, productArea, devinEmail, skin } = req.body || {};
+    const skinConfig = getOncallSkin(skin);
+    const result = await postOncallBugReport({
+      scenarioId: scenario,
+      templateId,
+      text,
+      reporter,
+      severity,
+      productArea,
+      devinEmail,
+      supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
+    });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });

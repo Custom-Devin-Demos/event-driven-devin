@@ -370,7 +370,7 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter }) {
   const { token, bugsChannel } = resolveOncallEnv();
   if (!token || !bugsChannel) {
     logger.warn('On-Call bugs channel not configured — skipping bug report post');
@@ -400,8 +400,10 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     const reportedBy = reporter && (reporter.name || reporter.email)
       ? [reporter.name, reporter.email && `<${reporter.email}>`].filter(Boolean).join(' ')
       : null;
+    const centerName = supportCenter || 'Acme Support Center';
+    const centerSlug = centerName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     message = [
-      ':inbox_tray: New support ticket — Acme Support Center',
+      `:inbox_tray: New support ticket — ${centerName}`,
       reportedBy ? `Reported by: ${reportedBy}` : null,
       productArea ? `Product area: ${productArea}` : null,
       severity ? `Severity: ${severity}` : null,
@@ -410,14 +412,14 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
       body,
     ].filter((l) => l !== null).join('\n');
     blocks = [
-      headerBlock(':inbox_tray: New support ticket — Acme Support Center'),
+      headerBlock(`:inbox_tray: New support ticket — ${centerName}`),
       ...fieldPairs([
         reportedBy ? ['Reported by', reportedBy] : null,
         productArea ? ['Product area', productArea] : null,
         severity ? ['Severity', severity] : null,
       ]),
       mrkdwnSection(body),
-      contextBlock('acme-support-center', triggeredBy),
+      contextBlock(centerSlug, triggeredBy),
     ];
   }
 
