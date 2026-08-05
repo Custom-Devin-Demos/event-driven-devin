@@ -7,6 +7,11 @@
  * template → repro mapping are shared code. Adding a customer = adding one
  * entry here. Served at /oncall/c/<slug> and /oncall/c/<slug>/report.
  *
+ * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
+ * never the customer's name, so shared URLs don't leak who a demo is for.
+ * Customer names appear only in rendered copy values, not in slugs, keys,
+ * identifiers, or comments.
+ *
  * What we deliberately do NOT personalize: telemetry service names, monitor
  * queries' service tags, and repo references in Slack investigation copy —
  * the responder investigates the real COG-GTM/event-driven-devin repo, so
@@ -18,8 +23,8 @@
  */
 
 const ONCALL_SKINS = {
-  brex: {
-    slug: 'brex',
+  '8cc190d2': {
+    slug: '8cc190d2',
     company: 'Brex',
     brandMark: 'B',
     accent: '#F46A35',
