@@ -860,7 +860,7 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
   const matcher = (name) => new RegExp(`(^|-)incident-${publicId}(-|$)`).test(name);
   for (let i = 0; i < SEV1_CHANNEL_POLL_TRIES; i++) {
     await new Promise((r) => setTimeout(r, SEV1_CHANNEL_POLL_MS));
-    if (entry.status === 'resolved') return;
+    if (entry.status === 'resolved' || entry.status === 'resolve_failed') return;
     try {
       const channel = await findChannelByName(token, matcher);
       if (!channel) continue;
@@ -883,7 +883,7 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
         `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
       ].join('\n');
       await postMessage(token, channel.id, kickoff);
-      if (entry.status === 'resolved') return;
+      if (entry.status === 'resolved' || entry.status === 'resolve_failed') return;
       entry.status = 'investigating';
       logger.info('SEV-1 incident channel attached', {
         runRef: entry.runRef,
@@ -1004,6 +1004,10 @@ async function postOncallIncident(options = {}) {
     logger.warn('On-Call alerts channel not configured — skipping incident post');
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
+
+  // Fallback path (Datadog not configured): still activate the story's real
+  // degradation so the page's "genuine live degradation" promise holds.
+  activateInfraIncident(story.infraKind);
 
   const text = [
     ':fire: *SEV-1 — acme-demo error rate spike across multiple verticals*',
