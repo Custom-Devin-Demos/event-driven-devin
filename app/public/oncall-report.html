@@ -172,7 +172,9 @@
   </section>
 
   <main class="page">
-    <form class="card" id="report-form">
+    <!-- novalidate: validation is handled in the submit handler so the styled
+         status messages show instead of native browser tooltips -->
+    <form class="card" id="report-form" novalidate>
       <h2>Issue details</h2>
 
       <div class="row">
@@ -269,6 +271,43 @@
     var selectedTemplate = null;
     var selectedSeverity = 'Medium';
 
+    // Customer skin: /oncall/c/<slug>/report injects window.ONCALL_SKIN.
+    // Branding, product areas, and template copy change; submission mechanics
+    // (template ids → backend repro mapping, one submit = one ticket) do not.
+    var SKIN = window.ONCALL_SKIN || null;
+    (function applySkin() {
+      if (!SKIN) return;
+      document.title = 'Report an Issue — ' + SKIN.supportCenter;
+      if (SKIN.accent) {
+        document.documentElement.style.setProperty('--brand', SKIN.accent);
+        document.documentElement.style.setProperty('--brand-dark', SKIN.accentDark || SKIN.accent);
+      }
+      var mark = document.querySelector('.brand-mark');
+      mark.textContent = SKIN.brandMark || SKIN.company.charAt(0);
+      if (SKIN.accent) {
+        mark.style.background = 'linear-gradient(135deg, ' + SKIN.accent + ', ' + (SKIN.accentDark || SKIN.accent) + ')';
+      }
+      document.querySelector('.brand-name').textContent = SKIN.supportCenter;
+      if (SKIN.supportCenterSub) document.querySelector('.brand-sub').textContent = SKIN.supportCenterSub;
+      document.querySelector('.footer').firstChild.textContent = SKIN.supportCenter + ' \u00b7 ticket intake v2.4 \u00b7 ';
+      if (SKIN.disclaimer) {
+        var bar = document.createElement('div');
+        bar.style.cssText = 'background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;text-align:center;padding:8px 16px;';
+        bar.textContent = SKIN.disclaimer;
+        document.body.insertBefore(bar, document.body.firstChild);
+      }
+      if (SKIN.bugPortal && SKIN.bugPortal.products && SKIN.bugPortal.products.length) {
+        var sel = document.getElementById('product');
+        while (sel.options.length > 1) sel.remove(1);
+        SKIN.bugPortal.products.forEach(function (p) {
+          var opt = document.createElement('option');
+          opt.value = p.area;
+          opt.textContent = p.label;
+          sel.appendChild(opt);
+        });
+      }
+    })();
+
     // Per-product pre-seeds so a DE only has to pick a product and hit Submit.
     // Everything stays editable.
     var personas = {
@@ -286,11 +325,26 @@
       selectedSeverity = sev;
     }
 
+    // Overlay customer-facing copy onto the shared catalog; ids stay the
+    // same so backend-symptom templates keep their real repro mapping.
+    // Applied outside the fetch so the skin's templates work even if the
+    // scenarios request fails.
+    function applySkinCatalog() {
+      if (SKIN && SKIN.bugPortal && SKIN.bugPortal.products) {
+        SKIN.bugPortal.products.forEach(function (p) {
+          if (p.templates) catalog[p.area] = p.templates;
+          if (p.persona) personas[p.area] = p.persona;
+        });
+      }
+    }
+    applySkinCatalog();
+
     fetch('/api/oncall/scenarios')
       .then(function (res) { return res.json(); })
       .then(function (data) {
         (data.bugReports || []).forEach(function (b) { templates[b.id] = b.text; });
         (data.bugCatalog || []).forEach(function (c) { catalog[c.product] = c.templates; });
+        applySkinCatalog();
       })
       .catch(function () { /* templates unavailable — free-form still works */ });
 
@@ -378,6 +432,17 @@
       var product = productEl.value;
       var description = descEl.value.trim();
 
+      if (!document.getElementById('name').value.trim()) {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Please enter your name.';
+        return;
+      }
+      var emailVal = document.getElementById('email').value.trim();
+      if (!emailVal || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Please enter a valid email address.';
+        return;
+      }
       if (!product) {
         statusEl.className = 'status err';
         statusEl.textContent = 'Please select the affected product area.';
@@ -407,6 +472,7 @@
           severity: selectedSeverity,
           devinEmail: localStorage.getItem('devinEmail') || '',
           productArea: productEl.options[productEl.selectedIndex].text,
+          skin: SKIN ? SKIN.slug : null,
         }),
       })
         .then(function (res) { return res.json().then(function (d) { return { code: res.status, data: d }; }); })

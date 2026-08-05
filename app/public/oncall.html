@@ -679,6 +679,49 @@
       },
     ];
 
+    // Customer skin: /oncall/c/<slug> injects window.ONCALL_SKIN. Only branding
+    // and copy change here — all incident mechanics stay identical.
+    var SKIN = window.ONCALL_SKIN || null;
+    (function applySkin() {
+      if (!SKIN) return;
+      document.title = SKIN.company + ' On-Call \u2014 Devin Demo';
+      if (SKIN.accent) document.documentElement.style.setProperty('--accent', SKIN.accent);
+      var logoText = document.querySelector('.nav-logo-text');
+      if (logoText) logoText.textContent = SKIN.company + ' \u00d7 Devin On-Call';
+      var badge = document.querySelector('.hero-badge');
+      if (badge) badge.textContent = '[ ' + (SKIN.heroTitle || SKIN.company.toUpperCase() + ' ON-CALL') + ' ]';
+      var heroSub = document.querySelector('.hero-sub');
+      if (heroSub && SKIN.heroSub) heroSub.textContent = SKIN.heroSub;
+      if (SKIN.infra) {
+        INFRA_META.forEach(function (m) {
+          var o = SKIN.infra[m.kind];
+          if (!o) return;
+          if (o.title) m.title = o.title;
+          if (o.desc) m.desc = o.desc;
+          if (o.monitor) m.monitor = o.monitor;
+        });
+      }
+      var portalCard = document.querySelector('.wide-card[href="/oncall/report"]');
+      if (portalCard) {
+        portalCard.href = '/oncall/c/' + SKIN.slug + '/report';
+        var desc = portalCard.querySelector('.wide-desc');
+        if (desc && SKIN.supportCenter) {
+          desc.textContent = desc.textContent.replace('Acme Support Center', SKIN.supportCenter);
+        }
+      }
+      if (SKIN.disclaimer) {
+        var bar = document.createElement('div');
+        bar.style.cssText = 'background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;text-align:center;padding:8px 16px;position:relative;z-index:101;margin-top:72px;';
+        bar.textContent = SKIN.disclaimer;
+        var hero = document.querySelector('.hero');
+        hero.parentNode.insertBefore(bar, hero);
+        // The bar's margin already clears the fixed nav; drop the hero-content
+        // top padding that exists for the same purpose so spacing stays tight.
+        var heroContent = hero.querySelector('.hero-content');
+        if (heroContent) heroContent.style.paddingTop = '32px';
+      }
+    })();
+
     function applyDescToggles(gridEl) {
       gridEl.querySelectorAll('.card-desc').forEach(function (desc) {
         var next = desc.nextElementSibling;

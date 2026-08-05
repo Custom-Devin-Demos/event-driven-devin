@@ -13,8 +13,65 @@ const {
   getInfraState,
   postOncallIncident,
 } = require('../services/oncall');
+const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 
 const router = express.Router();
+
+// Startup check: every skin template id must resolve in the shared BUG_CATALOG,
+// otherwise its backend-symptom repro mapping silently does nothing.
+const KNOWN_TEMPLATE_IDS = new Set(
+  Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))
+);
+for (const skin of Object.values(ONCALL_SKINS)) {
+  const products = (skin.bugPortal && skin.bugPortal.products) || [];
+  for (const product of products) {
+    for (const template of product.templates || []) {
+      if (!KNOWN_TEMPLATE_IDS.has(template.id)) {
+        logger.warn('On-Call skin references unknown bug template id', {
+          skin: skin.slug,
+          templateId: template.id,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Serve an on-call page with a customer skin injected as window.ONCALL_SKIN.
+ * The pages apply the skin client-side (branding, copy, portal products);
+ * all mechanics stay shared code.
+ */
+function sendSkinnedPage(res, next, page, skin) {
+  const pagePath = path.join(__dirname, '..', 'public', page);
+  fs.readFile(pagePath, 'utf8', (err, html) => {
+    if (err) return next(err);
+    const json = JSON.stringify(skin)
+      .replace(/</g, '\\u003c')
+      .replace(/\u2028/g, '\\u2028')
+      .replace(/\u2029/g, '\\u2029');
+    const inject = `<script>window.ONCALL_SKIN = ${json};</script>`;
+    res.type('html').send(html.replace('</head>', () => `${inject}\n</head>`));
+  });
+}
+
+/**
+ * GET /oncall/c/:slug — customer-skinned On-Call demo page.
+ * Registered before /oncall/:vertical so "c" is never treated as a vertical.
+ */
+router.get('/oncall/c/:slug', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  sendSkinnedPage(res, next, 'oncall.html', skin);
+});
+
+/**
+ * GET /oncall/c/:slug/report — customer-skinned support portal.
+ */
+router.get('/oncall/c/:slug/report', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  sendSkinnedPage(res, next, 'oncall-report.html', skin);
+});
 
 /**
  * GET /oncall — On-Call demo control page
@@ -160,8 +217,18 @@ router.post('/api/oncall/alert', async (req, res) => {
  */
 router.post('/api/oncall/bug', async (req, res) => {
   try {
-    const { scenario, templateId, text, reporter, severity, productArea, devinEmail } = req.body || {};
-    const result = await postOncallBugReport({ scenarioId: scenario, templateId, text, reporter, severity, productArea, devinEmail });
+    const { scenario, templateId, text, reporter, severity, productArea, devinEmail, skin } = req.body || {};
+    const skinConfig = getOncallSkin(skin);
+    const result = await postOncallBugReport({
+      scenarioId: scenario,
+      templateId,
+      text,
+      reporter,
+      severity,
+      productArea,
+      devinEmail,
+      supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
+    });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
