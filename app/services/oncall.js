@@ -859,7 +859,10 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
   const publicId = entry.publicId;
   const matcher = (name) => new RegExp(`(^|-)incident-${publicId}(-|$)`).test(name);
   for (let i = 0; i < SEV1_CHANNEL_POLL_TRIES; i++) {
-    await new Promise((r) => setTimeout(r, SEV1_CHANNEL_POLL_MS));
+    await new Promise((r) => {
+      const t = setTimeout(r, SEV1_CHANNEL_POLL_MS);
+      if (t.unref) t.unref();
+    });
     if (entry.status === 'resolved' || entry.status === 'resolve_failed') return;
     try {
       const channel = await findChannelByName(token, matcher);
@@ -926,7 +929,7 @@ async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
   const { token, alertsChannel } = resolveOncallEnv();
   const hasKind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, options.kind);
-  if (options.kind != null && !hasKind) {
+  if (options.kind != null && options.kind !== '' && !hasKind) {
     return { ok: false, error: `Unknown incident kind: ${options.kind}` };
   }
   const kind = hasKind ? options.kind : 'checkout-gateway';
@@ -1009,6 +1012,8 @@ async function postOncallIncident(options = {}) {
       });
     } else if (!entry.publicId) {
       logger.warn('SEV-1 incident has no public_id — skipping channel attach', { runRef });
+    } else {
+      logger.warn('SEV-1 Slack bot token not configured — skipping channel attach', { runRef });
     }
 
     logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
