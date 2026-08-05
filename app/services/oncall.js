@@ -844,7 +844,7 @@ function pruneSev1() {
   }
 }
 
-const DEVIN_SLACK_MEMBER_ID = () => process.env.DEVIN_SLACK_MEMBER_ID || 'U08RNEJ4877';
+const DEVIN_SLACK_MEMBER_ID = () => process.env.DEVIN_SLACK_MEMBER_ID || null;
 const SEV1_CHANNEL_POLL_MS = 5000;
 const SEV1_CHANNEL_POLL_TRIES = 24; // ~2 minutes
 const SEV1_RESOLVE_MAX_ATTEMPTS = 4;
@@ -951,7 +951,11 @@ async function postOncallIncident(options = {}) {
       const timer = setTimeout(async () => {
         try {
           const resolved = await resolveDatadogIncident(entry.id);
-          if (!resolved) throw new Error('Datadog incident env not configured');
+          if (!resolved) {
+            logger.error('SEV-1 auto-resolve impossible — Datadog incident env not configured', { runRef });
+            entry.status = 'resolve_failed';
+            return;
+          }
           entry.status = 'resolved';
           logger.info('SEV-1 incident auto-resolved', { runRef, publicId: entry.publicId });
         } catch (error) {
