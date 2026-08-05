@@ -177,7 +177,7 @@ router.post('/api/oncall/infra/:kind', async (req, res) => {
 /**
  * POST /api/oncall/latency — back-compat alias for the latency infra incident.
  */
-router.post('/api/oncall/latency', async (req, res) => {
+router.post('/api/oncall/latency', async (_req, res) => {
   try {
     const result = await postOncallInfraIncident('latency');
     res.status(result.ok ? 200 : 400).json(result);
