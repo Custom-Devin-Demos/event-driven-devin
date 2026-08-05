@@ -25,6 +25,7 @@ const devinUsersRoutes = require('./routes/devin-users');
 const verticalRoutes = require('./routes/verticals');
 const webinarRoutes = require('./routes/webinar');
 const oncallRoutes = require('./routes/oncall');
+const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
 
 const app = express();
@@ -40,6 +41,16 @@ app.use(express.json({
     req.rawBody = buf;
   },
 }));
+
+// Middleware: on-call mode — run the real code path (Sentry/Datadog telemetry
+// fires normally) but suppress the legacy Slack-alert/Devin trigger; the
+// on-call responders are driven by the alert card posted to the on-call channels.
+app.use((req, _res, next) => {
+  if (req.headers['x-oncall-mode'] === '1') {
+    return runWithLegacyAlertsSuppressed(() => next());
+  }
+  next();
+});
 
 // Middleware: request ID and logging
 app.use((req, res, next) => {
