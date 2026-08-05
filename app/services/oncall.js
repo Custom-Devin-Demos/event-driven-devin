@@ -1,6 +1,6 @@
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage } = require('./slack');
+const { postMessage, lookupSlackUserByEmail } = require('./slack');
 const { setScenario, getScenario } = require('../incidentModes');
 
 /**
@@ -129,6 +129,25 @@ function makeRunRef() {
 const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
 
 /**
+ * Resolve the demo user's hub identity email to a Slack @mention so cards
+ * show who launched the trigger (same attribution as the legacy alerts).
+ */
+const EMAIL_RE = /^[^\s@<>|]{1,64}@[^\s@<>|]{1,255}$/;
+
+async function resolveTriggeredBy(token, devinEmail) {
+  // Validate shape so a client-supplied value can't inject Slack mrkdwn
+  // (e.g. <!channel>) into the cards.
+  if (!devinEmail || !EMAIL_RE.test(devinEmail)) return null;
+  try {
+    const memberId = await lookupSlackUserByEmail(token, devinEmail);
+    return memberId ? `<@${memberId}>` : devinEmail;
+  } catch (error) {
+    logger.warn('Triggered-by Slack lookup failed', { error: error.message });
+    return devinEmail;
+  }
+}
+
+/**
  * Shared Block Kit helpers so On-Call cards match the polish of the legacy
  * Automated Alerts cards (header, field grid, action buttons, context row).
  */
@@ -164,12 +183,12 @@ function datadogActions() {
   };
 }
 
-function contextBlock(service) {
+function contextBlock(service, triggeredBy) {
+  const parts = [`Service: \`${service || 'checkout-api'}\``, new Date().toISOString()];
+  if (triggeredBy) parts.push(`Triggered by ${triggeredBy}`);
   return {
     type: 'context',
-    elements: [
-      { type: 'mrkdwn', text: `Service: \`${service || 'checkout-api'}\` | ${new Date().toISOString()}` },
-    ],
+    elements: [{ type: 'mrkdwn', text: parts.join(' | ') }],
   };
 }
 
@@ -179,7 +198,7 @@ function contextBlock(service) {
  * responder treats it as a fresh occurrence; when false, the message matches
  * the canonical signature to demonstrate duplicate grouping.
  */
-function buildAlertMessage(scenario, { runRef, now, firstSeen, events }) {
+function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy }) {
 
   const lines = [
     `:rotating_light: *Production Error — ${scenario.brand}*`,
@@ -190,6 +209,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events }) {
     `*Service:* ${scenario.service}`,
     `*Owner:* ${scenario.owner} — demo persona, do not resolve to a real Slack user`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
+    triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Level: error | Env: production | Release: acme-checkout@1.0.0`,
     `Events: ${events} | First: ${firstSeen.toISOString()} | Last: ${now.toISOString()}`,
@@ -221,10 +241,11 @@ async function postOncallAlert(scenarioId, options = {}) {
   }
 
   const runRef = options.unique !== false ? makeRunRef() : null;
+  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events });
+  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy });
   const blocks = [
     headerBlock(`:rotating_light: Production Error — ${scenario.brand}`),
     ...fieldPairs([
@@ -237,11 +258,12 @@ async function postOncallAlert(scenarioId, options = {}) {
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
       ['Owner', `${scenario.owner} — demo persona, do not resolve to a real Slack user`],
       runRef ? ['Incident Ref', runRef] : null,
+      triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     mrkdwnSection(`*Stack trace (top frames):*\n\`\`\`${scenario.errorType}: ${scenario.errorValue}\n${scenario.frames.join('\n')}\`\`\``),
     mrkdwnSection(`${scenario.impact} Repo: ${REPO_URL}`),
     datadogActions(),
-    contextBlock(scenario.service),
+    contextBlock(scenario.service, triggeredBy),
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
@@ -252,7 +274,7 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, text, reporter, severity, productArea }) {
+async function postOncallBugReport({ scenarioId, text, reporter, severity, productArea, devinEmail }) {
   const { token, bugsChannel } = resolveOncallEnv();
   if (!token || !bugsChannel) {
     logger.warn('On-Call bugs channel not configured — skipping bug report post');
@@ -264,7 +286,8 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
     return { ok: false, error: `No bug report text and unknown scenario: ${scenarioId}` };
   }
 
-  let message = body;
+  const triggeredBy = await resolveTriggeredBy(token, devinEmail);
+  let message = triggeredBy ? `${body}\nTriggered by: ${triggeredBy}` : body;
   let blocks = null;
   if (reporter || severity || productArea) {
     const reportedBy = reporter && (reporter.name || reporter.email)
@@ -275,6 +298,7 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
       reportedBy ? `Reported by: ${reportedBy}` : null,
       productArea ? `Product area: ${productArea}` : null,
       severity ? `Severity: ${severity}` : null,
+      triggeredBy ? `Triggered by: ${triggeredBy}` : null,
       '',
       body,
     ].filter((l) => l !== null).join('\n');
@@ -286,7 +310,7 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
         severity ? ['Severity', severity] : null,
       ]),
       mrkdwnSection(body),
-      contextBlock('acme-support-center'),
+      contextBlock('acme-support-center', triggeredBy),
     ];
   }
 
@@ -445,7 +469,7 @@ const INFRA_INCIDENTS = {
   },
 };
 
-async function postOncallInfraIncident(kind = 'latency') {
+async function postOncallInfraIncident(kind = 'latency', options = {}) {
   const incident = INFRA_INCIDENTS[kind];
   if (!incident) {
     return { ok: false, error: `Unknown infra incident: ${kind}` };
@@ -471,6 +495,7 @@ async function postOncallInfraIncident(kind = 'latency') {
     if (infraRevertTimer.unref) infraRevertTimer.unref();
   }
 
+  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const card = incident.build(now);
   const ownerLine = `${incident.owner} — demo persona, do not resolve to a real Slack user`;
@@ -482,8 +507,9 @@ async function postOncallInfraIncident(kind = 'latency') {
     'Service: checkout-api | Env: production',
     `Owner: ${ownerLine}`,
     `Incident Ref: ${runRef}`,
+    triggeredBy ? `Triggered by: ${triggeredBy}` : null,
     card.instruction,
-  ].join('\n');
+  ].filter((l) => l !== null).join('\n');
   const blocks = [
     headerBlock(card.title),
     mrkdwnSection(`*Monitor:* ${card.monitor}`),
@@ -493,11 +519,12 @@ async function postOncallInfraIncident(kind = 'latency') {
       ['Service', '`checkout-api`'],
       ['Owner', ownerLine],
       ['Incident Ref', runRef],
+      triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     mrkdwnSection(`*Symptoms:* ${card.symptoms}`),
     mrkdwnSection(card.instruction),
     datadogActions(),
-    contextBlock('checkout-api'),
+    contextBlock('checkout-api', triggeredBy),
   ];
 
   const ts = await postMessage(token, alertsChannel, text, blocks);
@@ -520,7 +547,7 @@ async function postOncallInfraIncident(kind = 'latency') {
  * incidents" enabled, Datadog creates the incident-<n> channel itself and the
  * On-Call Incident Agent auto-joins it.
  */
-async function declareDatadogIncident(runRef) {
+async function declareDatadogIncident(runRef, triggeredBy) {
   const apiKey = process.env.DD_API_KEY;
   const appKey = process.env.DD_APPLICATION_KEY;
   if (!apiKey || !appKey) {
@@ -540,7 +567,7 @@ async function declareDatadogIncident(runRef) {
             severity: { type: 'dropdown', value: 'SEV-1' },
             summary: {
               type: 'textbox',
-              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}. Repo: ${REPO_URL}`,
+              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
             },
           },
         },
@@ -569,11 +596,13 @@ async function declareDatadogIncident(runRef) {
  * Incident Agent auto-joins. Fallback (Datadog keys not configured): post a
  * SEV-1 style message to the alerts channel.
  */
-async function postOncallIncident() {
+async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
+  const { token, alertsChannel } = resolveOncallEnv();
+  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
 
   try {
-    const incident = await declareDatadogIncident(runRef);
+    const incident = await declareDatadogIncident(runRef, options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null);
     if (incident) {
       logger.info('On-Call Datadog incident declared', { runRef, ...incident });
       return { ok: true, provider: 'datadog', runRef, ...incident };
@@ -584,7 +613,6 @@ async function postOncallIncident() {
     });
   }
 
-  const { token, alertsChannel } = resolveOncallEnv();
   if (!token || !alertsChannel) {
     logger.warn('On-Call alerts channel not configured — skipping incident post');
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
@@ -599,8 +627,9 @@ async function postOncallIncident() {
     '',
     `Multiple user-facing flows are failing simultaneously. Repo: ${REPO_URL}`,
   ].join('\n');
+  const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
 
-  const ts = await postMessage(token, alertsChannel, text);
+  const ts = await postMessage(token, alertsChannel, fullText);
   logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });
   return { ok: true, ts, channel: alertsChannel, runRef };
 }
