@@ -238,7 +238,7 @@
     a.card:hover { background: #f8f9fc; }
     .card-top {
       display: flex; align-items: flex-start; justify-content: space-between;
-      margin-bottom: auto;
+      margin-bottom: 4px;
     }
     .card-icon {
       font-size: 1.4rem; width: 40px; height: 40px;
@@ -260,7 +260,7 @@
       color: var(--text-dark);
     }
     .card-arrow svg { width: 14px; height: 14px; }
-    .card-body { margin-top: 18px; }
+    .card-body { margin-top: 18px; margin-bottom: 16px; }
     .card-vertical {
       font-size: 10px; font-weight: 600;
       letter-spacing: 0.08em; text-transform: uppercase;
@@ -275,13 +275,29 @@
     }
     .card-desc {
       font-size: 13px; color: var(--text-muted); line-height: 1.5;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      overflow: hidden;
     }
+    .card-desc.expanded { -webkit-line-clamp: unset; }
+    .desc-toggle {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.03em; text-transform: uppercase;
+      color: var(--accent);
+      background: none; border: none; padding: 0;
+      cursor: pointer;
+    }
+    .desc-toggle:hover { text-decoration: underline; }
     .card-footer {
       display: flex; align-items: center; justify-content: space-between;
       gap: 8px;
-      margin-top: 16px; padding-top: 12px;
+      margin-top: auto; padding-top: 12px;
       border-top: 1px solid var(--border-light);
     }
+    #infra-grid .card-brand { min-height: 50px; }
     .card-path {
       font-family: var(--font-mono); font-size: 11px;
       color: var(--text-muted);
@@ -643,7 +659,7 @@
       {
         kind: 'dependency-timeout',
         icon: '\u23F3', color: '#ef4444',
-        title: 'Payments-Gateway Timeouts',
+        title: 'Gateway Timeouts',
         desc: 'A downstream dependency starts timing out intermittently \u2014 most checkouts succeed, some see a spinner then a 502. Watch the live checkout rate in the strip above.',
         monitor: 'checkout.dependency_timeout{upstream:payments-gateway} > 0.2',
       },
@@ -651,7 +667,7 @@
         kind: 'memory-leak',
         icon: '\u{1F4C8}', color: '#7B2CBF',
         title: 'Memory Leak',
-        desc: 'RSS genuinely climbs (bounded and auto-freed) \u2014 the responder sees real memory growth in Datadog.',
+        desc: 'Process memory genuinely climbs (bounded and auto-freed at window end) \u2014 watch the live RSS number rise in the strip above while the responder sees real memory growth in Datadog.',
         monitor: 'system.mem.rss{service:checkout-api} rising',
       },
       {
@@ -662,6 +678,47 @@
         monitor: 'burn_rate(slo:checkout-availability-99.9) > 14.4x',
       },
     ];
+
+    function applyDescToggles(gridEl) {
+      gridEl.querySelectorAll('.card-desc').forEach(function (desc) {
+        var next = desc.nextElementSibling;
+        var toggle = next && next.classList.contains('desc-toggle') ? next : null;
+        var wasExpanded = desc.classList.contains('expanded');
+        desc.classList.remove('expanded');
+        var overflows = desc.scrollHeight > desc.clientHeight + 1;
+        if (wasExpanded) desc.classList.add('expanded');
+        if (!overflows) {
+          if (toggle) toggle.remove();
+          desc.classList.remove('expanded');
+          return;
+        }
+        if (!toggle) {
+          toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'desc-toggle';
+          toggle.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var expanded = desc.classList.toggle('expanded');
+            toggle.textContent = expanded ? 'Show less' : 'Read more';
+          };
+          desc.insertAdjacentElement('afterend', toggle);
+        }
+        toggle.textContent = desc.classList.contains('expanded') ? 'Show less' : 'Read more';
+      });
+    }
+
+    function refreshDescToggles() {
+      document.querySelectorAll('#infra-grid, #alert-grid').forEach(applyDescToggles);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(refreshDescToggles);
+    }
+    var descResizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(descResizeTimer);
+      descResizeTimer = setTimeout(refreshDescToggles, 200);
+    });
 
     function show(el, ok, msg) {
       el.className = 'status ' + (ok ? 'ok' : 'err');
@@ -705,6 +762,7 @@
           '</div>';
         grid.appendChild(link);
       });
+      applyDescToggles(grid);
     }
 
     (function buildInfra() {
@@ -722,12 +780,13 @@
             '<div class="card-desc">' + m.desc + '</div>' +
             '<div class="monitor-line">' + m.monitor + '</div>' +
           '</div>' +
-          '<div class="card-footer" style="border-top:none;padding-top:0;margin-top:16px;flex-direction:column;align-items:stretch;">' +
+          '<div class="card-footer" style="border-top:none;padding-top:0;flex-direction:column;align-items:stretch;">' +
             '<button class="fire-btn" data-infra="' + m.kind + '">Fire Incident</button>' +
             '<div class="status"></div>' +
           '</div>';
         grid.appendChild(card);
       });
+      applyDescToggles(grid);
 
       grid.querySelectorAll('[data-infra]').forEach((btn) => {
         btn.onclick = async () => {
