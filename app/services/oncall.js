@@ -947,15 +947,6 @@ async function postOncallIncident(options = {}) {
     activeSev1.set(runRef, entry);
     pruneSev1();
 
-    if (token) {
-      const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
-        ? await lookupSlackUserByEmail(token, options.devinEmail)
-        : null;
-      attachToIncidentChannel(entry, token, deMemberId).catch((error) => {
-        logger.warn('SEV-1 channel attach failed', { runRef, error: error.message });
-      });
-    }
-
     const scheduleResolve = (delayMs, attempt) => {
       const timer = setTimeout(async () => {
         try {
@@ -988,6 +979,17 @@ async function postOncallIncident(options = {}) {
     };
     scheduleResolve(INFRA_WINDOW_MS, 1);
 
+    if (token && entry.publicId) {
+      const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
+        ? await lookupSlackUserByEmail(token, options.devinEmail)
+        : null;
+      attachToIncidentChannel(entry, token, deMemberId).catch((error) => {
+        logger.warn('SEV-1 channel attach failed', { runRef, error: error.message });
+      });
+    } else if (!entry.publicId) {
+      logger.warn('SEV-1 incident has no public_id — skipping channel attach', { runRef });
+    }
+
     logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
     return {
       ok: true,
@@ -1010,13 +1012,14 @@ async function postOncallIncident(options = {}) {
   activateInfraIncident(story.infraKind);
 
   const text = [
-    ':fire: *SEV-1 — acme-demo error rate spike across multiple verticals*',
+    `:fire: *SEV-1 — ${story.label}*`,
     '',
     `*Incident Ref:* ${runRef}`,
-    '*Signal:* 5xx rate > 40% for 5 minutes on checkout-api (banking, insurance, telco endpoints affected)',
+    `*Summary:* ${story.summary}`,
     '*Env:* production | *Service:* checkout-api',
+    `*Degradation window:* live now, auto-recovers in ~${Math.round(INFRA_WINDOW_MS / 60000)} minutes`,
     '',
-    `Multiple user-facing flows are failing simultaneously. Repo: ${REPO_URL}`,
+    `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
   ].join('\n');
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;

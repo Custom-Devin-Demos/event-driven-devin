@@ -25,7 +25,7 @@ The on-call pages now execute the real vertical code with an `x-oncall-mode` hea
 
 ## 4. Datadog SEV-1 incident flow (currently pinned)
 
-Code is in place: the SEV-1 button declares a real Datadog incident via the Incidents API (us5) when `DD_API_KEY`/`DD_APPLICATION_KEY` are set, with fallback to a Slack SEV-1 post. Untested live. Remaining one-time setup (Datadog + Slack admin needed):
+Code is in place: the SEV-1 button declares a real Datadog incident via the Incidents API (us5) when `DD_API_KEY` and `DD_INCIDENT_APP_KEY` (falls back to `DD_APPLICATION_KEY`) are set, with fallback to a Slack SEV-1 post. Untested live. Remaining one-time setup (Datadog + Slack admin needed):
 
 - [ ] Datadog → Integrations → Slack → connect the Cog GTM workspace (Slack app is installed; the Datadog-side link is not configured).
 - [ ] Service Management → Incidents → Settings → Integrations → Slack → enable "Automatically create a Slack channel for each incident".
