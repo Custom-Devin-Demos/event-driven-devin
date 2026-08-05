@@ -13,9 +13,28 @@ const {
   getInfraState,
   postOncallIncident,
 } = require('../services/oncall');
-const { getOncallSkin } = require('../../config/oncall-skins');
+const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 
 const router = express.Router();
+
+// Startup check: every skin template id must resolve in the shared BUG_CATALOG,
+// otherwise its backend-symptom repro mapping silently does nothing.
+const KNOWN_TEMPLATE_IDS = new Set(
+  Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))
+);
+for (const skin of Object.values(ONCALL_SKINS)) {
+  const products = (skin.bugPortal && skin.bugPortal.products) || [];
+  for (const product of products) {
+    for (const template of product.templates || []) {
+      if (!KNOWN_TEMPLATE_IDS.has(template.id)) {
+        logger.warn('On-Call skin references unknown bug template id', {
+          skin: skin.slug,
+          templateId: template.id,
+        });
+      }
+    }
+  }
+}
 
 /**
  * Serve an on-call page with a customer skin injected as window.ONCALL_SKIN.
