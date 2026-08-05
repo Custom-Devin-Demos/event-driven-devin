@@ -399,6 +399,10 @@ const CUSTOMERS = {
     label: 'RBC Online Banking',
     triggerMode: 'api',
   },
+  '718eb882': {
+    label: 'Huntington Online Banking',
+    triggerMode: 'api',
+  },
   '2ef89b23': {
     label: 'FIS Payments One',
     triggerMode: 'api',

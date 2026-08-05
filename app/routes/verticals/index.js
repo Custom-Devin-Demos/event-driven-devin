@@ -110,6 +110,7 @@ const customerE1da8ec4Routes = require('./e1da8ec4');
 const customer3d2ef497Routes = require('./3d2ef497');
 const customer6c89c6b0Routes = require('./6c89c6b0');
 const customer88ad5a84Routes = require('./88ad5a84');
+const customer718eb882Routes = require('./718eb882');
 const customer2ef89b23Routes = require('./2ef89b23');
 const customer61875a84Routes = require('./61875a84');
 const customer9db3d08fRoutes = require('./9db3d08f');
@@ -226,6 +227,7 @@ router.use(customerE1da8ec4Routes);
 router.use(customer3d2ef497Routes);
 router.use(customer6c89c6b0Routes);
 router.use(customer88ad5a84Routes);
+router.use(customer718eb882Routes);
 router.use(customer2ef89b23Routes);
 router.use(customer61875a84Routes);
 router.use(customer9db3d08fRoutes);
@@ -281,6 +283,11 @@ router.get('/nubank', (_req, res) => {
 // Movistar customer demo — purchase flow page for the Telefónica demo
 router.get('/movistar', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'movistar-fibra.html'));
+});
+
+// Huntington customer demo — friendly public URL, serves the 718eb882 page (hidden from hub)
+router.get('/huntington', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '718eb882.html'));
 });
 
 // Retail uses the existing index.html at /retail
