@@ -31,6 +31,7 @@ Code is in place: the SEV-1 button declares a real Datadog incident via the Inci
 - [ ] Service Management → Incidents → Settings → Integrations → Slack → enable "Automatically create a Slack channel for each incident".
 - [ ] Devin On-Call settings: enable the Incident Agent auto-join on `incident-*` channels.
 - [ ] Dry-run one incident from the /oncall button and verify: incident created → channel auto-created → Devin joins and investigates.
+- [ ] Follow-up: SEV-1 registry and auto-resolve timers are in-process, so a restart/redeploy mid-window leaves the Datadog incident open (manual one-click resolve; channel still auto-archives). Consider a boot-time sweep that resolves open demo incidents whose summary contains the `run-` ref prefix.
 
 ## 5. Misc / cosmetic
 
