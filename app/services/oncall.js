@@ -691,7 +691,9 @@ function getInfraState() {
   return {
     scenario: getScenario(),
     activeKind: activeInfraKind,
-    memoryGrowth: Boolean(memLeakInterval),
+    // True for the whole memory-leak incident, not just while allocating: the
+    // growth interval self-clears at the cap but the incident stays active.
+    memoryGrowth: activeInfraKind === 'memory-leak',
     heldMB: memLeakChunks.length * MEMLEAK_CHUNK_MB,
     rssMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
     msRemaining: infraRevertAt ? Math.max(0, infraRevertAt - Date.now()) : null,

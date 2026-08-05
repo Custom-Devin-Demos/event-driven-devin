@@ -172,7 +172,9 @@
   </section>
 
   <main class="page">
-    <form class="card" id="report-form">
+    <!-- novalidate: validation is handled in the submit handler so the styled
+         status messages show instead of native browser tooltips -->
+    <form class="card" id="report-form" novalidate>
       <h2>Issue details</h2>
 
       <div class="row">
@@ -430,6 +432,16 @@
       var product = productEl.value;
       var description = descEl.value.trim();
 
+      if (!document.getElementById('name').value.trim()) {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Please enter your name.';
+        return;
+      }
+      if (!document.getElementById('email').value.trim()) {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Please enter your email address.';
+        return;
+      }
       if (!product) {
         statusEl.className = 'status err';
         statusEl.textContent = 'Please select the affected product area.';
