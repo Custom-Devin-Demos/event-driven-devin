@@ -107,7 +107,8 @@ const ONCALL_SKINS = {
 
 function getOncallSkin(slug) {
   if (!slug || typeof slug !== 'string') return null;
-  return ONCALL_SKINS[slug.toLowerCase()] || null;
+  const key = slug.toLowerCase();
+  return Object.prototype.hasOwnProperty.call(ONCALL_SKINS, key) ? ONCALL_SKINS[key] : null;
 }
 
 module.exports = { ONCALL_SKINS, getOncallSkin };

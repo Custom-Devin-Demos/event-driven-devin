@@ -323,19 +323,26 @@
       selectedSeverity = sev;
     }
 
+    // Overlay customer-facing copy onto the shared catalog; ids stay the
+    // same so backend-symptom templates keep their real repro mapping.
+    // Applied outside the fetch so the skin's templates work even if the
+    // scenarios request fails.
+    function applySkinCatalog() {
+      if (SKIN && SKIN.bugPortal && SKIN.bugPortal.products) {
+        SKIN.bugPortal.products.forEach(function (p) {
+          catalog[p.area] = p.templates;
+          if (p.persona) personas[p.area] = p.persona;
+        });
+      }
+    }
+    applySkinCatalog();
+
     fetch('/api/oncall/scenarios')
       .then(function (res) { return res.json(); })
       .then(function (data) {
         (data.bugReports || []).forEach(function (b) { templates[b.id] = b.text; });
         (data.bugCatalog || []).forEach(function (c) { catalog[c.product] = c.templates; });
-        if (SKIN && SKIN.bugPortal && SKIN.bugPortal.products) {
-          // Overlay customer-facing copy onto the shared catalog; ids stay the
-          // same so backend-symptom templates keep their real repro mapping.
-          SKIN.bugPortal.products.forEach(function (p) {
-            catalog[p.area] = p.templates;
-            if (p.persona) personas[p.area] = p.persona;
-          });
-        }
+        applySkinCatalog();
       })
       .catch(function () { /* templates unavailable — free-form still works */ });
 
