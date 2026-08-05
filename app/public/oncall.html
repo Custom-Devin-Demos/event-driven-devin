@@ -681,20 +681,44 @@
 
     function applyDescToggles(gridEl) {
       gridEl.querySelectorAll('.card-desc').forEach(function (desc) {
-        if (desc.scrollHeight <= desc.clientHeight + 1) return;
-        var toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'desc-toggle';
-        toggle.textContent = 'Read more';
-        toggle.onclick = function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var expanded = desc.classList.toggle('expanded');
-          toggle.textContent = expanded ? 'Show less' : 'Read more';
-        };
-        desc.insertAdjacentElement('afterend', toggle);
+        var next = desc.nextElementSibling;
+        var toggle = next && next.classList.contains('desc-toggle') ? next : null;
+        var wasExpanded = desc.classList.contains('expanded');
+        desc.classList.remove('expanded');
+        var overflows = desc.scrollHeight > desc.clientHeight + 1;
+        if (wasExpanded) desc.classList.add('expanded');
+        if (!overflows) {
+          if (toggle) toggle.remove();
+          desc.classList.remove('expanded');
+          return;
+        }
+        if (!toggle) {
+          toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'desc-toggle';
+          toggle.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var expanded = desc.classList.toggle('expanded');
+            toggle.textContent = expanded ? 'Show less' : 'Read more';
+          };
+          desc.insertAdjacentElement('afterend', toggle);
+        }
+        toggle.textContent = desc.classList.contains('expanded') ? 'Show less' : 'Read more';
       });
     }
+
+    function refreshDescToggles() {
+      document.querySelectorAll('#infra-grid, #alert-grid').forEach(applyDescToggles);
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(refreshDescToggles);
+    }
+    var descResizeTimer;
+    window.addEventListener('resize', function () {
+      clearTimeout(descResizeTimer);
+      descResizeTimer = setTimeout(refreshDescToggles, 200);
+    });
 
     function show(el, ok, msg) {
       el.className = 'status ' + (ok ? 'ok' : 'err');
