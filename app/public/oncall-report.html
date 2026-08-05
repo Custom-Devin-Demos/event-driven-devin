@@ -194,7 +194,13 @@
           <option value="insurance">Shield Insurance — Claims Portal</option>
           <option value="hightech">NovaSoft — License Management</option>
           <option value="telco">WaveConnect — Self-Service Portal</option>
+          <option value="retail">Acme Shop — Online Storefront</option>
         </select>
+      </div>
+
+      <div class="field" id="template-field" style="display:none">
+        <label for="template">What's the issue?</label>
+        <select id="template"></select>
       </div>
 
       <div class="field">
@@ -258,7 +264,9 @@
   <div class="footer">Acme Support Center &middot; ticket intake v2.4 &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></div>
 
   <script>
+    var catalog = {};
     var templates = {};
+    var selectedTemplate = null;
     var selectedSeverity = 'Medium';
 
     // Per-product pre-seeds so a DE only has to pick a product and hit Submit.
@@ -268,6 +276,7 @@
       insurance: { name: 'Marcus Boone', email: 'm.boone@lakeviewhomes.com', sev: 'High' },
       hightech: { name: 'Priya Raman', email: 'priya.raman@vertexlabs.co', sev: 'Medium' },
       telco: { name: 'Caleb Ortiz', email: 'caleb.ortiz@fastmail.com', sev: 'Medium' },
+      retail: { name: 'Maya Sorensen', email: 'maya.sorensen@parcelworks.co', sev: 'Medium' },
     };
 
     function selectSeverity(sev) {
@@ -281,6 +290,7 @@
       .then(function (res) { return res.json(); })
       .then(function (data) {
         (data.bugReports || []).forEach(function (b) { templates[b.id] = b.text; });
+        (data.bugCatalog || []).forEach(function (c) { catalog[c.product] = c.templates; });
       })
       .catch(function () { /* templates unavailable — free-form still works */ });
 
@@ -291,22 +301,64 @@
     var descEdited = false;
     descEl.addEventListener('input', function () { descEdited = true; });
 
+    var templateFieldEl = document.getElementById('template-field');
+    var templateEl = document.getElementById('template');
+
+    function applyTemplate(t) {
+      selectedTemplate = t || null;
+      if (!t) return;
+      if (!descEdited || !descEl.value.trim()) {
+        descEl.value = t.text;
+        descEdited = false;
+      }
+      if (t.sev) selectSeverity(t.sev);
+    }
+
     productEl.addEventListener('change', function () {
-      noteEl.style.display = templates[productEl.value] ? 'block' : 'none';
+      var entries = catalog[productEl.value] || [];
       var p = personas[productEl.value];
       if (p) {
         document.getElementById('name').value = p.name;
         document.getElementById('email').value = p.email;
         selectSeverity(p.sev);
       }
-      var t = templates[productEl.value];
-      if (t && (!descEdited || !descEl.value.trim())) {
-        descEl.value = t;
-        descEdited = false;
+      templateEl.innerHTML = '';
+      if (entries.length > 0) {
+        entries.forEach(function (t, i) {
+          var opt = document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = t.label;
+          templateEl.appendChild(opt);
+          if (i === 0) applyTemplate(t);
+        });
+        templateFieldEl.style.display = entries.length > 1 ? 'block' : 'none';
+        noteEl.style.display = 'block';
+      } else {
+        templateFieldEl.style.display = 'none';
+        noteEl.style.display = templates[productEl.value] ? 'block' : 'none';
+        var legacy = templates[productEl.value];
+        selectedTemplate = null;
+        if (legacy && (!descEdited || !descEl.value.trim())) {
+          descEl.value = legacy;
+          descEdited = false;
+        }
       }
     });
 
+    templateEl.addEventListener('change', function () {
+      var entries = catalog[productEl.value] || [];
+      var t = entries.find(function (x) { return x.id === templateEl.value; });
+      descEdited = false;
+      applyTemplate(t);
+    });
+
     document.getElementById('template-link').addEventListener('click', function () {
+      if (selectedTemplate) {
+        descEl.value = selectedTemplate.text;
+        descEdited = false;
+        descEl.focus();
+        return;
+      }
       var t = templates[productEl.value];
       if (t) { descEl.value = t; descEdited = false; descEl.focus(); }
     });
@@ -346,6 +398,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           scenario: product,
+          templateId: selectedTemplate ? selectedTemplate.id : null,
           text: description,
           reporter: {
             name: document.getElementById('name').value.trim(),
@@ -362,6 +415,7 @@
             statusEl.className = 'status ok';
             statusEl.textContent = 'Thanks — your report has been filed with our support engineering team. Reference has been routed to the on-call queue; you\'ll get an email update shortly.';
             descEl.value = '';
+            descEdited = false;
           } else {
             statusEl.className = 'status err';
             statusEl.textContent = (r.data && r.data.error) || 'Something went wrong submitting your report. Please try again.';

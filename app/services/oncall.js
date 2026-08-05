@@ -103,12 +103,108 @@ const ALERT_SCENARIOS = {
  * Deliberately fuzzy: they describe symptoms, not stack traces, so the
  * responder has to reproduce and dig.
  */
-const BUG_REPORTS = {
-  banking: 'Hey team — a customer on Premium is saying fund transfers keep failing in online banking. They just get a red "Transfer Failed" box every time, any amount, both accounts. Started seeing multiple support tickets about this today.',
-  insurance: "Support escalation: policyholders can't file claims through the portal. The claim form spins and then errors out. One customer tried 4 times with different claim types — same result.",
-  hightech: "Sales flagged that a prospect couldn't provision licenses during their trial — the provisioning step errors out on some plan selections. Might be plan-specific? Works on starter but they wanted enterprise seats.",
-  telco: 'Getting complaints in the app store reviews that plan upgrades are broken — "tried to upgrade to Ultra and it just says something went wrong". Downgrade path untested.',
+const BUG_CATALOG = {
+  banking: [
+    {
+      id: 'banking-transfer-failed',
+      label: 'Fund transfers failing',
+      sev: 'High',
+      text: 'Hey team — a customer on Premium is saying fund transfers keep failing in online banking. They just get a red "Transfer Failed" box every time, any amount, both accounts. Started seeing multiple support tickets about this today.',
+    },
+    {
+      id: 'banking-transfer-stuck',
+      label: 'Money not moving between accounts',
+      sev: 'Critical',
+      text: "Escalating from the branch line: an elderly customer says she cannot move her pension payment from savings to checking — the website shows an error box every single time and she is worried the money is gone. I walked her through it twice on the phone and saw the same red failure message myself. Please treat as urgent.",
+    },
+  ],
+  insurance: [
+    {
+      id: 'insurance-claim-error',
+      label: 'Claim submissions erroring',
+      sev: 'High',
+      text: "Support escalation: policyholders can't file claims through the portal. The claim form spins and then errors out. One customer tried 4 times with different claim types — same result.",
+    },
+    {
+      id: 'insurance-storm-claims',
+      label: 'Storm-damage claims blocked',
+      sev: 'Critical',
+      text: 'We have a wave of storm-damage claims coming in after last night and NONE of them are going through the portal. Adjusters are telling customers to fax paperwork like it is 1995. Whatever broke the claim form, it picked the worst possible week.',
+    },
+  ],
+  hightech: [
+    {
+      id: 'hightech-provision-error',
+      label: 'License provisioning failing',
+      sev: 'Medium',
+      text: "Sales flagged that a prospect couldn't provision licenses during their trial — the provisioning step errors out on some plan selections. Might be plan-specific? Works on starter but they wanted enterprise seats.",
+    },
+    {
+      id: 'hightech-renewal-blocked',
+      label: 'Renewal seat expansion blocked',
+      sev: 'High',
+      text: 'Customer success here — our biggest renewal of the quarter is trying to add 200 seats and the admin console throws an error at the provisioning step every time. They renew Friday. The CSM has tried on three browsers, same failure.',
+    },
+  ],
+  telco: [
+    {
+      id: 'telco-upgrade-broken',
+      label: 'Plan upgrades broken',
+      sev: 'Medium',
+      text: 'Getting complaints in the app store reviews that plan upgrades are broken — "tried to upgrade to Ultra and it just says something went wrong". Downgrade path untested.',
+    },
+    {
+      id: 'telco-family-plan',
+      label: 'Family plan upgrade failing',
+      sev: 'High',
+      text: "My whole family is on the Plus plan and I've been trying to upgrade us to Ultra since yesterday. Every time I hit confirm it flashes an error and dumps me back to the plan page. My kids' data ran out and I literally cannot give you more money right now.",
+    },
+  ],
+  retail: [
+    {
+      id: 'retail-slow-search',
+      label: 'Search painfully slow',
+      sev: 'Medium',
+      infraKind: 'latency',
+      text: "Is something wrong with the shop? Searching for anything takes like 3 seconds now — the little spinner just sits there. It was instant last week. No errors, just really, really slow. I timed it: typing 'espresso' took 2.8s to show results.",
+    },
+    {
+      id: 'retail-checkout-hangs',
+      label: 'Checkout hangs then errors',
+      sev: 'High',
+      infraKind: 'dependency-timeout',
+      text: 'Trying to place an order and about every third attempt the payment step just hangs for ages and then shows a gateway error. If I retry immediately it usually goes through. Started within the last hour — my colleague sees the same thing from her account.',
+    },
+    {
+      id: 'retail-orders-failing',
+      label: 'Orders randomly failing',
+      sev: 'High',
+      infraKind: 'slo-burn',
+      text: "Orders are failing at checkout roughly half the time — sometimes it says something about inventory, sometimes it's just a generic error. Retrying works eventually but customers are abandoning carts. Nothing changed on our side.",
+    },
+    {
+      id: 'retail-site-sluggish',
+      label: 'Site getting slower over time',
+      sev: 'Medium',
+      infraKind: 'memory-leak',
+      text: "Not an outage, but the storefront feels like it gets more sluggish the longer the day goes on — pages that were snappy this morning are noticeably laggy now. A refresh doesn't help. Feels like the server itself is running out of steam.",
+    },
+  ],
 };
+
+function findBugTemplate(templateId) {
+  if (!templateId) return null;
+  for (const entries of Object.values(BUG_CATALOG)) {
+    const match = entries.find((t) => t.id === templateId);
+    if (match) return match;
+  }
+  return null;
+}
+
+// Back-compat: legacy scenarioId (product area) → first template's text.
+const BUG_REPORTS = Object.fromEntries(
+  Object.entries(BUG_CATALOG).map(([area, entries]) => [area, entries[0].text]),
+);
 
 function resolveOncallEnv() {
   return {
@@ -274,16 +370,27 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, text, reporter, severity, productArea, devinEmail }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail }) {
   const { token, bugsChannel } = resolveOncallEnv();
   if (!token || !bugsChannel) {
     logger.warn('On-Call bugs channel not configured — skipping bug report post');
     return { ok: false, error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' };
   }
 
-  const body = text || BUG_REPORTS[scenarioId];
+  const template = findBugTemplate(templateId);
+  const body = text || (template && template.text) || BUG_REPORTS[scenarioId];
   if (!body) {
     return { ok: false, error: `No bug report text and unknown scenario: ${scenarioId}` };
+  }
+
+  // Backend-symptom templates activate the matching infra degradation so the
+  // Bug Triage Responder's repro steps genuinely reproduce. The template id is
+  // resolved server-side against the catalog — only known kinds can activate.
+  let activated = null;
+  if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
+    if (activateInfraIncident(template.infraKind)) {
+      activated = template.infraKind;
+    }
   }
 
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
@@ -315,8 +422,20 @@ async function postOncallBugReport({ scenarioId, text, reporter, severity, produ
   }
 
   const ts = await postMessage(token, bugsChannel, message, blocks);
-  logger.info('On-Call bug report posted', { scenario: scenarioId || 'custom', channel: bugsChannel, ts });
-  return { ok: true, ts, channel: bugsChannel };
+  logger.info('On-Call bug report posted', {
+    scenario: scenarioId || 'custom',
+    template: templateId || null,
+    activated,
+    channel: bugsChannel,
+    ts,
+  });
+  return {
+    ok: true,
+    ts,
+    channel: bugsChannel,
+    activated,
+    windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
+  };
 }
 
 /**
@@ -477,6 +596,30 @@ const INFRA_INCIDENTS = {
   },
 };
 
+/**
+ * Activate an infra incident's real degradation (scenario mode and/or memory
+ * growth) with the standard auto-revert window. Returns true if any state
+ * was activated.
+ */
+function activateInfraIncident(kind) {
+  const incident = INFRA_INCIDENTS[kind];
+  if (!incident) return false;
+  if (incident.scenario === 'healthy' && !incident.memoryGrowth) return false;
+  revertInfraState('superseded by new incident');
+  if (incident.scenario !== 'healthy') {
+    setScenario(incident.scenario);
+    activeInfraScenario = incident.scenario;
+  }
+  if (incident.memoryGrowth) startMemoryGrowth(INFRA_WINDOW_MS);
+  activeInfraKind = kind;
+  infraRevertAt = Date.now() + INFRA_WINDOW_MS;
+  infraRevertTimer = setTimeout(() => {
+    revertInfraState(`window elapsed for ${kind}`);
+  }, INFRA_WINDOW_MS);
+  if (infraRevertTimer.unref) infraRevertTimer.unref();
+  return true;
+}
+
 async function postOncallInfraIncident(kind = 'latency', options = {}) {
   const incident = INFRA_INCIDENTS[kind];
   if (!incident) {
@@ -490,20 +633,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  if (incident.scenario !== 'healthy' || incident.memoryGrowth) {
-    revertInfraState('superseded by new incident');
-    if (incident.scenario !== 'healthy') {
-      setScenario(incident.scenario);
-      activeInfraScenario = incident.scenario;
-    }
-    if (incident.memoryGrowth) startMemoryGrowth(INFRA_WINDOW_MS);
-    activeInfraKind = kind;
-    infraRevertAt = Date.now() + INFRA_WINDOW_MS;
-    infraRevertTimer = setTimeout(() => {
-      revertInfraState(`window elapsed for ${kind}`);
-    }, INFRA_WINDOW_MS);
-    if (infraRevertTimer.unref) infraRevertTimer.unref();
-  }
+  activateInfraIncident(kind);
 
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
@@ -662,6 +792,7 @@ async function postOncallIncident(options = {}) {
 module.exports = {
   ALERT_SCENARIOS,
   BUG_REPORTS,
+  BUG_CATALOG,
   postOncallAlert,
   postOncallBugReport,
   INFRA_INCIDENTS,
