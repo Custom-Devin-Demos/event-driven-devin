@@ -4,6 +4,7 @@ const { createDevinSession } = require('./devin-api');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
+const { legacyAlertsSuppressed } = require('./oncall-suppression');
 
 /**
  * Build the investigation prompt from alert data.
@@ -97,6 +98,12 @@ function buildPrompt(alertData) {
  * @returns {Object|null} - { triggered: true, threadTs } or null if skipped/failed
  */
 async function createSessionAndAlert(alertData) {
+  if (legacyAlertsSuppressed()) {
+    logger.info('Legacy alert pipeline suppressed (on-call mode request)', {
+      issueTitle: alertData.issueTitle,
+    });
+    return null;
+  }
   try {
     let prompt = buildPrompt(alertData);
 
