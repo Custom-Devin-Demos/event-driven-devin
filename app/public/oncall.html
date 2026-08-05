@@ -861,6 +861,12 @@
       } catch (e) { /* selector stays empty; server falls back to default kind */ }
     })();
 
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = String(s == null ? '' : s);
+      return d.innerHTML;
+    }
+
     function renderSev1List(items) {
       const el = document.getElementById('sev1-list');
       if (!items || !items.length) { el.innerHTML = ''; return; }
@@ -869,9 +875,9 @@
         const state = i.status === 'resolved'
           ? '<span style="color:#16a34a;">resolved</span>'
           : i.status === 'investigating'
-            ? '<span style="color:#7c3aed;">investigating in #' + (i.channelName || '') + '</span>'
+            ? '<span style="color:#7c3aed;">investigating in #' + escapeHtml(i.channelName || '') + '</span>'
             : '<span style="color:#b45309;">declared \u2014 waiting for Slack channel</span>';
-        return 'IR-' + i.publicId + ' <span style="color:#64748b;">(' + i.runRef + ')</span> ' + state +
+        return 'IR-' + escapeHtml(i.publicId) + ' <span style="color:#64748b;">(' + escapeHtml(i.runRef) + ')</span> ' + state +
           (i.status !== 'resolved' ? ' <span style="color:#64748b;">\u00b7 ~' + mins + ' min left</span>' : '');
       }).join('<br>');
     }

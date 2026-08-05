@@ -798,9 +798,12 @@ async function declareDatadogIncident({ title, summary, runRef, triggeredBy }) {
   );
 
   const incident = response.data && response.data.data;
+  if (!incident || !incident.id) {
+    return null;
+  }
   return {
-    id: incident && incident.id,
-    publicId: incident && incident.attributes && incident.attributes.public_id,
+    id: incident.id,
+    publicId: incident.attributes && incident.attributes.public_id,
   };
 }
 
@@ -835,14 +838,17 @@ const SEV1_HISTORY_MAX = 20;
 
 function pruneSev1() {
   while (activeSev1.size > SEV1_HISTORY_MAX) {
-    const oldest = activeSev1.keys().next().value;
-    activeSev1.delete(oldest);
+    const keys = Array.from(activeSev1.keys());
+    const evict = keys.find((k) => activeSev1.get(k).status === 'resolved') || keys[0];
+    activeSev1.delete(evict);
   }
 }
 
 const DEVIN_SLACK_MEMBER_ID = () => process.env.DEVIN_SLACK_MEMBER_ID || 'U08RNEJ4877';
 const SEV1_CHANNEL_POLL_MS = 5000;
 const SEV1_CHANNEL_POLL_TRIES = 24; // ~2 minutes
+const SEV1_RESOLVE_MAX_ATTEMPTS = 4;
+const SEV1_RESOLVE_RETRY_MS = 30000;
 
 /**
  * Background: wait for Datadog's Slack integration to create the incident
@@ -861,7 +867,11 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
       entry.channelId = channel.id;
       entry.channelName = channel.name;
       await joinChannel(token, channel.id);
-      await inviteToChannel(token, channel.id, [DEVIN_SLACK_MEMBER_ID(), deMemberId]);
+      try {
+        await inviteToChannel(token, channel.id, [DEVIN_SLACK_MEMBER_ID(), deMemberId]);
+      } catch (error) {
+        logger.warn('SEV-1 channel invite failed', { runRef: entry.runRef, error: error.message });
+      }
       const kickoff = [
         `:fire: *SEV-1 declared — ${entry.label}*`,
         '',
@@ -905,47 +915,58 @@ async function postOncallIncident(options = {}) {
   const kind = SEV1_INCIDENTS[options.kind] ? options.kind : 'checkout-gateway';
   const story = SEV1_INCIDENTS[kind];
 
+  let incident = null;
   try {
-    const incident = await declareDatadogIncident({
+    incident = await declareDatadogIncident({
       title: story.title,
       summary: story.summary,
       runRef,
       triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
     });
-    if (incident) {
-      activateInfraIncident(story.infraKind);
-      const entry = {
-        runRef,
-        kind,
-        label: story.label,
-        summary: story.summary,
-        id: incident.id,
-        publicId: incident.publicId,
-        declaredAt: Date.now(),
-        resolveAt: Date.now() + INFRA_WINDOW_MS,
-        status: 'declared',
-        channelId: null,
-        channelName: null,
-      };
-      activeSev1.set(runRef, entry);
-      pruneSev1();
+  } catch (error) {
+    logger.error('Datadog incident declaration failed — falling back to Slack post', {
+      error: error.message,
+    });
+  }
 
-      if (token) {
-        const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
-          ? await lookupSlackUserByEmail(token, options.devinEmail)
-          : null;
-        attachToIncidentChannel(entry, token, deMemberId).catch((error) => {
-          logger.warn('SEV-1 channel attach failed', { runRef, error: error.message });
-        });
-      }
+  if (incident) {
+    activateInfraIncident(story.infraKind);
+    const entry = {
+      runRef,
+      kind,
+      label: story.label,
+      summary: story.summary,
+      id: incident.id,
+      publicId: incident.publicId,
+      declaredAt: Date.now(),
+      resolveAt: Date.now() + INFRA_WINDOW_MS,
+      status: 'declared',
+      channelId: null,
+      channelName: null,
+    };
+    activeSev1.set(runRef, entry);
+    pruneSev1();
 
-      const resolveTimer = setTimeout(async () => {
+    if (token) {
+      const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
+        ? await lookupSlackUserByEmail(token, options.devinEmail)
+        : null;
+      attachToIncidentChannel(entry, token, deMemberId).catch((error) => {
+        logger.warn('SEV-1 channel attach failed', { runRef, error: error.message });
+      });
+    }
+
+    const scheduleResolve = (delayMs, attempt) => {
+      const timer = setTimeout(async () => {
         try {
           await resolveDatadogIncident(entry.id);
           entry.status = 'resolved';
           logger.info('SEV-1 incident auto-resolved', { runRef, publicId: entry.publicId });
         } catch (error) {
-          logger.error('SEV-1 auto-resolve failed', { runRef, error: error.message });
+          logger.error('SEV-1 auto-resolve failed', { runRef, attempt, error: error.message });
+          if (attempt < SEV1_RESOLVE_MAX_ATTEMPTS) {
+            scheduleResolve(SEV1_RESOLVE_RETRY_MS * attempt, attempt + 1);
+          }
           return;
         }
         if (entry.channelId && token) {
@@ -959,24 +980,21 @@ async function postOncallIncident(options = {}) {
             logger.warn('SEV-1 resolved-notice post failed', { runRef, error: error.message });
           }
         }
-      }, INFRA_WINDOW_MS);
-      if (resolveTimer.unref) resolveTimer.unref();
+      }, delayMs);
+      if (timer.unref) timer.unref();
+    };
+    scheduleResolve(INFRA_WINDOW_MS, 1);
 
-      logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
-      return {
-        ok: true,
-        provider: 'datadog',
-        runRef,
-        kind,
-        label: story.label,
-        windowMinutes: Math.round(INFRA_WINDOW_MS / 60000),
-        ...incident,
-      };
-    }
-  } catch (error) {
-    logger.error('Datadog incident declaration failed — falling back to Slack post', {
-      error: error.message,
-    });
+    logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
+    return {
+      ok: true,
+      provider: 'datadog',
+      runRef,
+      kind,
+      label: story.label,
+      windowMinutes: Math.round(INFRA_WINDOW_MS / 60000),
+      ...incident,
+    };
   }
 
   if (!token || !alertsChannel) {
