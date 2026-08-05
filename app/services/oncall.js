@@ -1,12 +1,6 @@
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const {
-  postMessage,
-  lookupSlackUserByEmail,
-  findChannelByName,
-  joinChannel,
-  inviteToChannel,
-} = require('./slack');
+const { postMessage, lookupSlackUserByEmail } = require('./slack');
 const { setScenario, getScenario } = require('../incidentModes');
 
 /**
@@ -845,84 +839,15 @@ function pruneSev1() {
   }
 }
 
-const DEVIN_SLACK_MEMBER_ID = () => process.env.DEVIN_SLACK_MEMBER_ID || null;
-const SEV1_CHANNEL_POLL_MS = 5000;
-const SEV1_CHANNEL_POLL_TRIES = 120; // ~10 minutes — Datadog channel creation can lag several minutes
 const SEV1_RESOLVE_MAX_ATTEMPTS = 4;
 const SEV1_RESOLVE_RETRY_MS = 30000;
 
 /**
- * Background: wait for Datadog's Slack integration to create the incident
- * channel, then join as the bot and invite Devin plus the DE who clicked.
- * Best-effort — failures are logged and reflected in state, never thrown.
- */
-async function attachToIncidentChannel(entry, token, deMemberId) {
-  const publicId = entry.publicId;
-  const matcher = (name) => new RegExp(`(^|-)incident-${publicId}(-|$)`).test(name);
-  for (let i = 0; i < SEV1_CHANNEL_POLL_TRIES; i++) {
-    await new Promise((r) => {
-      const t = setTimeout(r, SEV1_CHANNEL_POLL_MS);
-      if (t.unref) t.unref();
-    });
-    if (entry.status === 'resolved' || entry.status === 'resolve_failed') return;
-    try {
-      const channel = await findChannelByName(token, matcher);
-      if (!channel) continue;
-      entry.channelId = channel.id;
-      entry.channelName = channel.name;
-      try {
-        await joinChannel(token, channel.id);
-      } catch (error) {
-        if (/missing_scope|invalid_auth|not_allowed/.test(error.message)) {
-          entry.status = 'attach_failed';
-          logger.error('SEV-1 channel found but bot cannot join — check Slack bot scopes', {
-            runRef: entry.runRef,
-            channel: channel.name,
-            error: error.message,
-          });
-          return;
-        }
-        throw error;
-      }
-      try {
-        await inviteToChannel(token, channel.id, [DEVIN_SLACK_MEMBER_ID(), deMemberId]);
-      } catch (error) {
-        logger.warn('SEV-1 channel invite failed', { runRef: entry.runRef, error: error.message });
-      }
-      const kickoff = [
-        `:fire: *SEV-1 declared — ${entry.label}*`,
-        '',
-        `*Incident Ref:* ${entry.runRef}`,
-        `*Summary:* ${entry.summary}`,
-        '*Env:* production | *Service:* checkout-api',
-        `*Degradation window:* live now, auto-recovers in ~${Math.round(SEV1_WINDOW_MS / 60000)} minutes`,
-        '',
-        `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
-      ].join('\n');
-      await postMessage(token, channel.id, kickoff);
-      if (entry.status === 'resolved' || entry.status === 'resolve_failed') return;
-      entry.status = 'investigating';
-      logger.info('SEV-1 incident channel attached', {
-        runRef: entry.runRef,
-        channel: channel.name,
-        publicId,
-      });
-      return;
-    } catch (error) {
-      logger.warn('SEV-1 channel attach attempt failed', {
-        runRef: entry.runRef,
-        error: error.message,
-      });
-    }
-  }
-  logger.warn('SEV-1 incident channel never appeared', { runRef: entry.runRef, publicId });
-}
-
-/**
  * Trigger a SEV-1 incident. Preferred path: activate the matching real
- * degradation, declare a real Datadog incident (Datadog's Slack integration
- * creates the incident channel), then join the channel and invite Devin plus
- * the DE who clicked. The incident auto-resolves when the degradation window
+ * degradation and declare a real Datadog incident. Datadog's Slack
+ * integration creates the incident channel and Devin's native incident
+ * auto-join picks it up from the channel-name prefix — the app never touches
+ * the channel itself. The incident auto-resolves when the degradation window
  * ends. Fallback (Datadog keys not configured): post a SEV-1 style message
  * to the alerts channel.
  */
@@ -962,8 +887,6 @@ async function postOncallIncident(options = {}) {
       declaredAt: Date.now(),
       resolveAt: Date.now() + SEV1_WINDOW_MS,
       status: 'declared',
-      channelId: null,
-      channelName: null,
     };
     activeSev1.set(runRef, entry);
     pruneSev1();
@@ -986,36 +909,11 @@ async function postOncallIncident(options = {}) {
           } else {
             entry.status = 'resolve_failed';
           }
-          return;
-        }
-        if (entry.channelId && token) {
-          try {
-            await postMessage(
-              token,
-              entry.channelId,
-              `:white_check_mark: *Incident ${entry.runRef} resolved* — the degradation window ended and service metrics recovered. This channel will auto-archive.`,
-            );
-          } catch (error) {
-            logger.warn('SEV-1 resolved-notice post failed', { runRef, error: error.message });
-          }
         }
       }, delayMs);
       if (timer.unref) timer.unref();
     };
     scheduleResolve(SEV1_WINDOW_MS, 1);
-
-    if (token && entry.publicId) {
-      const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
-        ? await lookupSlackUserByEmail(token, options.devinEmail)
-        : null;
-      attachToIncidentChannel(entry, token, deMemberId).catch((error) => {
-        logger.warn('SEV-1 channel attach failed', { runRef, error: error.message });
-      });
-    } else if (!entry.publicId) {
-      logger.warn('SEV-1 incident has no public_id — skipping channel attach', { runRef });
-    } else {
-      logger.warn('SEV-1 Slack bot token not configured — skipping channel attach', { runRef });
-    }
 
     logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
     return {
@@ -1074,7 +972,6 @@ function getSev1State() {
     label: e.label,
     publicId: e.publicId,
     status: e.status,
-    channelName: e.channelName,
     declaredAt: e.declaredAt,
     msRemaining: e.status === 'resolved' ? 0 : Math.max(0, e.resolveAt - Date.now()),
   }));

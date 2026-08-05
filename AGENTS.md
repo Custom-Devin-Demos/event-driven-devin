@@ -214,7 +214,6 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
 | `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
-| `DEVIN_SLACK_MEMBER_ID` | Slack member ID of the Devin app invited into SEV-1 incident channels. Bot token needs `channels:join` + `channels:manage` scopes for the join/invite | For SEV-1 incidents |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
