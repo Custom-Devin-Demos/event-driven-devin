@@ -462,15 +462,15 @@ const INFRA_INCIDENTS = {
     owner: 'Riley Chen (platform-oncall)',
     build(now) {
       const burn = (12 + Math.random() * 5).toFixed(1);
-      const errPct = (13 + Math.random() * 4).toFixed(1);
+      const errPct = (46 + Math.random() * 6).toFixed(1);
       return {
         title: ':rotating_light: [SLO] Fast burn — checkout availability error budget',
         monitor: `\`burn_rate(slo:checkout-availability-99.9, window:1h) > 14.4\` — *Fast burn: ${burn}x*`,
         fields: [
           ['SLO', 'checkout availability 99.9% (30d) — monthly error budget exhausted in < 2 days at this rate'],
-          ['Error rate', `${errPct}% of POST /checkout requests failing (InventoryReservationError)`],
+          ['Error rate', `${errPct}% of POST /checkout requests failing (InventoryReservationError, TypeError)`],
         ],
-        symptoms: `Intermittent checkout failures — inventory reservation errors on roughly 1 in 7 orders; retries succeed sometimes, which is why the raw error alert has not paged. Budget burn is what tripped this. First: ${new Date(now.getTime() - 32 * 60000).toISOString()} | Last: ${now.toISOString()}`,
+        symptoms: `Intermittent checkout failures — a mix of inventory reservation conflicts and tax-calculation errors on roughly half of orders; retries succeed sometimes. Budget burn is what tripped this. First: ${new Date(now.getTime() - 32 * 60000).toISOString()} | Last: ${now.toISOString()}`,
         instruction: `Investigate the inventory reservation path in checkout. Repo: ${REPO_URL}`,
       };
     },
