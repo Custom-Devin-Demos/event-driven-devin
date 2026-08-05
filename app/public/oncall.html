@@ -812,16 +812,19 @@
       var CHECKOUT_KINDS = { 'dependency-timeout': true, 'slo-burn': true };
       var checkoutResults = [];
       var checkoutInFlight = false;
+      var checkoutGeneration = 0;
 
       async function probeCheckout(active) {
         var itemEl = document.getElementById('health-checkout-item');
         if (!active) {
+          checkoutGeneration++;
           checkoutResults = [];
           itemEl.style.display = 'none';
           return;
         }
         if (checkoutInFlight) return;
         checkoutInFlight = true;
+        var gen = checkoutGeneration;
         var ok = false;
         try {
           var res = await fetch('/checkout', {
@@ -835,6 +838,7 @@
         } finally {
           checkoutInFlight = false;
         }
+        if (gen !== checkoutGeneration) return;
         checkoutResults.push(ok);
         if (checkoutResults.length > 12) checkoutResults.shift();
         var okCount = checkoutResults.filter(Boolean).length;
@@ -846,6 +850,10 @@
       }
 
       async function tick() {
+        if (document.hidden) {
+          setTimeout(tick, 4000);
+          return;
+        }
         try {
           var t0 = performance.now();
           var probeRes = await fetch('/search?q=espresso', { headers: { 'x-synthetic': '1' } });
