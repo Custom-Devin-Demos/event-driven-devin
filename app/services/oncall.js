@@ -194,7 +194,7 @@ function contextBlock(service, triggeredBy) {
  * responder treats it as a fresh occurrence; when false, the message matches
  * the canonical signature to demonstrate duplicate grouping.
  */
-function buildAlertMessage(scenario, { runRef, now, firstSeen, events }) {
+function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy }) {
 
   const lines = [
     `:rotating_light: *Production Error — ${scenario.brand}*`,
@@ -205,6 +205,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events }) {
     `*Service:* ${scenario.service}`,
     `*Owner:* ${scenario.owner} — demo persona, do not resolve to a real Slack user`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
+    triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
     `Level: error | Env: production | Release: acme-checkout@1.0.0`,
     `Events: ${events} | First: ${firstSeen.toISOString()} | Last: ${now.toISOString()}`,
@@ -240,7 +241,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events });
+  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy });
   const blocks = [
     headerBlock(`:rotating_light: Production Error — ${scenario.brand}`),
     ...fieldPairs([
