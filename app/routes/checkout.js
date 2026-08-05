@@ -5,7 +5,10 @@ const router = express.Router();
 
 router.post('/checkout', async (req, res) => {
   try {
-    const result = await processCheckout(req.body);
+    const result = await processCheckout({
+      ...req.body,
+      synthetic: Boolean(req.headers['x-synthetic']),
+    });
     res.json(result);
   } catch (error) {
     const statusCode = error.code === 'PAYMENT_TIMEOUT' ? 504

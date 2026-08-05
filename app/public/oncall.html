@@ -543,17 +543,7 @@
 
   <div class="sections">
 
-    <!-- 1. APPLICATION ERRORS -->
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Application Errors</span>
-        <span class="badge alerts">#oncall-alerts</span>
-      </div>
-      <p class="section-desc">Break a real product. Each card opens the branded page in on-call mode &mdash; the customer action (transfer, claim, provision, upgrade) fails with its genuine error UI, and a production alert lands in the alerts channel. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR.</p>
-      <div class="grid" id="alert-grid"></div>
-    </div>
-
-    <!-- 2. INFRA / SRE INCIDENTS -->
+    <!-- 1. INFRA / SRE INCIDENTS -->
     <div class="section">
       <div class="section-header">
         <span class="section-title">Infra / SRE Incidents</span>
@@ -564,13 +554,14 @@
         <div class="health-item"><span class="health-dot" id="health-dot"></span><span id="health-scenario">checkout-api: healthy</span></div>
         <div class="health-item">live probe <span class="health-val" id="health-latency">&mdash;</span></div>
         <div class="health-item">rss <span class="health-val" id="health-rss">&mdash;</span></div>
+        <div class="health-item" id="health-checkout-item" style="display:none;">checkout <span class="health-val" id="health-checkout">&mdash;</span></div>
         <div class="health-item" id="health-window" style="display:none;">reverts in <span class="health-val" id="health-remaining"></span></div>
         <div class="health-spark" id="health-spark"></div>
       </div>
       <div class="grid" id="infra-grid"></div>
     </div>
 
-    <!-- 3. FROM THE CUSTOMER / MAJOR INCIDENT -->
+    <!-- 2. BEYOND ALERTS -->
     <div class="section">
       <div class="section-header">
         <span class="section-title">Beyond Alerts</span>
@@ -593,6 +584,16 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 3. APPLICATION ERRORS -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Application Errors</span>
+        <span class="badge alerts">#oncall-alerts</span>
+      </div>
+      <p class="section-desc">Break a real product. Each card opens the branded page in on-call mode &mdash; the customer action (transfer, claim, provision, upgrade) fails with its genuine error UI, and a production alert lands in the alerts channel. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR.</p>
+      <div class="grid" id="alert-grid"></div>
     </div>
 
   </div>
@@ -805,6 +806,34 @@
         }).join('');
       }
 
+      // Checkout probe: fires real synthetic checkouts (Sentry suppressed via
+      // x-synthetic) only while a checkout-affecting incident is active, so the
+      // strip shows a live success rate as timeouts / 500s appear.
+      var CHECKOUT_KINDS = { 'dependency-timeout': true, 'slo-burn': true };
+      var checkoutResults = [];
+
+      async function probeCheckout(active) {
+        var itemEl = document.getElementById('health-checkout-item');
+        if (!active) {
+          checkoutResults = [];
+          itemEl.style.display = 'none';
+          return;
+        }
+        var res = await fetch('/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-synthetic': '1' },
+          body: JSON.stringify({ persona: 'oncall-health-strip' }),
+        });
+        checkoutResults.push(res.ok);
+        if (checkoutResults.length > 12) checkoutResults.shift();
+        var okCount = checkoutResults.filter(Boolean).length;
+        var pct = Math.round((okCount / checkoutResults.length) * 100);
+        var el = document.getElementById('health-checkout');
+        el.textContent = pct + '% ok (' + okCount + '/' + checkoutResults.length + ')';
+        el.className = 'health-val' + (pct < 100 ? ' slow' : '');
+        itemEl.style.display = '';
+      }
+
       async function tick() {
         try {
           var t0 = performance.now();
@@ -818,6 +847,7 @@
           renderSpark();
 
           var state = await (await fetch('/api/oncall/infra/state')).json();
+          probeCheckout(Boolean(CHECKOUT_KINDS[state.activeKind])).catch(function () {});
           var degraded = state.scenario !== 'healthy' || state.memoryGrowth;
           document.getElementById('health-dot').className = 'health-dot' + (degraded ? ' degraded' : '');
           document.getElementById('health-scenario').textContent =
