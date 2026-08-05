@@ -63,7 +63,7 @@ function buildOncallShim(scenario) {
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ unique: unique }),
+            body: JSON.stringify({ unique: unique, devinEmail: localStorage.getItem('devinEmail') || '' }),
           }).then(function (r) { return r.json(); }).then(function (d) {
             const el = document.getElementById('oncall-status');
             el.style.color = d.ok ? '#3fb950' : '#f85149';
@@ -102,8 +102,8 @@ router.post('/api/oncall/trigger/:vertical', async (req, res) => {
     return res.status(404).json({ ok: false, error: `Unknown vertical: ${req.params.vertical}` });
   }
   try {
-    const { unique } = req.body || {};
-    const result = await postOncallAlert(req.params.vertical, { unique: unique !== false });
+    const { unique, devinEmail } = req.body || {};
+    const result = await postOncallAlert(req.params.vertical, { unique: unique !== false, devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call trigger failed', { error: error.message });
@@ -131,8 +131,8 @@ router.get('/api/oncall/scenarios', (_req, res) => {
  */
 router.post('/api/oncall/alert', async (req, res) => {
   try {
-    const { scenario, unique } = req.body || {};
-    const result = await postOncallAlert(scenario, { unique: unique !== false });
+    const { scenario, unique, devinEmail } = req.body || {};
+    const result = await postOncallAlert(scenario, { unique: unique !== false, devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call alert post failed', { error: error.message });
@@ -146,8 +146,8 @@ router.post('/api/oncall/alert', async (req, res) => {
  */
 router.post('/api/oncall/bug', async (req, res) => {
   try {
-    const { scenario, text, reporter, severity, productArea } = req.body || {};
-    const result = await postOncallBugReport({ scenarioId: scenario, text, reporter, severity, productArea });
+    const { scenario, text, reporter, severity, productArea, devinEmail } = req.body || {};
+    const result = await postOncallBugReport({ scenarioId: scenario, text, reporter, severity, productArea, devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
@@ -166,7 +166,7 @@ router.post('/api/oncall/infra/:kind', async (req, res) => {
     return res.status(404).json({ ok: false, error: `Unknown infra incident: ${req.params.kind}` });
   }
   try {
-    const result = await postOncallInfraIncident(req.params.kind);
+    const result = await postOncallInfraIncident(req.params.kind, { devinEmail: (req.body || {}).devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call infra trigger failed', { kind: req.params.kind, error: error.message });
@@ -177,9 +177,9 @@ router.post('/api/oncall/infra/:kind', async (req, res) => {
 /**
  * POST /api/oncall/latency — back-compat alias for the latency infra incident.
  */
-router.post('/api/oncall/latency', async (_req, res) => {
+router.post('/api/oncall/latency', async (req, res) => {
   try {
-    const result = await postOncallInfraIncident('latency');
+    const result = await postOncallInfraIncident('latency', { devinEmail: (req.body || {}).devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call latency trigger failed', { error: error.message });
@@ -192,7 +192,7 @@ router.post('/api/oncall/latency', async (_req, res) => {
  */
 router.post('/api/oncall/incident', async (req, res) => {
   try {
-    const result = await postOncallIncident();
+    const result = await postOncallIncident({ devinEmail: (req.body || {}).devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call incident post failed', { error: error.message });
