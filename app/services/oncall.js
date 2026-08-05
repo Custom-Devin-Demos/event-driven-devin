@@ -470,6 +470,7 @@ const INFRA_WINDOW_MS = envNumber(
   process.env.ONCALL_INFRA_WINDOW_MS || process.env.ONCALL_LATENCY_WINDOW_MS,
   10 * 60 * 1000,
 );
+const SEV1_WINDOW_MS = envNumber(process.env.ONCALL_SEV1_WINDOW_MS, 30 * 60 * 1000);
 let infraRevertTimer = null;
 let activeInfraScenario = null;
 let activeInfraKind = null;
@@ -617,7 +618,7 @@ const INFRA_INCIDENTS = {
  * growth) with the standard auto-revert window. Returns true if any state
  * was activated.
  */
-function activateInfraIncident(kind) {
+function activateInfraIncident(kind, windowMs = INFRA_WINDOW_MS) {
   const incident = INFRA_INCIDENTS[kind];
   if (!incident) return false;
   if (incident.scenario === 'healthy' && !incident.memoryGrowth) return false;
@@ -626,12 +627,12 @@ function activateInfraIncident(kind) {
     setScenario(incident.scenario);
     activeInfraScenario = incident.scenario;
   }
-  if (incident.memoryGrowth) startMemoryGrowth(INFRA_WINDOW_MS);
+  if (incident.memoryGrowth) startMemoryGrowth(windowMs);
   activeInfraKind = kind;
-  infraRevertAt = Date.now() + INFRA_WINDOW_MS;
+  infraRevertAt = Date.now() + windowMs;
   infraRevertTimer = setTimeout(() => {
     revertInfraState(`window elapsed for ${kind}`);
-  }, INFRA_WINDOW_MS);
+  }, windowMs);
   if (infraRevertTimer.unref) infraRevertTimer.unref();
   return true;
 }
@@ -846,7 +847,7 @@ function pruneSev1() {
 
 const DEVIN_SLACK_MEMBER_ID = () => process.env.DEVIN_SLACK_MEMBER_ID || null;
 const SEV1_CHANNEL_POLL_MS = 5000;
-const SEV1_CHANNEL_POLL_TRIES = 24; // ~2 minutes
+const SEV1_CHANNEL_POLL_TRIES = 120; // ~10 minutes — Datadog channel creation can lag several minutes
 const SEV1_RESOLVE_MAX_ATTEMPTS = 4;
 const SEV1_RESOLVE_RETRY_MS = 30000;
 
@@ -894,7 +895,7 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
         `*Incident Ref:* ${entry.runRef}`,
         `*Summary:* ${entry.summary}`,
         '*Env:* production | *Service:* checkout-api',
-        `*Degradation window:* live now, auto-recovers in ~${Math.round(INFRA_WINDOW_MS / 60000)} minutes`,
+        `*Degradation window:* live now, auto-recovers in ~${Math.round(SEV1_WINDOW_MS / 60000)} minutes`,
         '',
         `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
       ].join('\n');
@@ -950,7 +951,7 @@ async function postOncallIncident(options = {}) {
   }
 
   if (incident) {
-    activateInfraIncident(story.infraKind);
+    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS);
     const entry = {
       runRef,
       kind,
@@ -959,7 +960,7 @@ async function postOncallIncident(options = {}) {
       id: incident.id,
       publicId: incident.publicId,
       declaredAt: Date.now(),
-      resolveAt: Date.now() + INFRA_WINDOW_MS,
+      resolveAt: Date.now() + SEV1_WINDOW_MS,
       status: 'declared',
       channelId: null,
       channelName: null,
@@ -1001,7 +1002,7 @@ async function postOncallIncident(options = {}) {
       }, delayMs);
       if (timer.unref) timer.unref();
     };
-    scheduleResolve(INFRA_WINDOW_MS, 1);
+    scheduleResolve(SEV1_WINDOW_MS, 1);
 
     if (token && entry.publicId) {
       const deMemberId = options.devinEmail && EMAIL_RE.test(options.devinEmail)
@@ -1023,7 +1024,7 @@ async function postOncallIncident(options = {}) {
       runRef,
       kind,
       label: story.label,
-      windowMinutes: Math.round(INFRA_WINDOW_MS / 60000),
+      windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
       ...incident,
     };
   }
@@ -1035,7 +1036,7 @@ async function postOncallIncident(options = {}) {
 
   // Fallback path (Datadog not configured): still activate the story's real
   // degradation so the page's "genuine live degradation" promise holds.
-  activateInfraIncident(story.infraKind);
+  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS);
 
   const text = [
     `:fire: *SEV-1 — ${story.label}*`,
@@ -1043,7 +1044,7 @@ async function postOncallIncident(options = {}) {
     `*Incident Ref:* ${runRef}`,
     `*Summary:* ${story.summary}`,
     '*Env:* production | *Service:* checkout-api',
-    `*Degradation window:* live now, auto-recovers in ~${Math.round(INFRA_WINDOW_MS / 60000)} minutes`,
+    `*Degradation window:* live now, auto-recovers in ~${Math.round(SEV1_WINDOW_MS / 60000)} minutes`,
     '',
     `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
   ].join('\n');
