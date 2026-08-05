@@ -5,6 +5,7 @@ const logger = require('../telemetry/logger');
 const {
   ALERT_SCENARIOS,
   BUG_REPORTS,
+  BUG_CATALOG,
   postOncallAlert,
   postOncallBugReport,
   INFRA_INCIDENTS,
@@ -123,7 +124,17 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     error: `${s.errorType}: ${s.errorValue}`,
   }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
-  res.json({ scenarios, bugReports });
+  const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({
+    product,
+    templates: entries.map((t) => ({
+      id: t.id,
+      label: t.label,
+      sev: t.sev,
+      text: t.text,
+      backend: Boolean(t.infraKind),
+    })),
+  }));
+  res.json({ scenarios, bugReports, bugCatalog });
 });
 
 /**
@@ -143,12 +154,14 @@ router.post('/api/oncall/alert', async (req, res) => {
 
 /**
  * POST /api/oncall/bug — post a human-style bug report to #oncall-bugs
- * Body: { scenario?: string, text?: string, reporter?: { name, email }, severity?: string, productArea?: string }
+ * Body: { scenario?: string, templateId?: string, text?: string, reporter?: { name, email }, severity?: string, productArea?: string }
+ * Backend-symptom templates (resolved server-side) also activate the matching
+ * infra degradation for the standard auto-revert window so repro is genuine.
  */
 router.post('/api/oncall/bug', async (req, res) => {
   try {
-    const { scenario, text, reporter, severity, productArea, devinEmail } = req.body || {};
-    const result = await postOncallBugReport({ scenarioId: scenario, text, reporter, severity, productArea, devinEmail });
+    const { scenario, templateId, text, reporter, severity, productArea, devinEmail } = req.body || {};
+    const result = await postOncallBugReport({ scenarioId: scenario, templateId, text, reporter, severity, productArea, devinEmail });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
