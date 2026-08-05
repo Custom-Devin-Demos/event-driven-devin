@@ -96,13 +96,8 @@
 
     <div class="section">
       <h2>Production Alert <span class="badge alerts">#oncall-alerts</span></h2>
-      <p class="desc">Posts a real error-signature alert card (matching a planted bug in this codebase) to the alerts channel. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR.</p>
-      <div class="checkbox-row">
-        <input type="checkbox" id="unique" checked>
-        <label for="unique" style="margin:0">Unique per run (uncheck to demo duplicate grouping)</label>
-      </div>
+      <p class="desc">Opens the real branded product page in on-call mode: the customer action (transfer, claim, provision, upgrade) fails with its genuine error UI and the alert card lands in the alerts channel &mdash; no legacy Devin trigger. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR. A "Unique per run" toggle on each page controls duplicate grouping.</p>
       <div class="grid" id="alert-grid"></div>
-      <div class="status" id="alert-status"></div>
     </div>
 
     <div class="section">
@@ -144,24 +139,14 @@
       const { scenarios, bugReports } = await res.json();
 
       const grid = document.getElementById('alert-grid');
-      const status = document.getElementById('alert-status');
       scenarios.forEach((s) => {
-        const btn = document.createElement('button');
-        btn.className = 'card';
-        btn.innerHTML = '<div class="brand">' + s.brand + '</div><div class="error">' + s.error + '</div>';
-        btn.onclick = async () => {
-          show(status, true, 'Posting alert…');
-          try {
-            const unique = document.getElementById('unique').checked;
-            const { status: code, data } = await post('/api/oncall/alert', { scenario: s.id, unique });
-            show(status, code === 200, code === 200
-              ? 'Alert posted to ' + data.channel + ' — watch the responder pick it up.'
-              : (data.error || 'Failed'));
-          } catch (e) {
-            show(status, false, e.message);
-          }
-        };
-        grid.appendChild(btn);
+        const link = document.createElement('a');
+        link.className = 'card';
+        link.style.display = 'block';
+        link.style.textDecoration = 'none';
+        link.href = '/oncall/' + s.id;
+        link.innerHTML = '<div class="brand">' + s.brand + ' ↗</div><div class="error">' + s.error + '</div>';
+        grid.appendChild(link);
       });
 
       const select = document.getElementById('bug-scenario');

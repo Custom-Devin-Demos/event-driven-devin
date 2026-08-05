@@ -24,6 +24,10 @@ const REPO_URL = 'https://github.com/COG-GTM/event-driven-devin';
  */
 const ALERT_SCENARIOS = {
   banking: {
+    vertical: 'banking',
+    page: 'banking.html',
+    apiPath: '/api/banking/transfer',
+    owner: 'Jordan Patel (payments-oncall)',
     brand: 'Apex Bank (Online Banking)',
     service: 'acme-demo / banking vertical',
     endpoint: 'POST /api/banking/transfer',
@@ -38,6 +42,10 @@ const ALERT_SCENARIOS = {
     impact: 'Users attempting fund transfers are receiving 500 errors.',
   },
   insurance: {
+    vertical: 'insurance',
+    page: 'insurance.html',
+    apiPath: '/api/insurance/claim',
+    owner: 'Morgan Lee (claims-platform-oncall)',
     brand: 'Shield Insurance (Claims Portal)',
     service: 'acme-demo / insurance vertical',
     endpoint: 'POST /api/insurance/claim',
@@ -52,6 +60,10 @@ const ALERT_SCENARIOS = {
     impact: 'Customers submitting claims are receiving 500 errors and cannot file claims.',
   },
   hightech: {
+    vertical: 'hightech',
+    page: 'hightech.html',
+    apiPath: '/api/licenses/provision',
+    owner: 'Sam Okafor (licensing-oncall)',
     brand: 'NovaSoft (License Management)',
     service: 'acme-demo / hightech vertical',
     endpoint: 'POST /api/licenses/provision',
@@ -66,6 +78,10 @@ const ALERT_SCENARIOS = {
     impact: 'License provisioning is failing for new subscriptions.',
   },
   telco: {
+    vertical: 'telco',
+    page: 'telco.html',
+    apiPath: '/api/telco/upgrade',
+    owner: 'Riley Chen (subscriber-services-oncall)',
     brand: 'WaveConnect (Self-Service Portal)',
     service: 'acme-demo / telco vertical',
     endpoint: 'POST /api/telco/upgrade',
@@ -127,6 +143,7 @@ function buildAlertMessage(scenario, { unique = true } = {}) {
     `*Location:* \`${scenario.culprit}\``,
     `*Endpoint:* ${scenario.endpoint}`,
     `*Service:* ${scenario.service}`,
+    `*Owner:* ${scenario.owner} — demo persona, do not resolve to a real Slack user`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
     '',
     `Level: error | Env: production | Release: acme-checkout@1.0.0`,
