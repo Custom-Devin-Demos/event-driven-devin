@@ -20,6 +20,14 @@ router.get('/oncall', (_req, res) => {
 });
 
 /**
+ * GET /oncall/report — standalone customer-facing bug report page.
+ * Registered before /oncall/:vertical so "report" is never treated as a vertical.
+ */
+router.get('/oncall/report', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'oncall-report.html'));
+});
+
+/**
  * On-call shim injected into the real branded vertical pages served at
  * /oncall/<vertical>. It reroutes the page's own API call to the alert-only
  * on-call trigger, so the presenter uses the genuine product UI (and sees the
@@ -135,12 +143,12 @@ router.post('/api/oncall/alert', async (req, res) => {
 
 /**
  * POST /api/oncall/bug — post a human-style bug report to #oncall-bugs
- * Body: { scenario?: string, text?: string }
+ * Body: { scenario?: string, text?: string, reporter?: { name, email }, severity?: string, productArea?: string }
  */
 router.post('/api/oncall/bug', async (req, res) => {
   try {
-    const { scenario, text } = req.body || {};
-    const result = await postOncallBugReport({ scenarioId: scenario, text });
+    const { scenario, text, reporter, severity, productArea } = req.body || {};
+    const result = await postOncallBugReport({ scenarioId: scenario, text, reporter, severity, productArea });
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });

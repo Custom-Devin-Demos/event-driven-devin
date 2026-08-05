@@ -185,16 +185,30 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, text }) {
+async function postOncallBugReport({ scenarioId, text, reporter, severity, productArea }) {
   const { token, bugsChannel } = resolveOncallEnv();
   if (!token || !bugsChannel) {
     logger.warn('On-Call bugs channel not configured — skipping bug report post');
     return { ok: false, error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' };
   }
 
-  const message = text || BUG_REPORTS[scenarioId];
-  if (!message) {
+  const body = text || BUG_REPORTS[scenarioId];
+  if (!body) {
     return { ok: false, error: `No bug report text and unknown scenario: ${scenarioId}` };
+  }
+
+  let message = body;
+  if (reporter || severity || productArea) {
+    const headerLines = [
+      ':inbox_tray: *New support ticket — Acme Support Center*',
+      reporter && (reporter.name || reporter.email)
+        ? `*Reported by:* ${[reporter.name, reporter.email && `<${reporter.email}>`].filter(Boolean).join(' ')}`
+        : null,
+      productArea ? `*Product area:* ${productArea}` : null,
+      severity ? `*Severity:* ${severity}` : null,
+      '',
+    ].filter((l) => l !== null);
+    message = `${headerLines.join('\n')}${body}`;
   }
 
   const ts = await postMessage(token, bugsChannel, message);

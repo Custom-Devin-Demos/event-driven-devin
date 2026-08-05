@@ -86,6 +86,20 @@
     .badge.alerts { background: rgba(248, 81, 73, 0.15); color: #f85149; }
     .badge.bugs { background: rgba(210, 153, 34, 0.15); color: #d29922; }
     .badge.incident { background: rgba(163, 113, 247, 0.15); color: #a371f7; }
+    .launch-card {
+      display: block;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s;
+    }
+    .launch-card:hover { border-color: #d29922; }
+    .launch-title { color: #f0f6fc; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .launch-desc { color: #8b949e; font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+    .launch-cta { color: #d29922; font-size: 13px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -102,13 +116,12 @@
 
     <div class="section">
       <h2>Bug Report <span class="badge bugs">#oncall-bugs</span></h2>
-      <p class="desc">Posts a human-style complaint &mdash; no stack trace, just symptoms &mdash; for the Bug Triage Responder to reproduce and root-cause.</p>
-      <label for="bug-scenario">Canned report</label>
-      <select id="bug-scenario"></select>
-      <label for="bug-text">Or write your own</label>
-      <textarea id="bug-text" placeholder="e.g. Customers say transfers fail with a red error box..."></textarea>
-      <button class="btn" id="bug-btn">Send Bug Report</button>
-      <div class="status" id="bug-status"></div>
+      <p class="desc">A customer or support agent files an issue through the Acme Support Center portal &mdash; no stack trace, just symptoms &mdash; for the Bug Triage Responder to reproduce and root-cause.</p>
+      <a class="launch-card" href="/oncall/report" target="_blank" rel="noopener">
+        <div class="launch-title">Acme Support Center &mdash; Report an Issue</div>
+        <div class="launch-desc">Opens the customer-facing support portal. Pick a product area, severity, and description, then submit &mdash; the ticket lands in #oncall-bugs.</div>
+        <div class="launch-cta">Open support portal &rarr;</div>
+      </a>
     </div>
 
     <div class="section">
@@ -149,30 +162,7 @@
         grid.appendChild(link);
       });
 
-      const select = document.getElementById('bug-scenario');
-      bugReports.forEach((b) => {
-        const opt = document.createElement('option');
-        opt.value = b.id;
-        opt.textContent = b.id + ' — ' + b.text.slice(0, 70) + '…';
-        select.appendChild(opt);
-      });
     }
-
-    document.getElementById('bug-btn').onclick = async () => {
-      const status = document.getElementById('bug-status');
-      show(status, true, 'Posting bug report…');
-      try {
-        const text = document.getElementById('bug-text').value.trim();
-        const scenario = document.getElementById('bug-scenario').value;
-        const body = text ? { text } : { scenario };
-        const { status: code, data } = await post('/api/oncall/bug', body);
-        show(status, code === 200, code === 200
-          ? 'Bug report posted to ' + data.channel + '.'
-          : (data.error || 'Failed'));
-      } catch (e) {
-        show(status, false, e.message);
-      }
-    };
 
     document.getElementById('incident-btn').onclick = async () => {
       const status = document.getElementById('incident-status');
