@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Hub | Huntington Online Banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #012D2A;
+      --teal-700: #04413C;
+      --green: #7ECF1C;
+      --green-dark: #6BB614;
+      --mint: #D3EFE6;
+      --mint-line: #B4E1D3;
+      --ink: #27272A;
+      --muted: #5B6B68;
+      --border: #DCDFDD;
+      --border-light: #EBEDEC;
+      --bg: #F4F5F3;
+      --red: #A82A22;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--ink); background: var(--bg); font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .serif { font-family: 'Source Serif 4', Georgia, serif; font-weight: 400; }
+
+    /* ── Devin demo disclaimer ── */
+    .devin-demo-banner {
+      background: #111827; color: #fbbf24; text-align: center;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px;
+      padding: 9px 16px; line-height: 1.35;
+    }
+    .devin-demo-banner strong { color: #fff; }
+
+    /* ── Utility bar ── */
+    .utility {
+      background: var(--teal); color: rgba(255,255,255,.85);
+      display: flex; align-items: center; gap: 18px;
+      padding: 7px 28px; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .utility .fdic { font-weight: 700; letter-spacing: .4px; color: #fff; }
+    .utility em { font-style: italic; }
+    .utility .spacer { flex: 1; }
+    .utility a { color: rgba(255,255,255,.85); text-decoration: underline; font-size: 11px; }
+
+    /* ── Header ── */
+    header.masthead {
+      background: var(--teal); color: #fff;
+      display: flex; align-items: center; gap: 26px;
+      padding: 0 28px; height: 66px;
+    }
+    header.masthead svg.logo { height: 24px; width: auto; display: block; }
+    nav.primary { display: flex; align-items: center; gap: 4px; overflow-x: auto; }
+    nav.primary a {
+      color: #fff; font-size: 14px; font-weight: 600; padding: 22px 14px;
+      white-space: nowrap; border-bottom: 3px solid transparent;
+    }
+    nav.primary a:hover { text-decoration: none; color: var(--green); }
+    nav.primary a.active { border-bottom-color: var(--green); }
+    header.masthead .spacer { flex: 1; }
+    header.masthead .who { font-size: 13px; color: rgba(255,255,255,.9); }
+    .btn-pill {
+      background: var(--green); color: var(--teal); border: none; border-radius: 9999px;
+      padding: 11px 22px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .btn-pill:hover { background: var(--green-dark); text-decoration: none; color: var(--teal); }
+    @media (max-width: 900px) { nav.primary, header.masthead .who { display: none; } }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 26px 20px 70px; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+    h1.greeting { font-size: 34px; color: var(--teal); line-height: 1.15; }
+    .last-login { color: var(--muted); font-size: 12px; margin-top: 6px; }
+    .secure-flag { display: flex; align-items: center; gap: 7px; color: var(--teal); font-size: 13px; font-weight: 600; }
+    .grid { display: grid; grid-template-columns: 1fr 356px; gap: 22px; align-items: start; }
+    @media (max-width: 940px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 14px; margin-bottom: 18px; overflow: hidden; }
+    .card-head {
+      display: flex; align-items: center; gap: 10px; padding: 15px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .card-head h2 { font-size: 13px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: .8px; }
+    .card-head .link { margin-left: auto; font-size: 13px; font-weight: 600; text-decoration: underline; }
+
+    /* ── Account rows ── */
+    .acct { display: grid; grid-template-columns: 46px 1fr auto; gap: 14px; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-light); }
+    .acct:last-child { border-bottom: none; }
+    .acct:hover { background: #F7FBF9; }
+    .acct-icon {
+      width: 46px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      background: var(--teal); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    }
+    .acct-icon.save { background: #0C6B5B; }
+    .acct-icon.card { background: #1D3F63; }
+    .acct-icon.line { background: #4A5551; }
+    .acct-name { font-weight: 600; color: var(--teal); text-decoration: underline; }
+    .acct-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .acct-amt { text-align: right; font-weight: 700; font-size: 17px; white-space: nowrap; color: var(--teal); }
+    .acct-amt small { display: block; font-weight: 400; font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .acct-amt.negative { color: var(--red); }
+    .group-total { display: flex; justify-content: space-between; padding: 13px 20px; background: #F7FBF9; font-size: 13px; font-weight: 700; color: var(--teal); }
+
+    /* ── Tool tiles ── */
+    .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 20px 20px; }
+    @media (max-width: 640px) { .tools { grid-template-columns: 1fr; } }
+    .tool { background: var(--mint); border: 1px solid var(--mint-line); border-radius: 12px; padding: 14px 15px; }
+    .tool h3 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 5px; }
+    .tool p { font-size: 12px; color: #23433D; line-height: 1.45; }
+    .tool .value { font-family: 'Source Serif 4', Georgia, serif; font-size: 22px; color: var(--teal); margin-bottom: 2px; }
+
+    /* ── Transactions ── */
+    table.txn { width: 100%; border-collapse: collapse; }
+    table.txn th {
+      text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+      color: var(--muted); padding: 11px 20px; border-bottom: 1px solid var(--border-light);
+    }
+    table.txn td { padding: 13px 20px; border-bottom: 1px solid var(--border-light); font-size: 13px; }
+    table.txn tr:last-child td { border-bottom: none; }
+    table.txn td.amt { text-align: right; font-weight: 600; white-space: nowrap; }
+    table.txn td.amt.credit { color: #0C6B5B; }
+
+    /* ── Transfer panel ── */
+    .panel { position: sticky; top: 18px; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .field select, .field input {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+      font-family: inherit; font-size: 14px; color: var(--ink); background: #fff;
+    }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(1,45,42,.12); }
+    .amount-wrap { position: relative; }
+    .amount-wrap span.cur { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .amount-wrap input { padding-left: 27px; }
+    .limit-note { background: var(--mint); border-radius: 10px; padding: 12px 13px; font-size: 12px; color: #23433D; line-height: 1.5; margin-bottom: 16px; }
+    .btn-primary {
+      width: 100%; background: var(--green); color: var(--teal); border: none; border-radius: 9999px;
+      padding: 14px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .quick-links { padding: 4px 20px 18px; }
+    .quick-links a { display: block; padding: 10px 0; font-size: 13px; font-weight: 500; border-bottom: 1px solid var(--border-light); }
+    .quick-links a:last-child { border-bottom: none; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 22px; bottom: 22px; z-index: 999; max-width: 400px;
+      background: #fff; border-left: 5px solid var(--red); border-radius: 10px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.22); padding: 15px 18px;
+      transform: translateY(200%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: #0C6B5B; }
+    .toast-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; color: var(--teal); }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.45; word-break: break-word; }
+
+    footer.site { background: var(--teal); color: rgba(255,255,255,.82); padding: 26px 20px; text-align: center; font-size: 12px; }
+    footer.site a { color: rgba(255,255,255,.82); margin: 0 9px; text-decoration: underline; }
+    footer.site .legal { margin-top: 12px; line-height: 1.6; max-width: 780px; margin-left: auto; margin-right: auto; }
+  </style>
+</head>
+<body>
+  <div class="devin-demo-banner">
+    <strong>Devin demo copy</strong> — this is a demonstration clone built by Devin, <strong>not the real Huntington Bank website</strong> and not affiliated with or endorsed by The Huntington National Bank. For demo purposes only.
+  </div>
+
+  <div class="utility">
+    <span class="fdic">FDIC</span>
+    <em>FDIC-Insured — Backed by the full faith and credit of the U.S. Government</em>
+    <span class="spacer"></span>
+    <a href="#">Find a Branch or ATM</a>
+    <a href="#">Customer Service</a>
+  </div>
+
+  <header class="masthead">
+    <svg class="logo" width="171" height="24" viewBox="0 0 171 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Huntington Bank">
+      <path d="M17.645 3.63565L15.1385 2.18916V10.2359L7.57411 14.6003V22.5481L10.0806 23.9989V16.0468L15.1385 13.1289V21.8042L17.645 20.3632V3.63565Z" fill="white"></path>
+      <path d="M11.347 23.9988L13.8529 22.5481V15.3405L11.347 16.7858V23.9988Z" fill="white"></path>
+      <path d="M10.081 0L7.57452 1.4465V8.77182L10.081 7.32653V0Z" fill="white"></path>
+      <path d="M2.50649 19.6272V4.36736L0.425333 5.56873C0.162003 5.72164 0 6.00256 0 6.30654V17.6886C0 17.9926 0.162003 18.2735 0.425333 18.4264L2.50589 19.6272H2.50649Z" fill="white"></path>
+      <path d="M3.7826 3.63566V20.3638L6.28909 21.8048V13.871L13.8529 9.50659V1.4465L11.347 0V8.05949L6.28909 10.9774V2.18916L3.7826 3.63566Z" fill="white"></path>
+      <path d="M21.4185 17.6886V6.30654C21.4185 6.00256 21.2565 5.72164 20.9931 5.56873L18.9138 4.36736V19.6272L20.9931 18.4264C21.2565 18.2735 21.4185 17.9926 21.4185 17.6886Z" fill="white"></path>
+      <path d="M134.408 4.36735H127.325V19.6272H134.443C135.764 19.6272 136.512 19.2601 137.001 18.6946C137.535 18.08 137.69 17.2347 137.69 16.2706V14.6203C137.69 13.8181 137.473 13.1689 137.073 12.6786C136.734 12.2642 136.302 12.0033 135.759 11.8614C136.9 11.5622 137.69 10.8105 137.69 9.3136V7.72633C137.69 6.76584 137.536 5.92003 137.004 5.30236C136.517 4.74233 135.729 4.3443 134.408 4.36735ZM133.843 9.57814C133.843 10.1175 133.626 10.4318 133.006 10.4318H131.181V7.41689H133.006C133.626 7.41689 133.843 7.73119 133.843 8.27059V9.57814ZM133.841 15.7197C133.841 16.2591 133.623 16.574 133.003 16.574H131.181V13.4031H133.003C133.623 13.4031 133.841 13.7174 133.841 14.2568V15.7197Z" fill="white"></path>
+      <path d="M144.892 7.70991H139.338V10.7686H143.692C144.31 10.7686 144.53 11.0859 144.53 11.6253V12.0925L141.96 12.084C140.639 12.0609 139.866 12.462 139.376 13.0245C138.843 13.6421 138.684 14.4873 138.684 15.4484V16.2621C138.684 17.2256 138.843 18.0714 139.376 18.6861C139.866 19.2516 140.636 19.6502 141.96 19.6271H148.153V11.0774C148.153 10.1139 148.008 9.26805 147.476 8.65341C146.986 8.08792 146.215 7.71355 144.891 7.70991H144.892ZM144.518 16.6716H143.16C142.543 16.6716 142.325 16.3974 142.325 15.9563V15.4023C142.325 14.9982 142.575 14.7039 143.16 14.7039H144.518V16.6716Z" fill="white"></path>
+      <path d="M170.078 11.0859V7.70994H166.225V10.8814C166.225 11.4208 166.004 11.7357 165.387 11.7357H164.448V4.36795H160.595V19.6278H164.448V14.704H165.387C166.008 14.704 166.225 15.0183 166.225 15.5583V19.6278H170.078V15.9824C170.078 15.2494 169.947 14.5687 169.535 14.0578C169.232 13.681 168.855 13.4122 168.381 13.2581C168.861 13.1537 169.241 12.9408 169.536 12.6568C169.962 12.2472 170.078 11.7194 170.078 11.0871L170.078 11.0859Z" fill="white"></path>
+      <path d="M155.837 7.71052H149.644V19.6271H153.497V10.7692H154.418C155.038 10.7692 155.252 11.0835 155.252 11.6229V19.6271H159.105V11.078C159.105 10.1145 158.948 9.26866 158.413 8.65402C157.926 8.08853 157.13 7.71052 155.837 7.71052Z" fill="white"></path>
+      <path d="M44.1664 16.5831H43.2363C42.6162 16.5831 42.402 16.2688 42.402 15.7294V7.71053H38.5491V16.2742C38.5491 17.2377 38.7057 18.0836 39.2414 18.6982C39.728 19.2637 40.5017 19.6271 41.8256 19.6271H48.0187V7.71053H44.1658V16.5831H44.1664Z" fill="white"></path>
+      <path d="M55.7025 7.71053H49.5088V19.6271H53.3616V10.7692H54.2827C54.9028 10.7692 55.117 11.0835 55.117 11.6229V19.6271H58.9698V11.078C58.9698 10.1145 58.8133 9.26866 58.2775 8.65403C57.7909 8.08853 56.9949 7.71053 55.7025 7.71053Z" fill="white"></path>
+      <path d="M79.2105 7.71053H73.0167V19.6271H76.8696V10.7692H77.7907C78.4108 10.7692 78.6249 11.0835 78.6249 11.6229V19.6271H82.4778V11.078C82.4778 10.1145 82.3213 9.26866 81.7855 8.65403C81.2989 8.08853 80.5028 7.71053 79.2105 7.71053Z" fill="white"></path>
+      <path d="M118.787 7.71053H112.594V19.6271H116.447V10.7692H117.368C117.988 10.7692 118.202 11.0835 118.202 11.6229V19.6271H122.055V11.078C122.055 10.1145 121.898 9.26866 121.362 8.65403C120.876 8.08853 120.08 7.71053 118.787 7.71053Z" fill="white"></path>
+      <path d="M107.827 7.71053H104.921C103.6 7.71053 102.827 8.08853 102.337 8.65099C101.804 9.26866 101.645 10.1139 101.645 11.075V16.2603C101.645 17.2238 101.801 18.0696 102.337 18.6842C102.823 19.2497 103.597 19.6277 104.921 19.6277H107.827C109.148 19.6277 109.921 19.2467 110.411 18.6842C110.944 18.0666 111.103 17.2214 111.103 16.2603V11.075C111.103 10.1114 110.947 9.26563 110.411 8.65099C109.924 8.0855 109.151 7.71053 107.827 7.71053ZM107.244 15.7172C107.244 16.2566 107.027 16.5715 106.41 16.5715H106.34C105.72 16.5715 105.506 16.2572 105.506 15.7172V11.6229C105.506 11.0835 105.723 10.7692 106.34 10.7692H106.41C107.03 10.7692 107.244 11.0835 107.244 11.6229V15.7172Z" fill="white"></path>
+      <path d="M93.4376 7.71053H87.2439C85.926 7.71053 85.1494 8.08914 84.6598 8.6522C84.1264 9.26988 83.9674 10.1151 83.9674 11.0762V16.2239C83.9674 17.1874 84.124 18.0332 84.6598 18.6478C85.1464 19.2133 85.92 19.6277 87.2439 19.6277H89.5932V20.047C89.5932 20.5864 89.376 20.9013 88.759 20.9013H84.6221V24H90.1751C91.5634 24.0012 92.2696 23.6214 92.7593 23.0583C93.2926 22.4406 93.437 21.5954 93.437 20.6343V7.71053H93.4376ZM89.5847 16.5321H88.6637C88.0436 16.5321 87.8294 16.2178 87.8294 15.6778V11.621C87.8294 11.0816 88.0466 10.7673 88.6637 10.7673H89.5847V16.5321Z" fill="white"></path>
+      <path d="M71.5267 7.71053H67.6738V19.6271H71.5267V7.71053Z" fill="white"></path>
+      <path d="M71.5267 3.95049H67.6738V6.64265H71.5267V3.95049Z" fill="white"></path>
+      <path d="M64.3123 15.7257V10.7685H66.1836V7.7099H64.3123V4.78475H60.4595V16.2706C60.4595 17.2341 60.616 18.0799 61.1518 18.6945C61.6384 19.26 62.3774 19.6265 63.7007 19.6265H66.1836V16.5794H65.1521C64.532 16.5794 64.3117 16.2651 64.3117 15.7251L64.3123 15.7257Z" fill="white"></path>
+      <path d="M98.7804 15.7257V10.7685H100.652V7.7099H98.7804V4.78475H94.9275V16.2706C94.9275 17.2341 95.084 18.0799 95.6198 18.6945C96.1064 19.26 96.8454 19.6265 98.1687 19.6265H100.652V16.5794H99.6201C99 16.5794 98.7798 16.2651 98.7798 15.7251L98.7804 15.7257Z" fill="white"></path>
+      <path d="M33.2066 10.1861H30.5411V4.36734H26.6883V19.6272H30.5411V13.8072H33.2066V19.6272H37.0595V4.36734H33.2066V10.1861Z" fill="white"></path>
+    </svg>
+
+    <nav class="primary">
+      <a href="#" class="active">The Hub</a>
+      <a href="#">Transfers</a>
+      <a href="#">Bill Pay</a>
+      <a href="#">Service Center</a>
+    </nav>
+    <div class="spacer"></div>
+    <div class="who">Alex Kowalczyk</div>
+    <a href="#" class="btn-pill">Log Out</a>
+  </header>
+
+  <div class="wrap">
+    <div class="page-head">
+      <div>
+        <h1 class="greeting serif">Good afternoon, Alex</h1>
+        <div class="last-login">Last login: Tue, Aug 4, 2026 at 7:42 PM ET · Columbus, OH</div>
+      </div>
+      <div class="secure-flag">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        Secure session
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: accounts, tools, activity -->
+      <div>
+        <div class="card">
+          <div class="card-head"><h2>Bank Accounts</h2><a href="#" class="link">View all</a></div>
+          <div class="acct">
+            <span class="acct-icon">CHK</span>
+            <div>
+              <div class="acct-name">Asterisk-Free Checking</div>
+              <div class="acct-meta">****4417&nbsp;&middot;&nbsp;24-Hour Grace<sup>&reg;</sup> included</div>
+            </div>
+            <div class="acct-amt">$5,312.87<small>Available</small></div>
+          </div>
+          <div class="acct">
+            <span class="acct-icon save">SAV</span>
+            <div>
+              <div class="acct-name">Huntington Relationship Savings</div>
+              <div class="acct-meta">****8820&nbsp;&middot;&nbsp;4.00% APY</div>
+            </div>
+            <div class="acct-amt">$21,475.40<small>Available</small></div>
+          </div>
+          <div class="group-total"><span>Total deposits</span><span>$26,788.27</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Credit Cards &amp; Lines</h2><a href="#" class="link">View all</a></div>
+          <div class="acct">
+            <span class="acct-icon card">VISA</span>
+            <div>
+              <div class="acct-name">Huntington Voice Rewards Credit Card</div>
+              <div class="acct-meta">****6031&nbsp;&middot;&nbsp;Payment due Aug 21</div>
+            </div>
+            <div class="acct-amt negative">-$1,284.63<small>Balance</small></div>
+          </div>
+          <div class="acct">
+            <span class="acct-icon line">HEL</span>
+            <div>
+              <div class="acct-name">Huntington Home Equity Line</div>
+              <div class="acct-meta">****2209&nbsp;&middot;&nbsp;7.25% variable</div>
+            </div>
+            <div class="acct-amt negative">-$48,210.05<small>Principal</small></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Your Money Tools</h2><a href="#" class="link">Manage Hub &amp; Tool Views</a></div>
+          <div class="tools">
+            <div class="tool">
+              <h3>Spend Analysis</h3>
+              <div class="value">$1,942</div>
+              <p>Spent so far this month across 4 categories.</p>
+            </div>
+            <div class="tool">
+              <h3>Money Scout<sup>&reg;</sup></h3>
+              <div class="value">$85.00</div>
+              <p>Moved to savings for you over the last 30 days.</p>
+            </div>
+            <div class="tool">
+              <h3>Standby Cash<sup>&reg;</sup></h3>
+              <div class="value">$750</div>
+              <p>Available to access instantly, no credit check.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Recent Activity</h2><a href="#" class="link">Download</a></div>
+          <table class="txn">
+            <thead>
+              <tr><th>Date</th><th>Description</th><th style="text-align:right">Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Aug 4</td><td>Direct Deposit &mdash; MIDWEST HEALTH PAYROLL</td><td class="amt credit">+$2,418.92</td></tr>
+              <tr><td>Aug 3</td><td>Kroger #714 Columbus OH</td><td class="amt">-$132.06</td></tr>
+              <tr><td>Aug 2</td><td>Money Scout&reg; transfer to Relationship Savings</td><td class="amt">-$25.00</td></tr>
+              <tr><td>Aug 1</td><td>Auto Pay &mdash; AEP Ohio</td><td class="amt">-$148.31</td></tr>
+              <tr><td>Jul 31</td><td>Zelle&reg; sent &mdash; M. Alvarez</td><td class="amt">-$60.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: transfer money -->
+      <aside class="panel">
+        <div class="card">
+          <div class="card-head"><h2>Transfer Money</h2></div>
+          <div style="padding:18px 20px 20px;">
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="CHK-4417">Asterisk-Free Checking (****4417) — $5,312.87</option>
+                <option value="SAV-8820">Huntington Relationship Savings (****8820) — $21,475.40</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="SAV-8820">Huntington Relationship Savings (****8820)</option>
+                <option value="CC-6031">Voice Rewards Credit Card (****6031)</option>
+                <option value="HEL-2209">Home Equity Line (****2209)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="amount">Amount (USD)</label>
+              <div class="amount-wrap">
+                <span class="cur">$</span>
+                <input type="text" id="amount" value="600.00" inputmode="decimal">
+              </div>
+            </div>
+            <div class="field">
+              <label for="when">Transfer date</label>
+              <input type="text" id="when" value="Today — Aug 5, 2026" readonly>
+            </div>
+            <div class="limit-note">
+              Transfers between your Huntington accounts post immediately. Daily transfer limits are set by your checking product.
+            </div>
+            <button class="btn-primary" id="transferBtn">Transfer Money</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Quick Links</h2></div>
+          <div class="quick-links">
+            <a href="#">Send money with Zelle&reg;</a>
+            <a href="#">Pay a bill</a>
+            <a href="#">Set up Huntington Heads Up&reg; alerts</a>
+            <a href="#">Deposit a check</a>
+            <a href="#">Order checks</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div style="margin-bottom:10px;font-weight:700;color:#fff;font-size:15px;">Huntington Bank</div>
+    <div>
+      <a href="#">Privacy</a><a href="#">Security</a><a href="#">Accessibility</a><a href="#">Contact Us</a>
+    </div>
+    <p class="legal">&copy; 2026 Huntington Bancshares Incorporated. Demonstration clone for software testing purposes only. Member FDIC.</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('transferBtn').addEventListener('click', async function () {
+      var btn = this;
+      btn.disabled = true; btn.textContent = 'Processing transfer…';
+      try {
+        var res = await fetch('/api/718eb882/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value.replace(/[^0-9.]/g, '')) || 0,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', "We couldn't complete your transfer", (data.errorClass || 'Error') + ': ' + data.error);
+        } else {
+          showToast('success', 'Transfer complete', 'Confirmation ' + String(data.confirmationNumber)
+            + ' • $' + data.amount.toFixed(2) + ' USD');
+        }
+      } catch (err) {
+        showToast('error', 'Network error', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Transfer Money';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
