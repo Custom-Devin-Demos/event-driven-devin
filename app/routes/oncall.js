@@ -9,6 +9,7 @@ const {
   postOncallBugReport,
   INFRA_INCIDENTS,
   postOncallInfraIncident,
+  getInfraState,
   postOncallIncident,
 } = require('../services/oncall');
 
@@ -172,6 +173,13 @@ router.post('/api/oncall/infra/:kind', async (req, res) => {
     logger.error('On-Call infra trigger failed', { kind: req.params.kind, error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
+});
+
+/**
+ * GET /api/oncall/infra/state — live state for the /oncall health strip.
+ */
+router.get('/api/oncall/infra/state', (_req, res) => {
+  res.json(getInfraState());
 });
 
 /**

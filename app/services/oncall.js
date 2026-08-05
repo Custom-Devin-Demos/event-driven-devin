@@ -337,6 +337,8 @@ const INFRA_WINDOW_MS = envNumber(
 );
 let infraRevertTimer = null;
 let activeInfraScenario = null;
+let activeInfraKind = null;
+let infraRevertAt = null;
 
 /**
  * Bounded, reversible memory-growth mode for the memory-leak incident.
@@ -354,7 +356,11 @@ function startMemoryGrowth(windowMs) {
   const steps = Math.max(1, Math.floor(MEMLEAK_CAP_MB / MEMLEAK_CHUNK_MB));
   const intervalMs = Math.max(2000, Math.floor(windowMs / (steps + 1)));
   memLeakInterval = setInterval(() => {
-    if (memLeakChunks.length >= steps) return;
+    if (memLeakChunks.length >= steps) {
+      clearInterval(memLeakInterval);
+      memLeakInterval = null;
+      return;
+    }
     // fill(1) forces the OS to actually commit the pages so RSS rises
     memLeakChunks.push(Buffer.alloc(MEMLEAK_CHUNK_MB * 1024 * 1024, 1));
     logger.warn('Simulated memory growth', {
@@ -375,6 +381,8 @@ function revertInfraState(reason) {
     setScenario('healthy');
   }
   activeInfraScenario = null;
+  activeInfraKind = null;
+  infraRevertAt = null;
   if (hadState) {
     logger.info('On-Call infra incident state reverted to healthy', { reason });
   }
@@ -489,6 +497,8 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
       activeInfraScenario = incident.scenario;
     }
     if (incident.memoryGrowth) startMemoryGrowth(INFRA_WINDOW_MS);
+    activeInfraKind = kind;
+    infraRevertAt = Date.now() + INFRA_WINDOW_MS;
     infraRevertTimer = setTimeout(() => {
       revertInfraState(`window elapsed for ${kind}`);
     }, INFRA_WINDOW_MS);
@@ -538,6 +548,21 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     scenario: incident.scenario,
     active: incident.scenario !== 'healthy' || Boolean(incident.memoryGrowth),
     windowMinutes: Math.round(INFRA_WINDOW_MS / 60000),
+  };
+}
+
+/**
+ * Live state for the /oncall page's health strip: current scenario, active
+ * infra incident (and time remaining), and process memory.
+ */
+function getInfraState() {
+  return {
+    scenario: getScenario(),
+    activeKind: activeInfraKind,
+    memoryGrowth: Boolean(memLeakInterval),
+    heldMB: memLeakChunks.length * MEMLEAK_CHUNK_MB,
+    rssMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
+    msRemaining: infraRevertAt ? Math.max(0, infraRevertAt - Date.now()) : null,
   };
 }
 
@@ -641,5 +666,6 @@ module.exports = {
   postOncallBugReport,
   INFRA_INCIDENTS,
   postOncallInfraIncident,
+  getInfraState,
   postOncallIncident,
 };
