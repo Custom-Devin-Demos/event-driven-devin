@@ -441,6 +441,7 @@ async function deleteMessage(token, channel, ts) {
 }
 
 module.exports = {
+  postMessage,
   postAlertToSlack,
   postBugReportToTriage,
   postDevinSessionLink,

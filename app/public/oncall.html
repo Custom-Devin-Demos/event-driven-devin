@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devin On-Call — Demo Console</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+    a.back { color: #58a6ff; text-decoration: none; font-size: 13px; }
+    h1 { font-size: 26px; margin: 16px 0 6px; color: #f0f6fc; }
+    .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 32px; }
+    .section {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .section h2 { font-size: 16px; color: #f0f6fc; margin-bottom: 4px; }
+    .section .desc { color: #8b949e; font-size: 13px; margin-bottom: 18px; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .card {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      text-align: left;
+      color: inherit;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .card:hover { border-color: #f85149; }
+    .card .brand { color: #f0f6fc; font-weight: 600; margin-bottom: 6px; }
+    .card .error { color: #f85149; font-size: 11px; line-height: 1.4; }
+    label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 6px; }
+    select, textarea {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #c9d1d9;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #f0f6fc;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 18px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #30363d; }
+    .btn.danger { border-color: #f85149; color: #f85149; }
+    .btn.danger:hover { background: rgba(248, 81, 73, 0.1); }
+    .status {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+      line-height: 1.5;
+    }
+    .status.ok { display: block; background: rgba(63, 185, 80, 0.1); border: 1px solid #2ea043; color: #3fb950; }
+    .status.err { display: block; background: rgba(248, 81, 73, 0.1); border: 1px solid #f85149; color: #f85149; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; color: #8b949e; }
+    .checkbox-row input { accent-color: #58a6ff; }
+    .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
+    .badge.alerts { background: rgba(248, 81, 73, 0.15); color: #f85149; }
+    .badge.bugs { background: rgba(210, 153, 34, 0.15); color: #d29922; }
+    .badge.incident { background: rgba(163, 113, 247, 0.15); color: #a371f7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a class="back" href="/">&larr; All Demos</a>
+    <h1>Devin On-Call &mdash; Demo Console</h1>
+    <p class="subtitle">Fire production-style events and watch Devin's On-Call responders investigate on their own. No @mentions, no API calls &mdash; the responders just show up.</p>
+
+    <div class="section">
+      <h2>Production Alert <span class="badge alerts">#oncall-alerts</span></h2>
+      <p class="desc">Posts a real error-signature alert card (matching a planted bug in this codebase) to the alerts channel. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR.</p>
+      <div class="checkbox-row">
+        <input type="checkbox" id="unique" checked>
+        <label for="unique" style="margin:0">Unique per run (uncheck to demo duplicate grouping)</label>
+      </div>
+      <div class="grid" id="alert-grid"></div>
+      <div class="status" id="alert-status"></div>
+    </div>
+
+    <div class="section">
+      <h2>Bug Report <span class="badge bugs">#oncall-bugs</span></h2>
+      <p class="desc">Posts a human-style complaint &mdash; no stack trace, just symptoms &mdash; for the Bug Triage Responder to reproduce and root-cause.</p>
+      <label for="bug-scenario">Canned report</label>
+      <select id="bug-scenario"></select>
+      <label for="bug-text">Or write your own</label>
+      <textarea id="bug-text" placeholder="e.g. Customers say transfers fail with a red error box..."></textarea>
+      <button class="btn" id="bug-btn">Send Bug Report</button>
+      <div class="status" id="bug-status"></div>
+    </div>
+
+    <div class="section">
+      <h2>Major Incident <span class="badge incident">SEV-1</span></h2>
+      <p class="desc">Fires a SEV-1 multi-vertical error spike. (Datadog Incident Management wiring &mdash; monitor &rarr; incident channel &rarr; Incident Agent auto-join &mdash; comes next; for now this posts the SEV-1 signal to the alerts channel.)</p>
+      <button class="btn danger" id="incident-btn">Trigger SEV-1 Incident</button>
+      <div class="status" id="incident-status"></div>
+    </div>
+  </div>
+
+  <script>
+    function show(el, ok, msg) {
+      el.className = 'status ' + (ok ? 'ok' : 'err');
+      el.textContent = msg;
+    }
+
+    async function post(url, body) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {}),
+      });
+      return { status: res.status, data: await res.json() };
+    }
+
+    async function init() {
+      const res = await fetch('/api/oncall/scenarios');
+      const { scenarios, bugReports } = await res.json();
+
+      const grid = document.getElementById('alert-grid');
+      const status = document.getElementById('alert-status');
+      scenarios.forEach((s) => {
+        const btn = document.createElement('button');
+        btn.className = 'card';
+        btn.innerHTML = '<div class="brand">' + s.brand + '</div><div class="error">' + s.error + '</div>';
+        btn.onclick = async () => {
+          show(status, true, 'Posting alert…');
+          try {
+            const unique = document.getElementById('unique').checked;
+            const { status: code, data } = await post('/api/oncall/alert', { scenario: s.id, unique });
+            show(status, code === 200, code === 200
+              ? 'Alert posted to ' + data.channel + ' — watch the responder pick it up.'
+              : (data.error || 'Failed'));
+          } catch (e) {
+            show(status, false, e.message);
+          }
+        };
+        grid.appendChild(btn);
+      });
+
+      const select = document.getElementById('bug-scenario');
+      bugReports.forEach((b) => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.id + ' — ' + b.text.slice(0, 70) + '…';
+        select.appendChild(opt);
+      });
+    }
+
+    document.getElementById('bug-btn').onclick = async () => {
+      const status = document.getElementById('bug-status');
+      show(status, true, 'Posting bug report…');
+      try {
+        const text = document.getElementById('bug-text').value.trim();
+        const scenario = document.getElementById('bug-scenario').value;
+        const body = text ? { text } : { scenario };
+        const { status: code, data } = await post('/api/oncall/bug', body);
+        show(status, code === 200, code === 200
+          ? 'Bug report posted to ' + data.channel + '.'
+          : (data.error || 'Failed'));
+      } catch (e) {
+        show(status, false, e.message);
+      }
+    };
+
+    document.getElementById('incident-btn').onclick = async () => {
+      const status = document.getElementById('incident-status');
+      show(status, true, 'Firing incident…');
+      try {
+        const { status: code, data } = await post('/api/oncall/incident');
+        show(status, code === 200, code === 200
+          ? 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ').'
+          : (data.error || 'Failed'));
+      } catch (e) {
+        show(status, false, e.message);
+      }
+    };
+
+    init();
+  </script>
+</body>
+</html>
