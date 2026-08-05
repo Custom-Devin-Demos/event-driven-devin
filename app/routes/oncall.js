@@ -48,20 +48,17 @@ function buildOncallShim(scenario) {
     (function () {
       const apiPath = ${JSON.stringify(scenario.apiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
-      const errorBody = ${JSON.stringify(JSON.stringify({
-        success: false,
-        error: scenario.errorValue,
-        errorClass: scenario.errorType,
-        code: 'INTERNAL_ERROR',
-      }))};
       const origFetch = window.fetch.bind(window);
       window.fetch = function (url, opts) {
         if (typeof url === 'string' && url.startsWith(apiPath)) {
-          // Never hit the real vertical API from on-call mode: it would fire
-          // the legacy alert/Devin pipeline. Post the on-call alert instead
-          // and hand the page its genuine 500 error shape.
+          // Execute the real vertical API in on-call mode: the planted bug
+          // fires and Sentry/Datadog capture genuine telemetry, but the
+          // x-oncall-mode header suppresses the legacy Slack/Devin trigger.
+          // The on-call alert card is posted alongside.
+          const realOpts = Object.assign({}, opts);
+          realOpts.headers = Object.assign({}, (opts && opts.headers) || {}, { 'x-oncall-mode': '1' });
           const unique = document.getElementById('oncall-unique').checked;
-          return origFetch('/api/oncall/trigger/' + vertical, {
+          origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ unique: unique }),
@@ -69,8 +66,8 @@ function buildOncallShim(scenario) {
             const el = document.getElementById('oncall-status');
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
-            return new Response(errorBody, { status: 500, headers: { 'Content-Type': 'application/json' } });
-          });
+          }).catch(function () {});
+          return origFetch(url, realOpts);
         }
         return origFetch(url, opts);
       };
@@ -93,9 +90,9 @@ router.get('/oncall/:vertical', (req, res, next) => {
 });
 
 /**
- * POST /api/oncall/trigger/:vertical — alert-only trigger used by the shimmed
- * branded pages. Posts the alert card; the shim renders the vertical's real
- * 500-error shape in the page UI.
+ * POST /api/oncall/trigger/:vertical — posts the on-call alert card. The
+ * shimmed branded pages call this alongside the real vertical API (which runs
+ * in on-call mode so telemetry fires but the legacy Devin trigger does not).
  */
 router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   const scenario = ALERT_SCENARIOS[req.params.vertical];

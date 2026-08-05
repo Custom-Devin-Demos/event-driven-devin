@@ -3,120 +3,282 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Devin On-Call — Demo Console</title>
+  <title>Devin On-Call &mdash; Event-Driven Devin</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #f2f5fa;
+      --bg-dark: #0f131c;
+      --text-dark: #0f131c;
+      --text-light: #eaf0f9;
+      --text-muted: #6b7280;
+      --text-muted-light: rgba(234,240,249,0.5);
+      --border-light: rgba(15,19,28,0.08);
+      --border-dark: rgba(234,240,249,0.12);
+      --accent: #7c8aff;
+      --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-condensed: 'IBM Plex Sans Condensed', 'IBM Plex Sans', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'SF Mono', 'Fira Code', Menlo, Consolas, monospace;
-      background: #0d1117;
-      color: #c9d1d9;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text-dark);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
       min-height: 100vh;
-      padding: 40px 20px;
     }
-    .container { max-width: 960px; margin: 0 auto; }
-    a.back { color: #58a6ff; text-decoration: none; font-size: 13px; }
-    h1 { font-size: 26px; margin: 16px 0 6px; color: #f0f6fc; }
-    .subtitle { color: #8b949e; font-size: 14px; margin-bottom: 32px; }
-    .section {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      padding: 24px;
-      margin-bottom: 24px;
+
+    /* ---- NAV ---- */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      height: 72px;
+      padding: 0 40px;
+      background: var(--bg);
+      box-shadow: 0 1px 0 var(--border-light);
     }
-    .section h2 { font-size: 16px; color: #f0f6fc; margin-bottom: 4px; }
-    .section .desc { color: #8b949e; font-size: 13px; margin-bottom: 18px; line-height: 1.5; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-    .card {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      padding: 14px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-      text-align: left;
-      color: inherit;
-      font-family: inherit;
-      font-size: 13px;
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--text-dark);
     }
-    .card:hover { border-color: #f85149; }
-    .card .brand { color: #f0f6fc; font-weight: 600; margin-bottom: 6px; }
-    .card .error { color: #f85149; font-size: 11px; line-height: 1.4; }
-    label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 6px; }
-    select, textarea {
-      width: 100%;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #c9d1d9;
-      font-family: inherit;
-      font-size: 13px;
-      padding: 10px;
+    .nav-logo svg { width: 28px; height: 28px; }
+    .nav-logo-text {
+      font-size: 16px; font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .nav-back {
+      font-size: 13px; font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--text-dark); }
+
+    /* ---- HERO STRIP ---- */
+    .hero {
+      background: var(--bg-dark);
+      padding: 56px 40px 48px;
+    }
+    .hero-inner { max-width: 1100px; margin: 0 auto; }
+    .hero-badge {
+      display: inline-flex; align-items: center;
+      padding: 5px 14px;
+      border: 1px solid var(--border-dark);
+      border-radius: 4px;
+      font-size: 11px; font-weight: 500;
+      color: var(--text-muted-light);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-condensed);
+      font-size: clamp(34px, 5vw, 52px);
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      color: var(--text-light);
+      text-transform: uppercase;
       margin-bottom: 12px;
     }
-    textarea { min-height: 90px; resize: vertical; }
-    .btn {
-      background: #21262d;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      color: #f0f6fc;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 10px 18px;
-      cursor: pointer;
-      transition: background 0.15s;
+    .hero h1 .bracket { color: var(--text-muted-light); }
+    .hero h1 .highlight { color: var(--accent); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--text-muted-light);
+      max-width: 640px;
     }
-    .btn:hover { background: #30363d; }
-    .btn.danger { border-color: #f85149; color: #f85149; }
-    .btn.danger:hover { background: rgba(248, 81, 73, 0.1); }
+
+    /* ---- SECTIONS ---- */
+    .sections {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 40px 80px;
+    }
+    .section { margin-bottom: 48px; }
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 6px;
+    }
+    .section-title {
+      font-family: var(--font-condensed);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 500;
+      padding: 3px 10px; border-radius: 100px;
+    }
+    .badge.alerts { background: rgba(239,68,68,0.06); color: #ef4444; border: 1px solid rgba(239,68,68,0.1); }
+    .badge.bugs { background: rgba(217,119,6,0.06); color: #d97706; border: 1px solid rgba(217,119,6,0.12); }
+    .badge.incident { background: rgba(124,58,237,0.06); color: #7c3aed; border: 1px solid rgba(124,58,237,0.12); }
+    .section-desc {
+      font-size: 13px; color: var(--text-muted); line-height: 1.6;
+      max-width: 760px;
+      margin-bottom: 20px;
+    }
+
+    /* ---- CARD GRID (matches hub) ---- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1px;
+      background: var(--border-light);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card {
+      display: flex; flex-direction: column;
+      text-decoration: none; color: var(--text-dark);
+      background: #fff;
+      padding: 24px;
+      min-height: 150px;
+      transition: background 0.2s;
+    }
+    .card:hover { background: #f8f9fc; }
+    .card-brand {
+      font-family: var(--font-condensed);
+      font-size: 19px; font-weight: 500;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    }
+    .card-arrow { font-size: 13px; color: var(--text-muted); }
+    .card-error {
+      font-family: var(--font-mono);
+      font-size: 11px; line-height: 1.5;
+      color: #ef4444;
+      margin-top: auto;
+    }
+
+    /* ---- LAUNCH CARD (single wide) ---- */
+    .launch-card {
+      display: flex; flex-direction: column;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 28px;
+      text-decoration: none;
+      color: var(--text-dark);
+      max-width: 560px;
+      transition: background 0.2s;
+    }
+    .launch-card:hover { background: #f8f9fc; }
+    .launch-title {
+      font-family: var(--font-condensed);
+      font-size: 20px; font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .launch-desc { font-size: 13px; color: var(--text-muted); line-height: 1.55; margin-bottom: 14px; }
+    .launch-cta {
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* ---- INCIDENT ---- */
+    .incident-card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 28px;
+      max-width: 560px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px;
+      border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 100px;
+      background: transparent;
+      color: #ef4444;
+      font-family: var(--font-sans);
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: rgba(239,68,68,0.06); border-color: #ef4444; }
     .status {
-      margin-top: 14px;
+      margin-top: 16px;
       padding: 10px 14px;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 13px;
       display: none;
       line-height: 1.5;
     }
-    .status.ok { display: block; background: rgba(63, 185, 80, 0.1); border: 1px solid #2ea043; color: #3fb950; }
-    .status.err { display: block; background: rgba(248, 81, 73, 0.1); border: 1px solid #f85149; color: #f85149; }
-    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: 13px; color: #8b949e; }
-    .checkbox-row input { accent-color: #58a6ff; }
-    .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; vertical-align: middle; }
-    .badge.alerts { background: rgba(248, 81, 73, 0.15); color: #f85149; }
-    .badge.bugs { background: rgba(210, 153, 34, 0.15); color: #d29922; }
-    .badge.incident { background: rgba(163, 113, 247, 0.15); color: #a371f7; }
-    .launch-card {
-      display: block;
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 6px;
-      padding: 16px;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color 0.15s;
+    .status.ok { display: block; background: rgba(39,174,96,0.07); border: 1px solid rgba(39,174,96,0.25); color: #1e8e50; }
+    .status.err { display: block; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); color: #ef4444; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .launch-card:hover { border-color: #d29922; }
-    .launch-title { color: #f0f6fc; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
-    .launch-desc { color: #8b949e; font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
-    .launch-cta { color: #d29922; font-size: 13px; font-weight: 600; }
+    .section { animation: fadeUp 0.5s ease-out both; }
+    .section:nth-child(1) { animation-delay: 0.05s; }
+    .section:nth-child(2) { animation-delay: 0.15s; }
+    .section:nth-child(3) { animation-delay: 0.25s; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .hero { padding: 40px 20px 36px; }
+      .sections { padding: 32px 20px 60px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <a class="back" href="/">&larr; All Demos</a>
-    <h1>Devin On-Call &mdash; Demo Console</h1>
-    <p class="subtitle">Fire production-style events and watch Devin's On-Call responders investigate on their own. No @mentions, no API calls &mdash; the responders just show up.</p>
+
+  <nav>
+    <a href="/" class="nav-logo">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="8" r="3" fill="currentColor" opacity="0.7"/>
+        <circle cx="24" cy="8" r="3" fill="currentColor" opacity="0.7"/>
+        <circle cx="8" cy="24" r="3" fill="currentColor" opacity="0.7"/>
+        <circle cx="24" cy="24" r="3" fill="currentColor" opacity="0.7"/>
+        <circle cx="16" cy="16" r="4" fill="currentColor"/>
+        <line x1="11" y1="8" x2="21" y2="8" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="11" y1="24" x2="21" y2="24" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="8" y1="11" x2="8" y2="21" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="24" y1="11" x2="24" y2="21" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="22" y1="10" x2="18" y2="14" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="10" y1="22" x2="14" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+        <line x1="22" y1="22" x2="18" y2="18" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+      </svg>
+      <span class="nav-logo-text">Event-Driven Devin</span>
+    </a>
+    <a class="nav-back" href="/">&larr; all demos</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">[ DEVIN ON-CALL ]</div>
+      <h1>ON-CALL, <span class="bracket">[</span>&nbsp;<span class="highlight">HANDLED</span>&nbsp;<span class="bracket">]</span></h1>
+      <p class="hero-sub">Fire production-style events and watch Devin's On-Call responders investigate on their own. No @mentions, no API calls &mdash; the responders just show up.</p>
+    </div>
+  </section>
+
+  <div class="sections">
 
     <div class="section">
-      <h2>Production Alert <span class="badge alerts">#oncall-alerts</span></h2>
-      <p class="desc">Opens the real branded product page in on-call mode: the customer action (transfer, claim, provision, upgrade) fails with its genuine error UI and the alert card lands in the alerts channel &mdash; no legacy Devin trigger. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR. A "Unique per run" toggle on each page controls duplicate grouping.</p>
+      <div class="section-header">
+        <span class="section-title">Production Alert</span>
+        <span class="badge alerts">#oncall-alerts</span>
+      </div>
+      <p class="section-desc">Opens the real branded product page in on-call mode: the customer action (transfer, claim, provision, upgrade) fails with its genuine error UI and the alert card lands in the alerts channel &mdash; no legacy Devin trigger. The Alert Responder groups duplicates, investigates fresh issues, replies in-thread, and opens a fix PR. A &ldquo;Unique per run&rdquo; toggle on each page controls duplicate grouping.</p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
     <div class="section">
-      <h2>Bug Report <span class="badge bugs">#oncall-bugs</span></h2>
-      <p class="desc">A customer or support agent files an issue through the Acme Support Center portal &mdash; no stack trace, just symptoms &mdash; for the Bug Triage Responder to reproduce and root-cause.</p>
+      <div class="section-header">
+        <span class="section-title">Bug Report</span>
+        <span class="badge bugs">#oncall-bugs</span>
+      </div>
+      <p class="section-desc">A customer or support agent files an issue through the Acme Support Center portal &mdash; no stack trace, just symptoms &mdash; for the Bug Triage Responder to reproduce and root-cause.</p>
       <a class="launch-card" href="/oncall/report" target="_blank" rel="noopener">
         <div class="launch-title">Acme Support Center &mdash; Report an Issue</div>
         <div class="launch-desc">Opens the customer-facing support portal. Pick a product area, severity, and description, then submit &mdash; the ticket lands in #oncall-bugs.</div>
@@ -125,11 +287,17 @@
     </div>
 
     <div class="section">
-      <h2>Major Incident <span class="badge incident">SEV-1</span></h2>
-      <p class="desc">Fires a SEV-1 multi-vertical error spike. (Datadog Incident Management wiring &mdash; monitor &rarr; incident channel &rarr; Incident Agent auto-join &mdash; comes next; for now this posts the SEV-1 signal to the alerts channel.)</p>
-      <button class="btn danger" id="incident-btn">Trigger SEV-1 Incident</button>
-      <div class="status" id="incident-status"></div>
+      <div class="section-header">
+        <span class="section-title">Major Incident</span>
+        <span class="badge incident">SEV-1</span>
+      </div>
+      <p class="section-desc">Fires a SEV-1 multi-vertical error spike. With Datadog incident keys configured, this declares a real Datadog incident (Datadog creates the incident channel and the Incident Agent auto-joins); otherwise it posts the SEV-1 signal to the alerts channel.</p>
+      <div class="incident-card">
+        <button class="btn" id="incident-btn">Trigger SEV-1 Incident</button>
+        <div class="status" id="incident-status"></div>
+      </div>
     </div>
+
   </div>
 
   <script>
@@ -149,19 +317,18 @@
 
     async function init() {
       const res = await fetch('/api/oncall/scenarios');
-      const { scenarios, bugReports } = await res.json();
+      const { scenarios } = await res.json();
 
       const grid = document.getElementById('alert-grid');
       scenarios.forEach((s) => {
         const link = document.createElement('a');
         link.className = 'card';
-        link.style.display = 'block';
-        link.style.textDecoration = 'none';
         link.href = '/oncall/' + s.id;
-        link.innerHTML = '<div class="brand">' + s.brand + ' ↗</div><div class="error">' + s.error + '</div>';
+        link.innerHTML =
+          '<div class="card-brand"><span>' + s.brand + '</span><span class="card-arrow">&#8599;</span></div>' +
+          '<div class="card-error">' + s.error + '</div>';
         grid.appendChild(link);
       });
-
     }
 
     document.getElementById('incident-btn').onclick = async () => {
@@ -169,9 +336,14 @@
       show(status, true, 'Firing incident…');
       try {
         const { status: code, data } = await post('/api/oncall/incident');
-        show(status, code === 200, code === 200
-          ? 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ').'
-          : (data.error || 'Failed'));
+        if (code === 200 && data.provider === 'datadog') {
+          show(status, true, 'Datadog incident declared (ref ' + data.runRef + ', incident ' + (data.publicId || data.id) + ').');
+        } else {
+          show(status, code === 200,
+            code === 200
+              ? 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ').'
+              : (data.error || 'Failed'));
+        }
       } catch (e) {
         show(status, false, e.message);
       }
