@@ -356,7 +356,11 @@ function startMemoryGrowth(windowMs) {
   const steps = Math.max(1, Math.floor(MEMLEAK_CAP_MB / MEMLEAK_CHUNK_MB));
   const intervalMs = Math.max(2000, Math.floor(windowMs / (steps + 1)));
   memLeakInterval = setInterval(() => {
-    if (memLeakChunks.length >= steps) return;
+    if (memLeakChunks.length >= steps) {
+      clearInterval(memLeakInterval);
+      memLeakInterval = null;
+      return;
+    }
     // fill(1) forces the OS to actually commit the pages so RSS rises
     memLeakChunks.push(Buffer.alloc(MEMLEAK_CHUNK_MB * 1024 * 1024, 1));
     logger.warn('Simulated memory growth', {
