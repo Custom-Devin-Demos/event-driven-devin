@@ -874,11 +874,13 @@
         const mins = Math.ceil(i.msRemaining / 60000);
         const state = i.status === 'resolved'
           ? '<span style="color:#16a34a;">resolved</span>'
+          : i.status === 'resolve_failed'
+          ? '<span style="color:#dc2626;">auto-resolve failed \u2014 resolve in Datadog</span>'
           : i.status === 'investigating'
             ? '<span style="color:#7c3aed;">investigating in #' + escapeHtml(i.channelName || '') + '</span>'
             : '<span style="color:#b45309;">declared \u2014 waiting for Slack channel</span>';
         return 'IR-' + escapeHtml(i.publicId) + ' <span style="color:#64748b;">(' + escapeHtml(i.runRef) + ')</span> ' + state +
-          (i.status !== 'resolved' ? ' <span style="color:#64748b;">\u00b7 ~' + mins + ' min left</span>' : '');
+          (i.status !== 'resolved' && i.status !== 'resolve_failed' ? ' <span style="color:#64748b;">\u00b7 ~' + mins + ' min left</span>' : '');
       }).join('<br>');
     }
 

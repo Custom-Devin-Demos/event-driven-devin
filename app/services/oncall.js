@@ -883,6 +883,7 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
         `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
       ].join('\n');
       await postMessage(token, channel.id, kickoff);
+      if (entry.status === 'resolved') return;
       entry.status = 'investigating';
       logger.info('SEV-1 incident channel attached', {
         runRef: entry.runRef,
@@ -911,7 +912,6 @@ async function attachToIncidentChannel(entry, token, deMemberId) {
 async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
   const { token, alertsChannel } = resolveOncallEnv();
-  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const kind = SEV1_INCIDENTS[options.kind] ? options.kind : 'checkout-gateway';
   const story = SEV1_INCIDENTS[kind];
 
@@ -959,13 +959,16 @@ async function postOncallIncident(options = {}) {
     const scheduleResolve = (delayMs, attempt) => {
       const timer = setTimeout(async () => {
         try {
-          await resolveDatadogIncident(entry.id);
+          const resolved = await resolveDatadogIncident(entry.id);
+          if (!resolved) throw new Error('Datadog incident env not configured');
           entry.status = 'resolved';
           logger.info('SEV-1 incident auto-resolved', { runRef, publicId: entry.publicId });
         } catch (error) {
           logger.error('SEV-1 auto-resolve failed', { runRef, attempt, error: error.message });
           if (attempt < SEV1_RESOLVE_MAX_ATTEMPTS) {
             scheduleResolve(SEV1_RESOLVE_RETRY_MS * attempt, attempt + 1);
+          } else {
+            entry.status = 'resolve_failed';
           }
           return;
         }
@@ -1011,6 +1014,7 @@ async function postOncallIncident(options = {}) {
     '',
     `Multiple user-facing flows are failing simultaneously. Repo: ${REPO_URL}`,
   ].join('\n');
+  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
 
   const ts = await postMessage(token, alertsChannel, fullText);

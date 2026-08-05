@@ -479,14 +479,19 @@ async function joinChannel(token, channel) {
  * Invite users to a channel. Tolerates already_in_channel.
  */
 async function inviteToChannel(token, channel, userIds) {
-  const users = userIds.filter(Boolean).join(',');
-  if (!users) return;
-  const response = await axios.post(`${SLACK_API_BASE}/conversations.invite`, { channel, users }, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-    timeout: 10000,
-  });
-  if (!response.data.ok && response.data.error !== 'already_in_channel') {
-    throw new Error(`Slack API error: ${response.data.error}`);
+  const users = userIds.filter(Boolean);
+  const failures = [];
+  for (const user of users) {
+    const response = await axios.post(`${SLACK_API_BASE}/conversations.invite`, { channel, users: user }, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      timeout: 10000,
+    });
+    if (!response.data.ok && response.data.error !== 'already_in_channel') {
+      failures.push(`${user}: ${response.data.error}`);
+    }
+  }
+  if (failures.length) {
+    throw new Error(`Slack API error: ${failures.join(', ')}`);
   }
 }
 
