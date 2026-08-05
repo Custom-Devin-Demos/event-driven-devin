@@ -164,19 +164,23 @@ async function processCheckout(orderData) {
       userId: order.userId,
     });
 
-    Sentry.captureException(error, {
-      tags: {
-        route: '/checkout',
-        scenario,
-        persona: order.persona,
-      },
-      extra: {
-        orderId,
-        userId: order.userId,
-        subtotal: order.subtotal,
-        region: order.region,
-      },
-    });
+    // Synthetic probes (health strip, loadgen) keep metrics/logs but skip
+    // Sentry so failures don't feed the Sentry alert webhook pipeline.
+    if (!orderData.synthetic) {
+      Sentry.captureException(error, {
+        tags: {
+          route: '/checkout',
+          scenario,
+          persona: order.persona,
+        },
+        extra: {
+          orderId,
+          userId: order.userId,
+          subtotal: order.subtotal,
+          region: order.region,
+        },
+      });
+    }
 
     throw error;
   }
