@@ -141,6 +141,12 @@ describe('welcome-season RxBIN validation', () => {
     expect(validateRxRouting(typo, 2026).some((e) => e.includes('planYear 2025 is not the 2026'))).toBe(true);
   });
 
+  test('fails a plan whose BIN names an inherited property instead of crashing', () => {
+    expect(submitSyntheticClaim({ rxBin: 'constructor', rxPcn: 'ADV' }).paid).toBe(false);
+    const errors = validateRxRouting({ ...validConfig, rxBin: 'constructor' });
+    expect(errors.some((e) => e.includes('is not numeric'))).toBe(true);
+  });
+
   test('a plan with an unroutable BIN fails the synthetic claim', () => {
     const claim = submitSyntheticClaim({ rxBin: '0044336' });
     expect(claim.paid).toBe(false);

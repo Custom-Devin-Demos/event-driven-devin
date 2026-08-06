@@ -18,6 +18,18 @@ const BIN_LENGTH = 6;
 const PCN_PATTERN = /^[A-Z0-9]{1,10}$/;
 const GROUP_PATTERN = /^[A-Z0-9]{1,15}$/;
 
+/**
+ * Resolve a BIN to its processor, ignoring keys inherited from Object.prototype.
+ *
+ * A gate that crashes reports nothing, so a config carrying `rxBin: 'constructor'`
+ * must come out as a FAIL rather than a TypeError on `processor.supportsPcn`.
+ */
+function processorFor(rxBin) {
+  return Object.prototype.hasOwnProperty.call(PAYER_REGISTRY, rxBin)
+    ? PAYER_REGISTRY[rxBin]
+    : null;
+}
+
 
 /**
  * Validate the pharmacy routing fields a plan will print onto member ID cards.
@@ -44,7 +56,7 @@ function validateRxRouting(config, year) {
     errors.push(`RxBIN "${config.rxBin}" is not numeric`);
   } else if (config.rxBin.length !== BIN_LENGTH) {
     errors.push(`RxBIN "${config.rxBin}" is ${config.rxBin.length} digits — BINs are ${BIN_LENGTH} digits`);
-  } else if (!PAYER_REGISTRY[config.rxBin]) {
+  } else if (!processorFor(config.rxBin)) {
     errors.push(`RxBIN "${config.rxBin}" is not a registered processor BIN`);
   }
 
@@ -61,7 +73,7 @@ function validateRxRouting(config, year) {
     errors.push('memberCount is missing — blast radius cannot be computed for this plan');
   }
 
-  const processor = PAYER_REGISTRY[config.rxBin];
+  const processor = processorFor(config.rxBin);
   if (processor && pcnWellFormed && !processor.supportsPcn.includes(config.rxPcn)) {
     errors.push(`RxPCN "${config.rxPcn}" is not accepted by ${processor.name} on BIN ${config.rxBin}`);
   }
@@ -83,7 +95,7 @@ function formatMembers(count) {
  * reject even where the current service would pay it.
  */
 function submitSyntheticClaim(config) {
-  const processor = PAYER_REGISTRY[config.rxBin];
+  const processor = processorFor(config.rxBin);
   if (!processor) {
     return { paid: false, reason: `no route for BIN ${config.rxBin} — claim would reject 06 at the counter` };
   }
