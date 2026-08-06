@@ -237,12 +237,25 @@ async function adjudicateClaim(data) {
     service: 'payer-api',
   });
 
+  const drug = FORMULARY.find((f) => f.ndc === data.ndc);
+  if (!drug) {
+    const notCovered = new Error(`NDC ${data.ndc} is not on the plan formulary`);
+    notCovered.code = 'DRUG_NOT_ON_FORMULARY';
+    incrementMetric('pharmacy_claim.not_on_formulary', { route: '/api/payer/pharmacy-claim' });
+    logger.warn('Pharmacy claim submitted for a medication that is not on the formulary', {
+      claimId,
+      memberId: data.memberId,
+      ndc: data.ndc,
+      service: 'payer-api',
+    });
+    throw notCovered;
+  }
+
   let routingLookupFailed = false;
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
 
-    const drug = FORMULARY.find((f) => f.ndc === data.ndc) || FORMULARY[0];
     const processor = PAYER_REGISTRY[card.rxBin];
 
     routingLookupFailed = !processor;

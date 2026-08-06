@@ -49,6 +49,16 @@ describe('payer pharmacy claim adjudication', () => {
       expect(error.rejectCode).toBeUndefined();
     }
   });
+
+  test('refuses a medication that is not on the formulary instead of substituting one', async () => {
+    expect.assertions(2);
+    try {
+      await adjudicateClaim({ memberId: 'MEM-200145', ndc: '00000-0000-00' });
+    } catch (error) {
+      expect(error.code).toBe('DRUG_NOT_ON_FORMULARY');
+      expect(error.rejectCode).toBeUndefined();
+    }
+  });
 });
 
 describe('member ID card generation', () => {

@@ -84,6 +84,14 @@ router.post('/api/payer/pharmacy-claim', async (req, res) => {
         requestId: req.requestId,
       });
     }
+    if (error.code === 'DRUG_NOT_ON_FORMULARY') {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+        code: error.code,
+        requestId: req.requestId,
+      });
+    }
     if (error.code === 'MEMBER_NOT_FOUND') {
       return res.status(404).json({
         success: false,

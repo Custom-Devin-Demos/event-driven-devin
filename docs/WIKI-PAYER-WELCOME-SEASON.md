@@ -143,7 +143,7 @@ app/services/verticals/payer.js      PAYER_REGISTRY, PLAN_CONFIGS, MEMBERS, FORM
         └──▶ app/services/devin-session.js → Slack alert + Devin session
 
 scripts/welcome-season-sweep.js      pre-print validation gate (Act 2), reuses the same registry
-tests/payer-bin-validation.test.js   17 tests over adjudication, card generation, sweep
+tests/payer-bin-validation.test.js   18 tests over adjudication, card generation, sweep
 ```
 
 The page is served at both `/verticals/payer.html` and the friendly alias
@@ -158,7 +158,7 @@ reachable by direct URL only.
 | `GET` | `/api/payer/members` | roster plus the formulary (name, indication, copay, cash price, clinical note) |
 | `GET` | `/api/payer/id-card/:memberId` | the card as printed; `404` for an unenrolled member, `500 PLAN_CONFIG_MISSING` when an enrolled member's plan config is absent |
 | `GET` | `/api/payer/rejection-series` | seeded daily rejection rate spanning the plan-year boundary |
-| `POST` | `/api/payer/pharmacy-claim` | adjudicates; `200` paid, `404 MEMBER_NOT_FOUND`, `500 CLAIM_REJECTED` with `rejectCode` / `rejectReason` / `submittedBin` |
+| `POST` | `/api/payer/pharmacy-claim` | adjudicates; `200` paid, `400 DRUG_NOT_ON_FORMULARY`, `404 MEMBER_NOT_FOUND`, `500 CLAIM_REJECTED` with `rejectCode` / `rejectReason` / `submittedBin` |
 
 A rejected claim returning `500` is this repo's convention: it is what raises the exception
 that Sentry captures and that starts the Devin session. In a real integration a deterministic
@@ -217,7 +217,7 @@ knowable — untagged, the metric spikes but cannot be broken down, and you cann
 plan from the whole book. The paid path emits `pharmacy_claim.paid` with the same `planId` tag.
 
 Failures that are *not* claim rejections are counted separately so they cannot contaminate that
-signal: `pharmacy_claim.not_enrolled` (unknown member id — a client error), and
+signal: `pharmacy_claim.not_enrolled` and `pharmacy_claim.not_on_formulary` (client errors), and
 `pharmacy_claim.config_error` / `member_id_card.config_error` (an enrolled member whose plan
 configuration is absent, seen from the claim path and the card path respectively). Those emit a
 log line and a Sentry event but do not open a Devin session, since neither is the RxBIN defect
@@ -324,7 +324,7 @@ The app is stateless — reload to reset. Each submitted claim raises a fresh al
 ## 12. Verification commands and expected output
 
 ```bash
-npm test                                        # 22 passing tests, 2 suites
+npm test                                        # 23 passing tests, 2 suites
 npm run lint                                    # 0 errors, 2 pre-existing warnings
 node scripts/welcome-season-sweep.js            # exit 1 — NCSHP-7030 and NCSHP-8020 fail
 node scripts/welcome-season-sweep.js --plan-year 1999   # exit 1 — no plans matched, fails closed
