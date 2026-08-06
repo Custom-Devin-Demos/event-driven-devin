@@ -109,7 +109,7 @@ function sweep(year) {
     for (const err of errors) {
       process.stdout.write(`      → ${err}\n`);
     }
-    if (!claim.paid) {
+    if (!claim.paid && errors.length === 0) {
       process.stdout.write(`      → synthetic claim not paid: ${claim.reason}\n`);
     }
     if (ok) {
