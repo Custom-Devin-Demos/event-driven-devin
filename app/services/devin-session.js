@@ -74,6 +74,12 @@ function buildPrompt(alertData) {
     }
   }
 
+  // Scenario-specific investigation directives. Callers must pass a service-owned
+  // constant here — never request-derived data, which would reach the prompt verbatim.
+  if (alertData.promptAppendix) {
+    lines.push('', alertData.promptAppendix);
+  }
+
   return lines
     .filter((l) => l !== null)
     .join('\n');
