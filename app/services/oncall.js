@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, lookupSlackUserByEmail } = require('./slack');
@@ -219,7 +220,7 @@ function resolveOncallEnv() {
  * distinguishable alert (and can dodge duplicate-grouping when desired).
  */
 function makeRunRef() {
-  return `run-${Math.random().toString(16).slice(2, 8)}`;
+  return `run-${crypto.randomBytes(6).toString('hex')}`;
 }
 
 const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
@@ -632,7 +633,11 @@ function activateInfraIncident(kind, windowMs = INFRA_WINDOW_MS, runRef) {
     setScopedScenario(runRef, incident.scenario);
     entry.scenario = incident.scenario;
   }
-  if (incident.memoryGrowth) startMemoryGrowth(windowMs);
+  // Memory growth is process-wide RSS: keep it monotonic across concurrent
+  // runs by only starting the allocator when no other live run holds it.
+  if (incident.memoryGrowth && !Array.from(scopedInfra.values()).some((e) => e.memoryGrowth)) {
+    startMemoryGrowth(windowMs);
+  }
   entry.timer = setTimeout(() => {
     revertScopedInfra(runRef, `window elapsed for ${kind}`);
   }, windowMs);
@@ -971,14 +976,45 @@ async function postOncallIncident(options = {}) {
     throw error;
   }
   logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });
-  return { ok: true, ts, channel: alertsChannel, runRef };
+
+  // Register in the live SEV-1 list too; no Datadog incident to resolve, so
+  // the entry simply flips to resolved when the degradation window ends.
+  const entry = {
+    runRef,
+    kind,
+    label: story.label,
+    summary: story.summary,
+    id: null,
+    publicId: null,
+    declaredAt: Date.now(),
+    resolveAt: Date.now() + SEV1_WINDOW_MS,
+    status: 'declared',
+  };
+  activeSev1.set(runRef, entry);
+  pruneSev1();
+  const resolveTimer = setTimeout(() => { entry.status = 'resolved'; }, SEV1_WINDOW_MS);
+  if (resolveTimer.unref) resolveTimer.unref();
+
+  return {
+    ok: true,
+    ts,
+    channel: alertsChannel,
+    runRef,
+    kind,
+    label: story.label,
+    windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
+  };
 }
 
 /**
  * Live state of declared SEV-1 incidents for the /oncall page.
  */
 function getSev1State() {
-  return Array.from(activeSev1.values()).map((e) => ({
+  // Scoped to the caller, like getInfraState(): only the incident belonging
+  // to the request's oncall_run cookie is listed, never someone else's.
+  const runRef = getOncallRunRef();
+  const entry = runRef ? activeSev1.get(runRef) : null;
+  return (entry ? [entry] : []).map((e) => ({
     runRef: e.runRef,
     kind: e.kind,
     label: e.label,

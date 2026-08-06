@@ -30,6 +30,8 @@ function setRunCookie(res, runRef, windowMinutes) {
     path: '/',
     maxAge: (windowMinutes || 30) * 60000,
     sameSite: 'lax',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
   });
 }
 
