@@ -135,9 +135,10 @@ if (require.main === module) {
   const planYear = planYearArg !== -1 ? Number(args[planYearArg + 1]) : 2026;
   if (!Number.isInteger(planYear)) {
     process.stderr.write('--plan-year requires a four-digit year, e.g. --plan-year 2026\n');
-    process.exit(2);
+    process.exitCode = 2;
+  } else {
+    process.exitCode = sweep(planYear);
   }
-  process.exit(sweep(planYear));
 }
 
 module.exports = { validateRxRouting, submitSyntheticClaim, welcomeSeasonPlans, sweep, BIN_LENGTH };

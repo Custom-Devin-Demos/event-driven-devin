@@ -130,6 +130,7 @@ function generateMemberIdCard(memberId) {
   if (!member) return null;
 
   const plan = PLAN_CONFIGS[member.planId];
+  if (!plan) return null;
 
   return {
     memberId,

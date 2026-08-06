@@ -257,6 +257,12 @@
     async function loadCard(memberId) {
       const res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
       if (!res.ok) {
+        for (const id of ['cardPlanName', 'cardName', 'cardSub', 'cardMemberId', 'cardGroup',
+          'cardPcp', 'cardBin', 'cardPcn', 'cardRxGroup', 'cardEff', 'mName', 'mPlan', 'mId',
+          'mEff', 'mMailed']) {
+          document.getElementById(id).textContent = '\u2014';
+        }
+        document.getElementById('binField').className = 'id-field';
         document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
         return;
       }
