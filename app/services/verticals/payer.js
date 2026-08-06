@@ -73,13 +73,47 @@ const MEMBERS = {
 };
 
 /**
- * Maintenance medications used for the pharmacy counter demo.
+ * Medications used for the pharmacy counter demo. Specialty oncology and other
+ * time-critical therapies, where a rejected first fill is a treatment
+ * interruption rather than a billing inconvenience.
  */
 const FORMULARY = [
-  { ndc: '00093-7267-56', name: 'Levothyroxine 75mcg', daysSupply: 30, copay: 10, cashPrice: 42.18 },
-  { ndc: '00378-1805-93', name: 'Metformin ER 500mg', daysSupply: 90, copay: 15, cashPrice: 63.40 },
-  { ndc: '00071-0155-23', name: 'Atorvastatin 20mg', daysSupply: 30, copay: 10, cashPrice: 38.75 },
-  { ndc: '00186-0740-28', name: 'Escitalopram 10mg', daysSupply: 30, copay: 25, cashPrice: 51.90 },
+  {
+    ndc: '00078-0592-15',
+    name: 'Imatinib 400mg',
+    indication: 'Chronic myeloid leukemia',
+    daysSupply: 30,
+    copay: 50,
+    cashPrice: 2438.60,
+    clinicalNote: 'Daily oral chemotherapy. Interrupting the course lets the leukemia regain ground, and remission is not always recoverable.',
+  },
+  {
+    ndc: '00069-0189-01',
+    name: 'Palbociclib 125mg',
+    indication: 'Metastatic breast cancer',
+    daysSupply: 21,
+    copay: 50,
+    cashPrice: 16204.85,
+    clinicalNote: 'Taken on a fixed 21-day cycle with an aromatase inhibitor. A missed cycle start delays the entire treatment schedule.',
+  },
+  {
+    ndc: '00173-0489-00',
+    name: 'Ondansetron ODT 8mg',
+    indication: 'Chemotherapy-induced nausea',
+    daysSupply: 14,
+    copay: 10,
+    cashPrice: 118.40,
+    clinicalNote: 'Must be in hand before the next infusion. Without it patients skip chemotherapy appointments outright.',
+  },
+  {
+    ndc: '00088-2220-33',
+    name: 'Insulin glargine 100u/mL',
+    indication: 'Type 1 diabetes',
+    daysSupply: 30,
+    copay: 35,
+    cashPrice: 341.72,
+    clinicalNote: 'Cannot be skipped or rationed without risking diabetic ketoacidosis within days.',
+  },
 ];
 
 /**
@@ -115,7 +149,7 @@ const FANOUT_DIRECTIVE = [
   '1. *Card-generation fix* — `generateMemberIdCard()` in `app/services/verticals/payer.js` copies pharmacy routing fields onto member ID cards without validating them. Validate RxBIN/RxPCN/RxGRP against `PAYER_REGISTRY` before a card is issued, fail loudly on an unroutable BIN, and add regression tests covering the 7-digit BIN case. Open a PR.',
   '2. *Blast-radius sweep* — run `node scripts/welcome-season-sweep.js` and audit every plan configuration in `PLAN_CONFIGS`, not just the plan in this alert. Report every plan whose cards would reject at the counter and the total member count affected. Open a PR wiring the sweep into CI so an invalid BIN cannot ship again.',
   '3. *Adjudication bridge* — propose a temporary routing alias so claims presenting the invalid BIN adjudicate to the correct processor while corrected cards are reprinted, so members are not asked to pay cash at the counter. Include the rollback path and an expiry.',
-  '4. *Member impact and comms* — produce the affected-member list by plan and group, a pharmacy help-desk script for the reject code, and a JIRA ticket capturing root cause, remediation, and the prevention control.',
+  '4. *Member impact and comms* — produce the affected-member list by plan and group, triaged so members on specialty and oncology therapies are contacted first: for them a rejected first fill is an interrupted course of treatment, not a delayed errand. Include a pharmacy help-desk script for the reject code and a JIRA ticket capturing root cause, remediation, and the prevention control.',
   '',
   'Note for triage: every service is healthy and no infrastructure alert fired. The signal is a business metric — `pharmacy_claim.rejected` by `planId` — and the defect is in plan configuration data, not infrastructure.',
 ].join('\n');
@@ -196,6 +230,7 @@ async function adjudicateClaim(data) {
       memberId: data.memberId,
       memberName: card.memberName,
       drug: drug.name,
+      indication: drug.indication,
       daysSupply: drug.daysSupply,
       copay: drug.copay,
       routedTo,
@@ -216,6 +251,7 @@ async function adjudicateClaim(data) {
 
     incrementMetric('pharmacy_claim.rejected', {
       route: '/api/payer/pharmacy-claim',
+      planId: card.planId,
       errorClass: error.name,
       rejectCode: error.rejectCode || 'unknown',
     });

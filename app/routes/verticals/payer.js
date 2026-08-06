@@ -46,7 +46,7 @@ router.post('/api/payer/pharmacy-claim', async (req, res) => {
   try {
     const result = await adjudicateClaim({
       memberId: req.body.memberId || 'MEM-100234',
-      ndc: req.body.ndc || '00093-7267-56',
+      ndc: req.body.ndc || '00078-0592-15',
       pharmacyNpi: req.body.pharmacyNpi || '1487654321',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,

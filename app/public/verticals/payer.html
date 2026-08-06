@@ -103,6 +103,7 @@
     .member-cost { margin-top: 0.7rem; padding: 0.65rem 0.85rem; background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 8px; font-size: 0.76rem; color: #8a4b00; display: none; }
     .member-cost.show { display: block; }
     .member-cost strong { font-size: 0.95rem; }
+    .member-cost .clinical { display: block; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid var(--amber-border); font-weight: 600; }
 
     /* Rejection rate panel */
     .panel { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.35rem 1.5rem; box-shadow: var(--shadow); }
@@ -250,7 +251,7 @@
       const sel = document.getElementById('memberId');
       sel.innerHTML = data.members.map((m) => `<option value="${esc(m.id)}">${esc(m.name)} &mdash; ${esc(m.planId)}</option>`).join('');
       document.getElementById('ndc').innerHTML = formulary
-        .map((f) => `<option value="${esc(f.ndc)}">${esc(f.name)} &mdash; ${esc(f.daysSupply)}-day</option>`)
+        .map((f) => `<option value="${esc(f.ndc)}">${esc(f.name)} &mdash; ${esc(f.indication)}</option>`)
         .join('');
       await loadCard(sel.value);
     }
@@ -384,7 +385,10 @@
              </div>` : ''}`;
           if (drug) {
             cost.className = 'member-cost show';
-            cost.innerHTML = `Member is asked to pay cash or come back later &mdash; <strong>$${drug.cashPrice.toFixed(2)}</strong> instead of a $${drug.copay} copay for ${esc(drug.name)}.`;
+            cost.innerHTML =
+              `${esc(drug.name)} for ${esc(drug.indication)} is not dispensed. To leave with it today the member pays ` +
+              `<strong>$${drug.cashPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong> cash instead of a $${drug.copay} copay. ` +
+              `<span class="clinical">${esc(drug.clinicalNote)}</span>`;
           }
         } else {
           box.className = 'reject show ok';
@@ -397,6 +401,7 @@
                <div class="row"><span class="k">Routed to</span><span class="v">${esc(data.routedTo)}</span></div>
                <div class="row"><span class="k">RxBIN / RxPCN</span><span class="v">${esc(data.rxBin)} / ${esc(data.rxPcn)}</span></div>
                <div class="row"><span class="k">Drug</span><span class="v">${esc(data.drug)} (${esc(data.daysSupply)}-day)</span></div>
+               <div class="row"><span class="k">Indication</span><span class="v">${esc(data.indication)}</span></div>
                <div class="row"><span class="k">Member copay</span><span class="v">$${esc(data.copay)}</span></div>
              </div>`;
         }

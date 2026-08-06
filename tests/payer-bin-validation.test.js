@@ -20,18 +20,19 @@ const {
 
 describe('payer pharmacy claim adjudication', () => {
   test('pays a claim for a member whose card carries a registered BIN', async () => {
-    const result = await adjudicateClaim({ memberId: 'MEM-200145', ndc: '00093-7267-56' });
+    const result = await adjudicateClaim({ memberId: 'MEM-200145', ndc: '00078-0592-15' });
 
     expect(result.success).toBe(true);
     expect(result.status).toBe('paid');
     expect(result.routedTo).toBe(PAYER_REGISTRY[result.rxBin].name);
-    expect(result.copay).toBe(10);
+    expect(result.copay).toBe(50);
+    expect(result.indication).toBe('Chronic myeloid leukemia');
   });
 
   test('rejects with NCPDP reject 06 when the card BIN has no processor route', async () => {
     expect.assertions(3);
     try {
-      await adjudicateClaim({ memberId: 'MEM-100234', ndc: '00093-7267-56' });
+      await adjudicateClaim({ memberId: 'MEM-100234', ndc: '00078-0592-15' });
     } catch (error) {
       expect(error.rejectCode).toBe('06');
       expect(error.submittedBin).toBe('0044336');
@@ -42,7 +43,7 @@ describe('payer pharmacy claim adjudication', () => {
   test('fails a claim for an unenrolled member without raising a routing error', async () => {
     expect.assertions(2);
     try {
-      await adjudicateClaim({ memberId: 'MEM-000000', ndc: '00093-7267-56' });
+      await adjudicateClaim({ memberId: 'MEM-000000', ndc: '00078-0592-15' });
     } catch (error) {
       expect(error.code).toBe('MEMBER_NOT_FOUND');
       expect(error.rejectCode).toBeUndefined();

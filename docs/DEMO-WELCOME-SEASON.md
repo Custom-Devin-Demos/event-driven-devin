@@ -27,11 +27,17 @@ Point at the **RxBIN** field: `0044336`.
 
 > "Pharmacy BINs are six digits. This one is seven. That card was mailed in November, it takes effect January 1, and there is nothing on it a member, a call center rep, or a pharmacist would flag as wrong."
 
+The medication selector is on **Imatinib 400mg — chronic myeloid leukemia**. Leave it there.
+
 Click **Submit Claim to Payer**.
 
-> "This is the counter on January 2nd."
+> "This is the counter on January 2nd. She is picking up daily oral chemotherapy."
 
-The claim comes back **REJECT 06**, and the member is asked for **$42.18 cash instead of a $10 copay.**
+The claim comes back **REJECT 06**, and the member is asked for **$2,438.60 cash instead of a $50 copay** — with the clinical consequence spelled out underneath.
+
+> "She is not going to pay twenty-four hundred dollars at the counter. She goes home without her chemotherapy, and this is the population where an interrupted course does not simply resume."
+
+The other options in the selector are palbociclib, chemo anti-nausea, and insulin — pick any of them if someone asks whether this is cherry-picked.
 
 ### 1:00 – 1:45 · The signal is a business metric, not an alert
 
