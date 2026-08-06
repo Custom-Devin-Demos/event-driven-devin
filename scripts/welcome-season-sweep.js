@@ -52,6 +52,8 @@ function validateRxRouting(config, year) {
 
   if (!config.rxBin) {
     errors.push('RxBIN is missing');
+  } else if (typeof config.rxBin !== 'string') {
+    errors.push(`RxBIN ${config.rxBin} is a ${typeof config.rxBin} — a BIN with a leading zero only survives as a string`);
   } else if (!/^\d+$/.test(config.rxBin)) {
     errors.push(`RxBIN "${config.rxBin}" is not numeric`);
   } else if (config.rxBin.length !== BIN_LENGTH) {

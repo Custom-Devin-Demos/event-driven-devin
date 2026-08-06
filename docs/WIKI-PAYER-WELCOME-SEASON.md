@@ -143,7 +143,7 @@ app/services/verticals/payer.js      PAYER_REGISTRY, PLAN_CONFIGS, MEMBERS, FORM
         └──▶ app/services/devin-session.js → Slack alert + Devin session
 
 scripts/welcome-season-sweep.js      pre-print validation gate (Act 2), reuses the same registry
-tests/payer-bin-validation.test.js   21 tests over adjudication, card generation, sweep
+tests/payer-bin-validation.test.js   22 tests over adjudication, card generation, sweep
 ```
 
 The page is served at both `/verticals/payer.html` and the friendly alias
@@ -322,7 +322,7 @@ Expected member flow:
 2. The medication selector defaults to imatinib 400mg for chronic myeloid leukemia.
 3. Submitting the claim returns `REJECT 06`, submitted RxBIN `0044336`, and the amber panel showing $2,438.60 cash against a $50 copay plus the clinical note.
 4. Switching to Dana Okafor and submitting pays, routed to Aetna Pharmacy Management.
-5. The chart shows ~2.1% baseline through 12/31 and ~95.3% from 01/01, with "no infrastructure alert fired".
+5. The chart shows ~2.1% baseline through 12/31 and ~95.4% from 01/01, with "no infrastructure alert fired".
 6. The submit button stays disabled whenever a card is not loaded.
 
 The app is stateless — reload to reset. Each submitted claim raises a fresh alert and session.
@@ -330,7 +330,7 @@ The app is stateless — reload to reset. Each submitted claim raises a fresh al
 ## 12. Verification commands and expected output
 
 ```bash
-npm test                                        # 26 passing tests, 2 suites
+npm test                                        # 27 passing tests, 2 suites
 npm run lint                                    # 0 errors, 2 pre-existing warnings
 node scripts/welcome-season-sweep.js            # exit 1 — NCSHP-7030 and NCSHP-8020 fail
 node scripts/welcome-season-sweep.js --plan-year 1999   # exit 1 — no plans matched, fails closed
