@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Portal &mdash; Pharmacy Benefits</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Lora:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #7d3f98; --purple-light: #9556ad; --purple-dim: rgba(125,63,152,0.05);
+      --purple-deep: #5b2d70;
+      --bg: #f5f6fa; --white: #ffffff;
+      --gray-50: #fafbfc; --gray-100: #f0f2f5; --gray-200: #e1e5ea;
+      --gray-300: #c9ced6; --gray-400: #9aa1ad; --gray-500: #6b7585;
+      --gray-600: #4a5568; --gray-700: #2d3748; --gray-800: #1a202c;
+      --danger: #c62828; --danger-bg: #fdecea; --danger-border: #ef9a9a;
+      --success: #2e7d32; --success-bg: #e8f5e9; --success-border: #a5d6a7;
+      --amber: #ef6c00; --amber-bg: #fff4e5; --amber-border: #ffcc80;
+      --heading: 'Lora', Georgia, serif;
+      --body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 2px 12px rgba(0,0,0,0.03);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--bg); color: var(--gray-700); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.5s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; } .fi4 { animation-delay: 0.2s; } .fi5 { animation-delay: 0.25s; }
+
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 0.6rem; }
+    .logo-mark { width: 32px; height: 32px; background: var(--purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--heading); font-weight: 600; font-size: 1rem; }
+    .logo-text { font-family: var(--heading); font-size: 1.2rem; font-weight: 600; color: var(--purple); }
+    .logo-text span { color: var(--gray-400); font-weight: 400; }
+    nav { display: flex; gap: 0.15rem; }
+    nav a { color: var(--gray-500); text-decoration: none; font-size: 0.82rem; font-weight: 600; padding: 0.45rem 0.85rem; border-radius: 8px; transition: all 0.2s; }
+    nav a:hover { background: var(--purple-dim); color: var(--purple); }
+    nav a.active { background: var(--purple); color: #fff; }
+
+    .page { max-width: 1060px; margin: 0 auto; padding: 1.5rem clamp(1.5rem, 4vw, 3rem) 3rem; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--purple); text-decoration: none; font-size: 0.78rem; font-weight: 600; margin-bottom: 1rem; }
+
+    .member-banner { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; box-shadow: var(--shadow); flex-wrap: wrap; gap: 1rem; }
+    .member-info h1 { font-family: var(--heading); font-size: 1.4rem; font-weight: 600; color: var(--gray-800); margin-bottom: 0.1rem; }
+    .member-info p { font-size: 0.82rem; color: var(--gray-500); }
+    .member-id { font-family: var(--mono); font-size: 0.72rem; color: var(--gray-400); margin-top: 0.25rem; }
+    .plan-year { text-align: right; }
+    .plan-year .label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 0.15rem; }
+    .plan-year .date { font-family: var(--heading); font-size: 1.1rem; color: var(--purple); }
+    .plan-year .sub { font-size: 0.78rem; color: var(--gray-500); }
+
+    .section-title { font-family: var(--heading); font-size: 1rem; font-weight: 600; color: var(--gray-800); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+    .section-title::before { content: ''; width: 3px; height: 18px; background: var(--purple); border-radius: 2px; }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.75rem; align-items: start; }
+    @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+
+    /* Digital member ID card */
+    .id-card { background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%); border-radius: 14px; padding: 1.35rem 1.5rem; color: #fff; box-shadow: 0 6px 22px rgba(91,45,112,0.28); }
+    .id-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.1rem; }
+    .id-card-brand { font-family: var(--heading); font-size: 1.05rem; font-weight: 600; }
+    .id-card-type { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.18); padding: 0.2rem 0.5rem; border-radius: 20px; }
+    .id-card-name { font-family: var(--heading); font-size: 1.2rem; font-weight: 600; margin-bottom: 0.05rem; }
+    .id-card-sub { font-size: 0.72rem; opacity: 0.82; margin-bottom: 1.1rem; }
+    .id-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem 0.5rem; padding-top: 0.9rem; border-top: 1px solid rgba(255,255,255,0.22); }
+    .id-field .k { font-size: 0.56rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.72; margin-bottom: 0.1rem; }
+    .id-field .v { font-family: var(--mono); font-size: 0.82rem; font-weight: 500; }
+    .id-field.flag .v { background: rgba(255,255,255,0.95); color: var(--danger); padding: 0 0.25rem; border-radius: 3px; }
+    .id-card-foot { margin-top: 0.9rem; font-size: 0.62rem; opacity: 0.7; display: flex; justify-content: space-between; }
+
+    .card-note { margin-top: 0.65rem; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.72rem; background: var(--gray-50); border: 1px solid var(--gray-200); color: var(--gray-500); }
+    .card-note strong { color: var(--gray-700); }
+
+    /* Pharmacy counter */
+    .counter-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
+    .counter-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.1rem; }
+    .counter-head h2 { font-family: var(--heading); font-size: 1rem; font-weight: 600; color: var(--gray-800); }
+    .counter-head .npi { font-family: var(--mono); font-size: 0.65rem; color: var(--gray-400); }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--gray-500); margin-bottom: 0.25rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.6rem 0.8rem; border: 1.5px solid var(--gray-200); border-radius: 8px; font-family: var(--body); font-size: 0.85rem; color: var(--gray-700); background: #fff; transition: all 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(125,63,152,0.08); }
+    .btn-submit { width: 100%; padding: 0.7rem; background: var(--purple); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700; font-family: var(--body); cursor: pointer; transition: all 0.2s; }
+    .btn-submit:hover { background: var(--purple-light); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .reject { margin-top: 0.8rem; border-radius: 10px; display: none; overflow: hidden; }
+    .reject.show { display: block; }
+    .reject.err { background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .reject.ok { background: var(--success-bg); border: 1px solid var(--success-border); }
+    .reject-head { padding: 0.7rem 0.9rem 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .reject-code { font-family: var(--mono); font-size: 0.72rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px; background: rgba(0,0,0,0.07); }
+    .reject.err .reject-title { font-weight: 800; color: var(--danger); font-size: 0.85rem; }
+    .reject.ok .reject-title { font-weight: 800; color: var(--success); font-size: 0.85rem; }
+    .reject-body { padding: 0 0.9rem 0.75rem; font-size: 0.76rem; }
+    .reject-body .row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.2rem 0; }
+    .reject-body .row .k { color: var(--gray-500); font-weight: 600; }
+    .reject-body .row .v { font-family: var(--mono); font-size: 0.72rem; text-align: right; word-break: break-all; }
+    .tech { margin: 0.55rem 0.9rem 0.8rem; padding: 0.5rem 0.65rem; background: rgba(0,0,0,0.045); border-radius: 6px; font-family: var(--mono); font-size: 0.66rem; color: var(--gray-600); }
+    .tech .tl { font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; font-size: 0.58rem; color: var(--gray-400); margin-bottom: 0.15rem; }
+    .member-cost { margin-top: 0.7rem; padding: 0.65rem 0.85rem; background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 8px; font-size: 0.76rem; color: #8a4b00; display: none; }
+    .member-cost.show { display: block; }
+    .member-cost strong { font-size: 0.95rem; }
+
+    /* Rejection rate panel */
+    .panel { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 1.35rem 1.5rem; box-shadow: var(--shadow); }
+    .panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .panel-head h2 { font-family: var(--heading); font-size: 0.98rem; font-weight: 600; color: var(--gray-800); }
+    .panel-head .meta { font-size: 0.7rem; color: var(--gray-400); font-family: var(--mono); }
+    .chart { display: flex; align-items: flex-end; gap: 4px; height: 150px; padding: 0.5rem 0 0; border-bottom: 1px solid var(--gray-200); }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; }
+    .bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--gray-300); transition: all 0.3s; }
+    .bar.spike { background: var(--danger); }
+    .bar-wrap:hover .bar { opacity: 0.75; }
+    .bar-val { font-family: var(--mono); font-size: 0.55rem; color: var(--gray-500); margin-bottom: 2px; }
+    .bar-wrap.spike-wrap .bar-val { color: var(--danger); font-weight: 700; }
+    .x-axis { display: flex; gap: 4px; margin-top: 0.35rem; }
+    .x-tick { flex: 1; text-align: center; font-family: var(--mono); font-size: 0.52rem; color: var(--gray-400); }
+    .boundary { margin-top: 0.9rem; padding: 0.6rem 0.8rem; background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 8px; font-size: 0.74rem; color: var(--danger); }
+    .boundary strong { font-weight: 800; }
+    .legend { display: flex; gap: 1.1rem; margin-top: 0.7rem; font-size: 0.68rem; color: var(--gray-500); }
+    .legend span { display: flex; align-items: center; gap: 0.3rem; }
+    .swatch { width: 9px; height: 9px; border-radius: 2px; }
+    .swatch.norm { background: var(--gray-300); }
+    .swatch.bad { background: var(--danger); }
+
+    .footnote { margin-top: 1.5rem; padding: 0.7rem 0.9rem; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.68rem; color: var(--gray-400); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo"><div class="logo-mark">&#8483;</div><div class="logo-text">Member <span>Portal</span></div></div>
+    <nav><a href="#" class="active">Coverage</a><a href="#">Claims</a><a href="#">Pharmacy</a><a href="#">Find Care</a><a href="#">Messages</a></nav>
+  </header>
+  <div class="page">
+    <a href="/" class="back-link fi">&larr; All Demos</a>
+
+    <div class="member-banner fi fi1">
+      <div class="member-info">
+        <h1 id="mName">Loading&hellip;</h1>
+        <p id="mPlan">&nbsp;</p>
+        <div class="member-id" id="mId">&nbsp;</div>
+      </div>
+      <div class="plan-year">
+        <div class="label">Plan Year Effective</div>
+        <div class="date" id="mEff">&mdash;</div>
+        <div class="sub" id="mMailed">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="split fi fi2">
+      <div>
+        <div class="section-title">My Digital ID Card</div>
+        <div class="id-card" id="idCard">
+          <div class="id-card-top">
+            <div class="id-card-brand" id="cardPlanName">&nbsp;</div>
+            <div class="id-card-type">Medical + Rx</div>
+          </div>
+          <div class="id-card-name" id="cardName">&nbsp;</div>
+          <div class="id-card-sub" id="cardSub">&nbsp;</div>
+          <div class="id-card-grid">
+            <div class="id-field"><div class="k">Member ID</div><div class="v" id="cardMemberId">&mdash;</div></div>
+            <div class="id-field"><div class="k">Group</div><div class="v" id="cardGroup">&mdash;</div></div>
+            <div class="id-field"><div class="k">PCP</div><div class="v" id="cardPcp">&mdash;</div></div>
+            <div class="id-field" id="binField"><div class="k">RxBIN</div><div class="v" id="cardBin">&mdash;</div></div>
+            <div class="id-field"><div class="k">RxPCN</div><div class="v" id="cardPcn">&mdash;</div></div>
+            <div class="id-field"><div class="k">RxGRP</div><div class="v" id="cardRxGroup">&mdash;</div></div>
+          </div>
+          <div class="id-card-foot"><span id="cardEff">&nbsp;</span><span>Present at pharmacy</span></div>
+        </div>
+        <div class="card-note" id="cardNote">Cards for the new plan year mail in November and take effect January 1.</div>
+      </div>
+
+      <div>
+        <div class="section-title">Pharmacy Counter &mdash; Submit Claim</div>
+        <div class="counter-card">
+          <div class="counter-head">
+            <h2>NCPDP D.0 Claim</h2>
+            <div class="npi">NPI 1487654321</div>
+          </div>
+          <form id="claimForm">
+            <div class="form-group">
+              <label>Member</label>
+              <select id="memberId"></select>
+            </div>
+            <div class="form-group">
+              <label>Medication</label>
+              <select id="ndc"></select>
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">Submit Claim to Payer</button>
+          </form>
+          <div class="reject" id="reject"></div>
+          <div class="member-cost" id="memberCost"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fi fi3">
+      <div class="section-title">Pharmacy Claim Rejection Rate &mdash; NC State Health Plan</div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Daily rejection rate across the plan-year boundary</h2>
+          <div class="meta">metric: pharmacy_claim.rejected / total</div>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="x-axis" id="xAxis"></div>
+        <div class="boundary" id="boundary">&nbsp;</div>
+        <div class="legend">
+          <span><i class="swatch norm"></i> 2025 plan year (baseline)</span>
+          <span><i class="swatch bad"></i> 2026 plan year (post-effective-date)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footnote">Demo environment. Member records, plan configurations, and claim data are synthetic.</div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const VALID_BIN_LENGTH = 6;
+    let formulary = [];
+
+    function fmtDate(iso) {
+      const [y, m, d] = iso.split('-');
+      return `${m}/${d}/${y}`;
+    }
+
+    async function loadMembers() {
+      const res = await fetch('/api/payer/members');
+      const data = await res.json();
+      formulary = data.formulary;
+      const sel = document.getElementById('memberId');
+      sel.innerHTML = data.members.map((m) => `<option value="${m.id}">${m.name} &mdash; ${m.planId}</option>`).join('');
+      document.getElementById('ndc').innerHTML = formulary
+        .map((f) => `<option value="${f.ndc}">${f.name} &mdash; ${f.daysSupply}-day</option>`)
+        .join('');
+      await loadCard(sel.value);
+    }
+
+    async function loadCard(memberId) {
+      const res = await fetch(`/api/payer/id-card/${memberId}`);
+      const card = await res.json();
+
+      document.getElementById('mName').textContent = `Welcome, ${card.memberName}`;
+      document.getElementById('mPlan').textContent = `${card.planName} \u00b7 PCP ${card.pcp}`;
+      document.getElementById('mId').textContent = `Member ID: ${card.memberId}`;
+      document.getElementById('mEff').textContent = fmtDate(card.effectiveDate);
+      document.getElementById('mMailed').textContent = `ID card mailed ${fmtDate(card.cardsMailedOn)}`;
+
+      document.getElementById('cardPlanName').textContent = card.planName;
+      document.getElementById('cardName').textContent = card.memberName;
+      document.getElementById('cardSub').textContent = `Plan year ${card.planYear} \u00b7 ${card.dependents} dependent(s)`;
+      document.getElementById('cardMemberId').textContent = card.memberId;
+      document.getElementById('cardGroup').textContent = card.planId;
+      document.getElementById('cardPcp').textContent = card.pcp.replace('Dr. ', 'Dr ');
+      document.getElementById('cardBin').textContent = card.rxBin;
+      document.getElementById('cardPcn').textContent = card.rxPcn;
+      document.getElementById('cardRxGroup').textContent = card.rxGroup;
+      document.getElementById('cardEff').textContent = `Effective ${fmtDate(card.effectiveDate)}`;
+
+      const bad = card.rxBin.length !== VALID_BIN_LENGTH;
+      document.getElementById('binField').className = bad ? 'id-field flag' : 'id-field';
+      document.getElementById('cardNote').innerHTML = bad
+        ? `This card was printed with a <strong>${card.rxBin.length}-digit RxBIN (${card.rxBin})</strong>. BINs are six digits. The card looks correct to the member &mdash; nothing on it is visibly wrong.`
+        : 'Cards for the new plan year mail in November and take effect January 1.';
+
+      document.getElementById('reject').className = 'reject';
+      document.getElementById('memberCost').className = 'member-cost';
+    }
+
+    async function loadChart() {
+      const res = await fetch('/api/payer/rejection-series');
+      const { series } = await res.json();
+      const max = Math.max(...series.map((p) => p.rejectionRate));
+      const chart = document.getElementById('chart');
+      const axis = document.getElementById('xAxis');
+
+      chart.innerHTML = series
+        .map((p) => {
+          const spike = p.date >= '2026-01-01';
+          const h = Math.max(2, (p.rejectionRate / max) * 100);
+          return `<div class="bar-wrap ${spike ? 'spike-wrap' : ''}" title="${p.date}: ${p.rejectionRate}% of ${p.claims.toLocaleString()} claims">
+            <div class="bar-val">${p.rejectionRate}</div>
+            <div class="bar ${spike ? 'spike' : ''}" style="height:${h}%"></div>
+          </div>`;
+        })
+        .join('');
+
+      axis.innerHTML = series.map((p) => `<div class="x-tick">${p.date.slice(5).replace('-', '/')}</div>`).join('');
+
+      const before = series.filter((p) => p.date < '2026-01-01');
+      const after = series.filter((p) => p.date >= '2026-01-01');
+      const avg = (arr) => (arr.reduce((s, p) => s + p.rejectionRate, 0) / arr.length).toFixed(1);
+      const affected = after.reduce((s, p) => s + Math.round(p.claims * (p.rejectionRate / 100)), 0);
+      document.getElementById('boundary').innerHTML =
+        `Baseline <strong>${avg(before)}%</strong> through 12/31 &rarr; <strong>${avg(after)}%</strong> from 01/01. ` +
+        `<strong>${affected.toLocaleString()}</strong> claims rejected since the new plan year took effect. ` +
+        `No infrastructure alert fired &mdash; every service is healthy.`;
+    }
+
+    document.getElementById('memberId').addEventListener('change', (e) => loadCard(e.target.value));
+
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const box = document.getElementById('reject');
+      const cost = document.getElementById('memberCost');
+      const ndc = document.getElementById('ndc').value;
+      const drug = formulary.find((f) => f.ndc === ndc);
+
+      btn.disabled = true;
+      btn.textContent = 'Transmitting\u2026';
+      box.className = 'reject';
+      cost.className = 'member-cost';
+
+      try {
+        const res = await fetch('/api/payer/pharmacy-claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            memberId: document.getElementById('memberId').value,
+            ndc,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          box.className = 'reject show err';
+          box.innerHTML =
+            `<div class="reject-head">
+               <span class="reject-code">REJECT ${data.rejectCode || '\u2014'}</span>
+               <span class="reject-title">Claim not paid</span>
+             </div>
+             <div class="reject-body">
+               <div class="row"><span class="k">Reject reason</span><span class="v">${data.rejectReason || data.error}</span></div>
+               <div class="row"><span class="k">Submitted RxBIN</span><span class="v">${data.submittedBin || '\u2014'}</span></div>
+               <div class="row"><span class="k">Request ID</span><span class="v">${data.requestId || '\u2014'}</span></div>
+             </div>
+             <div class="tech">
+               <div class="tl">Payer-side exception</div>
+               ${data.errorClass}: ${data.error}
+             </div>`;
+          cost.className = 'member-cost show';
+          cost.innerHTML = `Member is asked to pay cash or come back later &mdash; <strong>$${drug.cashPrice.toFixed(2)}</strong> instead of a $${drug.copay} copay for ${drug.name}.`;
+        } else {
+          box.className = 'reject show ok';
+          box.innerHTML =
+            `<div class="reject-head">
+               <span class="reject-code">PAID</span>
+               <span class="reject-title">Claim adjudicated</span>
+             </div>
+             <div class="reject-body">
+               <div class="row"><span class="k">Routed to</span><span class="v">${data.routedTo}</span></div>
+               <div class="row"><span class="k">RxBIN / RxPCN</span><span class="v">${data.rxBin} / ${data.rxPcn}</span></div>
+               <div class="row"><span class="k">Drug</span><span class="v">${data.drug} (${data.daysSupply}-day)</span></div>
+               <div class="row"><span class="k">Member copay</span><span class="v">$${data.copay}</span></div>
+             </div>`;
+        }
+      } catch (err) {
+        box.className = 'reject show err';
+        box.innerHTML = `<div class="reject-head"><span class="reject-title">Network Error</span></div><div class="tech">${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Claim to Payer';
+      }
+    });
+
+    loadMembers();
+    loadChart();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

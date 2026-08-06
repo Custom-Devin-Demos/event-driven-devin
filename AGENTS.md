@@ -22,8 +22,20 @@ The app hosts 9 verticals, each accessible at its own URL:
 | **Industrials** | `/industrials` | `app/public/verticals/industrials.html` | `POST /api/maintenance/workorder` | `app/services/verticals/industrials.js` |
 | **Healthcare** | `/healthcare` | `app/public/verticals/healthcare.html` | `POST /api/healthcare/appointment` | `app/services/verticals/healthcare.js` |
 | **Telco** | `/telco` | `app/public/verticals/telco.html` | `POST /api/telco/upgrade` | `app/services/verticals/telco.js` |
+| **Payer** | `/payer`, `/welcome-season` | `app/public/verticals/payer.html` | `POST /api/payer/pharmacy-claim` | `app/services/verticals/payer.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
+
+### Payer welcome-season scenario
+
+The payer vertical models a plan-configuration defect rather than an infrastructure failure: `PLAN_CONFIGS` carries a 7-digit `rxBin` (`0044336` instead of `004336`) for two plans, `generateMemberIdCard()` copies it onto member ID cards unvalidated, and `adjudicateClaim()` then finds no `PAYER_REGISTRY` entry for that BIN. Every service stays healthy — the only signal is the `pharmacy_claim.rejected` business metric.
+
+Two things are deliberately separate:
+
+- **The defect is left in place** so Devin performs the fix live (add routing validation before a card is issued). Set both NC State Health Plan `rxBin` values to `004336` to run the demo pre-fixed.
+- **`scripts/welcome-season-sweep.js` is the prevention control** — it validates every Jan-1 plan config and submits synthetic claims, exiting non-zero before cards mail. It owns its own `validateRxRouting()` because the service intentionally has none yet.
+
+`FANOUT_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`, instructing the triage session to split remediation across four parallel child sessions. See `docs/DEMO-WELCOME-SEASON.md` for the run sheet.
 
 ## Repository Structure
 
@@ -42,7 +54,8 @@ Each vertical follows the same flow: **User action → Bug triggers → Sentry/D
 │   │       ├── hightech.html      # NovaSoft — SaaS License Management
 │   │       ├── industrials.html   # Titan Mfg — Equipment Maintenance
 │   │       ├── healthcare.html    # CarePoint — Patient Portal
-│   │       └── telco.html         # WaveConnect — Telecom Self-Service
+│   │       ├── telco.html         # WaveConnect — Telecom Self-Service
+│   │       └── payer.html         # Payer — Member ID card + pharmacy counter
 │   ├── routes/
 │   │   ├── storefront.js          # Retail: product catalog + checkout
 │   │   ├── verticals/
@@ -54,7 +67,8 @@ Each vertical follows the same flow: **User action → Bug triggers → Sentry/D
 │   │   │   ├── hightech.js        # High Tech: subscriptions + license provisioning
 │   │   │   ├── industrials.js     # Industrials: equipment + work orders
 │   │   │   ├── healthcare.js      # Healthcare: providers + appointments
-│   │   │   └── telco.js           # Telco: plans + upgrades
+│   │   │   ├── telco.js           # Telco: plans + upgrades
+│   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -74,7 +88,8 @@ Each vertical follows the same flow: **User action → Bug triggers → Sentry/D
 │   │   │   ├── hightech.js        # License provisioning business logic
 │   │   │   ├── industrials.js     # Maintenance work order business logic
 │   │   │   ├── healthcare.js      # Appointment scheduling business logic
-│   │   │   └── telco.js           # Plan upgrade business logic
+│   │   │   ├── telco.js           # Plan upgrade business logic
+│   │   │   └── payer.js           # Pharmacy claim adjudication business logic
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
 │   │   ├── github-webhook.js      # GitHub webhook processing
 │   │   ├── auth.js                # Auth service
@@ -91,6 +106,7 @@ Each vertical follows the same flow: **User action → Bug triggers → Sentry/D
 │   ├── setup-sentry-alerts.js     # Creates Sentry alert rules via API
 │   ├── trigger.js                 # Manually trigger error scenarios
 │   ├── warmup.js                  # Pre-warm the app
+│   ├── welcome-season-sweep.js    # Validates Jan-1 plan card configs before cards mail (exits 1 on defect)
 │   ├── reset.js                   # Reset scenario to healthy
 │   └── cleanup.js                 # Clean up resources
 ├── config/
@@ -374,6 +390,7 @@ When the app is running (locally at `localhost:3000` or on EC2 via `https://<DOM
 | Industrials | `https://<DOMAIN_NAME>/industrials` |
 | Healthcare | `https://<DOMAIN_NAME>/healthcare` |
 | Telco | `https://<DOMAIN_NAME>/telco` |
+| Payer (welcome season) | `https://<DOMAIN_NAME>/welcome-season` |
 
 ## External Integrations
 

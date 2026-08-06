@@ -1,0 +1,70 @@
+const express = require('express');
+const {
+  adjudicateClaim,
+  generateMemberIdCard,
+  MEMBERS,
+  FORMULARY,
+  REJECTION_SERIES,
+} = require('../../services/verticals/payer');
+
+const router = express.Router();
+
+/**
+ * GET /api/payer/members — member roster for the plan-year selector
+ */
+router.get('/api/payer/members', (_req, res) => {
+  const members = Object.entries(MEMBERS).map(([id, member]) => ({
+    id,
+    name: member.name,
+    planId: member.planId,
+  }));
+  res.json({ members, formulary: FORMULARY });
+});
+
+/**
+ * GET /api/payer/id-card/:memberId — member digital ID card as printed for the plan year
+ */
+router.get('/api/payer/id-card/:memberId', (req, res) => {
+  const card = generateMemberIdCard(req.params.memberId);
+  if (!card) {
+    return res.status(404).json({ success: false, error: 'Member not found' });
+  }
+  res.json(card);
+});
+
+/**
+ * GET /api/payer/rejection-series — daily pharmacy claim rejection rate across the plan-year boundary
+ */
+router.get('/api/payer/rejection-series', (_req, res) => {
+  res.json({ series: REJECTION_SERIES });
+});
+
+/**
+ * POST /api/payer/pharmacy-claim — adjudicate an NCPDP claim submitted at the counter
+ */
+router.post('/api/payer/pharmacy-claim', async (req, res) => {
+  try {
+    const result = await adjudicateClaim({
+      memberId: req.body.memberId || 'MEM-100234',
+      ndc: req.body.ndc || '00093-7267-56',
+      pharmacyNpi: req.body.pharmacyNpi || '1487654321',
+      devinUserId: req.body.devinUserId,
+      devinOrgId: req.body.devinOrgId,
+      devinEmail: req.body.devinEmail,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.rejectCode ? 'CLAIM_REJECTED' : 'ADJUDICATION_FAILED',
+      rejectCode: error.rejectCode,
+      rejectReason: error.rejectReason,
+      submittedBin: error.submittedBin,
+      requestId: req.requestId,
+    });
+  }
+});
+
+module.exports = router;

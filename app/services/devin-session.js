@@ -74,6 +74,11 @@ function buildPrompt(alertData) {
     }
   }
 
+  // Scenario-specific investigation directives supplied by the calling service
+  if (alertData.promptAppendix) {
+    lines.push('', alertData.promptAppendix);
+  }
+
   return lines
     .filter((l) => l !== null)
     .join('\n');
