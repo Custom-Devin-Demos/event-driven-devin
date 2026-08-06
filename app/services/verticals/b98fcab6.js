@@ -106,8 +106,11 @@ async function processGlobalAccountQuote(data) {
       extra: { requestId, corridor: data.corridor, amount: data.amount },
     });
 
+    const issueTitle = 'Global Account Registration Flow error';
+
     createSessionAndAlert({
-      issueTitle: 'Global Account Registration Flow error',
+      issueTitle,
+      title: issueTitle,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/b98fcab6.js — computeFxQuote',
       errorType: error.name || 'Error',

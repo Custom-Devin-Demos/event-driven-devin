@@ -179,6 +179,7 @@ async function createSessionAndAlert(alertData) {
         apiKey: config.apiKey,
         orgId: resolvedOrgId,
         userId: resolvedUserId,
+        title: alertData.title,
       });
 
       if (session) {
