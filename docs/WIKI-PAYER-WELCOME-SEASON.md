@@ -143,7 +143,7 @@ app/services/verticals/payer.js      PAYER_REGISTRY, PLAN_CONFIGS, MEMBERS, FORM
         └──▶ app/services/devin-session.js → Slack alert + Devin session
 
 scripts/welcome-season-sweep.js      pre-print validation gate (Act 2), reuses the same registry
-tests/payer-bin-validation.test.js   18 tests over adjudication, card generation, sweep
+tests/payer-bin-validation.test.js   19 tests over adjudication, card generation, sweep
 ```
 
 The page is served at both `/verticals/payer.html` and the friendly alias
@@ -267,9 +267,15 @@ of the given plan year, checks:
 5. RxPCN well-formed;
 6. RxGRP well-formed;
 7. the processor accepts that PCN on that BIN;
-8. a **synthetic claim** against the configuration adjudicates end to end.
+8. `planYear` and `effectiveDate` agree with the year being swept;
+9. a **synthetic claim** against the configuration adjudicates end to end.
 
-Checks 7 and 8 make the gate **stricter than the live adjudicator**, which resolves the BIN
+Check 8 exists because plan *selection* is deliberately permissive: a plan is swept if
+**either** year field claims the plan year, and any disagreement between them is reported as a
+failure. Requiring both to match would let a typo in one field drop a plan out of the sweep
+entirely, and a plan silently skipped by a pre-print gate is worse than one reported broken.
+
+Checks 7 and 9 make the gate **stricter than the live adjudicator**, which resolves the BIN
 and never inspects the PCN. That is intentional for a pre-print gate — it should refuse a
 configuration the processor would not accept even where the current service would pay — but it
 means workstream 1 has to add PCN validation service-side for the two to agree.
@@ -324,7 +330,7 @@ The app is stateless — reload to reset. Each submitted claim raises a fresh al
 ## 12. Verification commands and expected output
 
 ```bash
-npm test                                        # 23 passing tests, 2 suites
+npm test                                        # 24 passing tests, 2 suites
 npm run lint                                    # 0 errors, 2 pre-existing warnings
 node scripts/welcome-season-sweep.js            # exit 1 — NCSHP-7030 and NCSHP-8020 fail
 node scripts/welcome-season-sweep.js --plan-year 1999   # exit 1 — no plans matched, fails closed

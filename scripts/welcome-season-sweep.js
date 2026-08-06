@@ -21,9 +21,22 @@ const GROUP_PATTERN = /^[A-Z0-9]{1,15}$/;
 
 /**
  * Validate the pharmacy routing fields a plan will print onto member ID cards.
+ *
+ * When a plan year is given, the plan's own year fields must agree with it: a plan
+ * selected for a January 1 print run whose `planYear` says otherwise is a data defect
+ * in its own right, and reporting it is what keeps the gate from skipping the plan.
  */
-function validateRxRouting(config) {
+function validateRxRouting(config, year) {
   const errors = [];
+
+  if (Number.isFinite(year)) {
+    if (config.planYear !== year) {
+      errors.push(`planYear ${config.planYear} disagrees with effectiveDate ${config.effectiveDate}`);
+    }
+    if (config.effectiveDate !== `${year}-01-01`) {
+      errors.push(`effectiveDate ${config.effectiveDate} disagrees with planYear ${config.planYear}`);
+    }
+  }
 
   if (!config.rxBin) {
     errors.push('RxBIN is missing');
@@ -82,10 +95,14 @@ function submitSyntheticClaim(config) {
 
 /**
  * Plans that take effect on January 1 of the given plan year.
+ *
+ * Either year field claiming the plan year is enough to pull the plan in. Requiring both
+ * to agree would let a typo in one of them drop a plan out of the sweep entirely, and a
+ * plan silently skipped by a pre-print gate is worse than one reported as inconsistent.
  */
 function welcomeSeasonPlans(year) {
   return Object.entries(PLAN_CONFIGS).filter(
-    ([, config]) => config.planYear === year && config.effectiveDate === `${year}-01-01`,
+    ([, config]) => config.planYear === year || config.effectiveDate === `${year}-01-01`,
   );
 }
 
@@ -98,7 +115,7 @@ function sweep(year) {
   process.stdout.write(`${plans.length} plan configuration(s) effective ${year}-01-01\n\n`);
 
   for (const [planId, config] of plans) {
-    const errors = validateRxRouting(config);
+    const errors = validateRxRouting(config, year);
     const claim = submitSyntheticClaim(config);
     const ok = errors.length === 0 && claim.paid;
 

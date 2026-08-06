@@ -128,6 +128,13 @@ describe('welcome-season RxBIN validation', () => {
     expect(errors.some((e) => e.includes('memberCount is missing'))).toBe(true);
   });
 
+  test('sweeps a plan whose planYear disagrees with its Jan-1 effective date, and reports it', () => {
+    const typo = {
+      ...validConfig, planYear: 2025, effectiveDate: '2026-01-01',
+    };
+    expect(validateRxRouting(typo, 2026).some((e) => e.includes('planYear 2025 disagrees'))).toBe(true);
+  });
+
   test('a plan with an unroutable BIN fails the synthetic claim', () => {
     const claim = submitSyntheticClaim({ rxBin: '0044336' });
     expect(claim.paid).toBe(false);
