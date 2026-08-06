@@ -1,6 +1,8 @@
 # Welcome-Season RxBIN Demo — Run Sheet
 
-**Total run time: 5 minutes.** Two acts: the incident Devin fixes, then the sweep that would have prevented it.
+**Total run time: 5 minutes** (5:45 if you show the playbook — see 2:30 below). Two acts: the incident Devin fixes, then the sweep that would have prevented it.
+
+Background for anyone technical who asks follow-ups: [`WIKI-PAYER-WELCOME-SEASON.md`](WIKI-PAYER-WELCOME-SEASON.md). You do not need it to present.
 
 **The story in one line:** a health plan mailed 300,000 members ID cards with a 7-digit pharmacy BIN instead of 6. Every card looks perfect. Every prescription rejects at the counter starting January 1.
 
@@ -12,6 +14,7 @@
 2. Open a second tab on your Slack channel where Devin alerts land.
 3. **Submit one claim now** (step 2 below) so the Devin session is already running while you talk. It takes a few minutes to produce a PR — you do not want to watch it live.
 4. Have a terminal open, already in the repo directory.
+5. Optional third tab: the playbook **Welcome-Season Pharmacy Routing Defect — Triage and Fan-Out** at https://app.devin.ai/settings/playbooks — open it now if you plan to show it at 2:30.
 
 That's it. If you only do one thing: **trigger the claim before you start presenting.**
 
@@ -57,7 +60,11 @@ Switch to Slack. The alert you triggered before you started is there, with Devin
 
 ### 2:30 – 4:00 · Four Devins in parallel
 
-Open the Devin session. It has fanned the remediation out to four child sessions:
+*Optional, ~30 seconds — skip if you are behind.* Switch to the playbook tab first:
+
+> "This isn't Devin improvising. This is the runbook the team wrote once — rule out infrastructure, find the routing data, name the root cause, then fan these four workstreams out in parallel. Any engineer can trigger it by typing `!welcome_season_triage`, and it runs the same way every time."
+
+Then open the Devin session. It has fanned the remediation out to four child sessions:
 
 1. **Card-generation fix** — validate RxBIN/PCN/group against the processor registry before a card can be issued, plus a regression test → PR
 2. **Blast-radius sweep** — audit *every* plan config, not just the one that alerted → PR wiring the check into CI
@@ -115,6 +122,7 @@ To re-run the whole thing, submit another claim. Each claim raises a fresh alert
 | No Slack alert appears | Slack/Devin env vars are missing on the host (`SLACK_BOT_TOKEN`, `SLACK_CHANNEL_ID`, `DEVIN_API_KEY`). The member-facing acts (0:00–1:45) and the sweep (4:00) still work without them — skip to the sweep. |
 | Devin session is slow | Use the pre-baked session and PR links you saved before the meeting. Never wait on screen. |
 | Sweep prints PASS for everything | Someone already applied the fix. See "Two modes" below. |
+| Someone asks a deep technical question | It is answered in `docs/WIKI-PAYER-WELCOME-SEASON.md` — offer to follow up rather than improvising. |
 
 ---
 
