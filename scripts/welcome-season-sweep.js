@@ -131,8 +131,14 @@ function sweep(year) {
 
 if (require.main === module) {
   const args = process.argv.slice(2);
+  const inlineArg = args.find((a) => a.startsWith('--plan-year='));
   const planYearArg = args.indexOf('--plan-year');
-  const rawYear = planYearArg !== -1 ? args[planYearArg + 1] : '2026';
+  let rawYear = '2026';
+  if (inlineArg) {
+    rawYear = inlineArg.slice('--plan-year='.length);
+  } else if (planYearArg !== -1) {
+    rawYear = args[planYearArg + 1];
+  }
   if (!/^\d{4}$/.test(String(rawYear))) {
     process.stderr.write('--plan-year requires a four-digit year, e.g. --plan-year 2026\n');
     process.exitCode = 2;
