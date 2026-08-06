@@ -158,13 +158,19 @@ const FANOUT_DIRECTIVE = [
  * Print a member ID card for the plan year.
  *
  * Pharmacy routing fields are copied straight from the plan configuration onto the card.
+ * Returns null when the member is not enrolled; throws when an enrolled member's plan
+ * configuration is missing, so a configuration gap is never reported as an enrollment gap.
  */
 function generateMemberIdCard(memberId) {
   const member = MEMBERS[memberId];
   if (!member) return null;
 
   const plan = PLAN_CONFIGS[member.planId];
-  if (!plan) return null;
+  if (!plan) {
+    const missing = new Error(`Plan configuration ${member.planId} is missing for member ${memberId}`);
+    missing.code = 'PLAN_CONFIG_MISSING';
+    throw missing;
+  }
 
   return {
     memberId,

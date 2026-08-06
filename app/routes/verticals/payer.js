@@ -25,7 +25,12 @@ router.get('/api/payer/members', (_req, res) => {
  * GET /api/payer/id-card/:memberId — member digital ID card as printed for the plan year
  */
 router.get('/api/payer/id-card/:memberId', (req, res) => {
-  const card = generateMemberIdCard(req.params.memberId);
+  let card;
+  try {
+    card = generateMemberIdCard(req.params.memberId);
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message, code: error.code });
+  }
   if (!card) {
     return res.status(404).json({ success: false, error: 'Member not found' });
   }
@@ -54,6 +59,14 @@ router.post('/api/payer/pharmacy-claim', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
+    if (error.code === 'PLAN_CONFIG_MISSING') {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+        code: error.code,
+        requestId: req.requestId,
+      });
+    }
     if (error.code === 'MEMBER_NOT_FOUND') {
       return res.status(404).json({
         success: false,

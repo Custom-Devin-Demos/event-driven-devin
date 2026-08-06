@@ -64,6 +64,23 @@ describe('member ID card generation', () => {
     expect(card.rxPcn).toBe(plan.rxPcn);
     expect(card.rxGroup).toBe(plan.rxGroup);
   });
+
+  test('distinguishes a missing plan configuration from an unenrolled member', () => {
+    const planId = MEMBERS['MEM-200145'].planId;
+    const plan = PLAN_CONFIGS[planId];
+    delete PLAN_CONFIGS[planId];
+
+    try {
+      expect(() => generateMemberIdCard('MEM-200145')).toThrow(/Plan configuration/);
+      try {
+        generateMemberIdCard('MEM-200145');
+      } catch (error) {
+        expect(error.code).toBe('PLAN_CONFIG_MISSING');
+      }
+    } finally {
+      PLAN_CONFIGS[planId] = plan;
+    }
+  });
 });
 
 describe('welcome-season RxBIN validation', () => {

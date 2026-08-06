@@ -284,7 +284,13 @@
         clearCard();
         return;
       }
-      const card = await res.json();
+      let card;
+      try {
+        card = await res.json();
+      } catch {
+        if (request === cardRequest) clearCard();
+        return;
+      }
       if (request !== cardRequest) return;
 
       document.getElementById('mName').textContent = `Welcome, ${card.memberName}`;
