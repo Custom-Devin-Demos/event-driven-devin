@@ -4,11 +4,11 @@ This document describes the **Event-Driven Devin** demo repository for AI agents
 
 ## What This Repo Is
 
-A Node.js/Express application with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The app serves **9 industry vertical demos**, each with its own frontend, API routes, and business logic. Each vertical has a production bug that produces a `TypeError` when its primary action is triggered. When an error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
+A Node.js/Express application with integrated observability (Sentry + Datadog) and automated incident response (Slack alerts + Devin). The app serves **10 industry vertical demos**, each with its own frontend, API routes, and business logic. Each vertical has a production bug that produces a `TypeError` when its primary action is triggered. When an error occurs, the system automatically posts an alert to Slack and triggers a Devin session to investigate and fix it.
 
 ## Industry Verticals
 
-The app hosts 9 verticals, each accessible at its own URL:
+The app hosts 10 verticals, each accessible at its own URL:
 
 | Vertical | URL Path | Frontend | API Endpoint | Service File |
 |----------|----------|----------|--------------|-------------|
@@ -44,7 +44,7 @@ Two things are deliberately separate:
 │   ├── server.js                  # Express app entry point (mounts all vertical routes)
 │   ├── incidentModes.js           # Scenario state management (healthy, checkout-regression, etc.)
 │   ├── public/
-│   │   ├── hub.html               # Landing page with cards for all 9 verticals
+│   │   ├── hub.html               # Landing page with cards for all 10 verticals
 │   │   ├── index.html             # Retail eCommerce storefront UI
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
@@ -142,7 +142,7 @@ npm start
 # The app runs on http://localhost:3000
 ```
 
-Open `http://localhost:3000` in a browser to see the hub landing page with all 9 industry verticals. Click any vertical card to open its demo.
+Open `http://localhost:3000` in a browser to see the hub landing page with all 10 industry verticals. Click any vertical card to open its demo.
 
 ### With Docker (full stack)
 
@@ -168,7 +168,7 @@ This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this befo
 ## Alert Pipeline Architecture
 
 ```
-Vertical Error (any of 9 verticals)
+Vertical Error (any of 10 verticals)
     ├──▶ Sentry (captureException)
     │       └──▶ Sentry Alert Rule fires
     │               └──▶ Webhook to POST /webhooks/sentry
