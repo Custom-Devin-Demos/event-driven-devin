@@ -230,6 +230,7 @@
   <script>
     const VALID_BIN_LENGTH = 6;
     let formulary = [];
+    let cardRequest = 0;
 
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
@@ -255,7 +256,9 @@
     }
 
     async function loadCard(memberId) {
+      const request = ++cardRequest;
       const res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
+      if (request !== cardRequest) return;
       if (!res.ok) {
         for (const id of ['cardPlanName', 'cardName', 'cardSub', 'cardMemberId', 'cardGroup',
           'cardPcp', 'cardBin', 'cardPcn', 'cardRxGroup', 'cardEff', 'mName', 'mPlan', 'mId',
@@ -267,6 +270,7 @@
         return;
       }
       const card = await res.json();
+      if (request !== cardRequest) return;
 
       document.getElementById('mName').textContent = `Welcome, ${card.memberName}`;
       document.getElementById('mPlan').textContent = `${card.planName} \u00b7 PCP ${card.pcp}`;
