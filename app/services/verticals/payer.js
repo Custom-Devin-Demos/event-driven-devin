@@ -163,6 +163,12 @@ async function adjudicateClaim(data) {
     service: 'payer-api',
   });
 
+  if (!card) {
+    const notFound = new Error(`Member ${data.memberId} is not enrolled`);
+    notFound.code = 'MEMBER_NOT_FOUND';
+    throw notFound;
+  }
+
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
 
@@ -198,7 +204,7 @@ async function adjudicateClaim(data) {
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    if (card && !PAYER_REGISTRY[card.rxBin]) {
+    if (!PAYER_REGISTRY[card.rxBin]) {
       error.rejectCode = '06';
       error.rejectReason = 'M/I Group Number — RxBIN not found in processor registry';
       error.submittedBin = card.rxBin;

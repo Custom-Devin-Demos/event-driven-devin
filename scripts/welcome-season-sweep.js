@@ -60,6 +60,9 @@ function submitSyntheticClaim(config) {
   if (!processor) {
     return { paid: false, reason: `no route for BIN ${config.rxBin} — claim would reject 06 at the counter` };
   }
+  if (!processor.supportsPcn.includes(config.rxPcn)) {
+    return { paid: false, reason: `${processor.name} does not accept PCN ${config.rxPcn} on BIN ${config.rxBin}` };
+  }
   return { paid: true, routedTo: processor.name };
 }
 
@@ -106,6 +109,11 @@ function sweep(year) {
     }
   }
 
+  if (plans.length === 0) {
+    process.stdout.write(`No plan configurations are effective ${year}-01-01 — nothing was validated.\n\n`);
+    return 1;
+  }
+
   if (failures.length === 0) {
     process.stdout.write(`All ${plans.length} plan(s) validated. Cards are safe to print.\n\n`);
     return 0;
@@ -124,6 +132,10 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   const planYearArg = args.indexOf('--plan-year');
   const planYear = planYearArg !== -1 ? Number(args[planYearArg + 1]) : 2026;
+  if (!Number.isInteger(planYear)) {
+    process.stderr.write('--plan-year requires a four-digit year, e.g. --plan-year 2026\n');
+    process.exit(2);
+  }
   process.exit(sweep(planYear));
 }
 

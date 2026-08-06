@@ -54,6 +54,14 @@ router.post('/api/payer/pharmacy-claim', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
+    if (error.code === 'MEMBER_NOT_FOUND') {
+      return res.status(404).json({
+        success: false,
+        error: error.message,
+        code: error.code,
+        requestId: req.requestId,
+      });
+    }
     res.status(500).json({
       success: false,
       error: error.message,

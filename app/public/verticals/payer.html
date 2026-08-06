@@ -231,6 +231,12 @@
     const VALID_BIN_LENGTH = 6;
     let formulary = [];
 
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[c]);
+    }
+
     function fmtDate(iso) {
       const [y, m, d] = iso.split('-');
       return `${m}/${d}/${y}`;
@@ -241,15 +247,19 @@
       const data = await res.json();
       formulary = data.formulary;
       const sel = document.getElementById('memberId');
-      sel.innerHTML = data.members.map((m) => `<option value="${m.id}">${m.name} &mdash; ${m.planId}</option>`).join('');
+      sel.innerHTML = data.members.map((m) => `<option value="${esc(m.id)}">${esc(m.name)} &mdash; ${esc(m.planId)}</option>`).join('');
       document.getElementById('ndc').innerHTML = formulary
-        .map((f) => `<option value="${f.ndc}">${f.name} &mdash; ${f.daysSupply}-day</option>`)
+        .map((f) => `<option value="${esc(f.ndc)}">${esc(f.name)} &mdash; ${esc(f.daysSupply)}-day</option>`)
         .join('');
       await loadCard(sel.value);
     }
 
     async function loadCard(memberId) {
-      const res = await fetch(`/api/payer/id-card/${memberId}`);
+      const res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
+      if (!res.ok) {
+        document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
+        return;
+      }
       const card = await res.json();
 
       document.getElementById('mName').textContent = `Welcome, ${card.memberName}`;
@@ -272,7 +282,7 @@
       const bad = card.rxBin.length !== VALID_BIN_LENGTH;
       document.getElementById('binField').className = bad ? 'id-field flag' : 'id-field';
       document.getElementById('cardNote').innerHTML = bad
-        ? `This card was printed with a <strong>${card.rxBin.length}-digit RxBIN (${card.rxBin})</strong>. BINs are six digits. The card looks correct to the member &mdash; nothing on it is visibly wrong.`
+        ? `This card was printed with a <strong>${card.rxBin.length}-digit RxBIN (${esc(card.rxBin)})</strong>. BINs are six digits. The card looks correct to the member &mdash; nothing on it is visibly wrong.`
         : 'Cards for the new plan year mail in November and take effect January 1.';
 
       document.getElementById('reject').className = 'reject';
@@ -342,20 +352,20 @@
           box.className = 'reject show err';
           box.innerHTML =
             `<div class="reject-head">
-               <span class="reject-code">REJECT ${data.rejectCode || '\u2014'}</span>
+               <span class="reject-code">REJECT ${esc(data.rejectCode) || '\u2014'}</span>
                <span class="reject-title">Claim not paid</span>
              </div>
              <div class="reject-body">
-               <div class="row"><span class="k">Reject reason</span><span class="v">${data.rejectReason || data.error}</span></div>
-               <div class="row"><span class="k">Submitted RxBIN</span><span class="v">${data.submittedBin || '\u2014'}</span></div>
-               <div class="row"><span class="k">Request ID</span><span class="v">${data.requestId || '\u2014'}</span></div>
+               <div class="row"><span class="k">Reject reason</span><span class="v">${esc(data.rejectReason || data.error)}</span></div>
+               <div class="row"><span class="k">Submitted RxBIN</span><span class="v">${esc(data.submittedBin) || '\u2014'}</span></div>
+               <div class="row"><span class="k">Request ID</span><span class="v">${esc(data.requestId) || '\u2014'}</span></div>
              </div>
              <div class="tech">
                <div class="tl">Payer-side exception</div>
-               ${data.errorClass}: ${data.error}
+               ${esc(data.errorClass)}: ${esc(data.error)}
              </div>`;
           cost.className = 'member-cost show';
-          cost.innerHTML = `Member is asked to pay cash or come back later &mdash; <strong>$${drug.cashPrice.toFixed(2)}</strong> instead of a $${drug.copay} copay for ${drug.name}.`;
+          cost.innerHTML = `Member is asked to pay cash or come back later &mdash; <strong>$${drug.cashPrice.toFixed(2)}</strong> instead of a $${drug.copay} copay for ${esc(drug.name)}.`;
         } else {
           box.className = 'reject show ok';
           box.innerHTML =
@@ -364,15 +374,15 @@
                <span class="reject-title">Claim adjudicated</span>
              </div>
              <div class="reject-body">
-               <div class="row"><span class="k">Routed to</span><span class="v">${data.routedTo}</span></div>
-               <div class="row"><span class="k">RxBIN / RxPCN</span><span class="v">${data.rxBin} / ${data.rxPcn}</span></div>
-               <div class="row"><span class="k">Drug</span><span class="v">${data.drug} (${data.daysSupply}-day)</span></div>
-               <div class="row"><span class="k">Member copay</span><span class="v">$${data.copay}</span></div>
+               <div class="row"><span class="k">Routed to</span><span class="v">${esc(data.routedTo)}</span></div>
+               <div class="row"><span class="k">RxBIN / RxPCN</span><span class="v">${esc(data.rxBin)} / ${esc(data.rxPcn)}</span></div>
+               <div class="row"><span class="k">Drug</span><span class="v">${esc(data.drug)} (${esc(data.daysSupply)}-day)</span></div>
+               <div class="row"><span class="k">Member copay</span><span class="v">$${esc(data.copay)}</span></div>
              </div>`;
         }
       } catch (err) {
         box.className = 'reject show err';
-        box.innerHTML = `<div class="reject-head"><span class="reject-title">Network Error</span></div><div class="tech">${err.message}</div>`;
+        box.innerHTML = `<div class="reject-head"><span class="reject-title">Network Error</span></div><div class="tech">${esc(err.message)}</div>`;
       } finally {
         btn.disabled = false;
         btn.textContent = 'Submit Claim to Payer';

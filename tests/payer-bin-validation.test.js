@@ -14,6 +14,7 @@ const {
   validateRxRouting,
   submitSyntheticClaim,
   welcomeSeasonPlans,
+  sweep,
   BIN_LENGTH,
 } = require('../scripts/welcome-season-sweep');
 
@@ -35,6 +36,16 @@ describe('payer pharmacy claim adjudication', () => {
       expect(error.rejectCode).toBe('06');
       expect(error.submittedBin).toBe('0044336');
       expect(error.rejectReason).toMatch(/not found in processor registry/);
+    }
+  });
+
+  test('fails a claim for an unenrolled member without raising a routing error', async () => {
+    expect.assertions(2);
+    try {
+      await adjudicateClaim({ memberId: 'MEM-000000', ndc: '00093-7267-56' });
+    } catch (error) {
+      expect(error.code).toBe('MEMBER_NOT_FOUND');
+      expect(error.rejectCode).toBeUndefined();
     }
   });
 });
@@ -86,6 +97,12 @@ describe('welcome-season RxBIN validation', () => {
     expect(claim.paid).toBe(false);
     expect(claim.reason).toMatch(/reject 06/);
   });
+
+  test('a plan whose processor does not accept its PCN fails the synthetic claim', () => {
+    const claim = submitSyntheticClaim({ rxBin: '610502', rxPcn: 'ADV' });
+    expect(claim.paid).toBe(false);
+    expect(claim.reason).toMatch(/does not accept PCN/);
+  });
 });
 
 describe('welcome-season sweep blast radius', () => {
@@ -95,6 +112,16 @@ describe('welcome-season sweep blast radius', () => {
 
     expect(failing.map(([planId]) => planId).sort()).toEqual(['NCSHP-7030', 'NCSHP-8020']);
     expect(membersAtRisk).toBe(300000);
+  });
+
+  test('fails rather than passing silently when no plans were validated', () => {
+    const write = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    try {
+      expect(welcomeSeasonPlans(1999)).toEqual([]);
+      expect(sweep(1999)).toBe(1);
+    } finally {
+      write.mockRestore();
+    }
   });
 
   test('every plan configuration declares the routing fields a card needs', () => {
