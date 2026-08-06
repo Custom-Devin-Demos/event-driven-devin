@@ -190,7 +190,7 @@
               <label>Medication</label>
               <select id="ndc"></select>
             </div>
-            <button type="submit" class="btn-submit" id="submitBtn">Submit Claim to Payer</button>
+            <button type="submit" class="btn-submit" id="submitBtn" disabled>Submit Claim to Payer</button>
           </form>
           <div class="reject" id="reject"></div>
           <div class="member-cost" id="memberCost"></div>
@@ -253,7 +253,9 @@
       document.getElementById('ndc').innerHTML = formulary
         .map((f) => `<option value="${esc(f.ndc)}">${esc(f.name)} &mdash; ${esc(f.indication)}</option>`)
         .join('');
+      if (!sel.value) return;
       await loadCard(sel.value);
+      document.getElementById('submitBtn').disabled = false;
     }
 
     function clearCard() {
