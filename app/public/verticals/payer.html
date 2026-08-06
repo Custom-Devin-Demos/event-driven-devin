@@ -360,12 +360,14 @@
                <div class="row"><span class="k">Submitted RxBIN</span><span class="v">${esc(data.submittedBin) || '\u2014'}</span></div>
                <div class="row"><span class="k">Request ID</span><span class="v">${esc(data.requestId) || '\u2014'}</span></div>
              </div>
-             <div class="tech">
+             ${data.errorClass ? `<div class="tech">
                <div class="tl">Payer-side exception</div>
                ${esc(data.errorClass)}: ${esc(data.error)}
-             </div>`;
-          cost.className = 'member-cost show';
-          cost.innerHTML = `Member is asked to pay cash or come back later &mdash; <strong>$${drug.cashPrice.toFixed(2)}</strong> instead of a $${drug.copay} copay for ${esc(drug.name)}.`;
+             </div>` : ''}`;
+          if (drug) {
+            cost.className = 'member-cost show';
+            cost.innerHTML = `Member is asked to pay cash or come back later &mdash; <strong>$${drug.cashPrice.toFixed(2)}</strong> instead of a $${drug.copay} copay for ${esc(drug.name)}.`;
+          }
         } else {
           box.className = 'reject show ok';
           box.innerHTML =
@@ -389,8 +391,12 @@
       }
     });
 
-    loadMembers();
-    loadChart();
+    loadMembers().catch(() => {
+      document.getElementById('cardNote').textContent = 'Member and plan data could not be loaded.';
+    });
+    loadChart().catch(() => {
+      document.getElementById('boundary').textContent = 'Rejection-rate data could not be loaded.';
+    });
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>

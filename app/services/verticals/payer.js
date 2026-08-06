@@ -169,12 +169,15 @@ async function adjudicateClaim(data) {
     throw notFound;
   }
 
+  let routingLookupFailed = false;
+
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
 
     const drug = FORMULARY.find((f) => f.ndc === data.ndc) || FORMULARY[0];
     const processor = PAYER_REGISTRY[card.rxBin];
 
+    routingLookupFailed = !processor;
     const routedTo = processor.name;
     const duration = Date.now() - startTime;
 
@@ -204,7 +207,7 @@ async function adjudicateClaim(data) {
   } catch (error) {
     const duration = Date.now() - startTime;
 
-    if (!PAYER_REGISTRY[card.rxBin]) {
+    if (routingLookupFailed) {
       error.rejectCode = '06';
       error.rejectReason = 'M/I Group Number — RxBIN not found in processor registry';
       error.submittedBin = card.rxBin;

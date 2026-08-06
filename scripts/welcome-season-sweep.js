@@ -35,7 +35,8 @@ function validateRxRouting(config) {
     errors.push(`RxBIN "${config.rxBin}" is not a registered processor BIN`);
   }
 
-  if (!config.rxPcn || !PCN_PATTERN.test(config.rxPcn)) {
+  const pcnWellFormed = Boolean(config.rxPcn) && PCN_PATTERN.test(config.rxPcn);
+  if (!pcnWellFormed) {
     errors.push(`RxPCN "${config.rxPcn}" is not a valid processor control number`);
   }
 
@@ -44,7 +45,7 @@ function validateRxRouting(config) {
   }
 
   const processor = PAYER_REGISTRY[config.rxBin];
-  if (processor && config.rxPcn && !processor.supportsPcn.includes(config.rxPcn)) {
+  if (processor && pcnWellFormed && !processor.supportsPcn.includes(config.rxPcn)) {
     errors.push(`RxPCN "${config.rxPcn}" is not accepted by ${processor.name} on BIN ${config.rxBin}`);
   }
 
