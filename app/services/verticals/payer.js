@@ -155,6 +155,17 @@ const FANOUT_DIRECTIVE = [
 ].join('\n');
 
 /**
+ * Read a key from a lookup table, ignoring anything inherited from Object.prototype.
+ *
+ * Member IDs arrive from the request, and `MEMBERS['__proto__']` is truthy — indexing
+ * directly would treat `__proto__` or `constructor` as an enrolled member and turn a
+ * bad ID into a 500 plus a spurious configuration alert.
+ */
+function own(table, key) {
+  return Object.prototype.hasOwnProperty.call(table, key) ? table[key] : null;
+}
+
+/**
  * Print a member ID card for the plan year.
  *
  * Pharmacy routing fields are copied straight from the plan configuration onto the card.
@@ -162,10 +173,10 @@ const FANOUT_DIRECTIVE = [
  * configuration is missing, so a configuration gap is never reported as an enrollment gap.
  */
 function generateMemberIdCard(memberId) {
-  const member = MEMBERS[memberId];
+  const member = own(MEMBERS, memberId);
   if (!member) return null;
 
-  const plan = PLAN_CONFIGS[member.planId];
+  const plan = own(PLAN_CONFIGS, member.planId);
   if (!plan) {
     const missing = new Error(`Plan configuration ${member.planId} is missing for member ${memberId}`);
     missing.code = 'PLAN_CONFIG_MISSING';

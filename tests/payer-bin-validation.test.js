@@ -66,6 +66,12 @@ describe('member ID card generation', () => {
     expect(generateMemberIdCard('MEM-000000')).toBeNull();
   });
 
+  test('treats an inherited Object.prototype key as an unknown member', () => {
+    for (const key of ['__proto__', 'constructor', 'toString']) {
+      expect(generateMemberIdCard(key)).toBeNull();
+    }
+  });
+
   test('carries the pharmacy routing fields from the plan configuration', () => {
     const card = generateMemberIdCard('MEM-200145');
     const plan = PLAN_CONFIGS[MEMBERS['MEM-200145'].planId];

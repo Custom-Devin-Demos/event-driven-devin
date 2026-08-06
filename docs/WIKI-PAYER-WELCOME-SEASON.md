@@ -143,7 +143,7 @@ app/services/verticals/payer.js      PAYER_REGISTRY, PLAN_CONFIGS, MEMBERS, FORM
         └──▶ app/services/devin-session.js → Slack alert + Devin session
 
 scripts/welcome-season-sweep.js      pre-print validation gate (Act 2), reuses the same registry
-tests/payer-bin-validation.test.js   19 tests over adjudication, card generation, sweep
+tests/payer-bin-validation.test.js   20 tests over adjudication, card generation, sweep
 ```
 
 The page is served at both `/verticals/payer.html` and the friendly alias
@@ -330,7 +330,7 @@ The app is stateless — reload to reset. Each submitted claim raises a fresh al
 ## 12. Verification commands and expected output
 
 ```bash
-npm test                                        # 24 passing tests, 2 suites
+npm test                                        # 25 passing tests, 2 suites
 npm run lint                                    # 0 errors, 2 pre-existing warnings
 node scripts/welcome-season-sweep.js            # exit 1 — NCSHP-7030 and NCSHP-8020 fail
 node scripts/welcome-season-sweep.js --plan-year 1999   # exit 1 — no plans matched, fails closed
