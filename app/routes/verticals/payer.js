@@ -1,4 +1,7 @@
 const express = require('express');
+const logger = require('../../telemetry/logger');
+const { incrementMetric } = require('../../telemetry/datadog');
+const { Sentry } = require('../../telemetry/sentry');
 const {
   adjudicateClaim,
   generateMemberIdCard,
@@ -29,6 +32,20 @@ router.get('/api/payer/id-card/:memberId', (req, res) => {
   try {
     card = generateMemberIdCard(req.params.memberId);
   } catch (error) {
+    incrementMetric('member_id_card.config_error', {
+      route: '/api/payer/id-card',
+      code: error.code || 'unknown',
+    });
+    logger.error('Member ID card could not be generated', {
+      memberId: req.params.memberId,
+      error: error.message,
+      code: error.code,
+      service: 'payer-api',
+    });
+    Sentry.captureException(error, {
+      tags: { route: '/api/payer/id-card', service: 'payer-api', code: error.code || 'unknown' },
+      extra: { memberId: req.params.memberId },
+    });
     return res.status(500).json({ success: false, error: error.message, code: error.code });
   }
   if (!card) {

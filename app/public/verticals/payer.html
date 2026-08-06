@@ -233,6 +233,13 @@
     let formulary = [];
     let cardRequest = 0;
     let cardLoaded = false;
+    let claimInFlight = false;
+
+    function syncSubmitButton() {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = !cardLoaded || claimInFlight;
+      btn.textContent = claimInFlight ? 'Transmitting\u2026' : 'Submit Claim to Payer';
+    }
 
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
@@ -269,13 +276,13 @@
       document.getElementById('memberCost').className = 'member-cost';
       document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
       cardLoaded = false;
-      document.getElementById('submitBtn').disabled = true;
+      syncSubmitButton();
     }
 
     async function loadCard(memberId) {
       const request = ++cardRequest;
       cardLoaded = false;
-      document.getElementById('submitBtn').disabled = true;
+      syncSubmitButton();
       let res;
       try {
         res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
@@ -323,7 +330,7 @@
       document.getElementById('reject').className = 'reject';
       document.getElementById('memberCost').className = 'member-cost';
       cardLoaded = true;
-      document.getElementById('submitBtn').disabled = false;
+      syncSubmitButton();
     }
 
     async function loadChart() {
@@ -362,14 +369,14 @@
 
     document.getElementById('claimForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = document.getElementById('submitBtn');
+      if (claimInFlight || !cardLoaded) return;
       const box = document.getElementById('reject');
       const cost = document.getElementById('memberCost');
       const ndc = document.getElementById('ndc').value;
       const drug = formulary.find((f) => f.ndc === ndc);
 
-      btn.disabled = true;
-      btn.textContent = 'Transmitting\u2026';
+      claimInFlight = true;
+      syncSubmitButton();
       box.className = 'reject';
       cost.className = 'member-cost';
 
@@ -429,8 +436,8 @@
         box.className = 'reject show err';
         box.innerHTML = `<div class="reject-head"><span class="reject-title">Network Error</span></div><div class="tech">${esc(err.message)}</div>`;
       } finally {
-        btn.disabled = !cardLoaded;
-        btn.textContent = 'Submit Claim to Payer';
+        claimInFlight = false;
+        syncSubmitButton();
       }
     });
 

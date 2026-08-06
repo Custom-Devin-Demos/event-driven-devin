@@ -216,19 +216,26 @@ async function adjudicateClaim(data) {
     throw error;
   }
 
+  if (!card) {
+    const notFound = new Error(`Member ${data.memberId} is not enrolled`);
+    notFound.code = 'MEMBER_NOT_FOUND';
+    incrementMetric('pharmacy_claim.not_enrolled', { route: '/api/payer/pharmacy-claim' });
+    logger.warn('Pharmacy claim submitted for a member who is not enrolled', {
+      claimId,
+      memberId: data.memberId,
+      ndc: data.ndc,
+      service: 'payer-api',
+    });
+    throw notFound;
+  }
+
   logger.info('Adjudicating pharmacy claim', {
     claimId,
     memberId: data.memberId,
     ndc: data.ndc,
-    rxBin: card ? card.rxBin : null,
+    rxBin: card.rxBin,
     service: 'payer-api',
   });
-
-  if (!card) {
-    const notFound = new Error(`Member ${data.memberId} is not enrolled`);
-    notFound.code = 'MEMBER_NOT_FOUND';
-    throw notFound;
-  }
 
   let routingLookupFailed = false;
 
