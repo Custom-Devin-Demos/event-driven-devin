@@ -1,7 +1,7 @@
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, lookupSlackUserByEmail } = require('./slack');
-const { setScenario, getScenario } = require('../incidentModes');
+const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } = require('../incidentModes');
 
 /**
  * On-Call demo service.
@@ -387,8 +387,9 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   // Bug Triage Responder's repro steps genuinely reproduce. The template id is
   // resolved server-side against the catalog — only known kinds can activate.
   let activated = null;
+  const runRef = makeRunRef();
   if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
-    if (activateInfraIncident(template.infraKind)) {
+    if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
       activated = template.infraKind;
     }
   }
@@ -429,7 +430,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   } catch (error) {
     // Keep observable state consistent with what was announced: if the ticket
     // never posted, don't leave the app silently degraded for the full window.
-    if (activated) revertInfraState('bug report post failed');
+    if (activated) revertScopedInfra(runRef, 'bug report post failed');
     throw error;
   }
   logger.info('On-Call bug report posted', {
@@ -444,6 +445,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ts,
     channel: bugsChannel,
     activated,
+    runRef: activated ? runRef : null,
     windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
   };
 }
@@ -465,10 +467,14 @@ const INFRA_WINDOW_MS = envNumber(
   10 * 60 * 1000,
 );
 const SEV1_WINDOW_MS = envNumber(process.env.ONCALL_SEV1_WINDOW_MS, 30 * 60 * 1000);
-let infraRevertTimer = null;
-let activeInfraScenario = null;
-let activeInfraKind = null;
-let infraRevertAt = null;
+
+/**
+ * Per-run degradation registry: each activation is scoped to its run ref, so
+ * only requests carrying that run's oncall_run cookie see the symptoms.
+ * Concurrent runs are fully independent — nothing here touches the global
+ * scenario slot used by the admin endpoint.
+ */
+const scopedInfra = new Map();
 
 /**
  * Bounded, reversible memory-growth mode for the memory-leak incident.
@@ -502,20 +508,18 @@ function startMemoryGrowth(windowMs) {
   if (memLeakInterval.unref) memLeakInterval.unref();
 }
 
-function revertInfraState(reason) {
-  const hadState = infraRevertTimer || memLeakInterval || memLeakChunks.length > 0 || activeInfraScenario;
-  if (infraRevertTimer) clearTimeout(infraRevertTimer);
-  infraRevertTimer = null;
-  stopMemoryGrowth();
-  if (activeInfraScenario && getScenario() === activeInfraScenario) {
-    setScenario('healthy');
+function revertScopedInfra(runRef, reason) {
+  const entry = scopedInfra.get(runRef);
+  if (!entry) return;
+  if (entry.timer) clearTimeout(entry.timer);
+  if (entry.scenario) clearScopedScenario(runRef);
+  scopedInfra.delete(runRef);
+  // Memory growth is inherently process-wide (RSS); release it only once no
+  // other live run still needs it.
+  if (entry.memoryGrowth && !Array.from(scopedInfra.values()).some((e) => e.memoryGrowth)) {
+    stopMemoryGrowth();
   }
-  activeInfraScenario = null;
-  activeInfraKind = null;
-  infraRevertAt = null;
-  if (hadState) {
-    logger.info('On-Call infra incident state reverted to healthy', { reason });
-  }
+  logger.info('On-Call infra incident state reverted to healthy', { runRef, reason });
 }
 
 function stopMemoryGrowth() {
@@ -612,22 +616,28 @@ const INFRA_INCIDENTS = {
  * growth) with the standard auto-revert window. Returns true if any state
  * was activated.
  */
-function activateInfraIncident(kind, windowMs = INFRA_WINDOW_MS) {
+function activateInfraIncident(kind, windowMs = INFRA_WINDOW_MS, runRef) {
   const incident = INFRA_INCIDENTS[kind];
-  if (!incident) return false;
+  if (!incident || !runRef) return false;
   if (incident.scenario === 'healthy' && !incident.memoryGrowth) return false;
-  revertInfraState('superseded by new incident');
+  revertScopedInfra(runRef, 'superseded by new incident');
+  const entry = {
+    kind,
+    scenario: null,
+    memoryGrowth: Boolean(incident.memoryGrowth),
+    revertAt: Date.now() + windowMs,
+    timer: null,
+  };
   if (incident.scenario !== 'healthy') {
-    setScenario(incident.scenario);
-    activeInfraScenario = incident.scenario;
+    setScopedScenario(runRef, incident.scenario);
+    entry.scenario = incident.scenario;
   }
   if (incident.memoryGrowth) startMemoryGrowth(windowMs);
-  activeInfraKind = kind;
-  infraRevertAt = Date.now() + windowMs;
-  infraRevertTimer = setTimeout(() => {
-    revertInfraState(`window elapsed for ${kind}`);
+  entry.timer = setTimeout(() => {
+    revertScopedInfra(runRef, `window elapsed for ${kind}`);
   }, windowMs);
-  if (infraRevertTimer.unref) infraRevertTimer.unref();
+  if (entry.timer.unref) entry.timer.unref();
+  scopedInfra.set(runRef, entry);
   return true;
 }
 
@@ -644,7 +654,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  activateInfraIncident(kind);
+  activateInfraIncident(kind, INFRA_WINDOW_MS, runRef);
 
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
@@ -697,16 +707,18 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
  * infra incident (and time remaining), and process memory.
  */
 function getInfraState() {
+  // Scoped to the caller: reports the degradation belonging to the run ref
+  // on the request's oncall_run cookie (if any), never someone else's run.
+  const runRef = getOncallRunRef();
+  const entry = runRef ? scopedInfra.get(runRef) : null;
   return {
     scenario: getScenario(),
-    activeKind: activeInfraKind,
-    // True for the whole incident window of any memory-growth incident, not
-    // just while allocating: the growth interval self-clears at the cap but
-    // the incident stays active.
-    memoryGrowth: Boolean(activeInfraKind && INFRA_INCIDENTS[activeInfraKind] && INFRA_INCIDENTS[activeInfraKind].memoryGrowth),
+    runRef: entry ? runRef : null,
+    activeKind: entry ? entry.kind : null,
+    memoryGrowth: Boolean(entry && entry.memoryGrowth),
     heldMB: memLeakChunks.length * MEMLEAK_CHUNK_MB,
     rssMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
-    msRemaining: infraRevertAt ? Math.max(0, infraRevertAt - Date.now()) : null,
+    msRemaining: entry ? Math.max(0, entry.revertAt - Date.now()) : null,
   };
 }
 
@@ -876,7 +888,7 @@ async function postOncallIncident(options = {}) {
   }
 
   if (incident) {
-    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS);
+    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
     const entry = {
       runRef,
       kind,
@@ -934,7 +946,7 @@ async function postOncallIncident(options = {}) {
 
   // Fallback path (Datadog not configured): still activate the story's real
   // degradation so the page's "genuine live degradation" promise holds.
-  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS);
+  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
 
   const text = [
     `:fire: *SEV-1 — ${story.label}*`,
@@ -955,7 +967,7 @@ async function postOncallIncident(options = {}) {
   } catch (error) {
     // Keep observable state consistent with what was announced: if the SEV-1
     // never posted, don't leave the app silently degraded for the full window.
-    revertInfraState('SEV-1 fallback post failed');
+    revertScopedInfra(runRef, 'SEV-1 fallback post failed');
     throw error;
   }
   logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });

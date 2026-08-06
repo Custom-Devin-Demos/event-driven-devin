@@ -19,6 +19,20 @@ const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 
 const router = express.Router();
 
+/**
+ * Tag the caller's browser with the run's degradation cookie: only requests
+ * carrying it see that run's live symptoms (see the scoping middleware in
+ * server.js), so a demo never degrades the site for anyone else.
+ */
+function setRunCookie(res, runRef, windowMinutes) {
+  if (!runRef) return;
+  res.cookie('oncall_run', runRef, {
+    path: '/',
+    maxAge: (windowMinutes || 30) * 60000,
+    sameSite: 'lax',
+  });
+}
+
 // Startup check: every skin template id must resolve in the shared BUG_CATALOG,
 // otherwise its backend-symptom repro mapping silently does nothing.
 const KNOWN_TEMPLATE_IDS = new Set(
@@ -231,6 +245,7 @@ router.post('/api/oncall/bug', async (req, res) => {
       devinEmail,
       supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
     });
+    if (result.ok && result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
@@ -250,6 +265,7 @@ router.post('/api/oncall/infra/:kind', async (req, res) => {
   }
   try {
     const result = await postOncallInfraIncident(req.params.kind, { devinEmail: (req.body || {}).devinEmail });
+    if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call infra trigger failed', { kind: req.params.kind, error: error.message });
@@ -270,6 +286,7 @@ router.get('/api/oncall/infra/state', (_req, res) => {
 router.post('/api/oncall/latency', async (req, res) => {
   try {
     const result = await postOncallInfraIncident('latency', { devinEmail: (req.body || {}).devinEmail });
+    if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call latency trigger failed', { error: error.message });
@@ -288,6 +305,7 @@ router.post('/api/oncall/incident', async (req, res) => {
   try {
     const { kind, devinEmail } = req.body || {};
     const result = await postOncallIncident({ kind, devinEmail });
+    if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call incident post failed', { error: error.message });
