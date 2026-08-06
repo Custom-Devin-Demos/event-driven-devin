@@ -216,6 +216,13 @@ POST /api/payer/pharmacy-claim
 knowable — untagged, the metric spikes but cannot be broken down, and you cannot tell one
 plan from the whole book. The paid path emits `pharmacy_claim.paid` with the same `planId` tag.
 
+Failures that are *not* claim rejections are counted separately so they cannot contaminate that
+signal: `pharmacy_claim.not_enrolled` (unknown member id — a client error), and
+`pharmacy_claim.config_error` / `member_id_card.config_error` (an enrolled member whose plan
+configuration is absent, seen from the claim path and the card path respectively). Those emit a
+log line and a Sentry event but do not open a Devin session, since neither is the RxBIN defect
+the fan-out directive is written for.
+
 `promptAppendix` is a hook in `app/services/devin-session.js` that appends scenario-specific
 directives to the standard investigation prompt. It is only ever populated from
 `FANOUT_DIRECTIVE`, a module constant — no request-supplied field is ever forwarded into it,
