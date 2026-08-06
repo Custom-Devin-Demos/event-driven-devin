@@ -132,12 +132,12 @@ function sweep(year) {
 if (require.main === module) {
   const args = process.argv.slice(2);
   const planYearArg = args.indexOf('--plan-year');
-  const planYear = planYearArg !== -1 ? Number(args[planYearArg + 1]) : 2026;
-  if (!Number.isInteger(planYear)) {
+  const rawYear = planYearArg !== -1 ? args[planYearArg + 1] : '2026';
+  if (!/^\d{4}$/.test(String(rawYear))) {
     process.stderr.write('--plan-year requires a four-digit year, e.g. --plan-year 2026\n');
     process.exitCode = 2;
   } else {
-    process.exitCode = sweep(planYear);
+    process.exitCode = sweep(Number(rawYear));
   }
 }
 

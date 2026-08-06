@@ -255,7 +255,6 @@
         .join('');
       if (!sel.value) return;
       await loadCard(sel.value);
-      document.getElementById('submitBtn').disabled = false;
     }
 
     function clearCard() {
@@ -268,11 +267,18 @@
       document.getElementById('reject').className = 'reject';
       document.getElementById('memberCost').className = 'member-cost';
       document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
+      document.getElementById('submitBtn').disabled = true;
     }
 
     async function loadCard(memberId) {
       const request = ++cardRequest;
-      const res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
+      let res;
+      try {
+        res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
+      } catch {
+        if (request === cardRequest) clearCard();
+        return;
+      }
       if (request !== cardRequest) return;
       if (!res.ok) {
         clearCard();
@@ -306,6 +312,7 @@
 
       document.getElementById('reject').className = 'reject';
       document.getElementById('memberCost').className = 'member-cost';
+      document.getElementById('submitBtn').disabled = false;
     }
 
     async function loadChart() {
@@ -339,7 +346,7 @@
     }
 
     document.getElementById('memberId').addEventListener('change', (e) => {
-      loadCard(e.target.value).catch(clearCard);
+      loadCard(e.target.value);
     });
 
     document.getElementById('claimForm').addEventListener('submit', async (e) => {
