@@ -232,6 +232,7 @@
     const VALID_BIN_LENGTH = 6;
     let formulary = [];
     let cardRequest = 0;
+    let cardLoaded = false;
 
     function esc(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
@@ -267,6 +268,7 @@
       document.getElementById('reject').className = 'reject';
       document.getElementById('memberCost').className = 'member-cost';
       document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
+      cardLoaded = false;
       document.getElementById('submitBtn').disabled = true;
     }
 
@@ -318,6 +320,7 @@
 
       document.getElementById('reject').className = 'reject';
       document.getElementById('memberCost').className = 'member-cost';
+      cardLoaded = true;
       document.getElementById('submitBtn').disabled = false;
     }
 
@@ -424,7 +427,7 @@
         box.className = 'reject show err';
         box.innerHTML = `<div class="reject-head"><span class="reject-title">Network Error</span></div><div class="tech">${esc(err.message)}</div>`;
       } finally {
-        btn.disabled = false;
+        btn.disabled = !cardLoaded;
         btn.textContent = 'Submit Claim to Payer';
       }
     });
