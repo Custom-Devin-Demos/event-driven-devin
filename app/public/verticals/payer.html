@@ -255,18 +255,24 @@
       await loadCard(sel.value);
     }
 
+    function clearCard() {
+      for (const id of ['cardPlanName', 'cardName', 'cardSub', 'cardMemberId', 'cardGroup',
+        'cardPcp', 'cardBin', 'cardPcn', 'cardRxGroup', 'cardEff', 'mName', 'mPlan', 'mId',
+        'mEff', 'mMailed']) {
+        document.getElementById(id).textContent = '\u2014';
+      }
+      document.getElementById('binField').className = 'id-field';
+      document.getElementById('reject').className = 'reject';
+      document.getElementById('memberCost').className = 'member-cost';
+      document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
+    }
+
     async function loadCard(memberId) {
       const request = ++cardRequest;
       const res = await fetch(`/api/payer/id-card/${encodeURIComponent(memberId)}`);
       if (request !== cardRequest) return;
       if (!res.ok) {
-        for (const id of ['cardPlanName', 'cardName', 'cardSub', 'cardMemberId', 'cardGroup',
-          'cardPcp', 'cardBin', 'cardPcn', 'cardRxGroup', 'cardEff', 'mName', 'mPlan', 'mId',
-          'mEff', 'mMailed']) {
-          document.getElementById(id).textContent = '\u2014';
-        }
-        document.getElementById('binField').className = 'id-field';
-        document.getElementById('cardNote').textContent = 'This member record could not be loaded.';
+        clearCard();
         return;
       }
       const card = await res.json();
@@ -329,7 +335,9 @@
         `No infrastructure alert fired &mdash; every service is healthy.`;
     }
 
-    document.getElementById('memberId').addEventListener('change', (e) => loadCard(e.target.value));
+    document.getElementById('memberId').addEventListener('change', (e) => {
+      loadCard(e.target.value).catch(clearCard);
+    });
 
     document.getElementById('claimForm').addEventListener('submit', async (e) => {
       e.preventDefault();
