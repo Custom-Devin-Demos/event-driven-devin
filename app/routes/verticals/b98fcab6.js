@@ -1,10 +1,19 @@
 const express = require('express');
+const path = require('path');
 const {
   CORRIDORS,
   processGlobalAccountQuote,
 } = require('../../services/verticals/b98fcab6');
 
 const router = express.Router();
+
+router.get('/b98fcab6/error', (_req, res) => {
+  res.status(500).sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'b98fcab6-error.html'));
+});
+
+router.get('/b98fcab6/register', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'b98fcab6-register.html'));
+});
 
 router.get('/api/b98fcab6/corridors', (_req, res) => {
   res.json({
@@ -31,7 +40,7 @@ router.post('/api/b98fcab6/global-account', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'GLOBAL_ACCOUNT_FAILED',
-      requestId: req.requestId,
+      requestId: error.requestId || req.requestId,
     });
   }
 });

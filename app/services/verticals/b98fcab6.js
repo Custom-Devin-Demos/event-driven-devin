@@ -48,7 +48,7 @@ async function processGlobalAccountQuote(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
 
-  logger.info('Processing global account corridor quote', {
+  logger.info('Processing Global Account registration', {
     requestId,
     corridor: data.corridor,
     amount: data.amount,
@@ -76,6 +76,7 @@ async function processGlobalAccountQuote(data) {
     return result;
   } catch (error) {
     const duration = Date.now() - startTime;
+    error.requestId = requestId;
 
     incrementMetric('global_account_quote.failure', {
       route: '/api/b98fcab6/global-account',
@@ -86,7 +87,7 @@ async function processGlobalAccountQuote(data) {
       error: 'true',
     });
 
-    logger.error('Global account quote failed', {
+    logger.error('Global Account registration failed', {
       requestId,
       error: error.message,
       errorClass: error.name,
@@ -115,15 +116,21 @@ async function processGlobalAccountQuote(data) {
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-b98fcab6-global-account',
-      verticalLabel: 'Global Account FX Transfer',
+      verticalLabel: 'Global Account Registration',
       customer: 'b98fcab6',
       slackMemberId: 'U0BKWFUG3PU',
       tags: [
         { key: 'route', value: '/api/b98fcab6/global-account' },
         { key: 'service', value: 'customer-b98fcab6-global-account' },
         { key: 'corridor', value: data.corridor },
+        { key: 'flow', value: 'global-account-registration' },
       ],
-      extra: { requestId, corridor: data.corridor, amount: data.amount },
+      extra: {
+        requestId,
+        corridor: data.corridor,
+        amount: data.amount,
+        flow: 'global-account-registration',
+      },
       level: 'error',
       platform: 'node',
       firstSeen: '',
