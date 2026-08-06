@@ -194,7 +194,27 @@ function generateMemberIdCard(memberId) {
 async function adjudicateClaim(data) {
   const startTime = Date.now();
   const claimId = randomUUID();
-  const card = generateMemberIdCard(data.memberId);
+  let card;
+  try {
+    card = generateMemberIdCard(data.memberId);
+  } catch (error) {
+    incrementMetric('pharmacy_claim.config_error', {
+      route: '/api/payer/pharmacy-claim',
+      code: error.code || 'unknown',
+    });
+    logger.error('Pharmacy claim could not be adjudicated', {
+      claimId,
+      memberId: data.memberId,
+      error: error.message,
+      code: error.code,
+      service: 'payer-api',
+    });
+    Sentry.captureException(error, {
+      tags: { route: '/api/payer/pharmacy-claim', service: 'payer-api', code: error.code || 'unknown' },
+      extra: { claimId, memberId: data.memberId, ndc: data.ndc },
+    });
+    throw error;
+  }
 
   logger.info('Adjudicating pharmacy claim', {
     claimId,

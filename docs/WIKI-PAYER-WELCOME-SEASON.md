@@ -143,7 +143,7 @@ app/services/verticals/payer.js      PAYER_REGISTRY, PLAN_CONFIGS, MEMBERS, FORM
         └──▶ app/services/devin-session.js → Slack alert + Devin session
 
 scripts/welcome-season-sweep.js      pre-print validation gate (Act 2), reuses the same registry
-tests/payer-bin-validation.test.js   22 tests over adjudication, card generation, sweep
+tests/payer-bin-validation.test.js   17 tests over adjudication, card generation, sweep
 ```
 
 The page is served at both `/verticals/payer.html` and the friendly alias
@@ -262,12 +262,17 @@ of the given plan year, checks:
 7. the processor accepts that PCN on that BIN;
 8. a **synthetic claim** against the configuration adjudicates end to end.
 
+Checks 7 and 8 make the gate **stricter than the live adjudicator**, which resolves the BIN
+and never inspects the PCN. That is intentional for a pre-print gate — it should refuse a
+configuration the processor would not accept even where the current service would pay — but it
+means workstream 1 has to add PCN validation service-side for the two to agree.
+
 Exit codes, deliberately fail-closed:
 
 | Exit | Meaning |
 | --- | --- |
 | `0` | every plan validated — cards are safe to print |
-| `1` | at least one plan would reject at the counter, **or** zero plans matched the requested year |
+| `1` | at least one plan would reject at the counter, **or** zero plans matched the requested year (the report line above the exit says which) |
 | `2` | malformed `--plan-year` argument |
 
 Exit 1 on "zero plans matched" is the important one: a typo in the year must never let the

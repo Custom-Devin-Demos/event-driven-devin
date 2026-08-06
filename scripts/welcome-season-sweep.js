@@ -64,8 +64,10 @@ function formatMembers(count) {
 }
 
 /**
- * Submit a synthetic claim against a plan configuration, exercising the same
- * routing lookup the live adjudicator performs.
+ * Submit a synthetic claim against a plan configuration, exercising the registry
+ * lookup the live adjudicator performs plus the PCN acceptance check it does not
+ * yet make — a pre-print gate should refuse a configuration the processor would
+ * reject even where the current service would pay it.
  */
 function submitSyntheticClaim(config) {
   const processor = PAYER_REGISTRY[config.rxBin];
