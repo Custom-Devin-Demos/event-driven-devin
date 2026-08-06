@@ -44,12 +44,23 @@ function validateRxRouting(config) {
     errors.push(`RxGRP "${config.rxGroup}" is not a valid group identifier`);
   }
 
+  if (!Number.isFinite(config.memberCount)) {
+    errors.push('memberCount is missing — blast radius cannot be computed for this plan');
+  }
+
   const processor = PAYER_REGISTRY[config.rxBin];
   if (processor && pcnWellFormed && !processor.supportsPcn.includes(config.rxPcn)) {
     errors.push(`RxPCN "${config.rxPcn}" is not accepted by ${processor.name} on BIN ${config.rxBin}`);
   }
 
   return errors;
+}
+
+/**
+ * Format a member count that a plan configuration may not declare.
+ */
+function formatMembers(count) {
+  return Number.isFinite(count) ? count.toLocaleString() : 'unknown';
 }
 
 /**
@@ -89,9 +100,9 @@ function sweep(year) {
     const claim = submitSyntheticClaim(config);
     const ok = errors.length === 0 && claim.paid;
 
-    process.stdout.write(`${ok ? 'PASS' : 'FAIL'}  ${planId.padEnd(15)} ${config.planName}\n`);
+    process.stdout.write(`${ok ? 'PASS' : 'FAIL'}  ${planId.padEnd(15)} ${config.planName || '(unnamed plan)'}\n`);
     process.stdout.write(`      BIN ${config.rxBin} / PCN ${config.rxPcn} / GRP ${config.rxGroup}`);
-    process.stdout.write(`  ·  cards mail ${config.cardsMailedOn}  ·  ${config.memberCount.toLocaleString()} members\n`);
+    process.stdout.write(`  ·  cards mail ${config.cardsMailedOn || 'unknown'}  ·  ${formatMembers(config.memberCount)} members\n`);
 
     for (const err of errors) {
       process.stdout.write(`      → ${err}\n`);
@@ -106,7 +117,7 @@ function sweep(year) {
 
     if (!ok) {
       failures.push({ planId, config, errors });
-      membersAtRisk += config.memberCount;
+      membersAtRisk += Number.isFinite(config.memberCount) ? config.memberCount : 0;
     }
   }
 
@@ -123,7 +134,7 @@ function sweep(year) {
   process.stdout.write(`${failures.length} of ${plans.length} plan(s) would produce cards that reject at the pharmacy counter.\n`);
   process.stdout.write(`${membersAtRisk.toLocaleString()} members affected if these cards mail as configured:\n`);
   for (const f of failures) {
-    process.stdout.write(`  · ${f.planId} — ${f.config.planName} (${f.config.memberCount.toLocaleString()} members)\n`);
+    process.stdout.write(`  · ${f.planId} — ${f.config.planName || '(unnamed plan)'} (${formatMembers(f.config.memberCount)} members)\n`);
   }
   process.stdout.write('\nBlock the print run and correct the plan configuration before cards mail.\n\n');
   return 1;

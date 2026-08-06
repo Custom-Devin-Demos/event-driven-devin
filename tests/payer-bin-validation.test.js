@@ -84,7 +84,9 @@ describe('member ID card generation', () => {
 });
 
 describe('welcome-season RxBIN validation', () => {
-  const validConfig = { rxBin: '004336', rxPcn: 'ADV', rxGroup: 'RX0001' };
+  const validConfig = {
+    rxBin: '004336', rxPcn: 'ADV', rxGroup: 'RX0001', memberCount: 1000,
+  };
 
   test('accepts a registered six-digit BIN with a supported PCN', () => {
     expect(validateRxRouting(validConfig)).toEqual([]);
@@ -108,6 +110,12 @@ describe('welcome-season RxBIN validation', () => {
   test('rejects a PCN the processor does not accept on that BIN', () => {
     const errors = validateRxRouting({ ...validConfig, rxPcn: 'MEDDADV' });
     expect(errors.some((e) => e.includes('is not accepted by'))).toBe(true);
+  });
+
+  test('rejects a plan configuration that declares no member count', () => {
+    const { memberCount: _memberCount, ...withoutCount } = validConfig;
+    const errors = validateRxRouting(withoutCount);
+    expect(errors.some((e) => e.includes('memberCount is missing'))).toBe(true);
   });
 
   test('a plan with an unroutable BIN fails the synthetic claim', () => {
