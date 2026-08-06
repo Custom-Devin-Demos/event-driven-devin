@@ -112,7 +112,7 @@ function sweep(year) {
   let membersAtRisk = 0;
 
   process.stdout.write(`\nWelcome-season sweep — plan year ${year}\n`);
-  process.stdout.write(`${plans.length} plan configuration(s) effective ${year}-01-01\n\n`);
+  process.stdout.write(`${plans.length} plan configuration(s) claiming plan year ${year}\n\n`);
 
   for (const [planId, config] of plans) {
     const errors = validateRxRouting(config, year);
