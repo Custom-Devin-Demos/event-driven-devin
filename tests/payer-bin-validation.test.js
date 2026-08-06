@@ -132,7 +132,7 @@ describe('welcome-season RxBIN validation', () => {
     const typo = {
       ...validConfig, planYear: 2025, effectiveDate: '2026-01-01',
     };
-    expect(validateRxRouting(typo, 2026).some((e) => e.includes('planYear 2025 disagrees'))).toBe(true);
+    expect(validateRxRouting(typo, 2026).some((e) => e.includes('planYear 2025 is not the 2026'))).toBe(true);
   });
 
   test('a plan with an unroutable BIN fails the synthetic claim', () => {

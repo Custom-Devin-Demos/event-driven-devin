@@ -31,10 +31,10 @@ function validateRxRouting(config, year) {
 
   if (Number.isFinite(year)) {
     if (config.planYear !== year) {
-      errors.push(`planYear ${config.planYear} disagrees with effectiveDate ${config.effectiveDate}`);
+      errors.push(`planYear ${config.planYear} is not the ${year} plan year being swept`);
     }
     if (config.effectiveDate !== `${year}-01-01`) {
-      errors.push(`effectiveDate ${config.effectiveDate} disagrees with planYear ${config.planYear}`);
+      errors.push(`effectiveDate ${config.effectiveDate} is not ${year}-01-01`);
     }
   }
 
