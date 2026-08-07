@@ -95,6 +95,23 @@ const CAMPAIGNS = {
 };
 
 /**
+ * Scenario directive appended to the Devin investigation prompt.
+ *
+ * The alert pipeline passes only a prompt to the Devin API, so the repository
+ * to remediate has to be named explicitly here.
+ */
+const REMEDIATION_DIRECTIVE = [
+  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
+  '',
+  'The failing code path is the RBC online account-opening vertical:',
+  '- Service: `app/services/verticals/3cec99d4.js`',
+  '- Route: `app/routes/verticals/3cec99d4.js`',
+  '- Page: `app/public/verticals/3cec99d4.html` (served at `/rbc`)',
+  '',
+  'Open a pull request against `main` with the fix.',
+].join('\n');
+
+/**
  * Provincial requirements that gate the online application.
  */
 const PROVINCE_RULES = {
@@ -260,6 +277,7 @@ async function openAccount(data) {
       devinOrgId: data.devinOrgId,
       service: 'customer-3cec99d4-account-opening',
       verticalLabel: 'Online Account Opening',
+      promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '3cec99d4',
       slackMemberId: 'U08S7AVJ478',
       tags: [
@@ -295,4 +313,11 @@ async function openAccount(data) {
   }
 }
 
-module.exports = { openAccount, PRODUCTS, CAMPAIGNS, APPLICANT_SEGMENTS, PROVINCE_RULES };
+module.exports = {
+  openAccount,
+  REMEDIATION_DIRECTIVE,
+  PRODUCTS,
+  CAMPAIGNS,
+  APPLICANT_SEGMENTS,
+  PROVINCE_RULES,
+};
