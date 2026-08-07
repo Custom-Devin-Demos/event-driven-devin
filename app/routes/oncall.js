@@ -206,6 +206,11 @@ function buildOncallShim(scenario) {
             body: JSON.stringify({ unique: unique, devinEmail: localStorage.getItem('devinEmail') || '' }),
           }).then(function (r) { return r.json(); }).then(function (d) {
             const el = document.getElementById('oncall-status');
+            if (d.skipped) {
+              console.warn('On-call alert post skipped: ' + d.error);
+              el.textContent = '';
+              return;
+            }
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
           }).catch(function () {});
@@ -244,7 +249,7 @@ router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   try {
     const { unique, devinEmail } = req.body || {};
     const result = await postOncallAlert(req.params.vertical, { unique: unique !== false, devinEmail });
-    res.status(result.ok ? 200 : 400).json(result);
+    res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call trigger failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
@@ -311,8 +316,8 @@ router.post('/api/oncall/bug', async (req, res) => {
       devinEmail,
       supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
     });
-    if (result.ok && result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
-    res.status(result.ok ? 200 : 400).json(result);
+    if (result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
+    res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
