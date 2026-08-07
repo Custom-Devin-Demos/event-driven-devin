@@ -84,6 +84,8 @@ Two things are deliberately separate:
 │   │   │   ├── healthcare.js      # Healthcare: providers + appointments
 │   │   │   ├── telco.js           # Telco: plans + upgrades
 │   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
+│   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
+│   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -105,6 +107,12 @@ Two things are deliberately separate:
 │   │   │   ├── healthcare.js      # Appointment scheduling business logic
 │   │   │   ├── telco.js           # Plan upgrade business logic
 │   │   │   └── payer.js           # Pharmacy claim adjudication business logic
+│   │   ├── oncall.js              # On-Call alert/bug-report cards, scenarios, incident state
+│   │   ├── oncall-verticals/      # Copied vertical services for the on-call slice
+│   │   │   ├── banking.js         # On-call banking business logic
+│   │   │   ├── telco.js           # On-call telco business logic
+│   │   │   ├── hightech.js        # On-call license provisioning business logic
+│   │   │   └── insurance.js       # On-call claims business logic
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
 │   │   ├── github-webhook.js      # GitHub webhook processing
 │   │   ├── auth.js                # Auth service

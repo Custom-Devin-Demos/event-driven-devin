@@ -76,10 +76,10 @@ const ALERT_SCENARIOS = {
     metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/licenses/provision}',
     metricValue: '6.8s and climbing',
     threshold: '> 2s',
-    baseline: '~350ms after each deploy, degrading through the day',
+    baseline: '~350ms (7-day p95, before novasoft@1.0.3)',
     release: 'novasoft@1.0.3',
-    symptom: 'Provisioning latency climbs steadily since the last deploy and resets on restart. Process RSS trends up alongside it.',
-    impact: 'License provisioning slows for every customer as the day goes on; a restart temporarily clears it.',
+    symptom: 'Provisioning latency jumped after the last release and creeps higher with every request. Process RSS trends up alongside it.',
+    impact: 'License provisioning is slow for every customer and getting slower under sustained traffic.',
   },
   telco: {
     vertical: 'telco',
@@ -138,9 +138,9 @@ const BUG_CATALOG = {
   hightech: [
     {
       id: 'hightech-provision-slowdown',
-      label: 'Provisioning slower through the day',
+      label: 'Provisioning noticeably slow',
       sev: 'Medium',
-      text: "Sales flagged that provisioning trial licenses got noticeably slow this afternoon — it was a couple seconds this morning and now it's more like seven or eight. Not failing, just slow, and it seems to be getting worse the longer the day goes on.",
+      text: "Sales flagged that provisioning trial licenses is painfully slow — every request sits for seven or eight seconds before completing. Not failing, just slow, and it seems to get a little worse with every license we add.",
     },
     {
       id: 'hightech-renewal-slow',
