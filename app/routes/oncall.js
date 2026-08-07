@@ -63,6 +63,16 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 }
 
 /**
+ * Serialize a value as a JS literal safe for embedding in an inline <script>.
+ */
+function jsLiteral(value) {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+/**
  * Serve an on-call page with a customer skin injected as window.ONCALL_SKIN.
  * The pages apply the skin client-side (branding, copy, portal products);
  * all mechanics stay shared code.
@@ -71,11 +81,7 @@ function sendSkinnedPage(res, next, page, skin) {
   const pagePath = path.join(__dirname, '..', 'public', page);
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
-    const json = JSON.stringify(skin)
-      .replace(/</g, '\\u003c')
-      .replace(/\u2028/g, '\\u2028')
-      .replace(/\u2029/g, '\\u2029');
-    const inject = `<script>window.ONCALL_SKIN = ${json};</script>`;
+    const inject = `<script>window.ONCALL_SKIN = ${jsLiteral(skin)};</script>`;
     res.type('html').send(html.replace('</head>', () => `${inject}\n</head>`));
   });
 }
@@ -94,19 +100,19 @@ function buildSkinBrandShim(skin) {
   <style>:root { ${themeVars} }</style>
   <script>
     (function () {
-      document.title = ${JSON.stringify(page.title || skin.company)};
+      document.title = ${jsLiteral(page.title || skin.company)};
       var logo = document.querySelector('.logo');
       if (logo) {
         logo.textContent = '';
         var mark = document.createElement('div');
         mark.className = 'logo-mark';
-        mark.textContent = ${JSON.stringify(skin.brandMark || '')};
+        mark.textContent = ${jsLiteral(skin.brandMark || '')};
         logo.appendChild(mark);
-        logo.appendChild(document.createTextNode(${JSON.stringify(skin.company)}));
+        logo.appendChild(document.createTextNode(${jsLiteral(skin.company)}));
       }
       var back = document.querySelector('.back-link');
       if (back) back.remove();
-      var disclaimer = ${JSON.stringify(skin.disclaimer || '')};
+      var disclaimer = ${jsLiteral(skin.disclaimer || '')};
       if (disclaimer) {
         var bar = document.createElement('div');
         bar.style.cssText = 'background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;text-align:center;padding:8px 16px;';
