@@ -447,7 +447,8 @@
       })
         .then(function (res) { return res.json().then(function (d) { return { code: res.status, data: d }; }); })
         .then(function (r) {
-          if (r.code === 200) {
+          if (r.code === 200 || (r.data && r.data.skipped)) {
+            if (r.data && r.data.skipped) console.warn('On-call bug report post skipped: ' + r.data.error);
             statusEl.className = 'status ok';
             statusEl.textContent = 'Thanks — your report has been filed with our support engineering team. Reference has been routed to the on-call queue; you\'ll get an email update shortly.';
             descEl.value = '';

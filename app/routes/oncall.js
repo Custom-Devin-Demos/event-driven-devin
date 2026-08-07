@@ -205,11 +205,12 @@ function buildOncallShim(scenario) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ unique: unique, devinEmail: localStorage.getItem('devinEmail') || '' }),
           }).then(function (r) { return r.json(); }).then(function (d) {
+            const el = document.getElementById('oncall-status');
             if (d.skipped) {
               console.warn('On-call alert post skipped: ' + d.error);
+              el.textContent = '';
               return;
             }
-            const el = document.getElementById('oncall-status');
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
           }).catch(function () {});

@@ -344,7 +344,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   const { token, bugsChannel } = resolveOncallEnv();
   if (!token || !bugsChannel) {
     logger.warn('On-Call bugs channel not configured — skipping bug report post');
-    return { ok: false, error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' };
+    return { ok: false, skipped: true, error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' };
   }
 
   const template = findBugTemplate(templateId);
