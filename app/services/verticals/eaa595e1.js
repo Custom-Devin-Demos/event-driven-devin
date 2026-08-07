@@ -68,11 +68,20 @@ const MEMBERSHIP_FUEL_PROGRAM_CODES = {
 };
 
 /**
+ * Resolves a membership tier to its internal program code, ignoring
+ * anything inherited from Object.prototype.
+ */
+function resolveProgramCode(membership) {
+  return Object.prototype.hasOwnProperty.call(MEMBERSHIP_FUEL_PROGRAM_CODES, membership)
+    ? MEMBERSHIP_FUEL_PROGRAM_CODES[membership]
+    : 'standard';
+}
+
+/**
  * Resolves the Fuel Points program for a membership tier.
  */
 function resolveFuelProgram(membership) {
-  const code = MEMBERSHIP_FUEL_PROGRAM_CODES[membership] || 'standard';
-  return FUEL_POINT_PROGRAMS[code];
+  return FUEL_POINT_PROGRAMS[resolveProgramCode(membership)];
 }
 
 /**
@@ -116,7 +125,7 @@ const OFFER_SEGMENT_WEIGHTS = {
  * Unmapped segments score against an empty weight set.
  */
 function resolveOfferSegment(membership) {
-  const code = MEMBERSHIP_FUEL_PROGRAM_CODES[membership] || 'standard';
+  const code = resolveProgramCode(membership);
   return { code, weights: OFFER_SEGMENT_WEIGHTS[code] || {} };
 }
 
