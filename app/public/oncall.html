@@ -877,8 +877,10 @@
           ? '<span style="color:#16a34a;">resolved</span>'
           : i.status === 'resolve_failed'
           ? '<span style="color:#dc2626;">auto-resolve failed \u2014 resolve in Datadog</span>'
-            : '<span style="color:#b45309;">live \u2014 incident channel #sev-1-incident-' + escapeHtml(i.publicId) + '-\u2026 in Slack</span>';
-        return 'IR-' + escapeHtml(i.publicId) + ' <span style="color:#64748b;">(' + escapeHtml(i.runRef) + ')</span> ' + state +
+            : i.publicId
+            ? '<span style="color:#b45309;">live \u2014 incident channel #sev-1-incident-' + escapeHtml(i.publicId) + '-\u2026 in Slack</span>'
+            : '<span style="color:#b45309;">live \u2014 posted to the alerts channel (Datadog not configured)</span>';
+        return (i.publicId ? 'IR-' + escapeHtml(i.publicId) + ' ' : '') + '<span style="color:#64748b;">(' + escapeHtml(i.runRef) + ')</span> ' + state +
           (i.status !== 'resolved' && i.status !== 'resolve_failed' ? ' <span style="color:#64748b;">\u00b7 ~' + mins + ' min left</span>' : '');
       }).join('<br>');
     }

@@ -392,6 +392,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
     if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
       activated = template.infraKind;
+      supersedePriorRun(runRef);
     }
   }
 
@@ -507,6 +508,19 @@ function startMemoryGrowth(windowMs) {
     });
   }, intervalMs);
   if (memLeakInterval.unref) memLeakInterval.unref();
+}
+
+/**
+ * A browser carries a single oncall_run cookie, so a new trigger replaces
+ * the caller's previous run. Revert the old run's degradation so nothing is
+ * left silently active with no cookie pointing at it. A prior SEV-1's
+ * Datadog incident keeps its own auto-resolve timer.
+ */
+function supersedePriorRun(newRunRef) {
+  const prior = getOncallRunRef();
+  if (prior && prior !== newRunRef) {
+    revertScopedInfra(prior, 'superseded by a new run from the same browser');
+  }
 }
 
 function revertScopedInfra(runRef, reason) {
@@ -660,6 +674,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
   }
 
   activateInfraIncident(kind, INFRA_WINDOW_MS, runRef);
+  supersedePriorRun(runRef);
 
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
@@ -693,7 +708,15 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     contextBlock('checkout-api', triggeredBy),
   ];
 
-  const ts = await postMessage(token, alertsChannel, text, blocks);
+  let ts;
+  try {
+    ts = await postMessage(token, alertsChannel, text, blocks);
+  } catch (error) {
+    // Keep observable state consistent with what was announced: if the alert
+    // never posted, don't leave the app silently degraded for the full window.
+    revertScopedInfra(runRef, 'infra alert post failed');
+    throw error;
+  }
   logger.info('On-Call infra incident posted', { kind, channel: alertsChannel, ts, runRef, windowMs: INFRA_WINDOW_MS });
   return {
     ok: true,
@@ -894,6 +917,7 @@ async function postOncallIncident(options = {}) {
 
   if (incident) {
     activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
+    supersedePriorRun(runRef);
     const entry = {
       runRef,
       kind,
@@ -952,6 +976,7 @@ async function postOncallIncident(options = {}) {
   // Fallback path (Datadog not configured): still activate the story's real
   // degradation so the page's "genuine live degradation" promise holds.
   activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
+  supersedePriorRun(runRef);
 
   const text = [
     `:fire: *SEV-1 — ${story.label}*`,
