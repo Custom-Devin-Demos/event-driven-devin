@@ -249,7 +249,7 @@ router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   try {
     const { unique, devinEmail } = req.body || {};
     const result = await postOncallAlert(req.params.vertical, { unique: unique !== false, devinEmail });
-    res.status(result.ok ? 200 : 400).json(result);
+    res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call trigger failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
@@ -317,7 +317,7 @@ router.post('/api/oncall/bug', async (req, res) => {
       supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
     });
     if (result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
-    res.status(result.ok ? 200 : 400).json(result);
+    res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
