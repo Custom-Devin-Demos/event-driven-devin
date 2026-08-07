@@ -10,11 +10,17 @@
     @font-face { font-family:'STK Bureau Serif'; src:url('/brand/STKBureauSerif-Medium.otf') format('opentype'); font-weight:500; font-style:normal; font-display:swap; }
     @font-face { font-family:'NB International Pro'; src:url('/brand/NBInternationalPro-Regular.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
     :root {
-      --paper:#fff; --ink:#0f131c; --ink-2:#141924; --muted:#6b7280; --muted-2:rgba(15,19,28,.5);
-      --line:rgba(15,19,28,.08); --wash:#f2f5fa; --danger:#b3261e; --warning:#b45309; --success:#2f7d32;
-      --accent:#7c8aff; --chrome-bg:#141924; --chrome-deep:#0f131c; --chrome-text:#eaf0f9;
-      --chrome-muted:rgba(234,240,249,.5); --chrome-line:rgba(234,240,249,.12);
-      --chrome-hover:rgba(255,255,255,.03);
+      --surface:#fff; --paper:var(--surface); --ink:#0f131c;
+      --ink-2:color-mix(in srgb,var(--ink) 90%,#000);
+      --muted:color-mix(in srgb,var(--ink) 52%,var(--surface));
+      --muted-2:color-mix(in srgb,var(--ink) 50%,transparent);
+      --line:color-mix(in srgb,var(--ink) 8%,transparent);
+      --surface-muted:color-mix(in srgb,var(--surface) 95%,var(--ink)); --wash:var(--surface-muted); --body-bg:var(--surface-muted);
+      --danger:#b3261e; --warning:#b45309; --success:#2f7d32;
+      --accent:#7c8aff; --chrome-bg:#141924; --chrome-deep:color-mix(in srgb,var(--chrome-bg) 78%,#000); --chrome-text:#eaf0f9;
+      --chrome-muted:color-mix(in srgb,var(--chrome-text) 50%,transparent);
+      --chrome-line:color-mix(in srgb,var(--chrome-text) 12%,transparent);
+      --chrome-hover:color-mix(in srgb,var(--chrome-text) 3%,transparent);
       --hero-content-padding-top:96px; --hero-content-top:var(--hero-content-padding-top);
       --oncall-disclaimer-height:0px;
       --serif:'STK Bureau Serif', Georgia, 'Times New Roman', serif;
@@ -83,7 +89,8 @@
     .fire-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
     .fire-btn.sev { border-color:var(--ink); background:var(--ink); color:#fff; }
     .fire-btn.sev:hover { background:var(--ink-2); border-color:var(--ink-2); }
-    .fire-btn:disabled { border-color:var(--muted-2); color:var(--muted-2); cursor:wait; }
+    .fire-btn:disabled { opacity:.5; cursor:wait; }
+    .fire-btn.sev:disabled { background:var(--ink); border-color:var(--ink); color:var(--paper); }
     .monitor-line { width:100%; font-size:11px; background:var(--wash); border:1px solid var(--line); border-radius:6px; padding:8px 10px; overflow-wrap:anywhere; }
     .status { display:none; margin-top:12px; padding:9px 12px; border-radius:6px; font-size:13px; line-height:1.5; }
     .status.ok,.status.err { display:block; }
@@ -301,7 +308,7 @@
         kind: 'memory-leak',
         icon: ICONS['memory-leak'],
         title: 'Memory Leak',
-        desc: 'Process memory increases. Datadog records the memory growth.',
+        desc: 'Process memory increases without plateau. Datadog records the growth.',
         monitor: 'system.mem.rss{service:checkout-api} rising',
       },
       {
