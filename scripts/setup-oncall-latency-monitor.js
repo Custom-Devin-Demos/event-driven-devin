@@ -2,8 +2,9 @@
 
 /**
  * Creates the live Datadog metric monitor backing the "DB Latency Spike"
- * on-call story. The monitor watches the checkout.latency statsd timing and
- * genuinely fires while the db-latency degradation window is active.
+ * on-call story. The monitor watches the storefront search.latency statsd
+ * timing (the metric the health strip actually degrades during a db-latency
+ * window) and genuinely fires while the window is active.
  *
  * Usage:
  *   DD_API_KEY=xxx DD_APP_KEY=xxx DD_SITE=us5.datadoghq.com node scripts/setup-oncall-latency-monitor.js
@@ -22,14 +23,14 @@ if (!DD_API_KEY || !DD_APP_KEY) {
   process.exit(1);
 }
 
-const MONITOR_NAME = 'checkout-api — p95 request latency high (db-latency)';
+const MONITOR_NAME = 'checkout-api — search query latency high (db-latency)';
 
 const monitor = {
   name: MONITOR_NAME,
   type: 'metric alert',
-  query: 'avg(last_5m):avg:checkout.latency.avg{*} > 1200',
+  query: 'avg(last_5m):avg:search.latency.avg{route:/search} > 1200',
   message: [
-    'p95/avg checkout latency on checkout-api is above 1.2s for 5 minutes.',
+    'Average storefront search latency on checkout-api is above 1.2s for 5 minutes.',
     'Symptoms: storefront search and checkout slow to 1.5\u20133s; no elevated error rate.',
     'Runbook: check slow-query warnings in checkout-api logs.',
   ].join('\n'),
