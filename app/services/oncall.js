@@ -19,7 +19,8 @@ const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } =
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
-const DEMO_BASE_URL = (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
+const DEMO_BASE_URL = () =>
+  (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
 
 /**
  * Alert scenarios for the on-call vertical demos. Cards are metric-shaped —
@@ -275,7 +276,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `:rotating_light: *[Triggered] ${scenario.monitor}*`,
     '',
     `*Service:* ${scenario.service} (${brand})`,
-    skin ? `*Demo page:* ${DEMO_BASE_URL}/oncall/c/${skin.slug} — reproduce the symptom on this branded page` : null,
+    skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page` : null,
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
@@ -334,7 +335,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     mrkdwnSection(`*Monitor query:*\n\`\`\`${scenario.metricQuery}\`\`\``),
     mrkdwnSection(
       `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
-      (skin ? `*Demo page:* ${DEMO_BASE_URL}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
+      (skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     datadogActions(),
