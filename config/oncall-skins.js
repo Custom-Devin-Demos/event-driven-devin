@@ -1,11 +1,13 @@
 /**
  * On-Call demo customer skins.
  *
- * A skin re-brands the /oncall demo experience (page chrome, incident card
- * copy, support portal products/templates) for a specific prospect without
- * touching any mechanics: incident modes, auto-revert, Slack routing, and the
- * template → repro mapping are shared code. Adding a customer = adding one
- * entry here. Served at /oncall/c/<slug> and /oncall/c/<slug>/report.
+ * A skin generates ONE customer-branded product page for a specific prospect
+ * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
+ * vertical page (skin.vertical) rebranded with the customer's name, mark, and
+ * theme, with the on-call shim active — that single URL is what a DE shares.
+ * /oncall/c/<slug>/report serves the matching branded support portal. The
+ * generic /oncall hub itself is never skinned. Adding a customer = adding one
+ * entry here.
  *
  * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
  * never the customer's name, so shared URLs don't leak who a demo is for.
@@ -28,6 +30,16 @@ const ONCALL_SKINS = {
     slug: '8cc190d2',
     company: 'Brex',
     brandMark: 'B',
+    vertical: 'banking',
+    page: {
+      title: 'Brex — Business Account',
+      theme: {
+        '--navy': '#211b18',
+        '--navy-light': '#3a2f28',
+        '--gold': '#F46A35',
+        '--gold-dim': 'rgba(244,106,53,0.08)',
+      },
+    },
     accent: '#F46A35',
     accentDark: '#d9552a',
     theme: {
@@ -39,28 +51,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Brex Support',
     supportCenterSub: 'Customer Care & Incident Intake',
-    heroTitle: 'BREX ON-CALL',
-    heroSub:
-      'Trigger an incident in the Brex service. It degrades, alerting fires, and Devin picks up the alert and investigates.',
     disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Brex product.',
-    infra: {
-      latency: {
-        title: 'DB Latency Spike',
-        desc: 'Brex transaction search and payments slow to 1.5\u20133s. Error rate stays normal.',
-      },
-      'dependency-timeout': {
-        title: 'Card Network Timeouts',
-        desc: 'Card-network timeouts are intermittent. Some payment authorizations return a 504.',
-      },
-      'memory-leak': {
-        title: 'Memory Leak',
-        desc: 'Process memory climbs without plateau. No user-visible symptom as memory grows.',
-      },
-      'slo-burn': {
-        title: 'SLO Fast Burn',
-        desc: 'Payment failures burn availability budget. Burn rate precedes raw error alerts.',
-      },
-    },
     bugPortal: {
       products: [
         {

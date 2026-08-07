@@ -16,6 +16,16 @@ const PLAN_CONFIGS = {
 };
 
 /**
+ * Product display names keyed by the product key the console sends.
+ */
+const PRODUCT_LABELS = {
+  enterprise_suite: 'Enterprise Suite Pro',
+  devops_platform: 'DevOps Platform',
+  analytics_cloud: 'Analytics Cloud',
+  security_gateway: 'Security Gateway',
+};
+
+/**
  * Active subscriptions for the demo
  */
 const SUBSCRIPTIONS = [
@@ -157,7 +167,7 @@ async function provisionLicense(data) {
       licenseId,
       orgName: data.orgName,
       plan: data.planName,
-      product: data.orgName,
+      product: PRODUCT_LABELS[data.orgName] || data.orgName,
       seats: data.seats,
       seatsAdded: data.seats,
       annualCost: Math.round(billing.monthly * 12 * 0.8 * 100) / 100,

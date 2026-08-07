@@ -91,10 +91,12 @@ router.post('/api/oncall/insurance/claim', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    const statusCode = error.code === 'ADJUDICATION_TIMEOUT' ? 504 : 500;
-    res.status(statusCode).json({
+    const isTimeout = error.code === 'ADJUDICATION_TIMEOUT';
+    res.status(isTimeout ? 504 : 500).json({
       success: false,
-      error: error.message,
+      error: isTimeout
+        ? 'Claim submission timed out — please try again in a few minutes.'
+        : error.message,
       errorClass: error.name,
       code: error.code || 'CLAIM_FAILED',
       requestId: req.requestId,

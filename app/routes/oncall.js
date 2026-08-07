@@ -75,13 +75,60 @@ function sendSkinnedPage(res, next, page, skin) {
 }
 
 /**
- * GET /oncall/c/:slug — customer-skinned On-Call demo page.
+ * Rebrand a served vertical page with a skin's company name, mark, title,
+ * and theme variables, and hide the demo-hub back link. Applied on top of
+ * the on-call shim so the shared URL looks like the customer's own product.
+ */
+function buildSkinBrandShim(skin) {
+  const page = skin.page || {};
+  const themeVars = Object.entries(page.theme || {})
+    .map(([k, v]) => `${k}: ${v};`)
+    .join(' ');
+  return `
+  <style>:root { ${themeVars} }</style>
+  <script>
+    (function () {
+      document.title = ${JSON.stringify(page.title || skin.company)};
+      var logo = document.querySelector('.logo');
+      if (logo) {
+        logo.textContent = '';
+        var mark = document.createElement('div');
+        mark.className = 'logo-mark';
+        mark.textContent = ${JSON.stringify(skin.brandMark || '')};
+        logo.appendChild(mark);
+        logo.appendChild(document.createTextNode(${JSON.stringify(skin.company)}));
+      }
+      var back = document.querySelector('.back-link');
+      if (back) back.remove();
+      var disclaimer = ${JSON.stringify(skin.disclaimer || '')};
+      if (disclaimer) {
+        var bar = document.createElement('div');
+        bar.style.cssText = 'background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;text-align:center;padding:8px 16px;';
+        bar.textContent = disclaimer;
+        document.body.insertBefore(bar, document.body.firstChild);
+      }
+    })();
+  </script>`;
+}
+
+/**
+ * GET /oncall/c/:slug — the customer's single branded demo page: the skin's
+ * chosen vertical page rebranded, with the on-call shim active. This is the
+ * URL a DE shares for a custom demo; the /oncall hub itself is never skinned.
  * Registered before /oncall/:vertical so "c" is never treated as a vertical.
  */
 router.get('/oncall/c/:slug', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
   if (!skin) return next();
-  sendSkinnedPage(res, next, 'oncall.html', skin);
+  const scenario = ALERT_SCENARIOS[skin.vertical];
+  if (!scenario) return next();
+  const pagePath = path.join(__dirname, '..', 'public', 'verticals', scenario.page);
+  fs.readFile(pagePath, 'utf8', (err, html) => {
+    if (err) return next(err);
+    res.type('html').send(
+      html.replace('</body>', () => `${buildOncallShim(scenario)}\n${buildSkinBrandShim(skin)}\n</body>`)
+    );
+  });
 });
 
 /**
