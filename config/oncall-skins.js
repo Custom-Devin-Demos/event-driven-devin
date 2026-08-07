@@ -45,19 +45,19 @@ const ONCALL_SKINS = {
     infra: {
       latency: {
         title: 'DB Latency Spike',
-        desc: 'Transaction search and checkout slow to 1.5\u20133s under load. Error rate stays normal.',
+        desc: 'Brex search and checkout paths slow to 1.5\u20133s. Error rate stays normal today.',
       },
       'dependency-timeout': {
         title: 'Card Network Timeouts',
-        desc: 'Card network calls time out. Most payment requests succeed; some return a 504.',
+        desc: 'Card network timeouts recur. Most payment requests succeed; some return a 504.',
       },
       'memory-leak': {
         title: 'Memory Leak',
-        desc: 'Process memory climbs without plateau. No user-visible failure until the OOM restart.',
+        desc: 'Process memory climbs without plateau. No user-visible symptom as memory grows.',
       },
       'slo-burn': {
         title: 'SLO Fast Burn',
-        desc: 'Payment failures burn availability budget at current burn. Burn rate pages before alerts.',
+        desc: 'Intermittent failures consume availability budget. Burn rate pages before alerts.',
       },
     },
     bugPortal: {
