@@ -43,6 +43,12 @@ const KNOWN_TEMPLATE_IDS = new Set(
   Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))
 );
 for (const skin of Object.values(ONCALL_SKINS)) {
+  if (!ALERT_SCENARIOS[skin.vertical]) {
+    logger.warn('On-Call skin references unknown vertical', {
+      skin: skin.slug,
+      vertical: skin.vertical,
+    });
+  }
   const products = (skin.bugPortal && skin.bugPortal.products) || [];
   for (const product of products) {
     for (const template of product.templates || []) {
