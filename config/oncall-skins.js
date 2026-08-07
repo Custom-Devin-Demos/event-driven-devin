@@ -49,7 +49,7 @@ const ONCALL_SKINS = {
       },
       'dependency-timeout': {
         title: 'Card Network Timeouts',
-        desc: 'The card-network dependency times out intermittently. Most payment authorizations succeed; some display a spinner before returning a 502.',
+        desc: 'The card-network dependency times out intermittently. Most payment authorizations succeed; some display a spinner before returning a 504.',
       },
       'memory-leak': {
         title: 'Memory Leak',
