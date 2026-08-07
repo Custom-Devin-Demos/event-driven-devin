@@ -45,19 +45,19 @@ const ONCALL_SKINS = {
     infra: {
       latency: {
         title: 'DB Latency Spike',
-        desc: 'Transaction search in the Brex dashboard slows to 1.5\u20133s. Error rate remains normal.',
+        desc: 'Brex transaction search and payments slow to 1.5\u20133s. Error rate stays normal.',
       },
       'dependency-timeout': {
         title: 'Card Network Timeouts',
-        desc: 'The card-network dependency times out intermittently. Most payment authorizations succeed; some display a spinner before returning a 504.',
+        desc: 'Card-network timeouts are intermittent. Some payment authorizations return a 504.',
       },
       'memory-leak': {
         title: 'Memory Leak',
-        desc: 'Process memory increases without plateau. Datadog records the growth.',
+        desc: 'Process memory climbs without plateau. No user-visible symptom as memory grows.',
       },
       'slo-burn': {
         title: 'SLO Fast Burn',
-        desc: 'Intermittent payment failures consume the availability error budget. The burn rate pages before the raw error alert.',
+        desc: 'Payment failures burn availability budget. Burn rate precedes raw error alerts.',
       },
     },
     bugPortal: {
