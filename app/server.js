@@ -5,7 +5,7 @@ initDatadog();
 const express = require('express');
 const { initSentry, Sentry } = require('./telemetry/sentry');
 const logger = require('./telemetry/logger');
-const { getScenario } = require('./incidentModes');
+const { getScenario, runWithOncallRun } = require('./incidentModes');
 const { v4: uuidv4 } = require('uuid');
 
 // Initialize Sentry
@@ -48,6 +48,17 @@ app.use(express.json({
 app.use((req, _res, next) => {
   if (req.headers['x-oncall-mode'] === '1') {
     return runWithLegacyAlertsSuppressed(() => next());
+  }
+  next();
+});
+
+// Middleware: per-run On-Call degradation scoping — requests carrying an
+// oncall_run cookie see that run's live degradation; all other traffic is
+// unaffected.
+app.use((req, _res, next) => {
+  const match = /(?:^|;\s*)oncall_run=([A-Za-z0-9-]+)/.exec(req.headers.cookie || '');
+  if (match) {
+    return runWithOncallRun(match[1], () => next());
   }
   next();
 });

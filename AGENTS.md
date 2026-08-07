@@ -213,6 +213,8 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `SENTRY_DSN` | Sentry project DSN | Yes |
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
+| `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
+| `ONCALL_SEV1_WINDOW_MS` | SEV-1 degradation/auto-resolve window in ms (default 30 min) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |

@@ -1,7 +1,8 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, lookupSlackUserByEmail } = require('./slack');
-const { setScenario, getScenario } = require('../incidentModes');
+const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } = require('../incidentModes');
 
 /**
  * On-Call demo service.
@@ -219,7 +220,7 @@ function resolveOncallEnv() {
  * distinguishable alert (and can dodge duplicate-grouping when desired).
  */
 function makeRunRef() {
-  return `run-${Math.random().toString(16).slice(2, 8)}`;
+  return `run-${crypto.randomBytes(6).toString('hex')}`;
 }
 
 const DD_URL = () => process.env.DD_DASHBOARD_URL || 'https://app.datadoghq.com';
@@ -387,8 +388,10 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   // Bug Triage Responder's repro steps genuinely reproduce. The template id is
   // resolved server-side against the catalog — only known kinds can activate.
   let activated = null;
+  const runRef = makeRunRef();
   if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
-    if (activateInfraIncident(template.infraKind)) {
+    supersedePriorRun(runRef);
+    if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
       activated = template.infraKind;
     }
   }
@@ -429,7 +432,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   } catch (error) {
     // Keep observable state consistent with what was announced: if the ticket
     // never posted, don't leave the app silently degraded for the full window.
-    if (activated) revertInfraState('bug report post failed');
+    if (activated) revertScopedInfra(runRef, 'bug report post failed');
     throw error;
   }
   logger.info('On-Call bug report posted', {
@@ -444,6 +447,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     ts,
     channel: bugsChannel,
     activated,
+    runRef: activated ? runRef : null,
     windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
   };
 }
@@ -464,10 +468,15 @@ const INFRA_WINDOW_MS = envNumber(
   process.env.ONCALL_INFRA_WINDOW_MS || process.env.ONCALL_LATENCY_WINDOW_MS,
   10 * 60 * 1000,
 );
-let infraRevertTimer = null;
-let activeInfraScenario = null;
-let activeInfraKind = null;
-let infraRevertAt = null;
+const SEV1_WINDOW_MS = envNumber(process.env.ONCALL_SEV1_WINDOW_MS, 30 * 60 * 1000);
+
+/**
+ * Per-run degradation registry: each activation is scoped to its run ref, so
+ * only requests carrying that run's oncall_run cookie see the symptoms.
+ * Concurrent runs are fully independent — nothing here touches the global
+ * scenario slot used by the admin endpoint.
+ */
+const scopedInfra = new Map();
 
 /**
  * Bounded, reversible memory-growth mode for the memory-leak incident.
@@ -501,20 +510,31 @@ function startMemoryGrowth(windowMs) {
   if (memLeakInterval.unref) memLeakInterval.unref();
 }
 
-function revertInfraState(reason) {
-  const hadState = infraRevertTimer || memLeakInterval || memLeakChunks.length > 0 || activeInfraScenario;
-  if (infraRevertTimer) clearTimeout(infraRevertTimer);
-  infraRevertTimer = null;
-  stopMemoryGrowth();
-  if (activeInfraScenario && getScenario() === activeInfraScenario) {
-    setScenario('healthy');
+/**
+ * A browser carries a single oncall_run cookie, so a new trigger replaces
+ * the caller's previous run. Revert the old run's degradation so nothing is
+ * left silently active with no cookie pointing at it. A prior SEV-1's
+ * Datadog incident keeps its own auto-resolve timer.
+ */
+function supersedePriorRun(newRunRef) {
+  const prior = getOncallRunRef();
+  if (prior && prior !== newRunRef) {
+    revertScopedInfra(prior, 'superseded by a new run from the same browser');
   }
-  activeInfraScenario = null;
-  activeInfraKind = null;
-  infraRevertAt = null;
-  if (hadState) {
-    logger.info('On-Call infra incident state reverted to healthy', { reason });
+}
+
+function revertScopedInfra(runRef, reason) {
+  const entry = scopedInfra.get(runRef);
+  if (!entry) return;
+  if (entry.timer) clearTimeout(entry.timer);
+  if (entry.scenario) clearScopedScenario(runRef);
+  scopedInfra.delete(runRef);
+  // Memory growth is inherently process-wide (RSS); release it only once no
+  // other live run still needs it.
+  if (entry.memoryGrowth && !Array.from(scopedInfra.values()).some((e) => e.memoryGrowth)) {
+    stopMemoryGrowth();
   }
+  logger.info('On-Call infra incident state reverted to healthy', { runRef, reason });
 }
 
 function stopMemoryGrowth() {
@@ -611,22 +631,32 @@ const INFRA_INCIDENTS = {
  * growth) with the standard auto-revert window. Returns true if any state
  * was activated.
  */
-function activateInfraIncident(kind) {
+function activateInfraIncident(kind, windowMs = INFRA_WINDOW_MS, runRef) {
   const incident = INFRA_INCIDENTS[kind];
-  if (!incident) return false;
+  if (!incident || !runRef) return false;
   if (incident.scenario === 'healthy' && !incident.memoryGrowth) return false;
-  revertInfraState('superseded by new incident');
+  revertScopedInfra(runRef, 'superseded by new incident');
+  const entry = {
+    kind,
+    scenario: null,
+    memoryGrowth: Boolean(incident.memoryGrowth),
+    revertAt: Date.now() + windowMs,
+    timer: null,
+  };
   if (incident.scenario !== 'healthy') {
-    setScenario(incident.scenario);
-    activeInfraScenario = incident.scenario;
+    setScopedScenario(runRef, incident.scenario);
+    entry.scenario = incident.scenario;
   }
-  if (incident.memoryGrowth) startMemoryGrowth(INFRA_WINDOW_MS);
-  activeInfraKind = kind;
-  infraRevertAt = Date.now() + INFRA_WINDOW_MS;
-  infraRevertTimer = setTimeout(() => {
-    revertInfraState(`window elapsed for ${kind}`);
-  }, INFRA_WINDOW_MS);
-  if (infraRevertTimer.unref) infraRevertTimer.unref();
+  // Memory growth is process-wide RSS: keep it monotonic across concurrent
+  // runs by only starting the allocator when no other live run holds it.
+  if (incident.memoryGrowth && !Array.from(scopedInfra.values()).some((e) => e.memoryGrowth)) {
+    startMemoryGrowth(windowMs);
+  }
+  entry.timer = setTimeout(() => {
+    revertScopedInfra(runRef, `window elapsed for ${kind}`);
+  }, windowMs);
+  if (entry.timer.unref) entry.timer.unref();
+  scopedInfra.set(runRef, entry);
   return true;
 }
 
@@ -643,7 +673,8 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  activateInfraIncident(kind);
+  supersedePriorRun(runRef);
+  activateInfraIncident(kind, INFRA_WINDOW_MS, runRef);
 
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
@@ -677,7 +708,15 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     contextBlock('checkout-api', triggeredBy),
   ];
 
-  const ts = await postMessage(token, alertsChannel, text, blocks);
+  let ts;
+  try {
+    ts = await postMessage(token, alertsChannel, text, blocks);
+  } catch (error) {
+    // Keep observable state consistent with what was announced: if the alert
+    // never posted, don't leave the app silently degraded for the full window.
+    revertScopedInfra(runRef, 'infra alert post failed');
+    throw error;
+  }
   logger.info('On-Call infra incident posted', { kind, channel: alertsChannel, ts, runRef, windowMs: INFRA_WINDOW_MS });
   return {
     ok: true,
@@ -696,89 +735,237 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
  * infra incident (and time remaining), and process memory.
  */
 function getInfraState() {
+  // Scoped to the caller: reports the degradation belonging to the run ref
+  // on the request's oncall_run cookie (if any), never someone else's run.
+  const runRef = getOncallRunRef();
+  const entry = runRef ? scopedInfra.get(runRef) : null;
   return {
     scenario: getScenario(),
-    activeKind: activeInfraKind,
-    // True for the whole incident window of any memory-growth incident, not
-    // just while allocating: the growth interval self-clears at the cap but
-    // the incident stays active.
-    memoryGrowth: Boolean(activeInfraKind && INFRA_INCIDENTS[activeInfraKind] && INFRA_INCIDENTS[activeInfraKind].memoryGrowth),
+    runRef: entry ? runRef : null,
+    activeKind: entry ? entry.kind : null,
+    memoryGrowth: Boolean(entry && entry.memoryGrowth),
     heldMB: memLeakChunks.length * MEMLEAK_CHUNK_MB,
     rssMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
-    msRemaining: infraRevertAt ? Math.max(0, infraRevertAt - Date.now()) : null,
+    msRemaining: entry ? Math.max(0, entry.revertAt - Date.now()) : null,
+  };
+}
+
+/**
+ * SEV-1 incident stories. Each maps to one of the infra degradations so the
+ * declared incident is backed by a genuinely observable failure, and carries
+ * the Datadog-facing title/summary used for the declared incident.
+ */
+const SEV1_INCIDENTS = {
+  'checkout-gateway': {
+    infraKind: 'dependency-timeout',
+    label: 'Checkout degraded — payments-gateway timeouts',
+    title: 'Checkout degraded — payments-gateway timeouts on checkout-api',
+    summary: 'POST /checkout p99 above 5s; ~30% of checkout calls timing out against payments-gateway. Users see a spinner then a 502.',
+  },
+  'db-latency': {
+    infraKind: 'latency',
+    label: 'Site-wide slowness — DB query latency spike',
+    title: 'Site-wide slowness — database query latency spike on checkout-api',
+    summary: 'p95 latency 10x baseline across storefront search and checkout; app logs show repeated slow-query warnings (1500-3000ms). No elevated error rate — pure latency degradation.',
+  },
+  'error-budget': {
+    infraKind: 'slo-burn',
+    label: 'Checkout availability — SLO fast burn',
+    title: 'Checkout availability SLO fast burn — error budget exhausting on checkout-api',
+    summary: 'Roughly half of POST /checkout requests failing (inventory reservation conflicts + tax-calculation errors). 30d error budget projected to exhaust in under 2 days at current burn rate.',
+  },
+  'memory-leak': {
+    infraKind: 'memory-leak',
+    label: 'Memory growth — checkout-api heading to OOM',
+    title: 'Unbounded memory growth on checkout-api — OOM restart projected',
+    summary: 'Process RSS climbing monotonically without plateau, consistent with an unbounded in-process cache. Latency creep expected as heap pressure grows; OOM restart projected if unaddressed.',
+  },
+};
+
+function ddIncidentEnv() {
+  return {
+    apiKey: process.env.DD_API_KEY,
+    appKey: process.env.DD_INCIDENT_APP_KEY || process.env.DD_APPLICATION_KEY,
+    site: process.env.DD_SITE || 'us5.datadoghq.com',
+  };
+}
+
+function ddHeaders({ apiKey, appKey }) {
+  return {
+    'DD-API-KEY': apiKey,
+    'DD-APPLICATION-KEY': appKey,
+    'Content-Type': 'application/json',
   };
 }
 
 /**
  * Declare a SEV-1 incident in Datadog Incident Management.
  * With the Datadog Slack app installed and "Create Slack channels for
- * incidents" enabled, Datadog creates the incident-<n> channel itself and the
- * On-Call Incident Agent auto-joins it.
+ * incidents" enabled, Datadog creates the incident channel itself.
  */
-async function declareDatadogIncident(runRef, triggeredBy) {
-  const apiKey = process.env.DD_API_KEY;
-  const appKey = process.env.DD_APPLICATION_KEY;
-  if (!apiKey || !appKey) {
+async function declareDatadogIncident({ title, summary, runRef, triggeredBy }) {
+  const env = ddIncidentEnv();
+  if (!env.apiKey || !env.appKey) {
     return null;
   }
 
-  const site = process.env.DD_SITE || 'us5.datadoghq.com';
   const response = await axios.post(
-    `https://api.${site}/api/v2/incidents`,
+    `https://api.${env.site}/api/v2/incidents`,
     {
       data: {
         type: 'incidents',
         attributes: {
-          title: `SEV-1: acme-demo error rate spike across multiple verticals (${runRef})`,
+          // Severity is carried by the field (and the channel-name template);
+          // keeping it out of the title avoids a doubled-up channel name.
+          title: `${title} (${runRef})`,
           customer_impacted: true,
           fields: {
             severity: { type: 'dropdown', value: 'SEV-1' },
             summary: {
               type: 'textbox',
-              value: `5xx rate > 40% for 5 minutes on checkout-api; banking, insurance, and telco endpoints affected. Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
+              value: `${summary} Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
             },
           },
         },
       },
     },
-    {
-      headers: {
-        'DD-API-KEY': apiKey,
-        'DD-APPLICATION-KEY': appKey,
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    },
+    { headers: ddHeaders(env), timeout: 10000 },
   );
 
   const incident = response.data && response.data.data;
+  if (!incident || !incident.id) {
+    return null;
+  }
   return {
-    id: incident && incident.id,
-    publicId: incident && incident.attributes && incident.attributes.public_id,
+    id: incident.id,
+    publicId: incident.attributes && incident.attributes.public_id,
   };
 }
 
 /**
- * Trigger a SEV-1 incident. Preferred path: declare a real Datadog incident
- * so Datadog's Slack integration creates the incident channel and the
- * Incident Agent auto-joins. Fallback (Datadog keys not configured): post a
- * SEV-1 style message to the alerts channel.
+ * Resolve a Datadog incident by id. The Datadog Slack integration then
+ * auto-archives the incident channel on its own schedule.
+ */
+async function resolveDatadogIncident(incidentId) {
+  const env = ddIncidentEnv();
+  if (!env.apiKey || !env.appKey || !incidentId) return false;
+  await axios.patch(
+    `https://api.${env.site}/api/v2/incidents/${incidentId}`,
+    {
+      data: {
+        id: incidentId,
+        type: 'incidents',
+        attributes: { fields: { state: { type: 'dropdown', value: 'resolved' } } },
+      },
+    },
+    { headers: ddHeaders(env), timeout: 10000 },
+  );
+  return true;
+}
+
+/**
+ * Live registry of declared SEV-1 incidents, keyed by runRef, powering the
+ * /oncall page status and the auto-resolve timers. Each demo click is an
+ * independent incident with its own channel and lifecycle.
+ */
+const activeSev1 = new Map();
+const SEV1_HISTORY_MAX = 20;
+
+function pruneSev1() {
+  while (activeSev1.size > SEV1_HISTORY_MAX) {
+    const keys = Array.from(activeSev1.keys());
+    const evict = keys.find((k) => activeSev1.get(k).status === 'resolved') || keys[0];
+    activeSev1.delete(evict);
+  }
+}
+
+const SEV1_RESOLVE_MAX_ATTEMPTS = 4;
+const SEV1_RESOLVE_RETRY_MS = 30000;
+
+/**
+ * Trigger a SEV-1 incident. Preferred path: activate the matching real
+ * degradation and declare a real Datadog incident. Datadog's Slack
+ * integration creates the incident channel and Devin's native incident
+ * auto-join picks it up from the channel-name prefix — the app never touches
+ * the channel itself. The incident auto-resolves when the degradation window
+ * ends. Fallback (Datadog keys not configured): post a SEV-1 style message
+ * to the alerts channel.
  */
 async function postOncallIncident(options = {}) {
   const runRef = makeRunRef();
   const { token, alertsChannel } = resolveOncallEnv();
-  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
+  const hasKind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, options.kind);
+  if (options.kind != null && options.kind !== '' && !hasKind) {
+    return { ok: false, error: `Unknown incident kind: ${options.kind}` };
+  }
+  const kind = hasKind ? options.kind : 'checkout-gateway';
+  const story = SEV1_INCIDENTS[kind];
 
+  let incident = null;
   try {
-    const incident = await declareDatadogIncident(runRef, options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null);
-    if (incident) {
-      logger.info('On-Call Datadog incident declared', { runRef, ...incident });
-      return { ok: true, provider: 'datadog', runRef, ...incident };
-    }
+    incident = await declareDatadogIncident({
+      title: story.title,
+      summary: story.summary,
+      runRef,
+      triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
+    });
   } catch (error) {
     logger.error('Datadog incident declaration failed — falling back to Slack post', {
       error: error.message,
     });
+  }
+
+  if (incident) {
+    supersedePriorRun(runRef);
+    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
+    const entry = {
+      runRef,
+      kind,
+      label: story.label,
+      summary: story.summary,
+      id: incident.id,
+      publicId: incident.publicId,
+      declaredAt: Date.now(),
+      resolveAt: Date.now() + SEV1_WINDOW_MS,
+      status: 'declared',
+    };
+    activeSev1.set(runRef, entry);
+    pruneSev1();
+
+    const scheduleResolve = (delayMs, attempt) => {
+      const timer = setTimeout(async () => {
+        try {
+          const resolved = await resolveDatadogIncident(entry.id);
+          if (!resolved) {
+            logger.error('SEV-1 auto-resolve impossible — Datadog incident env not configured', { runRef });
+            entry.status = 'resolve_failed';
+            return;
+          }
+          entry.status = 'resolved';
+          logger.info('SEV-1 incident auto-resolved', { runRef, publicId: entry.publicId });
+        } catch (error) {
+          logger.error('SEV-1 auto-resolve failed', { runRef, attempt, error: error.message });
+          if (attempt < SEV1_RESOLVE_MAX_ATTEMPTS) {
+            scheduleResolve(SEV1_RESOLVE_RETRY_MS * attempt, attempt + 1);
+          } else {
+            entry.status = 'resolve_failed';
+          }
+        }
+      }, delayMs);
+      if (timer.unref) timer.unref();
+    };
+    scheduleResolve(SEV1_WINDOW_MS, 1);
+
+    logger.info('On-Call Datadog incident declared', { runRef, kind, ...incident });
+    return {
+      ok: true,
+      provider: 'datadog',
+      runRef,
+      kind,
+      label: story.label,
+      windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
+      ...incident,
+    };
   }
 
   if (!token || !alertsChannel) {
@@ -786,20 +973,81 @@ async function postOncallIncident(options = {}) {
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
+  // Fallback path (Datadog not configured): still activate the story's real
+  // degradation so the page's "genuine live degradation" promise holds.
+  supersedePriorRun(runRef);
+  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
+
   const text = [
-    ':fire: *SEV-1 — acme-demo error rate spike across multiple verticals*',
+    `:fire: *SEV-1 — ${story.label}*`,
     '',
     `*Incident Ref:* ${runRef}`,
-    '*Signal:* 5xx rate > 40% for 5 minutes on checkout-api (banking, insurance, telco endpoints affected)',
+    `*Summary:* ${story.summary}`,
     '*Env:* production | *Service:* checkout-api',
+    `*Degradation window:* live now, auto-recovers in ~${Math.round(SEV1_WINDOW_MS / 60000)} minutes`,
     '',
-    `Multiple user-facing flows are failing simultaneously. Repo: ${REPO_URL}`,
+    `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
   ].join('\n');
+  const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
 
-  const ts = await postMessage(token, alertsChannel, fullText);
+  let ts;
+  try {
+    ts = await postMessage(token, alertsChannel, fullText);
+  } catch (error) {
+    // Keep observable state consistent with what was announced: if the SEV-1
+    // never posted, don't leave the app silently degraded for the full window.
+    revertScopedInfra(runRef, 'SEV-1 fallback post failed');
+    throw error;
+  }
   logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });
-  return { ok: true, ts, channel: alertsChannel, runRef };
+
+  // Register in the live SEV-1 list too; no Datadog incident to resolve, so
+  // the entry simply flips to resolved when the degradation window ends.
+  const entry = {
+    runRef,
+    kind,
+    label: story.label,
+    summary: story.summary,
+    id: null,
+    publicId: null,
+    declaredAt: Date.now(),
+    resolveAt: Date.now() + SEV1_WINDOW_MS,
+    status: 'declared',
+  };
+  activeSev1.set(runRef, entry);
+  pruneSev1();
+  const resolveTimer = setTimeout(() => { entry.status = 'resolved'; }, SEV1_WINDOW_MS);
+  if (resolveTimer.unref) resolveTimer.unref();
+
+  return {
+    ok: true,
+    ts,
+    channel: alertsChannel,
+    runRef,
+    kind,
+    label: story.label,
+    windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
+  };
+}
+
+/**
+ * Live state of declared SEV-1 incidents for the /oncall page.
+ */
+function getSev1State() {
+  // Scoped to the caller, like getInfraState(): only the incident belonging
+  // to the request's oncall_run cookie is listed, never someone else's.
+  const runRef = getOncallRunRef();
+  const entry = runRef ? activeSev1.get(runRef) : null;
+  return (entry ? [entry] : []).map((e) => ({
+    runRef: e.runRef,
+    kind: e.kind,
+    label: e.label,
+    publicId: e.publicId,
+    status: e.status,
+    declaredAt: e.declaredAt,
+    msRemaining: e.status === 'resolved' ? 0 : Math.max(0, e.resolveAt - Date.now()),
+  }));
 }
 
 module.exports = {
@@ -812,4 +1060,6 @@ module.exports = {
   postOncallInfraIncident,
   getInfraState,
   postOncallIncident,
+  SEV1_INCIDENTS,
+  getSev1State,
 };
