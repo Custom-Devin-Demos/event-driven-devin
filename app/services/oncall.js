@@ -267,12 +267,14 @@ function contextBlock(service, triggeredBy) {
  * responder treats it as a fresh occurrence; when false, the message matches
  * the canonical signature to demonstrate duplicate grouping.
  */
-function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy }) {
+function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
 
+  const brand = skin ? `${skin.company} (${scenario.brand})` : scenario.brand;
   const lines = [
     `:rotating_light: *[Triggered] ${scenario.monitor}*`,
     '',
-    `*Service:* ${scenario.service} (${scenario.brand})`,
+    `*Service:* ${scenario.service} (${brand})`,
+    skin ? `*Demo page:* /oncall/c/${skin.slug} — reproduce the symptom on this branded page` : null,
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
@@ -311,11 +313,14 @@ async function postOncallAlert(scenarioId, options = {}) {
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy });
+  const skin = options.skin || null;
+  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
+  const brand = skin ? `${skin.company} (${scenario.brand})` : scenario.brand;
   const blocks = [
     headerBlock(`:rotating_light: [Triggered] ${scenario.monitor}`),
     ...fieldPairs([
-      ['Service', `${scenario.service} (${scenario.brand})`],
+      ['Service', `${scenario.service} (${brand})`],
+      skin ? ['Demo page', `/oncall/c/${skin.slug}`] : null,
       ['Endpoint', scenario.endpoint],
       ['Metric value', scenario.metricValue],
       ['Threshold', scenario.threshold],
