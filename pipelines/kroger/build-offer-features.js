@@ -39,7 +39,23 @@ function encodeSegment(segment, vocabulary, code = 'segment') {
   const vector = {};
   vocabulary.forEach((category) => {
     const weight = segment.weights[category];
-    vector[category] = typeof weight === 'number' ? weight : 0;
+
+    if (weight === undefined) {
+      vector[category] = 0;
+      return;
+    }
+
+    // Weights are a basket-share index normalized to [0,1]. A negative or non-finite
+    // weight survives serialization but is indistinguishable from "no affinity" once the
+    // ranker filters on score > 0, so it degrades silently instead of failing here.
+    if (!Number.isFinite(weight) || weight < 0 || weight > 1) {
+      throw new Error(
+        `Segment "${code}" declares weight ${JSON.stringify(weight)} for category "${category}" — `
+        + 'weights must be finite numbers in [0,1].',
+      );
+    }
+
+    vector[category] = weight;
   });
   return vector;
 }

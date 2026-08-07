@@ -54,7 +54,7 @@ The silent half is the point: models do not crash when they break, they quietly 
 
 Three things are deliberately separate:
 
-- **The defect is left in place** so Devin performs the fix live. To run the demo pre-fixed, add a `boost_annual` segment to the spec, run `npm run features:build`, and add a `boost_annual` entry to `FUEL_POINT_PROGRAMS`.
+- **The defect is left in place** so Devin performs the fix live. To run the demo pre-fixed, add a `boost_annual` segment to the spec, run `npm run features:build`, and add a `boost_annual` entry to `FUEL_POINT_PROGRAMS`. The service `require`s the built artifact, so Node caches it at startup — **restart the server after a rebuild**, or the storefront keeps serving the degraded state.
 - **`scripts/kroger-personalization-audit.js` is the prevention control** (`npm run audit:kroger`) — it scores every tier the *service* can serve through the real ranker and exits non-zero when a tier is undeclared in the spec, mapped inconsistently between spec and service, absent from the feature view, or encoded but scoring nothing. It is not wired into the build, which is why the gap reached production.
 - **`npm run features:check`** fails when the committed artifact does not match a fresh build of the spec, and `npm test` asserts the same thing byte-for-byte, so a hand-edited artifact does not pass.
 

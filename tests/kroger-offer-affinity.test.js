@@ -41,6 +41,13 @@ describe('offer-affinity feature build', () => {
       .toThrow(/boost_annual.*not an object/);
   });
 
+  test('rejects weights outside the normalized [0,1] range instead of materializing them', () => {
+    [-0.4, 1.4, NaN, Infinity].forEach((weight) => {
+      expect(() => encodeSegment({ weights: { dairy: weight } }, ['dairy'], 'boost_monthly'))
+        .toThrow(/boost_monthly.*dairy.*\[0,1\]/);
+    });
+  });
+
   test('encodes a category the segment has no basket history for as 0, not undefined', () => {
     const vector = encodeSegment({ weights: { dairy: 0.5 } }, ['dairy', 'produce']);
 

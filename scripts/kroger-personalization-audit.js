@@ -27,12 +27,8 @@ const {
 const logger = require('../app/telemetry/logger');
 const spec = require('../pipelines/kroger/offer-affinity-spec.json');
 
-// The ranker logs one structured line per tier, which buries the coverage table this
-// script exists to print. Quiet it here rather than in the npm script so the output is
-// readable however the audit is invoked, and still overridable via LOG_LEVEL.
-logger.level = process.env.LOG_LEVEL || 'error';
-
 const encodedSegments = OFFER_AFFINITY_VIEW.segments || {};
+const declaredTiers = spec.membershipTiers || {};
 
 /**
  * Every tier the storefront can actually send, taken from the service mapping
@@ -53,7 +49,7 @@ function auditTier(membership) {
   const ranked = rankOffers(membership, OFFER_POOL.length);
   const encoded = Object.prototype.hasOwnProperty.call(encodedSegments, segment.code);
 
-  const declared = Object.prototype.hasOwnProperty.call(spec.membershipTiers, membership);
+  const declared = Object.prototype.hasOwnProperty.call(declaredTiers, membership);
 
   return {
     membership,
@@ -62,8 +58,8 @@ function auditTier(membership) {
     declared,
     // The spec and the service must agree on what this tier encodes to; a spec that
     // declares the tier but maps it elsewhere is still drift.
-    specSegment: declared ? spec.membershipTiers[membership] : null,
-    mapsConsistently: declared && spec.membershipTiers[membership] === segment.code,
+    specSegment: declared ? declaredTiers[membership] : null,
+    mapsConsistently: declared && declaredTiers[membership] === segment.code,
     matchRate: ranked.matchRate,
     personalized: ranked.personalized,
     topOffer: ranked.offers.length ? ranked.offers[0].id : null,
@@ -160,6 +156,10 @@ function main() {
 }
 
 if (require.main === module) {
+  // The ranker logs one structured line per tier, which buries the coverage table this
+  // script exists to print. Quiet it for the CLI only, so importing the exports does not
+  // reconfigure the shared logger singleton. Still overridable via LOG_LEVEL.
+  logger.level = process.env.LOG_LEVEL || 'error';
   main();
 }
 
