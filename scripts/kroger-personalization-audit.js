@@ -67,8 +67,9 @@ function main() {
   const mismatched = results.filter((row) => row.declared && !row.mapsConsistently);
   const uncovered = results.filter((row) => !row.encoded);
   // A segment can exist and still carry an all-zero vector, which serves the unranked
-  // pool exactly like a missing one. Gate on the measured rate, not just the key.
-  const inert = results.filter((row) => row.encoded && row.matchRate === 0);
+  // pool exactly like a missing one. Gate on whether anything actually scored rather than
+  // on the displayed match rate, which is rounded and would read 0.00 for a large pool.
+  const inert = results.filter((row) => row.encoded && !row.personalized);
 
   if (process.argv.includes('--json')) {
     process.stdout.write(`${JSON.stringify({
@@ -82,7 +83,7 @@ function main() {
   } else {
     process.stdout.write(`Offer personalization coverage — feature view @ ${OFFER_AFFINITY_VIEW.specVersion}\n\n`);
     results.forEach((row) => {
-      const healthy = row.encoded && row.declared && row.mapsConsistently && row.matchRate > 0;
+      const healthy = row.encoded && row.declared && row.mapsConsistently && row.personalized;
       const verdict = healthy ? 'OK  ' : 'GAP ';
       process.stdout.write(
         `  ${verdict} ${row.membership.padEnd(14)} segment=${row.segment.padEnd(14)} `

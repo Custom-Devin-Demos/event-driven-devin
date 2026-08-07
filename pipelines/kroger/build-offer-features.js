@@ -45,6 +45,13 @@ function encodeSegment(segment, vocabulary, code = 'segment') {
  * Builds the materialized feature view from the affinity spec.
  */
 function buildFeatureView(spec) {
+  if (!Array.isArray(spec.categoryVocabulary)) {
+    throw new Error('Spec declares no categoryVocabulary array — there is nothing to encode segments over.');
+  }
+  if (!spec.segments || typeof spec.segments !== 'object') {
+    throw new Error('Spec declares no segments object — the feature view would ship with no coverage at all.');
+  }
+
   const segments = {};
 
   Object.keys(spec.segments).forEach((code) => {
@@ -82,7 +89,9 @@ function main() {
         + 'or was hand-edited (this comparison is byte-exact, so reformatting also fails). '
         + 'Run: npm run features:build\n',
       );
-      process.exit(1);
+      // Set exitCode rather than exit() so buffered output survives a pipe.
+      process.exitCode = 1;
+      return;
     }
     process.stdout.write(`Offer-affinity artifact is up to date (${encoded.length} segments).\n`);
     return;

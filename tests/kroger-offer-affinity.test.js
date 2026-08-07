@@ -34,6 +34,11 @@ describe('offer-affinity feature build', () => {
       .toThrow(/boost_annual.*no weights/);
   });
 
+  test('fails legibly on a malformed spec rather than throwing a raw TypeError', () => {
+    expect(() => buildFeatureView({ segments: {} })).toThrow(/categoryVocabulary/);
+    expect(() => buildFeatureView({ categoryVocabulary: ['dairy'] })).toThrow(/segments/);
+  });
+
   test('encodes a category the segment has no basket history for as 0, not undefined', () => {
     const vector = encodeSegment({ weights: { dairy: 0.5 } }, ['dairy', 'produce']);
 
