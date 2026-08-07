@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
-const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
+const { incrementMetric, recordMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
@@ -87,6 +87,86 @@ function computeFuelPoints(subtotal, membership) {
 }
 
 /**
+ * Personalized offer pool served on the storefront.
+ */
+const OFFER_POOL = [
+  { id: 'OFR-DAIRY-15', title: '15% off Simple Truth dairy', category: 'dairy', detail: 'Through Sunday' },
+  { id: 'OFR-PROD-2X', title: '2x Fuel Points on fresh produce', category: 'produce', detail: 'This week only' },
+  { id: 'OFR-COF-300', title: '$3 off Private Selection coffee', category: 'grocery', detail: 'Limit 2' },
+  { id: 'OFR-MEAT-BOGO', title: 'BOGO Simple Truth chicken breast', category: 'meat', detail: 'Store #01400' },
+  { id: 'OFR-BAKE-150', title: '$1.50 off bakery breads', category: 'bakery', detail: 'Baked fresh daily' },
+  { id: 'OFR-HH-20', title: '20% off household paper goods', category: 'household', detail: 'Through Sunday' },
+];
+
+/**
+ * Affinity weights the offer ranker scores each shopper segment against,
+ * keyed by the same internal program code Fuel Points uses.
+ */
+const OFFER_SEGMENT_WEIGHTS = {
+  standard: {
+    dairy: 0.42, produce: 0.55, grocery: 0.61, meat: 0.38, bakery: 0.29, household: 0.47,
+  },
+  boost_monthly: {
+    dairy: 0.88, produce: 0.91, grocery: 0.64, meat: 0.83, bakery: 0.51, household: 0.36,
+  },
+};
+
+/**
+ * Resolves the affinity weights for a shopper's segment.
+ * Unmapped segments score against an empty weight set.
+ */
+function resolveOfferSegment(membership) {
+  const code = MEMBERSHIP_FUEL_PROGRAM_CODES[membership] || 'standard';
+  return { code, weights: OFFER_SEGMENT_WEIGHTS[code] || {} };
+}
+
+/**
+ * Ranks the offer pool for a shopper and returns the top slots.
+ *
+ * Offers that score above zero are personalized; when nothing scores, the
+ * storefront still has slots to fill, so it falls back to the unranked pool.
+ */
+function rankOffers(membership, limit = 3) {
+  const segment = resolveOfferSegment(membership);
+
+  const scored = OFFER_POOL
+    .map((offer) => ({ ...offer, score: segment.weights[offer.category] || 0 }))
+    .filter((offer) => offer.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  const personalized = scored.length > 0;
+  const offers = (personalized ? scored : OFFER_POOL.map((o) => ({ ...o, score: 0 }))).slice(0, limit);
+  const matchRate = OFFER_POOL.length ? scored.length / OFFER_POOL.length : 0;
+
+  recordMetric('personalization.offer_match_rate', matchRate, {
+    route: '/api/eaa595e1/offers',
+    segment: segment.code,
+  });
+  if (!personalized) {
+    incrementMetric('personalization.fallback_served', {
+      route: '/api/eaa595e1/offers',
+      segment: segment.code,
+    });
+  }
+
+  logger.info('Ranked Kroger storefront offers', {
+    membership,
+    segment: segment.code,
+    personalized,
+    matchRate,
+    service: 'kroger-ecommerce',
+    route: '/api/eaa595e1/offers',
+  });
+
+  return {
+    offers,
+    personalized,
+    matchRate: Math.round(matchRate * 100) / 100,
+    segment: segment.code,
+  };
+}
+
+/**
  * Looks up the Boost membership benefits for a shopper.
  */
 function getMembershipBenefits(membership) {
@@ -148,6 +228,19 @@ function buildOrderSummary(items) {
     };
   });
 }
+
+/**
+ * The checkout crash is the loud half of this defect. The same membership
+ * mapping feeds offer ranking, where an unmapped segment degrades silently
+ * instead of throwing, so the triage session is told to look there too.
+ */
+const SECOND_ORDER_DIRECTIVE = [
+  '*Check the blast radius before you fix the crash.*',
+  '',
+  '`MEMBERSHIP_FUEL_PROGRAM_CODES` in `app/services/verticals/eaa595e1.js` has more than one consumer. `computeFuelPoints()` dereferences the resolved program and throws — that is the alert you are looking at. `rankOffers()` resolves the same code against `OFFER_SEGMENT_WEIGHTS`, gets no weights, scores every offer at zero and serves the unranked pool. No exception, no alert: the only signal is `personalization.offer_match_rate` dropping to 0 for that segment on `GET /api/eaa595e1/offers`.',
+  '',
+  'So: identify every consumer of the mapping, fix the root cause once rather than patching the crash site, and add regression coverage for the silent path as well as the throwing one. Call out in your PR how long the personalization regression could have run undetected.',
+].join('\n');
 
 /**
  * Places a Kroger online grocery order.
@@ -250,6 +343,7 @@ async function placeOrder(orderData) {
       devinOrgId: orderData.devinOrgId,
       service: 'kroger-ecommerce',
       verticalLabel: 'Kroger Grocery Checkout',
+      promptAppendix: SECOND_ORDER_DIRECTIVE,
       tags: [
         { key: 'route', value: '/api/eaa595e1/order' },
         { key: 'service', value: 'kroger-ecommerce' },
@@ -289,9 +383,14 @@ module.exports = {
   resolveFulfillmentPlan,
   getMembershipBenefits,
   buildOrderSummary,
+  rankOffers,
+  resolveOfferSegment,
+  SECOND_ORDER_DIRECTIVE,
   CATALOG,
   FULFILLMENT_PLANS,
   FUEL_POINT_PROGRAMS,
   MEMBERSHIP_TIERS,
+  OFFER_POOL,
+  OFFER_SEGMENT_WEIGHTS,
   TAX_RATES,
 };

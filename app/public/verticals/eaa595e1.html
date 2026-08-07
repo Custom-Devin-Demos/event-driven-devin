@@ -179,6 +179,42 @@
       border-radius: 999px; margin-top: 0.65rem;
     }
 
+    /* ── Personalized offers ── */
+    .offers-card {
+      margin-top: 1.25rem; padding: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .offers-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; margin-bottom: 1rem;
+    }
+    .offers-header h3 { font-size: 1rem; font-weight: 700; }
+    .offers-status {
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 999px;
+      background: var(--bg-elevated); color: var(--text-dim);
+    }
+    .offers-status.personalized { background: var(--kr-blue-dim); color: var(--kr-blue-dark); }
+    .offers-status.generic { background: #fdf2d4; color: #8a5a00; }
+    .offers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .offer-tile {
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 0.85rem 0.9rem; background: var(--bg-elevated);
+    }
+    .offer-title { font-weight: 700; font-size: 0.84rem; margin-bottom: 0.2rem; }
+    .offer-detail { font-size: 0.74rem; color: var(--text-muted); }
+    .offer-score {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); margin-top: 0.4rem;
+    }
+    .offers-metric {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border);
+      font-family: var(--mono); font-size: 0.72rem; color: var(--text-dim);
+    }
+    .offers-metric strong { font-size: 0.85rem; color: var(--text); }
+    .offers-metric strong.degraded { color: #b45309; }
+
     /* ── Fulfillment ── */
     .action-section { margin-top: 1.25rem; padding: 1.5rem; }
     .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
@@ -417,6 +453,18 @@
       </div>
     </div>
 
+    <div class="offers-card animate-up delay-4">
+      <div class="offers-header">
+        <h3>Your offers</h3>
+        <span class="offers-status" id="offersStatus">Loading&hellip;</span>
+      </div>
+      <div class="offers-grid" id="offersGrid"></div>
+      <div class="offers-metric">
+        <span>personalization.offer_match_rate</span>
+        <strong id="offersMatchRate">&mdash;</strong>
+      </div>
+    </div>
+
     <div class="action-section animate-up delay-4">
       <h3>How do you want your order?</h3>
       <div class="fulfillment-options" id="fulfillmentOptions">
@@ -479,10 +527,15 @@
 
     <div class="bug-hint animate-up delay-5">
       <strong>&#x1F41E; Bug:</strong> The annual-billing rollout added a <code>boost-annual</code>
-      membership tier and mapped it to the <code>boost_annual</code> Fuel Points program code, but no
-      matching entry was ever registered in <code>FUEL_POINT_PROGRAMS</code>. Checkout resolves the
-      missing program and crashes with a <code>TypeError</code> when it reads
-      <code>program.pointsPerDollar</code>.
+      membership tier and mapped it to the <code>boost_annual</code> program code, but no matching
+      entry was ever registered &mdash; in <code>FUEL_POINT_PROGRAMS</code> or in
+      <code>OFFER_SEGMENT_WEIGHTS</code>. One mapping gap, two very different symptoms:
+      checkout resolves the missing program and crashes with a <code>TypeError</code> on
+      <code>program.pointsPerDollar</code>, while the offer ranker finds no weights, scores every
+      offer at zero and quietly serves the generic pool. The crash pages someone in seconds; the
+      personalization regression shows up only as
+      <code>personalization.offer_match_rate</code> going to 0, with no error and no alert.
+      Switch the membership dropdown to monthly to see both paths recover.
     </div>
   </div>
 
@@ -516,6 +569,36 @@
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
+
+    function loadOffers() {
+      var membership = document.getElementById('membershipSelect').value;
+      var grid = document.getElementById('offersGrid');
+      var status = document.getElementById('offersStatus');
+      var rate = document.getElementById('offersMatchRate');
+
+      fetch('/api/eaa595e1/offers?membership=' + encodeURIComponent(membership))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          grid.innerHTML = data.offers.map(function (offer) {
+            return '<div class="offer-tile">' +
+              '<div class="offer-title">' + escapeHtml(offer.title) + '</div>' +
+              '<div class="offer-detail">' + escapeHtml(offer.detail) + '</div>' +
+              '<div class="offer-score">affinity ' + offer.score.toFixed(2) + '</div>' +
+              '</div>';
+          }).join('');
+          status.textContent = data.personalized ? 'Personalized' : 'Generic fallback';
+          status.className = 'offers-status ' + (data.personalized ? 'personalized' : 'generic');
+          rate.textContent = data.matchRate.toFixed(2) + '  (segment: ' + escapeHtml(data.segment) + ')';
+          rate.className = data.personalized ? '' : 'degraded';
+        })
+        .catch(function () {
+          status.textContent = 'Unavailable';
+          status.className = 'offers-status';
+        });
+    }
+
+    document.getElementById('membershipSelect').addEventListener('change', loadOffers);
+    loadOffers();
 
     document.getElementById('fulfillmentOptions').addEventListener('click', function (e) {
       var option = e.target.closest('.fulfillment-option');

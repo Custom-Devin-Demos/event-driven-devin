@@ -1,10 +1,14 @@
 const express = require('express');
-const { placeOrder, CATALOG } = require('../../services/verticals/eaa595e1');
+const { placeOrder, rankOffers, CATALOG } = require('../../services/verticals/eaa595e1');
 
 const router = express.Router();
 
 router.get('/api/eaa595e1/catalog', (_req, res) => {
   res.json({ products: CATALOG });
+});
+
+router.get('/api/eaa595e1/offers', (req, res) => {
+  res.json(rankOffers(req.query.membership || 'boost-annual'));
 });
 
 router.post('/api/eaa595e1/order', async (req, res) => {
