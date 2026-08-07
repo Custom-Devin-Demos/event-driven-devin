@@ -78,7 +78,9 @@ function main() {
     const committed = fs.existsSync(ARTIFACT_PATH) ? fs.readFileSync(ARTIFACT_PATH, 'utf8') : '';
     if (committed !== serialized) {
       process.stderr.write(
-        'Committed offer-affinity artifact is stale — run: node pipelines/kroger/build-offer-features.js\n',
+        'Committed offer-affinity artifact does not match a fresh build of the spec — it is stale '
+        + 'or was hand-edited (this comparison is byte-exact, so reformatting also fails). '
+        + 'Run: npm run features:build\n',
       );
       process.exit(1);
     }
@@ -100,4 +102,6 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { buildFeatureView, encodeSegment, readSpec, SPEC_PATH, ARTIFACT_PATH };
+module.exports = {
+  buildFeatureView, encodeSegment, readSpec, serialize, SPEC_PATH, ARTIFACT_PATH,
+};

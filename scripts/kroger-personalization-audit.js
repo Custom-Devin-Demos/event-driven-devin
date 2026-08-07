@@ -9,9 +9,11 @@
  * makes it observable.
  *
  * Intended to run after every feature build and on a schedule against production.
- * Exits non-zero when any tier resolves to a segment the feature view does not encode.
+ * Exits non-zero when a tier is undeclared, maps to a segment the spec and service
+ * disagree on, resolves to a segment the feature view does not encode, or measures a
+ * match rate of 0 despite being encoded.
  *
- * Usage: node scripts/kroger-personalization-audit.js [--json]
+ * Usage: npm run audit:kroger [-- --json]
  */
 
 const {
@@ -42,11 +44,17 @@ function auditTier(membership) {
   const ranked = rankOffers(membership, OFFER_POOL.length);
   const encoded = Object.prototype.hasOwnProperty.call(OFFER_AFFINITY_VIEW.segments, segment.code);
 
+  const declared = Object.prototype.hasOwnProperty.call(spec.membershipTiers, membership);
+
   return {
     membership,
     segment: segment.code,
     encoded,
-    declared: Object.prototype.hasOwnProperty.call(spec.membershipTiers, membership),
+    declared,
+    // The spec and the service must agree on what this tier encodes to; a spec that
+    // declares the tier but maps it elsewhere is still drift.
+    specSegment: declared ? spec.membershipTiers[membership] : null,
+    mapsConsistently: declared && spec.membershipTiers[membership] === segment.code,
     matchRate: ranked.matchRate,
     personalized: ranked.personalized,
     topOffer: ranked.offers.length ? ranked.offers[0].id : null,
@@ -55,8 +63,12 @@ function auditTier(membership) {
 
 function main() {
   const results = storefrontTiers().map(auditTier);
-  const uncovered = results.filter((row) => !row.encoded);
   const undeclared = results.filter((row) => !row.declared);
+  const mismatched = results.filter((row) => row.declared && !row.mapsConsistently);
+  const uncovered = results.filter((row) => !row.encoded);
+  // A segment can exist and still carry an all-zero vector, which serves the unranked
+  // pool exactly like a missing one. Gate on the measured rate, not just the key.
+  const inert = results.filter((row) => row.encoded && row.matchRate === 0);
 
   if (process.argv.includes('--json')) {
     process.stdout.write(`${JSON.stringify({
@@ -64,11 +76,14 @@ function main() {
       results,
       uncovered: uncovered.length,
       undeclared: undeclared.length,
+      mismatched: mismatched.length,
+      inert: inert.length,
     }, null, 2)}\n`);
   } else {
     process.stdout.write(`Offer personalization coverage — feature view @ ${OFFER_AFFINITY_VIEW.specVersion}\n\n`);
     results.forEach((row) => {
-      const verdict = row.encoded ? 'OK  ' : 'GAP ';
+      const healthy = row.encoded && row.declared && row.mapsConsistently && row.matchRate > 0;
+      const verdict = healthy ? 'OK  ' : 'GAP ';
       process.stdout.write(
         `  ${verdict} ${row.membership.padEnd(14)} segment=${row.segment.padEnd(14)} `
         + `match_rate=${row.matchRate.toFixed(2)} personalized=${row.personalized}\n`,
@@ -84,6 +99,13 @@ function main() {
     );
   });
 
+  mismatched.forEach((row) => {
+    process.stderr.write(
+      `FAIL: membership "${row.membership}" encodes to "${row.segment}" in the service but is `
+      + `declared as "${row.specSegment}" in the spec. The feature view is built for the wrong segment.\n`,
+    );
+  });
+
   uncovered.forEach((row) => {
     process.stderr.write(
       `FAIL: membership "${row.membership}" encodes to segment "${row.segment}", which `
@@ -92,14 +114,24 @@ function main() {
     );
   });
 
-  if (uncovered.length) {
+  inert.forEach((row) => {
     process.stderr.write(
-      `\n${uncovered.length} of ${results.length} tiers are silently unpersonalized. `
-      + 'Add the missing segment(s) to pipelines/kroger/offer-affinity-spec.json and rebuild.\n',
+      `FAIL: membership "${row.membership}" resolves to segment "${row.segment}", which is `
+      + 'encoded but contributes no affinity — every offer still scores 0. A present segment '
+      + 'with an all-zero vector degrades exactly like a missing one.\n',
+    );
+  });
+
+  const unpersonalized = new Set([...uncovered, ...inert].map((row) => row.membership));
+
+  if (unpersonalized.size) {
+    process.stderr.write(
+      `\n${unpersonalized.size} of ${results.length} tiers are silently unpersonalized. `
+      + 'Add or populate the segment(s) in pipelines/kroger/offer-affinity-spec.json and rebuild.\n',
     );
   }
 
-  if (uncovered.length || undeclared.length) {
+  if (unpersonalized.size || undeclared.length || mismatched.length) {
     // Set exitCode rather than exit() so the table above is not truncated when piped.
     process.exitCode = 1;
     return;

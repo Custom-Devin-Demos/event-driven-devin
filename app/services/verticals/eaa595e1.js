@@ -116,8 +116,9 @@ const OFFER_POOL = [
  */
 function resolveOfferSegment(membership) {
   const code = resolveProgramCode(membership);
-  const weights = Object.prototype.hasOwnProperty.call(OFFER_AFFINITY_VIEW.segments, code)
-    ? OFFER_AFFINITY_VIEW.segments[code]
+  const segments = OFFER_AFFINITY_VIEW.segments || {};
+  const weights = Object.prototype.hasOwnProperty.call(segments, code)
+    ? segments[code]
     : {};
   return { code, weights };
 }
@@ -248,7 +249,7 @@ const SECOND_ORDER_DIRECTIVE = [
   '',
   'The serving code is not where this originates. `pipelines/kroger/offer-affinity-spec.json` is the source of truth for segment encoding, and `pipelines/kroger/build-offer-features.js` materializes it into `app/services/verticals/features/eaa595e1-offer-affinity.json`. A tier declared in `membershipTiers` with no matching entry under `segments` builds clean and ships a feature view that silently cannot personalize that cohort.',
   '',
-  'Run `node scripts/kroger-personalization-audit.js` first — it scores every tier through the real ranker and will show you the gap and its blast radius before you change anything.',
+  'Run `npm run audit:kroger` first — it scores every tier through the real ranker and will show you the gap and its blast radius before you change anything.',
   '',
   'Then fix it as a data problem, not a serving problem:',
   '1. Register the missing segment in the affinity spec and rebuild the feature view (do not hand-edit the built artifact).',

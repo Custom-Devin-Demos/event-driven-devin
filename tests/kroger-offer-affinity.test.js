@@ -11,7 +11,11 @@ const {
   MEMBERSHIP_FUEL_PROGRAM_CODES,
 } = require('../app/services/verticals/eaa595e1');
 
-const { buildFeatureView, encodeSegment, readSpec } = require('../pipelines/kroger/build-offer-features');
+const fs = require('fs');
+
+const {
+  buildFeatureView, encodeSegment, readSpec, serialize, ARTIFACT_PATH,
+} = require('../pipelines/kroger/build-offer-features');
 const { auditTier, storefrontTiers } = require('../scripts/kroger-personalization-audit');
 
 const spec = readSpec();
@@ -38,6 +42,10 @@ describe('offer-affinity feature build', () => {
 
   test('committed artifact matches a fresh build of the spec', () => {
     expect(buildFeatureView(spec)).toEqual(OFFER_AFFINITY_VIEW);
+  });
+
+  test('committed artifact is byte-identical to a fresh build, so a hand-edit fails the suite', () => {
+    expect(fs.readFileSync(ARTIFACT_PATH, 'utf8')).toBe(serialize(buildFeatureView(spec)));
   });
 });
 
@@ -79,6 +87,12 @@ describe('personalization coverage audit', () => {
 
     expect(row.declared).toBe(false);
     expect(row.segment).toBe('standard');
+  });
+
+  test('confirms the spec and the service agree on what each declared tier encodes to', () => {
+    storefrontTiers().filter((tier) => spec.membershipTiers[tier]).forEach((tier) => {
+      expect(auditTier(tier).mapsConsistently).toBe(true);
+    });
   });
 
   test('flags every membership tier the feature view cannot personalize', () => {
