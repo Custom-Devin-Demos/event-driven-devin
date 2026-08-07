@@ -9,7 +9,7 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     :root {
       --accent:#2563eb;
-      --accent-dark:rgb(30,81,193);
+      --accent-dark:var(--accent);
       --surface:#fff;
       --paper:var(--surface);
       --surface-muted:rgb(246,246,247);
@@ -255,9 +255,8 @@
       if (!themeAccent && SKIN.accent) {
         document.documentElement.style.setProperty('--accent', SKIN.accent);
       }
-      if (accent && !(SKIN.theme && SKIN.theme['--accent-dark'])) {
-        var accentDark = (!themeAccent || themeAccent === SKIN.accent) ? (SKIN.accentDark || accent) : accent;
-        document.documentElement.style.setProperty('--accent-dark', accentDark);
+      if (SKIN.accentDark && !(SKIN.theme && SKIN.theme['--accent-dark']) && (!themeAccent || themeAccent === SKIN.accent)) {
+        document.documentElement.style.setProperty('--accent-dark', SKIN.accentDark);
       }
       var mark = document.querySelector('.brand-mark');
       mark.textContent = SKIN.brandMark || SKIN.company.charAt(0);
