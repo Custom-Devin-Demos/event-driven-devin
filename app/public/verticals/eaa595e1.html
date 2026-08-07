@@ -608,7 +608,11 @@
           status.className = 'offers-status ' + (data.personalized ? 'personalized' : 'generic');
           rate.textContent = data.matchRate.toFixed(2) + '  (segment: ' + data.segment + ')';
           rate.className = data.personalized ? '' : 'degraded';
-          provenance.textContent = data.featureView + ' @ ' + data.specVersion
+          // An API old enough to omit the provenance fields should read as "unknown",
+          // not render "undefined @ undefined" on screen mid-demo.
+          provenance.textContent = (data.featureView && data.specVersion
+            ? data.featureView + ' @ ' + data.specVersion
+            : 'feature view unknown')
             + (data.personalized ? '' : ' \u2014 no vector for this segment');
           provenance.className = 'offers-provenance' + (data.personalized ? '' : ' degraded');
         })

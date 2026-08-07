@@ -48,6 +48,15 @@ describe('offer-affinity feature build', () => {
     });
   });
 
+  test('rejects weights keyed to categories outside the vocabulary instead of dropping them', () => {
+    expect(() => encodeSegment({ weights: { dairy: 0.5, groceries: 0.6 } }, ['dairy', 'grocery'], 'boost_monthly'))
+      .toThrow(/boost_monthly.*"groceries".*vocabulary/);
+  });
+
+  test('rounds encoded weights to the 2dp the spec documents', () => {
+    expect(encodeSegment({ weights: { dairy: 0.4449 } }, ['dairy'])).toEqual({ dairy: 0.44 });
+  });
+
   test('encodes a category the segment has no basket history for as 0, not undefined', () => {
     const vector = encodeSegment({ weights: { dairy: 0.5 } }, ['dairy', 'produce']);
 

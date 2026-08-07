@@ -36,6 +36,20 @@ function encodeSegment(segment, vocabulary, code = 'segment') {
     throw new Error(`Segment "${code}" declares no weights object — a segment that cannot be encoded must fail the build, not ship as a zero vector.`);
   }
 
+  // A weight keyed to a category outside the vocabulary is never read by the encoding
+  // loop below, so it would be dropped without trace and the category would serve as
+  // "no affinity" — a typo like "groceries" degrades exactly like the missing segment
+  // this pipeline exists to catch.
+  const known = new Set(vocabulary);
+  const unknown = Object.keys(segment.weights).filter((category) => !known.has(category));
+  if (unknown.length) {
+    throw new Error(
+      `Segment "${code}" declares weights for ${unknown.map((c) => `"${c}"`).join(', ')}, which `
+      + 'the category vocabulary does not contain — the weights would be silently dropped. '
+      + 'Fix the category name or add it to categoryVocabulary.',
+    );
+  }
+
   const vector = {};
   vocabulary.forEach((category) => {
     const weight = segment.weights[category];
@@ -55,7 +69,9 @@ function encodeSegment(segment, vocabulary, code = 'segment') {
       );
     }
 
-    vector[category] = weight;
+    // Rounded here rather than trusted from the spec, so the 2dp precision the spec
+    // documents is a property of the build instead of a convention authors must remember.
+    vector[category] = Math.round(weight * 100) / 100;
   });
   return vector;
 }
