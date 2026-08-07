@@ -117,10 +117,10 @@ const OFFER_POOL = [
 function resolveOfferSegment(membership) {
   const code = resolveProgramCode(membership);
   const segments = OFFER_AFFINITY_VIEW.segments || {};
-  const weights = Object.prototype.hasOwnProperty.call(segments, code)
-    ? segments[code]
-    : {};
-  return { code, weights };
+  // "Absent from the feature view" and "present but contributing nothing" serve
+  // identically, so the caller needs them distinguished to report which one happened.
+  const encoded = Object.prototype.hasOwnProperty.call(segments, code);
+  return { code, encoded, weights: encoded ? segments[code] : {} };
 }
 
 /**
@@ -168,6 +168,7 @@ function rankOffers(membership, limit = 3) {
     personalized,
     matchRate: Math.round(matchRate * 100) / 100,
     segment: segment.code,
+    segmentEncoded: segment.encoded,
     featureView: OFFER_AFFINITY_VIEW.featureView,
     specVersion: OFFER_AFFINITY_VIEW.specVersion,
   };

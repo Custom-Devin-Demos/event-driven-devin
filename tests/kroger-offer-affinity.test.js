@@ -53,6 +53,13 @@ describe('offer-affinity feature build', () => {
       .toThrow(/boost_monthly.*"groceries".*vocabulary/);
   });
 
+  test('names the offending non-finite value instead of rendering it as null', () => {
+    expect(() => encodeSegment({ weights: { dairy: NaN } }, ['dairy'], 'boost_monthly'))
+      .toThrow(/weight NaN for category "dairy"/);
+    expect(() => encodeSegment({ weights: { dairy: Infinity } }, ['dairy'], 'boost_monthly'))
+      .toThrow(/weight Infinity for category "dairy"/);
+  });
+
   test('rounds encoded weights to the 2dp the spec documents', () => {
     expect(encodeSegment({ weights: { dairy: 0.4449 } }, ['dairy'])).toEqual({ dairy: 0.44 });
   });
@@ -78,6 +85,7 @@ describe('offer ranking', () => {
     const scores = result.offers.map((offer) => offer.score);
 
     expect(result.segment).toBe('boost_monthly');
+    expect(result.segmentEncoded).toBe(true);
     expect(result.personalized).toBe(true);
     expect(result.matchRate).toBe(1);
     expect(scores).toEqual([...scores].sort((a, b) => b - a));
@@ -87,6 +95,9 @@ describe('offer ranking', () => {
     const result = rankOffers('boost-annual', OFFER_POOL.length);
 
     expect(result.segment).toBe('boost_annual');
+    // Distinguishes "absent from the feature view" from "present but inert", which
+    // the storefront reports differently even though they serve identically.
+    expect(result.segmentEncoded).toBe(false);
     expect(result.personalized).toBe(false);
     expect(result.matchRate).toBe(0);
     expect(result.offers).toHaveLength(OFFER_POOL.length);

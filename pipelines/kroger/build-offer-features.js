@@ -64,7 +64,9 @@ function encodeSegment(segment, vocabulary, code = 'segment') {
     // ranker filters on score > 0, so it degrades silently instead of failing here.
     if (!Number.isFinite(weight) || weight < 0 || weight > 1) {
       throw new Error(
-        `Segment "${code}" declares weight ${JSON.stringify(weight)} for category "${category}" — `
+        // String() rather than JSON.stringify(), which renders both NaN and Infinity
+        // as "null" and hides the value the author actually wrote.
+        `Segment "${code}" declares weight ${String(weight)} for category "${category}" — `
         + 'weights must be finite numbers in [0,1].',
       );
     }
@@ -103,7 +105,12 @@ function buildFeatureView(spec) {
 }
 
 function readSpec() {
-  return JSON.parse(fs.readFileSync(SPEC_PATH, 'utf8'));
+  const raw = fs.readFileSync(SPEC_PATH, 'utf8');
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`Spec at ${SPEC_PATH} is not valid JSON: ${err.message}`, { cause: err });
+  }
 }
 
 function serialize(featureView) {
@@ -143,7 +150,14 @@ function main() {
 }
 
 if (require.main === module) {
-  main();
+  try {
+    main();
+  } catch (err) {
+    // Every validation in this file throws a sentence written for a spec author; a raw
+    // stack trace from the CLI would bury it. Callers still get the exception.
+    process.stderr.write(`Feature build failed: ${err.message}\n`);
+    process.exitCode = 1;
+  }
 }
 
 module.exports = {
