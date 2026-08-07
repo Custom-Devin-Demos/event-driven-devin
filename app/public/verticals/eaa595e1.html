@@ -596,11 +596,12 @@
           }).join('');
           status.textContent = data.personalized ? 'Personalized' : 'Generic fallback';
           status.className = 'offers-status ' + (data.personalized ? 'personalized' : 'generic');
-          rate.textContent = data.matchRate.toFixed(2) + '  (segment: ' + escapeHtml(data.segment) + ')';
+          rate.textContent = data.matchRate.toFixed(2) + '  (segment: ' + data.segment + ')';
           rate.className = data.personalized ? '' : 'degraded';
         })
-        .catch(function () {
+        .catch(function (err) {
           if (requestSeq !== offersRequestSeq) return;
+          console.error('Offers panel failed to load', err);
           grid.innerHTML = '';
           rate.textContent = '\u2014';
           rate.className = '';
