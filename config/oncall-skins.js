@@ -45,7 +45,7 @@ const ONCALL_SKINS = {
     infra: {
       latency: {
         title: 'DB Latency Spike',
-        desc: 'Brex dashboard transaction search slows to 1.5\u20133s. Payment requests succeed.',
+        desc: 'Brex transaction search and payments slow to 1.5\u20133s. Error rate stays normal.',
       },
       'dependency-timeout': {
         title: 'Card Network Timeouts',
