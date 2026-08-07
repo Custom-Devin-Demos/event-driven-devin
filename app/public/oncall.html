@@ -79,7 +79,7 @@
     .section-desc { max-width:780px; font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
     .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
     .grid.cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .card { display:flex; flex-direction:column; justify-content:space-between; min-width:0; min-height:240px; background:var(--paper); padding:24px; position:relative; color:var(--ink); text-decoration:none; }
+    .card { display:flex; flex-direction:column; min-width:0; background:var(--paper); padding:24px; position:relative; color:var(--ink); text-decoration:none; }
     a.card:hover,a.wide-card:hover { background:var(--wash); }
     .card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
     .card-icon { display:flex; align-items:center; justify-content:center; width:40px; height:40px; background:var(--wash); border:1px solid var(--line); border-radius:10px; color:var(--ink); font-size:0; }
@@ -90,15 +90,8 @@
     .card-body { margin-top:18px; margin-bottom:16px; }
     .card-vertical { margin-bottom:8px; }
     .card-brand { font:500 20px/1.15 var(--serif); color:var(--ink); margin-bottom:8px; }
-    #infra-grid .card-brand { min-height:calc(2 * 1.15em); }
     .card-desc { font-size:15px; color:var(--muted); line-height:1.6; display:block; overflow:visible; }
-    #infra-grid .card-body { display:flex; flex:1; flex-direction:column; }
-    #infra-grid .card-desc { flex:1; }
-    .card-footer { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; min-width:0; margin-top:auto; padding-top:16px; border-top:1px solid var(--line); }
-    .infra-footer { border-top:0; padding-top:0; flex-direction:column; align-items:stretch; }
-    .card-path,#sev1-list { font-family:var(--mono); min-width:0; }
-    .card-path { font-size:12px; line-height:1.5; white-space:normal; }
-    .card-bug-tag { flex-shrink:0; padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); font:11px var(--mono); white-space:nowrap; }
+    #sev1-list { font-family:var(--mono); min-width:0; }
     .fire-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border:1px solid var(--ink); border-radius:6px; background:transparent; color:var(--ink); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:all .2s; }
     .fire-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
     .fire-btn.sev { border-color:var(--ink); background:var(--ink); color:#fff; }
@@ -199,23 +192,15 @@
 
   <div class="sections">
 
-    <!-- 1. INFRA / SRE INCIDENTS -->
+    <!-- 1. APPLICATION ERRORS -->
     <div class="section">
       <div class="section-header">
-        <span class="section-title">Infra / SRE Incidents</span>
+        <span class="section-title">Alert Responder</span>
         <span class="badge">#oncall-alerts</span>
       </div>
-      <h2>Infrastructure incidents</h2>
-      <p class="section-desc">Incidents produce slow queries, dependency timeouts, memory growth, or intermittent 500s. Datadog records each degradation.</p>
-      <div class="health-strip" id="health-strip">
-        <div class="health-item"><span class="health-dot" id="health-dot"></span><span id="health-scenario">checkout-api: healthy</span></div>
-        <div class="health-item">live probe <span class="health-val" id="health-latency">&mdash;</span></div>
-        <div class="health-item">rss <span class="health-val" id="health-rss">&mdash;</span></div>
-        <div class="health-item" id="health-checkout-item" style="display:none;">checkout <span class="health-val" id="health-checkout">&mdash;</span></div>
-        <div class="health-item" id="health-window" style="display:none;">reverts in <span class="health-val" id="health-remaining"></span></div>
-        <div class="health-spark" id="health-spark"></div>
-      </div>
-      <div class="grid" id="infra-grid"></div>
+      <h2>Production degradations</h2>
+      <p class="section-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR.</p>
+      <div class="grid" id="alert-grid"></div>
     </div>
 
     <!-- 2. BEYOND ALERTS -->
@@ -227,6 +212,14 @@
       </div>
       <h2>Beyond machine alerts</h2>
       <p class="section-desc">Some issues arrive as customer reports or major incidents rather than machine alerts. Customer reports describe symptoms without a stack trace.</p>
+      <div class="health-strip" id="health-strip">
+        <div class="health-item"><span class="health-dot" id="health-dot"></span><span id="health-scenario">checkout-api: healthy</span></div>
+        <div class="health-item">live probe <span class="health-val" id="health-latency">&mdash;</span></div>
+        <div class="health-item">rss <span class="health-val" id="health-rss">&mdash;</span></div>
+        <div class="health-item" id="health-checkout-item" style="display:none;">checkout <span class="health-val" id="health-checkout">&mdash;</span></div>
+        <div class="health-item" id="health-window" style="display:none;">reverts in <span class="health-val" id="health-remaining"></span></div>
+        <div class="health-spark" id="health-spark"></div>
+      </div>
       <div class="wide-row">
         <a class="wide-card" href="/oncall/report" target="_blank" rel="noopener">
           <div class="wide-title">Customer Bug Report</div>
@@ -244,17 +237,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- 3. APPLICATION ERRORS -->
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Alert Responder</span>
-        <span class="badge">#oncall-alerts</span>
-      </div>
-      <h2>Production degradations</h2>
-      <p class="section-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR.</p>
-      <div class="grid" id="alert-grid"></div>
     </div>
 
   </div>
@@ -288,50 +270,16 @@
       banking: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M3 9h18L12 4 3 9Z"/><path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg>',
       insurance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M12 3 19 6v5c0 4.5-2.8 8-7 10-4.2-2-7-5.5-7-10V6l7-3Z"/></svg>',
       hightech: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><rect x="3" y="4" width="18" height="13" rx="1"/><path d="M8 21h8M12 17v4"/></svg>',
-      telco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M7 4.5 9.5 3l2 4-2 1.5a14 14 0 0 0 6 6L17 13l4 2-1.5 2.5c-.7 1.2-2.2 1.7-3.5 1.2A18 18 0 0 1 5.3 8c-.5-1.3 0-2.8 1.7-3.5Z"/></svg>',
-      latency: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>',
-      'dependency-timeout': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M7 4h10M7 20h10M8 4c0 4 4 4 4 8s-4 4-4 8M16 4c0 4-4 4-4 8s4 4 4 8"/></svg>',
-      'memory-leak': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M4 18 9 13l3 2 7-9"/><path d="M15 6h4v4"/></svg>',
-      'slo-burn': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M4 16a8 8 0 0 1 16 0"/><path d="m12 16 5-5"/><path d="M6 19h12"/></svg>'
+      telco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M7 4.5 9.5 3l2 4-2 1.5a14 14 0 0 0 6 6L17 13l4 2-1.5 2.5c-.7 1.2-2.2 1.7-3.5 1.2A18 18 0 0 1 5.3 8c-.5-1.3 0-2.8 1.7-3.5Z"/></svg>'
     };
 
     var VERTICAL_META = {
       banking: { icon: ICONS.banking, vertical: 'Banking', desc: 'Online banking dashboard. Transfers hang ~10s before completing.' },
-      insurance: { icon: ICONS.insurance, vertical: 'Insurance', desc: 'Claims portal. Claim submissions hang, then time out with a 504.' },
+      insurance: { icon: ICONS.insurance, vertical: 'Insurance', desc: 'Claims portal. Claim submissions hang and eventually time out with a 504.' },
       hightech: { icon: ICONS.hightech, vertical: 'High Tech', desc: 'SaaS admin console. Provisioning slows with each request; memory climbs.' },
       telco: { icon: ICONS.telco, vertical: 'Telco', desc: 'Self-service portal. Plan upgrades slowed after the catalog refresh.' },
     };
 
-    var INFRA_META = [
-      {
-        kind: 'latency',
-        icon: ICONS.latency,
-        title: 'DB Latency Spike',
-        source: 'Datadog Monitor \u00b7 live',
-        desc: 'GET /search and POST /checkout slow to 1.5\u20133s. Error rate stays normal.',
-      },
-      {
-        kind: 'dependency-timeout',
-        icon: ICONS['dependency-timeout'],
-        title: 'Gateway Timeouts',
-        source: 'Datadog-style Alert',
-        desc: 'A dependency times out intermittently. Some checkouts hang, then 504.',
-      },
-      {
-        kind: 'memory-leak',
-        icon: ICONS['memory-leak'],
-        title: 'Memory Leak',
-        source: 'Datadog-style Alert',
-        desc: 'Process memory climbs without plateau. No user-visible symptom yet.',
-      },
-      {
-        kind: 'slo-burn',
-        icon: ICONS['slo-burn'],
-        title: 'SLO Fast Burn',
-        source: 'Datadog-style Alert',
-        desc: 'Intermittent checkout failures burn the availability error budget fast.',
-      },
-    ];
 
     // Custom-demo skins never touch this hub: /oncall/c/<slug> serves the
     // skin's chosen vertical page directly (see app/routes/oncall.js).
@@ -371,54 +319,11 @@
             '<div class="card-vertical">' + escapeHtml(meta.vertical) + '</div>' +
             '<div class="card-brand">' + escapeHtml(s.brand.replace(/ \(.*\)$/, '')) + '</div>' +
             '<div class="card-desc">' + escapeHtml(meta.desc) + '</div>' +
-          '</div>' +
-          '<div class="card-footer">' +
-            '<span class="card-path">' + escapeHtml(s.endpoint).replace(/\//g, '/<wbr>') + '</span>' +
-            '<span class="card-bug-tag">' + (s.monitor.indexOf('5xx') === 0 ? 'error rate' : 'latency') + '</span>' +
           '</div>';
         grid.appendChild(link);
       });
     }
 
-    (function buildInfra() {
-      const grid = document.getElementById('infra-grid');
-      INFRA_META.forEach((m) => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML =
-          '<div class="card-top">' +
-            '<div class="card-icon">' + m.icon + '</div>' +
-          '</div>' +
-          '<div class="card-body">' +
-            '<div class="card-vertical">' + (m.source || 'Datadog-style Alert') + '</div>' +
-            '<div class="card-brand">' + m.title + '</div>' +
-            '<div class="card-desc">' + m.desc + '</div>' +
-          '</div>' +
-          '<div class="card-footer infra-footer">' +
-            '<button class="fire-btn" data-infra="' + m.kind + '">Fire Incident</button>' +
-            '<div class="status"></div>' +
-          '</div>';
-        grid.appendChild(card);
-      });
-
-      grid.querySelectorAll('[data-infra]').forEach((btn) => {
-        btn.onclick = async () => {
-          const status = btn.parentElement.querySelector('.status');
-          btn.disabled = true;
-          show(status, true, 'Firing\u2026');
-          try {
-            const { status: code, data } = await post('/api/oncall/infra/' + btn.dataset.infra);
-            show(status, code === 200,
-              code === 200
-                ? 'Alert posted (ref ' + data.runRef + ').' + (data.active ? ' Active for ' + data.windowMinutes + ' min.' : ' Window: ' + data.windowMinutes + ' min.')
-                : (data.error || 'Failed'));
-          } catch (e) {
-            show(status, false, e.message);
-          }
-          btn.disabled = false;
-        };
-      });
-    })();
 
     (async function sev1Setup() {
       const kindSel = document.getElementById('incident-kind');
