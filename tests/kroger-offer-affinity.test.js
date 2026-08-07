@@ -8,10 +8,11 @@ const {
   computeFuelPoints,
   OFFER_POOL,
   OFFER_AFFINITY_VIEW,
+  MEMBERSHIP_FUEL_PROGRAM_CODES,
 } = require('../app/services/verticals/eaa595e1');
 
 const { buildFeatureView, encodeSegment, readSpec } = require('../pipelines/kroger/build-offer-features');
-const { auditTier } = require('../scripts/kroger-personalization-audit');
+const { auditTier, storefrontTiers } = require('../scripts/kroger-personalization-audit');
 
 const spec = readSpec();
 
@@ -22,6 +23,11 @@ describe('offer-affinity feature build', () => {
     Object.values(view.segments).forEach((vector) => {
       expect(Object.keys(vector)).toEqual(spec.categoryVocabulary);
     });
+  });
+
+  test('fails the build when a segment declares no weights rather than shipping a zero vector', () => {
+    expect(() => encodeSegment({ cohortSize: 100 }, ['dairy'], 'boost_annual'))
+      .toThrow(/boost_annual.*no weights/);
   });
 
   test('encodes a category the segment has no basket history for as 0, not undefined', () => {
@@ -64,8 +70,19 @@ describe('offer ranking', () => {
 });
 
 describe('personalization coverage audit', () => {
+  test('audits the tiers the storefront can send, not the ones the spec happens to declare', () => {
+    expect(storefrontTiers()).toEqual(Object.keys(MEMBERSHIP_FUEL_PROGRAM_CODES));
+  });
+
+  test('flags a tier the service serves but the spec never declared', () => {
+    const row = auditTier('boost-quarterly');
+
+    expect(row.declared).toBe(false);
+    expect(row.segment).toBe('standard');
+  });
+
   test('flags every membership tier the feature view cannot personalize', () => {
-    const uncovered = Object.keys(spec.membershipTiers)
+    const uncovered = storefrontTiers()
       .map(auditTier)
       .filter((row) => !row.encoded);
 

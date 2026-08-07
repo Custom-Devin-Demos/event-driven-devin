@@ -112,7 +112,9 @@ Three things are deliberately separate:
 │   │   │   ├── industrials.js     # Maintenance work order business logic
 │   │   │   ├── healthcare.js      # Appointment scheduling business logic
 │   │   │   ├── telco.js           # Plan upgrade business logic
-│   │   │   └── payer.js           # Pharmacy claim adjudication business logic
+│   │   │   ├── payer.js           # Pharmacy claim adjudication business logic
+│   │   │   └── features/
+│   │   │       └── eaa595e1-offer-affinity.json  # Built Kroger feature view (generated — do not hand-edit)
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
 │   │   ├── github-webhook.js      # GitHub webhook processing
 │   │   ├── auth.js                # Auth service
@@ -133,6 +135,10 @@ Three things are deliberately separate:
 │   ├── kroger-personalization-audit.js  # Scores every membership tier through the ranker (exits 1 on an unencoded segment)
 │   ├── reset.js                   # Reset scenario to healthy
 │   └── cleanup.js                 # Clean up resources
+├── pipelines/
+│   └── kroger/
+│       ├── offer-affinity-spec.json     # Source of truth for Kroger segment encoding
+│       └── build-offer-features.js      # Materializes the spec into the served feature view
 ├── config/
 │   └── scenarios.json             # Scenario definitions
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
@@ -187,7 +193,7 @@ This starts 3 services:
 npm run lint
 ```
 
-This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this before committing.
+This runs ESLint across `app/`, `loadgen/`, `scripts/`, and `pipelines/`. Always run this before committing.
 
 ## Alert Pipeline Architecture
 
@@ -372,6 +378,9 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 | `npm run dev` | Start with nodemon (auto-reload) |
 | `npm run lint` | Run ESLint |
 | `npm run loadgen` | Run traffic generator standalone |
+| `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
+| `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
+| `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on an unencoded segment) |
 | `npm run demo:trigger` | Trigger an error scenario |
 | `npm run demo:reset` | Reset to healthy state |
 | `npm run demo:warmup` | Pre-warm the app |

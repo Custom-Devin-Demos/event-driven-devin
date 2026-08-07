@@ -28,7 +28,11 @@ const ARTIFACT_PATH = path.join(
  * Categories the segment carries no basket history for encode as 0, which the ranker
  * reads as "no affinity" rather than "unknown".
  */
-function encodeSegment(segment, vocabulary) {
+function encodeSegment(segment, vocabulary, code = 'segment') {
+  if (!segment.weights || typeof segment.weights !== 'object') {
+    throw new Error(`Segment "${code}" declares no weights object — a segment that cannot be encoded must fail the build, not ship as a zero vector.`);
+  }
+
   const vector = {};
   vocabulary.forEach((category) => {
     const weight = segment.weights[category];
@@ -44,7 +48,7 @@ function buildFeatureView(spec) {
   const segments = {};
 
   Object.keys(spec.segments).forEach((code) => {
-    segments[code] = encodeSegment(spec.segments[code], spec.categoryVocabulary);
+    segments[code] = encodeSegment(spec.segments[code], spec.categoryVocabulary, code);
   });
 
   return {

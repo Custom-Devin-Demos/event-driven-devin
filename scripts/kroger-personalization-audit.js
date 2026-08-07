@@ -14,8 +14,25 @@
  * Usage: node scripts/kroger-personalization-audit.js [--json]
  */
 
-const { rankOffers, resolveOfferSegment, OFFER_POOL, OFFER_AFFINITY_VIEW } = require('../app/services/verticals/eaa595e1');
+const {
+  rankOffers,
+  resolveOfferSegment,
+  OFFER_POOL,
+  OFFER_AFFINITY_VIEW,
+  MEMBERSHIP_FUEL_PROGRAM_CODES,
+} = require('../app/services/verticals/eaa595e1');
 const spec = require('../pipelines/kroger/offer-affinity-spec.json');
+
+/**
+ * Every tier the storefront can actually send, taken from the service mapping
+ * rather than the spec.
+ *
+ * A tier the service knows about but the spec never declared is the exact drift
+ * this audit exists to catch, so enumerating the spec here would skip it.
+ */
+function storefrontTiers() {
+  return Object.keys(MEMBERSHIP_FUEL_PROGRAM_CODES);
+}
 
 /**
  * Audits one membership tier end to end through the real ranker.
@@ -29,6 +46,7 @@ function auditTier(membership) {
     membership,
     segment: segment.code,
     encoded,
+    declared: Object.prototype.hasOwnProperty.call(spec.membershipTiers, membership),
     matchRate: ranked.matchRate,
     personalized: ranked.personalized,
     topOffer: ranked.offers.length ? ranked.offers[0].id : null,
@@ -36,12 +54,17 @@ function auditTier(membership) {
 }
 
 function main() {
-  const tiers = Object.keys(spec.membershipTiers);
-  const results = tiers.map(auditTier);
+  const results = storefrontTiers().map(auditTier);
   const uncovered = results.filter((row) => !row.encoded);
+  const undeclared = results.filter((row) => !row.declared);
 
   if (process.argv.includes('--json')) {
-    process.stdout.write(`${JSON.stringify({ specVersion: spec.specVersion, results, uncovered: uncovered.length }, null, 2)}\n`);
+    process.stdout.write(`${JSON.stringify({
+      specVersion: spec.specVersion,
+      results,
+      uncovered: uncovered.length,
+      undeclared: undeclared.length,
+    }, null, 2)}\n`);
   } else {
     process.stdout.write(`Offer personalization coverage — feature view @ ${OFFER_AFFINITY_VIEW.specVersion}\n\n`);
     results.forEach((row) => {
@@ -54,19 +77,32 @@ function main() {
     process.stdout.write('\n');
   }
 
+  undeclared.forEach((row) => {
+    process.stderr.write(
+      `FAIL: membership "${row.membership}" is served by the storefront but is not declared in `
+      + `${spec.featureView}'s membershipTiers, so the feature build never sees it.\n`,
+    );
+  });
+
+  uncovered.forEach((row) => {
+    process.stderr.write(
+      `FAIL: membership "${row.membership}" encodes to segment "${row.segment}", which `
+      + `${spec.featureView} does not carry. Every offer scores 0 and the storefront serves `
+      + 'the unranked pool with no error.\n',
+    );
+  });
+
   if (uncovered.length) {
-    uncovered.forEach((row) => {
-      process.stderr.write(
-        `FAIL: membership "${row.membership}" encodes to segment "${row.segment}", which `
-        + `${spec.featureView} does not carry. Every offer scores 0 and the storefront serves `
-        + 'the unranked pool with no error.\n',
-      );
-    });
     process.stderr.write(
       `\n${uncovered.length} of ${results.length} tiers are silently unpersonalized. `
-      + `Add the missing segment(s) to pipelines/kroger/offer-affinity-spec.json and rebuild.\n`,
+      + 'Add the missing segment(s) to pipelines/kroger/offer-affinity-spec.json and rebuild.\n',
     );
-    process.exit(1);
+  }
+
+  if (uncovered.length || undeclared.length) {
+    // Set exitCode rather than exit() so the table above is not truncated when piped.
+    process.exitCode = 1;
+    return;
   }
 
   process.stdout.write(`All ${results.length} membership tiers resolve to an encoded segment.\n`);
@@ -76,4 +112,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { auditTier };
+module.exports = { auditTier, storefrontTiers };
