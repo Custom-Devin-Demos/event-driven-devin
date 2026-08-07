@@ -188,7 +188,7 @@ const BUG_CATALOG = {
       label: 'Site getting slower over time',
       sev: 'Medium',
       infraKind: 'memory-leak',
-      text: "Not an outage, but the storefront feels like it gets more sluggish the longer the day goes on — pages that were snappy this morning are noticeably laggy now. A refresh doesn't help. Feels like the server itself is running out of steam.",
+      text: "Not an outage, but checkout-api feels more sluggish the longer the day goes on — requests that were snappy this morning are noticeably laggy now. A refresh doesn't help. Feels like the server itself is running out of steam.",
     },
   ],
 };
@@ -557,14 +557,14 @@ const INFRA_INCIDENTS = {
       const p95 = (2.1 + Math.random() * 1.2).toFixed(2);
       const baseline = (0.18 + Math.random() * 0.08).toFixed(2);
       return {
-        title: ':warning: [Triggered] p95 latency spike — acme-demo storefront',
+        title: ':warning: [Triggered] p95 latency spike — checkout-api endpoints',
         monitor: '`avg(last_5m):p95:trace.express.request{service:checkout-api} > 2` — *Triggered*',
         fields: [
           ['Current p95', `${p95}s (baseline ${baseline}s)`],
           ['Affected endpoints', 'GET /search, POST /checkout'],
         ],
-        symptoms: `Storefront pages loading slowly; app logs show repeated "Slow database query detected" warnings with 1500–3000ms query times. Error rate is normal — this is a latency degradation, not an outage. First: ${new Date(now.getTime() - 6 * 60000).toISOString()} | Last: ${now.toISOString()}`,
-        instruction: `Investigate the slow query path in the storefront search and checkout flows. Repo: ${REPO_URL}`,
+        symptoms: `GET /search and POST /checkout requests are slow; app logs show "Slow search query" and "Slow database query detected" warnings with 1500–3000ms query times. Error rate is normal — this is a latency degradation, not an outage. First: ${new Date(now.getTime() - 6 * 60000).toISOString()} | Last: ${now.toISOString()}`,
+        instruction: `Investigate the slow query paths in app/routes/search.js, app/services/search.js, app/routes/checkout.js, and app/services/checkout.js. Repo: ${REPO_URL}`,
       };
     },
   },
@@ -580,10 +580,10 @@ const INFRA_INCIDENTS = {
         fields: [
           ['Timeout rate', `${timeoutPct}% of checkout calls timing out against payments-gateway (5s deadline)`],
           ['Current p99 on POST /checkout', `${p99}s`],
-          ['Blast radius', 'intermittent — most checkouts succeed, affected users see a spinner then a 502'],
+          ['Blast radius', 'intermittent — most checkouts succeed, affected users see a spinner then a 504'],
         ],
         symptoms: `App logs show "PaymentGatewayTimeoutError" bursts; upstream payments-gateway p50 looks normal, suggesting a connection-handling or timeout-budget issue on our side rather than a provider outage. First: ${new Date(now.getTime() - 9 * 60000).toISOString()} | Last: ${now.toISOString()}`,
-        instruction: `Investigate the checkout payment-dependency path and its timeout handling. Repo: ${REPO_URL}`,
+        instruction: `Investigate the timeout handling in app/routes/checkout.js and app/services/checkout.js. Repo: ${REPO_URL}`,
       };
     },
   },
@@ -620,7 +620,7 @@ const INFRA_INCIDENTS = {
           ['Error rate', `${errPct}% of POST /checkout requests failing (InventoryReservationError, TypeError)`],
         ],
         symptoms: `Intermittent checkout failures — a mix of inventory reservation conflicts and tax-calculation errors on roughly half of orders; retries succeed sometimes. Budget burn is what tripped this. First: ${new Date(now.getTime() - 32 * 60000).toISOString()} | Last: ${now.toISOString()}`,
-        instruction: `Investigate the inventory reservation path in checkout. Repo: ${REPO_URL}`,
+        instruction: `Investigate the inventory reservation and tax calculation paths in app/services/checkout.js. Repo: ${REPO_URL}`,
       };
     },
   },
@@ -760,13 +760,13 @@ const SEV1_INCIDENTS = {
     infraKind: 'dependency-timeout',
     label: 'Checkout degraded — payments-gateway timeouts',
     title: 'Checkout degraded — payments-gateway timeouts on checkout-api',
-    summary: 'POST /checkout p99 above 5s; ~30% of checkout calls timing out against payments-gateway. Users see a spinner then a 502.',
+    summary: 'POST /checkout p99 above 5s; ~30% of checkout calls timing out against payments-gateway. Users see a spinner then a 504.',
   },
   'db-latency': {
     infraKind: 'latency',
     label: 'Site-wide slowness — DB query latency spike',
     title: 'Site-wide slowness — database query latency spike on checkout-api',
-    summary: 'p95 latency 10x baseline across storefront search and checkout; app logs show repeated slow-query warnings (1500-3000ms). No elevated error rate — pure latency degradation.',
+    summary: 'p95 latency 10x baseline on GET /search and POST /checkout; app logs show repeated slow-query warnings (1500-3000ms). No elevated error rate — pure latency degradation.',
   },
   'error-budget': {
     infraKind: 'slo-burn',
