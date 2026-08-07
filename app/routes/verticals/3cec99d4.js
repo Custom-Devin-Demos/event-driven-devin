@@ -26,6 +26,7 @@ router.post('/api/3cec99d4/open-account', async (req, res) => {
       productCode: req.body.productCode || 'ADV-STUDENT-CHQ',
       applicantType: req.body.applicantType || 'student-full-time',
       promoCode: req.body.promoCode || 'STUDENT-AIRPODS-2026',
+      schoolEmail: req.body.schoolEmail,
       province: req.body.province || 'ON',
       channel: req.body.channel || 'web',
       devinUserId: req.body.devinUserId,

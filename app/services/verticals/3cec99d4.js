@@ -68,8 +68,8 @@ const APPLICANT_SEGMENTS = {
 /**
  * Active acquisition campaigns keyed by promo code.
  *
- * The student AirPods campaign was migrated to the campaign platform and its
- * reward details now live under `rewards` rather than at the top level.
+ * Campaigns that award hardware or subscription rewards require the applicant
+ * to be verified as a student before the reward is attached.
  */
 const CAMPAIGNS = {
   'STUDENT-AIRPODS-2026': {
@@ -77,6 +77,7 @@ const CAMPAIGNS = {
     eligibleProducts: ['ADV-STUDENT-CHQ'],
     endsOn: '2026-11-02',
     qualifyBy: '2027-01-15',
+    requiresStudentVerification: true,
     rewards: {
       hardware: { sku: 'APPLE-AIRPODS-4', description: 'AirPods 4' },
       subscription: { sku: 'APPLE-MUSIC-3M', months: 3 },
@@ -87,12 +88,20 @@ const CAMPAIGNS = {
     eligibleProducts: ['HI-ESAVINGS'],
     endsOn: '2026-11-02',
     qualifyBy: '2027-01-15',
+    requiresStudentVerification: false,
     promotion: {
       rate: 0.046,
       termMonths: 3,
     },
   },
 };
+
+/**
+ * Domain suffixes recognised as post-secondary institutions. Applicants whose
+ * school email matches one are auto-verified; everyone else is routed to
+ * in-branch verification with proof of enrolment.
+ */
+const ACADEMIC_DOMAIN_SUFFIXES = ['.edu', '.ac.ca', '.edu.ca', 'utoronto.ca', 'mcgill.ca', 'ubc.ca'];
 
 /**
  * Scenario directive appended to the Devin investigation prompt.
@@ -155,17 +164,34 @@ function evaluateEligibility(product, applicantType, province) {
 }
 
 /**
+ * Verify a student against the school email address supplied on the
+ * application. Applicants on an academic domain are auto-verified; anyone
+ * else completes verification in branch with proof of enrolment.
+ */
+function verifyStudentEmail(schoolEmail) {
+  const domain = schoolEmail.split('@')[1].toLowerCase();
+  const matched = ACADEMIC_DOMAIN_SUFFIXES.some((suffix) => domain.endsWith(suffix));
+
+  return {
+    domain,
+    autoVerified: matched,
+    method: matched ? 'school-email' : 'in-branch',
+  };
+}
+
+/**
  * Attach the campaign reward to the application so it can be displayed on the
  * confirmation screen and fulfilled once the account is funded.
  */
-function buildOfferSummary(campaign, product) {
+function buildOfferSummary(campaign, product, verification) {
   return {
     campaign: campaign.label,
     product: product.name,
-    hardwareSku: campaign.promotion.airpodsSku,
-    bonusMonths: campaign.promotion.bonusMonths,
+    hardwareSku: campaign.rewards.hardware.sku,
+    bonusMonths: campaign.rewards.subscription.months,
     endsOn: campaign.endsOn,
     qualifyBy: campaign.qualifyBy,
+    studentVerification: verification,
   };
 }
 
@@ -202,6 +228,7 @@ async function openAccount(data) {
     applicantType: data.applicantType,
     promoCode: data.promoCode,
     province: data.province,
+    schoolEmailProvided: Boolean(data.schoolEmail),
     service: 'customer-3cec99d4-account-opening',
     route: '/api/3cec99d4/open-account',
   });
@@ -212,7 +239,26 @@ async function openAccount(data) {
     const product = findProduct(data.productCode);
     const campaign = resolveCampaign(data.promoCode, product.code);
     const eligibility = evaluateEligibility(product, data.applicantType, data.province);
-    const offerSummary = campaign ? buildOfferSummary(campaign, product) : null;
+
+    let offerSummary = null;
+    if (campaign && campaign.requiresStudentVerification) {
+      const verification = verifyStudentEmail(data.schoolEmail);
+      eligibility.proofOfEnrolmentRequired = !verification.autoVerified;
+      eligibility.documentsRequired = verification.autoVerified
+        ? ['Government-issued photo ID']
+        : ['Government-issued photo ID', 'Proof of enrolment'];
+      offerSummary = buildOfferSummary(campaign, product, verification);
+    } else if (campaign) {
+      offerSummary = {
+        campaign: campaign.label,
+        product: product.name,
+        promotionalRate: campaign.promotion.rate,
+        termMonths: campaign.promotion.termMonths,
+        endsOn: campaign.endsOn,
+        qualifyBy: campaign.qualifyBy,
+      };
+    }
+
     const application = buildApplicationPackage(applicationId, product, eligibility, offerSummary);
 
     application.startedAt = new Date().toISOString();
@@ -249,6 +295,7 @@ async function openAccount(data) {
       productCode: data.productCode,
       applicantType: data.applicantType,
       promoCode: data.promoCode,
+      schoolEmailProvided: Boolean(data.schoolEmail),
       service: 'customer-3cec99d4-account-opening',
     });
 
@@ -263,13 +310,14 @@ async function openAccount(data) {
         applicantType: data.applicantType,
         promoCode: data.promoCode,
         province: data.province,
+        schoolEmailProvided: Boolean(data.schoolEmail),
       },
     });
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/3cec99d4.js \u2014 buildOfferSummary',
+      culprit: 'app/services/verticals/3cec99d4.js \u2014 verifyStudentEmail',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -291,6 +339,7 @@ async function openAccount(data) {
         applicantType: data.applicantType,
         promoCode: data.promoCode,
         province: data.province,
+        schoolEmailProvided: Boolean(data.schoolEmail),
       },
       level: 'error',
       platform: 'node',
@@ -320,4 +369,5 @@ module.exports = {
   CAMPAIGNS,
   APPLICANT_SEGMENTS,
   PROVINCE_RULES,
+  ACADEMIC_DOMAIN_SUFFIXES,
 };

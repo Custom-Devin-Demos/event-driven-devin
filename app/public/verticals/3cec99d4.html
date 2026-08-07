@@ -205,6 +205,15 @@
     }
     .acct-note { font-size: 12px; font-style: italic; color: #555; line-height: 18px; text-align: center; margin: 0 0 18px; min-height: 36px; }
     .apply-btn { width: 100%; margin-bottom: 14px; }
+    .school-email { margin: 0 0 16px; }
+    .school-email label { display: block; font-size: 13px; font-weight: 500; color: #1c1c1c; margin-bottom: 6px; }
+    .school-email label span { font-weight: 400; color: #5c6670; }
+    .school-email input {
+      width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: 14px;
+      font-family: inherit; color: #1c1c1c; border: 1px solid #8c9299; border-radius: 3px;
+    }
+    .school-email input:focus { outline: 2px solid #006ac3; outline-offset: -1px; border-color: #006ac3; }
+    .school-email .hint { font-size: 12px; color: #5c6670; line-height: 17px; margin: 6px 0 0; }
     .benefits-link { display: block; text-align: center; font-size: 14px; }
     .benefits-link::after { content: ' \203A'; }
     .view-all { text-align: center; margin-top: 26px; font-size: 14px; }
@@ -384,6 +393,13 @@
               <span class="promo-tag">+ STUDENTS GET AIRPODS 4<sup>&dagger;</sup></span>
             </div>
             <p class="acct-note">No monthly fee for full-time students and anyone 24 and younger<sup><a href="#">4</a>,<a href="#">22</a></sup></p>
+            <div class="school-email">
+              <label for="school-email-input">School email address <span>(optional)</span></label>
+              <input type="email" id="school-email-input" name="schoolEmail" autocomplete="email"
+                placeholder="you@utoronto.ca" data-school-email>
+              <p class="hint">Enter your school email to confirm your student status instantly. Students without one
+                can verify with proof of enrolment at any RBC branch.</p>
+            </div>
             <div class="app-error" id="apply-error" role="alert" aria-live="assertive">
               <div class="title">We&rsquo;re unable to start your application right now</div>
               <div class="msg">The account opening service is temporarily unavailable. Please try again in a few minutes,
@@ -516,6 +532,7 @@
       error: body.querySelector('.app-error'),
       tech: body.querySelector('.tech'),
       ok: body.querySelector('.app-ok'),
+      schoolEmail: body.querySelector('[data-school-email]'),
     };
   }
 
@@ -530,8 +547,15 @@
 
   function showApplyStarted(button, application) {
     var nodes = nodesFor(button);
-    nodes.ok.textContent = 'Application started \u2014 next step: verify your identity. '
+    var verification = application.offer && application.offer.studentVerification;
+    var message = 'Application started \u2014 next step: verify your identity. '
       + 'Estimated time: ' + application.estimatedMinutes + ' minutes.';
+
+    if (verification && verification.autoVerified) {
+      message += ' Student status confirmed via ' + verification.domain + '.';
+    }
+
+    nodes.ok.textContent = message;
     nodes.ok.classList.add('show');
   }
 
@@ -552,6 +576,7 @@
         productCode: button.dataset.product,
         applicantType: 'student-full-time',
         promoCode: button.dataset.promo,
+        schoolEmail: nodes.schoolEmail ? nodes.schoolEmail.value.trim() : '',
         province: 'ON',
         channel: 'web',
         devinUserId: DEVIN_USER_ID,
