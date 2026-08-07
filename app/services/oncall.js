@@ -342,10 +342,6 @@ async function postOncallAlert(scenarioId, options = {}) {
  */
 async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter }) {
   const { token, bugsChannel } = resolveOncallEnv();
-  if (!token || !bugsChannel) {
-    logger.warn('On-Call bugs channel not configured — skipping bug report post');
-    return { ok: false, skipped: true, error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' };
-  }
 
   const template = findBugTemplate(templateId);
   const body = text || (template && template.text) || BUG_REPORTS[scenarioId];
@@ -363,6 +359,18 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
       activated = template.infraKind;
     }
+  }
+
+  if (!token || !bugsChannel) {
+    logger.warn('On-Call bugs channel not configured — skipping bug report post', { activated });
+    return {
+      ok: false,
+      skipped: true,
+      error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured',
+      activated,
+      runRef: activated ? runRef : null,
+      windowMinutes: activated ? Math.round(INFRA_WINDOW_MS / 60000) : null,
+    };
   }
 
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);

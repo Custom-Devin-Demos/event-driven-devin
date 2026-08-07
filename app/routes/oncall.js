@@ -316,7 +316,7 @@ router.post('/api/oncall/bug', async (req, res) => {
       devinEmail,
       supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
     });
-    if (result.ok && result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
+    if (result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
