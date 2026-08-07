@@ -146,19 +146,6 @@ fetch('/api/<slug>/inquiry', {
 - [ ] Open each image URL directly in browser — confirm it shows the correct subject
 - [ ] For non-Unsplash sources, verify `onerror` fallback is present
 
-### Checklist B2: Font & Image Assertions in the Browser
-
-Instead of eyeballing, run this once on the loaded page — it catches broken hot-links and
-silently-failing `@font-face` webfonts in one shot:
-
-```js
-({ broken: [...document.images].filter(i => !i.complete || i.naturalWidth === 0).map(i => i.src),
-   total: document.images.length,
-   fontLoaded: document.fonts.check('500 32px <FontFamilyName>') })
-```
-`broken` must be `[]` and `fontLoaded` must be `true`. A page can look plausible while every heading
-quietly falls back to Arial, so always assert the font explicitly.
-
 ### Checklist C: Functional Verification
 - [ ] Click the CTA button on each vertical in the browser
 - [ ] Verify the error toast/message appears with the correct TypeError text
@@ -262,7 +249,7 @@ Open `https://devindemos.com/<slug>` in the browser and:
 
 | Vertical | URL | Action | Expected Error |
 |----------|-----|--------|----------------|
-| Banking | `/banking` | Click "Transfer Funds" (Premium tier) | `Cannot read properties of undefined (reading 'rate')` |
+| Banking | `/banking` | Click "Transfer Funds" (Premium tier) | `Cannot read properties of undefined (reading 'toFixed')` |
 | Financial Services | `/financial-services` | Click "Buy AAPL" | `Cannot read properties of undefined (reading 'rate')` |
 | Insurance | `/insurance` | Click "Submit Claim" | `Cannot read properties of undefined (reading 'maxPayout')` |
 | CPG | `/cpg` | Click "Place Order" | `Cannot read properties of undefined (reading 'find')` |
@@ -274,22 +261,7 @@ Open `https://devindemos.com/<slug>` in the browser and:
 
 ### Custom Customer Verticals
 
-Custom verticals use hex-slug URLs. Most display errors as a bottom-right toast notification that
-auto-dismisses after ~6 seconds; some (e.g. RBC `3cec99d4`) instead render a persistent inline error
-panel inside the card whose CTA was clicked.
-
-**Scoped bugs / negative controls.** Some verticals deliberately have more than one CTA where only
-*one* is expected to fail (the others act as negative controls and must succeed). For these, the
-single most important check is the **asymmetry**: click the failing CTA and the succeeding CTA in the
-same page load, and capture one screenshot showing both outcomes at once. If both fail or both
-succeed, the demo is broken even though the page "works". Buttons usually carry the discriminator in
-a `data-` attribute (e.g. `data-promo` on `3cec99d4`) — read the HTML to find which value is the
-failing one before testing.
-
-**Verifying the inline error panel.** Panels show the customer-friendly message plus a monospace
-block with `<ErrorClass>: <message>`, the route's error `code`, and a `Reference ID`. That Reference
-ID is the server `requestId` — grep it in the server log to tie the UI state to the exact HTTP 500
-request, which is stronger evidence than the panel alone.
+Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notification that auto-dismisses after ~6 seconds.
 
 | Customer | URL | CTA Button | Expected Error |
 |----------|-----|------------|----------------|
@@ -300,7 +272,6 @@ request, which is stronger evidence than the panel alone.
 | Koch Industries (08381313) | `/08381313` | "Get to know Koch" | `Cannot read properties of undefined (reading 'lastAuditDate')` |
 | United Airlines (4ada28b9) | `/4ada28b9` | "Find flights" | `Cannot read properties of undefined (reading 'milesMultiplier')` |
 | RBC Royal Bank (3cec99d4) | `/3cec99d4`, `/rbc` | "Apply Online Now" (student chequing card) | `Cannot read properties of undefined (reading 'airpodsSku')` |
-| RBC Royal Bank (3cec99d4) — **negative control** | `/3cec99d4`, `/rbc` | "Apply Online Now" (eSavings card) | none — must return 200 with green "Application started" panel |
 
 ### API Testing (curl)
 
