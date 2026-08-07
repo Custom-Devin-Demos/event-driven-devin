@@ -563,7 +563,7 @@ const INFRA_INCIDENTS = {
           ['Current p95', `${p95}s (baseline ${baseline}s)`],
           ['Affected endpoints', 'GET /search, POST /checkout'],
         ],
-        symptoms: `GET /search and POST /checkout requests are slow; app logs show repeated "Slow database query detected" warnings with 1500–3000ms query times. Error rate is normal — this is a latency degradation, not an outage. First: ${new Date(now.getTime() - 6 * 60000).toISOString()} | Last: ${now.toISOString()}`,
+        symptoms: `GET /search and POST /checkout requests are slow; app logs show "Slow search query" and "Slow database query detected" warnings with 1500–3000ms query times. Error rate is normal — this is a latency degradation, not an outage. First: ${new Date(now.getTime() - 6 * 60000).toISOString()} | Last: ${now.toISOString()}`,
         instruction: `Investigate the slow query paths in app/routes/search.js, app/services/search.js, app/routes/checkout.js, and app/services/checkout.js. Repo: ${REPO_URL}`,
       };
     },
@@ -611,16 +611,16 @@ const INFRA_INCIDENTS = {
     owner: 'Riley Chen (platform-oncall)',
     build(now) {
       const burn = (12 + Math.random() * 5).toFixed(1);
-      const errPct = '15.0';
+      const errPct = (46 + Math.random() * 6).toFixed(1);
       return {
         title: ':rotating_light: [SLO] Fast burn — checkout availability error budget',
         monitor: `\`burn_rate(slo:checkout-availability-99.9, window:1h) > 14.4\` — *Fast burn: ${burn}x*`,
         fields: [
           ['SLO', 'checkout availability 99.9% (30d) — monthly error budget exhausted in < 2 days at this rate'],
-          ['Error rate', `${errPct}% of POST /checkout requests failing (InventoryReservationError)`],
+          ['Error rate', `${errPct}% of POST /checkout requests failing (InventoryReservationError, TypeError)`],
         ],
-        symptoms: `Intermittent checkout failures — InventoryReservationError affects ${errPct}% of orders; retries succeed sometimes. Budget burn is what tripped this. First: ${new Date(now.getTime() - 32 * 60000).toISOString()} | Last: ${now.toISOString()}`,
-        instruction: `Investigate the inventory reservation path in checkout. Repo: ${REPO_URL}`,
+        symptoms: `Intermittent checkout failures — a mix of inventory reservation conflicts and tax-calculation errors on roughly half of orders; retries succeed sometimes. Budget burn is what tripped this. First: ${new Date(now.getTime() - 32 * 60000).toISOString()} | Last: ${now.toISOString()}`,
+        instruction: `Investigate the inventory reservation and tax calculation paths in app/services/checkout.js. Repo: ${REPO_URL}`,
       };
     },
   },
@@ -772,7 +772,7 @@ const SEV1_INCIDENTS = {
     infraKind: 'slo-burn',
     label: 'Checkout availability — SLO fast burn',
     title: 'Checkout availability SLO fast burn — error budget exhausting on checkout-api',
-    summary: '15% of POST /checkout requests failing with InventoryReservationError. 30d error budget projected to exhaust in under 2 days at current burn rate.',
+    summary: 'Roughly half of POST /checkout requests failing (inventory reservation conflicts + tax-calculation errors). 30d error budget projected to exhaust in under 2 days at current burn rate.',
   },
   'memory-leak': {
     infraKind: 'memory-leak',
