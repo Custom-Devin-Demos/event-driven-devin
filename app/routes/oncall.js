@@ -250,10 +250,18 @@ router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   try {
     const { unique, devinEmail, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
+    const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
+    if (skinConfig && !skinMatches) {
+      logger.warn('On-Call trigger skin/vertical mismatch — using generic alert', {
+        skin: skinConfig.slug,
+        skinVertical: skinConfig.vertical,
+        triggeredVertical: req.params.vertical,
+      });
+    }
     const result = await postOncallAlert(req.params.vertical, {
       unique: unique !== false,
       devinEmail,
-      skin: skinConfig && skinConfig.vertical === req.params.vertical ? skinConfig : null,
+      skin: skinMatches ? skinConfig : null,
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
