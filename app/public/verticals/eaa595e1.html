@@ -580,9 +580,13 @@
       var rate = document.getElementById('offersMatchRate');
 
       fetch('/api/eaa595e1/offers?membership=' + encodeURIComponent(membership))
-        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Offers request failed with status ' + r.status);
+          return r.json();
+        })
         .then(function (data) {
           if (requestSeq !== offersRequestSeq) return;
+          if (!data || !Array.isArray(data.offers)) throw new Error('Malformed offers payload');
           grid.innerHTML = data.offers.map(function (offer) {
             return '<div class="offer-tile">' +
               '<div class="offer-title">' + escapeHtml(offer.title) + '</div>' +
