@@ -19,6 +19,8 @@ const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } =
  */
 
 const REPO_URL = process.env.ONCALL_REPO_URL || 'https://github.com/COG-GTM/event-driven-devin';
+const DEMO_BASE_URL = () =>
+  (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
 
 /**
  * Alert scenarios for the on-call vertical demos. Cards are metric-shaped —
@@ -267,12 +269,14 @@ function contextBlock(service, triggeredBy) {
  * responder treats it as a fresh occurrence; when false, the message matches
  * the canonical signature to demonstrate duplicate grouping.
  */
-function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy }) {
+function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
 
+  const brand = skin ? skin.company : scenario.brand;
   const lines = [
     `:rotating_light: *[Triggered] ${scenario.monitor}*`,
     '',
-    `*Service:* ${scenario.service} (${scenario.brand})`,
+    `*Service:* ${scenario.service} (${brand})`,
+    skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page` : null,
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
@@ -311,11 +315,13 @@ async function postOncallAlert(scenarioId, options = {}) {
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
   const events = 3 + Math.floor(Math.random() * 12);
-  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy });
+  const skin = options.skin || null;
+  const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
+  const brand = skin ? skin.company : scenario.brand;
   const blocks = [
     headerBlock(`:rotating_light: [Triggered] ${scenario.monitor}`),
     ...fieldPairs([
-      ['Service', `${scenario.service} (${scenario.brand})`],
+      ['Service', `${scenario.service} (${brand})`],
       ['Endpoint', scenario.endpoint],
       ['Metric value', scenario.metricValue],
       ['Threshold', scenario.threshold],
@@ -327,7 +333,11 @@ async function postOncallAlert(scenarioId, options = {}) {
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     mrkdwnSection(`*Monitor query:*\n\`\`\`${scenario.metricQuery}\`\`\``),
-    mrkdwnSection(`*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\nRepo: ${REPO_URL}`),
+    mrkdwnSection(
+      `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
+      (skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
+      `Repo: ${REPO_URL}`
+    ),
     datadogActions(),
     contextBlock(scenario.service, triggeredBy),
   ];

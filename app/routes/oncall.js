@@ -139,7 +139,7 @@ router.get('/oncall/c/:slug', (req, res, next) => {
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario)}\n${buildSkinBrandShim(skin)}\n</body>`)
+      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
 });
@@ -177,7 +177,7 @@ router.get('/oncall/report', (_req, res) => {
  * legacy vertical endpoints and their automated-alert pipeline are never
  * touched.
  */
-function buildOncallShim(scenario) {
+function buildOncallShim(scenario, skinSlug) {
   return `
   <div id="oncall-ribbon" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
     <div style="font-weight:700;color:#f0f6fc;margin-bottom:4px;">Devin On-Call demo</div>
@@ -192,6 +192,7 @@ function buildOncallShim(scenario) {
       const apiPath = ${JSON.stringify(scenario.apiPath)};
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
+      const skinSlug = ${JSON.stringify(skinSlug || null)};
       const origFetch = window.fetch.bind(window);
       window.fetch = function (url, opts) {
         if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
@@ -203,7 +204,7 @@ function buildOncallShim(scenario) {
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ unique: unique, devinEmail: localStorage.getItem('devinEmail') || '' }),
+            body: JSON.stringify({ unique: unique, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' }),
           }).then(function (r) { return r.json(); }).then(function (d) {
             const el = document.getElementById('oncall-status');
             if (d.skipped) {
@@ -247,8 +248,21 @@ router.post('/api/oncall/trigger/:vertical', async (req, res) => {
     return res.status(404).json({ ok: false, error: `Unknown vertical: ${req.params.vertical}` });
   }
   try {
-    const { unique, devinEmail } = req.body || {};
-    const result = await postOncallAlert(req.params.vertical, { unique: unique !== false, devinEmail });
+    const { unique, devinEmail, skin } = req.body || {};
+    const skinConfig = getOncallSkin(skin);
+    const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
+    if (skinConfig && !skinMatches) {
+      logger.warn('On-Call trigger skin/vertical mismatch — using generic alert', {
+        skin: skinConfig.slug,
+        skinVertical: skinConfig.vertical,
+        triggeredVertical: req.params.vertical,
+      });
+    }
+    const result = await postOncallAlert(req.params.vertical, {
+      unique: unique !== false,
+      devinEmail,
+      skin: skinMatches ? skinConfig : null,
+    });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call trigger failed', { error: error.message });
