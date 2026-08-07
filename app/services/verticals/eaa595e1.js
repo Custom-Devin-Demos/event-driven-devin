@@ -21,11 +21,12 @@ const CATALOG = [
 /**
  * Store fulfillment plans keyed by fulfillment method.
  * Each plan carries the base fee charged before Boost benefits are applied.
+ * Only plans marked `feeWaivable` are covered by the Boost delivery benefit.
  */
 const FULFILLMENT_PLANS = {
-  pickup: { baseFee: 0.00, slaMinutes: 240, label: 'Store Pickup' },
-  delivery: { baseFee: 9.95, slaMinutes: 180, label: 'Scheduled Delivery' },
-  ship: { baseFee: 4.99, slaMinutes: 2880, label: 'Kroger Ship' },
+  pickup: { baseFee: 0.00, slaMinutes: 240, label: 'Store Pickup', feeWaivable: false },
+  delivery: { baseFee: 9.95, slaMinutes: 180, label: 'Scheduled Delivery', feeWaivable: true },
+  ship: { baseFee: 4.99, slaMinutes: 2880, label: 'Kroger Ship', feeWaivable: false },
 };
 
 /**
@@ -114,7 +115,8 @@ function computeOrderTotal(subtotal, state, method, membership) {
 
   const plan = resolveFulfillmentPlan(method);
   const benefits = getMembershipBenefits(membership);
-  const fulfillmentFee = plan.baseFee * (1 - benefits.deliveryFeeWaiver);
+  const waiver = plan.feeWaivable ? benefits.deliveryFeeWaiver : 0;
+  const fulfillmentFee = plan.baseFee * (1 - waiver);
   const tax = subtotal * taxRate;
   const fuel = computeFuelPoints(subtotal, membership);
 
