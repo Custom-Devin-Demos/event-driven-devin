@@ -8,7 +8,21 @@ router.get('/api/eaa595e1/catalog', (_req, res) => {
 });
 
 router.get('/api/eaa595e1/offers', (req, res) => {
-  res.json(rankOffers(req.query.membership || 'boost-annual'));
+  // Express yields an array for a repeated query param; rank against the last one.
+  const requested = req.query.membership;
+  const membership = Array.isArray(requested) ? requested[requested.length - 1] : requested;
+
+  try {
+    res.json(rankOffers(membership || 'boost-annual'));
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'OFFERS_FAILED',
+      requestId: req.requestId,
+    });
+  }
 });
 
 router.post('/api/eaa595e1/order', async (req, res) => {

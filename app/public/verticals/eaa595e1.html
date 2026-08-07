@@ -570,7 +570,10 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    var offersRequestSeq = 0;
+
     function loadOffers() {
+      var requestSeq = ++offersRequestSeq;
       var membership = document.getElementById('membershipSelect').value;
       var grid = document.getElementById('offersGrid');
       var status = document.getElementById('offersStatus');
@@ -579,6 +582,7 @@
       fetch('/api/eaa595e1/offers?membership=' + encodeURIComponent(membership))
         .then(function (r) { return r.json(); })
         .then(function (data) {
+          if (requestSeq !== offersRequestSeq) return;
           grid.innerHTML = data.offers.map(function (offer) {
             return '<div class="offer-tile">' +
               '<div class="offer-title">' + escapeHtml(offer.title) + '</div>' +
@@ -592,6 +596,10 @@
           rate.className = data.personalized ? '' : 'degraded';
         })
         .catch(function () {
+          if (requestSeq !== offersRequestSeq) return;
+          grid.innerHTML = '';
+          rate.textContent = '\u2014';
+          rate.className = '';
           status.textContent = 'Unavailable';
           status.className = 'offers-status';
         });
