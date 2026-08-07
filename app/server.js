@@ -25,6 +25,7 @@ const devinUsersRoutes = require('./routes/devin-users');
 const verticalRoutes = require('./routes/verticals');
 const webinarRoutes = require('./routes/webinar');
 const oncallRoutes = require('./routes/oncall');
+const oncallVerticalRoutes = require('./routes/oncall-verticals');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
 
@@ -100,6 +101,7 @@ app.use(sentryWebhookRoutes);
 app.use(devinUsersRoutes);
 app.use(webinarRoutes);
 app.use(oncallRoutes);
+app.use(oncallVerticalRoutes);
 app.use(verticalRoutes);
 
 // 404 handler

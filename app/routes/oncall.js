@@ -43,6 +43,12 @@ const KNOWN_TEMPLATE_IDS = new Set(
   Object.values(BUG_CATALOG).flatMap((entries) => entries.map((t) => t.id))
 );
 for (const skin of Object.values(ONCALL_SKINS)) {
+  if (!ALERT_SCENARIOS[skin.vertical]) {
+    logger.warn('On-Call skin references unknown vertical', {
+      skin: skin.slug,
+      vertical: skin.vertical,
+    });
+  }
   const products = (skin.bugPortal && skin.bugPortal.products) || [];
   for (const product of products) {
     for (const template of product.templates || []) {
@@ -57,6 +63,16 @@ for (const skin of Object.values(ONCALL_SKINS)) {
 }
 
 /**
+ * Serialize a value as a JS literal safe for embedding in an inline <script>.
+ */
+function jsLiteral(value) {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
+/**
  * Serve an on-call page with a customer skin injected as window.ONCALL_SKIN.
  * The pages apply the skin client-side (branding, copy, portal products);
  * all mechanics stay shared code.
@@ -65,23 +81,67 @@ function sendSkinnedPage(res, next, page, skin) {
   const pagePath = path.join(__dirname, '..', 'public', page);
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
-    const json = JSON.stringify(skin)
-      .replace(/</g, '\\u003c')
-      .replace(/\u2028/g, '\\u2028')
-      .replace(/\u2029/g, '\\u2029');
-    const inject = `<script>window.ONCALL_SKIN = ${json};</script>`;
+    const inject = `<script>window.ONCALL_SKIN = ${jsLiteral(skin)};</script>`;
     res.type('html').send(html.replace('</head>', () => `${inject}\n</head>`));
   });
 }
 
 /**
- * GET /oncall/c/:slug — customer-skinned On-Call demo page.
+ * Rebrand a served vertical page with a skin's company name, mark, title,
+ * and theme variables, and hide the demo-hub back link. Applied on top of
+ * the on-call shim so the shared URL looks like the customer's own product.
+ */
+function buildSkinBrandShim(skin) {
+  const page = skin.page || {};
+  const themeVars = Object.entries(page.theme || {})
+    .filter(([k, v]) => /^--[a-z0-9-]+$/i.test(k) && /^[^<>{};]*$/.test(String(v)))
+    .map(([k, v]) => `${k}: ${v};`)
+    .join(' ');
+  return `
+  <style>:root { ${themeVars} }</style>
+  <script>
+    (function () {
+      document.title = ${jsLiteral(page.title || skin.company)};
+      var logo = document.querySelector('.logo');
+      if (logo) {
+        logo.textContent = '';
+        var mark = document.createElement('div');
+        mark.className = 'logo-mark';
+        mark.textContent = ${jsLiteral(skin.brandMark || '')};
+        logo.appendChild(mark);
+        logo.appendChild(document.createTextNode(${jsLiteral(skin.company)}));
+      }
+      var back = document.querySelector('.back-link');
+      if (back) back.remove();
+      var disclaimer = ${jsLiteral(skin.disclaimer || '')};
+      if (disclaimer) {
+        var bar = document.createElement('div');
+        bar.style.cssText = 'background:#fef3c7;color:#92400e;font-size:12px;font-weight:600;text-align:center;padding:8px 16px;';
+        bar.textContent = disclaimer;
+        document.body.insertBefore(bar, document.body.firstChild);
+      }
+    })();
+  </script>`;
+}
+
+/**
+ * GET /oncall/c/:slug — the customer's single branded demo page: the skin's
+ * chosen vertical page rebranded, with the on-call shim active. This is the
+ * URL a DE shares for a custom demo; the /oncall hub itself is never skinned.
  * Registered before /oncall/:vertical so "c" is never treated as a vertical.
  */
 router.get('/oncall/c/:slug', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
   if (!skin) return next();
-  sendSkinnedPage(res, next, 'oncall.html', skin);
+  const scenario = ALERT_SCENARIOS[skin.vertical];
+  if (!scenario) return next();
+  const pagePath = path.join(__dirname, '..', 'public', 'verticals', scenario.page);
+  fs.readFile(pagePath, 'utf8', (err, html) => {
+    if (err) return next(err);
+    res.type('html').send(
+      html.replace('</body>', () => `${buildOncallShim(scenario)}\n${buildSkinBrandShim(skin)}\n</body>`)
+    );
+  });
 });
 
 /**
@@ -110,10 +170,12 @@ router.get('/oncall/report', (_req, res) => {
 
 /**
  * On-call shim injected into the real branded vertical pages served at
- * /oncall/<vertical>. It reroutes the page's own API call to the alert-only
- * on-call trigger, so the presenter uses the genuine product UI (and sees the
- * genuine error state) while the alert lands in #oncall-alerts with no legacy
- * Devin trigger.
+ * /oncall/<vertical>. It reroutes the page's primary action to the on-call
+ * vertical endpoint (where the on-call scenario's degradation lives) and
+ * posts the alert card, so the presenter uses the genuine product UI and
+ * sees the genuine symptom while the alert lands in #oncall-alerts. The
+ * legacy vertical endpoints and their automated-alert pipeline are never
+ * touched.
  */
 function buildOncallShim(scenario) {
   return `
@@ -128,16 +190,15 @@ function buildOncallShim(scenario) {
   <script>
     (function () {
       const apiPath = ${JSON.stringify(scenario.apiPath)};
+      const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const origFetch = window.fetch.bind(window);
       window.fetch = function (url, opts) {
-        if (typeof url === 'string' && url.startsWith(apiPath)) {
-          // Execute the real vertical API in on-call mode: the planted bug
-          // fires and Sentry/Datadog capture genuine telemetry, but the
-          // x-oncall-mode header suppresses the legacy Slack/Devin trigger.
-          // The on-call alert card is posted alongside.
-          const realOpts = Object.assign({}, opts);
-          realOpts.headers = Object.assign({}, (opts && opts.headers) || {}, { 'x-oncall-mode': '1' });
+        if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
+          // Reroute the page's primary action to the on-call vertical
+          // endpoint: the scenario's real degradation fires and Sentry/
+          // Datadog capture genuine telemetry. The alert card is posted
+          // alongside. Legacy endpoints are untouched.
           const unique = document.getElementById('oncall-unique').checked;
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
@@ -148,7 +209,7 @@ function buildOncallShim(scenario) {
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
           }).catch(function () {});
-          return origFetch(url, realOpts);
+          return origFetch(url.replace(apiPath, oncallApiPath), opts);
         }
         return origFetch(url, opts);
       };
@@ -172,8 +233,8 @@ router.get('/oncall/:vertical', (req, res, next) => {
 
 /**
  * POST /api/oncall/trigger/:vertical — posts the on-call alert card. The
- * shimmed branded pages call this alongside the real vertical API (which runs
- * in on-call mode so telemetry fires but the legacy Devin trigger does not).
+ * shimmed branded pages call this alongside the on-call vertical API, whose
+ * telemetry fires normally; the legacy automated-alert pipeline is not used.
  */
 router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   const scenario = ALERT_SCENARIOS[req.params.vertical];
@@ -198,7 +259,8 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     id,
     brand: s.brand,
     endpoint: s.endpoint,
-    error: `${s.errorType}: ${s.errorValue}`,
+    monitor: s.monitor,
+    symptom: s.symptom,
   }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
   const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({

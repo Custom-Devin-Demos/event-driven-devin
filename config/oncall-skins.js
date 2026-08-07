@@ -1,11 +1,13 @@
 /**
  * On-Call demo customer skins.
  *
- * A skin re-brands the /oncall demo experience (page chrome, incident card
- * copy, support portal products/templates) for a specific prospect without
- * touching any mechanics: incident modes, auto-revert, Slack routing, and the
- * template → repro mapping are shared code. Adding a customer = adding one
- * entry here. Served at /oncall/c/<slug> and /oncall/c/<slug>/report.
+ * A skin generates ONE customer-branded product page for a specific prospect
+ * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
+ * vertical page (skin.vertical) rebranded with the customer's name, mark, and
+ * theme, with the on-call shim active — that single URL is what a DE shares.
+ * /oncall/c/<slug>/report serves the matching branded support portal. The
+ * generic /oncall hub itself is never skinned. Adding a customer = adding one
+ * entry here.
  *
  * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
  * never the customer's name, so shared URLs don't leak who a demo is for.
@@ -14,8 +16,9 @@
  *
  * What we deliberately do NOT personalize: telemetry service names, monitor
  * queries' service tags, and repo references in Slack investigation copy —
- * the responder investigates the real COG-GTM/event-driven-devin repo, so
- * those must stay truthful for the investigation to be believable.
+ * the responder investigates the repo that REPO_URL (app/services/oncall.js)
+ * points at, so those must stay truthful for the investigation to be
+ * believable.
  *
  * Bug portal templates reference existing BUG_CATALOG template ids (see
  * app/services/oncall.js) so backend-symptom reports keep activating the
@@ -27,6 +30,16 @@ const ONCALL_SKINS = {
     slug: '8cc190d2',
     company: 'Brex',
     brandMark: 'B',
+    vertical: 'banking',
+    page: {
+      title: 'Brex — Business Account',
+      theme: {
+        '--navy': '#211b18',
+        '--navy-light': '#3a2f28',
+        '--gold': '#F46A35',
+        '--gold-dim': 'rgba(244,106,53,0.08)',
+      },
+    },
     accent: '#F46A35',
     accentDark: '#d9552a',
     theme: {
@@ -38,77 +51,25 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Brex Support',
     supportCenterSub: 'Customer Care & Incident Intake',
-    heroTitle: 'BREX ON-CALL',
-    heroSub:
-      'Trigger an incident in the Brex service. It degrades, alerting fires, and Devin picks up the alert and investigates.',
     disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Brex product.',
-    infra: {
-      latency: {
-        title: 'DB Latency Spike',
-        desc: 'Transaction search in the Brex dashboard slows to 1.5\u20133s. Error rate remains normal.',
-      },
-      'dependency-timeout': {
-        title: 'Card Network Timeouts',
-        desc: 'The card-network dependency times out intermittently. Most payment authorizations succeed; some display a spinner before returning a 504.',
-      },
-      'memory-leak': {
-        title: 'Memory Leak',
-        desc: 'Process memory increases without plateau. Datadog records the growth.',
-      },
-      'slo-burn': {
-        title: 'SLO Fast Burn',
-        desc: 'Intermittent payment failures consume the availability error budget. The burn rate pages before the raw error alert.',
-      },
-    },
     bugPortal: {
       products: [
-        {
-          area: 'retail',
-          label: 'Brex Dashboard \u2014 Payments & Cards',
-          persona: { name: 'Maya Sorensen', email: 'maya.sorensen@parcelworks.co', sev: 'Medium' },
-          templates: [
-            {
-              id: 'retail-slow-search',
-              label: 'Transaction search is slow',
-              sev: 'Medium',
-              text: "Is something wrong with the dashboard? Searching transactions takes about 3 seconds now \u2014 the spinner stays on screen. It was instant last week. There are no errors, but filtering by vendor took 2.8s to show results.",
-            },
-            {
-              id: 'retail-checkout-hangs',
-              label: 'Payments hang then error',
-              sev: 'High',
-              text: 'Trying to send a payment and about every third attempt it just hangs for ages and then shows a gateway error. If I retry immediately it usually goes through. Started within the last hour \u2014 my colleague sees the same thing from her account.',
-            },
-            {
-              id: 'retail-orders-failing',
-              label: 'Payments randomly failing',
-              sev: 'High',
-              text: "Payments are failing roughly half the time \u2014 sometimes it mentions limits, sometimes it's just a generic error. Retrying works eventually but our AP team is falling behind. Nothing changed on our side.",
-            },
-            {
-              id: 'retail-site-sluggish',
-              label: 'Dashboard getting slower over time',
-              sev: 'Medium',
-              text: "This is not an outage, but the dashboard gets slower as the day goes on. Pages that were fast this morning are lagging now. A refresh does not help. The server may be running out of memory.",
-            },
-          ],
-        },
         {
           area: 'banking',
           label: 'Brex Business Account \u2014 Transfers',
           persona: { name: 'Dana Whitfield', email: 'dana.whitfield@brightmail.io', sev: 'High' },
           templates: [
             {
-              id: 'banking-transfer-failed',
-              label: 'Transfers failing',
+              id: 'banking-transfer-slow',
+              label: 'Transfers extremely slow',
               sev: 'High',
-              text: 'Hey team \u2014 our controller says transfers from the business account keep failing. Just a red "Transfer Failed" box every time, any amount, both accounts. Multiple people on our side hit this today.',
+              text: 'Hey team \u2014 transfers from the business account take about ten seconds now. The spinner sits there on every single transfer before it finally completes. Any amount, both accounts. Multiple people on our side hit this today.',
             },
             {
-              id: 'banking-transfer-stuck',
-              label: 'Payroll transfer blocked',
+              id: 'banking-payroll-cutoff',
+              label: 'Payroll batch missing cutoff',
               sev: 'Critical',
-              text: 'Escalating: we cannot move our payroll funding from the operating account \u2014 the website shows an error box every single time and payroll runs tomorrow. Tried two browsers and two admins, same red failure message. Please treat as urgent.',
+              text: 'Escalating: our payroll batch runs transfers one after another and each one now takes ~10 seconds, so the batch will miss the wire cutoff. Nothing errors \u2014 it is just painfully slow, and it was fine on Friday. Please treat as urgent.',
             },
           ],
         },

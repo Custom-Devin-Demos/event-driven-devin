@@ -26,6 +26,19 @@ The app hosts 10 verticals, each accessible at its own URL:
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
+### On-call vertical slice (Flows 1–2)
+
+Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services carrying performance-degradation bugs instead of TypeErrors:
+
+| Vertical | On-call API Endpoint | Service File |
+|----------|---------------------|--------------|
+| Banking | `POST /api/oncall/banking/transfer` | `app/services/oncall-verticals/banking.js` |
+| Telco | `POST /api/oncall/telco/upgrade` | `app/services/oncall-verticals/telco.js` |
+| High Tech | `POST /api/oncall/licenses/provision` | `app/services/oncall-verticals/hightech.js` |
+| Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
+
+Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
+
 ### Payer welcome-season scenario
 
 The payer vertical models a plan-configuration defect rather than an infrastructure failure: `PLAN_CONFIGS` carries a 7-digit `rxBin` (`0044336` instead of `004336`) for two plans, `generateMemberIdCard()` copies it onto member ID cards unvalidated, and `adjudicateClaim()` then finds no `PAYER_REGISTRY` entry for that BIN. Every service stays healthy — the only signal is the `pharmacy_claim.rejected` business metric.
@@ -92,6 +105,8 @@ Three things are deliberately separate:
 │   │   │   ├── healthcare.js      # Healthcare: providers + appointments
 │   │   │   ├── telco.js           # Telco: plans + upgrades
 │   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
+│   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
+│   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -115,6 +130,12 @@ Three things are deliberately separate:
 │   │   │   ├── payer.js           # Pharmacy claim adjudication business logic
 │   │   │   └── features/
 │   │   │       └── eaa595e1-offer-affinity.json  # Built Kroger feature view (generated — do not hand-edit)
+│   │   ├── oncall.js              # On-Call alert/bug-report cards, scenarios, incident state
+│   │   ├── oncall-verticals/      # Copied vertical services for the on-call slice
+│   │   │   ├── banking.js         # On-call banking business logic
+│   │   │   ├── telco.js           # On-call telco business logic
+│   │   │   ├── hightech.js        # On-call license provisioning business logic
+│   │   │   └── insurance.js       # On-call claims business logic
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
 │   │   ├── github-webhook.js      # GitHub webhook processing
 │   │   ├── auth.js                # Auth service
@@ -261,6 +282,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
 | `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
 | `ONCALL_SEV1_WINDOW_MS` | SEV-1 degradation/auto-resolve window in ms (default 30 min) | No |
+| `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
