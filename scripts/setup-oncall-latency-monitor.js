@@ -28,7 +28,7 @@ const MONITOR_NAME = 'checkout-api — search query latency high (db-latency)';
 const monitor = {
   name: MONITOR_NAME,
   type: 'metric alert',
-  query: 'avg(last_5m):avg:search.latency.avg{route:/search} > 1200',
+  query: 'avg(last_5m):avg:demo.search.latency.avg{route:/search} > 1200',
   message: [
     'Average storefront search latency on checkout-api is above 1.2s for 5 minutes.',
     'Symptoms: storefront search and checkout slow to 1.5\u20133s; no elevated error rate.',
