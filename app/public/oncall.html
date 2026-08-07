@@ -105,7 +105,6 @@
     .fire-btn.sev:hover { background:var(--ink-2); border-color:var(--ink-2); }
     .fire-btn:disabled { opacity:.5; cursor:wait; }
     .fire-btn.sev:disabled { background:var(--ink); border-color:var(--ink); color:var(--paper); }
-    #infra-grid .monitor-line { width:100%; font-size:11px; font-family:var(--mono); min-width:0; background:transparent; border:0; border-top:1px solid var(--line); border-radius:0; padding:8px 0 0; overflow-wrap:anywhere; min-height:calc(2 * 1.6em + 18px); }
     .status { display:none; margin-top:12px; padding:9px 12px; border-radius:6px; font-size:13px; line-height:1.5; }
     .status.ok,.status.err { display:block; }
     .status.ok { background:var(--wash); border:1px solid var(--line); color:var(--ink); }
@@ -309,32 +308,28 @@
         icon: ICONS.latency,
         title: 'DB Latency Spike',
         source: 'Datadog Monitor \u00b7 live',
-        desc: 'GET /search and POST /checkout slow to 1.5\u20133s. Error rate remains normal. A live Datadog monitor fires during the window.',
-        monitor: 'max:demo.search.latency.max{route:/search} > 1200ms',
+        desc: 'GET /search and POST /checkout slow to 1.5\u20133s. Error rate stays normal.',
       },
       {
         kind: 'dependency-timeout',
         icon: ICONS['dependency-timeout'],
         title: 'Gateway Timeouts',
         source: 'Datadog-style Alert',
-        desc: 'A dependency times out intermittently. Most checkouts succeed; some display a spinner before returning a 504.',
-        monitor: 'checkout.dependency_timeout{upstream:payments-gateway} > 0.2',
+        desc: 'A dependency times out intermittently. Some checkouts hang, then 504.',
       },
       {
         kind: 'memory-leak',
         icon: ICONS['memory-leak'],
         title: 'Memory Leak',
         source: 'Datadog-style Alert',
-        desc: 'Process memory climbs without plateau. No user-visible symptom as memory grows.',
-        monitor: 'system.mem.rss{service:checkout-api} rising',
+        desc: 'Process memory climbs without plateau. No user-visible symptom yet.',
       },
       {
         kind: 'slo-burn',
         icon: ICONS['slo-burn'],
         title: 'SLO Fast Burn',
         source: 'Datadog-style Alert',
-        desc: 'Intermittent checkout failures consume the availability error budget. The burn rate pages before the raw error alert.',
-        monitor: 'burn_rate(slo:checkout-availability-99.9) > 14.4x',
+        desc: 'Intermittent checkout failures burn the availability error budget fast.',
       },
     ];
 
@@ -398,7 +393,6 @@
             '<div class="card-vertical">' + (m.source || 'Datadog-style Alert') + '</div>' +
             '<div class="card-brand">' + m.title + '</div>' +
             '<div class="card-desc">' + m.desc + '</div>' +
-            '<div class="monitor-line">' + m.monitor + '</div>' +
           '</div>' +
           '<div class="card-footer infra-footer">' +
             '<button class="fire-btn" data-infra="' + m.kind + '">Fire Incident</button>' +
