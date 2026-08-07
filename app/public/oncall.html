@@ -309,14 +309,14 @@
         kind: 'latency',
         icon: ICONS.latency,
         title: 'DB Latency Spike',
-        desc: 'Storefront search slows to 1.5\u20133s. Error rate remains normal.',
+        desc: 'GET /search slows to 1.5\u20133s. Error rate remains normal.',
         monitor: 'p95:trace.express.request{service:checkout-api} > 2s',
       },
       {
         kind: 'dependency-timeout',
         icon: ICONS['dependency-timeout'],
         title: 'Gateway Timeouts',
-        desc: 'A downstream dependency times out intermittently. Most checkouts succeed; some display a spinner before returning a 502.',
+        desc: 'A downstream dependency times out intermittently. Most checkouts succeed; some display a spinner before returning a 504.',
         monitor: 'checkout.dependency_timeout{upstream:payments-gateway} > 0.2',
       },
       {
@@ -542,7 +542,7 @@
       btn.disabled = false;
     };
 
-    // Live health strip: browser-timed probe of the real storefront search
+    // Live health strip: browser-timed probe of the real search endpoint
     // endpoint + server-side incident state, so the audience sees the
     // degradation (and the recovery) as it happens.
     (function healthStrip() {
