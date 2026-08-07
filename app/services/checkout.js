@@ -3,6 +3,7 @@ const { isScenarioActive, getScenario } = require('../incidentModes');
 const logger = require('../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../telemetry/datadog');
 const { Sentry } = require('../telemetry/sentry');
+const { getCachedQuote } = require('./quote-cache');
 
 // Custom error classes for realistic stack traces
 class PaymentGatewayTimeoutError extends Error {
@@ -108,7 +109,7 @@ async function processCheckout(orderData) {
       }
     }
 
-    const tax = calculateTax(order);
+    const tax = getCachedQuote(order, () => calculateTax(order));
     const total = order.subtotal + tax;
 
     // Small random delay to simulate normal processing
