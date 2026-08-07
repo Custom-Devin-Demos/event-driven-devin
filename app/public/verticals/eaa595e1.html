@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kroger &mdash; Checkout</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --bg-card: #ffffff;
+      --bg-elevated: #f6f8fa;
+      --surface: #eef2f6;
+      --border: #e2e6ea;
+      --border-light: #ccd3da;
+      --text: #1d2429;
+      --text-muted: #55606a;
+      --text-dim: #737f8a;
+      --kr-blue: #0059a6;
+      --kr-blue-dark: #003f76;
+      --kr-navy: #00274d;
+      --kr-gold: #f7a800;
+      --kr-blue-dim: rgba(0,89,166,0.08);
+      --danger: #bf0a1e;
+      --danger-bg: rgba(191,10,30,0.05);
+      --danger-border: rgba(191,10,30,0.18);
+      --success: #14795a;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+
+    /* ── Promo Banner ── */
+    .promo-banner {
+      background: var(--kr-gold);
+      color: var(--kr-navy);
+      text-align: center;
+      padding: 0.55rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--kr-blue);
+      padding: 0 clamp(1rem, 4vw, 2.5rem);
+      height: 68px;
+      display: flex; align-items: center; gap: 1.5rem;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+    .logo-wordmark {
+      font-size: 1.5rem; font-weight: 700; letter-spacing: -0.045em;
+      font-style: italic; color: #fff;
+    }
+    .search-bar {
+      flex: 1; max-width: 620px;
+      display: flex; align-items: center; gap: 0.5rem;
+      background: #fff; border-radius: 999px;
+      padding: 0.5rem 0.5rem 0.5rem 1.1rem;
+    }
+    .search-bar input {
+      flex: 1; border: none; outline: none; font-family: var(--sans);
+      font-size: 0.88rem; color: var(--text); background: transparent;
+    }
+    .search-btn {
+      width: 34px; height: 34px; border-radius: 50%; border: none;
+      background: var(--kr-gold); color: var(--kr-navy);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .header-actions { display: flex; align-items: center; gap: 1.5rem; margin-left: auto; }
+    .header-action {
+      display: flex; align-items: center; gap: 0.5rem;
+      color: #fff; font-size: 0.78rem; font-weight: 600; text-decoration: none;
+      white-space: nowrap;
+    }
+    .header-action small { display: block; font-weight: 400; font-size: 0.68rem; opacity: 0.85; }
+    .cart-count {
+      background: var(--kr-gold); color: var(--kr-navy);
+      border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+      padding: 0.05rem 0.4rem;
+    }
+
+    /* ── Page ── */
+    .page {
+      max-width: 900px; margin: 0 auto;
+      padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 3rem;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--kr-blue); text-decoration: none; font-size: 0.8rem;
+      font-weight: 600; margin-bottom: 1.5rem;
+    }
+    .back-link:hover { text-decoration: underline; }
+
+    .page-title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      font-weight: 800; line-height: 1.2; margin-bottom: 0.4rem;
+      letter-spacing: -0.03em; color: var(--kr-navy);
+    }
+    .page-desc {
+      font-size: 0.9rem; color: var(--text-muted); max-width: 560px;
+      line-height: 1.65; margin-bottom: 2rem;
+    }
+
+    /* ── Cards ── */
+    .order-card, .action-section {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .order-card { overflow: hidden; }
+    .order-header {
+      padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h2 { font-size: 1rem; font-weight: 700; }
+    .order-header .item-count {
+      font-size: 0.72rem; font-weight: 700; color: var(--text-dim);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-swatch {
+      width: 56px; height: 56px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; font-size: 1.6rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+    }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.1rem; }
+    .item-unit { font-size: 0.75rem; color: var(--text-muted); }
+    .item-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); }
+    .item-price { font-weight: 800; font-size: 0.98rem; }
+
+    .order-totals {
+      padding: 1.1rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.22rem 0;
+    }
+    .total-line.grand {
+      font-weight: 800; color: var(--text); font-size: 1.05rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.7rem;
+    }
+    .boost-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--kr-blue-dim); color: var(--kr-blue-dark);
+      font-size: 0.72rem; font-weight: 700; padding: 0.28rem 0.65rem;
+      border-radius: 999px; margin-top: 0.65rem;
+    }
+
+    /* ── Personalized offers ── */
+    .offers-card {
+      margin-top: 1.25rem; padding: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .offers-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; margin-bottom: 1rem;
+    }
+    .offers-header h3 { font-size: 1rem; font-weight: 700; }
+    .offers-status {
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 0.25rem 0.6rem; border-radius: 999px;
+      background: var(--bg-elevated); color: var(--text-dim);
+    }
+    .offers-status.personalized { background: var(--kr-blue-dim); color: var(--kr-blue-dark); }
+    .offers-status.generic { background: #fdf2d4; color: #8a5a00; }
+    .offers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .offer-tile {
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 0.85rem 0.9rem; background: var(--bg-elevated);
+    }
+    .offer-title { font-weight: 700; font-size: 0.84rem; margin-bottom: 0.2rem; }
+    .offer-detail { font-size: 0.74rem; color: var(--text-muted); }
+    .offer-score {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); margin-top: 0.4rem;
+    }
+    .offers-metric {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--border);
+      font-family: var(--mono); font-size: 0.72rem; color: var(--text-dim);
+    }
+    .offers-metric strong { font-size: 0.85rem; color: var(--text); }
+    .offers-metric strong.degraded { color: #b45309; }
+    .offers-provenance {
+      margin-top: 0.45rem;
+      font-family: var(--mono); font-size: 0.66rem; color: var(--text-dim);
+    }
+    .offers-provenance.degraded { color: #b45309; }
+
+    /* ── Fulfillment ── */
+    .action-section { margin-top: 1.25rem; padding: 1.5rem; }
+    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+    .fulfillment-options {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem; margin-bottom: 1.25rem;
+    }
+    .fulfillment-option {
+      border: 2px solid var(--border); border-radius: 12px;
+      padding: 0.85rem 0.9rem; cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .fulfillment-option:hover { border-color: var(--border-light); }
+    .fulfillment-option.selected { border-color: var(--kr-blue); background: var(--kr-blue-dim); }
+    .fulfillment-option .fo-name { font-weight: 700; font-size: 0.85rem; }
+    .fulfillment-option .fo-eta { font-size: 0.74rem; color: var(--text-muted); }
+    .fulfillment-option .fo-fee { font-size: 0.74rem; color: var(--success); font-weight: 600; margin-top: 0.2rem; }
+    .fo-tag {
+      position: absolute; top: -9px; right: 8px;
+      background: var(--kr-gold); color: var(--kr-navy);
+      font-size: 0.6rem; font-weight: 800; letter-spacing: 0.06em;
+      padding: 0.1rem 0.4rem; border-radius: 4px; text-transform: uppercase;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-dim);
+      margin-bottom: 0.35rem; letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 10px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--kr-blue);
+      box-shadow: 0 0 0 3px var(--kr-blue-dim);
+    }
+
+    .place-order-btn {
+      width: 100%; padding: 0.95rem; margin-top: 0.5rem;
+      background: var(--kr-blue); color: #fff;
+      border: none; border-radius: 999px; font-size: 0.95rem; font-weight: 700;
+      font-family: var(--sans); cursor: pointer;
+      transition: background 0.25s, transform 0.2s;
+    }
+    .place-order-btn:hover { background: var(--kr-blue-dark); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--kr-blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.1rem 1.3rem; border-radius: 12px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); }
+    .result-box.success { display: block; background: rgba(20,121,90,0.06); border: 1px solid rgba(20,121,90,0.2); }
+    .result-box h3 { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--danger-bg); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.12rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.75rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 12px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code {
+      font-family: var(--mono); font-size: 0.75rem;
+      background: rgba(191,10,30,0.08); padding: 0.1rem 0.3rem; border-radius: 4px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--kr-navy); color: #fff;
+      padding: 2.25rem clamp(1rem, 4vw, 2.5rem); margin-top: 2.5rem;
+    }
+    .footer-inner {
+      max-width: 900px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .footer-brand { font-size: 0.82rem; font-weight: 700; }
+    .footer-devin { margin-top: 0.4rem; font-size: 0.72rem; opacity: 0.75; }
+    .footer-devin a { color: var(--kr-gold); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+    .footer-links { display: flex; gap: 1.4rem; }
+    .footer-links a {
+      color: #fff; opacity: 0.8; text-decoration: none; font-size: 0.75rem;
+    }
+    .footer-links a:hover { opacity: 1; text-decoration: underline; }
+
+    @media (max-width: 720px) {
+      .search-bar { display: none; }
+      .fulfillment-options { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="promo-banner">
+    Boost members earn 2&times; Fuel Points &nbsp;&middot;&nbsp; Free delivery with Kroger Boost
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-wordmark">Kroger</div>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search products, brands and recipes" aria-label="Search">
+      <button class="search-btn" type="button" aria-label="Search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+    <div class="header-actions">
+      <a class="header-action" href="#">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Account<small>Sign In</small></span>
+      </a>
+      <a class="header-action" href="#">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21.5 7H6"/></svg>
+        <span>Cart <span class="cart-count">5</span></span>
+      </a>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1">Review your order</h1>
+    <p class="page-desc animate-up delay-2">
+      Store #01400 &middot; Cincinnati, OH. Choose a fulfillment option and click
+      <strong>Place order</strong> to run the checkout pipeline and watch the bug surface in real time.
+    </p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Your items</h2>
+        <span class="item-count">5 items</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-swatch">&#x1F95B;</div>
+          <div class="item-details">
+            <div class="item-name">Simple Truth Organic Whole Milk, 1 Gallon</div>
+            <div class="item-unit">128 fl oz</div>
+            <div class="item-sku">KRO-ST-MILK</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 2</div>
+            <div class="item-price">$10.98</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x2615;</div>
+          <div class="item-details">
+            <div class="item-name">Private Selection Sumatra Ground Coffee</div>
+            <div class="item-unit">12 oz</div>
+            <div class="item-sku">KRO-PS-COF</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$8.99</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F34C;</div>
+          <div class="item-details">
+            <div class="item-name">Simple Truth Organic Bananas</div>
+            <div class="item-unit">per bunch</div>
+            <div class="item-sku">KRO-BAN-ORG</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$1.79</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F35E;</div>
+          <div class="item-details">
+            <div class="item-name">Kroger Bakery Sourdough Boule</div>
+            <div class="item-unit">each</div>
+            <div class="item-sku">KRO-BAK-SRD</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$4.29</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F357;</div>
+          <div class="item-details">
+            <div class="item-name">Simple Truth Boneless Chicken Breast</div>
+            <div class="item-unit">per lb</div>
+            <div class="item-sku">KRO-MEAT-CHK</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty: 1</div>
+            <div class="item-price">$12.47</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Subtotal (6 units)</span><span>$38.52</span></div>
+        <div class="total-line"><span>Fulfillment fee</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Estimated tax</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Fuel Points earned</span><span>Calculated at checkout</span></div>
+        <div class="total-line grand"><span>Estimated total</span><span>$38.52+</span></div>
+        <div class="boost-badge">&#x26FD; Kroger Boost member &mdash; 2&times; Fuel Points, free delivery</div>
+      </div>
+    </div>
+
+    <div class="offers-card animate-up delay-4">
+      <div class="offers-header">
+        <h3>Your offers</h3>
+        <span class="offers-status" id="offersStatus">Loading&hellip;</span>
+      </div>
+      <div class="offers-grid" id="offersGrid"></div>
+      <div class="offers-metric">
+        <span>personalization.offer_match_rate</span>
+        <strong id="offersMatchRate">&mdash;</strong>
+      </div>
+      <div class="offers-provenance" id="offersProvenance">&mdash;</div>
+    </div>
+
+    <div class="action-section animate-up delay-5">
+      <h3>How do you want your order?</h3>
+      <div class="fulfillment-options" id="fulfillmentOptions">
+        <div class="fulfillment-option" data-method="pickup">
+          <div class="fo-name">Pickup</div>
+          <div class="fo-eta">Today, 4pm &ndash; 5pm</div>
+          <div class="fo-fee">Free</div>
+        </div>
+        <div class="fulfillment-option selected" data-method="delivery">
+          <div class="fo-name">Delivery</div>
+          <div class="fo-eta">Today, 6pm &ndash; 7pm</div>
+          <div class="fo-fee">Free with Boost</div>
+        </div>
+        <div class="fulfillment-option" data-method="ship">
+          <div class="fo-name">Ship</div>
+          <div class="fo-eta">In 2 business days</div>
+          <div class="fo-fee">$4.99</div>
+        </div>
+      </div>
+
+      <form id="checkoutForm" onsubmit="submitOrder(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full name</label>
+            <input type="text" value="Jordan Ellis" readonly>
+          </div>
+          <div class="form-group">
+            <label>Ship-to state</label>
+            <select id="stateSelect">
+              <option value="OH" selected>Ohio</option>
+              <option value="KY">Kentucky</option>
+              <option value="TX">Texas</option>
+              <option value="MI">Michigan</option>
+              <option value="GA">Georgia</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Membership</label>
+            <select id="membershipSelect">
+              <option value="boost-annual" selected>Boost &mdash; annual</option>
+              <option value="boost-monthly">Boost &mdash; monthly</option>
+              <option value="none">No membership</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment</label>
+            <input type="text" value="Kroger REWARDS World Mastercard &bull;&bull;&bull;&bull; 4417" readonly>
+          </div>
+        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Place order</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Placing your order&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-6">
+      <strong>&#x1F41E; Bug:</strong> The annual-billing rollout added a <code>boost-annual</code>
+      membership tier and mapped it to the <code>boost_annual</code> program code, but no matching
+      entry was ever registered &mdash; in <code>FUEL_POINT_PROGRAMS</code>, or as a segment in
+      <code>pipelines/kroger/offer-affinity-spec.json</code>. One encoding gap, two very different
+      symptoms: checkout resolves the missing program and crashes with a <code>TypeError</code> on
+      <code>program.pointsPerDollar</code>, while the offer ranker finds no vector for the segment in
+      the materialized feature view, scores every offer at zero and quietly serves the generic pool.
+      The crash pages someone in seconds; the personalization regression shows up only as
+      <code>personalization.offer_match_rate</code> going to 0, with no error and no alert. The
+      feature build emits the incomplete view without complaining &mdash; run
+      <code>npm run audit:kroger</code> to see the coverage gap the pipeline never checked for.
+      Switch the membership dropdown to monthly to see both paths recover.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">The Kroger Co. &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank" rel="noopener">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms of Use</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Returns</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var ORDER_ITEMS = [
+      { sku: 'KRO-ST-MILK', qty: 2, price: 5.49 },
+      { sku: 'KRO-PS-COF', qty: 1, price: 8.99 },
+      { sku: 'KRO-BAN-ORG', qty: 1, price: 1.79 },
+      { sku: 'KRO-BAK-SRD', qty: 1, price: 4.29 },
+      { sku: 'KRO-MEAT-CHK', qty: 1, price: 12.47 }
+    ];
+    var SUBTOTAL = 38.52;
+    var fulfillmentMethod = 'delivery';
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    var offersRequestSeq = 0;
+
+    function loadOffers() {
+      var requestSeq = ++offersRequestSeq;
+      var membership = document.getElementById('membershipSelect').value;
+      var grid = document.getElementById('offersGrid');
+      var status = document.getElementById('offersStatus');
+      var rate = document.getElementById('offersMatchRate');
+      var provenance = document.getElementById('offersProvenance');
+
+      fetch('/api/eaa595e1/offers?membership=' + encodeURIComponent(membership))
+        .then(function (r) {
+          if (!r.ok) throw new Error('Offers request failed with status ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          if (requestSeq !== offersRequestSeq) return;
+          if (!data || !Array.isArray(data.offers)) throw new Error('Malformed offers payload');
+          grid.innerHTML = data.offers.map(function (offer) {
+            return '<div class="offer-tile">' +
+              '<div class="offer-title">' + escapeHtml(offer.title) + '</div>' +
+              '<div class="offer-detail">' + escapeHtml(offer.detail) + '</div>' +
+              '<div class="offer-score">affinity ' + offer.score.toFixed(2) + '</div>' +
+              '</div>';
+          }).join('');
+          status.textContent = data.personalized ? 'Personalized' : 'Generic fallback';
+          status.className = 'offers-status ' + (data.personalized ? 'personalized' : 'generic');
+          rate.textContent = data.matchRate.toFixed(2) + '  (segment: ' + data.segment + ')';
+          rate.className = data.personalized ? '' : 'degraded';
+          // An API old enough to omit the provenance fields should read as "unknown",
+          // not render "undefined @ undefined" on screen mid-demo.
+          // A segment that is present but scores nothing degrades identically to a
+          // missing one, so name which of the two actually happened — and claim
+          // neither when the response does not say.
+          var degradedReason = '';
+          if (!data.personalized && data.segmentEncoded === false) {
+            degradedReason = ' \u2014 no vector for this segment';
+          } else if (!data.personalized && data.segmentEncoded === true) {
+            degradedReason = ' \u2014 segment encodes no affinity';
+          }
+          provenance.textContent = (data.featureView && data.specVersion
+            ? data.featureView + ' @ ' + data.specVersion
+            : 'feature view unknown')
+            + degradedReason;
+          provenance.className = 'offers-provenance' + (data.personalized ? '' : ' degraded');
+        })
+        .catch(function (err) {
+          if (requestSeq !== offersRequestSeq) return;
+          console.error('Offers panel failed to load', err);
+          grid.innerHTML = '';
+          rate.textContent = '\u2014';
+          rate.className = '';
+          provenance.textContent = '\u2014';
+          provenance.className = 'offers-provenance';
+          status.textContent = 'Unavailable';
+          status.className = 'offers-status';
+        });
+    }
+
+    document.getElementById('membershipSelect').addEventListener('change', loadOffers);
+    loadOffers();
+
+    document.getElementById('fulfillmentOptions').addEventListener('click', function (e) {
+      var option = e.target.closest('.fulfillment-option');
+      if (!option) return;
+      var all = document.querySelectorAll('.fulfillment-option');
+      for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+      option.classList.add('selected');
+      fulfillmentMethod = option.getAttribute('data-method');
+    });
+
+    function submitOrder(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      fetch('/api/eaa595e1/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: 'usr_kroger_demo',
+          storeId: 'STORE-01400',
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-4ab4b5ae60a94111bffca446cf910caf',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: ORDER_ITEMS,
+          subtotal: SUBTOTAL,
+          state: document.getElementById('stateSelect').value,
+          membership: document.getElementById('membershipSelect').value,
+          fulfillmentMethod: fulfillmentMethod
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Order could not be placed</h3>' +
+            '<p>Something went wrong while checking out.<br><br><code>' + escapeHtml(result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + escapeHtml(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + escapeHtml(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + escapeHtml(result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Order placed</h3>' +
+            '<p>Order <strong>' + escapeHtml(result.data.orderId) + '</strong> confirmed via ' + escapeHtml(result.data.fulfillmentLabel) + '.<br>' +
+            'Total: $' + result.data.total.toFixed(2) +
+            ' (incl. $' + result.data.tax.toFixed(2) + ' tax, $' + result.data.fulfillmentFee.toFixed(2) + ' fulfillment)<br>' +
+            'Fuel Points earned: ' + result.data.fuelPoints + ' &mdash; ' + escapeHtml(result.data.fuelProgramLabel) + '</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + escapeHtml(err.message) + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

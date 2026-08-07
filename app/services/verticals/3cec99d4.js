@@ -327,7 +327,7 @@ async function openAccount(data) {
       verticalLabel: 'Online Account Opening',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '3cec99d4',
-      slackMemberId: 'U08S7AVJ478',
+      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/3cec99d4/open-account' },
         { key: 'service', value: 'customer-3cec99d4-account-opening' },

@@ -52,6 +52,27 @@ Two things are deliberately separate:
 
 `FANOUT_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`, instructing the triage session to split remediation across four parallel child sessions. See `docs/DEMO-WELCOME-SEASON.md` for the run sheet and `docs/WIKI-PAYER-WELCOME-SEASON.md` for the full reference.
 
+### Kroger feature-encoding scenario
+
+The Kroger vertical (`/kroger`, slug `eaa595e1`) plants **one encoding gap with two symptoms**, aimed at a data-science audience. The annual-billing rollout added a `boost-annual` tier mapped to the `boost_annual` program code, but that code was never registered in two separate places:
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `computeFuelPoints()` | Dereferences the missing `FUEL_POINT_PROGRAMS` entry and throws | `TypeError` → Sentry → Slack → Devin session |
+| `rankOffers()` | Finds no vector in the offer-affinity feature view, scores every offer 0, serves the unranked pool | HTTP 200. Only `personalization.offer_match_rate` dropping to 0 |
+
+The silent half is the point: models do not crash when they break, they quietly get worse.
+
+**The defect originates in the pipeline, not the route.** `pipelines/kroger/offer-affinity-spec.json` is the source of truth for segment encoding; `pipelines/kroger/build-offer-features.js` materializes it into `app/services/verticals/features/eaa595e1-offer-affinity.json`, which the service loads at require time. A tier declared in `membershipTiers` with no entry under `segments` builds clean — the build has no coverage gate, which is what lets the gap ship.
+
+Three things are deliberately separate:
+
+- **The defect is left in place** so Devin performs the fix live. To run the demo pre-fixed, add a `boost_annual` segment to the spec, run `npm run features:build`, and add a `boost_annual` entry to `FUEL_POINT_PROGRAMS`. The service `require`s the built artifact, so Node caches it at startup — **restart the server after a rebuild**, or the storefront keeps serving the degraded state.
+- **`scripts/kroger-personalization-audit.js` is the prevention control** (`npm run audit:kroger`) — it scores every tier the *service* can serve through the real ranker and exits non-zero when a tier is undeclared in the spec, mapped inconsistently between spec and service, absent from the feature view, or encoded but scoring nothing. It is not wired into the build, which is why the gap reached production.
+- **`npm run features:check`** fails when the committed artifact does not match a fresh build of the spec, and `npm test` asserts the same thing byte-for-byte, so a hand-edited artifact does not pass.
+
+`SECOND_ORDER_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec and the build's missing coverage gate — explicitly instructing it to fix the data problem rather than patch the crash site. Regression coverage for both paths lives in `tests/kroger-offer-affinity.test.js`.
+
 ## Repository Structure
 
 ```
@@ -106,7 +127,9 @@ Two things are deliberately separate:
 │   │   │   ├── industrials.js     # Maintenance work order business logic
 │   │   │   ├── healthcare.js      # Appointment scheduling business logic
 │   │   │   ├── telco.js           # Plan upgrade business logic
-│   │   │   └── payer.js           # Pharmacy claim adjudication business logic
+│   │   │   ├── payer.js           # Pharmacy claim adjudication business logic
+│   │   │   └── features/
+│   │   │       └── eaa595e1-offer-affinity.json  # Built Kroger feature view (generated — do not hand-edit)
 │   │   ├── oncall.js              # On-Call alert/bug-report cards, scenarios, incident state
 │   │   ├── oncall-verticals/      # Copied vertical services for the on-call slice
 │   │   │   ├── banking.js         # On-call banking business logic
@@ -130,8 +153,13 @@ Two things are deliberately separate:
 │   ├── trigger.js                 # Manually trigger error scenarios
 │   ├── warmup.js                  # Pre-warm the app
 │   ├── welcome-season-sweep.js    # Validates Jan-1 plan card configs before cards mail (exits 1 on defect)
+│   ├── kroger-personalization-audit.js  # Scores every membership tier through the ranker (exits 1 on an unencoded segment)
 │   ├── reset.js                   # Reset scenario to healthy
 │   └── cleanup.js                 # Clean up resources
+├── pipelines/
+│   └── kroger/
+│       ├── offer-affinity-spec.json     # Source of truth for Kroger segment encoding
+│       └── build-offer-features.js      # Materializes the spec into the served feature view
 ├── config/
 │   └── scenarios.json             # Scenario definitions
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
@@ -186,7 +214,7 @@ This starts 3 services:
 npm run lint
 ```
 
-This runs ESLint across `app/`, `loadgen/`, and `scripts/`. Always run this before committing.
+This runs ESLint across `app/`, `loadgen/`, `scripts/`, and `pipelines/`. Always run this before committing.
 
 ## Alert Pipeline Architecture
 
@@ -372,6 +400,9 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 | `npm run dev` | Start with nodemon (auto-reload) |
 | `npm run lint` | Run ESLint |
 | `npm run loadgen` | Run traffic generator standalone |
+| `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
+| `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
+| `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
 | `npm run demo:trigger` | Trigger an error scenario |
 | `npm run demo:reset` | Reset to healthy state |
 | `npm run demo:warmup` | Pre-warm the app |
