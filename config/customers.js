@@ -122,6 +122,10 @@ const CUSTOMERS = {
     label: 'Nordstrom',
     triggerMode: 'api',
   },
+  fdc0cc83: {
+    label: 'Walmart',
+    triggerMode: 'api',
+  },
   b1c29f25: {
     label: 'Highmark Health',
     triggerMode: 'api',
@@ -260,6 +264,10 @@ const CUSTOMERS = {
   },
   '054f8313': {
     label: 'Banamex',
+    triggerMode: 'api',
+  },
+  b98fcab6: {
+    label: 'Customer B98F',
     triggerMode: 'api',
   },
   '91e30701': {
