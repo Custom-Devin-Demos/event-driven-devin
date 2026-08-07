@@ -45,11 +45,11 @@ const ONCALL_SKINS = {
     infra: {
       latency: {
         title: 'DB Latency Spike',
-        desc: 'Brex search and checkout paths slow to 1.5\u20133s. Error rate stays normal today.',
+        desc: 'Brex dashboard transaction search slows to 1.5\u20133s. Payment requests succeed.',
       },
       'dependency-timeout': {
         title: 'Card Network Timeouts',
-        desc: 'Card network timeouts recur. Most payment requests succeed; some return a 504.',
+        desc: 'Card-network timeouts are intermittent. Some payment authorizations return a 504.',
       },
       'memory-leak': {
         title: 'Memory Leak',
@@ -57,7 +57,7 @@ const ONCALL_SKINS = {
       },
       'slo-burn': {
         title: 'SLO Fast Burn',
-        desc: 'Intermittent failures consume availability budget. Burn rate pages before alerts.',
+        desc: 'Payment failures burn availability budget. Burn rate precedes raw error alerts.',
       },
     },
     bugPortal: {
