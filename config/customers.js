@@ -375,6 +375,10 @@ const CUSTOMERS = {
     label: 'Customer 49D8',
     triggerMode: 'api',
   },
+  '3cec99d4': {
+    label: 'RBC Royal Bank',
+    triggerMode: 'api',
+  },
   cd83ac3c: {
     label: 'Staples',
     triggerMode: 'api',

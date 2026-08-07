@@ -255,7 +255,7 @@
         <span class="badge">#oncall-alerts</span>
       </div>
       <h2>Application errors</h2>
-      <p class="section-desc">Each card opens a branded page in on-call mode. The selected customer action fails with its application error, and an alert is sent to the alerts channel. The Alert Responder groups duplicate reports, investigates new issues, replies in the thread, and opens a fix PR.</p>
+      <p class="section-desc">Each card opens a branded page in on-call mode. The selected customer action fails with its application error &mdash; Sentry captures it and an alert lands in the alerts channel. The Alert Responder groups duplicate reports, investigates new issues, replies in the thread, and opens a fix PR.</p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
@@ -309,13 +309,15 @@
         kind: 'latency',
         icon: ICONS.latency,
         title: 'DB Latency Spike',
-        desc: 'GET /search slows to 1.5\u20133s. Error rate remains normal.',
-        monitor: 'p95:trace.express.request{service:checkout-api} > 2s',
+        source: 'Datadog Monitor \u00b7 live',
+        desc: 'GET /search slows to 1.5\u20133s. Error rate remains normal. A real Datadog monitor on search latency fires during the window.',
+        monitor: 'avg:demo.search.latency.avg{route:/search} > 1200ms',
       },
       {
         kind: 'dependency-timeout',
         icon: ICONS['dependency-timeout'],
         title: 'Gateway Timeouts',
+        source: 'Datadog-style Alert',
         desc: 'A downstream dependency times out intermittently. Most checkouts succeed; some display a spinner before returning a 504.',
         monitor: 'checkout.dependency_timeout{upstream:payments-gateway} > 0.2',
       },
@@ -323,6 +325,7 @@
         kind: 'memory-leak',
         icon: ICONS['memory-leak'],
         title: 'Memory Leak',
+        source: 'Datadog-style Alert',
         desc: 'Process memory increases without plateau. Datadog records the growth.',
         monitor: 'system.mem.rss{service:checkout-api} rising',
       },
@@ -330,6 +333,7 @@
         kind: 'slo-burn',
         icon: ICONS['slo-burn'],
         title: 'SLO Fast Burn',
+        source: 'Datadog-style Alert',
         desc: 'Intermittent checkout failures consume the availability error budget. The burn rate pages before the raw error alert.',
         monitor: 'burn_rate(slo:checkout-availability-99.9) > 14.4x',
       },
@@ -362,6 +366,7 @@
           if (o.title) m.title = o.title;
           if (o.desc) m.desc = o.desc;
           if (o.monitor) m.monitor = o.monitor;
+          if (o.source) m.source = o.source;
         });
       }
       var portalCard = document.querySelector('.wide-card[href="/oncall/report"]');
@@ -445,7 +450,7 @@
             '<div class="card-icon">' + m.icon + '</div>' +
           '</div>' +
           '<div class="card-body">' +
-            '<div class="card-vertical">Datadog Monitor</div>' +
+            '<div class="card-vertical">' + (m.source || 'Datadog-style Alert') + '</div>' +
             '<div class="card-brand">' + m.title + '</div>' +
             '<div class="card-desc">' + m.desc + '</div>' +
             '<div class="monitor-line">' + m.monitor + '</div>' +
