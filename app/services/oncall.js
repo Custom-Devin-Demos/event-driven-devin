@@ -303,7 +303,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const { token, alertsChannel } = resolveOncallEnv();
   if (!token || !alertsChannel) {
     logger.warn('On-Call alerts channel not configured — skipping alert post');
-    return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
+    return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
   const runRef = options.unique !== false ? makeRunRef() : null;
