@@ -1,8 +1,9 @@
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
-const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
+const { incrementMetric, recordMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const OFFER_AFFINITY_VIEW = require('./features/eaa595e1-offer-affinity.json');
 
 /**
  * Kroger online grocery catalog.
@@ -68,11 +69,20 @@ const MEMBERSHIP_FUEL_PROGRAM_CODES = {
 };
 
 /**
+ * Resolves a membership tier to its internal program code, ignoring
+ * anything inherited from Object.prototype.
+ */
+function resolveProgramCode(membership) {
+  return Object.prototype.hasOwnProperty.call(MEMBERSHIP_FUEL_PROGRAM_CODES, membership)
+    ? MEMBERSHIP_FUEL_PROGRAM_CODES[membership]
+    : 'standard';
+}
+
+/**
  * Resolves the Fuel Points program for a membership tier.
  */
 function resolveFuelProgram(membership) {
-  const code = MEMBERSHIP_FUEL_PROGRAM_CODES[membership] || 'standard';
-  return FUEL_POINT_PROGRAMS[code];
+  return FUEL_POINT_PROGRAMS[resolveProgramCode(membership)];
 }
 
 /**
@@ -83,6 +93,92 @@ function computeFuelPoints(subtotal, membership) {
   return {
     points: Math.floor(subtotal) * program.pointsPerDollar,
     programLabel: program.label,
+  };
+}
+
+/**
+ * Personalized offer pool served on the storefront.
+ */
+const OFFER_POOL = [
+  { id: 'OFR-DAIRY-15', title: '15% off Simple Truth dairy', category: 'dairy', detail: 'Through Sunday' },
+  { id: 'OFR-PROD-2X', title: '2x Fuel Points on fresh produce', category: 'produce', detail: 'This week only' },
+  { id: 'OFR-COF-300', title: '$3 off Private Selection coffee', category: 'grocery', detail: 'Limit 2' },
+  { id: 'OFR-MEAT-BOGO', title: 'BOGO Simple Truth chicken breast', category: 'meat', detail: 'Store #01400' },
+  { id: 'OFR-BAKE-150', title: '$1.50 off bakery breads', category: 'bakery', detail: 'Baked fresh daily' },
+  { id: 'OFR-HH-20', title: '20% off household paper goods', category: 'household', detail: 'Through Sunday' },
+];
+
+/**
+ * Resolves the affinity weights for a shopper's segment against the materialized
+ * offer-affinity feature view built from pipelines/kroger/offer-affinity-spec.json.
+ *
+ * Segments the feature view does not encode score against an empty weight set.
+ */
+function resolveOfferSegment(membership) {
+  const code = resolveProgramCode(membership);
+  const segments = OFFER_AFFINITY_VIEW.segments || {};
+  const entry = Object.prototype.hasOwnProperty.call(segments, code) ? segments[code] : null;
+  // "Absent from the feature view" and "present but contributing nothing" serve
+  // identically, so the caller needs them distinguished to report which one happened.
+  // A non-object entry (only reachable by hand-editing the artifact past the build)
+  // counts as absent rather than throwing, so degradation stays silent either way.
+  // Arrays are objects but carry no category keys, so they are absent too.
+  const encoded = Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry);
+  return { code, encoded, weights: encoded ? entry : {} };
+}
+
+/**
+ * Ranks the offer pool for a shopper and returns the top slots.
+ *
+ * Offers that score above zero are personalized; the storefront always has the
+ * same number of slots to fill, so anything the segment does not score for is
+ * backfilled behind the ranked offers rather than leaving the grid short.
+ */
+function rankOffers(membership, limit = 3) {
+  const segment = resolveOfferSegment(membership);
+
+  const graded = OFFER_POOL.map((offer) => ({ ...offer, score: segment.weights[offer.category] || 0 }));
+  const scored = graded.filter((offer) => offer.score > 0).sort((a, b) => b.score - a.score);
+
+  const personalized = scored.length > 0;
+  // A segment with weights for only some categories is still personalized, but it
+  // ranks fewer offers than the grid shows. Backfill keeps slot count a property of
+  // the storefront rather than of how completely the feature view happens to cover
+  // the vocabulary — otherwise partial coverage degrades as a short grid, which is a
+  // third failure mode nobody is looking for.
+  const offers = scored.concat(graded.filter((offer) => offer.score === 0)).slice(0, limit);
+  const matchRate = OFFER_POOL.length ? scored.length / OFFER_POOL.length : 0;
+
+  recordMetric('personalization.offer_match_rate', matchRate, {
+    route: '/api/eaa595e1/offers',
+    segment: segment.code,
+  });
+  if (!personalized) {
+    incrementMetric('personalization.fallback_served', {
+      route: '/api/eaa595e1/offers',
+      segment: segment.code,
+    });
+  }
+
+  logger.info('Ranked Kroger storefront offers', {
+    membership,
+    segment: segment.code,
+    featureView: OFFER_AFFINITY_VIEW.featureView,
+    specVersion: OFFER_AFFINITY_VIEW.specVersion,
+    personalized,
+    matchRate,
+    service: 'kroger-ecommerce',
+    route: '/api/eaa595e1/offers',
+  });
+
+  return {
+    offers,
+    personalized,
+    matchRate: Math.round(matchRate * 100) / 100,
+    segment: segment.code,
+    segmentEncoded: segment.encoded,
+    featureView: OFFER_AFFINITY_VIEW.featureView,
+    specVersion: OFFER_AFFINITY_VIEW.specVersion,
   };
 }
 
@@ -148,6 +244,30 @@ function buildOrderSummary(items) {
     };
   });
 }
+
+/**
+ * The checkout crash is the loud half of this defect. The same membership
+ * mapping feeds offer ranking, where a segment the feature view never encoded
+ * degrades silently instead of throwing, so the triage session is told to fix
+ * the pipeline that produced the gap rather than the serving code that hit it.
+ */
+const SECOND_ORDER_DIRECTIVE = [
+  '*Check the blast radius before you fix the crash.*',
+  '',
+  '`MEMBERSHIP_FUEL_PROGRAM_CODES` in `app/services/verticals/eaa595e1.js` has more than one consumer. `computeFuelPoints()` dereferences the resolved program and throws — that is the alert you are looking at. `rankOffers()` resolves the same code against the materialized offer-affinity feature view, finds no vector for it, scores every offer at zero and serves the unranked pool. No exception, no alert: the only signal is `personalization.offer_match_rate` dropping to 0 for that segment on `GET /api/eaa595e1/offers`.',
+  '',
+  'The serving code is not where this originates. `pipelines/kroger/offer-affinity-spec.json` is the source of truth for segment encoding, and `pipelines/kroger/build-offer-features.js` materializes it into `app/services/verticals/features/eaa595e1-offer-affinity.json`. A tier declared in `membershipTiers` with no matching entry under `segments` builds clean and ships a feature view that silently cannot personalize that cohort.',
+  '',
+  'Run `npm run audit:kroger` first — it scores every tier through the real ranker and will show you the gap and its blast radius before you change anything.',
+  '',
+  'Then fix it as a data problem, not a serving problem:',
+  '1. Register the missing segment in the affinity spec and rebuild the feature view (do not hand-edit the built artifact).',
+  '2. Make the build fail on this class of defect — a tier that encodes to a segment the spec does not carry should break `build-offer-features.js`, not reach production.',
+  '3. Fix the Fuel Points crash at the same root cause.',
+  '4. Add regression coverage for the silent path as well as the throwing one, and wire the audit in as a check.',
+  '',
+  'Call out in your PR how long the personalization regression could have run undetected, and how many shoppers were in the affected cohort.',
+].join('\n');
 
 /**
  * Places a Kroger online grocery order.
@@ -250,6 +370,7 @@ async function placeOrder(orderData) {
       devinOrgId: orderData.devinOrgId,
       service: 'kroger-ecommerce',
       verticalLabel: 'Kroger Grocery Checkout',
+      promptAppendix: SECOND_ORDER_DIRECTIVE,
       tags: [
         { key: 'route', value: '/api/eaa595e1/order' },
         { key: 'service', value: 'kroger-ecommerce' },
@@ -289,9 +410,15 @@ module.exports = {
   resolveFulfillmentPlan,
   getMembershipBenefits,
   buildOrderSummary,
+  rankOffers,
+  resolveOfferSegment,
+  SECOND_ORDER_DIRECTIVE,
   CATALOG,
   FULFILLMENT_PLANS,
   FUEL_POINT_PROGRAMS,
+  MEMBERSHIP_FUEL_PROGRAM_CODES,
   MEMBERSHIP_TIERS,
+  OFFER_POOL,
+  OFFER_AFFINITY_VIEW,
   TAX_RATES,
 };
