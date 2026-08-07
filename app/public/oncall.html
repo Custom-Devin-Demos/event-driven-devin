@@ -251,11 +251,11 @@
     <!-- 3. APPLICATION ERRORS -->
     <div class="section">
       <div class="section-header">
-        <span class="section-title">Application Errors</span>
+        <span class="section-title">Alert Responder</span>
         <span class="badge">#oncall-alerts</span>
       </div>
-      <h2>Application errors</h2>
-      <p class="section-desc">Each card opens a branded page in on-call mode. The selected customer action fails with its application error &mdash; Sentry captures it and an alert lands in the alerts channel. The Alert Responder groups duplicate reports, investigates new issues, replies in the thread, and opens a fix PR.</p>
+      <h2>Production degradations</h2>
+      <p class="section-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR.</p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
@@ -298,10 +298,10 @@
     };
 
     var VERTICAL_META = {
-      banking: { icon: ICONS.banking, vertical: 'Banking', desc: 'Online banking dashboard. A funds transfer fails.' },
-      insurance: { icon: ICONS.insurance, vertical: 'Insurance', desc: 'Claims portal. Submitting a claim returns an application error.' },
-      hightech: { icon: ICONS.hightech, vertical: 'High Tech', desc: 'SaaS admin console. License provisioning fails during billing.' },
-      telco: { icon: ICONS.telco, vertical: 'Telco', desc: 'Self-service portal. A plan upgrade fails during checkout.' },
+      banking: { icon: ICONS.banking, vertical: 'Banking', desc: 'Online banking dashboard. Transfers hang ~10s before completing.' },
+      insurance: { icon: ICONS.insurance, vertical: 'Insurance', desc: 'Claims portal. Claim submissions hang, then time out with a 504.' },
+      hightech: { icon: ICONS.hightech, vertical: 'High Tech', desc: 'SaaS admin console. Provisioning slows through the day; memory climbs.' },
+      telco: { icon: ICONS.telco, vertical: 'Telco', desc: 'Self-service portal. Plan upgrades slowed after the catalog refresh.' },
     };
 
     var INFRA_META = [
@@ -434,7 +434,7 @@
           '</div>' +
           '<div class="card-footer">' +
             '<span class="card-path">' + s.endpoint + '</span>' +
-            '<span class="card-bug-tag">' + s.error.split(':')[0] + '</span>' +
+            '<span class="card-bug-tag">' + (s.monitor.indexOf('5xx') === 0 ? 'error rate' : 'latency') + '</span>' +
           '</div>';
         grid.appendChild(link);
       });

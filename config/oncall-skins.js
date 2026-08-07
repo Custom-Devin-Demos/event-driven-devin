@@ -63,52 +63,21 @@ const ONCALL_SKINS = {
     bugPortal: {
       products: [
         {
-          area: 'retail',
-          label: 'Brex Dashboard \u2014 Payments & Cards',
-          persona: { name: 'Maya Sorensen', email: 'maya.sorensen@parcelworks.co', sev: 'Medium' },
-          templates: [
-            {
-              id: 'retail-slow-search',
-              label: 'Transaction search is slow',
-              sev: 'Medium',
-              text: "Is something wrong with the dashboard? Searching transactions takes about 3 seconds now \u2014 the spinner stays on screen. It was instant last week. There are no errors, but filtering by vendor took 2.8s to show results.",
-            },
-            {
-              id: 'retail-checkout-hangs',
-              label: 'Payments hang then error',
-              sev: 'High',
-              text: 'Trying to send a payment and about every third attempt it just hangs for ages and then shows a gateway error. If I retry immediately it usually goes through. Started within the last hour \u2014 my colleague sees the same thing from her account.',
-            },
-            {
-              id: 'retail-orders-failing',
-              label: 'Payments randomly failing',
-              sev: 'High',
-              text: "Payments are failing roughly half the time \u2014 sometimes it mentions limits, sometimes it's just a generic error. Retrying works eventually but our AP team is falling behind. Nothing changed on our side.",
-            },
-            {
-              id: 'retail-site-sluggish',
-              label: 'Dashboard getting slower over time',
-              sev: 'Medium',
-              text: "This is not an outage, but the dashboard gets slower as the day goes on. Pages that were fast this morning are lagging now. A refresh does not help. The server may be running out of memory.",
-            },
-          ],
-        },
-        {
           area: 'banking',
           label: 'Brex Business Account \u2014 Transfers',
           persona: { name: 'Dana Whitfield', email: 'dana.whitfield@brightmail.io', sev: 'High' },
           templates: [
             {
-              id: 'banking-transfer-failed',
-              label: 'Transfers failing',
+              id: 'banking-transfer-slow',
+              label: 'Transfers extremely slow',
               sev: 'High',
-              text: 'Hey team \u2014 our controller says transfers from the business account keep failing. Just a red "Transfer Failed" box every time, any amount, both accounts. Multiple people on our side hit this today.',
+              text: 'Hey team \u2014 transfers from the business account take about ten seconds now. The spinner sits there on every single transfer before it finally completes. Any amount, both accounts. Multiple people on our side hit this today.',
             },
             {
-              id: 'banking-transfer-stuck',
-              label: 'Payroll transfer blocked',
+              id: 'banking-payroll-cutoff',
+              label: 'Payroll batch missing cutoff',
               sev: 'Critical',
-              text: 'Escalating: we cannot move our payroll funding from the operating account \u2014 the website shows an error box every single time and payroll runs tomorrow. Tried two browsers and two admins, same red failure message. Please treat as urgent.',
+              text: 'Escalating: our payroll batch runs transfers one after another and each one now takes ~10 seconds, so the batch will miss the wire cutoff. Nothing errors \u2014 it is just painfully slow, and it was fine on Friday. Please treat as urgent.',
             },
           ],
         },

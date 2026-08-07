@@ -110,10 +110,12 @@ router.get('/oncall/report', (_req, res) => {
 
 /**
  * On-call shim injected into the real branded vertical pages served at
- * /oncall/<vertical>. It reroutes the page's own API call to the alert-only
- * on-call trigger, so the presenter uses the genuine product UI (and sees the
- * genuine error state) while the alert lands in #oncall-alerts with no legacy
- * Devin trigger.
+ * /oncall/<vertical>. It reroutes the page's primary action to the on-call
+ * vertical endpoint (where the on-call scenario's degradation lives) and
+ * posts the alert card, so the presenter uses the genuine product UI and
+ * sees the genuine symptom while the alert lands in #oncall-alerts. The
+ * legacy vertical endpoints and their automated-alert pipeline are never
+ * touched.
  */
 function buildOncallShim(scenario) {
   return `
@@ -128,16 +130,15 @@ function buildOncallShim(scenario) {
   <script>
     (function () {
       const apiPath = ${JSON.stringify(scenario.apiPath)};
+      const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const origFetch = window.fetch.bind(window);
       window.fetch = function (url, opts) {
-        if (typeof url === 'string' && url.startsWith(apiPath)) {
-          // Execute the real vertical API in on-call mode: the planted bug
-          // fires and Sentry/Datadog capture genuine telemetry, but the
-          // x-oncall-mode header suppresses the legacy Slack/Devin trigger.
-          // The on-call alert card is posted alongside.
-          const realOpts = Object.assign({}, opts);
-          realOpts.headers = Object.assign({}, (opts && opts.headers) || {}, { 'x-oncall-mode': '1' });
+        if (typeof url === 'string' && url.startsWith(apiPath) && (!opts || !opts.method || opts.method.toUpperCase() === 'POST')) {
+          // Reroute the page's primary action to the on-call vertical
+          // endpoint: the scenario's real degradation fires and Sentry/
+          // Datadog capture genuine telemetry. The alert card is posted
+          // alongside. Legacy endpoints are untouched.
           const unique = document.getElementById('oncall-unique').checked;
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
@@ -148,7 +149,7 @@ function buildOncallShim(scenario) {
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
           }).catch(function () {});
-          return origFetch(url, realOpts);
+          return origFetch(url.replace(apiPath, oncallApiPath), opts);
         }
         return origFetch(url, opts);
       };
@@ -172,8 +173,8 @@ router.get('/oncall/:vertical', (req, res, next) => {
 
 /**
  * POST /api/oncall/trigger/:vertical — posts the on-call alert card. The
- * shimmed branded pages call this alongside the real vertical API (which runs
- * in on-call mode so telemetry fires but the legacy Devin trigger does not).
+ * shimmed branded pages call this alongside the on-call vertical API, whose
+ * telemetry fires normally; the legacy automated-alert pipeline is not used.
  */
 router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   const scenario = ALERT_SCENARIOS[req.params.vertical];
@@ -198,7 +199,8 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     id,
     brand: s.brand,
     endpoint: s.endpoint,
-    error: `${s.errorType}: ${s.errorValue}`,
+    monitor: s.monitor,
+    symptom: s.symptom,
   }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
   const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({

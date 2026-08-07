@@ -1,0 +1,105 @@
+const express = require('express');
+const { processTransfer } = require('../services/oncall-verticals/banking');
+const { upgradePlan } = require('../services/oncall-verticals/telco');
+const { provisionLicense } = require('../services/oncall-verticals/hightech');
+const { processClaim } = require('../services/oncall-verticals/insurance');
+
+const router = express.Router();
+
+/**
+ * POST /api/oncall/banking/transfer — process a fund transfer
+ */
+router.post('/api/oncall/banking/transfer', async (req, res) => {
+  try {
+    const result = await processTransfer({
+      fromAccount: req.body.fromAccount || 'ACCT-1001',
+      toAccount: req.body.toAccount || 'ACCT-1002',
+      amount: req.body.amount || 500,
+      accountTier: req.body.accountTier || 'Premium',
+      userId: req.body.userId || 'usr_banking_1',
+    });
+    res.json(result);
+  } catch (error) {
+    const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'INTERNAL_ERROR',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/telco/upgrade — upgrade a customer's plan
+ */
+router.post('/api/oncall/telco/upgrade', async (req, res) => {
+  try {
+    const result = await upgradePlan({
+      accountId: req.body.accountId || 'CUST-3001',
+      currentPlanCode: String(req.body.currentPlanCode || 'BASIC-12').toUpperCase(),
+      targetPlanCode: String(req.body.targetPlanCode || 'FAMILY-PLUS-12').toUpperCase(),
+      billingDay: req.body.billingDay || 15,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'UPGRADE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/licenses/provision — provision a new license
+ */
+router.post('/api/oncall/licenses/provision', async (req, res) => {
+  try {
+    const planName = (req.body.planName || 'Professional').trim();
+    const result = await provisionLicense({
+      orgName: req.body.orgName || 'New Customer Inc',
+      planName,
+      seats: parseInt(req.body.seats, 10) || 10,
+      billingCycle: req.body.billingCycle || 'monthly',
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'PROVISION_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/insurance/claim — submit an insurance claim
+ */
+router.post('/api/oncall/insurance/claim', async (req, res) => {
+  try {
+    const result = await processClaim({
+      policyId: req.body.policyId || 'POL-5001',
+      claimType: req.body.claimType || 'collision',
+      amount: req.body.amount || 5000,
+      description: req.body.description || 'Vehicle damage from collision',
+    });
+    res.json(result);
+  } catch (error) {
+    const statusCode = error.code === 'ADJUDICATION_TIMEOUT' ? 504 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'CLAIM_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+module.exports = router;
