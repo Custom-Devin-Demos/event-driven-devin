@@ -26,9 +26,11 @@ const router = express.Router();
  */
 function setRunCookie(res, runRef, windowMinutes) {
   if (!runRef) return;
+  // Outlives the degradation window by a grace period so the page can still
+  // show the terminal state (resolved / auto-resolve failed) after it ends.
   res.cookie('oncall_run', runRef, {
     path: '/',
-    maxAge: (windowMinutes || 30) * 60000,
+    maxAge: ((windowMinutes || 30) + 15) * 60000,
     sameSite: 'lax',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
