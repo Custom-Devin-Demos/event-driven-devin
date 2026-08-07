@@ -319,7 +319,7 @@ curl -s -X POST http://localhost:3000/api/17dd6f6f/track-shipment -H 'Content-Ty
 curl -s -X POST http://localhost:3000/api/08381313/supply-inquiry -H 'Content-Type: application/json' -d '{"companyId":"KII-9204715"}'
 
 # Custom — RBC Royal Bank (3cec99d4)
-curl -s -X POST http://localhost:3000/api/3cec99d4/open-account -H 'Content-Type: application/json' -d '{"productCode":"ADV-STUDENT-CHQ","applicantType":"student-full-time","promoCode":"STUDENT-AIRPODS-2026","schoolEmail":"","province":"ON","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-055224f6ce6c4075bcbd75c2a8e322f7"}'
+curl -s -X POST http://localhost:3000/api/3cec99d4/open-account -H 'Content-Type: application/json' -d '{"productCode":"ADV-STUDENT-CHQ","applicantType":"student-full-time","promoCode":"STUDENT-AIRPODS-2026","schoolEmail":"","province":"ON","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
 # Custom — United Airlines (4ada28b9)
 curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Type: application/json' -d '{"origin":"EWR","destination":"LAX","cabin":"economy","passengers":1,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-2cd0ade21d8d4c5886fcea1b701c34e0"}'
