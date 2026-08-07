@@ -69,12 +69,16 @@ async function adjudicateClaim(claim) {
       );
     } catch (error) {
       lastError = error;
-      logger.warn('Adjudication attempt failed, retrying', {
-        attempt,
-        claimId: claim.claimId,
-        error: error.message,
-        service: 'insurance-api',
-      });
+      const willRetry = attempt < ADJUDICATION_ATTEMPTS;
+      logger.warn(
+        willRetry ? 'Adjudication attempt failed, retrying' : 'Adjudication attempt failed, giving up',
+        {
+          attempt,
+          claimId: claim.claimId,
+          error: error.message,
+          service: 'insurance-api',
+        },
+      );
     }
   }
   throw lastError;
