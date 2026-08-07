@@ -10,6 +10,7 @@ const { Sentry } = require('../../telemetry/sentry');
 const PLAN_CONFIGS = {
   starter:      { seats: 5, pricePerSeat: 10, features: ['basic'], supportLevel: 'community', tier: 1 },
   professional: { seats: 25, pricePerSeat: 8, features: ['basic', 'analytics'], supportLevel: 'email', tier: 2 },
+  business:     { seats: 100, pricePerSeat: 7, features: ['basic', 'analytics', 'sso'], supportLevel: 'priority', tier: 2 },
   enterprise:   { seats: -1, pricePerSeat: 6, features: ['basic', 'analytics', 'sso', 'audit'], supportLevel: 'priority', tier: 3 },
   unlimited:    { seats: -1, pricePerSeat: 12, features: ['basic', 'analytics', 'sso', 'audit', 'dedicated-csm'], supportLevel: '24/7', tier: 4 },
 };

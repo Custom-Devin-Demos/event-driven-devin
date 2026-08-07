@@ -55,7 +55,6 @@ async function scoreMigrationPath(fromPlan, toPlan) {
 async function rankMigrationPaths(currentPlan) {
   const paths = [];
   for (const candidate of PLAN_CATALOG) {
-    if (candidate.id === currentPlan.id) continue;
     paths.push(await scoreMigrationPath(currentPlan, candidate));
   }
   return paths.sort((a, b) => b.score - a.score);
