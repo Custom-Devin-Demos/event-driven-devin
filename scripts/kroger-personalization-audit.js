@@ -27,7 +27,6 @@ const {
 const logger = require('../app/telemetry/logger');
 const spec = require('../pipelines/kroger/offer-affinity-spec.json');
 
-const encodedSegments = OFFER_AFFINITY_VIEW.segments || {};
 const declaredTiers = spec.membershipTiers || {};
 
 /**
@@ -47,7 +46,9 @@ function storefrontTiers() {
 function auditTier(membership) {
   const segment = resolveOfferSegment(membership);
   const ranked = rankOffers(membership, OFFER_POOL.length);
-  const encoded = Object.prototype.hasOwnProperty.call(encodedSegments, segment.code);
+  // Taken from the resolver rather than recomputed, so the audit and the storefront
+  // can never disagree about whether a segment is encoded.
+  const encoded = segment.encoded;
 
   const declared = Object.prototype.hasOwnProperty.call(declaredTiers, membership);
 

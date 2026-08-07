@@ -610,13 +610,14 @@
           rate.className = data.personalized ? '' : 'degraded';
           // An API old enough to omit the provenance fields should read as "unknown",
           // not render "undefined @ undefined" on screen mid-demo.
+          // A segment that is present but scores nothing degrades identically to a
+          // missing one, so name which of the two actually happened — and claim
+          // neither when the response does not say.
           var degradedReason = '';
-          if (!data.personalized) {
-            // A segment that is present but scores nothing degrades identically to a
-            // missing one, so name which of the two actually happened.
-            degradedReason = data.segmentEncoded === false
-              ? ' \u2014 no vector for this segment'
-              : ' \u2014 segment encodes no affinity';
+          if (!data.personalized && data.segmentEncoded === false) {
+            degradedReason = ' \u2014 no vector for this segment';
+          } else if (!data.personalized && data.segmentEncoded === true) {
+            degradedReason = ' \u2014 segment encodes no affinity';
           }
           provenance.textContent = (data.featureView && data.specVersion
             ? data.featureView + ' @ ' + data.specVersion
