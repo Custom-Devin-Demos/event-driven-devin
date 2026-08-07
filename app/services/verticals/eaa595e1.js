@@ -3,6 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const OFFER_AFFINITY_VIEW = require('./features/eaa595e1-offer-affinity.json');
 
 /**
  * Kroger online grocery catalog.
@@ -108,25 +109,17 @@ const OFFER_POOL = [
 ];
 
 /**
- * Affinity weights the offer ranker scores each shopper segment against,
- * keyed by the same internal program code Fuel Points uses.
- */
-const OFFER_SEGMENT_WEIGHTS = {
-  standard: {
-    dairy: 0.42, produce: 0.55, grocery: 0.61, meat: 0.38, bakery: 0.29, household: 0.47,
-  },
-  boost_monthly: {
-    dairy: 0.88, produce: 0.91, grocery: 0.64, meat: 0.83, bakery: 0.51, household: 0.36,
-  },
-};
-
-/**
- * Resolves the affinity weights for a shopper's segment.
- * Unmapped segments score against an empty weight set.
+ * Resolves the affinity weights for a shopper's segment against the materialized
+ * offer-affinity feature view built from pipelines/kroger/offer-affinity-spec.json.
+ *
+ * Segments the feature view does not encode score against an empty weight set.
  */
 function resolveOfferSegment(membership) {
   const code = resolveProgramCode(membership);
-  return { code, weights: OFFER_SEGMENT_WEIGHTS[code] || {} };
+  const weights = Object.prototype.hasOwnProperty.call(OFFER_AFFINITY_VIEW.segments, code)
+    ? OFFER_AFFINITY_VIEW.segments[code]
+    : {};
+  return { code, weights };
 }
 
 /**
@@ -161,6 +154,8 @@ function rankOffers(membership, limit = 3) {
   logger.info('Ranked Kroger storefront offers', {
     membership,
     segment: segment.code,
+    featureView: OFFER_AFFINITY_VIEW.featureView,
+    specVersion: OFFER_AFFINITY_VIEW.specVersion,
     personalized,
     matchRate,
     service: 'kroger-ecommerce',
@@ -172,6 +167,8 @@ function rankOffers(membership, limit = 3) {
     personalized,
     matchRate: Math.round(matchRate * 100) / 100,
     segment: segment.code,
+    featureView: OFFER_AFFINITY_VIEW.featureView,
+    specVersion: OFFER_AFFINITY_VIEW.specVersion,
   };
 }
 
@@ -240,15 +237,26 @@ function buildOrderSummary(items) {
 
 /**
  * The checkout crash is the loud half of this defect. The same membership
- * mapping feeds offer ranking, where an unmapped segment degrades silently
- * instead of throwing, so the triage session is told to look there too.
+ * mapping feeds offer ranking, where a segment the feature view never encoded
+ * degrades silently instead of throwing, so the triage session is told to fix
+ * the pipeline that produced the gap rather than the serving code that hit it.
  */
 const SECOND_ORDER_DIRECTIVE = [
   '*Check the blast radius before you fix the crash.*',
   '',
-  '`MEMBERSHIP_FUEL_PROGRAM_CODES` in `app/services/verticals/eaa595e1.js` has more than one consumer. `computeFuelPoints()` dereferences the resolved program and throws — that is the alert you are looking at. `rankOffers()` resolves the same code against `OFFER_SEGMENT_WEIGHTS`, gets no weights, scores every offer at zero and serves the unranked pool. No exception, no alert: the only signal is `personalization.offer_match_rate` dropping to 0 for that segment on `GET /api/eaa595e1/offers`.',
+  '`MEMBERSHIP_FUEL_PROGRAM_CODES` in `app/services/verticals/eaa595e1.js` has more than one consumer. `computeFuelPoints()` dereferences the resolved program and throws — that is the alert you are looking at. `rankOffers()` resolves the same code against the materialized offer-affinity feature view, finds no vector for it, scores every offer at zero and serves the unranked pool. No exception, no alert: the only signal is `personalization.offer_match_rate` dropping to 0 for that segment on `GET /api/eaa595e1/offers`.',
   '',
-  'So: identify every consumer of the mapping, fix the root cause once rather than patching the crash site, and add regression coverage for the silent path as well as the throwing one. Call out in your PR how long the personalization regression could have run undetected.',
+  'The serving code is not where this originates. `pipelines/kroger/offer-affinity-spec.json` is the source of truth for segment encoding, and `pipelines/kroger/build-offer-features.js` materializes it into `app/services/verticals/features/eaa595e1-offer-affinity.json`. A tier declared in `membershipTiers` with no matching entry under `segments` builds clean and ships a feature view that silently cannot personalize that cohort.',
+  '',
+  'Run `node scripts/kroger-personalization-audit.js` first — it scores every tier through the real ranker and will show you the gap and its blast radius before you change anything.',
+  '',
+  'Then fix it as a data problem, not a serving problem:',
+  '1. Register the missing segment in the affinity spec and rebuild the feature view (do not hand-edit the built artifact).',
+  '2. Make the build fail on this class of defect — a tier that encodes to a segment the spec does not carry should break `build-offer-features.js`, not reach production.',
+  '3. Fix the Fuel Points crash at the same root cause.',
+  '4. Add regression coverage for the silent path as well as the throwing one, and wire the audit in as a check.',
+  '',
+  'Call out in your PR how long the personalization regression could have run undetected, and how many shoppers were in the affected cohort.',
 ].join('\n');
 
 /**
@@ -400,6 +408,6 @@ module.exports = {
   FUEL_POINT_PROGRAMS,
   MEMBERSHIP_TIERS,
   OFFER_POOL,
-  OFFER_SEGMENT_WEIGHTS,
+  OFFER_AFFINITY_VIEW,
   TAX_RATES,
 };
