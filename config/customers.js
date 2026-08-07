@@ -407,6 +407,10 @@ const CUSTOMERS = {
     label: 'Customer 3D2E',
     triggerMode: 'api',
   },
+  '3c3e0371': {
+    label: 'Customer 3C3E',
+    triggerMode: 'api',
+  },
   '6c89c6b0': {
     label: 'Procurement Resources Library',
     triggerMode: 'api',
