@@ -134,7 +134,7 @@ function buildOncallShim(scenario) {
       const vertical = ${JSON.stringify(scenario.vertical)};
       const origFetch = window.fetch.bind(window);
       window.fetch = function (url, opts) {
-        if (typeof url === 'string' && url.startsWith(apiPath) && (!opts || !opts.method || opts.method.toUpperCase() === 'POST')) {
+        if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
           // Reroute the page's primary action to the on-call vertical
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted

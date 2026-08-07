@@ -63,7 +63,7 @@ router.post('/api/oncall/licenses/provision', async (req, res) => {
     const result = await provisionLicense({
       orgName: req.body.orgName || 'New Customer Inc',
       planName,
-      seats: parseInt(req.body.seats, 10) || 10,
+      seats: Math.min(parseInt(req.body.seats, 10) || 10, 250),
       billingCycle: req.body.billingCycle || 'monthly',
     });
     res.json(result);
