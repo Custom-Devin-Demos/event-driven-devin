@@ -249,10 +249,11 @@ router.post('/api/oncall/trigger/:vertical', async (req, res) => {
   }
   try {
     const { unique, devinEmail, skin } = req.body || {};
+    const skinConfig = getOncallSkin(skin);
     const result = await postOncallAlert(req.params.vertical, {
       unique: unique !== false,
       devinEmail,
-      skin: getOncallSkin(skin),
+      skin: skinConfig && skinConfig.vertical === req.params.vertical ? skinConfig : null,
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
   } catch (error) {

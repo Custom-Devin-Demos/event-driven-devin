@@ -320,7 +320,6 @@ async function postOncallAlert(scenarioId, options = {}) {
     headerBlock(`:rotating_light: [Triggered] ${scenario.monitor}`),
     ...fieldPairs([
       ['Service', `${scenario.service} (${brand})`],
-      skin ? ['Demo page', `/oncall/c/${skin.slug}`] : null,
       ['Endpoint', scenario.endpoint],
       ['Metric value', scenario.metricValue],
       ['Threshold', scenario.threshold],
@@ -332,7 +331,11 @@ async function postOncallAlert(scenarioId, options = {}) {
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
     mrkdwnSection(`*Monitor query:*\n\`\`\`${scenario.metricQuery}\`\`\``),
-    mrkdwnSection(`*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\nRepo: ${REPO_URL}`),
+    mrkdwnSection(
+      `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
+      (skin ? `*Demo page:* /oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
+      `Repo: ${REPO_URL}`
+    ),
     datadogActions(),
     contextBlock(scenario.service, triggeredBy),
   ];
