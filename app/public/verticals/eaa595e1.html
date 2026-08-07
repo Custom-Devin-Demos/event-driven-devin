@@ -215,6 +215,11 @@
     }
     .offers-metric strong { font-size: 0.85rem; color: var(--text); }
     .offers-metric strong.degraded { color: #b45309; }
+    .offers-provenance {
+      margin-top: 0.45rem;
+      font-family: var(--mono); font-size: 0.66rem; color: var(--text-dim);
+    }
+    .offers-provenance.degraded { color: #b45309; }
 
     /* ── Fulfillment ── */
     .action-section { margin-top: 1.25rem; padding: 1.5rem; }
@@ -464,6 +469,7 @@
         <span>personalization.offer_match_rate</span>
         <strong id="offersMatchRate">&mdash;</strong>
       </div>
+      <div class="offers-provenance" id="offersProvenance">&mdash;</div>
     </div>
 
     <div class="action-section animate-up delay-5">
@@ -529,13 +535,15 @@
     <div class="bug-hint animate-up delay-6">
       <strong>&#x1F41E; Bug:</strong> The annual-billing rollout added a <code>boost-annual</code>
       membership tier and mapped it to the <code>boost_annual</code> program code, but no matching
-      entry was ever registered &mdash; in <code>FUEL_POINT_PROGRAMS</code> or in
-      <code>OFFER_SEGMENT_WEIGHTS</code>. One mapping gap, two very different symptoms:
-      checkout resolves the missing program and crashes with a <code>TypeError</code> on
-      <code>program.pointsPerDollar</code>, while the offer ranker finds no weights, scores every
-      offer at zero and quietly serves the generic pool. The crash pages someone in seconds; the
-      personalization regression shows up only as
-      <code>personalization.offer_match_rate</code> going to 0, with no error and no alert.
+      entry was ever registered &mdash; in <code>FUEL_POINT_PROGRAMS</code>, or as a segment in
+      <code>pipelines/kroger/offer-affinity-spec.json</code>. One encoding gap, two very different
+      symptoms: checkout resolves the missing program and crashes with a <code>TypeError</code> on
+      <code>program.pointsPerDollar</code>, while the offer ranker finds no vector for the segment in
+      the materialized feature view, scores every offer at zero and quietly serves the generic pool.
+      The crash pages someone in seconds; the personalization regression shows up only as
+      <code>personalization.offer_match_rate</code> going to 0, with no error and no alert. The
+      feature build emits the incomplete view without complaining &mdash; run
+      <code>npm run audit:kroger</code> to see the coverage gap the pipeline never checked for.
       Switch the membership dropdown to monthly to see both paths recover.
     </div>
   </div>
@@ -579,6 +587,7 @@
       var grid = document.getElementById('offersGrid');
       var status = document.getElementById('offersStatus');
       var rate = document.getElementById('offersMatchRate');
+      var provenance = document.getElementById('offersProvenance');
 
       fetch('/api/eaa595e1/offers?membership=' + encodeURIComponent(membership))
         .then(function (r) {
@@ -599,6 +608,22 @@
           status.className = 'offers-status ' + (data.personalized ? 'personalized' : 'generic');
           rate.textContent = data.matchRate.toFixed(2) + '  (segment: ' + data.segment + ')';
           rate.className = data.personalized ? '' : 'degraded';
+          // An API old enough to omit the provenance fields should read as "unknown",
+          // not render "undefined @ undefined" on screen mid-demo.
+          // A segment that is present but scores nothing degrades identically to a
+          // missing one, so name which of the two actually happened — and claim
+          // neither when the response does not say.
+          var degradedReason = '';
+          if (!data.personalized && data.segmentEncoded === false) {
+            degradedReason = ' \u2014 no vector for this segment';
+          } else if (!data.personalized && data.segmentEncoded === true) {
+            degradedReason = ' \u2014 segment encodes no affinity';
+          }
+          provenance.textContent = (data.featureView && data.specVersion
+            ? data.featureView + ' @ ' + data.specVersion
+            : 'feature view unknown')
+            + degradedReason;
+          provenance.className = 'offers-provenance' + (data.personalized ? '' : ' degraded');
         })
         .catch(function (err) {
           if (requestSeq !== offersRequestSeq) return;
@@ -606,6 +631,8 @@
           grid.innerHTML = '';
           rate.textContent = '\u2014';
           rate.className = '';
+          provenance.textContent = '\u2014';
+          provenance.className = 'offers-provenance';
           status.textContent = 'Unavailable';
           status.className = 'offers-status';
         });
