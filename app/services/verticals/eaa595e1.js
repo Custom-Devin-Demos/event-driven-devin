@@ -130,19 +130,23 @@ function resolveOfferSegment(membership) {
 /**
  * Ranks the offer pool for a shopper and returns the top slots.
  *
- * Offers that score above zero are personalized; when nothing scores, the
- * storefront still has slots to fill, so it falls back to the unranked pool.
+ * Offers that score above zero are personalized; the storefront always has the
+ * same number of slots to fill, so anything the segment does not score for is
+ * backfilled behind the ranked offers rather than leaving the grid short.
  */
 function rankOffers(membership, limit = 3) {
   const segment = resolveOfferSegment(membership);
 
-  const scored = OFFER_POOL
-    .map((offer) => ({ ...offer, score: segment.weights[offer.category] || 0 }))
-    .filter((offer) => offer.score > 0)
-    .sort((a, b) => b.score - a.score);
+  const graded = OFFER_POOL.map((offer) => ({ ...offer, score: segment.weights[offer.category] || 0 }));
+  const scored = graded.filter((offer) => offer.score > 0).sort((a, b) => b.score - a.score);
 
   const personalized = scored.length > 0;
-  const offers = (personalized ? scored : OFFER_POOL.map((o) => ({ ...o, score: 0 }))).slice(0, limit);
+  // A segment with weights for only some categories is still personalized, but it
+  // ranks fewer offers than the grid shows. Backfill keeps slot count a property of
+  // the storefront rather than of how completely the feature view happens to cover
+  // the vocabulary — otherwise partial coverage degrades as a short grid, which is a
+  // third failure mode nobody is looking for.
+  const offers = scored.concat(graded.filter((offer) => offer.score === 0)).slice(0, limit);
   const matchRate = OFFER_POOL.length ? scored.length / OFFER_POOL.length : 0;
 
   recordMetric('personalization.offer_match_rate', matchRate, {

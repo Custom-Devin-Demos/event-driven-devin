@@ -104,6 +104,30 @@ describe('offer ranking', () => {
     expect(result.offers.every((offer) => offer.score === 0)).toBe(true);
   });
 
+  test('fills every slot for a segment the feature view only partially covers', () => {
+    // Partial coverage is what a half-finished fix produces, and it must not surface
+    // as a short grid — that is a degradation mode the audit does not watch for.
+    const original = Object.getOwnPropertyDescriptor(OFFER_AFFINITY_VIEW.segments, 'boost_annual');
+    try {
+      OFFER_AFFINITY_VIEW.segments.boost_annual = { dairy: 0.7, meat: 0.9 };
+      const result = rankOffers('boost-annual', 4);
+
+      expect(result.personalized).toBe(true);
+      expect(result.offers).toHaveLength(4);
+      // Scored offers rank first, in descending order; the rest backfill behind them.
+      expect(result.offers.map((offer) => offer.score)).toEqual([0.9, 0.7, 0, 0]);
+      // Partial coverage is the only case that yields a match rate strictly between
+      // 0 and 1, which the rounded response reports as 0.33 of the 6-offer pool.
+      expect(result.matchRate).toBe(0.33);
+    } finally {
+      if (original) {
+        Object.defineProperty(OFFER_AFFINITY_VIEW.segments, 'boost_annual', original);
+      } else {
+        delete OFFER_AFFINITY_VIEW.segments.boost_annual;
+      }
+    }
+  });
+
   test('treats a segment entry that carries no category keys as unencoded', () => {
     // Only reachable by hand-editing the artifact past the build; the point is that
     // scoring it degrades silently rather than throwing, and reports the honest reason.
