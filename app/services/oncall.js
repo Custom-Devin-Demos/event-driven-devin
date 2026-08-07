@@ -269,7 +269,7 @@ function contextBlock(service, triggeredBy) {
  */
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
 
-  const brand = skin ? `${skin.company} (${scenario.brand})` : scenario.brand;
+  const brand = skin ? skin.company : scenario.brand;
   const lines = [
     `:rotating_light: *[Triggered] ${scenario.monitor}*`,
     '',
@@ -315,7 +315,7 @@ async function postOncallAlert(scenarioId, options = {}) {
   const events = 3 + Math.floor(Math.random() * 12);
   const skin = options.skin || null;
   const text = buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin });
-  const brand = skin ? `${skin.company} (${scenario.brand})` : scenario.brand;
+  const brand = skin ? skin.company : scenario.brand;
   const blocks = [
     headerBlock(`:rotating_light: [Triggered] ${scenario.monitor}`),
     ...fieldPairs([
