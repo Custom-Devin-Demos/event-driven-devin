@@ -13,7 +13,8 @@
  * disagree on, resolves to a segment the feature view does not encode, or measures a
  * match rate of 0 despite being encoded.
  *
- * Usage: npm run audit:kroger [-- --json]
+ * Usage: node scripts/kroger-personalization-audit.js [--json]
+ *        (or npm run audit:kroger)
  */
 
 const {
@@ -23,7 +24,15 @@ const {
   OFFER_AFFINITY_VIEW,
   MEMBERSHIP_FUEL_PROGRAM_CODES,
 } = require('../app/services/verticals/eaa595e1');
+const logger = require('../app/telemetry/logger');
 const spec = require('../pipelines/kroger/offer-affinity-spec.json');
+
+// The ranker logs one structured line per tier, which buries the coverage table this
+// script exists to print. Quiet it here rather than in the npm script so the output is
+// readable however the audit is invoked, and still overridable via LOG_LEVEL.
+logger.level = process.env.LOG_LEVEL || 'error';
+
+const encodedSegments = OFFER_AFFINITY_VIEW.segments || {};
 
 /**
  * Every tier the storefront can actually send, taken from the service mapping
@@ -42,7 +51,7 @@ function storefrontTiers() {
 function auditTier(membership) {
   const segment = resolveOfferSegment(membership);
   const ranked = rankOffers(membership, OFFER_POOL.length);
-  const encoded = Object.prototype.hasOwnProperty.call(OFFER_AFFINITY_VIEW.segments, segment.code);
+  const encoded = Object.prototype.hasOwnProperty.call(encodedSegments, segment.code);
 
   const declared = Object.prototype.hasOwnProperty.call(spec.membershipTiers, membership);
 
@@ -80,65 +89,74 @@ function main() {
       mismatched: mismatched.length,
       inert: inert.length,
     }, null, 2)}\n`);
-  } else {
-    process.stdout.write(`Offer personalization coverage — feature view @ ${OFFER_AFFINITY_VIEW.specVersion}\n\n`);
-    results.forEach((row) => {
-      const healthy = row.encoded && row.declared && row.mapsConsistently && row.personalized;
-      const verdict = healthy ? 'OK  ' : 'GAP ';
-      process.stdout.write(
-        `  ${verdict} ${row.membership.padEnd(14)} segment=${row.segment.padEnd(14)} `
-        + `match_rate=${row.matchRate.toFixed(2)} personalized=${row.personalized}\n`,
-      );
-    });
-    process.stdout.write('\n');
+    if (uncovered.length || undeclared.length || mismatched.length || inert.length) {
+      process.exitCode = 1;
+    }
+    return;
   }
 
+  // The whole report goes to stdout as a single ordered write. Splitting the table and the
+  // diagnostics across stdout/stderr lets them interleave out of order once either stream is
+  // a pipe, which is exactly how this gets run in CI and during the demo.
+  const lines = [`Offer personalization coverage — feature view @ ${OFFER_AFFINITY_VIEW.specVersion}`, ''];
+
+  results.forEach((row) => {
+    const healthy = row.encoded && row.declared && row.mapsConsistently && row.personalized;
+    lines.push(
+      `  ${healthy ? 'OK  ' : 'GAP '} ${row.membership.padEnd(14)} segment=${row.segment.padEnd(14)} `
+      + `match_rate=${row.matchRate.toFixed(2)} personalized=${row.personalized}`,
+    );
+  });
+  lines.push('');
+
   undeclared.forEach((row) => {
-    process.stderr.write(
+    lines.push(
       `FAIL: membership "${row.membership}" is served by the storefront but is not declared in `
-      + `${spec.featureView}'s membershipTiers, so the feature build never sees it.\n`,
+      + `${spec.featureView}'s membershipTiers, so the feature build never sees it.`,
     );
   });
 
   mismatched.forEach((row) => {
-    process.stderr.write(
+    lines.push(
       `FAIL: membership "${row.membership}" encodes to "${row.segment}" in the service but is `
-      + `declared as "${row.specSegment}" in the spec. The feature view is built for the wrong segment.\n`,
+      + `declared as "${row.specSegment}" in the spec. The feature view is built for the wrong segment.`,
     );
   });
 
   uncovered.forEach((row) => {
-    process.stderr.write(
+    lines.push(
       `FAIL: membership "${row.membership}" encodes to segment "${row.segment}", which `
       + `${spec.featureView} does not carry. Every offer scores 0 and the storefront serves `
-      + 'the unranked pool with no error.\n',
+      + 'the unranked pool with no error.',
     );
   });
 
   inert.forEach((row) => {
-    process.stderr.write(
+    lines.push(
       `FAIL: membership "${row.membership}" resolves to segment "${row.segment}", which is `
       + 'encoded but contributes no affinity — every offer still scores 0. A present segment '
-      + 'with an all-zero vector degrades exactly like a missing one.\n',
+      + 'with an all-zero vector degrades exactly like a missing one.',
     );
   });
 
   const unpersonalized = new Set([...uncovered, ...inert].map((row) => row.membership));
 
   if (unpersonalized.size) {
-    process.stderr.write(
-      `\n${unpersonalized.size} of ${results.length} tiers are silently unpersonalized. `
-      + 'Add or populate the segment(s) in pipelines/kroger/offer-affinity-spec.json and rebuild.\n',
+    lines.push(
+      '',
+      `${unpersonalized.size} of ${results.length} tiers are silently unpersonalized. `
+      + 'Add or populate the segment(s) in pipelines/kroger/offer-affinity-spec.json and rebuild.',
     );
   }
 
-  if (unpersonalized.size || undeclared.length || mismatched.length) {
-    // Set exitCode rather than exit() so the table above is not truncated when piped.
+  if (!unpersonalized.size && !undeclared.length && !mismatched.length) {
+    lines.push(`All ${results.length} membership tiers resolve to an encoded segment.`);
+  } else {
+    // Set exitCode rather than exit() so the report is not truncated when piped.
     process.exitCode = 1;
-    return;
   }
 
-  process.stdout.write(`All ${results.length} membership tiers resolve to an encoded segment.\n`);
+  process.stdout.write(`${lines.join('\n')}\n`);
 }
 
 if (require.main === module) {

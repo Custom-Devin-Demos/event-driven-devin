@@ -55,8 +55,8 @@ The silent half is the point: models do not crash when they break, they quietly 
 Three things are deliberately separate:
 
 - **The defect is left in place** so Devin performs the fix live. To run the demo pre-fixed, add a `boost_annual` segment to the spec, run `npm run features:build`, and add a `boost_annual` entry to `FUEL_POINT_PROGRAMS`.
-- **`scripts/kroger-personalization-audit.js` is the prevention control** (`npm run audit:kroger`) — it scores every tier through the real ranker and exits non-zero on a segment the feature view does not encode. It is not wired into the build, which is why the gap reached production.
-- **`npm run features:check`** fails when the committed artifact is stale relative to the spec, so a hand-edited artifact does not pass review.
+- **`scripts/kroger-personalization-audit.js` is the prevention control** (`npm run audit:kroger`) — it scores every tier the *service* can serve through the real ranker and exits non-zero when a tier is undeclared in the spec, mapped inconsistently between spec and service, absent from the feature view, or encoded but scoring nothing. It is not wired into the build, which is why the gap reached production.
+- **`npm run features:check`** fails when the committed artifact does not match a fresh build of the spec, and `npm test` asserts the same thing byte-for-byte, so a hand-edited artifact does not pass.
 
 `SECOND_ORDER_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec and the build's missing coverage gate — explicitly instructing it to fix the data problem rather than patch the crash site. Regression coverage for both paths lives in `tests/kroger-offer-affinity.test.js`.
 
@@ -380,7 +380,7 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 | `npm run loadgen` | Run traffic generator standalone |
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
-| `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on an unencoded segment) |
+| `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
 | `npm run demo:trigger` | Trigger an error scenario |
 | `npm run demo:reset` | Reset to healthy state |
 | `npm run demo:warmup` | Pre-warm the app |

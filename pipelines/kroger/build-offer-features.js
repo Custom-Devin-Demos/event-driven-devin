@@ -29,6 +29,9 @@ const ARTIFACT_PATH = path.join(
  * reads as "no affinity" rather than "unknown".
  */
 function encodeSegment(segment, vocabulary, code = 'segment') {
+  if (!segment || typeof segment !== 'object') {
+    throw new Error(`Segment "${code}" is not an object — the spec entry is malformed and cannot be encoded.`);
+  }
   if (!segment.weights || typeof segment.weights !== 'object') {
     throw new Error(`Segment "${code}" declares no weights object — a segment that cannot be encoded must fail the build, not ship as a zero vector.`);
   }
