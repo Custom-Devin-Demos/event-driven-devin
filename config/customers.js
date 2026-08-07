@@ -126,6 +126,10 @@ const CUSTOMERS = {
     label: 'Walmart',
     triggerMode: 'api',
   },
+  eaa595e1: {
+    label: 'Kroger',
+    triggerMode: 'api',
+  },
   b1c29f25: {
     label: 'Highmark Health',
     triggerMode: 'api',
