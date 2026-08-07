@@ -26,6 +26,19 @@ The app hosts 10 verticals, each accessible at its own URL:
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
+### On-call vertical slice (Flows 1–2)
+
+Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services carrying performance-degradation bugs instead of TypeErrors:
+
+| Vertical | On-call API Endpoint | Service File |
+|----------|---------------------|--------------|
+| Banking | `POST /api/oncall/banking/transfer` | `app/services/oncall-verticals/banking.js` |
+| Telco | `POST /api/oncall/telco/upgrade` | `app/services/oncall-verticals/telco.js` |
+| High Tech | `POST /api/oncall/licenses/provision` | `app/services/oncall-verticals/hightech.js` |
+| Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
+
+Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
+
 ### Payer welcome-season scenario
 
 The payer vertical models a plan-configuration defect rather than an infrastructure failure: `PLAN_CONFIGS` carries a 7-digit `rxBin` (`0044336` instead of `004336`) for two plans, `generateMemberIdCard()` copies it onto member ID cards unvalidated, and `adjudicateClaim()` then finds no `PAYER_REGISTRY` entry for that BIN. Every service stays healthy — the only signal is the `pharmacy_claim.rejected` business metric.

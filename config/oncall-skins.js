@@ -14,8 +14,9 @@
  *
  * What we deliberately do NOT personalize: telemetry service names, monitor
  * queries' service tags, and repo references in Slack investigation copy —
- * the responder investigates the real COG-GTM/event-driven-devin repo, so
- * those must stay truthful for the investigation to be believable.
+ * the responder investigates the repo that REPO_URL (app/services/oncall.js)
+ * points at, so those must stay truthful for the investigation to be
+ * believable.
  *
  * Bug portal templates reference existing BUG_CATALOG template ids (see
  * app/services/oncall.js) so backend-symptom reports keep activating the

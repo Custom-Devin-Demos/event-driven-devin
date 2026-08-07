@@ -115,7 +115,12 @@ async function processClaim(claimData) {
   });
 
   try {
-    const policy = lookupPolicy(claimData.policyId) || lookupPolicy('POL-5001');
+    const policy = lookupPolicy(claimData.policyId);
+    if (!policy) {
+      const err = new Error(`Unknown policy: ${claimData.policyId}`);
+      err.code = 'POLICY_NOT_FOUND';
+      throw err;
+    }
 
     const netClaimable = claimData.amount - policy.deductible;
     const requestedPayout = Math.min(Math.max(netClaimable, 0), policy.maxPayout);
