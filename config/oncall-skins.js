@@ -40,7 +40,7 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     heroTitle: 'BREX ON-CALL',
     heroSub:
-      "Run production-style events against the Brex demo stack. Devin's On-Call responders investigate the resulting alerts without @mentions or API calls.",
+      'Trigger an incident in the Brex service. It degrades, alerting fires, and Devin picks up the alert and investigates.',
     disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Brex product.',
     infra: {
       latency: {
