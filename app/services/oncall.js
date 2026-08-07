@@ -390,9 +390,9 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   let activated = null;
   const runRef = makeRunRef();
   if (template && template.infraKind && INFRA_INCIDENTS[template.infraKind]) {
+    supersedePriorRun(runRef);
     if (activateInfraIncident(template.infraKind, INFRA_WINDOW_MS, runRef)) {
       activated = template.infraKind;
-      supersedePriorRun(runRef);
     }
   }
 
@@ -673,8 +673,8 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  activateInfraIncident(kind, INFRA_WINDOW_MS, runRef);
   supersedePriorRun(runRef);
+  activateInfraIncident(kind, INFRA_WINDOW_MS, runRef);
 
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
@@ -916,8 +916,8 @@ async function postOncallIncident(options = {}) {
   }
 
   if (incident) {
-    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
     supersedePriorRun(runRef);
+    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
     const entry = {
       runRef,
       kind,
@@ -975,8 +975,8 @@ async function postOncallIncident(options = {}) {
 
   // Fallback path (Datadog not configured): still activate the story's real
   // degradation so the page's "genuine live degradation" promise holds.
-  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
   supersedePriorRun(runRef);
+  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
 
   const text = [
     `:fire: *SEV-1 — ${story.label}*`,
