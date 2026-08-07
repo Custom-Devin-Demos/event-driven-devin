@@ -18,7 +18,7 @@ const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } =
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  */
 
-const REPO_URL = 'https://github.com/COG-GTM/event-driven-devin';
+const REPO_URL = 'https://github.com/ananthv26/event-driven-devin-forked';
 
 /**
  * Alert scenarios for the on-call vertical demos. Cards are metric-shaped —
