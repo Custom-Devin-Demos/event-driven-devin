@@ -104,6 +104,21 @@ describe('offer ranking', () => {
     expect(result.offers.every((offer) => offer.score === 0)).toBe(true);
   });
 
+  test('treats a segment entry that carries no category keys as unencoded', () => {
+    // Only reachable by hand-editing the artifact past the build; the point is that
+    // scoring it degrades silently rather than throwing, and reports the honest reason.
+    try {
+      [[], 'boost_annual', 7].forEach((entry) => {
+        OFFER_AFFINITY_VIEW.segments.boost_annual = entry;
+        expect(resolveOfferSegment('boost-annual').encoded).toBe(false);
+        expect(rankOffers('boost-annual').personalized).toBe(false);
+      });
+    } finally {
+      // The view is require-cached and shared across this file's tests.
+      delete OFFER_AFFINITY_VIEW.segments.boost_annual;
+    }
+  });
+
   test('resolves inherited Object.prototype keys to the standard segment', () => {
     ['constructor', 'toString', 'hasOwnProperty'].forEach((membership) => {
       expect(resolveOfferSegment(membership).code).toBe('standard');

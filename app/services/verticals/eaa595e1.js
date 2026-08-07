@@ -122,7 +122,8 @@ function resolveOfferSegment(membership) {
   // identically, so the caller needs them distinguished to report which one happened.
   // A non-object entry (only reachable by hand-editing the artifact past the build)
   // counts as absent rather than throwing, so degradation stays silent either way.
-  const encoded = Boolean(entry) && typeof entry === 'object';
+  // Arrays are objects but carry no category keys, so they are absent too.
+  const encoded = Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry);
   return { code, encoded, weights: encoded ? entry : {} };
 }
 
