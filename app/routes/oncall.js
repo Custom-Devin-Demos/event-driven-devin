@@ -12,10 +12,30 @@ const {
   postOncallInfraIncident,
   getInfraState,
   postOncallIncident,
+  SEV1_INCIDENTS,
+  getSev1State,
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 
 const router = express.Router();
+
+/**
+ * Tag the caller's browser with the run's degradation cookie: only requests
+ * carrying it see that run's live symptoms (see the scoping middleware in
+ * server.js), so a demo never degrades the site for anyone else.
+ */
+function setRunCookie(res, runRef, windowMinutes) {
+  if (!runRef) return;
+  // Outlives the degradation window by a grace period so the page can still
+  // show the terminal state (resolved / auto-resolve failed) after it ends.
+  res.cookie('oncall_run', runRef, {
+    path: '/',
+    maxAge: ((windowMinutes || 30) + 15) * 60000,
+    sameSite: 'lax',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+  });
+}
 
 // Startup check: every skin template id must resolve in the shared BUG_CATALOG,
 // otherwise its backend-symptom repro mapping silently does nothing.
@@ -229,6 +249,7 @@ router.post('/api/oncall/bug', async (req, res) => {
       devinEmail,
       supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
     });
+    if (result.ok && result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call bug report post failed', { error: error.message });
@@ -248,6 +269,7 @@ router.post('/api/oncall/infra/:kind', async (req, res) => {
   }
   try {
     const result = await postOncallInfraIncident(req.params.kind, { devinEmail: (req.body || {}).devinEmail });
+    if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call infra trigger failed', { kind: req.params.kind, error: error.message });
@@ -268,6 +290,7 @@ router.get('/api/oncall/infra/state', (_req, res) => {
 router.post('/api/oncall/latency', async (req, res) => {
   try {
     const result = await postOncallInfraIncident('latency', { devinEmail: (req.body || {}).devinEmail });
+    if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call latency trigger failed', { error: error.message });
@@ -276,16 +299,40 @@ router.post('/api/oncall/latency', async (req, res) => {
 });
 
 /**
- * POST /api/oncall/incident — post a SEV-1 incident burst to #oncall-alerts
+ * POST /api/oncall/incident — declare a SEV-1 incident.
+ * Body: { kind?: 'checkout-gateway'|'db-latency'|'error-budget'|'memory-leak', devinEmail?: string }
+ * Activates the matching real degradation, declares a Datadog incident
+ * (Datadog creates the Slack incident channel), invites Devin + the DE,
+ * and auto-resolves when the degradation window ends.
  */
 router.post('/api/oncall/incident', async (req, res) => {
   try {
-    const result = await postOncallIncident({ devinEmail: (req.body || {}).devinEmail });
+    const { kind, devinEmail } = req.body || {};
+    const result = await postOncallIncident({ kind, devinEmail });
+    if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
     logger.error('On-Call incident post failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
+});
+
+/**
+ * GET /api/oncall/incident/kinds — available SEV-1 incident stories.
+ */
+router.get('/api/oncall/incident/kinds', (_req, res) => {
+  res.json(Object.entries(SEV1_INCIDENTS).map(([id, s]) => ({
+    id,
+    label: s.label,
+    summary: s.summary,
+  })));
+});
+
+/**
+ * GET /api/oncall/incident/state — live status of declared SEV-1 incidents.
+ */
+router.get('/api/oncall/incident/state', (_req, res) => {
+  res.json(getSev1State());
 });
 
 module.exports = router;

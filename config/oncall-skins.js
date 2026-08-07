@@ -29,28 +29,35 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     accent: '#F46A35',
     accentDark: '#d9552a',
+    theme: {
+      '--accent': '#F46A35',
+      '--ink': '#241c18',
+      '--surface': '#fffdfb',
+      '--chrome-bg': '#211b18',
+      '--chrome-text': '#fff8f2',
+    },
     supportCenter: 'Brex Support',
     supportCenterSub: 'Customer Care & Incident Intake',
     heroTitle: 'BREX ON-CALL',
     heroSub:
-      "Fire production-style events against the Brex demo stack and watch Devin's On-Call responders investigate on their own. No @mentions, no API calls — the responders just show up.",
+      'Trigger an incident in the Brex service. It degrades, alerting fires, and Devin picks up the alert and investigates.',
     disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Brex product.',
     infra: {
       latency: {
         title: 'DB Latency Spike',
-        desc: 'Transaction search in the Brex dashboard genuinely slows to 1.5\u20133s \u2014 watch the live probe climb. Error rate stays normal \u2014 a degradation, not an outage.',
+        desc: 'Transaction search in the Brex dashboard slows to 1.5\u20133s. Error rate remains normal.',
       },
       'dependency-timeout': {
         title: 'Card Network Timeouts',
-        desc: 'The card-network dependency starts timing out intermittently \u2014 most payment authorizations succeed, some see a spinner then a 502. Watch the live success rate in the strip above.',
+        desc: 'The card-network dependency times out intermittently. Most payment authorizations succeed; some display a spinner before returning a 502.',
       },
       'memory-leak': {
         title: 'Memory Leak',
-        desc: 'Process memory genuinely climbs (bounded and auto-freed at window end) \u2014 watch the live RSS number rise in the strip above while the responder sees real memory growth in Datadog.',
+        desc: 'Process memory increases without plateau. Datadog records the growth.',
       },
       'slo-burn': {
         title: 'SLO Fast Burn',
-        desc: 'Intermittent payment failures burn the availability error budget \u2014 the burn rate pages before the raw error alert would. Watch the live success rate in the strip above.',
+        desc: 'Intermittent payment failures consume the availability error budget. The burn rate pages before the raw error alert.',
       },
     },
     bugPortal: {
@@ -62,9 +69,9 @@ const ONCALL_SKINS = {
           templates: [
             {
               id: 'retail-slow-search',
-              label: 'Transaction search painfully slow',
+              label: 'Transaction search is slow',
               sev: 'Medium',
-              text: "Is something wrong with the dashboard? Searching transactions takes like 3 seconds now \u2014 the spinner just sits there. It was instant last week. No errors, just really, really slow. I timed it: filtering by vendor took 2.8s to show results.",
+              text: "Is something wrong with the dashboard? Searching transactions takes about 3 seconds now \u2014 the spinner stays on screen. It was instant last week. There are no errors, but filtering by vendor took 2.8s to show results.",
             },
             {
               id: 'retail-checkout-hangs',
@@ -82,7 +89,7 @@ const ONCALL_SKINS = {
               id: 'retail-site-sluggish',
               label: 'Dashboard getting slower over time',
               sev: 'Medium',
-              text: "Not an outage, but the dashboard feels like it gets more sluggish the longer the day goes on \u2014 pages that were snappy this morning are noticeably laggy now. A refresh doesn't help. Feels like the server itself is running out of steam.",
+              text: "This is not an outage, but the dashboard gets slower as the day goes on. Pages that were fast this morning are lagging now. A refresh does not help. The server may be running out of memory.",
             },
           ],
         },
