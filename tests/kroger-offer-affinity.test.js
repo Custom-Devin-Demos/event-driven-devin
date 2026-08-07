@@ -107,6 +107,9 @@ describe('offer ranking', () => {
   test('treats a segment entry that carries no category keys as unencoded', () => {
     // Only reachable by hand-editing the artifact past the build; the point is that
     // scoring it degrades silently rather than throwing, and reports the honest reason.
+    // The view is require-cached and shared, and boost_annual stops being absent the
+    // moment the planted gap is fixed — so restore whatever was there, don't delete.
+    const original = Object.getOwnPropertyDescriptor(OFFER_AFFINITY_VIEW.segments, 'boost_annual');
     try {
       [[], 'boost_annual', 7].forEach((entry) => {
         OFFER_AFFINITY_VIEW.segments.boost_annual = entry;
@@ -114,8 +117,11 @@ describe('offer ranking', () => {
         expect(rankOffers('boost-annual').personalized).toBe(false);
       });
     } finally {
-      // The view is require-cached and shared across this file's tests.
-      delete OFFER_AFFINITY_VIEW.segments.boost_annual;
+      if (original) {
+        Object.defineProperty(OFFER_AFFINITY_VIEW.segments, 'boost_annual', original);
+      } else {
+        delete OFFER_AFFINITY_VIEW.segments.boost_annual;
+      }
     }
   });
 
