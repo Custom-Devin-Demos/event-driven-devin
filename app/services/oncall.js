@@ -507,6 +507,7 @@ function supersedePriorRun(newRunRef) {
   const prior = getOncallRunRef();
   if (prior && prior !== newRunRef) {
     revertScopedInfra(prior, 'superseded by a new run from the same browser');
+    stopSev1Probe(prior, 'superseded by a new run from the same browser');
   }
 }
 
@@ -738,36 +739,116 @@ function getInfraState() {
 }
 
 /**
- * SEV-1 incident stories. Each maps to one of the infra degradations so the
- * declared incident is backed by a genuinely observable failure, and carries
- * the Datadog-facing title/summary used for the declared incident.
+ * SEV-1 incident stories. Each is backed by one of the on-call vertical
+ * services' real, always-present performance defects — the same code paths
+ * the alert demos exercise — so the investigation lands on genuine
+ * root-causable code. While the incident is open, a synthetic probe loop
+ * drives real traffic through the affected endpoint so logs, traces, and
+ * metrics record the failure as it happens.
  */
 const SEV1_INCIDENTS = {
-  'checkout-gateway': {
-    infraKind: 'dependency-timeout',
-    label: 'Checkout degraded — payments-gateway timeouts',
-    title: 'Checkout degraded — payments-gateway timeouts on checkout-api',
-    summary: 'POST /checkout p99 above 5s; ~30% of checkout calls timing out against payments-gateway. Users see a spinner then a 504.',
+  'banking-transfers': {
+    vertical: 'banking',
+    label: 'Fund transfers degraded — banking-api p95 10x baseline',
+    title: 'Fund transfers degraded — p95 latency 10x baseline on banking-api',
+    summary: 'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Transfers eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
+    probeBody: { amount: 250 },
   },
-  'db-latency': {
-    infraKind: 'latency',
-    label: 'Site-wide slowness — DB query latency spike',
-    title: 'Site-wide slowness — database query latency spike on checkout-api',
-    summary: 'p95 latency 10x baseline on GET /search and POST /checkout; app logs show repeated slow-query warnings (1500-3000ms). No elevated error rate — pure latency degradation.',
+  'insurance-claims': {
+    vertical: 'insurance',
+    label: 'Claim submissions failing — insurance-api 504s',
+    title: 'Claim submissions failing — 504 Gateway Timeout on insurance-api',
+    summary: 'POST /api/oncall/insurance/claim hangs ~8s then fails with 504 on ~100% of submissions. Policyholders cannot file claims through the portal.',
+    probeBody: { claimType: 'collision', amount: 4200 },
   },
-  'error-budget': {
-    infraKind: 'slo-burn',
-    label: 'Checkout availability — SLO fast burn',
-    title: 'Checkout availability SLO fast burn — error budget exhausting on checkout-api',
-    summary: 'Roughly half of POST /checkout requests failing (inventory reservation conflicts + tax-calculation errors). 30d error budget projected to exhaust in under 2 days at current burn rate.',
+  'licensing-latency': {
+    vertical: 'hightech',
+    label: 'License provisioning slowdown — licensing-api latency + RSS climbing',
+    title: 'License provisioning slowdown — latency and memory climbing on licensing-api',
+    summary: 'POST /api/oncall/licenses/provision p95 at ~6.8s and climbing under sustained traffic; process RSS trends up alongside it. Every provisioning call is slow and getting slower.',
+    probeBody: { seats: 25 },
   },
-  'memory-leak': {
-    infraKind: 'memory-leak',
-    label: 'Memory growth — checkout-api heading to OOM',
-    title: 'Unbounded memory growth on checkout-api — OOM restart projected',
-    summary: 'Process RSS climbing monotonically without plateau, consistent with an unbounded in-process cache. Latency creep expected as heap pressure grows; OOM restart projected if unaddressed.',
+  'telco-upgrades': {
+    vertical: 'telco',
+    label: 'Plan upgrades degraded — telco-api latency scaling with catalog',
+    title: 'Plan upgrades degraded — p95 latency scaling with catalog size on telco-api',
+    summary: 'POST /api/oncall/telco/upgrade p95 at ~7.9s against a ~300ms baseline since the plan-catalog refresh. Subscribers wait ~8s on every plan change; upgrade completion rate is dropping.',
+    probeBody: {},
   },
 };
+
+/**
+ * Synthetic probe traffic for open SEV-1 incidents. Requests run
+ * sequentially per incident (a tick is only scheduled after the previous
+ * request completes), so slow endpoints never pile up, and the number of
+ * concurrent probe loops is bounded. Failures are the point: the probe's
+ * requests hit the degraded endpoint for real, so telemetry shows genuine
+ * evidence during the window.
+ */
+const SEV1_PROBE_INTERVAL_MS = envNumber(process.env.ONCALL_SEV1_PROBE_INTERVAL_MS, 10000);
+const SEV1_PROBE_MAX = envNumber(process.env.ONCALL_SEV1_PROBE_MAX, 25);
+const activeSev1Probes = new Map();
+
+function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
+  if (activeSev1Probes.size >= SEV1_PROBE_MAX) {
+    logger.warn('SEV-1 probe cap reached — incident declared without synthetic traffic', {
+      runRef,
+      cap: SEV1_PROBE_MAX,
+    });
+    return false;
+  }
+  const scenario = ALERT_SCENARIOS[story.vertical];
+  const url = `http://127.0.0.1:${process.env.PORT || 3000}${scenario.oncallApiPath}`;
+  const probe = { stopped: false, timer: null };
+  const stopAt = Date.now() + windowMs;
+
+  const tick = async () => {
+    if (probe.stopped) return;
+    const started = Date.now();
+    let status;
+    try {
+      const response = await axios.post(url, story.probeBody || {}, {
+        timeout: 30000,
+        validateStatus: () => true,
+      });
+      status = response.status;
+    } catch (error) {
+      status = error.code || 'error';
+    }
+    logger.info('SEV-1 synthetic probe', {
+      runRef,
+      endpoint: scenario.endpoint,
+      status,
+      ms: Date.now() - started,
+    });
+    if (probe.stopped) return;
+    if (Date.now() >= stopAt) {
+      stopSev1Probe(runRef, 'window elapsed');
+      return;
+    }
+    probe.timer = setTimeout(tick, SEV1_PROBE_INTERVAL_MS);
+    if (probe.timer.unref) probe.timer.unref();
+  };
+
+  activeSev1Probes.set(runRef, probe);
+  probe.timer = setTimeout(tick, 1000);
+  if (probe.timer.unref) probe.timer.unref();
+  logger.info('SEV-1 synthetic probe started', {
+    runRef,
+    endpoint: scenario.endpoint,
+    intervalMs: SEV1_PROBE_INTERVAL_MS,
+  });
+  return true;
+}
+
+function stopSev1Probe(runRef, reason) {
+  const probe = activeSev1Probes.get(runRef);
+  if (!probe) return;
+  probe.stopped = true;
+  if (probe.timer) clearTimeout(probe.timer);
+  activeSev1Probes.delete(runRef);
+  logger.info('SEV-1 synthetic probe stopped', { runRef, reason });
+}
 
 function ddIncidentEnv() {
   return {
@@ -885,7 +966,7 @@ async function postOncallIncident(options = {}) {
   if (options.kind != null && options.kind !== '' && !hasKind) {
     return { ok: false, error: `Unknown incident kind: ${options.kind}` };
   }
-  const kind = hasKind ? options.kind : 'checkout-gateway';
+  const kind = hasKind ? options.kind : 'banking-transfers';
   const story = SEV1_INCIDENTS[kind];
 
   let incident = null;
@@ -904,7 +985,7 @@ async function postOncallIncident(options = {}) {
 
   if (incident) {
     supersedePriorRun(runRef);
-    activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
+    startSev1Probe(runRef, story);
     const entry = {
       runRef,
       kind,
@@ -921,6 +1002,7 @@ async function postOncallIncident(options = {}) {
 
     const scheduleResolve = (delayMs, attempt) => {
       const timer = setTimeout(async () => {
+        stopSev1Probe(runRef, 'incident window elapsed');
         try {
           const resolved = await resolveDatadogIncident(entry.id);
           if (!resolved) {
@@ -960,20 +1042,21 @@ async function postOncallIncident(options = {}) {
     return { ok: false, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  // Fallback path (Datadog not configured): still activate the story's real
-  // degradation so the page's "genuine live degradation" promise holds.
+  // Fallback path (Datadog not configured): the degradation is real code on
+  // the vertical endpoint; start the probe loop so telemetry records it.
   supersedePriorRun(runRef);
-  activateInfraIncident(story.infraKind, SEV1_WINDOW_MS, runRef);
+  startSev1Probe(runRef, story);
 
+  const scenario = ALERT_SCENARIOS[story.vertical];
   const text = [
     `:fire: *SEV-1 — ${story.label}*`,
     '',
     `*Incident Ref:* ${runRef}`,
     `*Summary:* ${story.summary}`,
-    '*Env:* production | *Service:* checkout-api',
-    `*Degradation window:* live now, auto-recovers in ~${Math.round(SEV1_WINDOW_MS / 60000)} minutes`,
+    `*Env:* production | *Service:* ${scenario.service}`,
+    `*Endpoint:* ${scenario.endpoint}`,
     '',
-    `The degradation is genuinely active and observable. Repo: ${REPO_URL}`,
+    `Repo: ${REPO_URL}`,
   ].join('\n');
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const fullText = triggeredBy ? `${text}\nTriggered by: ${triggeredBy}` : text;
@@ -983,8 +1066,8 @@ async function postOncallIncident(options = {}) {
     ts = await postMessage(token, alertsChannel, fullText);
   } catch (error) {
     // Keep observable state consistent with what was announced: if the SEV-1
-    // never posted, don't leave the app silently degraded for the full window.
-    revertScopedInfra(runRef, 'SEV-1 fallback post failed');
+    // never posted, don't keep driving probe traffic for the full window.
+    stopSev1Probe(runRef, 'SEV-1 fallback post failed');
     throw error;
   }
   logger.info('On-Call incident posted', { channel: alertsChannel, ts, runRef });
