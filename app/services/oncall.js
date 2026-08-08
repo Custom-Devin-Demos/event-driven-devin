@@ -1139,6 +1139,10 @@ function getSev1State() {
   }));
 }
 
+function isActiveSev1ProbeRef(ref) {
+  return Boolean(ref) && activeSev1Probes.has(ref);
+}
+
 module.exports = {
   ALERT_SCENARIOS,
   BUG_REPORTS,
@@ -1151,4 +1155,5 @@ module.exports = {
   postOncallIncident,
   SEV1_INCIDENTS,
   getSev1State,
+  isActiveSev1ProbeRef,
 };
