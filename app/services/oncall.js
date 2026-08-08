@@ -970,7 +970,7 @@ function startSev1Chatter(runRef, story, publicId) {
       // (timeouts, 429s/5xx, ratelimited) retry on the same bounded schedule.
       const permanent =
         error.message.startsWith('Slack API error:') &&
-        !error.message.includes('ratelimited');
+        !/rate.?limited/.test(error.message);
       logger.warn('SEV-1 chatter could not join incident channel', {
         runRef,
         channel: channel.name,
