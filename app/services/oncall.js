@@ -965,18 +965,25 @@ function startSev1Chatter(runRef, story, publicId) {
     try {
       await joinChannel(token, channel.id);
     } catch (error) {
-      // already_in_channel is fine; a missing channels:join scope is not.
-      if (!error.message.includes('already_in_channel')) {
-        logger.warn('SEV-1 chatter could not join incident channel', {
-          runRef,
-          channel: channel.name,
-          error: error.message,
-          hint: 'bot needs the channels:join scope',
-        });
+      // A missing channels:join scope is permanent; transient failures
+      // (timeouts, rate limits) retry on the same bounded schedule.
+      const permanent = error.message.includes('missing_scope');
+      logger.warn('SEV-1 chatter could not join incident channel', {
+        runRef,
+        channel: channel.name,
+        error: error.message,
+        ...(permanent ? { hint: 'bot needs the channels:join scope' } : {}),
+      });
+      if (chatter.stopped) return;
+      if (permanent || attempts >= SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS) {
         chatter.stopped = true;
         activeSev1Chatter.delete(runRef);
         return;
       }
+      const timer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
+      if (timer.unref) timer.unref();
+      chatter.timers.push(timer);
+      return;
     }
     if (chatter.stopped) return;
 
