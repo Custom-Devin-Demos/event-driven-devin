@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nimbus Cloud — Activate Your Account</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #10162f; background: #f6f8fc; }
+    header { background: #10162f; color: #fff; }
+    .inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .logo { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+    .hero { background: linear-gradient(135deg, #10162f, #2b3f8c); color: #fff; padding: 64px 0; }
+    .hero h1 { font-size: 40px; margin-bottom: 12px; }
+    .hero p { font-size: 18px; opacity: 0.85; }
+    main { padding: 48px 0 80px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+    .card { background: #fff; border: 1px solid #e2e7f0; border-radius: 12px; padding: 24px; }
+    .card h3 { font-size: 20px; margin-bottom: 6px; }
+    .card .credits { font-size: 14px; color: #5a6480; margin-bottom: 18px; }
+    .card.selected { border-color: #2b3f8c; box-shadow: 0 0 0 2px rgba(43,63,140,0.15); }
+    label { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #5a6480; margin: 28px 0 8px; }
+    select { width: 100%; max-width: 360px; padding: 12px; border: 1px solid #cfd6e4; border-radius: 8px; font-size: 15px; background: #fff; }
+    .activate-btn { margin-top: 28px; background: #2b3f8c; color: #fff; border: 0; border-radius: 8px; padding: 14px 28px; font-size: 16px; cursor: pointer; }
+    .activate-btn:disabled { opacity: 0.6; cursor: default; }
+    #result { margin-top: 28px; background: #fff; border: 1px solid #e2e7f0; border-radius: 12px; padding: 24px; display: none; }
+    #result h3 { margin-bottom: 12px; }
+    #result dl { display: grid; grid-template-columns: max-content 1fr; gap: 8px 24px; font-size: 15px; }
+    #result dt { color: #5a6480; }
+    .all-demos { position: fixed; bottom: 16px; left: 16px; font-size: 12px; color: #9aa0ab; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="inner header-inner">
+      <div class="logo">NIMBUS CLOUD</div>
+      <nav style="font-size:14px;opacity:0.8">Products &nbsp; Pricing &nbsp; Docs</nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="inner">
+      <h1>Activate your Nimbus account</h1>
+      <p>Pick a plan and a home region. Launch credits are granted the moment activation completes.</p>
+    </div>
+  </section>
+
+  <main class="inner">
+    <div class="grid" id="tiers"></div>
+
+    <label for="region">Home region</label>
+    <select id="region"></select>
+
+    <button class="activate-btn" id="activate">Activate account</button>
+
+    <div id="result">
+      <h3>Account activated</h3>
+      <dl id="result-body"></dl>
+    </div>
+  </main>
+
+  <a class="all-demos" href="/">&larr; All Demos</a>
+
+  <script>
+    var selectedTier = 'free';
+
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.textContent = message;
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(0,0,0,0.88);color:#fff;padding:14px 22px;border-radius:8px;font-size:14px;z-index:10000;max-width:380px;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
+      document.body.appendChild(toast);
+      setTimeout(function () { toast.remove(); }, 6000);
+    }
+
+    function renderTiers(planTiers) {
+      var container = document.getElementById('tiers');
+      container.innerHTML = '';
+      planTiers.forEach(function (tier) {
+        var card = document.createElement('div');
+        card.className = 'card' + (tier.id === selectedTier ? ' selected' : '');
+        card.dataset.tier = tier.id;
+        card.innerHTML = '<h3>' + tier.id.charAt(0).toUpperCase() + tier.id.slice(1) + '</h3>'
+          + '<div class="credits">' + tier.baseCredits + ' base credits + ' + tier.bonusCredits
+          + ' bonus &middot; ' + tier.windowMonths + ' month window</div>';
+        card.addEventListener('click', function () {
+          selectedTier = tier.id;
+          document.querySelectorAll('.card').forEach(function (c) {
+            c.classList.toggle('selected', c.dataset.tier === selectedTier);
+          });
+        });
+        container.appendChild(card);
+      });
+    }
+
+    function renderRegions(regions) {
+      var select = document.getElementById('region');
+      select.innerHTML = '';
+      regions.forEach(function (r) {
+        var opt = document.createElement('option');
+        opt.value = r.id;
+        opt.textContent = r.region;
+        select.appendChild(opt);
+      });
+    }
+
+    fetch('/api/40cf3e09/plans')
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        renderTiers(data.planTiers);
+        renderRegions(data.regions);
+      })
+      .catch(function () { showToast('Could not load plans. Please try again.'); });
+
+    document.getElementById('activate').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+      fetch('/api/40cf3e09/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planTier: selectedTier,
+          region: document.getElementById('region').value,
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-ca903c5d8bf44af2886e67e0aab6e81a'
+        })
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.error) {
+            showToast('We couldn\u2019t activate your account right now. Please try again.');
+            return;
+          }
+          var body = document.getElementById('result-body');
+          body.innerHTML = '<dt>Activation ID</dt><dd>' + data.activationId + '</dd>'
+            + '<dt>Plan tier</dt><dd>' + data.planTier + '</dd>'
+            + '<dt>Region</dt><dd>' + data.activation.accountRegion + ' (' + data.activation.zone + ')</dd>'
+            + '<dt>Total credits</dt><dd>' + data.activation.totalCredits + '</dd>'
+            + '<dt>Expires in</dt><dd>' + data.activation.expiresInMonths + ' months</dd>';
+          document.getElementById('result').style.display = 'block';
+        })
+        .catch(function () { showToast('We couldn\u2019t activate your account right now. Please try again.'); })
+        .finally(function () { btn.disabled = false; });
+    });
+  </script>
+</body>
+</html>
