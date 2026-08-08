@@ -420,10 +420,10 @@ async function postDevinSessionLink(threadTs, sessionUrl) {
 }
 
 /**
- * Find a public channel whose name starts with the given prefix.
+ * Find a public channel whose name contains the given fragment.
  * Returns { id, name } or null. Requires the `channels:read` scope.
  */
-async function findChannelByPrefix(token, prefix) {
+async function findChannelByNameFragment(token, fragment) {
   let cursor;
   do {
     const response = await axios.get(`${SLACK_API_BASE}/conversations.list`, {
@@ -439,7 +439,7 @@ async function findChannelByPrefix(token, prefix) {
     if (!response.data.ok) {
       throw new Error(`Slack API error: ${response.data.error}`);
     }
-    const match = (response.data.channels || []).find((c) => c.name && c.name.startsWith(prefix));
+    const match = (response.data.channels || []).find((c) => c.name && c.name.includes(fragment));
     if (match) return { id: match.id, name: match.name };
     cursor = response.data.response_metadata && response.data.response_metadata.next_cursor;
   } while (cursor);
@@ -508,7 +508,7 @@ async function deleteMessage(token, channel, ts) {
 
 module.exports = {
   postMessage,
-  findChannelByPrefix,
+  findChannelByNameFragment,
   joinChannel,
   postPersonaMessage,
   postAlertToSlack,

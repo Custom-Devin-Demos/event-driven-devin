@@ -268,6 +268,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 - `postDevinReply(threadTs, prompt, options)` — (slack mode) Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Accepts per-customer `slackUserId` via `options`. Auto-deletes the reply after 5 seconds.
 - `postDevinSessionLink(threadTs, sessionUrl)` — (api mode) Posts a "View in Devin" button in the alert thread using `SLACK_BOT_TOKEN`.
 - `postMessage()`, `postThreadReply()`, `deleteMessage()` — Low-level Slack API helpers.
+- `findChannelByNameFragment(token, fragment)`, `joinChannel(token, channelId)`, `postPersonaMessage(token, channel, text, username, iconEmoji)` — SEV-1 persona chatter helpers. The chatter requires the bot to have the `channels:read`, `channels:join`, and `chat:write.customize` scopes; without `channels:join` the chatter logs a warning and skips seeding (the incident flow is unaffected).
 
 ### `app/incidentModes.js`
 - Manages the current scenario state. Valid scenarios: `healthy`, `slow-db`, `checkout-regression`, `dependency-timeout`.

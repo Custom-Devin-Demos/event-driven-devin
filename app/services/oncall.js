@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail, findChannelByPrefix, joinChannel, postPersonaMessage } = require('./slack');
+const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } = require('../incidentModes');
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
@@ -880,8 +880,8 @@ const activeSev1Chatter = new Map();
 
 function buildSev1Chatter(story) {
   const scenario = ALERT_SCENARIOS[story.vertical];
-  const sre = { username: 'Alex Kim (SRE)', icon: ':female-technologist:' };
-  const owner = { username: scenario.owner, icon: ':male-technologist:' };
+  const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
+  const owner = { username: scenario.owner, icon: ':computer:' };
   const support = { username: 'Priya Nair (Support Lead)', icon: ':headphones:' };
   const byKind = {
     'banking-transfers': [
@@ -933,9 +933,10 @@ function startSev1Chatter(runRef, story, publicId) {
 
   const chatter = { stopped: false, timers: [] };
   activeSev1Chatter.set(runRef, chatter);
-  // Datadog names incident channels `sev-1-incident-<publicId>-<slugified title>`
-  // (severity prefix comes from the channel-name template).
-  const prefix = `sev-1-incident-${publicId}-`;
+  // Datadog names incident channels from a template that includes
+  // `incident-<publicId>-` (e.g. `sev-1-incident-25-<slugified title>`).
+  // Matching on the severity-agnostic marker survives template tweaks.
+  const marker = `incident-${publicId}-`;
 
   let attempts = 0;
   const locate = async () => {
@@ -943,14 +944,15 @@ function startSev1Chatter(runRef, story, publicId) {
     attempts++;
     let channel = null;
     try {
-      channel = await findChannelByPrefix(token, prefix);
+      channel = await findChannelByNameFragment(token, marker);
     } catch (error) {
       logger.warn('SEV-1 chatter channel lookup failed', { runRef, error: error.message });
     }
     if (chatter.stopped) return;
     if (!channel) {
       if (attempts >= SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS) {
-        logger.warn('SEV-1 incident channel never appeared — skipping persona chatter', { runRef, prefix });
+        logger.warn('SEV-1 incident channel never appeared — skipping persona chatter', { runRef, marker });
+        chatter.stopped = true;
         activeSev1Chatter.delete(runRef);
         return;
       }
@@ -971,6 +973,7 @@ function startSev1Chatter(runRef, story, publicId) {
           error: error.message,
           hint: 'bot needs the channels:join scope',
         });
+        chatter.stopped = true;
         activeSev1Chatter.delete(runRef);
         return;
       }
