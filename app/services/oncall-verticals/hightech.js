@@ -115,9 +115,10 @@ function computeBilling(config, seats, billingCycle) {
 /**
  * Provision a new license subscription.
  */
-async function provisionLicense(data) {
+async function provisionLicense(data, options = {}) {
   const startTime = Date.now();
   const licenseId = uuidv4();
+  if (options.synthetic) syntheticKeys.add(licenseId);
 
   logger.info('Provisioning license', {
     licenseId,
@@ -214,19 +215,24 @@ async function provisionLicense(data) {
 }
 
 /**
- * Release entitlements accumulated since startup, keeping the journal
- * baseline, so demo traffic bursts don't permanently grow the cache.
+ * Keys of entitlements created by synthetic probe traffic, so releasing them
+ * never touches entries provisioned by real demo users.
+ */
+const syntheticKeys = new Set();
+
+/**
+ * Release entitlements accumulated by synthetic probe traffic, so probe
+ * bursts don't permanently grow the cache. User-provisioned entries and the
+ * journal baseline are untouched.
  */
 function releaseAccumulatedEntitlements() {
   let released = 0;
-  for (const key of entitlementCache.keys()) {
-    if (!key.startsWith('journal-')) {
-      entitlementCache.delete(key);
-      released++;
-    }
+  for (const key of syntheticKeys) {
+    if (entitlementCache.delete(key)) released++;
   }
+  syntheticKeys.clear();
   if (released > 0) {
-    logger.info('Entitlement cache trimmed to journal baseline', {
+    logger.info('Synthetic-probe entitlements released from cache', {
       released,
       entries: entitlementCache.size,
       service: 'licensing-api',

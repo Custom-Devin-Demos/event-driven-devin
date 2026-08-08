@@ -65,7 +65,7 @@ router.post('/api/oncall/licenses/provision', async (req, res) => {
       planName,
       seats: Math.min(parseInt(req.body.seats, 10) || 10, 250),
       billingCycle: req.body.billingCycle || 'monthly',
-    });
+    }, { synthetic: Boolean(req.get('x-synthetic-monitor')) });
     res.json(result);
   } catch (error) {
     res.status(500).json({

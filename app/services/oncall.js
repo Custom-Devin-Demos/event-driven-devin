@@ -813,6 +813,9 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
       const response = await axios.post(url, story.probeBody || {}, {
         timeout: 30000,
         validateStatus: () => true,
+        // Marked like real synthetic-monitoring traffic so downstream services
+        // can distinguish probe requests from user requests.
+        headers: { 'x-synthetic-monitor': runRef },
       });
       status = response.status;
     } catch (error) {
