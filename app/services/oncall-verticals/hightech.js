@@ -213,4 +213,26 @@ async function provisionLicense(data) {
   }
 }
 
-module.exports = { provisionLicense, SUBSCRIPTIONS, PLAN_CONFIGS };
+/**
+ * Release entitlements accumulated since startup, keeping the journal
+ * baseline, so demo traffic bursts don't permanently grow the cache.
+ */
+function releaseAccumulatedEntitlements() {
+  let released = 0;
+  for (const key of entitlementCache.keys()) {
+    if (!key.startsWith('journal-')) {
+      entitlementCache.delete(key);
+      released++;
+    }
+  }
+  if (released > 0) {
+    logger.info('Entitlement cache trimmed to journal baseline', {
+      released,
+      entries: entitlementCache.size,
+      service: 'licensing-api',
+    });
+  }
+  return released;
+}
+
+module.exports = { provisionLicense, SUBSCRIPTIONS, PLAN_CONFIGS, releaseAccumulatedEntitlements };

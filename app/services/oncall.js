@@ -3,6 +3,7 @@ const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, lookupSlackUserByEmail } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } = require('../incidentModes');
+const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
 /**
  * On-Call demo service.
@@ -767,6 +768,7 @@ const SEV1_INCIDENTS = {
     title: 'License provisioning slowdown — latency and memory climbing on licensing-api',
     summary: 'POST /api/oncall/licenses/provision p95 at ~6.8s and climbing under sustained traffic; process RSS trends up alongside it. Every provisioning call is slow and getting slower.',
     probeBody: { seats: 25 },
+    onProbeStop: releaseAccumulatedEntitlements,
   },
   'telco-upgrades': {
     vertical: 'telco',
@@ -790,6 +792,7 @@ const SEV1_PROBE_MAX = envNumber(process.env.ONCALL_SEV1_PROBE_MAX, 25);
 const activeSev1Probes = new Map();
 
 function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
+  stopSev1Probe(runRef, 'restarted');
   if (activeSev1Probes.size >= SEV1_PROBE_MAX) {
     logger.warn('SEV-1 probe cap reached — incident declared without synthetic traffic', {
       runRef,
@@ -799,7 +802,7 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   }
   const scenario = ALERT_SCENARIOS[story.vertical];
   const url = `http://127.0.0.1:${process.env.PORT || 3000}${scenario.oncallApiPath}`;
-  const probe = { stopped: false, timer: null };
+  const probe = { stopped: false, timer: null, story };
   const stopAt = Date.now() + windowMs;
 
   const tick = async () => {
@@ -848,6 +851,16 @@ function stopSev1Probe(runRef, reason) {
   if (probe.timer) clearTimeout(probe.timer);
   activeSev1Probes.delete(runRef);
   logger.info('SEV-1 synthetic probe stopped', { runRef, reason });
+  // Release state the probe traffic accumulated (e.g. hightech entitlement
+  // snapshots), but only once no other live probe is still driving the same
+  // vertical.
+  const story = probe.story;
+  if (story && story.onProbeStop) {
+    const stillActive = Array.from(activeSev1Probes.values()).some(
+      (p) => p.story && p.story.vertical === story.vertical,
+    );
+    if (!stillActive) story.onProbeStop();
+  }
 }
 
 function ddIncidentEnv() {
@@ -1087,7 +1100,10 @@ async function postOncallIncident(options = {}) {
   };
   activeSev1.set(runRef, entry);
   pruneSev1();
-  const resolveTimer = setTimeout(() => { entry.status = 'resolved'; }, SEV1_WINDOW_MS);
+  const resolveTimer = setTimeout(() => {
+    entry.status = 'resolved';
+    stopSev1Probe(runRef, 'incident window elapsed');
+  }, SEV1_WINDOW_MS);
   if (resolveTimer.unref) resolveTimer.unref();
 
   return {
