@@ -118,7 +118,6 @@ function computeBilling(config, seats, billingCycle) {
 async function provisionLicense(data, options = {}) {
   const startTime = Date.now();
   const licenseId = uuidv4();
-  if (options.synthetic) syntheticKeys.add(licenseId);
 
   logger.info('Provisioning license', {
     licenseId,
@@ -144,6 +143,7 @@ async function provisionLicense(data, options = {}) {
     const withinLimit = seatLimit === -1 || data.seats <= seatLimit;
 
     entitlementCache.set(licenseId, makeSnapshot(data.orgName, data.planName, data.seats));
+    if (options.synthetic) syntheticKeys.add(licenseId);
 
     const duration = Date.now() - startTime;
 
