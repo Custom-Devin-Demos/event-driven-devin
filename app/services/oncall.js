@@ -926,6 +926,7 @@ function stopSev1Chatter(runRef, reason) {
 }
 
 function startSev1Chatter(runRef, story, publicId) {
+  stopSev1Chatter(runRef, 'restarted');
   const { token } = resolveOncallEnv();
   if (!token || !publicId) return false;
   const script = buildSev1Chatter(story);
