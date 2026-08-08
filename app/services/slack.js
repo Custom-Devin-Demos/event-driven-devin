@@ -420,6 +420,72 @@ async function postDevinSessionLink(threadTs, sessionUrl) {
 }
 
 /**
+ * Find a public channel whose name starts with the given prefix.
+ * Returns { id, name } or null. Requires the `channels:read` scope.
+ */
+async function findChannelByPrefix(token, prefix) {
+  let cursor;
+  do {
+    const response = await axios.get(`${SLACK_API_BASE}/conversations.list`, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: {
+        types: 'public_channel',
+        exclude_archived: true,
+        limit: 200,
+        ...(cursor ? { cursor } : {}),
+      },
+      timeout: 10000,
+    });
+    if (!response.data.ok) {
+      throw new Error(`Slack API error: ${response.data.error}`);
+    }
+    const match = (response.data.channels || []).find((c) => c.name && c.name.startsWith(prefix));
+    if (match) return { id: match.id, name: match.name };
+    cursor = response.data.response_metadata && response.data.response_metadata.next_cursor;
+  } while (cursor);
+  return null;
+}
+
+/**
+ * Join a public channel. Requires the `channels:join` scope.
+ */
+async function joinChannel(token, channelId) {
+  const response = await axios.post(`${SLACK_API_BASE}/conversations.join`, { channel: channelId }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+}
+
+/**
+ * Post a message under a persona display name/emoji instead of the bot's
+ * own identity. Requires the `chat:write.customize` scope.
+ */
+async function postPersonaMessage(token, channel, text, username, iconEmoji) {
+  const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, {
+    channel,
+    text,
+    username,
+    icon_emoji: iconEmoji,
+  }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  return response.data.ts;
+}
+
+/**
  * Delete a Slack message. Used to clean up the @Devin trigger message
  * after Devin has acknowledged it (slack trigger mode only).
  */
@@ -442,6 +508,9 @@ async function deleteMessage(token, channel, ts) {
 
 module.exports = {
   postMessage,
+  findChannelByPrefix,
+  joinChannel,
+  postPersonaMessage,
   postAlertToSlack,
   postBugReportToTriage,
   postDevinSessionLink,
