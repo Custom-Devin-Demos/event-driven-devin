@@ -965,14 +965,19 @@ function startSev1Chatter(runRef, story, publicId) {
     try {
       await joinChannel(token, channel.id);
     } catch (error) {
-      // A missing channels:join scope is permanent; transient failures
-      // (timeouts, rate limits) retry on the same bounded schedule.
-      const permanent = error.message.includes('missing_scope');
+      // Slack API errors (missing_scope, is_archived, private channel, …)
+      // are permanent for this incident; transient transport failures
+      // (timeouts, 429s/5xx, ratelimited) retry on the same bounded schedule.
+      const permanent =
+        error.message.startsWith('Slack API error:') &&
+        !error.message.includes('ratelimited');
       logger.warn('SEV-1 chatter could not join incident channel', {
         runRef,
         channel: channel.name,
         error: error.message,
-        ...(permanent ? { hint: 'bot needs the channels:join scope' } : {}),
+        ...(error.message.includes('missing_scope')
+          ? { hint: 'bot needs the channels:join scope' }
+          : {}),
       });
       if (chatter.stopped) return;
       if (permanent || attempts >= SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS) {
