@@ -978,6 +978,7 @@ function startSev1Chatter(runRef, story, publicId) {
         return;
       }
     }
+    if (chatter.stopped) return;
 
     logger.info('SEV-1 persona chatter scheduled', { runRef, channel: channel.name, messages: script.length });
     for (const line of script) {
