@@ -985,7 +985,13 @@ function stopSev1Chatter(runRef, reason) {
 function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
   stopSev1Chatter(runRef, 'restarted');
   const { token } = resolveOncallEnv();
-  if (!token || !publicId) return false;
+  if (!token || !publicId) {
+    logger.warn('SEV-1 persona chatter skipped', {
+      runRef,
+      reason: !token ? 'Slack token not configured' : 'incident has no public id',
+    });
+    return false;
+  }
   const script = buildSev1Chatter(story);
   if (!script.length) return false;
 
