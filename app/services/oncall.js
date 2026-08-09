@@ -1053,7 +1053,9 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
     if (chatter.stopped) return;
 
     logger.info('SEV-1 persona chatter scheduled', { runRef, channel: channel.name, messages: script.length });
-    for (const line of script) {
+    // The per-index floor keeps overdue messages (slow channel discovery)
+    // posting a few seconds apart, in script order, instead of as one burst.
+    script.forEach((line, index) => {
       const timer = setTimeout(async () => {
         if (chatter.stopped) return;
         try {
@@ -1061,10 +1063,10 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
         } catch (error) {
           logger.warn('SEV-1 persona message failed', { runRef, error: error.message });
         }
-      }, Math.max(0, Math.round(line.at * windowMs) - (Date.now() - declaredAt)));
+      }, Math.max(index * 3000, Math.round(line.at * windowMs) - (Date.now() - declaredAt)));
       if (timer.unref) timer.unref();
       chatter.timers.push(timer);
-    }
+    });
   };
 
   const firstTimer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
