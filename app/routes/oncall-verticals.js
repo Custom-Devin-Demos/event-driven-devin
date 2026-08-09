@@ -18,7 +18,7 @@ router.post('/api/oncall/banking/transfer', async (req, res) => {
       amount: req.body.amount || 500,
       accountTier: req.body.accountTier || 'Premium',
       userId: req.body.userId || 'usr_banking_1',
-    });
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
     res.json(result);
   } catch (error) {
     const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;
@@ -42,7 +42,7 @@ router.post('/api/oncall/telco/upgrade', async (req, res) => {
       currentPlanCode: String(req.body.currentPlanCode || 'BASIC-12').toUpperCase(),
       targetPlanCode: String(req.body.targetPlanCode || 'FAMILY-PLUS-12').toUpperCase(),
       billingDay: req.body.billingDay || 15,
-    });
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
     res.json(result);
   } catch (error) {
     res.status(500).json({
