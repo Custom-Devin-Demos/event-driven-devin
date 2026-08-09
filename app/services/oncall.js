@@ -996,6 +996,13 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
   // Matching on the severity-agnostic marker survives template tweaks.
   const marker = `incident-${publicId}-`;
 
+  // The script spans most of the window, so keep looking for the channel for
+  // up to half the window (at least the base 12 attempts) — a slow Datadog
+  // Slack integration should delay the chatter, not silently cancel it.
+  const maxAttempts = Math.max(
+    SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS,
+    Math.floor(windowMs / 2 / SEV1_CHATTER_LOOKUP_INTERVAL_MS),
+  );
   let attempts = 0;
   const locate = async () => {
     if (chatter.stopped) return;
@@ -1008,7 +1015,7 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
     }
     if (chatter.stopped) return;
     if (!channel) {
-      if (attempts >= SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS) {
+      if (attempts >= maxAttempts) {
         logger.warn('SEV-1 incident channel never appeared — skipping persona chatter', { runRef, marker });
         chatter.stopped = true;
         activeSev1Chatter.delete(runRef);
@@ -1040,7 +1047,7 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
           : {}),
       });
       if (chatter.stopped) return;
-      if (permanent || attempts >= SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS) {
+      if (permanent || attempts >= maxAttempts) {
         chatter.stopped = true;
         activeSev1Chatter.delete(runRef);
         return;
