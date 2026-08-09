@@ -283,7 +283,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
 | `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
 | `ONCALL_SEV1_WINDOW_MS` | SEV-1 auto-resolve window in ms (default 30 min) | No |
-| `ONCALL_SEV1_PROBE_INTERVAL_MS` | Delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes (default 10s) | No |
+| `ONCALL_SEV1_PROBE_INTERVAL_MS` | Base delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes. The effective delay is this base multiplied per evidence phase (6x/3x/1.5x/1x across the window), so at the default 10s base and 30-min window probes run every ~60s early on and every ~10s in the final phase | No |
 | `ONCALL_SEV1_PROBE_MAX` | Max concurrent SEV-1 probe loops (default 25) | No |
 | `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
 | `ONCALL_DEMO_BASE_URL` | Base URL for branded demo-page links in skinned on-call alerts (defaults to `https://$DOMAIN_NAME`, then devindemos.com) | No |
