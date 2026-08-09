@@ -58,8 +58,13 @@ app.use((req, _res, next) => {
 // unaffected.
 app.use((req, _res, next) => {
   const match = /(?:^|;\s*)oncall_run=([A-Za-z0-9-]+)/.exec(req.headers.cookie || '');
-  if (match) {
-    return runWithOncallRun(match[1], () => next());
+  // Synthetic probe traffic tags itself with the run ref in a header instead
+  // of a cookie; it joins the same run scope so per-run state (scenario,
+  // config overrides) applies to probe requests too.
+  const probeRef = req.headers['x-synthetic-monitor'];
+  const runRef = (match && match[1]) || (typeof probeRef === 'string' && /^[A-Za-z0-9-]+$/.test(probeRef) ? probeRef : null);
+  if (runRef) {
+    return runWithOncallRun(runRef, () => next());
   }
   next();
 });

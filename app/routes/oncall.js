@@ -14,6 +14,8 @@ const {
   postOncallIncident,
   SEV1_INCIDENTS,
   getSev1State,
+  setOncallConfigOverride,
+  getOncallConfigView,
 } = require('../services/oncall');
 const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 
@@ -193,6 +195,11 @@ function buildOncallShim(scenario, skinSlug) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
+      // Premium accounts are pre-cleared by the compliance program and do
+      // not exhibit the on-call degradation, so on-call pages default the
+      // tier selector to standard.
+      var tierSelect = document.getElementById('accountTier');
+      if (vertical === 'banking' && tierSelect) tierSelect.value = 'standard';
       const origFetch = window.fetch.bind(window);
       window.fetch = function (url, opts) {
         if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
@@ -397,6 +404,38 @@ router.post('/api/oncall/incident', async (req, res) => {
     logger.error('On-Call incident post failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
+});
+
+/**
+ * GET /api/oncall/config — effective runtime config for the caller's run
+ * (oncall_run cookie / x-synthetic-monitor header), or for ?runRef=.
+ * Shows the shipped defaults, any live per-run override, and its expiry.
+ */
+router.get('/api/oncall/config', (req, res) => {
+  let runRef = null;
+  if (req.query.runRef !== undefined) {
+    if (typeof req.query.runRef !== 'string' || !/^[A-Za-z0-9-]+$/.test(req.query.runRef)) {
+      return res.status(400).json({ ok: false, error: 'runRef must match [A-Za-z0-9-]+' });
+    }
+    runRef = req.query.runRef;
+  }
+  res.json(getOncallConfigView(runRef));
+});
+
+/**
+ * POST /api/oncall/config — register a per-run runtime config override (the
+ * mitigation surface for on-call incidents).
+ * Body: { runRef: string, screeningWindowDays?: number, screeningConcurrency?: number }
+ * The runRef comes from the incident (Incident Ref) — explicit so a responder
+ * acting from the incident channel can mitigate without browser cookies. The
+ * override only affects requests scoped to that run and auto-expires with the
+ * incident window, so the shipped configuration is never changed.
+ */
+router.post('/api/oncall/config', (req, res) => {
+  const { runRef, ...patch } = req.body || {};
+  const result = setOncallConfigOverride(runRef, patch);
+  if (!result.ok) return res.status(400).json(result);
+  res.json(result);
 });
 
 /**

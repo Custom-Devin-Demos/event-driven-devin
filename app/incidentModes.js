@@ -22,6 +22,15 @@ let scenarioStartedAt = new Date().toISOString();
 const oncallRunContext = new AsyncLocalStorage();
 const scopedScenarios = new Map();
 
+/**
+ * Per-run runtime config overrides for the On-Call demos. Services read
+ * their operational parameters through getScopedConfig(); an override
+ * registered under a run ref only applies to requests carrying that run's
+ * oncall_run cookie (or synthetic-monitor header), so a responder's
+ * mitigation never changes behavior for anyone else's traffic.
+ */
+const scopedConfigs = new Map();
+
 function runWithOncallRun(runRef, fn) {
   return oncallRunContext.run({ runRef }, fn);
 }
@@ -40,6 +49,20 @@ function setScopedScenario(runRef, scenario) {
 
 function clearScopedScenario(runRef) {
   scopedScenarios.delete(runRef);
+}
+
+function setScopedConfig(runRef, patch) {
+  if (!runRef) throw new Error('runRef is required for a scoped config override');
+  scopedConfigs.set(runRef, { ...(scopedConfigs.get(runRef) || {}), ...patch });
+}
+
+function getScopedConfig() {
+  const runRef = getOncallRunRef();
+  return (runRef && scopedConfigs.get(runRef)) || {};
+}
+
+function clearScopedConfig(runRef) {
+  scopedConfigs.delete(runRef);
 }
 
 function getScenario() {
@@ -81,4 +104,7 @@ module.exports = {
   getOncallRunRef,
   setScopedScenario,
   clearScopedScenario,
+  setScopedConfig,
+  getScopedConfig,
+  clearScopedConfig,
 };
