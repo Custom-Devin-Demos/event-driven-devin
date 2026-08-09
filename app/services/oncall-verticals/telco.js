@@ -83,7 +83,7 @@ function calculateProration(currentRate, targetRate, billingDay) {
 /**
  * Upgrade a customer's plan.
  */
-async function upgradePlan(data) {
+async function upgradePlan(data, options = {}) {
   const startTime = Date.now();
   const upgradeId = uuidv4();
 
@@ -178,6 +178,7 @@ async function upgradePlan(data) {
         route: '/api/oncall/telco/upgrade',
         service: 'telco-api',
         targetPlan: data.targetPlanCode,
+        ...(options.synthetic ? { synthetic_probe: 'true' } : {}),
       },
       extra: { upgradeId, accountId: data.accountId, currentPlan: data.currentPlanCode },
     });

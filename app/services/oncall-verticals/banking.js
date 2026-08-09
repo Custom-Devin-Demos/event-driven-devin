@@ -98,7 +98,7 @@ function formatReceipt(transfer, feeBreakdown) {
 /**
  * Process a fund transfer between accounts.
  */
-async function processTransfer(data) {
+async function processTransfer(data, options = {}) {
   const startTime = Date.now();
   const transferId = uuidv4();
 
@@ -172,6 +172,7 @@ async function processTransfer(data) {
         route: '/api/oncall/banking/transfer',
         service: 'banking-api',
         accountTier: data.accountTier,
+        ...(options.synthetic ? { synthetic_probe: 'true' } : {}),
       },
       extra: { transferId, fromAccount: data.fromAccount, toAccount: data.toAccount, amount: data.amount },
     });

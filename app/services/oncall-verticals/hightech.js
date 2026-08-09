@@ -206,6 +206,7 @@ async function provisionLicense(data, options = {}) {
         route: '/api/oncall/licenses/provision',
         service: 'licensing-api',
         plan: data.planName,
+        ...(options.synthetic ? { synthetic_probe: 'true' } : {}),
       },
       extra: { licenseId, orgName: data.orgName, seats: data.seats },
     });
