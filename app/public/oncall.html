@@ -350,11 +350,13 @@
           ? '<span class="state-resolved">resolved</span>'
           : i.status === 'resolve_failed'
           ? '<span class="state-failed">auto-resolve failed \u2014 resolve in Datadog</span>'
+          : i.status === 'window_elapsed'
+          ? '<span class="state-failed">window ended \u2014 resolve in Datadog</span>'
             : i.publicId
             ? '<span class="state-live">live \u2014 incident channel #sev-1-incident-' + escapeHtml(i.publicId) + '-\u2026 in Slack</span>'
             : '<span class="state-live">live \u2014 posted to the alerts channel (Datadog not configured)</span>';
         return (i.publicId ? 'IR-' + escapeHtml(i.publicId) + ' ' : '') + '<span class="state-ref">(' + escapeHtml(i.runRef) + ')</span> ' + state +
-          (i.status !== 'resolved' && i.status !== 'resolve_failed' ? ' <span class="state-ref">\u00b7 ~' + mins + ' min left</span>' : '');
+          (i.status !== 'resolved' && i.status !== 'resolve_failed' && i.status !== 'window_elapsed' ? ' <span class="state-ref">\u00b7 ~' + mins + ' min left</span>' : '');
       }).join('<br>');
     }
 

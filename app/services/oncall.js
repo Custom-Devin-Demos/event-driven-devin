@@ -457,6 +457,10 @@ const INFRA_WINDOW_MS = envNumber(
   10 * 60 * 1000,
 );
 const SEV1_WINDOW_MS = envNumber(process.env.ONCALL_SEV1_WINDOW_MS, 30 * 60 * 1000);
+// When disabled, synthetic probe traffic still stops at window end, but the
+// Datadog incident stays open — Slack's auto-archive (24h) then owns the
+// channel lifecycle and responders close the incident themselves.
+const SEV1_AUTO_RESOLVE = process.env.ONCALL_SEV1_AUTO_RESOLVE !== 'false';
 
 /**
  * Per-run degradation registry: each activation is scoped to its run ref, so
@@ -1196,7 +1200,11 @@ const SEV1_HISTORY_MAX = 20;
 function pruneSev1() {
   while (activeSev1.size > SEV1_HISTORY_MAX) {
     const keys = Array.from(activeSev1.keys());
-    const evict = keys.find((k) => activeSev1.get(k).status === 'resolved') || keys[0];
+    const evict =
+      keys.find((k) =>
+        ['resolved', 'window_elapsed', 'resolve_failed'].includes(activeSev1.get(k).status),
+      ) ||
+      keys[0];
     activeSev1.delete(evict);
   }
 }
@@ -1265,6 +1273,14 @@ async function postOncallIncident(options = {}) {
       const timer = setTimeout(async () => {
         stopSev1Probe(runRef, 'incident window elapsed');
         stopSev1Chatter(runRef, 'incident window elapsed');
+        if (!SEV1_AUTO_RESOLVE) {
+          entry.status = 'window_elapsed';
+          logger.info('SEV-1 window elapsed — leaving Datadog incident open (auto-resolve disabled)', {
+            runRef,
+            publicId: entry.publicId,
+          });
+          return;
+        }
         try {
           const resolved = await resolveDatadogIncident(entry.id);
           if (!resolved) {
