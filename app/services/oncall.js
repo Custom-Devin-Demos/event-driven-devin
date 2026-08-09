@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail } = require('./slack');
+const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } = require('../incidentModes');
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
@@ -509,6 +509,7 @@ function supersedePriorRun(newRunRef) {
   if (prior && prior !== newRunRef) {
     revertScopedInfra(prior, 'superseded by a new run from the same browser');
     stopSev1Probe(prior, 'superseded by a new run from the same browser');
+    stopSev1Chatter(prior, 'superseded by a new run from the same browser');
   }
 }
 
@@ -791,6 +792,28 @@ const SEV1_PROBE_INTERVAL_MS = envNumber(process.env.ONCALL_SEV1_PROBE_INTERVAL_
 const SEV1_PROBE_MAX = envNumber(process.env.ONCALL_SEV1_PROBE_MAX, 25);
 const activeSev1Probes = new Map();
 
+/**
+ * Phased evidence: probe volume ramps through the incident window instead of
+ * arriving at full rate from minute zero, so the telemetry picture develops
+ * over time — early on only sparse, ambiguous failures exist; the failure
+ * signature only becomes statistically visible mid-incident. An investigator
+ * writing an RCA as evidence lands revises it across the phases rather than
+ * concluding everything from the opening snapshot.
+ *
+ * Phase boundaries are fractions of the incident window (at the default
+ * 30-minute window: 0–5, 5–10, 10–15, 15–30 minutes); each phase multiplies
+ * the base probe interval.
+ */
+const SEV1_PROBE_PHASE_BOUNDS = [1 / 6, 1 / 3, 1 / 2];
+const SEV1_PROBE_PHASE_MULTIPLIERS = [6, 3, 1.5, 1];
+
+function sev1ProbePhase(elapsedMs, windowMs) {
+  for (let i = 0; i < SEV1_PROBE_PHASE_BOUNDS.length; i++) {
+    if (elapsedMs < windowMs * SEV1_PROBE_PHASE_BOUNDS[i]) return i;
+  }
+  return SEV1_PROBE_PHASE_BOUNDS.length;
+}
+
 function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   stopSev1Probe(runRef, 'restarted');
   if (activeSev1Probes.size >= SEV1_PROBE_MAX) {
@@ -802,8 +825,9 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   }
   const scenario = ALERT_SCENARIOS[story.vertical];
   const url = `http://127.0.0.1:${process.env.PORT || 3000}${scenario.oncallApiPath}`;
-  const probe = { stopped: false, timer: null, story };
-  const stopAt = Date.now() + windowMs;
+  const probe = { stopped: false, timer: null, story, phase: 0 };
+  const startedAt = Date.now();
+  const stopAt = startedAt + windowMs;
 
   const tick = async () => {
     if (probe.stopped) return;
@@ -832,7 +856,16 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
       stopSev1Probe(runRef, 'window elapsed');
       return;
     }
-    probe.timer = setTimeout(tick, SEV1_PROBE_INTERVAL_MS);
+    const phase = sev1ProbePhase(Date.now() - startedAt, windowMs);
+    if (phase !== probe.phase) {
+      probe.phase = phase;
+      logger.info('SEV-1 synthetic probe phase change', {
+        runRef,
+        phase: phase + 1,
+        intervalMs: SEV1_PROBE_INTERVAL_MS * SEV1_PROBE_PHASE_MULTIPLIERS[phase],
+      });
+    }
+    probe.timer = setTimeout(tick, SEV1_PROBE_INTERVAL_MS * SEV1_PROBE_PHASE_MULTIPLIERS[phase]);
     if (probe.timer.unref) probe.timer.unref();
   };
 
@@ -842,7 +875,8 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   logger.info('SEV-1 synthetic probe started', {
     runRef,
     endpoint: scenario.endpoint,
-    intervalMs: SEV1_PROBE_INTERVAL_MS,
+    baseIntervalMs: SEV1_PROBE_INTERVAL_MS,
+    phases: SEV1_PROBE_PHASE_MULTIPLIERS.length,
   });
   return true;
 }
@@ -864,6 +898,210 @@ function stopSev1Probe(runRef, reason) {
     );
     if (!stillActive) story.onProbeStop();
   }
+}
+
+/**
+ * Persona chatter for SEV-1 incident channels. Once Datadog creates the
+ * incident channel, the bot joins it and drips a short, scenario-consistent
+ * responder conversation (detection → confirmation → paging → impact) under
+ * persona display names, so the channel reads like a live response.
+ * Requires bot scopes: channels:read, channels:join, chat:write.customize.
+ */
+const SEV1_CHATTER_LOOKUP_INTERVAL_MS = 15000;
+const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
+// A line more overdue than this at channel discovery is dropped instead of
+// posted late, so a slow Datadog Slack integration never dumps most of the
+// scripted conversation as one burst.
+const SEV1_CHATTER_LATE_GRACE_MS = 90000;
+const activeSev1Chatter = new Map();
+
+function buildSev1Chatter(story) {
+  const scenario = ALERT_SCENARIOS[story.vertical];
+  const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
+  const owner = { username: scenario.owner, icon: ':computer:' };
+  const support = { username: 'Priya Nair (Support Lead)', icon: ':headphones:' };
+  // Timed against the phased probe schedule: the conversation develops with
+  // the telemetry — early messages are ambiguous, a plausible-but-wrong
+  // hypothesis lands mid-incident and is later disconfirmed, and the closing
+  // observations describe the pattern the sustained probe volume has made
+  // visible. Each drop gives an investigator maintaining a live RCA a
+  // concrete reason to revise it. Symptoms and observations only — never the
+  // root cause. `at` is the fraction of the incident window at which the
+  // message posts, so timings track the probe phases at any window length.
+  const byVertical = {
+    banking: [
+      { ...sre, at: 0.003, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. Only a handful of datapoints so far — could be a blip.` },
+      { ...support, at: 0.033, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
+      { ...owner, at: 0.1, text: 'First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.' },
+      { ...sre, at: 0.2, text: 'More traffic hitting the endpoint now — latency is flat at ~9-10s per request regardless of load. Not a blip.' },
+      { ...support, at: 0.267, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
+      { ...owner, at: 0.367, text: 'Gateway team came back: their dashboards are clean, sub-100ms on every call from us. Whatever this is, it’s on our side.' },
+      { ...sre, at: 0.467, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
+      { ...owner, at: 0.567, text: 'With more traces in: the slow span breaks into a series of similar sub-steps back-to-back, each a few hundred ms. Pulling a waterfall for one transfer now.' },
+    ],
+    insurance: [
+      { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
+      { ...support, at: 0.033, text: 'Two policyholders so far reporting claim submissions spinning then erroring. Might be isolated.' },
+      { ...owner, at: 0.1, text: 'Betting this is the adjudication vendor — their status page showed elevated latency earlier this week. Asking them to check.' },
+      { ...sre, at: 0.2, text: 'Volume picking up and it’s not isolated — essentially 100% of submissions now failing 504 after ~8s. Declaring hard outage on the claims path.' },
+      { ...support, at: 0.267, text: 'Complaint volume spiking. Quotes and policy reads are fine — only claim submission is broken.' },
+      { ...owner, at: 0.367, text: 'Vendor came back clean — their API is answering fast and error-free from their side. So the 504s are being manufactured somewhere between us and them.' },
+      { ...sre, at: 0.467, text: 'Interesting: every failure takes almost exactly the same ~7.5s before the 504. That uniformity doesn’t look like a flaky dependency.' },
+      { ...owner, at: 0.567, text: 'Log timelines show each failed request making several similar dependency attempts back-to-back before giving up. Pulling the full request timeline for one claim.' },
+    ],
+    hightech: [
+      { ...sre, at: 0.003, text: `p95 on \`${scenario.endpoint}\` at ~6.8s. Only sparse traffic so far — hard to tell if it’s trending or noise.` },
+      { ...support, at: 0.033, text: 'One enterprise customer flagging slow seat provisioning — activation that used to be instant now takes ~7 seconds per license.' },
+      { ...owner, at: 0.1, text: 'Could be the license DB — we’ve seen slow provisioning before when its connection pool saturates. Checking DB metrics.' },
+      { ...sre, at: 0.2, text: 'With sustained traffic it’s unambiguous: each request is a bit slower than the last, and process RSS is climbing in step with latency.' },
+      { ...support, at: 0.267, text: 'More orgs reporting it now. Symptom is consistent — provisioning works, just slower every time.' },
+      { ...owner, at: 0.367, text: 'DB is exonerated — query times flat, pool healthy. The slowdown is inside the licensing service itself.' },
+      { ...sre, at: 0.467, text: 'Memory trend is monotonic — no plateau, no GC recovery. If this keeps going we’re headed for an OOM restart.' },
+      { ...owner, at: 0.567, text: 'Someone grab a heap snapshot before and after a few provisioning calls — want to see what’s growing before we restart anything and lose the evidence.' },
+    ],
+    telco: [
+      { ...sre, at: 0.003, text: `p95 on \`${scenario.endpoint}\` at ~7.9s vs ~300ms baseline. Few datapoints yet — flagging early.` },
+      { ...support, at: 0.033, text: 'Seeing a dip in upgrade completions on the dashboard — a few subscribers abandoning plan changes mid-flow.' },
+      { ...owner, at: 0.1, text: 'The billing provider deployed yesterday — suspicious timing. Asking them if plan-change calls got slower on their end.' },
+      { ...sre, at: 0.2, text: 'Traffic is up and the picture is consistent: every upgrade pays the same ~8s cost, uniform across subscribers and regions. Not a hot shard.' },
+      { ...support, at: 0.267, text: 'Upgrade completion rate still dropping. Plan browsing and billing views are snappy — only the upgrade action is slow.' },
+      { ...owner, at: 0.367, text: 'Billing provider is clean — their call latencies are unchanged pre/post deploy. Also worth noting the plan-catalog refresh landed around when this started.' },
+      { ...sre, at: 0.467, text: 'The catalog refresh roughly tripled the number of active plans. If upgrade cost scales with catalog size, that would fit both the timing and the uniformity.' },
+      { ...owner, at: 0.567, text: 'Pulling a profile of one upgrade request — want to see whether the time is in rating, rescoring, or persistence before we touch the catalog.' },
+    ],
+  };
+  return byVertical[story.vertical] || [];
+}
+
+function stopSev1Chatter(runRef, reason) {
+  const chatter = activeSev1Chatter.get(runRef);
+  if (!chatter) return;
+  chatter.stopped = true;
+  for (const timer of chatter.timers) clearTimeout(timer);
+  activeSev1Chatter.delete(runRef);
+  logger.info('SEV-1 persona chatter stopped', { runRef, reason });
+}
+
+function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
+  stopSev1Chatter(runRef, 'restarted');
+  const { token } = resolveOncallEnv();
+  if (!token || !publicId) {
+    logger.warn('SEV-1 persona chatter skipped', {
+      runRef,
+      reason: !token ? 'Slack token not configured' : 'incident has no public id',
+    });
+    return false;
+  }
+  const script = buildSev1Chatter(story);
+  if (!script.length) return false;
+
+  // Message timings are anchored here (declaration time), not at channel
+  // discovery, so however long the channel takes to appear the conversation
+  // stays in step with the probe phases; already-due messages post promptly.
+  const declaredAt = Date.now();
+  const chatter = { stopped: false, timers: [] };
+  activeSev1Chatter.set(runRef, chatter);
+  // Datadog names incident channels from a template that includes
+  // `incident-<publicId>-` (e.g. `sev-1-incident-25-<slugified title>`).
+  // Matching on the severity-agnostic marker survives template tweaks.
+  const marker = `incident-${publicId}-`;
+
+  // The script spans most of the window, so keep looking for the channel for
+  // up to half the window (at least the base 12 attempts) — a slow Datadog
+  // Slack integration should delay the chatter, not silently cancel it.
+  const maxAttempts = Math.max(
+    SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS,
+    Math.floor(windowMs / 2 / SEV1_CHATTER_LOOKUP_INTERVAL_MS),
+  );
+  let attempts = 0;
+  const locate = async () => {
+    if (chatter.stopped) return;
+    attempts++;
+    let channel = null;
+    try {
+      channel = await findChannelByNameFragment(token, marker);
+    } catch (error) {
+      logger.warn('SEV-1 chatter channel lookup failed', { runRef, error: error.message });
+    }
+    if (chatter.stopped) return;
+    if (!channel) {
+      if (attempts >= maxAttempts) {
+        logger.warn('SEV-1 incident channel never appeared — skipping persona chatter', { runRef, marker });
+        chatter.stopped = true;
+        activeSev1Chatter.delete(runRef);
+        return;
+      }
+      const timer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
+      if (timer.unref) timer.unref();
+      chatter.timers.push(timer);
+      return;
+    }
+
+    try {
+      await joinChannel(token, channel.id);
+    } catch (error) {
+      // Only Slack API errors that cannot succeed on retry (missing scope,
+      // archived/missing channel, private channel) are permanent; everything
+      // else (ratelimited, internal_error, transport failures, timeouts,
+      // 429s/5xx) retries on the same bounded schedule.
+      const permanent =
+        /Slack API error: (missing_scope|invalid_auth|account_inactive|token_revoked|is_archived|channel_not_found|method_not_supported_for_channel_type)/.test(
+          error.message,
+        );
+      logger.warn('SEV-1 chatter could not join incident channel', {
+        runRef,
+        channel: channel.name,
+        error: error.message,
+        ...(error.message.includes('missing_scope')
+          ? { hint: 'bot needs the channels:join scope' }
+          : {}),
+      });
+      if (chatter.stopped) return;
+      if (permanent || attempts >= maxAttempts) {
+        chatter.stopped = true;
+        activeSev1Chatter.delete(runRef);
+        return;
+      }
+      const timer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
+      if (timer.unref) timer.unref();
+      chatter.timers.push(timer);
+      return;
+    }
+    if (chatter.stopped) return;
+
+    // Lines whose scheduled moment is already well past (slow channel
+    // discovery) are dropped rather than dumped as a burst — the conversation
+    // picks up wherever the incident actually is, in step with the telemetry.
+    const elapsed = Date.now() - declaredAt;
+    const live = script.filter(
+      (line) => Math.round(line.at * windowMs) >= elapsed - SEV1_CHATTER_LATE_GRACE_MS,
+    );
+    logger.info('SEV-1 persona chatter scheduled', {
+      runRef,
+      channel: channel.name,
+      messages: live.length,
+      ...(live.length < script.length ? { skippedOverdue: script.length - live.length } : {}),
+    });
+    // The per-index floor keeps slightly-overdue messages (within the grace
+    // period) posting a few seconds apart, in script order, not as one burst.
+    live.forEach((line, index) => {
+      const timer = setTimeout(async () => {
+        if (chatter.stopped) return;
+        try {
+          await postPersonaMessage(token, channel.id, line.text, line.username, line.icon);
+        } catch (error) {
+          logger.warn('SEV-1 persona message failed', { runRef, error: error.message });
+        }
+      }, Math.max(index * 3000, Math.round(line.at * windowMs) - (Date.now() - declaredAt)));
+      if (timer.unref) timer.unref();
+      chatter.timers.push(timer);
+    });
+  };
+
+  const firstTimer = setTimeout(locate, SEV1_CHATTER_LOOKUP_INTERVAL_MS);
+  if (firstTimer.unref) firstTimer.unref();
+  chatter.timers.push(firstTimer);
+  return true;
 }
 
 function ddIncidentEnv() {
@@ -1001,7 +1239,14 @@ async function postOncallIncident(options = {}) {
 
   if (incident) {
     supersedePriorRun(runRef);
-    startSev1Probe(runRef, story);
+    const probing = startSev1Probe(runRef, story);
+    // Without probe traffic the scripted conversation would describe
+    // telemetry that doesn't exist, so chatter only runs alongside a probe.
+    if (probing) {
+      startSev1Chatter(runRef, story, incident.publicId);
+    } else {
+      logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
+    }
     const entry = {
       runRef,
       kind,
@@ -1019,6 +1264,7 @@ async function postOncallIncident(options = {}) {
     const scheduleResolve = (delayMs, attempt) => {
       const timer = setTimeout(async () => {
         stopSev1Probe(runRef, 'incident window elapsed');
+        stopSev1Chatter(runRef, 'incident window elapsed');
         try {
           const resolved = await resolveDatadogIncident(entry.id);
           if (!resolved) {
