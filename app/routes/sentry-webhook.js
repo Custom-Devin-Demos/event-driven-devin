@@ -133,6 +133,24 @@ function isSyntheticProbeEvent(alertData) {
   });
 }
 
+/**
+ * Errors raised on the on-call demo slice (`/api/oncall/...` routes) belong to
+ * the on-call incident flow — the responders are driven by the alert cards
+ * posted to the on-call channels, never by the legacy Slack-alert/Devin
+ * pipeline. The legacy verticals are untouched: their errors carry
+ * `/api/<vertical>/...` routes and still flow through.
+ */
+function isOncallSliceEvent(alertData) {
+  const tagValues = (alertData.tags || []).flatMap((tag) => {
+    if (Array.isArray(tag)) return tag;
+    if (tag && typeof tag === 'object') return Object.values(tag);
+    return [tag];
+  });
+  return [alertData.culprit, ...tagValues].some(
+    (value) => typeof value === 'string' && value.includes('/api/oncall/'),
+  );
+}
+
 function applyUnicajaBranding(alertData) {
   const tagValues = (alertData.tags || []).flatMap((tag) => {
     if (Array.isArray(tag)) return tag;
@@ -198,6 +216,13 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
         issueTitle: alertData.issueTitle,
       });
       return res.json({ received: true, skipped: true, reason: 'synthetic_probe' });
+    }
+
+    if (isOncallSliceEvent(alertData)) {
+      logger.info('Sentry webhook skipped — on-call slice event', {
+        issueTitle: alertData.issueTitle,
+      });
+      return res.json({ received: true, skipped: true, reason: 'oncall_slice' });
     }
 
     // If a devinUserId/devinOrgId was forwarded via query param (e.g. from the instant path),
