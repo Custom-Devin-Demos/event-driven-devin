@@ -985,6 +985,10 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
   const script = buildSev1Chatter(story);
   if (!script.length) return false;
 
+  // Message timings are anchored here (declaration time), not at channel
+  // discovery, so however long the channel takes to appear the conversation
+  // stays in step with the probe phases; already-due messages post promptly.
+  const declaredAt = Date.now();
   const chatter = { stopped: false, timers: [] };
   activeSev1Chatter.set(runRef, chatter);
   // Datadog names incident channels from a template that includes
@@ -1057,7 +1061,7 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
         } catch (error) {
           logger.warn('SEV-1 persona message failed', { runRef, error: error.message });
         }
-      }, Math.round(line.at * windowMs));
+      }, Math.max(0, Math.round(line.at * windowMs) - (Date.now() - declaredAt)));
       if (timer.unref) timer.unref();
       chatter.timers.push(timer);
     }
@@ -1204,8 +1208,10 @@ async function postOncallIncident(options = {}) {
 
   if (incident) {
     supersedePriorRun(runRef);
-    startSev1Probe(runRef, story);
-    startSev1Chatter(runRef, story, incident.publicId);
+    const probing = startSev1Probe(runRef, story);
+    // Without probe traffic the scripted conversation would describe
+    // telemetry that doesn't exist, so chatter only runs alongside a probe.
+    if (probing) startSev1Chatter(runRef, story, incident.publicId);
     const entry = {
       runRef,
       kind,
