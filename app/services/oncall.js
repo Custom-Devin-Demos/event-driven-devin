@@ -756,7 +756,10 @@ function getInfraState() {
  */
 const CONFIG_OVERRIDE_FIELDS = {
   screeningWindowDays: { min: 1, max: 365 },
-  screeningConcurrency: { min: 1, max: 16 },
+  // The concurrency ceiling keeps a brute-force parallelism bump from clearing
+  // the recovery threshold on its own: at 6, the full 90-day window still
+  // screens above threshold, so the lookback regression must also be fixed.
+  screeningConcurrency: { min: 1, max: 6 },
 };
 const CONFIG_OVERRIDE_TTL_MS = envNumber(process.env.ONCALL_CONFIG_OVERRIDE_TTL_MS, 45 * 60 * 1000);
 // Overrides are keyed by caller-supplied run refs, so the registry is capped
