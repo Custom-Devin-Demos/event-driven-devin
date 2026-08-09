@@ -281,7 +281,8 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_API_KEY` | Datadog API key | Yes (for Docker) |
 | `DD_SITE` | Datadog site (e.g. `us5.datadoghq.com`) | Yes (for Docker) |
 | `DD_INCIDENT_APP_KEY` | Datadog application key for Incident Management (SEV-1 declare/resolve). Owner needs an Incident Management seat. Falls back to `DD_APPLICATION_KEY` | For SEV-1 incidents |
-| `ONCALL_SEV1_WINDOW_MS` | SEV-1 auto-resolve window in ms (default 30 min) | No |
+| `ONCALL_SEV1_WINDOW_MS` | SEV-1 degradation window in ms (default 30 min) | No |
+| `ONCALL_SEV1_AUTO_RESOLVE` | Set to `false` to leave the Datadog incident open when the window ends — degradation and probes still stop, but responders resolve the incident themselves and Slack auto-archives the channel on its own schedule (default `true`) | No |
 | `ONCALL_SEV1_PROBE_INTERVAL_MS` | Delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes (default 10s) | No |
 | `ONCALL_SEV1_PROBE_MAX` | Max concurrent SEV-1 probe loops (default 25) | No |
 | `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
