@@ -381,10 +381,11 @@ router.post('/api/oncall/latency', async (req, res) => {
 
 /**
  * POST /api/oncall/incident — declare a SEV-1 incident.
- * Body: { kind?: 'checkout-gateway'|'db-latency'|'error-budget'|'memory-leak', devinEmail?: string }
- * Activates the matching real degradation, declares a Datadog incident
- * (Datadog creates the Slack incident channel), invites Devin + the DE,
- * and auto-resolves when the degradation window ends.
+ * Body: { kind?: 'banking-transfers'|'insurance-claims'|'licensing-latency'|'telco-upgrades', devinEmail?: string }
+ * Declares a Datadog incident backed by the matching vertical's real
+ * degradation (Datadog creates the Slack incident channel), starts a
+ * synthetic probe loop against the affected endpoint so telemetry records
+ * the failure, and auto-resolves when the incident window ends.
  */
 router.post('/api/oncall/incident', async (req, res) => {
   try {

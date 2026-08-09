@@ -3,6 +3,7 @@ const { processTransfer } = require('../services/oncall-verticals/banking');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
 const { processClaim } = require('../services/oncall-verticals/insurance');
+const { isActiveSev1ProbeRef } = require('../services/oncall');
 
 const router = express.Router();
 
@@ -65,7 +66,7 @@ router.post('/api/oncall/licenses/provision', async (req, res) => {
       planName,
       seats: Math.min(parseInt(req.body.seats, 10) || 10, 250),
       billingCycle: req.body.billingCycle || 'monthly',
-    });
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
     res.json(result);
   } catch (error) {
     res.status(500).json({
