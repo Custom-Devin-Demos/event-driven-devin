@@ -909,6 +909,10 @@ function stopSev1Probe(runRef, reason) {
  */
 const SEV1_CHATTER_LOOKUP_INTERVAL_MS = 15000;
 const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
+// A line more overdue than this at channel discovery is dropped instead of
+// posted late, so a slow Datadog Slack integration never dumps most of the
+// scripted conversation as one burst.
+const SEV1_CHATTER_LATE_GRACE_MS = 90000;
 const activeSev1Chatter = new Map();
 
 function buildSev1Chatter(story) {
@@ -1059,10 +1063,22 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
     }
     if (chatter.stopped) return;
 
-    logger.info('SEV-1 persona chatter scheduled', { runRef, channel: channel.name, messages: script.length });
-    // The per-index floor keeps overdue messages (slow channel discovery)
-    // posting a few seconds apart, in script order, instead of as one burst.
-    script.forEach((line, index) => {
+    // Lines whose scheduled moment is already well past (slow channel
+    // discovery) are dropped rather than dumped as a burst — the conversation
+    // picks up wherever the incident actually is, in step with the telemetry.
+    const elapsed = Date.now() - declaredAt;
+    const live = script.filter(
+      (line) => Math.round(line.at * windowMs) >= elapsed - SEV1_CHATTER_LATE_GRACE_MS,
+    );
+    logger.info('SEV-1 persona chatter scheduled', {
+      runRef,
+      channel: channel.name,
+      messages: live.length,
+      ...(live.length < script.length ? { skippedOverdue: script.length - live.length } : {}),
+    });
+    // The per-index floor keeps slightly-overdue messages (within the grace
+    // period) posting a few seconds apart, in script order, not as one burst.
+    live.forEach((line, index) => {
       const timer = setTimeout(async () => {
         if (chatter.stopped) return;
         try {
@@ -1220,7 +1236,11 @@ async function postOncallIncident(options = {}) {
     const probing = startSev1Probe(runRef, story);
     // Without probe traffic the scripted conversation would describe
     // telemetry that doesn't exist, so chatter only runs alongside a probe.
-    if (probing) startSev1Chatter(runRef, story, incident.publicId);
+    if (probing) {
+      startSev1Chatter(runRef, story, incident.publicId);
+    } else {
+      logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
+    }
     const entry = {
       runRef,
       kind,
