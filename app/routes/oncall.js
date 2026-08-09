@@ -412,9 +412,13 @@ router.post('/api/oncall/incident', async (req, res) => {
  * Shows the shipped defaults, any live per-run override, and its expiry.
  */
 router.get('/api/oncall/config', (req, res) => {
-  const runRef = typeof req.query.runRef === 'string' && /^[A-Za-z0-9-]+$/.test(req.query.runRef)
-    ? req.query.runRef
-    : null;
+  let runRef = null;
+  if (req.query.runRef !== undefined) {
+    if (typeof req.query.runRef !== 'string' || !/^[A-Za-z0-9-]+$/.test(req.query.runRef)) {
+      return res.status(400).json({ ok: false, error: 'runRef must match [A-Za-z0-9-]+' });
+    }
+    runRef = req.query.runRef;
+  }
   res.json(getOncallConfigView(runRef));
 });
 
