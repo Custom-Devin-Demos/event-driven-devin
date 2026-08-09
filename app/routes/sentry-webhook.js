@@ -146,8 +146,12 @@ function isOncallSliceEvent(alertData) {
     if (tag && typeof tag === 'object') return Object.values(tag);
     return [tag];
   });
-  return [alertData.culprit, ...tagValues].some(
-    (value) => typeof value === 'string' && value.includes('/api/oncall/'),
+  // Payload shapes vary: the route tag is the primary signal, but issue-shaped
+  // payloads may carry no event tags, leaving only culprit/title/url — those
+  // reference the service module (oncall-verticals) rather than the route.
+  return [alertData.culprit, alertData.issueTitle, alertData.issueUrl, ...tagValues].some(
+    (value) => typeof value === 'string'
+      && (value.toLowerCase().includes('/api/oncall/') || value.toLowerCase().includes('oncall-verticals')),
   );
 }
 
