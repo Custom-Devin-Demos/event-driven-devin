@@ -805,8 +805,15 @@ function setOncallConfigOverride(runRef, patch) {
   const prior = configOverrides.get(runRef);
   if (prior && prior.timer) clearTimeout(prior.timer);
   while (!prior && configOverrides.size >= CONFIG_OVERRIDE_MAX) {
-    const oldest = configOverrides.keys().next().value;
-    clearOncallConfigOverride(oldest, 'override registry at capacity');
+    const keys = Array.from(configOverrides.keys());
+    // Prefer evicting overrides whose run has no live incident so an open
+    // run's mitigation is only dropped as a last resort.
+    const evict =
+      keys.find((k) => {
+        const live = activeSev1.get(k);
+        return !(live && live.status === 'declared') && !scopedInfra.has(k);
+      }) || keys[0];
+    clearOncallConfigOverride(evict, 'override registry at capacity');
   }
   setScopedConfig(runRef, applied);
   const timer = setTimeout(() => {

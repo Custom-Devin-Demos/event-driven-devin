@@ -161,7 +161,8 @@ Three things are deliberately separate:
 │       ├── offer-affinity-spec.json     # Source of truth for Kroger segment encoding
 │       └── build-offer-features.js      # Materializes the spec into the served feature view
 ├── config/
-│   └── scenarios.json             # Scenario definitions
+│   ├── scenarios.json             # Scenario definitions
+│   └── oncall-compliance.js       # Shipped compliance-screening baseline for the on-call banking path
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
@@ -287,6 +288,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `ONCALL_SEV1_PROBE_INTERVAL_MS` | Base delay between synthetic probe requests against the affected endpoint while a SEV-1 is open, measured from when the previous request completes. The effective delay is this base multiplied per evidence phase (6x/3x/1.5x/1x across the window), so at the default 10s base and 30-min window probes run every ~60s early on and every ~10s in the final phase | No |
 | `ONCALL_SEV1_PROBE_MAX` | Max concurrent SEV-1 probe loops (default 25) | No |
 | `ONCALL_CONFIG_OVERRIDE_TTL_MS` | Lifetime of a per-run config override (`POST /api/oncall/config`, see `config/oncall-compliance.js` for the shipped baseline) when its run has no live incident window to inherit (default 45 min) | No |
+| `ONCALL_CONFIG_OVERRIDE_MAX` | Cap on concurrently registered per-run config overrides; at capacity the oldest override without a live incident is evicted first (default 50) | No |
 | `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
 | `ONCALL_DEMO_BASE_URL` | Base URL for branded demo-page links in skinned on-call alerts (defaults to `https://$DOMAIN_NAME`, then devindemos.com) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
