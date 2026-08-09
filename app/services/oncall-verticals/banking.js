@@ -82,7 +82,7 @@ function effectiveComplianceConfig() {
       : COMPLIANCE_CONFIG.screeningWindowDays,
     screeningConcurrency: Number(override.screeningConcurrency) > 0
       ? Number(override.screeningConcurrency)
-      : COMPLIANCE_CONFIG.screeningConcurrency,
+      : Math.max(1, Math.floor(COMPLIANCE_CONFIG.screeningConcurrency) || 1),
   };
 }
 

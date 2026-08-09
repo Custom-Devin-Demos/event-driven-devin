@@ -776,8 +776,8 @@ function setOncallConfigOverride(runRef, patch) {
   }
   const applied = {};
   for (const [field, value] of Object.entries(patch || {})) {
+    if (!Object.prototype.hasOwnProperty.call(CONFIG_OVERRIDE_FIELDS, field)) continue;
     const spec = CONFIG_OVERRIDE_FIELDS[field];
-    if (!spec) continue;
     const n = Number(value);
     if (!Number.isInteger(n) || n < spec.min || n > spec.max) {
       return { ok: false, error: `${field} must be an integer between ${spec.min} and ${spec.max}` };
