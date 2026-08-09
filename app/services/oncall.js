@@ -525,6 +525,7 @@ function revertScopedInfra(runRef, reason) {
   if (entry.timer) clearTimeout(entry.timer);
   if (entry.scenario) clearScopedScenario(runRef);
   scopedInfra.delete(runRef);
+  clearOncallConfigOverride(runRef, reason);
   // Memory growth is inherently process-wide (RSS); release it only once no
   // other live run still needs it.
   if (entry.memoryGrowth && !Array.from(scopedInfra.values()).some((e) => e.memoryGrowth)) {
@@ -788,11 +789,15 @@ function setOncallConfigOverride(runRef, patch) {
   }
 
   // The override lives as long as the run it belongs to: an open SEV-1's
-  // remaining window when there is one, the standard TTL otherwise.
+  // remaining window, an active infra incident's remaining window, or the
+  // standard TTL for runs with no live incident.
   const sev1 = activeSev1.get(runRef);
+  const infra = scopedInfra.get(runRef);
   const ttlMs = sev1 && sev1.status === 'declared'
     ? Math.max(60000, sev1.resolveAt - Date.now())
-    : CONFIG_OVERRIDE_TTL_MS;
+    : infra
+      ? Math.max(60000, infra.revertAt - Date.now())
+      : CONFIG_OVERRIDE_TTL_MS;
 
   const prior = configOverrides.get(runRef);
   if (prior && prior.timer) clearTimeout(prior.timer);
