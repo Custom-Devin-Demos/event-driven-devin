@@ -792,6 +792,28 @@ const SEV1_PROBE_INTERVAL_MS = envNumber(process.env.ONCALL_SEV1_PROBE_INTERVAL_
 const SEV1_PROBE_MAX = envNumber(process.env.ONCALL_SEV1_PROBE_MAX, 25);
 const activeSev1Probes = new Map();
 
+/**
+ * Phased evidence: probe volume ramps through the incident window instead of
+ * arriving at full rate from minute zero, so the telemetry picture develops
+ * over time — early on only sparse, ambiguous failures exist; the failure
+ * signature only becomes statistically visible mid-incident. An investigator
+ * writing an RCA as evidence lands revises it across the phases rather than
+ * concluding everything from the opening snapshot.
+ *
+ * Phase boundaries are fractions of the incident window (at the default
+ * 30-minute window: 0–5, 5–10, 10–15, 15–30 minutes); each phase multiplies
+ * the base probe interval.
+ */
+const SEV1_PROBE_PHASE_BOUNDS = [1 / 6, 1 / 3, 1 / 2];
+const SEV1_PROBE_PHASE_MULTIPLIERS = [6, 3, 1.5, 1];
+
+function sev1ProbePhase(elapsedMs, windowMs) {
+  for (let i = 0; i < SEV1_PROBE_PHASE_BOUNDS.length; i++) {
+    if (elapsedMs < windowMs * SEV1_PROBE_PHASE_BOUNDS[i]) return i;
+  }
+  return SEV1_PROBE_PHASE_BOUNDS.length;
+}
+
 function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   stopSev1Probe(runRef, 'restarted');
   if (activeSev1Probes.size >= SEV1_PROBE_MAX) {
@@ -803,8 +825,9 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   }
   const scenario = ALERT_SCENARIOS[story.vertical];
   const url = `http://127.0.0.1:${process.env.PORT || 3000}${scenario.oncallApiPath}`;
-  const probe = { stopped: false, timer: null, story };
-  const stopAt = Date.now() + windowMs;
+  const probe = { stopped: false, timer: null, story, phase: 0 };
+  const startedAt = Date.now();
+  const stopAt = startedAt + windowMs;
 
   const tick = async () => {
     if (probe.stopped) return;
@@ -833,7 +856,16 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
       stopSev1Probe(runRef, 'window elapsed');
       return;
     }
-    probe.timer = setTimeout(tick, SEV1_PROBE_INTERVAL_MS);
+    const phase = sev1ProbePhase(Date.now() - startedAt, windowMs);
+    if (phase !== probe.phase) {
+      probe.phase = phase;
+      logger.info('SEV-1 synthetic probe phase change', {
+        runRef,
+        phase: phase + 1,
+        intervalMs: SEV1_PROBE_INTERVAL_MS * SEV1_PROBE_PHASE_MULTIPLIERS[phase],
+      });
+    }
+    probe.timer = setTimeout(tick, SEV1_PROBE_INTERVAL_MS * SEV1_PROBE_PHASE_MULTIPLIERS[phase]);
     if (probe.timer.unref) probe.timer.unref();
   };
 
@@ -843,7 +875,8 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   logger.info('SEV-1 synthetic probe started', {
     runRef,
     endpoint: scenario.endpoint,
-    intervalMs: SEV1_PROBE_INTERVAL_MS,
+    baseIntervalMs: SEV1_PROBE_INTERVAL_MS,
+    phases: SEV1_PROBE_PHASE_MULTIPLIERS.length,
   });
   return true;
 }
@@ -883,34 +916,53 @@ function buildSev1Chatter(story) {
   const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
   const owner = { username: scenario.owner, icon: ':computer:' };
   const support = { username: 'Priya Nair (Support Lead)', icon: ':headphones:' };
+  // Timed against the phased probe schedule (default 30-minute window):
+  // the conversation develops with the telemetry — early messages are
+  // ambiguous, a plausible-but-wrong hypothesis lands mid-incident and is
+  // later disconfirmed, and the closing observations describe the pattern the
+  // sustained probe volume has made visible. Each drop gives an investigator
+  // maintaining a live RCA a concrete reason to revise it. Symptoms and
+  // observations only — never the root cause.
   const byKind = {
     'banking-transfers': [
-      { ...sre, delayMs: 5000, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. No elevated error rate — requests eventually complete.` },
-      { ...support, delayMs: 45000, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
-      { ...owner, delayMs: 90000, text: `Looking. Nothing obvious in recent deploys. The hang is server-side — traces show the whole request pinned in the transfer path, not the DB.` },
-      { ...sre, delayMs: 150000, text: 'Confirmed reproducible on every submission, not load-dependent. Latency is flat at ~9-10s per request. Escalating to SEV-1 response.' },
-      { ...owner, delayMs: 210000, text: 'Can someone pull the trace waterfall for a single slow transfer? Want to see where the time actually goes before we start guessing.' },
+      { ...sre, delayMs: 5000, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. Only a handful of datapoints so far — could be a blip.` },
+      { ...support, delayMs: 60000, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
+      { ...owner, delayMs: 180000, text: 'First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.' },
+      { ...sre, delayMs: 360000, text: 'More traffic hitting the endpoint now — latency is flat at ~9-10s per request regardless of load. Not a blip.' },
+      { ...support, delayMs: 480000, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
+      { ...owner, delayMs: 660000, text: 'Gateway team came back: their dashboards are clean, sub-100ms on every call from us. Whatever this is, it’s on our side.' },
+      { ...sre, delayMs: 840000, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
+      { ...owner, delayMs: 1020000, text: 'With more traces in: the slow span breaks into a series of similar sub-steps back-to-back, each a few hundred ms. Pulling a waterfall for one transfer now.' },
     ],
     'insurance-claims': [
-      { ...sre, delayMs: 5000, text: `5xx monitor firing on \`${scenario.endpoint}\` — 504s on essentially 100% of submissions after an ~8s hang.` },
-      { ...support, delayMs: 45000, text: 'Policyholders can’t file claims at all right now — every portal submission spins and then errors. Complaint volume climbing fast.' },
-      { ...owner, delayMs: 90000, text: 'Upstream adjudication latency looks elevated. Errors are consistent — same failure mode every time, not intermittent.' },
-      { ...sre, delayMs: 150000, text: 'No infra changes in the window. Error rate went from <0.5% baseline to ~100% — this looks like a hard dependency failure or a pathological retry path.' },
-      { ...owner, delayMs: 210000, text: 'Grabbing logs for a failed claim now — want the full request timeline before we decide whether to shed load or fail fast.' },
+      { ...sre, delayMs: 5000, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
+      { ...support, delayMs: 60000, text: 'Two policyholders so far reporting claim submissions spinning then erroring. Might be isolated.' },
+      { ...owner, delayMs: 180000, text: 'Betting this is the adjudication vendor — their status page showed elevated latency earlier this week. Asking them to check.' },
+      { ...sre, delayMs: 360000, text: 'Volume picking up and it’s not isolated — essentially 100% of submissions now failing 504 after ~8s. Declaring hard outage on the claims path.' },
+      { ...support, delayMs: 480000, text: 'Complaint volume spiking. Quotes and policy reads are fine — only claim submission is broken.' },
+      { ...owner, delayMs: 660000, text: 'Vendor came back clean — their API is answering fast and error-free from their side. So the 504s are being manufactured somewhere between us and them.' },
+      { ...sre, delayMs: 840000, text: 'Interesting: every failure takes almost exactly the same ~7.5s before the 504. That uniformity doesn’t look like a flaky dependency.' },
+      { ...owner, delayMs: 1020000, text: 'Log timelines show each failed request making several similar dependency attempts back-to-back before giving up. Pulling the full request timeline for one claim.' },
     ],
     'licensing-latency': [
-      { ...sre, delayMs: 5000, text: `p95 on \`${scenario.endpoint}\` at ~6.8s and trending up. Process RSS is climbing with it.` },
-      { ...owner, delayMs: 45000, text: 'Provisioning has been getting slower all day — each request seems a bit worse than the last. That smells like accumulating state somewhere.' },
-      { ...support, delayMs: 90000, text: 'Enterprise customers flagging slow seat provisioning — one big org says activation that used to be instant now takes ~7 seconds per license.' },
-      { ...sre, delayMs: 150000, text: 'Memory trend is monotonic — no plateau, no GC recovery. If this keeps going we’re headed for an OOM restart. Declaring SEV-1.' },
-      { ...owner, delayMs: 210000, text: 'Someone grab a heap snapshot before and after a few provisioning calls — want to see what’s growing before we restart anything and lose the evidence.' },
+      { ...sre, delayMs: 5000, text: `p95 on \`${scenario.endpoint}\` at ~6.8s. Only sparse traffic so far — hard to tell if it’s trending or noise.` },
+      { ...support, delayMs: 60000, text: 'One enterprise customer flagging slow seat provisioning — activation that used to be instant now takes ~7 seconds per license.' },
+      { ...owner, delayMs: 180000, text: 'Could be the license DB — we’ve seen slow provisioning before when its connection pool saturates. Checking DB metrics.' },
+      { ...sre, delayMs: 360000, text: 'With sustained traffic it’s unambiguous: each request is a bit slower than the last, and process RSS is climbing in step with latency.' },
+      { ...support, delayMs: 480000, text: 'More orgs reporting it now. Symptom is consistent — provisioning works, just slower every time.' },
+      { ...owner, delayMs: 660000, text: 'DB is exonerated — query times flat, pool healthy. The slowdown is inside the licensing service itself.' },
+      { ...sre, delayMs: 840000, text: 'Memory trend is monotonic — no plateau, no GC recovery. If this keeps going we’re headed for an OOM restart.' },
+      { ...owner, delayMs: 1020000, text: 'Someone grab a heap snapshot before and after a few provisioning calls — want to see what’s growing before we restart anything and lose the evidence.' },
     ],
     'telco-upgrades': [
-      { ...sre, delayMs: 5000, text: `p95 on \`${scenario.endpoint}\` at ~7.9s vs ~300ms baseline. Started after the plan-catalog refresh.` },
-      { ...support, delayMs: 45000, text: 'Subscribers abandoning plan changes mid-flow — upgrade completion rate is dropping on the dashboard.' },
-      { ...owner, delayMs: 90000, text: 'The catalog refresh roughly tripled the number of active plans. If upgrade latency scales with catalog size, that would explain the timing.' },
-      { ...sre, delayMs: 150000, text: 'Latency is uniform across subscribers and regions — not a hot shard. Every upgrade pays the same ~8s cost. SEV-1 declared.' },
-      { ...owner, delayMs: 210000, text: 'Pulling a profile of one upgrade request now — want to see whether the time is in rating, rescoring, or persistence before we touch the catalog.' },
+      { ...sre, delayMs: 5000, text: `p95 on \`${scenario.endpoint}\` at ~7.9s vs ~300ms baseline. Few datapoints yet — flagging early.` },
+      { ...support, delayMs: 60000, text: 'Seeing a dip in upgrade completions on the dashboard — a few subscribers abandoning plan changes mid-flow.' },
+      { ...owner, delayMs: 180000, text: 'The billing provider deployed yesterday — suspicious timing. Asking them if plan-change calls got slower on their end.' },
+      { ...sre, delayMs: 360000, text: 'Traffic is up and the picture is consistent: every upgrade pays the same ~8s cost, uniform across subscribers and regions. Not a hot shard.' },
+      { ...support, delayMs: 480000, text: 'Upgrade completion rate still dropping. Plan browsing and billing views are snappy — only the upgrade action is slow.' },
+      { ...owner, delayMs: 660000, text: 'Billing provider is clean — their call latencies are unchanged pre/post deploy. Also worth noting the plan-catalog refresh landed around when this started.' },
+      { ...sre, delayMs: 840000, text: 'The catalog refresh roughly tripled the number of active plans. If upgrade cost scales with catalog size, that would fit both the timing and the uniformity.' },
+      { ...owner, delayMs: 1020000, text: 'Pulling a profile of one upgrade request — want to see whether the time is in rating, rescoring, or persistence before we touch the catalog.' },
     ],
   };
   return byKind[story.kindId] || [];
