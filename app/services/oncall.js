@@ -457,9 +457,9 @@ const INFRA_WINDOW_MS = envNumber(
   10 * 60 * 1000,
 );
 const SEV1_WINDOW_MS = envNumber(process.env.ONCALL_SEV1_WINDOW_MS, 30 * 60 * 1000);
-// When disabled, the degradation and probe traffic still stop at window end,
-// but the Datadog incident stays open — Slack's auto-archive (24h) then owns
-// the channel lifecycle and responders close the incident themselves.
+// When disabled, synthetic probe traffic still stops at window end, but the
+// Datadog incident stays open — Slack's auto-archive (24h) then owns the
+// channel lifecycle and responders close the incident themselves.
 const SEV1_AUTO_RESOLVE = process.env.ONCALL_SEV1_AUTO_RESOLVE !== 'false';
 
 /**
@@ -962,7 +962,9 @@ const SEV1_HISTORY_MAX = 20;
 function pruneSev1() {
   while (activeSev1.size > SEV1_HISTORY_MAX) {
     const keys = Array.from(activeSev1.keys());
-    const evict = keys.find((k) => activeSev1.get(k).status === 'resolved') || keys[0];
+    const evict =
+      keys.find((k) => ['resolved', 'window_elapsed'].includes(activeSev1.get(k).status)) ||
+      keys[0];
     activeSev1.delete(evict);
   }
 }
