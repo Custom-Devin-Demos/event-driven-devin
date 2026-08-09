@@ -118,6 +118,21 @@ function extractAlertData(payload) {
   };
 }
 
+/**
+ * SEV-1 synthetic probes tag the Sentry events they generate with
+ * `synthetic_probe`. Those events are demo evidence for the incident-agent
+ * flow, not new production errors, so they never spawn a Devin session.
+ */
+function isSyntheticProbeEvent(alertData) {
+  return (alertData.tags || []).some((tag) => {
+    if (Array.isArray(tag)) return tag[0] === 'synthetic_probe';
+    if (tag && typeof tag === 'object') {
+      return tag.key === 'synthetic_probe' || 'synthetic_probe' in tag;
+    }
+    return false;
+  });
+}
+
 function applyUnicajaBranding(alertData) {
   const tagValues = (alertData.tags || []).flatMap((tag) => {
     if (Array.isArray(tag)) return tag;
@@ -177,6 +192,13 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
 
   try {
     const alertData = applyUnicajaBranding(extractAlertData(payload));
+
+    if (isSyntheticProbeEvent(alertData)) {
+      logger.info('Sentry webhook skipped — synthetic probe event', {
+        issueTitle: alertData.issueTitle,
+      });
+      return res.json({ received: true, skipped: true, reason: 'synthetic_probe' });
+    }
 
     // If a devinUserId/devinOrgId was forwarded via query param (e.g. from the instant path),
     // attach it so the Devin session is created under the correct user/org.

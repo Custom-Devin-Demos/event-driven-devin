@@ -89,7 +89,7 @@ router.post('/api/oncall/insurance/claim', async (req, res) => {
       claimType: req.body.claimType || 'collision',
       amount: req.body.amount || 5000,
       description: req.body.description || 'Vehicle damage from collision',
-    });
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
     res.json(result);
   } catch (error) {
     const isTimeout = error.code === 'ADJUDICATION_TIMEOUT';

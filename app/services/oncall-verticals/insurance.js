@@ -105,7 +105,7 @@ function lookupPolicy(policyId) {
 /**
  * Process an insurance claim.
  */
-async function processClaim(claimData) {
+async function processClaim(claimData, options = {}) {
   const startTime = Date.now();
   const claimId = uuidv4();
 
@@ -177,6 +177,7 @@ async function processClaim(claimData) {
         route: '/api/oncall/insurance/claim',
         service: 'insurance-api',
         claimType: claimData.claimType,
+        ...(options.synthetic ? { synthetic_probe: 'true' } : {}),
       },
       extra: { claimId, policyId: claimData.policyId, amount: claimData.amount },
     });
