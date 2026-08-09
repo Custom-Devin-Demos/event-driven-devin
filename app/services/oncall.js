@@ -759,6 +759,9 @@ const CONFIG_OVERRIDE_FIELDS = {
   screeningConcurrency: { min: 1, max: 16 },
 };
 const CONFIG_OVERRIDE_TTL_MS = envNumber(process.env.ONCALL_CONFIG_OVERRIDE_TTL_MS, 45 * 60 * 1000);
+// Overrides are keyed by caller-supplied run refs, so the registry is capped
+// like the other per-run registries; the oldest override is evicted first.
+const CONFIG_OVERRIDE_MAX = envNumber(process.env.ONCALL_CONFIG_OVERRIDE_MAX, 50);
 const configOverrides = new Map();
 
 function clearOncallConfigOverride(runRef, reason) {
@@ -801,6 +804,10 @@ function setOncallConfigOverride(runRef, patch) {
 
   const prior = configOverrides.get(runRef);
   if (prior && prior.timer) clearTimeout(prior.timer);
+  while (!prior && configOverrides.size >= CONFIG_OVERRIDE_MAX) {
+    const oldest = configOverrides.keys().next().value;
+    clearOncallConfigOverride(oldest, 'override registry at capacity');
+  }
   setScopedConfig(runRef, applied);
   const timer = setTimeout(() => {
     clearOncallConfigOverride(runRef, 'override TTL elapsed');
@@ -816,6 +823,7 @@ function setOncallConfigOverride(runRef, patch) {
     ok: true,
     runRef,
     applied,
+    fields: configOverrides.get(runRef).fields,
     expiresAt: new Date(Date.now() + ttlMs).toISOString(),
   };
 }
