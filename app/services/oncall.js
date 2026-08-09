@@ -2,7 +2,8 @@ const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage } = require('./slack');
-const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario } = require('../incidentModes');
+const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
+const COMPLIANCE_DEFAULTS = require('../../config/oncall-compliance').banking;
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
 /**
@@ -514,6 +515,7 @@ function supersedePriorRun(newRunRef) {
     revertScopedInfra(prior, 'superseded by a new run from the same browser');
     stopSev1Probe(prior, 'superseded by a new run from the same browser');
     stopSev1Chatter(prior, 'superseded by a new run from the same browser');
+    clearOncallConfigOverride(prior, 'superseded by a new run from the same browser');
   }
 }
 
@@ -745,6 +747,92 @@ function getInfraState() {
 }
 
 /**
+ * Per-run runtime config overrides — the mitigation surface for the on-call
+ * demos. A responder registers an override for their run ref (e.g. reverting
+ * the compliance screening parameters); only requests scoped to that run see
+ * it, and it auto-expires so the app returns to its shipped (degraded)
+ * configuration for the next demo. The shipped config itself never changes.
+ */
+const CONFIG_OVERRIDE_FIELDS = {
+  screeningWindowDays: { min: 1, max: 365 },
+  screeningConcurrency: { min: 1, max: 16 },
+};
+const CONFIG_OVERRIDE_TTL_MS = envNumber(process.env.ONCALL_CONFIG_OVERRIDE_TTL_MS, 45 * 60 * 1000);
+const configOverrides = new Map();
+
+function clearOncallConfigOverride(runRef, reason) {
+  const entry = configOverrides.get(runRef);
+  if (!entry) return;
+  if (entry.timer) clearTimeout(entry.timer);
+  configOverrides.delete(runRef);
+  clearScopedConfig(runRef);
+  logger.info('On-Call config override cleared', { runRef, reason });
+}
+
+function setOncallConfigOverride(runRef, patch) {
+  if (!runRef || !/^[A-Za-z0-9-]+$/.test(runRef)) {
+    return { ok: false, error: 'A valid runRef is required' };
+  }
+  const applied = {};
+  for (const [field, value] of Object.entries(patch || {})) {
+    const spec = CONFIG_OVERRIDE_FIELDS[field];
+    if (!spec) continue;
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < spec.min || n > spec.max) {
+      return { ok: false, error: `${field} must be an integer between ${spec.min} and ${spec.max}` };
+    }
+    applied[field] = n;
+  }
+  if (Object.keys(applied).length === 0) {
+    return { ok: false, error: `No recognized config fields. Supported: ${Object.keys(CONFIG_OVERRIDE_FIELDS).join(', ')}` };
+  }
+
+  // The override lives as long as the run it belongs to: an open SEV-1's
+  // remaining window when there is one, the standard TTL otherwise.
+  const sev1 = activeSev1.get(runRef);
+  const ttlMs = sev1 && sev1.status === 'declared'
+    ? Math.max(60000, sev1.resolveAt - Date.now())
+    : CONFIG_OVERRIDE_TTL_MS;
+
+  const prior = configOverrides.get(runRef);
+  if (prior && prior.timer) clearTimeout(prior.timer);
+  setScopedConfig(runRef, applied);
+  const timer = setTimeout(() => {
+    clearOncallConfigOverride(runRef, 'override TTL elapsed');
+  }, ttlMs);
+  if (timer.unref) timer.unref();
+  configOverrides.set(runRef, {
+    fields: { ...((prior && prior.fields) || {}), ...applied },
+    timer,
+    expiresAt: Date.now() + ttlMs,
+  });
+  logger.info('On-Call config override set', { runRef, applied, ttlMs });
+  return {
+    ok: true,
+    runRef,
+    applied,
+    expiresAt: new Date(Date.now() + ttlMs).toISOString(),
+  };
+}
+
+/**
+ * Effective compliance config for the caller's run (or an explicit runRef):
+ * shipped defaults with any live override applied.
+ */
+function getOncallConfigView(explicitRunRef) {
+  const runRef = explicitRunRef || getOncallRunRef();
+  const entry = runRef ? configOverrides.get(runRef) : null;
+  const override = entry ? entry.fields : (explicitRunRef ? {} : getScopedConfig());
+  return {
+    runRef: runRef || null,
+    defaults: { ...COMPLIANCE_DEFAULTS },
+    override,
+    effective: { ...COMPLIANCE_DEFAULTS, ...override },
+    overrideExpiresAt: entry ? new Date(entry.expiresAt).toISOString() : null,
+  };
+}
+
+/**
  * SEV-1 incident stories. Each is backed by one of the on-call vertical
  * services' real, always-present performance defects — the same code paths
  * the alert demos exercise — so the investigation lands on genuine
@@ -758,7 +846,7 @@ const SEV1_INCIDENTS = {
     label: 'Fund transfers degraded — banking-api p95 10x baseline',
     title: 'Fund transfers degraded — p95 latency 10x baseline on banking-api',
     summary: 'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Transfers eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
-    probeBody: { amount: 250 },
+    probeBody: { amount: 250, accountTier: 'standard' },
   },
   'insurance-claims': {
     vertical: 'insurance',
@@ -1273,6 +1361,7 @@ async function postOncallIncident(options = {}) {
       const timer = setTimeout(async () => {
         stopSev1Probe(runRef, 'incident window elapsed');
         stopSev1Chatter(runRef, 'incident window elapsed');
+        clearOncallConfigOverride(runRef, 'incident window elapsed');
         if (!SEV1_AUTO_RESOLVE) {
           entry.status = 'window_elapsed';
           logger.info('SEV-1 window elapsed — leaving Datadog incident open (auto-resolve disabled)', {
@@ -1418,4 +1507,6 @@ module.exports = {
   SEV1_INCIDENTS,
   getSev1State,
   isActiveSev1ProbeRef,
+  setOncallConfigOverride,
+  getOncallConfigView,
 };
