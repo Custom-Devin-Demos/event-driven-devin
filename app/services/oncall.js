@@ -1201,7 +1201,9 @@ function pruneSev1() {
   while (activeSev1.size > SEV1_HISTORY_MAX) {
     const keys = Array.from(activeSev1.keys());
     const evict =
-      keys.find((k) => ['resolved', 'window_elapsed'].includes(activeSev1.get(k).status)) ||
+      keys.find((k) =>
+        ['resolved', 'window_elapsed', 'resolve_failed'].includes(activeSev1.get(k).status),
+      ) ||
       keys[0];
     activeSev1.delete(evict);
   }
