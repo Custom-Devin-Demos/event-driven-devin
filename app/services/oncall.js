@@ -1020,7 +1020,8 @@ function stopSev1Probe(runRef, reason) {
  * incident channel, the bot joins it and drips a short, scenario-consistent
  * responder conversation (detection → confirmation → paging → impact) under
  * persona display names, so the channel reads like a live response.
- * Requires bot scopes: channels:read, channels:join, chat:write.customize.
+ * Requires bot scopes: channels:read, channels:join, chat:write.customize
+ * (plus users:read.email and channels:write.invites for participant invites).
  */
 const SEV1_CHATTER_LOOKUP_INTERVAL_MS = 15000;
 const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
@@ -1198,8 +1199,9 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, de
     }
     if (chatter.stopped) return;
 
-    await inviteIncidentParticipants(token, channel.id, devinEmail);
-    if (chatter.stopped) return;
+    // Fire-and-forget: the invite must not delay chatter scheduling — a slow
+    // lookup would eat into the elapsed budget and drop borderline lines.
+    inviteIncidentParticipants(token, channel.id, devinEmail).catch(() => {});
 
     // Lines whose scheduled moment is already well past (slow channel
     // discovery) are dropped rather than dumped as a burst — the conversation

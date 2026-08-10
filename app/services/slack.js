@@ -471,26 +471,32 @@ async function joinChannel(token, channelId) {
 async function inviteToChannel(token, channelId, userIds) {
   const users = (userIds || []).filter(Boolean);
   if (!token || !channelId || !users.length) return false;
-  try {
-    const response = await axios.post(`${SLACK_API_BASE}/conversations.invite`, {
-      channel: channelId,
-      users: users.join(','),
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    });
-    if (!response.data.ok && response.data.error !== 'already_in_channel') {
-      logger.warn('Slack channel invite failed', { channel: channelId, error: response.data.error });
-      return false;
+  // One call per user so a failure for one participant (commonly
+  // already_in_channel when Devin auto-joined on its own) is attributed to
+  // that user and never obscures whether the others were invited.
+  let anyInvited = false;
+  for (const user of users) {
+    try {
+      const response = await axios.post(`${SLACK_API_BASE}/conversations.invite`, {
+        channel: channelId,
+        users: user,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000,
+      });
+      if (response.data.ok || response.data.error === 'already_in_channel') {
+        anyInvited = true;
+      } else {
+        logger.warn('Slack channel invite failed', { channel: channelId, user, error: response.data.error });
+      }
+    } catch (error) {
+      logger.warn('Slack channel invite request failed', { channel: channelId, user, error: error.message });
     }
-    return true;
-  } catch (error) {
-    logger.warn('Slack channel invite request failed', { channel: channelId, error: error.message });
-    return false;
   }
+  return anyInvited;
 }
 
 /**
