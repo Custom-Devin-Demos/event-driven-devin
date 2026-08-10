@@ -73,6 +73,27 @@ Three things are deliberately separate:
 
 `SECOND_ORDER_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec and the build's missing coverage gate — explicitly instructing it to fix the data problem rather than patch the crash site. Regression coverage for both paths lives in `tests/kroger-offer-affinity.test.js`.
 
+### S&P Global feed-migration parity scenario
+
+The S&P Global Market Intelligence vertical (`/spglobal`, slug `da6578ee`) plants **one field-mapping gap with two symptoms**, aimed at a data-platform audience mid-migration from legacy feed handlers onto a Databricks/Delta lakehouse. Wave 3 onboarded a `depositary_receipt` instrument class mapped to the `equity_adr` contract code, but that code was never given a contract:
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `normalizeMigratedRow()` | Dereferences the missing contract's `priceScale` and throws | `TypeError` → Sentry → Slack → Devin session |
+| `runParityCheck()` | Cannot normalize those rows, so it holds them out of the comparison population and divides matches by what is left | HTTP 200 reporting `parity_match_rate = 1.0`. Only `feed.parity_coverage` sits below 1.0 |
+
+The silent half is the point: a migration that reports 100% parity on a population it silently narrowed is worse than one that reports a failure — the excluded class never lands in Delta.
+
+**The defect originates in the pipeline, not the route.** `pipelines/spgi/feed-mapping-spec.json` is the source of truth for instrument-class mapping; `pipelines/spgi/build-feed-contract.js` materializes it into `app/services/verticals/features/da6578ee-feed-contract.json`, which the service loads at require time. A class declared in `instrumentClasses` with no entry under `contracts` builds clean — the build has no coverage gate, which is what lets the gap ship.
+
+Three things are deliberately separate:
+
+- **The defect is left in place** so Devin performs the fix live. To run the demo pre-fixed, add an `equity_adr` contract to the spec and run `npm run feed:build`. The service `require`s the built artifact, so **restart the server after a rebuild**.
+- **`scripts/spgi-parity-audit.js` is the prevention control** (`npm run audit:spgi`) — it drives every instrument class the *service* can publish through the real parity harness and exits non-zero when a class is undeclared in the spec, mapped inconsistently between spec and service, absent from the contract, or contributing no compared rows. It is not wired into the build, which is why the gap reached production.
+- **`npm run feed:check`** fails when the committed artifact does not match a fresh build of the spec, and `npm test` asserts the same thing byte-for-byte.
+
+`PARITY_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec, the build's missing coverage gate, and the harness's fail-open exclusion logic. Regression coverage for both paths lives in `tests/spgi-feed-parity.test.js`.
+
 ## Repository Structure
 
 ```
@@ -154,12 +175,16 @@ Three things are deliberately separate:
 │   ├── warmup.js                  # Pre-warm the app
 │   ├── welcome-season-sweep.js    # Validates Jan-1 plan card configs before cards mail (exits 1 on defect)
 │   ├── kroger-personalization-audit.js  # Scores every membership tier through the ranker (exits 1 on an unencoded segment)
+│   ├── spgi-parity-audit.js       # Drives every instrument class through the parity harness (exits 1 on an uncovered class)
 │   ├── reset.js                   # Reset scenario to healthy
 │   └── cleanup.js                 # Clean up resources
 ├── pipelines/
-│   └── kroger/
-│       ├── offer-affinity-spec.json     # Source of truth for Kroger segment encoding
-│       └── build-offer-features.js      # Materializes the spec into the served feature view
+│   ├── kroger/
+│   │   ├── offer-affinity-spec.json     # Source of truth for Kroger segment encoding
+│   │   └── build-offer-features.js      # Materializes the spec into the served feature view
+│   └── spgi/
+│       ├── feed-mapping-spec.json       # Source of truth for SPGI instrument-class field mapping
+│       └── build-feed-contract.js       # Materializes the spec into the served feed contract
 ├── config/
 │   ├── scenarios.json             # Scenario definitions
 │   └── oncall-compliance.js       # Shipped compliance-screening baseline for the on-call banking path
@@ -411,6 +436,9 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
 | `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
+| `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
+| `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
+| `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |
 | `npm run demo:trigger` | Trigger an error scenario |
 | `npm run demo:reset` | Reset to healthy state |
 | `npm run demo:warmup` | Pre-warm the app |

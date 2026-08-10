@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&amp;P Global Market Intelligence &mdash; Feed Migration Console</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --spg-red: #d6002a;
+      --spg-red-dark: #a80021;
+      --ink: #101820;
+      --ink-soft: #1c2630;
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --surface: #f7f9fb;
+      --border: #dfe4ea;
+      --border-strong: #c6ced8;
+      --text: #14202b;
+      --text-muted: #55636f;
+      --text-dim: #7d8a96;
+      --ok: #0f7a52;
+      --ok-bg: rgba(15,122,82,0.08);
+      --warn: #a86400;
+      --warn-bg: rgba(168,100,0,0.08);
+      --danger: #c00021;
+      --danger-bg: rgba(192,0,33,0.06);
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Masthead ── */
+    .masthead {
+      background: var(--ink);
+      color: #fff;
+      border-bottom: 3px solid var(--spg-red);
+    }
+    .masthead-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+    }
+    .logo { height: 26px; display: block; }
+    .logo-fallback {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .brand-divider { width: 1px; height: 26px; background: rgba(255,255,255,0.28); }
+    .brand-unit {
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: #f1f3f5;
+    }
+    .masthead-spacer { flex: 1; }
+    .masthead-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.72);
+    }
+    .masthead-meta strong { color: #fff; font-weight: 600; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--spg-red);
+      display: grid; place-items: center;
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+    }
+
+    /* ── Sub nav ── */
+    .subnav {
+      background: var(--ink-soft);
+      color: rgba(255,255,255,0.82);
+    }
+    .subnav-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 1.75rem;
+      display: flex;
+      gap: 1.9rem;
+      font-size: 0.82rem;
+    }
+    .subnav-inner a {
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      padding: 0.7rem 0;
+      border-bottom: 2px solid transparent;
+    }
+    .subnav-inner a.active { color: #fff; border-bottom-color: var(--spg-red); font-weight: 600; }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 1.9rem 1.75rem 3.5rem; }
+    .page-head { display: flex; align-items: flex-end; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .page-head h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.025em; }
+    .page-head p { color: var(--text-muted); font-size: 0.88rem; margin-top: 0.3rem; }
+    .wave-chip {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      background: #fff;
+      border: 1px solid var(--border-strong);
+      border-left: 3px solid var(--spg-red);
+      padding: 0.42rem 0.7rem;
+      color: var(--text-muted);
+    }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 1080px) { .grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--card); border: 1px solid var(--border); }
+    .card-head {
+      padding: 0.95rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .card-head h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; }
+    .card-head .sub { font-size: 0.75rem; color: var(--text-dim); font-family: var(--mono); }
+    .card-body { padding: 1.2rem; }
+
+    /* ── Jobs table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    thead th {
+      text-align: left;
+      font-size: 0.68rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      font-weight: 600;
+      padding: 0 1.2rem 0.6rem;
+    }
+    tbody td { padding: 0.7rem 1.2rem; border-top: 1px solid var(--border); vertical-align: top; }
+    .job-name { font-weight: 600; }
+    .job-legacy { font-size: 0.74rem; color: var(--text-dim); font-family: var(--mono); }
+    .pill {
+      display: inline-block;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid;
+    }
+    .pill.cutover { color: var(--ok); border-color: rgba(15,122,82,0.35); background: var(--ok-bg); }
+    .pill.in-migration { color: var(--warn); border-color: rgba(168,100,0,0.35); background: var(--warn-bg); }
+    .pill.queued { color: var(--text-dim); border-color: var(--border-strong); background: var(--surface); }
+
+    /* ── Parity panel ── */
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .metric { background: var(--card); padding: 1rem 1.1rem; }
+    .metric-label { font-size: 0.68rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+    .metric-value { font-size: 1.85rem; font-weight: 700; letter-spacing: -0.03em; margin-top: 0.25rem; font-variant-numeric: tabular-nums; }
+    .metric-value.ok { color: var(--ok); }
+    .metric-value.warn { color: var(--warn); }
+    .metric-note { font-size: 0.74rem; color: var(--text-muted); margin-top: 0.15rem; font-family: var(--mono); }
+
+    .diff-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 1.2rem 0 0.55rem;
+    }
+    .diff-head h3 { font-size: 0.8rem; font-weight: 700; }
+    .diff-head span { font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono); }
+    .diff-table { font-family: var(--mono); font-size: 0.74rem; width: 100%; border-collapse: collapse; }
+    .diff-table th {
+      text-align: left; font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 600; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+    }
+    .diff-table td { padding: 0.42rem 0.5rem 0.42rem 0; border-bottom: 1px solid var(--border); }
+    .diff-table td:first-child { padding-left: 0; }
+    .diff-table .match { color: var(--ok); }
+    .provenance {
+      margin-top: 0.9rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      padding-top: 0.7rem;
+    }
+
+    /* ── Publish panel ── */
+    .publish-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
+    .field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .field label { font-size: 0.68rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-dim); font-weight: 600; }
+    .field select, .field input {
+      font-family: var(--sans); font-size: 0.85rem; padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border-strong); background: #fff; color: var(--text); min-width: 220px;
+    }
+    .btn {
+      background: var(--spg-red); color: #fff; border: 0;
+      font-family: var(--sans); font-size: 0.85rem; font-weight: 600;
+      padding: 0.62rem 1.35rem; cursor: pointer;
+    }
+    .btn:hover { background: var(--spg-red-dark); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border-strong); }
+    .btn-secondary:hover { background: var(--surface); }
+    .run-log {
+      margin-top: 1rem; background: var(--ink); color: #d7e0e8;
+      font-family: var(--mono); font-size: 0.74rem; padding: 0.9rem 1rem;
+      max-height: 190px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+    }
+    .run-log .ts { color: #7d8a96; }
+    .run-log .err { color: #ff8390; }
+    .run-log .ok { color: #5fd0a0; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 1.4rem; bottom: 1.4rem; z-index: 60;
+      max-width: 420px; background: #fff; border: 1px solid var(--border-strong);
+      border-left: 4px solid var(--danger); box-shadow: 0 14px 34px rgba(16,24,32,0.18);
+      padding: 0.95rem 1.05rem; opacity: 0; transform: translateY(12px);
+      transition: opacity 0.25s ease, transform 0.25s ease; pointer-events: none;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast h4 { font-size: 0.85rem; font-weight: 700; color: var(--danger); margin-bottom: 0.3rem; }
+    .toast p { font-size: 0.78rem; color: var(--text-muted); }
+    .toast code { font-family: var(--mono); font-size: 0.73rem; color: var(--text); background: var(--danger-bg); padding: 0.1rem 0.3rem; }
+    .toast .meta { margin-top: 0.5rem; font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); display: flex; flex-wrap: wrap; gap: 0.65rem; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.74rem; color: var(--text-dim);
+    }
+    .footer-inner { max-width: 1320px; margin: 0 auto; padding: 1.1rem 1.75rem; display: flex; gap: 1.4rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/e/ee/S%26P_Global_logo.svg"
+           alt="S&amp;P Global"
+           onerror="this.onerror=null;this.style.display='none';document.getElementById('logoFallback').style.display='block';"
+           style="filter: brightness(0) invert(1);">
+      <div class="logo-fallback" id="logoFallback" style="display:none;">S&amp;P Global</div>
+      <div class="brand-divider"></div>
+      <div class="brand-unit">Market Intelligence</div>
+      <div class="masthead-spacer"></div>
+      <div class="masthead-meta">
+        <span>Environment <strong>prod-us-east-1</strong></span>
+        <span>Workspace <strong>mi-data-platform</strong></span>
+        <div class="avatar">DE</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="subnav">
+    <div class="subnav-inner">
+      <a href="#" class="active">Feed Migration</a>
+      <a href="#">Lakehouse Catalog</a>
+      <a href="#">Airflow</a>
+      <a href="#">Data Quality</a>
+      <a href="#">Lineage</a>
+      <a href="#">Runbooks</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="page-head">
+      <div>
+        <h1>Feed Migration Console</h1>
+        <p>Legacy feed handlers &rarr; Databricks Delta on the MI lakehouse. Parity is the cutover gate.</p>
+      </div>
+      <div class="wave-chip" id="waveChip">wave &mdash; &middot; contract @ &mdash;</div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="card-head">
+          <h2>Wave 3 feed jobs</h2>
+          <span class="sub" id="targetTable">&mdash;</span>
+        </div>
+        <div class="card-body" style="padding-bottom: 0.4rem;">
+          <table>
+            <thead>
+              <tr><th>Job</th><th>Legacy system</th><th>Schedule</th><th>Status</th></tr>
+            </thead>
+            <tbody id="jobsBody">
+              <tr><td colspan="4" style="color: var(--text-dim);">Loading feed jobs&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-body" style="border-top: 1px solid var(--border);">
+          <div class="publish-row">
+            <div class="field">
+              <label for="jobSelect">Publish batch</label>
+              <select id="jobSelect">
+                <option value="CIQ-PX-EOD">CIQ-PX-EOD &mdash; Capital IQ EOD Pricing</option>
+                <option value="SNL-FIG-PX">SNL-FIG-PX &mdash; SNL FIG Fixed Income Quotes</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="asOfDate">As of</label>
+              <input id="asOfDate" type="date">
+            </div>
+            <button class="btn" id="publishBtn">Publish to Delta</button>
+            <button class="btn btn-secondary" id="parityBtn">Re-run parity</button>
+          </div>
+          <div class="run-log" id="runLog"><span class="ts">[console]</span> Ready. Wave 3 cutover requires a green parity run before publish.</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Data parity &mdash; legacy vs. migrated</h2>
+          <span class="sub" id="parityRun">&mdash;</span>
+        </div>
+        <div class="card-body">
+          <div class="metrics">
+            <div class="metric">
+              <div class="metric-label">Match rate</div>
+              <div class="metric-value ok" id="matchRate">&mdash;</div>
+              <div class="metric-note" id="matchNote">&mdash;</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Row coverage</div>
+              <div class="metric-value" id="coverage">&mdash;</div>
+              <div class="metric-note" id="coverageNote">&mdash;</div>
+            </div>
+          </div>
+
+          <div class="diff-head">
+            <h3>Column-level diff</h3>
+            <span id="diffCount">&mdash;</span>
+          </div>
+          <table class="diff-table">
+            <thead>
+              <tr><th>Security</th><th>Class</th><th>Legacy px</th><th>Delta px</th><th>Diff</th></tr>
+            </thead>
+            <tbody id="diffBody">
+              <tr><td colspan="5" style="color: var(--text-dim);">Running parity&hellip;</td></tr>
+            </tbody>
+          </table>
+
+          <div class="provenance" id="provenance">&mdash;</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>&copy; 2026 S&amp;P Global Market Intelligence</span>
+      <span>MI Data Platform &mdash; internal</span>
+      <span>Support: #mi-fig-data-eng</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert" aria-live="assertive"></div>
+
+  <script>
+    var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+    var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function log(message, cls) {
+      var el = document.getElementById('runLog');
+      var stamp = new Date().toISOString().slice(11, 19);
+      el.innerHTML += '\n<span class="ts">[' + stamp + ']</span> '
+        + (cls ? '<span class="' + cls + '">' + escapeHtml(message) + '</span>' : escapeHtml(message));
+      el.scrollTop = el.scrollHeight;
+    }
+
+    var toastTimer = null;
+    function showToast(html) {
+      var toast = document.getElementById('toast');
+      toast.innerHTML = html;
+      toast.classList.add('visible');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+    }
+
+    document.getElementById('asOfDate').value = new Date().toISOString().slice(0, 10);
+
+    function loadJobs() {
+      fetch('/api/da6578ee/jobs')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          document.getElementById('waveChip').textContent =
+            data.wave + ' \u00b7 contract @ ' + data.specVersion;
+          document.getElementById('targetTable').textContent = data.targetTable;
+          document.getElementById('jobsBody').innerHTML = data.jobs.map(function (job) {
+            return '<tr>'
+              + '<td><div class="job-name">' + escapeHtml(job.name) + '</div>'
+              + '<div class="job-legacy">' + escapeHtml(job.id) + '</div></td>'
+              + '<td class="job-legacy">' + escapeHtml(job.legacySystem) + '</td>'
+              + '<td class="job-legacy">' + escapeHtml(job.schedule) + '</td>'
+              + '<td><span class="pill ' + escapeHtml(job.status) + '">' + escapeHtml(job.status) + '</span></td>'
+              + '</tr>';
+          }).join('');
+        })
+        .catch(function () {
+          document.getElementById('jobsBody').innerHTML =
+            '<tr><td colspan="4" style="color: var(--text-dim);">Feed job registry unavailable.</td></tr>';
+        });
+    }
+
+    function renderParity(data) {
+      var matchPct = (data.matchRate * 100).toFixed(2) + '%';
+      var coveragePct = (data.coverage * 100).toFixed(2) + '%';
+
+      document.getElementById('matchRate').textContent = matchPct;
+      document.getElementById('matchNote').textContent =
+        data.rowsCompared + ' rows compared \u00b7 ' + data.mismatchedColumns.length + ' column diffs';
+
+      var coverageEl = document.getElementById('coverage');
+      coverageEl.textContent = coveragePct;
+      coverageEl.className = 'metric-value ' + (data.coverage < 1 ? 'warn' : 'ok');
+      document.getElementById('coverageNote').textContent =
+        data.rowsExcluded + ' of ' + data.rowsIn + ' rows held out';
+
+      document.getElementById('parityRun').textContent =
+        'run ' + new Date().toISOString().slice(11, 19) + 'Z';
+      document.getElementById('diffCount').textContent =
+        data.mismatchedColumns.length + ' mismatched columns';
+
+      document.getElementById('diffBody').innerHTML = data.results.map(function (row) {
+        var diff = row.legacy.price_close - row.migrated.price_close;
+        return '<tr>'
+          + '<td>' + escapeHtml(row.securityId) + '</td>'
+          + '<td>' + escapeHtml(row.instrumentClass) + '</td>'
+          + '<td>' + row.legacy.price_close.toFixed(4) + '</td>'
+          + '<td>' + row.migrated.price_close.toFixed(4) + '</td>'
+          + '<td class="' + (diff === 0 ? 'match' : '') + '">' + diff.toFixed(4) + '</td>'
+          + '</tr>';
+      }).join('');
+
+      document.getElementById('provenance').textContent =
+        data.specVersion
+          ? 'feed_field_contract_by_instrument_class @ ' + data.specVersion
+            + ' \u2192 ' + data.targetTable
+          : 'contract version unknown';
+    }
+
+    function loadParity() {
+      return fetch('/api/da6578ee/parity')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || typeof data.matchRate !== 'number') throw new Error('Malformed parity payload');
+          renderParity(data);
+          return data;
+        })
+        .catch(function (err) {
+          console.error('Parity panel failed to load', err);
+          document.getElementById('diffBody').innerHTML =
+            '<tr><td colspan="5" style="color: var(--text-dim);">Parity harness unavailable.</td></tr>';
+          document.getElementById('provenance').textContent = '\u2014';
+          return null;
+        });
+    }
+
+    document.getElementById('parityBtn').addEventListener('click', function () {
+      log('Running parity harness against ' + document.getElementById('jobSelect').value + '\u2026');
+      loadParity().then(function (data) {
+        if (!data) { log('Parity harness unavailable.', 'err'); return; }
+        log('Parity complete: match_rate=' + data.matchRate.toFixed(4)
+          + ' coverage=' + data.coverage.toFixed(4)
+          + ' compared=' + data.rowsCompared + '/' + data.rowsIn, 'ok');
+      });
+    });
+
+    document.getElementById('publishBtn').addEventListener('click', function () {
+      var btn = this;
+      var jobId = document.getElementById('jobSelect').value;
+      var asOfDate = document.getElementById('asOfDate').value;
+
+      btn.disabled = true;
+      log('Publishing ' + jobId + ' batch (as of ' + asOfDate + ') to Delta\u2026');
+
+      fetch('/api/da6578ee/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobId: jobId,
+          asOfDate: asOfDate,
+          devinUserId: DEVIN_USER_ID,
+          devinOrgId: DEVIN_ORG_ID,
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+        .then(function (res) {
+          return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        })
+        .then(function (result) {
+          btn.disabled = false;
+          if (!result.ok || !result.data.success) {
+            log(result.data.errorClass + ': ' + result.data.error, 'err');
+            showToast(
+              '<h4>Publish failed \u2014 ' + escapeHtml(result.data.errorClass || 'InternalError') + '</h4>'
+              + '<p>The migrated publisher could not normalize the batch.<br><code>'
+              + escapeHtml(result.data.error || 'Unknown error') + '</code></p>'
+              + '<div class="meta">'
+              + '<span>Job: ' + escapeHtml(jobId) + '</span>'
+              + '<span>Code: ' + escapeHtml(result.data.code || 'PUBLISH_FAILED') + '</span>'
+              + '<span>Request: ' + escapeHtml(result.data.requestId || 'N/A') + '</span>'
+              + '</div>'
+            );
+            return;
+          }
+          log('Published ' + result.data.rowsPublished + ' rows to ' + result.data.targetTable
+            + ' (run ' + result.data.runId + ')', 'ok');
+          loadParity();
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          log('Network error: ' + err.message, 'err');
+          showToast(
+            '<h4>Network error</h4><p>Unable to reach the publisher.<br><code>'
+            + escapeHtml(err.message) + '</code></p>'
+          );
+        });
+    });
+
+    loadJobs();
+    loadParity();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

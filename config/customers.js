@@ -415,6 +415,10 @@ const CUSTOMERS = {
     label: 'Customer 40CF',
     triggerMode: 'api',
   },
+  da6578ee: {
+    label: 'S&P Global MI — Feed Migration',
+    triggerMode: 'api',
+  },
   '6c89c6b0': {
     label: 'Procurement Resources Library',
     triggerMode: 'api',
