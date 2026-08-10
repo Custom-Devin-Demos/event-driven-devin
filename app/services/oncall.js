@@ -1037,6 +1037,12 @@ function buildSev1Chatter(story) {
   const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
   const owner = { username: scenario.owner, icon: ':computer:' };
   const support = { username: 'Priya Nair (Support Lead)', icon: ':headphones:' };
+  // The mid-incident red-herring hypothesis @-mentions Devin (when its Slack
+  // user is configured) so the responder gets a direct ask to confirm or rule
+  // it out — mirroring how humans loop an investigator into a theory.
+  const devinAsk = process.env.DEVIN_SLACK_USER_ID
+    ? ` <@${process.env.DEVIN_SLACK_USER_ID}> can you check whether it’s actually them?`
+    : '';
   // Timed against the phased probe schedule: the conversation develops with
   // the telemetry — early messages are ambiguous, a plausible-but-wrong
   // hypothesis lands mid-incident and is later disconfirmed, and the closing
@@ -1049,7 +1055,7 @@ function buildSev1Chatter(story) {
     banking: [
       { ...sre, at: 0.003, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. Only a handful of datapoints so far — could be a blip.` },
       { ...support, at: 0.033, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
-      { ...owner, at: 0.1, text: 'First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.' },
+      { ...owner, at: 0.1, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
       { ...sre, at: 0.2, text: 'More traffic hitting the endpoint now — latency is flat at ~9-10s per request regardless of load. Not a blip.' },
       { ...support, at: 0.267, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
       { ...owner, at: 0.367, text: 'Gateway team came back: their dashboards are clean, sub-100ms on every call from us. Whatever this is, it’s on our side.' },
@@ -1059,7 +1065,7 @@ function buildSev1Chatter(story) {
     insurance: [
       { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
       { ...support, at: 0.033, text: 'Two policyholders so far reporting claim submissions spinning then erroring. Might be isolated.' },
-      { ...owner, at: 0.1, text: 'Betting this is the adjudication vendor — their status page showed elevated latency earlier this week. Asking them to check.' },
+      { ...owner, at: 0.1, text: `Betting this is the adjudication vendor — their status page showed elevated latency earlier this week. Asking them to check.${devinAsk}` },
       { ...sre, at: 0.2, text: 'Volume picking up and it’s not isolated — essentially 100% of submissions now failing 504 after ~8s. Declaring hard outage on the claims path.' },
       { ...support, at: 0.267, text: 'Complaint volume spiking. Quotes and policy reads are fine — only claim submission is broken.' },
       { ...owner, at: 0.367, text: 'Vendor came back clean — their API is answering fast and error-free from their side. So the 504s are being manufactured somewhere between us and them.' },
@@ -1069,7 +1075,7 @@ function buildSev1Chatter(story) {
     hightech: [
       { ...sre, at: 0.003, text: `p95 on \`${scenario.endpoint}\` at ~6.8s. Only sparse traffic so far — hard to tell if it’s trending or noise.` },
       { ...support, at: 0.033, text: 'One enterprise customer flagging slow seat provisioning — activation that used to be instant now takes ~7 seconds per license.' },
-      { ...owner, at: 0.1, text: 'Could be the license DB — we’ve seen slow provisioning before when its connection pool saturates. Checking DB metrics.' },
+      { ...owner, at: 0.1, text: `Could be the license DB — we’ve seen slow provisioning before when its connection pool saturates. Checking DB metrics.${devinAsk}` },
       { ...sre, at: 0.2, text: 'With sustained traffic it’s unambiguous: each request is a bit slower than the last, and process RSS is climbing in step with latency.' },
       { ...support, at: 0.267, text: 'More orgs reporting it now. Symptom is consistent — provisioning works, just slower every time.' },
       { ...owner, at: 0.367, text: 'DB is exonerated — query times flat, pool healthy. The slowdown is inside the licensing service itself.' },
@@ -1079,7 +1085,7 @@ function buildSev1Chatter(story) {
     telco: [
       { ...sre, at: 0.003, text: `p95 on \`${scenario.endpoint}\` at ~7.9s vs ~300ms baseline. Few datapoints yet — flagging early.` },
       { ...support, at: 0.033, text: 'Seeing a dip in upgrade completions on the dashboard — a few subscribers abandoning plan changes mid-flow.' },
-      { ...owner, at: 0.1, text: 'The billing provider deployed yesterday — suspicious timing. Asking them if plan-change calls got slower on their end.' },
+      { ...owner, at: 0.1, text: `The billing provider deployed yesterday — suspicious timing. Asking them if plan-change calls got slower on their end.${devinAsk}` },
       { ...sre, at: 0.2, text: 'Traffic is up and the picture is consistent: every upgrade pays the same ~8s cost, uniform across subscribers and regions. Not a hot shard.' },
       { ...support, at: 0.267, text: 'Upgrade completion rate still dropping. Plan browsing and billing views are snappy — only the upgrade action is slow.' },
       { ...owner, at: 0.367, text: 'Billing provider is clean — their call latencies are unchanged pre/post deploy. Also worth noting the plan-catalog refresh landed around when this started.' },
