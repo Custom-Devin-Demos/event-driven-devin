@@ -168,7 +168,7 @@ const server = app.listen(PORT, () => {
   ║                                              ║
   ║  Verticals:                                  ║
   ║    /retail              eCommerce            ║
-  ║    /banking             Apex Bank            ║
+  ║    /banking             CommBank             ║
   ║    /financial-services  Meridian Capital      ║
   ║    /insurance           Shield Insurance     ║
   ║    /cpg                 Harvest Goods        ║

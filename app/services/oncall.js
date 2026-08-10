@@ -37,7 +37,7 @@ const ALERT_SCENARIOS = {
     apiPath: '/api/banking/transfer',
     oncallApiPath: '/api/oncall/banking/transfer',
     owner: 'Jordan Patel (payments-oncall)',
-    brand: 'Apex Bank (Online Banking)',
+    brand: 'CommBank (NetBank)',
     service: 'banking-api',
     endpoint: 'POST /api/oncall/banking/transfer',
     monitor: 'p95 latency — POST /api/oncall/banking/transfer',
