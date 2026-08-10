@@ -24,6 +24,7 @@ router.post('/api/banking/transfer', async (req, res) => {
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
+      sourcePage: req.body.sourcePage,
     });
     res.json(result);
   } catch (error) {
