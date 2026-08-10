@@ -1187,9 +1187,9 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, de
   // Matching on the severity-agnostic marker survives template tweaks.
   const marker = `incident-${publicId}-`;
 
-  // The script spans most of the window, so keep looking for the channel for
-  // up to half the window (at least the base 12 attempts) — a slow Datadog
-  // Slack integration should delay the chatter, not silently cancel it.
+  // Keep looking for the channel for up to half the window (at least the
+  // base 12 attempts) — a slow Datadog Slack integration should delay the
+  // mention-bearing lines, not silently cancel them.
   const maxAttempts = Math.max(
     SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS,
     Math.floor(windowMs / 2 / SEV1_CHATTER_LOOKUP_INTERVAL_MS),
