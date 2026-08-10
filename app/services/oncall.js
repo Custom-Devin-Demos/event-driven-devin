@@ -1597,12 +1597,14 @@ function isActiveSev1ProbeRef(ref) {
  * runs never gate each other.
  */
 function isSev1DebugTimingsUnlocked(vertical, runRef) {
-  const ref = runRef || getOncallRunRef();
-  // Requests with no run scope (no cookie, no probe header) are gated by
-  // every open incident for the vertical, so an unscoped caller can't
-  // sidestep a gate a scoped caller would face.
+  // Only a ref naming a known run counts as scoped; anything else (no
+  // cookie, no probe header, or an unrecognized/expired tag) falls back to
+  // being gated by every open incident for the vertical, so an unscoped
+  // caller can't sidestep a gate a scoped caller would face.
+  const candidate = runRef || getOncallRunRef();
+  const ref = candidate && activeSev1.has(candidate) ? candidate : null;
   const entries = ref
-    ? [activeSev1.get(ref)].filter(Boolean)
+    ? [activeSev1.get(ref)]
     : Array.from(activeSev1.values());
   for (const entry of entries) {
     if (entry.status !== 'declared') continue;
