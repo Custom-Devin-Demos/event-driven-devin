@@ -1109,7 +1109,15 @@ async function inviteIncidentParticipants(token, channelId, devinEmail) {
     triggererId = await lookupSlackUserByEmail(token, devinEmail);
   }
   const devinUserId = process.env.DEVIN_SLACK_USER_ID || null;
-  await inviteToChannel(token, channelId, [triggererId, devinUserId]);
+  const candidates = [triggererId, devinUserId].filter(Boolean);
+  if (!candidates.length) return;
+  const invited = await inviteToChannel(token, channelId, candidates);
+  if (!invited) {
+    logger.warn('No incident participants could be invited', {
+      channel: channelId,
+      hint: 'bot may be missing the channels:write.invites scope',
+    });
+  }
 }
 
 function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, devinEmail = null) {
