@@ -973,7 +973,7 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
         // can distinguish probe requests from user requests.
         headers: {
           'x-synthetic-monitor': runRef,
-          // From the second half of the window on, request per-step
+          // From the final probe phase on, request per-step
           // diagnostic timings — the richer log line a responder would enable
           // once the incident is clearly not a blip. The discriminating
           // evidence (which step eats the latency) only exists in telemetry
@@ -1589,22 +1589,21 @@ function isActiveSev1ProbeRef(ref) {
 
 /**
  * Per-step diagnostic timings are an operational flag responders enable
- * mid-incident (the chatter announces it). While a declared SEV-1 for the
- * vertical is still in its early phases, the x-debug-timings header is a
- * no-op for every caller, so the step-level discriminator only exists in
- * telemetry once the incident reaches its late phase.
+ * mid-incident (the chatter announces it). While the caller's declared SEV-1
+ * for the vertical is still in its early phases, the x-debug-timings header
+ * is a no-op, so the step-level discriminator only exists in telemetry once
+ * that incident reaches its final phase. Scoped to the requesting run — the
+ * probe's runRef header or the oncall_run cookie context — so concurrent
+ * runs never gate each other.
  */
-function isSev1DebugTimingsUnlocked(vertical) {
-  for (const entry of activeSev1.values()) {
-    if (entry.status !== 'declared') continue;
-    const story = SEV1_INCIDENTS[entry.kind];
-    if (!story || story.vertical !== vertical) continue;
-    const windowMs = entry.resolveAt - entry.declaredAt;
-    if (sev1ProbePhase(Date.now() - entry.declaredAt, windowMs) < SEV1_PROBE_PHASE_BOUNDS.length) {
-      return false;
-    }
-  }
-  return true;
+function isSev1DebugTimingsUnlocked(vertical, runRef) {
+  const ref = runRef || getOncallRunRef();
+  const entry = ref ? activeSev1.get(ref) : null;
+  if (!entry || entry.status !== 'declared') return true;
+  const story = SEV1_INCIDENTS[entry.kind];
+  if (!story || story.vertical !== vertical) return true;
+  const windowMs = entry.resolveAt - entry.declaredAt;
+  return sev1ProbePhase(Date.now() - entry.declaredAt, windowMs) >= SEV1_PROBE_PHASE_BOUNDS.length;
 }
 
 module.exports = {

@@ -20,7 +20,8 @@ router.post('/api/oncall/banking/transfer', async (req, res) => {
       userId: req.body.userId || 'usr_banking_1',
     }, {
       synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')),
-      debugTimings: req.get('x-debug-timings') === '1' && isSev1DebugTimingsUnlocked('banking'),
+      debugTimings: req.get('x-debug-timings') === '1'
+        && isSev1DebugTimingsUnlocked('banking', req.get('x-synthetic-monitor')),
     });
     res.json(result);
   } catch (error) {
