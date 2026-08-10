@@ -1115,7 +1115,7 @@ async function inviteIncidentParticipants(token, channelId, devinEmail) {
   if (!invited) {
     logger.warn('No incident participants could be invited', {
       channel: channelId,
-      hint: 'bot may be missing the channels:write.invites scope',
+      hint: 'see the per-user invite warnings for the Slack error codes',
     });
   }
 }
