@@ -125,14 +125,15 @@ async function submitInquiry(inquiry) {
       extra: {
         requestId,
         topic: inquiry.topic,
-        guestEmail: inquiry.email,
       },
     });
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/edaa5b9f.js \u2014 buildInquiryTicket',
+      culprit: error.code === 'TOPIC_UNAVAILABLE'
+        ? 'app/services/verticals/edaa5b9f.js \u2014 resolveSupportQueue'
+        : 'app/services/verticals/edaa5b9f.js \u2014 buildInquiryTicket',
       errorType: error.name || 'Error',
       errorValue: error.message,
       customer: 'edaa5b9f',

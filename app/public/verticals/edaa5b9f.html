@@ -366,6 +366,11 @@
   </script>
   <script>
     var toastTimer = null;
+    function escapeHtml(value) {
+      var div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
     function showToast(html, success) {
       var toast = document.getElementById('toast');
       toast.className = 'toast' + (success ? ' success' : '');
@@ -404,13 +409,13 @@
           showToast(
             '<h4>We couldn\u2019t send your message</h4>' +
             '<p>Something went wrong while routing your inquiry to Guest Services.</p>' +
-            '<code>' + (result.data.errorClass || 'InternalError') + ': ' + (result.data.error || 'Unknown error') + '</code>',
+            '<code>' + escapeHtml(result.data.errorClass || 'InternalError') + ': ' + escapeHtml(result.data.error || 'Unknown error') + '</code>',
             false
           );
         } else {
           showToast(
             '<h4>Message sent</h4>' +
-            '<p>Ticket <strong>' + result.data.ticketId + '</strong> routed to ' + result.data.routedTo + '. We\u2019ll respond by ' + new Date(result.data.respondBy).toLocaleString() + '.</p>',
+            '<p>Ticket <strong>' + escapeHtml(result.data.ticketId) + '</strong> routed to ' + escapeHtml(result.data.routedTo) + '. We\u2019ll respond by ' + new Date(result.data.respondBy).toLocaleString() + '.</p>',
             true
           );
         }
@@ -418,7 +423,7 @@
       .catch(function (err) {
         btn.disabled = false;
         btn.textContent = 'Send Message';
-        showToast('<h4>Network error</h4><p>Unable to reach the server.</p><code>' + err.message + '</code>', false);
+        showToast('<h4>Network error</h4><p>Unable to reach the server.</p><code>' + escapeHtml(err.message) + '</code>', false);
       });
     }
   </script>
