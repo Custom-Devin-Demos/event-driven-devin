@@ -1598,12 +1598,22 @@ function isActiveSev1ProbeRef(ref) {
  */
 function isSev1DebugTimingsUnlocked(vertical, runRef) {
   const ref = runRef || getOncallRunRef();
-  const entry = ref ? activeSev1.get(ref) : null;
-  if (!entry || entry.status !== 'declared') return true;
-  const story = SEV1_INCIDENTS[entry.kind];
-  if (!story || story.vertical !== vertical) return true;
-  const windowMs = entry.resolveAt - entry.declaredAt;
-  return sev1ProbePhase(Date.now() - entry.declaredAt, windowMs) >= SEV1_PROBE_PHASE_BOUNDS.length;
+  // Requests with no run scope (no cookie, no probe header) are gated by
+  // every open incident for the vertical, so an unscoped caller can't
+  // sidestep a gate a scoped caller would face.
+  const entries = ref
+    ? [activeSev1.get(ref)].filter(Boolean)
+    : Array.from(activeSev1.values());
+  for (const entry of entries) {
+    if (entry.status !== 'declared') continue;
+    const story = SEV1_INCIDENTS[entry.kind];
+    if (!story || story.vertical !== vertical) continue;
+    const windowMs = entry.resolveAt - entry.declaredAt;
+    if (sev1ProbePhase(Date.now() - entry.declaredAt, windowMs) < SEV1_PROBE_PHASE_BOUNDS.length) {
+      return false;
+    }
+  }
+  return true;
 }
 
 module.exports = {
