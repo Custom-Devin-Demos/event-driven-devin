@@ -1094,7 +1094,7 @@ function buildSev1Chatter(story) {
       { ...support, at: 0.23, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
       { ...owner, at: 0.28, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
       { ...sre, at: 0.32, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
-      { ...owner, at: 0.37, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
+      { ...owner, at: 0.34, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
       { ...sre, at: 0.43, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
     ],
     insurance: [
