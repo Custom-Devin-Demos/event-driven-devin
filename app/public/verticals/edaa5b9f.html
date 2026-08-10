@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disney.com | The official home for all things Disney</title>
+  <link rel="shortcut icon" href="https://static-mh.content.disney.io/matterhorn/assets/favicon-94e3862e7fb9.ico">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #f9f9f9;
+      color: #253b56;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Top nav */
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid #e4e4e4;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topnav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      padding: 0 20px;
+      height: 56px;
+    }
+    .topnav-logo img { height: 34px; width: auto; display: block; }
+    .topnav-links {
+      display: flex;
+      gap: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #253b56;
+      letter-spacing: 0.2px;
+    }
+    .topnav-links a:hover { color: #1786eb; }
+    .topnav-search {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #d5d5d5;
+      border-radius: 18px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #8a99a8;
+      background: #fff;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      max-height: 560px;
+      overflow: hidden;
+      background: #06264d;
+    }
+    .hero img.hero-bg { width: 100%; display: block; object-fit: cover; }
+    .hero .hero-logo {
+      position: absolute;
+      left: 6%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30%;
+      max-width: 420px;
+    }
+    .hero .hero-cta {
+      position: absolute;
+      left: 6%;
+      bottom: 10%;
+      background: #1786eb;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      padding: 12px 28px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .hero .hero-cta:hover { background: #0f6fc7; }
+
+    /* Card grid */
+    .section { max-width: 1180px; margin: 0 auto; padding: 40px 20px; }
+    .section h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #253b56;
+      margin-bottom: 20px;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+      transition: transform .15s ease, box-shadow .15s ease;
+      cursor: pointer;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.16); }
+    .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .card.square img { aspect-ratio: 1/1; }
+    .card .card-body { padding: 14px 16px 18px; }
+    .card .card-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #1786eb;
+      margin-bottom: 6px;
+    }
+    .card .card-title { font-size: 16px; font-weight: 700; color: #253b56; }
+
+    /* Contact section */
+    .contact-section {
+      background: #06264d;
+      color: #fff;
+      padding: 56px 20px 64px;
+    }
+    .contact-inner { max-width: 720px; margin: 0 auto; }
+    .contact-inner h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .contact-inner p.sub { color: #a9bdd4; font-size: 15px; margin-bottom: 28px; }
+    .contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .contact-form .full { grid-column: 1 / -1; }
+    .contact-form label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #a9bdd4;
+      margin-bottom: 6px;
+    }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #2c4a72;
+      border-radius: 6px;
+      background: #0d3260;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: #6f89a8; }
+    .contact-form textarea { min-height: 110px; resize: vertical; }
+    .contact-submit {
+      grid-column: 1 / -1;
+      justify-self: start;
+      background: #1786eb;
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 13px 34px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .contact-submit:hover { background: #0f6fc7; }
+    .contact-submit:disabled { opacity: 0.6; cursor: default; }
+
+    /* Footer */
+    footer { background: #071c33; color: #a9bdd4; padding: 36px 20px; }
+    .footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13px;
+    }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a:hover { color: #fff; }
+    .footer-social { display: flex; gap: 14px; align-items: center; }
+    .footer-social img { height: 22px; width: 22px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      max-width: 420px;
+      background: #fff;
+      border-left: 4px solid #d0343a;
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      padding: 16px 18px;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .25s ease, transform .25s ease;
+      pointer-events: none;
+      color: #253b56;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast.success { border-left-color: #1b9e58; }
+    .toast h4 { font-size: 14px; margin-bottom: 6px; }
+    .toast p { font-size: 13px; color: #5a6b7d; }
+    .toast code {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      background: #f4f6f8;
+      border-radius: 4px;
+      padding: 6px 8px;
+      color: #b02a30;
+      word-break: break-word;
+    }
+
+    @media (max-width: 860px) {
+      .card-grid { grid-template-columns: 1fr; }
+      .contact-form { grid-template-columns: 1fr; }
+      .topnav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <a class="topnav-logo" href="#">
+        <img src="https://static-mh.content.disney.io/matterhorn/assets/goc/disney_logo_dark@2x-45d70f7dd57b.png" alt="Disney">
+      </a>
+      <div class="topnav-links">
+        <a href="#">Disney+</a>
+        <a href="#">Parks &amp; Travel</a>
+        <a href="#">Movies</a>
+        <a href="#">Shop</a>
+        <a href="#">Games</a>
+        <a href="#">Live Shows</a>
+      </div>
+      <div class="topnav-search">Search Disney.com &#x1F50D;</div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <img class="hero-bg" src="https://lumiere-a.akamaihd.net/v1/images/hb_studio_moana2026_motionbannerstatic_atmospheric_desk_f38a0a49.jpeg" alt="Moana — In Theaters Summer 2026">
+    <img class="hero-logo" src="https://lumiere-a.akamaihd.net/v1/images/hb_moanamotionbanner_logo_desktop_v2_e082a7ab.png" alt="Moana">
+    <a class="hero-cta" href="#">Get Tickets</a>
+  </div>
+
+  <div class="section">
+    <h2>Featured</h2>
+    <div class="card-grid">
+      <div class="card">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/cg_studios_avatarfireandash_pay1sunrise_hz_desktop_a760befb.jpeg" alt="Avatar: Fire and Ash">
+        <div class="card-body">
+          <div class="card-kicker">Movies</div>
+          <div class="card-title">Avatar: Fire and Ash — Now Streaming</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/cg_parks_wdw_broadroomofferfy27q1_hz_desktop_b37c8ce9.jpeg" alt="Walt Disney World Resort offer">
+        <div class="card-body">
+          <div class="card-kicker">Parks &amp; Travel</div>
+          <div class="card-title">Save on Rooms at Walt Disney World Resort</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/cg_dcp_fortnitexdisney_hz_desktop_b48365e0.jpeg" alt="Fortnite x Disney">
+        <div class="card-body">
+          <div class="card-kicker">Games</div>
+          <div class="card-title">Disney Comes to Fortnite</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/cg_wizardsbeyondwaverlyplace_finale_hz_desktop_a963e524.jpeg" alt="Wizards Beyond Waverly Place">
+        <div class="card-body">
+          <div class="card-kicker">TV</div>
+          <div class="card-title">Wizards Beyond Waverly Place — Season Finale</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/cg_disney_disneyxf1_fuelthemagic_hz_desktop_213a294f.jpeg" alt="Disney x F1">
+        <div class="card-body">
+          <div class="card-kicker">Disney x F1</div>
+          <div class="card-title">Fuel the Magic with Disney and Formula 1</div>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/cg_wdw_4_park_magic_ticket_sq_desktop_42369ff4.jpeg" alt="4-Park Magic Ticket">
+        <div class="card-body">
+          <div class="card-kicker">Parks &amp; Travel</div>
+          <div class="card-title">4-Park Magic Ticket from $99 per Day</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-section" id="contact">
+    <div class="contact-inner">
+      <h2>Contact Guest Services</h2>
+      <p class="sub">Questions about Disney+, park reservations, tickets, or an order from shopDisney? Send us a note and our Guest Services team will get back to you.</p>
+      <form class="contact-form" id="contactForm" onsubmit="submitInquiry(event)">
+        <div>
+          <label for="guestName">Name</label>
+          <input type="text" id="guestName" placeholder="Your name" value="Mickey Fan">
+        </div>
+        <div>
+          <label for="guestEmail">Email</label>
+          <input type="email" id="guestEmail" placeholder="you@example.com" value="guest@example.com">
+        </div>
+        <div class="full">
+          <label for="topicSelect">Topic</label>
+          <select id="topicSelect">
+            <option value="streaming" selected>Disney+ &amp; Streaming</option>
+            <option value="parks">Parks &amp; Travel</option>
+            <option value="movies">Movies &amp; Studio</option>
+            <option value="shopping">shopDisney Orders</option>
+            <option value="press">Press &amp; Corporate</option>
+          </select>
+        </div>
+        <div class="full">
+          <label for="guestMessage">Message</label>
+          <textarea id="guestMessage" placeholder="How can we help?">My Disney+ account isn&#39;t streaming in 4K even though I&#39;m on the Premium plan.</textarea>
+        </div>
+        <button type="submit" class="contact-submit" id="contactSubmitBtn">Send Message</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div>&copy; Disney. All Rights Reserved.</div>
+        <div style="margin-top:6px;">Powered by <a href="https://devin.ai" target="_blank" rel="noopener" style="color:#fff;">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms of Use</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Children's Online Privacy Policy</a>
+        <a href="#">Contact Us</a>
+      </div>
+      <div class="footer-social">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/social_footer_dark_icon_facebook_1_204e67b1.png" alt="Facebook">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/social_footer_dark_icon_instagra_1_146378d0.png" alt="Instagram">
+        <img src="https://lumiere-a.akamaihd.net/v1/images/social_footer_dark_icon_youtube_32dc09ed.png" alt="YouTube">
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var toastTimer = null;
+    function escapeHtml(value) {
+      var div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+    function showToast(html, success) {
+      var toast = document.getElementById('toast');
+      toast.className = 'toast' + (success ? ' success' : '');
+      toast.innerHTML = html;
+      requestAnimationFrame(function () { toast.classList.add('visible'); });
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+    }
+
+    function submitInquiry(e) {
+      e.preventDefault();
+      var btn = document.getElementById('contactSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending\u2026';
+
+      fetch('/api/edaa5b9f/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('guestName').value,
+          email: document.getElementById('guestEmail').value,
+          topic: document.getElementById('topicSelect').value,
+          message: document.getElementById('guestMessage').value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        btn.disabled = false;
+        btn.textContent = 'Send Message';
+        if (!result.ok || !result.data.success) {
+          showToast(
+            '<h4>We couldn\u2019t send your message</h4>' +
+            '<p>Something went wrong while routing your inquiry to Guest Services.</p>' +
+            '<code>' + escapeHtml(result.data.errorClass || 'InternalError') + ': ' + escapeHtml(result.data.error || 'Unknown error') + '</code>',
+            false
+          );
+        } else {
+          showToast(
+            '<h4>Message sent</h4>' +
+            '<p>Ticket <strong>' + escapeHtml(result.data.ticketId) + '</strong> routed to ' + escapeHtml(result.data.routedTo) + '. We\u2019ll respond by ' + new Date(result.data.respondBy).toLocaleString() + '.</p>',
+            true
+          );
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        btn.textContent = 'Send Message';
+        showToast('<h4>Network error</h4><p>Unable to reach the server.</p><code>' + escapeHtml(err.message) + '</code>', false);
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
