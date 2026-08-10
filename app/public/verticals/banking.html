@@ -3,141 +3,218 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apex Bank &mdash; Online Banking</title>
+  <title>NetBank &mdash; CommBank</title>
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy: #0C2340; --navy-light: #1a3a5c;
-      --gold: #B5985A; --gold-dim: rgba(181,152,90,0.08);
-      --white: #FFFFFF; --off-white: #F7F5F2; --cream: #FAF8F5;
+      --navy: #1E1E1E; --navy-light: #2D2D2D;
+      --gold: #FFCC00; --gold-dim: rgba(255,204,0,0.10);
+      --cba-yellow: var(--gold); --cba-yellow-dark: var(--gold); --cba-yellow-dim: var(--gold-dim);
+      --cba-black: var(--navy);
+      --white: #FFFFFF; --off-white: #F4F4F4;
       --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
       --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
-      --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
-      --danger: #DC2626; --danger-bg: #FEF2F2; --danger-border: #FECACA;
-      --success: #059669; --success-bg: #ECFDF5; --success-border: #A7F3D0;
-      --serif: 'Playfair Display', Georgia, serif;
-      --sans: 'Source Sans 3', -apple-system, sans-serif;
+      --gray-600: #4B5563; --gray-700: #374151;
+      --link: #0072CF;
+      --danger: #D0021B; --danger-bg: #FDF0F1; --danger-border: #F5C2C7;
+      --success: #007D3C; --success-bg: #EEF7F1; --success-border: #A8D8B9;
+      --sans: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
       --mono: 'IBM Plex Mono', monospace;
-      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--cba-black); line-height: 1.5; -webkit-font-smoothing: antialiased; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     .fade-in { animation: fadeIn 0.5s ease-out both; }
     .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
 
-    .top-bar { background: var(--navy); color: rgba(255,255,255,0.6); font-size: 0.7rem; padding: 0.4rem 2rem; display: flex; justify-content: flex-end; gap: 1.5rem; }
-    .top-bar a { color: rgba(255,255,255,0.6); text-decoration: none; }
-    .top-bar a:hover { color: #fff; }
+    /* Black utility bar */
+    .utility-bar { background: var(--cba-black); color: #fff; font-size: 0.72rem; padding: 0.35rem 2rem; display: flex; align-items: center; gap: 1.5rem; }
+    .utility-bar .spacer { flex: 1; }
+    .utility-bar a { color: rgba(255,255,255,0.85); text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+    .utility-bar a:hover { color: var(--cba-yellow); }
+    .utility-search { background: #3a3a3a; border: none; border-radius: 3px; color: #fff; font-size: 0.72rem; padding: 0.25rem 0.7rem; width: 220px; font-family: var(--sans); }
+    .utility-search::placeholder { color: rgba(255,255,255,0.55); }
+    .logoff { background: var(--cba-yellow); color: var(--cba-black) !important; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 3px; }
+    .logoff:hover { filter: brightness(0.94); color: var(--cba-black) !important; }
 
-    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1.5rem, 4vw, 3rem); height: 68px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
-    .logo { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 0.6rem; letter-spacing: -0.02em; }
-    .logo-mark { width: 32px; height: 32px; background: var(--navy); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--serif); font-weight: 700; font-size: 1.1rem; }
+    /* White nav bar */
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 2rem; height: 58px; display: flex; align-items: center; gap: 1.5rem; box-shadow: var(--shadow-sm); }
+    .logo { font-size: 0.98rem; color: var(--cba-black); display: flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+    .logo strong { font-weight: 800; } .logo span { font-weight: 400; }
+    .logo-mark { width: 22px; height: 22px; position: relative; z-index: 0; flex: none; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; color: var(--cba-black); }
+    .logo-mark::before { content: ''; position: absolute; inset: 1px; background: var(--cba-yellow); transform: rotate(45deg); border-radius: 3px; z-index: -1; }
+    .logo-mark:empty::after { content: ''; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; background: var(--cba-black); transform: translate(-50%, -50%) rotate(45deg); border-radius: 1px; }
     nav { display: flex; gap: 0.25rem; }
-    nav a { color: var(--gray-600); text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.2s; }
-    nav a:hover { background: var(--gray-100); color: var(--navy); }
-    nav a.active { background: var(--navy); color: #fff; }
+    nav a { color: var(--cba-black); text-decoration: none; font-size: 0.8rem; font-weight: 500; padding: 1.05rem 0.85rem; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    nav a:hover { border-bottom-color: var(--gray-300); }
+    nav a.active { border-bottom-color: var(--cba-yellow); font-weight: 700; }
 
-    .page { max-width: 1140px; margin: 0 auto; padding: 1.75rem clamp(1.5rem, 4vw, 3rem); }
-    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--gold); text-decoration: none; font-size: 0.8rem; font-weight: 600; margin-bottom: 1.25rem; }
-    .back-link:hover { color: var(--navy); }
-    .greeting { margin-bottom: 1.75rem; }
-    .greeting h1 { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; color: var(--navy); margin-bottom: 0.15rem; }
-    .greeting p { color: var(--gray-500); font-size: 0.9rem; }
+    /* Yellow greeting banner */
+    .greeting-banner { background: var(--cba-yellow); padding: 1.5rem 2rem 4.5rem; }
+    .greeting-inner { max-width: 1140px; margin: 0 auto; display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+    .greeting-inner h1 { font-size: 1.35rem; font-weight: 800; color: var(--cba-black); letter-spacing: -0.01em; }
+    .greeting-inner p { color: rgba(30,30,30,0.75); font-size: 0.75rem; }
+    .greeting-inner .back-link { margin-left: auto; color: var(--cba-black); font-size: 0.75rem; font-weight: 600; text-decoration: none; }
+    .greeting-inner .back-link:hover { text-decoration: underline; }
 
-    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
-    @media (max-width: 700px) { .accounts { grid-template-columns: 1fr; } }
-    .account-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: box-shadow 0.3s; }
-    .account-card:hover { box-shadow: var(--shadow-md); }
-    .account-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--navy), var(--gold)); }
-    .account-type { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; }
-    .account-balance { font-family: var(--serif); font-size: 2rem; font-weight: 700; color: var(--navy); margin-bottom: 0.2rem; }
-    .account-number { font-family: var(--mono); font-size: 0.78rem; color: var(--gray-400); }
+    /* Layout: content overlaps banner like NetBank */
+    .page { max-width: 1140px; margin: -3.25rem auto 0; padding: 0 2rem 2.5rem; display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+    @media (max-width: 900px) { .page { grid-template-columns: 1fr; } }
 
-    .section-header { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--gold); display: inline-block; }
-    .txn-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 2rem; }
+    /* Accounts panel */
+    .panel { background: var(--white); border: 1px solid var(--gray-200); border-radius: 4px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .account-row { display: flex; align-items: center; gap: 1rem; padding: 1.05rem 1.4rem; border-bottom: 1px solid var(--gray-200); transition: background 0.15s; }
+    .account-row:hover { background: var(--cba-yellow-dim); }
+    .acct-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--gray-300); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex: none; background: var(--gray-50); }
+    .acct-info { flex: 1; min-width: 0; }
+    .acct-name { font-size: 0.85rem; font-weight: 700; color: var(--cba-black); }
+    .acct-number { font-family: var(--mono); font-size: 0.7rem; color: var(--gray-500); }
+    .acct-figures { display: flex; gap: 2.25rem; text-align: right; }
+    .fig-label { font-size: 0.65rem; color: var(--gray-500); }
+    .fig-value { font-size: 0.88rem; font-weight: 700; color: var(--cba-black); }
+    .acct-menu { color: var(--gray-400); font-weight: 700; letter-spacing: 0.1em; padding-left: 0.5rem; }
+    .panel-link { display: block; padding: 0.9rem 1.4rem; font-size: 0.8rem; color: var(--link); text-decoration: none; border-bottom: 1px solid var(--gray-200); }
+    .panel-link:hover { text-decoration: underline; }
+    .totals-row { display: flex; justify-content: space-between; padding: 0.95rem 1.4rem; background: var(--gray-50); }
+    .totals-row .fig-label { margin-bottom: 0.1rem; }
+
+    /* Transactions */
+    .section-title { font-size: 0.95rem; font-weight: 800; color: var(--cba-black); margin: 1.75rem 0 0.7rem; }
     .txn-table { width: 100%; border-collapse: collapse; }
-    .txn-table thead { background: var(--gray-50); }
-    .txn-table th { text-align: left; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--gray-200); }
-    .txn-table td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--gray-100); font-size: 0.88rem; }
-    .txn-table tbody tr:hover td { background: var(--gold-dim); }
+    .txn-table th { text-align: left; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.7rem 1.4rem; border-bottom: 2px solid var(--cba-yellow); background: var(--gray-50); }
+    .txn-table td { padding: 0.8rem 1.4rem; border-bottom: 1px solid var(--gray-100); font-size: 0.83rem; }
+    .txn-table tbody tr:hover td { background: var(--cba-yellow-dim); }
     .txn-table tbody tr:last-child td { border-bottom: none; }
     .credit { color: var(--success); font-weight: 600; }
     .debit { color: var(--gray-700); }
 
-    .transfer-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 2rem; max-width: 580px; }
-    .transfer-card h2 { font-family: var(--serif); font-size: 1.15rem; font-weight: 600; color: var(--navy); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--gold); display: inline-block; }
-    .form-group { margin-bottom: 1.15rem; }
-    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--gray-600); margin-bottom: 0.35rem; }
-    .form-group select, .form-group input { width: 100%; padding: 0.65rem 0.85rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-800); font-family: var(--sans); font-size: 0.9rem; transition: border-color 0.2s, box-shadow 0.2s; }
-    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(12,35,64,0.08); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .btn-transfer { width: 100%; padding: 0.8rem; background: var(--navy); color: #fff; border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s, transform 0.15s; }
-    .btn-transfer:hover { background: var(--navy-light); transform: translateY(-1px); }
-    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .result-box { margin-top: 1rem; padding: 0.85rem 1.15rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+    /* Sidebar */
+    .side-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 4px; box-shadow: var(--shadow-sm); padding: 1.15rem 1.3rem; margin-bottom: 1.25rem; }
+    .side-card p { font-size: 0.83rem; font-weight: 600; color: var(--cba-black); }
+    .side-card a { display: inline-block; margin-top: 0.4rem; font-size: 0.78rem; color: var(--link); text-decoration: none; }
+    .side-card a:hover { text-decoration: underline; }
+
+    .transfer-widget { background: var(--white); border: 1px solid var(--gray-200); border-radius: 4px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .widget-tabs { display: flex; border-bottom: 1px solid var(--gray-200); }
+    .widget-tabs div { flex: 1; text-align: center; padding: 0.75rem; font-size: 0.82rem; font-weight: 600; color: var(--gray-500); border-bottom: 3px solid transparent; }
+    .widget-tabs div.active { color: var(--cba-black); font-weight: 700; border-bottom-color: var(--cba-yellow); }
+    .widget-body { padding: 1.15rem 1.3rem 1.3rem; }
+    .form-group { margin-bottom: 0.9rem; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--cba-black); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.55rem 0.7rem; background: var(--white); border: 1px solid var(--gray-400); border-radius: 3px; color: var(--cba-black); font-family: var(--sans); font-size: 0.83rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--cba-black); box-shadow: 0 0 0 3px rgba(255,204,0,0.4); }
+    .btn-transfer { width: 100%; padding: 0.7rem; background: var(--cba-yellow); color: var(--cba-black); border: none; border-radius: 3px; font-size: 0.85rem; font-weight: 700; font-family: var(--sans); cursor: pointer; transition: background 0.2s; }
+    .btn-transfer:hover { filter: brightness(0.94); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { margin-top: 0.9rem; padding: 0.75rem 0.9rem; border-radius: 3px; font-size: 0.78rem; display: none; }
     .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
     .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
     .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
-    .result-box .error-detail { font-family: var(--mono); font-size: 0.75rem; opacity: 0.85; word-break: break-all; }
-    .security-note { margin-top: 1.5rem; padding: 0.75rem 1rem; background: var(--cream); border-left: 3px solid var(--gold); font-size: 0.78rem; color: var(--gray-500); }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.7rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 1.25rem; padding: 0.7rem 0.9rem; background: var(--cba-yellow-dim); border-left: 4px solid var(--cba-yellow); font-size: 0.72rem; color: var(--gray-600); }
   </style>
 </head>
 <body>
-  <div class="top-bar"><a href="#">Security Center</a><a href="#">Locations</a><a href="#">Contact Us</a></div>
+  <div class="utility-bar">
+    <a href="#">&#128424; Print</a>
+    <div class="spacer"></div>
+    <input class="utility-search" type="text" placeholder="&#128269; Search NetBank" aria-label="Search NetBank">
+    <div class="spacer"></div>
+    <a href="#">&#9432; Help</a>
+    <a href="/" class="logoff">&#128274; Log off</a>
+  </div>
   <header>
-    <div class="logo"><div class="logo-mark">A</div>Apex Bank</div>
-    <nav><a href="#" class="active">Accounts</a><a href="#">Payments</a><a href="#">Transfers</a><a href="#">Investments</a><a href="#">Settings</a></nav>
+    <div class="logo"><strong>Commonwealth</strong><span>Bank</span><div class="logo-mark"></div></div>
+    <nav>
+      <a href="#" class="active">My home</a>
+      <a href="#">View Accounts</a>
+      <a href="#">Transfers &amp; BPAY</a>
+      <a href="#">Offers &amp; Apply</a>
+      <a href="#">Settings</a>
+      <a href="#">Inbox</a>
+    </nav>
   </header>
+  <div class="greeting-banner fade-in">
+    <div class="greeting-inner">
+      <h1>Good morning, Alice</h1>
+      <p>You last logged in 15/03/2026 at 8:42 AM (Syd/Melb time)</p>
+      <a href="/" class="back-link">&larr; All Demos</a>
+    </div>
+  </div>
   <div class="page">
-    <a href="/" class="back-link fade-in">&larr; All Demos</a>
-    <div class="greeting fade-in d1">
-      <h1>Good morning, Alice Chen</h1>
-      <p>Premium Account Holder &middot; Member since 2019</p>
-    </div>
-    <div class="accounts">
-      <div class="account-card fade-in d2">
-        <div class="account-type">Checking Account</div>
-        <div class="account-balance">$24,850.00</div>
-        <div class="account-number">ACCT-1001 &middot; Premium Checking</div>
-      </div>
-      <div class="account-card fade-in d3">
-        <div class="account-type">Savings Account</div>
-        <div class="account-balance">$142,300.00</div>
-        <div class="account-number">ACCT-1002 &middot; High-Yield Savings</div>
-      </div>
-    </div>
-    <div class="fade-in d3">
-      <div class="section-header">Recent Transactions</div>
-      <div class="txn-card">
-        <table class="txn-table">
-          <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
-          <tbody>
-            <tr><td>Mar 15</td><td>Direct Deposit &mdash; Payroll</td><td class="credit">+$4,200.00</td><td>$24,850.00</td></tr>
-            <tr><td>Mar 14</td><td>Whole Foods Market</td><td class="debit">-$127.43</td><td>$20,650.00</td></tr>
-            <tr><td>Mar 13</td><td>Electric Bill &mdash; ConEdison</td><td class="debit">-$89.50</td><td>$20,777.43</td></tr>
-            <tr><td>Mar 12</td><td>Transfer from Savings</td><td class="credit">+$2,000.00</td><td>$20,866.93</td></tr>
-            <tr><td>Mar 10</td><td>Amazon.com</td><td class="debit">-$54.99</td><td>$18,866.93</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="fade-in d4">
-      <div class="transfer-card">
-        <h2>Transfer Funds</h2>
-        <form id="transferForm">
-          <div class="form-row">
-            <div class="form-group"><label>From Account</label><select id="fromAccount"><option value="ACCT-1001">Checking &mdash; ACCT-1001</option><option value="ACCT-1002">Savings &mdash; ACCT-1002</option></select></div>
-            <div class="form-group"><label>To Account</label><select id="toAccount"><option value="ACCT-1002">Savings &mdash; ACCT-1002</option><option value="ACCT-1001">Checking &mdash; ACCT-1001</option><option value="ACCT-EXT-001">External &mdash; Chase ****4921</option></select></div>
+    <div>
+      <div class="panel fade-in d1">
+        <div class="account-row">
+          <div class="acct-icon">&#128179;</div>
+          <div class="acct-info">
+            <div class="acct-name">Smart Access</div>
+            <div class="acct-number">XXX-XXX &middot; ACCT-1001</div>
           </div>
-          <div class="form-group"><label>Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="Enter amount"></div>
-          <div class="form-group"><label>Account Tier</label><select id="accountTier"><option value="premium">Premium (Free transfers)</option><option value="standard">Standard ($2.50/transfer)</option><option value="basic">Basic ($4.99/transfer)</option></select></div>
-          <button type="submit" class="btn-transfer" id="submitBtn">Transfer Funds</button>
-        </form>
-        <div id="result" class="result-box"></div>
-        <div class="security-note">All transfers are protected by 256-bit encryption. Funds are FDIC insured up to $250,000.</div>
+          <div class="acct-figures">
+            <div><div class="fig-label">Balance</div><div class="fig-value">$24,850.00</div></div>
+            <div><div class="fig-label">Available</div><div class="fig-value">$24,850.00</div></div>
+          </div>
+          <div class="acct-menu">&hellip;</div>
+        </div>
+        <div class="account-row">
+          <div class="acct-icon">&#128176;</div>
+          <div class="acct-info">
+            <div class="acct-name">NetBank Saver</div>
+            <div class="acct-number">XXX-XXX &middot; ACCT-1002</div>
+          </div>
+          <div class="acct-figures">
+            <div><div class="fig-label">Balance</div><div class="fig-value">$142,300.00</div></div>
+            <div><div class="fig-label">Available</div><div class="fig-value">$142,300.00</div></div>
+          </div>
+          <div class="acct-menu">&hellip;</div>
+        </div>
+        <a href="#" class="panel-link">Apply for a new product</a>
+        <div class="totals-row">
+          <div><div class="fig-label">Credit balances</div><div class="fig-value">$167,150.00</div></div>
+          <div><div class="fig-label">Debit balances</div><div class="fig-value">$0.00</div></div>
+          <div><div class="fig-label">Net position</div><div class="fig-value">$167,150.00</div></div>
+        </div>
+      </div>
+      <div class="fade-in d2">
+        <div class="section-title">Recent Transactions</div>
+        <div class="panel">
+          <table class="txn-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+            <tbody>
+              <tr><td>15 Mar</td><td>Direct Credit &mdash; Payroll</td><td class="credit">+$4,200.00</td><td>$24,850.00</td></tr>
+              <tr><td>14 Mar</td><td>Woolworths Metro</td><td class="debit">-$127.43</td><td>$20,650.00</td></tr>
+              <tr><td>13 Mar</td><td>Electricity &mdash; AGL Energy</td><td class="debit">-$89.50</td><td>$20,777.43</td></tr>
+              <tr><td>12 Mar</td><td>Transfer from NetBank Saver</td><td class="credit">+$2,000.00</td><td>$20,866.93</td></tr>
+              <tr><td>10 Mar</td><td>Amazon AU</td><td class="debit">-$54.99</td><td>$18,866.93</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="side-card fade-in d2">
+        <p>No payments due in the next 7 days</p>
+        <a href="#">Bills &amp; upcoming payments</a>
+      </div>
+      <div class="side-card fade-in d3">
+        <p>Borrow from $4,000 to $50,000 with a Personal Loan.</p>
+        <a href="#">Tell me more</a>
+      </div>
+      <div class="transfer-widget fade-in d4">
+        <div class="widget-tabs"><div class="active">Transfer</div><div>BPAY</div></div>
+        <div class="widget-body">
+          <form id="transferForm">
+            <div class="form-group"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Smart Access &mdash; ACCT-1001</option><option value="ACCT-1002">NetBank Saver &mdash; ACCT-1002</option></select></div>
+            <div class="form-group"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">NetBank Saver &mdash; ACCT-1002</option><option value="ACCT-1001">Smart Access &mdash; ACCT-1001</option><option value="ACCT-EXT-001">External &mdash; Westpac ****4921</option></select></div>
+            <div class="form-group"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$"></div>
+            <div class="form-group"><label for="accountTier">Account Tier</label><select id="accountTier"><option value="premium">Premium (Free transfers)</option><option value="standard">Standard ($2.50/transfer)</option><option value="basic">Basic ($4.99/transfer)</option></select></div>
+            <button type="submit" class="btn-transfer" id="submitBtn">Transfer Funds</button>
+          </form>
+          <div id="result" class="result-box"></div>
+          <div class="security-note">Transfers are protected by NetCode and 256-bit encryption. Deposits guaranteed under the Financial Claims Scheme up to $250,000.</div>
+        </div>
       </div>
     </div>
   </div>
