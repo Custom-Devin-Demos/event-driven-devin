@@ -463,6 +463,37 @@ async function joinChannel(token, channelId) {
 }
 
 /**
+ * Invite users to a channel the bot is a member of. Best-effort: any
+ * failure (user already in the channel, missing scope, unknown user) is
+ * logged and swallowed so incident handling never depends on it.
+ * Requires the `channels:write.invites` scope.
+ */
+async function inviteToChannel(token, channelId, userIds) {
+  const users = (userIds || []).filter(Boolean);
+  if (!token || !channelId || !users.length) return false;
+  try {
+    const response = await axios.post(`${SLACK_API_BASE}/conversations.invite`, {
+      channel: channelId,
+      users: users.join(','),
+    }, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 10000,
+    });
+    if (!response.data.ok && response.data.error !== 'already_in_channel') {
+      logger.warn('Slack channel invite failed', { channel: channelId, error: response.data.error });
+      return false;
+    }
+    return true;
+  } catch (error) {
+    logger.warn('Slack channel invite request failed', { channel: channelId, error: error.message });
+    return false;
+  }
+}
+
+/**
  * Post a message under a persona display name/emoji instead of the bot's
  * own identity. Requires the `chat:write.customize` scope.
  */
@@ -516,4 +547,5 @@ module.exports = {
   postDevinSessionLink,
   postThreadReply,
   lookupSlackUserByEmail,
+  inviteToChannel,
 };

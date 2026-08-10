@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage } = require('./slack');
+const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const COMPLIANCE_DEFAULTS = require('../../config/oncall-compliance').banking;
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
@@ -1097,7 +1097,21 @@ function stopSev1Chatter(runRef, reason) {
   logger.info('SEV-1 persona chatter stopped', { runRef, reason });
 }
 
-function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
+/**
+ * Best-effort invite of the incident participants (the human who triggered
+ * the run and the Devin responder) into the incident channel. Every lookup
+ * or invite failure is swallowed so the chatter flow is never affected.
+ */
+async function inviteIncidentParticipants(token, channelId, devinEmail) {
+  let triggererId = null;
+  if (devinEmail && EMAIL_RE.test(devinEmail)) {
+    triggererId = await lookupSlackUserByEmail(token, devinEmail);
+  }
+  const devinUserId = process.env.DEVIN_SLACK_USER_ID || null;
+  await inviteToChannel(token, channelId, [triggererId, devinUserId]);
+}
+
+function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, devinEmail = null) {
   stopSev1Chatter(runRef, 'restarted');
   const { token } = resolveOncallEnv();
   if (!token || !publicId) {
@@ -1182,6 +1196,9 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS) {
       chatter.timers.push(timer);
       return;
     }
+    if (chatter.stopped) return;
+
+    await inviteIncidentParticipants(token, channel.id, devinEmail);
     if (chatter.stopped) return;
 
     // Lines whose scheduled moment is already well past (slow channel
@@ -1362,7 +1379,7 @@ async function postOncallIncident(options = {}) {
     // Without probe traffic the scripted conversation would describe
     // telemetry that doesn't exist, so chatter only runs alongside a probe.
     if (probing) {
-      startSev1Chatter(runRef, story, incident.publicId);
+      startSev1Chatter(runRef, story, incident.publicId, SEV1_WINDOW_MS, options.devinEmail);
     } else {
       logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
     }
