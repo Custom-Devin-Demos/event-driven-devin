@@ -1099,18 +1099,21 @@ function stopSev1Chatter(runRef, reason) {
 }
 
 /**
- * Best-effort invite of the human who triggered the run into the incident
+ * Best-effort invite of the incident participants (the human who triggered
+ * the run and the Devin responder via DEVIN_SLACK_USER_ID) into the incident
  * channel. Every lookup or invite failure is swallowed so the chatter flow
- * is never affected. (Devin joins on its own via its Slack integration's
- * incident-channel auto-join.)
+ * is never affected.
  */
 async function inviteIncidentParticipants(token, channelId, devinEmail) {
-  if (!devinEmail || !EMAIL_RE.test(devinEmail)) return;
-  const triggererId = await lookupSlackUserByEmail(token, devinEmail);
-  if (!triggererId) return;
-  const invited = await inviteToChannel(token, channelId, [triggererId]);
+  let triggererId = null;
+  if (devinEmail && EMAIL_RE.test(devinEmail)) {
+    triggererId = await lookupSlackUserByEmail(token, devinEmail);
+  }
+  const candidates = [triggererId, process.env.DEVIN_SLACK_USER_ID].filter(Boolean);
+  if (!candidates.length) return;
+  const invited = await inviteToChannel(token, channelId, candidates);
   if (!invited) {
-    logger.warn('Incident triggerer could not be invited', {
+    logger.warn('No incident participants could be invited', {
       channel: channelId,
       hint: 'see the per-user invite warnings for the Slack error codes',
     });
