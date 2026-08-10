@@ -928,10 +928,11 @@ const activeSev1Probes = new Map();
  * concluding everything from the opening snapshot.
  *
  * Phase boundaries are fractions of the incident window (at the default
- * 30-minute window: 0–3, 3–6, 6–10.5, 10.5–30 minutes); each phase
- * multiplies the base probe interval.
+ * 30-minute window: 0–1.5, 1.5–2.7, 2.7–4, 4–30 minutes); each phase
+ * multiplies the base probe interval. The whole evidence arc plays out in
+ * the first few minutes so it lands before a fast responder converges.
  */
-const SEV1_PROBE_PHASE_BOUNDS = [0.1, 0.2, 0.35];
+const SEV1_PROBE_PHASE_BOUNDS = [0.05, 0.09, 0.135];
 const SEV1_PROBE_PHASE_MULTIPLIERS = [6, 3, 1.5, 1];
 
 function sev1ProbePhase(elapsedMs, windowMs) {
@@ -1086,12 +1087,16 @@ function buildSev1Chatter(story) {
   const byVertical = {
     banking: [
       { ...sre, at: 0.003, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. Only a handful of datapoints so far — could be a blip.` },
-      { ...support, at: 0.033, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
-      { ...owner, at: 0.083, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
-      { ...support, at: 0.117, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
-      ...(devinFixAsk ? [{ ...owner, at: 0.15, mustPost, text: devinFixAsk }] : []),
-      { ...sre, at: 0.183, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
-      { ...support, at: 0.23, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
+      { ...support, at: 0.02, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
+      { ...owner, at: 0.04, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
+      { ...support, at: 0.055, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
+      ...(devinFixAsk ? [{ ...owner, at: 0.07, mustPost, text: devinFixAsk }] : []),
+      { ...sre, at: 0.085, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
+      { ...support, at: 0.10, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
+      { ...owner, at: 0.113, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
+      { ...sre, at: 0.122, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
+      { ...owner, at: 0.13, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
+      { ...sre, at: 0.16, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
     ],
     insurance: [
       { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
