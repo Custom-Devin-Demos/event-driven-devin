@@ -203,7 +203,7 @@ function runParityCheck(batch = SAMPLE_BATCH) {
     wave: FEED_CONTRACT.migrationWave,
   });
   if (excluded.length) {
-    incrementMetric('feed.rows_excluded_from_parity', {
+    recordMetric('feed.rows_excluded_from_parity', excluded.length, {
       route: '/api/da6578ee/parity',
       wave: FEED_CONTRACT.migrationWave,
     });

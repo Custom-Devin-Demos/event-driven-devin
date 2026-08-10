@@ -74,7 +74,8 @@ function main() {
   // A class can be mapped and still contribute nothing to parity if every one of its rows
   // is held out. Gate on rows actually compared rather than on the headline match rate,
   // which reads 1.00 precisely when the population is empty of the rows that would fail.
-  const uncompared = results.filter((row) => row.mapped && row.sampleRows > 0 && row.rowsCompared === 0);
+  // A class with no sample rows at all fails the same way: the audit cannot show it landing.
+  const uncompared = results.filter((row) => row.mapped && row.rowsCompared === 0);
 
   if (process.argv.includes('--json')) {
     process.stdout.write(`${JSON.stringify({
