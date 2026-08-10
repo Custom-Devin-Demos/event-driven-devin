@@ -1092,10 +1092,6 @@ function buildSev1Chatter(story) {
       ...(devinFixAsk ? [{ ...owner, at: 0.15, mustPost, text: devinFixAsk }] : []),
       { ...sre, at: 0.183, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
       { ...support, at: 0.23, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
-      { ...owner, at: 0.28, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
-      { ...sre, at: 0.32, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
-      { ...owner, at: 0.34, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
-      { ...sre, at: 0.43, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
     ],
     insurance: [
       { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
