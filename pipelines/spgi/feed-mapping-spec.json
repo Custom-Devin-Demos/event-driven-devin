@@ -1,0 +1,63 @@
+{
+  "specVersion": "2026.02",
+  "owner": "mi-fig-data-engineering",
+  "description": "Field-mapping contract for wave 3 of the legacy feed-system migration onto the Market Intelligence lakehouse. Each instrument class declares how the legacy feed record maps onto the Delta target columns, plus the price scale the legacy handler applied before publishing. The parity harness compares legacy output against the migrated PySpark output using these contracts.",
+  "contractView": "feed_field_contract_by_instrument_class",
+  "migrationWave": "wave-3-capitaliq-pricing",
+  "targetTable": "mi_lakehouse.silver.security_pricing",
+  "columnVocabulary": [
+    "security_id",
+    "as_of_date",
+    "price_close",
+    "price_currency",
+    "volume",
+    "corporate_action_factor"
+  ],
+  "instrumentClasses": {
+    "common_stock": "equity_common",
+    "preferred_stock": "equity_preferred",
+    "corporate_bond": "fixed_income_corp",
+    "depositary_receipt": "equity_adr"
+  },
+  "contracts": {
+    "equity_common": {
+      "sourceFeed": "capitaliq_pricing_v2",
+      "dailyRowCount": 41822300,
+      "priceScale": 1,
+      "columns": {
+        "security_id": "CIQ_SEC_ID",
+        "as_of_date": "PRICING_DT",
+        "price_close": "PX_LAST",
+        "price_currency": "PX_CCY",
+        "volume": "VOL_TRD",
+        "corporate_action_factor": "CA_ADJ_FACTOR"
+      }
+    },
+    "equity_preferred": {
+      "sourceFeed": "capitaliq_pricing_v2",
+      "dailyRowCount": 3104900,
+      "priceScale": 1,
+      "columns": {
+        "security_id": "CIQ_SEC_ID",
+        "as_of_date": "PRICING_DT",
+        "price_close": "PX_LAST",
+        "price_currency": "PX_CCY",
+        "volume": "VOL_TRD",
+        "corporate_action_factor": "CA_ADJ_FACTOR"
+      }
+    },
+    "fixed_income_corp": {
+      "sourceFeed": "snl_fig_pricing_v1",
+      "dailyRowCount": 12660400,
+      "priceScale": 0.01,
+      "columns": {
+        "security_id": "SNL_INSTR_KEY",
+        "as_of_date": "QUOTE_DT",
+        "price_close": "CLEAN_PX",
+        "price_currency": "QUOTE_CCY",
+        "volume": "PAR_TRADED",
+        "corporate_action_factor": "PX_ADJ_FACTOR"
+      }
+    }
+  }
+}
