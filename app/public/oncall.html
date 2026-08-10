@@ -91,7 +91,6 @@
     .card-vertical { margin-bottom:8px; }
     .card-brand { font:500 20px/1.15 var(--serif); color:var(--ink); margin-bottom:8px; }
     .card-desc { font-size:15px; color:var(--muted); line-height:1.6; display:block; overflow:visible; }
-    #sev1-list { font-family:var(--mono); min-width:0; }
     .fire-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border:1px solid var(--ink); border-radius:6px; background:transparent; color:var(--ink); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:all .2s; }
     .fire-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
     .fire-btn.sev { border-color:var(--ink); background:var(--ink); color:#fff; }
@@ -116,8 +115,6 @@
     .wide-cta { margin-top:auto; color:var(--accent); font-size:13px; text-transform:none; }
     #incident-kind { width:100%; margin-bottom:8px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:13px var(--sans); background:var(--paper); color:var(--ink); }
     #incident-kind:focus { outline:2px solid var(--accent); outline-offset:2px; }
-    #sev1-list { margin-top:8px; font-size:11px; line-height:1.6; color:var(--muted); border-top:1px solid var(--line); padding-top:8px; }
-    #sev1-list:empty { border-top:0; padding-top:0; }
     .state-resolved { color:var(--success); } .state-failed { color:var(--danger); } .state-live { color:var(--warning); } .state-ref { color:var(--muted-2); }
     footer { background:var(--paper); border-top:1px solid var(--line); color:var(--ink); padding:48px 40px 36px; }
     .footer-top { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:32px; margin-bottom:40px; }
@@ -233,7 +230,6 @@
             <select id="incident-kind"></select>
             <button class="fire-btn sev" id="incident-btn">Declare SEV-1 Incident</button>
             <div class="status" id="incident-status"></div>
-            <div id="sev1-list"></div>
           </div>
         </div>
       </div>
@@ -341,35 +337,6 @@
       return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function renderSev1List(items) {
-      const el = document.getElementById('sev1-list');
-      if (!items || !items.length) { el.innerHTML = ''; return; }
-      el.innerHTML = items.slice().reverse().slice(0, 5).map(function (i) {
-        const mins = Math.ceil(i.msRemaining / 60000);
-        const state = i.status === 'resolved'
-          ? '<span class="state-resolved">resolved</span>'
-          : i.status === 'resolve_failed'
-          ? '<span class="state-failed">auto-resolve failed \u2014 resolve in Datadog</span>'
-          : i.status === 'window_elapsed'
-          ? '<span class="state-failed">window ended \u2014 resolve in Datadog</span>'
-            : i.publicId
-            ? '<span class="state-live">live \u2014 incident channel #sev-1-incident-' + escapeHtml(i.publicId) + '-\u2026 in Slack</span>'
-            : '<span class="state-live">live \u2014 posted to the alerts channel (Datadog not configured)</span>';
-        return (i.publicId ? 'IR-' + escapeHtml(i.publicId) + ' ' : '') + '<span class="state-ref">(' + escapeHtml(i.runRef) + ')</span> ' + state +
-          (i.status !== 'resolved' && i.status !== 'resolve_failed' && i.status !== 'window_elapsed' ? ' <span class="state-ref">\u00b7 ~' + mins + ' min left</span>' : '');
-      }).join('<br>');
-    }
-
-    async function pollSev1State() {
-      if (document.hidden) return;
-      try {
-        const items = await fetch('/api/oncall/incident/state').then((r) => r.json());
-        renderSev1List(items);
-      } catch (e) { /* transient */ }
-    }
-    setInterval(pollSev1State, 5000);
-    pollSev1State();
-
     document.getElementById('incident-btn').onclick = async () => {
       const status = document.getElementById('incident-status');
       const btn = document.getElementById('incident-btn');
@@ -380,7 +347,6 @@
         const { status: code, data } = await post('/api/oncall/incident', { kind: kind });
         if (code === 200 && data.provider === 'datadog') {
           show(status, true, 'SEV-1 declared (IR-' + (data.publicId || data.id) + ', ref ' + data.runRef + '). Slack channel incoming\u2026');
-          pollSev1State();
         } else {
           show(status, code === 200,
             code === 200
