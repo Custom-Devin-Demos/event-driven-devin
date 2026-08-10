@@ -308,11 +308,6 @@ router.get('/cba', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'cba.html'));
 });
 
-// Disney customer demo — friendly public URL, serves the edaa5b9f page (hidden from hub)
-router.get('/disney', (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'edaa5b9f.html'));
-});
-
 // Kroger customer demo — friendly public URL, serves the eaa595e1 page (hidden from hub)
 router.get('/kroger', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'eaa595e1.html'));
