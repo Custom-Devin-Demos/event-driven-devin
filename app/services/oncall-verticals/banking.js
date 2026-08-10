@@ -172,7 +172,7 @@ async function processTransfer(data, options = {}) {
   });
 
   try {
-    const screening = await runComplianceScreening(data.fromAccount, data.accountTier);
+    await runComplianceScreening(data.fromAccount, data.accountTier);
 
     const tier = resolveFeeTier(data.accountTier);
     const fee = calculateTransferFee(tier, data.amount);
@@ -192,7 +192,6 @@ async function processTransfer(data, options = {}) {
     logger.info('Transfer completed', {
       transferId,
       durationMs: duration,
-      screenedTransactions: screening.screened,
       service: 'banking-api',
     });
 
