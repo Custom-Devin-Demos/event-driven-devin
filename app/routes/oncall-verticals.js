@@ -18,7 +18,10 @@ router.post('/api/oncall/banking/transfer', async (req, res) => {
       amount: req.body.amount || 500,
       accountTier: req.body.accountTier || 'standard',
       userId: req.body.userId || 'usr_banking_1',
-    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    }, {
+      synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')),
+      debugTimings: req.get('x-debug-timings') === '1',
+    });
     res.json(result);
   } catch (error) {
     const statusCode = error.code === 'INSUFFICIENT_FUNDS' ? 422 : 500;

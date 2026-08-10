@@ -16,11 +16,8 @@ const ACCOUNTS = [
 ];
 
 /**
- * Recent transactions considered by compliance screening. AML rules require
- * every outgoing transfer to be screened against the sender's recent activity
- * window before funds move. `daysAgo` positions each transaction relative to
- * today; the compliance config's screeningWindowDays selects how far back
- * screening reaches.
+ * Recent account activity. `daysAgo` positions each transaction relative to
+ * today.
  */
 const ACCOUNT_HISTORY = [
   { id: 'TXN-001', daysAgo: 1, description: 'Direct Deposit - Payroll', amount: 3250.00, counterparty: 'ADP Payroll' },
@@ -62,6 +59,33 @@ const ACCOUNT_HISTORY = [
 ];
 
 /**
+ * Payments gateway submission policy. Timeout and backoff were raised after
+ * the gateway brownouts in June (PAY-3311); retries are capped at 3 attempts
+ * per transfer.
+ */
+const GATEWAY_RETRY_POLICY = {
+  maxAttempts: 3,
+  timeoutMs: 4000,
+  backoffMs: 750,
+};
+
+/**
+ * Fraud velocity model parameters. Cache TTL was dropped to 500ms after the
+ * stale-score incident (FRAUD-207) — effectively every transfer rescoring
+ * from scratch until the model team ships v3.
+ */
+const RISK_MODEL = {
+  version: 'v2',
+  velocityLookbackDays: 30,
+  cacheTtlMs: 500,
+};
+const RISK_CACHE_MAX_ENTRIES = 500;
+const riskScoreCache = new Map();
+
+// Simulated transient-failure rate for the gateway's settlement endpoint.
+const GATEWAY_TRANSIENT_FAILURE_RATE = 0.002;
+
+/**
  * Transfer fee tiers by account type
  */
 const FEE_TIERS = {
@@ -71,8 +95,7 @@ const FEE_TIERS = {
 };
 
 /**
- * Effective compliance parameters: the shipped config, with any per-run
- * override registered for the caller's on-call run applied on top.
+ * Effective compliance parameters for this request.
  */
 function effectiveComplianceConfig() {
   const override = getScopedConfig();
@@ -88,7 +111,6 @@ function effectiveComplianceConfig() {
 
 /**
  * Screen a single historical transaction against the sanctions watchlist.
- * Round-trips to the screening partner (p50 ~250ms).
  */
 async function screenTransaction(txn) {
   await new Promise((resolve) => setTimeout(resolve, 180 + Math.random() * 140));
@@ -96,15 +118,9 @@ async function screenTransaction(txn) {
 }
 
 /**
- * Run AML screening over the sender's recent activity window.
- * Every transaction in the window must clear before the transfer proceeds.
- *
- * Premium accounts are enrolled in the pre-cleared counterparty program:
- * their counterparties are re-screened out of band every night, so the
- * transfer path only performs a cache check.
- *
- * For other tiers, the screened window is bounded by screeningWindowDays and
- * partner calls run in batches of screeningConcurrency.
+ * Run AML screening over the sender's recent activity window. Every
+ * transaction in the window must clear before the transfer proceeds.
+ * Premium accounts use the pre-cleared counterparty cache path.
  */
 async function runComplianceScreening(fromAccount, accountTier) {
   const tierKey = String(accountTier || '').toLowerCase();
@@ -121,6 +137,54 @@ async function runComplianceScreening(fromAccount, accountTier) {
     results.push(...await Promise.all(batch.map((txn) => screenTransaction(txn))));
   }
   return { account: fromAccount, screened: results.length, cleared: results.every((r) => r.cleared) };
+}
+
+/**
+ * Score transfer velocity against the sender's recent activity. Applies to
+ * every tier — fraud rules do not exempt premium accounts.
+ */
+async function scoreTransferRisk(fromAccount, amount) {
+  const cacheKey = `${fromAccount}:${Number(amount) || 0}:${RISK_MODEL.version}`;
+  const cached = riskScoreCache.get(cacheKey);
+  if (cached) {
+    if (Date.now() - cached.at < RISK_MODEL.cacheTtlMs) return cached.score;
+    riskScoreCache.delete(cacheKey);
+  }
+  const window = ACCOUNT_HISTORY.filter((txn) => txn.daysAgo <= RISK_MODEL.velocityLookbackDays);
+  await new Promise((resolve) => setTimeout(resolve, 20 + Math.random() * 20));
+  const outflow = window.reduce((sum, txn) => sum + (txn.amount < 0 ? -txn.amount : 0), 0);
+  const score = Math.min(0.99, (Number(amount) || 0) / Math.max(outflow, 1));
+  if (riskScoreCache.size >= RISK_CACHE_MAX_ENTRIES) {
+    riskScoreCache.delete(riskScoreCache.keys().next().value);
+  }
+  riskScoreCache.set(cacheKey, { score, at: Date.now() });
+  return score;
+}
+
+/**
+ * Submit the transfer to the payments gateway for settlement, retrying per
+ * GATEWAY_RETRY_POLICY on transient failures.
+ */
+async function submitToPaymentsGateway(transfer) {
+  let lastError;
+  for (let attempt = 1; attempt <= GATEWAY_RETRY_POLICY.maxAttempts; attempt++) {
+    try {
+      await new Promise((resolve, reject) => setTimeout(() => {
+        if (Math.random() < GATEWAY_TRANSIENT_FAILURE_RATE) {
+          reject(Object.assign(new Error('gateway settlement timeout'), { code: 'GATEWAY_TIMEOUT' }));
+          return;
+        }
+        resolve();
+      }, 40 + Math.random() * 40));
+      return { gatewayRef: `GW-${transfer.fromAccount}-${Date.now()}`, attempt };
+    } catch (error) {
+      lastError = error;
+      if (attempt < GATEWAY_RETRY_POLICY.maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, GATEWAY_RETRY_POLICY.backoffMs * attempt));
+      }
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -172,7 +236,17 @@ async function processTransfer(data, options = {}) {
   });
 
   try {
+    const stepStart1 = Date.now();
+    await scoreTransferRisk(data.fromAccount, data.amount);
+    const riskMs = Date.now() - stepStart1;
+
+    const stepStart2 = Date.now();
     await runComplianceScreening(data.fromAccount, data.accountTier);
+    const screeningMs = Date.now() - stepStart2;
+
+    const stepStart3 = Date.now();
+    await submitToPaymentsGateway(data);
+    const gatewayMs = Date.now() - stepStart3;
 
     const tier = resolveFeeTier(data.accountTier);
     const fee = calculateTransferFee(tier, data.amount);
@@ -193,6 +267,7 @@ async function processTransfer(data, options = {}) {
       transferId,
       durationMs: duration,
       service: 'banking-api',
+      ...(options.debugTimings ? { stepTimings: { riskMs, screeningMs, gatewayMs } } : {}),
     });
 
     return {

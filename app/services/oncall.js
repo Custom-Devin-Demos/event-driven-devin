@@ -871,6 +871,18 @@ const SEV1_INCIDENTS = {
     title: 'Fund transfers degraded — p95 latency 10x baseline on banking-api',
     summary: 'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Transfers eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
     probeBody: { amount: 250, accountTier: 'standard' },
+    // Probe traffic mixes in premium-tier transfers, heaviest early (making
+    // the picture look intermittent/load-correlated) and tapering to a
+    // trickle later, so fast datapoints keep landing when responders go
+    // looking for the tier pattern mid-incident.
+    probeBodyForPhase: (phase, seq) => ({
+      amount: 250,
+      accountTier: (phase === 0 && seq % 2 === 1)
+        || (phase === 1 && seq % 3 === 1)
+        || (phase >= 2 && seq % 5 === 1)
+        ? 'premium'
+        : 'standard',
+    }),
   },
   'insurance-claims': {
     vertical: 'insurance',
@@ -941,21 +953,34 @@ function startSev1Probe(runRef, story, windowMs = SEV1_WINDOW_MS) {
   }
   const scenario = ALERT_SCENARIOS[story.vertical];
   const url = `http://127.0.0.1:${process.env.PORT || 3000}${scenario.oncallApiPath}`;
-  const probe = { stopped: false, timer: null, story, phase: 0 };
+  const probe = { stopped: false, timer: null, story, phase: 0, seq: 0 };
   const startedAt = Date.now();
   const stopAt = startedAt + windowMs;
 
   const tick = async () => {
     if (probe.stopped) return;
     const started = Date.now();
+    const currentPhase = sev1ProbePhase(started - startedAt, windowMs);
+    const seq = probe.seq++;
+    const body = story.probeBodyForPhase
+      ? story.probeBodyForPhase(currentPhase, seq)
+      : (story.probeBody || {});
     let status;
     try {
-      const response = await axios.post(url, story.probeBody || {}, {
+      const response = await axios.post(url, body, {
         timeout: 30000,
         validateStatus: () => true,
         // Marked like real synthetic-monitoring traffic so downstream services
         // can distinguish probe requests from user requests.
-        headers: { 'x-synthetic-monitor': runRef },
+        headers: {
+          'x-synthetic-monitor': runRef,
+          // From the second half of the window on, request per-step
+          // diagnostic timings — the richer log line a responder would enable
+          // once the incident is clearly not a blip. The discriminating
+          // evidence (which step eats the latency) only exists in telemetry
+          // from this point forward, just after the chatter announces it.
+          ...(currentPhase >= 3 ? { 'x-debug-timings': '1' } : {}),
+        },
       });
       status = response.status;
     } catch (error) {
@@ -1059,11 +1084,13 @@ function buildSev1Chatter(story) {
       { ...sre, at: 0.003, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. Only a handful of datapoints so far — could be a blip.` },
       { ...support, at: 0.033, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
       { ...owner, at: 0.1, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
-      { ...sre, at: 0.2, text: 'More traffic hitting the endpoint now — latency is flat at ~9-10s per request regardless of load. Not a blip.' },
+      { ...support, at: 0.15, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
+      { ...sre, at: 0.2, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
       { ...support, at: 0.267, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
       { ...owner, at: 0.367, text: 'Gateway team came back: their dashboards are clean, sub-100ms on every call from us. Whatever this is, it’s on our side.' },
       { ...sre, at: 0.467, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
-      { ...owner, at: 0.567, text: 'With more traces in: the slow span breaks into a series of similar sub-steps back-to-back, each a few hundred ms. Pulling a waterfall for one transfer now.' },
+      { ...owner, at: 0.51, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
+      { ...sre, at: 0.6, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
     ],
     insurance: [
       { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
