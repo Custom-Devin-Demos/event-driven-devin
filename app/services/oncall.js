@@ -1068,8 +1068,13 @@ function buildSev1Chatter(story) {
   const devinAsk = process.env.DEVIN_SLACK_USER_ID
     ? ` <@${process.env.DEVIN_SLACK_USER_ID}> can you dig in and confirm or rule that out?`
     : '';
-  // The mention-bearing line is exempt from the late-drop rule: losing it
-  // silently removes the only Devin ask in the script.
+  // Late-incident second ask: once the diagnosis is converging, hand Devin
+  // the remediation — validate a candidate fix locally, then open a PR.
+  const devinFixAsk = process.env.DEVIN_SLACK_USER_ID
+    ? `<@${process.env.DEVIN_SLACK_USER_ID}> once you have a candidate fix, can you validate it locally against the transfer path and put up a PR when it checks out?`
+    : '';
+  // Mention-bearing lines are exempt from the late-drop rule: losing one
+  // silently removes a scripted Devin ask.
   const mustPost = Boolean(process.env.DEVIN_SLACK_USER_ID);
   // Timed against the phased probe schedule: the conversation develops with
   // the telemetry — early messages are ambiguous, a plausible-but-wrong
@@ -1087,10 +1092,11 @@ function buildSev1Chatter(story) {
       { ...support, at: 0.15, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
       { ...sre, at: 0.2, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
       { ...support, at: 0.267, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
-      { ...owner, at: 0.367, text: 'Gateway team came back: their dashboards are clean, sub-100ms on every call from us. Whatever this is, it’s on our side.' },
+      { ...owner, at: 0.367, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
       { ...sre, at: 0.467, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
       { ...owner, at: 0.51, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
       { ...sre, at: 0.6, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
+      ...(devinFixAsk ? [{ ...owner, at: 0.7, mustPost, text: devinFixAsk }] : []),
     ],
     insurance: [
       { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },

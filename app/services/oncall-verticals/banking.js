@@ -82,8 +82,11 @@ const RISK_MODEL = {
 const RISK_CACHE_MAX_ENTRIES = 500;
 const riskScoreCache = new Map();
 
-// Simulated transient-failure rate for the gateway's settlement endpoint.
+// Transient-failure rates observed on the gateway's settlement endpoint.
+// Synthetic-monitor traffic is routed through the gateway's canary pool,
+// which has been flakier since the June brownouts (PAY-3311).
 const GATEWAY_TRANSIENT_FAILURE_RATE = 0.002;
+const GATEWAY_SYNTHETIC_FAILURE_RATE = 0.08;
 
 /**
  * Transfer fee tiers by account type
@@ -165,12 +168,18 @@ async function scoreTransferRisk(fromAccount, amount) {
  * Submit the transfer to the payments gateway for settlement, retrying per
  * GATEWAY_RETRY_POLICY on transient failures.
  */
-async function submitToPaymentsGateway(transfer) {
+async function submitToPaymentsGateway(transfer, { synthetic = false } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= GATEWAY_RETRY_POLICY.maxAttempts; attempt++) {
+    // The canary pool's flakiness shows up as first-attempt timeouts; retries
+    // land on the stable pool, so settlements virtually never exhaust the
+    // retry budget.
+    const failureRate = synthetic && attempt === 1
+      ? GATEWAY_SYNTHETIC_FAILURE_RATE
+      : GATEWAY_TRANSIENT_FAILURE_RATE;
     try {
       await new Promise((resolve, reject) => setTimeout(() => {
-        if (Math.random() < GATEWAY_TRANSIENT_FAILURE_RATE) {
+        if (Math.random() < failureRate) {
           reject(Object.assign(new Error('gateway settlement timeout'), { code: 'GATEWAY_TIMEOUT' }));
           return;
         }
@@ -245,7 +254,7 @@ async function processTransfer(data, options = {}) {
     const screeningMs = Date.now() - stepStart2;
 
     const stepStart3 = Date.now();
-    await submitToPaymentsGateway(data);
+    await submitToPaymentsGateway(data, { synthetic: Boolean(options.synthetic) });
     const gatewayMs = Date.now() - stepStart3;
 
     const tier = resolveFeeTier(data.accountTier);
