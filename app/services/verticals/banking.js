@@ -68,12 +68,19 @@ function formatReceipt(transfer, feeBreakdown) {
   };
 }
 
+const KNOWN_PAGES = ['/banking', '/cba'];
+
+function resolveSourcePage(page) {
+  return KNOWN_PAGES.includes(page) ? page : '/banking';
+}
+
 /**
  * Process a fund transfer between accounts.
  */
 async function processTransfer(data) {
   const startTime = Date.now();
   const transferId = uuidv4();
+  const sourcePage = resolveSourcePage(data.sourcePage);
 
   logger.info('Processing transfer', {
     transferId,
@@ -135,6 +142,7 @@ async function processTransfer(data) {
         route: '/api/banking/transfer',
         service: 'banking-api',
         accountTier: data.accountTier,
+        page: sourcePage,
       },
       extra: {
         transferId,
@@ -159,7 +167,9 @@ async function processTransfer(data) {
         { key: 'route', value: '/api/banking/transfer' },
         { key: 'service', value: 'banking-api' },
         { key: 'accountTier', value: data.accountTier },
+        { key: 'page', value: sourcePage },
       ],
+      promptAppendix: `The user-facing page that triggered this error is ${sourcePage} — after fixing, verify the fix end-to-end on the ${sourcePage} page.`,
       extra: { transferId, fromAccount: data.fromAccount, toAccount: data.toAccount, amount: data.amount },
       level: 'error',
       platform: 'node',
