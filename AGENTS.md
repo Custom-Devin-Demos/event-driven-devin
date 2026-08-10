@@ -104,7 +104,7 @@ Three things are deliberately separate:
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
 │   │   └── verticals/
-│   │       ├── banking.html       # CommBank — NetBank
+│   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform
 │   │       ├── insurance.html     # Shield Insurance — Claims Portal
 │   │       ├── cpg.html           # Harvest Goods — Distributor Orders
