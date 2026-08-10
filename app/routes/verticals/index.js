@@ -301,6 +301,11 @@ router.get('/spglobal', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'da6578ee.html'));
 });
 
+// CommBank (CBA) NetBank demo — friendly public URL, serves the cba page (hidden from hub)
+router.get('/cba', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'cba.html'));
+});
+
 // Kroger customer demo — friendly public URL, serves the eaa595e1 page (hidden from hub)
 router.get('/kroger', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'eaa595e1.html'));
