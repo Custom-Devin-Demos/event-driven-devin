@@ -871,15 +871,14 @@ const SEV1_INCIDENTS = {
     title: 'Fund transfers degraded — p95 latency 10x baseline on banking-api',
     summary: 'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Transfers eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
     probeBody: { amount: 250, accountTier: 'standard' },
-    // Probe traffic mixes in premium-tier transfers, heaviest early (making
-    // the picture look intermittent/load-correlated) and tapering to a
-    // trickle later, so fast datapoints keep landing when responders go
-    // looking for the tier pattern mid-incident.
+    // Probe traffic starts all standard-tier — the "instant for some
+    // customers" reports stay anecdotal early on — then mixes in premium
+    // transfers so the tier-dependent split only becomes statistically
+    // visible in telemetry mid-incident.
     probeBodyForPhase: (phase, seq) => ({
       amount: 250,
-      accountTier: (phase === 0 && seq % 2 === 1)
-        || (phase === 1 && seq % 3 === 1)
-        || (phase >= 2 && seq % 5 === 1)
+      accountTier: (phase === 1 && seq % 6 === 1)
+        || (phase >= 2 && seq % 4 === 1)
         ? 'premium'
         : 'standard',
     }),
@@ -929,10 +928,10 @@ const activeSev1Probes = new Map();
  * concluding everything from the opening snapshot.
  *
  * Phase boundaries are fractions of the incident window (at the default
- * 30-minute window: 0–5, 5–10, 10–15, 15–30 minutes); each phase multiplies
- * the base probe interval.
+ * 30-minute window: 0–3, 3–6, 6–10.5, 10.5–30 minutes); each phase
+ * multiplies the base probe interval.
  */
-const SEV1_PROBE_PHASE_BOUNDS = [1 / 6, 1 / 3, 1 / 2];
+const SEV1_PROBE_PHASE_BOUNDS = [0.1, 0.2, 0.35];
 const SEV1_PROBE_PHASE_MULTIPLIERS = [6, 3, 1.5, 1];
 
 function sev1ProbePhase(elapsedMs, windowMs) {
@@ -1068,10 +1067,10 @@ function buildSev1Chatter(story) {
   const devinAsk = process.env.DEVIN_SLACK_USER_ID
     ? ` <@${process.env.DEVIN_SLACK_USER_ID}> can you dig in and confirm or rule that out?`
     : '';
-  // Late-incident second ask: once the diagnosis is converging, hand Devin
-  // the remediation — validate a candidate fix locally, then open a PR.
+  // Early second ask: hand Devin the remediation up front — as soon as the
+  // cause is pinned, validate a candidate fix locally and open a PR.
   const devinFixAsk = process.env.DEVIN_SLACK_USER_ID
-    ? `<@${process.env.DEVIN_SLACK_USER_ID}> once you have a candidate fix, can you validate it locally against the transfer path and put up a PR when it checks out?`
+    ? `<@${process.env.DEVIN_SLACK_USER_ID}> also — as soon as you've pinned the cause, can you validate a candidate fix locally against the transfer path and put up a PR once it checks out? Want remediation moving in parallel.`
     : '';
   // Mention-bearing lines are exempt from the late-drop rule: losing one
   // silently removes a scripted Devin ask.
@@ -1088,15 +1087,15 @@ function buildSev1Chatter(story) {
     banking: [
       { ...sre, at: 0.003, text: `Seeing p95 on \`${scenario.endpoint}\` at ~9.6s, baseline is ~280ms. Only a handful of datapoints so far — could be a blip.` },
       { ...support, at: 0.033, text: 'Support queue is filling up — customers reporting transfers “stuck on a spinner” for ~10 seconds before going through.' },
-      { ...owner, at: 0.1, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
-      { ...support, at: 0.15, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
-      { ...sre, at: 0.2, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
-      { ...support, at: 0.267, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
-      { ...owner, at: 0.367, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
-      { ...sre, at: 0.467, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
-      { ...owner, at: 0.51, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
-      { ...sre, at: 0.6, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
-      ...(devinFixAsk ? [{ ...owner, at: 0.7, mustPost, text: devinFixAsk }] : []),
+      { ...owner, at: 0.083, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
+      { ...support, at: 0.117, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
+      ...(devinFixAsk ? [{ ...owner, at: 0.15, mustPost, text: devinFixAsk }] : []),
+      { ...sre, at: 0.183, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
+      { ...support, at: 0.23, text: 'Complaint volume still climbing. No failed transfers though — everything completes, just painfully slow.' },
+      { ...owner, at: 0.28, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
+      { ...sre, at: 0.32, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
+      { ...owner, at: 0.37, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
+      { ...sre, at: 0.43, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
     ],
     insurance: [
       { ...sre, at: 0.003, text: `5xx monitor firing on \`${scenario.endpoint}\` — a few 504s after an ~8s hang. Sample size is small, watching.` },
@@ -1588,6 +1587,26 @@ function isActiveSev1ProbeRef(ref) {
   return Boolean(ref) && activeSev1Probes.has(ref);
 }
 
+/**
+ * Per-step diagnostic timings are an operational flag responders enable
+ * mid-incident (the chatter announces it). While a declared SEV-1 for the
+ * vertical is still in its early phases, the x-debug-timings header is a
+ * no-op for every caller, so the step-level discriminator only exists in
+ * telemetry once the incident reaches its late phase.
+ */
+function isSev1DebugTimingsUnlocked(vertical) {
+  for (const entry of activeSev1.values()) {
+    if (entry.status !== 'declared') continue;
+    const story = SEV1_INCIDENTS[entry.kind];
+    if (!story || story.vertical !== vertical) continue;
+    const windowMs = entry.resolveAt - entry.declaredAt;
+    if (sev1ProbePhase(Date.now() - entry.declaredAt, windowMs) < SEV1_PROBE_PHASE_BOUNDS.length) {
+      return false;
+    }
+  }
+  return true;
+}
+
 module.exports = {
   ALERT_SCENARIOS,
   BUG_REPORTS,
@@ -1601,6 +1620,7 @@ module.exports = {
   SEV1_INCIDENTS,
   getSev1State,
   isActiveSev1ProbeRef,
+  isSev1DebugTimingsUnlocked,
   setOncallConfigOverride,
   getOncallConfigView,
 };
