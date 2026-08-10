@@ -1041,7 +1041,7 @@ function buildSev1Chatter(story) {
   // user is configured) so the responder gets a direct ask to confirm or rule
   // it out — mirroring how humans loop an investigator into a theory.
   const devinAsk = process.env.DEVIN_SLACK_USER_ID
-    ? ` <@${process.env.DEVIN_SLACK_USER_ID}> can you check whether it's actually them?`
+    ? ` <@${process.env.DEVIN_SLACK_USER_ID}> can you check whether it’s actually them?`
     : '';
   // Timed against the phased probe schedule: the conversation develops with
   // the telemetry — early messages are ambiguous, a plausible-but-wrong
