@@ -3,7 +3,7 @@ const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
-const COMPLIANCE_DEFAULTS = require('../../config/oncall-compliance').banking;
+const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
 /**

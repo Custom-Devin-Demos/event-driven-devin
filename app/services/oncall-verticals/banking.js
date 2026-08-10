@@ -3,7 +3,19 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { getScopedConfig } = require('../../incidentModes');
-const COMPLIANCE_CONFIG = require('../../../config/oncall-compliance').banking;
+
+/**
+ * Compliance screening parameters — operational settings owned by the ops
+ * runtime environment (SCREENING_WINDOW_DAYS / SCREENING_CONCURRENCY).
+ */
+const COMPLIANCE_CONFIG = {
+  screeningWindowDays: Number(process.env.SCREENING_WINDOW_DAYS) > 0
+    ? Number(process.env.SCREENING_WINDOW_DAYS)
+    : 90,
+  screeningConcurrency: Number(process.env.SCREENING_CONCURRENCY) > 0
+    ? Math.max(1, Math.floor(Number(process.env.SCREENING_CONCURRENCY)))
+    : 1,
+};
 
 /**
  * Bank accounts for the demo
@@ -324,4 +336,4 @@ async function processTransfer(data, options = {}) {
   }
 }
 
-module.exports = { processTransfer, ACCOUNTS };
+module.exports = { processTransfer, ACCOUNTS, COMPLIANCE_CONFIG };
