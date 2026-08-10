@@ -68,15 +68,15 @@ function formatReceipt(transfer, feeBreakdown) {
   };
 }
 
-/**
- * Process a fund transfer between accounts.
- */
 const KNOWN_PAGES = ['/banking', '/cba'];
 
 function resolveSourcePage(page) {
   return KNOWN_PAGES.includes(page) ? page : '/banking';
 }
 
+/**
+ * Process a fund transfer between accounts.
+ */
 async function processTransfer(data) {
   const startTime = Date.now();
   const transferId = uuidv4();
