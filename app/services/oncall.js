@@ -1087,14 +1087,14 @@ function buildSev1Chatter(story) {
   const byVertical = {
     banking: [
       { ...support, at: 0.003, text: 'Three enterprise customers on the phone already — transfers eventually go through, but they sit ~10 seconds on a spinner first. No errors, just slow.' },
-      { ...sre, at: 0.025, text: 'Checked the obvious: no deploy on banking-api in the last 24h and traffic is flat vs. this time last week. This isn’t a release or a load spike.' },
+      { ...sre, at: 0.025, text: `Checked the obvious: no deploy on banking-api in the last 24h and organic traffic on \`${scenario.endpoint}\` is flat vs. this time last week. This isn’t a release or a load spike.` },
       { ...owner, at: 0.04, mustPost, text: `First guess: the payments gateway is slow again — they had an incident last month with the same smell. Reaching out to their on-call.${devinAsk}` },
       { ...support, at: 0.055, text: 'Odd wrinkle: a couple of customers say transfers are instant for them. So maybe not everyone is affected — intermittent, or load-related?' },
-      ...(devinFixAsk ? [{ ...owner, at: 0.07, mustPost, text: devinFixAsk }] : []),
-      { ...sre, at: 0.085, text: 'More traffic hitting the endpoint now — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
+      { ...sre, at: 0.085, text: 'Cranked up synthetic monitoring on the endpoint for more datapoints — most requests are ~9-10s but a minority still complete in a few hundred ms. Mixed picture.' },
       { ...support, at: 0.10, text: 'Also ruled out fraud: risk team confirms no new velocity rules or screening-policy rollouts on their side this week. Whatever changed, it wasn’t them.' },
       { ...owner, at: 0.113, text: 'Gateway team came back: they do see an uptick in transient settlement timeouts and retries from us since the incident started, but every call settles in under a second. They don’t think that explains 9s — keeping them looped in though.' },
-      { ...sre, at: 0.122, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
+      ...(devinFixAsk ? [{ ...owner, at: 0.12, mustPost, text: devinFixAsk }] : []),
+      { ...sre, at: 0.125, text: 'Traces show the request pinned server-side in the transfer path, not the DB and not the gateway. Escalating fully — this needs a code-level look.' },
       { ...owner, at: 0.13, text: 'Enabled per-step diagnostic timings on the transfer path — new “Transfer completed” log lines should break down where the time goes per request from here on.' },
       { ...sre, at: 0.16, text: 'Found the pattern in the fast requests: they’re all premium-tier accounts. Standard and basic are uniformly ~9-10s. This is tier-dependent, not load-dependent.' },
     ],
