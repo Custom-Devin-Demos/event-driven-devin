@@ -43,7 +43,12 @@ function selectTierTerms(schedule, planTier) {
 
 function buildActivationPackage(regionInfo, planTier) {
   const schedule = loadCreditSchedule(regionInfo.geo);
-  const tierTerms = schedule[planTier];
+  const tierTerms = selectTierTerms(schedule, planTier);
+  if (!tierTerms) {
+    throw new Error(
+      `No credit schedule for plan tier "${planTier}" in geo "${regionInfo.geo}"`
+    );
+  }
   return {
     accountRegion: regionInfo.region,
     zone: regionInfo.zone,
