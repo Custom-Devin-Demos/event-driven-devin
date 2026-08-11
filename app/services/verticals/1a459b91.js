@@ -62,13 +62,18 @@ function resolveProcessors(category, partNumber) {
   return processors;
 }
 
+function resolveDatacenter(dcCode) {
+  return DATACENTERS.find((d) => d.code === dcCode) || DATACENTERS[0];
+}
+
 function getDatacenterThroughput(dcCode) {
-  const capacity = DATACENTER_CAPACITY[dcCode];
-  const dc = DATACENTERS.find((d) => d.code === dcCode);
+  const dc = resolveDatacenter(dcCode);
+  const capacity = DATACENTER_CAPACITY[dc.code];
+  const dailyOutput = dc.nodes * capacity.yieldMultiplier;
   return {
-    waferOutput: {
-      daily: dc.nodes * capacity.yieldMultiplier,
-      perShift: dc.nodes * capacity.yieldMultiplier / capacity.shiftCount,
+    fabrication: {
+      daily: dailyOutput,
+      perShift: dailyOutput / capacity.shiftCount,
     },
     shifts: capacity.shiftCount,
   };
@@ -154,10 +159,10 @@ async function runInquiry(data) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
 
-    const datacenter = DATACENTERS.find((d) => d.code === data.facility);
+    const datacenter = resolveDatacenter(data.facility);
     const processors = resolveProcessors(data.category, data.partNumber);
     const allocationMetrics = computeAllocationMetrics(processors, data.facility);
-    const priorityConfig = PRIORITY_MULTIPLIERS[data.priority];
+    const priorityConfig = PRIORITY_MULTIPLIERS[data.priority] || PRIORITY_MULTIPLIERS.standard;
     const fulfillment = calculateFulfillment(allocationMetrics, priorityConfig, data.facility);
     const response = buildInquiryResponse(fulfillment, datacenter, data.priority);
 
@@ -249,4 +254,11 @@ async function runInquiry(data) {
   }
 }
 
-module.exports = { runInquiry, DATACENTERS, PROCESSOR_CATALOG };
+module.exports = {
+  runInquiry,
+  getDatacenterThroughput,
+  DATACENTERS,
+  PROCESSOR_CATALOG,
+  DATACENTER_CAPACITY,
+  PRIORITY_MULTIPLIERS,
+};
