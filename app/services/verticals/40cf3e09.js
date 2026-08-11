@@ -41,9 +41,19 @@ function selectTierTerms(schedule, planTier) {
   return terms;
 }
 
+const DEFAULT_PLAN_TIER = 'free';
+
 function buildActivationPackage(regionInfo, planTier) {
   const schedule = loadCreditSchedule(regionInfo.geo);
-  const tierTerms = schedule[planTier];
+  const tierTerms = selectTierTerms(schedule, planTier)
+    || selectTierTerms(schedule, DEFAULT_PLAN_TIER);
+
+  if (!tierTerms) {
+    const error = new Error(`No credit schedule terms available for plan tier "${planTier}"`);
+    error.code = 'UNKNOWN_PLAN_TIER';
+    throw error;
+  }
+
   return {
     accountRegion: regionInfo.region,
     zone: regionInfo.zone,
@@ -138,4 +148,12 @@ async function processAccountActivation(data) {
   }
 }
 
-module.exports = { processAccountActivation, REGION_PARTITIONS, selectTierTerms };
+module.exports = {
+  processAccountActivation,
+  buildActivationPackage,
+  resolveRegion,
+  loadCreditSchedule,
+  REGION_PARTITIONS,
+  CREDIT_SCHEDULES,
+  selectTierTerms,
+};
