@@ -43,7 +43,12 @@ function selectTierTerms(schedule, planTier) {
 
 function buildActivationPackage(regionInfo, planTier) {
   const schedule = loadCreditSchedule(regionInfo.geo);
-  const tierTerms = schedule[planTier];
+  const tierTerms = selectTierTerms(schedule, planTier);
+  if (!tierTerms) {
+    const error = new Error(`Unknown plan tier "${planTier}" for geo ${regionInfo.geo}`);
+    error.code = 'UNKNOWN_PLAN_TIER';
+    throw error;
+  }
   return {
     accountRegion: regionInfo.region,
     zone: regionInfo.zone,
