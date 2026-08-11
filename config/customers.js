@@ -206,6 +206,10 @@ const CUSTOMERS = {
     label: 'UnitedHealth Group',
     triggerMode: 'api',
   },
+  '90a02f02': {
+    label: 'Zup Innovation',
+    triggerMode: 'api',
+  },
   '058bcc4c': {
     label: 'Kraft Heinz',
     triggerMode: 'api',
