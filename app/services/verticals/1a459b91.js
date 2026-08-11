@@ -65,8 +65,13 @@ function resolveProcessors(category, partNumber) {
 function getDatacenterThroughput(dcCode) {
   const capacity = DATACENTER_CAPACITY[dcCode];
   const dc = DATACENTERS.find((d) => d.code === dcCode);
+  if (!dc || !capacity) {
+    const error = new Error(`Unknown facility code: ${dcCode}`);
+    error.code = 'UNKNOWN_FACILITY';
+    throw error;
+  }
   return {
-    waferOutput: {
+    fabrication: {
       daily: dc.nodes * capacity.yieldMultiplier,
       perShift: dc.nodes * capacity.yieldMultiplier / capacity.shiftCount,
     },
@@ -157,7 +162,7 @@ async function runInquiry(data) {
     const datacenter = DATACENTERS.find((d) => d.code === data.facility);
     const processors = resolveProcessors(data.category, data.partNumber);
     const allocationMetrics = computeAllocationMetrics(processors, data.facility);
-    const priorityConfig = PRIORITY_MULTIPLIERS[data.priority];
+    const priorityConfig = PRIORITY_MULTIPLIERS[data.priority] || PRIORITY_MULTIPLIERS.standard;
     const fulfillment = calculateFulfillment(allocationMetrics, priorityConfig, data.facility);
     const response = buildInquiryResponse(fulfillment, datacenter, data.priority);
 
@@ -249,4 +254,11 @@ async function runInquiry(data) {
   }
 }
 
-module.exports = { runInquiry, DATACENTERS, PROCESSOR_CATALOG };
+module.exports = {
+  runInquiry,
+  getDatacenterThroughput,
+  DATACENTERS,
+  PROCESSOR_CATALOG,
+  DATACENTER_CAPACITY,
+  PRIORITY_MULTIPLIERS,
+};
