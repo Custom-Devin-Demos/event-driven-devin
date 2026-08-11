@@ -202,6 +202,10 @@ const CUSTOMERS = {
     label: 'Optum Rx',
     triggerMode: 'api',
   },
+  '31328569': {
+    label: 'UnitedHealth Group',
+    triggerMode: 'api',
+  },
   '058bcc4c': {
     label: 'Kraft Heinz',
     triggerMode: 'api',
