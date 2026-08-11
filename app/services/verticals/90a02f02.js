@@ -116,7 +116,7 @@ async function scopeEngagement(data) {
       count: '',
       shortId: '',
       project: 'event-driven-devin',
-      release: 'zup-solutions@1.0.0',
+      release: '90a02f02@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
     }).catch((alertError) => {
