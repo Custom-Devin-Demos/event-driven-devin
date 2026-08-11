@@ -342,6 +342,11 @@ router.get('/welcome-season', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'payer.html'));
 });
 
+// Zup Innovation customer demo — friendly public URL, serves the 90a02f02 page (hidden from hub)
+router.get('/zup', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '90a02f02.html'));
+});
+
 // Retail uses the existing index.html at /retail
 router.get('/retail', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'index.html'));
