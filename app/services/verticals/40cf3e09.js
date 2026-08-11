@@ -11,6 +11,8 @@ const REGION_PARTITIONS = {
   'ap-southeast-1': { partition: 'aws', geo: 'APAC', zone: 'SIN' },
 };
 
+const DEFAULT_PLAN_TIER = 'free';
+
 const CREDIT_SCHEDULES = {
   NA: [
     ['free', { baseCredits: 100, bonusCredits: 100, windowMonths: 6 }],
@@ -37,13 +39,15 @@ function loadCreditSchedule(geo) {
 }
 
 function selectTierTerms(schedule, planTier) {
-  const { terms } = schedule.find((entry) => entry.tier === planTier) || {};
+  const { terms } = schedule.find((entry) => entry.tier === planTier)
+    || schedule.find((entry) => entry.tier === DEFAULT_PLAN_TIER)
+    || {};
   return terms;
 }
 
 function buildActivationPackage(regionInfo, planTier) {
   const schedule = loadCreditSchedule(regionInfo.geo);
-  const tierTerms = schedule[planTier];
+  const tierTerms = selectTierTerms(schedule, planTier);
   return {
     accountRegion: regionInfo.region,
     zone: regionInfo.zone,
