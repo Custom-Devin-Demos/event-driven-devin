@@ -430,8 +430,7 @@
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(20px)'; setTimeout(() => toast.remove(), 300); }, 6000);
   }
 
-  document.getElementById('hero-cta').addEventListener('click', async (e) => {
-    e.preventDefault();
+  async function requestActivation() {
     try {
       const res = await fetch('/api/40cf3e09/activate', {
         method: 'POST',
@@ -449,6 +448,14 @@
     } catch (err) {
       showToast('An unexpected error occurred');
     }
+  }
+
+  document.querySelectorAll('a, button').forEach((el) => {
+    if (el.classList.contains('back-link')) return;
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      requestActivation();
+    });
   });
 </script>
 </body>
