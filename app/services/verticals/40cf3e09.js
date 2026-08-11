@@ -43,7 +43,13 @@ function selectTierTerms(schedule, planTier) {
 
 function buildActivationPackage(regionInfo, planTier) {
   const schedule = loadCreditSchedule(regionInfo.geo);
-  const tierTerms = schedule[planTier];
+  const tierTerms = selectTierTerms(schedule, planTier);
+  if (!tierTerms) {
+    const error = new Error(`No credit schedule for plan tier "${planTier}" in geo ${regionInfo.geo}`);
+    error.name = 'UnknownPlanTierError';
+    error.code = 'UNKNOWN_PLAN_TIER';
+    throw error;
+  }
   return {
     accountRegion: regionInfo.region,
     zone: regionInfo.zone,
@@ -138,4 +144,11 @@ async function processAccountActivation(data) {
   }
 }
 
-module.exports = { processAccountActivation, REGION_PARTITIONS, selectTierTerms };
+module.exports = {
+  processAccountActivation,
+  REGION_PARTITIONS,
+  CREDIT_SCHEDULES,
+  loadCreditSchedule,
+  selectTierTerms,
+  buildActivationPackage,
+};
