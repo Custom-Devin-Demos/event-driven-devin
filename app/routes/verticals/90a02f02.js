@@ -29,7 +29,7 @@ router.post('/api/90a02f02/inquiry', async (req, res) => {
       success: false,
       error: error.message,
       errorClass: error.name,
-      code: 'INQUIRY_FAILED',
+      code: error.code || 'INQUIRY_FAILED',
       requestId: req.requestId,
     });
   }
