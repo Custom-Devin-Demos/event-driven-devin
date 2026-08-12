@@ -47,15 +47,17 @@ function computePremium(product, drivers) {
 
 /**
  * Build the savings summary, factoring in the promotional bundle
- * discount applied to the selected insurance product.
+ * discount applied to the selected insurance product. Products
+ * without an active promotion simply carry no promotional discount.
  */
 function buildSavingsSummary(product, pricing, addons) {
-  const discountPct = product.promo.discountPct;
+  const promo = product.promo || null;
+  const discountPct = promo ? promo.discountPct : 0;
   const bundleSavings = addons.reduce((sum, a) => sum + a.saves, 0);
   const promoSavings = (pricing.monthly * discountPct) / 100;
 
   return {
-    promoLabel: product.promo.label,
+    promoLabel: promo ? promo.label : null,
     discountPct,
     promoSavings: Math.round(promoSavings * 100) / 100,
     bundleSavings,
