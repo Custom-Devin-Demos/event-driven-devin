@@ -22,7 +22,13 @@ const WEEKLY_LEDGER = {
 
 function loadGroupLedger(locationGroup) {
   const locations = LOCATION_GROUPS[locationGroup] || LOCATION_GROUPS['full-service'];
-  return locations.map((name) => ({ name, ...WEEKLY_LEDGER[name] }));
+  return locations.map((name) => {
+    const ledger = WEEKLY_LEDGER[name];
+    if (!ledger) {
+      throw new Error(`No weekly ledger entry for location "${name}"`);
+    }
+    return { name, ...ledger };
+  });
 }
 
 function indexCostBuckets(ledgerEntries) {
@@ -147,5 +153,7 @@ module.exports = {
   processInsightsRequest,
   computePrimeCost,
   indexCostBuckets,
+  loadGroupLedger,
   LOCATION_GROUPS,
+  WEEKLY_LEDGER,
 };

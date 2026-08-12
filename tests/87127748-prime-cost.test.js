@@ -2,7 +2,9 @@ const {
   processInsightsRequest,
   computePrimeCost,
   indexCostBuckets,
+  loadGroupLedger,
   LOCATION_GROUPS,
+  WEEKLY_LEDGER,
 } = require('../app/services/verticals/87127748');
 
 describe('Restaurant P&L insights service (87127748)', () => {
@@ -43,12 +45,22 @@ describe('Restaurant P&L insights service (87127748)', () => {
     expect(missing.summary.rows).toHaveLength(LOCATION_GROUPS['full-service'].length);
   });
 
-  test('every configured location has a weekly ledger entry', async () => {
-    for (const group of Object.keys(LOCATION_GROUPS)) {
-      const result = await processInsightsRequest({ locationGroup: group });
-      for (const row of result.summary.rows) {
-        expect(row.primeCost).not.toBeNaN();
+  test('every configured location has a weekly ledger entry', () => {
+    for (const locations of Object.values(LOCATION_GROUPS)) {
+      for (const name of locations) {
+        expect(WEEKLY_LEDGER[name]).toBeDefined();
       }
+    }
+  });
+
+  test('loadGroupLedger rejects a group containing a location with no ledger entry', () => {
+    LOCATION_GROUPS['fast-casual'].push('Ghost Kitchen');
+    try {
+      expect(() => loadGroupLedger('fast-casual')).toThrow(
+        /No weekly ledger entry for location "Ghost Kitchen"/
+      );
+    } finally {
+      LOCATION_GROUPS['fast-casual'].pop();
     }
   });
 
