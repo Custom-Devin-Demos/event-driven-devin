@@ -25,6 +25,11 @@ const ADDONS = [
   { id: 'mechanical', label: 'Mechanical Breakdown', price: 15, saves: 6 },
 ];
 
+/**
+ * Applied when a product carries no promotional bundle discount.
+ */
+const NO_PROMO = { discountPct: 0, label: null };
+
 function findProduct(productId) {
   return PRODUCTS[productId] || PRODUCTS.auto;
 }
@@ -50,12 +55,13 @@ function computePremium(product, drivers) {
  * discount applied to the selected insurance product.
  */
 function buildSavingsSummary(product, pricing, addons) {
-  const discountPct = product.promo.discountPct;
+  const promo = product.promo || NO_PROMO;
+  const discountPct = promo.discountPct;
   const bundleSavings = addons.reduce((sum, a) => sum + a.saves, 0);
   const promoSavings = (pricing.monthly * discountPct) / 100;
 
   return {
-    promoLabel: product.promo.label,
+    promoLabel: promo.label,
     discountPct,
     promoSavings: Math.round(promoSavings * 100) / 100,
     bundleSavings,
