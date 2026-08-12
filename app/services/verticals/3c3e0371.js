@@ -40,16 +40,22 @@ function buildSlotIndex(market) {
   const byStore = new Map();
   for (const store of stores) {
     byStore.set(store.storeId, {
+      storeId: store.storeId,
       address: store.address,
       slots: store.slots,
       fuel: store.fuel,
     });
   }
-  return { marketCode: market.code, dcId: market.dcId, byStore };
+  return {
+    marketCode: market.code,
+    dcId: market.dcId,
+    byStore,
+    stores: Array.from(byStore.values()),
+  };
 }
 
 function rankStores(index, fulfillment) {
-  const eligible = index.stores.filter(
+  const eligible = (index.stores || []).filter(
     (store) => fulfillment !== 'fuel' || store.fuel
   );
   return eligible.sort((a, b) => b.slots - a.slots);
@@ -152,4 +158,12 @@ async function processStoreSearch(data) {
   }
 }
 
-module.exports = { processStoreSearch, MARKET_DIRECTORY };
+module.exports = {
+  processStoreSearch,
+  resolveMarket,
+  buildSlotIndex,
+  rankStores,
+  formatStoreResults,
+  MARKET_DIRECTORY,
+  STORE_CATALOG,
+};
