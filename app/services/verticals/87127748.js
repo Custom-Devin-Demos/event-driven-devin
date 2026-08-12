@@ -38,7 +38,10 @@ function indexCostBuckets(ledgerEntries) {
 }
 
 function computePrimeCost(costIndex, locationName) {
-  const bucket = costIndex[locationName];
+  const bucket = costIndex.get(locationName);
+  if (!bucket) {
+    throw new Error(`No weekly ledger entry for location "${locationName}"`);
+  }
   const prime = bucket.food + bucket.labor;
   return {
     location: locationName,
@@ -140,4 +143,10 @@ async function processInsightsRequest(data) {
   }
 }
 
-module.exports = { processInsightsRequest, LOCATION_GROUPS };
+module.exports = {
+  processInsightsRequest,
+  LOCATION_GROUPS,
+  WEEKLY_LEDGER,
+  indexCostBuckets,
+  computePrimeCost,
+};
