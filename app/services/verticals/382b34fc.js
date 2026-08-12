@@ -8,7 +8,7 @@ const { createSessionAndAlert } = require('../devin-session');
  * Insurance products with base monthly premium and coverage tier.
  */
 const PRODUCTS = {
-  auto: { code: 'AUTO', name: 'Auto', basePremium: 95, coverage: 'standard' },
+  auto: { code: 'AUTO', name: 'Auto', basePremium: 95, coverage: 'standard', promo: { discountPct: 15, label: 'Bundle & Save' } },
   homeowners: { code: 'HOME', name: 'Homeowners', basePremium: 140, coverage: 'standard', promo: { discountPct: 15, label: 'Bundle & Save' } },
   renters: { code: 'RENT', name: 'Renters', basePremium: 22, coverage: 'standard', promo: { discountPct: 10, label: 'Bundle & Save' } },
   motorcycle: { code: 'MOTO', name: 'Motorcycle/Off-Road', basePremium: 48, coverage: 'standard', promo: { discountPct: 12, label: 'Bundle & Save' } },
@@ -50,12 +50,13 @@ function computePremium(product, drivers) {
  * discount applied to the selected insurance product.
  */
 function buildSavingsSummary(product, pricing, addons) {
-  const discountPct = product.promo.discountPct;
+  const promo = product.promo || {};
+  const discountPct = promo.discountPct || 0;
   const bundleSavings = addons.reduce((sum, a) => sum + a.saves, 0);
   const promoSavings = (pricing.monthly * discountPct) / 100;
 
   return {
-    promoLabel: product.promo.label,
+    promoLabel: promo.label || null,
     discountPct,
     promoSavings: Math.round(promoSavings * 100) / 100,
     bundleSavings,
