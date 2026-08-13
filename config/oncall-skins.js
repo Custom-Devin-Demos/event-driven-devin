@@ -123,6 +123,53 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '704831b7': {
+    slug: '704831b7',
+    company: 'Hippocratic AI',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '704831b7.html',
+      title: 'Hippocratic AI — Agent Deployment Console',
+    },
+    accent: '#15CC44',
+    accentDark: '#10a838',
+    theme: {
+      '--accent': '#15CC44',
+      '--ink': '#10163A',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0E2FAE',
+      '--chrome-text': '#f2f6ff',
+    },
+    supportCenter: 'Hippocratic AI Support',
+    supportCenterSub: 'Deployment Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A HIPPOCRATIC AI SITE — internal demo only, not affiliated with, endorsed by, or a real Hippocratic AI product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'hightech',
+          label: 'Agent Deployment Console \u2014 Campaign Provisioning',
+          persona: { name: 'Priya Raghavan', email: 'priya.raghavan@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'hightech-provision-slowdown',
+              label: 'Campaign provisioning noticeably slow',
+              sev: 'Medium',
+              text: 'Our deployment team flagged that provisioning a new outreach campaign in the console is painfully slow \u2014 every request sits for seven or eight seconds before completing. Nothing fails, it just crawls, and it seems to get a little worse with every campaign we provision.',
+            },
+            {
+              id: 'hightech-renewal-slow',
+              label: 'Cohort expansion crawling before go-live',
+              sev: 'High',
+              text: 'Clinical ops here \u2014 our health system goes live Monday and we are expanding the chronic care cohort by a couple hundred patients. Every provisioning call in the console sits there for ages before completing. The program director is on our call asking if the platform is falling over.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 function getOncallSkin(slug) {
