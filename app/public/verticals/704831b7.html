@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hippocratic AI &mdash; Agent Deployment Console</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --hai-green: #15CC44;
+      --hai-green-dark: #10a838;
+      --hai-cyan: #31A8E0;
+      --hai-blue-deep: #0E2FAE;
+      --hai-blue-card: #0A22A4;
+      --hai-ink: #10163A;
+      --hai-muted: #5b6478;
+      --hai-line: #e3e8f2;
+      --hai-danger: #dc2626;
+      --sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: linear-gradient(180deg, #4b76c9 0%, #2350bb 30%, var(--hai-blue-deep) 70%, #0a2496 100%);
+      min-height: 100vh;
+      color: var(--hai-ink);
+      line-height: 1.6;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .top-strip { background: linear-gradient(90deg, #1a6fd4, #1e8ad0); color: #fff; font-size: 13px; font-weight: 500; text-align: center; padding: 9px 16px; }
+
+    .nav-wrap { padding: 18px 20px 0; }
+    nav.hai-nav {
+      max-width: 1180px; margin: 0 auto; background: #fff; border-radius: 999px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px 10px 20px; box-shadow: 0 8px 28px rgba(6, 22, 90, 0.28);
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--hai-ink); }
+    .logo-mark { width: 36px; height: 36px; flex: none; }
+    .logo-text .name { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+    .logo-text .motto { font-size: 0.62rem; font-weight: 500; letter-spacing: 0.14em; color: var(--hai-muted); text-transform: none; }
+    .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+    .nav-links a { color: var(--hai-ink); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 13px; border-radius: 20px; }
+    .nav-links a:hover { color: var(--hai-green-dark); }
+    .nav-links a.active { color: var(--hai-green-dark); font-weight: 600; }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 26px;
+      border-radius: 35px; font-family: var(--sans); font-size: 14px; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none; transition: transform .15s, background .15s;
+    }
+    .pill-green { background: var(--hai-green); color: #fff; }
+    .pill-green:hover { background: var(--hai-green-dark); transform: translateY(-1px); }
+    @media (max-width: 960px) { .nav-links { display: none; } .pill { height: 44px; } }
+
+    .hero { text-align: center; padding: 52px 20px 30px; }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.12;
+      background: linear-gradient(92deg, var(--hai-cyan) 0%, #3fd9a2 55%, var(--hai-green) 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      max-width: 880px; margin: 0 auto;
+    }
+    .hero p { color: rgba(255,255,255,0.92); font-size: 1.02rem; max-width: 620px; margin: 14px auto 0; }
+
+    .console { max-width: 1180px; margin: 0 auto; padding: 8px 20px 72px; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 26px 0; }
+    @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+    .metric { background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22); border-radius: 16px; padding: 18px 20px; color: #fff; backdrop-filter: blur(4px); }
+    .metric-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.72); margin-bottom: 4px; }
+    .metric-val { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+    .metric-sub { font-size: 0.74rem; color: rgba(255,255,255,0.72); margin-top: 2px; }
+    .metric-sub.pos { color: #7cf0a0; }
+
+    .panel { background: #fff; border-radius: 20px; box-shadow: 0 14px 40px rgba(6, 22, 90, 0.32); overflow: hidden; margin-bottom: 22px; }
+    .panel-head { padding: 20px 26px 0; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+    .panel-head h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; }
+    .panel-head .sub { font-size: 0.8rem; color: var(--hai-muted); }
+
+    .dep-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .dep-table th { text-align: left; font-size: 0.64rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hai-muted); padding: 10px 26px; border-bottom: 1px solid var(--hai-line); }
+    .dep-table td { padding: 13px 26px; border-bottom: 1px solid var(--hai-line); font-size: 0.86rem; vertical-align: middle; }
+    .dep-table tbody tr:last-child td { border-bottom: none; }
+    .dep-table .program { font-weight: 600; }
+    .dep-table .program small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--hai-muted); }
+    .mono { font-family: var(--mono); font-size: 0.74rem; color: var(--hai-muted); }
+    .badge-live { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 600; color: #0d8a30; background: rgba(21,204,68,0.1); padding: 3px 11px; border-radius: 20px; white-space: nowrap; }
+    .badge-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--hai-green); }
+    .badge-sched { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 600; color: #1d6fb8; background: rgba(49,168,224,0.12); padding: 3px 11px; border-radius: 20px; white-space: nowrap; }
+    .badge-sched::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--hai-cyan); }
+    @media (max-width: 760px) {
+      .dep-table th:nth-child(4), .dep-table td:nth-child(4) { display: none; }
+      .dep-table th, .dep-table td { padding: 11px 16px; }
+    }
+
+    .provision-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 0; }
+    @media (max-width: 860px) { .provision-grid { grid-template-columns: 1fr; } .provision-info { display: none; } }
+    .provision-body { padding: 24px 26px 28px; }
+    .provision-body h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+    .provision-body .sub { font-size: 0.8rem; color: var(--hai-muted); margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--hai-muted); margin-bottom: 5px; }
+    .form-group select, .form-group input {
+      width: 100%; height: 46px; padding: 0 14px; border: 1px solid var(--hai-line); border-radius: 12px;
+      font-family: var(--sans); font-size: 0.88rem; color: var(--hai-ink); background: #fff; transition: border-color .15s, box-shadow .15s;
+    }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--hai-green); box-shadow: 0 0 0 3px rgba(21,204,68,0.14); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-provision {
+      width: 100%; height: 48px; border-radius: 35px; background: var(--hai-green); color: #fff;
+      font-family: var(--sans); font-size: 0.92rem; font-weight: 600; border: none; cursor: pointer;
+      transition: background .15s, transform .15s; margin-top: 6px;
+    }
+    .btn-provision:hover { background: var(--hai-green-dark); transform: translateY(-1px); }
+    .btn-provision:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 14px; padding: 13px 16px; border-radius: 12px; font-size: 0.82rem; display: none; }
+    .result-box.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: var(--hai-danger); }
+    .result-box.success { display: block; background: rgba(21,204,68,0.08); border: 1px solid rgba(21,204,68,0.35); color: #0d8a30; }
+    .result-box .r-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .r-detail { font-family: var(--mono); font-size: 0.7rem; opacity: 0.9; word-break: break-word; }
+
+    .provision-info { background: var(--hai-blue-card); color: #fff; padding: 28px 30px; display: flex; flex-direction: column; justify-content: center; }
+    .provision-info h3 { font-size: 1.1rem; font-weight: 600; line-height: 1.4; margin-bottom: 12px; }
+    .provision-info p { font-size: 0.84rem; color: rgba(255,255,255,0.82); margin-bottom: 14px; }
+    .provision-info ul { list-style: none; }
+    .provision-info li { font-size: 0.82rem; color: rgba(255,255,255,0.9); padding-left: 22px; position: relative; margin-bottom: 9px; }
+    .provision-info li::before { content: ''; position: absolute; left: 0; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(120deg, var(--hai-cyan), var(--hai-green)); }
+
+    footer { padding: 26px 20px 40px; text-align: center; }
+    .foot-inner { max-width: 1180px; margin: 0 auto; }
+    footer p { font-size: 11.5px; color: rgba(255,255,255,0.62); max-width: 760px; margin: 0 auto 8px; }
+  </style>
+</head>
+<body>
+  <div class="top-strip">Announcing the Next Gen of Healthcare AI: Orchestrators for Outcomes, Not Tasks</div>
+
+  <div class="nav-wrap">
+    <nav class="hai-nav">
+      <a class="logo" href="#">
+        <svg class="logo-mark" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="hgrad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#31A8E0"/><stop offset="1" stop-color="#15CC44"/>
+            </linearGradient>
+          </defs>
+          <path d="M18 2.5l13 5v10.2c0 7.5-5.5 13.3-13 15.8-7.5-2.5-13-8.3-13-15.8V7.5l13-5z" fill="url(#hgrad)"/>
+          <path d="M18 10v14M11 17h14" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">
+          <span class="name">Hippocratic AI</span><br>
+          <span class="motto">&mdash; Do No Harm &mdash;</span>
+        </span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">Safety</a></li>
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Skills</a></li>
+        <li><a href="#" class="active">Deployments</a></li>
+        <li><a href="#">Benchmarks</a></li>
+        <li><a href="#">Company</a></li>
+      </ul>
+      <a class="pill pill-green" href="#provision">Book A Meeting</a>
+    </nav>
+  </div>
+
+  <section class="hero">
+    <h1>Agent Deployment Console</h1>
+    <p>Provision patient-outreach campaigns for your health system's care agent programs, and monitor active deployments across every site.</p>
+  </section>
+
+  <main class="console">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Active Deployments</div><div class="metric-val">14</div><div class="metric-sub">across 6 health systems</div></div>
+      <div class="metric"><div class="metric-label">Patient Calls Today</div><div class="metric-val">12,480</div><div class="metric-sub pos">+9% vs. yesterday</div></div>
+      <div class="metric"><div class="metric-label">Avg Patient Rating</div><div class="metric-val">8.9<span style="font-size:0.9rem;font-weight:500;">/10</span></div><div class="metric-sub">rolling 7 days</div></div>
+      <div class="metric"><div class="metric-label">Nurse Escalations</div><div class="metric-val">1.8%</div><div class="metric-sub">of completed calls</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Active Agent Deployments</h2>
+        <span class="sub">Care agent programs currently making patient calls</span>
+      </div>
+      <table class="dep-table">
+        <thead><tr><th>Care Program</th><th>Deployment</th><th>Cohort</th><th>Call Window</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="program">Chronic Care Management<small>Post-visit check-ins &amp; medication adherence</small></td><td class="mono">DEP-CCM-0412</td><td>2,300 patients</td><td>9a&ndash;7p local</td><td><span class="badge-live">Calling</span></td></tr>
+          <tr><td class="program">Colorectal Screening Outreach<small>Screening completion &amp; scheduling</small></td><td class="mono">DEP-CRC-0387</td><td>1,850 patients</td><td>10a&ndash;6p local</td><td><span class="badge-live">Calling</span></td></tr>
+          <tr><td class="program">RPM Adherence Check-ins<small>Remote patient monitoring follow-ups</small></td><td class="mono">DEP-RPM-0355</td><td>940 patients</td><td>9a&ndash;5p local</td><td><span class="badge-live">Calling</span></td></tr>
+          <tr><td class="program">Pre-Procedure Instructions<small>Prep guidance &amp; med stoppage reminders</small></td><td class="mono">DEP-PRE-0298</td><td>410 patients</td><td>8a&ndash;4p local</td><td><span class="badge-sched">Scheduled</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="provision">
+      <div class="provision-grid">
+        <div class="provision-body">
+          <h2>Provision Outreach Campaign</h2>
+          <div class="sub">Enroll a patient cohort and provision agent capacity for a care program.</div>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label>Care Program</label>
+              <select id="product">
+                <option value="ccm_outreach">Chronic Care Management</option>
+                <option value="crc_screening">Colorectal Screening Outreach</option>
+                <option value="rpm_adherence">RPM Adherence Check-ins</option>
+                <option value="preop_instructions">Pre-Procedure Instructions</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Patient Cohort Size</label><input type="number" id="seats" value="250" min="1"></div>
+              <div class="form-group">
+                <label>Deployment Tier</label>
+                <select id="planTier">
+                  <option value="enterprise">Health System</option>
+                  <option value="business">Multi-Clinic</option>
+                  <option value="starter">Pilot</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Deployment Region</label>
+              <select id="region">
+                <option value="us-east">US East</option>
+                <option value="us-west">US West</option>
+                <option value="eu-west">EU West</option>
+                <option value="ap-south">AP South</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-provision" id="submitBtn">Provision Campaign</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+        <div class="provision-info">
+          <h3>Every campaign runs on the Polaris safety constellation.</h3>
+          <p>Provisioned agents follow the care program's clinical protocols and escalate to your nursing team whenever a call needs a human.</p>
+          <ul>
+            <li>Clinical nurse escalation on risky calls</li>
+            <li>Medication recognition and vital sign clarification</li>
+            <li>Motivational interviewing for adherence</li>
+            <li>Call transcripts delivered to your EHR</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <p>Calls are non-diagnostic patient outreach. Risky calls are escalated to licensed nurses following clinically proven escalation protocols.</p>
+      <p>&copy; 2026 Hippocratic AI. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const PROGRAM_LABELS = {
+      ccm_outreach: 'Chronic Care Management',
+      crc_screening: 'Colorectal Screening Outreach',
+      rpm_adherence: 'RPM Adherence Check-ins',
+      preop_instructions: 'Pre-Procedure Instructions',
+    };
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Provisioning...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="r-title">Provisioning Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          const program = PROGRAM_LABELS[document.getElementById('product').value] || 'campaign';
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="r-title">Campaign Provisioned</div><div class="r-detail">${data.seatsAdded} patients enrolled in ${program} &mdash; ${data.licenseId}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Provision Campaign'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
