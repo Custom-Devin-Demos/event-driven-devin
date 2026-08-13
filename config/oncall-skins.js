@@ -32,26 +32,23 @@ const ONCALL_SKINS = {
     brandMark: 'B',
     vertical: 'banking',
     page: {
-      title: 'Brex — Business Account',
-      theme: {
-        '--navy': '#211b18',
-        '--navy-light': '#3a2f28',
-        '--gold': '#F46A35',
-        '--gold-dim': 'rgba(244,106,53,0.08)',
-      },
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '8cc190d2.html',
+      title: 'Brex — Business Banking',
     },
-    accent: '#F46A35',
-    accentDark: '#d9552a',
+    accent: '#FF3D00',
+    accentDark: '#d93400',
     theme: {
-      '--accent': '#F46A35',
-      '--ink': '#241c18',
-      '--surface': '#fffdfb',
-      '--chrome-bg': '#211b18',
-      '--chrome-text': '#fff8f2',
+      '--accent': '#FF3D00',
+      '--ink': '#15191E',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000710',
+      '--chrome-text': '#fcfcfd',
     },
     supportCenter: 'Brex Support',
     supportCenterSub: 'Customer Care & Incident Intake',
-    disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Brex product.',
+    disclaimer: 'NOT ACTUALLY A BREX SITE — internal demo only, not affiliated with, endorsed by, or a real Brex product.',
     bugPortal: {
       products: [
         {
