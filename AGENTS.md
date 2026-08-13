@@ -74,6 +74,25 @@ Three things are deliberately separate:
 
 `SECOND_ORDER_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec and the build's missing coverage gate — explicitly instructing it to fix the data problem rather than patch the crash site. Regression coverage for both paths lives in `tests/kroger-offer-affinity.test.js`.
 
+### Gap style-encoding scenario
+
+The Gap data-intelligence vertical (`/gapdata`, slug `383b99d1`) plants **one encoding gap with two symptoms**, aimed at a data-intelligence audience. It is separate from the original Gap checkout vertical (`/43f2f084`), which keeps its receipt-formatting TypeError. The Good Rewards relaunch added an `icon` tier mapped to the `gr_icon` program code, but that code was never registered in two separate places:
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `computeRewardsPoints()` | Dereferences the missing `REWARDS_POINT_PROGRAMS` entry and throws | `TypeError` → Sentry → Slack → Devin session |
+| `rankOffers()` | Finds no vector in the style-affinity feature view, scores every offer 0, serves the unranked pool | HTTP 200. Only `personalization.offer_match_rate` dropping to 0 |
+
+**The defect originates in the pipeline, not the route.** `pipelines/gap/style-affinity-spec.json` is the source of truth for segment encoding; `pipelines/gap/build-style-features.js` materializes it into `app/services/verticals/features/383b99d1-style-affinity.json`, which the service loads at require time. A tier declared in `membershipTiers` with no entry under `segments` builds clean — the build has no coverage gate, which is what lets the gap ship.
+
+Three things are deliberately separate:
+
+- **The defect is left in place** so Devin performs the fix live. To run the demo pre-fixed, add a `gr_icon` segment to the spec, run `npm run style:build`, and add a `gr_icon` entry to `REWARDS_POINT_PROGRAMS`. The service `require`s the built artifact, so **restart the server after a rebuild**.
+- **`scripts/gap-personalization-audit.js` is the prevention control** (`npm run audit:gap`) — it scores every tier the *service* can serve through the real ranker and exits non-zero when a tier is undeclared in the spec, mapped inconsistently between spec and service, absent from the feature view, or encoded but scoring nothing. It is not wired into the build, which is why the gap reached production.
+- **`npm run style:check`** fails when the committed artifact does not match a fresh build of the spec, and `npm test` asserts the same thing byte-for-byte.
+
+`SECOND_ORDER_DIRECTIVE` in `app/services/verticals/383b99d1.js` is appended to the Devin prompt via `alertData.promptAppendix`, sending the session to the audit first, then to the spec and the build's missing coverage gate. Regression coverage for both paths lives in `tests/gap-style-affinity.test.js`.
+
 ### S&P Global feed-migration parity scenario
 
 The S&P Global Market Intelligence vertical (`/spglobal`, slug `da6578ee`) plants **one field-mapping gap with two symptoms**, aimed at a data-platform audience mid-migration from legacy feed handlers onto a Databricks/Delta lakehouse. Wave 3 onboarded a `depositary_receipt` instrument class mapped to the `equity_adr` contract code, but that code was never given a contract:
