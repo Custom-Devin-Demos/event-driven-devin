@@ -98,7 +98,7 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Robinhood Support',
     supportCenterSub: 'Customer Care & Incident Intake',
-    disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Robinhood product.',
+    disclaimer: 'NOT ACTUALLY A ROBINHOOD SITE — internal demo only, not affiliated with, endorsed by, or a real Robinhood product.',
     bugPortal: {
       products: [
         {

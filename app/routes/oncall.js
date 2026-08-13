@@ -51,6 +51,16 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       vertical: skin.vertical,
     });
   }
+  const pageFile = skin.page && skin.page.file;
+  if (
+    pageFile &&
+    !fs.existsSync(path.join(__dirname, '..', 'public', 'verticals', pageFile))
+  ) {
+    logger.warn('On-Call skin references missing page file', {
+      skin: skin.slug,
+      pageFile,
+    });
+  }
   const products = (skin.bugPortal && skin.bugPortal.products) || [];
   for (const product of products) {
     for (const template of product.templates || []) {
