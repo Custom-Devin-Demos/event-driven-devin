@@ -99,12 +99,16 @@ function buildSkinBrandShim(skin) {
     .filter(([k, v]) => /^--[a-z0-9-]+$/i.test(k) && /^[^<>{};]*$/.test(String(v)))
     .map(([k, v]) => `${k}: ${v};`)
     .join(' ');
+  // A skin with its own custom page file (page.file) is natively branded:
+  // skip the title/logo rewrite and only remove the back link and add the
+  // disclaimer bar.
+  const rebrand = !page.file;
   return `
   <style>:root { ${themeVars} }</style>
   <script>
     (function () {
-      document.title = ${jsLiteral(page.title || skin.company)};
-      var logo = document.querySelector('.logo');
+      if (${JSON.stringify(rebrand)}) document.title = ${jsLiteral(page.title || skin.company)};
+      var logo = ${JSON.stringify(rebrand)} ? document.querySelector('.logo') : null;
       if (logo) {
         logo.textContent = '';
         var mark = document.createElement('div');
@@ -137,7 +141,8 @@ router.get('/oncall/c/:slug', (req, res, next) => {
   if (!skin) return next();
   const scenario = ALERT_SCENARIOS[skin.vertical];
   if (!scenario) return next();
-  const pagePath = path.join(__dirname, '..', 'public', 'verticals', scenario.page);
+  const pageFile = (skin.page && skin.page.file) || scenario.page;
+  const pagePath = path.join(__dirname, '..', 'public', 'verticals', pageFile);
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(

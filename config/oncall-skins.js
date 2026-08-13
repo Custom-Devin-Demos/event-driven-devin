@@ -76,6 +76,53 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '8bdcfab6': {
+    slug: '8bdcfab6',
+    company: 'Robinhood',
+    brandMark: 'R',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '8bdcfab6.html',
+      title: 'Robinhood Banking',
+    },
+    accent: '#00C805',
+    accentDark: '#00a304',
+    theme: {
+      '--accent': '#00C805',
+      '--ink': '#111111',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Robinhood Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'Internal demo only — not affiliated with, endorsed by, or a real Robinhood product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'banking',
+          label: 'Robinhood Banking \u2014 Transfers',
+          persona: { name: 'Marcus Delgado', email: 'marcus.delgado@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'banking-transfer-slow',
+              label: 'Transfers stuck on a spinner',
+              sev: 'High',
+              text: 'Transfers between my banking and brokerage accounts are supposed to be instant, but every transfer sits on a spinner for about ten seconds before it completes. Tried different amounts and both directions \u2014 same thing every time. Started today.',
+            },
+            {
+              id: 'banking-payroll-cutoff',
+              label: 'Recurring transfers running late',
+              sev: 'Critical',
+              text: 'Escalating: my scheduled recurring transfers run one after another and each one now takes ~10 seconds, so the whole batch is finishing way later than usual. Nothing fails \u2014 it is just painfully slow, and it was fine yesterday. During market hours this really matters.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 function getOncallSkin(slug) {
