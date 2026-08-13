@@ -294,18 +294,6 @@
     }
     .error-meta span { display: block; margin-bottom: 0.12rem; }
 
-    /* ── Bug Hint ── */
-    .bug-hint {
-      margin-top: 1.75rem; padding: 1rem 1.25rem;
-      background: var(--danger-bg); border: 1px solid var(--danger-border);
-      border-radius: 12px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
-    }
-    .bug-hint strong { color: var(--danger); }
-    .bug-hint code {
-      font-family: var(--mono); font-size: 0.75rem;
-      background: rgba(192,57,43,0.08); padding: 0.1rem 0.3rem; border-radius: 4px;
-    }
-
     /* ── Footer ── */
     footer {
       background: var(--gap-navy); color: #fff;
@@ -367,8 +355,8 @@
 
     <h1 class="page-title animate-up delay-1">Review your order</h1>
     <p class="page-desc animate-up delay-2">
-      Your bag is ready. Choose shipping and click <strong>Place order</strong> to run the
-      checkout pipeline and watch the bug surface in real time.
+      Your bag is ready. Choose shipping and click <strong>Place order</strong> to complete
+      your purchase.
     </p>
 
     <div class="order-card animate-up delay-3">
@@ -497,20 +485,6 @@
       <div class="result-box" id="resultBox"></div>
     </div>
 
-    <div class="bug-hint animate-up delay-6">
-      <strong>&#x1F41E; Bug:</strong> The Good Rewards relaunch added an <code>icon</code>
-      membership tier and mapped it to the <code>gr_icon</code> program code, but no matching
-      entry was ever registered &mdash; in <code>REWARDS_POINT_PROGRAMS</code>, or as a segment in
-      <code>pipelines/gap/style-affinity-spec.json</code>. One encoding gap, two very different
-      symptoms: checkout resolves the missing program and crashes with a <code>TypeError</code> on
-      <code>program.pointsPerDollar</code>, while the offer ranker finds no vector for the segment in
-      the materialized feature view, scores every offer at zero and quietly serves the generic pool.
-      The crash pages someone in seconds; the personalization regression shows up only as
-      <code>personalization.offer_match_rate</code> going to 0, with no error and no alert. The
-      feature build emits the incomplete view without complaining &mdash; run
-      <code>npm run audit:gap</code> to see the coverage gap the pipeline never checked for.
-      Switch the tier dropdown to Enrolled to see both paths recover.
-    </div>
   </div>
 
   <footer>
