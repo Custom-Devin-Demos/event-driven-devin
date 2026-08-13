@@ -311,6 +311,10 @@ const CUSTOMERS = {
     label: 'Gap',
     triggerMode: 'api',
   },
+  '383b99d1': {
+    label: 'Gap Data Intelligence',
+    triggerMode: 'api',
+  },
   efbf4b55: {
     label: 'Customer EFBF',
     triggerMode: 'api',
