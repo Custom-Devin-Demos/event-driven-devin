@@ -9,11 +9,11 @@ description: How to run and verify On-Call customer skins (/oncall/c/<slug>) end
 ```bash
 PORT=3100 SLACK_ONCALL_ALERTS_CHANNEL_ID=<alerts-ch> SLACK_ONCALL_BUGS_CHANNEL_ID=<bugs-ch> node app/server.js
 ```
-`SLACK_ONCALL_BOT_TOKEN` must be in env. **Restart after any edit to `config/oncall-skins.js`** (config is loaded at require time). Kill anything already on the port first (`fuser 3100/tcp`).
+A Slack token must be in env: `SLACK_ONCALL_BOT_TOKEN`, or `SLACK_BOT_TOKEN` as fallback (`app/services/oncall.js` reads `SLACK_ONCALL_BOT_TOKEN || SLACK_BOT_TOKEN`). **Restart after any edit to `config/oncall-skins.js`** (config is loaded at require time). Kill anything already on the port first (`fuser 3100/tcp`).
 
 ## What to verify per skin
-- `/oncall/c/<slug>`: disclaimer bar is the FIRST body element, page title matches `page.title`, CTA background equals `theme['--accent']`, no "← All Demos" link (native pages replace the stock vertical page).
-- Submitting the primary action must hit `/api/oncall/<vertical>/...` (the shim in the page rewrites the legacy `/api/<vertical>/...` path) and take ~7–10s (`durationMs` in the JSON server log). The floating "Devin On-Call demo" ribbon shows "Alert posted to #oncall-alerts".
+- `/oncall/c/<slug>`: disclaimer bar is the FIRST body element, page title matches `page.title`, CTA background equals `theme['--accent']`, no "← All Demos" link (the brand shim removes `.back-link` for every skin, stock or native).
+- Submitting the primary action must hit the vertical's on-call endpoint (the shim in the page rewrites the legacy API path): banking → `/api/oncall/banking/transfer`, telco → `/api/oncall/telco/upgrade`, hightech → `/api/oncall/licenses/provision` (not `/api/oncall/hightech/...`), insurance → `/api/oncall/insurance/claim`. It must take ~7–10s (`durationMs` in the JSON server log). The floating "Devin On-Call demo" ribbon shows "Alert posted to #oncall-alerts".
 - `/oncall/c/<slug>/report`: supportCenter branding; selecting a product pre-fills persona/severity and template text from `bugPortal` config; one submit → one "On-Call bug report posted" log line with the bugs channel id.
 - Regression: `/oncall` and `/oncall/report` stay generic (no customer strings); unknown slugs 404; legacy `/` hub and `/<vertical>` pages unchanged (still POST to legacy API path).
 - Mobile: emulate width 390 via CDP `Emulation.setDeviceMetricsOverride`; check `document.documentElement.scrollWidth <= 390` and CTA `getBoundingClientRect().height >= 44`.
