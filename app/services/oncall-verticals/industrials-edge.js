@@ -3,7 +3,7 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 const https = require('https');
-const { execFileSync } = require('child_process');
+const { execFile } = require('child_process');
 const { performance } = require('perf_hooks');
 const logger = require('../../telemetry/logger');
 const { recordMetric } = require('../../telemetry/datadog');
@@ -24,9 +24,17 @@ let materialGenerationFailed = false;
 const clientSocketSites = new Map();
 
 function runOpenSSL(args, cwd) {
-  execFileSync('openssl', args, {
-    cwd,
-    stdio: ['ignore', 'pipe', 'pipe'],
+  return new Promise((resolve, reject) => {
+    execFile('openssl', args, {
+      cwd,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
   });
 }
 
@@ -118,7 +126,7 @@ function prepareMaterialDirectory() {
   CLIENT_DIR = path.join(CERT_DIR, 'client');
 }
 
-function generateCertificateMaterial() {
+async function generateCertificateMaterial() {
   prepareMaterialDirectory();
   if (sweepOrphans) cleanupOrphanedMaterialDirectories();
   fs.rmSync(CERT_DIR, { recursive: true, force: true });
@@ -137,7 +145,7 @@ function generateCertificateMaterial() {
   fs.writeFileSync(path.join(CERT_DIR, 'ca', 'serial'), '1000\n');
 
   const caKey = path.join(CERT_DIR, 'ca', 'ca.key.pem');
-  runOpenSSL([
+  await runOpenSSL([
     'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
     '-keyout', caKey,
     '-out', CA_CERT, '-days', '3650',
@@ -150,7 +158,7 @@ function generateCertificateMaterial() {
   const serverKey = path.join(CERT_DIR, 'server', 'server.key.pem');
   const serverCsr = path.join(CERT_DIR, 'server', 'server.csr.pem');
   const serverCert = path.join(CERT_DIR, 'server', 'server.cert.pem');
-  runOpenSSL([
+  await runOpenSSL([
     'req', '-newkey', 'rsa:2048', '-nodes',
     '-keyout', serverKey, '-out', serverCsr,
     '-subj', '/C=US/O=Titan Mfg Edge/CN=localhost',
@@ -163,7 +171,7 @@ function generateCertificateMaterial() {
     'extendedKeyUsage=serverAuth',
     'subjectAltName=DNS:localhost,IP:127.0.0.1,DNS:f2-torrance,DNS:f3-mesa,DNS:f4-alabama',
   ].join('\n'));
-  runOpenSSL([
+    await runOpenSSL([
     'x509', '-req', '-in', serverCsr,
     '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
     '-CAcreateserial', '-out', serverCert, '-days', '3650', '-sha256',
@@ -174,7 +182,7 @@ function generateCertificateMaterial() {
     const key = path.join(CLIENT_DIR, `${site}.key.pem`);
     const csr = path.join(CLIENT_DIR, `${site}.csr.pem`);
     const cert = path.join(CLIENT_DIR, `${site}.cert.pem`);
-    runOpenSSL([
+    await runOpenSSL([
       'req', '-newkey', 'rsa:2048', '-nodes',
       '-keyout', key, '-out', csr,
       '-subj', `/C=US/O=Titan Mfg Edge/CN=${site}`,
@@ -216,7 +224,7 @@ function generateCertificateMaterial() {
         return `${iso.slice(2, 4)}${iso.slice(5, 7)}${iso.slice(8, 10)}`
           + `${iso.slice(11, 13)}${iso.slice(14, 16)}${iso.slice(17, 19)}Z`;
       };
-      runOpenSSL([
+      await runOpenSSL([
         'ca', '-batch', '-config', 'openssl-ca.cnf',
         '-startdate', formatDate(start),
         '-enddate', formatDate(end),
@@ -224,7 +232,7 @@ function generateCertificateMaterial() {
         '-out', path.relative(path.join(CERT_DIR, 'ca'), cert),
       ], path.join(CERT_DIR, 'ca'));
     } else {
-      runOpenSSL([
+      await runOpenSSL([
         'x509', '-req', '-in', csr,
         '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
         '-CAcreateserial', '-out', cert, '-days', '3650', '-sha256',
@@ -267,27 +275,36 @@ function generateCertificateMaterial() {
   };
 }
 
-function ensureCertificateMaterial() {
+let materialGenerationPromise;
+
+async function ensureCertificateMaterial() {
   if (materialState) return materialState;
   if (materialGenerationFailed) return null;
-  try {
-    materialState = generateCertificateMaterial();
-    return materialState;
-  } catch (error) {
-    logger.warn('Industrial edge mTLS certificate generation failed — edge gateway disabled', {
-      service: SERVICE,
-      error: error.message,
-      warning: 'Cloud DFM fallback remains available; install openssl or inspect boot logs before using edge routing.',
-    });
-    materialGenerationFailed = true;
-    materialState = null;
-    return null;
+  if (!materialGenerationPromise) {
+    materialGenerationPromise = generateCertificateMaterial()
+      .then((material) => {
+        materialState = material;
+        return material;
+      })
+      .catch((error) => {
+        logger.warn('Industrial edge mTLS certificate generation failed — edge gateway disabled', {
+          service: SERVICE,
+          error: error.message,
+          warning: 'Cloud DFM fallback remains available; install openssl or inspect boot logs before using edge routing.',
+        });
+        materialGenerationFailed = true;
+        materialState = null;
+        return null;
+      })
+      .finally(() => {
+        materialGenerationPromise = null;
+      });
   }
+  return materialGenerationPromise;
 }
 
 function clientCertificateFor(site) {
-  const material = ensureCertificateMaterial();
-  return material && material.clients[site];
+  return materialState?.clients[site];
 }
 
 function recordCertificateExpiryMetric(site) {
@@ -300,21 +317,12 @@ function recordCertificateExpiryMetric(site) {
 
 function startGateway() {
   if (gatewayReady) return gatewayReady;
-  let failedSynchronously = false;
-  let server;
-  const ready = new Promise((resolve) => {
-    let settled = false;
-    const settle = (serverInstance) => {
-      if (settled) return;
-      settled = true;
-      resolve(serverInstance);
-    };
+  const ready = Promise.resolve().then(async () => {
+    let server;
     try {
-      const material = ensureCertificateMaterial();
+      const material = await ensureCertificateMaterial();
       if (!material) {
-        failedSynchronously = true;
-        settle(null);
-        return;
+        return null;
       }
       server = https.createServer({
         key: material.server.keyBuffer,
@@ -377,7 +385,6 @@ function startGateway() {
         if (gateway === server) gateway = null;
         if (gatewayReady === ready) gatewayReady = null;
         server.close(() => {});
-        settle(null);
       });
       server.on('close', () => {
         if (gateway === server) gateway = null;
@@ -409,21 +416,29 @@ function startGateway() {
         clientSocketSites.delete(socket.remotePort);
       });
 
-      server.listen(0, '127.0.0.1', () => {
-        gateway = server;
-        settle(server);
+      return await new Promise((resolve) => {
+        let settled = false;
+        const settle = (serverInstance) => {
+          if (settled) return;
+          settled = true;
+          resolve(serverInstance);
+        };
+        server.on('error', () => settle(null));
+        server.listen(0, '127.0.0.1', () => {
+          gateway = server;
+          settle(server);
+        });
       });
     } catch (error) {
-      failedSynchronously = true;
       logger.warn('Industrial edge gateway failed to start', {
         service: SERVICE,
         error: error.message,
       });
       if (server) server.close(() => {});
-      settle(null);
+      return null;
     }
   });
-  gatewayReady = failedSynchronously ? null : ready;
+  gatewayReady = ready;
   return ready;
 }
 
@@ -526,6 +541,7 @@ function getClientSocketSiteCount() {
 module.exports = {
   SERVICE,
   SITE_CERT_NAMES,
+  runOpenSSL,
   ensureCertificateMaterial,
   clientCertificateFor,
   recordCertificateExpiryMetric,
