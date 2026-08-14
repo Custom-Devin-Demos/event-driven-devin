@@ -4,12 +4,17 @@ jest.mock('child_process', () => ({
   }),
 }));
 
-const { runOpenSSL } = require('../app/services/oncall-verticals/industrials-edge');
+const {
+  cleanupCertificateMaterial,
+  ensureCertificateMaterial,
+  runOpenSSL,
+} = require('../app/services/oncall-verticals/industrials-edge');
 
 describe('industrials edge certificate generation', () => {
   test('allows the event loop to run while OpenSSL is in flight', async () => {
     let timerFired = false;
     const openssl = runOpenSSL(['version'], process.cwd());
+    const generation = ensureCertificateMaterial();
     const timer = new Promise((resolve) => {
       setTimeout(() => {
         timerFired = true;
@@ -21,5 +26,7 @@ describe('industrials edge certificate generation', () => {
 
     expect(timerFired).toBe(true);
     await expect(openssl).rejects.toThrow('openssl test failure');
+    await expect(generation).resolves.toBeNull();
+    cleanupCertificateMaterial();
   });
 });

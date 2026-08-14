@@ -541,6 +541,7 @@ function getClientSocketSiteCount() {
 module.exports = {
   SERVICE,
   SITE_CERT_NAMES,
+  cleanupCertificateMaterial,
   runOpenSSL,
   ensureCertificateMaterial,
   clientCertificateFor,
