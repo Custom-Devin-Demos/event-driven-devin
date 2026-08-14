@@ -198,7 +198,11 @@
         var data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Quote request failed');
         result.className = 'result success';
-        result.innerHTML = '<strong>Quote ready</strong>' + data.quoteId + ' &mdash; $' + data.estimate.price.toLocaleString() + ' ' + data.estimate.currency + ', ' + data.estimate.leadTimeDays + '-day lead time.';
+        result.innerHTML = '<strong>Quote ready</strong>';
+        result.appendChild(document.createTextNode(
+          data.quoteId + ' — $' + data.estimate.price.toLocaleString() + ' '
+          + data.estimate.currency + ', ' + data.estimate.leadTimeDays + '-day lead time.',
+        ));
       } catch (error) {
         result.className = 'result error';
         result.innerHTML = '<strong>Quote unavailable</strong>';
