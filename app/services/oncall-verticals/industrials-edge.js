@@ -19,11 +19,10 @@ const CLIENT_DIR = path.join(CERT_DIR, 'client');
 let gateway;
 let gatewayReady;
 let materialState;
-const clientSocketSites = new Map();
-const pendingClientSites = [];
+let pendingRejectedSite;
 
 function runOpenSSL(args, cwd) {
-  execFileSync('/usr/bin/openssl', args, {
+  execFileSync('openssl', args, {
     cwd,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -139,10 +138,7 @@ function generateCertificateMaterial() {
   const certificates = Object.fromEntries(SITE_CERT_NAMES.map((site) => {
     const certPath = path.join(CLIENT_DIR, `${site}.cert.pem`);
     const inspected = inspectCertificate(certPath);
-    recordMetric('gateway.client_cert.days_to_expiry', inspected.daysToExpiry, {
-      service: SERVICE,
-      site,
-    });
+    recordMetric('edge.cert.days_to_expiry', inspected.daysToExpiry, { site });
     logger.info('Industrial edge client certificate loaded', {
       service: SERVICE,
       site,
@@ -154,6 +150,7 @@ function generateCertificateMaterial() {
       key: path.join(CLIENT_DIR, `${site}.key.pem`),
       subjectCn: inspected.certificate.subject.match(/CN=([^,]+)/)?.[1] || site,
       notAfter: inspected.notAfter,
+      daysToExpiry: inspected.daysToExpiry,
     }];
   }));
 
@@ -186,6 +183,13 @@ function ensureCertificateMaterial() {
 function clientCertificateFor(site) {
   const material = ensureCertificateMaterial();
   return material && material.clients[site];
+}
+
+function recordCertificateExpiryMetric(site) {
+  const client = clientCertificateFor(site);
+  if (client) {
+    recordMetric('edge.cert.days_to_expiry', client.daysToExpiry, { site });
+  }
 }
 
 function startGateway() {
@@ -233,8 +237,7 @@ function startGateway() {
 
     server.on('tlsClientError', (error, socket) => {
       const certificate = socket.getPeerCertificate(true) || {};
-      const mappedSite = clientSocketSites.get(socket.remotePort)
-        || pendingClientSites[pendingClientSites.length - 1]?.site;
+      const mappedSite = pendingRejectedSite;
       const mappedCertificate = mappedSite && materialState?.clients[mappedSite];
       const subjectCn = certificate.subject?.CN || mappedCertificate?.subjectCn || 'unknown';
       const site = SITE_CERT_NAMES.includes(subjectCn) ? subjectCn : 'unknown';
@@ -246,8 +249,7 @@ function startGateway() {
         clientCertNotAfter: certificate.valid_to || mappedCertificate?.notAfter?.toISOString() || 'unknown',
         error: error.message,
       });
-      const pendingIndex = pendingClientSites.findLastIndex((entry) => entry.site === mappedSite);
-      if (pendingIndex >= 0) pendingClientSites.splice(pendingIndex, 1);
+      pendingRejectedSite = undefined;
       Sentry.captureException(error, {
         tags: { service: SERVICE, site, authorization_error: socket.authorizationError || error.code },
         extra: { clientCertSubjectCn: subjectCn, clientCertNotAfter: certificate.valid_to },
@@ -277,7 +279,7 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       reject(error);
       return;
     }
-    pendingClientSites.push({ site });
+    pendingRejectedSite = site;
     const request = https.request({
       host: '127.0.0.1',
       port: server.address().port,
@@ -290,8 +292,7 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       timeout: timeoutMs,
       headers: { 'content-type': 'application/json' },
     }, (response) => {
-      const pendingIndex = pendingClientSites.findIndex((entry) => entry.site === site);
-      if (pendingIndex >= 0) pendingClientSites.splice(pendingIndex, 1);
+      if (pendingRejectedSite === site) pendingRejectedSite = undefined;
       const chunks = [];
       response.on('data', (chunk) => chunks.push(chunk));
       response.on('end', () => {
@@ -305,11 +306,13 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       });
     });
     request.on('socket', (socket) => {
-      socket.once('connect', () => clientSocketSites.set(socket.localPort, site));
-      socket.once('close', () => clientSocketSites.delete(socket.localPort));
+      socket.once('close', () => {
+        if (pendingRejectedSite === site) pendingRejectedSite = undefined;
+      });
     });
     request.on('timeout', () => request.destroy(new Error(`edge gateway timeout after ${timeoutMs}ms`)));
     request.on('error', (error) => {
+      if (pendingRejectedSite === site) pendingRejectedSite = undefined;
       const clientError = new Error(error.message);
       clientError.code = error.code;
       reject(clientError);
@@ -331,10 +334,24 @@ module.exports = {
   SITE_CERT_NAMES,
   ensureCertificateMaterial,
   clientCertificateFor,
+  recordCertificateExpiryMetric,
   quoteAtEdge,
   startGateway,
   stopGateway,
 };
+
+function cleanupCertificateMaterial() {
+  try {
+    fs.rmSync(CERT_DIR, { recursive: true, force: true });
+  } catch (error) {
+    logger.warn('Industrial edge mTLS certificate cleanup failed', {
+      service: SERVICE,
+      error: error.message,
+    });
+  }
+}
+
+process.once('exit', cleanupCertificateMaterial);
 
 // Generate fixtures and bind the loopback gateway during application boot so
 // the first quote measures request work rather than certificate generation.

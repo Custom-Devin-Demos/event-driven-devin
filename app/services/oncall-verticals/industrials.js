@@ -2,7 +2,17 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { quoteAtEdge, startGateway } = require('./industrials-edge');
+const {
+  quoteAtEdge,
+  startGateway,
+  recordCertificateExpiryMetric,
+} = require('./industrials-edge');
+
+const FACTORY_NAMES = {
+  'f2-torrance': 'F2 Torrance',
+  'f3-mesa': 'F3 Mesa',
+  'f4-alabama': 'F4 Alabama',
+};
 
 const ROUTE = '/api/oncall/industrials/quote';
 
@@ -130,6 +140,7 @@ async function processQuote(data, options = {}) {
 
   try {
     await startGateway();
+    recordCertificateExpiryMetric(quote.site);
     const edgeStarted = Date.now();
     let edge;
     let fallback = false;
@@ -182,14 +193,13 @@ async function processQuote(data, options = {}) {
       quoteId: quote.quoteId,
       status: 'ready',
       site: quote.site,
-      factory: quote.site === 'f2-torrance' ? 'F2 Torrance' : quote.site === 'f4-alabama' ? 'F4 Alabama' : 'F3 Mesa',
+      factory: FACTORY_NAMES[quote.site],
       estimate: {
         leadTimeDays: fallback ? 18 : 12,
         price: 12840 + quote.quantity * 38,
         currency: 'USD',
       },
-      phaseTimings,
-      fallback,
+      ...(options.debugTimings ? { phaseTimings, fallback } : {}),
     };
   } catch (error) {
     const durationMs = Date.now() - startTime;
