@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electronic Arts &mdash; Checkout</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Archivo:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-card: #ffffff;
+      --bg-elevated: #f2f2f2;
+      --surface: #eaeaea;
+      --border: #e2e2e2;
+      --border-light: #d6d6d6;
+      --text: #000000;
+      --text-muted: #5a5a5a;
+      --text-dim: #8a8a8a;
+      --ea-blue: #255AF6;
+      --ea-blue-hover: #1642c4;
+      --ea-blue-dim: rgba(37,90,246,0.07);
+      --ea-navy: #131357;
+      --ea-coral: #FF3F3F;
+      --ea-black: #161616;
+      --danger: #d02020;
+      --danger-bg: rgba(208,32,32,0.06);
+      --danger-border: rgba(208,32,32,0.15);
+      --success: #1f8a5b;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --display: 'Archivo', 'Inter', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Utility bar ── */
+    .utility-bar {
+      background: var(--ea-black);
+      color: #fff;
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 1.5rem;
+      padding: 0.45rem clamp(1.5rem, 4vw, 3rem);
+      font-size: 0.72rem;
+    }
+    .utility-bar .u-icon { display: flex; align-items: center; color: #d8d8d8; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 66px;
+      display: flex; align-items: center; gap: 2.25rem;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.7rem; }
+    .ea-mark {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--ea-blue);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ea-mark span {
+      font-family: var(--display);
+      color: #fff; font-size: 0.85rem; font-weight: 800;
+      font-style: italic; letter-spacing: -0.03em;
+    }
+    .logo-word {
+      font-family: var(--display);
+      color: var(--ea-blue); font-size: 1.15rem; font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    nav { display: flex; align-items: center; gap: 1.6rem; }
+    nav a {
+      color: #111; text-decoration: none; font-size: 0.78rem;
+      font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--ea-blue); }
+
+    /* ── EA Play band ── */
+    .play-band {
+      background: var(--ea-navy);
+      color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1.5rem;
+      padding: 0.9rem clamp(1.5rem, 4vw, 3rem);
+    }
+    .play-band .band-copy {
+      font-family: var(--display);
+      font-size: clamp(0.9rem, 2vw, 1.15rem); font-weight: 700; letter-spacing: -0.01em;
+    }
+    .play-band .band-right { display: flex; align-items: center; gap: 1rem; }
+    .play-logo { display: flex; align-items: center; gap: 0.45rem; }
+    .play-logo .dot {
+      width: 30px; height: 30px; border-radius: 50%; background: var(--ea-coral);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-style: italic; font-weight: 800;
+      font-size: 0.75rem; color: #fff;
+    }
+    .play-logo .word {
+      font-family: var(--display); font-size: 1.05rem; font-weight: 700; color: var(--ea-coral);
+    }
+    .band-cta {
+      background: var(--ea-coral); color: #fff; border: none;
+      padding: 0.6rem 1.15rem; font-size: 0.78rem; font-weight: 600;
+      font-family: var(--sans); cursor: pointer; transition: background 0.2s;
+    }
+    .band-cta:hover { background: #e13a3a; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative; background: #000; overflow: hidden;
+      min-height: 260px; display: flex; align-items: center;
+    }
+    .hero img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: center center; opacity: 0.55;
+    }
+    .hero-inner {
+      position: relative; z-index: 2;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+      max-width: 860px; margin: 0 auto; width: 100%; color: #fff;
+    }
+    .hero-eyebrow {
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: #c9d4ff; margin-bottom: 0.6rem;
+    }
+    .hero-title {
+      font-family: var(--display);
+      font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 900;
+      text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.05;
+    }
+    .hero-sub { margin-top: 0.6rem; font-size: 0.9rem; color: #d9d9d9; max-width: 520px; }
+
+    /* ── Page ── */
+    .page {
+      max-width: 860px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--ea-blue); text-decoration: none; font-size: 0.8rem;
+      font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--ea-blue-hover); }
+
+    .page-title {
+      font-family: var(--display);
+      font-size: clamp(1.8rem, 4.5vw, 2.4rem);
+      font-weight: 800; line-height: 1.1; margin-bottom: 0.5rem;
+      letter-spacing: -0.02em; text-transform: uppercase;
+    }
+    .page-title em { font-style: normal; color: var(--ea-blue); }
+    .page-desc {
+      font-size: 0.92rem; color: var(--text-muted); max-width: 540px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Cart card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h2 {
+      font-family: var(--display);
+      font-size: 1.05rem; font-weight: 800; letter-spacing: 0.01em; text-transform: uppercase;
+    }
+    .order-header .item-count {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .item-swatch {
+      width: 56px; height: 56px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; flex-shrink: 0;
+      font-size: 1.6rem;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+    }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.15rem; }
+    .item-sku { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-platform { font-size: 0.75rem; color: var(--text-muted); }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; }
+
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 1rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .member-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--ea-blue-dim); color: var(--ea-blue);
+      font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.6rem;
+      border-radius: 4px; margin-top: 0.5rem;
+    }
+
+    /* ── Checkout form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .action-section h3 {
+      font-family: var(--display);
+      font-size: 1.05rem; font-weight: 800; margin-bottom: 1rem;
+      letter-spacing: 0.01em; text-transform: uppercase;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.68rem; font-weight: 600; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 6px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--ea-blue);
+      box-shadow: 0 0 0 3px var(--ea-blue-dim);
+    }
+
+    .place-order-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--ea-blue); color: #fff;
+      border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+    }
+    .place-order-btn:hover { background: var(--ea-blue-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--ea-blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 8px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+    }
+    .result-box.success {
+      display: block;
+      background: rgba(31,138,91,0.06); border: 1px solid rgba(31,138,91,0.2);
+    }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: var(--ea-blue-dim); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 8px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--ea-black); color: #cfcfcf;
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+    }
+    .footer-inner {
+      max-width: 860px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.82rem; font-weight: 600; color: #f0f0f0;
+      letter-spacing: 0.03em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: #9a9a9a; text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: #fff; }
+    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: #8a8a8a; }
+    .footer-devin a { color: #7fa0ff; text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 720px) {
+      .form-row { grid-template-columns: 1fr; }
+      nav { display: none; }
+      .play-band { flex-direction: column; align-items: flex-start; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="utility-bar">
+    <span class="u-icon">Account</span>
+    <span class="u-icon">Help</span>
+    <span class="u-icon">EA</span>
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="ea-mark"><span>EA</span></div>
+      <div class="logo-word">Electronic Arts</div>
+    </div>
+    <nav>
+      <a href="#">Games</a>
+      <a href="#">Experiences</a>
+      <a href="#">About</a>
+      <a href="#">Commitments</a>
+      <a href="#">Resources</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <img src="https://media.contentapi.ea.com/content/dam/ea/madden-nfl/madden-nfl-27/images/2026/08/m27-hero-md-dlx-keyart-7x2-xl.jpg.adapt.crop7x2.1920w.jpg"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1600&q=80';"
+         alt="Madden NFL 27 key art">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">EA app &middot; Order review</div>
+      <h1 class="hero-title">Complete your purchase</h1>
+      <p class="hero-sub">Your cart is ready. EA Play member rewards are applied automatically at checkout.</p>
+    </div>
+  </section>
+
+  <div class="play-band">
+    <div class="band-copy">PC players: EA Play Pro members save an extra 10% on this order</div>
+    <div class="band-right">
+      <div class="play-logo">
+        <div class="dot">EA</div>
+        <div class="word">Play</div>
+      </div>
+      <button type="button" class="band-cta">Join EA Play</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1">EA app <em>Checkout</em></h1>
+    <p class="page-desc animate-up delay-2">Click <strong>Complete Purchase</strong> to run the order pipeline and watch the bug surface in real time.</p>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Order Summary</h2>
+        <span class="item-count">3 items</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="item-swatch">&#x1F3C8;</div>
+          <div class="item-details">
+            <div class="item-name">Madden NFL 27 &mdash; Deluxe Edition</div>
+            <div class="item-platform">PC &middot; Digital download</div>
+            <div class="item-sku">EA-MADDEN27-DLX</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty 1</div>
+            <div class="item-price">$99.99</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x26BD;</div>
+          <div class="item-details">
+            <div class="item-name">EA SPORTS FC 26 &mdash; Standard Edition</div>
+            <div class="item-platform">PC &middot; Digital download</div>
+            <div class="item-sku">EA-FC26-STD</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty 1</div>
+            <div class="item-price">$69.99</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="item-swatch">&#x1F3AE;</div>
+          <div class="item-details">
+            <div class="item-name">EA Play Pro &mdash; 12 Month Membership</div>
+            <div class="item-platform">PC &middot; Subscription</div>
+            <div class="item-sku">EA-PLAY-PRO-12M</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">Qty 1</div>
+            <div class="item-price">$119.99</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Subtotal</span><span>$289.97</span></div>
+        <div class="total-line"><span>Estimated Tax</span><span>Calculated at checkout</span></div>
+        <div class="total-line"><span>Member Savings</span><span>15% (EA Play Pro &gt; $150)</span></div>
+        <div class="total-line grand"><span>Est. Total</span><span>$289.97+</span></div>
+        <div class="member-badge">&#x1F3AE; EA Play Pro &mdash; member rewards applied</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Account Details</h3>
+      <form id="checkoutForm" onsubmit="submitPurchase(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>EA Account</label>
+            <input type="text" value="ProdigyRunner_88" readonly>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" value="jordan.avery@example.com" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Storefront Region</label>
+            <select id="regionSelect">
+              <option value="US" selected>United States (USD)</option>
+              <option value="UK">United Kingdom (GBP)</option>
+              <option value="DE">Germany (EUR)</option>
+              <option value="JP">Japan (JPY)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Payment Method</label>
+            <input type="text" value="Visa &bull;&bull;&bull;&bull; 4412" readonly>
+          </div>
+        </div>
+        <button type="submit" class="place-order-btn" id="placeOrderBtn">Complete Purchase</button>
+      </form>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Processing your purchase&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The order pipeline attaches an EA Play member reward entitlement (<code>PROMO-EAPLAY-REWARD-2026</code>) that doesn&rsquo;t exist in the storefront catalog. When the summary formatter looks up its title, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Electronic Arts Inc. &copy; 2026</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Legal</a>
+        <a href="#">Privacy</a>
+        <a href="#">Careers</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var CART_ITEMS = [
+      { sku: 'EA-MADDEN27-DLX', qty: 1, price: 99.99 },
+      { sku: 'EA-FC26-STD', qty: 1, price: 69.99 },
+      { sku: 'EA-PLAY-PRO-12M', qty: 1, price: 119.99 }
+    ];
+    var SUBTOTAL = 289.97;
+
+    function submitPurchase(e) {
+      e.preventDefault();
+      var btn = document.getElementById('placeOrderBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var region = document.getElementById('regionSelect').value;
+
+      fetch('/api/bc6a7c34/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_ea_demo',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: CART_ITEMS,
+          subtotal: SUBTOTAL,
+          region: region
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Purchase Failed</h3>' +
+            '<p>Your order could not be processed.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Purchase Confirmed</h3>' +
+            '<p>Order <strong>' + result.data.orderId + '</strong> confirmed.<br>' +
+            'Total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.tax.toFixed(2) + ' tax)</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Complete Purchase';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

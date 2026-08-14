@@ -198,6 +198,10 @@ const CUSTOMERS = {
     label: 'Avis',
     triggerMode: 'api',
   },
+  'bc6a7c34': {
+    label: 'Electronic Arts',
+    triggerMode: 'api',
+  },
   '058419ac': {
     label: 'Optum Rx',
     triggerMode: 'api',
