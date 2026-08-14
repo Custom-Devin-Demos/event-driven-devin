@@ -22,6 +22,80 @@ const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const router = express.Router();
 
 /**
+ * Per-IP hourly caps on the on-call mutation endpoints. These endpoints
+ * create real Slack messages and Datadog incidents, so unauthenticated
+ * drive-by traffic must not be able to spam them unbounded — while one
+ * abusive caller must not lock out legitimate presenters. Sliding
+ * one-hour window, in-process; the legacy vertical APIs and all
+ * GET/state endpoints are uncapped. Invalid requests (unknown vertical
+ * or infra kind) are rejected before consuming quota.
+ */
+const ONCALL_HOURLY_CAPS = {
+  incident: 10,
+  trigger: 50,
+  alert: 50,
+  bug: 50,
+  infra: 50,
+  config: 120,
+};
+const capWindows = new Map();
+const CAP_WINDOW_MS = 3600000;
+
+// The app sits behind nginx, which appends the real client address to
+// X-Forwarded-For; the last entry is the one our proxy added and the only
+// one a caller cannot spoof. Direct connections fall back to the socket.
+function clientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    const parts = forwarded.split(',');
+    return parts[parts.length - 1].trim();
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function oncallCap(name) {
+  const limit = ONCALL_HOURLY_CAPS[name];
+  if (!limit) throw new Error(`No hourly cap configured for "${name}"`);
+  return (req, res, next) => {
+    const now = Date.now();
+    const cutoff = now - CAP_WINDOW_MS;
+    const key = `${name}:${clientIp(req)}`;
+    let window = capWindows.get(key);
+    if (!window) {
+      window = [];
+      capWindows.set(key, window);
+    }
+    while (window.length && window[0] <= cutoff) window.shift();
+    if (window.length >= limit) {
+      logger.warn('On-Call hourly cap hit', { cap: name, limit, ip: clientIp(req) });
+      const retryAfterSec = Math.ceil((window[0] + CAP_WINDOW_MS - now) / 1000);
+      res.set('Retry-After', String(Math.max(retryAfterSec, 1)));
+      return res.status(429).json({
+        ok: false,
+        error: `Hourly limit reached for this action (${limit}/hour). Try again later.`,
+      });
+    }
+    window.push(now);
+    if (window.length === 1) pruneCapWindows(cutoff);
+    next();
+  };
+}
+
+// Drop idle per-IP windows so the map cannot grow unbounded.
+function pruneCapWindows(cutoff) {
+  for (const [key, window] of capWindows) {
+    while (window.length && window[0] <= cutoff) window.shift();
+    if (!window.length) capWindows.delete(key);
+  }
+}
+
+// Keep the on-call surface out of search indexes; it is shared by URL only.
+router.use('/oncall', (_req, res, next) => {
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
+
+/**
  * Tag the caller's browser with the run's degradation cookie: only requests
  * carrying it see that run's live symptoms (see the scoping middleware in
  * server.js), so a demo never degrades the site for anyone else.
@@ -264,11 +338,12 @@ router.get('/oncall/:vertical', (req, res, next) => {
  * shimmed branded pages call this alongside the on-call vertical API, whose
  * telemetry fires normally; the legacy automated-alert pipeline is not used.
  */
-router.post('/api/oncall/trigger/:vertical', async (req, res) => {
-  const scenario = ALERT_SCENARIOS[req.params.vertical];
-  if (!scenario) {
+router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
+  if (!ALERT_SCENARIOS[req.params.vertical]) {
     return res.status(404).json({ ok: false, error: `Unknown vertical: ${req.params.vertical}` });
   }
+  next();
+}, oncallCap('trigger'), async (req, res) => {
   try {
     const { unique, devinEmail, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
@@ -321,7 +396,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
  * POST /api/oncall/alert — post an alert card to #oncall-alerts
  * Body: { scenario: 'banking'|'insurance'|'hightech'|'telco', unique?: boolean }
  */
-router.post('/api/oncall/alert', async (req, res) => {
+router.post('/api/oncall/alert', oncallCap('alert'), async (req, res) => {
   try {
     const { scenario, unique, devinEmail } = req.body || {};
     const result = await postOncallAlert(scenario, { unique: unique !== false, devinEmail });
@@ -338,7 +413,7 @@ router.post('/api/oncall/alert', async (req, res) => {
  * Backend-symptom templates (resolved server-side) also activate the matching
  * infra degradation for the standard auto-revert window so repro is genuine.
  */
-router.post('/api/oncall/bug', async (req, res) => {
+router.post('/api/oncall/bug', oncallCap('bug'), async (req, res) => {
   try {
     const { scenario, templateId, text, reporter, severity, productArea, devinEmail, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
@@ -366,10 +441,12 @@ router.post('/api/oncall/bug', async (req, res) => {
  * and posts a Datadog-monitor-style alert card.
  * Kinds: latency, dependency-timeout, memory-leak, slo-burn.
  */
-router.post('/api/oncall/infra/:kind', async (req, res) => {
+router.post('/api/oncall/infra/:kind', (req, res, next) => {
   if (!INFRA_INCIDENTS[req.params.kind]) {
     return res.status(404).json({ ok: false, error: `Unknown infra incident: ${req.params.kind}` });
   }
+  next();
+}, oncallCap('infra'), async (req, res) => {
   try {
     const result = await postOncallInfraIncident(req.params.kind, { devinEmail: (req.body || {}).devinEmail });
     if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
@@ -390,7 +467,7 @@ router.get('/api/oncall/infra/state', (_req, res) => {
 /**
  * POST /api/oncall/latency — back-compat alias for the latency infra incident.
  */
-router.post('/api/oncall/latency', async (req, res) => {
+router.post('/api/oncall/latency', oncallCap('infra'), async (req, res) => {
   try {
     const result = await postOncallInfraIncident('latency', { devinEmail: (req.body || {}).devinEmail });
     if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
@@ -409,7 +486,7 @@ router.post('/api/oncall/latency', async (req, res) => {
  * synthetic probe loop against the affected endpoint so telemetry records
  * the failure, and auto-resolves when the incident window ends.
  */
-router.post('/api/oncall/incident', async (req, res) => {
+router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
   try {
     const { kind, devinEmail } = req.body || {};
     const result = await postOncallIncident({ kind, devinEmail });
@@ -446,7 +523,7 @@ router.get('/api/oncall/config', (req, res) => {
  * override only affects requests scoped to that run and auto-expires with the
  * incident window, so the shipped configuration is never changed.
  */
-router.post('/api/oncall/config', (req, res) => {
+router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
   const { runRef, ...patch } = req.body || {};
   const result = setOncallConfigOverride(runRef, patch);
   if (!result.ok) return res.status(400).json(result);
