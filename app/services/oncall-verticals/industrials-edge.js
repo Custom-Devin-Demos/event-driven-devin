@@ -19,7 +19,8 @@ const CLIENT_DIR = path.join(CERT_DIR, 'client');
 let gateway;
 let gatewayReady;
 let materialState;
-let pendingRejectedSite;
+let materialGenerationFailed = false;
+const clientSocketSites = new Map();
 
 function runOpenSSL(args, cwd) {
   execFileSync('openssl', args, {
@@ -41,20 +42,30 @@ function inspectCertificate(certPath) {
 
 function generateCertificateMaterial() {
   fs.rmSync(CERT_DIR, { recursive: true, force: true });
+  fs.mkdirSync(MATERIAL_DIR, { recursive: true, mode: 0o700 });
+  fs.chmodSync(MATERIAL_DIR, 0o700);
+  fs.mkdirSync(CERT_DIR, { recursive: true, mode: 0o700 });
+  fs.chmodSync(CERT_DIR, 0o700);
   fs.mkdirSync(path.join(CERT_DIR, 'ca', 'newcerts'), { recursive: true });
   fs.mkdirSync(path.join(CERT_DIR, 'server'), { recursive: true });
   fs.mkdirSync(CLIENT_DIR, { recursive: true });
+  fs.chmodSync(path.join(CERT_DIR, 'ca'), 0o700);
+  fs.chmodSync(path.join(CERT_DIR, 'ca', 'newcerts'), 0o700);
+  fs.chmodSync(path.join(CERT_DIR, 'server'), 0o700);
+  fs.chmodSync(CLIENT_DIR, 0o700);
   fs.writeFileSync(path.join(CERT_DIR, 'ca', 'index.txt'), '');
   fs.writeFileSync(path.join(CERT_DIR, 'ca', 'serial'), '1000\n');
 
+  const caKey = path.join(CERT_DIR, 'ca', 'ca.key.pem');
   runOpenSSL([
     'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
-    '-keyout', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
+    '-keyout', caKey,
     '-out', CA_CERT, '-days', '3650',
     '-subj', '/C=US/O=Titan Mfg Edge/CN=Titan Mfg Edge Root CA',
     '-addext', 'basicConstraints=critical,CA:TRUE,pathlen:1',
     '-addext', 'keyUsage=critical,keyCertSign,cRLSign',
   ], CERT_DIR);
+  fs.chmodSync(caKey, 0o600);
 
   const serverKey = path.join(CERT_DIR, 'server', 'server.key.pem');
   const serverCsr = path.join(CERT_DIR, 'server', 'server.csr.pem');
@@ -64,12 +75,13 @@ function generateCertificateMaterial() {
     '-keyout', serverKey, '-out', serverCsr,
     '-subj', '/C=US/O=Titan Mfg Edge/CN=localhost',
   ], CERT_DIR);
+  fs.chmodSync(serverKey, 0o600);
   const serverExt = path.join(CERT_DIR, 'server', 'server.ext');
   fs.writeFileSync(serverExt, [
     'basicConstraints=critical,CA:FALSE',
     'keyUsage=critical,digitalSignature,keyEncipherment',
     'extendedKeyUsage=serverAuth',
-    'subjectAltName=DNS:localhost,IP:127.0.0.1',
+    'subjectAltName=DNS:localhost,IP:127.0.0.1,DNS:f2-torrance,DNS:f3-mesa,DNS:f4-alabama',
   ].join('\n'));
   runOpenSSL([
     'x509', '-req', '-in', serverCsr,
@@ -87,6 +99,7 @@ function generateCertificateMaterial() {
       '-keyout', key, '-out', csr,
       '-subj', `/C=US/O=Titan Mfg Edge/CN=${site}`,
     ], CERT_DIR);
+    fs.chmodSync(key, 0o600);
     const ext = path.join(CLIENT_DIR, `${site}.ext`);
     fs.writeFileSync(ext, [
       'basicConstraints=critical,CA:FALSE',
@@ -166,6 +179,7 @@ function generateCertificateMaterial() {
 
 function ensureCertificateMaterial() {
   if (materialState) return materialState;
+  if (materialGenerationFailed) return null;
   try {
     materialState = generateCertificateMaterial();
     return materialState;
@@ -175,6 +189,7 @@ function ensureCertificateMaterial() {
       error: error.message,
       warning: 'Cloud DFM fallback remains available; install openssl or inspect boot logs before using edge routing.',
     });
+    materialGenerationFailed = true;
     materialState = null;
     return null;
   }
@@ -188,7 +203,8 @@ function clientCertificateFor(site) {
 function recordCertificateExpiryMetric(site) {
   const client = clientCertificateFor(site);
   if (client) {
-    recordMetric('edge.cert.days_to_expiry', client.daysToExpiry, { site });
+    const daysToExpiry = (client.notAfter.getTime() - Date.now()) / 86400000;
+    recordMetric('edge.cert.days_to_expiry', daysToExpiry, { site });
   }
 }
 
@@ -237,7 +253,8 @@ function startGateway() {
 
     server.on('tlsClientError', (error, socket) => {
       const certificate = socket.getPeerCertificate(true) || {};
-      const mappedSite = pendingRejectedSite;
+      const mappedSite = clientSocketSites.get(socket.remotePort)
+        || (SITE_CERT_NAMES.includes(socket.servername) ? socket.servername : undefined);
       const mappedCertificate = mappedSite && materialState?.clients[mappedSite];
       const subjectCn = certificate.subject?.CN || mappedCertificate?.subjectCn || 'unknown';
       const site = SITE_CERT_NAMES.includes(subjectCn) ? subjectCn : 'unknown';
@@ -249,7 +266,7 @@ function startGateway() {
         clientCertNotAfter: certificate.valid_to || mappedCertificate?.notAfter?.toISOString() || 'unknown',
         error: error.message,
       });
-      pendingRejectedSite = undefined;
+      clientSocketSites.delete(socket.remotePort);
       Sentry.captureException(error, {
         tags: { service: SERVICE, site, authorization_error: socket.authorizationError || error.code },
         extra: { clientCertSubjectCn: subjectCn, clientCertNotAfter: certificate.valid_to },
@@ -279,7 +296,6 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       reject(error);
       return;
     }
-    pendingRejectedSite = site;
     const request = https.request({
       host: '127.0.0.1',
       port: server.address().port,
@@ -288,11 +304,10 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       ca: fs.readFileSync(CA_CERT),
       key: fs.readFileSync(client.key),
       cert: fs.readFileSync(client.cert),
-      servername: 'localhost',
+      servername: site,
       timeout: timeoutMs,
       headers: { 'content-type': 'application/json' },
     }, (response) => {
-      if (pendingRejectedSite === site) pendingRejectedSite = undefined;
       const chunks = [];
       response.on('data', (chunk) => chunks.push(chunk));
       response.on('end', () => {
@@ -306,13 +321,15 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       });
     });
     request.on('socket', (socket) => {
+      socket.once('connect', () => {
+        clientSocketSites.set(socket.localPort, site);
+      });
       socket.once('close', () => {
-        if (pendingRejectedSite === site) pendingRejectedSite = undefined;
+        clientSocketSites.delete(socket.localPort);
       });
     });
     request.on('timeout', () => request.destroy(new Error(`edge gateway timeout after ${timeoutMs}ms`)));
     request.on('error', (error) => {
-      if (pendingRejectedSite === site) pendingRejectedSite = undefined;
       const clientError = new Error(error.message);
       clientError.code = error.code;
       reject(clientError);
@@ -322,11 +339,21 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
 }
 
 function stopGateway() {
-  if (!gateway) return Promise.resolve();
-  const server = gateway;
-  gateway = null;
-  gatewayReady = null;
-  return new Promise((resolve) => server.close(resolve));
+  const ready = gatewayReady;
+  if (!ready) return Promise.resolve();
+  return ready.then((server) => {
+    if (!server) {
+      if (gatewayReady === ready) gatewayReady = null;
+      return;
+    }
+    if (gateway === server) gateway = null;
+    return new Promise((resolve) => {
+      server.close(() => {
+        if (gatewayReady === ready) gatewayReady = null;
+        resolve();
+      });
+    });
+  });
 }
 
 module.exports = {
@@ -352,6 +379,13 @@ function cleanupCertificateMaterial() {
 }
 
 process.once('exit', cleanupCertificateMaterial);
+function handleTermination(signal) {
+  cleanupCertificateMaterial();
+  process.removeListener(signal, handleTermination);
+  process.kill(process.pid, signal);
+}
+process.once('SIGTERM', handleTermination);
+process.once('SIGINT', handleTermination);
 
 // Generate fixtures and bind the loopback gateway during application boot so
 // the first quote measures request work rather than certificate generation.

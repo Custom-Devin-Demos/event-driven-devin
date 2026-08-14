@@ -2,7 +2,10 @@ jest.setTimeout(30000);
 
 const logger = require('../app/telemetry/logger');
 const { processQuote } = require('../app/services/oncall-verticals/industrials');
-const { stopGateway } = require('../app/services/oncall-verticals/industrials-edge');
+const {
+  quoteAtEdge,
+  stopGateway,
+} = require('../app/services/oncall-verticals/industrials-edge');
 
 describe('industrials instant quote mTLS path', () => {
   let warnSpy;
@@ -56,6 +59,30 @@ describe('industrials instant quote mTLS path', () => {
       site: 'f3-mesa',
       authorizationError: 'CERT_HAS_EXPIRED',
       clientCertSubjectCn: 'f3-mesa',
+    }));
+  });
+
+  test('attributes an F3 rejection correctly while an F2 quote is in flight', async () => {
+    warnSpy.mockClear();
+    const f3 = quoteAtEdge('f3-mesa', { site: 'f3-mesa' }).catch((error) => error);
+    const f2 = quoteAtEdge('f2-torrance', { site: 'f2-torrance' });
+    const [f3Result, f2Result] = await Promise.all([f3, f2]);
+
+    expect(f3Result).toEqual(expect.objectContaining({
+      code: 'ECONNRESET',
+    }));
+    expect(f2Result).toEqual(expect.objectContaining({
+      success: true,
+      site: 'f2-torrance',
+    }));
+    const gatewayRejection = warnSpy.mock.calls.find(([message, details]) => (
+      message === 'Industrial edge mTLS client rejected'
+      && details.site === 'f3-mesa'
+    ));
+    expect(gatewayRejection).toBeDefined();
+    expect(gatewayRejection[1]).toEqual(expect.objectContaining({
+      clientCertSubjectCn: 'f3-mesa',
+      authorizationError: 'CERT_HAS_EXPIRED',
     }));
   });
 });
