@@ -159,8 +159,13 @@ function generateCertificateMaterial() {
         'default_md = sha256',
         'default_days = 3650',
         'policy = policy_any',
+        'x509_extensions = client_cert',
         '[ policy_any ]',
         'commonName = supplied',
+        '[ client_cert ]',
+        'basicConstraints=critical,CA:FALSE',
+        'keyUsage=critical,digitalSignature,keyEncipherment',
+        'extendedKeyUsage=clientAuth',
       ].join('\n'));
       const start = new Date(Date.now() - 2 * 86400000);
       const end = new Date(Date.now() - 86400000);
@@ -269,7 +274,15 @@ function startGateway() {
       }
       const chunks = [];
       for await (const chunk of req) chunks.push(chunk);
-      const payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
+      let payload;
+      try {
+        payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
+      } catch {
+        res.statusCode = 400;
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify({ error: 'Invalid JSON request body' }));
+        return;
+      }
       const stages = {};
       const runStage = async (name, waitMs) => {
         const started = performance.now();
@@ -289,6 +302,21 @@ function startGateway() {
       res.end(JSON.stringify({ success: true, site: payload.site, stages }));
     });
 
+    let settled = false;
+    const settle = (serverInstance) => {
+      if (settled) return;
+      settled = true;
+      resolve(serverInstance);
+    };
+    server.on('error', (error) => {
+      logger.warn('Industrial edge gateway failed to start', {
+        service: SERVICE,
+        error: error.message,
+      });
+      if (!settled) {
+        settle(null);
+      }
+    });
     server.on('tlsClientError', (error, socket) => {
       const certificate = socket.getPeerCertificate(true) || {};
       const mappedSite = clientSocketSites.get(socket.remotePort)
@@ -313,7 +341,7 @@ function startGateway() {
 
     server.listen(0, '127.0.0.1', () => {
       gateway = server;
-      resolve(server);
+      settle(server);
     });
   });
   return gatewayReady;
@@ -334,6 +362,13 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       reject(error);
       return;
     }
+    let localPort;
+    const clearClientSocketSite = () => {
+      if (localPort !== undefined) {
+        clientSocketSites.delete(localPort);
+        localPort = undefined;
+      }
+    };
     const request = https.request({
       host: '127.0.0.1',
       port: server.address().port,
@@ -349,6 +384,7 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       const chunks = [];
       response.on('data', (chunk) => chunks.push(chunk));
       response.on('end', () => {
+        clearClientSocketSite();
         if (response.statusCode !== 200) {
           const error = new Error(`Industrial edge gateway returned ${response.statusCode}`);
           error.code = 'EDGE_GATEWAY_HTTP_ERROR';
@@ -360,14 +396,16 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
     });
     request.on('socket', (socket) => {
       socket.once('connect', () => {
-        clientSocketSites.set(socket.localPort, site);
+        localPort = socket.localPort;
+        clientSocketSites.set(localPort, site);
       });
       socket.once('close', () => {
-        clientSocketSites.delete(socket.localPort);
+        clearClientSocketSite();
       });
     });
     request.on('timeout', () => request.destroy(new Error(`edge gateway timeout after ${timeoutMs}ms`)));
     request.on('error', (error) => {
+      clearClientSocketSite();
       const clientError = new Error(error.message);
       clientError.code = error.code;
       reject(clientError);
@@ -394,12 +432,17 @@ function stopGateway() {
   });
 }
 
+function getClientSocketSiteCount() {
+  return clientSocketSites.size;
+}
+
 module.exports = {
   SERVICE,
   SITE_CERT_NAMES,
   ensureCertificateMaterial,
   clientCertificateFor,
   recordCertificateExpiryMetric,
+  getClientSocketSiteCount,
   quoteAtEdge,
   startGateway,
   stopGateway,

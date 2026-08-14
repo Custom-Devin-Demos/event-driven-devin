@@ -6,6 +6,7 @@ const {
   quoteAtEdge,
   startGateway,
   recordCertificateExpiryMetric,
+  SITE_CERT_NAMES,
 } = require('./industrials-edge');
 
 const FACTORY_NAMES = {
@@ -125,7 +126,7 @@ async function processQuote(data, options = {}) {
     toleranceClass: data.toleranceClass || 'Class B',
     quantity: Number(data.quantity) || 25,
     itarControlled: Boolean(data.itarControlled),
-    site: ['f2-torrance', 'f3-mesa', 'f4-alabama'].includes(data.site)
+    site: SITE_CERT_NAMES.includes(data.site)
       ? data.site
       : 'f3-mesa',
   };

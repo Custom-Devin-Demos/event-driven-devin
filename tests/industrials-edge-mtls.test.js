@@ -3,6 +3,7 @@ jest.setTimeout(30000);
 const logger = require('../app/telemetry/logger');
 const { processQuote } = require('../app/services/oncall-verticals/industrials');
 const {
+  getClientSocketSiteCount,
   quoteAtEdge,
   stopGateway,
 } = require('../app/services/oncall-verticals/industrials-edge');
@@ -64,6 +65,7 @@ describe('industrials instant quote mTLS path', () => {
 
   test('attributes an F3 rejection correctly while an F2 quote is in flight', async () => {
     warnSpy.mockClear();
+    expect(getClientSocketSiteCount()).toBe(0);
     const f3 = quoteAtEdge('f3-mesa', { site: 'f3-mesa' }).catch((error) => error);
     const f2 = quoteAtEdge('f2-torrance', { site: 'f2-torrance' });
     const [f3Result, f2Result] = await Promise.all([f3, f2]);
@@ -84,5 +86,7 @@ describe('industrials instant quote mTLS path', () => {
       clientCertSubjectCn: 'f3-mesa',
       authorizationError: 'CERT_HAS_EXPIRED',
     }));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(getClientSocketSiteCount()).toBe(0);
   });
 });
