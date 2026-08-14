@@ -54,6 +54,7 @@ function clientIp(req) {
 
 function oncallCap(name) {
   const limit = ONCALL_HOURLY_CAPS[name];
+  if (!limit) throw new Error(`No hourly cap configured for "${name}"`);
   return (req, res, next) => {
     const now = Date.now();
     const cutoff = now - CAP_WINDOW_MS;
