@@ -26,6 +26,10 @@ const GATEWAY_RETRY_POLICY = {
   timeoutMs: 4000,
   backoffMs: 750,
 };
+const TERMINAL_EDGE_ERRORS = new Set([
+  'EDGE_GATEWAY_UNAVAILABLE',
+  'EDGE_CLIENT_CERT_MISSING',
+]);
 
 const CLOUD_DFM_STAGES = [
   ['queueDepthMs', 4900],
@@ -84,6 +88,15 @@ async function submitToEdge(quote, options) {
         error: error.message,
         status: 'rejected',
       });
+      if (TERMINAL_EDGE_ERRORS.has(error.code)) {
+        logger.error('Industrial edge gateway unavailable; check openssl PATH and certificate material', {
+          service: 'quote-api',
+          site: quote.site,
+          code: error.code,
+          error: error.message,
+        });
+        break;
+      }
       logger.warn('Industrial edge quote attempt failed, retrying', {
         service: 'quote-api',
         site: quote.site,

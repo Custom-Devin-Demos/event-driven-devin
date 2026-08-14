@@ -89,4 +89,15 @@ describe('industrials instant quote mTLS path', () => {
     await new Promise((resolve) => setImmediate(resolve));
     expect(getClientSocketSiteCount()).toBe(0);
   });
+
+  test('drains socket attribution across repeated healthy quotes', async () => {
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const result = await quoteAtEdge('f2-torrance', { site: 'f2-torrance' });
+      expect(result).toEqual(expect.objectContaining({
+        success: true,
+        site: 'f2-torrance',
+      }));
+      expect(getClientSocketSiteCount()).toBe(0);
+    }
+  });
 });

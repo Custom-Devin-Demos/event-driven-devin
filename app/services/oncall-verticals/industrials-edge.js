@@ -7,7 +7,6 @@ const { execFileSync } = require('child_process');
 const { performance } = require('perf_hooks');
 const logger = require('../../telemetry/logger');
 const { recordMetric } = require('../../telemetry/datadog');
-const { Sentry } = require('../../telemetry/sentry');
 
 const SERVICE = 'industrials-edge-gateway';
 const SITE_CERT_NAMES = ['f2-torrance', 'f3-mesa', 'f4-alabama'];
@@ -320,6 +319,7 @@ function startGateway() {
       settled = true;
       resolve(serverInstance);
     };
+    let readyPromise;
     server.on('error', (error) => {
       logger.warn('Industrial edge gateway failed to start', {
         service: SERVICE,
@@ -327,7 +327,14 @@ function startGateway() {
       });
       if (!settled) {
         settle(null);
+        return;
       }
+      if (gateway === server) gateway = null;
+      if (gatewayReady === readyPromise) gatewayReady = null;
+    });
+    server.on('close', () => {
+      if (gateway === server) gateway = null;
+      if (gatewayReady === readyPromise) gatewayReady = null;
     });
     server.on('tlsClientError', (error, socket) => {
       const certificate = socket.getPeerCertificate(true) || {};
@@ -345,16 +352,13 @@ function startGateway() {
         error: error.message,
       });
       clientSocketSites.delete(socket.remotePort);
-      Sentry.captureException(error, {
-        tags: { service: SERVICE, site, authorization_error: socket.authorizationError || error.code },
-        extra: { clientCertSubjectCn: subjectCn, clientCertNotAfter: certificate.valid_to },
-      });
     });
 
     server.listen(0, '127.0.0.1', () => {
       gateway = server;
       settle(server);
     });
+    readyPromise = gatewayReady;
   });
   return gatewayReady;
 }
@@ -390,6 +394,7 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       key: fs.readFileSync(client.key),
       cert: fs.readFileSync(client.cert),
       servername: site,
+      agent: false,
       timeout: timeoutMs,
       headers: { 'content-type': 'application/json' },
     }, (response) => {
@@ -478,4 +483,9 @@ process.once('exit', cleanupCertificateMaterial);
 
 // Let the application bind its HTTP port before synchronous certificate
 // generation, while keeping the edge gateway warm before the first quote.
-globalThis.setImmediate(() => startGateway());
+globalThis.setImmediate(() => startGateway().catch((error) => {
+  logger.warn('Industrial edge gateway warm-up failed', {
+    service: SERVICE,
+    error: error.message,
+  });
+}));
