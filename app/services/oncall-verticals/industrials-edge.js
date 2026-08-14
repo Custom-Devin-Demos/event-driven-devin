@@ -378,14 +378,10 @@ function cleanupCertificateMaterial() {
   }
 }
 
+// The app's graceful shutdown drains connections and then calls process.exit,
+// so cleanup on 'exit' also covers SIGTERM/SIGINT without pulling cert material
+// out from under in-flight quotes mid-drain.
 process.once('exit', cleanupCertificateMaterial);
-function handleTermination(signal) {
-  cleanupCertificateMaterial();
-  process.removeListener(signal, handleTermination);
-  process.kill(process.pid, signal);
-}
-process.once('SIGTERM', handleTermination);
-process.once('SIGINT', handleTermination);
 
 // Generate fixtures and bind the loopback gateway during application boot so
 // the first quote measures request work rather than certificate generation.
