@@ -449,9 +449,16 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
         localPort = undefined;
       }
     };
+    const address = server.address();
+    if (!address || typeof address.port !== 'number') {
+      const error = new Error('Industrial edge gateway unavailable');
+      error.code = 'EDGE_GATEWAY_UNAVAILABLE';
+      reject(error);
+      return;
+    }
     const request = https.request({
       host: '127.0.0.1',
-      port: server.address().port,
+      port: address.port,
       path: '/dfm/analyze',
       method: 'POST',
       ca: materialState.caBuffer,
