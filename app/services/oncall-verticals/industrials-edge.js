@@ -40,7 +40,45 @@ function inspectCertificate(certPath) {
   };
 }
 
+function cleanupOrphanedMaterialDirectories() {
+  let entries;
+  try {
+    entries = fs.readdirSync(MATERIAL_DIR, { withFileTypes: true });
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      logger.warn('Industrial edge orphaned certificate sweep failed', {
+        service: SERVICE,
+        error: error.message,
+      });
+    }
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || entry.name === String(process.pid) || !/^\d+$/.test(entry.name)) {
+      continue;
+    }
+    const pid = Number(entry.name);
+    try {
+      process.kill(pid, 0);
+      continue;
+    } catch (error) {
+      if (error.code !== 'ESRCH') continue;
+    }
+    try {
+      fs.rmSync(path.join(MATERIAL_DIR, entry.name), { recursive: true, force: true });
+    } catch (error) {
+      logger.warn('Industrial edge orphaned certificate cleanup failed', {
+        service: SERVICE,
+        directory: entry.name,
+        error: error.message,
+      });
+    }
+  }
+}
+
 function generateCertificateMaterial() {
+  cleanupOrphanedMaterialDirectories();
   fs.rmSync(CERT_DIR, { recursive: true, force: true });
   fs.mkdirSync(MATERIAL_DIR, { recursive: true, mode: 0o700 });
   fs.chmodSync(MATERIAL_DIR, 0o700);
