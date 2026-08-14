@@ -190,7 +190,7 @@ async function processQuote(data, options = {}) {
 
     const tags = { route: ROUTE, site: quote.site };
     recordTiming('quote.edge_attempt_phase', phaseTimings.edgeAttemptMs, tags);
-    recordTiming('quote.cloud_queue_phase', phaseTimings.cloudQueueMs, tags);
+    if (fallback) recordTiming('quote.cloud_queue_phase', phaseTimings.cloudQueueMs, tags);
     recordTiming('quote.total', phaseTimings.totalMs, tags);
     incrementMetric('quote.success', tags);
     recordTiming('quote.latency', totalDurationMs, tags);
@@ -237,7 +237,12 @@ async function processQuote(data, options = {}) {
       service: 'quote-api',
     });
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: 'quote-api', site: quote.site },
+      tags: {
+        route: ROUTE,
+        service: 'quote-api',
+        site: quote.site,
+        ...(options.synthetic ? { synthetic_probe: 'true' } : {}),
+      },
       extra: { quoteId: quote.quoteId },
     });
     throw error;

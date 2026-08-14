@@ -505,15 +505,14 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
 function stopGateway() {
   const ready = gatewayReady;
   if (!ready) return Promise.resolve();
+  gatewayReady = null;
   return ready.then((server) => {
     if (!server) {
-      if (gatewayReady === ready) gatewayReady = null;
       return;
     }
     if (gateway === server) gateway = null;
     return new Promise((resolve) => {
       server.close(() => {
-        if (gatewayReady === ready) gatewayReady = null;
         resolve();
       });
     });
