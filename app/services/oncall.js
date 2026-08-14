@@ -103,6 +103,24 @@ const ALERT_SCENARIOS = {
     symptom: 'Plan upgrades slowed sharply after the plan-catalog refresh added the legacy/regional plans. Latency scales with catalog size.',
     impact: 'Subscribers wait ~8 seconds on every plan change; upgrade completion rate is dropping.',
   },
+  industrials: {
+    vertical: 'industrials',
+    page: 'industrials-quote.html',
+    apiPath: '/api/industrials/quote',
+    oncallApiPath: '/api/oncall/industrials/quote',
+    owner: 'Alex Romero (manufacturing-platform-oncall)',
+    brand: 'Titan Mfg (Instant Quote)',
+    service: 'quote-api',
+    endpoint: 'POST /api/oncall/industrials/quote',
+    monitor: 'p95 latency — POST /api/oncall/industrials/quote',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/industrials/quote}',
+    metricValue: '14.2s',
+    threshold: '> 2s',
+    baseline: '~310ms (7-day p95)',
+    release: 'titan-mfg@1.0.1',
+    symptom: 'Requests routed through the F3 edge site hang ~14s before completing. F2/F4 are normal and error rate is normal.',
+    impact: 'Factory teams wait through a long instant-quote spinner for F3 work while other sites return normally.',
+  },
 };
 
 /**
@@ -165,6 +183,20 @@ const BUG_CATALOG = {
       label: 'Family plan upgrade crawling',
       sev: 'High',
       text: "My whole family is on the Plus plan and I upgraded us to Ultra last night. Every line I upgraded sat on the confirm screen for close to ten seconds — I honestly thought it was frozen. It did go through eventually, but something is clearly wrong.",
+    },
+  ],
+  industrials: [
+    {
+      id: 'industrials-quote-timeout',
+      label: 'Instant quote spins before completing',
+      sev: 'High',
+      text: 'Buyer at a defense prime here — our instant quote spins on "Running DFM analysis" for about 15 seconds and then finally returns. Same part, same quantity, every time since yesterday afternoon.',
+    },
+    {
+      id: 'industrials-program-quotes-blocked',
+      label: 'Program quotes crawling',
+      sev: 'Critical',
+      text: 'Program manager escalation: every quote for one program crawls while quotes on other programs come back in about a second. We need the affected program quotes for today\'s sourcing review.',
     },
   ],
 };

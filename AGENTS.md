@@ -37,6 +37,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Telco | `POST /api/oncall/telco/upgrade` | `app/services/oncall-verticals/telco.js` |
 | High Tech | `POST /api/oncall/licenses/provision` | `app/services/oncall-verticals/hightech.js` |
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
+| Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
 
 Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
 

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Titan Mfg &mdash; Instant Quote</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7f8; --white: #fff; --navy: #123047; --blue: #087ea4;
+      --blue-light: #e5f4f8; --gray-100: #edf0f2; --gray-300: #c9d1d6;
+      --gray-500: #65747d; --gray-700: #30414b; --gray-900: #17232b;
+      --green: #16825d; --green-bg: #e8f7f0; --amber: #a86412; --amber-bg: #fff7e8;
+      --sans: 'Sora', -apple-system, sans-serif; --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--gray-700); font: 14px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+    .app-shell { display: grid; grid-template-columns: 224px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--navy); color: #d7e6eb; padding: 1.5rem 1.15rem; }
+    .logo { display: flex; align-items: center; gap: .65rem; color: #fff; font-weight: 700; letter-spacing: -.03em; margin-bottom: 2rem; }
+    .logo-mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 7px; background: #54b7c9; color: var(--navy); font-weight: 700; }
+    .nav-label { color: #86a9b7; font-size: .63rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; margin: 1.25rem .65rem .4rem; }
+    .nav-item { color: #c6dce4; display: block; padding: .52rem .65rem; border-radius: 6px; text-decoration: none; font-size: .8rem; }
+    .nav-item.active, .nav-item:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .sidebar-footer { border-top: 1px solid rgba(255,255,255,.12); margin-top: 3rem; padding: 1rem .65rem; }
+    .sidebar-footer strong { display: block; color: #fff; font-size: .78rem; }
+    .sidebar-footer span { color: #86a9b7; font-size: .68rem; }
+    main { max-width: 1120px; padding: 2rem 2.4rem 3rem; width: 100%; }
+    .back-link { color: var(--blue); display: inline-flex; font-size: .75rem; font-weight: 600; margin-bottom: 1.3rem; text-decoration: none; }
+    .page-header { align-items: flex-start; display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+    h1 { color: var(--gray-900); font-size: 1.55rem; letter-spacing: -.04em; }
+    .page-header p { color: var(--gray-500); font-size: .82rem; margin-top: .15rem; }
+    .badge { background: var(--green-bg); border-radius: 99px; color: var(--green); font-size: .68rem; font-weight: 700; padding: .32rem .65rem; }
+    .grid { display: grid; gap: 1.2rem; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); }
+    .card { background: var(--white); border: 1px solid var(--gray-100); border-radius: 11px; box-shadow: 0 3px 14px rgba(18,48,71,.05); padding: 1.35rem; }
+    .card h2 { color: var(--gray-900); font-size: .95rem; margin-bottom: .95rem; }
+    .form-row { display: grid; gap: .85rem; grid-template-columns: 1fr 1fr; }
+    .form-group { margin-bottom: .85rem; }
+    label { color: var(--gray-500); display: block; font-size: .68rem; font-weight: 700; letter-spacing: .05em; margin-bottom: .3rem; text-transform: uppercase; }
+    input, select { background: #fff; border: 1px solid var(--gray-300); border-radius: 6px; color: var(--gray-900); font: .8rem var(--sans); padding: .62rem .7rem; width: 100%; }
+    input:focus, select:focus { border-color: var(--blue); outline: 2px solid var(--blue-light); }
+    .check { align-items: center; display: flex; gap: .55rem; margin: .3rem 0 1rem; }
+    .check input { accent-color: var(--blue); width: auto; }
+    .check label { color: var(--gray-700); font-size: .74rem; letter-spacing: 0; margin: 0; text-transform: none; }
+    button { background: var(--blue); border: 0; border-radius: 6px; color: #fff; cursor: pointer; font: 600 .8rem var(--sans); padding: .72rem 1rem; width: 100%; }
+    button:hover { background: #066b8b; } button:disabled { cursor: wait; opacity: .65; }
+    .result { border-radius: 7px; display: none; font-size: .78rem; margin-top: 1rem; padding: .8rem; }
+    .result.success { background: var(--green-bg); color: var(--green); display: block; }
+    .result.error { background: #fff0f0; color: #a33232; display: block; }
+    .result strong { color: inherit; display: block; margin-bottom: .15rem; }
+    .summary { background: var(--blue-light); border-radius: 8px; color: var(--navy); font-size: .78rem; margin-bottom: 1.2rem; padding: .9rem; }
+    .summary strong { display: block; margin-bottom: .2rem; }
+    .table-card { margin-top: 1.2rem; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th { color: var(--gray-500); font-size: .63rem; letter-spacing: .08em; padding: .7rem .65rem; text-align: left; text-transform: uppercase; }
+    td { border-top: 1px solid var(--gray-100); color: var(--gray-700); font-size: .75rem; padding: .72rem .65rem; }
+    .mono { font-family: var(--mono); font-size: .7rem; } .site { color: var(--blue); font-weight: 600; }
+    @media (max-width: 800px) { .app-shell { grid-template-columns: 1fr; } .sidebar { display: none; } main { padding: 1.4rem 1rem 2rem; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="logo"><span class="logo-mark">TM</span><span>Titan Mfg</span></div>
+      <div class="nav-label">Manufacturing</div>
+      <a class="nav-item active" href="#">Instant Quote</a>
+      <a class="nav-item" href="#">Programs</a>
+      <a class="nav-item" href="#">Materials</a>
+      <div class="nav-label">Operations</div>
+      <a class="nav-item" href="#">Factory Capacity</a>
+      <a class="nav-item" href="#">Quality Records</a>
+      <div class="sidebar-footer"><strong>Jordan Ellis</strong><span>Program Buyer</span></div>
+    </aside>
+    <main>
+      <a class="back-link" href="/">&larr; All Demos</a>
+      <header class="page-header">
+        <div><h1>Titan Mfg &mdash; Instant Quote</h1><p>DFM-aware pricing and lead times for production parts</p></div>
+        <span class="badge">Quoting services online</span>
+      </header>
+      <div class="grid">
+        <section class="card">
+          <h2>Request a production quote</h2>
+          <div class="summary"><strong>Factory assignment</strong>Choose the site that should analyze this part and return a production estimate.</div>
+          <form id="quoteForm">
+            <div class="form-row">
+              <div class="form-group"><label for="partNumber">Part number</label><input id="partNumber" value="TM-DFM-4400" required></div>
+              <div class="form-group"><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" value="25" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="material">Material</label><select id="material"><option>7075-T6 Aluminum</option><option>316 Stainless Steel</option><option>Ti-6Al-4V Titanium</option></select></div>
+              <div class="form-group"><label for="toleranceClass">Tolerance class</label><select id="toleranceClass"><option>Class B</option><option>Class A</option><option>Class C</option></select></div>
+            </div>
+            <div class="form-group"><label for="site">Factory site</label><select id="site"><option value="f3-mesa" selected>F3 Mesa</option><option value="f2-torrance">F2 Torrance</option><option value="f4-alabama">F4 Alabama</option></select></div>
+            <div class="check"><input id="itarControlled" type="checkbox"><label for="itarControlled">This part is ITAR-controlled</label></div>
+            <button id="submitBtn" type="submit">Run DFM analysis</button>
+          </form>
+          <div id="result" class="result"></div>
+        </section>
+        <section class="card">
+          <h2>Recent quotes</h2>
+          <div class="table-card">
+            <table>
+              <thead><tr><th>Quote</th><th>Part</th><th>Factory</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="mono">QT-84A1C2F0</td><td>TM-VALVE-220</td><td class="site">F2 Torrance</td><td>Ready</td></tr>
+                <tr><td class="mono">QT-73B8D991</td><td>TM-BRACKET-18</td><td class="site">F4 Alabama</td><td>Ready</td></tr>
+                <tr><td class="mono">QT-61E4AA03</td><td>TM-DFM-4400</td><td class="site">F3 Mesa</td><td>Ready</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('quoteForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var button = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = 'Running DFM analysis...';
+      result.className = 'result';
+      try {
+        var response = await fetch('/api/industrials/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            partNumber: document.getElementById('partNumber').value,
+            material: document.getElementById('material').value,
+            toleranceClass: document.getElementById('toleranceClass').value,
+            quantity: Number(document.getElementById('quantity').value),
+            site: document.getElementById('site').value,
+            itarControlled: document.getElementById('itarControlled').checked,
+          }),
+        });
+        var data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Quote request failed');
+        result.className = 'result success';
+        result.innerHTML = '<strong>Quote ready</strong>' + data.quoteId + ' &mdash; $' + data.estimate.price.toLocaleString() + ' ' + data.estimate.currency + ', ' + data.estimate.leadTimeDays + '-day lead time.';
+      } catch (error) {
+        result.className = 'result error';
+        result.innerHTML = '<strong>Quote unavailable</strong>' + error.message;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Run DFM analysis';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

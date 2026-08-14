@@ -3,6 +3,7 @@ const { processTransfer } = require('../services/oncall-verticals/banking');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
 const { processClaim } = require('../services/oncall-verticals/insurance');
+const { processQuote } = require('../services/oncall-verticals/industrials');
 const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
 const router = express.Router();
@@ -104,6 +105,35 @@ router.post('/api/oncall/insurance/claim', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CLAIM_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/industrials/quote — generate an instant manufacturing quote
+ */
+router.post('/api/oncall/industrials/quote', async (req, res) => {
+  try {
+    const result = await processQuote({
+      partNumber: req.body.partNumber || 'TM-DFM-4400',
+      material: req.body.material || '7075-T6 Aluminum',
+      toleranceClass: req.body.toleranceClass || 'Class B',
+      quantity: req.body.quantity || 25,
+      itarControlled: req.body.itarControlled === true,
+      site: req.body.site || 'f3-mesa',
+    }, {
+      synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')),
+      debugTimings: req.get('x-debug-timings') === '1'
+        && isSev1DebugTimingsUnlocked('industrials', req.get('x-synthetic-monitor')),
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'QUOTE_FAILED',
       requestId: req.requestId,
     });
   }
