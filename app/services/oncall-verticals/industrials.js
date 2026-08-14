@@ -118,7 +118,6 @@ function quoteId() {
 }
 
 async function processQuote(data, options = {}) {
-  const startTime = Date.now();
   const quote = {
     quoteId: quoteId(),
     partNumber: data.partNumber || 'TM-DFM-4400',
@@ -139,8 +138,10 @@ async function processQuote(data, options = {}) {
     route: ROUTE,
   });
 
+  let startTime;
   try {
     await startGateway();
+    startTime = Date.now();
     recordCertificateExpiryMetric(quote.site);
     const edgeStarted = Date.now();
     let edge;
@@ -203,7 +204,7 @@ async function processQuote(data, options = {}) {
       ...(options.debugTimings ? { phaseTimings, fallback } : {}),
     };
   } catch (error) {
-    const durationMs = Date.now() - startTime;
+    const durationMs = startTime ? Date.now() - startTime : 0;
     incrementMetric('quote.failure', {
       route: ROUTE,
       site: quote.site,

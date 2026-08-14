@@ -267,39 +267,51 @@ function startGateway() {
       requestCert: true,
       rejectUnauthorized: true,
     }, async (req, res) => {
-      if (req.url !== '/dfm/analyze' || req.method !== 'POST') {
-        res.statusCode = 404;
-        res.end('Not found');
-        return;
-      }
-      const chunks = [];
-      for await (const chunk of req) chunks.push(chunk);
-      let payload;
       try {
-        payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
-      } catch {
-        res.statusCode = 400;
+        if (req.url !== '/dfm/analyze' || req.method !== 'POST') {
+          res.statusCode = 404;
+          res.end('Not found');
+          return;
+        }
+        const chunks = [];
+        for await (const chunk of req) chunks.push(chunk);
+        let payload;
+        try {
+          payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
+        } catch {
+          res.statusCode = 400;
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify({ error: 'Invalid JSON request body' }));
+          return;
+        }
+        const stages = {};
+        const runStage = async (name, waitMs) => {
+          const started = performance.now();
+          await new Promise((stageResolve) => setTimeout(stageResolve, waitMs));
+          stages[name] = performance.now() - started;
+          logger.info('Industrial edge DFM stage completed', {
+            service: SERVICE,
+            site: payload.site,
+            stage: name,
+            durationMs: Number(stages[name].toFixed(1)),
+          });
+        };
+        await runStage('geometry', 92);
+        await runStage('tolerance', 103);
+        await runStage('material', 96);
         res.setHeader('content-type', 'application/json');
-        res.end(JSON.stringify({ error: 'Invalid JSON request body' }));
-        return;
-      }
-      const stages = {};
-      const runStage = async (name, waitMs) => {
-        const started = performance.now();
-        await new Promise((stageResolve) => setTimeout(stageResolve, waitMs));
-        stages[name] = performance.now() - started;
-        logger.info('Industrial edge DFM stage completed', {
+        res.end(JSON.stringify({ success: true, site: payload.site, stages }));
+      } catch (error) {
+        logger.warn('Industrial edge gateway request failed', {
           service: SERVICE,
-          site: payload.site,
-          stage: name,
-          durationMs: Number(stages[name].toFixed(1)),
+          error: error.message,
         });
-      };
-      await runStage('geometry', 92);
-      await runStage('tolerance', 103);
-      await runStage('material', 96);
-      res.setHeader('content-type', 'application/json');
-      res.end(JSON.stringify({ success: true, site: payload.site, stages }));
+        if (!res.writableEnded && !res.destroyed) {
+          res.statusCode = 500;
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify({ error: 'Industrial edge gateway request failed' }));
+        }
+      }
     });
 
     let settled = false;
@@ -464,6 +476,6 @@ function cleanupCertificateMaterial() {
 // out from under in-flight quotes mid-drain.
 process.once('exit', cleanupCertificateMaterial);
 
-// Generate fixtures and bind the loopback gateway during application boot so
-// the first quote measures request work rather than certificate generation.
-startGateway();
+// Let the application bind its HTTP port before synchronous certificate
+// generation, while keeping the edge gateway warm before the first quote.
+globalThis.setImmediate(() => startGateway());
