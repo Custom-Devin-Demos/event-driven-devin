@@ -5,6 +5,7 @@ const { processQuote } = require('../app/services/oncall-verticals/industrials')
 const {
   getClientSocketSiteCount,
   quoteAtEdge,
+  startGateway,
   stopGateway,
 } = require('../app/services/oncall-verticals/industrials-edge');
 
@@ -99,5 +100,19 @@ describe('industrials instant quote mTLS path', () => {
       }));
       expect(getClientSocketSiteCount()).toBe(0);
     }
+  });
+
+  test('rebuilds the gateway after it closes', async () => {
+    const firstGateway = await startGateway();
+    await stopGateway();
+    const secondGateway = await startGateway();
+
+    expect(secondGateway).not.toBe(firstGateway);
+    await expect(quoteAtEdge('f2-torrance', { site: 'f2-torrance' }))
+      .resolves.toEqual(expect.objectContaining({
+        success: true,
+        site: 'f2-torrance',
+      }));
+    await stopGateway();
   });
 });

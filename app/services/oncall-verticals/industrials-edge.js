@@ -252,7 +252,7 @@ function recordCertificateExpiryMetric(site) {
 
 function startGateway() {
   if (gatewayReady) return gatewayReady;
-  gatewayReady = new Promise((resolve) => {
+  const ready = new Promise((resolve) => {
     const material = ensureCertificateMaterial();
     if (!material) {
       resolve(null);
@@ -319,7 +319,6 @@ function startGateway() {
       settled = true;
       resolve(serverInstance);
     };
-    let readyPromise;
     server.on('error', (error) => {
       logger.warn('Industrial edge gateway failed to start', {
         service: SERVICE,
@@ -330,11 +329,11 @@ function startGateway() {
         return;
       }
       if (gateway === server) gateway = null;
-      if (gatewayReady === readyPromise) gatewayReady = null;
+      if (gatewayReady === ready) gatewayReady = null;
     });
     server.on('close', () => {
       if (gateway === server) gateway = null;
-      if (gatewayReady === readyPromise) gatewayReady = null;
+      if (gatewayReady === ready) gatewayReady = null;
     });
     server.on('tlsClientError', (error, socket) => {
       const certificate = socket.getPeerCertificate(true) || {};
@@ -358,9 +357,9 @@ function startGateway() {
       gateway = server;
       settle(server);
     });
-    readyPromise = gatewayReady;
   });
-  return gatewayReady;
+  gatewayReady = ready;
+  return ready;
 }
 
 function quoteAtEdge(site, quote, timeoutMs = 4000) {
