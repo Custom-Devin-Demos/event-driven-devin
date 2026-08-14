@@ -22,6 +22,51 @@ const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
 const router = express.Router();
 
 /**
+ * Global hourly caps on the on-call mutation endpoints. These endpoints
+ * create real Slack messages and Datadog incidents, so unauthenticated
+ * drive-by traffic must not be able to spam them unbounded. Sliding
+ * one-hour window, in-process, shared across all callers; the legacy
+ * vertical APIs and all GET/state endpoints are uncapped.
+ */
+const ONCALL_HOURLY_CAPS = {
+  incident: 10,
+  trigger: 50,
+  alert: 50,
+  bug: 50,
+  infra: 50,
+};
+const capWindows = new Map();
+
+function oncallCap(name) {
+  const limit = ONCALL_HOURLY_CAPS[name];
+  return (_req, res, next) => {
+    const now = Date.now();
+    const cutoff = now - 3600000;
+    let window = capWindows.get(name);
+    if (!window) {
+      window = [];
+      capWindows.set(name, window);
+    }
+    while (window.length && window[0] <= cutoff) window.shift();
+    if (window.length >= limit) {
+      logger.warn('On-Call hourly cap hit', { cap: name, limit });
+      return res.status(429).json({
+        ok: false,
+        error: `Hourly limit reached for this action (${limit}/hour). Try again later.`,
+      });
+    }
+    window.push(now);
+    next();
+  };
+}
+
+// Keep the on-call surface out of search indexes; it is shared by URL only.
+router.use('/oncall', (_req, res, next) => {
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
+
+/**
  * Tag the caller's browser with the run's degradation cookie: only requests
  * carrying it see that run's live symptoms (see the scoping middleware in
  * server.js), so a demo never degrades the site for anyone else.
@@ -264,7 +309,7 @@ router.get('/oncall/:vertical', (req, res, next) => {
  * shimmed branded pages call this alongside the on-call vertical API, whose
  * telemetry fires normally; the legacy automated-alert pipeline is not used.
  */
-router.post('/api/oncall/trigger/:vertical', async (req, res) => {
+router.post('/api/oncall/trigger/:vertical', oncallCap('trigger'), async (req, res) => {
   const scenario = ALERT_SCENARIOS[req.params.vertical];
   if (!scenario) {
     return res.status(404).json({ ok: false, error: `Unknown vertical: ${req.params.vertical}` });
@@ -321,7 +366,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
  * POST /api/oncall/alert — post an alert card to #oncall-alerts
  * Body: { scenario: 'banking'|'insurance'|'hightech'|'telco', unique?: boolean }
  */
-router.post('/api/oncall/alert', async (req, res) => {
+router.post('/api/oncall/alert', oncallCap('alert'), async (req, res) => {
   try {
     const { scenario, unique, devinEmail } = req.body || {};
     const result = await postOncallAlert(scenario, { unique: unique !== false, devinEmail });
@@ -338,7 +383,7 @@ router.post('/api/oncall/alert', async (req, res) => {
  * Backend-symptom templates (resolved server-side) also activate the matching
  * infra degradation for the standard auto-revert window so repro is genuine.
  */
-router.post('/api/oncall/bug', async (req, res) => {
+router.post('/api/oncall/bug', oncallCap('bug'), async (req, res) => {
   try {
     const { scenario, templateId, text, reporter, severity, productArea, devinEmail, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
@@ -366,7 +411,7 @@ router.post('/api/oncall/bug', async (req, res) => {
  * and posts a Datadog-monitor-style alert card.
  * Kinds: latency, dependency-timeout, memory-leak, slo-burn.
  */
-router.post('/api/oncall/infra/:kind', async (req, res) => {
+router.post('/api/oncall/infra/:kind', oncallCap('infra'), async (req, res) => {
   if (!INFRA_INCIDENTS[req.params.kind]) {
     return res.status(404).json({ ok: false, error: `Unknown infra incident: ${req.params.kind}` });
   }
@@ -390,7 +435,7 @@ router.get('/api/oncall/infra/state', (_req, res) => {
 /**
  * POST /api/oncall/latency — back-compat alias for the latency infra incident.
  */
-router.post('/api/oncall/latency', async (req, res) => {
+router.post('/api/oncall/latency', oncallCap('infra'), async (req, res) => {
   try {
     const result = await postOncallInfraIncident('latency', { devinEmail: (req.body || {}).devinEmail });
     if (result.ok && result.active) setRunCookie(res, result.runRef, result.windowMinutes);
@@ -409,7 +454,7 @@ router.post('/api/oncall/latency', async (req, res) => {
  * synthetic probe loop against the affected endpoint so telemetry records
  * the failure, and auto-resolves when the incident window ends.
  */
-router.post('/api/oncall/incident', async (req, res) => {
+router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
   try {
     const { kind, devinEmail } = req.body || {};
     const result = await postOncallIncident({ kind, devinEmail });
