@@ -179,7 +179,7 @@ Three things are deliberately separate:
 │   │   │   ├── banking.js         # On-call banking business logic
 │   │   │   ├── telco.js           # On-call telco business logic
 │   │   │   ├── hightech.js        # On-call license provisioning business logic
-│   │   │   ├── insurance.js         # On-call claims business logic
+│   │   │   ├── insurance.js        # On-call claims business logic
 │   │   │   ├── industrials.js      # On-call instant quote business logic
 │   │   │   └── industrials-edge.js # On-call mTLS edge gateway and certificate material
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)

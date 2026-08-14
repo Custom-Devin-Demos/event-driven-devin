@@ -163,4 +163,24 @@ describe('industrials instant quote mTLS path', () => {
     createServerSpy.mockRestore();
     await stopGateway();
   });
+
+  test('does not cache a gateway setup failure', async () => {
+    await stopGateway();
+    const createServerSpy = jest.spyOn(https, 'createServer')
+      .mockImplementation(() => {
+        throw new Error('server setup failed');
+      });
+
+    await expect(startGateway()).resolves.toBeNull();
+    createServerSpy.mockRestore();
+
+    const freshServer = await startGateway();
+    expect(freshServer).toBeTruthy();
+    await expect(quoteAtEdge('f2-torrance', { site: 'f2-torrance' }))
+      .resolves.toEqual(expect.objectContaining({
+        success: true,
+        site: 'f2-torrance',
+      }));
+    await stopGateway();
+  });
 });

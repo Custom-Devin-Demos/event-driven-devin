@@ -8,6 +8,7 @@ const {
   cleanupCertificateMaterial,
   ensureCertificateMaterial,
   runOpenSSL,
+  startGateway,
 } = require('../app/services/oncall-verticals/industrials-edge');
 
 describe('industrials edge certificate generation', () => {
@@ -15,6 +16,7 @@ describe('industrials edge certificate generation', () => {
     let timerFired = false;
     const openssl = runOpenSSL(['version'], process.cwd());
     const generation = ensureCertificateMaterial();
+    const warmup = startGateway();
     const timer = new Promise((resolve) => {
       setTimeout(() => {
         timerFired = true;
@@ -27,6 +29,7 @@ describe('industrials edge certificate generation', () => {
     expect(timerFired).toBe(true);
     await expect(openssl).rejects.toThrow('openssl test failure');
     await expect(generation).resolves.toBeNull();
+    await expect(warmup).resolves.toBeNull();
     cleanupCertificateMaterial();
   });
 });

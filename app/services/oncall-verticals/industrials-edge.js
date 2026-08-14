@@ -171,7 +171,7 @@ async function generateCertificateMaterial() {
     'extendedKeyUsage=serverAuth',
     'subjectAltName=DNS:localhost,IP:127.0.0.1,DNS:f2-torrance,DNS:f3-mesa,DNS:f4-alabama',
   ].join('\n'));
-    await runOpenSSL([
+  await runOpenSSL([
     'x509', '-req', '-in', serverCsr,
     '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
     '-CAcreateserial', '-out', serverCert, '-days', '3650', '-sha256',
@@ -322,6 +322,7 @@ function startGateway() {
     try {
       const material = await ensureCertificateMaterial();
       if (!material) {
+        if (gatewayReady === ready) gatewayReady = null;
         return null;
       }
       server = https.createServer({
@@ -435,6 +436,7 @@ function startGateway() {
         error: error.message,
       });
       if (server) server.close(() => {});
+      if (gatewayReady === ready) gatewayReady = null;
       return null;
     }
   });
