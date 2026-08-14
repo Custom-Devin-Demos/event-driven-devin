@@ -142,4 +142,25 @@ describe('industrials instant quote mTLS path', () => {
       }));
     await stopGateway();
   });
+
+  test('falls back when gateway setup throws synchronously', async () => {
+    await stopGateway();
+    const createServerSpy = jest.spyOn(https, 'createServer')
+      .mockImplementation(() => {
+        throw new Error('server setup failed');
+      });
+
+    await expect(processQuote({
+      site: 'f2-torrance',
+      partNumber: 'TM-DFM-4400',
+      quantity: 25,
+    }, { debugTimings: true })).resolves.toEqual(expect.objectContaining({
+      success: true,
+      fallback: true,
+      site: 'f2-torrance',
+    }));
+
+    createServerSpy.mockRestore();
+    await stopGateway();
+  });
 });

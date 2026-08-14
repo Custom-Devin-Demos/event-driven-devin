@@ -34,10 +34,16 @@ function inspectCertificate(certPath) {
   const certificate = new crypto.X509Certificate(fs.readFileSync(certPath));
   const notAfter = new Date(certificate.validTo);
   const daysToExpiry = (notAfter.getTime() - Date.now()) / 86400000;
+  const subjectCn = certificate.subject
+    .split(/[\n,]/)
+    .map((part) => part.trim())
+    .map((part) => part.match(/^CN=(.*)$/)?.[1])
+    .find(Boolean);
   return {
     certificate,
     notAfter,
     daysToExpiry,
+    subjectCn,
   };
 }
 
@@ -240,7 +246,9 @@ function generateCertificateMaterial() {
     return [site, {
       cert: certPath,
       key: path.join(CLIENT_DIR, `${site}.key.pem`),
-      subjectCn: inspected.certificate.subject.match(/CN=([^,]+)/)?.[1] || site,
+      certBuffer: fs.readFileSync(certPath),
+      keyBuffer: fs.readFileSync(path.join(CLIENT_DIR, `${site}.key.pem`)),
+      subjectCn: inspected.subjectCn || site,
       notAfter: inspected.notAfter,
       daysToExpiry: inspected.daysToExpiry,
     }];
@@ -248,9 +256,12 @@ function generateCertificateMaterial() {
 
   return {
     ca: CA_CERT,
+    caBuffer: fs.readFileSync(CA_CERT),
     server: {
       cert: path.join(CERT_DIR, 'server', 'server.cert.pem'),
       key: path.join(CERT_DIR, 'server', 'server.key.pem'),
+      certBuffer: fs.readFileSync(path.join(CERT_DIR, 'server', 'server.cert.pem')),
+      keyBuffer: fs.readFileSync(path.join(CERT_DIR, 'server', 'server.key.pem')),
     },
     clients: certificates,
   };
@@ -289,120 +300,130 @@ function recordCertificateExpiryMetric(site) {
 
 function startGateway() {
   if (gatewayReady) return gatewayReady;
+  let failedSynchronously = false;
+  let server;
   const ready = new Promise((resolve) => {
-    const material = ensureCertificateMaterial();
-    if (!material) {
-      resolve(null);
-      return;
-    }
-
-    const server = https.createServer({
-      key: fs.readFileSync(material.server.key),
-      cert: fs.readFileSync(material.server.cert),
-      ca: fs.readFileSync(material.ca),
-      requestCert: true,
-      rejectUnauthorized: true,
-    }, async (req, res) => {
-      try {
-        if (req.url !== '/dfm/analyze' || req.method !== 'POST') {
-          res.statusCode = 404;
-          res.end('Not found');
-          return;
-        }
-        const chunks = [];
-        for await (const chunk of req) chunks.push(chunk);
-        let payload;
-        try {
-          payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
-        } catch {
-          res.statusCode = 400;
-          res.setHeader('content-type', 'application/json');
-          res.end(JSON.stringify({ error: 'Invalid JSON request body' }));
-          return;
-        }
-        const stages = {};
-        const runStage = async (name, waitMs) => {
-          const started = performance.now();
-          await new Promise((stageResolve) => setTimeout(stageResolve, waitMs));
-          stages[name] = performance.now() - started;
-          logger.info('Industrial edge DFM stage completed', {
-            service: SERVICE,
-            site: payload.site,
-            stage: name,
-            durationMs: Number(stages[name].toFixed(1)),
-          });
-        };
-        await runStage('geometry', 92);
-        await runStage('tolerance', 103);
-        await runStage('material', 96);
-        res.setHeader('content-type', 'application/json');
-        res.end(JSON.stringify({ success: true, site: payload.site, stages }));
-      } catch (error) {
-        logger.warn('Industrial edge gateway request failed', {
-          service: SERVICE,
-          error: error.message,
-        });
-        if (!res.writableEnded && !res.destroyed) {
-          res.statusCode = 500;
-          res.setHeader('content-type', 'application/json');
-          res.end(JSON.stringify({ error: 'Industrial edge gateway request failed' }));
-        }
-      }
-    });
-
     let settled = false;
     const settle = (serverInstance) => {
       if (settled) return;
       settled = true;
       resolve(serverInstance);
     };
-    server.on('error', (error) => {
+    try {
+      const material = ensureCertificateMaterial();
+      if (!material) {
+        failedSynchronously = true;
+        settle(null);
+        return;
+      }
+      server = https.createServer({
+        key: material.server.keyBuffer,
+        cert: material.server.certBuffer,
+        ca: material.caBuffer,
+        requestCert: true,
+        rejectUnauthorized: true,
+      }, async (req, res) => {
+        try {
+          if (req.url !== '/dfm/analyze' || req.method !== 'POST') {
+            res.statusCode = 404;
+            res.end('Not found');
+            return;
+          }
+          const chunks = [];
+          for await (const chunk of req) chunks.push(chunk);
+          let payload;
+          try {
+            payload = JSON.parse(Buffer.concat(chunks).toString() || '{}');
+          } catch {
+            res.statusCode = 400;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ error: 'Invalid JSON request body' }));
+            return;
+          }
+          const stages = {};
+          const runStage = async (name, waitMs) => {
+            const started = performance.now();
+            await new Promise((stageResolve) => setTimeout(stageResolve, waitMs));
+            stages[name] = performance.now() - started;
+            logger.info('Industrial edge DFM stage completed', {
+              service: SERVICE,
+              site: payload.site,
+              stage: name,
+              durationMs: Number(stages[name].toFixed(1)),
+            });
+          };
+          await runStage('geometry', 92);
+          await runStage('tolerance', 103);
+          await runStage('material', 96);
+          res.setHeader('content-type', 'application/json');
+          res.end(JSON.stringify({ success: true, site: payload.site, stages }));
+        } catch (error) {
+          logger.warn('Industrial edge gateway request failed', {
+            service: SERVICE,
+            error: error.message,
+          });
+          if (!res.writableEnded && !res.destroyed) {
+            res.statusCode = 500;
+            res.setHeader('content-type', 'application/json');
+            res.end(JSON.stringify({ error: 'Industrial edge gateway request failed' }));
+          }
+        }
+      });
+      server.on('error', (error) => {
+        logger.warn('Industrial edge gateway failed to start', {
+          service: SERVICE,
+          error: error.message,
+        });
+        if (gateway === server) gateway = null;
+        if (gatewayReady === ready) gatewayReady = null;
+        server.close(() => {});
+        settle(null);
+      });
+      server.on('close', () => {
+        if (gateway === server) gateway = null;
+        if (gatewayReady === ready) gatewayReady = null;
+      });
+      server.on('tlsClientError', (error, socket) => {
+        const certificate = socket.getPeerCertificate(true) || {};
+        const mappedSite = clientSocketSites.get(socket.remotePort)
+          || (SITE_CERT_NAMES.includes(socket.servername) ? socket.servername : undefined);
+        const mappedCertificate = mappedSite && materialState?.clients[mappedSite];
+        const certificateSubject = certificate.subject;
+        const subjectCn = (
+          typeof certificateSubject === 'string'
+            ? certificateSubject.split(/[\n,]/)
+              .map((part) => part.trim())
+              .map((part) => part.match(/^CN=(.*)$/)?.[1])
+              .find(Boolean)
+            : certificateSubject?.CN
+        ) || mappedCertificate?.subjectCn || 'unknown';
+        const site = SITE_CERT_NAMES.includes(subjectCn) ? subjectCn : 'unknown';
+        logger.warn('Industrial edge mTLS client rejected', {
+          service: SERVICE,
+          site,
+          authorizationError: socket.authorizationError || error.code,
+          clientCertSubjectCn: subjectCn,
+          clientCertNotAfter: certificate.valid_to || mappedCertificate?.notAfter?.toISOString() || 'unknown',
+          error: error.message,
+        });
+        clientSocketSites.delete(socket.remotePort);
+      });
+
+      server.listen(0, '127.0.0.1', () => {
+        gateway = server;
+        settle(server);
+      });
+    } catch (error) {
+      failedSynchronously = true;
       logger.warn('Industrial edge gateway failed to start', {
         service: SERVICE,
         error: error.message,
       });
-      if (gateway === server) gateway = null;
-      if (gatewayReady === ready) gatewayReady = null;
-      if (!settled) {
-        server.close(() => {});
-        settle(null);
-        return;
-      }
-    });
-    server.on('close', () => {
-      if (gateway === server) gateway = null;
-      if (gatewayReady === ready) gatewayReady = null;
-    });
-    server.on('tlsClientError', (error, socket) => {
-      const certificate = socket.getPeerCertificate(true) || {};
-      const mappedSite = clientSocketSites.get(socket.remotePort)
-        || (SITE_CERT_NAMES.includes(socket.servername) ? socket.servername : undefined);
-      const mappedCertificate = mappedSite && materialState?.clients[mappedSite];
-      const subjectCn = certificate.subject
-        ?.split(/[\n,]/)
-        .map((part) => part.trim())
-        .map((part) => part.match(/^CN=(.*)$/)?.[1])
-        .find(Boolean)
-        || mappedCertificate?.subjectCn
-        || 'unknown';
-      const site = SITE_CERT_NAMES.includes(subjectCn) ? subjectCn : 'unknown';
-      logger.warn('Industrial edge mTLS client rejected', {
-        service: SERVICE,
-        site,
-        authorizationError: socket.authorizationError || error.code,
-        clientCertSubjectCn: subjectCn,
-        clientCertNotAfter: certificate.valid_to || mappedCertificate?.notAfter?.toISOString() || 'unknown',
-        error: error.message,
-      });
-      clientSocketSites.delete(socket.remotePort);
-    });
-
-    server.listen(0, '127.0.0.1', () => {
-      gateway = server;
-      settle(server);
-    });
+      if (server) server.close(() => {});
+      settle(null);
+    }
   });
-  gatewayReady = ready;
+  gatewayReady = failedSynchronously ? null : ready;
   return ready;
 }
 
@@ -433,9 +454,9 @@ function quoteAtEdge(site, quote, timeoutMs = 4000) {
       port: server.address().port,
       path: '/dfm/analyze',
       method: 'POST',
-      ca: fs.readFileSync(CA_CERT),
-      key: fs.readFileSync(client.key),
-      cert: fs.readFileSync(client.cert),
+      ca: materialState.caBuffer,
+      key: client.keyBuffer,
+      cert: client.certBuffer,
       servername: site,
       agent: false,
       timeout: timeoutMs,

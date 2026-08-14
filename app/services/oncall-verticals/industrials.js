@@ -153,7 +153,7 @@ async function processQuote(data, options = {}) {
 
   let startTime;
   try {
-    await startGateway();
+    await startGateway().catch(() => null);
     startTime = Date.now();
     recordCertificateExpiryMetric(quote.site);
     const edgeStarted = Date.now();
