@@ -36,6 +36,7 @@ const ONCALL_HOURLY_CAPS = {
   alert: 50,
   bug: 50,
   infra: 50,
+  config: 120,
 };
 const capWindows = new Map();
 const CAP_WINDOW_MS = 3600000;
@@ -522,7 +523,7 @@ router.get('/api/oncall/config', (req, res) => {
  * override only affects requests scoped to that run and auto-expires with the
  * incident window, so the shipped configuration is never changed.
  */
-router.post('/api/oncall/config', (req, res) => {
+router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
   const { runRef, ...patch } = req.body || {};
   const result = setOncallConfigOverride(runRef, patch);
   if (!result.ok) return res.status(400).json(result);
