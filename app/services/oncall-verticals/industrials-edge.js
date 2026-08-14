@@ -10,10 +10,12 @@ const { recordMetric } = require('../../telemetry/datadog');
 
 const SERVICE = 'industrials-edge-gateway';
 const SITE_CERT_NAMES = ['f2-torrance', 'f3-mesa', 'f4-alabama'];
-const MATERIAL_DIR = path.join(os.tmpdir(), 'event-driven-devin-mtls');
-const CERT_DIR = path.join(MATERIAL_DIR, String(process.pid));
-const CA_CERT = path.join(CERT_DIR, 'ca', 'ca.cert.pem');
-const CLIENT_DIR = path.join(CERT_DIR, 'client');
+let MATERIAL_DIR = path.join(os.tmpdir(), 'event-driven-devin-mtls');
+let CERT_DIR = path.join(MATERIAL_DIR, String(process.pid));
+let CA_CERT = path.join(CERT_DIR, 'ca', 'ca.cert.pem');
+let CLIENT_DIR = path.join(CERT_DIR, 'client');
+let sweepOrphans = true;
+let temporaryMaterialDirectory = false;
 
 let gateway;
 let gatewayReady;
@@ -76,8 +78,43 @@ function cleanupOrphanedMaterialDirectories() {
   }
 }
 
+function prepareMaterialDirectory() {
+  const expectedUid = typeof process.getuid === 'function' ? process.getuid() : null;
+  try {
+    let stats;
+    try {
+      stats = fs.lstatSync(MATERIAL_DIR);
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      fs.mkdirSync(MATERIAL_DIR, { mode: 0o700 });
+      stats = fs.lstatSync(MATERIAL_DIR);
+    }
+    if (
+      !stats.isDirectory()
+      || (expectedUid !== null && stats.uid !== expectedUid)
+      || (stats.mode & 0o777) !== 0o700
+    ) {
+      throw new Error('shared certificate directory is not a private owner-only directory');
+    }
+    temporaryMaterialDirectory = false;
+  } catch (error) {
+    const fallbackDir = fs.mkdtempSync(path.join(os.tmpdir(), 'event-driven-devin-mtls-'));
+    MATERIAL_DIR = fallbackDir;
+    sweepOrphans = false;
+    temporaryMaterialDirectory = true;
+    logger.warn('Industrial edge certificate directory fallback enabled', {
+      service: SERVICE,
+      error: error.message,
+    });
+  }
+  CERT_DIR = path.join(MATERIAL_DIR, String(process.pid));
+  CA_CERT = path.join(CERT_DIR, 'ca', 'ca.cert.pem');
+  CLIENT_DIR = path.join(CERT_DIR, 'client');
+}
+
 function generateCertificateMaterial() {
-  cleanupOrphanedMaterialDirectories();
+  prepareMaterialDirectory();
+  if (sweepOrphans) cleanupOrphanedMaterialDirectories();
   fs.rmSync(CERT_DIR, { recursive: true, force: true });
   fs.mkdirSync(MATERIAL_DIR, { recursive: true, mode: 0o700 });
   fs.chmodSync(MATERIAL_DIR, 0o700);
@@ -324,12 +361,13 @@ function startGateway() {
         service: SERVICE,
         error: error.message,
       });
+      if (gateway === server) gateway = null;
+      if (gatewayReady === ready) gatewayReady = null;
       if (!settled) {
+        server.close(() => {});
         settle(null);
         return;
       }
-      if (gateway === server) gateway = null;
-      if (gatewayReady === ready) gatewayReady = null;
     });
     server.on('close', () => {
       if (gateway === server) gateway = null;
@@ -340,7 +378,13 @@ function startGateway() {
       const mappedSite = clientSocketSites.get(socket.remotePort)
         || (SITE_CERT_NAMES.includes(socket.servername) ? socket.servername : undefined);
       const mappedCertificate = mappedSite && materialState?.clients[mappedSite];
-      const subjectCn = certificate.subject?.CN || mappedCertificate?.subjectCn || 'unknown';
+      const subjectCn = certificate.subject
+        ?.split(/[\n,]/)
+        .map((part) => part.trim())
+        .map((part) => part.match(/^CN=(.*)$/)?.[1])
+        .find(Boolean)
+        || mappedCertificate?.subjectCn
+        || 'unknown';
       const site = SITE_CERT_NAMES.includes(subjectCn) ? subjectCn : 'unknown';
       logger.warn('Industrial edge mTLS client rejected', {
         service: SERVICE,
@@ -466,7 +510,10 @@ module.exports = {
 
 function cleanupCertificateMaterial() {
   try {
-    fs.rmSync(CERT_DIR, { recursive: true, force: true });
+    fs.rmSync(temporaryMaterialDirectory ? MATERIAL_DIR : CERT_DIR, {
+      recursive: true,
+      force: true,
+    });
   } catch (error) {
     logger.warn('Industrial edge mTLS certificate cleanup failed', {
       service: SERVICE,

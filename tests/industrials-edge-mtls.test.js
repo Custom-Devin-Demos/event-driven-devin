@@ -1,6 +1,7 @@
 jest.setTimeout(30000);
 
 const logger = require('../app/telemetry/logger');
+const https = require('https');
 const { processQuote } = require('../app/services/oncall-verticals/industrials');
 const {
   getClientSocketSiteCount,
@@ -108,6 +109,32 @@ describe('industrials instant quote mTLS path', () => {
     const secondGateway = await startGateway();
 
     expect(secondGateway).not.toBe(firstGateway);
+    await expect(quoteAtEdge('f2-torrance', { site: 'f2-torrance' }))
+      .resolves.toEqual(expect.objectContaining({
+        success: true,
+        site: 'f2-torrance',
+      }));
+    await stopGateway();
+  });
+
+  test('recovers after a listen failure', async () => {
+    await stopGateway();
+    const createServer = https.createServer;
+    let failedServer;
+    jest.spyOn(https, 'createServer').mockImplementationOnce((...args) => {
+      failedServer = createServer(...args);
+      failedServer.listen = () => {
+        setImmediate(() => failedServer.emit('error', new Error('listen failed')));
+      };
+      return failedServer;
+    });
+
+    await expect(startGateway()).resolves.toBeNull();
+    expect(failedServer.listening).toBe(false);
+    https.createServer.mockRestore();
+
+    const freshServer = await startGateway();
+    expect(freshServer).not.toBe(failedServer);
     await expect(quoteAtEdge('f2-torrance', { site: 'f2-torrance' }))
       .resolves.toEqual(expect.objectContaining({
         success: true,
