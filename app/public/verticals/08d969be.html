@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hadrian — Instant Quote</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0A1626;
+      --navy-mid: #12325C;
+      --navy-light: #1c467a;
+      --ink: #101820;
+      --muted: #647386;
+      --line: #dce3eb;
+      --surface: #ffffff;
+      --wash: #f3f6f9;
+      --cyan: #7dd6e8;
+      --green: #147d59;
+      --green-wash: #e9f7f0;
+      --red: #a43c42;
+      --red-wash: #fff0f1;
+      --sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--wash); color: var(--ink); font: 14px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+    .shell { min-height: 100vh; }
+    .topbar { align-items: center; background: var(--navy); color: #fff; display: flex; justify-content: space-between; padding: 0 32px; height: 68px; }
+    .logo { align-items: center; color: #fff; display: flex; font-size: 1.15rem; font-weight: 700; gap: .7rem; letter-spacing: -.04em; text-decoration: none; }
+    .logo-mark { align-items: center; border: 1px solid rgba(125,214,232,.6); display: inline-flex; height: 30px; justify-content: center; position: relative; width: 30px; }
+    .logo-mark::before, .logo-mark::after { border: 1px solid var(--cyan); content: ''; position: absolute; }
+    .logo-mark::before { height: 14px; transform: rotate(45deg); width: 14px; }
+    .logo-mark::after { height: 8px; transform: rotate(-45deg); width: 8px; }
+    .topnav { align-items: center; display: flex; gap: 24px; }
+    .topnav a { color: #b7c5d4; font-size: .76rem; text-decoration: none; }
+    .topnav a:hover { color: #fff; }
+    .top-status { align-items: center; color: #c9d7e5; display: flex; font-size: .72rem; gap: .45rem; }
+    .status-dot { background: #64d4a4; border-radius: 50%; height: 7px; width: 7px; }
+    .content { margin: 0 auto; max-width: 1180px; padding: 30px 32px 56px; }
+    .heading { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 24px; }
+    h1 { color: var(--ink); font-size: clamp(1.6rem, 3vw, 2.35rem); letter-spacing: -.06em; line-height: 1.05; }
+    .heading p { color: var(--muted); font-size: .8rem; margin-top: .45rem; }
+    .eyebrow { color: var(--navy-mid); font: 500 .67rem var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(310px, .75fr); }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px rgba(10,22,38,.05); padding: 26px; }
+    .card h2 { color: var(--ink); font-size: 1rem; letter-spacing: -.03em; margin-bottom: 5px; }
+    .card-intro { color: var(--muted); font-size: .78rem; margin-bottom: 22px; }
+    .form-row { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+    .form-group { margin-bottom: 16px; }
+    label { color: var(--muted); display: block; font-size: .66rem; font-weight: 700; letter-spacing: .06em; margin-bottom: 6px; text-transform: uppercase; }
+    input, select { background: #fff; border: 1px solid #cbd5e0; border-radius: 5px; color: var(--ink); font: .8rem var(--sans); min-height: 46px; padding: 0 12px; width: 100%; }
+    input:focus, select:focus { border-color: var(--navy-mid); outline: 2px solid rgba(18,50,92,.15); }
+    .check { align-items: center; display: flex; gap: 9px; margin: 2px 0 20px; }
+    .check input { accent-color: var(--navy-mid); min-height: 0; width: auto; }
+    .check label { color: var(--ink); font-size: .76rem; letter-spacing: 0; margin: 0; text-transform: none; }
+    button { background: var(--navy-mid); border: 0; border-radius: 5px; color: #fff; cursor: pointer; font: 700 .8rem var(--sans); min-height: 48px; padding: 0 18px; width: 100%; }
+    button:hover { background: var(--navy-light); }
+    button:disabled { cursor: wait; opacity: .65; }
+    .result { border-radius: 6px; display: none; font-size: .78rem; margin-top: 14px; padding: 12px 14px; }
+    .result.success { background: var(--green-wash); color: var(--green); display: block; }
+    .result.error { background: var(--red-wash); color: var(--red); display: block; }
+    .result strong { display: block; margin-bottom: 2px; }
+    .spec { background: var(--navy); border-radius: 8px; color: #d7e4f0; margin-bottom: 20px; padding: 18px; }
+    .spec strong { color: #fff; display: block; font-size: .8rem; margin-bottom: 6px; }
+    .spec p { font-size: .75rem; }
+    .spec-grid { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); margin-top: 15px; }
+    .spec-grid span { border-left: 2px solid var(--cyan); color: #b7c9dc; display: block; font: .66rem var(--mono); padding-left: 8px; }
+    .spec-grid b { color: #fff; display: block; font: 500 .8rem var(--sans); margin-top: 2px; }
+    .table-card { margin-top: 20px; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th { color: var(--muted); font-size: .63rem; letter-spacing: .08em; padding: 0 8px 11px; text-align: left; text-transform: uppercase; }
+    td { border-top: 1px solid var(--line); color: #435365; font-size: .75rem; padding: 13px 8px; white-space: nowrap; }
+    .mono { color: var(--navy-mid); font-family: var(--mono); font-size: .68rem; }
+    .site { color: var(--navy-mid); font-weight: 700; }
+    .ready { color: var(--green); font-size: .68rem; font-weight: 700; }
+    .footer { background: var(--navy); color: #8fa4b9; font-size: .68rem; padding: 22px 32px; }
+    .footer-inner { display: flex; justify-content: space-between; margin: 0 auto; max-width: 1180px; }
+    @media (max-width: 820px) {
+      .topnav { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+    }
+    @media (max-width: 520px) {
+      .topbar { padding: 0 16px; }
+      .content { padding: 22px 14px 40px; }
+      .card { padding: 18px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .spec-grid { grid-template-columns: 1fr; }
+      .footer { padding: 18px 14px; }
+      .footer-inner { flex-direction: column; gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="logo" href="#"><span class="logo-mark" aria-hidden="true"></span><span>HADRIAN</span></a>
+      <nav class="topnav" aria-label="Primary navigation">
+        <a href="#">Factories</a>
+        <a href="#">Programs</a>
+        <a href="#">Materials</a>
+        <a href="#">Quality</a>
+      </nav>
+      <div class="top-status"><span class="status-dot"></span>Factory network online</div>
+    </header>
+    <main class="content">
+      <div class="heading">
+        <div>
+          <div class="eyebrow">Production intelligence / instant quote</div>
+          <h1>Quote the next part with confidence.</h1>
+          <p>DFM-aware pricing and lead times for aerospace and defense programs.</p>
+        </div>
+        <div class="eyebrow">Account: aerospace programs</div>
+      </div>
+      <div class="layout">
+        <section class="card">
+          <h2>Request a production quote</h2>
+          <p class="card-intro">Submit a part for manufacturability review, factory assignment, and a production estimate.</p>
+          <form id="quoteForm">
+            <div class="form-row">
+              <div class="form-group"><label for="partNumber">Part number</label><input id="partNumber" value="BRKT-7075-A114" required></div>
+              <div class="form-group"><label for="quantity">Quantity</label><input id="quantity" type="number" min="1" value="25" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label for="material">Aerospace material</label><select id="material"><option>7075-T6 Aluminum</option><option>Ti-6Al-4V Titanium</option><option>15-5 PH Stainless Steel</option></select></div>
+              <div class="form-group"><label for="toleranceClass">Tolerance class</label><select id="toleranceClass"><option>Class B</option><option>Class A</option><option>Class C</option></select></div>
+            </div>
+            <div class="form-group"><label for="site">Factory site</label><select id="site"><option value="f3-mesa" selected>F3 Mesa</option><option value="f2-torrance">F2 Torrance</option><option value="f4-alabama">F4 Alabama</option></select></div>
+            <div class="check"><input id="itarControlled" type="checkbox"><label for="itarControlled">This part is ITAR-controlled</label></div>
+            <button id="submitBtn" type="submit">Run DFM analysis</button>
+          </form>
+          <div id="result" class="result"></div>
+        </section>
+        <aside>
+          <div class="spec">
+            <strong>Automated factory assignment</strong>
+            <p>Each quote is evaluated against current process capability, material availability, and program requirements.</p>
+            <div class="spec-grid">
+              <span>F2<b>Torrance</b></span>
+              <span>F3<b>Mesa</b></span>
+              <span>F4<b>Alabama</b></span>
+            </div>
+          </div>
+          <section class="card">
+            <h2>Recent quotes</h2>
+            <div class="table-card">
+              <table>
+                <thead><tr><th>Quote</th><th>Part</th><th>Factory</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">QT-84A1C2F0</td><td>BRKT-7075-A114</td><td class="site">F2 Torrance</td><td class="ready">Ready</td></tr>
+                  <tr><td class="mono">QT-73B8D991</td><td>SPAR-TI-882</td><td class="site">F4 Alabama</td><td class="ready">Ready</td></tr>
+                  <tr><td class="mono">QT-61E4AA03</td><td>BRKT-7075-A114</td><td class="site">F3 Mesa</td><td class="ready">Ready</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer class="footer"><div class="footer-inner"><span>HADRIAN / Precision manufacturing infrastructure</span><span>Program workspace · 2026</span></div></footer>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('quoteForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var button = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = 'Running DFM analysis...';
+      result.className = 'result';
+      try {
+        var response = await fetch('/api/industrials/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            partNumber: document.getElementById('partNumber').value,
+            material: document.getElementById('material').value,
+            toleranceClass: document.getElementById('toleranceClass').value,
+            quantity: Number(document.getElementById('quantity').value),
+            site: document.getElementById('site').value,
+            itarControlled: document.getElementById('itarControlled').checked,
+          }),
+        });
+        var data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Quote request failed');
+        result.className = 'result success';
+        result.innerHTML = '<strong>Quote ready</strong>';
+        result.appendChild(document.createTextNode(
+          data.quoteId + ' — $' + data.estimate.price.toLocaleString() + ' '
+          + data.estimate.currency + ', ' + data.estimate.leadTimeDays + '-day lead time.',
+        ));
+      } catch (error) {
+        result.className = 'result error';
+        result.innerHTML = '<strong>Quote unavailable</strong>';
+        result.appendChild(document.createTextNode(error.message));
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Run DFM analysis';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

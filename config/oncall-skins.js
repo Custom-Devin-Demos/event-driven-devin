@@ -167,6 +167,51 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '08d969be': {
+    slug: '08d969be',
+    company: 'Hadrian',
+    brandMark: 'H',
+    vertical: 'industrials',
+    page: {
+      file: '08d969be.html',
+      title: 'Hadrian — Instant Quote',
+    },
+    accent: '#12325C',
+    accentDark: '#0d2544',
+    theme: {
+      '--accent': '#12325C',
+      '--ink': '#101820',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0A1626',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Hadrian Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A HADRIAN SITE — internal demo only, not affiliated with, endorsed by, or a real Hadrian product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'industrials',
+          label: 'Hadrian Instant Quote — DFM Analysis',
+          persona: { name: 'Morgan Reyes', email: 'morgan.reyes@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'industrials-quote-timeout',
+              label: 'Instant quote taking too long',
+              sev: 'High',
+              text: 'Buyer at a defense prime here — our instant quote sits on “Running DFM analysis” for about 15 seconds before it finally returns. Same part and quantity every time, and this started yesterday afternoon.',
+            },
+            {
+              id: 'industrials-program-quotes-blocked',
+              label: 'Program quotes crawling',
+              sev: 'Critical',
+              text: 'Program manager escalation: every quote for one aerospace program crawls while quotes for other programs come back in about a second. We need the affected program quotes for today’s sourcing review.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 function getOncallSkin(slug) {
