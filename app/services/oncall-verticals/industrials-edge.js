@@ -200,6 +200,8 @@ async function generateCertificateMaterial() {
     'policy = policy_any',
     'x509_extensions = client_cert',
     '[ policy_any ]',
+    'countryName = supplied',
+    'organizationName = supplied',
     'commonName = supplied',
     '[ client_cert ]',
     'basicConstraints=critical,CA:FALSE',
@@ -242,32 +244,32 @@ async function generateCertificateMaterial() {
   }
 
   for (const site of ROTATION_ENROLLMENT) {
-    try {
-      const csr = path.join(CLIENT_DIR, `${site}.csr.pem`);
-      const cert = path.join(CLIENT_DIR, `${site}.cert.pem`);
-      const ext = path.join(CLIENT_DIR, `${site}.ext`);
-      const serial = path.join(CLIENT_DIR, `${site}.rotation.srl`);
-      fs.rmSync(serial, { force: true });
-      await runOpenSSL([
-        'x509', '-req', '-in', csr,
-        '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
-        '-CAserial', serial, '-CAcreateserial',
-        '-out', cert, '-days', '30', '-sha256',
-        '-extfile', ext,
-      ], CERT_DIR);
-      const rotated = inspectCertificate(cert);
-      logger.info('Industrial edge client certificate rotated', {
+    if (!SITE_CERT_NAMES.includes(site)) {
+      logger.warn('Industrial edge certificate rotation skipped', {
         service: SERVICE,
         site,
-        notAfter: rotated.notAfter.toISOString(),
+        reason: 'site is not in the certificate inventory',
       });
-    } catch (error) {
-      logger.warn('Industrial edge client certificate rotation failed', {
-        service: SERVICE,
-        site,
-        error: error.message,
-      });
+      continue;
     }
+    const csr = path.join(CLIENT_DIR, `${site}.csr.pem`);
+    const cert = path.join(CLIENT_DIR, `${site}.cert.pem`);
+    const ext = path.join(CLIENT_DIR, `${site}.ext`);
+    const serial = path.join(CLIENT_DIR, `${site}.rotation.srl`);
+    fs.rmSync(serial, { force: true });
+    await runOpenSSL([
+      'x509', '-req', '-in', csr,
+      '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
+      '-CAserial', serial, '-CAcreateserial',
+      '-out', cert, '-days', '30', '-sha256',
+      '-extfile', ext,
+    ], CERT_DIR);
+    const rotated = inspectCertificate(cert);
+    logger.info('Industrial edge client certificate rotated', {
+      service: SERVICE,
+      site,
+      notAfter: rotated.notAfter.toISOString(),
+    });
   }
 
   const certificates = Object.fromEntries(SITE_CERT_NAMES.map((site) => {

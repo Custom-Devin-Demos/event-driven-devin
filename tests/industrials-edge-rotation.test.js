@@ -1,5 +1,6 @@
 jest.setTimeout(30000);
 
+const fs = require('fs');
 const logger = require('../app/telemetry/logger');
 const { processQuote } = require('../app/services/oncall-verticals/industrials');
 const {
@@ -115,7 +116,7 @@ describe('industrials edge certificate rotation', () => {
         .map(([, details]) => details.site)).toEqual(['f2-torrance', 'f4-alabama']);
       expect(warnSpy.mock.calls).toEqual(expect.arrayContaining([
         [
-          'Industrial edge client certificate rotation failed',
+          'Industrial edge certificate rotation skipped',
           expect.objectContaining({
             service: 'industrials-edge-gateway',
             site: unknownSite,
@@ -130,6 +131,38 @@ describe('industrials edge certificate rotation', () => {
     } finally {
       const index = ROTATION_ENROLLMENT.indexOf(unknownSite);
       if (index >= 0) ROTATION_ENROLLMENT.splice(index, 1);
+      await stopGateway();
+      cleanupCertificateMaterial();
+    }
+  });
+
+  test('does not swallow a rotation failure for a known site', async () => {
+    await stopGateway();
+    cleanupCertificateMaterial();
+    infoSpy.mockClear();
+    warnSpy.mockClear();
+    const originalRmSync = fs.rmSync;
+    const rmSyncSpy = jest.spyOn(fs, 'rmSync').mockImplementation((target, ...args) => {
+      const result = originalRmSync.call(fs, target, ...args);
+      if (target.endsWith('f2-torrance.rotation.srl')) {
+        originalRmSync.call(fs, target.replace('.rotation.srl', '.ext'), { force: true });
+      }
+      return result;
+    });
+    try {
+      await expect(ensureCertificateMaterial()).resolves.toBeNull();
+      expect(warnSpy.mock.calls).toEqual(expect.arrayContaining([
+        [
+          'Industrial edge mTLS certificate generation failed — edge gateway disabled',
+          expect.objectContaining({
+            service: 'industrials-edge-gateway',
+          }),
+        ],
+      ]));
+      expect(warnSpy.mock.calls.some(([message]) => message === 'Industrial edge certificate rotation skipped'))
+        .toBe(false);
+    } finally {
+      rmSyncSpy.mockRestore();
       await stopGateway();
       cleanupCertificateMaterial();
     }
