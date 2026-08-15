@@ -78,7 +78,11 @@
     .badge { padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); font:11px var(--mono); }
     .section-desc { max-width:780px; font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
     .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+    .grid.cols-1 { grid-template-columns:repeat(1,minmax(0,1fr)); }
     .grid.cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid.cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .grid.cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .grid.cols-5 { grid-template-columns:repeat(5,minmax(0,1fr)); }
     .card { display:flex; flex-direction:column; min-width:0; background:var(--paper); padding:24px; position:relative; color:var(--ink); text-decoration:none; }
     a.card:hover,a.wide-card:hover { background:var(--wash); }
     .card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
@@ -123,11 +127,11 @@
     .footer-links { display:flex; gap:20px; }
     .footer-links a { text-decoration:none; }
     .footer-copy,.footer-links a { color:var(--muted-2); }
-    @media (max-width:1100px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .grid.cols-2 { grid-template-columns:minmax(0,1fr); } }
+    @media (max-width:1100px) { .grid, .grid[class*="cols-"] { grid-template-columns:repeat(2,minmax(0,1fr)); } .grid.cols-2 { grid-template-columns:minmax(0,1fr); } }
     @media (max-width:900px) { .wide-row { grid-template-columns:1fr; } }
     @media (max-width:768px) { :root { --hero-content-padding-top:48px; } nav { padding:0 20px; } .nav-links { display:none; } .hero-content { padding:var(--hero-content-padding-top) 20px 40px; } .pipeline-section { padding:24px 0 40px; } .pipeline-inner { padding:0 20px; } .pipeline-step { font-size:10px; padding:10px 6px; } .pipeline-step .step-num { display:none; } .sections { padding:48px 20px 64px; } .fire-btn,#incident-kind { min-height:44px; } footer { padding:40px 20px 32px; } }
     @media (max-width:700px) { .health-spark { display:none; } }
-    @media (max-width:600px) { .grid { grid-template-columns:minmax(0,1fr); } .pipeline-track { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .pipeline-step { min-width:0; min-height:48px; white-space:normal; text-align:center; } .pipeline-step:nth-child(even) { border-right:0; } .pipeline-step:nth-child(-n+4) { border-bottom:1px solid var(--chrome-line); } }
+    @media (max-width:600px) { .grid, .grid[class*="cols-"] { grid-template-columns:minmax(0,1fr); } .pipeline-track { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .pipeline-step { min-width:0; min-height:48px; white-space:normal; text-align:center; } .pipeline-step:nth-child(even) { border-right:0; } .pipeline-step:nth-child(-n+4) { border-bottom:1px solid var(--chrome-line); } }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
   </style>
 </head>
@@ -302,6 +306,7 @@
       const { scenarios } = await res.json();
 
       const grid = document.getElementById('alert-grid');
+      grid.classList.add(`cols-${scenarios.length}`);
       scenarios.forEach((s) => {
         const meta = VERTICAL_META[s.id] || { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="8"/></svg>', vertical: s.id, desc: '' };
         const link = document.createElement('a');
