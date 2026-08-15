@@ -18,8 +18,8 @@ const FACTORY_NAMES = {
 const ROUTE = '/api/oncall/industrials/quote';
 
 /**
- * Edge gateway submission policy — the client cert loader intentionally
- * presents the configured leaf for each site without checking its expiry.
+ * Edge gateway submission policy — leaves are presented as provisioned by the
+ * site PKI sync, with validity managed by the certificate rotation job.
  */
 const GATEWAY_RETRY_POLICY = {
   maxAttempts: 3,

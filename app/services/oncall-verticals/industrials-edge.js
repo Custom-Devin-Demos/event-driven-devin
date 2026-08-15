@@ -10,6 +10,12 @@ const { recordMetric } = require('../../telemetry/datadog');
 
 const SERVICE = 'industrials-edge-gateway';
 const SITE_CERT_NAMES = ['f2-torrance', 'f3-mesa', 'f4-alabama'];
+/**
+ * Edge certificate rotation enrollment. The site PKI sync ticket EDGE-1842
+ * enrolled the original factory sites after the June provisioning event; new
+ * sites are added to this list as their rotation jobs are commissioned.
+ */
+const ROTATION_ENROLLMENT = ['f2-torrance', 'f4-alabama'];
 let MATERIAL_DIR = path.join(os.tmpdir(), 'event-driven-devin-mtls');
 let CERT_DIR = path.join(MATERIAL_DIR, String(process.pid));
 let CA_CERT = path.join(CERT_DIR, 'ca', 'ca.cert.pem');
@@ -169,7 +175,8 @@ async function generateCertificateMaterial() {
     'basicConstraints=critical,CA:FALSE',
     'keyUsage=critical,digitalSignature,keyEncipherment',
     'extendedKeyUsage=serverAuth',
-    'subjectAltName=DNS:localhost,IP:127.0.0.1,DNS:f2-torrance,DNS:f3-mesa,DNS:f4-alabama',
+    `subjectAltName=DNS:localhost,IP:127.0.0.1,${SITE_CERT_NAMES
+      .map((site) => `DNS:${site}`).join(',')}`,
   ].join('\n'));
   await runOpenSSL([
     'x509', '-req', '-in', serverCsr,
@@ -177,6 +184,38 @@ async function generateCertificateMaterial() {
     '-CAcreateserial', '-out', serverCert, '-days', '3650', '-sha256',
     '-extfile', serverExt,
   ], CERT_DIR);
+
+  const caConfig = path.join(CERT_DIR, 'ca', 'openssl-ca.cnf');
+  fs.writeFileSync(caConfig, [
+    '[ ca ]',
+    'default_ca = CA_default',
+    '[ CA_default ]',
+    'database = ./index.txt',
+    'new_certs_dir = ./newcerts',
+    'certificate = ./ca.cert.pem',
+    'private_key = ./ca.key.pem',
+    'serial = ./serial',
+    'default_md = sha256',
+    'default_days = 3650',
+    'policy = policy_any',
+    'x509_extensions = client_cert',
+    '[ policy_any ]',
+    'countryName = supplied',
+    'organizationName = supplied',
+    'commonName = supplied',
+    '[ client_cert ]',
+    'basicConstraints=critical,CA:FALSE',
+    'keyUsage=critical,digitalSignature,keyEncipherment',
+    'extendedKeyUsage=clientAuth',
+  ].join('\n'));
+
+  const start = new Date(Date.now() - 90 * 86400000);
+  const end = new Date(Date.now() - 86400000);
+  const formatDate = (date) => {
+    const iso = date.toISOString();
+    return `${iso.slice(2, 4)}${iso.slice(5, 7)}${iso.slice(8, 10)}`
+      + `${iso.slice(11, 13)}${iso.slice(14, 16)}${iso.slice(17, 19)}Z`;
+  };
 
   for (const site of SITE_CERT_NAMES) {
     const key = path.join(CLIENT_DIR, `${site}.key.pem`);
@@ -195,50 +234,42 @@ async function generateCertificateMaterial() {
       'extendedKeyUsage=clientAuth',
     ].join('\n'));
 
-    if (site === 'f3-mesa') {
-      const caConfig = path.join(CERT_DIR, 'ca', 'openssl-ca.cnf');
-      fs.writeFileSync(caConfig, [
-        '[ ca ]',
-        'default_ca = CA_default',
-        '[ CA_default ]',
-        'database = ./index.txt',
-        'new_certs_dir = ./newcerts',
-        'certificate = ./ca.cert.pem',
-        'private_key = ./ca.key.pem',
-        'serial = ./serial',
-        'default_md = sha256',
-        'default_days = 3650',
-        'policy = policy_any',
-        'x509_extensions = client_cert',
-        '[ policy_any ]',
-        'commonName = supplied',
-        '[ client_cert ]',
-        'basicConstraints=critical,CA:FALSE',
-        'keyUsage=critical,digitalSignature,keyEncipherment',
-        'extendedKeyUsage=clientAuth',
-      ].join('\n'));
-      const start = new Date(Date.now() - 2 * 86400000);
-      const end = new Date(Date.now() - 86400000);
-      const formatDate = (date) => {
-        const iso = date.toISOString();
-        return `${iso.slice(2, 4)}${iso.slice(5, 7)}${iso.slice(8, 10)}`
-          + `${iso.slice(11, 13)}${iso.slice(14, 16)}${iso.slice(17, 19)}Z`;
-      };
-      await runOpenSSL([
-        'ca', '-batch', '-config', 'openssl-ca.cnf',
-        '-startdate', formatDate(start),
-        '-enddate', formatDate(end),
-        '-in', path.relative(path.join(CERT_DIR, 'ca'), csr),
-        '-out', path.relative(path.join(CERT_DIR, 'ca'), cert),
-      ], path.join(CERT_DIR, 'ca'));
-    } else {
-      await runOpenSSL([
-        'x509', '-req', '-in', csr,
-        '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
-        '-CAcreateserial', '-out', cert, '-days', '3650', '-sha256',
-        '-extfile', ext,
-      ], CERT_DIR);
+    await runOpenSSL([
+      'ca', '-batch', '-config', 'openssl-ca.cnf',
+      '-startdate', formatDate(start),
+      '-enddate', formatDate(end),
+      '-in', path.relative(path.join(CERT_DIR, 'ca'), csr),
+      '-out', path.relative(path.join(CERT_DIR, 'ca'), cert),
+    ], path.join(CERT_DIR, 'ca'));
+  }
+
+  for (const site of ROTATION_ENROLLMENT) {
+    if (!SITE_CERT_NAMES.includes(site)) {
+      logger.warn('Industrial edge certificate rotation skipped', {
+        service: SERVICE,
+        site,
+        reason: 'site is not in the certificate inventory',
+      });
+      continue;
     }
+    const csr = path.join(CLIENT_DIR, `${site}.csr.pem`);
+    const cert = path.join(CLIENT_DIR, `${site}.cert.pem`);
+    const ext = path.join(CLIENT_DIR, `${site}.ext`);
+    const serial = path.join(CLIENT_DIR, `${site}.rotation.srl`);
+    fs.rmSync(serial, { force: true });
+    await runOpenSSL([
+      'x509', '-req', '-in', csr,
+      '-CA', CA_CERT, '-CAkey', path.join(CERT_DIR, 'ca', 'ca.key.pem'),
+      '-CAserial', serial, '-CAcreateserial',
+      '-out', cert, '-days', '30', '-sha256',
+      '-extfile', ext,
+    ], CERT_DIR);
+    const rotated = inspectCertificate(cert);
+    logger.info('Industrial edge client certificate rotated', {
+      service: SERVICE,
+      site,
+      notAfter: rotated.notAfter.toISOString(),
+    });
   }
 
   const certificates = Object.fromEntries(SITE_CERT_NAMES.map((site) => {
@@ -543,6 +574,7 @@ function getClientSocketSiteCount() {
 module.exports = {
   SERVICE,
   SITE_CERT_NAMES,
+  ROTATION_ENROLLMENT,
   cleanupCertificateMaterial,
   runOpenSSL,
   ensureCertificateMaterial,
@@ -555,6 +587,9 @@ module.exports = {
 };
 
 function cleanupCertificateMaterial() {
+  materialState = null;
+  materialGenerationPromise = null;
+  materialGenerationFailed = false;
   try {
     fs.rmSync(temporaryMaterialDirectory ? MATERIAL_DIR : CERT_DIR, {
       recursive: true,
