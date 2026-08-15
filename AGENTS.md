@@ -181,7 +181,7 @@ Three things are deliberately separate:
 │   │   │   ├── hightech.js        # On-call license provisioning business logic
 │   │   │   ├── insurance.js        # On-call claims business logic
 │   │   │   ├── industrials.js      # On-call instant quote business logic
-│   │   │   └── industrials-edge.js # On-call mTLS edge gateway and certificate material
+│   │   │   └── industrials-edge.js # On-call mTLS edge gateway, rotation, and certificate material
 │   │   ├── checkout.js            # Checkout business logic (includes scenario-based bugs)
 │   │   ├── github-webhook.js      # GitHub webhook processing
 │   │   ├── auth.js                # Auth service

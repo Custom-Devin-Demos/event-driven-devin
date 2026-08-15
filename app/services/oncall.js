@@ -190,7 +190,7 @@ const BUG_CATALOG = {
       id: 'industrials-quote-timeout',
       label: 'Instant quote spins before completing',
       sev: 'High',
-      text: 'Buyer at a defense prime here — our instant quote spins on "Running DFM analysis" for about 15 seconds and then finally returns. Same part, same quantity, every time since yesterday afternoon.',
+      text: 'Buyer at a defense prime here — our instant quote spins on "Running DFM analysis" for about 15 seconds and then finally returns. Same part, same quantity, recently.',
     },
     {
       id: 'industrials-program-quotes-blocked',
