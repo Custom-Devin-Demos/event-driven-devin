@@ -580,8 +580,6 @@ function cleanupCertificateMaterial() {
   materialState = null;
   materialGenerationPromise = null;
   materialGenerationFailed = false;
-  gateway = null;
-  gatewayReady = null;
   try {
     fs.rmSync(temporaryMaterialDirectory ? MATERIAL_DIR : CERT_DIR, {
       recursive: true,

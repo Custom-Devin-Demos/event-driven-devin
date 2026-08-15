@@ -16,6 +16,8 @@ describe('industrials edge certificate rotation', () => {
   let warnSpy;
 
   beforeAll(async () => {
+    await stopGateway();
+    cleanupCertificateMaterial();
     infoSpy = jest.spyOn(logger, 'info');
     warnSpy = jest.spyOn(logger, 'warn');
     await ensureCertificateMaterial();
@@ -67,10 +69,10 @@ describe('industrials edge certificate rotation', () => {
   test('enrolling Mesa and restarting restores its edge quote path', async () => {
     await stopGateway();
     cleanupCertificateMaterial();
+    infoSpy.mockClear();
+    warnSpy.mockClear();
     ROTATION_ENROLLMENT.push('f3-mesa');
     try {
-      infoSpy.mockClear();
-      warnSpy.mockClear();
       await expect(ensureCertificateMaterial()).resolves.toBeTruthy();
       await expect(startGateway()).resolves.toBeTruthy();
 
