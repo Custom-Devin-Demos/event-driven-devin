@@ -199,7 +199,7 @@ const ONCALL_SKINS = {
               id: 'industrials-quote-timeout',
               label: 'Instant quote taking too long',
               sev: 'High',
-              text: 'Buyer at a defense prime here — our instant quote sits on “Running DFM analysis” for about 15 seconds before it finally returns. Same part and quantity every time, and this started yesterday afternoon.',
+              text: 'Buyer at a defense prime here — our instant quote sits on “Running DFM analysis” for about 15 seconds before it finally returns. Same part and quantity every time, and this started recently.',
             },
             {
               id: 'industrials-program-quotes-blocked',
