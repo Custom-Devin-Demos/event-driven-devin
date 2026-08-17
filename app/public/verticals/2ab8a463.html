@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You.com &mdash; API Platform</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --indigo: #5368EE;
+      --indigo-dark: #3f53d8;
+      --navy: #222B5F;
+      --ink: #121212;
+      --ink-soft: #5e5f6b;
+      --line: #e7e8ec;
+      --paper: #ffffff;
+      --wash: #f9f9fb;
+      --lav-1: #e2e8fc;
+      --lav-2: #d9d0f3;
+      --danger: #c0362c;
+      --success: #1c7a4a;
+      --sans: 'Lumen Sans', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      --mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--paper); color: var(--ink); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+    .announce { background: var(--navy); color: #fff; font-size: 0.87rem; text-align: center; padding: 15px 18px; }
+    .announce a { color: #fff; text-decoration: none; background: rgba(255,255,255,0.12); border-radius: 8px; padding: 3px 9px; margin-left: 8px; white-space: nowrap; }
+
+    .shell { background: linear-gradient(160deg, var(--lav-1) 0%, var(--lav-2) 26%, #f4f2fd 52%, #ffffff 78%); }
+
+    header { max-width: 1280px; margin: 0 auto; padding: 20px 28px; display: flex; align-items: center; gap: 28px; }
+    .logo { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--ink); }
+    .logo svg { width: 30px; height: 30px; flex: none; }
+    .logo .wordmark { font-size: 1.32rem; font-weight: 500; letter-spacing: -0.02em; }
+    .nav-links { display: flex; align-items: center; gap: 6px; list-style: none; margin-left: 18px; }
+    .nav-links a { color: var(--ink); text-decoration: none; font-size: 0.95rem; padding: 6px 15px; border-radius: 8px; }
+    .nav-links a:hover { background: rgba(18,18,18,0.05); }
+    .nav-links a.active { font-weight: 600; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 1440px; font-family: var(--sans); font-size: 0.95rem; font-weight: 500; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+    .pill-primary { background: var(--indigo); color: #fff; }
+    .pill-primary:hover { background: var(--indigo-dark); }
+    .pill-ghost { background: transparent; color: var(--ink); border-color: rgba(18,18,18,0.16); }
+    .pill-ghost:hover { background: rgba(255,255,255,0.6); }
+    @media (max-width: 1040px) { .nav-links, .nav-right .pill-ghost { display: none; } }
+
+    .hero { max-width: 1280px; margin: 0 auto; padding: 46px 28px 34px; text-align: center; }
+    .hero h1 { font-size: clamp(2.1rem, 4.6vw, 3.55rem); font-weight: 500; line-height: 1.2; letter-spacing: -0.015em; }
+    .hero .sub { margin: 14px auto 0; max-width: 620px; font-size: 1.05rem; color: var(--ink-soft); }
+    .hero .sub b { color: var(--indigo); font-weight: 500; }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 8px 28px 60px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 26px 0 30px; }
+    @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+    .stat-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 5px; }
+    .stat-val { font-size: 1.6rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
+    .stat-val small { font-size: 0.85rem; font-weight: 500; color: var(--ink-soft); }
+    .stat-sub { font-size: 0.78rem; color: var(--ink-soft); margin-top: 2px; }
+
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; margin-bottom: 22px; }
+    .card-head { padding: 22px 26px 4px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+    .card-head h2 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.015em; }
+    .card-head .sub { font-size: 0.86rem; color: var(--ink-soft); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    th { text-align: left; font-size: 0.67rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); padding: 10px 26px; border-bottom: 1px solid var(--line); }
+    td { padding: 14px 26px; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+    tbody tr:last-child td { border-bottom: none; }
+    .endpoint { font-weight: 600; }
+    .endpoint small { display: block; font-weight: 400; font-size: 0.76rem; color: var(--ink-soft); }
+    .mono { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-soft); }
+    .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; padding: 3px 11px; border-radius: 20px; white-space: nowrap; }
+    .tag-live { color: #1c7a4a; background: rgba(28,122,74,0.1); }
+    .tag-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #1c7a4a; }
+    .tag-cred { color: var(--indigo); background: rgba(83,104,238,0.1); }
+    @media (max-width: 760px) {
+      th:nth-child(3), td:nth-child(3) { display: none; }
+      th, td { padding: 12px 16px; }
+    }
+
+    .prov-grid { display: grid; grid-template-columns: 1.05fr 1fr; }
+    @media (max-width: 880px) { .prov-grid { grid-template-columns: 1fr; } }
+    .prov-body { padding: 24px 26px 28px; }
+    .prov-body h2 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.015em; }
+    .prov-body .sub { font-size: 0.86rem; color: var(--ink-soft); margin: 3px 0 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.76rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+    .form-group select, .form-group input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; font-family: var(--sans); font-size: 0.93rem; color: var(--ink); background: var(--paper); }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(83,104,238,0.16); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-provision { width: 100%; height: 50px; border-radius: 1440px; background: var(--indigo); color: #fff; font-family: var(--sans); font-size: 0.98rem; font-weight: 500; border: none; cursor: pointer; margin-top: 6px; }
+    .btn-provision:hover { background: var(--indigo-dark); }
+    .btn-provision:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { margin-top: 15px; padding: 13px 16px; border-radius: 12px; font-size: 0.86rem; display: none; }
+    .result-box.error { display: block; background: #fdf3f2; border: 1px solid #f2cfcb; color: var(--danger); }
+    .result-box.success { display: block; background: rgba(28,122,74,0.07); border: 1px solid rgba(28,122,74,0.3); color: var(--success); }
+    .result-box .r-title { font-weight: 600; margin-bottom: 2px; }
+    .result-box .r-detail { font-family: var(--mono); font-size: 0.73rem; opacity: 0.92; word-break: break-word; }
+
+    .prov-info { background: var(--ink); color: #fff; padding: 28px 30px; display: flex; flex-direction: column; justify-content: center; }
+    .prov-info h3 { font-size: 1.12rem; font-weight: 500; line-height: 1.4; margin-bottom: 12px; }
+    .prov-info p { font-size: 0.87rem; color: rgba(255,255,255,0.74); margin-bottom: 16px; }
+    .prov-info ul { list-style: none; }
+    .prov-info li { font-size: 0.86rem; color: rgba(255,255,255,0.9); padding-left: 22px; position: relative; margin-bottom: 9px; }
+    .prov-info li::before { content: ''; position: absolute; left: 0; top: 8px; width: 9px; height: 9px; border-radius: 3px; background: var(--indigo); }
+    .prov-info code { font-family: var(--mono); font-size: 0.78rem; color: #cdd4ff; }
+    @media (max-width: 880px) { .prov-info { display: none; } }
+
+    footer { background: var(--ink); color: rgba(255,255,255,0.62); padding: 30px 28px 40px; text-align: center; }
+    footer p { font-size: 0.78rem; max-width: 780px; margin: 0 auto 8px; }
+  </style>
+</head>
+<body>
+  <div class="announce">
+    Answer API is generally available: grounded, cited answers powered by real-time web search
+    <a href="#provision">Learn More &rarr;</a>
+  </div>
+
+  <div class="shell">
+    <header>
+      <a class="logo" href="#">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="29" height="29" rx="9" fill="#121212"/>
+          <path d="M10 10.5l6 7.5 6-7.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 18v4" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span class="wordmark">you.com</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">APIs</a></li>
+        <li><a href="#">Docs</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Benchmarks</a></li>
+        <li><a href="#provision" class="active">Platform</a></li>
+      </ul>
+      <div class="nav-right">
+        <a class="pill pill-ghost" href="#">Contact Sales</a>
+        <a class="pill pill-primary" href="#provision">API Platform</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>API Platform</h1>
+      <div class="sub">Provision capacity for the Web Search, Contents, Answer, and Research APIs, and monitor live usage across your workspace keys. <b>$100 in credits</b> on every new key.</div>
+    </section>
+
+    <main>
+      <div class="stats">
+        <div class="stat"><div class="stat-label">Calls Today</div><div class="stat-val">4.18M</div><div class="stat-sub">across 6 workspace keys</div></div>
+        <div class="stat"><div class="stat-label">Search p95 Latency</div><div class="stat-val">412<small> ms</small></div><div class="stat-sub">rolling 1 hour</div></div>
+        <div class="stat"><div class="stat-label">Provisioned Rate Limit</div><div class="stat-val">900<small> QPS</small></div><div class="stat-sub">aggregate, all endpoints</div></div>
+        <div class="stat"><div class="stat-label">Credit Balance</div><div class="stat-val">$8,240</div><div class="stat-sub">auto top-up enabled</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Provisioned Endpoints</h2>
+          <span class="sub">Live API capacity on this organization's workspace keys</span>
+        </div>
+        <table>
+          <thead><tr><th>Endpoint</th><th>Key</th><th>Rate Limit</th><th>Calls (24h)</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="endpoint">Web Search API<small>Real-time web and news results</small></td><td class="mono">ydc_live_4f21&hellip;</td><td>500 QPS</td><td>2,914,600</td><td><span class="tag tag-live">Serving</span></td></tr>
+            <tr><td class="endpoint">Contents API<small>Clean page text and metadata extraction</small></td><td class="mono">ydc_live_9ab7&hellip;</td><td>200 QPS</td><td>806,120</td><td><span class="tag tag-live">Serving</span></td></tr>
+            <tr><td class="endpoint">Answer API<small>Citation-grounded synthesized answers</small></td><td class="mono">ydc_live_c033&hellip;</td><td>120 QPS</td><td>341,880</td><td><span class="tag tag-live">Serving</span></td></tr>
+            <tr><td class="endpoint">Research API<small>Multi-step search and synthesis, Deep tier</small></td><td class="mono">ydc_live_71de&hellip;</td><td>80 QPS</td><td>118,440</td><td><span class="tag tag-cred">Metered</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" id="provision">
+        <div class="prov-grid">
+          <div class="prov-body">
+            <h2>Provision API Capacity</h2>
+            <div class="sub">Issue a workspace key and allocate rate-limit capacity for an endpoint.</div>
+            <form id="provisionForm">
+              <div class="form-group">
+                <label>Endpoint</label>
+                <select id="product">
+                  <option value="web_search_api">Web Search API</option>
+                  <option value="contents_api">Contents API</option>
+                  <option value="answer_api">Answer API</option>
+                  <option value="research_api">Research API</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label>Rate Limit (QPS)</label><input type="number" id="seats" value="250" min="1"></div>
+                <div class="form-group">
+                  <label>Plan</label>
+                  <select id="planTier">
+                    <option value="enterprise">Enterprise</option>
+                    <option value="business">Scale</option>
+                    <option value="starter">Developer</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Region</label>
+                <select id="region">
+                  <option value="us-east">US East</option>
+                  <option value="us-west">US West</option>
+                  <option value="eu-west">EU West</option>
+                  <option value="ap-south">AP South</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-provision" id="submitBtn">Provision Capacity</button>
+            </form>
+            <div id="result" class="result-box"></div>
+          </div>
+          <div class="prov-info">
+            <h3>One key, the whole real-time web data layer.</h3>
+            <p>Provisioned keys work across every endpoint with the same auth header, so an agent can search, extract, and synthesize in one pipeline.</p>
+            <ul>
+              <li>LLM-ready snippets with rich metadata</li>
+              <li>Country, language, and freshness filters</li>
+              <li>Python SDK, MCP Server, and REST access</li>
+              <li>SOC 2 certified, ZDR available</li>
+              <li><code>X-API-Key</code> auth on every endpoint</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>Usage is metered per call and billed against your credit balance. Rate limits apply per workspace key and per region.</p>
+    <p>&copy; 2026 You.com. All rights reserved.</p>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const ENDPOINT_LABELS = {
+      web_search_api: 'Web Search API',
+      contents_api: 'Contents API',
+      answer_api: 'Answer API',
+      research_api: 'Research API',
+    };
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Provisioning...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="r-title">Provisioning Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          const endpoint = ENDPOINT_LABELS[document.getElementById('product').value] || 'endpoint';
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="r-title">Capacity Provisioned</div><div class="r-detail">${data.seatsAdded} QPS allocated on ${endpoint} &mdash; ${data.licenseId}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Provision Capacity'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
