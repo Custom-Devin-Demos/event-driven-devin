@@ -134,7 +134,7 @@
 
   <script>
     var SKIN = window.ONCALL_SKIN || null;
-    var incidentKind = SKIN && SKIN.incidentKind ? SKIN.incidentKind : 'banking-transfers';
+    var incidentKind = SKIN && SKIN.incidentKind ? SKIN.incidentKind : null;
     var incidentStory = null;
     var incidentReady = false;
 
@@ -150,7 +150,14 @@
     }
 
     function applySkin() {
-      if (!SKIN) return;
+      if (!SKIN) {
+        document.getElementById('intro').textContent =
+          'This incident console is not available outside a customer console.';
+        document.getElementById('kind-label').textContent = 'Incident console unavailable';
+        document.getElementById('kind-summary').textContent =
+          'Open the customer-specific incident console to continue.';
+        return;
+      }
       document.title = 'SEV-1 Incident Console — ' + SKIN.company;
       Object.keys(SKIN.theme || {}).forEach(function (key) {
         if (/^--(accent|ink|surface|chrome-bg|chrome-text)$/.test(key)) {
@@ -228,6 +235,7 @@
     }
 
     function loadKind() {
+      if (!SKIN || !incidentKind) return Promise.resolve();
       return fetch('/api/oncall/incident/kinds', { credentials: 'same-origin' })
         .then(function (response) { return response.json(); })
         .then(function (kinds) {
