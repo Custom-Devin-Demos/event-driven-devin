@@ -126,7 +126,12 @@ for (const skin of Object.values(ONCALL_SKINS)) {
     });
   }
   if (skin.incident) {
-    const incidentStory = SEV1_INCIDENTS[skin.incident.kind];
+    const incidentStory = Object.prototype.hasOwnProperty.call(
+      SEV1_INCIDENTS,
+      skin.incident.kind,
+    )
+      ? SEV1_INCIDENTS[skin.incident.kind]
+      : null;
     if (!incidentStory) {
       logger.warn('On-Call skin references unknown incident kind', {
         skin: skin.slug,
