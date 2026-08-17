@@ -167,6 +167,53 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '2ab8a463': {
+    slug: '2ab8a463',
+    company: 'You.com',
+    brandMark: 'Y',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '2ab8a463.html',
+      title: 'You.com — API Platform',
+    },
+    accent: '#5368EE',
+    accentDark: '#3f53d8',
+    theme: {
+      '--accent': '#5368EE',
+      '--ink': '#121212',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#222B5F',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'You.com Support',
+    supportCenterSub: 'Developer Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A YOU.COM SITE — internal demo only, not affiliated with, endorsed by, or a real You.com product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'hightech',
+          label: 'API Platform \u2014 Capacity Provisioning',
+          persona: { name: 'Devon Ashcroft', email: 'devon.ashcroft@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'hightech-provision-slowdown',
+              label: 'Provisioning capacity is slow',
+              sev: 'Medium',
+              text: 'Provisioning rate-limit capacity in the API Platform is crawling \u2014 every request sits for seven or eight seconds before the key comes back. Nothing errors, and it seems to get a bit worse with each endpoint we provision.',
+            },
+            {
+              id: 'hightech-renewal-slow',
+              label: 'Bulk key provisioning stalling before launch',
+              sev: 'High',
+              text: 'Platform team here \u2014 we ship our agent to production Monday and are provisioning keys and QPS for four endpoints across two regions. Every provisioning call in the console hangs for ages before it completes, so the whole rollout is behind. Our launch reviewer is asking whether the platform is healthy.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   '08d969be': {
     slug: '08d969be',
     company: 'Hadrian',
