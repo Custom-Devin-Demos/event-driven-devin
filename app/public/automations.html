@@ -180,8 +180,8 @@
   <section class="hero">
     <div class="hero-content">
       <div class="hero-badge">DEVIN AUTOMATIONS</div>
-      <h1>Nothing broke. There is still work.</h1>
-      <p class="hero-sub">On-call answers the question &ldquo;what happens when something breaks?&rdquo; This answers &ldquo;what happens when nothing breaks &mdash; and there is still work an agent can find?&rdquo; A scheduled patrol reads production telemetry, ranks the real cost, files the work, and fixes the worst one.</p>
+      <h1>Scheduled slow-query patrol</h1>
+      <p class="hero-sub">Once a day, without being asked, Devin reads this app's database query timing from Datadog, ranks queries by total time spent per day, files the top findings in Linear, fixes the top one, and opens a pull request. It runs whether or not anything is broken.</p>
     </div>
   </section>
 
@@ -191,11 +191,11 @@
       <div class="pipeline-label">How it works</div>
       <div class="pipeline-track">
         <div class="pipeline-step"><span class="step-num">1</span> Schedule Fires</div>
-        <div class="pipeline-step"><span class="step-num">2</span> Measure Datadog</div>
-        <div class="pipeline-step"><span class="step-num">3</span> Rank by Total Cost</div>
-        <div class="pipeline-step"><span class="step-num">4</span> Dedupe &amp; File Linear</div>
-        <div class="pipeline-step"><span class="step-num">5</span> Fix #1 with a PR</div>
-        <div class="pipeline-step"><span class="step-num">6</span> Digest in Slack</div>
+        <div class="pipeline-step"><span class="step-num">2</span> Read Datadog</div>
+        <div class="pipeline-step"><span class="step-num">3</span> Rank by Total Time</div>
+        <div class="pipeline-step"><span class="step-num">4</span> Check Linear</div>
+        <div class="pipeline-step"><span class="step-num">5</span> File Issues</div>
+        <div class="pipeline-step"><span class="step-num">6</span> Fix, PR, Digest</div>
       </div>
     </div>
   </div>
@@ -209,10 +209,10 @@
         <span class="badge">#eng-automations</span>
         <span class="badge">daily 14:07 UTC</span>
       </div>
-      <h2>Ranked by what it actually costs</h2>
-      <p class="section-desc">The patrol runs unprompted on a schedule. It reads the app's real per-query timing events out of Datadog, groups them by query, and ranks by <em>total</em> time per day rather than single-query duration &mdash; a 3&nbsp;ms query running tens of thousands of times a day outranks a 400&nbsp;ms query running a few dozen. It dedupes against the existing Linear backlog, files only the top one or two findings, then fixes the worst one in code and opens a PR for review.</p>
+      <h2>Ranked by total time, not single-query duration</h2>
+      <p class="section-desc">The app logs a timing event for every database query it runs. The patrol groups those events by query name and ranks them by total time per day. This changes the order: a 3&nbsp;ms query that runs tens of thousands of times a day costs more than a 400&nbsp;ms query that runs a few dozen times, so it is fixed first.</p>
       <div class="schedule-strip">
-        <div class="health-item"><span class="health-dot"></span><span>internal jobs: instrumented</span></div>
+        <div class="health-item"><span class="health-dot"></span><span>runs daily 14:07 UTC</span></div>
         <div class="health-item">window <span class="health-val">trailing 24h</span></div>
         <div class="health-item">files <span class="health-val">1&ndash;2 issues</span></div>
         <div class="health-item">merges <span class="health-val">never</span></div>
@@ -220,23 +220,23 @@
       <div class="grid cols-5">
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 01</div><div class="card-brand">Measure</div><div class="card-desc">Reads real <code>db.query</code> timing events &mdash; count, mean, p95, total per day. Never estimates.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 01</div><div class="card-brand">Measure</div><div class="card-desc">Reads <code>db.query</code> events from Datadog: count, mean, p95 and total time per query. It reports the window it measured and does not estimate.</div></div>
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h6"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 02</div><div class="card-brand">Dedupe</div><div class="card-desc">Checks open Linear issues first, so a known finding is reported, not refiled.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 02</div><div class="card-brand">Dedupe</div><div class="card-desc">Checks open Linear issues before filing. A finding that already has an issue is reported, not filed again.</div></div>
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 13h6M9 17h4"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 03</div><div class="card-brand">File</div><div class="card-desc">One or two issues with the measured evidence and the code location &mdash; not a wall of tickets.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 03</div><div class="card-brand">File</div><div class="card-desc">Files one or two issues. Each contains the measured numbers and the file and function responsible.</div></div>
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M6 3v12a3 3 0 0 0 3 3h6"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="6" cy="4" r="1.5"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 04</div><div class="card-brand">Fix</div><div class="card-desc">Fixes the top finding with proven output equivalence and before/after numbers. Opens a PR; never merges.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 04</div><div class="card-brand">Fix</div><div class="card-desc">Fixes the top-ranked finding, shows the output is unchanged, and records before and after timings. Opens a pull request and does not merge it.</div></div>
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 3z"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 05</div><div class="card-brand">Report</div><div class="card-desc">One ranked digest in Slack with the filed issues and the PR. A quiet day is a valid result.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 05</div><div class="card-brand">Report</div><div class="card-desc">Posts one message to Slack with the ranked table, the issues it filed and the pull request. If it found nothing, it says so.</div></div>
         </div>
       </div>
     </div>
@@ -248,18 +248,18 @@
         <span class="badge">isolated</span>
       </div>
       <h2>Run the patrol now</h2>
-      <p class="section-desc">The same workflow, on demand. Backtest runs file into a throwaway <code>patrol-backtest-*</code> Linear project so they never touch the production backlog, and a second press inside the attach window reuses the running session instead of starting another.</p>
+      <p class="section-desc">Runs the same workflow on demand, without waiting for the schedule. Findings go into a new <code>patrol-backtest-*</code> Linear project instead of the production backlog. Pressing the button again within 15 minutes opens the run that is already in progress rather than starting a second one.</p>
       <div class="run-row">
         <div class="run-panel">
           <div class="wide-title">What a run does</div>
-          <div class="wide-desc">Measures the same trailing window, reports the window it actually measured, files its findings in an isolated project, fixes the top-ranked one, opens a PR without merging, and posts a digest labelled as a backtest.</div>
+          <div class="wide-desc">Reads the trailing 24 hours of query timing, reports the window it measured, files its findings in a new backtest project, fixes the top-ranked finding, opens a pull request without merging it, and posts a Slack message labelled as a backtest.</div>
           <div id="result" class="status" role="status" aria-live="polite"></div>
         </div>
         <div class="run-panel">
           <div class="run-label">Presenter token</div>
           <input id="run-token" class="run-field" type="password" autocomplete="off" placeholder="run token">
           <button class="fire-btn sev" id="run-button" type="button">Run patrol now</button>
-          <div class="run-note">Token-gated so a crawler cannot start runs.</div>
+          <div class="run-note">A token is required so that only the presenter can start a run.</div>
         </div>
       </div>
     </div>
