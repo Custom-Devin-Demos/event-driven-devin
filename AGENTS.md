@@ -41,6 +41,8 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 
 Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
 
+Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
+
 ### Payer welcome-season scenario
 
 The payer vertical models a plan-configuration defect rather than an infrastructure failure: `PLAN_CONFIGS` carries a 7-digit `rxBin` (`0044336` instead of `004336`) for two plans, `generateMemberIdCard()` copies it onto member ID cards unvalidated, and `adjudicateClaim()` then finds no `PAYER_REGISTRY` entry for that BIN. Every service stays healthy — the only signal is the `pharmacy_claim.rejected` business metric.
@@ -125,6 +127,8 @@ Three things are deliberately separate:
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
 │   │   ├── automations.html       # Slow-query patrol explainer and Run Now control
+│   │   ├── oncall-report.html     # Shared customer-skinned support portal
+│   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform

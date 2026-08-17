@@ -138,10 +138,6 @@ const CUSTOMERS = {
     label: 'Highmark enGen',
     triggerMode: 'api',
   },
-  '79147793': {
-    label: 'DoorDash',
-    triggerMode: 'api',
-  },
   'cba5be2d': {
     label: 'Timberland',
     triggerMode: 'api',

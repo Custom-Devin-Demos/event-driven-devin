@@ -5,9 +5,11 @@
  * without touching any mechanics. /oncall/c/<slug> serves the skin's chosen
  * vertical page (skin.vertical) rebranded with the customer's name, mark, and
  * theme, with the on-call shim active — that single URL is what a DE shares.
- * /oncall/c/<slug>/report serves the matching branded support portal. The
- * generic /oncall hub itself is never skinned. Adding a customer = adding one
- * entry here.
+ * /oncall/c/<slug>/report serves the matching branded support portal, and
+ * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
+ * surface is enabled by default; bugPortal and incident are optional opt-in
+ * surfaces. The generic /oncall hub itself is never skinned. Adding a customer
+ * = adding one entry here.
  *
  * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
  * never the customer's name, so shared URLs don't leak who a demo is for.
@@ -237,6 +239,9 @@ const ONCALL_SKINS = {
     supportCenter: 'DoorDash Support',
     supportCenterSub: 'Dasher Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A DOORDASH SITE — internal demo only, not affiliated with, endorsed by, or a real DoorDash product.',
+    incident: {
+      kind: 'banking-transfers',
+    },
     bugPortal: {
       products: [
         {

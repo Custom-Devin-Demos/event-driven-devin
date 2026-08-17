@@ -125,6 +125,27 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       vertical: skin.vertical,
     });
   }
+  if (skin.incident) {
+    const incidentStory = Object.prototype.hasOwnProperty.call(
+      SEV1_INCIDENTS,
+      skin.incident.kind,
+    )
+      ? SEV1_INCIDENTS[skin.incident.kind]
+      : null;
+    if (!incidentStory) {
+      logger.warn('On-Call skin references unknown incident kind', {
+        skin: skin.slug,
+        incidentKind: skin.incident.kind,
+      });
+    } else if (incidentStory.vertical !== skin.vertical) {
+      logger.warn('On-Call skin incident vertical mismatch', {
+        skin: skin.slug,
+        incidentKind: skin.incident.kind,
+        skinVertical: skin.vertical,
+        incidentVertical: incidentStory.vertical,
+      });
+    }
+  }
   const pageFile = skin.page && skin.page.file;
   if (
     pageFile &&
@@ -240,8 +261,36 @@ router.get('/oncall/c/:slug', (req, res, next) => {
  */
 router.get('/oncall/c/:slug/report', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
-  if (!skin) return next();
+  if (!skin || !skin.bugPortal) return next();
   sendSkinnedPage(res, next, 'oncall-report.html', skin);
+});
+
+/**
+ * GET /oncall/c/:slug/incident — customer-skinned SEV-1 incident console.
+ */
+router.get('/oncall/c/:slug/incident', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  const incidentKind = skin && skin.incident && skin.incident.kind;
+  const incidentStory = incidentKind && SEV1_INCIDENTS[incidentKind];
+  const validIncident = skin &&
+    skin.incident &&
+    Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, incidentKind) &&
+    incidentStory.vertical === skin.vertical;
+  if (!validIncident) {
+    if (skin && skin.incident) {
+      logger.warn('On-Call incident route rejected invalid skin configuration', {
+        skin: req.params.slug,
+        incidentKind,
+        skinVertical: skin.vertical,
+        incidentVertical: incidentStory && incidentStory.vertical,
+      });
+    }
+    return next();
+  }
+  sendSkinnedPage(res, next, 'oncall-incident.html', {
+    ...skin,
+    incidentKind: skin.incident.kind,
+  });
 });
 
 /**
