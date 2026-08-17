@@ -125,6 +125,15 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       vertical: skin.vertical,
     });
   }
+  if (
+    skin.incident &&
+    !Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, skin.incident.kind)
+  ) {
+    logger.warn('On-Call skin references unknown incident kind', {
+      skin: skin.slug,
+      incidentKind: skin.incident.kind,
+    });
+  }
   const pageFile = skin.page && skin.page.file;
   if (
     pageFile &&
@@ -170,11 +179,6 @@ function sendSkinnedPage(res, next, page, skin) {
     const inject = `<script>window.ONCALL_SKIN = ${jsLiteral(skin)};</script>`;
     res.type('html').send(html.replace('</head>', () => `${inject}\n</head>`));
   });
-}
-
-function incidentKindForSkin(skin) {
-  const match = Object.entries(SEV1_INCIDENTS).find(([, story]) => story.vertical === skin.vertical);
-  return match ? match[0] : 'banking-transfers';
 }
 
 /**
@@ -245,7 +249,7 @@ router.get('/oncall/c/:slug', (req, res, next) => {
  */
 router.get('/oncall/c/:slug/report', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
-  if (!skin) return next();
+  if (!skin || !skin.bugPortal) return next();
   sendSkinnedPage(res, next, 'oncall-report.html', skin);
 });
 
@@ -254,10 +258,16 @@ router.get('/oncall/c/:slug/report', (req, res, next) => {
  */
 router.get('/oncall/c/:slug/incident', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
-  if (!skin) return next();
+  if (
+    !skin ||
+    !skin.incident ||
+    !Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, skin.incident.kind)
+  ) {
+    return next();
+  }
   sendSkinnedPage(res, next, 'oncall-incident.html', {
     ...skin,
-    incidentKind: incidentKindForSkin(skin),
+    incidentKind: skin.incident.kind,
   });
 });
 

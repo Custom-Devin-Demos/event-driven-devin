@@ -139,6 +139,8 @@
 
     function remainingLabel(entry) {
       if (entry.status === 'resolved') return 'Resolved';
+      if (entry.status === 'window_elapsed') return 'Window elapsed';
+      if (entry.status === 'resolve_failed') return 'Auto-resolve failed';
       var seconds = Math.ceil((entry.msRemaining || 0) / 1000);
       var minutes = Math.floor(seconds / 60);
       return minutes > 0
@@ -157,7 +159,7 @@
       document.getElementById('brand-mark').textContent = SKIN.brandMark || SKIN.company.charAt(0);
       document.getElementById('brand-name').textContent = SKIN.company;
       document.getElementById('brand-sub').textContent = 'SEV-1 incident console';
-      document.getElementById('intro').textContent = 'Declare and monitor the major incident for the ' + SKIN.vertical + ' service.';
+      document.getElementById('intro').textContent = 'Declare and monitor the major incident for this service.';
       document.getElementById('footer').textContent = SKIN.company + ' · Incident operations';
       document.getElementById('disclaimer').textContent = SKIN.disclaimer || '';
       document.getElementById('disclaimer').style.display = SKIN.disclaimer ? 'block' : 'none';
@@ -186,11 +188,16 @@
         title.className = 'incident-title';
         title.textContent = entry.label || 'SEV-1 incident';
         var details = document.createElement('dl');
+        var remainingTerm = entry.status === 'resolved' ||
+          entry.status === 'window_elapsed' ||
+          entry.status === 'resolve_failed'
+          ? 'Status'
+          : 'Auto-resolves in';
         [
           ['Public IR id', entry.publicId ? 'IR-' + entry.publicId : 'Pending provider id'],
           ['Incident ref', entry.runRef],
           ['Declared', new Date(entry.declaredAt).toLocaleString()],
-          ['Auto-resolves in', remainingLabel(entry)],
+          [remainingTerm, remainingLabel(entry)],
         ].forEach(function (pair) {
           var term = document.createElement('dt');
           term.textContent = pair[0];
@@ -239,7 +246,10 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ kind: incidentKind }),
+        body: JSON.stringify({
+          kind: incidentKind,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
       })
         .then(function (response) {
           return response.json().then(function (data) { return { code: response.status, data: data }; });
