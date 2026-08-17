@@ -9,9 +9,9 @@ const INVENTORY_SKU_COUNT = 120;
 const ORDER_QUERY_COUNT = 40;
 const RECONCILIATION_QUERY_COUNT = 6;
 const SCAN_CHUNK_SIZE = 1024;
-const RATE_WINDOW_MS = parseInt(process.env.RATE_WINDOW_MS, 10) || 60 * 1000;
-const PER_IP_RATE_LIMIT = parseInt(process.env.PER_IP_RATE_LIMIT, 10) || 4;
-const PROCESS_RATE_LIMIT = parseInt(process.env.PROCESS_RATE_LIMIT, 10) || 6;
+const RATE_WINDOW_MS = parseInt(process.env.INTERNAL_JOB_RATE_WINDOW_MS, 10) || 60 * 1000;
+const PER_IP_RATE_LIMIT = parseInt(process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT, 10) || 4;
+const PROCESS_RATE_LIMIT = parseInt(process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT, 10) || 6;
 
 let activeJob = false;
 const ipRequestWindows = new Map();

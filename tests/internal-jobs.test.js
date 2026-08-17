@@ -3,9 +3,9 @@
 const express = require('express');
 const http = require('http');
 
-process.env.RATE_WINDOW_MS = '60000';
-process.env.PER_IP_RATE_LIMIT = '100';
-process.env.PROCESS_RATE_LIMIT = '100';
+process.env.INTERNAL_JOB_RATE_WINDOW_MS = '60000';
+process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = '100';
+process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = '100';
 
 const logger = require('../app/telemetry/logger');
 const internalJobs = require('../app/routes/internal-jobs');
