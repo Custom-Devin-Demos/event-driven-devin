@@ -214,6 +214,53 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  'e7c9dc7a': {
+    slug: 'e7c9dc7a',
+    company: 'DoorDash',
+    brandMark: 'D',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'e7c9dc7a.html',
+      title: 'DoorDash — Dasher Earnings',
+    },
+    accent: '#EB1700',
+    accentDark: '#c41300',
+    theme: {
+      '--accent': '#EB1700',
+      '--ink': '#191919',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#4C0C3A',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'DoorDash Support',
+    supportCenterSub: 'Dasher Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A DOORDASH SITE — internal demo only, not affiliated with, endorsed by, or a real DoorDash product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'banking',
+          label: 'Dasher Earnings \u2014 Fast Pay',
+          persona: { name: 'Alex Rivera', email: 'alex.rivera@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'banking-transfer-slow',
+              label: 'Fast Pay cash outs stuck on a spinner',
+              sev: 'High',
+              text: 'Cashing out my earnings used to be quick, but now every cash out sits on a spinner for about ten seconds before it goes through. Tried different amounts and both my bank account and my DasherDirect card \u2014 same thing every time. Started today.',
+            },
+            {
+              id: 'banking-payroll-cutoff',
+              label: 'End-of-shift payouts running late',
+              sev: 'Critical',
+              text: 'Escalating on behalf of a market team: Dashers cashing out at the end of the dinner shift are queued one after another and each cash out now takes ~10 seconds, so the whole batch finishes well after the usual window. Nothing errors \u2014 it is just painfully slow, and it was fine yesterday.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   '08d969be': {
     slug: '08d969be',
     company: 'Hadrian',
