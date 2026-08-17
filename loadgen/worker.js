@@ -58,6 +58,10 @@ async function makeRequest(method, path, data, label) {
   } catch (error) {
     const status = error.response ? error.response.status : 0;
     const duration = error.response ? 0 : -1;
+    if (status === 429) {
+      console.log(`[loadgen] ${label} => ${status} (rate limited; skipped)`);
+      return { success: true, status, duration, rateLimited: true };
+    }
     console.log(`[loadgen] ${label} => ERROR ${status} - ${error.message}`);
     return { success: false, status, duration, error: error.message };
   }

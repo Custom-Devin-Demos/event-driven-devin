@@ -369,7 +369,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
 | `SESSION_SECRET` | Shared secret for session-creating endpoints (`x-session-secret` header) | Recommended |
 | `PORT` | Server port | No (default: `3000`) |
-| `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `300000`) |
+| `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment
 
