@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const TARGET_URL_RAW = process.env.LOADGEN_TARGET_URL || 'http://localhost:3000';
 const TARGET_URL = TARGET_URL_RAW.startsWith('http') ? TARGET_URL_RAW : `http://${TARGET_URL_RAW}`;
-const INTERVAL_MS = parseInt(process.env.LOADGEN_INTERVAL_MS, 10) || 5 * 60 * 1000;
+const INTERVAL_MS = parseInt(process.env.LOADGEN_INTERVAL_MS, 10) || 120000;
 
 const PERSONAS = ['buyer_1', 'buyer_2', 'admin_ops'];
 
@@ -38,7 +38,7 @@ function getTimeMultiplier() {
   return 0.5;
 }
 
-async function makeRequest(method, path, data, label) {
+async function makeRequest(method, path, data, label, options = {}) {
   try {
     const url = `${TARGET_URL}${path}`;
     const config = {
@@ -58,7 +58,7 @@ async function makeRequest(method, path, data, label) {
   } catch (error) {
     const status = error.response ? error.response.status : 0;
     const duration = error.response ? 0 : -1;
-    if (status === 429) {
+    if (status === 429 && options.allowRateLimit) {
       console.log(`[loadgen] ${label} => ${status} (rate limited; skipped)`);
       return { success: true, status, duration, rateLimited: true };
     }
@@ -123,7 +123,7 @@ async function sendCheckoutRequests(count) {
 }
 
 async function sendInternalJob(path, label) {
-  return makeRequest('get', path, null, label);
+  return makeRequest('get', path, null, label, { allowRateLimit: true });
 }
 
 async function runTrafficCycle(cycleNumber) {

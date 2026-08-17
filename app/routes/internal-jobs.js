@@ -10,47 +10,15 @@ const ORDER_QUERY_COUNT = 40;
 const RECONCILIATION_QUERY_COUNT = 6;
 const SCAN_CHUNK_SIZE = 1024;
 const RATE_WINDOW_MS = 60 * 1000;
-const PER_IP_RATE_LIMIT = 10;
-const PROCESS_RATE_LIMIT = 30;
+const PER_IP_RATE_LIMIT = 4;
+const PROCESS_RATE_LIMIT = 6;
 
 let activeJob = false;
 const ipRequestWindows = new Map();
 const processRequestWindow = [];
-let stockLedger;
-let lineItems;
-let ledger;
-
-function getStockLedger() {
-  if (!stockLedger) {
-    stockLedger = Array.from({ length: 3200 }, (_, index) => ({
-      sku: `SKU-${String(index % INVENTORY_SKU_COUNT).padStart(3, '0')}`,
-      available: (index * 17) % 23,
-    }));
-  }
-  return stockLedger;
-}
-
-function getLineItems() {
-  if (!lineItems) {
-    lineItems = Array.from({ length: 13000 }, (_, index) => ({
-      orderId: `ORD-${String(index % ORDER_QUERY_COUNT).padStart(3, '0')}`,
-      quantity: (index % 5) + 1,
-      unitPrice: (index % 97) + 3,
-    }));
-  }
-  return lineItems;
-}
-
-function getLedger() {
-  if (!ledger) {
-    ledger = Array.from({ length: 290000 }, (_, index) => ({
-      accountId: `ACCT-${String(index % 1000).padStart(4, '0')}`,
-      debit: (index * 13) % 101,
-      credit: (index * 7) % 89,
-    }));
-  }
-  return ledger;
-}
+let stockLedgerPromise;
+let lineItemsPromise;
+let ledgerPromise;
 
 function fingerprint(value) {
   return crypto.createHash('sha256').update(value).digest()[0];
@@ -116,9 +84,50 @@ function yieldToEventLoop() {
   return new Promise((resolve) => setImmediate(resolve));
 }
 
+async function buildFixture(length, buildRow) {
+  const rows = [];
+  for (let index = 0; index < length; index++) {
+    rows.push(buildRow(index));
+    if ((index + 1) % SCAN_CHUNK_SIZE === 0) await yieldToEventLoop();
+  }
+  return rows;
+}
+
+function getStockLedger() {
+  if (!stockLedgerPromise) {
+    stockLedgerPromise = buildFixture(3200, (index) => ({
+      sku: `SKU-${String(index % INVENTORY_SKU_COUNT).padStart(3, '0')}`,
+      available: (index * 17) % 23,
+    }));
+  }
+  return stockLedgerPromise;
+}
+
+function getLineItems() {
+  if (!lineItemsPromise) {
+    lineItemsPromise = buildFixture(13000, (index) => ({
+      orderId: `ORD-${String(index % ORDER_QUERY_COUNT).padStart(3, '0')}`,
+      quantity: (index % 5) + 1,
+      unitPrice: (index % 97) + 3,
+    }));
+  }
+  return lineItemsPromise;
+}
+
+function getLedger() {
+  if (!ledgerPromise) {
+    ledgerPromise = buildFixture(290000, (index) => ({
+      accountId: `ACCT-${String(index % 1000).padStart(4, '0')}`,
+      debit: (index * 13) % 101,
+      credit: (index * 7) % 89,
+    }));
+  }
+  return ledgerPromise;
+}
+
 async function inventoryReport() {
   const startedAt = process.hrtime.bigint();
-  const stockRows = getStockLedger();
+  const stockRows = await getStockLedger();
   let totalAvailable = 0;
 
   for (let skuIndex = 0; skuIndex < INVENTORY_SKU_COUNT; skuIndex++) {
@@ -161,7 +170,7 @@ async function inventoryReport() {
 
 async function orderExport() {
   const startedAt = process.hrtime.bigint();
-  const lineItemRows = getLineItems();
+  const lineItemRows = await getLineItems();
   let exportedRows = 0;
 
   for (let orderIndex = 0; orderIndex < ORDER_QUERY_COUNT; orderIndex++) {
@@ -204,7 +213,7 @@ async function orderExport() {
 
 async function reconciliation() {
   const startedAt = process.hrtime.bigint();
-  const ledgerRows = getLedger();
+  const ledgerRows = await getLedger();
   let discrepancyCount = 0;
 
   for (let entryIndex = 0; entryIndex < RECONCILIATION_QUERY_COUNT; entryIndex++) {

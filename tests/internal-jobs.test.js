@@ -6,6 +6,8 @@ const http = require('http');
 const logger = require('../app/telemetry/logger');
 const internalJobs = require('../app/routes/internal-jobs');
 
+let requestNumber = 0;
+
 function request(path) {
   const app = express();
   app.use(internalJobs);
@@ -13,7 +15,8 @@ function request(path) {
   return new Promise((resolve, reject) => {
     const server = app.listen(0, () => {
       const { port } = server.address();
-      http.get(`http://127.0.0.1:${port}${path}`, (res) => {
+      const headers = { 'X-Forwarded-For': `192.0.2.${++requestNumber}` };
+      http.get(`http://127.0.0.1:${port}${path}`, { headers }, (res) => {
         let body = '';
         res.on('data', (chunk) => { body += chunk; });
         res.on('end', () => {
@@ -66,7 +69,7 @@ describe('slow-query patrol internal jobs', () => {
     expect(queryLogs.every(({ fields }) => fields.duration_ms > 0)).toBe(true);
     expect(response.body.totalDurationMs).toBeGreaterThan(0);
     expect(summaryLogs[0].inner_query_count).toBe(queryCount);
-  });
+  }, 20000);
 
   test('total-time ranking differs from single-query-duration ranking', async () => {
     const samples = [];
