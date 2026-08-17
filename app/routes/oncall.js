@@ -125,14 +125,21 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       vertical: skin.vertical,
     });
   }
-  if (
-    skin.incident &&
-    !Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, skin.incident.kind)
-  ) {
-    logger.warn('On-Call skin references unknown incident kind', {
-      skin: skin.slug,
-      incidentKind: skin.incident.kind,
-    });
+  if (skin.incident) {
+    const incidentStory = SEV1_INCIDENTS[skin.incident.kind];
+    if (!incidentStory) {
+      logger.warn('On-Call skin references unknown incident kind', {
+        skin: skin.slug,
+        incidentKind: skin.incident.kind,
+      });
+    } else if (incidentStory.vertical !== skin.vertical) {
+      logger.warn('On-Call skin incident vertical mismatch', {
+        skin: skin.slug,
+        incidentKind: skin.incident.kind,
+        skinVertical: skin.vertical,
+        incidentVertical: incidentStory.vertical,
+      });
+    }
   }
   const pageFile = skin.page && skin.page.file;
   if (
