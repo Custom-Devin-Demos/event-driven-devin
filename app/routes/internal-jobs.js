@@ -280,7 +280,10 @@ function createInternalJobHandler(job, jobName) {
     internalJobGuard(req, res, () => {
       Promise.resolve()
         .then(job)
-        .then((result) => res.json({ success: true, job: jobName, ...result }))
+        .then((result) => {
+          if (res.destroyed || res.writableEnded) return;
+          return res.json({ success: true, job: jobName, ...result });
+        })
         .catch(next)
         .finally(() => req.releaseInternalJob());
     });

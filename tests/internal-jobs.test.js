@@ -127,7 +127,11 @@ describe('slow-query patrol internal jobs', () => {
 
   test('keeps the single-flight lock until an aborted job completes', async () => {
     const app = express();
+    const errors = [];
     app.use(internalJobs);
+    app.use((error, _req, _res, _next) => {
+      errors.push(error);
+    });
     const server = await new Promise((resolve) => {
       const listener = app.listen(0, () => resolve(listener));
     });
@@ -145,6 +149,7 @@ describe('slow-query patrol internal jobs', () => {
       await waitFor(() => infoSpy.mock.calls.some(([, fields]) => (
         fields && fields.event === 'internal_job.summary' && fields.job === 'reconciliation'
       )));
+      expect(errors).toHaveLength(0);
     } finally {
       server.close();
     }
