@@ -209,6 +209,45 @@ describe('automations page and Run Now endpoint', () => {
     }));
   });
 
+  test('returns the same spawn failure to concurrent requests without invoking the error handler', async () => {
+    const router = loadRouter();
+    const createDevinSession = createSessionMock();
+    let rejectSpawn;
+    createDevinSession.mockReturnValue(new Promise((_resolve, reject) => {
+      rejectSpawn = reject;
+    }));
+    const errors = [];
+    const errorHandler = (error, _req, _res, _next) => errors.push(error);
+    const requests = [
+      request('/api/automations/run', router, {
+        method: 'POST',
+        headers: { 'x-automations-token': 'presenter-token' },
+        errorHandler,
+      }),
+      request('/api/automations/run', router, {
+        method: 'POST',
+        headers: { 'x-automations-token': 'presenter-token' },
+        errorHandler,
+      }),
+    ];
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    rejectSpawn(Object.assign(new Error('spawn unavailable'), { reason: 'spawn_failed' }));
+    const responses = await Promise.all(requests);
+
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+    expect(responses[0].statusCode).toBe(500);
+    expect(responses[1].statusCode).toBe(500);
+    expect(JSON.parse(responses[0].body)).toEqual({
+      success: false,
+      reason: 'spawn_failed',
+    });
+    expect(JSON.parse(responses[1].body)).toEqual({
+      success: false,
+      reason: 'spawn_failed',
+    });
+    expect(errors).toHaveLength(0);
+  });
+
   test('returns 429 with Retry-After when the patrol cap is exceeded', async () => {
     const router = loadRouter({
       AUTOMATIONS_RUN_MAX_PER_HOUR: '1',

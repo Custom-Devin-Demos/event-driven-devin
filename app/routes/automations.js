@@ -216,8 +216,9 @@ router.post('/api/automations/run', async (req, res) => {
       }
     }
   } catch (error) {
-    logRejectedRun(error, 'error');
-    return reject(res, 500, 'error');
+    const reason = error.reason || 'error';
+    logRejectedRun(error, reason);
+    return reject(res, 500, reason);
   }
 });
 
