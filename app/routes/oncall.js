@@ -172,6 +172,11 @@ function sendSkinnedPage(res, next, page, skin) {
   });
 }
 
+function incidentKindForSkin(skin) {
+  const match = Object.entries(SEV1_INCIDENTS).find(([, story]) => story.vertical === skin.vertical);
+  return match ? match[0] : 'banking-transfers';
+}
+
 /**
  * Rebrand a served vertical page with a skin's company name, mark, title,
  * and theme variables, and hide the demo-hub back link. Applied on top of
@@ -242,6 +247,18 @@ router.get('/oncall/c/:slug/report', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
   if (!skin) return next();
   sendSkinnedPage(res, next, 'oncall-report.html', skin);
+});
+
+/**
+ * GET /oncall/c/:slug/incident — customer-skinned SEV-1 incident console.
+ */
+router.get('/oncall/c/:slug/incident', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  sendSkinnedPage(res, next, 'oncall-incident.html', {
+    ...skin,
+    incidentKind: incidentKindForSkin(skin),
+  });
 });
 
 /**
