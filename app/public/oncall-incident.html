@@ -136,6 +136,7 @@
     var SKIN = window.ONCALL_SKIN || null;
     var incidentKind = SKIN && SKIN.incidentKind ? SKIN.incidentKind : 'banking-transfers';
     var incidentStory = null;
+    var incidentReady = false;
 
     function remainingLabel(entry) {
       if (entry.status === 'resolved') return 'Resolved';
@@ -174,6 +175,10 @@
     function renderState(entries) {
       var state = document.getElementById('incident-state');
       state.textContent = '';
+      if (!Array.isArray(entries)) {
+        state.textContent = 'Incident state unavailable: unexpected response.';
+        return;
+      }
       if (!entries.length) {
         var empty = document.createElement('p');
         empty.className = 'empty';
@@ -230,16 +235,21 @@
           if (!incidentStory) throw new Error('No incident definition available.');
           document.getElementById('kind-label').textContent = incidentStory.label;
           document.getElementById('kind-summary').textContent = incidentStory.summary;
+          incidentReady = true;
+          document.getElementById('declare-incident').disabled = false;
         })
         .catch(function (error) {
+          incidentReady = false;
           document.getElementById('kind-label').textContent = 'Incident definition unavailable';
           document.getElementById('kind-summary').textContent = error.message;
           document.getElementById('declare-incident').disabled = true;
         });
     }
 
-    document.getElementById('declare-incident').addEventListener('click', function () {
-      var button = document.getElementById('declare-incident');
+    var declareButton = document.getElementById('declare-incident');
+    declareButton.disabled = true;
+    declareButton.addEventListener('click', function () {
+      var button = declareButton;
       button.disabled = true;
       setDeclareStatus(true, 'Declaring incident…');
       fetch('/api/oncall/incident', {
@@ -266,7 +276,7 @@
           return loadState();
         })
         .catch(function (error) { setDeclareStatus(false, error.message); })
-        .finally(function () { button.disabled = false; });
+        .finally(function () { button.disabled = !incidentReady; });
     });
 
     applySkin();
