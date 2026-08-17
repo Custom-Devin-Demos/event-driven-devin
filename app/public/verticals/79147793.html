@@ -116,7 +116,7 @@
         </div>
         <p class="tip">Taxes and fees are calculated at checkout.</p>
         <div class="summary-row summary-total"><span>Total</span><strong id="total">$0.00</strong></div>
-        <button class="primary" id="placeOrder" type="button">Place order</button>
+        <button class="primary" id="placeOrder" type="button" disabled>Place order</button>
         <div class="processing" id="processing">Processing your order...</div>
         <div class="result" id="result" aria-live="polite"></div>
       </section>
@@ -139,9 +139,10 @@
       document.getElementById('restaurantName').textContent = data.restaurant.name;
       document.getElementById('restaurantMeta').textContent = 'Delivery in ' + data.restaurant.deliveryTime + ' · ' + data.restaurant.address;
       document.getElementById('cartItems').innerHTML = data.items.map(function (item) {
-        return '<article class="item"><div><h3>' + item.name + '</h3><p>' + item.description + '</p></div><div class="item-price">' + money(item.price) + '</div></article>';
+        return '<article class="item"><div><h3>' + item.name + '</h3><p>' + item.description + '</p></div><div class="item-price">' + money(item.price * item.quantity) + '</div></article>';
       }).join('');
       updateSummary();
+      document.getElementById('placeOrder').disabled = false;
     }
     function updateSummary() {
       if (!cart) return;
@@ -192,7 +193,15 @@
       });
     }
     document.getElementById('placeOrder').addEventListener('click', placeOrder);
-    fetch('/api/79147793/cart').then(function (response) { return response.json(); }).then(renderCart);
+    fetch('/api/79147793/cart').then(function (response) {
+      if (!response.ok) throw new Error('Unable to load the cart.');
+      return response.json();
+    }).then(renderCart).catch(function (error) {
+      var result = document.getElementById('result');
+      result.className = 'result error visible';
+      result.innerHTML = '<h3>Cart could not be loaded</h3><p>' + error.message + '</p>';
+      document.getElementById('placeOrder').disabled = true;
+    });
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>
