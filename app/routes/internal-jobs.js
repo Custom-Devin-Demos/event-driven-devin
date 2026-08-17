@@ -85,11 +85,8 @@ function internalJobGuard(req, res, next) {
     if (released) return;
     released = true;
     activeJob = false;
-    res.removeListener('finish', release);
-    res.removeListener('close', release);
   };
-  res.once('finish', release);
-  res.once('close', release);
+  req.releaseInternalJob = release;
   try {
     return next();
   } catch (error) {
@@ -116,7 +113,10 @@ function getStockLedger() {
     stockLedgerPromise = buildFixture(3200, (index) => ({
       sku: `SKU-${String(index % INVENTORY_SKU_COUNT).padStart(3, '0')}`,
       available: (index * 17) % 23,
-    }));
+    })).catch((error) => {
+      stockLedgerPromise = undefined;
+      throw error;
+    });
   }
   return stockLedgerPromise;
 }
@@ -127,7 +127,10 @@ function getLineItems() {
       orderId: `ORD-${String(index % ORDER_QUERY_COUNT).padStart(3, '0')}`,
       quantity: (index % 5) + 1,
       unitPrice: (index % 97) + 3,
-    }));
+    })).catch((error) => {
+      lineItemsPromise = undefined;
+      throw error;
+    });
   }
   return lineItemsPromise;
 }
@@ -138,7 +141,10 @@ function getLedger() {
       accountId: `ACCT-${String(index % 1000).padStart(4, '0')}`,
       debit: (index * 13) % 101,
       credit: (index * 7) % 89,
-    }));
+    })).catch((error) => {
+      ledgerPromise = undefined;
+      throw error;
+    });
   }
   return ledgerPromise;
 }
@@ -269,17 +275,21 @@ async function reconciliation() {
   return { discrepancyCount, innerQueryCount: RECONCILIATION_QUERY_COUNT, totalDurationMs };
 }
 
-router.get('/internal-jobs/inventory-report', internalJobGuard, async (_req, res) => {
-  res.json({ success: true, job: 'inventory_report', ...(await inventoryReport()) });
-});
+function createInternalJobHandler(job, jobName) {
+  return (req, res, next) => {
+    internalJobGuard(req, res, () => {
+      Promise.resolve()
+        .then(job)
+        .then((result) => res.json({ success: true, job: jobName, ...result }))
+        .catch(next)
+        .finally(() => req.releaseInternalJob());
+    });
+  };
+}
 
-router.get('/internal-jobs/order-export', internalJobGuard, async (_req, res) => {
-  res.json({ success: true, job: 'order_export', ...(await orderExport()) });
-});
-
-router.get('/internal-jobs/reconciliation', internalJobGuard, async (_req, res) => {
-  res.json({ success: true, job: 'reconciliation', ...(await reconciliation()) });
-});
+router.get('/internal-jobs/inventory-report', createInternalJobHandler(inventoryReport, 'inventory_report'));
+router.get('/internal-jobs/order-export', createInternalJobHandler(orderExport, 'order_export'));
+router.get('/internal-jobs/reconciliation', createInternalJobHandler(reconciliation, 'reconciliation'));
 
 module.exports = router;
 module.exports.inventoryReport = inventoryReport;

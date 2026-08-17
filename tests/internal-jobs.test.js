@@ -2,6 +2,7 @@
 
 const express = require('express');
 const http = require('http');
+const { setImmediate } = require('timers');
 
 process.env.INTERNAL_JOB_RATE_WINDOW_MS = '60000';
 process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = '100';
@@ -11,6 +12,22 @@ const logger = require('../app/telemetry/logger');
 const internalJobs = require('../app/routes/internal-jobs');
 
 let requestNumber = 0;
+
+function waitFor(predicate, timeoutMs = 10000) {
+  const startedAt = Date.now();
+  return new Promise((resolve, reject) => {
+    function check() {
+      if (predicate()) {
+        resolve();
+      } else if (Date.now() - startedAt >= timeoutMs) {
+        reject(new Error('Timed out waiting for internal job state'));
+      } else {
+        setImmediate(check);
+      }
+    }
+    check();
+  });
+}
 
 function request(path) {
   const app = express();
@@ -106,5 +123,37 @@ describe('slow-query patrol internal jobs', () => {
     expect(topByTotalTime).toBe('inventory.stock_by_sku');
     expect(topBySingleDuration).toBe('ledger.full_scan');
     expect(topByTotalTime).not.toBe(topBySingleDuration);
+  }, 60000);
+
+  test('keeps the single-flight lock until an aborted job completes', async () => {
+    const app = express();
+    app.use(internalJobs);
+    const server = await new Promise((resolve) => {
+      const listener = app.listen(0, () => resolve(listener));
+    });
+    const { port } = server.address();
+    const firstRequest = http.get(`http://127.0.0.1:${port}/internal-jobs/reconciliation`, {
+      headers: { 'X-Forwarded-For': `192.0.2.${++requestNumber}` },
+    });
+    firstRequest.on('error', () => {});
+
+    try {
+      await waitFor(() => infoSpy.mock.calls.some(([, fields]) => fields && fields.event === 'db.query'));
+      firstRequest.destroy();
+      const secondResponse = await request('/internal-jobs/inventory-report');
+      expect(secondResponse.statusCode).toBe(429);
+      await waitFor(() => infoSpy.mock.calls.some(([, fields]) => (
+        fields && fields.event === 'internal_job.summary' && fields.job === 'reconciliation'
+      )));
+    } finally {
+      server.close();
+    }
+  }, 60000);
+
+  test('releases the lock after a completed job', async () => {
+    const firstResponse = await request('/internal-jobs/inventory-report');
+    const secondResponse = await request('/internal-jobs/inventory-report');
+    expect(firstResponse.statusCode).toBe(200);
+    expect(secondResponse.statusCode).toBe(200);
   }, 60000);
 });
