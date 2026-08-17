@@ -137,10 +137,13 @@
     var incidentKind = SKIN && SKIN.incidentKind ? SKIN.incidentKind : 'banking-transfers';
     var incidentStory = null;
 
-    function escapeHtml(value) {
-      return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
-      });
+    function remainingLabel(entry) {
+      if (entry.status === 'resolved') return 'Resolved';
+      var seconds = Math.ceil((entry.msRemaining || 0) / 1000);
+      var minutes = Math.floor(seconds / 60);
+      return minutes > 0
+        ? minutes + 'm ' + (seconds % 60) + 's'
+        : seconds + 's';
     }
 
     function applySkin() {
@@ -187,7 +190,7 @@
           ['Public IR id', entry.publicId ? 'IR-' + entry.publicId : 'Pending provider id'],
           ['Incident ref', entry.runRef],
           ['Declared', new Date(entry.declaredAt).toLocaleString()],
-          ['Auto-resolves in', entry.status === 'resolved' ? 'Resolved' : Math.ceil(entry.msRemaining / 1000) + ' seconds'],
+          ['Auto-resolves in', remainingLabel(entry)],
         ].forEach(function (pair) {
           var term = document.createElement('dt');
           term.textContent = pair[0];
