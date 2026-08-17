@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const TARGET_URL_RAW = process.env.LOADGEN_TARGET_URL || 'http://localhost:3000';
 const TARGET_URL = TARGET_URL_RAW.startsWith('http') ? TARGET_URL_RAW : `http://${TARGET_URL_RAW}`;
-const INTERVAL_MS = parseInt(process.env.LOADGEN_INTERVAL_MS, 10) || 60000;
+const INTERVAL_MS = parseInt(process.env.LOADGEN_INTERVAL_MS, 10) || 5 * 60 * 1000;
 
 const PERSONAS = ['buyer_1', 'buyer_2', 'admin_ops'];
 
@@ -118,7 +118,11 @@ async function sendCheckoutRequests(count) {
   return Promise.all(promises);
 }
 
-async function runTrafficCycle() {
+async function sendInternalJob(path, label) {
+  return makeRequest('get', path, null, label);
+}
+
+async function runTrafficCycle(cycleNumber) {
   const multiplier = getTimeMultiplier();
   const searchCount = Math.max(1, Math.round(2 * multiplier));
   const loginCount = Math.max(1, Math.round(1 * multiplier));
@@ -133,6 +137,14 @@ async function runTrafficCycle() {
   await sendLoginRequests(loginCount);
   await sendOrderLookups(orderCount);
   await sendCheckoutRequests(checkoutCount);
+
+  await sendInternalJob('/internal-jobs/inventory-report', `INTERNAL inventory cycle=${cycleNumber}`);
+  if (cycleNumber % 3 === 0) {
+    await sendInternalJob('/internal-jobs/order-export', `INTERNAL order-export cycle=${cycleNumber}`);
+  }
+  if (cycleNumber % 6 === 0) {
+    await sendInternalJob('/internal-jobs/reconciliation', `INTERNAL reconciliation cycle=${cycleNumber}`);
+  }
 
   console.log('[loadgen] ---- Cycle complete ----\n');
 }
@@ -175,7 +187,8 @@ async function main() {
   }
 
   // Run initial cycle
-  await runTrafficCycle();
+  let cycleNumber = 1;
+  await runTrafficCycle(cycleNumber);
 
   // Schedule recurring cycles
   const intervalSeconds = Math.max(10, Math.round(INTERVAL_MS / 1000));
@@ -183,7 +196,8 @@ async function main() {
 
   setInterval(async () => {
     try {
-      await runTrafficCycle();
+      cycleNumber += 1;
+      await runTrafficCycle(cycleNumber);
     } catch (error) {
       console.error('[loadgen] Cycle error:', error.message);
     }

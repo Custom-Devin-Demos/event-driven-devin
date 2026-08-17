@@ -26,6 +26,7 @@ const verticalRoutes = require('./routes/verticals');
 const webinarRoutes = require('./routes/webinar');
 const oncallRoutes = require('./routes/oncall');
 const oncallVerticalRoutes = require('./routes/oncall-verticals');
+const internalJobsRoutes = require('./routes/internal-jobs');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
 
@@ -107,6 +108,7 @@ app.use(devinUsersRoutes);
 app.use(webinarRoutes);
 app.use(oncallRoutes);
 app.use(oncallVerticalRoutes);
+app.use(internalJobsRoutes);
 app.use(verticalRoutes);
 
 // 404 handler
