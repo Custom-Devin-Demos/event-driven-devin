@@ -10,6 +10,8 @@ const router = express.Router();
 const RUN_WINDOW_MS = 60 * 60 * 1000;
 const DEFAULT_MAX_PER_HOUR = 3;
 const DEFAULT_ATTACH_WINDOW_MINUTES = 15;
+const FAILED_TOKEN_WINDOW_MS = 10 * 60 * 1000;
+const FAILED_TOKEN_MAX = 10;
 const prompt = fs.readFileSync(
   path.join(__dirname, '../../prompts/automations-patrol-backtest.md'),
   'utf8',
@@ -20,7 +22,9 @@ const attachWindowMinutes = environmentInteger(
   DEFAULT_ATTACH_WINDOW_MINUTES,
 );
 const runTimestamps = [];
+const failedTokenTimestamps = [];
 let lastPatrolSession;
+let inFlightSpawn;
 
 function environmentInteger(name, fallback) {
   const value = parseInt(process.env[name], 10);
@@ -35,96 +39,64 @@ function pruneRunTimestamps(now) {
 }
 
 function tokenMatches(presentedToken, configuredToken) {
-  if (typeof presentedToken !== 'string' || presentedToken.length !== configuredToken.length) {
+  if (typeof presentedToken !== 'string') {
+    return false;
+  }
+  const presentedBuffer = Buffer.from(presentedToken);
+  const configuredBuffer = Buffer.from(configuredToken);
+  if (presentedBuffer.length !== configuredBuffer.length) {
     return false;
   }
   return crypto.timingSafeEqual(
-    Buffer.from(presentedToken),
-    Buffer.from(configuredToken),
+    presentedBuffer,
+    configuredBuffer,
   );
 }
 
 function reject(res, status, reason, extra = {}) {
+  if (res.headersSent || res.destroyed) {
+    return undefined;
+  }
   return res.status(status).json({ success: false, reason, ...extra });
 }
 
-function retryAfterSeconds(now) {
-  return Math.max(Math.ceil((runTimestamps[0] + RUN_WINDOW_MS - now) / 1000), 1);
+function retryAfterSeconds(timestamps, windowMs, now) {
+  return Math.max(Math.ceil((timestamps[0] + windowMs - now) / 1000), 1);
 }
 
-router.get('/automations', (_req, res) => {
-  res.sendFile(path.join(__dirname, '../public/automations.html'));
-});
-
-router.post('/api/automations/run', async (req, res) => {
-  const configuredToken = process.env.AUTOMATIONS_RUN_TOKEN;
-  if (!configuredToken) {
-    logger.warn('Automations run rejected', {
-      event: 'automations.run.rejected',
-      reason: 'not_configured',
-    });
-    return reject(res, 503, 'not_configured');
+function removeRunTimestamp(timestamp) {
+  const index = runTimestamps.indexOf(timestamp);
+  if (index !== -1) {
+    runTimestamps.splice(index, 1);
   }
+}
 
-  const presentedToken = req.query.token || req.headers['x-automations-token'];
-  if (!tokenMatches(presentedToken, configuredToken)) {
-    logger.warn('Automations run rejected', {
-      event: 'automations.run.rejected',
-      reason: 'forbidden',
-    });
-    return reject(res, 403, 'forbidden');
+function pruneFailedTokenTimestamps(now) {
+  const cutoff = now - FAILED_TOKEN_WINDOW_MS;
+  while (failedTokenTimestamps.length && failedTokenTimestamps[0] <= cutoff) {
+    failedTokenTimestamps.shift();
   }
+}
 
-  const now = Date.now();
-  pruneRunTimestamps(now);
-  if (
-    lastPatrolSession
-    && now - lastPatrolSession.timestamp < attachWindowMinutes * 60 * 1000
-  ) {
-    logger.info('Automations run attached to existing session', {
-      event: 'automations.run.attached',
-      sessionId: lastPatrolSession.sessionId,
-    });
-    return res.json({ success: true, ...lastPatrolSession, attached: true });
-  }
+function logRejectedRun(error, reason) {
+  logger.error('Automations run rejected', {
+    event: 'automations.run.rejected',
+    reason,
+    error: error.message,
+  });
+}
 
-  if (runMaxPerHour <= 0 || runTimestamps.length >= runMaxPerHour) {
-    const retryAfter = runTimestamps.length ? retryAfterSeconds(now) : 3600;
-    logger.warn('Automations run throttled', {
-      event: 'automations.run.throttled',
-      retryAfterSeconds: retryAfter,
-    });
-    res.set('Retry-After', String(retryAfter));
-    return reject(res, 429, 'throttled', { retryAfterSeconds: retryAfter });
-  }
-
-  const globalCap = canCreateSession();
-  if (!globalCap.allowed) {
-    logger.warn('Automations run throttled by global session cap', {
-      event: 'automations.run.throttled',
-      retryAfterSeconds: globalCap.retryAfterSeconds,
-    });
-    res.set('Retry-After', String(globalCap.retryAfterSeconds));
-    return reject(res, 429, 'throttled', {
-      retryAfterSeconds: globalCap.retryAfterSeconds,
-    });
-  }
-
+async function spawnPatrolSession(now) {
   const releaseSessionSlot = reserveSession();
   runTimestamps.push(now);
-
   try {
     const session = await createDevinSession(prompt, {
       title: 'Slow Query Patrol backtest',
     });
     if (!session) {
-      releaseSessionSlot();
-      runTimestamps.splice(runTimestamps.indexOf(now), 1);
-      logger.error('Automations run rejected', {
-        event: 'automations.run.rejected',
-        reason: 'spawn_failed',
-      });
-      return reject(res, 500, 'spawn_failed');
+      const error = new Error('Devin session creation returned no session');
+      error.reason = 'spawn_failed';
+      throw error;
     }
 
     lastPatrolSession = {
@@ -136,15 +108,115 @@ router.post('/api/automations/run', async (req, res) => {
       event: 'automations.run.spawned',
       sessionId: session.sessionId,
     });
-    return res.json({ success: true, ...lastPatrolSession, attached: false });
+    return lastPatrolSession;
   } catch (error) {
     releaseSessionSlot();
-    runTimestamps.splice(runTimestamps.indexOf(now), 1);
-    logger.error('Automations run failed', {
-      event: 'automations.run.rejected',
-      reason: 'error',
-      error: error.message,
-    });
+    removeRunTimestamp(now);
+    throw error;
+  }
+}
+
+router.get('/automations', (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/automations.html'));
+});
+
+router.post('/api/automations/run', async (req, res) => {
+  try {
+    const configuredToken = process.env.AUTOMATIONS_RUN_TOKEN;
+    if (!configuredToken) {
+      logger.warn('Automations run rejected', {
+        event: 'automations.run.rejected',
+        reason: 'not_configured',
+      });
+      return reject(res, 503, 'not_configured');
+    }
+
+    const now = Date.now();
+    pruneFailedTokenTimestamps(now);
+    const presentedToken = req.headers['x-automations-token'];
+    if (!tokenMatches(presentedToken, configuredToken)) {
+      if (failedTokenTimestamps.length >= FAILED_TOKEN_MAX) {
+        const retryAfter = retryAfterSeconds(
+          failedTokenTimestamps,
+          FAILED_TOKEN_WINDOW_MS,
+          now,
+        );
+        logger.warn('Automations run throttled after failed token attempts', {
+          event: 'automations.run.throttled',
+          retryAfterSeconds: retryAfter,
+        });
+        res.set('Retry-After', String(retryAfter));
+        return reject(res, 429, 'throttled', { retryAfterSeconds: retryAfter });
+      }
+      failedTokenTimestamps.push(now);
+      logger.warn('Automations run rejected', {
+        event: 'automations.run.rejected',
+        reason: 'forbidden',
+      });
+      return reject(res, 403, 'forbidden');
+    }
+
+    pruneRunTimestamps(now);
+    if (
+      lastPatrolSession
+      && now - lastPatrolSession.timestamp < attachWindowMinutes * 60 * 1000
+    ) {
+      logger.info('Automations run attached to existing session', {
+        event: 'automations.run.attached',
+        sessionId: lastPatrolSession.sessionId,
+      });
+      return res.json({ success: true, ...lastPatrolSession, attached: true });
+    }
+
+    if (inFlightSpawn) {
+      const session = await inFlightSpawn;
+      logger.info('Automations run attached to in-flight session', {
+        event: 'automations.run.attached',
+        sessionId: session.sessionId,
+      });
+      return res.json({ success: true, ...session, attached: true });
+    }
+
+    if (runMaxPerHour <= 0 || runTimestamps.length >= runMaxPerHour) {
+      const retryAfter = runTimestamps.length
+        ? retryAfterSeconds(runTimestamps, RUN_WINDOW_MS, now)
+        : 3600;
+      logger.warn('Automations run throttled', {
+        event: 'automations.run.throttled',
+        retryAfterSeconds: retryAfter,
+      });
+      res.set('Retry-After', String(retryAfter));
+      return reject(res, 429, 'throttled', { retryAfterSeconds: retryAfter });
+    }
+
+    const globalCap = canCreateSession();
+    if (!globalCap.allowed) {
+      logger.warn('Automations run throttled by global session cap', {
+        event: 'automations.run.throttled',
+        retryAfterSeconds: globalCap.retryAfterSeconds,
+      });
+      res.set('Retry-After', String(globalCap.retryAfterSeconds));
+      return reject(res, 429, 'throttled', {
+        retryAfterSeconds: globalCap.retryAfterSeconds,
+      });
+    }
+
+    const spawnPromise = spawnPatrolSession(now);
+    inFlightSpawn = spawnPromise;
+    try {
+      const session = await spawnPromise;
+      return res.json({ success: true, ...session, attached: false });
+    } catch (error) {
+      const reason = error.reason || 'error';
+      logRejectedRun(error, reason);
+      return reject(res, 500, reason);
+    } finally {
+      if (inFlightSpawn === spawnPromise) {
+        inFlightSpawn = undefined;
+      }
+    }
+  } catch (error) {
+    logRejectedRun(error, 'error');
     return reject(res, 500, 'error');
   }
 });

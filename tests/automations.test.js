@@ -120,12 +120,39 @@ describe('automations page and Run Now endpoint', () => {
     expect(JSON.parse(response.body)).toEqual({ success: false, reason: 'forbidden' });
   });
 
+  test('rejects a wrong multi-byte token without invoking the error handler', async () => {
+    const router = loadRouter({ AUTOMATIONS_RUN_TOKEN: 'abcde' });
+    const errors = [];
+    const response = await request('/api/automations/run', router, {
+      method: 'POST',
+      headers: { 'x-automations-token': 'éabcd' },
+      errorHandler: (error, _req, _res, _next) => errors.push(error),
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(JSON.parse(response.body)).toEqual({ success: false, reason: 'forbidden' });
+    expect(errors).toHaveLength(0);
+  });
+
+  test('rejects query-string tokens', async () => {
+    const router = loadRouter();
+    const response = await request('/api/automations/run?token=presenter-token', router, {
+      method: 'POST',
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(JSON.parse(response.body)).toEqual({ success: false, reason: 'forbidden' });
+  });
+
   test('spawns a session and attaches a second request within the window', async () => {
     const router = loadRouter();
     const createDevinSession = createSessionMock();
     createDevinSession.mockResolvedValue({ sessionId: 'session-1', url: 'https://app.devin.ai/sessions/session-1' });
 
-    const first = await request('/api/automations/run?token=presenter-token', router, { method: 'POST' });
+    const first = await request('/api/automations/run', router, {
+      method: 'POST',
+      headers: { 'x-automations-token': 'presenter-token' },
+    });
     const second = await request('/api/automations/run', router, {
       method: 'POST',
       headers: { 'x-automations-token': 'presenter-token' },
@@ -144,6 +171,42 @@ describe('automations page and Run Now endpoint', () => {
       attached: true,
     }));
     expect(createDevinSession).toHaveBeenCalledTimes(1);
+  });
+
+  test('single-flights concurrent patrol spawns', async () => {
+    const router = loadRouter();
+    const createDevinSession = createSessionMock();
+    let resolveSpawn;
+    createDevinSession.mockReturnValue(new Promise((resolve) => {
+      resolveSpawn = resolve;
+    }));
+
+    const requests = [
+      request('/api/automations/run', router, {
+        method: 'POST',
+        headers: { 'x-automations-token': 'presenter-token' },
+      }),
+      request('/api/automations/run', router, {
+        method: 'POST',
+        headers: { 'x-automations-token': 'presenter-token' },
+      }),
+    ];
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(createDevinSession).toHaveBeenCalledTimes(1);
+
+    resolveSpawn({ sessionId: 'session-1', url: 'https://app.devin.ai/sessions/session-1' });
+    const responses = await Promise.all(requests);
+
+    expect(responses[0].statusCode).toBe(200);
+    expect(responses[1].statusCode).toBe(200);
+    expect(JSON.parse(responses[0].body)).toEqual(expect.objectContaining({
+      sessionId: 'session-1',
+      attached: false,
+    }));
+    expect(JSON.parse(responses[1].body)).toEqual(expect.objectContaining({
+      sessionId: 'session-1',
+      attached: true,
+    }));
   });
 
   test('returns 429 with Retry-After when the patrol cap is exceeded', async () => {
@@ -180,6 +243,24 @@ describe('automations page and Run Now endpoint', () => {
 
     expect(response.statusCode).toBe(429);
     expect(JSON.parse(response.body).reason).toBe('throttled');
+  });
+
+  test('throttles repeated failed-token attempts', async () => {
+    const router = loadRouter();
+    let response;
+    for (let attempt = 0; attempt < 11; attempt += 1) {
+      response = await request('/api/automations/run', router, {
+        method: 'POST',
+        headers: { 'x-automations-token': 'wrong-token' },
+      });
+    }
+
+    expect(response.statusCode).toBe(429);
+    expect(response.headers['retry-after']).toBeDefined();
+    expect(JSON.parse(response.body)).toEqual(expect.objectContaining({
+      success: false,
+      reason: 'throttled',
+    }));
   });
 
   test('releases the global reservation after session creation fails', async () => {
