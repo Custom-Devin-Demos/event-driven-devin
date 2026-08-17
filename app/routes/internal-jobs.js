@@ -242,27 +242,27 @@ async function reconciliation() {
   return { discrepancyCount, innerQueryCount: RECONCILIATION_QUERY_COUNT, totalDurationMs };
 }
 
-router.get('/internal-jobs/inventory-report', internalJobGuard, async (_req, res) => {
+router.get('/internal-jobs/inventory-report', internalJobGuard, async (req, res) => {
   try {
     res.json({ success: true, job: 'inventory_report', ...(await inventoryReport()) });
   } finally {
-    _req.releaseInternalJob();
+    req.releaseInternalJob();
   }
 });
 
-router.get('/internal-jobs/order-export', internalJobGuard, async (_req, res) => {
+router.get('/internal-jobs/order-export', internalJobGuard, async (req, res) => {
   try {
     res.json({ success: true, job: 'order_export', ...(await orderExport()) });
   } finally {
-    _req.releaseInternalJob();
+    req.releaseInternalJob();
   }
 });
 
-router.get('/internal-jobs/reconciliation', internalJobGuard, async (_req, res) => {
+router.get('/internal-jobs/reconciliation', internalJobGuard, async (req, res) => {
   try {
     res.json({ success: true, job: 'reconciliation', ...(await reconciliation()) });
   } finally {
-    _req.releaseInternalJob();
+    req.releaseInternalJob();
   }
 });
 
