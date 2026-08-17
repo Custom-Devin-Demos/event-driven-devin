@@ -126,6 +126,8 @@ Three things are deliberately separate:
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
+│   │   ├── oncall-report.html     # Shared customer-skinned support portal
+│   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform

@@ -265,10 +265,13 @@ router.get('/oncall/c/:slug/report', (req, res, next) => {
  */
 router.get('/oncall/c/:slug/incident', (req, res, next) => {
   const skin = getOncallSkin(req.params.slug);
+  const incidentKind = skin && skin.incident && skin.incident.kind;
+  const incidentStory = incidentKind && SEV1_INCIDENTS[incidentKind];
   if (
     !skin ||
     !skin.incident ||
-    !Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, skin.incident.kind)
+    !Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, incidentKind) ||
+    incidentStory.vertical !== skin.vertical
   ) {
     return next();
   }
