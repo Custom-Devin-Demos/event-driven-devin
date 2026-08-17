@@ -42,14 +42,11 @@ function tokenMatches(presentedToken, configuredToken) {
   if (typeof presentedToken !== 'string') {
     return false;
   }
-  const presentedBuffer = Buffer.from(presentedToken);
-  const configuredBuffer = Buffer.from(configuredToken);
-  if (presentedBuffer.length !== configuredBuffer.length) {
-    return false;
-  }
+  const presentedDigest = crypto.createHash('sha256').update(presentedToken).digest();
+  const configuredDigest = crypto.createHash('sha256').update(configuredToken).digest();
   return crypto.timingSafeEqual(
-    presentedBuffer,
-    configuredBuffer,
+    presentedDigest,
+    configuredDigest,
   );
 }
 

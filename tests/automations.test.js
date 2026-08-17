@@ -134,6 +134,20 @@ describe('automations page and Run Now endpoint', () => {
     expect(errors).toHaveLength(0);
   });
 
+  test('rejects a wrong token with a different length without invoking the error handler', async () => {
+    const router = loadRouter();
+    const errors = [];
+    const response = await request('/api/automations/run', router, {
+      method: 'POST',
+      headers: { 'x-automations-token': 'short' },
+      errorHandler: (error, _req, _res, _next) => errors.push(error),
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(JSON.parse(response.body)).toEqual({ success: false, reason: 'forbidden' });
+    expect(errors).toHaveLength(0);
+  });
+
   test('rejects query-string tokens', async () => {
     const router = loadRouter();
     const response = await request('/api/automations/run?token=presenter-token', router, {
