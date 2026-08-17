@@ -206,7 +206,7 @@ describe('automations page and Run Now endpoint', () => {
     });
 
     expect(failed.statusCode).toBe(500);
-    expect(JSON.parse(failed.body)).toEqual({ success: false, reason: 'not_configured' });
+    expect(JSON.parse(failed.body)).toEqual({ success: false, reason: 'spawn_failed' });
     expect(retried.statusCode).toBe(200);
     expect(JSON.parse(retried.body).sessionId).toBe('session-2');
     expect(errors).toHaveLength(0);

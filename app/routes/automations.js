@@ -122,9 +122,9 @@ router.post('/api/automations/run', async (req, res) => {
       runTimestamps.splice(runTimestamps.indexOf(now), 1);
       logger.error('Automations run rejected', {
         event: 'automations.run.rejected',
-        reason: 'not_configured',
+        reason: 'spawn_failed',
       });
-      return reject(res, 500, 'not_configured');
+      return reject(res, 500, 'spawn_failed');
     }
 
     lastPatrolSession = {
