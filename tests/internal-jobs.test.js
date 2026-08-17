@@ -29,14 +29,14 @@ function waitFor(predicate, timeoutMs = 10000) {
   });
 }
 
-function request(path) {
+function request(path, router = internalJobs, forwardedFor = `192.0.2.${++requestNumber}`) {
   const app = express();
-  app.use(internalJobs);
+  app.use(router);
 
   return new Promise((resolve, reject) => {
     const server = app.listen(0, () => {
       const { port } = server.address();
-      const headers = { 'X-Forwarded-For': `192.0.2.${++requestNumber}` };
+      const headers = { 'X-Forwarded-For': forwardedFor };
       http.get(`http://127.0.0.1:${port}${path}`, { headers }, (res) => {
         let body = '';
         res.on('data', (chunk) => { body += chunk; });
@@ -155,5 +155,79 @@ describe('slow-query patrol internal jobs', () => {
     const secondResponse = await request('/internal-jobs/inventory-report');
     expect(firstResponse.statusCode).toBe(200);
     expect(secondResponse.statusCode).toBe(200);
+  }, 60000);
+
+  test('treats non-positive rate limits as unlimited', async () => {
+    const previousPerIpLimit = process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT;
+    const previousProcessLimit = process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
+    process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = '0';
+    process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = '0';
+    jest.resetModules();
+    const unlimitedJobs = require('../app/routes/internal-jobs');
+
+    try {
+      const responses = [];
+      for (let requestIndex = 0; requestIndex < 7; requestIndex++) {
+        responses.push(await request(
+          '/internal-jobs/inventory-report',
+          unlimitedJobs,
+          '198.51.100.10',
+        ));
+      }
+      expect(responses.every((response) => response.statusCode === 200)).toBe(true);
+    } finally {
+      process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
+      process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+    }
+  }, 60000);
+
+  test('retains the default per-IP rate limit', async () => {
+    const previousPerIpLimit = process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT;
+    const previousProcessLimit = process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
+    delete process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT;
+    process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = '100';
+    jest.resetModules();
+    const defaultJobs = require('../app/routes/internal-jobs');
+
+    try {
+      const responses = [];
+      for (let requestIndex = 0; requestIndex < 5; requestIndex++) {
+        responses.push(await request(
+          '/internal-jobs/inventory-report',
+          defaultJobs,
+          '198.51.100.11',
+        ));
+      }
+      expect(responses.slice(0, 4).every((response) => response.statusCode === 200)).toBe(true);
+      expect(responses[4].statusCode).toBe(429);
+    } finally {
+      process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
+      process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+    }
+  }, 60000);
+
+  test('retains the default process-wide rate limit', async () => {
+    const previousPerIpLimit = process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT;
+    const previousProcessLimit = process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
+    process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = '100';
+    delete process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
+    jest.resetModules();
+    const defaultJobs = require('../app/routes/internal-jobs');
+
+    try {
+      const responses = [];
+      for (let requestIndex = 0; requestIndex < 7; requestIndex++) {
+        responses.push(await request(
+          '/internal-jobs/inventory-report',
+          defaultJobs,
+          `198.51.100.${20 + requestIndex}`,
+        ));
+      }
+      expect(responses.slice(0, 6).every((response) => response.statusCode === 200)).toBe(true);
+      expect(responses[6].statusCode).toBe(429);
+    } finally {
+      process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
+      process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+    }
   }, 60000);
 });

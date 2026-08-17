@@ -67,11 +67,11 @@ function internalJobGuard(req, res, next) {
 
   const ip = clientIp(req);
   const ipWindow = ipRequestWindows.get(ip) || [];
-  if (ipWindow.length >= PER_IP_RATE_LIMIT) {
+  if (PER_IP_RATE_LIMIT > 0 && ipWindow.length >= PER_IP_RATE_LIMIT) {
     const retryAfterSeconds = Math.ceil((ipWindow[0] + RATE_WINDOW_MS - now) / 1000);
     return rejectRequest(res, 'Internal job rate limit reached for this IP.', Math.max(retryAfterSeconds, 1));
   }
-  if (processRequestWindow.length >= PROCESS_RATE_LIMIT) {
+  if (PROCESS_RATE_LIMIT > 0 && processRequestWindow.length >= PROCESS_RATE_LIMIT) {
     const retryAfterSeconds = Math.ceil((processRequestWindow[0] + RATE_WINDOW_MS - now) / 1000);
     return rejectRequest(res, 'Internal job process rate limit reached.', Math.max(retryAfterSeconds, 1));
   }

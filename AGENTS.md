@@ -214,8 +214,10 @@ Three things are deliberately separate:
 ├── config/
 │   └── scenarios.json             # Scenario definitions
 ├── tests/
+│   ├── ...                         # Vertical, pipeline, and integration test suites
 │   └── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
 ├── docs/
+│   ├── ...                         # Demo runbooks and scenario documentation
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
