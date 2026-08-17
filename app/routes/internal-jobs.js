@@ -9,9 +9,15 @@ const INVENTORY_SKU_COUNT = 120;
 const ORDER_QUERY_COUNT = 40;
 const RECONCILIATION_QUERY_COUNT = 6;
 const SCAN_CHUNK_SIZE = 1024;
-const RATE_WINDOW_MS = parseInt(process.env.INTERNAL_JOB_RATE_WINDOW_MS, 10) || 60 * 1000;
-const PER_IP_RATE_LIMIT = parseInt(process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT, 10) || 4;
-const PROCESS_RATE_LIMIT = parseInt(process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT, 10) || 6;
+
+function environmentInteger(name, fallback) {
+  const value = parseInt(process.env[name], 10);
+  return Number.isNaN(value) ? fallback : value;
+}
+
+const RATE_WINDOW_MS = environmentInteger('INTERNAL_JOB_RATE_WINDOW_MS', 60 * 1000);
+const PER_IP_RATE_LIMIT = environmentInteger('INTERNAL_JOB_PER_IP_RATE_LIMIT', 4);
+const PROCESS_RATE_LIMIT = environmentInteger('INTERNAL_JOB_PROCESS_RATE_LIMIT', 6);
 
 let activeJob = false;
 const ipRequestWindows = new Map();
@@ -74,10 +80,22 @@ function internalJobGuard(req, res, next) {
   ipRequestWindows.set(ip, ipWindow);
   processRequestWindow.push(now);
   activeJob = true;
-  req.releaseInternalJob = () => {
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
     activeJob = false;
+    res.removeListener('finish', release);
+    res.removeListener('close', release);
   };
-  return next();
+  res.once('finish', release);
+  res.once('close', release);
+  try {
+    return next();
+  } catch (error) {
+    release();
+    throw error;
+  }
 }
 
 function yieldToEventLoop() {
@@ -251,28 +269,16 @@ async function reconciliation() {
   return { discrepancyCount, innerQueryCount: RECONCILIATION_QUERY_COUNT, totalDurationMs };
 }
 
-router.get('/internal-jobs/inventory-report', internalJobGuard, async (req, res) => {
-  try {
-    res.json({ success: true, job: 'inventory_report', ...(await inventoryReport()) });
-  } finally {
-    req.releaseInternalJob();
-  }
+router.get('/internal-jobs/inventory-report', internalJobGuard, async (_req, res) => {
+  res.json({ success: true, job: 'inventory_report', ...(await inventoryReport()) });
 });
 
-router.get('/internal-jobs/order-export', internalJobGuard, async (req, res) => {
-  try {
-    res.json({ success: true, job: 'order_export', ...(await orderExport()) });
-  } finally {
-    req.releaseInternalJob();
-  }
+router.get('/internal-jobs/order-export', internalJobGuard, async (_req, res) => {
+  res.json({ success: true, job: 'order_export', ...(await orderExport()) });
 });
 
-router.get('/internal-jobs/reconciliation', internalJobGuard, async (req, res) => {
-  try {
-    res.json({ success: true, job: 'reconciliation', ...(await reconciliation()) });
-  } finally {
-    req.releaseInternalJob();
-  }
+router.get('/internal-jobs/reconciliation', internalJobGuard, async (_req, res) => {
+  res.json({ success: true, job: 'reconciliation', ...(await reconciliation()) });
 });
 
 module.exports = router;

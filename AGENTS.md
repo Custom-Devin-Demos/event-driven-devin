@@ -151,6 +151,7 @@ Three things are deliberately separate:
 │   │   │   └── payer.js           # Payer: ID cards + pharmacy claims
 │   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
+│   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -212,6 +213,10 @@ Three things are deliberately separate:
 │       └── build-feed-contract.js       # Materializes the spec into the served feed contract
 ├── config/
 │   └── scenarios.json             # Scenario definitions
+├── tests/
+│   └── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
+├── docs/
+│   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
@@ -369,6 +374,9 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `DD_ENV` | Datadog environment tag | No (default: `prod`) |
 | `SESSION_SECRET` | Shared secret for session-creating endpoints (`x-session-secret` header) | Recommended |
 | `PORT` | Server port | No (default: `3000`) |
+| `INTERNAL_JOB_RATE_WINDOW_MS` | Sliding-window duration for internal job requests | No (default: `60000`) |
+| `INTERNAL_JOB_PER_IP_RATE_LIMIT` | Accepted internal job requests per IP per window | No (default: `4`) |
+| `INTERNAL_JOB_PROCESS_RATE_LIMIT` | Accepted internal job requests process-wide per window | No (default: `6`) |
 | `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment
