@@ -3,6 +3,9 @@
 These internal scheduler jobs intentionally exercise real fixture-data scans so
 the scheduled Devin patrol can rank database work by aggregate daily impact.
 They are not part of the customer-facing Acme Commerce surface.
+The nginx proxy returns 404 for `/internal-jobs/...`; loadgen reaches these
+routes directly through the container network, so before/after measurements
+must target the checkout-api container rather than the public host.
 
 | Job | Endpoint | Query name | Shape | Cadence |
 | --- | --- | --- | --- | --- |

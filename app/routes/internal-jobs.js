@@ -9,9 +9,9 @@ const INVENTORY_SKU_COUNT = 120;
 const ORDER_QUERY_COUNT = 40;
 const RECONCILIATION_QUERY_COUNT = 6;
 const SCAN_CHUNK_SIZE = 1024;
-const RATE_WINDOW_MS = 60 * 1000;
-const PER_IP_RATE_LIMIT = 4;
-const PROCESS_RATE_LIMIT = 6;
+const RATE_WINDOW_MS = parseInt(process.env.RATE_WINDOW_MS, 10) || 60 * 1000;
+const PER_IP_RATE_LIMIT = parseInt(process.env.PER_IP_RATE_LIMIT, 10) || 4;
+const PROCESS_RATE_LIMIT = parseInt(process.env.PROCESS_RATE_LIMIT, 10) || 6;
 
 let activeJob = false;
 const ipRequestWindows = new Map();
@@ -51,7 +51,7 @@ function rejectRequest(res, message, retryAfterSeconds = 1) {
 
 function internalJobGuard(req, res, next) {
   if (activeJob) {
-    return rejectRequest(res, 'An internal job is already running. Try again shortly.');
+    return rejectRequest(res, 'An internal job is already running. Try again shortly.', 5);
   }
 
   const now = Date.now();

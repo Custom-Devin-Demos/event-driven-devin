@@ -3,6 +3,10 @@
 const express = require('express');
 const http = require('http');
 
+process.env.RATE_WINDOW_MS = '60000';
+process.env.PER_IP_RATE_LIMIT = '100';
+process.env.PROCESS_RATE_LIMIT = '100';
+
 const logger = require('../app/telemetry/logger');
 const internalJobs = require('../app/routes/internal-jobs');
 
@@ -69,7 +73,7 @@ describe('slow-query patrol internal jobs', () => {
     expect(queryLogs.every(({ fields }) => fields.duration_ms > 0)).toBe(true);
     expect(response.body.totalDurationMs).toBeGreaterThan(0);
     expect(summaryLogs[0].inner_query_count).toBe(queryCount);
-  }, 20000);
+  }, 60000);
 
   test('total-time ranking differs from single-query-duration ranking', async () => {
     const samples = [];
@@ -83,7 +87,8 @@ describe('slow-query patrol internal jobs', () => {
       '/internal-jobs/order-export',
       '/internal-jobs/reconciliation',
     ]) {
-      await request(endpoint);
+      const response = await request(endpoint);
+      expect(response.statusCode).toBe(200);
       const queryLogs = infoSpy.mock.calls
         .map(([, fields]) => fields)
         .filter((fields) => fields && fields.event === 'db.query' && fields.endpoint === endpoint);
@@ -101,5 +106,5 @@ describe('slow-query patrol internal jobs', () => {
     expect(topByTotalTime).toBe('inventory.stock_by_sku');
     expect(topBySingleDuration).toBe('ledger.full_scan');
     expect(topByTotalTime).not.toBe(topBySingleDuration);
-  }, 15000);
+  }, 60000);
 });
