@@ -31,4 +31,8 @@ events (120 job invocations) per day. Deployments can override the interval
 through `LOADGEN_INTERVAL_MS`; at a five-minute override, those volumes are
 approximately 34,560, 3,840, and 144 respectively (48 reconciliation
 invocations). The patrol should rank by total duration per query name rather
-than single-query duration.
+than single-query duration. Keep `LOADGEN_INTERVAL_MS` at roughly 45000 ms or
+higher with the default `INTERNAL_JOB_PER_IP_RATE_LIMIT=4`; shorter intervals
+can silently drop internal-job telemetry when a prior cycle is still inside
+the sliding window. If a faster cycle is necessary, raise both settings
+together.
