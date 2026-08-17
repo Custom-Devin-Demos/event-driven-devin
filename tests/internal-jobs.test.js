@@ -49,7 +49,7 @@ describe('slow-query patrol internal jobs', () => {
   test.each([
     ['/internal-jobs/inventory-report', 'inventory.stock_by_sku', 'inventory_report', 120],
     ['/internal-jobs/order-export', 'orders.line_items_scan', 'order_export', 40],
-    ['/internal-jobs/reconciliation', 'ledger.full_scan', 'reconciliation', 6],
+    ['/internal-jobs/reconciliation', 'ledger.full_scan', 'reconciliation', 3],
   ])('%s emits one structured inner-query log per query', async (
     endpoint, queryName, job, queryCount,
   ) => {

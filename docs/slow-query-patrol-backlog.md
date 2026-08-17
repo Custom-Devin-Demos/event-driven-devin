@@ -11,7 +11,7 @@ must target the checkout-api container rather than the public host.
 | --- | --- | --- | --- | --- |
 | Inventory report | `GET /internal-jobs/inventory-report` | `inventory.stock_by_sku` | N+1 stock-ledger scan for 120 SKUs | Every 2-minute deployed cycle |
 | Order export | `GET /internal-jobs/order-export` | `orders.line_items_scan` | Nested order/line-item scan for 40 queries | Every third deployed cycle |
-| Reconciliation | `GET /internal-jobs/reconciliation` | `ledger.full_scan` | Full-ledger scan repeated for 6 entries | Every 6th deployed cycle |
+| Reconciliation | `GET /internal-jobs/reconciliation` | `ledger.full_scan` | Full-ledger scan repeated for 3 entries | Every 6th deployed cycle |
 
 The inner-query telemetry contract is frozen as:
 
@@ -26,9 +26,9 @@ Each request also emits one `event: "internal_job.summary"` record with
 `job`, `endpoint`, `total_duration_ms`, and `inner_query_count`.
 
 The deployed compose default is a two-minute cycle, producing approximately
-86,400 inventory events, 9,600 order-export events, and 720 reconciliation
+86,400 inventory events, 9,600 order-export events, and 360 reconciliation
 events (120 job invocations) per day. Deployments can override the interval
 through `LOADGEN_INTERVAL_MS`; at a five-minute override, those volumes are
-approximately 34,560, 3,840, and 288 respectively (48 reconciliation
+approximately 34,560, 3,840, and 144 respectively (48 reconciliation
 invocations). The patrol should rank by total duration per query name rather
 than single-query duration.

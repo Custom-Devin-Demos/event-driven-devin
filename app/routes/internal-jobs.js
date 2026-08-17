@@ -7,7 +7,7 @@ const router = express.Router();
 
 const INVENTORY_SKU_COUNT = 120;
 const ORDER_QUERY_COUNT = 40;
-const RECONCILIATION_QUERY_COUNT = 6;
+const RECONCILIATION_QUERY_COUNT = 3;
 const SCAN_CHUNK_SIZE = 1024;
 
 function environmentInteger(name, fallback) {
