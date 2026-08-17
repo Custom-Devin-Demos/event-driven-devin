@@ -223,7 +223,8 @@ Three things are deliberately separate:
 │   ├── ...                         # Demo runbooks and scenario documentation
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── prompts/
-│   └── automations-patrol-backtest.md # Exact prompt used for presenter backtests
+│   ├── automations-patrol-backtest.md # Mode delta for presenter backtests
+│   └── automations-patrol-production.md # Mirrors the scheduled automation's stored prompt; not loaded by code
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
