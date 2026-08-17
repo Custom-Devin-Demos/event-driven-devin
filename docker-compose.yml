@@ -16,6 +16,10 @@ services:
       - NODE_ENV=production
       - APP_VERSION=${APP_VERSION:-1.0.0}
       - APP_SCENARIO=${APP_SCENARIO:-healthy}
+      # Internal slow-query patrol guardrails
+      - INTERNAL_JOB_RATE_WINDOW_MS=${INTERNAL_JOB_RATE_WINDOW_MS:-60000}
+      - INTERNAL_JOB_PER_IP_RATE_LIMIT=${INTERNAL_JOB_PER_IP_RATE_LIMIT:-4}
+      - INTERNAL_JOB_PROCESS_RATE_LIMIT=${INTERNAL_JOB_PROCESS_RATE_LIMIT:-6}
       # Sentry
       - SENTRY_DSN=${SENTRY_DSN}
       - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-prod}
@@ -328,7 +332,7 @@ services:
       dockerfile: Dockerfile.loadgen
     environment:
       - LOADGEN_TARGET_URL=http://checkout-api:3000
-      - LOADGEN_INTERVAL_MS=${LOADGEN_INTERVAL_MS:-300000}
+      - LOADGEN_INTERVAL_MS=${LOADGEN_INTERVAL_MS:-120000}
     depends_on:
       checkout-api:
         condition: service_healthy
