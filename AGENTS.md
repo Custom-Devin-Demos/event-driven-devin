@@ -124,6 +124,7 @@ Three things are deliberately separate:
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
+│   │   ├── automations.html       # Slow-query patrol explainer and Run Now control
 │   │   └── verticals/
 │   │       ├── banking.html       # Apex Bank — Online Banking
 │   │       ├── financial-services.html  # Meridian Capital — Trading Platform
@@ -152,6 +153,7 @@ Three things are deliberately separate:
 │   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
+│   │   ├── automations.js         # Automations explainer page and Run Now Devin session endpoint
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -215,10 +217,13 @@ Three things are deliberately separate:
 │   └── scenarios.json             # Scenario definitions
 ├── tests/
 │   ├── ...                         # Vertical, pipeline, and integration test suites
-│   └── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
+│   ├── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
+│   └── automations.test.js        # Automations page and Run Now endpoint tests
 ├── docs/
 │   ├── ...                         # Demo runbooks and scenario documentation
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
+├── prompts/
+│   └── automations-patrol-backtest.md # Exact prompt used for presenter backtests
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
@@ -379,6 +384,9 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `INTERNAL_JOB_RATE_WINDOW_MS` | Sliding-window duration for internal job requests | No (default: `60000`) |
 | `INTERNAL_JOB_PER_IP_RATE_LIMIT` | Accepted internal job requests per IP per window | No (default: `4`) |
 | `INTERNAL_JOB_PROCESS_RATE_LIMIT` | Accepted internal job requests process-wide per window | No (default: `6`) |
+| `AUTOMATIONS_RUN_TOKEN` | Presenter token for the `/automations` Run Now action; unset disables it | No |
+| `AUTOMATIONS_RUN_MAX_PER_HOUR` | Max on-demand patrol sessions per hour (default: `3`) | No |
+| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `15`) | No |
 | `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment
