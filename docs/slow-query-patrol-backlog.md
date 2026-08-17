@@ -36,3 +36,7 @@ higher with the default `INTERNAL_JOB_PER_IP_RATE_LIMIT=4`; shorter intervals
 can silently drop internal-job telemetry when a prior cycle is still inside
 the sliding window. If a faster cycle is necessary, raise both settings
 together.
+
+Internal-job failures are reported to Datadog only. They intentionally do not
+enter the global Sentry error path because this application turns new Sentry
+issues into Slack alerts and spawned Devin incident sessions.

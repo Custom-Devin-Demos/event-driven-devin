@@ -276,7 +276,7 @@ async function reconciliation() {
 }
 
 function createInternalJobHandler(job, jobName) {
-  return (req, res, next) => {
+  return (req, res, _next) => {
     internalJobGuard(req, res, () => {
       Promise.resolve()
         .then(job)
@@ -285,15 +285,19 @@ function createInternalJobHandler(job, jobName) {
           return res.json({ success: true, job: jobName, ...result });
         })
         .catch((error) => {
+          logger.error('Internal job failed', {
+            event: 'internal_job.error',
+            job: jobName,
+            error: error.message,
+          });
           if (res.destroyed || res.writableEnded) {
-            logger.error('Internal job failed after client disconnect', {
-              event: 'internal_job.error',
-              job: jobName,
-              error: error.message,
-            });
             return;
           }
-          next(error);
+          return res.status(500).json({
+            success: false,
+            job: jobName,
+            error: error.message,
+          });
         })
         .finally(() => req.releaseInternalJob());
     });

@@ -52,6 +52,14 @@ function request(path, router = internalJobs, forwardedFor = `192.0.2.${++reques
   });
 }
 
+function restoreEnvironmentVariable(name, value) {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
+
 describe('slow-query patrol internal jobs', () => {
   let infoSpy;
 
@@ -188,8 +196,8 @@ describe('slow-query patrol internal jobs', () => {
       }
       expect(responses.every((response) => response.statusCode === 200)).toBe(true);
     } finally {
-      process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
-      process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+      restoreEnvironmentVariable('INTERNAL_JOB_PER_IP_RATE_LIMIT', previousPerIpLimit);
+      restoreEnvironmentVariable('INTERNAL_JOB_PROCESS_RATE_LIMIT', previousProcessLimit);
     }
   }, 60000);
 
@@ -212,8 +220,8 @@ describe('slow-query patrol internal jobs', () => {
       expect(responses.slice(0, 4).every((response) => response.statusCode === 200)).toBe(true);
       expect(responses[4].statusCode).toBe(429);
     } finally {
-      process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
-      process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+      restoreEnvironmentVariable('INTERNAL_JOB_PER_IP_RATE_LIMIT', previousPerIpLimit);
+      restoreEnvironmentVariable('INTERNAL_JOB_PROCESS_RATE_LIMIT', previousProcessLimit);
     }
   }, 60000);
 
@@ -236,8 +244,38 @@ describe('slow-query patrol internal jobs', () => {
       expect(responses.slice(0, 6).every((response) => response.statusCode === 200)).toBe(true);
       expect(responses[6].statusCode).toBe(429);
     } finally {
-      process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
-      process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+      restoreEnvironmentVariable('INTERNAL_JOB_PER_IP_RATE_LIMIT', previousPerIpLimit);
+      restoreEnvironmentVariable('INTERNAL_JOB_PROCESS_RATE_LIMIT', previousProcessLimit);
+    }
+  }, 60000);
+
+  test('logs a connected job failure without invoking the error handler', async () => {
+    const app = express();
+    const errors = [];
+    app.get('/internal-jobs/failing', internalJobs.createInternalJobHandler(async () => {
+      throw new Error('fixture failed');
+    }, 'failing'));
+    app.use((error, _req, _res, _next) => {
+      errors.push(error);
+    });
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => logger);
+
+    try {
+      const response = await request('/internal-jobs/failing', app, `192.0.2.${++requestNumber}`);
+      expect(response.statusCode).toBe(500);
+      expect(response.body).toEqual({
+        success: false,
+        job: 'failing',
+        error: 'fixture failed',
+      });
+      expect(errors).toHaveLength(0);
+      expect(errorSpy.mock.calls[0][1]).toEqual(expect.objectContaining({
+        event: 'internal_job.error',
+        job: 'failing',
+        error: 'fixture failed',
+      }));
+    } finally {
+      errorSpy.mockRestore();
     }
   }, 60000);
 
