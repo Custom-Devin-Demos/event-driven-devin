@@ -284,7 +284,17 @@ function createInternalJobHandler(job, jobName) {
           if (res.destroyed || res.writableEnded) return;
           return res.json({ success: true, job: jobName, ...result });
         })
-        .catch(next)
+        .catch((error) => {
+          if (res.destroyed || res.writableEnded) {
+            logger.error('Internal job failed after client disconnect', {
+              event: 'internal_job.error',
+              job: jobName,
+              error: error.message,
+            });
+            return;
+          }
+          next(error);
+        })
         .finally(() => req.releaseInternalJob());
     });
   };
@@ -298,6 +308,7 @@ module.exports = router;
 module.exports.inventoryReport = inventoryReport;
 module.exports.orderExport = orderExport;
 module.exports.reconciliation = reconciliation;
+module.exports.createInternalJobHandler = createInternalJobHandler;
 module.exports.constants = {
   INVENTORY_SKU_COUNT,
   ORDER_QUERY_COUNT,

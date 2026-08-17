@@ -55,6 +55,14 @@ function request(path, router = internalJobs, forwardedFor = `192.0.2.${++reques
 describe('slow-query patrol internal jobs', () => {
   let infoSpy;
 
+  function reloadInternalJobs() {
+    jest.resetModules();
+    const freshLogger = require('../app/telemetry/logger');
+    infoSpy.mockRestore();
+    infoSpy = jest.spyOn(freshLogger, 'info').mockImplementation(() => freshLogger);
+    return require('../app/routes/internal-jobs');
+  }
+
   beforeEach(() => {
     infoSpy = jest.spyOn(logger, 'info').mockImplementation(() => logger);
   });
@@ -167,8 +175,7 @@ describe('slow-query patrol internal jobs', () => {
     const previousProcessLimit = process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
     process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = '0';
     process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = '0';
-    jest.resetModules();
-    const unlimitedJobs = require('../app/routes/internal-jobs');
+    const unlimitedJobs = reloadInternalJobs();
 
     try {
       const responses = [];
@@ -191,8 +198,7 @@ describe('slow-query patrol internal jobs', () => {
     const previousProcessLimit = process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
     delete process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT;
     process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = '100';
-    jest.resetModules();
-    const defaultJobs = require('../app/routes/internal-jobs');
+    const defaultJobs = reloadInternalJobs();
 
     try {
       const responses = [];
@@ -216,8 +222,7 @@ describe('slow-query patrol internal jobs', () => {
     const previousProcessLimit = process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
     process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = '100';
     delete process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT;
-    jest.resetModules();
-    const defaultJobs = require('../app/routes/internal-jobs');
+    const defaultJobs = reloadInternalJobs();
 
     try {
       const responses = [];
@@ -233,6 +238,49 @@ describe('slow-query patrol internal jobs', () => {
     } finally {
       process.env.INTERNAL_JOB_PER_IP_RATE_LIMIT = previousPerIpLimit;
       process.env.INTERNAL_JOB_PROCESS_RATE_LIMIT = previousProcessLimit;
+    }
+  }, 60000);
+
+  test('logs an aborted job failure without invoking the error handler', async () => {
+    let signalJobStarted;
+    let releaseFailure;
+    const jobStarted = new Promise((resolve) => { signalJobStarted = resolve; });
+    const failureMayProceed = new Promise((resolve) => { releaseFailure = resolve; });
+    const app = express();
+    const errors = [];
+    app.get('/internal-jobs/failing', internalJobs.createInternalJobHandler(async () => {
+      signalJobStarted();
+      await failureMayProceed;
+      throw new Error('fixture failed');
+    }, 'failing'));
+    app.use((error, _req, _res, _next) => {
+      errors.push(error);
+    });
+    const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => logger);
+    const server = await new Promise((resolve) => {
+      const listener = app.listen(0, () => resolve(listener));
+    });
+    const { port } = server.address();
+    const firstRequest = http.get(`http://127.0.0.1:${port}/internal-jobs/failing`, {
+      headers: { 'X-Forwarded-For': `192.0.2.${++requestNumber}` },
+    });
+    firstRequest.on('error', () => {});
+
+    try {
+      await jobStarted;
+      firstRequest.destroy();
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      releaseFailure();
+      await waitFor(() => errorSpy.mock.calls.length > 0);
+      expect(errors).toHaveLength(0);
+      expect(errorSpy.mock.calls[0][1]).toEqual(expect.objectContaining({
+        event: 'internal_job.error',
+        job: 'failing',
+        error: 'fixture failed',
+      }));
+    } finally {
+      errorSpy.mockRestore();
+      server.close();
     }
   }, 60000);
 });
