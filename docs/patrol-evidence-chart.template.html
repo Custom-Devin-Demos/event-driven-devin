@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<!--
+  Slow Query Patrol evidence chart template.
+
+  Used by the daily patrol (playbook `!slow_query_patrol`, section 2) to render the
+  chart it attaches to the #1 Linear issue, the Slack digest, and the PR body.
+
+  Copy this file to /tmp, replace the values inside the MEASURED DATA block with the
+  values measured from the Datadog log query, serve it over a local HTTP server, and
+  screenshot it in the browser. Do not commit the copy or the screenshot, do not add
+  styling, and do not add panels: the chart has to be readable in a few seconds on a
+  shared screen.
+
+  Only numbers and query names are yours to supply. All wording on the page is fixed,
+  including the summary line, which is generated from the measured rows. Do not rewrite
+  it, do not add adjectives, and do not add a second sentence.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Slow Query Patrol — evidence</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root { --ink:#0b0b0c; --muted:#6b6f76; --line:#e6e7ea; --bg:#ffffff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif; }
+  .card { width:1080px; margin:24px auto; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  header { padding:20px 28px 16px; }
+  h1 { margin:0; font-size:21px; letter-spacing:-0.01em; font-weight:600; }
+  .sub { margin-top:5px; font-size:12px; color:var(--muted); }
+  .sub code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; }
+  .panels { display:grid; grid-template-columns:1fr 1fr; }
+  .panel { padding:6px 12px 10px; }
+  .panel + .panel { border-left:1px solid var(--line); }
+  .ptitle { font-size:14px; font-weight:600; margin:0 0 8px 16px; }
+  .chart { height:290px; }
+  footer { padding:16px 28px 20px; border-top:1px solid var(--line); font-size:14px; line-height:1.5; }
+  footer b { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <h1>checkout-api database time, by query</h1>
+    <div class="sub" id="sub"></div>
+  </header>
+
+  <div class="panels">
+    <div class="panel">
+      <p class="ptitle">Total time (seconds)</p>
+      <div id="total" class="chart"></div>
+    </div>
+    <div class="panel">
+      <p class="ptitle">Time for one execution (ms, log scale)</p>
+      <div id="dur" class="chart"></div>
+    </div>
+  </div>
+
+  <footer id="takeaway"></footer>
+</div>
+
+<script>
+/* ---------- MEASURED DATA — replace every value below. Placeholders, not real numbers. ---------- */
+const WINDOW = '{{start}} → {{end}} UTC';   // the window measured, not the window requested
+const EVENTS = '{{n}}';                     // db.query events the chart is based on
+const ROWS = [
+  // name,          execs, mean ms, p95 ms, total s   — one row per query name, highest total first
+  // Carry two decimals; never round a sub-millisecond mean or p95 to 0.
+  ['{{query_name}}',      0,       0,      0,       0],
+];
+/* ---------- end measured data ---------- */
+
+const SORTED_ROWS = ROWS.slice().sort((a, b) => b[4] - a[4]);
+const NAMES = SORTED_ROWS.map(r => r[0]);
+const MEAN = SORTED_ROWS.map(r => r[2]);
+const P95 = SORTED_ROWS.map(r => r[3]);
+const TOTALS = SORTED_ROWS.map(r => r[4]);
+const MONO = 'ui-monospace,SFMono-Regular,Menlo,monospace';
+const AXIS = { color:'#6b6f76', fontSize:11 };
+
+document.getElementById('sub').innerHTML = WINDOW + ' · ' + EVENTS
+  + ' query executions · rendered from Datadog logs <code>service:checkout-api @event:db.query</code>';
+document.getElementById('takeaway').innerHTML = summaryLine();
+
+// Fixed wording, generated from the rows above. Numbers only. Nothing here is written per run.
+function summaryLine() {
+  if (!SORTED_ROWS.length) {
+    return '';
+  }
+  const q = (s) => '<b>' + s + '</b>';
+  const n = (v) => v.toLocaleString();
+  const count = (v) => n(v) + (v === 1 ? ' time' : ' times');
+  const top = SORTED_ROWS[0];
+  const slowest = SORTED_ROWS.reduce((current, row) => row[2] > current[2] ? row : current);
+  const first = q(top[0]) + ' ran ' + count(top[1]) + ' and used ' + top[4].toFixed(1) + ' seconds.';
+  if (top[0] === slowest[0]) {
+    const mean = top[2] < 1 ? top[2].toFixed(2) : Math.round(top[2]).toLocaleString();
+    return first + ' It is also the slowest per execution, at ' + mean + ' ms.';
+  }
+  const ratio = slowest[2] / top[2];
+  if (!Number.isFinite(ratio) || top[2] === 0 || ratio < 1.5) {
+    return q(top[0]) + ' ran ' + count(top[1]) + ' and used ' + top[4].toFixed(1)
+      + ' seconds. Its mean was ' + top[2].toFixed(2) + ' ms per execution. ' + q(slowest[0])
+      + ' averaged ' + slowest[2].toFixed(2) + ' ms per execution, ran ' + count(slowest[1])
+      + ', and used ' + slowest[4].toFixed(1) + ' seconds.';
+  }
+  const roundedRatio = ratio < 10 ? ratio.toFixed(1) : Math.round(ratio);
+  return first + ' ' + q(slowest[0]) + ' is ' + roundedRatio + ' times slower per execution. It ran '
+    + count(slowest[1]) + ' and used ' + slowest[4].toFixed(1) + ' seconds.';
+}
+
+echarts.init(document.getElementById('total')).setOption({
+  animation:false,
+  grid:{ left:186, right:78, top:10, bottom:24 },
+  xAxis:{ type:'value', axisLabel:AXIS, splitLine:{ lineStyle:{ color:'#f1f2f4' } } },
+  yAxis:{ type:'category', inverse:true, data:NAMES,
+          axisLabel:{ color:'#0b0b0c', fontSize:12.5, fontFamily:MONO }, axisTick:{ show:false } },
+  series:[{ type:'bar', data:TOTALS, barWidth:30,
+            itemStyle:{ color:(p)=> p.dataIndex === 0 ? '#0b0b0c' : '#c9ccd2' },
+            label:{ show:true, position:'right', formatter:(p)=>p.value.toFixed(1)+' s',
+                    color:'#0b0b0c', fontSize:13, fontWeight:600 } }]
+});
+
+echarts.init(document.getElementById('dur')).setOption({
+  animation:false,
+  legend:{ data:['mean','p95'], right:8, top:0, textStyle:AXIS, itemHeight:8, itemWidth:12 },
+  grid:{ left:56, right:20, top:34, bottom:46 },
+  xAxis:{ type:'category', data:NAMES, axisTick:{ show:false },
+          axisLabel:{ color:'#0b0b0c', fontSize:11, interval:0, fontFamily:MONO,
+                      formatter:(v)=>v.replace('.','\n.') } },
+  yAxis:{ type:'log', axisLabel:AXIS, splitLine:{ lineStyle:{ color:'#f1f2f4' } } },
+  series:[
+    { name:'mean', type:'bar', data:MEAN, barWidth:24, itemStyle:{ color:'#c9ccd2' },
+      label:{ show:true, position:'top', offset:[-4,-2], color:'#6b6f76', fontSize:11,
+              formatter:(p)=>p.value.toLocaleString() } },
+    { name:'p95', type:'bar', data:P95, barWidth:24, itemStyle:{ color:'#0b0b0c' },
+      label:{ show:true, position:'top', offset:[6,-16], color:'#0b0b0c', fontSize:11,
+              formatter:(p)=>p.value.toLocaleString() } }
+  ]
+});
+</script>
+</body>
+</html>

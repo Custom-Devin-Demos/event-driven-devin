@@ -225,9 +225,11 @@ Three things are deliberately separate:
 │   └── automations.test.js        # Automations page and Run Now endpoint tests
 ├── docs/
 │   ├── ...                         # Demo runbooks and scenario documentation
+│   ├── patrol-evidence-chart.template.html # Shared evidence chart template for the daily patrol
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── prompts/
-│   └── automations-patrol-backtest.md # Exact prompt used for presenter backtests
+│   ├── automations-patrol-backtest.md # Mode delta for presenter backtests
+│   └── automations-patrol-production.md # Mirrors the scheduled automation's stored prompt; not loaded by code
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
@@ -235,6 +237,8 @@ Three things are deliberately separate:
 ├── REVIEW.md                      # Instructions for automated code review (Devin Review)
 └── .env.example                   # Template for environment variables
 ```
+
+The daily patrol renders its evidence chart from `docs/patrol-evidence-chart.template.html` by copying it to `/tmp`, replacing the `MEASURED DATA` block with the run's Datadog numbers, and screenshotting it. The template is committed so every run's chart looks the same; the copy and screenshot are never committed. Datadog graph embeds are deliberately not used because the log-based metric only aggregates logs ingested after it was created.
 
 ## Tech Stack
 
@@ -390,7 +394,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `INTERNAL_JOB_PROCESS_RATE_LIMIT` | Accepted internal job requests process-wide per window | No (default: `6`) |
 | `AUTOMATIONS_RUN_TOKEN` | Presenter token for the `/automations` Run Now action; unset disables it | No |
 | `AUTOMATIONS_RUN_MAX_PER_HOUR` | Max on-demand patrol sessions per hour (default: `3`) | No |
-| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `15`) | No |
+| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `45`) | No |
 | `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment

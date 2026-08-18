@@ -224,11 +224,11 @@
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h6"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 02</div><div class="card-brand">Dedupe</div><div class="card-desc">Checks open Linear issues before filing. A finding that already has an issue is reported, not filed again.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 02</div><div class="card-brand">Dedupe</div><div class="card-desc">On the daily run, checks open Linear issues before filing. A finding that already has an issue is reported, not filed again. Backtests skip this step on purpose so a replay reproduces the whole ranking.</div></div>
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 13h6M9 17h4"/></svg></div></div>
-          <div class="card-body"><div class="card-vertical">Step 03</div><div class="card-brand">File</div><div class="card-desc">Files one or two issues. Each contains the measured numbers and the file and function responsible.</div></div>
+          <div class="card-body"><div class="card-vertical">Step 03</div><div class="card-brand">File</div><div class="card-desc">The daily run files one or two issues; a backtest files every finding. Each contains the measured numbers and the file and function responsible.</div></div>
         </div>
         <div class="card">
           <div class="card-top"><div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M6 3v12a3 3 0 0 0 3 3h6"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="6" cy="4" r="1.5"/></svg></div></div>
@@ -248,11 +248,11 @@
         <span class="badge">isolated</span>
       </div>
       <h2>Run the patrol now</h2>
-      <p class="section-desc">Runs the same workflow on demand, without waiting for the schedule. Findings go into a new <code>patrol-backtest-*</code> Linear project instead of the production backlog. Pressing the button again within 15 minutes opens the run that is already in progress rather than starting a second one.</p>
+      <p class="section-desc">Runs the same workflow on demand, without waiting for the schedule. Findings go into a new <code>patrol-backtest-*</code> Linear project instead of the production backlog. Two steps differ from the daily run: it files every finding rather than one or two, and it does not dedupe against the production backlog, so a replay reproduces the whole ranking. Pressing the button again within 45 minutes opens the run that is already in progress rather than starting a second one.</p>
       <div class="run-row">
         <div class="run-panel">
           <div class="wide-title">What a run does</div>
-          <div class="wide-desc">Reads the trailing 24 hours of query timing, reports the window it measured, files its findings in a new backtest project, fixes the top-ranked finding, opens a pull request without merging it, and posts a Slack message labelled as a backtest.</div>
+          <div class="wide-desc">Reads the trailing 24 hours of query timing, reports the window it measured, files every finding in a new backtest project, fixes the top-ranked finding, opens a pull request without merging it, and posts a Slack message labelled as a backtest.</div>
           <div id="result" class="status" role="status" aria-live="polite"></div>
         </div>
         <div class="run-panel">
@@ -317,7 +317,7 @@
         link.href = data.url;
         link.target = '_blank';
         link.rel = 'noopener';
-        link.textContent = data.attached ? 'Open the running Devin session \u2192' : 'Open the Devin session \u2192';
+        link.textContent = data.attached ? 'Open the most recent patrol session \u2192' : 'Open the Devin session \u2192';
         showResult(link, 'ok');
       } catch (e) {
         showResult('Run unavailable: request_failed', 'err');
