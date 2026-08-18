@@ -387,7 +387,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `INTERNAL_JOB_PROCESS_RATE_LIMIT` | Accepted internal job requests process-wide per window | No (default: `6`) |
 | `AUTOMATIONS_RUN_TOKEN` | Presenter token for the `/automations` Run Now action; unset disables it | No |
 | `AUTOMATIONS_RUN_MAX_PER_HOUR` | Max on-demand patrol sessions per hour (default: `3`) | No |
-| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `15`) | No |
+| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `45`) | No |
 | `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment
