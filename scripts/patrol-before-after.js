@@ -12,7 +12,7 @@ function parseArgs(argv) {
     const key = argv[index];
     const value = argv[index + 1];
     if (!key || !key.startsWith('--') || value === undefined) {
-      throw new Error('usage: node scripts/patrol-before-after.js --before URL --after URL --path PATH --runs N [--invariants a,b]');
+      throw new Error('usage: node scripts/patrol-before-after.js --before URL --after URL --path PATH --runs N [--invariants a,b] [--pause MS]');
     }
     options[key.slice(2)] = value;
   }
@@ -31,6 +31,17 @@ function parseArgs(argv) {
     throw new Error('--runs must be a positive integer');
   }
   options.runs = Number(options.runs);
+  if (options.pause === undefined) {
+    options.pause = 0;
+  } else {
+    if (!/^\d+$/.test(options.pause)) {
+      throw new Error('--pause must be a non-negative integer');
+    }
+    options.pause = Number(options.pause);
+    if (!Number.isSafeInteger(options.pause)) {
+      throw new Error('--pause must be a non-negative integer');
+    }
+  }
   options.invariants = options.invariants
     ? options.invariants.split(',').map((name) => name.trim()).filter(Boolean)
     : DEFAULT_INVARIANTS;
@@ -125,6 +136,10 @@ function valuesEqual(left, right) {
 
 function displayValue(value) {
   return typeof value === 'string' ? value : JSON.stringify(value);
+}
+
+function pause(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function formatDuration(value) {
@@ -231,6 +246,9 @@ async function compareBeforeAfter(options, output = process.stdout) {
       output.write(`${tableHeader(options.invariants, widths, durationSource)}\n`);
     }
     output.write(`${formatRow(row, widths)}\n`);
+    if (run < options.runs && options.pause > 0) {
+      await pause(options.pause);
+    }
   }
 
   const meanBefore = rows.reduce((sum, row) => sum + row.beforeMs, 0) / rows.length;

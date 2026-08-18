@@ -2,7 +2,7 @@
 
 const http = require('http');
 
-const { compareBeforeAfter } = require('../scripts/patrol-before-after');
+const { compareBeforeAfter, parseArgs } = require('../scripts/patrol-before-after');
 
 const servers = [];
 
@@ -227,4 +227,24 @@ test('sizes invariant columns from the first rendered row', async () => {
   const header = lines[2];
   const row = lines[3];
   expect(header.indexOf('count')).toBe(row.indexOf('42'));
+});
+
+test('paces rows between runs and validates the pause flag', async () => {
+  const before = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 20,
+  }));
+  const after = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 10,
+  }));
+  const { output } = await runComparison(before, after, { runs: 3, pause: 2 });
+  expect(output.match(/^\s+[123]\s/gm)).toHaveLength(3);
+  expect(parseArgs(['--before', before, '--after', after, '--path', '/job', '--runs', '1', '--pause', '0']).pause).toBe(0);
+  expect(() => parseArgs(['--before', before, '--after', after, '--path', '/job', '--runs', '1', '--pause', '-1']))
+    .toThrow(/--pause/);
+  expect(() => parseArgs(['--before', before, '--after', after, '--path', '/job', '--runs', '1', '--pause', 'slow']))
+    .toThrow(/--pause/);
 });
