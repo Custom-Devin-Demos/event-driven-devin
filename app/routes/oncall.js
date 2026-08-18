@@ -13,6 +13,10 @@ const {
   getInfraState,
   postOncallIncident,
   SEV1_INCIDENTS,
+  getSev1ChatterVocabulary,
+  getSev1IncidentKinds,
+  isPlainObject,
+  isValidChatterVocabulary,
   getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
@@ -143,6 +147,29 @@ for (const skin of Object.values(ONCALL_SKINS)) {
         incidentKind: skin.incident.kind,
         skinVertical: skin.vertical,
         incidentVertical: incidentStory.vertical,
+      });
+    }
+    const chatter = skin.incident.chatter;
+    const vocabulary = isPlainObject(chatter) && chatter.vocabulary;
+    const invalidVocabulary = chatter != null && (
+      !isPlainObject(chatter) ||
+      (vocabulary != null && !isValidChatterVocabulary(vocabulary))
+    );
+    if (invalidVocabulary) {
+      logger.warn('On-Call skin incident chatter vocabulary is invalid', {
+        skin: skin.slug,
+      });
+    }
+    if (
+      (incidentStory == null || incidentStory.vertical !== skin.vertical) &&
+      skin.incident.chatter &&
+      skin.incident.chatter.vocabulary != null
+    ) {
+      logger.warn('On-Call skin incident chatter vocabulary cannot apply', {
+        skin: skin.slug,
+        incidentKind: skin.incident.kind,
+        skinVertical: skin.vertical,
+        incidentVertical: incidentStory && incidentStory.vertical,
       });
     }
   }
@@ -537,8 +564,57 @@ router.post('/api/oncall/latency', oncallCap('infra'), async (req, res) => {
  */
 router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
   try {
-    const { kind, devinEmail } = req.body || {};
-    const result = await postOncallIncident({ kind, devinEmail });
+    const { kind, devinEmail, skin } = req.body || {};
+    const skinConfig = getOncallSkin(skin);
+    const knownKind = !kind ||
+      Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, kind);
+    const storyKind = knownKind && kind
+      ? kind
+      : 'banking-transfers';
+    const incidentStory = SEV1_INCIDENTS[storyKind];
+    const configuredVocabulary = skinConfig &&
+      skinConfig.incident &&
+      skinConfig.incident.chatter &&
+      skinConfig.incident.chatter.vocabulary;
+    const vocabulary = knownKind
+      ? getSev1ChatterVocabulary(incidentStory, skinConfig, storyKind)
+      : null;
+    const skinMatches = Boolean(
+      skinConfig &&
+      incidentStory &&
+      skinConfig.vertical === incidentStory.vertical,
+    );
+    const kindMatches = Boolean(
+      skinConfig &&
+      skinConfig.incident &&
+      skinConfig.incident.kind === storyKind,
+    );
+    if (
+      skinConfig &&
+      incidentStory &&
+      configuredVocabulary != null &&
+      (!skinMatches || !kindMatches)
+    ) {
+      logger.warn('On-Call incident skin/vertical mismatch — using generic chatter', {
+        skin: skinConfig.slug,
+        reason: !skinMatches ? 'vertical_mismatch' : 'incident_kind_mismatch',
+        configuredKind: skinConfig.incident && skinConfig.incident.kind,
+        requestedKind: kind,
+        skinVertical: skinConfig.vertical,
+        incidentVertical: incidentStory.vertical,
+      });
+    }
+    const result = await postOncallIncident({
+      kind,
+      devinEmail,
+      vocabulary,
+      vocabularyConfigured: Boolean(
+        knownKind &&
+        configuredVocabulary != null &&
+        skinMatches &&
+        kindMatches,
+      ),
+    });
     if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {
@@ -582,12 +658,8 @@ router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
 /**
  * GET /api/oncall/incident/kinds — available SEV-1 incident stories.
  */
-router.get('/api/oncall/incident/kinds', (_req, res) => {
-  res.json(Object.entries(SEV1_INCIDENTS).map(([id, s]) => ({
-    id,
-    label: s.label,
-    summary: s.summary,
-  })));
+router.get('/api/oncall/incident/kinds', (req, res) => {
+  res.json(getSev1IncidentKinds(getOncallSkin(req.query.skin)));
 });
 
 /**

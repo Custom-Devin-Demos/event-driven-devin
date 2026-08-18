@@ -8,8 +8,9 @@
  * /oncall/c/<slug>/report serves the matching branded support portal, and
  * /oncall/c/<slug>/incident serves an opted-in incident console. The alerts
  * surface is enabled by default; bugPortal and incident are optional opt-in
- * surfaces. The generic /oncall hub itself is never skinned. Adding a customer
- * = adding one entry here.
+ * surfaces. An incident may optionally define chatter.vocabulary as a flat
+ * source-phrase-to-replacement map. The generic /oncall hub itself is never
+ * skinned. Adding a customer = adding one entry here.
  *
  * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
  * never the customer's name, so shared URLs don't leak who a demo is for.
@@ -241,6 +242,22 @@ const ONCALL_SKINS = {
     disclaimer: 'NOT ACTUALLY A DOORDASH SITE — internal demo only, not affiliated with, endorsed by, or a real DoorDash product.',
     incident: {
       kind: 'banking-transfers',
+      chatter: {
+        vocabulary: {
+          'enterprise customers': 'high-volume Dashers',
+          'the payments gateway': 'the payout processor',
+          'settlement timeouts': 'payout settlement timeouts',
+          'Gateway team': 'Payout processor team',
+          // Keep this repo-truthful code-path wording shielded from the broader transfer keys.
+          'transfer path': 'transfer path',
+          'the gateway': 'the payout processor',
+          'Fund transfers degraded': 'Fast Pay cash outs degraded',
+          'Transfers': 'Fast Pay cash outs',
+          'transfers': 'Fast Pay cash outs',
+          'transfer': 'Fast Pay cash out',
+          'customers': 'Dashers',
+        },
+      },
     },
     bugPortal: {
       products: [

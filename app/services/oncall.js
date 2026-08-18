@@ -1089,7 +1089,90 @@ const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
 const SEV1_CHATTER_LATE_GRACE_MS = 90000;
 const activeSev1Chatter = new Map();
 
-function buildSev1Chatter(story) {
+function isPlainObject(value) {
+  return value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    (Object.getPrototypeOf(value) === Object.prototype ||
+      Object.getPrototypeOf(value) === null);
+}
+
+function isValidChatterVocabulary(vocabulary) {
+  return isPlainObject(vocabulary) &&
+    Object.entries(vocabulary).every(([source, replacement]) =>
+      source.trim() &&
+      typeof replacement === 'string' &&
+      replacement.trim());
+}
+
+function replaceChatterVocabulary(text, vocabulary) {
+  if (!isPlainObject(vocabulary)) return String(text);
+  const replacements = Object.entries(vocabulary)
+    .filter(([source, replacement]) =>
+      source.trim() &&
+      typeof replacement === 'string' &&
+      replacement.trim())
+    .sort(([left], [right]) => right.length - left.length);
+  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const replacementBySource = new Map(replacements);
+  const matcher = replacements.length
+    ? new RegExp(replacements.map(([source]) => {
+      const prefix = /^[A-Za-z0-9]/.test(source)
+        ? '(?<![A-Za-z0-9])'
+        : '';
+      const suffix = /[A-Za-z0-9]$/.test(source)
+        ? '(?![A-Za-z0-9])'
+        : '';
+      return `${prefix}${escapeRegExp(source)}${suffix}`;
+    }).join('|'), 'g')
+    : null;
+  if (!matcher) return String(text);
+  return String(text).split(/(<@[^>]+>|`[^`]*`)/g).map((part, index) => {
+    if (index % 2 === 1) return part;
+    return part.replace(matcher, (match) => replacementBySource.get(match));
+  }).join('');
+}
+
+function buildSev1IncidentCopy(story, vocabulary = null) {
+  const endpoint = ALERT_SCENARIOS[story.vertical] &&
+    ALERT_SCENARIOS[story.vertical].endpoint;
+  const replaceCopyText = (text) => {
+    if (!endpoint) return replaceChatterVocabulary(text, vocabulary);
+    const escapedEndpoint = endpoint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return String(text).split(new RegExp(`(${escapedEndpoint})`, 'g'))
+      .map((part) => part === endpoint
+        ? part
+        : replaceChatterVocabulary(part, vocabulary))
+      .join('');
+  };
+  return {
+    title: replaceCopyText(story.title),
+    summary: replaceCopyText(story.summary),
+    label: replaceCopyText(story.label),
+  };
+}
+
+function getSev1ChatterVocabulary(story, skin, kind) {
+  if (
+    !story ||
+    !skin ||
+    skin.vertical !== story.vertical ||
+    !skin.incident ||
+    skin.incident.kind !== kind
+  ) return null;
+  const vocabulary = skin.incident && skin.incident.chatter &&
+    skin.incident.chatter.vocabulary;
+  if (!isPlainObject(vocabulary)) return null;
+  const validEntries = Object.entries(vocabulary).filter(
+    ([source, replacement]) =>
+      source.trim() &&
+      typeof replacement === 'string' &&
+      replacement.trim(),
+  );
+  return validEntries.length ? Object.fromEntries(validEntries) : null;
+}
+
+function buildSev1Chatter(story, vocabulary = null) {
   const scenario = ALERT_SCENARIOS[story.vertical];
   const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
   const owner = { username: scenario.owner, icon: ':computer:' };
@@ -1162,7 +1245,19 @@ function buildSev1Chatter(story) {
       { ...owner, at: 0.567, text: 'Pulling a profile of one upgrade request — want to see whether the time is in rating, rescoring, or persistence before we touch the catalog.' },
     ],
   };
-  return byVertical[story.vertical] || [];
+  return (byVertical[story.vertical] || []).map((line) => ({
+    ...line,
+    username: replaceChatterVocabulary(line.username, vocabulary),
+    text: replaceChatterVocabulary(line.text, vocabulary),
+  }));
+}
+
+function getSev1IncidentKinds(skin = null) {
+  return Object.entries(SEV1_INCIDENTS).map(([id, story]) => {
+    const vocabulary = getSev1ChatterVocabulary(story, skin, id);
+    const copy = buildSev1IncidentCopy(story, vocabulary);
+    return { id, label: copy.label, summary: copy.summary };
+  });
 }
 
 function stopSev1Chatter(runRef, reason) {
@@ -1196,7 +1291,14 @@ async function inviteIncidentParticipants(token, channelId, devinEmail) {
   }
 }
 
-function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, devinEmail = null) {
+function startSev1Chatter(
+  runRef,
+  story,
+  publicId,
+  windowMs = SEV1_WINDOW_MS,
+  devinEmail = null,
+  vocabulary = null,
+) {
   stopSev1Chatter(runRef, 'restarted');
   const { token } = resolveOncallEnv();
   if (!token || !publicId) {
@@ -1206,7 +1308,7 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, de
     });
     return false;
   }
-  const script = buildSev1Chatter(story);
+  const script = buildSev1Chatter(story, vocabulary);
   if (!script.length) return false;
 
   // Message timings are anchored here (declaration time), not at channel
@@ -1445,12 +1547,19 @@ async function postOncallIncident(options = {}) {
   }
   const kind = hasKind ? options.kind : 'banking-transfers';
   const story = SEV1_INCIDENTS[kind];
+  const vocabulary = options.vocabulary;
+  if (options.vocabularyConfigured && !vocabulary) {
+    logger.warn('On-Call incident chatter vocabulary has no usable entries', {
+      runRef,
+    });
+  }
+  const copy = buildSev1IncidentCopy(story, vocabulary);
 
   let incident = null;
   try {
     incident = await declareDatadogIncident({
-      title: story.title,
-      summary: story.summary,
+      title: copy.title,
+      summary: copy.summary,
       runRef,
       triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
     });
@@ -1466,15 +1575,22 @@ async function postOncallIncident(options = {}) {
     // Without probe traffic the scripted conversation would describe
     // telemetry that doesn't exist, so chatter only runs alongside a probe.
     if (probing) {
-      startSev1Chatter(runRef, story, incident.publicId, SEV1_WINDOW_MS, options.devinEmail);
+      startSev1Chatter(
+        runRef,
+        story,
+        incident.publicId,
+        SEV1_WINDOW_MS,
+        options.devinEmail,
+        vocabulary,
+      );
     } else {
       logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
     }
     const entry = {
       runRef,
       kind,
-      label: story.label,
-      summary: story.summary,
+      label: copy.label,
+      summary: copy.summary,
       id: incident.id,
       publicId: incident.publicId,
       declaredAt: Date.now(),
@@ -1525,7 +1641,7 @@ async function postOncallIncident(options = {}) {
       provider: 'datadog',
       runRef,
       kind,
-      label: story.label,
+      label: copy.label,
       windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
       ...incident,
     };
@@ -1543,10 +1659,10 @@ async function postOncallIncident(options = {}) {
 
   const scenario = ALERT_SCENARIOS[story.vertical];
   const text = [
-    `:fire: *SEV-1 — ${story.label}*`,
+    `:fire: *SEV-1 — ${copy.label}*`,
     '',
     `*Incident Ref:* ${runRef}`,
-    `*Summary:* ${story.summary}`,
+    `*Summary:* ${copy.summary}`,
     `*Env:* production | *Service:* ${scenario.service}`,
     `*Endpoint:* ${scenario.endpoint}`,
     '',
@@ -1571,8 +1687,8 @@ async function postOncallIncident(options = {}) {
   const entry = {
     runRef,
     kind,
-    label: story.label,
-    summary: story.summary,
+    label: copy.label,
+    summary: copy.summary,
     id: null,
     publicId: null,
     declaredAt: Date.now(),
@@ -1593,7 +1709,7 @@ async function postOncallIncident(options = {}) {
     channel: alertsChannel,
     runRef,
     kind,
-    label: story.label,
+    label: copy.label,
     windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
   };
 }
@@ -1662,6 +1778,13 @@ module.exports = {
   postOncallInfraIncident,
   getInfraState,
   postOncallIncident,
+  buildSev1Chatter,
+  buildSev1IncidentCopy,
+  getSev1IncidentKinds,
+  replaceChatterVocabulary,
+  isPlainObject,
+  isValidChatterVocabulary,
+  getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,
   isActiveSev1ProbeRef,
