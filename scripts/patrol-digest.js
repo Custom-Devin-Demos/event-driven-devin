@@ -147,6 +147,9 @@ function validateInput(input) {
     validateString(input.fix.pr, 'fix.pr');
     validateUrl(input.fix.url, 'fix.url');
     validateString(input.fix.summary, 'fix.summary');
+    if (!input.fix.summary.endsWith('.')) {
+      fail('fix.summary', 'must end with a period');
+    }
   }
 }
 
@@ -207,11 +210,17 @@ function rankingLine(rows) {
   return `A slowest-query-first view would have picked ${byMean[0].query} at ${formatDuration(byMean[0].mean, 'ms')}. It ranks ${rank} on total time.`;
 }
 
-function issueLines(heading, issues) {
+function issueLines(heading, issues, project) {
+  const lines = [];
   if (issues.length === 0) {
-    return `*${heading}:* none`;
+    lines.push(`*${heading}:* none`);
+  } else {
+    lines.push(`*${heading}:*`, ...issues.map((issue) => `• <${issue.url}|${issue.id}>: ${issue.title}`));
   }
-  return [`*${heading}:*`, ...issues.map((issue) => `• <${issue.url}|${issue.id}> — ${issue.title}`)].join('\n');
+  if (project) {
+    lines.push(`(project: ${project})`);
+  }
+  return lines.join('\n');
 }
 
 function formatDigest(input) {
@@ -222,14 +231,11 @@ function formatDigest(input) {
     header,
     formatTable(rows),
     `*Ranking:* ${rankingLine(rows)}`,
-    issueLines('Filed', input.filed),
+    issueLines('Filed', input.filed, input.mode === 'BACKTEST' ? input.backtestProject : null),
   ];
-  if (input.mode === 'BACKTEST') {
-    groups.push(`(project: ${input.backtestProject})`);
-  }
   groups.push(issueLines('Already tracked', input.alreadyTracked));
   if (input.fix !== null) {
-    groups.push(`*Fix:* <${input.fix.url}|${input.fix.pr}> — ${input.fix.summary}. Not merged.`);
+    groups.push(`*Fix:* <${input.fix.url}|${input.fix.pr}>: ${input.fix.summary} Not merged.`);
   }
   groups.push(`*Window:* ${input.windowNote}`);
   return `${groups.join('\n\n')}\n`;

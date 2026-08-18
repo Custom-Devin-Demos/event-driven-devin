@@ -45,6 +45,7 @@ test('describes a mean leader that ranks lower on total time', () => {
   expect(digest).toContain(
     'A slowest-query-first view would have picked ledger.full_scan at 1,065.91 ms. It ranks 3 on total time.',
   );
+  expect(digest).not.toContain('—');
 });
 
 test('describes agreeing total and mean leaders', () => {
@@ -86,5 +87,12 @@ test('preserves a sub-millisecond mean instead of printing zero', () => {
 test('prints the backtest project only for backtests', () => {
   const backtest = formatDigest(base({ mode: 'BACKTEST', backtestProject: 'patrol-backtest-2026-08-18-0140' }));
   expect(backtest).toContain('(project: patrol-backtest-2026-08-18-0140)');
+  expect(backtest).toMatch(/PAT-8>:[\s\S]*\(project: patrol-backtest-2026-08-18-0140\)/);
   expect(formatDigest(base())).not.toContain('(project:');
+});
+
+test('requires a complete fix summary sentence', () => {
+  expect(() => formatDigest(base({
+    fix: { pr: 'PR #4726', url: 'https://github.com/acme/repo/pull/4726', summary: 'Add the index' },
+  }))).toThrow(/fix\.summary/);
 });
