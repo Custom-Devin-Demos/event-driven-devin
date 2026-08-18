@@ -85,14 +85,17 @@ document.getElementById('takeaway').innerHTML = summaryLine();
 
 // Fixed wording, generated from the rows above. Numbers only. Nothing here is written per run.
 function summaryLine() {
+  if (!SORTED_ROWS.length) {
+    return '';
+  }
   const q = (s) => '<b>' + s + '</b>';
   const n = (v) => v.toLocaleString();
   const top = SORTED_ROWS[0];
   const slowest = SORTED_ROWS.reduce((current, row) => row[2] > current[2] ? row : current);
   const first = q(top[0]) + ' ran ' + n(top[1]) + ' times and used ' + top[4].toFixed(1) + ' seconds.';
   if (top[0] === slowest[0]) {
-    const mean = top[2] < 1 ? top[2].toFixed(2) : Math.round(top[2]);
-    return first + ' It is also the slowest per execution, at ' + n(mean) + ' ms.';
+    const mean = top[2] < 1 ? top[2].toFixed(2) : Math.round(top[2]).toLocaleString();
+    return first + ' It is also the slowest per execution, at ' + mean + ' ms.';
   }
   const ratio = slowest[2] / top[2];
   if (!Number.isFinite(ratio) || top[2] === 0 || ratio < 1.5) {
