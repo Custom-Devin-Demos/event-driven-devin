@@ -75,6 +75,7 @@ test('rejects em dashes in supplied strings', () => {
 
 test('rejects newlines in pasted copy and control characters in issue URLs', () => {
   expect(() => formatDigest(base({ windowNote: 'Complete\nwith gaps.' }))).toThrow(/windowNote/);
+  expect(() => formatDigest(base({ windowNote: 'Complete <with> gaps.' }))).toThrow(/windowNote/);
   expect(() => formatDigest(base({
     filed: [{ ...base().filed[0], url: 'https://linear.app/acme/issue/PAT-8|broken' }],
   }))).toThrow(/filed\[0\]\.url/);
@@ -172,4 +173,10 @@ test('rejects out-of-range durations and tolerates missing grouping fractions', 
     rows: [{ ...base().rows[0], mean: 1e21 }],
   }))).toThrow(/rows\[0\]\.mean/);
   expect(formatDuration(1e21, 'ms')).not.toContain('undefined');
+});
+
+test('rejects negative durations', () => {
+  expect(() => formatDigest(base({
+    rows: [{ ...base().rows[0], p95: -5 }],
+  }))).toThrow(/rows\[0\]\.p95/);
 });

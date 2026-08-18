@@ -493,8 +493,8 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |
-| `npm run patrol:digest` | Format a validated Slow Query Patrol Slack digest |
-| `npm run patrol:before-after` | Compare pre-fix and fixed patrol job responses |
+| `npm run patrol:digest -- findings.json` | Format a validated Slow Query Patrol Slack digest |
+| `npm run patrol:before-after -- --before URL --after URL --path PATH --runs N` | Compare pre-fix and fixed patrol job responses |
 | `npm run demo:trigger` | Trigger an error scenario |
 | `npm run demo:reset` | Reset to healthy state |
 | `npm run demo:warmup` | Pre-warm the app |

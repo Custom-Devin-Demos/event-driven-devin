@@ -30,6 +30,19 @@ function startHangingServer() {
   });
 }
 
+function startPartialServer() {
+  const server = http.createServer((req, res) => {
+    res.write('{"totalAvailable":100');
+    res.socket.destroy();
+  });
+  return new Promise((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      servers.push(server);
+      resolve(`http://127.0.0.1:${server.address().port}`);
+    });
+  });
+}
+
 function outputCapture() {
   let value = '';
   return {
@@ -177,4 +190,23 @@ test('rejects a request that exceeds the timeout', async () => {
 test('rejects a base URL with a path prefix', async () => {
   await expect(runComparison('http://127.0.0.1:12345/prefix', 'http://127.0.0.1:12346', { runs: 1 }))
     .rejects.toThrow(/--before URL pathname must be "\/" because --path is resolved against the origin/);
+});
+
+test('rejects a protocol-relative comparison path', async () => {
+  await expect(runComparison('http://127.0.0.1:12345', 'http://127.0.0.1:12346', {
+    path: '//other-host/job',
+    runs: 1,
+  })).rejects.toThrow(/protocol-relative/);
+});
+
+test('rejects a response connection that closes early', async () => {
+  const partial = await startPartialServer();
+  const responsive = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 10,
+  }));
+  await expect(runComparison(partial, responsive, { runs: 1 })).rejects.toThrow(
+    /connection closed before the response completed/,
+  );
 });

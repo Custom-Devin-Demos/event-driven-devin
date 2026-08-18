@@ -36,6 +36,7 @@ function fail(field, message) {
 
 function validateString(value, field) {
   validateIdentifier(value, field);
+  validateControlCharacters(value, field, ['<', '>', '|']);
   if (value.includes('—')) {
     fail(field, 'must not contain an em dash');
   }
@@ -143,6 +144,9 @@ function validateInput(input) {
     }
     for (const key of ['mean', 'p95', 'total']) {
       validateFinite(row[key], `${field}.${key}`);
+      if (row[key] < 0) {
+        fail(`${field}.${key}`, 'must be at least 0');
+      }
       if (row[key] > MAX_DURATION) {
         fail(`${field}.${key}`, `must be no greater than ${MAX_DURATION}`);
       }

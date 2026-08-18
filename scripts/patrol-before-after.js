@@ -24,6 +24,9 @@ function parseArgs(argv) {
   if (!/^\/.+/.test(options.path)) {
     throw new Error('--path must start with /');
   }
+  if (options.path.startsWith('//')) {
+    throw new Error('--path must resolve against the provided origins, not a protocol-relative host');
+  }
   if (!/^[1-9]\d*$/.test(options.runs)) {
     throw new Error('--runs must be a positive integer');
   }
@@ -43,6 +46,7 @@ function requestJson(baseUrl, path) {
   const startedAt = process.hrtime.bigint();
   return new Promise((resolve, reject) => {
     let settled = false;
+    let responseStarted = false;
     const timeout = setTimeout(() => {
       settled = true;
       request.destroy();
@@ -57,12 +61,15 @@ function requestJson(baseUrl, path) {
       callback();
     };
     const request = client.get(url, (response) => {
+      responseStarted = true;
       let body = '';
+      let ended = false;
       response.setEncoding('utf8');
       response.on('data', (chunk) => {
         body += chunk;
       });
       response.on('end', () => {
+        ended = true;
         const wallClockMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
         if (response.statusCode < 200 || response.statusCode >= 300) {
           finish(() => reject(new Error(`${url.href}: returned HTTP ${response.statusCode}`)));
@@ -91,9 +98,23 @@ function requestJson(baseUrl, path) {
           usesResponseDuration: 'totalDurationMs' in parsed,
         }));
       });
+      response.on('aborted', () => {
+        finish(() => reject(new Error(`${url.href}: connection closed before the response completed`)));
+      });
+      response.on('error', () => {
+        finish(() => reject(new Error(`${url.href}: connection closed before the response completed`)));
+      });
+      response.on('close', () => {
+        if (!ended) {
+          finish(() => reject(new Error(`${url.href}: connection closed before the response completed`)));
+        }
+      });
     });
     request.on('error', (error) => {
-      finish(() => reject(new Error(`${url.href}: ${error.message}`)));
+      const message = responseStarted || error.code === 'ECONNRESET' || error.message === 'socket hang up'
+        ? 'connection closed before the response completed'
+        : error.message;
+      finish(() => reject(new Error(`${url.href}: ${message}`)));
     });
   });
 }
@@ -140,6 +161,9 @@ function tableHeader(invariants, widths, durationSource) {
 }
 
 async function compareBeforeAfter(options, output = process.stdout) {
+  if (options.path.startsWith('//')) {
+    throw new Error('--path must not be protocol-relative because it must resolve against the provided origins');
+  }
   for (const flag of ['before', 'after']) {
     const url = new URL(options[flag]);
     if (url.pathname !== '/') {
@@ -199,8 +223,8 @@ async function compareBeforeAfter(options, output = process.stdout) {
     if (!widths) {
       widths = [
         Math.max(3, String(options.runs).length),
-        Math.max('pre-fix code'.length, 14),
-        Math.max('fixed code'.length, 14),
+        Math.max('pre-fix code'.length, 15),
+        Math.max('fixed code'.length, 15),
         ...options.invariants.map((field) => Math.max(field.length, 12)),
       ];
       output.write(`${tableHeader(options.invariants, widths, durationSource)}\n`);
