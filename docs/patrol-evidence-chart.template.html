@@ -90,23 +90,24 @@ function summaryLine() {
   }
   const q = (s) => '<b>' + s + '</b>';
   const n = (v) => v.toLocaleString();
+  const count = (v) => n(v) + (v === 1 ? ' time' : ' times');
   const top = SORTED_ROWS[0];
   const slowest = SORTED_ROWS.reduce((current, row) => row[2] > current[2] ? row : current);
-  const first = q(top[0]) + ' ran ' + n(top[1]) + ' times and used ' + top[4].toFixed(1) + ' seconds.';
+  const first = q(top[0]) + ' ran ' + count(top[1]) + ' and used ' + top[4].toFixed(1) + ' seconds.';
   if (top[0] === slowest[0]) {
     const mean = top[2] < 1 ? top[2].toFixed(2) : Math.round(top[2]).toLocaleString();
     return first + ' It is also the slowest per execution, at ' + mean + ' ms.';
   }
   const ratio = slowest[2] / top[2];
   if (!Number.isFinite(ratio) || top[2] === 0 || ratio < 1.5) {
-    return q(top[0]) + ' ran ' + n(top[1]) + ' times and used ' + top[4].toFixed(1)
-      + ' seconds; its mean was ' + top[2].toFixed(2) + ' ms per execution, while ' + q(slowest[0])
-      + ' averaged ' + slowest[2].toFixed(2) + ' ms per execution and ran ' + n(slowest[1])
-      + ' times using ' + slowest[4].toFixed(1) + ' seconds.';
+    return q(top[0]) + ' ran ' + count(top[1]) + ' and used ' + top[4].toFixed(1)
+      + ' seconds. Its mean was ' + top[2].toFixed(2) + ' ms per execution. ' + q(slowest[0])
+      + ' averaged ' + slowest[2].toFixed(2) + ' ms per execution, ran ' + count(slowest[1])
+      + ', and used ' + slowest[4].toFixed(1) + ' seconds.';
   }
   const roundedRatio = ratio < 10 ? ratio.toFixed(1) : Math.round(ratio);
   return first + ' ' + q(slowest[0]) + ' is ' + roundedRatio + ' times slower per execution. It ran '
-    + n(slowest[1]) + ' times and used ' + slowest[4].toFixed(1) + ' seconds.';
+    + count(slowest[1]) + ' and used ' + slowest[4].toFixed(1) + ' seconds.';
 }
 
 echarts.init(document.getElementById('total')).setOption({
