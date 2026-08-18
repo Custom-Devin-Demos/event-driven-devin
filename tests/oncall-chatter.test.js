@@ -22,9 +22,9 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(text).toContain('Fast Pay cash outs');
     expect(text).toContain('Dashers');
     expect(text).toContain('the payout processor');
-    expect(text).toContain('cash out path');
+    expect(text).toContain('transfer path');
     expect(text).not.toContain('the gateway');
-    expect(text).not.toContain('Fast Pay cash out path');
+    expect(text).not.toContain('cash out path');
   });
 
   test('leaves the generic script unchanged without vocabulary', () => {
@@ -51,8 +51,11 @@ describe('SEV-1 persona chatter vocabulary', () => {
       story,
       getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
     );
+    const generic = buildSev1Chatter(story);
     const mentionLines = script.filter((line) => line.mustPost);
     const endpointLine = script.find((line) => line.text.includes('banking-api'));
+    const genericFixAsk = generic.find((line) => line.text.includes('validate a candidate fix'));
+    const skinnedFixAsk = script.find((line) => line.text.includes('validate a candidate fix'));
 
     expect(mentionLines.length).toBeGreaterThan(0);
     mentionLines.forEach((line) => {
@@ -60,6 +63,9 @@ describe('SEV-1 persona chatter vocabulary', () => {
       expect(line.text).toContain('<@U123>');
     });
     expect(endpointLine.text).toContain('`POST /api/oncall/banking/transfer`');
+    expect(script.find((line) => line.text.includes('transfer path')).text)
+      .toBe(generic.find((line) => line.text.includes('transfer path')).text);
+    expect(skinnedFixAsk.text).toBe(genericFixAsk.text);
   });
 
   test('falls back to generic chatter for a vertical mismatch', () => {
@@ -117,11 +123,12 @@ describe('SEV-1 persona chatter vocabulary', () => {
       getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
     );
     const text = script.map((line) => line.text.replace(/`[^`]*`/g, '')).join('\n');
+    const brandedText = text.replace(/transfer path/g, '');
 
-    expect(text).not.toMatch(/\btransfers\b/);
-    expect(text).not.toMatch(/\btransfer\b/);
-    expect(text).not.toMatch(/\bcustomers\b/);
-    expect(text).not.toContain('the gateway');
+    expect(brandedText).not.toMatch(/\btransfers\b/);
+    expect(brandedText).not.toMatch(/\btransfer\b/);
+    expect(brandedText).not.toMatch(/\bcustomers\b/);
+    expect(brandedText).not.toContain('the gateway');
     expect(text).toContain('Transfer completed');
     expect(text).toContain('premium-tier accounts');
   });
@@ -199,15 +206,16 @@ describe('SEV-1 persona chatter vocabulary', () => {
     });
   });
 
-  test('rewrites DoorDash persona ownership without mutating generic usernames', () => {
+  test('keeps internal persona ownership unchanged across skins', () => {
     const skinned = buildSev1Chatter(
       story,
       getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
     );
     const generic = buildSev1Chatter(story);
 
-    expect(skinned.some((line) => line.username === 'Jordan Patel (payouts-oncall)')).toBe(true);
-    expect(generic.some((line) => line.username === 'Jordan Patel (payments-oncall)')).toBe(true);
-    expect(generic.some((line) => line.username === 'Jordan Patel (payouts-oncall)')).toBe(false);
+    expect(skinned.map((line) => line.username)).toEqual(
+      generic.map((line) => line.username),
+    );
+    expect(skinned.some((line) => line.username === 'Jordan Patel (payments-oncall)')).toBe(true);
   });
 });
