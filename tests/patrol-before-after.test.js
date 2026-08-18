@@ -20,6 +20,16 @@ function startServer(bodyFactory, statusCode = 200) {
   });
 }
 
+function startHangingServer() {
+  const server = http.createServer(() => {});
+  return new Promise((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      servers.push(server);
+      resolve(`http://127.0.0.1:${server.address().port}`);
+    });
+  });
+}
+
 function outputCapture() {
   let value = '';
   return {
@@ -134,4 +144,37 @@ test('reports an uncomputable speedup when the fixed mean is zero', async () => 
   const { output } = await runComparison(before, after, { runs: 1 });
   expect(output).toContain('Mean pre-fix: 20.00 ms, mean fixed: 0.00 ms, speedup is not computable.');
   expect(output).not.toContain('Infinity');
+});
+
+test('uses wall-clock timing for both sides when only one reports duration', async () => {
+  const before = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 20,
+  }));
+  const after = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+  }));
+  const { result, output } = await runComparison(before, after, { runs: 1 });
+  expect(output).toContain('Duration source: wall-clock around the request');
+  expect(result.rows[0].beforeMs).not.toBe(20);
+  expect(result.rows[0].afterMs).toBeGreaterThan(0);
+});
+
+test('rejects a request that exceeds the timeout', async () => {
+  const hanging = await startHangingServer();
+  const responsive = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 10,
+  }));
+  await expect(runComparison(hanging, responsive, { runs: 1 })).rejects.toThrow(
+    new RegExp(`${hanging.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/internal-jobs/inventory-report: request timed out after 30000 ms`),
+  );
+}, 35000);
+
+test('rejects a base URL with a path prefix', async () => {
+  await expect(runComparison('http://127.0.0.1:12345/prefix', 'http://127.0.0.1:12346', { runs: 1 }))
+    .rejects.toThrow(/--before URL pathname must be "\/" because --path is resolved against the origin/);
 });

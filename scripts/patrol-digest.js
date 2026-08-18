@@ -28,24 +28,33 @@ const BANNED_WORDS = [
   'painful',
   'eye-watering',
 ];
+const MAX_DURATION = 1e12;
 
 function fail(field, message) {
   throw new Error(`${field}: ${message}`);
 }
 
 function validateString(value, field) {
-  if (typeof value !== 'string') {
-    fail(field, 'must be a string');
-  }
-  if (value.includes('](')) {
-    fail(field, 'must not contain markdown links');
-  }
+  validateIdentifier(value, field);
   if (value.includes('—')) {
     fail(field, 'must not contain an em dash');
   }
   const banned = BANNED_WORDS.find((word) => new RegExp(`\\b${word}\\b`, 'i').test(value));
   if (banned) {
     fail(field, `contains banned word "${banned}"`);
+  }
+}
+
+function validateIdentifier(value, field) {
+  if (typeof value !== 'string') {
+    fail(field, 'must be a string');
+  }
+  if (value.includes('](')) {
+    fail(field, 'must not contain markdown links');
+  }
+  validateControlCharacters(value, field, ['\n', '\r']);
+  if (value.trim() === '') {
+    fail(field, 'must not be empty');
   }
 }
 
@@ -58,7 +67,8 @@ function validateControlCharacters(value, field, characters) {
 }
 
 function validateUrl(value, field) {
-  validateString(value, field);
+  validateIdentifier(value, field);
+  validateControlCharacters(value, field, ['<', '>', '|']);
   if (!value.startsWith('https://')) {
     fail(field, 'must start with https://');
   }
@@ -123,7 +133,7 @@ function validateInput(input) {
         fail(`${field}.${key}`, 'is required');
       }
     }
-    validateString(row.query, `${field}.query`);
+    validateIdentifier(row.query, `${field}.query`);
     validateControlCharacters(row.query, `${field}.query`, ['`']);
     if (input.rows.some((other, otherIndex) => otherIndex < index && other.query === row.query)) {
       fail(`${field}.query`, 'must be unique');
@@ -133,6 +143,9 @@ function validateInput(input) {
     }
     for (const key of ['mean', 'p95', 'total']) {
       validateFinite(row[key], `${field}.${key}`);
+      if (row[key] > MAX_DURATION) {
+        fail(`${field}.${key}`, `must be no greater than ${MAX_DURATION}`);
+      }
     }
   });
 
@@ -147,10 +160,7 @@ function validateInput(input) {
     if (!('backtestProject' in input)) {
       fail('backtestProject', 'is required for BACKTEST');
     }
-    validateString(input.backtestProject, 'backtestProject');
-    if (input.backtestProject.trim() === '') {
-      fail('backtestProject', 'must not be empty');
-    }
+    validateIdentifier(input.backtestProject, 'backtestProject');
   } else if ('backtestProject' in input) {
     fail('backtestProject', 'is only allowed for BACKTEST');
   }
@@ -193,7 +203,10 @@ function formatDuration(value, unit) {
   }
   if (Math.abs(value) >= 1000) {
     const [whole, fraction] = formatted.split('.');
-    formatted = `${Number(whole).toLocaleString('en-US')}.${fraction}`;
+    formatted = Number(whole).toLocaleString('en-US');
+    if (fraction !== undefined) {
+      formatted += `.${fraction}`;
+    }
   }
   return `${formatted} ${unit}`;
 }
@@ -285,4 +298,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { formatDigest, validateInput };
+module.exports = { formatDigest, formatDuration, validateInput };

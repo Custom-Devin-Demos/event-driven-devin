@@ -4,6 +4,7 @@ const http = require('http');
 const https = require('https');
 
 const DEFAULT_INVARIANTS = ['totalAvailable', 'innerQueryCount'];
+const REQUEST_TIMEOUT_MS = 30000;
 
 function parseArgs(argv) {
   const options = {};
@@ -41,6 +42,20 @@ function requestJson(baseUrl, path) {
   const client = url.protocol === 'https:' ? https : http;
   const startedAt = process.hrtime.bigint();
   return new Promise((resolve, reject) => {
+    let settled = false;
+    const timeout = setTimeout(() => {
+      settled = true;
+      request.destroy();
+      reject(new Error(`${url.href}: request timed out after ${REQUEST_TIMEOUT_MS} ms`));
+    }, REQUEST_TIMEOUT_MS);
+    const finish = (callback) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timeout);
+      callback();
+    };
     const request = client.get(url, (response) => {
       let body = '';
       response.setEncoding('utf8');
@@ -50,34 +65,35 @@ function requestJson(baseUrl, path) {
       response.on('end', () => {
         const wallClockMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
         if (response.statusCode < 200 || response.statusCode >= 300) {
-          reject(new Error(`${url.href}: returned HTTP ${response.statusCode}`));
+          finish(() => reject(new Error(`${url.href}: returned HTTP ${response.statusCode}`)));
           return;
         }
         let parsed;
         try {
           parsed = JSON.parse(body);
         } catch {
-          reject(new Error(`${url.href}: response body is not JSON`));
+          finish(() => reject(new Error(`${url.href}: response body is not JSON`)));
           return;
         }
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-          reject(new Error(`${url.href}: response body is not a JSON object`));
+          finish(() => reject(new Error(`${url.href}: response body is not a JSON object`)));
           return;
         }
         if ('totalDurationMs' in parsed
           && (typeof parsed.totalDurationMs !== 'number' || !Number.isFinite(parsed.totalDurationMs))) {
-          reject(new Error(`${url.href}: totalDurationMs is not a finite number`));
+          finish(() => reject(new Error(`${url.href}: totalDurationMs is not a finite number`)));
           return;
         }
-        resolve({
+        finish(() => resolve({
           body: parsed,
-          durationMs: 'totalDurationMs' in parsed ? parsed.totalDurationMs : wallClockMs,
+          responseDurationMs: 'totalDurationMs' in parsed ? parsed.totalDurationMs : null,
+          wallClockMs,
           usesResponseDuration: 'totalDurationMs' in parsed,
-        });
+        }));
       });
     });
     request.on('error', (error) => {
-      reject(new Error(`${url.href}: ${error.message}`));
+      finish(() => reject(new Error(`${url.href}: ${error.message}`)));
     });
   });
 }
@@ -124,6 +140,12 @@ function tableHeader(invariants, widths, durationSource) {
 }
 
 async function compareBeforeAfter(options, output = process.stdout) {
+  for (const flag of ['before', 'after']) {
+    const url = new URL(options[flag]);
+    if (url.pathname !== '/') {
+      throw new Error(`--${flag} URL pathname must be "/" because --path is resolved against the origin`);
+    }
+  }
   const rows = [];
   const baselines = { before: new Map(), after: new Map() };
   let durationSource;
@@ -143,6 +165,9 @@ async function compareBeforeAfter(options, output = process.stdout) {
       throw new Error(`duration source changed on run ${run}: ${durationSource} -> ${source}`);
     }
     durationSource = source;
+    const duration = (response) => source === 'response totalDurationMs'
+      ? response.responseDurationMs
+      : response.wallClockMs;
 
     const rowInvariants = { before: {}, after: {} };
     for (const side of ['before', 'after']) {
@@ -166,8 +191,8 @@ async function compareBeforeAfter(options, output = process.stdout) {
 
     const row = {
       run,
-      beforeMs: responses.before.durationMs,
-      afterMs: responses.after.durationMs,
+      beforeMs: duration(responses.before),
+      afterMs: duration(responses.after),
       invariants: options.invariants.map((field) => rowInvariants.before[field]),
     };
     rows.push(row);

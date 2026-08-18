@@ -1,6 +1,6 @@
 /* global expect, test */
 
-const { formatDigest } = require('../scripts/patrol-digest');
+const { formatDigest, formatDuration } = require('../scripts/patrol-digest');
 
 function issue(id, title = 'Track query') {
   return { id, url: `https://linear.app/acme/${id}`, title };
@@ -71,6 +71,22 @@ test('rejects markdown links in supplied strings', () => {
 
 test('rejects em dashes in supplied strings', () => {
   expect(() => formatDigest(base({ windowNote: 'Complete — no gaps.' }))).toThrow(/windowNote/);
+});
+
+test('rejects newlines in pasted copy and control characters in issue URLs', () => {
+  expect(() => formatDigest(base({ windowNote: 'Complete\nwith gaps.' }))).toThrow(/windowNote/);
+  expect(() => formatDigest(base({
+    filed: [{ ...base().filed[0], url: 'https://linear.app/acme/issue/PAT-8|broken' }],
+  }))).toThrow(/filed\[0\]\.url/);
+});
+
+test('allows measured identifiers with prose banned words but rejects them in authored copy', () => {
+  expect(formatDigest(base({
+    rows: [{ ...base().rows[0], query: 'alerts.critical.by_service' }],
+  }))).toContain('alerts.critical.by_service');
+  expect(() => formatDigest(base({
+    fix: { ...base().fix, summary: 'Fix the critical scan.' },
+  }))).toThrow(/fix\.summary/);
 });
 
 test('prints none for empty already-tracked issues', () => {
@@ -149,4 +165,11 @@ test('keeps at least two decimals for sub-millisecond values', () => {
   expect(formatDigest(base({
     rows: [{ query: 'tiny', execs: 1, mean: 1e-30, p95: 1e-30, total: 0.01 }],
   }))).not.toMatch(/\b0(?:\.0+)? ms\b/);
+});
+
+test('rejects out-of-range durations and tolerates missing grouping fractions', () => {
+  expect(() => formatDigest(base({
+    rows: [{ ...base().rows[0], mean: 1e21 }],
+  }))).toThrow(/rows\[0\]\.mean/);
+  expect(formatDuration(1e21, 'ms')).not.toContain('undefined');
 });
