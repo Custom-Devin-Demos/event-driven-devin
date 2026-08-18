@@ -221,11 +221,12 @@ async function compareBeforeAfter(options, output = process.stdout) {
     };
     rows.push(row);
     if (!widths) {
+      const invariantValues = row.invariants.map(displayValue);
       widths = [
         Math.max(3, String(options.runs).length),
         Math.max('pre-fix code'.length, 15),
         Math.max('fixed code'.length, 15),
-        ...options.invariants.map((field) => Math.max(field.length, 12)),
+        ...options.invariants.map((field, index) => Math.max(field.length, 12, invariantValues[index].length)),
       ];
       output.write(`${tableHeader(options.invariants, widths, durationSource)}\n`);
     }

@@ -210,3 +210,21 @@ test('rejects a response connection that closes early', async () => {
     /connection closed before the response completed/,
   );
 });
+
+test('sizes invariant columns from the first rendered row', async () => {
+  const body = {
+    status: 'a-very-long-invariant-value',
+    count: 42,
+    totalDurationMs: 10,
+  };
+  const before = await startServer(() => body);
+  const after = await startServer(() => body);
+  const { output } = await runComparison(before, after, {
+    invariants: ['status', 'count'],
+    runs: 1,
+  });
+  const lines = output.split('\n');
+  const header = lines[2];
+  const row = lines[3];
+  expect(header.indexOf('count')).toBe(row.indexOf('42'));
+});
