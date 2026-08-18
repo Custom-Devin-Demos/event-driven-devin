@@ -13,6 +13,7 @@ const {
   getInfraState,
   postOncallIncident,
   SEV1_INCIDENTS,
+  getSev1ChatterVocabulary,
   getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
@@ -143,6 +144,22 @@ for (const skin of Object.values(ONCALL_SKINS)) {
         incidentKind: skin.incident.kind,
         skinVertical: skin.vertical,
         incidentVertical: incidentStory.vertical,
+      });
+    }
+    const vocabulary = skin.incident.chatter &&
+      skin.incident.chatter.vocabulary;
+    const invalidVocabulary = vocabulary != null && (
+      typeof vocabulary !== 'object' ||
+      Array.isArray(vocabulary) ||
+      Object.entries(vocabulary).some(([source, replacement]) =>
+        typeof source !== 'string' ||
+        !source.trim() ||
+        typeof replacement !== 'string' ||
+        !replacement.trim())
+    );
+    if (invalidVocabulary) {
+      logger.warn('On-Call skin incident chatter vocabulary is invalid', {
+        skin: skin.slug,
       });
     }
   }
@@ -537,8 +554,30 @@ router.post('/api/oncall/latency', oncallCap('infra'), async (req, res) => {
  */
 router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
   try {
-    const { kind, devinEmail } = req.body || {};
-    const result = await postOncallIncident({ kind, devinEmail });
+    const { kind, devinEmail, skin } = req.body || {};
+    const skinConfig = getOncallSkin(skin);
+    const storyKind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, kind)
+      ? kind
+      : 'banking-transfers';
+    const incidentStory = SEV1_INCIDENTS[storyKind];
+    const skinMatches = Boolean(
+      skinConfig &&
+      incidentStory &&
+      skinConfig.vertical === incidentStory.vertical,
+    );
+    if (skinConfig && incidentStory && !skinMatches) {
+      logger.warn('On-Call incident skin/vertical mismatch — using generic chatter', {
+        skin: skinConfig.slug,
+        skinVertical: skinConfig.vertical,
+        incidentVertical: incidentStory.vertical,
+      });
+    }
+    const chatterVocabulary = getSev1ChatterVocabulary(incidentStory, skinConfig);
+    const result = await postOncallIncident({
+      kind,
+      devinEmail,
+      chatterVocabulary,
+    });
     if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
   } catch (error) {

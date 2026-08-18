@@ -1089,7 +1089,24 @@ const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
 const SEV1_CHATTER_LATE_GRACE_MS = 90000;
 const activeSev1Chatter = new Map();
 
-function buildSev1Chatter(story) {
+function replaceChatterVocabulary(text, vocabulary) {
+  const replacements = Object.entries(vocabulary || {})
+    .sort(([left], [right]) => right.length - left.length);
+  return String(text).split(/(<@[^>]+>|`[^`]*`)/g).map((part, index) => {
+    if (index % 2 === 1) return part;
+    return replacements.reduce(
+      (result, [source, replacement]) => result.split(source).join(replacement),
+      part,
+    );
+  }).join('');
+}
+
+function getSev1ChatterVocabulary(story, skin) {
+  if (!story || !skin || skin.vertical !== story.vertical) return null;
+  return (skin.incident && skin.incident.chatter && skin.incident.chatter.vocabulary) || null;
+}
+
+function buildSev1Chatter(story, vocabulary = null) {
   const scenario = ALERT_SCENARIOS[story.vertical];
   const sre = { username: 'Alex Kim (SRE)', icon: ':technologist:' };
   const owner = { username: scenario.owner, icon: ':computer:' };
@@ -1162,7 +1179,10 @@ function buildSev1Chatter(story) {
       { ...owner, at: 0.567, text: 'Pulling a profile of one upgrade request — want to see whether the time is in rating, rescoring, or persistence before we touch the catalog.' },
     ],
   };
-  return byVertical[story.vertical] || [];
+  return (byVertical[story.vertical] || []).map((line) => ({
+    ...line,
+    text: replaceChatterVocabulary(line.text, vocabulary),
+  }));
 }
 
 function stopSev1Chatter(runRef, reason) {
@@ -1196,7 +1216,14 @@ async function inviteIncidentParticipants(token, channelId, devinEmail) {
   }
 }
 
-function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, devinEmail = null) {
+function startSev1Chatter(
+  runRef,
+  story,
+  publicId,
+  windowMs = SEV1_WINDOW_MS,
+  devinEmail = null,
+  chatterVocabulary = null,
+) {
   stopSev1Chatter(runRef, 'restarted');
   const { token } = resolveOncallEnv();
   if (!token || !publicId) {
@@ -1206,7 +1233,7 @@ function startSev1Chatter(runRef, story, publicId, windowMs = SEV1_WINDOW_MS, de
     });
     return false;
   }
-  const script = buildSev1Chatter(story);
+  const script = buildSev1Chatter(story, chatterVocabulary);
   if (!script.length) return false;
 
   // Message timings are anchored here (declaration time), not at channel
@@ -1466,7 +1493,14 @@ async function postOncallIncident(options = {}) {
     // Without probe traffic the scripted conversation would describe
     // telemetry that doesn't exist, so chatter only runs alongside a probe.
     if (probing) {
-      startSev1Chatter(runRef, story, incident.publicId, SEV1_WINDOW_MS, options.devinEmail);
+      startSev1Chatter(
+        runRef,
+        story,
+        incident.publicId,
+        SEV1_WINDOW_MS,
+        options.devinEmail,
+        options.chatterVocabulary,
+      );
     } else {
       logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
     }
@@ -1662,6 +1696,8 @@ module.exports = {
   postOncallInfraIncident,
   getInfraState,
   postOncallIncident,
+  buildSev1Chatter,
+  getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,
   isActiveSev1ProbeRef,
