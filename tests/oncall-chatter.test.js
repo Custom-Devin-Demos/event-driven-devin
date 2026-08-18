@@ -13,7 +13,7 @@ describe('SEV-1 persona chatter vocabulary', () => {
   const skin = ONCALL_SKINS['e7c9dc7a'];
 
   test('applies the DoorDash vocabulary with longest phrases first', () => {
-    const vocabulary = getSev1ChatterVocabulary(story, skin);
+    const vocabulary = getSev1ChatterVocabulary(story, skin, 'banking-transfers');
     const script = buildSev1Chatter(story, vocabulary);
     const text = script.map((line) => line.text).join('\n');
 
@@ -35,14 +35,20 @@ describe('SEV-1 persona chatter vocabulary', () => {
 
   test('does not mutate shared script state between builds', () => {
     const genericBefore = buildSev1Chatter(story).map((line) => line.text);
-    buildSev1Chatter(story, getSev1ChatterVocabulary(story, skin));
+    buildSev1Chatter(
+      story,
+      getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
+    );
     const genericAfter = buildSev1Chatter(story).map((line) => line.text);
 
     expect(genericAfter).toEqual(genericBefore);
   });
 
   test('preserves mention-bearing lines, flags, and truthful endpoint text', () => {
-    const script = buildSev1Chatter(story, getSev1ChatterVocabulary(story, skin));
+    const script = buildSev1Chatter(
+      story,
+      getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
+    );
     const mentionLines = script.filter((line) => line.mustPost);
     const endpointLine = script.find((line) => line.text.includes('banking-api'));
 
@@ -59,7 +65,11 @@ describe('SEV-1 persona chatter vocabulary', () => {
       ...skin,
       vertical: 'insurance',
     };
-    const vocabulary = getSev1ChatterVocabulary(story, mismatchedSkin);
+    const vocabulary = getSev1ChatterVocabulary(
+      story,
+      mismatchedSkin,
+      'banking-transfers',
+    );
 
     expect(vocabulary).toBeNull();
     expect(buildSev1Chatter(story, vocabulary).map((line) => line.text))
@@ -100,7 +110,10 @@ describe('SEV-1 persona chatter vocabulary', () => {
   });
 
   test('removes generic banking terms without changing intentional vocabulary', () => {
-    const script = buildSev1Chatter(story, getSev1ChatterVocabulary(story, skin));
+    const script = buildSev1Chatter(
+      story,
+      getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
+    );
     const text = script.map((line) => line.text.replace(/`[^`]*`/g, '')).join('\n');
 
     expect(text).not.toMatch(/\btransfers\b/);
@@ -109,5 +122,24 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(text).not.toContain('the gateway');
     expect(text).toContain('Transfer completed');
     expect(text).toContain('premium-tier accounts');
+  });
+
+  test('falls back to generic chatter when the skin incident kind differs', () => {
+    const mismatchedSkin = {
+      ...skin,
+      incident: {
+        ...skin.incident,
+        kind: 'other-banking-story',
+      },
+    };
+    const vocabulary = getSev1ChatterVocabulary(
+      story,
+      mismatchedSkin,
+      'banking-transfers',
+    );
+
+    expect(vocabulary).toBeNull();
+    expect(buildSev1Chatter(story, vocabulary).map((line) => line.text))
+      .toEqual(buildSev1Chatter(story).map((line) => line.text));
   });
 });

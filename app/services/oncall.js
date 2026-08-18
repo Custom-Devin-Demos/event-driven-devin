@@ -1097,6 +1097,14 @@ function isPlainObject(value) {
       Object.getPrototypeOf(value) === null);
 }
 
+function isValidChatterVocabulary(vocabulary) {
+  return isPlainObject(vocabulary) &&
+    Object.entries(vocabulary).every(([source, replacement]) =>
+      source.trim() &&
+      typeof replacement === 'string' &&
+      replacement.trim());
+}
+
 function replaceChatterVocabulary(text, vocabulary) {
   if (!isPlainObject(vocabulary)) return String(text);
   const replacements = Object.entries(vocabulary)
@@ -1125,8 +1133,14 @@ function replaceChatterVocabulary(text, vocabulary) {
   }).join('');
 }
 
-function getSev1ChatterVocabulary(story, skin) {
-  if (!story || !skin || skin.vertical !== story.vertical) return null;
+function getSev1ChatterVocabulary(story, skin, kind) {
+  if (
+    !story ||
+    !skin ||
+    skin.vertical !== story.vertical ||
+    !skin.incident ||
+    skin.incident.kind !== kind
+  ) return null;
   const vocabulary = skin.incident && skin.incident.chatter &&
     skin.incident.chatter.vocabulary;
   if (!isPlainObject(vocabulary)) return null;
@@ -1732,6 +1746,7 @@ module.exports = {
   buildSev1Chatter,
   replaceChatterVocabulary,
   isPlainObject,
+  isValidChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,

@@ -15,6 +15,7 @@ const {
   SEV1_INCIDENTS,
   getSev1ChatterVocabulary,
   isPlainObject,
+  isValidChatterVocabulary,
   getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
@@ -147,14 +148,11 @@ for (const skin of Object.values(ONCALL_SKINS)) {
         incidentVertical: incidentStory.vertical,
       });
     }
-    const vocabulary = skin.incident.chatter &&
-      skin.incident.chatter.vocabulary;
-    const invalidVocabulary = vocabulary != null && (
-      !isPlainObject(vocabulary) ||
-      Object.entries(vocabulary).some(([source, replacement]) =>
-        !source.trim() ||
-        typeof replacement !== 'string' ||
-        !replacement.trim())
+    const chatter = skin.incident.chatter;
+    const vocabulary = isPlainObject(chatter) && chatter.vocabulary;
+    const invalidVocabulary = chatter != null && (
+      !isPlainObject(chatter) ||
+      (vocabulary != null && !isValidChatterVocabulary(vocabulary))
     );
     if (invalidVocabulary) {
       logger.warn('On-Call skin incident chatter vocabulary is invalid', {
@@ -563,7 +561,11 @@ router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
       skinConfig.incident &&
       skinConfig.incident.chatter &&
       skinConfig.incident.chatter.vocabulary;
-    const chatterVocabulary = getSev1ChatterVocabulary(incidentStory, skinConfig);
+    const chatterVocabulary = getSev1ChatterVocabulary(
+      incidentStory,
+      skinConfig,
+      storyKind,
+    );
     const skinMatches = Boolean(
       skinConfig &&
       incidentStory &&
