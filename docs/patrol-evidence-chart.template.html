@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+  Slow Query Patrol evidence chart template.
+
+  Used by the daily patrol (playbook `!slow_query_patrol`, section 2) to render the
+  chart it attaches to the #1 Linear issue, the Slack digest, and the PR body.
+
+  Copy this file to /tmp, replace everything inside the MEASURED DATA block with the
+  values measured from the Datadog log query, serve it over a local HTTP server, and
+  screenshot it in the browser. Do not commit the copy or the screenshot, do not add
+  styling, and do not add panels or prose beyond the one-sentence takeaway: the chart
+  has to be readable in a few seconds on a shared screen.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Slow Query Patrol — evidence</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  :root { --ink:#0b0b0c; --muted:#6b6f76; --line:#e6e7ea; --bg:#ffffff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif; }
+  .card { width:1080px; margin:24px auto; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  header { padding:20px 28px 16px; }
+  h1 { margin:0; font-size:21px; letter-spacing:-0.01em; font-weight:600; }
+  .sub { margin-top:5px; font-size:12px; color:var(--muted); }
+  .sub code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; }
+  .panels { display:grid; grid-template-columns:1fr 1fr; }
+  .panel { padding:6px 12px 10px; }
+  .panel + .panel { border-left:1px solid var(--line); }
+  .ptitle { font-size:14px; font-weight:600; margin:0 0 8px 16px; }
+  .chart { height:290px; }
+  footer { padding:16px 28px 20px; border-top:1px solid var(--line); font-size:14px; line-height:1.5; }
+  footer b { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <h1>checkout-api — where database time actually goes</h1>
+    <div class="sub" id="sub"></div>
+  </header>
+
+  <div class="panels">
+    <div class="panel">
+      <p class="ptitle">Total time burned (seconds)</p>
+      <div id="total" class="chart"></div>
+    </div>
+    <div class="panel">
+      <p class="ptitle">Time for one execution (ms, log scale)</p>
+      <div id="dur" class="chart"></div>
+    </div>
+  </div>
+
+  <footer id="takeaway"></footer>
+</div>
+
+<script>
+/* ---------- MEASURED DATA — replace with this run's values, ranked by total time ---------- */
+const WINDOW = '2026-08-17 18:21 → 2026-08-18 00:21 UTC';   // the window actually measured
+const EVENTS = '10,796';                                     // db.query events the chart is based on
+const ROWS = [
+  // name,                     execs, mean ms, p95 ms, total s
+  ['inventory.stock_by_sku',   9720,   11.92,  17.64, 115.82],
+  ['orders.line_items_scan',   1040,   46.59,  57.40,  48.46],
+  ['ledger.full_scan',           36, 1063.36, 1200.13, 38.28],
+];
+// One sentence, plain language, stating what the two panels disagree about. If total-time and
+// p95 rankings agree, say that instead — never assert a divergence the data does not show.
+const TAKEAWAY = 'The slowest query is not the expensive one. <b>ledger.full_scan</b> takes 89&times; longer '
+  + 'per call, but runs 36 times; <b>inventory.stock_by_sku</b> runs 9,720 times and costs the service 3&times; more.';
+/* ---------- end measured data ---------- */
+
+const NAMES = ROWS.map(r => r[0]);
+const MEAN = ROWS.map(r => r[2]);
+const P95 = ROWS.map(r => r[3]);
+const TOTALS = ROWS.map(r => r[4]);
+const MONO = 'ui-monospace,SFMono-Regular,Menlo,monospace';
+const AXIS = { color:'#6b6f76', fontSize:11 };
+
+document.getElementById('sub').innerHTML = WINDOW + ' · ' + EVENTS
+  + ' query executions · rendered from Datadog logs <code>service:checkout-api @event:db.query</code>';
+document.getElementById('takeaway').innerHTML = TAKEAWAY;
+
+echarts.init(document.getElementById('total')).setOption({
+  animation:false,
+  grid:{ left:186, right:78, top:10, bottom:24 },
+  xAxis:{ type:'value', axisLabel:AXIS, splitLine:{ lineStyle:{ color:'#f1f2f4' } } },
+  yAxis:{ type:'category', inverse:true, data:NAMES,
+          axisLabel:{ color:'#0b0b0c', fontSize:12.5, fontFamily:MONO }, axisTick:{ show:false } },
+  series:[{ type:'bar', data:TOTALS, barWidth:30,
+            itemStyle:{ color:(p)=> p.dataIndex === 0 ? '#0b0b0c' : '#c9ccd2' },
+            label:{ show:true, position:'right', formatter:(p)=>p.value.toFixed(1)+' s',
+                    color:'#0b0b0c', fontSize:13, fontWeight:600 } }]
+});
+
+echarts.init(document.getElementById('dur')).setOption({
+  animation:false,
+  legend:{ data:['mean','p95'], right:8, top:0, textStyle:AXIS, itemHeight:8, itemWidth:12 },
+  grid:{ left:56, right:20, top:34, bottom:46 },
+  xAxis:{ type:'category', data:NAMES, axisTick:{ show:false },
+          axisLabel:{ color:'#0b0b0c', fontSize:11, interval:0, fontFamily:MONO,
+                      formatter:(v)=>v.replace('.','\n.') } },
+  yAxis:{ type:'log', axisLabel:AXIS, splitLine:{ lineStyle:{ color:'#f1f2f4' } } },
+  series:[
+    { name:'mean', type:'bar', data:MEAN, barWidth:24, itemStyle:{ color:'#c9ccd2' },
+      label:{ show:true, position:'top', offset:[-4,-2], color:'#6b6f76', fontSize:11,
+              formatter:(p)=>p.value.toLocaleString() } },
+    { name:'p95', type:'bar', data:P95, barWidth:24, itemStyle:{ color:'#0b0b0c' },
+      label:{ show:true, position:'top', offset:[6,-16], color:'#0b0b0c', fontSize:11,
+              formatter:(p)=>p.value.toLocaleString() } }
+  ]
+});
+</script>
+</body>
+</html>

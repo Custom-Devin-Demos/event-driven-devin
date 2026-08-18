@@ -221,6 +221,7 @@ Three things are deliberately separate:
 │   └── automations.test.js        # Automations page and Run Now endpoint tests
 ├── docs/
 │   ├── ...                         # Demo runbooks and scenario documentation
+│   ├── patrol-evidence-chart.template.html # Shared evidence chart template for the daily patrol
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── prompts/
 │   ├── automations-patrol-backtest.md # Mode delta for presenter backtests
@@ -232,6 +233,8 @@ Three things are deliberately separate:
 ├── REVIEW.md                      # Instructions for automated code review (Devin Review)
 └── .env.example                   # Template for environment variables
 ```
+
+The daily patrol renders its evidence chart from `docs/patrol-evidence-chart.template.html` by copying it to `/tmp`, replacing the `MEASURED DATA` block with the run's Datadog numbers, and screenshotting it. The template is committed so every run's chart looks the same; the copy and screenshot are never committed. Datadog graph embeds are deliberately not used because the log-based metric only aggregates logs ingested after it was created.
 
 ## Tech Stack
 
