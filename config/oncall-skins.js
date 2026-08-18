@@ -283,6 +283,30 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '81fea074': {
+    slug: '81fea074',
+    company: 'Stellic',
+    brandMark: 'S',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '81fea074.html',
+      title: 'Stellic — Registration',
+    },
+    accent: '#C1441A',
+    accentDark: '#a53a15',
+    theme: {
+      '--accent': '#C1441A',
+      '--ink': '#151B26',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#151B26',
+      '--chrome-text': '#F5F4ED',
+    },
+    supportCenter: 'Stellic Support',
+    supportCenterSub: 'Institution Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A STELLIC SITE — internal demo only, not affiliated with, endorsed by, or a real Stellic product.',
+  },
   '08d969be': {
     slug: '08d969be',
     company: 'Hadrian',
