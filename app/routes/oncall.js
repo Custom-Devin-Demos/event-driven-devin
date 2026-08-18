@@ -553,7 +553,9 @@ router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
   try {
     const { kind, devinEmail, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
-    const storyKind = Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, kind)
+    const knownKind = !kind ||
+      Object.prototype.hasOwnProperty.call(SEV1_INCIDENTS, kind);
+    const storyKind = knownKind && kind
       ? kind
       : 'banking-transfers';
     const incidentStory = SEV1_INCIDENTS[storyKind];
@@ -561,21 +563,32 @@ router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
       skinConfig.incident &&
       skinConfig.incident.chatter &&
       skinConfig.incident.chatter.vocabulary;
-    const vocabulary = getSev1ChatterVocabulary(
-      incidentStory,
-      skinConfig,
-      storyKind,
-    );
+    const vocabulary = knownKind
+      ? getSev1ChatterVocabulary(incidentStory, skinConfig, storyKind)
+      : null;
     const skinMatches = Boolean(
       skinConfig &&
       incidentStory &&
       skinConfig.vertical === incidentStory.vertical,
     );
-    if (skinConfig && incidentStory && !skinMatches && configuredVocabulary != null) {
+    const kindMatches = Boolean(
+      skinConfig &&
+      skinConfig.incident &&
+      skinConfig.incident.kind === storyKind,
+    );
+    if (
+      skinConfig &&
+      incidentStory &&
+      configuredVocabulary != null &&
+      (!skinMatches || !kindMatches)
+    ) {
       logger.warn('On-Call incident skin/vertical mismatch — using generic chatter', {
         skin: skinConfig.slug,
+        reason: !skinMatches ? 'vertical_mismatch' : 'incident_kind_mismatch',
+        configuredKind: skinConfig.incident && skinConfig.incident.kind,
+        requestedKind: kind,
         skinVertical: skinConfig.vertical,
-      incidentVertical: incidentStory.vertical,
+        incidentVertical: incidentStory.vertical,
       });
     }
     const result = await postOncallIncident({

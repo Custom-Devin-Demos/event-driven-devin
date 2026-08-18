@@ -250,6 +250,8 @@ const ONCALL_SKINS = {
           'Gateway team': 'Payout processor team',
           'transfer path': 'cash out path',
           'the gateway': 'the payout processor',
+          'Fund transfers degraded': 'Fast Pay cash outs degraded',
+          'Transfers': 'Fast Pay cash outs',
           'transfers': 'Fast Pay cash outs',
           'transfer': 'Fast Pay cash out',
           'customers': 'Dashers',

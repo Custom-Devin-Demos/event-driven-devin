@@ -153,10 +153,18 @@ describe('SEV-1 persona chatter vocabulary', () => {
     const vocabulary = getSev1ChatterVocabulary(story, skin, 'banking-transfers');
     const copy = buildSev1IncidentCopy(story, vocabulary);
 
-    expect(copy.title).toContain('Fast Pay cash outs');
-    expect(copy.label).toContain('Fast Pay cash outs');
-    expect(copy.summary).toContain('POST /api/oncall/banking/transfer');
-    expect(copy.summary).not.toContain('Fast Pay cash out p95');
+    expect(copy.title).toBe(
+      'Fast Pay cash outs degraded — p95 latency 10x baseline on banking-api',
+    );
+    expect(copy.label).toBe(
+      'Fast Pay cash outs degraded — banking-api p95 10x baseline',
+    );
+    expect(copy.summary).toBe(
+      'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Fast Pay cash outs eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
+    );
+    expect(copy.title).not.toMatch(/\b(?:transfers|Transfers)\b/);
+    expect(copy.label).not.toMatch(/\b(?:transfers|Transfers)\b/);
+    expect(copy.summary).not.toMatch(/\b(?:transfers|Transfers)\b/);
     expect(story.title).toBe(original.title);
     expect(story.summary).toBe(original.summary);
     expect(story.label).toBe(original.label);
