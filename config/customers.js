@@ -118,6 +118,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  '50b235c7': {
+    label: 'lululemon',
+    triggerMode: 'api',
+  },
   e7c81c9e: {
     label: 'Nordstrom',
     triggerMode: 'api',
