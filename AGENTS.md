@@ -203,6 +203,8 @@ Three things are deliberately separate:
 ├── scripts/
 │   ├── setup-datadog-dashboard.js # Creates Datadog dashboard via API
 │   ├── setup-sentry-alerts.js     # Creates Sentry alert rules via API
+│   ├── patrol-digest.js           # Formats validated Slow Query Patrol Slack digests
+│   ├── patrol-before-after.js     # Compares pre-fix and fixed patrol job responses
 │   ├── trigger.js                 # Manually trigger error scenarios
 │   ├── warmup.js                  # Pre-warm the app
 │   ├── welcome-season-sweep.js    # Validates Jan-1 plan card configs before cards mail (exits 1 on defect)
@@ -491,6 +493,9 @@ ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:300
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |
+| `npm run patrol:digest -- findings.json` | Format a validated Slow Query Patrol Slack digest |
+| `npm run patrol:before-after -- --before URL --after URL --path PATH --runs N [--pause MS]` | Compare pre-fix and fixed patrol job responses |
+| `npm run patrol:compare-page -- --before URL --after URL --path PATH [--port N]` | Serve a labelled side-by-side page of both patrol job responses |
 | `npm run demo:trigger` | Trigger an error scenario |
 | `npm run demo:reset` | Reset to healthy state |
 | `npm run demo:warmup` | Pre-warm the app |
