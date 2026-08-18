@@ -1133,6 +1133,25 @@ function replaceChatterVocabulary(text, vocabulary) {
   }).join('');
 }
 
+function buildSev1IncidentCopy(story, vocabulary = null) {
+  const endpoint = ALERT_SCENARIOS[story.vertical] &&
+    ALERT_SCENARIOS[story.vertical].endpoint;
+  const replaceCopyText = (text) => {
+    if (!endpoint) return replaceChatterVocabulary(text, vocabulary);
+    const escapedEndpoint = endpoint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return String(text).split(new RegExp(`(${escapedEndpoint})`, 'g'))
+      .map((part) => part === endpoint
+        ? part
+        : replaceChatterVocabulary(part, vocabulary))
+      .join('');
+  };
+  return {
+    title: replaceCopyText(story.title),
+    summary: replaceCopyText(story.summary),
+    label: replaceCopyText(story.label),
+  };
+}
+
 function getSev1ChatterVocabulary(story, skin, kind) {
   if (
     !story ||
@@ -1269,7 +1288,7 @@ function startSev1Chatter(
   publicId,
   windowMs = SEV1_WINDOW_MS,
   devinEmail = null,
-  chatterVocabulary = null,
+  vocabulary = null,
 ) {
   stopSev1Chatter(runRef, 'restarted');
   const { token } = resolveOncallEnv();
@@ -1280,7 +1299,7 @@ function startSev1Chatter(
     });
     return false;
   }
-  const script = buildSev1Chatter(story, chatterVocabulary);
+  const script = buildSev1Chatter(story, vocabulary);
   if (!script.length) return false;
 
   // Message timings are anchored here (declaration time), not at channel
@@ -1519,12 +1538,14 @@ async function postOncallIncident(options = {}) {
   }
   const kind = hasKind ? options.kind : 'banking-transfers';
   const story = SEV1_INCIDENTS[kind];
+  const vocabulary = options.vocabulary || options.chatterVocabulary;
+  const copy = buildSev1IncidentCopy(story, vocabulary);
 
   let incident = null;
   try {
     incident = await declareDatadogIncident({
-      title: story.title,
-      summary: story.summary,
+      title: copy.title,
+      summary: copy.summary,
       runRef,
       triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
     });
@@ -1546,7 +1567,7 @@ async function postOncallIncident(options = {}) {
         incident.publicId,
         SEV1_WINDOW_MS,
         options.devinEmail,
-        options.chatterVocabulary,
+        vocabulary,
       );
     } else {
       logger.warn('SEV-1 persona chatter skipped — probe did not start', { runRef });
@@ -1554,8 +1575,8 @@ async function postOncallIncident(options = {}) {
     const entry = {
       runRef,
       kind,
-      label: story.label,
-      summary: story.summary,
+      label: copy.label,
+      summary: copy.summary,
       id: incident.id,
       publicId: incident.publicId,
       declaredAt: Date.now(),
@@ -1606,7 +1627,7 @@ async function postOncallIncident(options = {}) {
       provider: 'datadog',
       runRef,
       kind,
-      label: story.label,
+      label: copy.label,
       windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
       ...incident,
     };
@@ -1624,10 +1645,10 @@ async function postOncallIncident(options = {}) {
 
   const scenario = ALERT_SCENARIOS[story.vertical];
   const text = [
-    `:fire: *SEV-1 — ${story.label}*`,
+    `:fire: *SEV-1 — ${copy.label}*`,
     '',
     `*Incident Ref:* ${runRef}`,
-    `*Summary:* ${story.summary}`,
+    `*Summary:* ${copy.summary}`,
     `*Env:* production | *Service:* ${scenario.service}`,
     `*Endpoint:* ${scenario.endpoint}`,
     '',
@@ -1652,8 +1673,8 @@ async function postOncallIncident(options = {}) {
   const entry = {
     runRef,
     kind,
-    label: story.label,
-    summary: story.summary,
+    label: copy.label,
+    summary: copy.summary,
     id: null,
     publicId: null,
     declaredAt: Date.now(),
@@ -1674,7 +1695,7 @@ async function postOncallIncident(options = {}) {
     channel: alertsChannel,
     runRef,
     kind,
-    label: story.label,
+    label: copy.label,
     windowMinutes: Math.round(SEV1_WINDOW_MS / 60000),
   };
 }
@@ -1744,6 +1765,7 @@ module.exports = {
   getInfraState,
   postOncallIncident,
   buildSev1Chatter,
+  buildSev1IncidentCopy,
   replaceChatterVocabulary,
   isPlainObject,
   isValidChatterVocabulary,

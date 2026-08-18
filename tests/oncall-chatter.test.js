@@ -2,6 +2,7 @@ process.env.DEVIN_SLACK_USER_ID = 'U123';
 
 const {
   buildSev1Chatter,
+  buildSev1IncidentCopy,
   replaceChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
@@ -141,5 +142,33 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(vocabulary).toBeNull();
     expect(buildSev1Chatter(story, vocabulary).map((line) => line.text))
       .toEqual(buildSev1Chatter(story).map((line) => line.text));
+  });
+
+  test('applies vocabulary to declared incident copy without mutating the story', () => {
+    const original = {
+      title: story.title,
+      summary: story.summary,
+      label: story.label,
+    };
+    const vocabulary = getSev1ChatterVocabulary(story, skin, 'banking-transfers');
+    const copy = buildSev1IncidentCopy(story, vocabulary);
+
+    expect(copy.title).toContain('Fast Pay cash outs');
+    expect(copy.label).toContain('Fast Pay cash outs');
+    expect(copy.summary).toContain('POST /api/oncall/banking/transfer');
+    expect(copy.summary).not.toContain('Fast Pay cash out p95');
+    expect(story.title).toBe(original.title);
+    expect(story.summary).toBe(original.summary);
+    expect(story.label).toBe(original.label);
+  });
+
+  test('leaves declared incident copy unchanged without vocabulary', () => {
+    const copy = buildSev1IncidentCopy(story);
+
+    expect(copy).toEqual({
+      title: story.title,
+      summary: story.summary,
+      label: story.label,
+    });
   });
 });
