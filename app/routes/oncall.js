@@ -14,6 +14,7 @@ const {
   postOncallIncident,
   SEV1_INCIDENTS,
   getSev1ChatterVocabulary,
+  isPlainObject,
   getSev1State,
   setOncallConfigOverride,
   getOncallConfigView,
@@ -149,8 +150,7 @@ for (const skin of Object.values(ONCALL_SKINS)) {
     const vocabulary = skin.incident.chatter &&
       skin.incident.chatter.vocabulary;
     const invalidVocabulary = vocabulary != null && (
-      typeof vocabulary !== 'object' ||
-      Array.isArray(vocabulary) ||
+      !isPlainObject(vocabulary) ||
       Object.entries(vocabulary).some(([source, replacement]) =>
         !source.trim() ||
         typeof replacement !== 'string' ||

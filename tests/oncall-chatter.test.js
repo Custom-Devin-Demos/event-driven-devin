@@ -89,4 +89,25 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(text).toBe('transferred transfers cash out');
     expect(text).not.toContain('cash outred');
   });
+
+  test('does not substitute text inserted by another vocabulary rule', () => {
+    const text = replaceChatterVocabulary(
+      'transfers transfer',
+      { transfers: 'cash outs', 'cash out': 'payout', transfer: 'cash out' },
+    );
+
+    expect(text).toBe('cash outs cash out');
+  });
+
+  test('removes generic banking terms without changing intentional vocabulary', () => {
+    const script = buildSev1Chatter(story, getSev1ChatterVocabulary(story, skin));
+    const text = script.map((line) => line.text.replace(/`[^`]*`/g, '')).join('\n');
+
+    expect(text).not.toMatch(/\btransfers\b/);
+    expect(text).not.toMatch(/\btransfer\b/);
+    expect(text).not.toMatch(/\bcustomers\b/);
+    expect(text).not.toContain('the gateway');
+    expect(text).toContain('Transfer completed');
+    expect(text).toContain('premium-tier accounts');
+  });
 });

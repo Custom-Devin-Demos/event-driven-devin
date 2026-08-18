@@ -1089,13 +1089,16 @@ const SEV1_CHATTER_LOOKUP_MAX_ATTEMPTS = 12;
 const SEV1_CHATTER_LATE_GRACE_MS = 90000;
 const activeSev1Chatter = new Map();
 
+function isPlainObject(value) {
+  return value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    (Object.getPrototypeOf(value) === Object.prototype ||
+      Object.getPrototypeOf(value) === null);
+}
+
 function replaceChatterVocabulary(text, vocabulary) {
-  const isPlainObject = vocabulary !== null &&
-    typeof vocabulary === 'object' &&
-    !Array.isArray(vocabulary) &&
-    (Object.getPrototypeOf(vocabulary) === Object.prototype ||
-      Object.getPrototypeOf(vocabulary) === null);
-  if (!isPlainObject) return String(text);
+  if (!isPlainObject(vocabulary)) return String(text);
   const replacements = Object.entries(vocabulary)
     .filter(([source, replacement]) =>
       source.trim() &&
@@ -1103,24 +1106,22 @@ function replaceChatterVocabulary(text, vocabulary) {
       replacement.trim())
     .sort(([left], [right]) => right.length - left.length);
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const replacementBySource = new Map(replacements);
+  const matcher = replacements.length
+    ? new RegExp(replacements.map(([source]) => {
+      const prefix = /^[A-Za-z0-9]/.test(source)
+        ? '(?<![A-Za-z0-9])'
+        : '';
+      const suffix = /[A-Za-z0-9]$/.test(source)
+        ? '(?![A-Za-z0-9])'
+        : '';
+      return `${prefix}${escapeRegExp(source)}${suffix}`;
+    }).join('|'), 'g')
+    : null;
+  if (!matcher) return String(text);
   return String(text).split(/(<@[^>]+>|`[^`]*`)/g).map((part, index) => {
     if (index % 2 === 1) return part;
-    return replacements.reduce(
-      (result, [source, replacement]) => {
-        const prefix = /^[A-Za-z0-9]/.test(source)
-          ? '(?<![A-Za-z0-9])'
-          : '';
-        const suffix = /[A-Za-z0-9]$/.test(source)
-          ? '(?![A-Za-z0-9])'
-          : '';
-        const matcher = new RegExp(
-          `${prefix}${escapeRegExp(source)}${suffix}`,
-          'g',
-        );
-        return result.replace(matcher, () => replacement);
-      },
-      part,
-    );
+    return part.replace(matcher, (match) => replacementBySource.get(match));
   }).join('');
 }
 
@@ -1128,15 +1129,7 @@ function getSev1ChatterVocabulary(story, skin) {
   if (!story || !skin || skin.vertical !== story.vertical) return null;
   const vocabulary = skin.incident && skin.incident.chatter &&
     skin.incident.chatter.vocabulary;
-  if (
-    vocabulary === null ||
-    typeof vocabulary !== 'object' ||
-    Array.isArray(vocabulary) ||
-    (Object.getPrototypeOf(vocabulary) !== Object.prototype &&
-      Object.getPrototypeOf(vocabulary) !== null)
-  ) {
-    return null;
-  }
+  if (!isPlainObject(vocabulary)) return null;
   const validEntries = Object.entries(vocabulary).filter(
     ([source, replacement]) =>
       source.trim() &&
@@ -1738,6 +1731,7 @@ module.exports = {
   postOncallIncident,
   buildSev1Chatter,
   replaceChatterVocabulary,
+  isPlainObject,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,
