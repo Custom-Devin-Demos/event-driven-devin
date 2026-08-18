@@ -91,7 +91,15 @@ function summaryLine() {
   if (top[0] === slowest[0]) {
     return first + ' It is also the slowest per execution, at ' + n(Math.round(top[2])) + ' ms.';
   }
-  return first + ' ' + q(slowest[0]) + ' is ' + Math.round(slowest[2] / top[2]) + ' times slower per execution. It ran '
+  const ratio = slowest[2] / top[2];
+  if (!Number.isFinite(ratio) || top[2] === 0 || ratio < 1.5) {
+    return q(top[0]) + ' ran ' + n(top[1]) + ' times and used ' + top[4].toFixed(1)
+      + ' seconds; its mean was ' + top[2].toFixed(2) + ' ms per execution, while ' + q(slowest[0])
+      + ' averaged ' + slowest[2].toFixed(2) + ' ms per execution and ran ' + n(slowest[1])
+      + ' times using ' + slowest[4].toFixed(1) + ' seconds.';
+  }
+  const roundedRatio = ratio < 10 ? ratio.toFixed(1) : Math.round(ratio);
+  return first + ' ' + q(slowest[0]) + ' is ' + roundedRatio + ' times slower per execution. It ran '
     + n(slowest[1]) + ' times and used ' + slowest[4].toFixed(1) + ' seconds.';
 }
 
