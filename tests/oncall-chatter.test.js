@@ -2,6 +2,7 @@ process.env.DEVIN_SLACK_USER_ID = 'U123';
 
 const {
   buildSev1Chatter,
+  replaceChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
 } = require('../app/services/oncall');
@@ -20,6 +21,7 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(text).toContain('Dashers');
     expect(text).toContain('the payout processor');
     expect(text).toContain('cash out path');
+    expect(text).not.toContain('the gateway');
     expect(text).not.toContain('Fast Pay cash out path');
   });
 
@@ -62,5 +64,29 @@ describe('SEV-1 persona chatter vocabulary', () => {
     expect(vocabulary).toBeNull();
     expect(buildSev1Chatter(story, vocabulary).map((line) => line.text))
       .toEqual(buildSev1Chatter(story).map((line) => line.text));
+  });
+
+  test('ignores malformed vocabulary without changing generic chatter', () => {
+    const generic = buildSev1Chatter(story).map((line) => line.text);
+    const malformed = [
+      'not a vocabulary',
+      ['transfer', 'cash out'],
+      { transfer: 42 },
+    ];
+
+    malformed.forEach((vocabulary) => {
+      expect(buildSev1Chatter(story, vocabulary).map((line) => line.text))
+        .toEqual(generic);
+    });
+  });
+
+  test('does not replace inflected words', () => {
+    const text = replaceChatterVocabulary(
+      'transferred transfers transfer',
+      { transfer: 'cash out' },
+    );
+
+    expect(text).toBe('transferred transfers cash out');
+    expect(text).not.toContain('cash outred');
   });
 });

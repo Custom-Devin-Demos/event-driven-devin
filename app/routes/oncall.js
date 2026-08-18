@@ -152,7 +152,6 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       typeof vocabulary !== 'object' ||
       Array.isArray(vocabulary) ||
       Object.entries(vocabulary).some(([source, replacement]) =>
-        typeof source !== 'string' ||
         !source.trim() ||
         typeof replacement !== 'string' ||
         !replacement.trim())
@@ -560,19 +559,23 @@ router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
       ? kind
       : 'banking-transfers';
     const incidentStory = SEV1_INCIDENTS[storyKind];
+    const configuredVocabulary = skinConfig &&
+      skinConfig.incident &&
+      skinConfig.incident.chatter &&
+      skinConfig.incident.chatter.vocabulary;
+    const chatterVocabulary = getSev1ChatterVocabulary(incidentStory, skinConfig);
     const skinMatches = Boolean(
       skinConfig &&
       incidentStory &&
       skinConfig.vertical === incidentStory.vertical,
     );
-    if (skinConfig && incidentStory && !skinMatches) {
+    if (skinConfig && incidentStory && !skinMatches && configuredVocabulary != null) {
       logger.warn('On-Call incident skin/vertical mismatch — using generic chatter', {
         skin: skinConfig.slug,
         skinVertical: skinConfig.vertical,
         incidentVertical: incidentStory.vertical,
       });
     }
-    const chatterVocabulary = getSev1ChatterVocabulary(incidentStory, skinConfig);
     const result = await postOncallIncident({
       kind,
       devinEmail,

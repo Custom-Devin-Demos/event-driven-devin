@@ -249,6 +249,7 @@ const ONCALL_SKINS = {
           'settlement timeouts': 'payout settlement timeouts',
           'Gateway team': 'Payout processor team',
           'transfer path': 'cash out path',
+          'the gateway': 'the payout processor',
           'transfers': 'Fast Pay cash outs',
           'transfer': 'Fast Pay cash out',
           'customers': 'Dashers',

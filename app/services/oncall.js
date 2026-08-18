@@ -1090,12 +1090,35 @@ const SEV1_CHATTER_LATE_GRACE_MS = 90000;
 const activeSev1Chatter = new Map();
 
 function replaceChatterVocabulary(text, vocabulary) {
-  const replacements = Object.entries(vocabulary || {})
+  const isPlainObject = vocabulary !== null &&
+    typeof vocabulary === 'object' &&
+    !Array.isArray(vocabulary) &&
+    (Object.getPrototypeOf(vocabulary) === Object.prototype ||
+      Object.getPrototypeOf(vocabulary) === null);
+  if (!isPlainObject) return String(text);
+  const replacements = Object.entries(vocabulary)
+    .filter(([source, replacement]) =>
+      source.trim() &&
+      typeof replacement === 'string' &&
+      replacement.trim())
     .sort(([left], [right]) => right.length - left.length);
+  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return String(text).split(/(<@[^>]+>|`[^`]*`)/g).map((part, index) => {
     if (index % 2 === 1) return part;
     return replacements.reduce(
-      (result, [source, replacement]) => result.split(source).join(replacement),
+      (result, [source, replacement]) => {
+        const prefix = /^[A-Za-z0-9]/.test(source)
+          ? '(?<![A-Za-z0-9])'
+          : '';
+        const suffix = /[A-Za-z0-9]$/.test(source)
+          ? '(?![A-Za-z0-9])'
+          : '';
+        const matcher = new RegExp(
+          `${prefix}${escapeRegExp(source)}${suffix}`,
+          'g',
+        );
+        return result.replace(matcher, () => replacement);
+      },
       part,
     );
   }).join('');
@@ -1103,7 +1126,24 @@ function replaceChatterVocabulary(text, vocabulary) {
 
 function getSev1ChatterVocabulary(story, skin) {
   if (!story || !skin || skin.vertical !== story.vertical) return null;
-  return (skin.incident && skin.incident.chatter && skin.incident.chatter.vocabulary) || null;
+  const vocabulary = skin.incident && skin.incident.chatter &&
+    skin.incident.chatter.vocabulary;
+  if (
+    vocabulary === null ||
+    typeof vocabulary !== 'object' ||
+    Array.isArray(vocabulary) ||
+    (Object.getPrototypeOf(vocabulary) !== Object.prototype &&
+      Object.getPrototypeOf(vocabulary) !== null)
+  ) {
+    return null;
+  }
+  const validEntries = Object.entries(vocabulary).filter(
+    ([source, replacement]) =>
+      source.trim() &&
+      typeof replacement === 'string' &&
+      replacement.trim(),
+  );
+  return validEntries.length ? Object.fromEntries(validEntries) : null;
 }
 
 function buildSev1Chatter(story, vocabulary = null) {
@@ -1697,6 +1737,7 @@ module.exports = {
   getInfraState,
   postOncallIncident,
   buildSev1Chatter,
+  replaceChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
   getSev1State,
