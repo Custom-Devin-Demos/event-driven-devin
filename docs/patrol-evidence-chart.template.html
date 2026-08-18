@@ -62,18 +62,20 @@
 
 <script>
 /* ---------- MEASURED DATA — replace every value below. Placeholders, not real numbers. ---------- */
-const WINDOW = '<start> → <end> UTC';   // the window measured, not the window requested
-const EVENTS = '<n>';                   // db.query events the chart is based on
+const WINDOW = '{{start}} → {{end}} UTC';   // the window measured, not the window requested
+const EVENTS = '{{n}}';                     // db.query events the chart is based on
 const ROWS = [
   // name,          execs, mean ms, p95 ms, total s   — one row per query name, highest total first
-  ['<query_name>',      0,       0,      0,       0],
+  // Carry two decimals; never round a sub-millisecond mean or p95 to 0.
+  ['{{query_name}}',      0,       0,      0,       0],
 ];
 /* ---------- end measured data ---------- */
 
-const NAMES = ROWS.map(r => r[0]);
-const MEAN = ROWS.map(r => r[2]);
-const P95 = ROWS.map(r => r[3]);
-const TOTALS = ROWS.map(r => r[4]);
+const SORTED_ROWS = ROWS.slice().sort((a, b) => b[4] - a[4]);
+const NAMES = SORTED_ROWS.map(r => r[0]);
+const MEAN = SORTED_ROWS.map(r => r[2]);
+const P95 = SORTED_ROWS.map(r => r[3]);
+const TOTALS = SORTED_ROWS.map(r => r[4]);
 const MONO = 'ui-monospace,SFMono-Regular,Menlo,monospace';
 const AXIS = { color:'#6b6f76', fontSize:11 };
 
@@ -85,8 +87,8 @@ document.getElementById('takeaway').innerHTML = summaryLine();
 function summaryLine() {
   const q = (s) => '<b>' + s + '</b>';
   const n = (v) => v.toLocaleString();
-  const top = ROWS.slice().sort((a, b) => b[4] - a[4])[0];
-  const slowest = ROWS.slice().sort((a, b) => b[2] - a[2])[0];
+  const top = SORTED_ROWS[0];
+  const slowest = SORTED_ROWS.reduce((current, row) => row[2] > current[2] ? row : current);
   const first = q(top[0]) + ' ran ' + n(top[1]) + ' times and used ' + top[4].toFixed(1) + ' seconds.';
   if (top[0] === slowest[0]) {
     return first + ' It is also the slowest per execution, at ' + n(Math.round(top[2])) + ' ms.';
