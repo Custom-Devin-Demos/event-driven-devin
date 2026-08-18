@@ -1547,7 +1547,12 @@ async function postOncallIncident(options = {}) {
   }
   const kind = hasKind ? options.kind : 'banking-transfers';
   const story = SEV1_INCIDENTS[kind];
-  const vocabulary = options.vocabulary || options.chatterVocabulary;
+  const vocabulary = options.vocabulary;
+  if (options.vocabularyConfigured && !vocabulary) {
+    logger.warn('On-Call incident chatter vocabulary has no usable entries', {
+      runRef,
+    });
+  }
   const copy = buildSev1IncidentCopy(story, vocabulary);
 
   let incident = null;

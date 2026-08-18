@@ -608,6 +608,12 @@ router.post('/api/oncall/incident', oncallCap('incident'), async (req, res) => {
       kind,
       devinEmail,
       vocabulary,
+      vocabularyConfigured: Boolean(
+        knownKind &&
+        configuredVocabulary != null &&
+        skinMatches &&
+        kindMatches,
+      ),
     });
     if (result.ok) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok ? 200 : 400).json(result);
