@@ -91,7 +91,16 @@ function displayValue(value) {
 }
 
 function formatDuration(value) {
-  return value < 1 ? value.toFixed(2) : value.toFixed(2);
+  if (value === 0 || Math.abs(value) >= 1) {
+    return value.toFixed(2);
+  }
+  const decimals = Math.min(20, Math.max(2, Math.ceil(-Math.log10(Math.abs(value))) + 2));
+  const fixed = value.toFixed(decimals);
+  if (Number(fixed) === 0) {
+    return value.toExponential(6);
+  }
+  const [whole, fraction = ''] = fixed.split('.');
+  return `${whole}.${fraction.replace(/0+$/, '').padEnd(2, '0')}`;
 }
 
 function formatRow(row, widths) {
@@ -127,6 +136,13 @@ async function compareBeforeAfter(options, output = process.stdout) {
     const responses = {};
     responses[first] = await requestJson(options[first], options.path);
     responses[second] = await requestJson(options[second], options.path);
+    const source = responses.before.usesResponseDuration && responses.after.usesResponseDuration
+      ? 'response totalDurationMs'
+      : 'wall-clock around the request';
+    if (durationSource && durationSource !== source) {
+      throw new Error(`duration source changed on run ${run}: ${durationSource} -> ${source}`);
+    }
+    durationSource = source;
 
     const rowInvariants = { before: {}, after: {} };
     for (const side of ['before', 'after']) {
@@ -155,10 +171,6 @@ async function compareBeforeAfter(options, output = process.stdout) {
       invariants: options.invariants.map((field) => rowInvariants.before[field]),
     };
     rows.push(row);
-    const source = responses.before.usesResponseDuration && responses.after.usesResponseDuration
-      ? 'response totalDurationMs'
-      : 'wall-clock around the request';
-    durationSource = durationSource && durationSource !== source ? 'mixed response and wall-clock' : source;
     if (!widths) {
       widths = [
         Math.max(3, String(options.runs).length),
@@ -173,8 +185,9 @@ async function compareBeforeAfter(options, output = process.stdout) {
 
   const meanBefore = rows.reduce((sum, row) => sum + row.beforeMs, 0) / rows.length;
   const meanAfter = rows.reduce((sum, row) => sum + row.afterMs, 0) / rows.length;
-  const speedup = meanBefore / meanAfter;
-  output.write(`Mean pre-fix: ${formatDuration(meanBefore)} ms, mean fixed: ${formatDuration(meanAfter)} ms, speedup: ${speedup.toFixed(2)}x. Invariants were identical across every run.\n`);
+  const speedup = meanAfter === 0 ? null : meanBefore / meanAfter;
+  const speedupText = speedup === null ? 'speedup is not computable' : `speedup: ${speedup.toFixed(2)}x`;
+  output.write(`Mean pre-fix: ${formatDuration(meanBefore)} ms, mean fixed: ${formatDuration(meanAfter)} ms, ${speedupText}. Invariants were identical across every run.\n`);
   return { rows, meanBefore, meanAfter, speedup };
 }
 

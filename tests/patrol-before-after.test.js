@@ -99,3 +99,39 @@ test('falls back to wall-clock timing when totalDurationMs is absent', async () 
   const { output } = await runComparison(before, after, { runs: 1 });
   expect(output).toContain('Duration source: wall-clock around the request');
 });
+
+test('rejects a duration source that changes after the header is printed', async () => {
+  let beforeCalls = 0;
+  const before = await startServer(() => {
+    beforeCalls += 1;
+    return {
+      totalAvailable: 100,
+      innerQueryCount: 10,
+      ...(beforeCalls === 1 ? { totalDurationMs: 20 } : {}),
+    };
+  });
+  const after = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 10,
+  }));
+  await expect(runComparison(before, after, { runs: 2 })).rejects.toThrow(
+    /duration source changed on run 2: response totalDurationMs -> wall-clock around the request/,
+  );
+});
+
+test('reports an uncomputable speedup when the fixed mean is zero', async () => {
+  const before = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 20,
+  }));
+  const after = await startServer(() => ({
+    totalAvailable: 100,
+    innerQueryCount: 10,
+    totalDurationMs: 0,
+  }));
+  const { output } = await runComparison(before, after, { runs: 1 });
+  expect(output).toContain('Mean pre-fix: 20.00 ms, mean fixed: 0.00 ms, speedup is not computable.');
+  expect(output).not.toContain('Infinity');
+});
