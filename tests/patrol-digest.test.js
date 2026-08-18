@@ -21,7 +21,12 @@ function base(overrides = {}) {
       url: 'https://linear.app/acme/issue/PAT-8',
     })),
     alreadyTracked: [],
-    fix: { pr: 'PR #4726', url: 'https://github.com/acme/repo/pull/4726', summary: 'Add the inventory index.' },
+    fix: {
+      pr: 'PR #4726',
+      url: 'https://github.com/acme/repo/pull/4726',
+      summary: 'Add the inventory index.',
+      merged: false,
+    },
     ...overrides,
   };
 }
@@ -76,6 +81,14 @@ test('omits the fix group when fix is null', () => {
   expect(formatDigest(base({ fix: null }))).not.toContain('*Fix:*');
 });
 
+test('renders merged and unmerged fix states without em dashes', () => {
+  expect(formatDigest(base())).toContain('Not merged.');
+  expect(formatDigest(base({
+    fix: { ...base().fix, merged: true },
+  }))).toContain('Merged.');
+  expect(formatDigest(base())).not.toContain('—');
+});
+
 test('preserves a sub-millisecond mean instead of printing zero', () => {
   const digest = formatDigest(base({
     rows: [{ query: 'fast.query', execs: 2, mean: 0.0042, p95: 0.0084, total: 0.01 }],
@@ -93,6 +106,47 @@ test('prints the backtest project only for backtests', () => {
 
 test('requires a complete fix summary sentence', () => {
   expect(() => formatDigest(base({
-    fix: { pr: 'PR #4726', url: 'https://github.com/acme/repo/pull/4726', summary: 'Add the index' },
+    fix: {
+      pr: 'PR #4726',
+      url: 'https://github.com/acme/repo/pull/4726',
+      summary: 'Add the index',
+      merged: false,
+    },
   }))).toThrow(/fix\.summary/);
+});
+
+test('rejects empty projects, duplicate queries, and control characters', () => {
+  expect(() => formatDigest(base({ mode: 'BACKTEST', backtestProject: '  ' }))).toThrow(/backtestProject/);
+  expect(() => formatDigest(base({
+    fix: { ...base().fix, merged: undefined },
+  }))).toThrow(/fix\.merged/);
+  expect(() => formatDigest(base({
+    rows: [base().rows[0], { ...base().rows[0], total: 1 }],
+  }))).toThrow(/rows\[1\]\.query/);
+  expect(() => formatDigest(base({
+    rows: [{ ...base().rows[0], query: 'bad`query' }],
+  }))).toThrow(/rows\[0\]\.query/);
+  expect(() => formatDigest(base({
+    filed: [{ ...base().filed[0], id: 'PAT<8' }],
+  }))).toThrow(/filed\[0\]\.id/);
+  expect(() => formatDigest(base({
+    filed: [{ ...base().filed[0], id: 'PAT>8' }],
+  }))).toThrow(/filed\[0\]\.id/);
+  expect(() => formatDigest(base({
+    filed: [{ ...base().filed[0], id: 'PAT|8' }],
+  }))).toThrow(/filed\[0\]\.id/);
+  expect(() => formatDigest(base({
+    filed: [{ ...base().filed[0], title: 'Bad|title' }],
+  }))).toThrow(/filed\[0\]\.title/);
+  expect(() => formatDigest(base({ ranking: 'handwritten' }))).toThrow(/ranking/);
+});
+
+test('keeps at least two decimals for sub-millisecond values', () => {
+  const digest = formatDigest(base({
+    rows: [{ query: 'near.one', execs: 1, mean: 0.9999, p95: 0.9999, total: 0.01 }],
+  }));
+  expect(digest).toContain('1.00 ms');
+  expect(formatDigest(base({
+    rows: [{ query: 'tiny', execs: 1, mean: 1e-30, p95: 1e-30, total: 0.01 }],
+  }))).not.toMatch(/\b0(?:\.0+)? ms\b/);
 });

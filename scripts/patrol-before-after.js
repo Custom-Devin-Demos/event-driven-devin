@@ -1,0 +1,193 @@
+#!/usr/bin/env node
+
+const http = require('http');
+const https = require('https');
+
+const DEFAULT_INVARIANTS = ['totalAvailable', 'innerQueryCount'];
+
+function parseArgs(argv) {
+  const options = {};
+  for (let index = 0; index < argv.length; index += 2) {
+    const key = argv[index];
+    const value = argv[index + 1];
+    if (!key || !key.startsWith('--') || value === undefined) {
+      throw new Error('usage: node scripts/patrol-before-after.js --before URL --after URL --path PATH --runs N [--invariants a,b]');
+    }
+    options[key.slice(2)] = value;
+  }
+  for (const key of ['before', 'after', 'path', 'runs']) {
+    if (!options[key]) {
+      throw new Error(`missing --${key}`);
+    }
+  }
+  if (!/^\/.+/.test(options.path)) {
+    throw new Error('--path must start with /');
+  }
+  if (!/^[1-9]\d*$/.test(options.runs)) {
+    throw new Error('--runs must be a positive integer');
+  }
+  options.runs = Number(options.runs);
+  options.invariants = options.invariants
+    ? options.invariants.split(',').map((name) => name.trim()).filter(Boolean)
+    : DEFAULT_INVARIANTS;
+  if (options.invariants.length === 0) {
+    throw new Error('--invariants must name at least one field');
+  }
+  return options;
+}
+
+function requestJson(baseUrl, path) {
+  const url = new URL(path, `${baseUrl.replace(/\/$/, '')}/`);
+  const client = url.protocol === 'https:' ? https : http;
+  const startedAt = process.hrtime.bigint();
+  return new Promise((resolve, reject) => {
+    const request = client.get(url, (response) => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        body += chunk;
+      });
+      response.on('end', () => {
+        const wallClockMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+        if (response.statusCode < 200 || response.statusCode >= 300) {
+          reject(new Error(`${url.href}: returned HTTP ${response.statusCode}`));
+          return;
+        }
+        let parsed;
+        try {
+          parsed = JSON.parse(body);
+        } catch {
+          reject(new Error(`${url.href}: response body is not JSON`));
+          return;
+        }
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          reject(new Error(`${url.href}: response body is not a JSON object`));
+          return;
+        }
+        if ('totalDurationMs' in parsed
+          && (typeof parsed.totalDurationMs !== 'number' || !Number.isFinite(parsed.totalDurationMs))) {
+          reject(new Error(`${url.href}: totalDurationMs is not a finite number`));
+          return;
+        }
+        resolve({
+          body: parsed,
+          durationMs: 'totalDurationMs' in parsed ? parsed.totalDurationMs : wallClockMs,
+          usesResponseDuration: 'totalDurationMs' in parsed,
+        });
+      });
+    });
+    request.on('error', (error) => {
+      reject(new Error(`${url.href}: ${error.message}`));
+    });
+  });
+}
+
+function valuesEqual(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function displayValue(value) {
+  return typeof value === 'string' ? value : JSON.stringify(value);
+}
+
+function formatDuration(value) {
+  return value < 1 ? value.toFixed(2) : value.toFixed(2);
+}
+
+function formatRow(row, widths) {
+  const values = [
+    String(row.run),
+    `${formatDuration(row.beforeMs)} ms`,
+    `${formatDuration(row.afterMs)} ms`,
+    ...row.invariants.map(displayValue),
+  ];
+  return values.map((value, index) => index === 0
+    ? value.padStart(widths[index])
+    : value.padEnd(widths[index])).join('  ');
+}
+
+function tableHeader(invariants, widths, durationSource) {
+  const labels = ['run', 'pre-fix code', 'fixed code', ...invariants];
+  const line = labels.map((label, index) => index === 0
+    ? label.padStart(widths[index])
+    : label.padEnd(widths[index])).join('  ');
+  return [`Duration source: ${durationSource}`, line].join('\n');
+}
+
+async function compareBeforeAfter(options, output = process.stdout) {
+  const rows = [];
+  const baselines = { before: new Map(), after: new Map() };
+  let durationSource;
+  let widths;
+  output.write('Slow Query Patrol before/after\n');
+
+  for (let run = 1; run <= options.runs; run += 1) {
+    const first = run % 2 === 1 ? 'before' : 'after';
+    const second = first === 'before' ? 'after' : 'before';
+    const responses = {};
+    responses[first] = await requestJson(options[first], options.path);
+    responses[second] = await requestJson(options[second], options.path);
+
+    const rowInvariants = { before: {}, after: {} };
+    for (const side of ['before', 'after']) {
+      for (const field of options.invariants) {
+        if (!Object.prototype.hasOwnProperty.call(responses[side].body, field)) {
+          throw new Error(`${new URL(options[side]).origin}${options.path}: missing invariant field ${field}`);
+        }
+        const value = responses[side].body[field];
+        if (baselines[side].has(field) && !valuesEqual(baselines[side].get(field), value)) {
+          throw new Error(`invariant field ${field} drifted on ${side}: ${displayValue(baselines[side].get(field))} -> ${displayValue(value)}`);
+        }
+        baselines[side].set(field, value);
+        rowInvariants[side][field] = value;
+      }
+    }
+    for (const field of options.invariants) {
+      if (!valuesEqual(rowInvariants.before[field], rowInvariants.after[field])) {
+        throw new Error(`invariant field ${field} differs on run ${run}: before=${displayValue(rowInvariants.before[field])}, after=${displayValue(rowInvariants.after[field])}`);
+      }
+    }
+
+    const row = {
+      run,
+      beforeMs: responses.before.durationMs,
+      afterMs: responses.after.durationMs,
+      invariants: options.invariants.map((field) => rowInvariants.before[field]),
+    };
+    rows.push(row);
+    const source = responses.before.usesResponseDuration && responses.after.usesResponseDuration
+      ? 'response totalDurationMs'
+      : 'wall-clock around the request';
+    durationSource = durationSource && durationSource !== source ? 'mixed response and wall-clock' : source;
+    if (!widths) {
+      widths = [
+        Math.max(3, String(options.runs).length),
+        Math.max('pre-fix code'.length, 14),
+        Math.max('fixed code'.length, 14),
+        ...options.invariants.map((field) => Math.max(field.length, 12)),
+      ];
+      output.write(`${tableHeader(options.invariants, widths, durationSource)}\n`);
+    }
+    output.write(`${formatRow(row, widths)}\n`);
+  }
+
+  const meanBefore = rows.reduce((sum, row) => sum + row.beforeMs, 0) / rows.length;
+  const meanAfter = rows.reduce((sum, row) => sum + row.afterMs, 0) / rows.length;
+  const speedup = meanBefore / meanAfter;
+  output.write(`Mean pre-fix: ${formatDuration(meanBefore)} ms, mean fixed: ${formatDuration(meanAfter)} ms, speedup: ${speedup.toFixed(2)}x. Invariants were identical across every run.\n`);
+  return { rows, meanBefore, meanAfter, speedup };
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  await compareBeforeAfter(options);
+}
+
+if (require.main === module) {
+  main().catch((error) => {
+    process.stderr.write(`Error: ${error.message}\n`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = { compareBeforeAfter, parseArgs, requestJson };

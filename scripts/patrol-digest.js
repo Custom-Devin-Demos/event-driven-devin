@@ -49,6 +49,14 @@ function validateString(value, field) {
   }
 }
 
+function validateControlCharacters(value, field, characters) {
+  for (const character of characters) {
+    if (value.includes(character)) {
+      fail(field, `must not contain "${character}"`);
+    }
+  }
+}
+
 function validateUrl(value, field) {
   validateString(value, field);
   if (!value.startsWith('https://')) {
@@ -74,14 +82,19 @@ function validateIssue(issue, field) {
   validateString(issue.id, `${field}.id`);
   validateUrl(issue.url, `${field}.url`);
   validateString(issue.title, `${field}.title`);
+  validateControlCharacters(issue.id, `${field}.id`, ['<', '>', '|']);
+  validateControlCharacters(issue.title, `${field}.title`, ['<', '>', '|']);
 }
 
 function validateInput(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     fail('input', 'must be an object');
   }
+  if (Object.prototype.hasOwnProperty.call(input, 'ranking')) {
+    fail('ranking', 'must not be supplied because the ranking is generated');
+  }
   for (const key of Object.keys(input)) {
-    if (!TOP_LEVEL_KEYS.has(key) || key === 'ranking') {
+    if (!TOP_LEVEL_KEYS.has(key)) {
       fail(key, 'is not allowed');
     }
   }
@@ -111,6 +124,10 @@ function validateInput(input) {
       }
     }
     validateString(row.query, `${field}.query`);
+    validateControlCharacters(row.query, `${field}.query`, ['`']);
+    if (input.rows.some((other, otherIndex) => otherIndex < index && other.query === row.query)) {
+      fail(`${field}.query`, 'must be unique');
+    }
     if (!Number.isInteger(row.execs) || row.execs <= 0) {
       fail(`${field}.execs`, 'must be a positive integer');
     }
@@ -131,6 +148,9 @@ function validateInput(input) {
       fail('backtestProject', 'is required for BACKTEST');
     }
     validateString(input.backtestProject, 'backtestProject');
+    if (input.backtestProject.trim() === '') {
+      fail('backtestProject', 'must not be empty');
+    }
   } else if ('backtestProject' in input) {
     fail('backtestProject', 'is only allowed for BACKTEST');
   }
@@ -139,7 +159,7 @@ function validateInput(input) {
     if (!input.fix || typeof input.fix !== 'object' || Array.isArray(input.fix)) {
       fail('fix', 'must be an object or null');
     }
-    for (const key of ['pr', 'url', 'summary']) {
+    for (const key of ['pr', 'url', 'summary', 'merged']) {
       if (!(key in input.fix)) {
         fail(`fix.${key}`, 'is required');
       }
@@ -147,21 +167,27 @@ function validateInput(input) {
     validateString(input.fix.pr, 'fix.pr');
     validateUrl(input.fix.url, 'fix.url');
     validateString(input.fix.summary, 'fix.summary');
+    if (typeof input.fix.merged !== 'boolean') {
+      fail('fix.merged', 'must be a boolean');
+    }
     if (!input.fix.summary.endsWith('.')) {
       fail('fix.summary', 'must end with a period');
     }
   }
 }
 
-function trimNumber(value) {
-  return value.replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '');
+function trimNumber(value, minimumDecimals = 2) {
+  const [whole, fraction = ''] = value.split('.');
+  const trimmed = fraction.replace(/0+$/, '');
+  return `${whole}.${trimmed.padEnd(minimumDecimals, '0')}`;
 }
 
 function formatDuration(value, unit) {
   let formatted;
   if (value !== 0 && Math.abs(value) < 1) {
-    const decimals = Math.min(12, Math.max(2, Math.ceil(-Math.log10(Math.abs(value))) + 2));
-    formatted = trimNumber(value.toFixed(decimals));
+    const decimals = Math.min(20, Math.max(2, Math.ceil(-Math.log10(Math.abs(value))) + 2));
+    const fixed = value.toFixed(decimals);
+    formatted = Number(fixed) === 0 ? value.toExponential(6) : trimNumber(fixed);
   } else {
     formatted = value.toFixed(2);
   }
@@ -235,7 +261,7 @@ function formatDigest(input) {
   ];
   groups.push(issueLines('Already tracked', input.alreadyTracked));
   if (input.fix !== null) {
-    groups.push(`*Fix:* <${input.fix.url}|${input.fix.pr}>: ${input.fix.summary} Not merged.`);
+    groups.push(`*Fix:* <${input.fix.url}|${input.fix.pr}>: ${input.fix.summary} ${input.fix.merged ? 'Merged.' : 'Not merged.'}`);
   }
   groups.push(`*Window:* ${input.windowNote}`);
   return `${groups.join('\n\n')}\n`;
