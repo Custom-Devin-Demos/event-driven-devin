@@ -11,6 +11,11 @@
   styling, and do not add panels: the chart has to be readable in a few seconds on a
   shared screen.
 
+  The FIX block is the before/after for the one query the run fixed, measured with
+  scripts/patrol-before-after.js. Fill it in after the fix is verified so the chart
+  carries both the ranking that chose the query and the result of fixing it. Leave
+  beforeMs and afterMs at 0 and the strip does not render.
+
   Only numbers and query names are yours to supply. All wording on the page is fixed,
   including the summary line, which is generated from the measured rows. Do not rewrite
   it, do not add adjectives, and do not add a second sentence.
@@ -37,6 +42,18 @@
   .chart { height:290px; }
   footer { padding:16px 28px 20px; border-top:1px solid var(--line); font-size:14px; line-height:1.5; }
   footer b { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-weight:600; font-size:13px; }
+  .fix { border-top:1px solid var(--line); padding:16px 28px 20px; }
+  .fix h2 { margin:0 0 12px; font-size:14px; font-weight:600; }
+  .fix h2 span { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; }
+  .fixrow { display:grid; grid-template-columns:92px 1fr; align-items:center;
+            column-gap:12px; row-gap:8px; }
+  .fixlabel { font-size:12px; color:var(--muted); text-align:right; }
+  .fixbar { height:22px; display:flex; align-items:center; }
+  .fixbar i { display:block; height:22px; border-radius:3px; }
+  .fixbar b { font-size:13px; font-weight:600; margin-left:8px;
+              font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  .fixnote { margin-top:12px; font-size:13px; line-height:1.5; color:var(--ink); }
+  .fixnote code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; }
 </style>
 </head>
 <body>
@@ -58,6 +75,7 @@
   </div>
 
   <footer id="takeaway"></footer>
+  <div id="fix" class="fix"></div>
 </div>
 
 <script>
@@ -69,6 +87,14 @@ const ROWS = [
   // Carry two decimals; never round a sub-millisecond mean or p95 to 0.
   ['{{query_name}}',      0,       0,      0,       0],
 ];
+// The one query this run fixed, timed by scripts/patrol-before-after.js against the
+// pre-fix and fixed code paths. Invariants are fields the job output must not change.
+const FIX = {
+  query: '{{query_name}}',
+  beforeMs: 0,
+  afterMs: 0,
+  invariants: [['{{field}}', '{{value}}']],
+};
 /* ---------- end measured data ---------- */
 
 const SORTED_ROWS = ROWS.slice().sort((a, b) => b[4] - a[4]);
@@ -108,6 +134,36 @@ function summaryLine() {
   const roundedRatio = ratio < 10 ? ratio.toFixed(1) : Math.round(ratio);
   return first + ' ' + q(slowest[0]) + ' is ' + roundedRatio + ' times slower per execution. It ran '
     + count(slowest[1]) + ' and used ' + slowest[4].toFixed(1) + ' seconds.';
+}
+
+renderFix();
+
+// Fixed wording again: only the query name, the two durations and the unchanged fields
+// come from the run.
+function renderFix() {
+  const el = document.getElementById('fix');
+  const ok = [FIX.beforeMs, FIX.afterMs].every((v) => Number.isFinite(v) && v > 0);
+  if (!ok) {
+    el.remove();
+    return;
+  }
+  const ms = (v) => (v < 10 ? v.toFixed(2) : Math.round(v).toLocaleString()) + ' ms';
+  // Cap the widest bar below the row width so its label stays on the page.
+  const scale = (v) => Math.max(1.5, (v / Math.max(FIX.beforeMs, FIX.afterMs)) * 84);
+  const bar = (v, color) => '<div class="fixbar"><i style="width:' + scale(v).toFixed(2)
+    + '%;background:' + color + '"></i><b>' + ms(v) + '</b></div>';
+  const held = FIX.invariants
+    .map(([field, value]) => '<code>' + field + '</code> ' + value)
+    .join(', ');
+  const ratio = FIX.beforeMs / FIX.afterMs;
+  const rounded = ratio < 10 ? ratio.toFixed(1) : Math.round(ratio).toLocaleString();
+  el.innerHTML = '<h2>After the fix to <span>' + FIX.query + '</span></h2>'
+    + '<div class="fixrow">'
+    + '<div class="fixlabel">pre-fix code</div>' + bar(FIX.beforeMs, '#c9ccd2')
+    + '<div class="fixlabel">fixed code</div>' + bar(FIX.afterMs, '#0b0b0c')
+    + '</div>'
+    + '<p class="fixnote">The job ran ' + rounded + ' times faster and returned the same '
+    + held + '.</p>';
 }
 
 echarts.init(document.getElementById('total')).setOption({
