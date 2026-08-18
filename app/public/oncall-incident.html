@@ -237,7 +237,10 @@
 
     function loadKind() {
       if (!SKIN || !incidentKind) return Promise.resolve();
-      return fetch('/api/oncall/incident/kinds', { credentials: 'same-origin' })
+      var query = SKIN && SKIN.slug
+        ? '?skin=' + encodeURIComponent(SKIN.slug)
+        : '';
+      return fetch('/api/oncall/incident/kinds' + query, { credentials: 'same-origin' })
         .then(function (response) { return response.json(); })
         .then(function (kinds) {
           incidentStory = kinds.find(function (kind) { return kind.id === incidentKind; });

@@ -255,6 +255,7 @@ const ONCALL_SKINS = {
           'transfers': 'Fast Pay cash outs',
           'transfer': 'Fast Pay cash out',
           'customers': 'Dashers',
+          'payments-oncall': 'payouts-oncall',
         },
       },
     },

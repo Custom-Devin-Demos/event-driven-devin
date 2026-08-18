@@ -14,6 +14,7 @@ const {
   postOncallIncident,
   SEV1_INCIDENTS,
   getSev1ChatterVocabulary,
+  getSev1IncidentKinds,
   isPlainObject,
   isValidChatterVocabulary,
   getSev1State,
@@ -157,6 +158,18 @@ for (const skin of Object.values(ONCALL_SKINS)) {
     if (invalidVocabulary) {
       logger.warn('On-Call skin incident chatter vocabulary is invalid', {
         skin: skin.slug,
+      });
+    }
+    if (
+      (incidentStory == null || incidentStory.vertical !== skin.vertical) &&
+      skin.incident.chatter &&
+      skin.incident.chatter.vocabulary != null
+    ) {
+      logger.warn('On-Call skin incident chatter vocabulary cannot apply', {
+        skin: skin.slug,
+        incidentKind: skin.incident.kind,
+        skinVertical: skin.vertical,
+        incidentVertical: incidentStory && incidentStory.vertical,
       });
     }
   }
@@ -639,12 +652,8 @@ router.post('/api/oncall/config', oncallCap('config'), (req, res) => {
 /**
  * GET /api/oncall/incident/kinds — available SEV-1 incident stories.
  */
-router.get('/api/oncall/incident/kinds', (_req, res) => {
-  res.json(Object.entries(SEV1_INCIDENTS).map(([id, s]) => ({
-    id,
-    label: s.label,
-    summary: s.summary,
-  })));
+router.get('/api/oncall/incident/kinds', (req, res) => {
+  res.json(getSev1IncidentKinds(getOncallSkin(req.query.skin)));
 });
 
 /**

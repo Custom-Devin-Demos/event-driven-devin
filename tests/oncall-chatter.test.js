@@ -3,6 +3,7 @@ process.env.DEVIN_SLACK_USER_ID = 'U123';
 const {
   buildSev1Chatter,
   buildSev1IncidentCopy,
+  getSev1IncidentKinds,
   replaceChatterVocabulary,
   getSev1ChatterVocabulary,
   SEV1_INCIDENTS,
@@ -178,5 +179,35 @@ describe('SEV-1 persona chatter vocabulary', () => {
       summary: story.summary,
       label: story.label,
     });
+  });
+
+  test('localizes and preserves incident kinds response copy per skin', () => {
+    const skinnedKind = getSev1IncidentKinds(skin)
+      .find((kind) => kind.id === 'banking-transfers');
+    const genericKind = getSev1IncidentKinds()
+      .find((kind) => kind.id === 'banking-transfers');
+
+    expect(skinnedKind).toEqual({
+      id: 'banking-transfers',
+      label: 'Fast Pay cash outs degraded — banking-api p95 10x baseline',
+      summary: 'POST /api/oncall/banking/transfer p95 at ~9.6s against a ~280ms baseline. Fast Pay cash outs eventually succeed but every submission hangs ~10s; support reports rising complaint volume.',
+    });
+    expect(genericKind).toEqual({
+      id: 'banking-transfers',
+      label: story.label,
+      summary: story.summary,
+    });
+  });
+
+  test('rewrites DoorDash persona ownership without mutating generic usernames', () => {
+    const skinned = buildSev1Chatter(
+      story,
+      getSev1ChatterVocabulary(story, skin, 'banking-transfers'),
+    );
+    const generic = buildSev1Chatter(story);
+
+    expect(skinned.some((line) => line.username === 'Jordan Patel (payouts-oncall)')).toBe(true);
+    expect(generic.some((line) => line.username === 'Jordan Patel (payments-oncall)')).toBe(true);
+    expect(generic.some((line) => line.username === 'Jordan Patel (payouts-oncall)')).toBe(false);
   });
 });

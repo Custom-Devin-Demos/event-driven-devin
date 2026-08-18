@@ -1247,8 +1247,17 @@ function buildSev1Chatter(story, vocabulary = null) {
   };
   return (byVertical[story.vertical] || []).map((line) => ({
     ...line,
+    username: replaceChatterVocabulary(line.username, vocabulary),
     text: replaceChatterVocabulary(line.text, vocabulary),
   }));
+}
+
+function getSev1IncidentKinds(skin = null) {
+  return Object.entries(SEV1_INCIDENTS).map(([id, story]) => {
+    const vocabulary = getSev1ChatterVocabulary(story, skin, id);
+    const copy = buildSev1IncidentCopy(story, vocabulary);
+    return { id, label: copy.label, summary: copy.summary };
+  });
 }
 
 function stopSev1Chatter(runRef, reason) {
@@ -1766,6 +1775,7 @@ module.exports = {
   postOncallIncident,
   buildSev1Chatter,
   buildSev1IncidentCopy,
+  getSev1IncidentKinds,
   replaceChatterVocabulary,
   isPlainObject,
   isValidChatterVocabulary,
