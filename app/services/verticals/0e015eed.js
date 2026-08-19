@@ -206,7 +206,7 @@ async function submitInquiry(data) {
       service: 'customer-0e015eed-corporate-inquiry',
       verticalLabel: 'Corporate Inquiry Routing',
       promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: '0e015eed',
+      customer: 'default',
       tags: [
         { key: 'route', value: '/api/0e015eed/inquiry' },
         { key: 'service', value: 'customer-0e015eed-corporate-inquiry' },
