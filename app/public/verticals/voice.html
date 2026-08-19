@@ -199,6 +199,7 @@
       const result = document.getElementById('result');
       btn.disabled = true; btn.textContent = 'Finalizing...';
       result.className = 'result-box';
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       try {
         const res = await fetch('/api/voice/transcribe', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -207,10 +208,10 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Finalization Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="error-title">Finalization Failed</div><div class="error-detail">${esc(data.errorClass)}: ${esc(data.error)}</div>`;
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Transcript Finalized</div><div class="error-detail">${data.transcript}\n\n${data.wordCount} words &middot; ${data.termsApplied} terms applied &middot; ${data.dictionary}</div>`;
+          result.innerHTML = `<div class="error-title">Transcript Finalized</div><div class="error-detail">${esc(data.transcript)}\n\n${esc(data.wordCount)} words &middot; ${esc(data.termsApplied)} terms applied &middot; ${esc(data.dictionary)}</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';

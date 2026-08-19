@@ -91,7 +91,7 @@ async function collectLearnedTerms(workspace, dictionary) {
   let learned = 0;
   for (const [, snapshot] of vocabularyCache) {
     const valid = await verifySnapshot(snapshot);
-    if (valid && snapshot.dictionary === dictionary) {
+    if (valid && snapshot.workspace === workspace && snapshot.dictionary === dictionary) {
       learned++;
     }
   }
