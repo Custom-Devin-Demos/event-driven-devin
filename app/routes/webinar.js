@@ -17,6 +17,13 @@ const REGISTRATIONS_FILE = path.join(SIGNUPS_DIR, 'webinar-registrations.json');
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,80}$/;
 
+function getWebinar(slug) {
+  if (!SLUG_RE.test(slug) || !Object.prototype.hasOwnProperty.call(webinars, slug)) {
+    return null;
+  }
+  return webinars[slug];
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FIELD_LEN = 200;
 
@@ -110,19 +117,20 @@ function sendRegistrationAlert(webinar, totalForWebinar) {
 // Serve a registered customer webinar landing page
 router.get('/webinars/:slug', (req, res) => {
   const slug = req.params.slug;
-  if (!SLUG_RE.test(slug) || !webinars[slug]) {
+  const pageFile = path.join(__dirname, '..', 'public', 'webinars', `${slug}.html`);
+  if (!getWebinar(slug) || !fs.existsSync(pageFile)) {
     return res.status(404).send('Not found');
   }
-  return res.sendFile(path.join(__dirname, '..', 'public', 'webinars', `${slug}.html`));
+  return res.sendFile(pageFile);
 });
 
 // Capture a registration for a registered webinar, keyed by webinar_id
 router.post('/api/webinars/:slug/signup', (req, res) => {
   const slug = req.params.slug;
-  if (!SLUG_RE.test(slug) || !webinars[slug]) {
+  const webinar = getWebinar(slug);
+  if (!webinar) {
     return res.status(404).json({ success: false, error: 'Unknown webinar.' });
   }
-  const webinar = webinars[slug];
 
   const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
   const title = typeof req.body.title === 'string' ? req.body.title.trim() : '';
