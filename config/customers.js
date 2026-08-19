@@ -242,6 +242,10 @@ const CUSTOMERS = {
     label: 'TD Bank',
     triggerMode: 'api',
   },
+  '6820f69a': {
+    label: 'Fifth Third Bank',
+    triggerMode: 'api',
+  },
   'ac1752e4': {
     label: 'KeyBank',
     triggerMode: 'api',
