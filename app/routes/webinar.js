@@ -17,6 +17,53 @@ const REGISTRATIONS_FILE = path.join(SIGNUPS_DIR, 'webinar-registrations.json');
 
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,80}$/;
 
+// Per-IP sliding-window cap for the public registration endpoint. Bounds both
+// registration-file rewrites and outbound alert emails from an abusive client.
+const REGISTRATION_RATE_WINDOW_MS = 3600000;
+const REGISTRATION_RATE_LIMIT = 20;
+const registrationWindows = new Map();
+
+// The app sits behind nginx, which appends the real client address to
+// X-Forwarded-For; the last entry is the one our proxy added and the only
+// one a caller cannot spoof. Direct connections fall back to the socket.
+function clientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    const parts = forwarded.split(',');
+    return parts[parts.length - 1].trim();
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function registrationRateLimit(req, res, next) {
+  const now = Date.now();
+  const cutoff = now - REGISTRATION_RATE_WINDOW_MS;
+  const key = clientIp(req);
+  let window = registrationWindows.get(key);
+  if (!window) {
+    window = [];
+    registrationWindows.set(key, window);
+  }
+  while (window.length && window[0] <= cutoff) window.shift();
+  if (window.length >= REGISTRATION_RATE_LIMIT) {
+    logger.warn('webinars.registration.rate_limited', { ip: key, limit: REGISTRATION_RATE_LIMIT });
+    const retryAfterSec = Math.ceil((window[0] + REGISTRATION_RATE_WINDOW_MS - now) / 1000);
+    res.set('Retry-After', String(Math.max(retryAfterSec, 1)));
+    return res.status(429).json({
+      success: false,
+      error: 'Too many registration attempts. Please try again later.',
+    });
+  }
+  window.push(now);
+  if (window.length === 1) {
+    for (const [ip, ts] of registrationWindows) {
+      while (ts.length && ts[0] <= cutoff) ts.shift();
+      if (ts.length === 0) registrationWindows.delete(ip);
+    }
+  }
+  return next();
+}
+
 function getWebinar(slug) {
   if (!SLUG_RE.test(slug) || !Object.prototype.hasOwnProperty.call(webinars, slug)) {
     return null;
@@ -125,7 +172,7 @@ router.get('/webinars/:slug', (req, res) => {
 });
 
 // Capture a registration for a registered webinar, keyed by webinar_id
-router.post('/api/webinars/:slug/signup', (req, res) => {
+router.post('/api/webinars/:slug/signup', registrationRateLimit, (req, res) => {
   const slug = req.params.slug;
   const webinar = getWebinar(slug);
   if (!webinar) {
