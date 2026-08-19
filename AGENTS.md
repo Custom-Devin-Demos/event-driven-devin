@@ -38,6 +38,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | High Tech | `POST /api/oncall/licenses/provision` | `app/services/oncall-verticals/hightech.js` |
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
+| Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 
 Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
 
@@ -138,6 +139,8 @@ Three things are deliberately separate:
 │   │       ├── industrials.html   # Titan Mfg — Equipment Maintenance
 │   │       ├── industrials-quote.html # Titan Mfg — Instant Quote
 │   │       ├── 08d969be.html       # Native industrials customer skin
+│   │       ├── voice.html         # EchoScribe — Dictation Console (on-call only)
+│   │       ├── 2acc11fd.html       # Native voice customer skin
 │   │       ├── healthcare.html    # CarePoint — Patient Portal
 │   │       ├── telco.html         # WaveConnect — Telecom Self-Service
 │   │       └── payer.html         # Payer — Member ID card + pharmacy counter
