@@ -407,6 +407,10 @@ const CUSTOMERS = {
     label: 'RBC Royal Bank',
     triggerMode: 'api',
   },
+  a69bcc34: {
+    label: 'The Home Depot',
+    triggerMode: 'api',
+  },
   '0e015eed': {
     label: 'Tapestry',
     triggerMode: 'api',

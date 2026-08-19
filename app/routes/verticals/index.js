@@ -112,6 +112,7 @@ const chipotleRoutes = require('./chipotle');
 const customer49d841e8Routes = require('./49d841e8');
 const customer3cec99d4Routes = require('./3cec99d4');
 const customer0e015eedRoutes = require('./0e015eed');
+const customerA69bcc34Routes = require('./a69bcc34');
 const coppelRoutes = require('./coppel');
 const customerCd83ac3cRoutes = require('./cd83ac3c');
 const customer7e6bb001Routes = require('./7e6bb001');
@@ -244,6 +245,7 @@ router.use(chipotleRoutes);
 router.use(customer49d841e8Routes);
 router.use(customer3cec99d4Routes);
 router.use(customer0e015eedRoutes);
+router.use(customerA69bcc34Routes);
 router.use(coppelRoutes);
 router.use(customerCd83ac3cRoutes);
 router.use(customer7e6bb001Routes);
@@ -293,7 +295,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['8b5893cb', 'payer', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', '50b235c7', 'e7c81c9e', 'fdc0cc83', 'eaa595e1', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', 'b98fcab6', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45', '43f2f084', '383b99d1', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja', 'kraftheinz', 'caixabank', 'bbva', '82df0421', '227b9feb', '556bc104', '6efdaec0', 'f36ef02a', '5697165b', '8c0e99b1', 'chipotle', '49d841e8', '7e6bb001', 'b1c29f25', 'ef58967c', 'f26260e1', 'e1da8ec4', '3d2ef497', 'mtb', '15fee237', '3cec99d4', '3c3e0371', '40cf3e09', '87127748', 'da6578ee', 'edaa5b9f', '31328569', '90a02f02', 'bc6a7c34', '2a7a62a9', '0e015eed'];
+const verticalIds = ['8b5893cb', 'payer', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', '50b235c7', 'e7c81c9e', 'fdc0cc83', 'eaa595e1', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', 'b98fcab6', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45', '43f2f084', '383b99d1', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja', 'kraftheinz', 'caixabank', 'bbva', '82df0421', '227b9feb', '556bc104', '6efdaec0', 'f36ef02a', '5697165b', '8c0e99b1', 'chipotle', '49d841e8', '7e6bb001', 'b1c29f25', 'ef58967c', 'f26260e1', 'e1da8ec4', '3d2ef497', 'mtb', '15fee237', '3cec99d4', '3c3e0371', '40cf3e09', '87127748', 'da6578ee', 'edaa5b9f', '31328569', '90a02f02', 'bc6a7c34', '2a7a62a9', '0e015eed', 'a69bcc34'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
@@ -308,6 +310,11 @@ router.get('/telefonica', (_req, res) => {
 // UnitedHealth Group customer demo — friendly public URL, serves the 31328569 page (hidden from hub)
 router.get('/uhg', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '31328569.html'));
+});
+
+// The Home Depot customer demo — friendly public URL, serves the a69bcc34 page (hidden from hub)
+router.get('/homedepot', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'a69bcc34.html'));
 });
 
 // RBC customer demo — friendly public URL, serves the 3cec99d4 page (hidden from hub)
