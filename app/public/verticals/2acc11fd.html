@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wispr Flow &mdash; Dictation</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #FFFFEB;
+      --paper: #FFFFFF;
+      --ink: #1A1A1A;
+      --ink-60: rgba(26, 26, 26, 0.62);
+      --ink-40: rgba(26, 26, 26, 0.42);
+      --line: #E4E4D0;
+      --lavender: #F0D7FF;
+      --lavender-deep: #E3BEFF;
+      --wash: #F5F4F0;
+      --green: #3BC94B;
+      --amber: #FFA946;
+      --coral: #FF6C4C;
+      --sans: 'Figtree', -apple-system, 'Segoe UI', Arial, sans-serif;
+      --serif: 'EB Garamond', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--cream); color: var(--ink); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+    .nav-wrap { padding: 20px 24px 0; }
+    .nav { max-width: 1120px; margin: 0 auto; background: var(--cream); border: 2px solid var(--line); border-radius: 10px; display: flex; align-items: center; gap: 20px; padding: 12px 16px; }
+    .logo { display: flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; text-decoration: none; color: var(--ink); }
+    .logo svg { width: 22px; height: 22px; }
+    .nav-seg { display: flex; background: var(--wash); border-radius: 999px; padding: 3px; gap: 2px; }
+    .nav-seg a { font-size: 15px; font-weight: 500; color: var(--ink-60); text-decoration: none; padding: 6px 16px; border-radius: 999px; }
+    .nav-seg a.on { background: var(--paper); color: var(--ink); font-weight: 600; }
+    .nav-links { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+    .nav-links a { font-size: 15px; font-weight: 500; color: var(--ink); text-decoration: none; }
+    .nav-cta { background: var(--lavender); border: 2px solid var(--ink); border-radius: 12px; padding: 10px 18px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; }
+    @media (max-width: 860px) { .nav-seg, .nav-links a:not(.nav-cta) { display: none; } }
+
+    .shell { max-width: 1120px; margin: 0 auto; padding: 40px 24px 72px; }
+    .back-link { display: inline-flex; gap: 6px; font-size: 14px; font-weight: 600; color: var(--ink-60); text-decoration: none; margin-bottom: 18px; }
+    .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-40); }
+    h1 { font-family: var(--serif); font-weight: 400; font-size: 60px; line-height: 1.02; letter-spacing: -0.03em; margin: 10px 0 12px; }
+    h1 em { font-style: italic; }
+    .lede { font-size: 17px; color: var(--ink-60); max-width: 620px; }
+    @media (max-width: 640px) { h1 { font-size: 42px; } }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 36px 0 40px; }
+    .stat { background: var(--paper); border: 2px solid var(--line); border-radius: 12px; padding: 18px; }
+    .stat-label { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-40); }
+    .stat-val { font-family: var(--serif); font-size: 38px; line-height: 1.1; letter-spacing: -0.02em; margin-top: 6px; }
+    .stat-note { font-size: 13px; color: var(--ink-60); }
+    @media (max-width: 860px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--paper); border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .card-head { padding: 18px 20px; border-bottom: 2px solid var(--line); }
+    .card-head h2 { font-family: var(--serif); font-weight: 400; font-size: 26px; letter-spacing: -0.02em; }
+    .card-head p { font-size: 14px; color: var(--ink-60); }
+    .card-body { padding: 20px; }
+
+    .mic-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .btn-mic { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 10px 18px; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .btn-mic:hover { background: var(--wash); }
+    .btn-mic.listening { background: var(--lavender); }
+    .btn-mic svg { width: 16px; height: 16px; fill: var(--ink); }
+    .mic-status { font-size: 13px; color: var(--ink-60); }
+    .wave { display: none; align-items: flex-end; gap: 3px; height: 22px; }
+    .wave.on { display: inline-flex; }
+    .wave i { width: 4px; border-radius: 2px; background: var(--ink); animation: wv 0.9s ease-in-out infinite; }
+    .wave i:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .wave i:nth-child(2) { height: 16px; animation-delay: 0.15s; }
+    .wave i:nth-child(3) { height: 11px; animation-delay: 0.3s; }
+    .wave i:nth-child(4) { height: 19px; animation-delay: 0.45s; }
+    .wave i:nth-child(5) { height: 9px; animation-delay: 0.6s; }
+    @keyframes wv { 0%, 100% { transform: scaleY(0.55); } 50% { transform: scaleY(1); } }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-60); margin-bottom: 5px; }
+    .form-group select, .form-group textarea { width: 100%; font-family: var(--sans); font-size: 15px; color: var(--ink); background: var(--paper); border: 2px solid var(--line); border-radius: 10px; padding: 11px 12px; }
+    .form-group textarea { min-height: 130px; resize: vertical; line-height: 1.5; }
+    .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--ink); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-finalize { width: 100%; min-height: 48px; margin-top: 4px; background: var(--lavender); border: 2px solid var(--ink); border-radius: 12px; font-family: var(--sans); font-size: 16px; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .btn-finalize:hover { background: var(--lavender-deep); }
+    .btn-finalize:disabled { opacity: 0.62; cursor: default; }
+    .fine { font-size: 13px; color: var(--ink-60); margin-top: 12px; }
+
+    .result-box { display: none; margin-top: 16px; border: 2px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { border-color: var(--green); background: rgba(59, 201, 75, 0.07); }
+    .result-box.error { border-color: var(--coral); background: rgba(255, 108, 76, 0.08); }
+    .r-title { font-size: 15px; font-weight: 700; }
+    .r-detail { font-size: 14px; color: var(--ink-60); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .r-meta { font-size: 13px; color: var(--ink-40); margin-top: 6px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-40); padding: 10px 20px; background: var(--wash); }
+    td { padding: 12px 20px; border-top: 1px solid var(--line); font-size: 15px; }
+    .who { font-weight: 600; }
+    .who span { display: block; font-weight: 400; font-size: 13px; color: var(--ink-60); }
+    .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; border-radius: 999px; padding: 3px 10px; background: var(--wash); }
+    .pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    @media (max-width: 640px) {
+      .hide-sm { display: none; }
+      th, td { padding: 10px 12px; font-size: 14px; }
+      .who span { overflow-wrap: anywhere; }
+    }
+
+    .notes { margin-top: 20px; display: grid; gap: 12px; }
+    .note { background: var(--paper); border: 2px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+    .note h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .note p { font-size: 14px; color: var(--ink-60); }
+
+    footer { border-top: 2px solid var(--line); margin-top: 56px; }
+    .foot { max-width: 1120px; margin: 0 auto; padding: 28px 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; font-size: 14px; color: var(--ink-60); }
+    .foot nav { display: flex; gap: 18px; flex-wrap: wrap; }
+    .foot a { color: var(--ink-60); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="nav-wrap">
+    <div class="nav">
+      <a class="logo" href="#">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <g fill="#1A1A1A">
+            <rect x="2" y="9" width="3" height="6" rx="1.5"></rect>
+            <rect x="7" y="5" width="3" height="14" rx="1.5"></rect>
+            <rect x="12" y="8" width="3" height="8" rx="1.5"></rect>
+            <rect x="17" y="3" width="3" height="18" rx="1.5"></rect>
+          </g>
+        </svg>
+        Flow
+      </a>
+      <div class="nav-seg">
+        <a class="on" href="#">Dictation</a>
+        <a href="#">Notetaker</a>
+      </div>
+      <div class="nav-links">
+        <a href="#">Business</a>
+        <a href="#">Pricing</a>
+        <a href="#">Lab</a>
+        <a class="nav-cta" href="#">Download for free</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <a href="/" class="back-link">&larr; All Demos</a>
+    <div class="eyebrow">Wispr Flow Dictation</div>
+    <h1>Don't type it.<br><em>Just say it.</em></h1>
+    <p class="lede">Speak naturally and Flow turns it into polished text &mdash; punctuation, casing, and your workspace's shared dictionary applied. Dictate below, then finalize the transcript.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Words dictated</div>
+        <div class="stat-val">2.4M</div>
+        <div class="stat-note">last 30 days</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Transcripts</div>
+        <div class="stat-val">1,362</div>
+        <div class="stat-note">this week, all members</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Dictionary terms</div>
+        <div class="stat-val">312</div>
+        <div class="stat-note">shared across the workspace</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Accuracy</div>
+        <div class="stat-val">98%</div>
+        <div class="stat-note">7-day rolling</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-head">
+          <h2>Dictate a note</h2>
+          <p>Speak or type, pick your shared dictionary, and finalize.</p>
+        </div>
+        <div class="card-body">
+          <form id="transcribeForm">
+            <div class="mic-row">
+              <button type="button" class="btn-mic" id="micBtn">
+                <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2z"/></svg>
+                <span id="micLabel">Start dictating</span>
+              </button>
+              <span class="wave" id="wave"><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="mic-status" id="micStatus">Or type your note below</span>
+            </div>
+            <div class="form-group">
+              <label>Utterance</label>
+              <textarea id="utterance" placeholder="okay quick update comma the api migration is on track period we should sync asap period"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Workspace</label>
+                <select id="workspace">
+                  <option value="Brightmail">Brightmail</option>
+                  <option value="Juniper Labs">Juniper Labs</option>
+                  <option value="Crestline Media">Crestline Media</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Shared dictionary</label>
+                <select id="dictionary">
+                  <option value="general">General</option>
+                  <option value="engineering">Engineering terms</option>
+                  <option value="gtm">GTM terms</option>
+                  <option value="support">Support macros</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-finalize" id="submitBtn">Finalize transcript</button>
+          </form>
+          <div id="result" class="result-box"></div>
+          <p class="fine">Finalized transcripts apply spoken punctuation and your shared dictionary. Model training stays off for the whole workspace.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Recent transcripts</h2>
+            <p>Finalized by workspace members today.</p>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Member</th><th class="hide-sm">Dictionary</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="who">Nadia Okonjo<span>Standup notes &middot; 220 words</span></td>
+                <td class="hide-sm">GTM terms</td>
+                <td><span class="pill">Finalized</span></td>
+              </tr>
+              <tr>
+                <td class="who">Theo Marchetti<span>PR description &middot; 148 words</span></td>
+                <td class="hide-sm">Engineering terms</td>
+                <td><span class="pill">Finalized</span></td>
+              </tr>
+              <tr>
+                <td class="who">Imani Reeves<span>Ticket reply &middot; 96 words</span></td>
+                <td class="hide-sm">Support macros</td>
+                <td><span class="pill">Finalized</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="notes">
+          <div class="note">
+            <h3>Shared dictionary</h3>
+            <p>Corrections anyone makes become workspace vocabulary. Choose which terms are shared with the whole team.</p>
+          </div>
+          <div class="note">
+            <h3>Spoken punctuation</h3>
+            <p>Say &ldquo;comma&rdquo;, &ldquo;period&rdquo;, or &ldquo;new paragraph&rdquo; and Flow writes it the way you meant it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="foot">
+      <div>Wispr Flow &mdash; Dictation</div>
+      <nav>
+        <a href="#">Pricing</a>
+        <a href="#">Privacy &amp; Security</a>
+        <a href="#">Trust Center</a>
+        <a href="#">Help center</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const micBtn = document.getElementById('micBtn');
+      const micLabel = document.getElementById('micLabel');
+      const micStatus = document.getElementById('micStatus');
+      const wave = document.getElementById('wave');
+      const utterance = document.getElementById('utterance');
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { micStatus.textContent = 'Voice input unavailable in this browser — type your note below'; return; }
+      let recognition = null;
+      let listening = false;
+      micBtn.addEventListener('click', () => {
+        if (listening) { recognition.stop(); return; }
+        recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.onresult = (e) => {
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+              utterance.value = (utterance.value ? utterance.value + ' ' : '') + e.results[i][0].transcript.trim();
+            }
+          }
+        };
+        recognition.onerror = (e) => { micStatus.textContent = 'Mic error: ' + e.error + ' — you can type instead'; };
+        recognition.onend = () => {
+          listening = false;
+          micBtn.classList.remove('listening');
+          wave.classList.remove('on');
+          micLabel.textContent = 'Start dictating';
+        };
+        recognition.start();
+        listening = true;
+        micBtn.classList.add('listening');
+        wave.classList.add('on');
+        micLabel.textContent = 'Stop dictating';
+        micStatus.textContent = 'Listening…';
+      });
+    })();
+  </script>
+  <script>
+    document.getElementById('transcribeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Finalizing\u2026';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/voice/transcribe', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workspace: document.getElementById('workspace').value, dictionary: document.getElementById('dictionary').value, utterance: document.getElementById('utterance').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="r-title">Finalization failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="r-title">Transcript finalized</div><div class="r-detail">${data.transcript}</div><div class="r-meta">${data.wordCount} words &middot; ${data.termsApplied} terms applied &middot; ${data.dictionary} dictionary</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="r-title">Network error</div><div class="r-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Finalize transcript'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

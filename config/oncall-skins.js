@@ -352,6 +352,28 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '2acc11fd': {
+    slug: '2acc11fd',
+    company: 'Wispr Flow',
+    brandMark: 'F',
+    vertical: 'voice',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '2acc11fd.html',
+      title: 'Wispr Flow — Dictation',
+    },
+    theme: {
+      '--accent': '#1A1A1A',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFEB',
+      '--chrome-bg': '#1F1F1F',
+      '--chrome-text': '#FFFFEB',
+    },
+    supportCenter: 'Wispr Flow Support',
+    supportCenterSub: 'Workspace Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
+  },
 };
 
 function getOncallSkin(slug) {
