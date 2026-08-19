@@ -70,6 +70,19 @@ npm run lint
 
 There may be 2 pre-existing warnings (no-unused-vars) — these are not errors.
 
+## Node version pitfall
+
+`which node` in non-interactive shells may resolve to an old Node (v12), which crashes on optional chaining in `app/server.js`. Check `node -v` first and select Node 18+ via nvm (e.g. `source ~/.nvm/nvm.sh && nvm use 20`) before `node app/server.js`; check `/tmp` logs if all routes return 000.
+
+## Webinar pages (/webinars/<slug>)
+
+Introduced by PR #4821 — this section applies once that branch/PR is in your checkout.
+
+- Registry: `config/webinars.js` (slug → webinarId/webinarTitle/customerName). Page template: `app/public/webinars/<slug>.html`.
+- `GET /webinars/:slug` 404s for unregistered slugs; `POST /api/webinars/:slug/signup` writes rows keyed by `webinarId` to `data/webinar-registrations.json`.
+- Use only synthetic names/emails (e.g. synthetic.test@example.com) and delete `data/webinar-registrations.json` after testing. Alert emails are metadata-only, fire-and-forget (no SENDGRID key locally → harmless warn).
+- Legacy `/webinar` (Humana) writes to `data/webinar-signups.json` and is unchanged.
+
 ## Notes
 
 - The app uses Express 5 with `express.json()` middleware
