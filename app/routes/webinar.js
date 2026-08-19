@@ -132,9 +132,10 @@ router.post('/api/webinars/:slug/signup', (req, res) => {
     return res.status(404).json({ success: false, error: 'Unknown webinar.' });
   }
 
-  const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
-  const title = typeof req.body.title === 'string' ? req.body.title.trim() : '';
-  const email = typeof req.body.email === 'string' ? req.body.email.trim() : '';
+  const body = req.body || {};
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  const title = typeof body.title === 'string' ? body.title.trim() : '';
+  const email = typeof body.email === 'string' ? body.email.trim() : '';
 
   if (!name || !title || !email) {
     return res.status(400).json({ success: false, error: 'Name, title, and email are all required.' });
