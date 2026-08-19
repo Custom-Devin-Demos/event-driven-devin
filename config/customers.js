@@ -407,6 +407,10 @@ const CUSTOMERS = {
     label: 'RBC Royal Bank',
     triggerMode: 'api',
   },
+  '0e015eed': {
+    label: 'Tapestry',
+    triggerMode: 'api',
+  },
   cd83ac3c: {
     label: 'Staples',
     triggerMode: 'api',
