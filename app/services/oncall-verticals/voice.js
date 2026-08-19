@@ -124,6 +124,9 @@ function normalizeText(rawText, config) {
       return written;
     });
   }
+  // Collapse duplicated terminal punctuation (STT engines often append their
+  // own '.' after a spoken "period").
+  text = text.replace(/([.!?])\.+/g, '$1');
   // Sentence-case: capitalize the first letter after terminal punctuation.
   text = text.replace(/(^|[.!?]\s+)([a-z])/g, (_m, lead, ch) => lead + ch.toUpperCase());
   if (text && !/[.!?]$/.test(text)) text += '.';
@@ -148,19 +151,20 @@ async function finalizeTranscript(data, options = {}) {
   });
 
   try {
-    const config = getDictionaryConfig(data.dictionary);
-    const learnedTerms = await collectLearnedTerms(data.workspace, data.dictionary);
+    const dictionaryId = String(data.dictionary || '').toLowerCase();
+    const config = getDictionaryConfig(dictionaryId);
+    const learnedTerms = await collectLearnedTerms(data.workspace, dictionaryId);
     const { text, termsApplied } = normalizeText(data.utterance, config);
     const wordCount = text ? text.trim().split(/\s+/).length : 0;
 
-    vocabularyCache.set(transcriptId, makeSnapshot(data.workspace, data.dictionary, wordCount));
+    vocabularyCache.set(transcriptId, makeSnapshot(data.workspace, dictionaryId, wordCount));
     if (options.synthetic) syntheticKeys.add(transcriptId);
 
     const duration = Date.now() - startTime;
 
     incrementMetric('transcribe.success', {
       route: '/api/oncall/voice/transcribe',
-      dictionary: data.dictionary,
+      dictionary: dictionaryId,
     });
     recordTiming('transcribe.latency', duration, {
       route: '/api/oncall/voice/transcribe',
