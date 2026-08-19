@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Cart - The Home Depot</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --hd-orange: #f96302;
+    --hd-orange-dark: #e35c00;
+    --ink: #000000;
+    --grey: #747474;
+    --line: #d8d8d8;
+    --bg: #f5f5f5;
+    --green: #007d2a;
+  }
+  body {
+    margin: 0;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .promo-banner {
+    background: var(--hd-orange);
+    color: #fff;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 12px;
+    letter-spacing: .2px;
+  }
+  .promo-banner a { color: #fff; text-decoration: underline; }
+
+  .util-bar {
+    background: #fff;
+    border-bottom: 1px solid #ececec;
+    font-size: 12px;
+  }
+  .util-bar .wrap { display: flex; justify-content: flex-end; gap: 18px; padding: 6px 0; }
+  .util-bar .cc { display: flex; align-items: center; gap: 6px; color: #333; }
+
+  .wrap { max-width: 1232px; margin: 0 auto; padding: 0 16px; }
+
+  header.hd {
+    background: #fff;
+    border-bottom: 1px solid #ececec;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+  .head-row { display: flex; align-items: center; gap: 16px; padding: 12px 0; }
+  .logo {
+    width: 54px; height: 54px; background: var(--hd-orange); flex: 0 0 54px;
+    display: flex; align-items: center; justify-content: center; border-radius: 2px;
+  }
+  .logo svg { width: 38px; height: 38px; }
+  .store-block { display: flex; align-items: center; gap: 20px; font-size: 12px; white-space: nowrap; }
+  .store-block .label { font-weight: 700; }
+  .store-block .hrs { color: var(--hd-orange); font-weight: 700; }
+  .searchbar { flex: 1 1 auto; display: flex; min-width: 200px; }
+  .searchbar input {
+    flex: 1 1 auto; border: 1px solid #ccc; border-right: 0; background: #f5f5f5;
+    padding: 12px 14px; font-size: 14px; font-family: inherit; border-radius: 2px 0 0 2px;
+  }
+  .searchbar input::placeholder { color: #6f6f6f; }
+  .searchbar button {
+    background: var(--hd-orange); border: 0; width: 52px; cursor: pointer;
+    border-radius: 0 2px 2px 0; display: flex; align-items: center; justify-content: center;
+  }
+  .searchbar button svg { width: 20px; height: 20px; }
+  nav.hd-nav { display: flex; align-items: flex-end; gap: 22px; font-size: 12px; }
+  nav.hd-nav .item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  nav.hd-nav .item svg { width: 22px; height: 22px; }
+  .cart-icon { position: relative; }
+  .cart-icon .badge {
+    position: absolute; top: -6px; right: -8px; background: var(--hd-orange); color: #fff;
+    font-size: 10px; font-weight: 700; min-width: 16px; height: 16px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; padding: 0 4px;
+  }
+
+  main { padding: 22px 0 40px; }
+  .cart-grid { display: grid; grid-template-columns: minmax(0,1fr) 380px; gap: 24px; align-items: start; }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 2px; padding: 24px; }
+
+  .cart-title-row { display: flex; align-items: baseline; justify-content: space-between; }
+  h1.cart-title { font-size: 34px; margin: 0; letter-spacing: -.5px; font-weight: 700; }
+  h1.cart-title span { color: var(--grey); font-weight: 400; }
+  .share { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+
+  .select-row {
+    display: flex; align-items: center; gap: 18px; font-size: 13px;
+    border-bottom: 1px solid var(--line); padding: 16px 0; margin-top: 12px;
+  }
+  .select-row .spacer { flex: 1 1 auto; }
+  .select-row .muted { color: #a3a3a3; display: flex; align-items: center; gap: 6px; }
+  .select-row label { display: flex; align-items: center; gap: 8px; }
+
+  h2.section { font-size: 22px; margin: 22px 0 4px; font-weight: 700; }
+  .deliver-to { font-size: 13px; color: #333; margin-bottom: 12px; }
+  .deliver-to a { font-weight: 700; text-decoration: underline; }
+  .delivery-note {
+    background: #f5f5f5; border-radius: 2px; padding: 14px 16px; font-size: 13px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .delivery-note b { color: var(--green); }
+
+  .line-item { display: grid; grid-template-columns: 168px minmax(0,1fr) auto; gap: 20px; padding: 24px 0 8px; }
+  .line-item .thumb-col { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+  .line-item img.thumb { width: 148px; height: 148px; object-fit: contain; background: #fff; }
+  .qty { display: flex; border: 1px solid #b3b3b3; border-radius: 2px; width: 118px; height: 40px; }
+  .qty button {
+    width: 34px; border: 0; background: #fff; font-size: 18px; cursor: pointer; color: #333;
+  }
+  .qty input {
+    flex: 1 1 auto; border: 0; border-left: 1px solid #d8d8d8; border-right: 1px solid #d8d8d8;
+    text-align: center; font-size: 15px; font-family: inherit;
+  }
+  .limit { font-size: 12px; color: #333; }
+  .brand { font-weight: 700; font-size: 15px; }
+  .item-name { font-size: 15px; margin: 2px 0 12px; max-width: 460px; }
+  .attrs { font-size: 13px; color: #333; }
+  .attrs div { margin-bottom: 3px; }
+  .attrs b { font-weight: 700; }
+  .avail { font-size: 13px; margin-top: 16px; }
+  .avail .row { display: flex; gap: 40px; margin-top: 4px; }
+  .avail a { font-weight: 700; text-decoration: underline; }
+  .ff-tiles { display: flex; gap: 14px; margin-top: 14px; }
+  .ff-tile {
+    border: 1px solid var(--line); border-radius: 2px; padding: 12px 16px; min-width: 176px;
+    position: relative; cursor: pointer; background: #fff;
+  }
+  .ff-tile.active { border: 2px solid var(--hd-orange); }
+  .ff-tile .h { font-size: 17px; font-weight: 700; }
+  .ff-tile .s { font-size: 13px; }
+  .ff-tile .check {
+    position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--hd-orange); color: #fff; font-size: 12px; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .line-price { font-size: 20px; font-weight: 700; white-space: nowrap; }
+
+  /* Order summary */
+  .order-panel { padding: 20px 20px 24px; }
+  .order-panel h3 { margin: 0 0 14px; font-size: 22px; font-weight: 700; }
+  .sum-row { display: flex; justify-content: space-between; font-size: 14px; padding: 5px 0; }
+  .sum-row.total { font-size: 24px; font-weight: 700; padding-top: 14px; }
+  .sum-row .free { color: var(--green); font-weight: 700; }
+  .sum-row .save { color: var(--green); }
+  .rule { border-top: 1px solid var(--line); margin: 12px 0; }
+  .promo-toggle { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .promo-input { display: flex; gap: 8px; margin-top: 10px; }
+  .promo-input input {
+    flex: 1 1 auto; border: 1px solid #b3b3b3; padding: 10px 12px; font-family: inherit; font-size: 14px; border-radius: 2px;
+  }
+  .promo-input button {
+    border: 1px solid #b3b3b3; background: #fff; font-weight: 700; padding: 0 16px; cursor: pointer; border-radius: 2px;
+  }
+  .btn-checkout {
+    width: 100%; background: var(--hd-orange); color: #fff; border: 0; border-radius: 4px;
+    font-size: 18px; font-weight: 700; padding: 14px 0; cursor: pointer; margin-top: 16px;
+    font-family: inherit;
+  }
+  .btn-checkout:hover { background: var(--hd-orange-dark); }
+  .quick { margin-top: 18px; }
+  .quick .lbl { font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+  .btn-gpay, .btn-paypal {
+    width: 100%; border: 0; border-radius: 4px; font-size: 16px; font-weight: 700;
+    padding: 12px 0; cursor: pointer; margin-bottom: 10px; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-gpay { background: #000; color: #fff; }
+  .btn-paypal { background: #ffc439; color: #142c8e; font-style: italic; }
+  .paypal-note { font-size: 12px; color: #333; }
+  .paypal-note a { text-decoration: underline; }
+  .info-block { display: flex; gap: 12px; padding: 16px 0; border-top: 1px solid var(--line); margin-top: 16px; }
+  .info-block .icon { width: 30px; flex: 0 0 30px; }
+  .info-block h5 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
+  .info-block p { margin: 0; font-size: 13px; }
+  .info-block a { font-weight: 700; text-decoration: underline; }
+  .cc-offer .swatch { width: 26px; height: 26px; background: var(--hd-orange); border-radius: 2px; flex: 0 0 26px; }
+  .cc-offer .apply { color: var(--hd-orange); font-weight: 700; text-decoration: underline; display: inline-block; margin-top: 8px; }
+
+  /* status */
+  .order-status { display: none; margin-top: 14px; border-radius: 2px; padding: 12px 14px; font-size: 13px; }
+  .order-status.show { display: block; }
+  .order-status.err { background: #fdf2f2; border: 1px solid #d0021b; }
+  .order-status.ok { background: #f1f8f1; border: 1px solid var(--green); }
+  .order-status .t { font-weight: 700; margin-bottom: 4px; }
+  .order-status .tech {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px;
+    white-space: pre-wrap; color: #6a6a6a; margin-top: 8px;
+  }
+
+  /* recommendations */
+  .recs { background: #fff; border: 1px solid var(--line); border-radius: 2px; padding: 24px; margin-top: 24px; }
+  .recs h2 { font-size: 26px; margin: 0 0 18px; font-weight: 700; }
+  .rec-row { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 20px; }
+  .rec { font-size: 13px; }
+  .rec .tag {
+    display: inline-block; background: #eef7f7; color: #00696e; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 2px; margin-bottom: 10px;
+  }
+  .rec img { width: 100%; height: 150px; object-fit: contain; display: block; margin-bottom: 10px; }
+  .rec .nm { min-height: 54px; }
+  .rec .stars { color: var(--hd-orange); font-size: 13px; margin: 6px 0; }
+  .rec .stars span { color: var(--grey); }
+  .rec .pr { font-size: 18px; font-weight: 700; }
+  .rec button {
+    width: 100%; margin-top: 10px; background: #fff; color: var(--hd-orange);
+    border: 1px solid var(--hd-orange); border-radius: 4px; font-weight: 700; padding: 10px 0;
+    cursor: pointer; font-family: inherit; font-size: 14px;
+  }
+
+  footer.hd { background: #333; color: #fff; margin-top: 34px; padding: 34px 0 26px; font-size: 13px; }
+  footer.hd a { color: #fff; }
+  .foot-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 24px; }
+  .foot-grid h6 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .4px; }
+  .foot-grid ul { list-style: none; margin: 0; padding: 0; }
+  .foot-grid li { margin-bottom: 7px; color: #d5d5d5; }
+  .foot-legal { border-top: 1px solid #4d4d4d; margin-top: 24px; padding-top: 16px; color: #d5d5d5; font-size: 12px; }
+
+  @media (max-width: 1024px) {
+    .cart-grid { grid-template-columns: minmax(0,1fr); }
+    .rec-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    nav.hd-nav { display: none; }
+    .line-item { grid-template-columns: 120px minmax(0,1fr); }
+    .line-price { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+
+<div class="promo-banner">CHRISTMAS CAME EARLY - <a href="#">Shop Holiday Decor</a></div>
+
+<div class="util-bar">
+  <div class="wrap">
+    <span class="cc">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#333" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"></rect><path d="M2 10h20"></path></svg>
+      <a href="#">Home Depot Credit Cards</a>
+    </span>
+  </div>
+</div>
+
+<header class="hd">
+  <div class="wrap head-row">
+    <div class="logo" aria-label="The Home Depot">
+      <svg viewBox="0 0 40 40" role="img" aria-hidden="true">
+        <rect x="1" y="1" width="38" height="38" fill="#f96302"></rect>
+        <path d="M20 4 6 15v3h4v18h20V18h4v-3L20 4z" fill="#fff"></path>
+        <text x="20" y="30" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold" fill="#f96302">HD</text>
+      </svg>
+    </div>
+    <div class="store-block">
+      <span><span class="label">Manhatta&hellip;</span> <span class="hrs">9PM</span></span>
+      <span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#333" stroke-width="1.6" style="vertical-align:-3px"><path d="M1 6h12v9H1zM13 9h5l3 3v3h-8z"></path><circle cx="6" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
+        10010
+      </span>
+    </div>
+    <form class="searchbar" onsubmit="return false;">
+      <input type="text" placeholder="What can we help you find today?" aria-label="Search">
+      <button type="submit" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>
+      </button>
+    </form>
+    <nav class="hd-nav">
+      <span class="item"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M3 7h13v13H3zM16 11h3l2 3v3h-5z"></path></svg>Shop All</span>
+      <span class="item"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><circle cx="7" cy="7" r="3"></circle><circle cx="17" cy="7" r="3"></circle><circle cx="7" cy="17" r="3"></circle><circle cx="17" cy="17" r="3"></circle></svg>Services</span>
+      <span class="item"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M4 8h16M12 8v12M8 4h8"></path></svg>DIY</span>
+      <span class="item"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"></path></svg>Log In</span>
+      <span class="item cart-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M2 4h3l3 11h11"></path><path d="M6 7h15l-2 6H8"></path><circle cx="9" cy="19" r="1.6"></circle><circle cx="18" cy="19" r="1.6"></circle></svg>
+        <span class="badge">1</span>
+        Cart
+      </span>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap cart-grid">
+    <section class="panel">
+      <div class="cart-title-row">
+        <h1 class="cart-title">CART <span>(1)</span></h1>
+        <span class="share">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#333" stroke-width="1.8"><path d="M4 12v7h16v-7M12 3v11M12 3 8 7M12 3l4 4"></path></svg>
+          Share
+        </span>
+      </div>
+
+      <div class="select-row">
+        <label><input type="checkbox"> Select All</label>
+        <span class="spacer"></span>
+        <span class="muted"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#a3a3a3" stroke-width="1.8"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path></svg> Remove</span>
+        <span class="muted"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#a3a3a3" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"></path></svg> Save to List</span>
+        <span class="muted"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#a3a3a3" stroke-width="1.8"><path d="M6 4h12v16l-6-4-6 4z"></path></svg> Save for Later</span>
+      </div>
+
+      <h2 class="section">Delivery</h2>
+      <div class="deliver-to">Delivering to <a href="#">10010</a> (1 item)</div>
+      <div class="delivery-note">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#333" stroke-width="1.6"><path d="M1 6h12v9H1zM13 9h5l3 3v3h-8z"></path><circle cx="6" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle></svg>
+        <div>
+          <div>Your Delivery Cost: <b>FREE</b></div>
+          <div>This applies to all Delivery items in your cart.</div>
+        </div>
+      </div>
+
+      <div class="line-item">
+        <div class="thumb-col">
+          <input type="checkbox" aria-label="Select item" style="margin-bottom:4px;">
+          <img class="thumb"
+               src="https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&q=80"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400&q=80';"
+               alt="RYOBI ONE+ 18V cordless drill/driver kit">
+          <div class="qty">
+            <button type="button" aria-label="Decrease quantity">&minus;</button>
+            <input type="text" value="1" data-qty aria-label="Quantity">
+            <button type="button" aria-label="Increase quantity">+</button>
+          </div>
+          <div class="limit">Limit 5 per order</div>
+        </div>
+        <div>
+          <div class="brand">RYOBI</div>
+          <div class="item-name">ONE+ 18V Cordless 3/8 in. Drill/Driver Kit with Battery and Charger</div>
+          <div class="attrs">
+            <div>Attachment Options: <b>No Additional Attachment</b></div>
+            <div>Battery/Charger: <b>(1) 2 Ah Battery &amp; Charger Included</b></div>
+            <div>Tool Series/Motor Type: <b>ONE+-Brushed</b></div>
+            <div>Chuck Size (In.): <b>3/8 In.</b></div>
+          </div>
+          <div class="avail">
+            <div>Available at</div>
+            <div class="row">
+              <a href="#">Manhattan West 23rd St</a>
+              <span>Delivering to <a href="#">10010</a></span>
+            </div>
+          </div>
+          <div class="ff-tiles">
+            <div class="ff-tile">
+              <div class="h">At Your Store</div>
+              <div class="s">Today</div>
+            </div>
+            <div class="ff-tile active">
+              <span class="check">&#10003;</span>
+              <div class="h">Delivery</div>
+              <div class="s">Today</div>
+            </div>
+          </div>
+        </div>
+        <div class="line-price">$49.97</div>
+      </div>
+    </section>
+
+    <aside class="panel order-panel">
+      <h3>Your Order</h3>
+      <div class="sum-row"><span>Subtotal</span><span>$49.97</span></div>
+      <div class="sum-row"><span>Delivery</span><span class="free">FREE</span></div>
+      <div class="sum-row"><span>Estimated Sales Tax*</span><span>---</span></div>
+      <div class="rule"></div>
+      <div class="sum-row total"><span>Total</span><span>$49.97</span></div>
+
+      <div class="rule"></div>
+      <div class="promo-toggle" id="promo-toggle">Have a Promo Code?
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#333" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
+      </div>
+      <div class="promo-input">
+        <input type="text" id="promo-code" value="HDCC25" aria-label="Promo code">
+        <button type="button">Apply</button>
+      </div>
+
+      <button class="btn-checkout" type="button" data-cta>Checkout</button>
+
+      <div class="order-status err" id="checkout-error" role="alert" aria-live="assertive">
+        <div class="t">We couldn&rsquo;t place your order</div>
+        <div>Your card has not been charged and your cart has been saved. Please try again in a few minutes or call
+          1-800-430-3376 for help completing your order.</div>
+        <div class="tech" id="checkout-error-tech"></div>
+      </div>
+      <div class="order-status ok" id="checkout-ok" role="status">
+        <div class="t">Order placed</div>
+        <div id="checkout-ok-body"></div>
+      </div>
+
+      <div class="quick">
+        <div class="lbl">Check Out Quickly With</div>
+        <button class="btn-gpay" type="button">Checkout with <span style="font-weight:700;">G Pay</span></button>
+        <button class="btn-paypal" type="button">PayPal Checkout</button>
+        <div class="paypal-note">Pay in 4 interest-free payments of $12.50 with PayPal. <a href="#">Learn more</a></div>
+      </div>
+
+      <div class="info-block">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M2 5h13v11H2zM15 9h4l3 3v4h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
+        <div>
+          <h5>Sign In to Use Instant Checkout</h5>
+          <a href="#">Sign In Now</a>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><rect x="3" y="6" width="18" height="13"></rect><path d="M3 10h18M9 6V4h6v2"></path></svg>
+        <div>
+          <h5>Easy In-Store and Online Returns</h5>
+          <p>Read Our <a href="#">Return Policy</a></p>
+        </div>
+      </div>
+
+      <div class="info-block cc-offer">
+        <span class="swatch"></span>
+        <div>
+          <h5>Get Up to $100 Off</h5>
+          <p>Get a Home Depot Credit Card and receive <b>$25 off</b> your qualifying purchase of $25+, <b>$50 off</b>
+            purchases $300+, or <b>$100 off</b> orders over $1,000.</p>
+          <a class="apply" href="#">Apply Now</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="wrap">
+    <section class="recs">
+      <h2>Customers Also Purchased&hellip;</h2>
+      <div class="rec-row">
+        <div class="rec">
+          <span class="tag">Exclusive</span>
+          <img src="https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400&q=80" alt="RYOBI drill and impact drive kit">
+          <div class="nm"><b>RYOBI</b> Drill and Impact Drive Kit (40-Piece)</div>
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(6399)</span></div>
+          <div class="pr">$15<sup>97</sup></div>
+          <button type="button">Add to Cart</button>
+        </div>
+        <div class="rec">
+          <span class="tag">Best Seller</span>
+          <img src="https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=400&q=80" alt="DEWALT screwdriver bit set">
+          <div class="nm"><b>DEWALT</b> MAXFIT ULTRA 1/4 in. Hex Steel Screwdriving Bit Set</div>
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(6541)</span></div>
+          <div class="pr">$12<sup>97</sup></div>
+          <button type="button">Add to Cart</button>
+        </div>
+        <div class="rec">
+          <span class="tag">Top Rated</span>
+          <img src="https://images.unsplash.com/photo-1609010697446-11f2155278f0?w=400&q=80" alt="Black and gold drill bit set">
+          <div class="nm"><b>DEWALT</b> Black and Gold Drill Bit Set (14-Piece)</div>
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(4859)</span></div>
+          <div class="pr">$12<sup>98</sup> <span style="font-size:12px;font-weight:400;">/set</span></div>
+          <button type="button">Add to Cart</button>
+        </div>
+        <div class="rec">
+          <span class="tag">Best Seller</span>
+          <img src="https://images.unsplash.com/photo-1580901368919-7738efb0f87e?w=400&q=80" alt="Twist drill bit set">
+          <div class="nm"><b>DEWALT</b> Black and Gold Twist Drill Bit Set (21-Piece)</div>
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(4861)</span></div>
+          <div class="pr">$24<sup>97</sup> <span style="font-size:12px;font-weight:400;">/set</span></div>
+          <button type="button">Add to Cart</button>
+        </div>
+        <div class="rec">
+          <span class="tag">Best Seller</span>
+          <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80" alt="Stud finder">
+          <div class="nm"><b>Zircon</b> StudSensor HD55 Stud Finder</div>
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9734; <span>(4004)</span></div>
+          <div class="pr">$19<sup>97</sup></div>
+          <button type="button">Add to Cart</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="hd">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h6>Customer Service</h6>
+        <ul>
+          <li><a href="#">Order Status</a></li>
+          <li><a href="#">Returns &amp; Exchanges</a></li>
+          <li><a href="#">Shipping &amp; Delivery</a></li>
+        </ul>
+      </div>
+      <div>
+        <h6>Resources</h6>
+        <ul>
+          <li><a href="#">Store Finder</a></li>
+          <li><a href="#">Truck &amp; Tool Rental</a></li>
+          <li><a href="#">Installation &amp; Services</a></li>
+        </ul>
+      </div>
+      <div>
+        <h6>Credit Services</h6>
+        <ul>
+          <li><a href="#">Consumer Credit Card</a></li>
+          <li><a href="#">Pro Xtra Credit Card</a></li>
+          <li><a href="#">Gift Cards</a></li>
+        </ul>
+      </div>
+      <div>
+        <h6>About Us</h6>
+        <ul>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Corporate Information</a></li>
+          <li><a href="#">Newsroom</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-legal">
+      &copy; 2000-2026 Home Depot. All Rights Reserved. Use of this site is subject to certain Terms of Use.
+      &nbsp;|&nbsp; <a href="#">Privacy &amp; Security Statement</a> | <a href="#">Terms</a> |
+      <a href="#">Accessibility</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+  var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+
+  var errorBox = document.getElementById('checkout-error');
+  var errorTech = document.getElementById('checkout-error-tech');
+  var okBox = document.getElementById('checkout-ok');
+  var okBody = document.getElementById('checkout-ok-body');
+
+  function showCheckoutError(payload) {
+    errorTech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+      + '\n' + (payload.code || 'CHECKOUT_FAILED')
+      + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+    errorBox.classList.add('show');
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showCheckoutOk(order) {
+    okBody.textContent = 'Order ' + order.orderId.slice(0, 8) + ' confirmed \u2014 total $' + order.total.toFixed(2)
+      + ' (savings $' + order.savings.toFixed(2) + ', tax $' + order.estimatedTax.toFixed(2) + ') across '
+      + order.shipments.length + ' shipment(s).';
+    okBox.classList.add('show');
+  }
+
+  function checkout(button) {
+    if (button._running) return;
+    button._running = true;
+    var original = button.textContent;
+    button.textContent = 'Placing your order\u2026';
+    button.style.pointerEvents = 'none';
+    errorBox.classList.remove('show');
+    okBox.classList.remove('show');
+
+    var qtyInput = document.querySelector('[data-qty]');
+    var promoInput = document.getElementById('promo-code');
+
+    fetch('/api/a69bcc34/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: [{ sku: '1005643790', qty: parseInt(qtyInput.value, 10) || 1, fulfillment: 'delivery' }],
+        promoCode: promoInput ? promoInput.value.trim() : 'HDCC25',
+        storeNumber: '6177',
+        zipCode: '10010',
+        channel: 'web',
+        devinUserId: DEVIN_USER_ID,
+        devinOrgId: DEVIN_ORG_ID,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showCheckoutError(result.body);
+        else showCheckoutOk(result.body);
+      })
+      .catch(function (err) {
+        showCheckoutError({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.textContent = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      checkout(button);
+    });
+  });
+
+  document.querySelectorAll('.qty button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.querySelector('[data-qty]');
+      var current = parseInt(input.value, 10) || 1;
+      var next = btn.textContent.trim() === '+' ? current + 1 : current - 1;
+      input.value = Math.min(5, Math.max(1, next));
+    });
+  });
+</script>
+</body>
+</html>

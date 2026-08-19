@@ -272,6 +272,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | Koch Industries (08381313) | `/08381313` | "Get to know Koch" | `Cannot read properties of undefined (reading 'lastAuditDate')` |
 | United Airlines (4ada28b9) | `/4ada28b9` | "Find flights" | `Cannot read properties of undefined (reading 'milesMultiplier')` |
 | RBC Royal Bank (3cec99d4) | `/3cec99d4`, `/rbc` | "Apply Online Now" (student chequing card, school email left blank) | `Cannot read properties of undefined (reading 'toLowerCase')` |
+| The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 
 ### API Testing (curl)
 
@@ -320,6 +321,9 @@ curl -s -X POST http://localhost:3000/api/08381313/supply-inquiry -H 'Content-Ty
 
 # Custom — RBC Royal Bank (3cec99d4)
 curl -s -X POST http://localhost:3000/api/3cec99d4/open-account -H 'Content-Type: application/json' -d '{"productCode":"ADV-STUDENT-CHQ","applicantType":"student-full-time","promoCode":"STUDENT-AIRPODS-2026","schoolEmail":"","province":"ON","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
+
+# Custom — The Home Depot (a69bcc34)
+curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"1005643790","qty":1,"fulfillment":"delivery"}],"promoCode":"HDCC25","storeNumber":"6177","zipCode":"10010","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
 # Custom — United Airlines (4ada28b9)
 curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Type: application/json' -d '{"origin":"EWR","destination":"LAX","cabin":"economy","passengers":1,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-2cd0ade21d8d4c5886fcea1b701c34e0"}'
