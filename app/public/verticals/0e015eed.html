@@ -414,9 +414,16 @@
 </div>
 
 <script>
-  var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
-  var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
-
+  /* Ensure locked-mode config is in localStorage for direct navigation */
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<script>
   var toastTimer = null;
 
   function showToast(payload) {
@@ -453,8 +460,8 @@
         name: document.getElementById('name').value.trim(),
         email: document.getElementById('email').value.trim(),
         message: document.getElementById('message').value.trim(),
-        devinUserId: DEVIN_USER_ID,
-        devinOrgId: DEVIN_ORG_ID,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || '',
       }),
     })
