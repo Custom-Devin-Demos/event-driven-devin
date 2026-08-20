@@ -408,6 +408,7 @@ function buildOncallShim(scenario, skinSlug) {
           }
           var postedAt = Date.now();
           alertPostedAt = postedAt;
+          dotEl.title = 'Devin On-Call demo';
           const unique = document.getElementById('oncall-unique').checked;
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
@@ -427,7 +428,15 @@ function buildOncallShim(scenario, skinSlug) {
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
             if (d.ok) setTimeout(collapseRibbon, 4000);
-          }).catch(function () { if (alertPostedAt === postedAt) alertPostedAt = 0; });
+          }).catch(function () {
+            if (alertPostedAt === postedAt) alertPostedAt = 0;
+            if (ribbonCollapsed) expandRibbon();
+            var el = document.getElementById('oncall-status');
+            if (el) {
+              el.style.color = '#f85149';
+              el.textContent = 'Alert post failed';
+            }
+          });
           return origFetch(url.replace(apiPath, oncallApiPath), opts);
         }
         return origFetch(url, opts);
