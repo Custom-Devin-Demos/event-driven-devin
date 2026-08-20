@@ -239,7 +239,7 @@ function sendSkinnedPage(res, next, page, skin) {
  */
 function buildSkinBrandShim(skin) {
   const page = skin.page || {};
-  const themeVars = Object.entries(page.theme || {})
+  const themeVars = Object.entries(page.theme || skin.theme || {})
     .filter(([k, v]) => /^--[a-z0-9-]+$/i.test(k) && /^[^<>{};]*$/.test(String(v)))
     .map(([k, v]) => `${k}: ${v};`)
     .join(' ');
