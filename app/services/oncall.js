@@ -102,6 +102,7 @@ const ALERT_SCENARIOS = {
     release: 'echoscribe@1.0.4',
     symptom: 'Transcript finalization latency jumped after the last release and creeps higher with every utterance. Process RSS trends up alongside it. Error rate is normal.',
     impact: 'Every dictation waits several seconds for its polished transcript, and the wait grows under sustained use.',
+    responderNote: 'This is a voice product: verify the fix with real audio, not typed input. Follow the "Voice (dictation) specifics" section of .agents/skills/testing-oncall-skins/SKILL.md — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen; record 2-3 finalizes before and after the fix to show the climb and the flat fast profile.',
   },
   telco: {
     vertical: 'telco',
@@ -355,6 +356,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     '',
     `*Symptom:* ${scenario.symptom}`,
     `*Impact:* ${scenario.impact}`,
+    scenario.responderNote ? `*Responder note:* ${scenario.responderNote}` : null,
     `Repo: ${REPO_URL}`,
   ];
 
@@ -402,6 +404,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     mrkdwnSection(
       `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
       (skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
+      (scenario.responderNote ? `*Responder note:* ${scenario.responderNote}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     datadogActions(),

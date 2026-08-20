@@ -55,6 +55,13 @@ const vocabularyCache = new Map();
 const RUNTIME_SNAPSHOT_TTL_MS = 60 * 1000;
 const runtimeKeys = new Set();
 
+/**
+ * The vocabulary registry is sharded; journal snapshots have long since
+ * settled into every shard, so one check suffices. Session snapshots are
+ * still propagating and must be verified against each shard individually.
+ */
+const REGISTRY_SHARDS = 16;
+
 function expireRuntimeSnapshots() {
   const cutoff = Date.now() - RUNTIME_SNAPSHOT_TTL_MS;
   let expired = 0;
@@ -118,8 +125,12 @@ async function verifySnapshot(snapshot) {
  */
 async function collectLearnedTerms(workspace, dictionary) {
   let learned = 0;
-  for (const [, snapshot] of vocabularyCache) {
-    const valid = await verifySnapshot(snapshot);
+  for (const [key, snapshot] of vocabularyCache) {
+    const shards = runtimeKeys.has(key) ? REGISTRY_SHARDS : 1;
+    let valid = true;
+    for (let i = 0; i < shards; i++) {
+      valid = (await verifySnapshot(snapshot)) && valid;
+    }
     if (valid && snapshot.workspace === workspace && snapshot.dictionary === dictionary) {
       learned++;
     }
