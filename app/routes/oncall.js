@@ -410,7 +410,7 @@ function buildOncallShim(scenario, skinSlug) {
               statusEl.textContent = retryMsg;
             }
             if (ribbonCollapsed) dotEl.title = retryMsg;
-            else if (collapseTimer) scheduleCollapse();
+            else scheduleCollapse();
             return origFetch(url.replace(apiPath, oncallApiPath), opts);
           }
           var postedAt = Date.now();
