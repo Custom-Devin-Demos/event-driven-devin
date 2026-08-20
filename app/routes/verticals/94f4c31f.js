@@ -34,7 +34,7 @@ router.post('/api/94f4c31f/personal-info', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.statusCode || 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,

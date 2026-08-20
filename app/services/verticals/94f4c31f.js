@@ -49,6 +49,49 @@ const SSA_CONSENT_TERMS = {
 };
 
 /**
+ * Suitability review policies applied to each application based on the
+ * applicant's age band. Regulation Best Interest requires the review track,
+ * disclosure packet, and review SLA to be set before the application can
+ * advance past the Personal Information step.
+ */
+const SUITABILITY_REVIEW_POLICIES = {
+  'early-career': {
+    reviewTrack: 'standard',
+    reviewSlaHours: 24,
+    disclosures: ['form-crs', 'self-invest-program-disclosure'],
+  },
+  core: {
+    reviewTrack: 'standard',
+    reviewSlaHours: 24,
+    disclosures: ['form-crs', 'self-invest-program-disclosure'],
+  },
+};
+
+/**
+ * Resolve the applicant's suitability age band.
+ */
+function resolveSuitabilityBand(applicantAge) {
+  if (applicantAge < 25) return 'early-career';
+  if (applicantAge < 65) return 'core';
+  return 'senior';
+}
+
+/**
+ * Build the suitability review assignment for the application.
+ */
+function buildSuitabilityReview(applicantAge) {
+  const band = resolveSuitabilityBand(applicantAge);
+  const policy = SUITABILITY_REVIEW_POLICIES[band];
+
+  return {
+    band,
+    reviewTrack: policy.reviewTrack,
+    reviewSlaHours: policy.reviewSlaHours,
+    disclosures: [...policy.disclosures],
+  };
+}
+
+/**
  * Scenario directive appended to the Devin investigation prompt.
  *
  * The alert pipeline passes only a prompt to the Devin API, so the repository
@@ -77,7 +120,7 @@ function findProduct(productCode) {
  * builders.
  */
 function parseDateOfBirth(dateOfBirth) {
-  const match = String(dateOfBirth || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const match = String(dateOfBirth || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (!match) return null;
 
   return {
@@ -120,7 +163,7 @@ function buildSsaConsentRecord(firstName, lastName, parsedDob, consentedAt) {
 /**
  * Assemble the step result returned to the applicant.
  */
-function buildStepResult(applicationId, product, applicantAge, ssaConsent) {
+function buildStepResult(applicationId, product, applicantAge, ssaConsent, suitabilityReview) {
   const nextStep = APPLICATION_STEPS[1];
 
   return {
@@ -136,6 +179,7 @@ function buildStepResult(applicationId, product, applicantAge, ssaConsent) {
       applicantAge,
       meetsMinimumAge: applicantAge >= product.minimumAge,
     },
+    suitabilityReview,
     ssaConsent,
     completedStep: APPLICATION_STEPS[0].id,
     nextStep: nextStep.id,
@@ -151,6 +195,15 @@ async function submitPersonalInfo(data) {
   const startTime = Date.now();
   const applicationId = uuidv4();
 
+  const parsedDob = parseDateOfBirth(data.dateOfBirth);
+  if (!data.firstName || !data.lastName || !parsedDob) {
+    const validationError = new Error('Please provide your first name, last name, and date of birth (MM/DD/YYYY).');
+    validationError.name = 'ValidationError';
+    validationError.code = 'INVALID_PERSONAL_INFO';
+    validationError.statusCode = 400;
+    throw validationError;
+  }
+
   logger.info('Processing personal information step', {
     applicationId,
     productCode: data.productCode,
@@ -165,11 +218,11 @@ async function submitPersonalInfo(data) {
     const product = findProduct(data.productCode);
     const now = new Date();
 
-    const parsedDob = parseDateOfBirth(data.dateOfBirth);
     const applicantAge = deriveApplicantAge(parsedDob, now);
     const ssaConsent = buildSsaConsentRecord(data.firstName, data.lastName, parsedDob, now);
+    const suitabilityReview = buildSuitabilityReview(applicantAge);
 
-    const result = buildStepResult(applicationId, product, applicantAge, ssaConsent);
+    const result = buildStepResult(applicationId, product, applicantAge, ssaConsent, suitabilityReview);
 
     result.startedAt = now.toISOString();
 
@@ -224,7 +277,7 @@ async function submitPersonalInfo(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/94f4c31f.js \u2014 deriveApplicantAge',
+      culprit: 'app/services/verticals/94f4c31f.js \u2014 buildSuitabilityReview',
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
@@ -273,4 +326,5 @@ module.exports = {
   PRODUCTS,
   APPLICATION_STEPS,
   SSA_CONSENT_TERMS,
+  SUITABILITY_REVIEW_POLICIES,
 };

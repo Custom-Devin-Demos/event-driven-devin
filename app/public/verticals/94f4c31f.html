@@ -225,18 +225,18 @@
         <div class="field-grid">
           <div class="field" id="field-first-name">
             <label for="first-name">First Name</label>
-            <input type="text" id="first-name" name="firstName" autocomplete="given-name">
+            <input type="text" id="first-name" name="firstName" autocomplete="given-name" value="Margaret">
             <div class="field-error">First name is required.</div>
           </div>
           <div class="field" id="field-last-name">
             <label for="last-name">Last Name</label>
-            <input type="text" id="last-name" name="lastName" autocomplete="family-name">
+            <input type="text" id="last-name" name="lastName" autocomplete="family-name" value="Chen">
             <div class="field-error">Last name is required.</div>
           </div>
           <div class="field" id="field-dob">
             <label for="dob">Date of Birth (MM/DD/YYYY)</label>
-            <input type="text" id="dob" name="dateOfBirth" inputmode="numeric" autocomplete="bday">
-            <div class="field-error">Date of birth is required.</div>
+            <input type="text" id="dob" name="dateOfBirth" inputmode="numeric" autocomplete="bday" value="06/15/1958">
+            <div class="field-error">Date of birth is required (MM/DD/YYYY).</div>
           </div>
         </div>
 
@@ -312,8 +312,24 @@
     ok.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function validateFields() {
+    var valid = true;
+    [
+      { field: 'field-first-name', input: 'first-name', check: function (v) { return v.length > 0; } },
+      { field: 'field-last-name', input: 'last-name', check: function (v) { return v.length > 0; } },
+      { field: 'field-dob', input: 'dob', check: function (v) { return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v); } },
+    ].forEach(function (item) {
+      var value = document.getElementById(item.input).value.trim();
+      var ok = item.check(value);
+      document.getElementById(item.field).classList.toggle('invalid', !ok);
+      if (!ok) valid = false;
+    });
+    return valid;
+  }
+
   function submitPersonalInfo(button) {
     if (button._running) return;
+    if (!validateFields()) return;
     button._running = true;
     var original = button.textContent;
     button.textContent = 'Submitting\u2026';
