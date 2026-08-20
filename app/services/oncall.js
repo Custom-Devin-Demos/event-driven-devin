@@ -84,6 +84,9 @@ const ALERT_SCENARIOS = {
     release: 'novasoft@1.0.3',
     symptom: 'Provisioning latency jumped after the last release and creeps higher with every request. Process RSS trends up alongside it.',
     impact: 'License provisioning is slow for every customer and getting slower under sustained traffic.',
+    // Climbing-latency scenario: repeat submits demonstrate the per-request
+    // growth, so retries within the window join the same incident.
+    retryWindow: true,
   },
   voice: {
     vertical: 'voice',
@@ -102,6 +105,9 @@ const ALERT_SCENARIOS = {
     release: 'echoscribe@1.0.4',
     symptom: 'Transcript finalization latency jumped after the last release and creeps higher with every utterance. Process RSS trends up alongside it. Error rate is normal.',
     impact: 'Every dictation waits several seconds for its polished transcript, and the wait grows under sustained use.',
+    // Climbing-latency scenario: repeat submits demonstrate the per-utterance
+    // growth, so retries within the window join the same incident.
+    retryWindow: true,
   },
   telco: {
     vertical: 'telco',
