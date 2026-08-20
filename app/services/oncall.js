@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
@@ -356,7 +356,6 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     '',
     `*Symptom:* ${scenario.symptom}`,
     `*Impact:* ${scenario.impact}`,
-    scenario.responderNote ? `*Responder note:* ${scenario.responderNote}` : null,
     `Repo: ${REPO_URL}`,
   ];
 
@@ -404,13 +403,21 @@ async function postOncallAlert(scenarioId, options = {}) {
     mrkdwnSection(
       `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
       (skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
-      (scenario.responderNote ? `*Responder note:* ${scenario.responderNote}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     datadogActions(),
     contextBlock(scenario.service, triggeredBy),
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
+  // Responder guidance goes in the thread, not the card: the card must stay
+  // metric-shaped for demo audiences, while the responder reads the thread.
+  if (scenario.responderNote) {
+    try {
+      await postThreadReply(token, alertsChannel, ts, `:memo: *Responder note:* ${scenario.responderNote}`);
+    } catch (err) {
+      logger.warn('Failed to post responder note thread reply', { error: err.message });
+    }
+  }
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
   return { ok: true, ts, channel: alertsChannel };
 }
