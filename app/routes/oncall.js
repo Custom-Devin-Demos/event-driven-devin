@@ -346,6 +346,7 @@ router.get('/oncall/report', (_req, res) => {
  */
 function buildOncallShim(scenario, skinSlug) {
   return `
+  <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
   <div id="oncall-ribbon" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
     <div style="font-weight:700;color:#f0f6fc;margin-bottom:4px;">Devin On-Call demo</div>
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
@@ -366,12 +367,55 @@ function buildOncallShim(scenario, skinSlug) {
       var tierSelect = document.getElementById('accountTier');
       if (vertical === 'banking' && tierSelect) tierSelect.value = 'standard';
       const origFetch = window.fetch.bind(window);
+      // After the alert lands, collapse the demo ribbon to a small dot so it
+      // doesn't sit over the customer page; clicking the dot re-expands it.
+      var ribbonEl = document.getElementById('oncall-ribbon');
+      var dotEl = document.getElementById('oncall-dot');
+      var ribbonCollapsed = false;
+      var collapseTimer = null;
+      function scheduleCollapse() {
+        if (collapseTimer) clearTimeout(collapseTimer);
+        collapseTimer = setTimeout(collapseRibbon, 4000);
+      }
+      function collapseRibbon() {
+        collapseTimer = null;
+        ribbonCollapsed = true;
+        ribbonEl.style.display = 'none';
+        dotEl.style.display = 'block';
+      }
+      function expandRibbon() {
+        ribbonCollapsed = false;
+        dotEl.title = 'Devin On-Call demo';
+        dotEl.style.display = 'none';
+        ribbonEl.style.display = 'block';
+      }
+      dotEl.addEventListener('click', expandRibbon);
+      // One alert per retry window: the first primary action posts the alert
+      // and opens a 60s window during which retries exercise the degradation
+      // again without opening a separate incident. After the window expires
+      // (or on refresh), the next action registers as a fresh occurrence.
+      var RETRY_WINDOW_MS = 60 * 1000;
+      var alertPostedAt = 0;
       window.fetch = function (url, opts) {
         if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
           // Reroute the page's primary action to the on-call vertical
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted
           // alongside. Legacy endpoints are untouched.
+          if (alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
+            var statusEl = document.getElementById('oncall-status');
+            var retryMsg = 'Retry joined the open incident (60s window)';
+            if (statusEl) {
+              statusEl.style.color = '#c9d1d9';
+              statusEl.textContent = retryMsg;
+            }
+            if (ribbonCollapsed) dotEl.title = retryMsg;
+            else scheduleCollapse();
+            return origFetch(url.replace(apiPath, oncallApiPath), opts);
+          }
+          var postedAt = Date.now();
+          alertPostedAt = postedAt;
+          if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
@@ -381,12 +425,26 @@ function buildOncallShim(scenario, skinSlug) {
             const el = document.getElementById('oncall-status');
             if (d.skipped) {
               console.warn('On-call alert post skipped: ' + d.error);
-              el.textContent = '';
+              if (ribbonCollapsed) expandRibbon();
+              el.style.color = '#f85149';
+              el.textContent = 'Alert post skipped — no alert reached Slack';
+              if (alertPostedAt === postedAt) alertPostedAt = 0;
               return;
             }
+            if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
+            if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
-          }).catch(function () {});
+            if (d.ok) scheduleCollapse();
+          }).catch(function () {
+            if (alertPostedAt === postedAt) alertPostedAt = 0;
+            if (ribbonCollapsed) expandRibbon();
+            var el = document.getElementById('oncall-status');
+            if (el) {
+              el.style.color = '#f85149';
+              el.textContent = 'Alert post failed';
+            }
+          });
           return origFetch(url.replace(apiPath, oncallApiPath), opts);
         }
         return origFetch(url, opts);

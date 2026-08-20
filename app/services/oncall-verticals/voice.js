@@ -46,6 +46,35 @@ const PUNCTUATION_COMMANDS = [
  */
 const vocabularyCache = new Map();
 
+/**
+ * Snapshots added at runtime (one per finalized transcript) are session
+ * vocabulary: they only stay hot for a short window, after which the
+ * registry treats them as settled and they drop out of the re-verification
+ * set. The journal baseline never expires.
+ */
+const RUNTIME_SNAPSHOT_TTL_MS = 60 * 1000;
+const runtimeKeys = new Set();
+
+function expireRuntimeSnapshots() {
+  const cutoff = Date.now() - RUNTIME_SNAPSHOT_TTL_MS;
+  let expired = 0;
+  for (const key of runtimeKeys) {
+    const snapshot = vocabularyCache.get(key);
+    if (!snapshot || snapshot.finalizedAt < cutoff) {
+      if (vocabularyCache.delete(key)) expired++;
+      runtimeKeys.delete(key);
+      syntheticKeys.delete(key);
+    }
+  }
+  if (expired > 0) {
+    logger.info('Settled session vocabulary snapshots dropped from cache', {
+      expired,
+      entries: vocabularyCache.size,
+      service: 'dictation-api',
+    });
+  }
+}
+
 function makeSnapshot(workspace, dictionary, wordCount) {
   const payload = Buffer.alloc(256 * 1024);
   crypto.randomFillSync(payload, 0, 1024);
@@ -151,6 +180,7 @@ async function finalizeTranscript(data, options = {}) {
   });
 
   try {
+    expireRuntimeSnapshots();
     const dictionaryId = String(data.dictionary || '').toLowerCase();
     const config = getDictionaryConfig(dictionaryId);
     const learnedTerms = await collectLearnedTerms(data.workspace, dictionaryId);
@@ -158,6 +188,7 @@ async function finalizeTranscript(data, options = {}) {
     const wordCount = text ? text.trim().split(/\s+/).length : 0;
 
     vocabularyCache.set(transcriptId, makeSnapshot(data.workspace, dictionaryId, wordCount));
+    runtimeKeys.add(transcriptId);
     if (options.synthetic) syntheticKeys.add(transcriptId);
 
     const duration = Date.now() - startTime;
@@ -239,6 +270,7 @@ function releaseAccumulatedVocabulary() {
   let released = 0;
   for (const key of syntheticKeys) {
     if (vocabularyCache.delete(key)) released++;
+    runtimeKeys.delete(key);
   }
   syntheticKeys.clear();
   if (released > 0) {
