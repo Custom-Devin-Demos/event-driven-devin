@@ -415,6 +415,7 @@ function buildOncallShim(scenario, skinSlug) {
               return;
             }
             if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
+            if (dotEl.style.display !== 'none' && dotEl.style.display !== '') { dotEl.style.display = 'none'; ribbonEl.style.display = 'block'; }
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
             if (d.ok) setTimeout(collapseRibbon, 4000);
