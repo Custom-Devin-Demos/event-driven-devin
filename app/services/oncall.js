@@ -508,7 +508,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   }
   // Same responder guidance as the alert flavor, threaded so the ticket itself
   // stays a plain customer report.
-  const noteScenario = scenarioId || (template && findBugTemplateProduct(templateId));
+  const noteScenario = (template && findBugTemplateProduct(templateId)) || scenarioId;
   const scenarioNote = noteScenario && ALERT_SCENARIOS[noteScenario] && ALERT_SCENARIOS[noteScenario].responderNote;
   if (scenarioNote || skinSlug) {
     try {
