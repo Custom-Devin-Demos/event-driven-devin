@@ -510,12 +510,13 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   // stays a plain customer report.
   const noteScenario = scenarioId || (template && findBugTemplateProduct(templateId));
   const scenarioNote = noteScenario && ALERT_SCENARIOS[noteScenario] && ALERT_SCENARIOS[noteScenario].responderNote;
-  if (scenarioNote) {
+  if (scenarioNote || skinSlug) {
     try {
-      const demoPage = skinSlug
-        ? `\n*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skinSlug} — reproduce the symptom on this branded page`
-        : '';
-      await postThreadReply(token, bugsChannel, ts, `:memo: *Responder note:* ${scenarioNote}${demoPage}`);
+      const reply = [
+        scenarioNote ? `:memo: *Responder note:* ${scenarioNote}` : null,
+        skinSlug ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skinSlug} — reproduce the symptom on this branded page` : null,
+      ].filter(Boolean).join('\n');
+      await postThreadReply(token, bugsChannel, ts, reply);
     } catch (err) {
       logger.warn('Failed to post responder note thread reply on bug report', { error: err.message });
     }
