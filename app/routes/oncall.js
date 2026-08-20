@@ -583,6 +583,7 @@ router.post('/api/oncall/bug', oncallCap('bug'), async (req, res) => {
       productArea,
       devinEmail,
       supportCenter: skinConfig ? skinConfig.supportCenter : undefined,
+      skinSlug: skinConfig ? skinConfig.slug : undefined,
     });
     if (result.activated) setRunCookie(res, result.runRef, result.windowMinutes);
     res.status(result.ok || result.skipped ? 200 : 400).json(result);

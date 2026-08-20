@@ -434,7 +434,7 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
   const template = findBugTemplate(templateId);
@@ -512,7 +512,10 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   const scenarioNote = noteScenario && ALERT_SCENARIOS[noteScenario] && ALERT_SCENARIOS[noteScenario].responderNote;
   if (scenarioNote) {
     try {
-      await postThreadReply(token, bugsChannel, ts, `:memo: *Responder note:* ${scenarioNote}`);
+      const demoPage = skinSlug
+        ? `\n*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skinSlug} — reproduce the symptom on this branded page`
+        : '';
+      await postThreadReply(token, bugsChannel, ts, `:memo: *Responder note:* ${scenarioNote}${demoPage}`);
     } catch (err) {
       logger.warn('Failed to post responder note thread reply on bug report', { error: err.message });
     }
