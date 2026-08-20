@@ -243,6 +243,14 @@ function findBugTemplate(templateId) {
   return null;
 }
 
+function findBugTemplateProduct(templateId) {
+  if (!templateId) return null;
+  for (const [product, entries] of Object.entries(BUG_CATALOG)) {
+    if (entries.some((t) => t.id === templateId)) return product;
+  }
+  return null;
+}
+
 // Back-compat: legacy scenarioId (product area) → first template's text.
 const BUG_REPORTS = Object.fromEntries(
   Object.entries(BUG_CATALOG).map(([area, entries]) => [area, entries[0].text]),
@@ -500,7 +508,8 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   }
   // Same responder guidance as the alert flavor, threaded so the ticket itself
   // stays a plain customer report.
-  const scenarioNote = scenarioId && ALERT_SCENARIOS[scenarioId] && ALERT_SCENARIOS[scenarioId].responderNote;
+  const noteScenario = scenarioId || (template && findBugTemplateProduct(templateId));
+  const scenarioNote = noteScenario && ALERT_SCENARIOS[noteScenario] && ALERT_SCENARIOS[noteScenario].responderNote;
   if (scenarioNote) {
     try {
       await postThreadReply(token, bugsChannel, ts, `:memo: *Responder note:* ${scenarioNote}`);

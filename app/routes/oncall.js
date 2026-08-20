@@ -183,6 +183,12 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       pageFile,
     });
   }
+  if (skin.trigger && skin.trigger.kind !== 'bug') {
+    logger.warn('On-Call skin trigger has unrecognized kind', {
+      skin: skin.slug,
+      kind: skin.trigger.kind,
+    });
+  }
   if (skin.trigger && skin.trigger.kind === 'bug' && !KNOWN_TEMPLATE_IDS.has(skin.trigger.templateId)) {
     logger.warn('On-Call skin bug trigger references unknown template id', {
       skin: skin.slug,
