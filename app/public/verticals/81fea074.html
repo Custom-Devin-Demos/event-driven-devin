@@ -5,250 +5,412 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stellic &mdash; Registration</title>
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --navy: #151b26;
+      --navy-2: #1d2532;
+      --navy-3: #2a3342;
       --terracotta: #c1441a;
       --terracotta-dark: #a53a15;
       --green: #76d99c;
+      --green-solid: #2fb073;
+      --amber: #f5a623;
       --cream: #f5f4ed;
-      --stone: #e3dacc;
+      --cream-2: #efeee5;
       --stone-3: #cbc6bd;
-      --line: #ebebeb;
+      --line: #e6e4dc;
       --paper: #ffffff;
       --text-grey: #606060;
       --danger: #a5301f;
       --sans: 'Funnel Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      --display: 'season-mix', 'Instrument Serif', Georgia, 'Times New Roman', serif;
       --mono: 'Roboto Mono', 'SF Mono', Menlo, Consolas, monospace;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--paper); color: var(--navy); font-size: 16px; line-height: 1.5; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--sans); background: var(--cream); color: var(--navy); font-size: 16px; line-height: 1.5; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
 
-    .announce { background: var(--navy); color: #fff; font-size: 0.95rem; font-weight: 500; letter-spacing: -0.01em; text-align: center; padding: 15px 18px; }
-    .announce a { color: #fff; text-decoration: none; opacity: 0.85; margin-left: 6px; white-space: nowrap; }
+    /* ---------- app shell ---------- */
+    .shell { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; background: linear-gradient(to right, var(--navy) 0 252px, var(--cream) 252px); }
 
-    header { background: var(--paper); border-bottom: 1px solid var(--line); }
-    .header-inner { max-width: 1320px; margin: 0 auto; padding: 18px 28px; display: flex; align-items: center; gap: 30px; }
-    .logo { display: flex; align-items: center; gap: 11px; text-decoration: none; color: var(--navy); }
-    .logo svg { width: 34px; height: 34px; flex: none; }
-    .logo .wordmark { font-size: 1.45rem; font-weight: 600; letter-spacing: 0.04em; }
-    .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; margin-left: 12px; }
-    .nav-links a { color: var(--navy); text-decoration: none; font-size: 1rem; font-weight: 500; padding: 8px 14px; border-radius: 8px; }
-    .nav-links a:hover { background: var(--cream); }
-    .nav-links a.active { background: var(--cream); font-weight: 600; }
-    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-    .pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 26px; border-radius: 999px; font-family: var(--sans); font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
-    .pill-navy { background: var(--navy); color: #fff; }
-    .pill-navy:hover { background: #0d121b; }
-    .pill-ghost { background: transparent; color: var(--navy); border-color: var(--stone-3); }
-    .pill-ghost:hover { background: var(--cream); }
-    @media (max-width: 1080px) { .nav-links, .nav-right .pill-ghost { display: none; } }
+    .sidebar { color: rgba(245,244,237,0.72); position: sticky; top: 0; align-self: start; height: 100vh; min-width: 0; display: flex; flex-direction: column; padding: 18px 14px 16px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; padding: 4px 8px 18px; }
+    .brand svg { width: 26px; height: 26px; flex: none; }
+    .brand span { font-size: 1.12rem; font-weight: 600; letter-spacing: 0.05em; }
 
-    .hero { background: var(--cream); }
-    .hero-inner { max-width: 1100px; margin: 0 auto; padding: 76px 28px 82px; text-align: center; }
-    .kicker { font-size: 0.8rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-grey); margin-bottom: 20px; }
-    .hero h1 { font-family: var(--display); font-size: clamp(2.6rem, 6vw, 4.6rem); font-weight: 400; line-height: 1.06; letter-spacing: -0.015em; }
-    .hero .sub { margin: 22px auto 0; max-width: 660px; font-size: 1.32rem; line-height: 1.4; letter-spacing: -0.02em; color: var(--text-grey); }
-    @media (max-width: 560px) { .hero .sub { font-size: 1.08rem; } .hero-inner { padding: 44px 20px 48px; } }
+    .term-switch { display: flex; align-items: center; gap: 8px; background: var(--navy-2); border: 1px solid var(--navy-3); border-radius: 10px; padding: 9px 12px; margin-bottom: 18px; cursor: pointer; }
+    .term-switch .t-label { font-size: 0.66rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: rgba(245,244,237,0.5); }
+    .term-switch .t-value { font-size: 0.88rem; font-weight: 600; color: #fff; }
+    .term-switch .chev { margin-left: auto; opacity: 0.6; font-size: 0.7rem; }
 
-    main { max-width: 1320px; margin: 0 auto; padding: 40px 28px 64px; }
-    @media (max-width: 560px) { main { padding: 26px 20px 44px; } }
+    .nav-group { margin-bottom: 16px; }
+    .nav-group h4 { font-size: 0.63rem; font-weight: 600; letter-spacing: 0.13em; text-transform: uppercase; color: rgba(245,244,237,0.38); padding: 0 10px 8px; }
+    .nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 9px; color: rgba(245,244,237,0.74); text-decoration: none; font-size: 0.9rem; font-weight: 500; margin-bottom: 2px; }
+    .nav-item svg { width: 17px; height: 17px; flex: none; opacity: 0.85; }
+    .nav-item:hover { background: var(--navy-2); color: #fff; }
+    .nav-item.active { background: var(--navy-3); color: #fff; font-weight: 600; }
+    .nav-item .count { margin-left: auto; font-size: 0.7rem; font-weight: 600; background: rgba(193,68,26,0.9); color: #fff; border-radius: 999px; padding: 1px 7px; }
 
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 26px; }
+    .sidebar-foot { margin-top: auto; border-top: 1px solid var(--navy-3); padding-top: 12px; }
+    .student { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: var(--navy); font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex: none; }
+    .student .s-name { font-size: 0.84rem; font-weight: 600; color: #fff; }
+    .student .s-sub { font-size: 0.72rem; color: rgba(245,244,237,0.5); }
+
+    /* ---------- workspace ---------- */
+    .workspace { min-width: 0; display: flex; flex-direction: column; }
+    .topbar { background: var(--paper); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 12px 26px; position: sticky; top: 0; z-index: 5; }
+    .crumbs { font-size: 0.86rem; color: var(--text-grey); }
+    .crumbs strong { color: var(--navy); font-weight: 600; }
+    .search { margin-left: 8px; flex: 1; max-width: 340px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--cream); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 0.86rem; color: var(--text-grey); }
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 38px; padding: 0 16px; border-radius: 10px; font-family: var(--sans); font-size: 0.88rem; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+    .btn-ghost { color: var(--navy); border-color: var(--line); background: var(--paper); }
+    .btn-ghost:hover { background: var(--cream); }
+    .btn-accent { background: var(--terracotta); color: #fff; }
+    .btn-accent:hover { background: var(--terracotta-dark); }
+
+    main { padding: 24px 26px 56px; max-width: 1220px; }
+    @media (max-width: 560px) { main { padding: 18px 16px 44px; } }
+
+    .page-head { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+    .page-head h1 { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.025em; }
+    .page-head .ph-sub { font-size: 0.9rem; color: var(--text-grey); margin-top: 3px; }
+    .window-pill { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 0.8rem; font-weight: 600; }
+    .window-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-solid); }
+
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 16px; }
+    .panel-head { padding: 16px 20px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { font-size: 1.02rem; font-weight: 600; letter-spacing: -0.02em; }
+    .panel-head .sub { font-size: 0.82rem; color: var(--text-grey); }
+    .panel-head .link { margin-left: auto; font-size: 0.82rem; font-weight: 600; color: var(--terracotta); text-decoration: none; }
+
+    /* degree audit progress, product-style */
+    .audit { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+    @media (max-width: 780px) { .audit { grid-template-columns: 1fr; gap: 20px; } }
+    .audit h3 { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--text-grey); margin-bottom: 10px; }
+    .bar { height: 10px; border-radius: 999px; background: #ececec; overflow: hidden; display: flex; }
+    .bar i { display: block; height: 100%; }
+    .bar .taken { background: var(--green-solid); }
+    .bar .planned { background: var(--amber); }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 0.83rem; color: var(--text-grey); }
+    .legend b { color: var(--navy); font-weight: 600; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
     @media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-    .stat { background: var(--cream); border-radius: 20px; padding: 20px 22px; }
-    .stat-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-grey); margin-bottom: 8px; }
-    .stat-val { font-family: var(--display); font-size: 2.1rem; font-weight: 400; line-height: 1.05; letter-spacing: -0.02em; }
-    .stat-val small { font-family: var(--sans); font-size: 0.82rem; font-weight: 500; color: var(--text-grey); letter-spacing: 0; }
-    .stat-sub { font-size: 0.82rem; color: var(--text-grey); margin-top: 6px; }
+    .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px; }
+    .stat-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-grey); margin-bottom: 6px; }
+    .stat-val { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+    .stat-val small { font-size: 0.78rem; font-weight: 500; color: var(--text-grey); letter-spacing: 0; }
+    .stat-sub { font-size: 0.78rem; color: var(--text-grey); margin-top: 4px; }
 
-    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; margin-bottom: 22px; }
-    .card-head { padding: 24px 28px 6px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
-    .card-head h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
-    .card-head .sub { font-size: 0.9rem; color: var(--text-grey); }
-
-    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    table { width: 100%; min-width: 520px; border-collapse: collapse; margin-top: 16px; }
-    th { text-align: left; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-grey); padding: 10px 28px; border-bottom: 1px solid var(--line); }
-    td { padding: 15px 28px; border-bottom: 1px solid var(--line); font-size: 0.94rem; }
-    tbody tr:last-child td { border-bottom: none; }
-    .course { font-weight: 600; }
-    .course small { display: block; font-weight: 400; font-size: 0.79rem; color: var(--text-grey); margin-top: 2px; }
-    .mono { font-family: var(--mono); font-size: 0.78rem; color: var(--text-grey); }
-    .tag { display: inline-flex; align-items: center; gap: 7px; font-size: 0.74rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; white-space: nowrap; }
-    .tag-ready { color: #17603a; background: rgba(118,217,156,0.28); }
-    .tag-ready::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #17603a; }
-    .tag-review { color: var(--terracotta); background: rgba(193,68,26,0.1); }
-    .tag-review::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--terracotta); }
-    @media (max-width: 780px) {
-      th:nth-child(3), td:nth-child(3) { display: none; }
-      th, td { padding: 13px 18px; }
+    /* course rows with product status squares */
+    .rows { padding: 8px 12px 14px; }
+    .row { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; margin-top: 8px; }
+    .box { width: 24px; height: 24px; border-radius: 6px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 600; }
+    .box-taken { background: var(--green-solid); color: #fff; }
+    .box-planned { background: var(--amber); color: #fff; }
+    .box-open { border: 1.5px solid var(--terracotta); color: var(--terracotta); }
+    .r-code { font-family: var(--mono); font-size: 0.8rem; font-weight: 500; width: 96px; flex: none; }
+    .r-title { font-size: 0.92rem; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .r-meta { margin-left: auto; display: flex; align-items: center; gap: 8px; flex: none; }
+    .chip { font-size: 0.72rem; font-weight: 500; color: var(--text-grey); border: 1px solid var(--line); border-radius: 7px; padding: 2px 8px; white-space: nowrap; }
+    .chip-ready { color: #17603a; background: rgba(118,217,156,0.22); border-color: rgba(47,176,115,0.35); font-weight: 600; }
+    .chip-review { color: var(--terracotta); background: rgba(193,68,26,0.09); border-color: rgba(193,68,26,0.3); font-weight: 600; }
+    @media (max-width: 720px) {
+      .r-code { width: auto; }
+      .r-title { display: none; }
+      .row { flex-wrap: wrap; }
+      .r-meta { margin-left: auto; flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-end; }
     }
 
+    /* enrollment */
     .enroll-grid { display: grid; grid-template-columns: 1.05fr 1fr; }
     @media (max-width: 900px) { .enroll-grid { grid-template-columns: 1fr; } }
-    .enroll-body { padding: 26px 28px 30px; }
-    .enroll-body h2 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
-    .enroll-body .sub { font-size: 0.9rem; color: var(--text-grey); margin: 4px 0 22px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-grey); margin-bottom: 7px; }
-    .form-group select, .form-group input { width: 100%; height: 50px; padding: 0 14px; border: 1px solid var(--stone-3); border-radius: 14px; font-family: var(--sans); font-size: 0.96rem; color: var(--navy); background: var(--paper); }
+    .enroll-body { padding: 18px 20px 22px; }
+    .enroll-body h2 { font-size: 1.02rem; font-weight: 600; letter-spacing: -0.02em; }
+    .enroll-body .sub { font-size: 0.84rem; color: var(--text-grey); margin: 3px 0 18px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; }
+    .form-group select, .form-group input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--stone-3); border-radius: 10px; font-family: var(--sans); font-size: 0.92rem; color: var(--navy); background: var(--paper); }
     .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--terracotta); box-shadow: 0 0 0 3px rgba(193,68,26,0.16); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
-    .btn-enroll { width: 100%; height: 52px; border-radius: 999px; background: var(--terracotta); color: #fff; font-family: var(--sans); font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; border: none; cursor: pointer; margin-top: 8px; }
+    .btn-enroll { width: 100%; height: 48px; border-radius: 10px; background: var(--terracotta); color: #fff; font-family: var(--sans); font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; border: none; cursor: pointer; margin-top: 6px; }
     .btn-enroll:hover { background: var(--terracotta-dark); }
     .btn-enroll:disabled { opacity: 0.55; cursor: not-allowed; }
-    .result-box { margin-top: 16px; padding: 14px 17px; border-radius: 14px; font-size: 0.88rem; display: none; }
+    .result-box { margin-top: 14px; padding: 13px 15px; border-radius: 10px; font-size: 0.86rem; display: none; }
     .result-box.error { display: block; background: #fdf3f1; border: 1px solid #f0cdc5; color: var(--danger); }
     .result-box.success { display: block; background: rgba(118,217,156,0.16); border: 1px solid rgba(118,217,156,0.6); color: #17603a; }
-    .result-box .r-title { font-weight: 600; margin-bottom: 3px; }
-    .result-box .r-detail { font-family: var(--mono); font-size: 0.74rem; opacity: 0.94; word-break: break-word; }
+    .result-box .r-head { font-weight: 600; margin-bottom: 3px; }
+    .result-box .r-detail { font-family: var(--mono); font-size: 0.73rem; opacity: 0.94; word-break: break-word; }
 
-    .enroll-info { background: var(--navy); color: #fff; padding: 30px 32px; display: flex; flex-direction: column; justify-content: center; }
-    .enroll-info h3 { font-family: var(--display); font-size: 1.75rem; font-weight: 400; line-height: 1.16; letter-spacing: -0.015em; margin-bottom: 14px; }
-    .enroll-info p { font-size: 0.92rem; color: rgba(245,244,237,0.72); margin-bottom: 18px; }
-    .enroll-info ul { list-style: none; }
-    .enroll-info li { font-size: 0.9rem; color: rgba(245,244,237,0.92); padding-left: 24px; position: relative; margin-bottom: 11px; }
-    .enroll-info li::before { content: ''; position: absolute; left: 0; top: 8px; width: 10px; height: 10px; border-radius: 3px; background: var(--green); }
-    @media (max-width: 900px) { .enroll-info { display: none; } }
+    /* approval timeline, mirrors Stellic's exception-request rail */
+    .side-rail { border-left: 1px solid var(--line); padding: 18px 20px 22px; }
+    @media (max-width: 900px) { .side-rail { border-left: none; border-top: 1px solid var(--line); } }
+    .side-rail h3 { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.11em; text-transform: uppercase; color: var(--text-grey); margin-bottom: 14px; }
+    .step { display: flex; gap: 12px; padding-bottom: 16px; position: relative; }
+    .step:last-child { padding-bottom: 0; }
+    .step::after { content: ''; position: absolute; left: 10px; top: 24px; bottom: 0; width: 1px; background: var(--line); }
+    .step:last-child::after { display: none; }
+    .step .mark { width: 21px; height: 21px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; color: #fff; z-index: 1; }
+    .mark-done { background: var(--green-solid); }
+    .mark-wait { background: var(--amber); }
+    .mark-todo { background: var(--paper); border: 1px solid var(--stone-3); }
+    .step .s-title { font-size: 0.88rem; font-weight: 600; }
+    .step .s-sub { font-size: 0.79rem; color: var(--text-grey); }
 
-    footer { background: var(--navy); color: rgba(245,244,237,0.6); padding: 34px 28px 44px; text-align: center; }
-    footer .flogo { display: inline-flex; align-items: center; gap: 10px; color: #fff; margin-bottom: 14px; }
-    footer .flogo svg { width: 26px; height: 26px; }
-    footer .flogo span { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.04em; }
-    footer p { font-size: 0.82rem; max-width: 760px; margin: 0 auto 8px; }
+    footer { padding: 0 26px 26px; font-size: 0.76rem; color: var(--text-grey); max-width: 1220px; }
+
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: minmax(0, 1fr); background: var(--cream); }
+      .sidebar { background: var(--navy); position: static; height: auto; flex-direction: row; align-items: center; padding: 10px 16px; overflow-x: auto; }
+      .brand { padding: 0 14px 0 0; }
+      .term-switch, .nav-group h4, .sidebar-foot, .nav-item .count { display: none; }
+      .nav-group { display: flex; gap: 4px; margin-bottom: 0; }
+      .nav-item { white-space: nowrap; margin-bottom: 0; }
+      .nav-item svg { display: none; }
+      .search { display: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="announce">
-    Spring 2027 registration opens Monday at 7:00 AM for your registration group
-    <a href="#enroll">Check readiness &rarr;</a>
-  </div>
-
-  <header>
-    <div class="header-inner">
-      <a class="logo" href="#">
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="#">
         <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M16 2.5c1.6 6.2 5.3 9.9 11.5 11.5C21.3 15.6 17.6 19.3 16 25.5 14.4 19.3 10.7 15.6 4.5 14 10.7 12.4 14.4 8.7 16 2.5z" stroke="#151b26" stroke-width="1.9" stroke-linejoin="round"/>
-          <circle cx="16" cy="14" r="2.4" stroke="#151b26" stroke-width="1.9"/>
+          <path d="M16 2c1.1 9.7 4.2 12.9 14 14-9.8 1.1-12.9 4.3-14 14-1.1-9.7-4.2-12.9-14-14C11.8 14.9 14.9 11.7 16 2z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M13 16c1.4-3.3 3-5 3-5s1.6 1.7 3 5c-1.4 3.3-3 5-3 5s-1.6-1.7-3-5z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>
         </svg>
-        <span class="wordmark">STELLIC</span>
+        <span>STELLIC</span>
       </a>
-      <ul class="nav-links">
-        <li><a href="#">Progress</a></li>
-        <li><a href="#">Care</a></li>
-        <li><a href="#">Explore</a></li>
-        <li><a href="#enroll" class="active">Registration</a></li>
-      </ul>
-      <div class="nav-right">
-        <a class="pill pill-ghost" href="#">My advisor</a>
-        <a class="pill pill-navy" href="#enroll">Register for classes</a>
+
+      <div class="term-switch">
+        <div>
+          <div class="t-label">Term</div>
+          <div class="t-value">Spring 2027</div>
+        </div>
+        <span class="chev">&#9660;</span>
       </div>
-    </div>
-  </header>
 
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="kicker">Registration</div>
-      <h1>From your plan to your schedule, without starting over</h1>
-      <div class="sub">Your degree audit, plan warnings, and live course availability all carry through to enrollment &mdash; so you register with the schedule you already built.</div>
-    </div>
-  </section>
-
-  <main>
-    <div class="stats">
-      <div class="stat"><div class="stat-label">Credits Earned</div><div class="stat-val">84</div><div class="stat-sub">of 120 toward BS Computer Science</div></div>
-      <div class="stat"><div class="stat-label">Planned Credits</div><div class="stat-val">15</div><div class="stat-sub">Spring 2027, primary plan</div></div>
-      <div class="stat"><div class="stat-label">Registration Readiness</div><div class="stat-val">4<small> of 5 clear</small></div><div class="stat-sub">1 course needs review</div></div>
-      <div class="stat"><div class="stat-label">Enrollment Window</div><div class="stat-val">Mon<small> 7:00 AM</small></div><div class="stat-sub">Group 1 &mdash; seniors</div></div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <h2>Spring 2027 primary plan</h2>
-        <span class="sub">Readiness is checked against your audit every time availability changes</span>
+      <div class="nav-group">
+        <a class="nav-item" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>
+          Home
+        </a>
+        <a class="nav-item" href="#audit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V9m7 10V5m7 14v-6"/></svg>
+          Track Progress
+        </a>
+        <a class="nav-item" href="#plan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h9M5 12h14M5 17h6"/></svg>
+          Plan Your Path
+        </a>
+        <a class="nav-item active" href="#plan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4m8-4v4M4 10h16"/></svg>
+          Schedule Spring 2027
+        </a>
+        <a class="nav-item" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
+          Explore
+        </a>
       </div>
-      <div class="table-scroll">
-      <table>
-        <thead><tr><th>Course</th><th>Section</th><th>Credits</th><th>Seats</th><th>Readiness</th></tr></thead>
-        <tbody>
-          <tr><td class="course">CS 3410<small>Computer System Organization</small></td><td class="mono">LEC 001</td><td>4</td><td>12 open</td><td><span class="tag tag-ready">Ready</span></td></tr>
-          <tr><td class="course">CS 4780<small>Machine Learning for Intelligent Systems</small></td><td class="mono">LEC 002</td><td>4</td><td>3 open</td><td><span class="tag tag-ready">Ready</span></td></tr>
-          <tr><td class="course">MATH 2940<small>Linear Algebra for Engineers</small></td><td class="mono">LEC 004</td><td>4</td><td>28 open</td><td><span class="tag tag-ready">Ready</span></td></tr>
-          <tr><td class="course">PHIL 1440<small>Ethics and Technology</small></td><td class="mono">SEM 011</td><td>3</td><td>6 open</td><td><span class="tag tag-review">Prerequisite review</span></td></tr>
-        </tbody>
-      </table>
-      </div>
-    </div>
 
-    <div class="card" id="enroll">
-      <div class="enroll-grid">
-        <div class="enroll-body">
-          <h2>Enroll in a planned course</h2>
-          <div class="sub">Confirm a course from your plan and Stellic registers it against your audit and term schedule.</div>
-          <form id="enrollForm">
-            <div class="form-group">
-              <label>Course from plan</label>
-              <select id="product">
-                <option value="CS 3410">CS 3410 &mdash; Computer System Organization</option>
-                <option value="CS 4780">CS 4780 &mdash; Machine Learning for Intelligent Systems</option>
-                <option value="MATH 2940">MATH 2940 &mdash; Linear Algebra for Engineers</option>
-                <option value="PHIL 1440">PHIL 1440 &mdash; Ethics and Technology</option>
-              </select>
+      <div class="nav-group">
+        <h4>Registration</h4>
+        <a class="nav-item" href="#plan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l4 4v12H6z"/><path d="M9 12h7M9 16h5"/></svg>
+          Courses
+        </a>
+        <a class="nav-item" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 18c6 0 4-12 14-12"/><circle cx="5" cy="18" r="2"/></svg>
+          Pathways
+        </a>
+        <a class="nav-item" href="#audit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 13 4 4 10-10"/></svg>
+          Requirements
+          <span class="count">1</span>
+        </a>
+      </div>
+
+      <div class="sidebar-foot">
+        <div class="student">
+          <div class="avatar">JR</div>
+          <div>
+            <div class="s-name">Jordan Reyes</div>
+            <div class="s-sub">BS Computer Science &middot; &rsquo;27</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <div class="topbar">
+        <div class="crumbs">Registration &nbsp;/&nbsp; <strong>Spring 2027</strong></div>
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>
+          Search courses, requirements, advisors
+        </div>
+        <div class="top-actions">
+          <a class="btn btn-ghost" href="#">My advisor</a>
+          <a class="btn btn-accent" href="#enroll">Register for classes</a>
+        </div>
+      </div>
+
+      <main>
+        <div class="page-head">
+          <div>
+            <h1>Spring 2027 Registration</h1>
+            <div class="ph-sub">Readiness is re-checked against your audit every time section availability changes.</div>
+          </div>
+          <div class="window-pill"><span class="dot"></span> Window opens Mon 7:00 AM &middot; Group 1</div>
+        </div>
+
+        <div class="panel" id="audit">
+          <div class="panel-head">
+            <h2>Computer Science (BSCS)</h2>
+            <span class="sub">Primary program &middot; audit run today</span>
+            <a class="link" href="#plan">View full audit &rarr;</a>
+          </div>
+          <div class="audit">
+            <div>
+              <h3>Courses</h3>
+              <div class="bar"><i class="taken" style="width:62%"></i><i class="planned" style="width:13%"></i></div>
+              <div class="legend"><span>Taken: <b>28</b></span><span>Planned: <b>5</b></span><span>Unplanned: <b>7</b></span></div>
             </div>
-            <div class="form-row">
-              <div class="form-group"><label>Credits</label><input type="number" id="seats" value="4" min="1"></div>
-              <div class="form-group">
-                <label>Registration group</label>
-                <select id="planTier">
-                  <option value="enterprise">Group 1 &mdash; Seniors</option>
-                  <option value="business">Group 2 &mdash; Juniors</option>
-                  <option value="professional">Group 3 &mdash; Sophomores</option>
-                  <option value="starter">Group 4 &mdash; First-years</option>
-                </select>
+            <div>
+              <h3>Milestones / Other</h3>
+              <div class="bar"><i class="taken" style="width:40%"></i></div>
+              <div class="legend"><span>Taken: <b>2</b></span><span>Unplanned: <b>3</b></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Credits Earned</div><div class="stat-val">84<small> / 120</small></div><div class="stat-sub">BS Computer Science</div></div>
+          <div class="stat"><div class="stat-label">Planned Credits</div><div class="stat-val">15</div><div class="stat-sub">Spring 2027, primary plan</div></div>
+          <div class="stat"><div class="stat-label">Registration Readiness</div><div class="stat-val">4<small> of 5 clear</small></div><div class="stat-sub">1 course needs review</div></div>
+          <div class="stat"><div class="stat-label">Holds</div><div class="stat-val">0</div><div class="stat-sub">Nothing blocking enrollment</div></div>
+        </div>
+
+        <div class="panel" id="plan">
+          <div class="panel-head">
+            <h2>Spring 2027 primary plan</h2>
+            <span class="sub">5 courses &middot; 15 credits</span>
+            <a class="link" href="#enroll">Enroll &rarr;</a>
+          </div>
+          <div class="rows">
+            <div class="row">
+              <span class="box box-taken">&#10003;</span>
+              <span class="r-code">CS 3410</span>
+              <span class="r-title">Computer System Organization</span>
+              <span class="r-meta"><span class="chip">LEC 001</span><span class="chip">4 cr</span><span class="chip">12 seats</span><span class="chip chip-ready">Ready</span></span>
+            </div>
+            <div class="row">
+              <span class="box box-taken">&#10003;</span>
+              <span class="r-code">CS 4780</span>
+              <span class="r-title">Machine Learning for Intelligent Systems</span>
+              <span class="r-meta"><span class="chip">LEC 002</span><span class="chip">4 cr</span><span class="chip">3 seats</span><span class="chip chip-ready">Ready</span></span>
+            </div>
+            <div class="row">
+              <span class="box box-planned">&#10003;</span>
+              <span class="r-code">MATH 2940</span>
+              <span class="r-title">Linear Algebra for Engineers</span>
+              <span class="r-meta"><span class="chip">LEC 004</span><span class="chip">4 cr</span><span class="chip">28 seats</span><span class="chip chip-ready">Ready</span></span>
+            </div>
+            <div class="row">
+              <span class="box box-open">01</span>
+              <span class="r-code">PHIL 1440</span>
+              <span class="r-title">Ethics and Technology</span>
+              <span class="r-meta"><span class="chip">SEM 011</span><span class="chip">3 cr</span><span class="chip">6 seats</span><span class="chip chip-review">Prerequisite review</span></span>
+            </div>
+            <div class="row">
+              <span class="box box-open">&#8212;</span>
+              <span class="r-code">Elective</span>
+              <span class="r-title">Technical elective, 3000 level or above</span>
+              <span class="r-meta"><span class="chip">fulfill any</span><span class="chip">1 constraint</span><span class="chip chip-ready">Ready</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="enroll">
+          <div class="enroll-grid">
+            <div class="enroll-body">
+              <h2>Enroll in a planned course</h2>
+              <div class="sub">Confirm a course from your plan and Stellic registers it against your audit and term schedule.</div>
+              <form id="enrollForm">
+                <div class="form-group">
+                  <label>Course from plan</label>
+                  <select id="product">
+                    <option value="CS 3410">CS 3410 &mdash; Computer System Organization</option>
+                    <option value="CS 4780">CS 4780 &mdash; Machine Learning for Intelligent Systems</option>
+                    <option value="MATH 2940">MATH 2940 &mdash; Linear Algebra for Engineers</option>
+                    <option value="PHIL 1440">PHIL 1440 &mdash; Ethics and Technology</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Credits</label><input type="number" id="seats" value="4" min="1"></div>
+                  <div class="form-group">
+                    <label>Registration group</label>
+                    <select id="planTier">
+                      <option value="enterprise">Group 1 &mdash; Seniors</option>
+                      <option value="business">Group 2 &mdash; Juniors</option>
+                      <option value="professional">Group 3 &mdash; Sophomores</option>
+                      <option value="starter">Group 4 &mdash; First-years</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Term</label>
+                  <select id="region">
+                    <option value="spring-2027">Spring 2027</option>
+                    <option value="summer-2027">Summer 2027</option>
+                    <option value="fall-2027">Fall 2027</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn-enroll" id="submitBtn">Confirm enrollment</button>
+              </form>
+              <div id="result" class="result-box"></div>
+            </div>
+            <div class="side-rail">
+              <h3>Registration checks</h3>
+              <div class="step">
+                <span class="mark mark-done">&#10003;</span>
+                <div>
+                  <div class="s-title">Degree audit run</div>
+                  <div class="s-sub">All 5 planned courses map to requirements</div>
+                </div>
+              </div>
+              <div class="step">
+                <span class="mark mark-done">&#10003;</span>
+                <div>
+                  <div class="s-title">Advisor approval</div>
+                  <div class="s-sub">Mara Whitfield &middot; 12 December, 4:10pm</div>
+                </div>
+              </div>
+              <div class="step">
+                <span class="mark mark-wait">&#8226;</span>
+                <div>
+                  <div class="s-title">Prerequisite review</div>
+                  <div class="s-sub">PHIL 1440 &middot; department advisor</div>
+                </div>
+              </div>
+              <div class="step">
+                <span class="mark mark-todo"></span>
+                <div>
+                  <div class="s-title">Enrollment window</div>
+                  <div class="s-sub">Group 1 opens Monday, 7:00 AM</div>
+                </div>
               </div>
             </div>
-            <div class="form-group">
-              <label>Term</label>
-              <select id="region">
-                <option value="spring-2027">Spring 2027</option>
-                <option value="summer-2027">Summer 2027</option>
-                <option value="fall-2027">Fall 2027</option>
-              </select>
-            </div>
-            <button type="submit" class="btn-enroll" id="submitBtn">Confirm enrollment</button>
-          </form>
-          <div id="result" class="result-box"></div>
+          </div>
         </div>
-        <div class="enroll-info">
-          <h3>One plan the whole campus can see.</h3>
-          <p>Advisors, registrars, and students work from the same audit and the same plan, so registration day is a confirmation instead of a scramble.</p>
-          <ul>
-            <li>Plan warnings for unmet prerequisites and holds</li>
-            <li>Course search with live section availability</li>
-            <li>Multi-year pathways and visual term schedules</li>
-            <li>Course demand reporting for registrars</li>
-            <li>Readiness reporting before the window opens</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </main>
+      </main>
 
-  <footer>
-    <div class="flogo">
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M16 2.5c1.6 6.2 5.3 9.9 11.5 11.5C21.3 15.6 17.6 19.3 16 25.5 14.4 19.3 10.7 15.6 4.5 14 10.7 12.4 14.4 8.7 16 2.5z" stroke="#f5f4ed" stroke-width="1.9" stroke-linejoin="round"/>
-        <circle cx="16" cy="14" r="2.4" stroke="#f5f4ed" stroke-width="1.9"/>
-      </svg>
-      <span>STELLIC</span>
+      <footer>
+        Enrollment is confirmed against your degree audit and your registration group&rsquo;s window. Seat counts update continuously during the registration period. &copy; 2026 Stellic.
+      </footer>
     </div>
-    <p>Enrollment is confirmed against your degree audit and your registration group's window. Seat counts update continuously during the registration period.</p>
-    <p>&copy; 2026 Stellic. All rights reserved.</p>
-  </footer>
+  </div>
 
   <script>
     /* Ensure locked-mode config is in localStorage for direct navigation */
@@ -280,16 +442,16 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="r-title">Enrollment Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="r-head">Enrollment Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
         } else {
           const term = TERM_LABELS[document.getElementById('region').value] || 'the term';
           const course = document.getElementById('product').value;
           result.className = 'result-box success';
-          result.innerHTML = `<div class="r-title">Enrollment Confirmed</div><div class="r-detail">${data.seatsAdded} credits registered &mdash; ${course}, ${term} &mdash; ${data.licenseId}</div>`;
+          result.innerHTML = `<div class="r-head">Enrollment Confirmed</div><div class="r-detail">${data.seatsAdded} credits registered &mdash; ${course}, ${term} &mdash; ${data.licenseId}</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+        result.innerHTML = `<div class="r-head">Network Error</div><div class="r-detail">${err.message}</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Confirm enrollment'; }
     });
   </script>
