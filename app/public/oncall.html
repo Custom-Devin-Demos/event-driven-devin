@@ -83,7 +83,6 @@
     .grid.cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .grid.cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)); }
     .grid.cols-5 { grid-template-columns:repeat(5,minmax(0,1fr)); }
-    .grid.cols-6 { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .card { display:flex; flex-direction:column; min-width:0; background:var(--paper); padding:24px; position:relative; color:var(--ink); text-decoration:none; }
     a.card:hover,a.wide-card:hover { background:var(--wash); }
     .card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
@@ -200,7 +199,7 @@
         <span class="badge">#oncall-alerts</span>
       </div>
       <h2>Production degradations</h2>
-      <p class="section-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR. On the climbing-latency scenarios (NovaSoft, EchoScribe), the first submit posts the alert and opens a 60-second retry window: repeat submits within it join the same incident and show the latency rising; after the window expires or the page is refreshed, the next submit registers as a fresh occurrence. All other scenarios post a fresh incident on every submit.</p>
+      <p class="section-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR. <span id="retry-note"></span></p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
@@ -304,12 +303,39 @@
       return { status: res.status, data: await res.json() };
     }
 
+    // Column count the grid actually renders: a single row up to four cards,
+    // then even rows of three when the count divides by three, otherwise rows
+    // of four. Only classes cols-1..cols-5 exist, so stay inside that range.
+    function columnCount(count) {
+      if (count <= 4) return Math.max(count, 1);
+      if (count % 3 === 0) return 3;
+      return 4;
+    }
+
+    // The climbing-latency brands come from the scenarios themselves
+    // (retryWindow) so the prose can't drift from the shim's behavior.
+    function renderRetryNote(scenarios) {
+      const el = document.getElementById('retry-note');
+      const climbing = scenarios.filter((s) => s.retryWindow)
+        .map((s) => s.brand.replace(/ \(.*\)$/, ''));
+      if (!climbing.length) {
+        el.textContent = 'Every scenario posts a fresh incident on every submit.';
+        return;
+      }
+      el.textContent = 'On the climbing-latency scenarios (' + climbing.join(', ') + '), the ' +
+        'first submit posts the alert and opens a 60-second retry window: repeat submits within ' +
+        'it join the same incident and show the latency rising; after the window expires or the ' +
+        'page is refreshed, the next submit registers as a fresh occurrence. All other scenarios ' +
+        'post a fresh incident on every submit.';
+    }
+
     async function init() {
       const res = await fetch('/api/oncall/scenarios');
       const { scenarios } = await res.json();
 
       const grid = document.getElementById('alert-grid');
-      grid.classList.add(`cols-${scenarios.length}`);
+      grid.classList.add(`cols-${columnCount(scenarios.length)}`);
+      renderRetryNote(scenarios);
       scenarios.forEach((s) => {
         const meta = VERTICAL_META[s.id] || { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25"><circle cx="12" cy="12" r="8"/></svg>', vertical: s.id, desc: '' };
         const link = document.createElement('a');

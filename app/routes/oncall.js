@@ -539,6 +539,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     endpoint: s.endpoint,
     monitor: s.monitor,
     symptom: s.symptom,
+    retryWindow: Boolean(s.retryWindow),
   }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
   const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({
