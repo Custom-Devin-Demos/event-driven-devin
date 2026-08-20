@@ -408,7 +408,7 @@ function buildOncallShim(scenario, skinSlug) {
           }
           var postedAt = Date.now();
           alertPostedAt = postedAt;
-          dotEl.title = 'Devin On-Call demo';
+          if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
