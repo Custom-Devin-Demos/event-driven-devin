@@ -372,7 +372,13 @@ function buildOncallShim(scenario, skinSlug) {
       var ribbonEl = document.getElementById('oncall-ribbon');
       var dotEl = document.getElementById('oncall-dot');
       var ribbonCollapsed = false;
+      var collapseTimer = null;
+      function scheduleCollapse() {
+        if (collapseTimer) clearTimeout(collapseTimer);
+        collapseTimer = setTimeout(collapseRibbon, 4000);
+      }
       function collapseRibbon() {
+        collapseTimer = null;
         ribbonCollapsed = true;
         ribbonEl.style.display = 'none';
         dotEl.style.display = 'block';
@@ -404,6 +410,7 @@ function buildOncallShim(scenario, skinSlug) {
               statusEl.textContent = retryMsg;
             }
             if (ribbonCollapsed) dotEl.title = retryMsg;
+            else if (collapseTimer) scheduleCollapse();
             return origFetch(url.replace(apiPath, oncallApiPath), opts);
           }
           var postedAt = Date.now();
@@ -427,7 +434,7 @@ function buildOncallShim(scenario, skinSlug) {
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
-            if (d.ok) setTimeout(collapseRibbon, 4000);
+            if (d.ok) scheduleCollapse();
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
