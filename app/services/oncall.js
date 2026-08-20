@@ -498,6 +498,16 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     if (activated) revertScopedInfra(runRef, 'bug report post failed');
     throw error;
   }
+  // Same responder guidance as the alert flavor, threaded so the ticket itself
+  // stays a plain customer report.
+  const scenarioNote = scenarioId && ALERT_SCENARIOS[scenarioId] && ALERT_SCENARIOS[scenarioId].responderNote;
+  if (scenarioNote) {
+    try {
+      await postThreadReply(token, bugsChannel, ts, `:memo: *Responder note:* ${scenarioNote}`);
+    } catch (err) {
+      logger.warn('Failed to post responder note thread reply on bug report', { error: err.message });
+    }
+  }
   logger.info('On-Call bug report posted', {
     scenario: scenarioId || 'custom',
     template: templateId || null,
