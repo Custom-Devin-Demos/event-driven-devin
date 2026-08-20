@@ -42,6 +42,8 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 
 Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
 
+**Voice fixes require real-audio verification.** Any fix touching the voice transcribe path (`app/services/oncall-verticals/voice.js` or `POST /api/oncall/voice/transcribe`) must be verified with real audio, not typed input: follow the "Voice (dictation) specifics" section of `.agents/skills/testing-oncall-skins/SKILL.md` — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen. Record 2–3 finalizes before and after the fix to show the climbing latency and the flat fast profile.
+
 Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
 
 ### Payer welcome-season scenario

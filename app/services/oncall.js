@@ -102,7 +102,6 @@ const ALERT_SCENARIOS = {
     release: 'echoscribe@1.0.4',
     symptom: 'Transcript finalization latency jumped after the last release and creeps higher with every utterance. Process RSS trends up alongside it. Error rate is normal.',
     impact: 'Every dictation waits several seconds for its polished transcript, and the wait grows under sustained use.',
-    responderNote: 'This is a voice product: verify the fix with real audio, not typed input. Follow the "Voice (dictation) specifics" section of .agents/skills/testing-oncall-skins/SKILL.md — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen; record 2-3 finalizes before and after the fix to show the climb and the flat fast profile.',
   },
   telco: {
     vertical: 'telco',
@@ -239,14 +238,6 @@ function findBugTemplate(templateId) {
   for (const entries of Object.values(BUG_CATALOG)) {
     const match = entries.find((t) => t.id === templateId);
     if (match) return match;
-  }
-  return null;
-}
-
-function findBugTemplateProduct(templateId) {
-  if (!templateId) return null;
-  for (const [product, entries] of Object.entries(BUG_CATALOG)) {
-    if (entries.some((t) => t.id === templateId)) return product;
   }
   return null;
 }
@@ -417,15 +408,6 @@ async function postOncallAlert(scenarioId, options = {}) {
     contextBlock(scenario.service, triggeredBy),
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
-  // Responder guidance goes in the thread, not the card: the card must stay
-  // metric-shaped for demo audiences, while the responder reads the thread.
-  if (scenario.responderNote) {
-    try {
-      await postThreadReply(token, alertsChannel, ts, `:memo: *Responder note:* ${scenario.responderNote}`);
-    } catch (err) {
-      logger.warn('Failed to post responder note thread reply', { error: err.message });
-    }
-  }
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
   return { ok: true, ts, channel: alertsChannel };
 }
@@ -506,19 +488,13 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     if (activated) revertScopedInfra(runRef, 'bug report post failed');
     throw error;
   }
-  // Same responder guidance as the alert flavor, threaded so the ticket itself
-  // stays a plain customer report.
-  const noteScenario = (template && findBugTemplateProduct(templateId)) || scenarioId;
-  const scenarioNote = noteScenario && ALERT_SCENARIOS[noteScenario] && ALERT_SCENARIOS[noteScenario].responderNote;
-  if (scenarioNote || skinSlug) {
+  // The demo-page link goes in the thread so the ticket itself stays a plain
+  // customer report while the responder still finds the reproduction surface.
+  if (skinSlug) {
     try {
-      const reply = [
-        scenarioNote ? `:memo: *Responder note:* ${scenarioNote}` : null,
-        skinSlug ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skinSlug} — reproduce the symptom on this branded page` : null,
-      ].filter(Boolean).join('\n');
-      await postThreadReply(token, bugsChannel, ts, reply);
+      await postThreadReply(token, bugsChannel, ts, `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skinSlug} — reproduce the symptom on this branded page`);
     } catch (err) {
-      logger.warn('Failed to post responder note thread reply on bug report', { error: err.message });
+      logger.warn('Failed to post demo page thread reply on bug report', { error: err.message });
     }
   }
   logger.info('On-Call bug report posted', {
