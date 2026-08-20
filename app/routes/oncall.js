@@ -366,12 +366,24 @@ function buildOncallShim(scenario, skinSlug) {
       var tierSelect = document.getElementById('accountTier');
       if (vertical === 'banking' && tierSelect) tierSelect.value = 'standard';
       const origFetch = window.fetch.bind(window);
+      // One alert per retry window: the first primary action posts the alert
+      // and opens a 60s window during which retries exercise the degradation
+      // again without opening a separate incident. After the window expires
+      // (or on refresh), the next action registers as a fresh occurrence.
+      var RETRY_WINDOW_MS = 60 * 1000;
+      var alertPostedAt = 0;
       window.fetch = function (url, opts) {
         if (typeof url === 'string' && url.startsWith(apiPath) && (opts && opts.method && opts.method.toUpperCase() === 'POST')) {
           // Reroute the page's primary action to the on-call vertical
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted
           // alongside. Legacy endpoints are untouched.
+          if (alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
+            var statusEl = document.getElementById('oncall-status');
+            if (statusEl) statusEl.textContent = 'Retry joined the open incident (60s window)';
+            return origFetch(url.replace(apiPath, oncallApiPath), opts);
+          }
+          alertPostedAt = Date.now();
           const unique = document.getElementById('oncall-unique').checked;
           origFetch('/api/oncall/trigger/' + vertical, {
             method: 'POST',
@@ -382,11 +394,13 @@ function buildOncallShim(scenario, skinSlug) {
             if (d.skipped) {
               console.warn('On-call alert post skipped: ' + d.error);
               el.textContent = '';
+              alertPostedAt = 0;
               return;
             }
+            if (!d.ok) alertPostedAt = 0;
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
-          }).catch(function () {});
+          }).catch(function () { alertPostedAt = 0; });
           return origFetch(url.replace(apiPath, oncallApiPath), opts);
         }
         return origFetch(url, opts);
