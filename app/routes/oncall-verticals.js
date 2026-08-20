@@ -3,6 +3,7 @@ const { processTransfer } = require('../services/oncall-verticals/banking');
 const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
 const { processClaim } = require('../services/oncall-verticals/insurance');
+const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
@@ -79,6 +80,28 @@ router.post('/api/oncall/licenses/provision', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'PROVISION_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/voice/transcribe — finalize a dictated utterance
+ */
+router.post('/api/oncall/voice/transcribe', async (req, res) => {
+  try {
+    const result = await finalizeTranscript({
+      workspace: req.body.workspace || 'Brightmail',
+      dictionary: String(req.body.dictionary || 'general').toLowerCase(),
+      utterance: String(req.body.utterance || '').slice(0, 4000),
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'TRANSCRIBE_FAILED',
       requestId: req.requestId,
     });
   }
