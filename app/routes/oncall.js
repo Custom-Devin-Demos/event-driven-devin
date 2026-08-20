@@ -427,7 +427,7 @@ function buildOncallShim(scenario, skinSlug) {
               console.warn('On-call alert post skipped: ' + d.error);
               if (ribbonCollapsed) expandRibbon();
               el.style.color = '#f85149';
-              el.textContent = 'Alert post skipped: ' + (d.error || 'capacity');
+              el.textContent = 'Alert post skipped — no alert reached Slack';
               if (alertPostedAt === postedAt) alertPostedAt = 0;
               return;
             }
