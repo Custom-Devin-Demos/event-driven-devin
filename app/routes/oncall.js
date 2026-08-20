@@ -371,14 +371,18 @@ function buildOncallShim(scenario, skinSlug) {
       // doesn't sit over the customer page; clicking the dot re-expands it.
       var ribbonEl = document.getElementById('oncall-ribbon');
       var dotEl = document.getElementById('oncall-dot');
+      var ribbonCollapsed = false;
       function collapseRibbon() {
+        ribbonCollapsed = true;
         ribbonEl.style.display = 'none';
         dotEl.style.display = 'block';
       }
-      dotEl.addEventListener('click', function () {
+      function expandRibbon() {
+        ribbonCollapsed = false;
         dotEl.style.display = 'none';
         ribbonEl.style.display = 'block';
-      });
+      }
+      dotEl.addEventListener('click', expandRibbon);
       // One alert per retry window: the first primary action posts the alert
       // and opens a 60s window during which retries exercise the degradation
       // again without opening a separate incident. After the window expires
@@ -393,10 +397,12 @@ function buildOncallShim(scenario, skinSlug) {
           // alongside. Legacy endpoints are untouched.
           if (alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
             var statusEl = document.getElementById('oncall-status');
+            var retryMsg = 'Retry joined the open incident (60s window)';
             if (statusEl) {
               statusEl.style.color = '#c9d1d9';
-              statusEl.textContent = 'Retry joined the open incident (60s window)';
+              statusEl.textContent = retryMsg;
             }
+            if (ribbonCollapsed) dotEl.title = retryMsg;
             return origFetch(url.replace(apiPath, oncallApiPath), opts);
           }
           var postedAt = Date.now();
@@ -415,7 +421,7 @@ function buildOncallShim(scenario, skinSlug) {
               return;
             }
             if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
-            if (dotEl.style.display !== 'none' && dotEl.style.display !== '') { dotEl.style.display = 'none'; ribbonEl.style.display = 'block'; }
+            if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
             el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
             if (d.ok) setTimeout(collapseRibbon, 4000);
