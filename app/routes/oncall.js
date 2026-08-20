@@ -426,7 +426,8 @@ function buildOncallShim(scenario, skinSlug) {
             if (d.skipped) {
               console.warn('On-call alert post skipped: ' + d.error);
               if (ribbonCollapsed) expandRibbon();
-              el.textContent = '';
+              el.style.color = '#f85149';
+              el.textContent = 'Alert post skipped: ' + (d.error || 'capacity');
               if (alertPostedAt === postedAt) alertPostedAt = 0;
               return;
             }
