@@ -26,6 +26,12 @@
  * Bug portal templates reference existing BUG_CATALOG template ids (see
  * app/services/oncall.js) so backend-symptom reports keep activating the
  * matching real degradation; only the customer-facing copy changes.
+ *
+ * A skin may set trigger: { kind: 'bug', templateId, persona, severity,
+ * productArea } to make its page's primary action file a human-style support
+ * ticket in #oncall-bugs (via /api/oncall/bug) instead of posting the
+ * monitor-style alert card to #oncall-alerts. templateId must exist in
+ * BUG_CATALOG. Two skins can share one page file to offer both flavors.
  */
 
 const ONCALL_SKINS = {
@@ -373,6 +379,35 @@ const ONCALL_SKINS = {
     supportCenter: 'Wispr Flow Support',
     supportCenterSub: 'Workspace Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
+  },
+  '66684256': {
+    slug: '66684256',
+    company: 'Wispr Flow',
+    brandMark: 'F',
+    vertical: 'voice',
+    page: {
+      // Same natively branded page as 2acc11fd; this slug files a support
+      // ticket in #oncall-bugs instead of posting the metric alert card.
+      file: '2acc11fd.html',
+      title: 'Wispr Flow — Dictation',
+    },
+    theme: {
+      '--accent': '#1A1A1A',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFEB',
+      '--chrome-bg': '#1F1F1F',
+      '--chrome-text': '#FFFFEB',
+    },
+    supportCenter: 'Wispr Flow Support',
+    supportCenterSub: 'Workspace Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
+    trigger: {
+      kind: 'bug',
+      templateId: 'voice-transcript-slow',
+      persona: { name: 'Jordan Meyer', email: 'jordan.meyer@brightmail.io' },
+      severity: 'Medium',
+      productArea: 'Wispr Flow — Dictation',
+    },
   },
 };
 
