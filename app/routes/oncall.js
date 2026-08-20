@@ -379,7 +379,7 @@ function buildOncallShim(scenario, skinSlug) {
       }
       function expandRibbon() {
         ribbonCollapsed = false;
-        dotEl.title = '';
+        dotEl.title = 'Devin On-Call demo';
         dotEl.style.display = 'none';
         ribbonEl.style.display = 'block';
       }
