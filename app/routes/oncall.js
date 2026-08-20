@@ -183,6 +183,12 @@ for (const skin of Object.values(ONCALL_SKINS)) {
       pageFile,
     });
   }
+  if (skin.trigger && skin.trigger.kind === 'bug' && !KNOWN_TEMPLATE_IDS.has(skin.trigger.templateId)) {
+    logger.warn('On-Call skin bug trigger references unknown template id', {
+      skin: skin.slug,
+      templateId: skin.trigger.templateId,
+    });
+  }
   const products = (skin.bugPortal && skin.bugPortal.products) || [];
   for (const product of products) {
     for (const template of product.templates || []) {
@@ -278,7 +284,7 @@ router.get('/oncall/c/:slug', (req, res, next) => {
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug)}\n${buildSkinBrandShim(skin)}\n</body>`)
+      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
 });
@@ -342,9 +348,12 @@ router.get('/oncall/report', (_req, res) => {
  * posts the alert card, so the presenter uses the genuine product UI and
  * sees the genuine symptom while the alert lands in #oncall-alerts. The
  * legacy vertical endpoints and their automated-alert pipeline are never
- * touched.
+ * touched. A skin trigger of kind 'bug' swaps the alert card for a
+ * human-style support ticket posted to #oncall-bugs via /api/oncall/bug;
+ * the degradation rerouting is identical either way.
  */
-function buildOncallShim(scenario, skinSlug) {
+function buildOncallShim(scenario, skinSlug, skinTrigger) {
+  const bugTrigger = skinTrigger && skinTrigger.kind === 'bug' ? skinTrigger : null;
   return `
   <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
   <div id="oncall-ribbon" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -361,6 +370,7 @@ function buildOncallShim(scenario, skinSlug) {
       const oncallApiPath = ${JSON.stringify(scenario.oncallApiPath)};
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
+      const bugTrigger = ${jsLiteral(bugTrigger || null)};
       // Premium accounts are pre-cleared by the compliance program and do
       // not exhibit the on-call degradation, so on-call pages default the
       // tier selector to standard.
@@ -404,7 +414,7 @@ function buildOncallShim(scenario, skinSlug) {
           // alongside. Legacy endpoints are untouched.
           if (alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
             var statusEl = document.getElementById('oncall-status');
-            var retryMsg = 'Retry joined the open incident (60s window)';
+            var retryMsg = bugTrigger ? 'Retry joined the open ticket (60s window)' : 'Retry joined the open incident (60s window)';
             if (statusEl) {
               statusEl.style.color = '#c9d1d9';
               statusEl.textContent = retryMsg;
@@ -417,24 +427,31 @@ function buildOncallShim(scenario, skinSlug) {
           alertPostedAt = postedAt;
           if (ribbonCollapsed) expandRibbon();
           const unique = document.getElementById('oncall-unique').checked;
-          origFetch('/api/oncall/trigger/' + vertical, {
+          var triggerUrl = bugTrigger ? '/api/oncall/bug' : '/api/oncall/trigger/' + vertical;
+          var triggerBody = bugTrigger
+            ? { scenario: vertical, templateId: bugTrigger.templateId, reporter: bugTrigger.persona, severity: bugTrigger.severity, productArea: bugTrigger.productArea, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' }
+            : { unique: unique, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' };
+          var postedMsg = bugTrigger ? 'Support ticket filed to #oncall-bugs' : 'Alert posted to #oncall-alerts';
+          var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
+          var failedMsg = bugTrigger ? 'Ticket post failed' : 'Alert post failed';
+          origFetch(triggerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ unique: unique, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' }),
+            body: JSON.stringify(triggerBody),
           }).then(function (r) { return r.json(); }).then(function (d) {
             const el = document.getElementById('oncall-status');
             if (d.skipped) {
-              console.warn('On-call alert post skipped: ' + d.error);
+              console.warn('On-call trigger post skipped: ' + d.error);
               if (ribbonCollapsed) expandRibbon();
               el.style.color = '#f85149';
-              el.textContent = 'Alert post skipped — no alert reached Slack';
+              el.textContent = skippedMsg;
               if (alertPostedAt === postedAt) alertPostedAt = 0;
               return;
             }
             if (!d.ok && alertPostedAt === postedAt) alertPostedAt = 0;
             if (ribbonCollapsed) expandRibbon();
             el.style.color = d.ok ? '#3fb950' : '#f85149';
-            el.textContent = d.ok ? 'Alert posted to #oncall-alerts' : (d.error || 'Alert post failed');
+            el.textContent = d.ok ? postedMsg : (d.error || failedMsg);
             if (d.ok) scheduleCollapse();
           }).catch(function () {
             if (alertPostedAt === postedAt) alertPostedAt = 0;
@@ -442,7 +459,7 @@ function buildOncallShim(scenario, skinSlug) {
             var el = document.getElementById('oncall-status');
             if (el) {
               el.style.color = '#f85149';
-              el.textContent = 'Alert post failed';
+              el.textContent = failedMsg;
             }
           });
           return origFetch(url.replace(apiPath, oncallApiPath), opts);
