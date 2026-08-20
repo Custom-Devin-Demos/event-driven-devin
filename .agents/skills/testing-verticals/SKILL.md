@@ -272,7 +272,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | Koch Industries (08381313) | `/08381313` | "Get to know Koch" | `Cannot read properties of undefined (reading 'lastAuditDate')` |
 | United Airlines (4ada28b9) | `/4ada28b9` | "Find flights" | `Cannot read properties of undefined (reading 'milesMultiplier')` |
 | RBC Royal Bank (3cec99d4) | `/3cec99d4`, `/rbc` | "Apply Online Now" (student chequing card, school email left blank) | `Cannot read properties of undefined (reading 'toLowerCase')` |
-| Citi Self Invest (94f4c31f) | `/citi` only (`/verticals/94f4c31f` 404s — hidden from hub) | "Continue" (form pre-fills a 65+ DOB `06/15/1958` — senior suitability band missing from policy map; error shows in inline red panel, not a toast; DOB under 65 e.g. `05/14/1990` → green success panel; blank fields → client-side validation, no crash) | `Cannot read properties of undefined (reading 'reviewTrack')` |
+| Citi Self Invest (94f4c31f) | `/94f4c31f`, `/citi` | "Continue" (form pre-fills a 65+ DOB `06/15/1958` — senior suitability band missing from policy map; error shows in inline red panel, not a toast; DOB under 65 e.g. `05/14/1990` → green success panel; blank/malformed DOB → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'reviewTrack')` |
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 
 ### API Testing (curl)
