@@ -379,6 +379,7 @@ function buildOncallShim(scenario, skinSlug) {
       }
       function expandRibbon() {
         ribbonCollapsed = false;
+        dotEl.title = '';
         dotEl.style.display = 'none';
         ribbonEl.style.display = 'block';
       }
@@ -416,6 +417,7 @@ function buildOncallShim(scenario, skinSlug) {
             const el = document.getElementById('oncall-status');
             if (d.skipped) {
               console.warn('On-call alert post skipped: ' + d.error);
+              if (ribbonCollapsed) expandRibbon();
               el.textContent = '';
               if (alertPostedAt === postedAt) alertPostedAt = 0;
               return;
