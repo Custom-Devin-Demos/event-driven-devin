@@ -411,6 +411,10 @@ const CUSTOMERS = {
     label: 'RBC Royal Bank',
     triggerMode: 'api',
   },
+  '94f4c31f': {
+    label: 'Citi Self Invest',
+    triggerMode: 'api',
+  },
   a69bcc34: {
     label: 'The Home Depot',
     triggerMode: 'api',
