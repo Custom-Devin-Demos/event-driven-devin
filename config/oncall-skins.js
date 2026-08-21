@@ -380,35 +380,6 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
   },
-  '66684256': {
-    slug: '66684256',
-    company: 'Wispr Flow',
-    brandMark: 'F',
-    vertical: 'voice',
-    page: {
-      // Same natively branded page as 2acc11fd; this slug files a support
-      // ticket in #oncall-bugs instead of posting the metric alert card.
-      file: '2acc11fd.html',
-      title: 'Wispr Flow — Dictation',
-    },
-    theme: {
-      '--accent': '#1A1A1A',
-      '--ink': '#1A1A1A',
-      '--surface': '#FFFFEB',
-      '--chrome-bg': '#1F1F1F',
-      '--chrome-text': '#FFFFEB',
-    },
-    supportCenter: 'Wispr Flow Support',
-    supportCenterSub: 'Workspace Support & Incident Intake',
-    disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
-    trigger: {
-      kind: 'bug',
-      templateId: 'voice-transcript-slow',
-      persona: { name: 'Jordan Meyer', email: 'jordan.meyer@brightmail.io' },
-      severity: 'Medium',
-      productArea: 'Wispr Flow — Dictation',
-    },
-  },
 };
 
 function getOncallSkin(slug) {

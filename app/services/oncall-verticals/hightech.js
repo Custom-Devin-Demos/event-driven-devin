@@ -41,6 +41,35 @@ const SUBSCRIPTIONS = [
  */
 const entitlementCache = new Map();
 
+/**
+ * Snapshots added at runtime (one per provisioned license) are session
+ * entitlements: they only stay hot for a short window, after which the
+ * registry treats them as settled and they drop out of the re-verification
+ * set. The journal baseline never expires.
+ */
+const RUNTIME_SNAPSHOT_TTL_MS = 60 * 1000;
+const runtimeKeys = new Set();
+
+function expireRuntimeSnapshots() {
+  const cutoff = Date.now() - RUNTIME_SNAPSHOT_TTL_MS;
+  let expired = 0;
+  for (const key of runtimeKeys) {
+    const snapshot = entitlementCache.get(key);
+    if (!snapshot || snapshot.grantedAt < cutoff) {
+      if (entitlementCache.delete(key)) expired++;
+      runtimeKeys.delete(key);
+      syntheticKeys.delete(key);
+    }
+  }
+  if (expired > 0) {
+    logger.info('Settled session entitlement snapshots dropped from cache', {
+      expired,
+      entries: entitlementCache.size,
+      service: 'licensing-api',
+    });
+  }
+}
+
 function makeSnapshot(orgName, planName, seats) {
   const payload = Buffer.alloc(256 * 1024);
   crypto.randomFillSync(payload, 0, 1024);
@@ -130,6 +159,7 @@ async function provisionLicense(data, options = {}) {
   });
 
   try {
+    expireRuntimeSnapshots();
     const conflicts = await findSeatConflicts(data.orgName, data.seats);
     if (conflicts.length > 0) {
       const err = new Error(`Seat conflict with prior grants: ${conflicts.join(', ')}`);
@@ -143,6 +173,7 @@ async function provisionLicense(data, options = {}) {
     const withinLimit = seatLimit === -1 || data.seats <= seatLimit;
 
     entitlementCache.set(licenseId, makeSnapshot(data.orgName, data.planName, data.seats));
+    runtimeKeys.add(licenseId);
     if (options.synthetic) syntheticKeys.add(licenseId);
 
     const duration = Date.now() - startTime;
@@ -230,6 +261,7 @@ function releaseAccumulatedEntitlements() {
   let released = 0;
   for (const key of syntheticKeys) {
     if (entitlementCache.delete(key)) released++;
+    runtimeKeys.delete(key);
   }
   syntheticKeys.clear();
   if (released > 0) {

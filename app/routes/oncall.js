@@ -377,6 +377,10 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
       const vertical = ${JSON.stringify(scenario.vertical)};
       const skinSlug = ${JSON.stringify(skinSlug || null)};
       const bugTrigger = ${jsLiteral(bugTrigger || null)};
+      // Only climbing-latency scenarios keep a retry window: repeat submits
+      // demonstrate the per-request growth, so they join the open incident.
+      // Every other scenario posts a fresh incident on every submit.
+      const retryWindowEnabled = ${JSON.stringify(Boolean(scenario.retryWindow))};
       // Premium accounts are pre-cleared by the compliance program and do
       // not exhibit the on-call degradation, so on-call pages default the
       // tier selector to standard.
@@ -406,10 +410,11 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
         ribbonEl.style.display = 'block';
       }
       dotEl.addEventListener('click', expandRibbon);
-      // One alert per retry window: the first primary action posts the alert
-      // and opens a 60s window during which retries exercise the degradation
-      // again without opening a separate incident. After the window expires
-      // (or on refresh), the next action registers as a fresh occurrence.
+      // Climbing-latency scenarios only: the first primary action posts the
+      // alert and opens a 60s window during which retries exercise the
+      // degradation again without opening a separate incident. After the
+      // window expires (or on refresh), the next action registers as a fresh
+      // occurrence.
       var RETRY_WINDOW_MS = 60 * 1000;
       var alertPostedAt = 0;
       window.fetch = function (url, opts) {
@@ -418,7 +423,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
           // endpoint: the scenario's real degradation fires and Sentry/
           // Datadog capture genuine telemetry. The alert card is posted
           // alongside. Legacy endpoints are untouched.
-          if (alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
+          if (retryWindowEnabled && alertPostedAt && Date.now() - alertPostedAt < RETRY_WINDOW_MS) {
             var statusEl = document.getElementById('oncall-status');
             var retryMsg = bugTrigger ? 'Retry joined the open ticket (60s window)' : 'Retry joined the open incident (60s window)';
             if (statusEl) {
@@ -534,6 +539,7 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     endpoint: s.endpoint,
     monitor: s.monitor,
     symptom: s.symptom,
+    retryWindow: Boolean(s.retryWindow),
   }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
   const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({
