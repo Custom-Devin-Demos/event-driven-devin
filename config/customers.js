@@ -415,6 +415,10 @@ const CUSTOMERS = {
     label: 'Citi Self Invest',
     triggerMode: 'api',
   },
+  b014618f: {
+    label: 'Capital One Travel',
+    triggerMode: 'api',
+  },
   a69bcc34: {
     label: 'The Home Depot',
     triggerMode: 'api',
