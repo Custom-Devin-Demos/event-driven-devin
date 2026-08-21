@@ -63,7 +63,7 @@ function requireDemoToken(req, res, next) {
 
 function errorResponse(res, error) {
   logger.error('Automations demo request failed', { error: error.message });
-  return res.status(502).json({ ok: false, error: error.message });
+  return res.status(error.statusCode === 400 ? 400 : 502).json({ ok: false, error: error.message });
 }
 
 router.use('/automations-demo', (_req, res, next) => {

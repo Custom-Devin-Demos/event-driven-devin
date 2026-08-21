@@ -28,7 +28,6 @@ const state = {
   declaredAt: null,
   channel: null,
   chatterPosted: 0,
-  chatterAttempted: 0,
   autoStopAt: null,
   scheduledDeclareAt: null,
   scheduledArmAt: null,
@@ -151,7 +150,13 @@ async function createDemoChannel(date, smoke = false) {
 }
 
 function declarationBlocks(armedAt) {
-  const armTime = armedAt ? new Date(armedAt).toLocaleString() : 'the arm time';
+  const armTime = armedAt
+    ? new Intl.DateTimeFormat('en-US', {
+      timeZone: process.env.AUTOMATIONS_DEMO_TZ || DEFAULT_TIME_ZONE,
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(armedAt))
+    : 'the arm time';
   const repo = process.env.AUTOMATIONS_STANDING_REPO_URL
     || `https://github.com/${STANDING_REPO}`;
   const service = process.env.AUTOMATIONS_DEMO_SERVICE_TAG || 'automations-service';
@@ -185,7 +190,6 @@ function startChatter(channel) {
   CHATTER.forEach((line) => {
     scheduleTimer(async () => {
       if (!state.activeRun) return;
-      state.chatterAttempted += 1;
       try {
         await postPersonaMessage(
           process.env.SLACK_BOT_TOKEN,
@@ -231,7 +235,9 @@ async function declare(options = {}) {
   }
   state.declarePromise = (async () => {
     if (!state.armedAt) {
-      throw new Error('Arm the standing instance before declaring the incident');
+      const error = new Error('Arm the standing instance before declaring the incident');
+      error.statusCode = 400;
+      throw error;
     }
     const channel = await createDemoChannel(new Date(), Boolean(options.smoke));
     state.channel = channel;
@@ -360,13 +366,25 @@ async function archiveStale() {
 }
 
 function schedule(declareAt) {
-  if (state.activeRun) throw new Error('Cannot reschedule while an incident run is active');
+  if (state.activeRun) {
+    const error = new Error('Cannot reschedule while an incident run is active');
+    error.statusCode = 400;
+    throw error;
+  }
   const target = new Date(declareAt);
-  if (Number.isNaN(target.getTime())) throw new Error('declareAt must be a valid ISO date');
+  if (typeof declareAt !== 'string' || Number.isNaN(target.getTime())) {
+    const error = new Error('declareAt must be a valid ISO date');
+    error.statusCode = 400;
+    throw error;
+  }
+  if (target.getTime() <= Date.now()) {
+    const error = new Error('declareAt must be in the future');
+    error.statusCode = 400;
+    throw error;
+  }
   const armAt = target.getTime() - 45 * 60 * 1000;
-  if (armAt <= Date.now()) throw new Error('declareAt must be at least 45 minutes in the future');
   cancelTimers();
-  state.scheduledArmAt = new Date(armAt).toISOString();
+  state.scheduledArmAt = new Date(Math.max(Date.now(), armAt)).toISOString();
   state.scheduledDeclareAt = target.toISOString();
   scheduleTimer(async () => {
     try {
@@ -400,9 +418,13 @@ async function smoke() {
       const messages = await getChannelHistory(
         process.env.SLACK_BOT_TOKEN,
         state.channel.id,
-        { limit: 100, oldest: state.declaredAt },
+        { limit: 100, oldest: Date.parse(state.declaredAt) / 1000 },
       );
-      found = messages.some((message) => /root[- ]cause|root cause/i.test(message.text || ''));
+      found = messages.some((message) => {
+        const fromDevin = !process.env.DEVIN_SLACK_USER_ID
+          || message.user === process.env.DEVIN_SLACK_USER_ID;
+        return fromDevin && /root[- ]cause/i.test(message.text || '');
+      });
       if (found) break;
       await new Promise((resolve) => setTimeout(resolve, 30 * 1000));
     }
@@ -459,12 +481,10 @@ async function getStatus() {
       && Number(standing.errors_since_arm) > 0,
     );
   } catch (error) {
-    result.ok = false;
     result.standing_instance = { reachable: false, error: error.message };
     result.errors_since_arm = null;
     result.dlq_depth = null;
     result.emitter_heartbeat_age_s = null;
-    result.error = error.message;
   }
   return result;
 }
@@ -477,7 +497,6 @@ function resetForTests() {
     declaredAt: null,
     channel: null,
     chatterPosted: 0,
-    chatterAttempted: 0,
     autoStopAt: null,
     scheduledDeclareAt: null,
     scheduledArmAt: null,
@@ -489,10 +508,7 @@ function resetForTests() {
 }
 
 module.exports = {
-  CHANNEL_PREFIX,
-  CHATTER,
   arm,
-  armStanding,
   archiveStale,
   baseChannelName,
   declare,
@@ -501,6 +517,5 @@ module.exports = {
   schedule,
   smoke,
   stop,
-  statusStanding,
   tokenMatches,
 };

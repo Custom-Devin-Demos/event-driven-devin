@@ -37,6 +37,7 @@
       <button id="arm">Arm</button>
       <button id="declare" class="primary" disabled>Declare</button>
       <button id="status">Status</button>
+      <button id="stop">Stop</button>
     </div>
     <p id="warning" class="warning">Standing instance status is loading…</p>
     <section class="card">
@@ -54,10 +55,15 @@
   </main>
   <script>
     const $ = (id) => document.getElementById(id);
+    const tokenParam = new URLSearchParams(location.search).get('token');
+    if (tokenParam) sessionStorage.setItem('automations-demo-token', tokenParam);
     async function call(path, options = {}) {
-      const response = await fetch(path, { headers: {'Content-Type':'application/json'}, ...options });
+      const headers = {'Content-Type':'application/json', ...options.headers};
+      const token = sessionStorage.getItem('automations-demo-token');
+      if (token) headers['x-automations-demo-token'] = token;
+      const response = await fetch(path, { ...options, headers });
       const body = await response.json();
-      if (!response.ok || body.ok === false && body.error && path.endsWith('/arm')) throw new Error(body.error || 'Request failed');
+      if (!response.ok) throw new Error(body.error || 'Request failed');
       return body;
     }
     function format(value) { return value ? new Date(value).toLocaleTimeString() : '—'; }
@@ -76,13 +82,16 @@
       $('armed').textContent = s.armed_at ? `Armed at ${format(s.armed_at)}` : '';
       $('channel').innerHTML = s.channel ? `Incident channel: <a href="${s.channel.link}" target="_blank" rel="noopener">${s.channel.name}</a>` : '';
       const reachable = s.standing_instance && s.standing_instance.reachable;
-      $('warning').textContent = reachable ? (s.safe_to_declare ? 'Safe to declare: failures are flowing.' : 'Wait until the emitter has been armed for 30–45 minutes and errors are flowing.') : 'Standing instance unreachable';
+      $('warning').textContent = reachable
+        ? (s.safe_to_declare ? 'Safe to declare: failures are flowing.' : 'Wait until the emitter has been armed for 30–45 minutes and errors are flowing.')
+        : (s.standing_instance?.error || 'Standing instance unreachable');
       $('warning').className = reachable && s.safe_to_declare ? 'warning ok' : 'warning';
       $('declare').disabled = !s.safe_to_declare || s.runState === 'declared' || s.runState === 'stopping';
     }
     async function refresh() { try { render(await call('/api/automations-demo/status')); } catch (error) { $('warning').textContent = error.message; } }
     $('arm').onclick = async () => { $('arm').disabled = true; try { await call('/api/automations-demo/arm', {method:'POST', body:'{}'}); await refresh(); } catch (error) { $('warning').textContent = error.message; } finally { $('arm').disabled = false; } };
     $('declare').onclick = async () => { $('declare').disabled = true; try { await call('/api/automations-demo/declare', {method:'POST', body:'{}'}); await refresh(); } catch (error) { $('warning').textContent = error.message; } };
+    $('stop').onclick = async () => { $('stop').disabled = true; try { await call('/api/automations-demo/stop', {method:'POST', body:'{}'}); await refresh(); } catch (error) { $('warning').textContent = error.message; } finally { $('stop').disabled = false; } };
     $('status').onclick = refresh;
     refresh(); setInterval(refresh, 5000);
   </script>

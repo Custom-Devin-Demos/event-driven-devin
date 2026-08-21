@@ -7,7 +7,10 @@ only through its HTTP admin contract.
 ## Before the call
 
 1. Confirm the standing instance is healthy and reachable.
-2. Open `/automations-demo`.
+2. Open `/automations-demo` (or, when `AUTOMATIONS_DEMO_TOKEN` is configured,
+   `/automations-demo?token=<AUTOMATIONS_DEMO_TOKEN>` once). The presenter page
+   stores the token in session storage and sends it with every control-plane
+   request.
 3. Click **Arm** about 45 minutes before the call. The standing service starts
    the `CUST_1` scheduled automation and returns `armed_at` and `next_fire_at`.
 4. Leave the page open. Status should show an increasing error count and DLQ
@@ -140,6 +143,12 @@ The smoke run arms, declares into a required-prefix channel ending in
 `-smoke`, polls channel history for a Devin root-cause post for up to 20
 minutes, and always stops/cleans up. On failure it posts to
 `SLACK_ONCALL_ALERTS_CHANNEL_ID` and returns failure.
+
+Because `/api/automations-demo/smoke` long-polls for up to 20 minutes, the
+cron/CLI should call the app directly on its loopback port rather than through
+nginx. The CLI defaults to that local app URL; set
+`AUTOMATIONS_DEMO_BASE_URL` only when intentionally targeting another
+directly reachable app instance.
 
 Example cron line (run from the repository directory):
 

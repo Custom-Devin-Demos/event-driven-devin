@@ -38,6 +38,8 @@ describe('automations incident demo control plane', () => {
     delete process.env.SLACK_BOT_TOKEN;
     delete process.env.AUTOMATIONS_SERVICE_BASE_URL;
     delete process.env.AUTOMATIONS_DEMO_SERVICE_TOKEN;
+    delete process.env.DEVIN_SLACK_USER_ID;
+    delete process.env.AUTOMATIONS_DEMO_TZ;
     jest.useRealTimers();
   });
 
@@ -79,9 +81,28 @@ describe('automations incident demo control plane', () => {
   test('status explains an unreachable standing instance', async () => {
     axios.mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
     const status = await demo.getStatus();
+    expect(status.ok).toBe(true);
     expect(status.standing_instance.reachable).toBe(false);
-    expect(status.error).toMatch(/standing instance unreachable/);
+    expect(status.standing_instance.error).toMatch(/standing instance unreachable/);
     expect(status.errors_since_arm).toBeNull();
+  });
+
+  test('smoke polls Slack history from the declared message timestamp and Devin author', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-02T07:00:00.000Z'));
+    process.env.DEVIN_SLACK_USER_ID = 'UDEVIN';
+    slack.createChannel.mockResolvedValue({
+      id: 'C1',
+      name: 'sev-1-incident-0102-scheduled-automations-failing-smoke',
+    });
+    slack.getChannelHistory.mockResolvedValue([
+      { user: 'UDEVIN', text: 'Root cause identified' },
+    ]);
+    await demo.smoke();
+    expect(slack.getChannelHistory).toHaveBeenCalledWith(
+      'slack-token',
+      'C1',
+      { limit: 100, oldest: 1767337200 },
+    );
   });
 
   test('drips persona chatter in order and stop cancels the remaining timers', async () => {
