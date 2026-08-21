@@ -523,6 +523,71 @@ async function postPersonaMessage(token, channel, text, username, iconEmoji) {
 }
 
 /**
+ * Create a public Slack channel.
+ * Requires the `channels:manage` scope. `name_taken` is surfaced with a
+ * machine-readable code so demo callers can retry with a suffix.
+ */
+async function createChannel(token, name) {
+  const response = await axios.post(`${SLACK_API_BASE}/conversations.create`, {
+    name,
+    is_private: false,
+  }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    const error = new Error(`Slack API error: ${response.data.error}`);
+    error.code = response.data.error;
+    throw error;
+  }
+  return {
+    id: response.data.channel.id,
+    name: response.data.channel.name,
+  };
+}
+
+/**
+ * Archive a Slack channel. Requires the `channels:manage` scope.
+ */
+async function archiveChannel(token, channelId) {
+  const response = await axios.post(`${SLACK_API_BASE}/conversations.archive`, {
+    channel: channelId,
+  }, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  return true;
+}
+
+/**
+ * Read channel history. Requires the `channels:history` scope.
+ */
+async function getChannelHistory(token, channelId, options = {}) {
+  const response = await axios.get(`${SLACK_API_BASE}/conversations.history`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: {
+      channel: channelId,
+      limit: options.limit || 100,
+      ...(options.oldest ? { oldest: options.oldest } : {}),
+    },
+    timeout: 10000,
+  });
+  if (!response.data.ok) {
+    throw new Error(`Slack API error: ${response.data.error}`);
+  }
+  return response.data.messages || [];
+}
+
+/**
  * Delete a Slack message. Used to clean up the @Devin trigger message
  * after Devin has acknowledged it (slack trigger mode only).
  */
@@ -554,4 +619,7 @@ module.exports = {
   postThreadReply,
   lookupSlackUserByEmail,
   inviteToChannel,
+  createChannel,
+  archiveChannel,
+  getChannelHistory,
 };
