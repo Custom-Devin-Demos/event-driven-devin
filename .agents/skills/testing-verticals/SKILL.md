@@ -273,6 +273,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | United Airlines (4ada28b9) | `/4ada28b9` | "Find flights" | `Cannot read properties of undefined (reading 'milesMultiplier')` |
 | RBC Royal Bank (3cec99d4) | `/3cec99d4`, `/rbc` | "Apply Online Now" (student chequing card, school email left blank) | `Cannot read properties of undefined (reading 'toLowerCase')` |
 | Citi Self Invest (94f4c31f) | `/94f4c31f`, `/citi` | "Continue" (form pre-fills a 65+ DOB `06/15/1958` — senior suitability band missing from policy map; error shows in inline red panel, not a toast; DOB under 65 e.g. `05/14/1990` → green success panel; blank/malformed DOB → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'reviewTrack')` |
+| Capital One Travel (b014618f) | `/b014618f`, `/capitalone` | "Book now" (Venture X card selected by default — its `venture_x_premium` rewards program is missing from the redemption map; error shows in an inline red panel, not a toast; selecting Venture or SavorOne → green confirmation panel) | `Cannot read properties of undefined (reading 'milesIncrement')` |
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 
 ### API Testing (curl)
@@ -328,6 +329,9 @@ curl -s -X POST http://localhost:3000/api/94f4c31f/personal-info -H 'Content-Typ
 
 # Custom — The Home Depot (a69bcc34)
 curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"1005643790","qty":1,"fulfillment":"delivery"}],"promoCode":"HDCC25","storeNumber":"6177","zipCode":"10010","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
+
+# Custom — Capital One Travel (b014618f) — venture-x triggers TypeError; venture/savorone succeed
+curl -s -X POST http://localhost:3000/api/b014618f/redeem-miles -H 'Content-Type: application/json' -d '{"cardProduct":"venture-x","bookingType":"hotel","tripTotalUsd":1284.50,"milesApplied":90000,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
 # Custom — United Airlines (4ada28b9)
 curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Type: application/json' -d '{"origin":"EWR","destination":"LAX","cabin":"economy","passengers":1,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-2cd0ade21d8d4c5886fcea1b701c34e0"}'

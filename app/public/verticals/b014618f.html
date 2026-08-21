@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review and book | Capital One Travel</title>
+  <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/9/98/Capital_One_logo.svg">
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Optimist', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      color: #10253f;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: #0276b1; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+    /* ---------- Header ---------- */
+    .site-header { border-bottom: 1px solid #e0e5eb; background: #fff; }
+    .site-header .wrap { display: flex; align-items: center; height: 74px; gap: 34px; }
+    .site-header .logo img { height: 26px; display: block; }
+    .site-header nav { display: flex; gap: 26px; font-size: 15px; }
+    .site-header nav a { color: #10253f; }
+    .site-header .spacer { flex: 1; }
+    .signin {
+      border: 1px solid #10253f; border-radius: 24px; padding: 9px 22px;
+      font-size: 15px; color: #10253f; font-weight: 600;
+    }
+
+    /* ---------- Trip banner ---------- */
+    .trip-banner { background: #013d5b; color: #fff; }
+    .trip-banner .wrap { padding: 26px 28px 30px; }
+    .trip-banner .eyebrow { font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; opacity: 0.82; }
+    .trip-banner h1 { font-size: 34px; font-weight: 600; margin: 8px 0 6px; }
+    .trip-banner .meta { font-size: 15px; opacity: 0.9; }
+
+    /* ---------- Layout ---------- */
+    .booking-shell { background: #f4f6f8; padding: 30px 0 64px; }
+    .booking-grid { display: grid; grid-template-columns: 1fr 372px; gap: 28px; align-items: start; }
+
+    .card {
+      background: #fff; border: 1px solid #e0e5eb; border-radius: 12px;
+      padding: 26px 28px 30px; margin-bottom: 22px;
+    }
+    .card h2 { font-size: 21px; font-weight: 600; margin: 0 0 4px; }
+    .card .sub { font-size: 14.5px; color: #4a5c72; margin-bottom: 20px; }
+
+    .hotel-row { display: flex; gap: 18px; align-items: flex-start; }
+    .hotel-row img { width: 168px; height: 116px; object-fit: cover; border-radius: 8px; display: block; }
+    .hotel-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .hotel-meta { font-size: 14px; color: #4a5c72; line-height: 21px; }
+    .stars { color: #d03027; letter-spacing: 2px; font-size: 13px; }
+
+    /* ---------- Payment selectors ---------- */
+    .pay-option {
+      display: flex; align-items: center; gap: 14px; border: 1px solid #d4dbe3;
+      border-radius: 10px; padding: 15px 18px; margin-bottom: 12px; cursor: pointer;
+    }
+    .pay-option.selected { border-color: #013d5b; box-shadow: inset 0 0 0 1px #013d5b; }
+    .pay-option input { accent-color: #013d5b; width: 18px; height: 18px; }
+    .pay-option .swatch {
+      width: 52px; height: 33px; border-radius: 4px; flex: none;
+      background: linear-gradient(135deg, #013d5b 0%, #10253f 100%);
+    }
+    .pay-option .swatch.venture { background: linear-gradient(135deg, #0e5b7a 0%, #0276b1 100%); }
+    .pay-option .swatch.savor { background: linear-gradient(135deg, #d03027 0%, #8f1f19 100%); }
+    .pay-option .label { font-size: 15.5px; font-weight: 600; }
+    .pay-option .detail { font-size: 13.5px; color: #4a5c72; }
+
+    .miles-row { display: flex; gap: 22px; margin-top: 22px; flex-wrap: wrap; }
+    .field label { display: block; font-size: 14px; color: #4a5c72; margin-bottom: 7px; }
+    .field input {
+      width: 190px; padding: 12px; font-size: 16px; font-family: inherit; color: #10253f;
+      border: 1px solid #6b7a8d; border-radius: 6px; background: #fff;
+    }
+    .field input:focus { outline: 2px solid #0276b1; outline-offset: -1px; border-color: #0276b1; }
+    .balance-note { font-size: 13.5px; color: #4a5c72; margin-top: 10px; }
+
+    /* ---------- Summary rail ---------- */
+    .summary { position: sticky; top: 20px; }
+    .summary .line { display: flex; justify-content: space-between; font-size: 15px; padding: 9px 0; }
+    .summary .line.total {
+      border-top: 1px solid #e0e5eb; margin-top: 8px; padding-top: 14px;
+      font-size: 18px; font-weight: 600;
+    }
+    .summary .savings { color: #157a3f; font-size: 14px; }
+
+    .btn-book {
+      margin-top: 20px; width: 100%; background: #d03027; color: #fff; font-family: inherit;
+      font-size: 17px; font-weight: 600; padding: 15px 20px; border: none; border-radius: 26px;
+      cursor: pointer;
+    }
+    .btn-book:hover { background: #b32720; }
+    .fine { font-size: 12.5px; color: #4a5c72; line-height: 18px; margin-top: 14px; }
+
+    /* ---------- Error / success panels ---------- */
+    .book-error {
+      display: none; margin: 22px 0 0; border: 1px solid #d03027; border-left-width: 5px;
+      background: #fdf3f2; border-radius: 6px; padding: 14px 16px;
+    }
+    .book-error.show { display: block; }
+    .book-error .title { font-size: 15px; font-weight: 700; color: #a3221b; margin-bottom: 6px; }
+    .book-error .msg { font-size: 14px; line-height: 20px; color: #3d3d3d; margin-bottom: 10px; }
+    .book-error .tech {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      font-size: 11.5px; line-height: 17px; color: #6b2b2b; background: #f7e5e4;
+      padding: 8px 10px; border-radius: 4px; word-break: break-word; white-space: pre-wrap;
+    }
+    .book-ok {
+      display: none; margin: 22px 0 0; border: 1px solid #157a3f; border-left-width: 5px;
+      background: #f1f8f3; border-radius: 6px; padding: 13px 16px; font-size: 14px; line-height: 20px;
+    }
+    .book-ok.show { display: block; }
+
+    /* ---------- Footer ---------- */
+    footer { background: #10253f; color: #d7dee7; padding: 30px 0 40px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 10px 26px; font-size: 13.5px; margin-bottom: 16px; }
+    .foot-links a { color: #d7dee7; }
+    .foot-legal { font-size: 12.5px; line-height: 19px; opacity: 0.78; }
+
+    @media (max-width: 940px) {
+      .booking-grid { grid-template-columns: 1fr; }
+      .summary { position: static; }
+      .site-header nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="#">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Capital_One_logo.svg" alt="Capital One">
+    </a>
+    <nav>
+      <a href="#">Credit Cards</a>
+      <a href="#">Checking &amp; Savings</a>
+      <a href="#">Auto</a>
+      <a href="#">Business</a>
+      <a href="#">Travel</a>
+    </nav>
+    <div class="spacer"></div>
+    <a class="signin" href="#">Sign In</a>
+  </div>
+</header>
+
+<section class="trip-banner">
+  <div class="wrap">
+    <div class="eyebrow">Capital One Travel</div>
+    <h1>Review and book</h1>
+    <div class="meta">New York, NY &middot; Fri, Sep 18 &ndash; Mon, Sep 21, 2026 &middot; 2 guests, 1 room</div>
+  </div>
+</section>
+
+<div class="booking-shell">
+  <div class="wrap">
+    <div class="booking-grid">
+
+      <main>
+        <div class="card">
+          <h2>Your stay</h2>
+          <div class="hotel-row">
+            <img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&q=80" alt="King room with city view">
+            <div>
+              <div class="hotel-name">The Bowery Hotel</div>
+              <div class="stars">&#9733;&#9733;&#9733;&#9733;</div>
+              <div class="hotel-meta">
+                335 Bowery, New York, NY 10003<br>
+                King Room, City View &middot; 3 nights &middot; Free cancellation until Sep 16
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>How do you want to pay?</h2>
+          <div class="sub">Apply miles from an eligible Capital One rewards card, then charge the rest.</div>
+
+          <label class="pay-option selected" data-card="venture-x">
+            <input type="radio" name="cardProduct" value="venture-x" checked>
+            <span class="swatch"></span>
+            <span>
+              <span class="label">Venture X Rewards &middot;&middot;&middot;&middot; 4417</span><br>
+              <span class="detail">128,450 miles available &middot; $300 annual travel credit</span>
+            </span>
+          </label>
+
+          <label class="pay-option" data-card="venture">
+            <input type="radio" name="cardProduct" value="venture">
+            <span class="swatch venture"></span>
+            <span>
+              <span class="label">Venture Rewards &middot;&middot;&middot;&middot; 9032</span><br>
+              <span class="detail">64,120 miles available</span>
+            </span>
+          </label>
+
+          <label class="pay-option" data-card="savorone">
+            <input type="radio" name="cardProduct" value="savorone">
+            <span class="swatch savor"></span>
+            <span>
+              <span class="label">SavorOne Rewards &middot;&middot;&middot;&middot; 1188</span><br>
+              <span class="detail">21,700 miles available</span>
+            </span>
+          </label>
+
+          <div class="miles-row">
+            <div class="field">
+              <label for="miles">Miles to apply</label>
+              <input type="text" id="miles" inputmode="numeric" value="90000">
+            </div>
+            <div class="field">
+              <label for="trip-total">Trip total (USD)</label>
+              <input type="text" id="trip-total" inputmode="decimal" value="1284.50">
+            </div>
+          </div>
+          <div class="balance-note">Miles redeem in 100-mile increments. Unused miles stay in your account.</div>
+
+          <div class="book-error" id="book-error" role="alert" aria-live="assertive">
+            <div class="title">We couldn&rsquo;t complete your booking</div>
+            <div class="msg">Something went wrong applying your miles. Your card hasn&rsquo;t been charged and your room
+              is still held. Try again, or call us at 1-844-422-6922.</div>
+            <div class="tech" id="book-error-tech"></div>
+          </div>
+          <div class="book-ok" id="book-ok" role="status"></div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card summary">
+          <h2>Price details</h2>
+          <div class="line"><span>Room (3 nights)</span><span>$1,128.00</span></div>
+          <div class="line"><span>Taxes &amp; fees</span><span>$156.50</span></div>
+          <div class="line savings"><span>Price Match guarantee</span><span>Included</span></div>
+          <div class="line total"><span>Trip total</span><span>$1,284.50</span></div>
+          <button class="btn-book" type="button" data-cta>Book now</button>
+          <div class="fine">
+            By booking you agree to the Capital One Travel Terms of Service and the property&rsquo;s cancellation policy.
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="#">Privacy</a>
+      <a href="#">Security</a>
+      <a href="#">Terms &amp; Conditions</a>
+      <a href="#">Accessibility</a>
+      <a href="#">Rewards Terms</a>
+    </div>
+    <div class="foot-legal">
+      Capital One Travel is powered by Hopper. Rewards redemption values and earn rates vary by card product and are
+      subject to the applicable rewards program terms. &copy; 2026 Capital One. Capital One is a federally registered
+      service mark. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script>
+  var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+  var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+
+  document.querySelectorAll('.pay-option').forEach(function (option) {
+    option.addEventListener('click', function () {
+      document.querySelectorAll('.pay-option').forEach(function (el) { el.classList.remove('selected'); });
+      option.classList.add('selected');
+    });
+  });
+
+  function selectedCard() {
+    var checked = document.querySelector('input[name="cardProduct"]:checked');
+    return checked ? checked.value : 'venture-x';
+  }
+
+  function showBookError(payload) {
+    var tech = document.getElementById('book-error-tech');
+    tech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+      + '\n' + (payload.code || 'MILES_REDEMPTION_FAILED')
+      + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+    var panel = document.getElementById('book-error');
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showBookConfirmed(result) {
+    var ok = document.getElementById('book-ok');
+    ok.textContent = 'Booking confirmed \u2014 ' + result.redemption.milesApplied.toLocaleString() + ' miles applied ($'
+      + result.redemption.milesValueUsd.toFixed(2) + '), $' + result.redemption.remainingChargeUsd.toFixed(2)
+      + ' charged to your ' + result.card.name + ' card.';
+    ok.classList.add('show');
+    ok.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function bookTrip(button) {
+    if (button._running) return;
+    button._running = true;
+    var original = button.textContent;
+    button.textContent = 'Booking\u2026';
+    button.style.pointerEvents = 'none';
+    document.getElementById('book-error').classList.remove('show');
+    document.getElementById('book-ok').classList.remove('show');
+
+    fetch('/api/b014618f/redeem-miles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cardProduct: selectedCard(),
+        bookingType: 'hotel',
+        property: 'The Bowery Hotel \u2014 New York, NY',
+        checkIn: '2026-09-18',
+        checkOut: '2026-09-21',
+        tripTotalUsd: Number(document.getElementById('trip-total').value.replace(/[^0-9.]/g, '')),
+        milesApplied: Number(document.getElementById('miles').value.replace(/[^0-9]/g, '')),
+        devinUserId: DEVIN_USER_ID,
+        devinOrgId: DEVIN_ORG_ID,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showBookError(result.body);
+        else showBookConfirmed(result.body);
+      })
+      .catch(function (err) {
+        showBookError({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.textContent = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      bookTrip(button);
+    });
+  });
+</script>
+</body>
+</html>
