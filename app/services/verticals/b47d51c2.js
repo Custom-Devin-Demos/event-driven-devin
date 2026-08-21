@@ -31,11 +31,11 @@ const BEATS = [
  * License tiers keyed by tier code. Each tier applies a multiplier to the
  * beat's basePrice and carries the license summary shown on the receipt.
  *
- * NOTE: the exclusive tier was re-keyed to exclusive-v2 during the FY26
- * licensing revamp migration; the storefront still sells it as `exclusive`.
+ * NOTE: the basic tier was re-keyed to basic-v2 during the FY26 licensing
+ * revamp migration; the storefront still sells it as `basic`.
  */
 const LICENSE_TIERS = {
-  basic: {
+  'basic-v2': {
     name: 'Basic Lease (MP3)',
     multiplier: 1,
     summary: 'Non-exclusive basic lease — MP3 delivery, up to 5,000 streams.',
@@ -45,7 +45,7 @@ const LICENSE_TIERS = {
     multiplier: 2.5,
     summary: 'Non-exclusive premium lease — WAV + tracked-out stems, up to 100,000 streams.',
   },
-  'exclusive-v2': {
+  exclusive: {
     name: 'Exclusive License',
     multiplier: 10,
     summary: 'Exclusive license — full rights transfer, beat is delisted from the catalog.',
