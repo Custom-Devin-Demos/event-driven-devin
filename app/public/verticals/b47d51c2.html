@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiniBeats — License the beat. Record over it.</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d12;
+      --card: #17171f;
+      --border: #26262f;
+      --accent: #e0242e;
+      --text: #f2f2f5;
+      --muted: #8a8a96;
+    }
+
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      padding: 28px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo .note { color: var(--accent); margin-right: 6px; }
+
+    .tagline { color: var(--muted); font-size: 14px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 28px 40px 64px; }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+    }
+
+    .filter-bar label { color: var(--muted); font-size: 13px; }
+
+    .filter-bar select,
+    .filter-bar input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .filter-bar input { width: 84px; }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn:hover { filter: brightness(1.1); }
+
+    .clear-link {
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: underline;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 22px;
+    }
+
+    @media (max-width: 1000px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cover {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .card-body { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+    .beat-title { font-size: 16px; font-weight: 700; }
+
+    .producer { color: var(--muted); font-size: 13px; }
+
+    .meta-row { display: flex; align-items: center; gap: 8px; }
+
+    .genre-pill {
+      background: rgba(224, 36, 46, 0.14);
+      color: var(--accent);
+      border: 1px solid rgba(224, 36, 46, 0.35);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .bpm { color: var(--muted); font-size: 12px; }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 10px;
+    }
+
+    .price { color: var(--text); font-size: 14px; font-weight: 600; }
+    .price span { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      color: var(--muted);
+      padding: 60px 0;
+      font-size: 15px;
+    }
+
+    .modal-error {
+      background: var(--accent);
+      border: 1px solid #ff5b63;
+      color: #ffffff;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 4px 0 6px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.5;
+      animation: callout-flash 1.2s ease-in-out 2;
+    }
+
+    @keyframes callout-flash {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(224, 36, 46, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(224, 36, 46, 0.5); }
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: min(440px, calc(100vw - 40px));
+      padding: 26px;
+    }
+
+    .modal h2 { font-size: 19px; margin-bottom: 4px; }
+
+    .modal .modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+
+    .tier-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .tier-option.selected { border-color: var(--accent); background: rgba(224, 36, 46, 0.08); }
+
+    .tier-option input { accent-color: var(--accent); }
+
+    .tier-name { font-size: 14px; font-weight: 600; }
+    .tier-price { margin-left: auto; color: var(--muted); font-size: 13px; }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+
+    .btn-ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .confirmation {
+      background: rgba(46, 160, 67, 0.12);
+      border: 1px solid #2ea043;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .confirmation .order-id { color: var(--muted); font-size: 12px; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><span class="note">&#9835;</span>MiniBeats</div>
+  <div class="tagline">License the beat. Record over it.</div>
+</header>
+
+<main class="container">
+  <div class="filter-bar">
+    <label for="genre">Genre</label>
+    <select id="genre">
+      <option value="">All</option>
+      <option>Trap</option>
+      <option>Drill</option>
+      <option>Afrobeat</option>
+      <option>R&amp;B</option>
+      <option>Hip-Hop</option>
+      <option>Electronic</option>
+      <option>Lo-Fi</option>
+    </select>
+    <label for="bpm-min">BPM</label>
+    <input type="number" id="bpm-min" placeholder="Min">
+    <input type="number" id="bpm-max" placeholder="Max">
+    <button class="btn" id="apply-filters">Apply</button>
+    <button class="clear-link" id="clear-filters">Clear</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+  /* Ensure locked-mode config is in localStorage for direct navigation */
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<script>
+  var BEATS = [
+    { id: 'midnight-drive', title: 'Midnight Drive', producer: 'Metro Vince', genre: 'Trap', bpm: 140, basePrice: 29, coverHue: 265 },
+    { id: 'cold-summer', title: 'Cold Summer', producer: 'Kaya Beats', genre: 'Trap', bpm: 145, basePrice: 34, coverHue: 200 },
+    { id: 'gritty-lane', title: 'Gritty Lane', producer: 'OTB Sound', genre: 'Drill', bpm: 144, basePrice: 29, coverHue: 0 },
+    { id: 'north-wind', title: 'North Wind', producer: 'OTB Sound', genre: 'Drill', bpm: 142, basePrice: 39, coverHue: 220 },
+    { id: 'lagos-nights', title: 'Lagos Nights', producer: 'Ayo Wave', genre: 'Afrobeat', bpm: 102, basePrice: 44, coverHue: 30 },
+    { id: 'palm-groove', title: 'Palm Groove', producer: 'Ayo Wave', genre: 'Afrobeat', bpm: 108, basePrice: 29, coverHue: 130 },
+    { id: 'golden-hour', title: 'Golden Hour', producer: 'Luna Keys', genre: 'R&B', bpm: 92, basePrice: 49, coverHue: 45 },
+    { id: 'velvet-room', title: 'Velvet Room', producer: 'Luna Keys', genre: 'R&B', bpm: 88, basePrice: 34, coverHue: 320 },
+    { id: 'corner-store', title: 'Corner Store', producer: 'Metro Vince', genre: 'Hip-Hop', bpm: 96, basePrice: 29, coverHue: 15 },
+    { id: 'block-party', title: 'Block Party', producer: 'DJ Marrow', genre: 'Hip-Hop', bpm: 100, basePrice: 24, coverHue: 55 },
+    { id: 'neon-rain', title: 'Neon Rain', producer: 'Synthea', genre: 'Electronic', bpm: 124, basePrice: 39, coverHue: 190 },
+    { id: 'circuit-break', title: 'Circuit Break', producer: 'Synthea', genre: 'Electronic', bpm: 128, basePrice: 44, coverHue: 285 },
+    { id: 'smoke-signal', title: 'Smoke Signal', producer: 'Kaya Beats', genre: 'Trap', bpm: 138, basePrice: 54, coverHue: 350 },
+    { id: 'marble-floor', title: 'Marble Floor', producer: 'DJ Marrow', genre: 'Drill', bpm: 146, basePrice: 29, coverHue: 240 },
+    { id: 'moonlit-tape', title: 'Moonlit Tape', producer: 'Luna Keys', genre: 'Lo-Fi', bpm: 78, basePrice: 19, coverHue: 160 },
+  ];
+
+  var TIERS = [
+    { code: 'basic', name: 'Basic Lease (MP3)', multiplier: 1 },
+    { code: 'premium', name: 'Premium Lease (WAV + stems)', multiplier: 2.5 },
+    { code: 'exclusive', name: 'Exclusive License', multiplier: 10 },
+  ];
+
+  var grid = document.getElementById('grid');
+  var backdrop = document.getElementById('modal-backdrop');
+  var modal = document.getElementById('modal');
+  var selectedTier = 'basic';
+  var activeBeat = null;
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function coverStyle(hue) {
+    return 'background: linear-gradient(135deg, hsl(' + hue + ', 70%, 45%), hsl(' + ((hue + 60) % 360) + ', 65%, 25%));';
+  }
+
+  function renderGrid(beats) {
+    if (!beats.length) {
+      grid.innerHTML = '<div class="empty-state">No beats match your filters.</div>';
+      return;
+    }
+    grid.innerHTML = beats.map(function (b) {
+      return '<div class="card">'
+        + '<div class="cover" style="' + coverStyle(b.coverHue) + '">&#9835;</div>'
+        + '<div class="card-body">'
+        + '<div class="beat-title">' + escapeHtml(b.title) + '</div>'
+        + '<div class="producer">' + escapeHtml(b.producer) + '</div>'
+        + '<div class="meta-row"><span class="genre-pill">' + escapeHtml(b.genre) + '</span><span class="bpm">' + b.bpm + ' BPM</span></div>'
+        + '<div class="card-footer"><div class="price"><span>from</span> $' + b.basePrice + '</div>'
+        + '<button class="btn" data-buy="' + b.id + '">Buy</button></div>'
+        + '</div></div>';
+    }).join('');
+  }
+
+  function applyFilters() {
+    var genre = document.getElementById('genre').value;
+    var min = parseInt(document.getElementById('bpm-min').value, 10);
+    var max = parseInt(document.getElementById('bpm-max').value, 10);
+    var beats = BEATS.filter(function (b) {
+      if (genre && b.genre !== genre) return false;
+      if (!isNaN(min) && b.bpm < min) return false;
+      if (!isNaN(max) && b.bpm > max) return false;
+      return true;
+    });
+    renderGrid(beats);
+  }
+
+  document.getElementById('apply-filters').addEventListener('click', applyFilters);
+  document.getElementById('clear-filters').addEventListener('click', function () {
+    document.getElementById('genre').value = '';
+    document.getElementById('bpm-min').value = '';
+    document.getElementById('bpm-max').value = '';
+    renderGrid(BEATS);
+  });
+
+  function showModalError(body) {
+    var message = ((body && body.errorClass) ? body.errorClass + ' \u2014 ' : '')
+      + ((body && body.error) || 'Unexpected error.');
+    var existing = modal.querySelector('.modal-error');
+    if (existing) existing.remove();
+    var callout = document.createElement('div');
+    callout.className = 'modal-error';
+    callout.textContent = '\u26A0\uFE0F Checkout failed: ' + message;
+    var actions = modal.querySelector('.modal-actions');
+    modal.insertBefore(callout, actions);
+    var button = document.getElementById('confirm-purchase');
+    if (button) {
+      button._running = false;
+      button.textContent = 'Confirm purchase';
+      button.style.pointerEvents = '';
+    }
+  }
+
+  function tierPrice(beat, tier) {
+    return Math.round(beat.basePrice * tier.multiplier);
+  }
+
+  function openModal(beat) {
+    activeBeat = beat;
+    selectedTier = 'basic';
+    renderModal();
+    backdrop.classList.add('show');
+  }
+
+  function renderModal() {
+    var beat = activeBeat;
+    modal.innerHTML = '<h2>' + escapeHtml(beat.title) + '</h2>'
+      + '<div class="modal-sub">' + escapeHtml(beat.producer) + ' \u2022 ' + escapeHtml(beat.genre) + ' \u2022 ' + beat.bpm + ' BPM</div>'
+      + TIERS.map(function (t) {
+        return '<label class="tier-option' + (selectedTier === t.code ? ' selected' : '') + '" data-tier="' + t.code + '">'
+          + '<input type="radio" name="tier" value="' + t.code + '"' + (selectedTier === t.code ? ' checked' : '') + '>'
+          + '<span class="tier-name">' + escapeHtml(t.name) + '</span>'
+          + '<span class="tier-price">$' + tierPrice(beat, t) + '</span>'
+          + '</label>';
+      }).join('')
+      + '<div class="modal-actions">'
+      + '<button class="btn" id="confirm-purchase">Confirm purchase</button>'
+      + '<button class="btn-ghost" id="cancel-purchase">Cancel</button>'
+      + '</div>';
+
+    modal.querySelectorAll('.tier-option').forEach(function (el) {
+      el.addEventListener('click', function () {
+        selectedTier = el.getAttribute('data-tier');
+        renderModal();
+      });
+    });
+    document.getElementById('cancel-purchase').addEventListener('click', closeModal);
+    document.getElementById('confirm-purchase').addEventListener('click', confirmPurchase);
+  }
+
+  function closeModal() {
+    backdrop.classList.remove('show');
+    activeBeat = null;
+  }
+
+  function showConfirmation(body) {
+    modal.innerHTML = '<h2>Purchase complete</h2>'
+      + '<div class="modal-sub">' + escapeHtml(body.beatTitle || '') + '</div>'
+      + '<div class="confirmation">'
+      + '<div><strong>' + escapeHtml(body.tierName || body.tier) + '</strong> \u2014 $' + body.price + '</div>'
+      + '<div>' + escapeHtml(body.license || '') + '</div>'
+      + '<div class="order-id">Order ' + escapeHtml(body.orderId || '') + '</div>'
+      + '</div>'
+      + '<div class="modal-actions"><button class="btn-ghost" id="close-confirmation">Close</button></div>';
+    document.getElementById('close-confirmation').addEventListener('click', closeModal);
+  }
+
+  function confirmPurchase() {
+    var button = document.getElementById('confirm-purchase');
+    if (button._running) return;
+    button._running = true;
+    button.textContent = 'Processing\u2026';
+    button.style.pointerEvents = 'none';
+    var existingError = modal.querySelector('.modal-error');
+    if (existingError) existingError.remove();
+
+    fetch('/api/b47d51c2/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        beatId: activeBeat.id,
+        tier: selectedTier,
+        buyerName: '',
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) {
+          showModalError(result.body);
+        } else {
+          showConfirmation(result.body);
+        }
+      })
+      .catch(function (err) {
+        showModalError({ error: err.message });
+      });
+  }
+
+  backdrop.addEventListener('click', function (e) {
+    if (e.target === backdrop) closeModal();
+  });
+
+  grid.addEventListener('click', function (e) {
+    var id = e.target.getAttribute && e.target.getAttribute('data-buy');
+    if (!id) return;
+    var beat = BEATS.find(function (b) { return b.id === id; });
+    if (beat) openModal(beat);
+  });
+
+  renderGrid(BEATS);
+</script>
+</body>
+</html>
