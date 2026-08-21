@@ -51,13 +51,8 @@
   /* Header */
   header.gp { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
   .head-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 0; gap: 16px; }
-  .logo {
-    width: 74px; height: 74px; background: var(--gap-navy); display: flex; align-items: center;
-    justify-content: center; justify-self: center;
-  }
-  .logo span {
-    color: #fff; font-family: Georgia, "Times New Roman", serif; font-size: 34px; letter-spacing: 2px;
-  }
+  .logo { width: 74px; height: 74px; justify-self: center; }
+  .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
   .head-icons { display: flex; justify-content: flex-end; align-items: center; gap: 22px; }
   .head-icons .ic { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; cursor: pointer; }
   .head-icons svg { width: 22px; height: 22px; }
@@ -166,8 +161,24 @@
   .order-status { display: none; margin-top: 14px; padding: 12px 14px; font-size: 13px; }
   .order-status.show { display: block; }
   .order-status.err { background: #fdf2f2; border: 1px solid var(--err); }
-  .order-status.ok { background: #f1f8f1; border: 1px solid var(--ok); }
   .order-status .t { font-weight: 700; margin-bottom: 4px; }
+
+  /* order confirmation toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 32px; transform: translate(-50%, 16px);
+    background: var(--ink); color: #fff; padding: 16px 22px; max-width: 380px; width: calc(100% - 48px);
+    display: flex; align-items: flex-start; gap: 12px; z-index: 60;
+    box-shadow: 0 8px 28px rgba(0,0,0,.25); opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast .check {
+    flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; background: var(--ok);
+    display: flex; align-items: center; justify-content: center; font-size: 13px; margin-top: 1px;
+  }
+  .toast .t { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+  .toast .b { font-size: 13px; color: #d9d9d9; line-height: 1.45; }
+  .toast .x { background: none; border: 0; color: #bbb; font-size: 18px; cursor: pointer; line-height: 1; margin-left: auto; padding: 0; }
   .order-status .tech {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px;
     white-space: pre-wrap; color: #6a6a6a; margin-top: 8px;
@@ -225,7 +236,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 21 21"></path></svg>
         <input type="text" placeholder="Search" aria-label="Search">
       </form>
-      <div class="logo" aria-label="Gap"><span>GAP</span></div>
+      <div class="logo"><img src="/brand/gap/gap-logo.png" alt="Gap"></div>
       <div class="head-icons">
         <span class="ic">
           <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.6"><path d="M12 21s-7.5-4.8-9.5-9C1 8.6 3 5 6.5 5c2.2 0 3.9 1.3 5.5 3.4C13.6 6.3 15.3 5 17.5 5 21 5 23 8.6 21.5 12c-2 4.2-9.5 9-9.5 9z"></path></svg>
@@ -374,10 +385,7 @@
         minutes or call 1-800-GAP-STYLE for help completing your order.</div>
       <div class="tech" id="checkout-error-tech"></div>
     </div>
-    <div class="order-status ok" id="checkout-ok" role="status">
-      <div class="t">Order placed</div>
-      <div id="checkout-ok-body"></div>
-    </div>
+
   </div>
 </aside>
 
@@ -429,14 +437,23 @@
   </div>
 </footer>
 
+<div class="toast" id="order-toast" role="status" aria-live="polite">
+  <span class="check" aria-hidden="true">&#10003;</span>
+  <div>
+    <div class="t">Thanks for your order!</div>
+    <div class="b">You&rsquo;re all set &mdash; a confirmation email is on its way with your delivery details.</div>
+  </div>
+  <button class="x" id="toast-close" type="button" aria-label="Dismiss">&times;</button>
+</div>
+
 <script>
   var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
   var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
 
   var errorBox = document.getElementById('checkout-error');
   var errorTech = document.getElementById('checkout-error-tech');
-  var okBox = document.getElementById('checkout-ok');
-  var okBody = document.getElementById('checkout-ok-body');
+  var toast = document.getElementById('order-toast');
+  var toastTimer = null;
 
   function openBag() { document.body.classList.add('bag-open'); }
   function closeBag() { document.body.classList.remove('bag-open'); }
@@ -477,12 +494,19 @@
     errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  function showCheckoutOk(order) {
-    okBody.textContent = 'Order ' + order.orderId.slice(0, 8) + ' confirmed \u2014 total $' + order.total.toFixed(2)
-      + ' (savings $' + order.savings.toFixed(2) + ', tax $' + order.estimatedTax.toFixed(2) + ') across '
-      + order.shipments.length + ' shipment(s).';
-    okBox.classList.add('show');
+  function hideToast() {
+    toast.classList.remove('show');
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
   }
+
+  function showCheckoutOk() {
+    closeBag();
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 6000);
+  }
+
+  document.getElementById('toast-close').addEventListener('click', hideToast);
 
   function checkout(button) {
     if (button._running) return;
@@ -491,7 +515,7 @@
     button.textContent = 'Placing your order\u2026';
     button.style.pointerEvents = 'none';
     errorBox.classList.remove('show');
-    okBox.classList.remove('show');
+    hideToast();
 
     var qtyInput = document.querySelector('[data-qty]');
     var promoInput = document.getElementById('promo-code');
@@ -512,7 +536,7 @@
       .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
       .then(function (result) {
         if (!result.ok || result.body.error) showCheckoutError(result.body);
-        else showCheckoutOk(result.body);
+        else showCheckoutOk();
       })
       .catch(function (err) {
         showCheckoutError({ errorClass: 'NetworkError', error: err.message });
