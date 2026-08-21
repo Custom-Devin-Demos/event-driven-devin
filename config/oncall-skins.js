@@ -14,10 +14,11 @@
  *
  * Two separate theme keys, one per surface: page.theme themes the stock
  * vertical page served through the brand shim, while the top-level theme
- * themes the report portal and incident console. A skin with only a
- * top-level theme falls back to it for the page shim too, so a stock-page
- * skin needs just one theme block; set page.theme only when the page needs
- * different variables from the portal surfaces.
+ * themes the report portal and incident console. For stock-page skins without
+ * page.file, the top-level theme falls back into the page shim too, so a
+ * stock-page skin needs just one theme block. A natively branded page keeps
+ * its own palette and is never overridden by the portal theme; set page.theme
+ * only when the page needs different variables from the portal surfaces.
  *
  * Slugs are anonymous 8-char hex ids (generate with `openssl rand -hex 4`),
  * never the customer's name, so shared URLs don't leak who a demo is for.
