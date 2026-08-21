@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happen Bank — Move Money</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --hpn-blue: #2626FF;
+      --hpn-blue-hover: #1E1FCA;
+      --hpn-purple: #AD11E3;
+      --hpn-orange: #FD4621;
+      --hpn-orange2: #FD8224;
+      --hpn-ink: #333333;
+      --hpn-body: #565656;
+      --hpn-muted: #6B6B6B;
+      --hpn-warm: #F7F1ED;
+      --hpn-card: #ffffff;
+      --hpn-line: #e6ddd6;
+      --hpn-green: #03B87B;
+      --sans: 'rethinkSansFont', 'Rethink Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: #fff; color: var(--hpn-ink); line-height: 1.5; -webkit-font-smoothing: antialiased; font-size: 16px; }
+
+    .grad-bar { height: 8px; background: linear-gradient(90deg, var(--hpn-blue) 0%, var(--hpn-purple) 40%, var(--hpn-orange) 80%, var(--hpn-orange2) 100%); }
+
+    header.hpn-nav { background: var(--hpn-warm); display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 32px; height: 76px; position: sticky; top: 0; z-index: 40; }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo .word { font-size: 1.7rem; font-weight: 800; font-style: italic; letter-spacing: -0.02em; color: var(--hpn-orange); line-height: 1; }
+    .logo .word .bank { display: block; font-style: normal; font-size: 0.42em; font-weight: 800; letter-spacing: 0.28em; color: var(--hpn-orange); text-align: right; margin-top: -2px; }
+    .logo .formerly { font-size: 0.68rem; color: var(--hpn-ink); font-weight: 700; line-height: 1.2; border-left: 1px solid var(--hpn-line); padding-left: 12px; }
+    .logo .formerly em { display: block; font-style: italic; font-weight: 600; color: var(--hpn-muted); }
+    .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
+    .nav-links a { color: var(--hpn-ink); text-decoration: none; font-size: 15px; font-weight: 700; padding: 10px 11px; border-radius: 8px; }
+    .nav-links a:hover { color: var(--hpn-blue); }
+    .nav-links a.meet { color: var(--hpn-orange); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 22px; border-radius: 8px; font-family: var(--sans); font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; border: none; transition: background .15s, color .15s; }
+    .btn-blue { background: var(--hpn-blue); color: #fff; }
+    .btn-blue:hover { background: var(--hpn-blue-hover); }
+    .btn-outline { background: transparent; color: var(--hpn-ink); border: 1.5px solid #c9c2bc; }
+    .btn-outline:hover { border-color: var(--hpn-ink); }
+    @media (max-width: 960px) { .nav-links { display: none; } }
+
+    .hero { max-width: 1160px; margin: 0 auto; padding: 56px 32px 48px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+    @media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 36px; } }
+    .eyebrow { font-size: 15px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--hpn-muted); margin-bottom: 14px; }
+    .hero h2 { font-size: clamp(2.1rem, 4.6vw, 3rem); font-weight: 900; line-height: 1.08; color: var(--hpn-ink); margin-bottom: 18px; }
+    .hero h2 .grad { background: linear-gradient(90deg, var(--hpn-blue), var(--hpn-purple) 40%, var(--hpn-orange) 80%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero .lede { font-size: 1.1rem; color: var(--hpn-body); margin-bottom: 26px; max-width: 480px; }
+    .hero-fine { margin-top: 16px; font-size: 12.5px; color: var(--hpn-muted); }
+    .hero-photo { position: relative; }
+    .hero-photo img { width: 100%; border-radius: 24px; display: block; box-shadow: -14px 14px 0 -4px rgba(173,17,227,0.25); }
+    .hero-photo::before { content: ''; position: absolute; inset: auto -10px -14px 24px; height: 14px; border-radius: 10px; background: linear-gradient(90deg, var(--hpn-purple), var(--hpn-orange)); opacity: .85; }
+
+    .products { max-width: 1160px; margin: 0 auto; padding: 40px 32px 64px; text-align: center; }
+    .products h2 { font-size: clamp(1.6rem, 3.4vw, 2.2rem); font-weight: 900; margin-bottom: 40px; }
+    .prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    @media (max-width: 780px) { .prod-grid { grid-template-columns: 1fr; } }
+    .prod { padding: 8px; }
+    .prod .icon { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--hpn-blue), var(--hpn-purple)); }
+    .prod:nth-child(2) .icon { background: linear-gradient(135deg, var(--hpn-purple), var(--hpn-orange)); }
+    .prod:nth-child(3) .icon { background: linear-gradient(135deg, var(--hpn-orange), var(--hpn-orange2)); }
+    .prod h3 { font-size: 1.15rem; font-weight: 800; color: var(--hpn-orange); margin-bottom: 6px; }
+    .prod p { color: var(--hpn-body); font-size: 0.98rem; }
+
+    .app { background: var(--hpn-warm); padding: 64px 32px 72px; }
+    .app-inner { max-width: 1160px; margin: 0 auto; }
+    .app-heading { font-weight: 900; font-size: clamp(1.6rem, 3.4vw, 2.2rem); line-height: 1.1; text-align: center; margin-bottom: 8px; }
+    .app-sub { text-align: center; color: var(--hpn-body); margin-bottom: 40px; }
+
+    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    @media (max-width: 700px) { .accounts { grid-template-columns: 1fr; } }
+    .account-card { background: var(--hpn-card); border: 1px solid var(--hpn-line); border-radius: 16px; padding: 28px; }
+    .account-type { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hpn-orange); font-weight: 800; margin-bottom: 12px; }
+    .account-balance { font-weight: 900; font-size: 2.3rem; line-height: 1; margin-bottom: 8px; }
+    .account-delta { font-size: 0.88rem; color: var(--hpn-green); font-weight: 600; }
+    .account-number { font-size: 0.8rem; color: var(--hpn-muted); margin-top: 10px; }
+
+    .transfer-wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; align-items: stretch; }
+    @media (max-width: 860px) { .transfer-wrap { grid-template-columns: 1fr; } }
+    .transfer-card { background: var(--hpn-card); border: 1px solid var(--hpn-line); border-radius: 16px; padding: 32px; }
+    .transfer-card h2 { font-weight: 900; font-size: 1.6rem; margin-bottom: 6px; }
+    .transfer-card .sub { color: var(--hpn-body); font-size: 0.95rem; margin-bottom: 26px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; color: var(--hpn-ink); font-weight: 700; margin-bottom: 7px; }
+    .form-group select, .form-group input { width: 100%; height: 48px; padding: 0 14px; background: #fff; border: 1.5px solid var(--hpn-line); border-radius: 8px; color: var(--hpn-ink); font-family: var(--sans); font-size: 15px; transition: border-color .15s; appearance: none; }
+    .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23333333' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--hpn-blue); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-transfer { width: 100%; height: 48px; border-radius: 8px; background: var(--hpn-blue); color: #fff; font-family: var(--sans); font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: background .15s; margin-top: 6px; }
+    .btn-transfer:hover { background: var(--hpn-blue-hover); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { margin-top: 16px; padding: 14px 16px; border-radius: 8px; font-size: 14px; display: none; }
+    .result-box.error { display: block; background: rgba(253,70,33,0.08); border: 1px solid rgba(253,70,33,0.4); color: #c22c0d; }
+    .result-box.success { display: block; background: rgba(3,184,123,0.08); border: 1px solid rgba(3,184,123,0.35); color: #027a52; }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 12.5px; opacity: 0.85; word-break: break-all; }
+
+    .side-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--hpn-line); position: relative; min-height: 320px; background: var(--hpn-ink); }
+    .side-card img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+    .side-card .overlay { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px; background: linear-gradient(transparent 30%, rgba(0,0,0,0.72)); min-height: 320px; color: #fff; }
+    .side-card h3 { font-size: 1.35rem; font-weight: 700; margin-bottom: 6px; }
+    .side-card p { font-size: 0.9rem; color: rgba(255,255,255,0.88); }
+
+    .activity { margin-top: 32px; }
+    .activity h2 { font-weight: 900; font-size: 1.6rem; margin-bottom: 18px; }
+    .txn-card { background: var(--hpn-card); border: 1px solid var(--hpn-line); border-radius: 16px; overflow: hidden; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { text-align: left; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hpn-muted); padding: 14px 24px; border-bottom: 1px solid var(--hpn-line); }
+    .txn-table td { padding: 16px 24px; border-bottom: 1px solid var(--hpn-line); font-size: 14.5px; }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .credit { color: var(--hpn-green); font-weight: 600; }
+    .debit { color: var(--hpn-ink); }
+    @media (max-width: 600px) { .txn-table th:nth-child(4), .txn-table td:nth-child(4) { display: none; } .txn-table th, .txn-table td { padding: 12px 16px; } }
+
+    .cta-band { background: var(--hpn-orange); color: #fff; text-align: center; padding: 56px 24px; }
+    .cta-band h2 { font-size: clamp(1.6rem, 3.6vw, 2.2rem); font-weight: 900; margin-bottom: 10px; }
+    .cta-band p { margin-bottom: 22px; font-size: 1.02rem; }
+    .cta-band .btn { background: #fff; color: var(--hpn-blue); }
+    .cta-band .btn:hover { background: #f2edff; }
+
+    .trust-band { background: var(--hpn-blue); color: #fff; padding: 64px 32px; }
+    .trust-grid { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; text-align: center; }
+    @media (max-width: 780px) { .trust-grid { grid-template-columns: 1fr; } }
+    .trust-grid .t-icon { width: 44px; height: 44px; margin: 0 auto 14px; border: 2px solid rgba(255,255,255,0.85); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; }
+    .trust-grid h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 8px; }
+    .trust-grid p { font-size: 0.95rem; color: rgba(255,255,255,0.92); max-width: 320px; margin: 0 auto; }
+
+    .quote { max-width: 900px; margin: 0 auto; padding: 64px 32px; text-align: center; }
+    .quote h2 { font-size: clamp(1.5rem, 3.2vw, 2rem); font-weight: 900; margin-bottom: 22px; }
+    .stars { color: var(--hpn-green); font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 14px; }
+    .quote blockquote { font-size: 1.02rem; color: var(--hpn-body); max-width: 640px; margin: 0 auto 12px; }
+    .quote .who { font-weight: 700; }
+
+    footer { background: var(--hpn-warm); color: var(--hpn-ink); padding: 56px 32px 48px; border-top: 1px solid var(--hpn-line); }
+    .foot-inner { max-width: 1160px; margin: 0 auto; }
+    .foot-cols { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; margin-bottom: 36px; }
+    @media (max-width: 860px) { .foot-cols { grid-template-columns: 1fr 1fr; } }
+    .foot-cols h4 { font-size: 0.95rem; font-weight: 800; margin-bottom: 12px; }
+    .foot-cols ul { list-style: none; }
+    .foot-cols li { margin-bottom: 8px; }
+    .foot-cols a { color: var(--hpn-body); text-decoration: none; font-size: 0.88rem; }
+    .foot-cols a:hover { color: var(--hpn-blue); }
+    .foot-brand { font-size: 1.3rem; font-weight: 800; font-style: italic; color: var(--hpn-orange); margin-bottom: 10px; }
+    footer p { font-size: 11.5px; color: var(--hpn-muted); max-width: 860px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="grad-bar"></div>
+  <header class="hpn-nav">
+    <a class="logo" href="#">
+      <span class="word">Happen<span class="bank">BANK</span></span>
+      <span class="formerly"><em>Formerly</em>LendingClub</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Borrowing</a></li>
+      <li><a href="#">Banking</a></li>
+      <li><a href="#">Business</a></li>
+      <li><a href="#">Investing</a></li>
+      <li><a href="#">Resources</a></li>
+      <li><a href="#">Help</a></li>
+      <li><a href="#" class="meet">Meet Happen</a></li>
+    </ul>
+    <a class="btn btn-outline" href="#move-money">Sign In</a>
+  </header>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Personal Banking</div>
+      <h2><span class="grad">Award-winning</span> banking at your fingertips</h2>
+      <p class="lede">Our LevelUp Checking account, LevelUp Savings account, and CDs are built to reward you and help you reach your goals.</p>
+      <a class="btn btn-blue" href="#move-money">Move Money</a>
+      <div class="hero-fine">Happen Bank, N.A., Member FDIC. Equal Housing Lender. FDIC-insured up to $250,000 per depositor.</div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.ctfassets.net/orqped9h4wgz/6bZuS6fulMaRPZkylxcuz2/e80f7fed51068165088411ecadfcd6da/hero_family_dsk.webp" alt="Happen Bank member with family" onerror="this.parentElement.style.display='none'">
+    </div>
+  </section>
+
+  <section class="products">
+    <h2>Get more from your money with a Happen Bank account</h2>
+    <div class="prod-grid">
+      <div class="prod">
+        <div class="icon">S</div>
+        <h3>LevelUp Savings</h3>
+        <p>Get 4.00% APY when you deposit $250+ a month.</p>
+      </div>
+      <div class="prod">
+        <div class="icon">C</div>
+        <h3>LevelUp Checking</h3>
+        <p>Earn 2% cash back and get paid early.</p>
+      </div>
+      <div class="prod">
+        <div class="icon">CD</div>
+        <h3>Certificate of Deposit</h3>
+        <p>Earn a competitive, guaranteed rate.</p>
+      </div>
+    </div>
+  </section>
+
+  <main class="app" id="move-money">
+    <div class="app-inner">
+      <h2 class="app-heading">Move money between your accounts</h2>
+      <p class="app-sub">Good morning, Alice &middot; Member since 2019</p>
+
+      <div class="accounts">
+        <div class="account-card">
+          <div class="account-type">LevelUp Checking</div>
+          <div class="account-balance">$24,850.00</div>
+          <div class="account-delta">+$4,200.00 this month</div>
+          <div class="account-number">ACCT-1001 &middot; 2% cash back &middot; get paid early</div>
+        </div>
+        <div class="account-card">
+          <div class="account-type">LevelUp Savings</div>
+          <div class="account-balance">$142,300.00</div>
+          <div class="account-delta">+$412.88 interest YTD</div>
+          <div class="account-number">ACCT-1002 &middot; 4.00% APY LevelUp Rate</div>
+        </div>
+      </div>
+
+      <div class="transfer-wrap">
+        <div class="transfer-card">
+          <h2>Transfer money</h2>
+          <div class="sub">Transfers between Happen Bank accounts post right away.</div>
+          <form id="transferForm">
+            <div class="form-row">
+              <div class="form-group"><label>From</label><select id="fromAccount"><option value="ACCT-1001">LevelUp Checking &mdash; ACCT-1001</option><option value="ACCT-1002">LevelUp Savings &mdash; ACCT-1002</option></select></div>
+              <div class="form-group"><label>To</label><select id="toAccount"><option value="ACCT-1002">LevelUp Savings &mdash; ACCT-1002</option><option value="ACCT-1001">LevelUp Checking &mdash; ACCT-1001</option><option value="ACCT-EXT-001">External &mdash; Chase ****4921</option></select></div>
+            </div>
+            <div class="form-group"><label>Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$0.00"></div>
+            <div class="form-group"><label>Account tier</label><select id="accountTier"><option value="standard">Standard</option><option value="premium">Premier</option><option value="basic">Basic</option></select></div>
+            <button type="submit" class="btn-transfer" id="submitBtn">Review &amp; transfer</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+        <div class="side-card">
+          <img src="https://images.ctfassets.net/orqped9h4wgz/4p3MMmmUssVuWET7tKrhOL/a0920984d7f3f9c27d3c61f7b7831fad/hero_couple_dsk.webp" alt="Happen Bank members" onerror="this.style.display='none'">
+          <div class="overlay">
+            <h3>Get paid early</h3>
+            <p>Get your paycheck up to 2 days earlier with direct deposit to your LevelUp Checking account.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="activity">
+        <h2>Recent activity</h2>
+        <div class="txn-card">
+          <table class="txn-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+            <tbody>
+              <tr><td>Mar 15</td><td>Direct deposit &mdash; Payroll (paid early)</td><td class="credit">+$4,200.00</td><td>$24,850.00</td></tr>
+              <tr><td>Mar 14</td><td>Transfer to LevelUp Savings</td><td class="debit">-$1,500.00</td><td>$20,650.00</td></tr>
+              <tr><td>Mar 13</td><td>Debit card &mdash; Whole Foods Market</td><td class="debit">-$127.43</td><td>$22,150.00</td></tr>
+              <tr><td>Mar 12</td><td>Transfer from LevelUp Savings</td><td class="credit">+$2,000.00</td><td>$22,277.43</td></tr>
+              <tr><td>Mar 10</td><td>Interest payment &mdash; LevelUp Rate</td><td class="credit">+$68.12</td><td>$20,277.43</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <section class="cta-band">
+    <h2>Open a LevelUp account in minutes</h2>
+    <p>Start earning more today.</p>
+    <a class="btn" href="#move-money">Open an Account</a>
+  </section>
+
+  <section class="trust-band">
+    <div class="trust-grid">
+      <div>
+        <div class="t-icon">&#10003;</div>
+        <h3>Security</h3>
+        <p>Keeping your financial info private and secure is our priority.</p>
+      </div>
+      <div>
+        <div class="t-icon">$</div>
+        <h3>FDIC Insurance</h3>
+        <p>Deposits are FDIC-insured up to the maximum amount allowed&mdash;$250,000.</p>
+      </div>
+      <div>
+        <div class="t-icon">?</div>
+        <h3>Customer support</h3>
+        <p>Have a question? Need a hand? We can help. Chat with us online, or reach us by phone or email.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="quote">
+    <h2>See what our members are saying</h2>
+    <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+    <blockquote>&ldquo;I use the banking side. They offer one of the highest APY for savings accounts as long as you make a very modest $250 deposit each month.&rdquo;</blockquote>
+    <div class="who">&mdash;Travis M.</div>
+  </section>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-cols">
+        <div><h4>What We Offer</h4><ul><li><a href="#">Personal Loans</a></li><li><a href="#">Personal Banking</a></li><li><a href="#">Auto Refinancing</a></li><li><a href="#">Business Loans</a></li></ul></div>
+        <div><h4>Legal</h4><ul><li><a href="#">Terms of Use</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Accessibility</a></li><li><a href="#">Licenses</a></li></ul></div>
+        <div><h4>Company</h4><ul><li><a href="#">About us</a></li><li><a href="#">Leadership</a></li><li><a href="#">Careers</a></li><li><a href="#">Contact</a></li></ul></div>
+        <div><h4>Resources</h4><ul><li><a href="#">Resource Center</a></li><li><a href="#">Member Benefits</a></li><li><a href="#">Customer Reviews</a></li><li><a href="#">Glossary</a></li></ul></div>
+        <div><h4>Account</h4><ul><li><a href="#">Sign In</a></li><li><a href="#">Mobile App</a></li><li><a href="#">Help</a></li></ul></div>
+      </div>
+      <div class="foot-brand">Happen</div>
+      <p>88 Kearny Street, Suite 600, San Francisco, CA 94108</p>
+      <p>Unless otherwise specified, all credit and deposit products are provided by Happen Bank, N.A., Member FDIC, Equal Housing Lender.</p>
+      <p>The Annual Percentage Yield (APY) may change at any time without notice before and after account opening. Fees may reduce earnings on the account.</p>
+      <p>&copy; 2026 Happen Bank. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transfer failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transfer complete</div><div class="error-detail">Debited $${data.debitAmount} (includes $${data.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Review & transfer'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

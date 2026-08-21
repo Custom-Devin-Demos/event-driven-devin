@@ -388,6 +388,30 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WISPR FLOW SITE — internal demo only, not affiliated with, endorsed by, or a real Wispr Flow product.',
   },
+  '3aea27ba': {
+    slug: '3aea27ba',
+    company: 'Happen Bank',
+    brandMark: 'H',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '3aea27ba.html',
+      title: 'Happen Bank — Move Money',
+    },
+    accent: '#2626FF',
+    accentDark: '#1E1FCA',
+    theme: {
+      '--accent': '#2626FF',
+      '--ink': '#232222',
+      '--surface': '#fffdfb',
+      '--chrome-bg': '#232222',
+      '--chrome-text': '#F7F1ED',
+    },
+    supportCenter: 'Happen Bank Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A HAPPEN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Happen Bank product.',
+  },
 };
 
 function getOncallSkin(slug) {
