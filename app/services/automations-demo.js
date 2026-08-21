@@ -85,6 +85,14 @@ async function armStanding(customer = 'CUST_1') {
 
 async function arm(customer = 'CUST_1') {
   const result = await armStanding(customer);
+  if (!state.activeRun) {
+    state.channel = null;
+    state.declaredAt = null;
+    state.chatterPosted = 0;
+    state.autoStopAt = null;
+    state.scheduledDeclareAt = null;
+    state.scheduledArmAt = null;
+  }
   state.armedAt = result.armed_at || new Date().toISOString();
   state.runState = 'armed';
   return result;
@@ -235,27 +243,46 @@ async function declare(options = {}) {
   }
   state.declarePromise = (async () => {
     if (!state.armedAt) {
+      const standing = await statusStanding();
+      if (standing.armed && standing.armed_at) {
+        state.armedAt = standing.armed_at;
+        state.runState = 'armed';
+      }
+    }
+    if (!state.armedAt) {
       const error = new Error('Arm the standing instance before declaring the incident');
       error.statusCode = 400;
       throw error;
     }
     const channel = await createDemoChannel(new Date(), Boolean(options.smoke));
-    state.channel = channel;
-    state.declaredAt = new Date().toISOString();
-    state.runState = 'declared';
-    state.activeRun = true;
-    state.chatterPosted = 0;
-    state.chatterAttempted = 0;
-    await postDeclaration(channel);
-    startChatter(channel);
     try {
-      await inviteDevin(channel.id);
+      await postDeclaration(channel);
+      state.channel = channel;
+      state.declaredAt = new Date().toISOString();
+      state.runState = 'declared';
+      state.activeRun = true;
+      state.chatterPosted = 0;
+      startChatter(channel);
+      try {
+        await inviteDevin(channel.id);
+      } catch (error) {
+        logger.warn('Automations demo Devin invite failed', { error: error.message });
+      }
+      const runWindow = envNumber('AUTOMATIONS_DEMO_RUN_WINDOW_MS', DEFAULT_RUN_WINDOW_MS);
+      state.autoStopAt = new Date(Date.now() + runWindow).toISOString();
+      scheduleTimer(() => stop('auto-stop'), runWindow);
     } catch (error) {
-      logger.warn('Automations demo Devin invite failed', { error: error.message });
+      state.activeRun = false;
+      state.channel = null;
+      state.declaredAt = null;
+      state.chatterPosted = 0;
+      state.autoStopAt = null;
+      state.scheduledDeclareAt = null;
+      state.scheduledArmAt = null;
+      state.runState = 'armed';
+      cancelTimers();
+      throw error;
     }
-    const runWindow = envNumber('AUTOMATIONS_DEMO_RUN_WINDOW_MS', DEFAULT_RUN_WINDOW_MS);
-    state.autoStopAt = new Date(Date.now() + runWindow).toISOString();
-    scheduleTimer(() => stop('auto-stop'), runWindow);
     return {
       ok: true,
       alreadyActive: false,
@@ -302,11 +329,18 @@ async function closeDevinPullRequests() {
 
 async function stop(reason = 'manual') {
   if (state.stopPromise) return state.stopPromise;
-  if (!state.activeRun && ['idle', 'stopped'].includes(state.runState)) {
+  if (!state.declarePromise && !state.activeRun && ['idle', 'stopped'].includes(state.runState)) {
     cancelTimers();
     return { ok: true, stopped: false, state: state.runState };
   }
   state.stopPromise = (async () => {
+    if (state.declarePromise) {
+      try {
+        await state.declarePromise;
+      } catch (error) {
+        logger.warn('Automations demo declaration failed during stop', { error: error.message });
+      }
+    }
     state.runState = 'stopping';
     state.activeRun = false;
     cancelTimers();
@@ -473,6 +507,12 @@ async function getStatus() {
     result.errors_since_arm = standing.errors_since_arm;
     result.dlq_depth = standing.dlq_depth;
     result.emitter_heartbeat_age_s = standing.emitter_heartbeat_age_s;
+    if (!state.armedAt && standing.armed && standing.armed_at) {
+      state.armedAt = standing.armed_at;
+      state.runState = 'armed';
+      result.runState = 'armed';
+      result.armed_at = state.armedAt;
+    }
     const minArmMs = 30 * 60 * 1000;
     result.safe_to_declare = Boolean(
       standing.armed

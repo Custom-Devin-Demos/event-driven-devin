@@ -7,10 +7,11 @@ only through its HTTP admin contract.
 ## Before the call
 
 1. Confirm the standing instance is healthy and reachable.
-2. Open `/automations-demo` (or, when `AUTOMATIONS_DEMO_TOKEN` is configured,
-   `/automations-demo?token=<AUTOMATIONS_DEMO_TOKEN>` once). The presenter page
+2. Set `AUTOMATIONS_DEMO_TOKEN` and open
+   `/automations-demo?token=<AUTOMATIONS_DEMO_TOKEN>` once. The presenter page
    stores the token in session storage and sends it with every control-plane
-   request.
+   request. Mutation endpoints fail closed with `503 not_configured` when the
+   token is not configured.
 3. Click **Arm** about 45 minutes before the call. The standing service starts
    the `CUST_1` scheduled automation and returns `armed_at` and `next_fire_at`.
 4. Leave the page open. Status should show an increasing error count and DLQ
@@ -113,7 +114,7 @@ unreachable, the presenter page must say **standing instance unreachable**.
 | --- | --- |
 | `AUTOMATIONS_SERVICE_BASE_URL` | Base URL of the standing instance, without a trailing slash |
 | `AUTOMATIONS_DEMO_SERVICE_TOKEN` | Bearer token for standing admin calls |
-| `AUTOMATIONS_DEMO_TOKEN` | Optional token gate for mutation endpoints |
+| `AUTOMATIONS_DEMO_TOKEN` | Required token for mutation endpoints; pass it to the presenter page with `?token=...` |
 | `AUTOMATIONS_DEMO_TZ` | Presenter timezone for `<mmdd>` channel names; default `America/Los_Angeles` |
 | `AUTOMATIONS_DEMO_RUN_WINDOW_MS` | Auto-stop duration; default 3600000 |
 | `AUTOMATIONS_DEMO_IC_NAME` | Incident commander shown on the declaration card |
@@ -127,6 +128,9 @@ unreachable, the presenter page must say **standing instance unreachable**.
 | `AUTOMATIONS_DEMO_BASE_URL` | Base URL used by the smoke CLI; defaults to local `PORT` |
 
 ## API surface
+
+All mutation endpoints require `AUTOMATIONS_DEMO_TOKEN`; status remains
+unauthenticated so the presenter page can load before its token is entered.
 
 - `GET /automations-demo` — presenter page (`X-Robots-Tag: noindex, nofollow`)
 - `POST /api/automations-demo/arm`

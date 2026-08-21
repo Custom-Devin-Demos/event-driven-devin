@@ -50,7 +50,13 @@ function demoCap(name) {
 
 function requireDemoToken(req, res, next) {
   const configured = process.env.AUTOMATIONS_DEMO_TOKEN;
-  if (!configured) return next();
+  if (!configured) {
+    logger.warn('Automations demo mutation rejected', {
+      event: 'automations_demo.rejected',
+      reason: 'not_configured',
+    });
+    return res.status(503).json({ success: false, reason: 'not_configured' });
+  }
   const presented = req.headers['x-automations-demo-token']
     || req.headers['x-automations-token']
     || (typeof req.headers.authorization === 'string'

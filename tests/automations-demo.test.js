@@ -1,5 +1,7 @@
 /* global afterEach, beforeEach, describe, expect, jest, test */
 
+const http = require('http');
+
 jest.mock('../app/services/slack', () => ({
   archiveChannel: jest.fn(),
   createChannel: jest.fn(),
@@ -38,6 +40,7 @@ describe('automations incident demo control plane', () => {
     delete process.env.SLACK_BOT_TOKEN;
     delete process.env.AUTOMATIONS_SERVICE_BASE_URL;
     delete process.env.AUTOMATIONS_DEMO_SERVICE_TOKEN;
+    delete process.env.AUTOMATIONS_DEMO_TOKEN;
     delete process.env.DEVIN_SLACK_USER_ID;
     delete process.env.AUTOMATIONS_DEMO_TZ;
     jest.useRealTimers();
@@ -76,6 +79,106 @@ describe('automations incident demo control plane', () => {
     expect(slack.createChannel).toHaveBeenCalledTimes(1);
     expect(a.channel).toBe(b.channel);
     expect(b.alreadyActive).toBe(true);
+  });
+
+  test('failed declaration post leaves a clean state for retry', async () => {
+    await demo.arm();
+    slack.createChannel
+      .mockResolvedValueOnce({ id: 'C1', name: 'sev-1-incident-first' })
+      .mockResolvedValueOnce({ id: 'C2', name: 'sev-1-incident-second' });
+    slack.postMessage.mockRejectedValueOnce(new Error('declaration post failed'));
+    await expect(demo.declare()).rejects.toThrow('declaration post failed');
+    const result = await demo.declare();
+    expect(slack.createChannel).toHaveBeenCalledTimes(2);
+    expect(result.channel).toBe('sev-1-incident-second');
+    expect(result.alreadyActive).toBe(false);
+  });
+
+  test('stop during declaration waits and cancels all timers', async () => {
+    jest.useFakeTimers();
+    await demo.arm();
+    let resolvePost;
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-in-flight' });
+    slack.postMessage.mockReturnValueOnce(new Promise((resolve) => { resolvePost = resolve; }));
+    const declaring = demo.declare();
+    await Promise.resolve();
+    await Promise.resolve();
+    const stopping = demo.stop();
+    resolvePost();
+    await Promise.all([declaring, stopping]);
+    jest.advanceTimersByTime(60 * 60 * 1000);
+    await Promise.resolve();
+    expect(slack.postPersonaMessage).not.toHaveBeenCalled();
+    expect(slack.postMessage).toHaveBeenCalledTimes(2);
+  });
+
+  test('rejects mutation requests when the demo token is unconfigured', async () => {
+    delete process.env.AUTOMATIONS_DEMO_TOKEN;
+    const express = require('express');
+    const router = require('../app/routes/automations-demo');
+    const app = express();
+    app.use(express.json());
+    app.use(router);
+    const server = await new Promise((resolve) => {
+      const listener = app.listen(0, () => resolve(listener));
+    });
+    try {
+      const response = await new Promise((resolve, reject) => {
+        const request = http.request({
+          port: server.address().port,
+          method: 'POST',
+          path: '/api/automations-demo/arm',
+        }, (res) => {
+          let body = '';
+          res.on('data', (chunk) => { body += chunk; });
+          res.on('end', () => resolve({ statusCode: res.statusCode, body: JSON.parse(body) }));
+        });
+        request.on('error', reject);
+        request.end();
+      });
+      expect(response.statusCode).toBe(503);
+      expect(response.body).toEqual({ success: false, reason: 'not_configured' });
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  test('arm clears the previous run channel and stale fields', async () => {
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({
+      id: 'C1',
+      name: 'sev-1-incident-previous',
+    });
+    await demo.declare();
+    await demo.stop();
+    await demo.arm();
+    const status = await demo.getStatus();
+    expect(status.runState).toBe('armed');
+    expect(status.channel).toBeNull();
+    expect(status.declared_at).toBeNull();
+    expect(status.chatter_posted).toBe(0);
+    expect(status.scheduled_declare_at).toBeNull();
+    expect(status.scheduled_arm_at).toBeNull();
+  });
+
+  test('adopts standing armed_at after local state reset', async () => {
+    axios.mockResolvedValueOnce({
+      data: {
+        armed: true,
+        armed_at: '2026-01-01T12:00:00.000Z',
+        errors_since_arm: 17,
+        dlq_depth: 17,
+        emitter_heartbeat_age_s: 2,
+      },
+    });
+    slack.createChannel.mockResolvedValue({
+      id: 'C1',
+      name: 'sev-1-incident-recovered',
+    });
+    const result = await demo.declare();
+    expect(result.channel).toBe('sev-1-incident-recovered');
+    const status = await demo.getStatus();
+    expect(status.armed_at).toBe('2026-01-01T12:00:00.000Z');
   });
 
   test('status explains an unreachable standing instance', async () => {
