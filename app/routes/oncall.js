@@ -239,14 +239,14 @@ function sendSkinnedPage(res, next, page, skin) {
  */
 function buildSkinBrandShim(skin) {
   const page = skin.page || {};
-  const themeVars = Object.entries(page.theme || {})
+  const rebrand = !page.file;
+  const themeVars = Object.entries(page.theme || (rebrand ? skin.theme : {}) || {})
     .filter(([k, v]) => /^--[a-z0-9-]+$/i.test(k) && /^[^<>{};]*$/.test(String(v)))
     .map(([k, v]) => `${k}: ${v};`)
     .join(' ');
   // A skin with its own custom page file (page.file) is natively branded:
   // skip the title/logo rewrite and only remove the back link and add the
   // disclaimer bar.
-  const rebrand = !page.file;
   return `
   <style>:root { ${themeVars} }</style>
   <script>
