@@ -162,24 +162,22 @@
       font-size: 15px;
     }
 
-    .error-banner {
-      display: none;
+    .modal-error {
       background: var(--accent);
       border: 1px solid #ff5b63;
       color: #ffffff;
       border-radius: 8px;
-      padding: 18px 22px;
-      margin-bottom: 22px;
-      font-size: 16px;
+      padding: 14px 16px;
+      margin: 4px 0 6px;
+      font-size: 14px;
       font-weight: 700;
-      box-shadow: 0 0 0 4px rgba(224, 36, 46, 0.25), 0 8px 24px rgba(224, 36, 46, 0.35);
+      line-height: 1.5;
+      animation: callout-flash 1.2s ease-in-out 2;
     }
 
-    .error-banner.show { display: block; animation: banner-flash 1.2s ease-in-out 2; }
-
-    @keyframes banner-flash {
-      0%, 100% { box-shadow: 0 0 0 4px rgba(224, 36, 46, 0.25), 0 8px 24px rgba(224, 36, 46, 0.35); }
-      50% { box-shadow: 0 0 0 8px rgba(224, 36, 46, 0.5), 0 8px 32px rgba(224, 36, 46, 0.6); }
+    @keyframes callout-flash {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(224, 36, 46, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(224, 36, 46, 0.5); }
     }
 
     .modal-backdrop {
@@ -257,8 +255,6 @@
 </header>
 
 <main class="container">
-  <div class="error-banner" id="error-banner"></div>
-
   <div class="filter-bar">
     <label for="genre">Genre</label>
     <select id="genre">
@@ -321,7 +317,6 @@
   ];
 
   var grid = document.getElementById('grid');
-  var errorBanner = document.getElementById('error-banner');
   var backdrop = document.getElementById('modal-backdrop');
   var modal = document.getElementById('modal');
   var selectedTier = 'basic';
@@ -376,12 +371,22 @@
     renderGrid(BEATS);
   });
 
-  function showError(body) {
-    errorBanner.textContent = '\u26A0\uFE0F Checkout failed: '
-      + ((body && body.errorClass) ? body.errorClass + ' \u2014 ' : '')
+  function showModalError(body) {
+    var message = ((body && body.errorClass) ? body.errorClass + ' \u2014 ' : '')
       + ((body && body.error) || 'Unexpected error.');
-    errorBanner.classList.add('show');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    var existing = modal.querySelector('.modal-error');
+    if (existing) existing.remove();
+    var callout = document.createElement('div');
+    callout.className = 'modal-error';
+    callout.textContent = '\u26A0\uFE0F Checkout failed: ' + message;
+    var actions = modal.querySelector('.modal-actions');
+    modal.insertBefore(callout, actions);
+    var button = document.getElementById('confirm-purchase');
+    if (button) {
+      button._running = false;
+      button.textContent = 'Confirm purchase';
+      button.style.pointerEvents = '';
+    }
   }
 
   function tierPrice(beat, tier) {
@@ -444,7 +449,8 @@
     button._running = true;
     button.textContent = 'Processing\u2026';
     button.style.pointerEvents = 'none';
-    errorBanner.classList.remove('show');
+    var existingError = modal.querySelector('.modal-error');
+    if (existingError) existingError.remove();
 
     fetch('/api/b47d51c2/checkout', {
       method: 'POST',
@@ -461,15 +467,13 @@
       .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
       .then(function (result) {
         if (!result.ok || result.body.error) {
-          closeModal();
-          showError(result.body);
+          showModalError(result.body);
         } else {
           showConfirmation(result.body);
         }
       })
       .catch(function (err) {
-        closeModal();
-        showError({ error: err.message });
+        showModalError({ error: err.message });
       });
   }
 
