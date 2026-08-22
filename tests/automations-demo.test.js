@@ -329,6 +329,26 @@ describe('automations incident demo control plane', () => {
     );
   });
 
+  test('smoke refuses while a presenter run is armed', async () => {
+    await demo.arm();
+    await expect(demo.smoke()).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'Cannot run smoke while a presenter demo is in progress',
+    });
+    expect(axios).toHaveBeenCalledTimes(1);
+    expect(slack.createChannel).not.toHaveBeenCalled();
+  });
+
+  test('smoke refuses while a presenter run is declared without cleanup', async () => {
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-live' });
+    await demo.declare();
+    await expect(demo.smoke()).rejects.toMatchObject({ statusCode: 400 });
+    expect(slack.createChannel).toHaveBeenCalledTimes(1);
+    expect(slack.postMessage).toHaveBeenCalledTimes(1);
+    expect(axios.mock.calls.some(([config]) => config.url.endsWith('/admin/demo/disarm'))).toBe(false);
+  });
+
   test('drips persona chatter in order and stop cancels the remaining timers', async () => {
     jest.useFakeTimers();
     await demo.arm();

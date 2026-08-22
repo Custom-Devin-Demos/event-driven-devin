@@ -492,9 +492,17 @@ function schedule(declareAt) {
 }
 
 async function smoke() {
+  if (state.stopPromise || state.declarePromise || state.activeRun || state.armedAt
+    || ['armed', 'declared', 'stopping'].includes(state.runState)) {
+    const error = new Error('Cannot run smoke while a presenter demo is in progress');
+    error.statusCode = 400;
+    throw error;
+  }
   let result;
+  let smokeRunCreated = false;
   try {
     await arm();
+    smokeRunCreated = true;
     result = await declare({ smoke: true });
     const deadline = Date.now() + 20 * 60 * 1000;
     let found = false;
@@ -526,7 +534,9 @@ async function smoke() {
     }
     return { ok: false, success: false, error: error.message };
   } finally {
-    await stop('smoke');
+    if (smokeRunCreated) {
+      await stop('smoke');
+    }
   }
 }
 
