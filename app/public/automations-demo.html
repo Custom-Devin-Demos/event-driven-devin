@@ -96,7 +96,7 @@
         : (s.standing_instance?.error || 'Standing instance unreachable');
       $('warning').className = reachable && s.safe_to_declare ? 'warning ok' : 'warning';
       $('arm').disabled = s.declare_in_progress || s.runState === 'declared' || s.runState === 'stopping';
-      $('declare').disabled = !s.safe_to_declare || s.runState === 'declared' || s.runState === 'stopping';
+      $('declare').disabled = s.declare_in_progress || !s.safe_to_declare || s.runState === 'declared' || s.runState === 'stopping';
     }
     async function refresh() { try { render(await call('/api/automations-demo/status')); } catch (error) { $('warning').textContent = error.message; } }
     $('arm').onclick = async () => { $('arm').disabled = true; try { await call('/api/automations-demo/arm', {method:'POST', body:'{}'}); await refresh(); } catch (error) { $('warning').textContent = error.message; } finally { $('arm').disabled = false; } };
