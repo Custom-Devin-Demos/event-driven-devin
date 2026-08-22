@@ -11,6 +11,7 @@ const {
 } = require('./slack');
 
 const DEFAULT_RUN_WINDOW_MS = 60 * 60 * 1000;
+const MIN_SAFE_TO_DECLARE_MS = 30 * 60 * 1000;
 const DEFAULT_TIME_ZONE = 'America/Los_Angeles';
 const STANDING_REPO = 'ananthv26-cog-demo-repos/automations-service';
 const CHANNEL_PREFIX = 'sev-1-incident';
@@ -84,6 +85,11 @@ async function armStanding(customer = 'CUST_1') {
 }
 
 async function arm(customer = 'CUST_1') {
+  if (state.activeRun) {
+    const error = new Error('Cannot arm while an incident run is active');
+    error.statusCode = 400;
+    throw error;
+  }
   const result = await armStanding(customer);
   if (!state.activeRun) {
     state.channel = null;
@@ -283,6 +289,10 @@ async function declare(options = {}) {
       state.autoStopAt = null;
       state.scheduledDeclareAt = null;
       state.scheduledArmAt = null;
+      state.archiveCandidates.push({
+        ...channel,
+        createdAt: new Date().toISOString(),
+      });
       state.runState = 'armed';
       cancelTimers();
       throw error;
@@ -420,6 +430,11 @@ function schedule(declareAt) {
     error.statusCode = 400;
     throw error;
   }
+  if (target.getTime() - Date.now() < MIN_SAFE_TO_DECLARE_MS) {
+    const error = new Error('declareAt must be at least 30 minutes in the future for error accumulation');
+    error.statusCode = 400;
+    throw error;
+  }
   const armAt = target.getTime() - 45 * 60 * 1000;
   cancelTimers();
   state.scheduledArmAt = new Date(Math.max(Date.now(), armAt)).toISOString();
@@ -517,11 +532,10 @@ async function getStatus() {
       result.runState = 'armed';
       result.armed_at = state.armedAt;
     }
-    const minArmMs = 30 * 60 * 1000;
     result.safe_to_declare = Boolean(
       standing.armed
       && state.armedAt
-      && Date.now() - Date.parse(state.armedAt) >= minArmMs
+      && Date.now() - Date.parse(state.armedAt) >= MIN_SAFE_TO_DECLARE_MS
       && Number(standing.errors_since_arm) > 0,
     );
   } catch (error) {

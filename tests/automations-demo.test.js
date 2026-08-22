@@ -94,6 +94,33 @@ describe('automations incident demo control plane', () => {
     expect(result.alreadyActive).toBe(false);
   });
 
+  test('rejects arming while an incident run is active', async () => {
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-active' });
+    await demo.declare();
+    await expect(demo.arm()).rejects.toMatchObject({ statusCode: 400 });
+    expect(axios).toHaveBeenCalledTimes(1);
+  });
+
+  test('rejects near-term schedules and preserves the T-45m arm schedule', () => {
+    expect(() => demo.schedule(new Date(Date.now() + 29 * 60 * 1000).toISOString()))
+      .toThrow('at least 30 minutes');
+    const declareAt = new Date(Date.now() + 60 * 60 * 1000);
+    const result = demo.schedule(declareAt.toISOString());
+    expect(result.scheduledArmAt).toBe(new Date(declareAt.getTime() - 45 * 60 * 1000).toISOString());
+  });
+
+  test('archives a channel when declaration posting fails', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-orphaned' });
+    slack.postMessage.mockRejectedValueOnce(new Error('declaration post failed'));
+    await expect(demo.declare()).rejects.toThrow('declaration post failed');
+    jest.setSystemTime(new Date('2026-01-02T01:00:00.000Z'));
+    expect((await demo.archiveStale()).archived).toBe(1);
+    expect(slack.archiveChannel).toHaveBeenCalledWith('slack-token', 'C1');
+  });
+
   test('stop during declaration waits and cancels all timers', async () => {
     jest.useFakeTimers();
     await demo.arm();

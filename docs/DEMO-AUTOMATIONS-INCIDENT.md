@@ -134,7 +134,7 @@ unauthenticated so the presenter page can load before its token is entered.
 
 - `GET /automations-demo` — presenter page (`X-Robots-Tag: noindex, nofollow`)
 - `POST /api/automations-demo/arm`
-- `POST /api/automations-demo/schedule` with `{ "declareAt": "<ISO>" }`; replaces the prior schedule and arms at T−45m
+- `POST /api/automations-demo/schedule` with `{ "declareAt": "<ISO>" }`; rejects targets under 30 minutes away, arms at T−45m for targets at least 45 minutes away, and arms immediately for 30–45 minute targets
 - `POST /api/automations-demo/declare`
 - `GET /api/automations-demo/status`
 - `POST /api/automations-demo/stop`
