@@ -479,6 +479,10 @@ function schedule(declareAt) {
   }, armAt - Date.now());
   scheduleTimer(async () => {
     try {
+      const standing = await statusStanding();
+      if (!(Number(standing.errors_since_arm) > 0)) {
+        throw new Error('Automations demo scheduled declare blocked: no errors are flowing');
+      }
       await declare();
     } catch (error) {
       logger.error('Automations demo scheduled declare failed', { error: error.message });

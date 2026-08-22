@@ -44,6 +44,12 @@ function demoCap(name) {
     }
     timestamps.push(now);
     caps.set(key, timestamps);
+    res.on('finish', () => {
+      if (res.statusCode >= 400) {
+        const index = timestamps.indexOf(now);
+        if (index !== -1) timestamps.splice(index, 1);
+      }
+    });
     next();
   };
 }

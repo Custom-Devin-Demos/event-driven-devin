@@ -113,6 +113,21 @@ describe('automations incident demo control plane', () => {
     expect(result.scheduledArmAt).toBe(new Date(declareAt.getTime() - 45 * 60 * 1000).toISOString());
   });
 
+  test('scheduled declare requires errors to be flowing', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    const declareAt = new Date(Date.now() + 30 * 60 * 1000);
+    demo.schedule(declareAt.toISOString());
+    jest.advanceTimersByTime(0);
+    await Promise.resolve();
+    await Promise.resolve();
+    jest.advanceTimersByTime(30 * 60 * 1000);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(slack.createChannel).not.toHaveBeenCalled();
+    const status = await demo.getStatus();
+    expect(status.runState).toBe('armed');
+  });
+
   test('archives a channel when declaration posting fails', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
     await demo.arm();
@@ -259,6 +274,47 @@ describe('automations incident demo control plane', () => {
       expect(response.statusCode).toBe(503);
       expect(response.body.ok).toBe(false);
       expect(response.body.error).toMatch(/AUTOMATIONS_DEMO_TOKEN is not configured/);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  test('failed mutation does not consume the hourly cap', async () => {
+    process.env.AUTOMATIONS_DEMO_TOKEN = 'demo-token';
+    const express = require('express');
+    const router = require('../app/routes/automations-demo');
+    const app = express();
+    app.use(express.json());
+    app.use(router);
+    const server = await new Promise((resolve) => {
+      const listener = app.listen(0, () => resolve(listener));
+    });
+    const postArm = () => new Promise((resolve, reject) => {
+      const request = http.request({
+        port: server.address().port,
+        method: 'POST',
+        path: '/api/automations-demo/arm',
+        headers: { 'x-automations-demo-token': 'demo-token' },
+      }, (res) => {
+        res.resume();
+        res.on('end', () => resolve(res.statusCode));
+      });
+      request.on('error', reject);
+      request.end();
+    });
+    try {
+      axios.mockRejectedValueOnce(new Error('standing instance unavailable'));
+      expect(await postArm()).toBe(502);
+      axios.mockResolvedValue({
+        data: {
+          armed_at: new Date(Date.now() - 31 * 60 * 1000).toISOString(),
+          next_fire_at: new Date().toISOString(),
+        },
+      });
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        expect(await postArm()).toBe(200);
+      }
+      expect(await postArm()).toBe(429);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
