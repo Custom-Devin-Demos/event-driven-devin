@@ -37,6 +37,7 @@ const state = {
   timers: new Set(),
   declarePromise: null,
   stopPromise: null,
+  smokeInProgress: false,
 };
 
 function envNumber(name, fallback) {
@@ -84,7 +85,12 @@ async function armStanding(customer = 'CUST_1') {
   return standingRequest('post', '/admin/demo/arm', { customer });
 }
 
-async function arm(customer = 'CUST_1') {
+async function arm(customer = 'CUST_1', options = {}) {
+  if (!options.smoke && state.smokeInProgress) {
+    const error = new Error('Cannot arm while a smoke run is in progress');
+    error.statusCode = 400;
+    throw error;
+  }
   if (state.runState === 'declared' || state.declarePromise || state.stopPromise) {
     const error = new Error('Cannot arm while an incident run is active or stopping');
     error.statusCode = 400;
@@ -241,6 +247,11 @@ async function inviteDevin(channelId) {
 }
 
 async function declare(options = {}) {
+  if (!options.smoke && state.smokeInProgress) {
+    const error = new Error('Cannot declare while a smoke run is in progress');
+    error.statusCode = 400;
+    throw error;
+  }
   if (state.stopPromise) {
     const error = new Error('Cannot declare while the incident is stopping');
     error.statusCode = 400;
@@ -457,6 +468,11 @@ async function archiveStale() {
 }
 
 function schedule(declareAt) {
+  if (state.smokeInProgress) {
+    const error = new Error('Cannot schedule while a smoke run is in progress');
+    error.statusCode = 400;
+    throw error;
+  }
   if (state.runState === 'declared' || state.declarePromise || state.stopPromise) {
     const error = new Error('Cannot reschedule while an incident run is active or stopping');
     error.statusCode = 400;
@@ -523,8 +539,9 @@ async function smoke() {
   }
   let result;
   let smokeRunCreated = false;
+  state.smokeInProgress = true;
   try {
-    await arm();
+    await arm('CUST_1', { smoke: true });
     smokeRunCreated = true;
     const accumulationWait = envNumber(
       'AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS',
@@ -564,8 +581,12 @@ async function smoke() {
     }
     return { ok: false, success: false, error: error.message };
   } finally {
-    if (smokeRunCreated) {
-      await stop('smoke');
+    try {
+      if (smokeRunCreated && state.smokeInProgress) {
+        await stop('smoke');
+      }
+    } finally {
+      state.smokeInProgress = false;
     }
   }
 }
@@ -586,6 +607,7 @@ function getState() {
     auto_stop_at: state.autoStopAt,
     scheduled_declare_at: state.scheduledDeclareAt,
     scheduled_arm_at: state.scheduledArmAt,
+    smoke_in_progress: state.smokeInProgress,
     safe_to_declare: false,
   };
 }
@@ -640,6 +662,7 @@ function resetForTests() {
     archiveCandidates: [],
     declarePromise: null,
     stopPromise: null,
+    smokeInProgress: false,
   });
 }
 

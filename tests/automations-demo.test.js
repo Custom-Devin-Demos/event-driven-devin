@@ -519,6 +519,44 @@ describe('automations incident demo control plane', () => {
     expect(slack.createChannel).toHaveBeenCalledTimes(1);
     expect(slack.postMessage).toHaveBeenCalledTimes(1);
     expect(axios.mock.calls.some(([config]) => config.url.endsWith('/admin/demo/disarm'))).toBe(false);
+    const status = await demo.getStatus();
+    expect(status.channel.name).toBe('sev-1-incident-live');
+    expect(status.smoke_in_progress).toBe(false);
+  });
+
+  test('smoke ownership blocks presenter declaration during accumulation and releases after cleanup', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    process.env.AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS = String(30 * 60 * 1000);
+    process.env.DEVIN_SLACK_USER_ID = 'UDEVIN';
+    axios.mockResolvedValue({
+      data: {
+        armed: true,
+        armed_at: new Date(Date.now()).toISOString(),
+        next_fire_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        errors_since_arm: 1,
+        dlq_depth: 1,
+        emitter_heartbeat_age_s: 2,
+      },
+    });
+    slack.createChannel.mockResolvedValue({
+      id: 'C1',
+      name: 'sev-1-incident-0101-scheduled-automations-failing-smoke',
+    });
+    slack.getChannelHistory.mockResolvedValue([
+      { user: 'UDEVIN', text: 'Root cause: scheduled failures' },
+    ]);
+    const smokeRun = demo.smoke();
+    await Promise.resolve();
+    await Promise.resolve();
+    await expect(demo.declare()).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'Cannot declare while a smoke run is in progress',
+    });
+    expect((await demo.getStatus()).smoke_in_progress).toBe(true);
+    await jest.advanceTimersByTimeAsync(30 * 60 * 1000);
+    await expect(smokeRun).resolves.toMatchObject({ ok: true, success: true });
+    expect((await demo.getStatus()).smoke_in_progress).toBe(false);
+    expect(axios.mock.calls.some(([config]) => config.url.endsWith('/admin/demo/disarm'))).toBe(true);
   });
 
   test('smoke refuses while a future presenter schedule is pending', async () => {
