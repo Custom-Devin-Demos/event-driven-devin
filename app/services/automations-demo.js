@@ -238,6 +238,11 @@ async function inviteDevin(channelId) {
 }
 
 async function declare(options = {}) {
+  if (state.stopPromise) {
+    const error = new Error('Cannot declare while the incident is stopping');
+    error.statusCode = 400;
+    throw error;
+  }
   if (state.activeRun && state.channel) {
     return {
       ok: true,
@@ -366,6 +371,8 @@ async function stop(reason = 'manual') {
   if (state.stopPromise) return state.stopPromise;
   if (!state.declarePromise && !state.activeRun && ['idle', 'stopped'].includes(state.runState)) {
     cancelTimers();
+    state.scheduledDeclareAt = null;
+    state.scheduledArmAt = null;
     return { ok: true, stopped: false, state: state.runState };
   }
   state.stopPromise = (async () => {
@@ -380,6 +387,8 @@ async function stop(reason = 'manual') {
     state.activeRun = false;
     state.armedAt = null;
     cancelTimers();
+    state.scheduledDeclareAt = null;
+    state.scheduledArmAt = null;
     if (state.channel) {
       try {
         await postMessage(

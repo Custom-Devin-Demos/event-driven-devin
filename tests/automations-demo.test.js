@@ -133,6 +133,32 @@ describe('automations incident demo control plane', () => {
     expect(slack.createChannel).toHaveBeenCalledTimes(1);
   });
 
+  test('rejects declaring while stop is in flight', async () => {
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-stopping' });
+    await demo.declare();
+    let resolveWrap;
+    slack.postMessage.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveWrap = resolve;
+    }));
+    const stopping = demo.stop();
+    await expect(demo.declare()).rejects.toMatchObject({
+      statusCode: 400,
+      message: 'Cannot declare while the incident is stopping',
+    });
+    resolveWrap();
+    await stopping;
+  });
+
+  test('clears scheduled fields when stop cancels a pending declaration', async () => {
+    const declareAt = new Date(Date.now() + 60 * 60 * 1000);
+    demo.schedule(declareAt.toISOString());
+    await demo.stop();
+    const status = await demo.getStatus();
+    expect(status.scheduled_declare_at).toBeNull();
+    expect(status.scheduled_arm_at).toBeNull();
+  });
+
   test('keeps future scheduled fields when the auto-arm fires', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
     const declareAt = new Date(Date.now() + 60 * 60 * 1000);
