@@ -91,11 +91,13 @@ async function arm(customer = 'CUST_1') {
     throw error;
   }
   const result = await armStanding(customer);
-  if (!state.activeRun) {
-    state.channel = null;
-    state.declaredAt = null;
-    state.chatterPosted = 0;
-    state.autoStopAt = null;
+  const hasFutureSchedule = state.scheduledDeclareAt
+    && Date.parse(state.scheduledDeclareAt) > Date.now();
+  state.channel = null;
+  state.declaredAt = null;
+  state.chatterPosted = 0;
+  state.autoStopAt = null;
+  if (!hasFutureSchedule) {
     state.scheduledDeclareAt = null;
     state.scheduledArmAt = null;
   }
@@ -318,19 +320,38 @@ async function closeDevinPullRequests() {
     logger.warn('Skipping standing-repo PR cleanup: GITHUB_TOKEN/GH_TOKEN is not configured');
     return;
   }
+  let repo = STANDING_REPO;
+  if (process.env.AUTOMATIONS_STANDING_REPO_URL) {
+    try {
+      const url = new URL(process.env.AUTOMATIONS_STANDING_REPO_URL);
+      const parts = url.pathname.split('/').filter(Boolean);
+      if (!['github.com', 'www.github.com'].includes(url.hostname)
+        || url.search || url.hash || parts.length !== 2
+        || !/^[A-Za-z0-9_.-]+$/.test(parts[0])
+        || !/^[A-Za-z0-9_.-]+(?:\.git)?$/.test(parts[1])) {
+        throw new Error('expected a GitHub owner/name URL');
+      }
+      repo = `${parts[0]}/${parts[1].replace(/\.git$/, '')}`;
+    } catch (error) {
+      logger.warn('Skipping standing-repo PR cleanup: invalid AUTOMATIONS_STANDING_REPO_URL', {
+        error: error.message,
+      });
+      return;
+    }
+  }
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',
   };
   try {
     const response = await axios.get(
-      `https://api.github.com/repos/${STANDING_REPO}/pulls`,
+      `https://api.github.com/repos/${repo}/pulls`,
       { headers, params: { state: 'open', per_page: 100 }, timeout: 10000 },
     );
     for (const pull of response.data || []) {
       if (pull.head?.ref?.startsWith('devin/')) {
         await axios.patch(
-          `https://api.github.com/repos/${STANDING_REPO}/pulls/${pull.number}`,
+          `https://api.github.com/repos/${repo}/pulls/${pull.number}`,
           { state: 'closed' },
           { headers, timeout: 10000 },
         );
@@ -357,6 +378,7 @@ async function stop(reason = 'manual') {
     }
     state.runState = 'stopping';
     state.activeRun = false;
+    state.armedAt = null;
     cancelTimers();
     if (state.channel) {
       try {

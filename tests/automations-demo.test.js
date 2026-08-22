@@ -43,6 +43,9 @@ describe('automations incident demo control plane', () => {
     delete process.env.AUTOMATIONS_DEMO_TOKEN;
     delete process.env.DEVIN_SLACK_USER_ID;
     delete process.env.AUTOMATIONS_DEMO_TZ;
+    delete process.env.AUTOMATIONS_STANDING_REPO_URL;
+    delete process.env.GITHUB_TOKEN;
+    delete process.env.GH_TOKEN;
     jest.useRealTimers();
   });
 
@@ -119,6 +122,70 @@ describe('automations incident demo control plane', () => {
     jest.setSystemTime(new Date('2026-01-02T01:00:00.000Z'));
     expect((await demo.archiveStale()).archived).toBe(1);
     expect(slack.archiveChannel).toHaveBeenCalledWith('slack-token', 'C1');
+  });
+
+  test('rejects declaring after the previous run has stopped', async () => {
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-stopped' });
+    await demo.declare();
+    await demo.stop();
+    await expect(demo.declare()).rejects.toMatchObject({ statusCode: 400 });
+    expect(slack.createChannel).toHaveBeenCalledTimes(1);
+  });
+
+  test('keeps future scheduled fields when the auto-arm fires', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    const declareAt = new Date(Date.now() + 60 * 60 * 1000);
+    demo.schedule(declareAt.toISOString());
+    jest.advanceTimersByTime(15 * 60 * 1000);
+    await Promise.resolve();
+    const status = await demo.getStatus();
+    expect(status.scheduled_declare_at).toBe(declareAt.toISOString());
+    expect(status.scheduled_arm_at).toBe(new Date(declareAt.getTime() - 45 * 60 * 1000).toISOString());
+  });
+
+  test('clears scheduled fields when the scheduled declaration is stale', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    const declareAt = new Date(Date.now() + 60 * 60 * 1000);
+    demo.schedule(declareAt.toISOString());
+    jest.setSystemTime(new Date(declareAt.getTime() + 1));
+    await demo.arm();
+    const status = await demo.getStatus();
+    expect(status.scheduled_declare_at).toBeNull();
+    expect(status.scheduled_arm_at).toBeNull();
+  });
+
+  test('uses the configured standing repo URL for PR cleanup', async () => {
+    process.env.GITHUB_TOKEN = 'github-token';
+    process.env.AUTOMATIONS_STANDING_REPO_URL = 'https://github.com/example/demo-service.git';
+    axios.get = jest.fn().mockResolvedValue({
+      data: [{ number: 12, head: { ref: 'devin/fix' } }],
+    });
+    axios.patch = jest.fn().mockResolvedValue({});
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-repo' });
+    await demo.declare();
+    await demo.stop();
+    expect(axios.get).toHaveBeenCalledWith(
+      'https://api.github.com/repos/example/demo-service/pulls',
+      expect.any(Object),
+    );
+    expect(axios.patch).toHaveBeenCalledWith(
+      'https://api.github.com/repos/example/demo-service/pulls/12',
+      { state: 'closed' },
+      expect.any(Object),
+    );
+  });
+
+  test('skips PR cleanup when the configured standing repo URL is invalid', async () => {
+    process.env.GITHUB_TOKEN = 'github-token';
+    process.env.AUTOMATIONS_STANDING_REPO_URL = 'not-a-repo-url';
+    axios.get = jest.fn();
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-invalid-repo' });
+    await demo.declare();
+    await demo.stop();
+    expect(axios.get).not.toHaveBeenCalled();
   });
 
   test('stop during declaration waits and cancels all timers', async () => {
