@@ -243,10 +243,14 @@ async function declare(options = {}) {
   }
   state.declarePromise = (async () => {
     if (!state.armedAt) {
-      const standing = await statusStanding();
-      if (standing.armed && standing.armed_at) {
-        state.armedAt = standing.armed_at;
-        state.runState = 'armed';
+      try {
+        const standing = await statusStanding();
+        if (standing.armed && standing.armed_at) {
+          state.armedAt = standing.armed_at;
+          state.runState = 'armed';
+        }
+      } catch (error) {
+        logger.warn('Automations demo could not read standing arm state', { error: error.message });
       }
     }
     if (!state.armedAt) {

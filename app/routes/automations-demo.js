@@ -55,7 +55,10 @@ function requireDemoToken(req, res, next) {
       event: 'automations_demo.rejected',
       reason: 'not_configured',
     });
-    return res.status(503).json({ success: false, reason: 'not_configured' });
+    return res.status(503).json({
+      ok: false,
+      error: 'AUTOMATIONS_DEMO_TOKEN is not configured; mutation endpoints are disabled',
+    });
   }
   const presented = req.headers['x-automations-demo-token']
     || req.headers['x-automations-token']

@@ -137,7 +137,8 @@ describe('automations incident demo control plane', () => {
         request.end();
       });
       expect(response.statusCode).toBe(503);
-      expect(response.body).toEqual({ success: false, reason: 'not_configured' });
+      expect(response.body.ok).toBe(false);
+      expect(response.body.error).toMatch(/AUTOMATIONS_DEMO_TOKEN is not configured/);
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
