@@ -9,9 +9,10 @@ async function main() {
   const response = await axios.post(`${baseUrl}/api/automations-demo/smoke`, {}, {
     headers,
     timeout: 21 * 60 * 1000,
+    validateStatus: () => true,
   });
   if (!response.data.ok) {
-    throw new Error(response.data.error || 'Automations demo smoke failed');
+    throw new Error(response.data?.error || `Automations demo smoke failed (HTTP ${response.status})`);
   }
   process.stdout.write(`${JSON.stringify(response.data)}\n`);
 }

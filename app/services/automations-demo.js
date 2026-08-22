@@ -492,8 +492,10 @@ function schedule(declareAt) {
 }
 
 async function smoke() {
+  const hasPendingSchedule = state.scheduledDeclareAt
+    && Date.parse(state.scheduledDeclareAt) > Date.now();
   if (state.stopPromise || state.declarePromise || state.activeRun || state.armedAt
-    || ['armed', 'declared', 'stopping'].includes(state.runState)) {
+    || ['armed', 'declared', 'stopping'].includes(state.runState) || hasPendingSchedule) {
     const error = new Error('Cannot run smoke while a presenter demo is in progress');
     error.statusCode = 400;
     throw error;
@@ -567,7 +569,8 @@ async function getStatus() {
     result.errors_since_arm = standing.errors_since_arm;
     result.dlq_depth = standing.dlq_depth;
     result.emitter_heartbeat_age_s = standing.emitter_heartbeat_age_s;
-    if (!state.armedAt && standing.armed && standing.armed_at) {
+    if (!state.stopPromise && !['stopping', 'stopped'].includes(state.runState)
+      && !state.armedAt && standing.armed && standing.armed_at) {
       state.armedAt = standing.armed_at;
       state.runState = 'armed';
       result.runState = 'armed';

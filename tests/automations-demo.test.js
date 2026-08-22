@@ -302,6 +302,54 @@ describe('automations incident demo control plane', () => {
     expect(status.armed_at).toBe('2026-01-01T12:00:00.000Z');
   });
 
+  test('does not re-adopt standing arm state while stop is in flight', async () => {
+    await demo.arm();
+    let resolveStatus;
+    let resolveDisarm;
+    let firstStatus = true;
+    axios.mockImplementation((config) => {
+      if (config.method === 'get' && config.url.endsWith('/admin/demo/status') && firstStatus) {
+        firstStatus = false;
+        return new Promise((resolve) => {
+          resolveStatus = resolve;
+        });
+      }
+      if (config.method === 'post' && config.url.endsWith('/admin/demo/disarm')) {
+        return new Promise((resolve) => {
+          resolveDisarm = resolve;
+        });
+      }
+      return Promise.resolve({
+        data: {
+          armed: true,
+          armed_at: '2026-01-01T12:00:00.000Z',
+          errors_since_arm: 17,
+          dlq_depth: 17,
+          emitter_heartbeat_age_s: 2,
+        },
+      });
+    });
+    const polling = demo.getStatus();
+    await Promise.resolve();
+    const stopping = demo.stop();
+    await Promise.resolve();
+    resolveStatus({
+      data: {
+        armed: true,
+        armed_at: '2026-01-01T12:00:00.000Z',
+        errors_since_arm: 17,
+        dlq_depth: 17,
+        emitter_heartbeat_age_s: 2,
+      },
+    });
+    await Promise.resolve();
+    resolveDisarm({ data: { disarmed_at: '2026-01-01T12:00:00.000Z' } });
+    await Promise.all([polling, stopping]);
+    const status = await demo.getStatus();
+    expect(status.runState).toBe('stopped');
+    expect(status.armed_at).toBeNull();
+  });
+
   test('status explains an unreachable standing instance', async () => {
     axios.mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
     const status = await demo.getStatus();
@@ -347,6 +395,18 @@ describe('automations incident demo control plane', () => {
     expect(slack.createChannel).toHaveBeenCalledTimes(1);
     expect(slack.postMessage).toHaveBeenCalledTimes(1);
     expect(axios.mock.calls.some(([config]) => config.url.endsWith('/admin/demo/disarm'))).toBe(false);
+  });
+
+  test('smoke refuses while a future presenter schedule is pending', async () => {
+    const declareAt = new Date(Date.now() + 60 * 60 * 1000);
+    demo.schedule(declareAt.toISOString());
+    await expect(demo.smoke()).rejects.toMatchObject({ statusCode: 400 });
+    const status = await demo.getStatus();
+    expect(status.scheduled_declare_at).toBe(declareAt.toISOString());
+    expect(status.scheduled_arm_at).toBe(
+      new Date(declareAt.getTime() - 45 * 60 * 1000).toISOString(),
+    );
+    expect(slack.createChannel).not.toHaveBeenCalled();
   });
 
   test('drips persona chatter in order and stop cancels the remaining timers', async () => {
