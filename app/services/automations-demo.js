@@ -85,8 +85,8 @@ async function armStanding(customer = 'CUST_1') {
 }
 
 async function arm(customer = 'CUST_1') {
-  if (state.activeRun) {
-    const error = new Error('Cannot arm while an incident run is active');
+  if (state.activeRun || state.declarePromise || state.stopPromise) {
+    const error = new Error('Cannot arm while an incident run is active or stopping');
     error.statusCode = 400;
     throw error;
   }
@@ -355,11 +355,18 @@ async function closeDevinPullRequests() {
     );
     for (const pull of response.data || []) {
       if (pull.head?.ref?.startsWith('devin/')) {
-        await axios.patch(
-          `https://api.github.com/repos/${repo}/pulls/${pull.number}`,
-          { state: 'closed' },
-          { headers, timeout: 10000 },
-        );
+        try {
+          await axios.patch(
+            `https://api.github.com/repos/${repo}/pulls/${pull.number}`,
+            { state: 'closed' },
+            { headers, timeout: 10000 },
+          );
+        } catch (error) {
+          logger.warn('Standing-repo PR close failed', {
+            pullNumber: pull.number,
+            error: error.message,
+          });
+        }
       }
     }
   } catch (error) {
@@ -445,8 +452,8 @@ async function archiveStale() {
 }
 
 function schedule(declareAt) {
-  if (state.activeRun) {
-    const error = new Error('Cannot reschedule while an incident run is active');
+  if (state.activeRun || state.declarePromise || state.stopPromise) {
+    const error = new Error('Cannot reschedule while an incident run is active or stopping');
     error.statusCode = 400;
     throw error;
   }
@@ -486,6 +493,11 @@ function schedule(declareAt) {
       await declare();
     } catch (error) {
       logger.error('Automations demo scheduled declare failed', { error: error.message });
+    } finally {
+      if (state.scheduledDeclareAt === target.toISOString()) {
+        state.scheduledDeclareAt = null;
+        state.scheduledArmAt = null;
+      }
     }
   }, target.getTime() - Date.now());
   return {
@@ -550,6 +562,7 @@ function getState() {
   return {
     ok: true,
     runState: state.runState,
+    declare_in_progress: Boolean(state.declarePromise),
     armed_at: state.armedAt,
     declared_at: state.declaredAt,
     channel: state.channel ? {

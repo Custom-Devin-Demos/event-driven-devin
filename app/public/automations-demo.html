@@ -95,7 +95,7 @@
         ? (s.safe_to_declare ? 'Safe to declare: failures are flowing.' : 'Wait until the emitter has been armed for 30–45 minutes and errors are flowing.')
         : (s.standing_instance?.error || 'Standing instance unreachable');
       $('warning').className = reachable && s.safe_to_declare ? 'warning ok' : 'warning';
-      $('arm').disabled = s.runState === 'declared' || s.runState === 'stopping';
+      $('arm').disabled = s.declare_in_progress || s.runState === 'declared' || s.runState === 'stopping';
       $('declare').disabled = !s.safe_to_declare || s.runState === 'declared' || s.runState === 'stopping';
     }
     async function refresh() { try { render(await call('/api/automations-demo/status')); } catch (error) { $('warning').textContent = error.message; } }

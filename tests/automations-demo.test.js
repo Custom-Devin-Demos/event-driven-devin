@@ -105,6 +105,37 @@ describe('automations incident demo control plane', () => {
     expect(axios).toHaveBeenCalledTimes(1);
   });
 
+  test('rejects arming while declaration is in flight', async () => {
+    await demo.arm();
+    let resolvePost;
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-declare' });
+    slack.postMessage.mockReturnValueOnce(new Promise((resolve) => {
+      resolvePost = resolve;
+    }));
+    const declaring = demo.declare();
+    await Promise.resolve();
+    await Promise.resolve();
+    await expect(demo.arm()).rejects.toMatchObject({ statusCode: 400 });
+    expect(axios).toHaveBeenCalledTimes(1);
+    resolvePost();
+    await declaring;
+  });
+
+  test('rejects arming while stop is in flight', async () => {
+    await demo.arm();
+    slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-stopping' });
+    await demo.declare();
+    let resolveWrap;
+    slack.postMessage.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveWrap = resolve;
+    }));
+    const stopping = demo.stop();
+    await expect(demo.arm()).rejects.toMatchObject({ statusCode: 400 });
+    expect(axios).toHaveBeenCalledTimes(1);
+    resolveWrap();
+    await stopping;
+  });
+
   test('rejects near-term schedules and preserves the T-45m arm schedule', () => {
     expect(() => demo.schedule(new Date(Date.now() + 29 * 60 * 1000).toISOString()))
       .toThrow('at least 30 minutes');
@@ -126,6 +157,8 @@ describe('automations incident demo control plane', () => {
     expect(slack.createChannel).not.toHaveBeenCalled();
     const status = await demo.getStatus();
     expect(status.runState).toBe('armed');
+    expect(status.scheduled_declare_at).toBeNull();
+    expect(status.scheduled_arm_at).toBeNull();
   });
 
   test('archives a channel when declaration posting fails', async () => {
