@@ -12,6 +12,7 @@ const {
 
 const DEFAULT_RUN_WINDOW_MS = 60 * 60 * 1000;
 const MIN_SAFE_TO_DECLARE_MS = 30 * 60 * 1000;
+const SMOKE_POLL_WINDOW_MS = 20 * 60 * 1000;
 const DEFAULT_TIME_ZONE = 'America/Los_Angeles';
 const STANDING_REPO = 'ananthv26-cog-demo-repos/automations-service';
 const CHANNEL_PREFIX = 'sev-1-incident';
@@ -34,7 +35,6 @@ const state = {
   scheduledArmAt: null,
   archiveCandidates: [],
   timers: new Set(),
-  activeRun: false,
   declarePromise: null,
   stopPromise: null,
 };
@@ -52,11 +52,11 @@ function tokenMatches(presentedToken, configuredToken) {
 }
 
 function standingConfig() {
-  const baseUrl = (process.env.AUTOMATIONS_SERVICE_BASE_URL || '').replace(/\/+$/, '');
+  const baseUrl = (process.env.AUTOMATIONS_DEMO_SERVICE_BASE_URL || '').replace(/\/+$/, '');
   const token = process.env.AUTOMATIONS_DEMO_SERVICE_TOKEN;
   if (!baseUrl || !token) {
     throw new Error(
-      'standing instance unreachable: configure AUTOMATIONS_SERVICE_BASE_URL and AUTOMATIONS_DEMO_SERVICE_TOKEN',
+      'standing instance unreachable: configure AUTOMATIONS_DEMO_SERVICE_BASE_URL and AUTOMATIONS_DEMO_SERVICE_TOKEN',
     );
   }
   return { baseUrl, token };
@@ -85,7 +85,7 @@ async function armStanding(customer = 'CUST_1') {
 }
 
 async function arm(customer = 'CUST_1') {
-  if (state.activeRun || state.declarePromise || state.stopPromise) {
+  if (state.runState === 'declared' || state.declarePromise || state.stopPromise) {
     const error = new Error('Cannot arm while an incident run is active or stopping');
     error.statusCode = 400;
     throw error;
@@ -124,9 +124,12 @@ function scheduleTimer(callback, delay) {
   return timer;
 }
 
-function cancelTimers() {
-  for (const timer of state.timers) clearTimeout(timer);
-  state.timers.clear();
+function cancelTimers(except) {
+  for (const timer of state.timers) {
+    if (except?.has(timer)) continue;
+    clearTimeout(timer);
+    state.timers.delete(timer);
+  }
 }
 
 function localDateParts(date, timeZone = process.env.AUTOMATIONS_DEMO_TZ || DEFAULT_TIME_ZONE) {
@@ -151,7 +154,7 @@ async function createDemoChannel(date, smoke = false) {
     throw new Error('Slack is not configured: set SLACK_BOT_TOKEN');
   }
   const base = baseChannelName(date, smoke);
-  for (let suffix = 0; suffix < 100; suffix += 1) {
+  for (let suffix = 0; suffix < 3; suffix += 1) {
     const name = suffix === 0 ? base : `${base}-${suffix + 1}`;
     try {
       return await createChannel(process.env.SLACK_BOT_TOKEN, name);
@@ -173,7 +176,7 @@ function declarationBlocks(armedAt) {
       timeStyle: 'short',
     }).format(new Date(armedAt))
     : 'the arm time';
-  const repo = process.env.AUTOMATIONS_STANDING_REPO_URL
+  const repo = process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL
     || `https://github.com/${STANDING_REPO}`;
   const service = process.env.AUTOMATIONS_DEMO_SERVICE_TAG || 'automations-service';
   const ic = process.env.AUTOMATIONS_DEMO_IC_NAME || 'Maya Chen';
@@ -205,7 +208,7 @@ async function postDeclaration(channel) {
 function startChatter(channel) {
   CHATTER.forEach((line) => {
     scheduleTimer(async () => {
-      if (!state.activeRun) return;
+      if (state.runState !== 'declared') return;
       try {
         await postPersonaMessage(
           process.env.SLACK_BOT_TOKEN,
@@ -243,7 +246,7 @@ async function declare(options = {}) {
     error.statusCode = 400;
     throw error;
   }
-  if (state.activeRun && state.channel) {
+  if (state.runState === 'declared' && state.channel) {
     return {
       ok: true,
       alreadyActive: true,
@@ -272,12 +275,14 @@ async function declare(options = {}) {
       throw error;
     }
     const channel = await createDemoChannel(new Date(), Boolean(options.smoke));
+    const hasFutureSchedule = state.scheduledDeclareAt
+      && Date.parse(state.scheduledDeclareAt) > Date.now();
+    const scheduledTimers = hasFutureSchedule ? new Set(state.timers) : undefined;
     try {
       await postDeclaration(channel);
       state.channel = channel;
       state.declaredAt = new Date().toISOString();
       state.runState = 'declared';
-      state.activeRun = true;
       state.chatterPosted = 0;
       startChatter(channel);
       try {
@@ -289,19 +294,20 @@ async function declare(options = {}) {
       state.autoStopAt = new Date(Date.now() + runWindow).toISOString();
       scheduleTimer(() => stop('auto-stop'), runWindow);
     } catch (error) {
-      state.activeRun = false;
       state.channel = null;
       state.declaredAt = null;
       state.chatterPosted = 0;
       state.autoStopAt = null;
-      state.scheduledDeclareAt = null;
-      state.scheduledArmAt = null;
+      if (!hasFutureSchedule) {
+        state.scheduledDeclareAt = null;
+        state.scheduledArmAt = null;
+      }
       state.archiveCandidates.push({
         ...channel,
         createdAt: new Date().toISOString(),
       });
       state.runState = 'armed';
-      cancelTimers();
+      cancelTimers(scheduledTimers);
       throw error;
     }
     return {
@@ -326,9 +332,9 @@ async function closeDevinPullRequests() {
     return;
   }
   let repo = STANDING_REPO;
-  if (process.env.AUTOMATIONS_STANDING_REPO_URL) {
+  if (process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL) {
     try {
-      const url = new URL(process.env.AUTOMATIONS_STANDING_REPO_URL);
+      const url = new URL(process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL);
       const parts = url.pathname.split('/').filter(Boolean);
       if (!['github.com', 'www.github.com'].includes(url.hostname)
         || url.search || url.hash || parts.length !== 2
@@ -338,7 +344,7 @@ async function closeDevinPullRequests() {
       }
       repo = `${parts[0]}/${parts[1].replace(/\.git$/, '')}`;
     } catch (error) {
-      logger.warn('Skipping standing-repo PR cleanup: invalid AUTOMATIONS_STANDING_REPO_URL', {
+      logger.warn('Skipping standing-repo PR cleanup: invalid AUTOMATIONS_DEMO_STANDING_REPO_URL', {
         error: error.message,
       });
       return;
@@ -376,7 +382,7 @@ async function closeDevinPullRequests() {
 
 async function stop(reason = 'manual') {
   if (state.stopPromise) return state.stopPromise;
-  if (!state.declarePromise && !state.activeRun && ['idle', 'stopped'].includes(state.runState)) {
+  if (!state.declarePromise && ['idle', 'stopped'].includes(state.runState)) {
     cancelTimers();
     state.scheduledDeclareAt = null;
     state.scheduledArmAt = null;
@@ -391,7 +397,6 @@ async function stop(reason = 'manual') {
       }
     }
     state.runState = 'stopping';
-    state.activeRun = false;
     state.armedAt = null;
     cancelTimers();
     state.scheduledDeclareAt = null;
@@ -452,7 +457,7 @@ async function archiveStale() {
 }
 
 function schedule(declareAt) {
-  if (state.activeRun || state.declarePromise || state.stopPromise) {
+  if (state.runState === 'declared' || state.declarePromise || state.stopPromise) {
     const error = new Error('Cannot reschedule while an incident run is active or stopping');
     error.statusCode = 400;
     throw error;
@@ -510,7 +515,7 @@ function schedule(declareAt) {
 async function smoke() {
   const hasPendingSchedule = state.scheduledDeclareAt
     && Date.parse(state.scheduledDeclareAt) > Date.now();
-  if (state.stopPromise || state.declarePromise || state.activeRun || state.armedAt
+  if (state.stopPromise || state.declarePromise || state.armedAt
     || ['armed', 'declared', 'stopping'].includes(state.runState) || hasPendingSchedule) {
     const error = new Error('Cannot run smoke while a presenter demo is in progress');
     error.statusCode = 400;
@@ -521,8 +526,15 @@ async function smoke() {
   try {
     await arm();
     smokeRunCreated = true;
+    const accumulationWait = envNumber(
+      'AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS',
+      MIN_SAFE_TO_DECLARE_MS,
+    );
+    if (accumulationWait > 0) {
+      await new Promise((resolve) => setTimeout(resolve, accumulationWait));
+    }
     result = await declare({ smoke: true });
-    const deadline = Date.now() + 20 * 60 * 1000;
+    const deadline = Date.now() + SMOKE_POLL_WINDOW_MS;
     let found = false;
     while (Date.now() < deadline) {
       const messages = await getChannelHistory(
@@ -578,34 +590,40 @@ function getState() {
   };
 }
 
+function adoptStandingArm(standing) {
+  if (!state.stopPromise && !['stopping', 'stopped'].includes(state.runState)
+    && !state.armedAt && standing.armed && standing.armed_at) {
+    state.armedAt = standing.armed_at;
+    state.runState = 'armed';
+    return true;
+  }
+  return false;
+}
+
 async function getStatus() {
-  const result = getState();
   try {
     const standing = await statusStanding();
+    adoptStandingArm(standing);
+    const result = getState();
     result.standing_instance = { reachable: true };
     result.errors_since_arm = standing.errors_since_arm;
     result.dlq_depth = standing.dlq_depth;
     result.emitter_heartbeat_age_s = standing.emitter_heartbeat_age_s;
-    if (!state.stopPromise && !['stopping', 'stopped'].includes(state.runState)
-      && !state.armedAt && standing.armed && standing.armed_at) {
-      state.armedAt = standing.armed_at;
-      state.runState = 'armed';
-      result.runState = 'armed';
-      result.armed_at = state.armedAt;
-    }
     result.safe_to_declare = Boolean(
       standing.armed
       && state.armedAt
       && Date.now() - Date.parse(state.armedAt) >= MIN_SAFE_TO_DECLARE_MS
       && Number(standing.errors_since_arm) > 0,
     );
+    return result;
   } catch (error) {
+    const result = getState();
     result.standing_instance = { reachable: false, error: error.message };
     result.errors_since_arm = null;
     result.dlq_depth = null;
     result.emitter_heartbeat_age_s = null;
+    return result;
   }
-  return result;
 }
 
 function resetForTests() {
@@ -620,7 +638,6 @@ function resetForTests() {
     scheduledDeclareAt: null,
     scheduledArmAt: null,
     archiveCandidates: [],
-    activeRun: false,
     declarePromise: null,
     stopPromise: null,
   });

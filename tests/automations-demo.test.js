@@ -22,8 +22,9 @@ describe('automations incident demo control plane', () => {
     jest.resetModules();
     jest.clearAllMocks();
     process.env.SLACK_BOT_TOKEN = 'slack-token';
-    process.env.AUTOMATIONS_SERVICE_BASE_URL = 'http://standing.example';
+    process.env.AUTOMATIONS_DEMO_SERVICE_BASE_URL = 'http://standing.example';
     process.env.AUTOMATIONS_DEMO_SERVICE_TOKEN = 'service-token';
+    process.env.AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS = '0';
     slack = require('../app/services/slack');
     axios = require('axios');
     axios.mockResolvedValue({
@@ -38,12 +39,13 @@ describe('automations incident demo control plane', () => {
 
   afterEach(() => {
     delete process.env.SLACK_BOT_TOKEN;
-    delete process.env.AUTOMATIONS_SERVICE_BASE_URL;
+    delete process.env.AUTOMATIONS_DEMO_SERVICE_BASE_URL;
     delete process.env.AUTOMATIONS_DEMO_SERVICE_TOKEN;
+    delete process.env.AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS;
     delete process.env.AUTOMATIONS_DEMO_TOKEN;
     delete process.env.DEVIN_SLACK_USER_ID;
     delete process.env.AUTOMATIONS_DEMO_TZ;
-    delete process.env.AUTOMATIONS_STANDING_REPO_URL;
+    delete process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL;
     delete process.env.GITHUB_TOKEN;
     delete process.env.GH_TOKEN;
     jest.useRealTimers();
@@ -97,6 +99,39 @@ describe('automations incident demo control plane', () => {
     expect(result.alreadyActive).toBe(false);
   });
 
+  test('failed declaration preserves a pending scheduled run', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+    const declareAt = new Date(Date.now() + 60 * 60 * 1000);
+    axios.mockResolvedValue({
+      data: {
+        armed: true,
+        armed_at: new Date(Date.now()).toISOString(),
+        next_fire_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        errors_since_arm: 1,
+        dlq_depth: 1,
+        emitter_heartbeat_age_s: 2,
+      },
+    });
+    demo.schedule(declareAt.toISOString());
+    await demo.arm();
+    slack.createChannel
+      .mockResolvedValueOnce({ id: 'C1', name: 'sev-1-incident-first' })
+      .mockResolvedValueOnce({ id: 'C2', name: 'sev-1-incident-second' });
+    slack.postMessage.mockRejectedValueOnce(new Error('declaration post failed'));
+    await expect(demo.declare()).rejects.toThrow('declaration post failed');
+    let status = await demo.getStatus();
+    expect(status.scheduled_declare_at).toBe(declareAt.toISOString());
+    expect(status.scheduled_arm_at).toBe(
+      new Date(declareAt.getTime() - 45 * 60 * 1000).toISOString(),
+    );
+    await jest.advanceTimersByTimeAsync(45 * 60 * 1000);
+    await jest.advanceTimersByTimeAsync(15 * 60 * 1000);
+    status = await demo.getStatus();
+    expect(slack.createChannel).toHaveBeenCalledTimes(2);
+    expect(status.runState).toBe('declared');
+    expect(status.scheduled_declare_at).toBeNull();
+    expect(status.scheduled_arm_at).toBeNull();
+  });
   test('rejects arming while an incident run is active', async () => {
     await demo.arm();
     slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-active' });
@@ -231,7 +266,7 @@ describe('automations incident demo control plane', () => {
 
   test('uses the configured standing repo URL for PR cleanup', async () => {
     process.env.GITHUB_TOKEN = 'github-token';
-    process.env.AUTOMATIONS_STANDING_REPO_URL = 'https://github.com/example/demo-service.git';
+    process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL = 'https://github.com/example/demo-service.git';
     axios.get = jest.fn().mockResolvedValue({
       data: [{ number: 12, head: { ref: 'devin/fix' } }],
     });
@@ -253,7 +288,7 @@ describe('automations incident demo control plane', () => {
 
   test('skips PR cleanup when the configured standing repo URL is invalid', async () => {
     process.env.GITHUB_TOKEN = 'github-token';
-    process.env.AUTOMATIONS_STANDING_REPO_URL = 'not-a-repo-url';
+    process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL = 'not-a-repo-url';
     axios.get = jest.fn();
     await demo.arm();
     slack.createChannel.mockResolvedValue({ id: 'C1', name: 'sev-1-incident-invalid-repo' });

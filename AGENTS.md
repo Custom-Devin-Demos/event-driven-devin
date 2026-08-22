@@ -233,7 +233,7 @@ Three things are deliberately separate:
 ├── tests/
 │   ├── ...                         # Vertical, pipeline, and integration test suites
 │   ├── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
-│   └── automations.test.js        # Automations page and Run Now endpoint tests
+│   ├── automations.test.js        # Automations page and Run Now endpoint tests
 │   └── automations-demo.test.js   # Automations incident control-plane tests
 ├── docs/
 │   ├── ...                         # Demo runbooks and scenario documentation
@@ -407,13 +407,13 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `AUTOMATIONS_RUN_TOKEN` | Presenter token for the `/automations` Run Now action; unset disables it | No |
 | `AUTOMATIONS_RUN_MAX_PER_HOUR` | Max on-demand patrol sessions per hour (default: `3`) | No |
 | `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `45`) | No |
-| `AUTOMATIONS_SERVICE_BASE_URL` | Base URL for the standing automations service admin API | For automations incident demo |
+| `AUTOMATIONS_DEMO_SERVICE_BASE_URL` | Base URL for the standing automations service admin API | For automations incident demo |
 | `AUTOMATIONS_DEMO_SERVICE_TOKEN` | Bearer token for the standing automations service | For automations incident demo |
 | `AUTOMATIONS_DEMO_TOKEN` | Optional presenter token for automations incident mutations | No |
 | `AUTOMATIONS_DEMO_TZ` | Presenter timezone for incident channel dates (default: `America/Los_Angeles`) | No |
 | `AUTOMATIONS_DEMO_RUN_WINDOW_MS` | Automations incident auto-stop window (default: 60 minutes) | No |
 | `AUTOMATIONS_DEMO_IC_NAME` | Incident commander shown on the declaration card | No |
-| `AUTOMATIONS_STANDING_REPO_URL` | Standing repo link shown on the declaration card | No |
+| `AUTOMATIONS_DEMO_STANDING_REPO_URL` | Standing repo link shown on the declaration card | No |
 | `AUTOMATIONS_DEMO_SERVICE_TAG` | Service tag shown on the declaration card | No |
 | `SLACK_TEAM_ID` | Optional Slack team ID used for incident links | No |
 | `GITHUB_TOKEN` / `GH_TOKEN` | Optional token for closing Devin-authored standing-repo PRs during cleanup | No |

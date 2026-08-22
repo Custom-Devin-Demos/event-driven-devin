@@ -112,13 +112,13 @@ unreachable, the presenter page must say **standing instance unreachable**.
 
 | Variable | Purpose |
 | --- | --- |
-| `AUTOMATIONS_SERVICE_BASE_URL` | Base URL of the standing instance, without a trailing slash |
+| `AUTOMATIONS_DEMO_SERVICE_BASE_URL` | Base URL of the standing instance, without a trailing slash |
 | `AUTOMATIONS_DEMO_SERVICE_TOKEN` | Bearer token for standing admin calls |
 | `AUTOMATIONS_DEMO_TOKEN` | Required token for mutation endpoints; pass it to the presenter page with `?token=...` |
 | `AUTOMATIONS_DEMO_TZ` | Presenter timezone for `<mmdd>` channel names; default `America/Los_Angeles` |
 | `AUTOMATIONS_DEMO_RUN_WINDOW_MS` | Auto-stop duration; default 3600000 |
 | `AUTOMATIONS_DEMO_IC_NAME` | Incident commander shown on the declaration card |
-| `AUTOMATIONS_STANDING_REPO_URL` | Repository link shown on the card; defaults to the standing repo |
+| `AUTOMATIONS_DEMO_STANDING_REPO_URL` | Repository link shown on the card; defaults to the standing repo |
 | `AUTOMATIONS_DEMO_SERVICE_TAG` | Service tag shown on the card; default `automations-service` |
 | `SLACK_BOT_TOKEN` | Slack token with channel management, history, message, invite, and `chat:write.customize` scopes |
 | `SLACK_TEAM_ID` | Optional Slack team ID for presenter channel links |
@@ -126,6 +126,7 @@ unreachable, the presenter page must say **standing instance unreachable**.
 | `GITHUB_TOKEN` / `GH_TOKEN` | Optional GitHub token for closing `devin/*` PRs; cleanup logs a warning when absent |
 | `SLACK_ONCALL_ALERTS_CHANNEL_ID` | Alert destination for a failed smoke run |
 | `AUTOMATIONS_DEMO_BASE_URL` | Base URL used by the smoke CLI; defaults to local `PORT` |
+| `AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS` | Smoke wait between arm and declare; default 1800000 (30 minutes) |
 
 ## API surface
 
@@ -143,14 +144,19 @@ unauthenticated so the presenter page can load before its token is entered.
 
 ## Monthly smoke
 
-The smoke run arms, declares into a required-prefix channel ending in
+The smoke run arms, waits for `AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS`
+(default 30 minutes) so the standing emitter has the same accumulation window
+as a presenter run, declares into a required-prefix channel ending in
 `-smoke`, polls channel history for a Devin root-cause post for up to 20
-minutes, and always stops/cleans up. On failure it posts to
-`SLACK_ONCALL_ALERTS_CHANNEL_ID` and returns failure.
+minutes, and always stops/cleans up. The CLI timeout is the configured wait
+plus the 20-minute poll window plus a one-minute margin (51 minutes by
+default). On failure it posts to `SLACK_ONCALL_ALERTS_CHANNEL_ID` and returns
+failure.
 
-Because `/api/automations-demo/smoke` long-polls for up to 20 minutes, the
-cron/CLI should call the app directly on its loopback port rather than through
-nginx. The CLI defaults to that local app URL; set
+Because `/api/automations-demo/smoke` can remain open for roughly 51 minutes
+by default, the cron/CLI must call the app directly on its loopback port
+rather than through nginx, whose standard proxy read timeout is 30 seconds.
+The CLI defaults to that local app URL; set
 `AUTOMATIONS_DEMO_BASE_URL` only when intentionally targeting another
 directly reachable app instance.
 
