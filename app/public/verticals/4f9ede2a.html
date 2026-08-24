@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U.S. Bank &mdash; Pay bills</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --usb-navy: #0C2074; --usb-navy-dark: #081751; --usb-blue: #0B57A4;
+      --usb-red: #E11B22;
+      --white: #FFFFFF; --off-white: #F4F6F9;
+      --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-300: #D1D5DB;
+      --gray-400: #9CA3AF; --gray-500: #6B7280; --gray-600: #4B5563;
+      --gray-700: #374151; --gray-800: #1F2937;
+      --danger: #C0202A; --danger-bg: #FDF2F2; --danger-border: #F5C6C8;
+      --success: #05704B; --success-bg: #ECFDF5; --success-border: #A7F3D0;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--gray-800); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.4s ease-out both; }
+
+    .top-bar { background: var(--usb-navy-dark); color: rgba(255,255,255,0.8); font-size: 0.72rem; padding: 0.4rem clamp(1rem, 3vw, 2.5rem); display: flex; justify-content: space-between; }
+    .top-bar a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; margin-left: 1.25rem; }
+    .top-bar a:hover { color: #fff; }
+
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0.85rem clamp(1rem, 3vw, 2.5rem); display: flex; align-items: center; gap: 1.5rem; }
+    .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+    .logo-mark { width: 30px; height: 30px; border-radius: 4px; background: var(--usb-navy); position: relative; flex: none; }
+    .logo-mark::after { content: ''; position: absolute; left: 6px; right: 6px; top: 13px; height: 4px; background: var(--usb-red); }
+    .logo-text { font-size: 1.05rem; font-weight: 700; color: var(--usb-navy); letter-spacing: -0.01em; }
+    .search { flex: 1; max-width: 420px; position: relative; }
+    .search input { width: 100%; border: 1px solid var(--gray-300); border-radius: 20px; padding: 0.5rem 0.9rem 0.5rem 2.1rem; font-size: 0.82rem; font-family: var(--sans); color: var(--gray-700); }
+    .search span { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 0.8rem; }
+    .header-links { margin-left: auto; display: flex; align-items: center; gap: 1.25rem; font-size: 0.78rem; }
+    .header-links a { color: var(--usb-blue); text-decoration: none; font-weight: 500; }
+    .header-links .badge { background: var(--usb-red); color: #fff; border-radius: 10px; font-size: 0.65rem; font-weight: 700; padding: 0.05rem 0.4rem; margin-left: 0.3rem; }
+
+    nav.primary { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 clamp(1rem, 3vw, 2.5rem); display: flex; gap: 0.25rem; }
+    nav.primary a { color: var(--gray-600); text-decoration: none; font-size: 0.83rem; font-weight: 600; padding: 0.7rem 0.9rem; border-bottom: 3px solid transparent; }
+    nav.primary a:hover { color: var(--usb-navy); }
+    nav.primary a.active { color: var(--usb-navy); border-bottom-color: var(--usb-red); }
+
+    nav.secondary { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0.5rem clamp(1rem, 3vw, 2.5rem); display: flex; gap: 1.25rem; }
+    nav.secondary a { color: var(--gray-500); text-decoration: none; font-size: 0.78rem; font-weight: 500; }
+    nav.secondary a.active { color: var(--usb-navy); font-weight: 700; }
+
+    .page { max-width: 1120px; margin: 0 auto; padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 3rem; }
+    .page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+    .page-head h1 { font-size: 1.6rem; font-weight: 700; color: var(--usb-navy); }
+    .btn-primary { background: var(--usb-blue); color: #fff; border: none; border-radius: 20px; padding: 0.55rem 1.35rem; font-size: 0.82rem; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+    .btn-primary:hover { background: #094887; }
+
+    .tabs { display: flex; gap: 1.75rem; border-bottom: 1px solid var(--gray-200); margin-bottom: 1.1rem; }
+    .tabs span { font-size: 0.85rem; font-weight: 600; color: var(--gray-500); padding-bottom: 0.6rem; cursor: pointer; }
+    .tabs span.active { color: var(--usb-navy); border-bottom: 3px solid var(--usb-blue); }
+
+    .toolbar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .toolbar input, .toolbar select { border: 1px solid var(--gray-300); border-radius: 6px; padding: 0.45rem 0.7rem; font-size: 0.8rem; font-family: var(--sans); color: var(--gray-700); background: var(--white); }
+    .toolbar input { min-width: 240px; }
+    .toolbar .add-vendor { margin-left: auto; color: var(--usb-blue); font-size: 0.8rem; font-weight: 600; text-decoration: none; }
+
+    .card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { text-align: left; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); font-weight: 700; padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--gray-200); background: var(--gray-100); }
+    tbody td { padding: 0.85rem 1.1rem; font-size: 0.85rem; border-bottom: 1px solid var(--gray-200); color: var(--gray-700); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #FAFBFD; }
+    .vendor-cell { display: flex; align-items: center; gap: 0.7rem; }
+    .vendor-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--usb-navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex: none; }
+    .vendor-name { font-weight: 600; color: var(--usb-navy); }
+    .vendor-group { font-size: 0.72rem; color: var(--gray-500); }
+    .amount { font-family: var(--mono); font-weight: 500; }
+    .muted { color: var(--gray-400); }
+    .btn-pay { background: transparent; border: 1px solid var(--usb-blue); color: var(--usb-blue); border-radius: 16px; padding: 0.3rem 1.1rem; font-size: 0.78rem; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+    .btn-pay:hover { background: #EEF4FB; }
+    .btn-pay:disabled { opacity: 0.6; cursor: default; }
+
+    .result-box { display: none; margin-top: 1.25rem; border-radius: 8px; padding: 1rem 1.15rem; font-size: 0.85rem; border: 1px solid transparent; }
+    .result-box.error { display: block; background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+    .result-title { font-weight: 700; margin-bottom: 0.25rem; }
+    .result-detail { font-family: var(--mono); font-size: 0.78rem; }
+    .disclosure { margin-top: 1.5rem; font-size: 0.7rem; color: var(--gray-400); }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <span>Banking</span>
+    <span><a href="#">Business tools</a><a href="#">Locations</a><a href="#">Contact us</a></span>
+  </div>
+  <header>
+    <a class="logo" href="#"><span class="logo-mark"></span><span class="logo-text">U.S. Bank</span></a>
+    <div class="search"><span>&#9906;</span><input type="text" placeholder="U.S. Bank Smart Assistant"></div>
+    <div class="header-links">
+      <a href="#">Notifications<span class="badge">14</span></a>
+      <a href="#">Profile &amp; settings</a>
+      <a href="#">Need help?</a>
+      <a href="#">Log out</a>
+    </div>
+  </header>
+  <nav class="primary">
+    <a href="#">Dashboard</a>
+    <a href="#">Accounts</a>
+    <a href="#" class="active">Transfer &amp; pay</a>
+    <a href="#">Plan &amp; track</a>
+    <a href="#">Products &amp; offers</a>
+  </nav>
+  <nav class="secondary">
+    <a href="#" class="active">Pay bills</a>
+    <a href="#">Settings</a>
+  </nav>
+
+  <div class="page fade-in">
+    <div class="page-head">
+      <h1>Pay bills</h1>
+      <button class="btn-primary">+ Pay</button>
+    </div>
+    <div class="tabs">
+      <span class="active">Vendors</span>
+      <span>Bills</span>
+      <span>Approvals</span>
+      <span>Activity</span>
+    </div>
+    <div class="toolbar">
+      <input type="text" placeholder="Search vendors">
+      <select>
+        <option>Filter by group</option>
+        <option>Marketing</option>
+        <option>Facilities</option>
+        <option>Technology</option>
+        <option>Logistics</option>
+        <option>Utilities</option>
+      </select>
+      <a class="add-vendor" href="#">+ Add vendor</a>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Vendor</th><th>Last paid</th><th>Unpaid bills</th><th>Total amount</th><th>Action</th></tr>
+        </thead>
+        <tbody id="vendorRows">
+          <tr><td colspan="5" class="muted" style="padding:1.25rem 1.1rem;">Loading vendors&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="result" class="result-box"></div>
+    <div class="disclosure">Payments submitted before the daily cutoff are sent the same business day. U.S. Bank National Association. Member FDIC.</div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const money = (value) => '$' + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const initials = (name) => name.split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase();
+
+    async function loadVendors() {
+      const res = await fetch('/api/4f9ede2a/vendors');
+      const data = await res.json();
+      document.getElementById('vendorRows').innerHTML = data.vendors.map((vendor) => `
+        <tr>
+          <td>
+            <div class="vendor-cell">
+              <div class="vendor-avatar">${initials(vendor.name)}</div>
+              <div><div class="vendor-name">${vendor.name}</div><div class="vendor-group">${vendor.group}</div></div>
+            </div>
+          </td>
+          <td>${vendor.lastPaid}</td>
+          <td>${vendor.unpaidBills ? vendor.unpaidBills + (vendor.unpaidBills === 1 ? ' bill' : ' bills') : '<span class="muted">No bills</span>'}</td>
+          <td class="amount">${money(vendor.totalAmount)}</td>
+          <td><button class="btn-pay" data-vendor="${vendor.id}">Pay</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function payVendor(button) {
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = 'Paying...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/4f9ede2a/pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vendorId: button.dataset.vendor,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="result-title">Payment could not be scheduled</div><div class="result-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="result-title">Payment scheduled</div><div class="result-detail">${money(data.amount)} to ${data.vendor} via ${data.remittance.railName} (settles in ${data.remittance.settlementDays} business day${data.remittance.settlementDays === 1 ? '' : 's'})</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="result-title">Network Error</div><div class="result-detail">${err.message}</div>`;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Pay';
+      }
+    }
+
+    document.getElementById('vendorRows').addEventListener('click', (event) => {
+      const button = event.target.closest('.btn-pay');
+      if (button) payVendor(button);
+    });
+
+    loadVendors();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
