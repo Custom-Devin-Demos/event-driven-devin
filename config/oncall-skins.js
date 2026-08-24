@@ -137,6 +137,30 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '71dff37b': {
+    slug: '71dff37b',
+    company: 'Point72',
+    brandMark: 'P',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '71dff37b.html',
+      title: 'Point72 — Execution Desk',
+    },
+    accent: '#4D1A04',
+    accentDark: '#3a1403',
+    theme: {
+      '--accent': '#4D1A04',
+      '--ink': '#18181A',
+      '--surface': '#F5F4EE',
+      '--chrome-bg': '#18181A',
+      '--chrome-text': '#F5F4EE',
+    },
+    supportCenter: 'Point72 Support',
+    supportCenterSub: 'Trading Operations & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A POINT72 SITE — internal demo only, not affiliated with, endorsed by, or a real Point72 product.',
+  },
   '704831b7': {
     slug: '704831b7',
     company: 'Hippocratic AI',
