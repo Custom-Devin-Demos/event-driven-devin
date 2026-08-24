@@ -274,6 +274,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | RBC Royal Bank (3cec99d4) | `/3cec99d4`, `/rbc` | "Apply Online Now" (student chequing card, school email left blank) | `Cannot read properties of undefined (reading 'toLowerCase')` |
 | Citi Self Invest (94f4c31f) | `/94f4c31f`, `/citi` | "Continue" (form pre-fills a 65+ DOB `06/15/1958` — senior suitability band missing from policy map; error shows in inline red panel, not a toast; DOB under 65 e.g. `05/14/1990` → green success panel; blank/malformed DOB → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'reviewTrack')` |
 | Capital One Travel (b014618f) | `/b014618f`, `/capitalone` | "Book now" (Venture X card selected by default — its `venture_x_premium` rewards program is missing from the redemption map; error shows in an inline red panel, not a toast; selecting Venture or SavorOne → green confirmation panel) | `Cannot read properties of undefined (reading 'milesIncrement')` |
+| U.S. Bank Business Bill Pay (4f9ede2a) | `/4f9ede2a`, `/usbank` | "Pay" on the SwiftHost Web Services row ($2,876.00 routes onto the same-day ACH rail, which has no remittance format registered; error shows in an inline red panel below the table; rows under $2,500 e.g. ABC Print → green confirmation panel; vendors with no unpaid bills → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'railName')` |
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 
 ### API Testing (curl)
@@ -326,6 +327,9 @@ curl -s -X POST http://localhost:3000/api/3cec99d4/open-account -H 'Content-Type
 
 # Custom — Citi Self Invest (94f4c31f) — 65+ DOB triggers TypeError (missing 'senior' suitability band); blank/malformed DOB → 400 ValidationError (no alert); GET /api/94f4c31f/products lists products
 curl -s -X POST http://localhost:3000/api/94f4c31f/personal-info -H 'Content-Type: application/json' -d '{"firstName":"Margaret","lastName":"Chen","dateOfBirth":"06/15/1958","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
+
+# Custom — U.S. Bank Business Bill Pay (4f9ede2a) — high-value vendor triggers TypeError (same-day ACH rail missing a remittance format); sub-$2,500 vendors succeed; vendors with no unpaid bills → 400 ValidationError (no alert)
+curl -s -X POST http://localhost:3000/api/4f9ede2a/pay -H 'Content-Type: application/json' -d '{"vendorId":"swifthost-web","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
 # Custom — The Home Depot (a69bcc34)
 curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"1005643790","qty":1,"fulfillment":"delivery"}],"promoCode":"HDCC25","storeNumber":"6177","zipCode":"10010","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'

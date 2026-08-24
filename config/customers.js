@@ -415,6 +415,10 @@ const CUSTOMERS = {
     label: 'Citi Self Invest',
     triggerMode: 'api',
   },
+  '4f9ede2a': {
+    label: 'U.S. Bank Business Bill Pay',
+    triggerMode: 'api',
+  },
   b014618f: {
     label: 'Capital One Travel',
     triggerMode: 'api',
