@@ -4,10 +4,10 @@ const { getDb } = require('./db');
 
 // Feature flags backing scheduled automations.
 //
-// automations-ingestion: per-org publish gate consulted for org-scoped runs.
-// Org-unscoped ticks (schedule:recurring) bypass it by design: they carry no
-// org context at publish time, so per-org gating happens downstream at
-// execution time.
+// automations-ingestion: per-org gate enforced by the executor at execution
+// time. Publish paths do not consult it: org-unscoped ticks
+// (schedule:recurring) carry no org context at publish time, and org-scoped
+// manual runs rely on the same downstream execution-time gate.
 //
 // automations-kill-switch: global. When on, the matcher publishes nothing.
 

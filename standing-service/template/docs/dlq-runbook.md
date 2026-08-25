@@ -16,3 +16,14 @@ consecutive attempts and needs a human.
    messages back to the main queue in bulk: the matcher's `next_fire_at`
    cursor regenerates any missed recurring work on its next tick, so a
    redrive would double-run it.
+
+## Retention
+
+`automation_queued_events` accumulates completed rows over the instance's
+lifetime. The pending index keeps hot scans fast, but prune periodically on a
+long-lived host, e.g.:
+
+```sql
+DELETE FROM automation_queued_events
+WHERE status = 'completed' AND terminal_at < now() - interval '30 days';
+```

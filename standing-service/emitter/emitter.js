@@ -5,8 +5,8 @@ require('dotenv').config();
 // 24/7 load generator for the standing automations-service. Runs as a
 // separate PM2 process on the same host. It:
 //   - drives benign IndirectData traffic for every fixture org across the
-//     non-poisoned subpaths (real storage writes through the service's own
-//     storage layer);
+//     non-poisoned subpaths (exercising the same storage code paths the
+//     service uses, in this process);
 //   - inserts completed automation runs at the per-source baseline rates so
 //     the service's telemetry has a believable steady state;
 //   - POSTs a heartbeat to the service (loopback) every 15s and emits the
