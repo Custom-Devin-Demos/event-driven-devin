@@ -64,6 +64,10 @@
       color: var(--nav-ink); line-height: 50px; white-space: nowrap;
     }
     .site-header nav a:hover { color: var(--ctc-red); }
+    .nav-toggle {
+      display: none; background: none; border: 0; color: var(--nav-ink); font-size: 24px;
+      line-height: 1; padding: 12px; cursor: pointer;
+    }
 
     /* ---------- Page title banner ---------- */
     .page-title { background: var(--ctc-red); position: relative; }
@@ -210,11 +214,28 @@
 
     @media (max-width: 1080px) {
       .util-bar .inner, .site-header .inner { padding: 0 18px; }
-      .site-header nav { display: none; }
+      .nav-toggle { display: block; }
+      .site-header .inner { flex-wrap: wrap; }
+      .site-header nav { display: none; width: 100%; flex-direction: column; gap: 0; }
+      .site-header nav.open { display: flex; }
+      .site-header nav a { line-height: 40px; border-top: 1px solid #e2e2e2; }
       .appt-grid { flex-direction: column; }
       .map-frame { width: 100%; }
       .footer-grid { flex-direction: column; gap: 26px; }
       .captcha-row { flex-direction: column; }
+    }
+
+    @media (max-width: 720px) {
+      .util-bar, .util-bar .inner { height: auto; }
+      .util-bar .inner { flex-wrap: wrap; gap: 10px; padding: 10px 18px; font-size: 14px; }
+      .util-bar .spacer { display: none; }
+      .util-bar .schedule-cta { border-left: 0; padding-left: 0; margin-left: 0; height: auto; }
+      .site-header .logo img { width: 220px; }
+      .warranty { margin-bottom: 0; }
+      .warranty img { width: 96px; }
+      .site-header .spacer { display: none; }
+      .row { flex-direction: column; gap: 0; }
+      .col, .col-mid, .col-narrow { width: 100%; flex: none; }
     }
   </style>
 </head>
@@ -248,7 +269,11 @@
            alt="6 Month Warranty">
     </div>
     <div class="spacer"></div>
-    <nav>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"
+            onclick="var n=document.getElementById('site-nav');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',String(o));">
+      <i class="fas fa-bars"></i>
+    </button>
+    <nav id="site-nav">
       <a href="#">Home</a>
       <a href="#">Shop For Tires</a>
       <a href="#">Auto Repairs</a>
