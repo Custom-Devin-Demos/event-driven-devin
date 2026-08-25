@@ -86,10 +86,17 @@ function main() {
   function git(args, env = {}) {
     return execFileSync('git', args, { cwd: repo, env: { ...process.env, ...env } }).toString();
   }
+  let lastCommitMs = 0;
   function commit(message, atDaysAgo) {
     const author = AUTHORS[authorIdx % AUTHORS.length];
     authorIdx += 1;
-    const date = daysAgo(atDaysAgo, 9 + (authorIdx % 8));
+    let when = new Date(daysAgo(atDaysAgo, 9 + (authorIdx % 8)));
+    // Keep author dates strictly increasing even within the same day.
+    if (when.getTime() <= lastCommitMs) {
+      when = new Date(lastCommitMs + (20 + Math.floor(Math.random() * 70)) * 60 * 1000);
+    }
+    lastCommitMs = when.getTime();
+    const date = when.toISOString();
     git(['add', '-A']);
     git(['commit', '--allow-empty-message', '-m', message], {
       GIT_AUTHOR_NAME: author.name,
