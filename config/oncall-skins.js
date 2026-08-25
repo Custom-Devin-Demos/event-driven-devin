@@ -436,6 +436,31 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HAPPEN BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Happen Bank product.',
   },
+  '32715aba': {
+    slug: '32715aba',
+    company: 'Mercor',
+    brandMark: 'M',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '32715aba.html',
+      title: 'Mercor \u2014 Payouts',
+    },
+    accent: '#4F46E5',
+    accentDark: '#4338CA',
+    theme: {
+      '--accent': '#4F46E5',
+      '--ink': '#0b0b0f',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#111116',
+      '--chrome-text': '#f5f5f7',
+    },
+    supportCenter: 'Mercor Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A MERCOR SITE — internal demo only, not affiliated with, endorsed by, or a real Mercor product.',
+  },
 };
 
 function getOncallSkin(slug) {
