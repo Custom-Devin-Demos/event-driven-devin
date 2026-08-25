@@ -54,29 +54,39 @@ async function processEvent(event) {
   }));
 
   const windowEnd = event.window_end || new Date().toISOString();
-  await db.query('BEGIN');
+  // Pin the transaction to one connection: pool.query() may hand each
+  // statement a different pooled connection. Injected test stubs expose only
+  // query(), so fall back to the stub itself.
+  const client = typeof db.connect === 'function' ? await db.connect() : db;
   try {
-    for (const upload of uploads) {
-      const fingerprint = crypto.createHash('sha256')
-        .update(`${upload.orgId}:${windowEnd}:${event.type}`)
-        .digest('hex');
-      await db.query(
-        `INSERT INTO automation_event_data (org_id, fingerprint, subpath, blob_ref)
-         VALUES ($1, $2, $3, $4)
-         ON CONFLICT (org_id, fingerprint) DO NOTHING`,
-        [upload.orgId, fingerprint, 'automation_events', upload.blob.ref],
-      );
-      await db.query(
-        `INSERT INTO automation_queued_events (org_id, source, status)
-         VALUES ($1, $2, 'pending')`,
-        [upload.orgId, event.type],
-      );
+    await client.query('BEGIN');
+    try {
+      for (const upload of uploads) {
+        const fingerprint = crypto.createHash('sha256')
+          .update(`${upload.orgId}:${windowEnd}:${event.type}`)
+          .digest('hex');
+        await client.query(
+          `INSERT INTO automation_event_data (org_id, fingerprint, subpath, blob_ref)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (org_id, fingerprint) DO NOTHING`,
+          [upload.orgId, fingerprint, 'automation_events', upload.blob.ref],
+        );
+        await client.query(
+          `INSERT INTO automation_queued_events (org_id, source, status)
+           VALUES ($1, $2, 'pending')`,
+          [upload.orgId, event.type],
+        );
+      }
+      if (event.type === 'schedule:recurring') {
+        await applyScheduleCursorUpdates(client, orgIds, windowEnd);
+      }
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
     }
-    await applyScheduleCursorUpdates(db, orgIds, windowEnd);
-    await db.query('COMMIT');
-  } catch (error) {
-    await db.query('ROLLBACK');
-    throw error;
+  } finally {
+    if (typeof client.release === 'function') client.release();
   }
   increment('automation_service.ingest.uploaded', { source: event.type });
   return { uploaded: uploads.length };
