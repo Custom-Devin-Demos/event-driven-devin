@@ -57,13 +57,11 @@ async function declareDatadogIncident({ title, summary, runRef, triggeredBy, rep
   );
 
   const incident = response.data && response.data.data;
-  if (!incident || !incident.id) {
+  const publicId = incident && incident.attributes && incident.attributes.public_id;
+  if (!incident || !incident.id || publicId == null) {
     return null;
   }
-  return {
-    id: incident.id,
-    publicId: incident.attributes && incident.attributes.public_id,
-  };
+  return { id: incident.id, publicId };
 }
 
 /**

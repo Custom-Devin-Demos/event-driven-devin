@@ -102,6 +102,7 @@ async function arm(customer = 'CUST_1', options = {}) {
   const hasFutureSchedule = state.scheduledDeclareAt
     && Date.parse(state.scheduledDeclareAt) > Date.now();
   state.channel = null;
+  state.incident = null;
   state.declaredAt = null;
   state.chatterPosted = 0;
   state.autoStopAt = null;
@@ -247,6 +248,7 @@ function startChannelDiscovery(publicId, declaredAtMs) {
     } catch (error) {
       logger.warn('Automations demo channel join failed', { channel: channel.name, error: error.message });
     }
+    if (state.runState !== 'declared') return;
     state.channel = channel;
     try {
       await postDeclaration(channel);
