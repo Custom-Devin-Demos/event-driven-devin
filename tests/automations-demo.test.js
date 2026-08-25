@@ -111,13 +111,27 @@ describe('automations incident demo control plane', () => {
     jest.useFakeTimers();
     await demo.arm();
     await demo.declare();
-    for (let attempt = 0; attempt < 12; attempt += 1) {
+    for (let attempt = 0; attempt < 40; attempt += 1) {
       await jest.advanceTimersByTimeAsync(15000);
     }
-    expect(slack.findChannelByNameFragment).toHaveBeenCalledTimes(12);
+    expect(slack.findChannelByNameFragment).toHaveBeenCalledTimes(40);
     await jest.advanceTimersByTimeAsync(60000);
-    expect(slack.findChannelByNameFragment).toHaveBeenCalledTimes(12);
+    expect(slack.findChannelByNameFragment).toHaveBeenCalledTimes(40);
     expect(slack.postMessage).not.toHaveBeenCalled();
+  });
+
+  test('retries discovery when joining the found channel fails', async () => {
+    jest.useFakeTimers();
+    await demo.arm();
+    await demo.declare();
+    slack.findChannelByNameFragment.mockResolvedValue(CHANNEL);
+    slack.joinChannel.mockRejectedValueOnce(new Error('slack hiccup'));
+    await jest.advanceTimersByTimeAsync(15000);
+    expect(slack.joinChannel).toHaveBeenCalledTimes(1);
+    expect(slack.postMessage).not.toHaveBeenCalled();
+    await jest.advanceTimersByTimeAsync(15000);
+    expect(slack.joinChannel).toHaveBeenCalledTimes(2);
+    expect(slack.postMessage).toHaveBeenCalledWith('slack-token', 'C1', expect.any(String), expect.any(Array));
   });
 
   test('single-flights concurrent declares into one incident', async () => {

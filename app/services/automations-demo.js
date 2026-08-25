@@ -17,7 +17,7 @@ const SMOKE_POLL_WINDOW_MS = 20 * 60 * 1000;
 const DEFAULT_TIME_ZONE = 'America/Los_Angeles';
 const STANDING_REPO = 'ananthv26-cog-demo-repos/automations-service';
 const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
-const CHANNEL_LOOKUP_MAX_ATTEMPTS = 12;
+const CHANNEL_LOOKUP_MAX_ATTEMPTS = 40;
 const CHATTER = [
   { afterMs: 30 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
   { afterMs: 60 * 1000, username: 'Ethan Brooks (ENG)', icon: ':man-technologist:', text: 'did we ship anything yesterday? I don\'t see a deploy' },
@@ -247,6 +247,13 @@ function startChannelDiscovery(publicId, declaredAtMs) {
       await joinChannel(slackToken(), channel.id);
     } catch (error) {
       logger.warn('Automations demo channel join failed', { channel: channel.name, error: error.message });
+      if (state.runState !== 'declared') return;
+      if (attempts >= CHANNEL_LOOKUP_MAX_ATTEMPTS) {
+        logger.warn('Automations demo gave up joining the incident channel', { channel: channel.name });
+        return;
+      }
+      scheduleTimer(locate, CHANNEL_LOOKUP_INTERVAL_MS);
+      return;
     }
     if (state.runState !== 'declared') return;
     state.channel = channel;

@@ -25,7 +25,7 @@ after arm, with errors flowing).
 The control plane declares a SEV-1 incident through the Datadog Incidents
 API. Datadog's Slack integration then creates the public incident channel
 (named from the Datadog template, containing `incident-<publicId>-`). The
-control plane polls `conversations.list` for that channel (up to ~3 minutes),
+control plane polls `conversations.list` for that channel (up to ~10 minutes),
 joins it, posts a factual SEV-1 declaration card, invites the Devin Slack
 user, and drips ambient human conversation at T+30s, 1m, 2m, 3m, and 4m from
 the declaration. The organization's prefix-based public-channel join hook
