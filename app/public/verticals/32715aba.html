@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mercor — Payouts</title>
+  <title>Mercor — Earnings</title>
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --indigo: #4F46E5;
@@ -15,196 +15,252 @@
       --muted: #6b7280;
       --muted-2: #4b5563;
       --nav-ink: #111827;
-      --violet: #7c6cf5;
       --line: rgba(2, 8, 23, 0.07);
       --line-strong: #e5e7eb;
       --wash: #f9fafb;
       --chip: #f3f4f6;
       --white: #ffffff;
       --green: #059669;
+      --amber: #b45309;
+      --blue: #1d4ed8;
       --red: #dc2626;
       --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--sans); background: var(--white); color: var(--ink); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--sans); background: var(--wash); color: var(--ink); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
 
-    nav.top { display: flex; align-items: center; gap: 40px; height: 68px; padding: 0 56px; max-width: 1600px; margin: 0 auto; }
-    .logo { display: flex; align-items: center; }
-    .logo svg { display: block; }
-    .nav-links { display: flex; align-items: center; gap: 32px; font-size: 14px; color: var(--nav-ink); list-style: none; }
-    .nav-links a { display: inline-flex; align-items: center; gap: 5px; }
-    .nav-links a.active { color: var(--indigo); }
-    .nav-links .caret { width: 8px; height: 5px; opacity: 0.45; }
-    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-    @media (max-width: 900px) { nav.top { padding: 0 20px; gap: 12px; } .nav-links { display: none; } }
+    nav.top { background: var(--white); border-bottom: 1px solid var(--line-strong); }
+    .nav-inner { display: flex; align-items: center; gap: 40px; height: 68px; padding: 0 56px; max-width: 1600px; margin: 0 auto; }
+    .logo { display: flex; align-items: center; gap: 9px; }
+    .logo img { display: block; height: 30px; width: auto; }
+    .logo .fallback { display: none; width: 30px; height: 30px; border-radius: 7px; background: linear-gradient(135deg, #6C63F5, #4F46E5); color: #fff; font-size: 16px; font-weight: 600; align-items: center; justify-content: center; }
+    .nav-links { display: flex; align-items: center; gap: 28px; font-size: 14px; color: var(--muted-2); list-style: none; align-self: stretch; }
+    .nav-links li { display: flex; align-items: center; }
+    .nav-links a { display: inline-flex; align-items: center; height: 100%; border-bottom: 2px solid transparent; }
+    .nav-links a.active { color: var(--indigo); border-bottom-color: var(--indigo); }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 16px; font-size: 14px; color: var(--muted-2); }
+    .avatar { width: 30px; height: 30px; border-radius: 999px; background: #c7d2fe; color: #3730a3; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 900px) { .nav-inner { padding: 0 20px; gap: 14px; height: 60px; } .nav-links { display: none; } }
 
-    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 24px; border-radius: 6px; font-family: var(--sans); font-size: 15px; font-weight: 400; border: 1px solid transparent; cursor: pointer; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 20px; border-radius: 6px; font-family: var(--sans); font-size: 14px; font-weight: 400; border: 1px solid transparent; cursor: pointer; }
     @media (max-width: 900px) { .btn { min-height: 44px; } }
     .btn-primary { background: var(--indigo); color: #fff; }
     .btn-primary:hover { background: var(--indigo-dark); }
     .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-    .btn-quiet { background: var(--chip); color: var(--ink); font-size: 14px; }
-    .btn-outline { background: #fff; color: var(--ink); border-color: var(--line-strong); font-size: 14px; }
+    .btn-outline { background: #fff; color: var(--ink); border-color: var(--line-strong); }
+    .btn-outline:hover { background: var(--wash); }
 
-    .hero { text-align: center; padding: 72px 24px 56px; }
-    .statbar { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 999px; padding: 6px 0; font-size: 12.75px; font-weight: 500; }
-    .statbar > div { padding: 2px 16px; display: flex; gap: 10px; align-items: baseline; }
-    .statbar > div + div { border-left: 1px solid var(--line-strong); }
-    .statbar .k { color: var(--muted-2); }
-    .statbar .v { color: var(--ink); }
-    h1 { margin-top: 30px; font-size: clamp(32px, 5vw, 48px); font-weight: 400; line-height: 1.1; letter-spacing: -1.2px; }
-    .hero p { margin: 16px auto 0; max-width: 420px; color: var(--ink-2); line-height: 24px; }
-    .hero .cta { margin-top: 26px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    @media (max-width: 700px) { .statbar { flex-direction: column; align-items: stretch; border-radius: 12px; padding: 6px 0; } .statbar > div + div { border-left: none; border-top: 1px solid var(--line-strong); } .statbar > div { padding: 8px 20px; justify-content: space-between; } }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 72px; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    h1 { font-size: clamp(28px, 4vw, 34px); font-weight: 400; letter-spacing: -1px; line-height: 1.15; }
+    .page-head p { margin-top: 6px; font-size: 14px; color: var(--muted); }
 
-    main { max-width: 1120px; margin: 0 auto; padding: 8px 24px 80px; }
-    .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
-    .section-head h2 { font-size: 18px; font-weight: 400; }
-    .section-head span { font-size: 13px; color: var(--muted); }
+    .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filters label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+    .filters .f { min-width: 190px; flex: 1 1 190px; }
 
-    .balances { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 44px; }
-    @media (max-width: 860px) { .balances { grid-template-columns: 1fr; } }
-    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .card .label { font-size: 14px; color: var(--muted); }
-    .card .value { font-size: 28px; font-weight: 400; letter-spacing: -0.8px; margin-top: 8px; }
-    .card .meta { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    select, input[type="number"] { width: 100%; height: 44px; padding: 0 34px 0 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; color: var(--ink); font-family: var(--sans); font-size: 14px; appearance: none; text-overflow: ellipsis; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    input[type="number"] { padding-right: 12px; }
+    select:focus, input:focus { outline: none; border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
+
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 980px) { .cards { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .card .label { font-size: 13px; color: var(--muted); }
+    .card .value { font-size: 26px; font-weight: 400; letter-spacing: -0.8px; margin-top: 6px; }
+    .card .meta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
     .card .meta.up { color: var(--green); }
 
-    .payout-wrap { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; margin-bottom: 44px; }
-    @media (max-width: 860px) { .payout-wrap { grid-template-columns: 1fr; } }
-    .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .panel h2 { font-size: 18px; font-weight: 400; }
-    .panel .sub { color: var(--muted); font-size: 14px; margin: 6px 0 22px; }
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 13px; color: var(--muted-2); margin-bottom: 6px; }
-    .form-group select, .form-group input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: #fff; color: var(--ink); font-family: var(--sans); font-size: 14px; appearance: none; }
-    .form-group select { padding-right: 34px; text-overflow: ellipsis; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
-    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79,70,229,0.12); }
+    .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; align-items: start; margin-bottom: 24px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 20px 20px 22px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+    .panel h2 { font-size: 17px; font-weight: 400; }
+    .panel .sub { color: var(--muted); font-size: 13px; margin: 4px 0 18px; }
+    .seg { display: inline-flex; background: var(--chip); border-radius: 999px; padding: 3px; font-size: 12.5px; }
+    .seg span { padding: 4px 12px; border-radius: 999px; color: var(--muted-2); }
+    .seg span.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+
+    .chart { display: flex; align-items: flex-end; gap: 14px; height: 168px; padding-top: 8px; border-bottom: 1px solid var(--line); }
+    .chart .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%; }
+    .chart .fill { border-radius: 4px 4px 0 0; background: var(--indigo); }
+    .chart .fill.split { background: linear-gradient(180deg, #a5b4fc 0 22%, var(--indigo) 22% 100%); }
+    .chart .amt { font-size: 11px; color: var(--muted); text-align: center; }
+    .x-axis { display: flex; gap: 14px; margin-top: 8px; }
+    .x-axis span { flex: 1; text-align: center; font-size: 11.5px; color: var(--muted); }
+    .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+    .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12.5px; color: var(--muted-2); margin-bottom: 6px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
-    #submitBtn { width: 100%; margin-top: 8px; min-height: 44px; }
+    #submitBtn { width: 100%; margin-top: 6px; min-height: 44px; }
     .result-box { margin-top: 14px; padding: 12px 14px; border-radius: 6px; font-size: 14px; display: none; }
     .result-box.success { display: block; background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.3); color: var(--green); }
     .result-box.error { display: block; background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.3); color: var(--red); }
     .result-box .error-title { font-weight: 600; margin-bottom: 2px; }
     .result-box .error-detail { font-size: 13px; opacity: 0.9; word-break: break-word; }
 
-    .aside { background: var(--wash); border: 1px solid var(--line); border-radius: 8px; padding: 24px; }
-    .aside h3 { font-size: 16px; font-weight: 400; margin-bottom: 10px; }
-    .aside ul { list-style: none; font-size: 14px; color: var(--muted-2); }
-    .aside li { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
-    .aside li:last-child { border-bottom: none; }
-    .aside li b { font-weight: 500; color: var(--ink); }
+    .kv { list-style: none; font-size: 13.5px; color: var(--muted-2); }
+    .kv li { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+    .kv li:last-child { border-bottom: none; }
+    .kv b { font-weight: 500; color: var(--ink); }
 
-    .roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 44px; }
-    @media (max-width: 980px) { .roles { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 560px) { .roles { grid-template-columns: 1fr; } }
-    .role { display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s, background 0.2s; }
-    .role:hover { border-color: var(--indigo); background: var(--wash); }
-    .role .title { font-size: 16px; font-weight: 400; }
-    .role .rate { font-size: 14px; color: var(--muted); margin-top: 4px; }
-    .role .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-    .role .foot .who { display: flex; align-items: center; gap: 8px; }
-    .role .foot a { color: var(--muted); font-size: 15px; }
-    .avatars { display: flex; }
-    .avatars span { width: 20px; height: 20px; border-radius: 999px; border: 1.5px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; color: #fff; }
-    .avatars span + span { margin-left: -6px; }
+    .table-wrap { background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; }
+    .table-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; }
+    .table-head h2 { font-size: 17px; font-weight: 400; }
+    .table-head span { font-size: 13px; color: var(--muted); }
+    table.txn { width: 100%; border-collapse: collapse; }
+    table.txn th { text-align: left; font-size: 11.5px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 10px 20px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--wash); }
+    table.txn td { padding: 13px 20px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+    table.txn td.num { text-align: right; }
+    table.txn th.num { text-align: right; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; }
+    .pill i { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+    .pill.paid { background: rgba(5,150,105,0.09); color: var(--green); }
+    .pill.pending { background: var(--chip); color: var(--muted-2); }
+    .pill.transit { background: rgba(29,78,216,0.09); color: var(--blue); }
+    .pill.failed { background: rgba(220,38,38,0.08); color: var(--red); }
+    .table-foot { padding: 14px 20px; }
+    @media (max-width: 720px) { table.txn th:nth-child(3), table.txn td:nth-child(3) { display: none; } table.txn th, table.txn td { padding-left: 14px; padding-right: 14px; } }
 
-    table.txn { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-    table.txn th { text-align: left; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--wash); }
-    table.txn td { padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 14px; }
-    table.txn tbody tr:last-child td { border-bottom: none; }
-    .paid { color: var(--green); }
-    .pending { color: var(--muted); }
-    @media (max-width: 620px) { table.txn th:nth-child(4), table.txn td:nth-child(4) { display: none; } }
-
-    footer { border-top: 1px solid var(--line-strong); margin-top: 24px; }
-    .foot-inner { max-width: 1120px; margin: 0 auto; padding: 40px 24px 56px; }
-    .foot-cols { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; font-size: 15px; }
-    @media (max-width: 700px) { .foot-cols { grid-template-columns: 1fr 1fr; } }
-    .foot-cols h4 { font-size: 14px; font-weight: 500; color: var(--nav-ink); margin-bottom: 12px; }
-    .foot-cols a { display: block; color: var(--muted-2); padding: 5px 0; }
-    .foot-legal { margin-top: 32px; font-size: 12px; color: var(--muted); }
+    footer { border-top: 1px solid var(--line-strong); background: #fff; }
+    .foot-inner { max-width: 1120px; margin: 0 auto; padding: 28px 24px 40px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted-2); }
+    .foot-links { display: flex; gap: 20px; flex-wrap: wrap; }
   </style>
 </head>
 <body>
   <nav class="top">
-    <a class="logo" href="#" aria-label="Mercor">
-      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" role="img" aria-hidden="true">
-        <defs>
-          <linearGradient id="m-mark" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#4F46E5"/>
-            <stop offset="1" stop-color="#8B7CF6"/>
-          </linearGradient>
-        </defs>
-        <path d="M6 27V10.5C6 6.9 10.4 5.3 12.7 8L16 12l3.3-4C21.6 5.3 26 6.9 26 10.5V27"
-              stroke="url(#m-mark)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#">Research<svg class="caret" viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.2"/></svg></a></li>
-      <li><a href="#">Enterprise<svg class="caret" viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.2"/></svg></a></li>
-      <li><a href="#">Experts<svg class="caret" viewBox="0 0 8 5" fill="none" aria-hidden="true"><path d="M1 1l3 3 3-3" stroke="currentColor" stroke-width="1.2"/></svg></a></li>
-      <li><a href="#payouts" class="active">Payouts</a></li>
-    </ul>
-    <div class="nav-right">
-      <a class="btn btn-outline" href="#">Log in</a>
+    <div class="nav-inner">
+      <a class="logo" href="#" aria-label="Mercor">
+        <img src="https://mintcdn.com/mercor-external/JMg-SJ-H0hdICazV/logo/image.png?fit=max&amp;auto=format&amp;n=JMg-SJ-H0hdICazV&amp;q=85&amp;s=031315336a2ffbf5aa03e0830d697425"
+             alt="Mercor" width="30" height="30"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <span class="fallback" aria-hidden="true">M</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Jobs</a></li>
+        <li><a href="#">Contracts</a></li>
+        <li><a href="#" class="active">Earnings</a></li>
+        <li><a href="#">Profile</a></li>
+      </ul>
+      <div class="nav-right">
+        <a href="#">Support</a>
+        <span class="avatar">AC</span>
+      </div>
     </div>
   </nav>
 
-  <section class="hero">
-    <div class="statbar">
-      <div><span class="k">Available balance</span><span class="v">$8,420.00</span></div>
-      <div><span class="k">Paid to date</span><span class="v">$61,180</span></div>
-      <div><span class="k">Payout schedule</span><span class="v">Daily</span></div>
-    </div>
-    <h1>Get paid for the work you do.</h1>
-    <p>Withdraw your contract earnings to a linked bank account. Payouts run daily.</p>
-    <div class="cta">
-      <a class="btn btn-primary" href="#payouts">Withdraw earnings</a>
-      <a class="btn btn-quiet" href="#activity">View payout history</a>
-    </div>
-  </section>
-
   <main>
-    <div class="balances">
-      <div class="card">
-        <div class="label">Earnings balance</div>
-        <div class="value">$8,420.00</div>
-        <div class="meta up">+$1,960.00 this week</div>
+    <div class="page-head">
+      <div>
+        <h1>Earnings</h1>
+        <p>All payments across your contracts — wages, bonuses, work trials, and referrals.</p>
       </div>
-      <div class="card">
-        <div class="label">Hours billed this month</div>
-        <div class="value">96.5</div>
-        <div class="meta">3 active contracts</div>
+      <button type="button" class="btn btn-outline">Download Payment Report</button>
+    </div>
+
+    <div class="filters">
+      <div class="f">
+        <label for="contractFilter">Contract</label>
+        <select id="contractFilter">
+          <option>All contracts</option>
+          <option>APEX-Accounting study</option>
+          <option>Insight study</option>
+          <option>RL Studio &mdash; evaluations</option>
+        </select>
       </div>
-      <div class="card">
-        <div class="label">Average contracted rate</div>
-        <div class="value">$92/hr</div>
-        <div class="meta">Across accepted roles</div>
+      <div class="f">
+        <label for="periodFilter">Time period</label>
+        <select id="periodFilter">
+          <option>Last 6 weeks</option>
+          <option>This month</option>
+          <option>Year to date</option>
+          <option>Custom range</option>
+        </select>
+      </div>
+      <div class="f">
+        <label for="typeFilter">Payment type</label>
+        <select id="typeFilter">
+          <option>All types</option>
+          <option>Wages</option>
+          <option>Bonus</option>
+          <option>Work trial</option>
+          <option>Referral</option>
+        </select>
       </div>
     </div>
 
-    <div class="payout-wrap" id="payouts">
+    <div class="cards">
+      <div class="card">
+        <div class="label">Available to withdraw</div>
+        <div class="value">$8,420.00</div>
+        <div class="meta up">+$1,960.00 this pay period</div>
+      </div>
+      <div class="card">
+        <div class="label">Pending</div>
+        <div class="value">$1,960.00</div>
+        <div class="meta">Confirmed, not yet sent</div>
+      </div>
+      <div class="card">
+        <div class="label">In transit</div>
+        <div class="value">$1,200.00</div>
+        <div class="meta">Processing via Stripe</div>
+      </div>
+      <div class="card">
+        <div class="label">Paid to date</div>
+        <div class="value">$61,180</div>
+        <div class="meta">Across 3 contracts</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Earnings over time</h2>
+          <span class="seg"><span class="on">Week</span><span>Month</span><span>Year</span></span>
+        </div>
+        <div class="sub">96.5 hours logged this month &middot; average contracted rate $92/hr</div>
+        <div class="chart">
+          <div class="bar"><div class="amt">$1,840</div><div class="fill" style="height:52%"></div></div>
+          <div class="bar"><div class="amt">$2,120</div><div class="fill" style="height:60%"></div></div>
+          <div class="bar"><div class="amt">$1,610</div><div class="fill" style="height:46%"></div></div>
+          <div class="bar"><div class="amt">$2,760</div><div class="fill split" style="height:78%"></div></div>
+          <div class="bar"><div class="amt">$2,480</div><div class="fill" style="height:70%"></div></div>
+          <div class="bar"><div class="amt">$1,960</div><div class="fill split" style="height:56%"></div></div>
+        </div>
+        <div class="x-axis">
+          <span>Feb 7</span><span>Feb 14</span><span>Feb 21</span><span>Feb 28</span><span>Mar 7</span><span>Mar 14</span>
+        </div>
+        <div class="legend">
+          <span><i style="background:#4F46E5"></i>Wages</span>
+          <span><i style="background:#a5b4fc"></i>Bonus &amp; work trial</span>
+        </div>
+      </div>
+
       <div class="panel">
         <h2>Withdraw earnings</h2>
-        <div class="sub">Move funds from your earnings balance to a linked account.</div>
+        <div class="sub">Send your available balance to a payout account.</div>
         <form id="transferForm">
           <div class="form-row">
             <div class="form-group">
               <label for="fromAccount">From</label>
               <select id="fromAccount">
                 <option value="ACCT-1001">Earnings balance &mdash; ACCT-1001</option>
-                <option value="ACCT-1002">Reserve balance &mdash; ACCT-1002</option>
+                <option value="ACCT-1002">Referral balance &mdash; ACCT-1002</option>
               </select>
             </div>
             <div class="form-group">
               <label for="toAccount">To</label>
               <select id="toAccount">
-                <option value="ACCT-EXT-001">Linked bank &mdash; Chase ****4921</option>
-                <option value="ACCT-EXT-002">Linked bank &mdash; Wise (USD) ****8830</option>
-                <option value="ACCT-1002">Reserve balance &mdash; ACCT-1002</option>
+                <option value="ACCT-EXT-001">Stripe &mdash; Chase ****4921</option>
+                <option value="ACCT-EXT-002">Wise (USD) &mdash; ****8830</option>
+                <option value="ACCT-1002">Referral balance &mdash; ACCT-1002</option>
               </select>
             </div>
           </div>
@@ -213,7 +269,7 @@
             <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$0.00">
           </div>
           <div class="form-group">
-            <label for="accountTier">Payout method</label>
+            <label for="accountTier">Payout speed</label>
             <select id="accountTier">
               <option value="standard">Standard &mdash; next business day</option>
               <option value="premium">Priority &mdash; same day</option>
@@ -223,63 +279,66 @@
           <button type="submit" class="btn btn-primary" id="submitBtn">Withdraw</button>
         </form>
         <div id="result" class="result-box"></div>
-      </div>
-
-      <div class="aside">
-        <h3>Payout details</h3>
-        <ul>
-          <li><span>Next scheduled run</span><b>Today, 6:00 PM PT</b></li>
-          <li><span>Verification</span><b>Complete</b></li>
+        <ul class="kv" style="margin-top:18px">
+          <li><span>Payout method</span><b>Stripe &mdash; verified</b></li>
+          <li><span>Pay period (IST)</span><b>Sat 12:00 AM &ndash; Fri 11:59 PM</b></li>
           <li><span>Tax documents</span><b>W-9 on file</b></li>
-          <li><span>Linked accounts</span><b>2</b></li>
-          <li><span>Support</span><b>Help center</b></li>
         </ul>
       </div>
     </div>
 
-    <div class="section-head"><h2>Open roles for you</h2><span>Matched to your profile</span></div>
-    <div class="roles">
-      <div class="role">
-        <div><div class="title">FP&amp;A Expert</div><div class="rate">$80-$90/hr</div></div>
-        <div class="foot"><span class="who"><span class="avatars"><span style="background:#c084fc">J</span><span style="background:#f59e0b">D</span><span style="background:#ef4444">T</span></span>39 hired recently</span><a href="#">Apply</a></div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <h2>Payments</h2>
+        <span>Recent payments</span>
       </div>
-      <div class="role">
-        <div><div class="title">Product Management Expert</div><div class="rate">$80-$90/hr</div></div>
-        <div class="foot"><span class="who"><span class="avatars"><span style="background:#818cf8">G</span><span style="background:#a855f7">B</span><span style="background:#fb7185">R</span></span>36 hired recently</span><a href="#">Apply</a></div>
-      </div>
-      <div class="role">
-        <div><div class="title">Accounting Expert</div><div class="rate">$70-$80/hr</div></div>
-        <div class="foot"><span class="who"><span class="avatars"><span style="background:#fbbf24">E</span><span style="background:#34d399">V</span><span style="background:#60a5fa">N</span></span>50 hired recently</span><a href="#">Apply</a></div>
-      </div>
-      <div class="role">
-        <div><div class="title">Design Expert</div><div class="rate">$70-$80/hr</div></div>
-        <div class="foot"><span class="who"><span class="avatars"><span style="background:#fdba74">G</span><span style="background:#c084fc">B</span><span style="background:#f472b6">R</span></span>41 hired recently</span><a href="#">Apply</a></div>
+      <table class="txn">
+        <thead>
+          <tr><th>Date</th><th>Contract</th><th>Type</th><th class="num">Amount</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mar 15</td><td>Withdrawal to Chase ****4921</td><td>Payout</td>
+            <td class="num">$2,400.00</td><td><span class="pill paid"><i></i>Paid</span></td>
+          </tr>
+          <tr>
+            <td>Mar 14</td><td>APEX-Accounting study</td><td>Wages</td>
+            <td class="num">$1,960.00</td><td><span class="pill pending"><i></i>Pending</span></td>
+          </tr>
+          <tr>
+            <td>Mar 12</td><td>Withdrawal to Wise (USD) ****8830</td><td>Payout</td>
+            <td class="num">$1,200.00</td><td><span class="pill transit"><i></i>In Transit</span></td>
+          </tr>
+          <tr>
+            <td>Mar 11</td><td>Insight study</td><td>Bonus</td>
+            <td class="num">$3,150.00</td><td><span class="pill paid"><i></i>Paid</span></td>
+          </tr>
+          <tr>
+            <td>Mar 08</td><td>RL Studio &mdash; evaluations</td><td>Work trial</td>
+            <td class="num">$640.00</td><td><span class="pill paid"><i></i>Paid</span></td>
+          </tr>
+          <tr>
+            <td>Mar 04</td><td>Withdrawal to Chase ****4921</td><td>Payout</td>
+            <td class="num">$800.00</td><td><span class="pill failed"><i></i>Failed</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="table-foot">
+        <button type="button" class="btn btn-outline">Show more payments</button>
       </div>
     </div>
-
-    <div class="section-head" id="activity"><h2>Payout history</h2><span>Last 30 days</span></div>
-    <table class="txn">
-      <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Mar 15</td><td>Withdrawal to Chase ****4921</td><td class="paid">$2,400.00</td><td>Paid</td></tr>
-        <tr><td>Mar 14</td><td>Contract earnings &mdash; APEX-Accounting study</td><td class="paid">$1,960.00</td><td>Paid</td></tr>
-        <tr><td>Mar 12</td><td>Withdrawal to Wise (USD) ****8830</td><td class="paid">$1,200.00</td><td>Paid</td></tr>
-        <tr><td>Mar 11</td><td>Contract earnings &mdash; Insight study</td><td class="paid">$3,150.00</td><td>Paid</td></tr>
-        <tr><td>Mar 10</td><td>Withdrawal to Chase ****4921</td><td class="pending">$800.00</td><td>Processing</td></tr>
-      </tbody>
-    </table>
   </main>
 
   <footer>
     <div class="foot-inner">
-      <div class="foot-cols">
-        <div><h4>Experts</h4><a href="#">Find work</a><a href="#">Help center</a><a href="#">Resources</a><a href="#">Stories</a></div>
-        <div><h4>Research</h4><a href="#">APEX Benchmarks</a><a href="#">APEX-Agents</a><a href="#">APEX-Accounting</a><a href="#">APEX-SWE</a></div>
-        <div><h4>Enterprise</h4><a href="#">Enterprise AI</a><a href="#">Human data</a><a href="#">Data monetization</a></div>
-        <div><h4>Contact</h4><a href="#">Support</a><a href="#">Press</a><a href="#">Sales</a></div>
-        <div><h4>Mercor</h4><a href="#">Careers</a><a href="#">Security</a><a href="#">Blog</a><a href="#">Newsroom</a></div>
+      <div class="foot-links">
+        <a href="#">Help center</a>
+        <a href="#">Payments</a>
+        <a href="#">Contracts</a>
+        <a href="#">Tax overview</a>
+        <a href="#">Contact support</a>
       </div>
-      <div class="foot-legal">San Francisco, CA &middot; &copy; 2026 Mercor</div>
+      <div>San Francisco, CA &middot; &copy; 2026 Mercor</div>
     </div>
   </footer>
 
@@ -316,7 +375,9 @@
       } catch (err) {
         result.className = 'result-box error';
         result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
-      } finally { btn.disabled = false; btn.textContent = 'Withdraw'; }
+      } finally {
+        btn.disabled = false; btn.textContent = 'Withdraw';
+      }
     });
   </script>
   <script src="/session-cap-banner.js"></script>
