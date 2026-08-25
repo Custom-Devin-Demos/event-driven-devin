@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule a visit | MyBSWHealth | Baylor Scott &amp; White Health</title>
+  <link rel="icon" href="https://edge.sitecorecloud.io/baylorscott7127-bswhealth416c-prodb8d1-6471/media/Project/BSWHSites/bswhealth/Icons/bswh-icon-gray.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --primary-a1: #003da6;
+      --primary-a3: #007eb4;
+      --primary-a6: #007fa9;
+      --primary-a7: #006181;
+      --accent-b1: #ffb71b;
+      --accent-b2: #fecd4c;
+      --ink: #364248;
+      --muted: #586f78;
+      --line: #dddddd;
+      --page-bg: #f8f8f8;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', 'Sharp Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      color: var(--ink);
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--primary-a7); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 0 26px; }
+
+    /* ---------- Utility bar ---------- */
+    .util-bar { background: var(--ink); color: #fff; font-size: 13.5px; }
+    .util-bar .wrap { display: flex; align-items: center; gap: 24px; height: 40px; }
+    .util-bar a { color: #fff; }
+    .util-bar .spacer { flex: 1; }
+
+    /* ---------- Header ---------- */
+    .site-header { border-bottom: 1px solid var(--line); background: #fff; }
+    .site-header .wrap { display: flex; align-items: center; height: 86px; gap: 36px; }
+    .site-header .logo img { height: 44px; display: block; }
+    .site-header nav { display: flex; gap: 26px; font-size: 15px; font-weight: 500; }
+    .site-header nav a { color: var(--ink); white-space: nowrap; }
+    .site-header .spacer { flex: 1; }
+    .btn-pill {
+      display: inline-block; border-radius: 26px; padding: 11px 24px;
+      font-size: 15px; font-weight: 600; border: 2px solid var(--primary-a6); color: var(--primary-a7);
+    }
+    .btn-pill.solid { background: var(--accent-b2); border-color: var(--accent-b2); color: var(--ink); }
+    .btn-pill.solid:hover { background: var(--accent-b1); text-decoration: none; }
+
+    /* ---------- Page banner ---------- */
+    .page-banner { background: var(--primary-a1); color: #fff; }
+    .page-banner .wrap { padding: 30px 26px 34px; }
+    .page-banner .eyebrow { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; }
+    .page-banner h1 { font-size: 34px; font-weight: 600; margin: 8px 0 6px; }
+    .page-banner .meta { font-size: 15px; opacity: 0.92; }
+
+    /* ---------- Layout ---------- */
+    .schedule-shell { background: var(--page-bg); padding: 30px 0 64px; }
+    .schedule-grid { display: grid; grid-template-columns: 1fr 368px; gap: 26px; align-items: start; }
+
+    .card {
+      background: #fff; border: 1px solid var(--line); border-radius: 12px;
+      padding: 26px 28px 30px; margin-bottom: 22px;
+    }
+    .card h2 { font-size: 21px; font-weight: 600; margin: 0 0 4px; }
+    .card .sub { font-size: 14.5px; color: var(--muted); margin-bottom: 20px; }
+
+    .provider-row { display: flex; gap: 18px; align-items: flex-start; }
+    .provider-row img { width: 116px; height: 116px; object-fit: cover; object-position: center center; border-radius: 60px; display: block; }
+    .provider-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .provider-meta { font-size: 14px; color: var(--muted); line-height: 21px; }
+    .rating { color: var(--accent-b1); letter-spacing: 2px; font-size: 13px; }
+
+    /* ---------- Visit type selectors ---------- */
+    .visit-option {
+      display: flex; align-items: center; gap: 14px; border: 1px solid #c9c9c5;
+      border-radius: 10px; padding: 15px 18px; margin-bottom: 12px; cursor: pointer;
+    }
+    .visit-option.selected { border-color: var(--primary-a6); box-shadow: inset 0 0 0 1px var(--primary-a6); background: #f5feff; }
+    .visit-option input { accent-color: var(--primary-a6); width: 18px; height: 18px; }
+    .visit-option .icon {
+      width: 44px; height: 44px; border-radius: 50%; flex: none; background: #e5f5fb;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .visit-option .icon img { width: 24px; height: 24px; display: block; }
+    .visit-option .label { font-size: 15.5px; font-weight: 600; }
+    .visit-option .detail { font-size: 13.5px; color: var(--muted); }
+
+    .form-row { display: flex; gap: 22px; margin-top: 22px; flex-wrap: wrap; }
+    .field label { display: block; font-size: 14px; color: var(--muted); margin-bottom: 7px; }
+    .field input, .field select {
+      width: 220px; padding: 12px; font-size: 16px; font-family: inherit; color: var(--ink);
+      border: 1px solid #6b7280; border-radius: 6px; background: #fff;
+    }
+    .field input:focus, .field select:focus { outline: 2px solid #3a97f9; outline-offset: -1px; border-color: var(--primary-a6); }
+    .form-note { font-size: 13.5px; color: var(--muted); margin-top: 10px; }
+
+    /* ---------- Summary rail ---------- */
+    .summary { position: sticky; top: 20px; }
+    .summary .line { display: flex; justify-content: space-between; font-size: 15px; padding: 9px 0; gap: 12px; }
+    .summary .line span:last-child { text-align: right; }
+    .summary .line.total {
+      border-top: 1px solid var(--line); margin-top: 8px; padding-top: 14px;
+      font-size: 18px; font-weight: 600;
+    }
+    .summary .covered { color: #197a3f; font-size: 14px; }
+
+    .btn-schedule {
+      margin-top: 20px; width: 100%; background: var(--accent-b2); color: var(--ink); font-family: inherit;
+      font-size: 17px; font-weight: 600; padding: 15px 20px; border: none; border-radius: 28px;
+      cursor: pointer;
+    }
+    .btn-schedule:hover { background: var(--accent-b1); }
+    .fine { font-size: 12.5px; color: var(--muted); line-height: 18px; margin-top: 14px; }
+
+    /* ---------- Error / success panels ---------- */
+    .book-error {
+      display: none; margin: 22px 0 0; border: 1px solid #b3261e; border-left-width: 5px;
+      background: #fdf3f2; border-radius: 6px; padding: 14px 16px;
+    }
+    .book-error.show { display: block; }
+    .book-error .title { font-size: 15px; font-weight: 700; color: #8c1d18; margin-bottom: 6px; }
+    .book-error .msg { font-size: 14px; line-height: 20px; color: #3d3d3d; margin-bottom: 10px; }
+    .book-error .tech {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      font-size: 11.5px; line-height: 17px; color: #6b2b2b; background: #f7e5e4;
+      padding: 8px 10px; border-radius: 4px; word-break: break-word; white-space: pre-wrap;
+    }
+    .book-ok {
+      display: none; margin: 22px 0 0; border: 1px solid #197a3f; border-left-width: 5px;
+      background: #f1f8f3; border-radius: 6px; padding: 13px 16px; font-size: 14px; line-height: 20px;
+    }
+    .book-ok.show { display: block; }
+
+    /* ---------- Footer ---------- */
+    footer { background: var(--ink); color: #e3e7e9; padding: 30px 0 40px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 10px 26px; font-size: 13.5px; margin-bottom: 16px; }
+    .foot-links a { color: #e3e7e9; }
+    .foot-legal { font-size: 12.5px; line-height: 19px; opacity: 0.8; }
+
+    @media (max-width: 940px) {
+      .schedule-grid { grid-template-columns: 1fr; }
+      .summary { position: static; }
+      .site-header nav, .util-bar .wrap a { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="util-bar">
+  <div class="wrap">
+    <a href="#">Pay a bill</a>
+    <a href="#">Find a location</a>
+    <a href="#">Patient tools</a>
+    <div class="spacer"></div>
+    <a href="#">1.844.279.3627</a>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="#">
+      <img src="https://edge.sitecorecloud.io/baylorscott7127-bswhealth416c-prodb8d1-6471/media/Project/BSWHSites/bswhealth/Icons/logo-bswh-full.svg"
+           onerror="this.onerror=null;this.src='https://www.bswhealth.com/-/media/project/bsw/sites/bswhealth/logo-bswh-full.svg';"
+           alt="Baylor Scott &amp; White Health">
+    </a>
+    <nav>
+      <a href="#">Find a doctor</a>
+      <a href="#">Find a location</a>
+      <a href="#">Services</a>
+      <a href="#">Health plans</a>
+      <a href="#">Patients &amp; visitors</a>
+    </nav>
+    <div class="spacer"></div>
+    <a class="btn-pill solid" href="#">MyBSWHealth</a>
+  </div>
+</header>
+
+<section class="page-banner">
+  <div class="wrap">
+    <div class="eyebrow">MyBSWHealth &middot; Scheduling</div>
+    <h1>Review and schedule your visit</h1>
+    <div class="meta">Adrian Salinas &middot; MRN 4417029 &middot; Tue, Sep 22, 2026 &middot; 10:40 AM CDT</div>
+  </div>
+</section>
+
+<div class="schedule-shell">
+  <div class="wrap">
+    <div class="schedule-grid">
+
+      <main>
+        <div class="card">
+          <h2>Your provider</h2>
+          <div class="provider-row">
+            <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&q=80&fit=crop&crop=faces"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80';"
+                 alt="Alicia R. Vance, MD">
+            <div>
+              <div class="provider-name">Alicia R. Vance, MD</div>
+              <div class="rating">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <div class="provider-meta">
+                Family Medicine &middot; BSW Family Medicine &mdash; Dallas Uptown<br>
+                2727 E Lemmon Ave, Dallas, TX 75204 &middot; Accepting new patients
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>How would you like to be seen?</h2>
+          <div class="sub">Pick a visit type. Video visits are staffed by the same Baylor Scott &amp; White providers.</div>
+
+          <label class="visit-option selected" data-visit="video-visit">
+            <input type="radio" name="visitType" value="video-visit" checked>
+            <span class="icon">
+              <img src="https://bswcdndesign-prod.bswhealth.com/content/img/vpt.svg"
+                   onerror="this.onerror=null;this.src='https://edge.sitecorecloud.io/baylorscott7127-bswhealth416c-prodb8d1-6471/media/Project/BSWHSites/bswhealth/Icons/Homepage-Icons/messages.svg';"
+                   alt="">
+            </span>
+            <span>
+              <span class="label">MyBSWHealth Video Visit</span><br>
+              <span class="detail">Same-day virtual care &middot; next opening 10:40 AM today</span>
+            </span>
+          </label>
+
+          <label class="visit-option" data-visit="office-visit">
+            <input type="radio" name="visitType" value="office-visit">
+            <span class="icon">
+              <img src="https://edge.sitecorecloud.io/baylorscott7127-bswhealth416c-prodb8d1-6471/media/Project/BSWHSites/bswhealth/Icons/Homepage-Icons/doctor.svg" alt="">
+            </span>
+            <span>
+              <span class="label">Office Visit</span><br>
+              <span class="detail">In person at Dallas Uptown &middot; next opening Sep 24</span>
+            </span>
+          </label>
+
+          <label class="visit-option" data-visit="urgent-care">
+            <input type="radio" name="visitType" value="urgent-care">
+            <span class="icon">
+              <img src="https://bswcdndesign-prod.bswhealth.com/content/img/urgent-care.svg"
+                   onerror="this.onerror=null;this.src='https://edge.sitecorecloud.io/baylorscott7127-bswhealth416c-prodb8d1-6471/media/Project/BSWHSites/bswhealth/Icons/Homepage-Icons/stethoscope.svg';"
+                   alt="">
+            </span>
+            <span>
+              <span class="label">Urgent Care Walk-In</span><br>
+              <span class="detail">BSW Urgent Care &mdash; Uptown &middot; 18 min current wait</span>
+            </span>
+          </label>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="mrn">Medical record number</label>
+              <input type="text" id="mrn" inputmode="numeric" value="4417029">
+            </div>
+            <div class="field">
+              <label for="plan">Insurance plan</label>
+              <select id="plan">
+                <option value="bswhp-ppo" selected>BSW Health Plan PPO</option>
+                <option value="bswhp-hmo">BSW Health Plan HMO</option>
+                <option value="medicare-advantage">BSW SeniorCare Advantage</option>
+                <option value="self-pay">Self-pay</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="reason">Reason for visit</label>
+              <input type="text" id="reason" value="Sore throat and fever">
+            </div>
+          </div>
+          <div class="form-note">Your copay is collected at check-in. Cancel or reschedule free of charge up to 2 hours before your visit.</div>
+
+          <div class="book-error" id="book-error" role="alert" aria-live="assertive">
+            <div class="title">We couldn&rsquo;t schedule your visit</div>
+            <div class="msg">Something went wrong holding your appointment time. You have not been charged and no
+              appointment was created. Try again, or call us at 1.844.279.3627.</div>
+            <div class="tech" id="book-error-tech"></div>
+          </div>
+          <div class="book-ok" id="book-ok" role="status"></div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card summary">
+          <h2>Visit summary</h2>
+          <div class="line"><span>Date &amp; time</span><span>Tue, Sep 22 &middot; 10:40 AM</span></div>
+          <div class="line"><span>Provider</span><span>Alicia R. Vance, MD</span></div>
+          <div class="line"><span>Plan</span><span id="summary-plan">BSW Health Plan PPO</span></div>
+          <div class="line covered"><span>Prior authorization</span><span>Not required</span></div>
+          <div class="line total"><span>Estimated copay</span><span>$35.00</span></div>
+          <button class="btn-schedule" type="button" data-cta>Schedule visit</button>
+          <div class="fine">
+            By scheduling you agree to the MyBSWHealth Terms of Use and Notice of Privacy Practices. Estimates are not a
+            guarantee of coverage; your final responsibility depends on your plan benefits.
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="#">Privacy policy</a>
+      <a href="#">Notice of privacy practices</a>
+      <a href="#">Terms of use</a>
+      <a href="#">Accessibility</a>
+      <a href="#">Nondiscrimination notice</a>
+      <a href="#">Billing &amp; insurance</a>
+    </div>
+    <div class="foot-legal">
+      MyBSWHealth is a patient portal of Baylor Scott &amp; White Health. Appointment availability and cost estimates
+      vary by location, provider and plan benefits. &copy; 2026 Baylor Scott &amp; White Health. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script>
+  var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+  var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+
+  document.querySelectorAll('.visit-option').forEach(function (option) {
+    option.addEventListener('click', function () {
+      document.querySelectorAll('.visit-option').forEach(function (el) { el.classList.remove('selected'); });
+      option.classList.add('selected');
+    });
+  });
+
+  document.getElementById('plan').addEventListener('change', function (event) {
+    var label = event.target.options[event.target.selectedIndex].textContent;
+    document.getElementById('summary-plan').textContent = label;
+  });
+
+  function selectedVisitType() {
+    var checked = document.querySelector('input[name="visitType"]:checked');
+    return checked ? checked.value : 'video-visit';
+  }
+
+  function showBookError(payload) {
+    var tech = document.getElementById('book-error-tech');
+    tech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+      + '\n' + (payload.code || 'APPOINTMENT_SCHEDULING_FAILED')
+      + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+    var panel = document.getElementById('book-error');
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showBookConfirmed(result) {
+    var ok = document.getElementById('book-ok');
+    var starts = new Date(result.slot.startsAt);
+    ok.textContent = 'Appointment scheduled \u2014 ' + result.visitType.name + ' with ' + result.provider.name
+      + ' on ' + starts.toLocaleString() + ' (' + result.slot.slotDurationMinutes + ' min). Estimated $'
+      + result.cost.estimatedDueAtCheckInUsd.toFixed(2) + ' due at check-in.';
+    ok.classList.add('show');
+    ok.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function scheduleVisit(button) {
+    if (button._running) return;
+    button._running = true;
+    var original = button.textContent;
+    button.textContent = 'Scheduling\u2026';
+    button.style.pointerEvents = 'none';
+    document.getElementById('book-error').classList.remove('show');
+    document.getElementById('book-ok').classList.remove('show');
+
+    fetch('/api/d1a01dc3/schedule-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitType: selectedVisitType(),
+        insurancePlan: document.getElementById('plan').value,
+        patientMrn: document.getElementById('mrn').value.replace(/[^0-9]/g, ''),
+        requestedStart: '2026-09-22T15:40:00.000Z',
+        providerName: 'Alicia R. Vance, MD',
+        location: 'BSW Family Medicine \u2014 Dallas Uptown',
+        reasonForVisit: document.getElementById('reason').value,
+        devinUserId: DEVIN_USER_ID,
+        devinOrgId: DEVIN_ORG_ID,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showBookError(result.body);
+        else showBookConfirmed(result.body);
+      })
+      .catch(function (err) {
+        showBookError({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.textContent = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      scheduleVisit(button);
+    });
+  });
+</script>
+</body>
+</html>

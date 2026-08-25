@@ -419,6 +419,10 @@ const CUSTOMERS = {
     label: 'U.S. Bank Business Bill Pay',
     triggerMode: 'api',
   },
+  d1a01dc3: {
+    label: 'Baylor Scott & White Health',
+    triggerMode: 'api',
+  },
   b014618f: {
     label: 'Capital One Travel',
     triggerMode: 'api',
