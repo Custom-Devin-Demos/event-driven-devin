@@ -53,7 +53,8 @@ async function processEvent(event) {
       .then((blob) => ({ orgId, blob, payload }));
   }));
 
-  const windowEnd = event.window_end || new Date().toISOString();
+  // Recurring ticks dedupe on window_end; manual runs on their run_id.
+  const windowEnd = event.window_end || event.run_id || new Date().toISOString();
   // Pin the transaction to one connection: pool.query() may hand each
   // statement a different pooled connection. Injected test stubs expose only
   // query(), so fall back to the stub itself.

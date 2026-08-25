@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const cron = require('node-cron');
 const { getDb } = require('./db');
 const { publish } = require('./queue');
@@ -47,6 +48,9 @@ async function publishManualRun(orgId, triggerId) {
     account_id: orgId,
     org_ids: [orgId],
     trigger_id: triggerId,
+    // Stable per publish so redeliveries of the same manual run dedupe in
+    // ingest the way recurring ticks dedupe on window_end.
+    run_id: crypto.randomUUID(),
   };
   await publish(event);
   increment('automation_service.matcher.published', { source: 'manual' });
