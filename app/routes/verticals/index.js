@@ -144,6 +144,7 @@ const customerB47d51c2Routes = require('./b47d51c2');
 const customerBe7a41c9Routes = require('./be7a41c9');
 const customer4f9ede2aRoutes = require('./4f9ede2a');
 const customerD1a01dc3Routes = require('./d1a01dc3');
+const customer4f2fb968Routes = require('./4f2fb968');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -286,6 +287,7 @@ router.use(customerB47d51c2Routes);
 router.use(customerBe7a41c9Routes);
 router.use(customer4f9ede2aRoutes);
 router.use(customerD1a01dc3Routes);
+router.use(customer4f2fb968Routes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -418,6 +420,11 @@ router.get('/tapestry', (_req, res) => {
 // U.S. Bank customer demo — friendly public URL, serves the 4f9ede2a page (hidden from hub)
 router.get('/usbank', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '4f9ede2a.html'));
+});
+
+// Canada Tire Company customer demo — friendly public URL, serves the 4f2fb968 page (hidden from hub)
+router.get('/canadatire', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '4f2fb968.html'));
 });
 
 // Baylor Scott & White customer demo — friendly public URL, serves the d1a01dc3 page (hidden from hub)
