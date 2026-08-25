@@ -13,7 +13,6 @@ const CAP_LIMITS = {
   declare: 10,
   stop: 20,
   smoke: 3,
-  archive: 10,
 };
 
 function clientIp(req) {
@@ -150,12 +149,5 @@ router.post('/api/automations-demo/smoke', requireDemoToken, demoCap('smoke'), a
   }
 });
 
-router.post('/api/automations-demo/archive-stale', requireDemoToken, demoCap('archive'), async (_req, res) => {
-  try {
-    res.json(await demo.archiveStale());
-  } catch (error) {
-    return errorResponse(res, error);
-  }
-});
 
 module.exports = router;

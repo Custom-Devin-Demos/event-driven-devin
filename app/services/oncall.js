@@ -3,6 +3,7 @@ const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
+const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
 const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech');
 
@@ -1472,87 +1473,6 @@ function startSev1Chatter(
   return true;
 }
 
-function ddIncidentEnv() {
-  return {
-    apiKey: process.env.DD_API_KEY,
-    appKey: process.env.DD_INCIDENT_APP_KEY || process.env.DD_APPLICATION_KEY,
-    site: process.env.DD_SITE || 'us5.datadoghq.com',
-  };
-}
-
-function ddHeaders({ apiKey, appKey }) {
-  return {
-    'DD-API-KEY': apiKey,
-    'DD-APPLICATION-KEY': appKey,
-    'Content-Type': 'application/json',
-  };
-}
-
-/**
- * Declare a SEV-1 incident in Datadog Incident Management.
- * With the Datadog Slack app installed and "Create Slack channels for
- * incidents" enabled, Datadog creates the incident channel itself.
- */
-async function declareDatadogIncident({ title, summary, runRef, triggeredBy }) {
-  const env = ddIncidentEnv();
-  if (!env.apiKey || !env.appKey) {
-    return null;
-  }
-
-  const response = await axios.post(
-    `https://api.${env.site}/api/v2/incidents`,
-    {
-      data: {
-        type: 'incidents',
-        attributes: {
-          // Severity is carried by the field (and the channel-name template);
-          // keeping it out of the title avoids a doubled-up channel name.
-          title: `${title} (${runRef})`,
-          customer_impacted: true,
-          fields: {
-            severity: { type: 'dropdown', value: 'SEV-1' },
-            summary: {
-              type: 'textbox',
-              value: `${summary} Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''} Repo: ${REPO_URL}`,
-            },
-          },
-        },
-      },
-    },
-    { headers: ddHeaders(env), timeout: 10000 },
-  );
-
-  const incident = response.data && response.data.data;
-  if (!incident || !incident.id) {
-    return null;
-  }
-  return {
-    id: incident.id,
-    publicId: incident.attributes && incident.attributes.public_id,
-  };
-}
-
-/**
- * Resolve a Datadog incident by id. The Datadog Slack integration then
- * auto-archives the incident channel on its own schedule.
- */
-async function resolveDatadogIncident(incidentId) {
-  const env = ddIncidentEnv();
-  if (!env.apiKey || !env.appKey || !incidentId) return false;
-  await axios.patch(
-    `https://api.${env.site}/api/v2/incidents/${incidentId}`,
-    {
-      data: {
-        id: incidentId,
-        type: 'incidents',
-        attributes: { fields: { state: { type: 'dropdown', value: 'resolved' } } },
-      },
-    },
-    { headers: ddHeaders(env), timeout: 10000 },
-  );
-  return true;
-}
-
 /**
  * Live registry of declared SEV-1 incidents, keyed by runRef, powering the
  * /oncall page status and the auto-resolve timers. Each demo click is an
@@ -1609,6 +1529,7 @@ async function postOncallIncident(options = {}) {
       summary: copy.summary,
       runRef,
       triggeredBy: options.devinEmail && EMAIL_RE.test(options.devinEmail) ? options.devinEmail : null,
+      repoUrl: REPO_URL,
     });
   } catch (error) {
     logger.error('Datadog incident declaration failed — falling back to Slack post', {
