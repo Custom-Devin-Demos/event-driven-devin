@@ -188,7 +188,7 @@ function main() {
   // Mundane touch-ups between T-30d and T-13d.
   const readme = fs.readFileSync(path.join(repo, 'README.md'), 'utf8');
   write('README.md', `${readme}\n<!-- ops contact: #eng-automations -->\n`);
-  commit('feature: note ops channel in README', 28);
+  commit('feature: note ops channel in README', 24);
   write('README.md', readme);
   commit('feature: move ops contact to internal wiki', 21);
 

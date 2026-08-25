@@ -45,8 +45,12 @@ function ratePerTick(baseline, tickSeconds) {
 }
 
 async function benignTick() {
-  // Weighted sample of orgs proportional to their benign rate.
+  // Weighted sample of orgs proportional to their benign rate. Provider-B
+  // orgs are skipped: the benign subpaths all carry underscores, which
+  // provider B rejects, so their steady-state traffic is completion rows
+  // only (see completionTick). This keeps CUST_2 genuinely healthy.
   for (const org of ALL_ORGS) {
+    if (org.provider === 'provider-b') continue;
     if (Math.random() < (org.benignRatePerMin / 60) * 5) {
       const subpath = pick(BENIGN_SUBPATHS);
       try {

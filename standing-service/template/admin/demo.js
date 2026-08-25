@@ -38,11 +38,12 @@ async function arm(req, res) {
 }
 
 async function disarm(req, res) {
+  const customer = typeof req.body?.customer === 'string' ? req.body.customer : 'CUST_1';
   const db = getDb();
   await db.query(
     `UPDATE automation_triggers SET enabled = false
      WHERE org_id = $1 AND source = 'schedule:recurring'`,
-    ['CUST_1'],
+    [customer],
   );
   let purged = 0;
   try {
