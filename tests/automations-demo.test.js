@@ -134,6 +134,19 @@ describe('automations incident demo control plane', () => {
     expect(slack.postMessage).toHaveBeenCalledWith('slack-token', 'C1', expect.any(String), expect.any(Array));
   });
 
+  test('stops retrying joins on a permanent Slack error', async () => {
+    jest.useFakeTimers();
+    await demo.arm();
+    await demo.declare();
+    slack.findChannelByNameFragment.mockResolvedValue(CHANNEL);
+    slack.joinChannel.mockRejectedValue(new Error('Slack API error: missing_scope'));
+    await jest.advanceTimersByTimeAsync(15000);
+    expect(slack.joinChannel).toHaveBeenCalledTimes(1);
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(slack.joinChannel).toHaveBeenCalledTimes(1);
+    expect(slack.postMessage).not.toHaveBeenCalled();
+  });
+
   test('single-flights concurrent declares into one incident', async () => {
     await demo.arm();
     let resolveDeclare;

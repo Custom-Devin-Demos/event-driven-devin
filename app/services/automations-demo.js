@@ -246,9 +246,13 @@ function startChannelDiscovery(publicId, declaredAtMs) {
     try {
       await joinChannel(slackToken(), channel.id);
     } catch (error) {
+      const permanent =
+        /Slack API error: (missing_scope|invalid_auth|account_inactive|token_revoked|is_archived|channel_not_found|method_not_supported_for_channel_type)/.test(
+          error.message,
+        );
       logger.warn('Automations demo channel join failed', { channel: channel.name, error: error.message });
       if (state.runState !== 'declared') return;
-      if (attempts >= CHANNEL_LOOKUP_MAX_ATTEMPTS) {
+      if (permanent || attempts >= CHANNEL_LOOKUP_MAX_ATTEMPTS) {
         logger.warn('Automations demo gave up joining the incident channel', { channel: channel.name });
         return;
       }
