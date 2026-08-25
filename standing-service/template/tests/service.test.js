@@ -47,8 +47,12 @@ function makeDb({ triggers = [], flags = [], providers = [] } = {}) {
         return { rows: row ? [{ provider: row.provider, config: row.config || {} }] : [] };
       }
       if (sql.startsWith('INSERT INTO automation_event_data')) {
+        const exists = state.eventData.some(
+          (row) => row.org_id === params[0] && row.fingerprint === params[1],
+        );
+        if (exists) return { rows: [] };
         state.eventData.push({ org_id: params[0], fingerprint: params[1] });
-        return { rows: [] };
+        return { rows: [{ id: state.eventData.length }] };
       }
       if (sql.startsWith('INSERT INTO automation_queued_events')) {
         state.queuedEvents.push({ org_id: params[0], source: params[1], status: 'pending' });

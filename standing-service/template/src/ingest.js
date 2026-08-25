@@ -65,12 +65,16 @@ async function processEvent(event) {
         const fingerprint = crypto.createHash('sha256')
           .update(`${upload.orgId}:${windowEnd}:${event.type}`)
           .digest('hex');
-        await client.query(
+        const inserted = await client.query(
           `INSERT INTO automation_event_data (org_id, fingerprint, subpath, blob_ref)
            VALUES ($1, $2, $3, $4)
-           ON CONFLICT (org_id, fingerprint) DO NOTHING`,
+           ON CONFLICT (org_id, fingerprint) DO NOTHING
+           RETURNING id`,
           [upload.orgId, fingerprint, 'automation_events', upload.blob.ref],
         );
+        // Fingerprint conflict means this window was already committed by an
+        // earlier delivery of the same tick — don't re-enqueue the run.
+        if (inserted.rows.length === 0) continue;
         await client.query(
           `INSERT INTO automation_queued_events (org_id, source, status)
            VALUES ($1, $2, 'pending')`,
