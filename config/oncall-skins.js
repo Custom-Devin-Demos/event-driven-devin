@@ -446,7 +446,7 @@ const ONCALL_SKINS = {
       // page, so the brand shim skips the title/logo rewrite. Keep the file's
       // own <title> in sync with page.title.
       file: '32715aba.html',
-      title: 'Mercor \u2014 Payouts',
+      title: 'Mercor \u2014 Earnings',
     },
     accent: '#4F46E5',
     accentDark: '#4338CA',
