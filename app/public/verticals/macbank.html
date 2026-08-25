@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Banking &mdash; Macquarie</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000000; --graphite: #4C4C4C;
+      --mq-blue: #0C6CCE; --mq-blue-dark: #0A57A6; --mq-blue-dim: rgba(12,108,206,0.08);
+      --white: #FFFFFF; --off-white: #F7F7F7;
+      --gray-50: #FAFAFA; --gray-100: #F2F2F2; --gray-200: #E4E4E4;
+      --gray-300: #D2D2D2; --gray-400: #9B9B9B; --gray-500: #6E6E6E;
+      --gray-600: #4B4B4B; --gray-700: #2E2E2E;
+      --link: var(--mq-blue);
+      --danger: #C40D3C; --danger-bg: #FDF1F4; --danger-border: #F3C3CF;
+      --success: #007A53; --success-bg: #EFF7F3; --success-border: #A6D8C4;
+      --sans: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--black); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    /* Graphite utility bar */
+    .utility-bar { background: var(--graphite); color: #fff; font-size: 0.72rem; padding: 0.4rem 2rem; display: flex; align-items: center; gap: 1.5rem; }
+    .utility-bar .spacer { flex: 1; }
+    .utility-bar a { color: rgba(255,255,255,0.9); text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+    .utility-bar a:hover { text-decoration: underline; }
+    .utility-search { background: rgba(255,255,255,0.14); border: none; border-radius: 0; color: #fff; font-size: 0.72rem; padding: 0.25rem 0.7rem; width: 220px; font-family: var(--sans); }
+    .utility-search::placeholder { color: rgba(255,255,255,0.6); }
+
+    /* Black nav bar */
+    header { background: var(--black); padding: 0 2rem; height: 64px; display: flex; align-items: center; gap: 2rem; }
+    .logo { display: flex; align-items: center; flex: none; text-decoration: none; }
+    /* Source mark is black artwork; invert for the black header */
+    .logo img { height: 26px; width: auto; display: block; filter: invert(1); }
+    nav { display: flex; gap: 0.25rem; }
+    nav a { color: var(--white); text-decoration: none; font-size: 0.82rem; font-weight: 500; padding: 1.25rem 0.7rem; border-bottom: 3px solid transparent; transition: border-color 0.2s; }
+    nav a:hover { border-bottom-color: rgba(255,255,255,0.5); }
+    nav a.active { border-bottom-color: var(--mq-blue); font-weight: 700; }
+    .header-spacer { flex: 1; }
+    .logoff { background: var(--mq-blue); color: var(--white) !important; font-weight: 600; font-size: 0.8rem; padding: 0.6rem 1.15rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .logoff:hover { background: var(--mq-blue-dark); }
+
+    /* Black hero band with the Macquarie corner device */
+    .hero { background: var(--white); padding: 1.1rem 2rem 0; }
+    .hero-inner { max-width: 1140px; margin: 0 auto; }
+    .breadcrumb { font-size: 0.72rem; color: var(--gray-600); margin-bottom: 0.9rem; }
+    .breadcrumb a { color: var(--gray-600); }
+    .hero-panel { position: relative; background: var(--black); color: var(--white); padding: 2rem 2.25rem; }
+    .hero-panel::before { content: ''; position: absolute; left: 0; top: 100%; border-left: 22px solid var(--black); border-bottom: 22px solid transparent; }
+    .hero-panel h1 { font-size: 1.9rem; font-weight: 300; letter-spacing: -0.015em; line-height: 1.15; }
+    .hero-panel h1 strong { font-weight: 700; }
+    .hero-panel p { margin-top: 0.55rem; font-size: 0.82rem; color: rgba(255,255,255,0.8); }
+    .hero-panel .back-link { position: absolute; right: 2.25rem; top: 2rem; color: var(--white); font-size: 0.75rem; font-weight: 600; text-decoration: none; }
+    .hero-panel .back-link:hover { text-decoration: underline; }
+
+    /* Blue-underline tab strip, as on macquarie.com.au */
+    .tabs { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0 2rem; }
+    .tabs-inner { max-width: 1140px; margin: 0 auto; display: flex; gap: 1.6rem; }
+    .tabs-inner a { padding: 1rem 0 0.85rem; font-size: 0.82rem; font-weight: 500; color: var(--gray-700); text-decoration: none; border-bottom: 3px solid transparent; }
+    .tabs-inner a.active { color: var(--black); font-weight: 700; border-bottom-color: var(--mq-blue); }
+    .tabs-inner a:hover { color: var(--black); }
+
+    .page { max-width: 1140px; margin: 1.75rem auto 0; padding: 0 2rem 2.5rem; display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+    @media (max-width: 900px) { .page { grid-template-columns: 1fr; } }
+
+    /* Accounts panel */
+    .panel { background: var(--white); border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .account-row { display: flex; align-items: center; gap: 1rem; padding: 1.05rem 1.4rem; border-bottom: 1px solid var(--gray-200); transition: background 0.15s; }
+    .account-row:hover { background: var(--mq-blue-dim); }
+    .acct-icon { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--gray-300); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex: none; background: var(--gray-50); }
+    .acct-info { flex: 1; min-width: 0; }
+    .acct-name { font-size: 0.85rem; font-weight: 700; color: var(--black); }
+    .acct-number { font-family: var(--mono); font-size: 0.7rem; color: var(--gray-500); }
+    .acct-figures { display: flex; gap: 2.25rem; text-align: right; }
+    .fig-label { font-size: 0.65rem; color: var(--gray-500); }
+    .fig-value { font-size: 0.88rem; font-weight: 700; color: var(--black); }
+    .acct-menu { color: var(--gray-400); font-weight: 700; letter-spacing: 0.1em; padding-left: 0.5rem; }
+    .panel-link { display: block; padding: 0.9rem 1.4rem; font-size: 0.8rem; color: var(--link); text-decoration: none; border-bottom: 1px solid var(--gray-200); font-weight: 600; }
+    .panel-link:hover { text-decoration: underline; }
+    .totals-row { display: flex; justify-content: space-between; padding: 0.95rem 1.4rem; background: var(--gray-50); }
+    .totals-row .fig-label { margin-bottom: 0.1rem; }
+
+    /* Transactions */
+    .section-title { font-size: 1.05rem; font-weight: 300; color: var(--black); margin: 1.75rem 0 0.7rem; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { text-align: left; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-500); padding: 0.7rem 1.4rem; border-bottom: 2px solid var(--mq-blue); background: var(--gray-50); }
+    .txn-table td { padding: 0.8rem 1.4rem; border-bottom: 1px solid var(--gray-100); font-size: 0.83rem; }
+    .txn-table tbody tr:hover td { background: var(--mq-blue-dim); }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .credit { color: var(--success); font-weight: 600; }
+    .debit { color: var(--gray-700); }
+
+    /* Sidebar */
+    .side-card { background: var(--white); border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); padding: 1.15rem 1.3rem; margin-bottom: 1.25rem; }
+    .side-card p { font-size: 0.83rem; font-weight: 600; color: var(--black); }
+    .side-card a { display: inline-block; margin-top: 0.4rem; font-size: 0.78rem; color: var(--link); text-decoration: none; font-weight: 600; }
+    .side-card a:hover { text-decoration: underline; }
+
+    .transfer-widget { background: var(--white); border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .widget-tabs { display: flex; border-bottom: 1px solid var(--gray-200); }
+    .widget-tabs div { flex: 1; text-align: center; padding: 0.75rem; font-size: 0.82rem; font-weight: 600; color: var(--gray-500); border-bottom: 3px solid transparent; }
+    .widget-tabs div.active { color: var(--black); font-weight: 700; border-bottom-color: var(--mq-blue); }
+    .widget-body { padding: 1.15rem 1.3rem 1.3rem; }
+    .form-group { margin-bottom: 0.9rem; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--black); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.55rem 0.7rem; background: var(--white); border: 1px solid var(--gray-400); border-radius: 0; color: var(--black); font-family: var(--sans); font-size: 0.83rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--mq-blue); box-shadow: 0 0 0 3px rgba(12,108,206,0.25); }
+    .btn-transfer { width: 100%; padding: 0.75rem; background: var(--mq-blue); color: var(--white); border: none; border-radius: 0; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s; }
+    .btn-transfer:hover { background: var(--mq-blue-dark); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { margin-top: 0.9rem; padding: 0.75rem 0.9rem; font-size: 0.78rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.7rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 1.25rem; padding: 0.7rem 0.9rem; background: var(--mq-blue-dim); border-left: 4px solid var(--mq-blue); font-size: 0.72rem; color: var(--gray-600); }
+  </style>
+</head>
+<body>
+  <div class="utility-bar">
+    <a href="#">Personal and Business</a>
+    <a href="#">Advisers</a>
+    <a href="#">Brokers</a>
+    <div class="spacer"></div>
+    <input class="utility-search" type="text" placeholder="I am looking for..." aria-label="Search Macquarie">
+    <div class="spacer"></div>
+    <a href="#">Contact us</a>
+    <a href="#">Help Centre</a>
+  </div>
+  <header>
+    <a class="logo" href="/"><img src="/verticals/assets/macbank/macquarie-logo.svg" alt="Macquarie"></a>
+    <nav>
+      <a href="#" class="active">Accounts</a>
+      <a href="#">Payments</a>
+      <a href="#">Insights</a>
+      <a href="#">Budgets</a>
+      <a href="#">Settings</a>
+    </nav>
+    <div class="header-spacer"></div>
+    <a href="/" class="logoff">Log out</a>
+  </header>
+  <div class="hero fade-in">
+    <div class="hero-inner">
+      <div class="breadcrumb"><a href="#">Digital banking</a> &nbsp;/&nbsp; Online banking</div>
+      <div class="hero-panel">
+        <h1>Good morning, <strong>Alice</strong></h1>
+        <p>You last logged in 15/03/2026 at 8:42 AM (Syd/Melb time)</p>
+        <a href="/" class="back-link">&larr; All Demos</a>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tabs-inner">
+      <a href="#" class="active">Accounts</a>
+      <a href="#">Transactions</a>
+      <a href="#">Payments</a>
+      <a href="#">Documents</a>
+    </div>
+  </div>
+  <div class="page">
+    <div>
+      <div class="panel fade-in d1">
+        <div class="account-row">
+          <div class="acct-icon">&#128179;</div>
+          <div class="acct-info">
+            <div class="acct-name">Transaction Account</div>
+            <div class="acct-number">XXX-XXX &middot; ACCT-1001</div>
+          </div>
+          <div class="acct-figures">
+            <div><div class="fig-label">Balance</div><div class="fig-value">$24,850.00</div></div>
+            <div><div class="fig-label">Available</div><div class="fig-value">$24,850.00</div></div>
+          </div>
+          <div class="acct-menu">&hellip;</div>
+        </div>
+        <div class="account-row">
+          <div class="acct-icon">&#128176;</div>
+          <div class="acct-info">
+            <div class="acct-name">Savings Account</div>
+            <div class="acct-number">XXX-XXX &middot; ACCT-1002</div>
+          </div>
+          <div class="acct-figures">
+            <div><div class="fig-label">Balance</div><div class="fig-value">$142,300.00</div></div>
+            <div><div class="fig-label">Available</div><div class="fig-value">$142,300.00</div></div>
+          </div>
+          <div class="acct-menu">&hellip;</div>
+        </div>
+        <a href="#" class="panel-link">Open a new account</a>
+        <div class="totals-row">
+          <div><div class="fig-label">Credit balances</div><div class="fig-value">$167,150.00</div></div>
+          <div><div class="fig-label">Debit balances</div><div class="fig-value">$0.00</div></div>
+          <div><div class="fig-label">Net position</div><div class="fig-value">$167,150.00</div></div>
+        </div>
+      </div>
+      <div class="fade-in d2">
+        <div class="section-title">Recent Transactions</div>
+        <div class="panel">
+          <table class="txn-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+            <tbody>
+              <tr><td>15 Mar</td><td>Direct Credit &mdash; Payroll</td><td class="credit">+$4,200.00</td><td>$24,850.00</td></tr>
+              <tr><td>14 Mar</td><td>Woolworths Metro</td><td class="debit">-$127.43</td><td>$20,650.00</td></tr>
+              <tr><td>13 Mar</td><td>Electricity &mdash; AGL Energy</td><td class="debit">-$89.50</td><td>$20,777.43</td></tr>
+              <tr><td>12 Mar</td><td>Transfer from Savings Account</td><td class="credit">+$2,000.00</td><td>$20,866.93</td></tr>
+              <tr><td>10 Mar</td><td>Amazon AU</td><td class="debit">-$54.99</td><td>$18,866.93</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="side-card fade-in d2">
+        <p>No payments due in the next 7 days</p>
+        <a href="#">Scheduled payments calendar</a>
+      </div>
+      <div class="side-card fade-in d3">
+        <p>Track your spending by category with Macquarie Insights.</p>
+        <a href="#">Tell me more</a>
+      </div>
+      <div class="transfer-widget fade-in d4">
+        <div class="widget-tabs"><div class="active">Transfer</div><div>BPAY</div></div>
+        <div class="widget-body">
+          <form id="transferForm">
+            <div class="form-group"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Transaction Account &mdash; ACCT-1001</option><option value="ACCT-1002">Savings Account &mdash; ACCT-1002</option></select></div>
+            <div class="form-group"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">Savings Account &mdash; ACCT-1002</option><option value="ACCT-1001">Transaction Account &mdash; ACCT-1001</option><option value="ACCT-EXT-001">External &mdash; Westpac ****4921</option></select></div>
+            <div class="form-group"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$"></div>
+            <div class="form-group"><label for="accountTier">Account Tier</label><select id="accountTier"><option value="premium">Premium (Free transfers)</option><option value="standard">Standard ($2.50/transfer)</option><option value="basic">Basic ($4.99/transfer)</option></select></div>
+            <button type="submit" class="btn-transfer" id="submitBtn">Transfer Funds</button>
+          </form>
+          <div id="result" class="result-box"></div>
+          <div class="security-note">Payments are approved in Macquarie Authenticator and protected by 256-bit encryption. Deposits guaranteed under the Financial Claims Scheme up to $250,000.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '', sourcePage: '/macbank' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transfer Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transfer Complete</div><div class="error-detail">Debited $${data.receipt.totalDebit} (includes $${data.receipt.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Transfer Funds'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -365,6 +365,11 @@ router.get('/cba', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'cba.html'));
 });
 
+// Macquarie Online Banking demo — friendly public URL, serves the macbank page (hidden from hub)
+router.get('/macbank', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'macbank.html'));
+});
+
 // Gap data-intelligence demo — friendly public URL, serves the 383b99d1 page (hidden from hub)
 router.get('/gapdata', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '383b99d1.html'));
