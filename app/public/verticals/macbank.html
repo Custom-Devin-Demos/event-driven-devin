@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Banking &mdash; Macquarie</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000000;
+      --slate: #343946; --slate-dark: #2B2F38; --slate-light: #3E4351;
+      --mq-blue: #3472C4; --mq-blue-dark: #2B60A6; --mq-blue-dim: rgba(52,114,196,0.08);
+      --coral: #CF4C41;
+      --white: #FFFFFF; --canvas: #EFF1F4;
+      --gray-50: #FAFAFB; --gray-100: #F1F2F4; --gray-200: #E3E5E9;
+      --gray-300: #D0D3D8; --gray-400: #9FA3AE; --gray-500: #6E7380;
+      --gray-600: #4C515C; --gray-700: #2E323B;
+      --link: var(--mq-blue);
+      --danger: #C0392B; --danger-bg: #FCF2F1; --danger-border: #EFC7C2;
+      --success: #1D7A4D; --success-bg: #F0F7F3; --success-border: #B4DBC5;
+      --sans: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-card: 0 1px 3px rgba(16,24,40,0.08), 0 6px 18px rgba(16,24,40,0.05);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--canvas); color: var(--gray-700); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.5s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    /* Black top bar */
+    .topbar { background: var(--black); height: 66px; display: flex; align-items: center; gap: 1.5rem; padding-left: 1.6rem; }
+    .logo { display: flex; align-items: center; flex: none; text-decoration: none; }
+    /* Source mark is black artwork; invert it for the black bar */
+    .logo img { height: 24px; width: auto; display: block; filter: invert(1); }
+    .search { flex: 0 1 530px; display: flex; align-items: center; background: #6A6B6B; border-radius: 4px; height: 38px; padding: 0 0.35rem 0 0.9rem; }
+    .search input { flex: 1; background: none; border: none; outline: none; color: var(--white); font-family: var(--sans); font-size: 0.82rem; }
+    .search input::placeholder { color: rgba(255,255,255,0.75); }
+    .search .search-icon { color: rgba(255,255,255,0.9); font-size: 0.9rem; padding: 0 0.75rem; }
+    .search .scope { display: flex; align-items: center; gap: 0.4rem; color: var(--white); font-size: 0.8rem; border-left: 1px solid rgba(255,255,255,0.3); padding: 0.15rem 0.5rem 0.15rem 0.9rem; white-space: nowrap; }
+    .topbar .spacer { flex: 1; }
+    .bell { color: var(--white); font-size: 1rem; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(160deg, #7FB2E5, #2F5F92); flex: none; }
+    .who { color: var(--white); font-size: 0.82rem; }
+    .logout { background: var(--slate-dark); color: var(--white); text-decoration: none; font-size: 0.82rem; height: 66px; display: flex; align-items: center; padding: 0 1.5rem; margin-left: 0.9rem; }
+    .logout:hover { background: var(--slate-light); }
+
+    /* Left icon rail */
+    .shell { display: flex; min-height: calc(100vh - 66px); }
+    .rail { width: 90px; background: var(--slate); flex: none; display: flex; flex-direction: column; padding-bottom: 1rem; }
+    .rail a { color: rgba(255,255,255,0.92); text-decoration: none; font-size: 0.68rem; text-align: center; padding: 0.95rem 0.3rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+    .rail a .ico { font-size: 1.15rem; line-height: 1; }
+    .rail a:hover { background: var(--slate-light); }
+    .rail a.active { background: var(--mq-blue); font-weight: 600; }
+    .rail a.pay .ico { background: var(--coral); color: var(--white); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; }
+    .rail .rail-spacer { flex: 1; }
+
+    /* Main content */
+    main { flex: 1; min-width: 0; padding: 1.6rem 2rem 3rem; }
+    .greeting { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+    .greeting h1 { font-size: 1.75rem; font-weight: 300; color: var(--gray-700); letter-spacing: -0.01em; }
+    .greeting .back-link { margin-left: auto; color: var(--link); font-size: 0.78rem; font-weight: 600; text-decoration: none; }
+    .greeting .back-link:hover { text-decoration: underline; }
+    .greeting-date { font-size: 0.75rem; color: var(--gray-500); margin: 0.3rem 0 1.4rem; }
+
+    .columns { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start; }
+    @media (max-width: 1100px) { .columns { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .rail { display: none; } main { padding: 1.25rem 1rem 2rem; } }
+
+    /* Cards */
+    .card { background: var(--white); border-radius: 8px; box-shadow: var(--shadow-card); overflow: hidden; }
+    .card-head { display: flex; align-items: center; padding: 1.35rem 1.6rem 0.85rem; }
+    .card-head h2 { font-size: 1.2rem; font-weight: 400; color: var(--gray-700); }
+    .card-head .kebab { margin-left: auto; color: var(--gray-400); font-weight: 700; letter-spacing: 0.12em; }
+
+    /* Accounts table */
+    .acct-table { width: 100%; border-collapse: collapse; }
+    .acct-table th { text-align: left; font-size: 0.74rem; font-weight: 400; color: var(--gray-500); padding: 0.6rem 0.9rem 0.7rem; border-bottom: 1px solid var(--gray-300); }
+    .acct-table th:first-child, .acct-table td:first-child { padding-left: 1.6rem; width: 36px; }
+    .acct-table th:last-child, .acct-table td:last-child { padding-right: 1.6rem; }
+    .acct-table td { padding: 1rem 0.9rem; border-bottom: 1px solid var(--gray-200); font-size: 0.83rem; color: var(--gray-700); vertical-align: top; }
+    .acct-table tbody tr:hover td { background: var(--mq-blue-dim); }
+    .acct-table .num, .acct-table .amount { text-align: right; }
+    .acct-table th.num, .acct-table th.amount { text-align: right; }
+    .acct-table .product { font-size: 0.85rem; }
+    .acct-table .card-child { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.5rem; padding-left: 1.1rem; font-size: 0.78rem; color: var(--gray-600); border-left: 1px solid var(--gray-300); }
+    .acct-num { font-family: var(--mono); font-size: 0.78rem; }
+    .copy { color: var(--gray-400); }
+    .totals { display: flex; justify-content: flex-end; gap: 3.5rem; padding: 1.1rem 1.6rem 1.4rem; }
+    .totals div { text-align: right; }
+    .totals .t-value { font-size: 0.9rem; font-weight: 600; color: var(--gray-700); }
+    .totals .t-label { font-size: 0.74rem; color: var(--gray-500); }
+
+    /* Transactions */
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { text-align: left; font-size: 0.74rem; font-weight: 400; color: var(--gray-500); padding: 0.6rem 1.6rem 0.7rem; border-bottom: 1px solid var(--gray-300); }
+    .txn-table td { padding: 0.85rem 1.6rem; border-bottom: 1px solid var(--gray-200); font-size: 0.83rem; }
+    .txn-table tbody tr:hover td { background: var(--mq-blue-dim); }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .txn-table .amount, .txn-table th.amount { text-align: right; }
+    .credit { color: var(--success); font-weight: 600; }
+    .debit { color: var(--gray-700); }
+
+    /* Sidebar */
+    .side-card { background: var(--white); border-radius: 8px; box-shadow: var(--shadow-card); padding: 1.15rem 1.3rem; margin-bottom: 1.25rem; }
+    .side-card p { font-size: 0.83rem; font-weight: 500; color: var(--gray-700); }
+    .side-card a { display: inline-block; margin-top: 0.4rem; font-size: 0.78rem; color: var(--link); text-decoration: none; font-weight: 600; }
+    .side-card a:hover { text-decoration: underline; }
+
+    .transfer-widget { background: var(--white); border-radius: 8px; box-shadow: var(--shadow-card); overflow: hidden; }
+    .widget-tabs { display: flex; border-bottom: 1px solid var(--gray-200); }
+    .widget-tabs div { flex: 1; text-align: center; padding: 0.8rem; font-size: 0.82rem; color: var(--gray-500); border-bottom: 3px solid transparent; }
+    .widget-tabs div.active { color: var(--gray-700); font-weight: 600; border-bottom-color: var(--mq-blue); }
+    .widget-body { padding: 1.15rem 1.3rem 1.3rem; }
+    .form-group { margin-bottom: 0.9rem; }
+    .form-group label { display: block; font-size: 0.74rem; font-weight: 500; color: var(--gray-600); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.55rem 0.7rem; background: var(--white); border: 1px solid var(--gray-300); border-radius: 4px; color: var(--gray-700); font-family: var(--sans); font-size: 0.83rem; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--mq-blue); box-shadow: 0 0 0 3px rgba(52,114,196,0.22); }
+    .btn-transfer { width: 100%; padding: 0.75rem; background: var(--mq-blue); color: var(--white); border: none; border-radius: 4px; font-size: 0.85rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: background 0.2s; }
+    .btn-transfer:hover { background: var(--mq-blue-dark); }
+    .btn-transfer:disabled { opacity: 0.5; cursor: not-allowed; }
+    .result-box { margin-top: 0.9rem; padding: 0.75rem 0.9rem; border-radius: 4px; font-size: 0.78rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.7rem; opacity: 0.85; word-break: break-all; }
+    .security-note { margin-top: 1.25rem; padding: 0.7rem 0.9rem; background: var(--mq-blue-dim); border-left: 3px solid var(--mq-blue); font-size: 0.72rem; color: var(--gray-600); }
+    .section-gap { margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="logo" href="/"><img src="/verticals/assets/macbank/macquarie-logo.svg" alt="Macquarie"></a>
+    <div class="search">
+      <input type="text" placeholder="Search for transactions, accounts, reports and more..." aria-label="Search">
+      <span class="search-icon">&#128269;</span>
+      <span class="scope">Everything &#9662;</span>
+    </div>
+    <div class="spacer"></div>
+    <span class="bell">&#128276;</span>
+    <div class="avatar"></div>
+    <span class="who">Alice</span>
+    <a href="/" class="logout">Log out</a>
+  </div>
+  <div class="shell">
+    <nav class="rail">
+      <a href="#" class="active"><span class="ico">&#128203;</span>Accounts</a>
+      <a href="#"><span class="ico">&#128161;</span>Insights</a>
+      <a href="#" class="pay"><span class="ico">$</span>Pay</a>
+      <a href="#"><span class="ico">&#128717;</span>Marketplace</a>
+      <a href="#"><span class="ico">&#128200;</span>Research</a>
+      <a href="#"><span class="ico">&#127796;</span>Travel</a>
+      <a href="#"><span class="ico">&#10068;</span>Help</a>
+      <a href="#"><span class="ico">&#9881;</span>Settings</a>
+      <div class="rail-spacer"></div>
+    </nav>
+    <main>
+      <div class="greeting fade-in">
+        <h1>Good morning, Alice</h1>
+        <a href="/" class="back-link">&larr; All Demos</a>
+      </div>
+      <div class="greeting-date fade-in">Sunday, 15 March 2026 &middot; last logged in 8:42 AM (Syd/Melb time)</div>
+      <div class="columns">
+        <div>
+          <div class="card fade-in d1">
+            <div class="card-head"><h2>Accounts</h2><span class="kebab">&#8942;</span></div>
+            <table class="acct-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" aria-label="Select all accounts"></th>
+                  <th>Product</th>
+                  <th>Account name</th>
+                  <th class="num">Account number</th>
+                  <th class="amount">Available balance</th>
+                  <th class="amount">Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="checkbox" aria-label="Select Transaction Account"></td>
+                  <td class="product">Macquarie Platinum Transaction Account
+                    <div class="card-child">&#128179; Card ending in 6789</div>
+                  </td>
+                  <td>Alice Chen</td>
+                  <td class="num"><span class="acct-num">182-182 | ACCT-1001</span> <span class="copy">&#128203;</span></td>
+                  <td class="amount">$24,850.00</td>
+                  <td class="amount">$24,850.00</td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" aria-label="Select Savings Account"></td>
+                  <td class="product">Macquarie Savings Account</td>
+                  <td>Alice Chen</td>
+                  <td class="num"><span class="acct-num">182-182 | ACCT-1002</span> <span class="copy">&#128203;</span></td>
+                  <td class="amount">$142,300.00</td>
+                  <td class="amount">$142,300.00</td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" aria-label="Select Offset Home Loan"></td>
+                  <td class="product">Offset Home Loan</td>
+                  <td>Alice Chen</td>
+                  <td class="num"><span class="acct-num">182-182 | ACCT-2001</span> <span class="copy">&#128203;</span></td>
+                  <td class="amount">$0.00</td>
+                  <td class="amount">$0.00</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="totals">
+              <div><div class="t-value">$167,150.00</div><div class="t-label">Total available balance</div></div>
+              <div><div class="t-value">$167,150.00</div><div class="t-label">Total balance</div></div>
+            </div>
+          </div>
+          <div class="card section-gap fade-in d2">
+            <div class="card-head"><h2>Recent transactions</h2><span class="kebab">&#8942;</span></div>
+            <table class="txn-table">
+              <thead><tr><th>Date</th><th>Description</th><th class="amount">Amount</th><th class="amount">Balance</th></tr></thead>
+              <tbody>
+                <tr><td>15 Mar</td><td>Direct Credit &mdash; Payroll</td><td class="amount credit">+$4,200.00</td><td class="amount">$24,850.00</td></tr>
+                <tr><td>14 Mar</td><td>Woolworths Metro</td><td class="amount debit">-$127.43</td><td class="amount">$20,650.00</td></tr>
+                <tr><td>13 Mar</td><td>Electricity &mdash; AGL Energy</td><td class="amount debit">-$89.50</td><td class="amount">$20,777.43</td></tr>
+                <tr><td>12 Mar</td><td>Transfer from Macquarie Savings Account</td><td class="amount credit">+$2,000.00</td><td class="amount">$20,866.93</td></tr>
+                <tr><td>10 Mar</td><td>Amazon AU</td><td class="amount debit">-$54.99</td><td class="amount">$18,866.93</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="side-card fade-in d2">
+            <p>No payments due in the next 7 days</p>
+            <a href="#">Scheduled payments calendar</a>
+          </div>
+          <div class="side-card fade-in d3">
+            <p>Track your spending by category with Macquarie Insights.</p>
+            <a href="#">Tell me more</a>
+          </div>
+          <div class="transfer-widget fade-in d4">
+            <div class="widget-tabs"><div class="active">Transfer</div><div>BPAY</div></div>
+            <div class="widget-body">
+              <form id="transferForm">
+                <div class="form-group"><label for="fromAccount">From</label><select id="fromAccount"><option value="ACCT-1001">Platinum Transaction &mdash; ACCT-1001</option><option value="ACCT-1002">Savings Account &mdash; ACCT-1002</option></select></div>
+                <div class="form-group"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">Savings Account &mdash; ACCT-1002</option><option value="ACCT-1001">Platinum Transaction &mdash; ACCT-1001</option><option value="ACCT-EXT-001">External &mdash; Westpac ****4921</option></select></div>
+                <div class="form-group"><label for="amount">Amount</label><input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$"></div>
+                <div class="form-group"><label for="accountTier">Account Tier</label><select id="accountTier"><option value="premium">Premium (Free transfers)</option><option value="standard">Standard ($2.50/transfer)</option><option value="basic">Basic ($4.99/transfer)</option></select></div>
+                <button type="submit" class="btn-transfer" id="submitBtn">Transfer Funds</button>
+              </form>
+              <div id="result" class="result-box"></div>
+              <div class="security-note">Payments are approved in Macquarie Authenticator and protected by 256-bit encryption. Deposits guaranteed under the Financial Claims Scheme up to $250,000.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '', sourcePage: '/macbank' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Transfer Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Transfer Complete</div><div class="error-detail">Debited $${data.receipt.totalDebit} (includes $${data.receipt.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Transfer Funds'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

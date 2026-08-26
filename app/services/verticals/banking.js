@@ -68,7 +68,7 @@ function formatReceipt(transfer, feeBreakdown) {
   };
 }
 
-const KNOWN_PAGES = ['/banking', '/cba'];
+const KNOWN_PAGES = ['/banking', '/cba', '/macbank'];
 
 function resolveSourcePage(page) {
   return KNOWN_PAGES.includes(page) ? page : '/banking';
