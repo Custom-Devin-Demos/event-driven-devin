@@ -20,7 +20,10 @@ const ENTERPRISES = [
   { orgId: 'CUST_11', name: 'VanArsdel Telecom', provider: 'provider-a', recurring: false, benignRatePerMin: 4 },
   { orgId: 'CUST_12', name: 'Coho Winery Group', provider: 'provider-a', recurring: true, benignRatePerMin: 2 },
   { orgId: 'CUST_13', name: 'Relecloud SaaS', provider: 'provider-a', recurring: true, benignRatePerMin: 5 },
-  { orgId: 'CUST_14', name: 'Bellows Aerospace', provider: 'provider-a', recurring: false, benignRatePerMin: 3 },
+  // Bellows sits behind a flaky corporate proxy: its benign writes hit
+  // transient timeouts that succeed on retry. A second failing tenant an
+  // investigator must rule out before pinning everything on one customer.
+  { orgId: 'CUST_14', name: 'Bellows Aerospace', provider: 'provider-a', recurring: false, benignRatePerMin: 3, transientFailureRate: 0.12 },
   { orgId: 'CUST_15', name: 'Margie Travel', provider: 'provider-a', recurring: true, benignRatePerMin: 2 },
 ];
 
@@ -54,4 +57,8 @@ const SOURCE_BASELINES = {
   manual: { min: 0, max: 6 },
 };
 
-module.exports = { ENTERPRISES, LONG_TAIL_COUNT, longTailOrgs, BENIGN_SUBPATHS, SOURCE_BASELINES };
+// Unrelated platform services whose routine warnings share the incident
+// dashboards with the automations metrics.
+const DECOY_SERVICES = ['scheduler-ui', 'billing-sync', 'notifications-relay'];
+
+module.exports = { ENTERPRISES, LONG_TAIL_COUNT, longTailOrgs, BENIGN_SUBPATHS, SOURCE_BASELINES, DECOY_SERVICES };

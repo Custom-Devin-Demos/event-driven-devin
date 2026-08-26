@@ -13,6 +13,8 @@
 //   - early history carries the AUTOMATIONS_QUEUE_INGESTION env flag,
 //     removed around T-11d with a PR reference in the message
 //   - a "previous incident" fix lands around T-5d
+//   - a harmless matcher-logging tweak lands at T-1d, so "did we ship
+//     anything yesterday?" has a plausible deploy to rule out
 //   - release/1.14 is cut before a late mainline refactor
 //   - the working tree at HEAD is byte-identical to template/
 
@@ -69,6 +71,18 @@ function isQueueIngestionEnabled() {
 module.exports = { isQueueIngestionEnabled };
 `;
 
+// Pre-T-1d variant of the matcher: identical logic, older log wording. The
+// T-1d red-herring commit "changes" only this line back to the template.
+function matcherPreVariant() {
+  const current = fs.readFileSync(path.join(TEMPLATE, 'src/matcher.js'), 'utf8');
+  const pre = current.replace(
+    "log('info', 'Matcher published recurring tick', { matched: result.rows.length });",
+    "log('info', 'matcher tick', { count: result.rows.length });",
+  );
+  if (pre === current) throw new Error('matcher pre-variant replacement failed');
+  return pre;
+}
+
 function main() {
   const [outDir, pushFlag, remoteUrl] = process.argv.slice(2);
   if (!outDir) {
@@ -121,7 +135,7 @@ function main() {
     [172, ['src/telemetry.js', 'src/db.js'], 'feature: telemetry and db pool'],
     [165, ['migrations/001-automation-triggers.sql'], 'feature: automation_triggers schema'],
     [158, ['src/queue.js'], 'feature: SQS queue wrapper with local fallback'],
-    [151, ['src/matcher.js', 'docs/matcher-design.md'], 'feature: recurring matcher with cursor semantics'],
+    [151, ['docs/matcher-design.md'], 'feature: recurring matcher with cursor semantics'],
     [140, ['migrations/002-automation-queued-events.sql', 'migrations/003-automation-event-data.sql'], 'feature: queued events and event data tables'],
     [132, ['src/storage/provider-a.js', 'src/storage/index.js'], 'feature: org storage provider selection'],
     [120, ['src/indirect-data.js'], 'feature: IndirectData blob writes'],
@@ -176,6 +190,11 @@ function main() {
     run: () => write('src/flags.js', LEGACY_FLAGS),
     message: 'feature: AUTOMATIONS_QUEUE_INGESTION rollout flag',
   });
+  timeline.push({
+    day: 151,
+    run: () => write('src/matcher.js', matcherPreVariant()),
+    message: 'feature: recurring matcher publish loop',
+  });
   patchNotes.forEach((note, i) => {
     timeline.push({
       day: 170 - i * 6, // ~T-170d .. ~T-26d
@@ -212,6 +231,11 @@ function main() {
   // T-5d: previous-incident fix.
   copyFromTemplate(repo, ['scripts/cherry-pick-to-release.sh']);
   commit('bug: harden release cherry-pick after INC-1093 backport miss', 5);
+
+  // T-1d: harmless red-herring deploy touching the matcher the day before a
+  // demo run — log wording only, no behavior change.
+  copyFromTemplate(repo, ['src/matcher.js']);
+  commit('feature: align matcher tick log with dashboard field names (#249)', 1);
 
   // Final sync: guarantee HEAD tree == template.
   copyFromTemplate(repo, listTemplateFiles());
