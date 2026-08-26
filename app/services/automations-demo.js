@@ -20,8 +20,8 @@ const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const CHANNEL_LOOKUP_MAX_ATTEMPTS = 40;
 const CHATTER = [
   { afterMs: 30 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
-  { afterMs: 60 * 1000, username: 'Ethan Brooks (ENG)', icon: ':man-technologist:', text: 'did we ship anything yesterday? I don\'t see a deploy' },
-  { afterMs: 120 * 1000, username: 'Priya Shah (ENG_B)', icon: ':woman-technologist:', text: 'is the queue itself down? AWS status is green' },
+  { afterMs: 60 * 1000, username: 'Ethan Brooks (ENG)', icon: ':male-technologist:', text: 'did we ship anything yesterday? I don\'t see a deploy' },
+  { afterMs: 120 * 1000, username: 'Priya Shah (ENG_B)', icon: ':female-technologist:', text: 'is the queue itself down? AWS status is green' },
   { afterMs: 180 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'looks like one customer has been poisoning our automations queue somehow' },
   { afterMs: 240 * 1000, username: 'Jordan Ellis (BIZ)', icon: ':briefcase:', text: 'customers are asking — blast radius? is this a sev2?' },
 ];
