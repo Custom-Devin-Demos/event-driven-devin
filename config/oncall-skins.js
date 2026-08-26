@@ -461,6 +461,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MERCOR SITE — internal demo only, not affiliated with, endorsed by, or a real Mercor product.',
   },
+  'a198d45f': {
+    slug: 'a198d45f',
+    company: 'MediCodio',
+    brandMark: 'M',
+    vertical: 'insurance',
+    page: {
+      file: 'a198d45f.html',
+      title: 'MediCodio AI — CODIO Coding Workspace',
+    },
+    theme: {
+      '--accent': '#00309F',
+      '--ink': '#141834',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#141834',
+      '--chrome-text': '#F5F7FC',
+    },
+    supportCenter: 'MediCodio Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A MEDICODIO SITE — internal demo only, not affiliated with, endorsed by, or a real MediCodio product.',
+  },
 };
 
 function getOncallSkin(slug) {
