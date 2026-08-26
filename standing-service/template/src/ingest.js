@@ -101,9 +101,13 @@ async function consumeOnce() {
   const message = await receive();
   if (!message) return false;
   const event = JSON.parse(message.body);
+  const started = Date.now();
   try {
-    await processEvent(event);
+    const result = await processEvent(event);
     await message.ack();
+    log('info', 'msg ok', {
+      src: event.type, n: result.uploaded, rc: message.receiveCount, ms: Date.now() - started,
+    });
   } catch (error) {
     increment('automation_service.ingest.tick_failed');
     recordIngestFailure();

@@ -102,11 +102,63 @@ async function completionTick(tickSeconds) {
   }
 }
 
-// Routine warnings from neighboring platform services, so the automations
-// failure signal is not the only non-green line on the shared dashboards.
+// Routine chatter from neighboring platform services sharing the host's log
+// pipeline, so the automations failure signal is buried in the same volume
+// and format mix a real production box produces.
+const DECOY_ROUTES = ['/v1/events', '/v1/usage', '/v1/orgs/sync', '/internal/metrics', '/healthz'];
+const KNOWN_ERRORS = [
+  'ECONNRESET: socket hang up',
+  'ETIMEDOUT: connect timeout after 10000ms',
+  'RateLimitError: 429 Too Many Requests (retry-after: 2)',
+];
+
+function decoyStack(message, service) {
+  return `${message}\n    at ClientRequest.<anonymous> (/srv/${service}/node_modules/undici/lib/client.js:412:22)\n    at ClientRequest.emit (node:events:517:28)\n    at TLSSocket.socketErrorListener (node:_http_client:501:9)\n    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)`;
+}
+
 function decoyTick() {
-  if (Math.random() < 0.3) {
-    const service = pick(DECOY_SERVICES);
+  const service = pick(DECOY_SERVICES);
+  // Plain-text access-log lines: most of the stream, deliberately not JSON.
+  const requests = 2 + Math.floor(Math.random() * 6);
+  for (let i = 0; i < requests; i += 1) {
+    const route = pick(DECOY_ROUTES);
+    const status = Math.random() < 0.04 ? pick([404, 409, 429]) : 200;
+    const ms = 2 + Math.floor(Math.random() * 180);
+    process.stdout.write(`${new Date().toISOString()} ${pick(DECOY_SERVICES)} GET ${route} ${status} ${ms}ms\n`);
+  }
+  if (Math.random() < 0.5) {
+    const heapUsed = 180 + Math.floor(Math.random() * 240);
+    process.stdout.write(`${JSON.stringify({
+      level: 'debug',
+      message: 'gc pause',
+      timestamp: new Date().toISOString(),
+      service,
+      kind: pick(['scavenge', 'mark-sweep']),
+      pause_ms: Math.round(Math.random() * 48 * 10) / 10,
+      heap_used_mb: heapUsed,
+    })}\n`);
+  }
+  if (Math.random() < 0.4) {
+    process.stdout.write(`${JSON.stringify({
+      level: 'debug',
+      message: 'pool stats',
+      timestamp: new Date().toISOString(),
+      service,
+      total: 10, idle: Math.floor(Math.random() * 10), waiting: Math.random() < 0.15 ? 1 : 0,
+    })}\n`);
+  }
+  // Benign known errors with full stacks: red lines that mean nothing.
+  if (Math.random() < 0.25) {
+    const known = pick(KNOWN_ERRORS);
+    process.stderr.write(`${JSON.stringify({
+      level: 'error',
+      message: 'upstream request failed, will retry',
+      timestamp: new Date().toISOString(),
+      service,
+      error: { message: known, stack: decoyStack(known, service) },
+    })}\n`);
+  }
+  if (Math.random() < 0.08) {
     statsd.increment('platform.auth.token_refresh.retried', 1, { service });
     process.stderr.write(`${JSON.stringify({
       level: 'warn',
@@ -116,7 +168,7 @@ function decoyTick() {
       attempt: 1 + Math.floor(Math.random() * 2),
     })}\n`);
   }
-  if (Math.random() < 0.2) {
+  if (Math.random() < 0.05) {
     const durationMs = 3500 + Math.floor(Math.random() * 6000);
     statsd.histogram('warehouse.query.duration_ms', durationMs, { query: 'dim_sessions_rollup' });
     process.stderr.write(`${JSON.stringify({
@@ -142,7 +194,7 @@ function start() {
   setInterval(() => { benignTick().catch(() => {}); }, 5000);
   setInterval(() => { completionTick(15).catch(() => {}); }, 15000);
   setInterval(() => { heartbeat().catch(() => {}); }, 15000);
-  setInterval(decoyTick, 60000);
+  setInterval(decoyTick, 10000);
   heartbeat().catch(() => {});
   process.stdout.write('emitter started\n');
 }

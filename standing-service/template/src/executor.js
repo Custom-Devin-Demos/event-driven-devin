@@ -76,7 +76,9 @@ async function drainPending(limit = 500) {
 function start() {
   const loop = async () => {
     try {
+      const started = Date.now();
       const drained = await drainPending();
+      if (drained > 0) log('info', 'exec drain', { n: drained, ms: Date.now() - started });
       setTimeout(loop, drained > 0 ? 250 : 2000);
     } catch (error) {
       log('error', 'Executor loop error', { error });
