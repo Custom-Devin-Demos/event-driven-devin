@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review order | Cardinal Health Market&#8480;</title>
+  <link rel="icon" href="https://cardinalhealth.scene7.com/is/image/corpmarketdms7prod/logo-main">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ch-red: #e41f35;
+      --ch-red-dark: #b81628;
+      --ch-slate: #313a45;
+      --ink: #333333;
+      --muted: #5d5d5d;
+      --line: #dedede;
+      --page-bg: #f4f5f6;
+    }
+
+    body {
+      margin: 0;
+      font-family: Lato, 'Myriad Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--ink);
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--ch-red); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap { max-width: 1170px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- Utility bar ---------- */
+    .util-bar { font-size: 14px; }
+    .util-bar .wrap { display: flex; align-items: center; justify-content: flex-end; gap: 22px; height: 34px; }
+    .util-bar a { color: #5d5d5d; }
+
+    /* ---------- Header ---------- */
+    .site-header { background: #fff; }
+    .site-header .wrap { display: flex; align-items: center; gap: 30px; padding-bottom: 18px; }
+    .site-header .logo img { height: 52px; display: block; }
+    .search-box { display: flex; flex: 1; max-width: 470px; }
+    .search-box input {
+      flex: 1; border: 1px solid #d8d8d8; background: #efefef; border-right: none;
+      border-radius: 2px 0 0 2px; padding: 9px 14px; font-family: inherit; font-size: 15px; color: var(--ink);
+    }
+    .search-box button {
+      border: none; background: var(--ch-red); color: #fff; border-radius: 0 2px 2px 0;
+      width: 46px; cursor: pointer; font-size: 16px;
+    }
+    .site-header .spacer { flex: 1; }
+    .country { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 300; color: var(--ch-slate); }
+    .btn-signin {
+      background: var(--ch-red); color: #fff; border-radius: 5px; padding: 8px 26px;
+      font-size: 18px; font-weight: 400; display: inline-block;
+    }
+    .btn-signin:hover { background: var(--ch-red-dark); text-decoration: none; }
+
+    .main-nav { border-top: 1px solid #ececec; border-bottom: 1px solid var(--line); background: #fff; }
+    .main-nav .wrap { display: flex; gap: 42px; height: 56px; align-items: center; }
+    .main-nav a { color: #000; font-size: 18px; font-weight: 400; white-space: nowrap; }
+    .main-nav a:hover { color: var(--ch-red); text-decoration: none; }
+
+    /* ---------- Page banner ---------- */
+    .page-banner { background: var(--ch-slate); color: #fff; }
+    .page-banner .wrap { padding: 28px 24px 32px; }
+    .page-banner .eyebrow { font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; opacity: 0.8; }
+    .page-banner h1 { font-size: 34px; font-weight: 600; margin: 8px 0 6px; }
+    .page-banner .meta { font-size: 15px; font-weight: 300; opacity: 0.92; }
+
+    /* ---------- Layout ---------- */
+    .order-shell { background: var(--page-bg); padding: 28px 0 64px; }
+    .order-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+
+    .card {
+      background: #fff; border: 1px solid var(--line); border-radius: 4px;
+      padding: 24px 26px 28px; margin-bottom: 22px;
+    }
+    .card h2 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+    .card .sub { font-size: 15px; font-weight: 300; color: var(--muted); margin-bottom: 20px; }
+
+    .facility-row { display: flex; gap: 18px; align-items: flex-start; }
+    .facility-row img { width: 132px; height: 96px; object-fit: cover; object-position: center center; border-radius: 4px; display: block; }
+    .facility-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .facility-meta { font-size: 14px; font-weight: 300; color: var(--muted); line-height: 21px; }
+    .badge {
+      display: inline-block; background: #fdecee; color: var(--ch-red-dark); border: 1px solid #f6c9cf;
+      border-radius: 3px; font-size: 12px; font-weight: 600; padding: 2px 8px; margin-top: 6px;
+    }
+
+    /* ---------- Order line selectors ---------- */
+    .line-option {
+      display: flex; align-items: center; gap: 14px; border: 1px solid #cfcfcf;
+      border-radius: 4px; padding: 15px 18px; margin-bottom: 12px; cursor: pointer;
+    }
+    .line-option.selected { border-color: var(--ch-red); box-shadow: inset 0 0 0 1px var(--ch-red); background: #fffafa; }
+    .line-option input { accent-color: var(--ch-red); width: 18px; height: 18px; }
+    .line-option .thumb {
+      width: 52px; height: 52px; border-radius: 4px; flex: none; background: #f2f2f2;
+      object-fit: cover; display: block;
+    }
+    .line-option .label { font-size: 16px; font-weight: 600; }
+    .line-option .detail { font-size: 13.5px; font-weight: 300; color: var(--muted); }
+    .line-option .price { margin-left: auto; font-size: 16px; font-weight: 600; white-space: nowrap; }
+
+    .form-row { display: flex; gap: 22px; margin-top: 22px; flex-wrap: wrap; }
+    .field label { display: block; font-size: 14px; font-weight: 300; color: var(--muted); margin-bottom: 7px; }
+    .field input, .field select {
+      width: 226px; padding: 11px; font-size: 16px; font-family: inherit; color: var(--ink);
+      border: 1px solid #6b7280; border-radius: 4px; background: #fff;
+    }
+    .field input:focus, .field select:focus { outline: 2px solid #3a97f9; outline-offset: -1px; border-color: var(--ch-red); }
+    .form-note { font-size: 13.5px; font-weight: 300; color: var(--muted); margin-top: 10px; }
+
+    /* ---------- Summary rail ---------- */
+    .summary { position: sticky; top: 18px; }
+    .summary .line { display: flex; justify-content: space-between; font-size: 15px; padding: 9px 0; gap: 12px; }
+    .summary .line span:last-child { text-align: right; }
+    .summary .line.total {
+      border-top: 1px solid var(--line); margin-top: 8px; padding-top: 14px;
+      font-size: 19px; font-weight: 600;
+    }
+    .summary .covered { color: #1b7f43; font-size: 14px; }
+
+    .btn-submit {
+      margin-top: 20px; width: 100%; background: var(--ch-red); color: #fff; font-family: inherit;
+      font-size: 17px; font-weight: 600; padding: 14px 20px; border: none; border-radius: 5px; cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--ch-red-dark); }
+    .fine { font-size: 12.5px; font-weight: 300; color: var(--muted); line-height: 18px; margin-top: 14px; }
+
+    /* ---------- Error / success panels ---------- */
+    .order-error {
+      display: none; margin: 22px 0 0; border: 1px solid #b3261e; border-left-width: 5px;
+      background: #fdf3f2; border-radius: 4px; padding: 14px 16px;
+    }
+    .order-error.show { display: block; }
+    .order-error .title { font-size: 15px; font-weight: 700; color: #8c1d18; margin-bottom: 6px; }
+    .order-error .msg { font-size: 14px; font-weight: 300; line-height: 20px; color: #3d3d3d; margin-bottom: 10px; }
+    .order-error .tech {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+      font-size: 11.5px; line-height: 17px; color: #6b2b2b; background: #f7e5e4;
+      padding: 8px 10px; border-radius: 3px; word-break: break-word; white-space: pre-wrap;
+    }
+    .order-ok {
+      display: none; margin: 22px 0 0; border: 1px solid #1b7f43; border-left-width: 5px;
+      background: #f1f8f3; border-radius: 4px; padding: 13px 16px; font-size: 14px; line-height: 20px;
+    }
+    .order-ok.show { display: block; }
+
+    /* ---------- Footer ---------- */
+    footer { background: var(--ch-slate); color: #e6e8ea; padding: 30px 0 40px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 10px 26px; font-size: 13.5px; margin-bottom: 16px; }
+    .foot-links a { color: #e6e8ea; }
+    .foot-legal { font-size: 12.5px; font-weight: 300; line-height: 19px; opacity: 0.82; }
+
+    @media (max-width: 940px) {
+      .order-grid { grid-template-columns: 1fr; }
+      .summary { position: static; }
+      .main-nav .wrap, .search-box, .util-bar .wrap a { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="util-bar">
+  <div class="wrap">
+    <a href="#">Investors</a>
+    <a href="#">Newsroom</a>
+    <a href="#">Contact us</a>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="#">
+      <img src="https://cardinalhealth.scene7.com/is/image/corpmarketdms7prod/logo-main"
+           onerror="this.onerror=null;this.src='https://www.cardinalhealth.com/content/dam/corp/web/images/logo-main.png';"
+           alt="Cardinal Health">
+    </a>
+    <div class="search-box">
+      <input type="text" placeholder="How can we help you?" aria-label="Search">
+      <button type="button" aria-label="Search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round">
+          <circle cx="10.5" cy="10.5" r="6.5"></circle>
+          <line x1="15.5" y1="15.5" x2="21" y2="21"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="spacer"></div>
+    <div class="country">Change Country</div>
+    <a class="btn-signin" href="#">Sign in</a>
+  </div>
+</header>
+
+<div class="main-nav">
+  <div class="wrap">
+    <a href="#">Healthcare services</a>
+    <a href="#">Medical products and supplies</a>
+    <a href="#">Pharmaceutical products</a>
+    <a href="#">About us</a>
+    <a href="#">Careers</a>
+  </div>
+</div>
+
+<section class="page-banner">
+  <div class="wrap">
+    <div class="eyebrow">Cardinal Health Market&#8480; &middot; Ordering</div>
+    <h1>Review and submit your order</h1>
+    <div class="meta">Mercy Regional Medical Center &middot; Account 8841207 &middot; PO MRMC-2026-4417 &middot; Requested delivery Thu, Sep 24, 2026</div>
+  </div>
+</section>
+
+<div class="order-shell">
+  <div class="wrap">
+    <div class="order-grid">
+
+      <main>
+        <div class="card">
+          <h2>Ship-to location</h2>
+          <div class="facility-row">
+            <img src="https://cardinalhealth.scene7.com/is/image/corpmarketdms7prod/homepage-case-study-lab-services-2LAB26-4550508?wid=400"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400&q=80';"
+                 alt="Distribution center aisle">
+            <div>
+              <div class="facility-name">Mercy Regional Medical Center &mdash; Central Supply</div>
+              <div class="facility-meta">
+                Dock B &middot; 1420 Trinity Mills Rd, Columbus, OH 43215<br>
+                Served by Cardinal Health DC 0428 &mdash; Groveport, OH &middot; Cut-off 4:00 PM ET
+              </div>
+              <div class="badge">Novaplus&#174; contract pricing applied</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>What are you ordering?</h2>
+          <div class="sub">Select the line to submit. Handling, transit and packaging are derived from the product&rsquo;s storage class.</div>
+
+          <label class="line-option selected" data-line="vaccine-refrigerated">
+            <input type="radio" name="orderLine" value="vaccine-refrigerated" checked>
+            <img class="thumb" src="https://images.unsplash.com/photo-1605289982774-9a6fef564df8?w=200&q=80" alt="">
+            <span>
+              <span class="label">Influenza vaccine, quadrivalent &mdash; 10 x 0.5 mL syringe</span><br>
+              <span class="detail">NDC 49281-0421-10 &middot; Cold chain 2&ndash;8&deg;C &middot; 24 cartons</span>
+            </span>
+            <span class="price">$1,284.00</span>
+          </label>
+
+          <label class="line-option" data-line="exam-gloves">
+            <input type="radio" name="orderLine" value="exam-gloves">
+            <img class="thumb" src="https://images.unsplash.com/photo-1584362917165-526a968579e8?w=200&q=80" alt="">
+            <span>
+              <span class="label">Cardinal Health&#8482; nitrile exam gloves, large</span><br>
+              <span class="detail">SKU 88TT2103 &middot; Ambient med-surg &middot; 30 cases</span>
+            </span>
+            <span class="price">$742.50</span>
+          </label>
+
+          <label class="line-option" data-line="controlled-c2">
+            <input type="radio" name="orderLine" value="controlled-c2">
+            <img class="thumb" src="https://images.unsplash.com/photo-1585435557343-3b092031a831?w=200&q=80" alt="">
+            <span>
+              <span class="label">Hydromorphone HCl injection, 2 mg/mL</span><br>
+              <span class="detail">NDC 00409-1312-01 &middot; DEA Schedule II vault &middot; 5 cartons</span>
+            </span>
+            <span class="price">$418.75</span>
+          </label>
+
+          <div class="form-row">
+            <div class="field">
+              <label for="account">Account number</label>
+              <input type="text" id="account" inputmode="numeric" value="8841207">
+            </div>
+            <div class="field">
+              <label for="contract">Contract</label>
+              <select id="contract">
+                <option value="novaplus" selected>Novaplus&#174; &mdash; Vizient</option>
+                <option value="gpo-premier">Premier GPO</option>
+                <option value="idn-direct">IDN direct agreement</option>
+                <option value="list-price">List price</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="po">Purchase order</label>
+              <input type="text" id="po" value="MRMC-2026-4417">
+            </div>
+          </div>
+          <div class="form-note">Orders placed before the 4:00 PM ET cut-off ship the same business day. Freight is billed per the contract terms above.</div>
+
+          <div class="order-error" id="order-error" role="alert" aria-live="assertive">
+            <div class="title">We couldn&rsquo;t submit your order</div>
+            <div class="msg">Something went wrong building the delivery plan for this line. Nothing was submitted and your
+              account has not been charged. Try again, or call Customer Service at 1.800.964.5227.</div>
+            <div class="tech" id="order-error-tech"></div>
+          </div>
+          <div class="order-ok" id="order-ok" role="status"></div>
+        </div>
+      </main>
+
+      <aside>
+        <div class="card summary">
+          <h2>Order summary</h2>
+          <div class="line"><span>Requested delivery</span><span>Thu, Sep 24</span></div>
+          <div class="line"><span>Distribution center</span><span>DC 0428 &mdash; Groveport</span></div>
+          <div class="line"><span>Contract</span><span id="summary-contract">Novaplus&#174; &mdash; Vizient</span></div>
+          <div class="line covered"><span>Freight</span><span>Waived on contract</span></div>
+          <div class="line total"><span>Order total</span><span>$1,284.00</span></div>
+          <button class="btn-submit" type="button" data-cta>Submit order</button>
+          <div class="fine">
+            By submitting you confirm the ship-to license and DEA registration on file are current. Pricing reflects
+            contract tier at time of order and is subject to allocation.
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-links">
+      <a href="#">Privacy policy</a>
+      <a href="#">Terms of use</a>
+      <a href="#">Accessibility</a>
+      <a href="#">Supplier information</a>
+      <a href="#">Product recalls</a>
+      <a href="#">Contact customer service</a>
+    </div>
+    <div class="foot-legal">
+      Cardinal Health Market&#8480; is an ordering platform of Cardinal Health, Inc. Product availability, contract pricing
+      and delivery windows vary by distribution center and account. &copy; 2026 Cardinal Health. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script>
+  var DEVIN_USER_ID = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+  var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+
+  document.querySelectorAll('.line-option').forEach(function (option) {
+    option.addEventListener('click', function () {
+      document.querySelectorAll('.line-option').forEach(function (el) { el.classList.remove('selected'); });
+      option.classList.add('selected');
+    });
+  });
+
+  document.getElementById('contract').addEventListener('change', function (event) {
+    var label = event.target.options[event.target.selectedIndex].textContent;
+    document.getElementById('summary-contract').textContent = label;
+  });
+
+  function selectedLine() {
+    var checked = document.querySelector('input[name="orderLine"]:checked');
+    return checked ? checked.value : 'vaccine-refrigerated';
+  }
+
+  function showOrderError(payload) {
+    var tech = document.getElementById('order-error-tech');
+    tech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+      + '\n' + (payload.code || 'ORDER_SUBMISSION_FAILED')
+      + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+    var panel = document.getElementById('order-error');
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showOrderConfirmed(result) {
+    var ok = document.getElementById('order-ok');
+    var eta = new Date(result.delivery.estimatedDeliveryAt);
+    ok.textContent = 'Order ' + result.orderNumber + ' submitted \u2014 ' + result.line.name + ' from '
+      + result.delivery.distributionCenter + ', estimated delivery ' + eta.toLocaleDateString() + '. Total $'
+      + result.charges.orderTotalUsd.toFixed(2) + ' on ' + result.charges.contract + '.';
+    ok.classList.add('show');
+    ok.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function submitOrder(button) {
+    if (button._running) return;
+    button._running = true;
+    var original = button.textContent;
+    button.textContent = 'Submitting\u2026';
+    button.style.pointerEvents = 'none';
+    document.getElementById('order-error').classList.remove('show');
+    document.getElementById('order-ok').classList.remove('show');
+
+    fetch('/api/86596b62/submit-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderLine: selectedLine(),
+        contract: document.getElementById('contract').value,
+        accountNumber: document.getElementById('account').value.replace(/[^0-9]/g, ''),
+        purchaseOrder: document.getElementById('po').value,
+        requestedDelivery: '2026-09-24T14:00:00.000Z',
+        shipToName: 'Mercy Regional Medical Center \u2014 Central Supply',
+        devinUserId: DEVIN_USER_ID,
+        devinOrgId: DEVIN_ORG_ID,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showOrderError(result.body);
+        else showOrderConfirmed(result.body);
+      })
+      .catch(function (err) {
+        showOrderError({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.textContent = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      submitOrder(button);
+    });
+  });
+</script>
+</body>
+</html>

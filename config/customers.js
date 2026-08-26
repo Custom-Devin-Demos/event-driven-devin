@@ -431,6 +431,10 @@ const CUSTOMERS = {
     label: 'Baylor Scott & White Health',
     triggerMode: 'api',
   },
+  '86596b62': {
+    label: 'Cardinal Health',
+    triggerMode: 'api',
+  },
   '4f2fb968': {
     label: 'Canada Tire Company',
     triggerMode: 'api',
