@@ -45,7 +45,10 @@ const SERVICE_FEE_RATE = 0.05;
 
 const REWARDS_PROGRAMS = {
   hot_tier: { pointsMultiplier: 1 },
+  fire_tier: { pointsMultiplier: 2 },
 };
+
+const DEFAULT_REWARDS_TIER = 'hot';
 
 function validateOrderItems(items) {
   return items.map((item) => {
@@ -95,9 +98,10 @@ function normalizeRewardsTier(tier) {
 }
 
 function applyRewards(pricing, tier) {
-  const program = REWARDS_PROGRAMS[normalizeRewardsTier(tier)];
+  const requestedTier = REWARDS_PROGRAMS[normalizeRewardsTier(tier)] ? tier : DEFAULT_REWARDS_TIER;
+  const program = REWARDS_PROGRAMS[normalizeRewardsTier(requestedTier)];
   const rewardsPoints = Math.floor(Number(pricing.subtotal) * program.pointsMultiplier);
-  return { ...pricing, rewardsTier: tier, rewardsPoints };
+  return { ...pricing, rewardsTier: requestedTier, rewardsPoints };
 }
 
 async function processOrder(data) {
@@ -200,4 +204,4 @@ async function processOrder(data) {
   }
 }
 
-module.exports = { processOrder, MENU, STORES, STATE_TAX };
+module.exports = { processOrder, applyRewards, MENU, STORES, STATE_TAX, REWARDS_PROGRAMS };
