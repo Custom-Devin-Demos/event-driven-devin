@@ -21,6 +21,8 @@ const MENU = [
   { id: 'SIDE-TWISTS', name: 'Cinnamon Twists', category: 'Sides & Sweets', price: 1.29 },
   { id: 'DRINK-BAJA', name: 'Baja Blast', category: 'Drinks', price: 2.79 },
   { id: 'DRINK-FOUNTAIN', name: 'Regular Fountain Drink', category: 'Drinks', price: 2.49 },
+  { id: 'SAUCE-AVOCADO', name: 'Avocado Verde Salsa Sauce', category: 'Sauces', price: 0.30 },
+  { id: 'SAUCE-MILD', name: 'Mild Sauce', category: 'Sauces', price: 0.00 },
 ];
 
 const STORES = [
