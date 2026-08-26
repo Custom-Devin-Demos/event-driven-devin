@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bag | Taco Bell</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tb-purple: #702082;
+      --tb-purple-dark: #4c1458;
+      --tb-black: #151515;
+      --tb-grey: #767676;
+      --tb-border: #d6d6d6;
+      --tb-green: #2d7d46;
+      --tb-red: #b00020;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--tb-black); background: #fff; -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    header.nav {
+      height: 56px; padding: 0 28px; background: #fff; border-bottom: 1px solid #eee;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .crumbs { font-size: 14px; color: var(--tb-black); display: flex; align-items: center; gap: 8px; }
+    .crumbs a { text-decoration: underline; font-weight: 500; }
+    .crumbs .sep { color: var(--tb-grey); }
+    .crumbs .here { color: var(--tb-grey); }
+    .account { color: var(--tb-purple); display: flex; align-items: center; }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 40px 40px 100px; }
+    h1.bag-title {
+      font-size: 56px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase;
+      margin: 24px 0 48px; padding-left: 100px;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 580px; gap: 64px; align-items: start; }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } h1.bag-title { padding-left: 0; } }
+
+    /* Bag line items */
+    .bag-items { padding-left: 56px; }
+    @media (max-width: 1100px) { .bag-items { padding-left: 0; } }
+    .bag-row { display: flex; align-items: flex-start; gap: 20px; padding: 18px 0 26px; }
+    .bag-thumb { width: 60px; height: 60px; border-radius: 4px; object-fit: cover; flex: 0 0 60px; background: #f4f4f4; }
+    .bag-qty {
+      width: 38px; height: 38px; border: 1px solid var(--tb-black); border-radius: 4px;
+      text-align: center; font-family: inherit; font-weight: 700; font-size: 16px; margin-top: 8px;
+    }
+    .bag-info { flex: 1; padding-top: 8px; }
+    .bag-name { font-weight: 700; font-size: 19px; }
+    .bag-link { color: var(--tb-purple); font-weight: 700; font-size: 14px; text-decoration: underline; display: inline-block; margin-top: 14px; cursor: pointer; }
+    .bag-price-col { text-align: right; padding-top: 8px; min-width: 90px; }
+    .bag-price { color: var(--tb-grey); font-size: 18px; font-weight: 500; }
+    .bag-empty { color: var(--tb-grey); font-size: 16px; padding: 24px 0; }
+    .add-more-title { font-weight: 700; font-size: 18px; margin: 34px 0 6px; }
+    .upsell-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+    .upsell-thumb {
+      width: 46px; height: 62px; border-radius: 4px; flex: 0 0 46px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 900; color: #fff; text-transform: uppercase; text-align: center;
+    }
+    .upsell-thumb.img { padding: 0; }
+    .upsell-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+    .upsell-info { flex: 1; }
+    .upsell-name { font-weight: 700; font-size: 16px; line-height: 1.25; }
+    .upsell-meta { color: var(--tb-grey); font-size: 14px; margin-top: 4px; }
+    .upsell-meta .veg { color: var(--tb-green); font-weight: 800; margin-left: 2px; }
+    .stepper { display: flex; align-items: center; gap: 12px; }
+    .stepper button {
+      width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--tb-purple);
+      background: #fff; color: var(--tb-purple); font-size: 18px; font-weight: 700;
+      cursor: pointer; line-height: 1; font-family: inherit;
+    }
+    .stepper button.minus { border-color: #bbb; color: #bbb; }
+    .stepper button.minus.active { border-color: var(--tb-purple); color: var(--tb-purple); }
+    .stepper .count { font-weight: 800; font-size: 16px; min-width: 14px; text-align: center; }
+
+    /* Summary rail */
+    .summary { padding-right: 24px; }
+    .subtotal-row { display: flex; justify-content: space-between; align-items: baseline; }
+    .subtotal-row .label { font-weight: 800; font-size: 22px; }
+    .subtotal-row .amount { font-weight: 800; font-size: 24px; }
+    .paywith { margin: 14px 0 22px; font-size: 15px; color: var(--tb-black); }
+    .paywith .paypal { font-weight: 800; font-style: italic; }
+    .paywith .venmo { color: #008CFF; font-weight: 800; font-style: italic; }
+    .pickup-block { border: 1px solid var(--tb-border); border-radius: 6px; padding: 18px; margin-bottom: 22px; }
+    .pickup-block h3 { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: var(--tb-grey); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .6px; }
+    .field select, .field input { width: 100%; padding: 11px 12px; border: 1px solid var(--tb-border); border-radius: 4px; font-family: inherit; font-size: 14px; background: #fff; }
+    .btn-checkout {
+      width: 100%; background: var(--tb-purple); color: #fff; border: none; padding: 18px;
+      font-family: inherit; font-size: 16px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 1px; cursor: pointer; transition: background .12s; border-radius: 0;
+    }
+    .btn-checkout:hover { background: var(--tb-purple-dark); }
+    .btn-checkout:disabled { opacity: .6; cursor: not-allowed; }
+    .promo { margin-top: 18px; }
+    .promo input { width: 100%; padding: 16px 14px; border: 1px solid var(--tb-border); border-radius: 4px; font-family: inherit; font-size: 15px; color: var(--tb-black); }
+    .promo input::placeholder { color: var(--tb-grey); }
+    .upsell-title { font-weight: 800; font-size: 19px; margin: 34px 0 8px; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 999; max-width: 400px; background: #fff; border-left: 5px solid var(--tb-red); box-shadow: 0 12px 40px rgba(0,0,0,.22); border-radius: 8px; padding: 16px 18px; transform: translateY(140%); transition: transform .35s ease; }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--tb-green); }
+    .toast-title { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="crumbs">
+      <a href="#" onclick="return false;">Continue Shopping</a>
+      <span class="sep">&lt;</span>
+      <span class="here">My Bag</span>
+    </div>
+    <span class="account" title="Account">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.4c-3.3 0-9.8 1.7-9.8 4.9v2.5h19.6v-2.5c0-3.2-6.5-4.9-9.8-4.9z"/></svg>
+    </span>
+  </header>
+
+  <div class="wrap">
+    <h1 class="bag-title">My Bag</h1>
+    <div class="grid">
+      <div class="bag-items">
+        <div id="bagList"></div>
+        <div class="add-more-title">Add More Items</div>
+        <div id="menuList"></div>
+      </div>
+
+      <form class="summary" id="orderForm">
+        <div class="subtotal-row"><span class="label">Subtotal</span><span class="amount" id="subtotal">$0.00</span></div>
+        <div class="paywith">Pay Now With <span class="paypal">PayPal</span> or <span class="venmo">venmo</span></div>
+
+        <div class="pickup-block">
+          <h3>Pickup Details</h3>
+          <div class="field"><label for="storeId">Pickup Store</label><select id="storeId"></select></div>
+          <div class="field"><label for="pickupTime">Pickup Time</label><select id="pickupTime"><option value="ASAP (15–20 min)">ASAP (15–20 min)</option><option value="In 30 min">In 30 min</option><option value="In 1 hour">In 1 hour</option></select></div>
+          <div class="field"><label for="contactName">Name for Order</label><input type="text" id="contactName" value="Alex" required></div>
+          <div class="field"><label for="rewardsTier">Rewards Tier</label><select id="rewardsTier"><option value="hot">Hot</option><option value="fire" selected>Fire!</option></select></div>
+        </div>
+
+        <button type="submit" class="btn-checkout" id="submitBtn">Proceed to Checkout</button>
+        <div class="promo"><input type="text" placeholder="Enter Promo Code" aria-label="Enter Promo Code"></div>
+
+        <div class="upsell-title">Don't Forget the Hot Sauce</div>
+        <div id="sauceList"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-detail" id="toastDetail"></div></div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var TACO_IMG = 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=240&q=80';
+    var BURRITO_IMG = 'https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?w=240&q=80';
+    var MENU = [
+      { id: 'TACO-CRUNCHY', name: 'Crunchy Taco', price: 1.79, cal: 170, img: TACO_IMG },
+      { id: 'TACO-SOFT', name: 'Soft Taco', price: 1.79, cal: 180, img: TACO_IMG },
+      { id: 'TACO-DORITOS', name: 'Doritos Locos Taco', price: 2.49, cal: 170, img: TACO_IMG },
+      { id: 'BURRITO-5LAYER', name: 'Beefy 5-Layer Burrito', price: 3.69, cal: 490, img: BURRITO_IMG },
+      { id: 'BURRITO-BEAN', name: 'Bean Burrito', price: 1.99, cal: 350, img: BURRITO_IMG },
+      { id: 'SPEC-CRUNCHWRAP', name: 'Crunchwrap Supreme', price: 5.49, cal: 530, img: BURRITO_IMG },
+      { id: 'SPEC-QUESADILLA', name: 'Quesadilla Chicken', price: 5.79, cal: 510, img: BURRITO_IMG },
+      { id: 'SPEC-PIZZA', name: 'Mexican Pizza', price: 5.99, cal: 550, img: BURRITO_IMG },
+      { id: 'SIDE-FRIES', name: 'Nacho Fries', price: 2.69, cal: 320, img: TACO_IMG },
+      { id: 'SIDE-TWISTS', name: 'Cinnamon Twists', price: 1.29, cal: 170, img: TACO_IMG },
+      { id: 'DRINK-BAJA', name: 'Baja Blast', price: 2.79, cal: 220, img: TACO_IMG },
+      { id: 'DRINK-FOUNTAIN', name: 'Regular Fountain Drink', price: 2.49, cal: 200, img: TACO_IMG },
+    ];
+    var SAUCES = [
+      { id: 'SAUCE-AVOCADO', name: 'Avocado Verde Salsa Sauce', price: 0.30, cal: 50, color: '#9BBF3B', label: 'Verde' },
+      { id: 'SAUCE-MILD', name: 'Mild Sauce', price: 0.00, cal: 0, color: '#D96C2C', label: 'Mild' },
+    ];
+    var STORES = [
+      { id: 'TB-0420', name: 'Taco Bell — Irvine Spectrum' },
+      { id: 'TB-1187', name: 'Taco Bell — Denver LoDo' },
+      { id: 'TB-2043', name: 'Taco Bell — Chicago Loop' },
+      { id: 'TB-3310', name: 'Taco Bell — Austin Riverside' },
+      { id: 'TB-4521', name: 'Taco Bell — Queens Boulevard' },
+    ];
+
+    var bag = { 'TACO-SOFT': 1 };
+
+    function itemById(id) {
+      return MENU.find(function (m) { return m.id === id; }) || SAUCES.find(function (s) { return s.id === id; });
+    }
+    function money(n) { return '$' + n.toFixed(2); }
+
+    function renderBag() {
+      var list = document.getElementById('bagList');
+      list.innerHTML = '';
+      var subtotal = 0;
+      Object.keys(bag).forEach(function (id) {
+        var item = itemById(id);
+        if (!item || bag[id] < 1) return;
+        subtotal += item.price * bag[id];
+        var row = document.createElement('div');
+        row.className = 'bag-row';
+        var thumb = item.img
+          ? '<img class="bag-thumb" src="' + item.img + '" alt="' + item.name + '">'
+          : '<div class="bag-thumb" style="display:flex;align-items:center;justify-content:center;background:' + item.color + ';color:#fff;font-size:10px;font-weight:900;">' + item.label + '</div>';
+        row.innerHTML = thumb
+          + '<input class="bag-qty" type="number" min="1" max="20" value="' + bag[id] + '" data-id="' + id + '" aria-label="Quantity">'
+          + '<div class="bag-info"><div class="bag-name">' + item.name + '</div><span class="bag-link">Customize</span></div>'
+          + '<div class="bag-price-col"><div class="bag-price">' + money(item.price * bag[id]) + '</div><span class="bag-link remove" data-id="' + id + '">Remove</span></div>';
+        list.appendChild(row);
+      });
+      if (!list.children.length) list.innerHTML = '<div class="bag-empty">Your bag is empty. Add something below.</div>';
+      document.getElementById('subtotal').textContent = money(subtotal);
+      list.querySelectorAll('.bag-qty').forEach(function (input) {
+        input.addEventListener('change', function () {
+          bag[input.dataset.id] = Math.max(1, parseInt(input.value, 10) || 1);
+          renderBag(); renderSteppers();
+        });
+      });
+      list.querySelectorAll('.remove').forEach(function (btn) {
+        btn.addEventListener('click', function () { delete bag[btn.dataset.id]; renderBag(); renderSteppers(); });
+      });
+    }
+
+    function stepperRow(item, thumbHtml) {
+      var row = document.createElement('div');
+      row.className = 'upsell-row';
+      row.innerHTML = thumbHtml
+        + '<div class="upsell-info"><div class="upsell-name">' + item.name + '</div>'
+        + '<div class="upsell-meta">' + money(item.price) + ' &nbsp;|&nbsp; ' + item.cal + ' cal <span class="veg">&#10070;</span></div></div>'
+        + '<div class="stepper"><button type="button" class="minus" data-id="' + item.id + '" aria-label="Remove one">&minus;</button>'
+        + '<span class="count" data-count="' + item.id + '">0</span>'
+        + '<button type="button" class="plus" data-id="' + item.id + '" aria-label="Add one">+</button></div>';
+      return row;
+    }
+
+    function renderSteppers() {
+      document.querySelectorAll('[data-count]').forEach(function (el) {
+        var qty = bag[el.dataset.count] || 0;
+        el.textContent = qty;
+        var minus = el.parentElement.querySelector('.minus');
+        minus.classList.toggle('active', qty > 0);
+      });
+    }
+
+    function buildLists() {
+      var menuList = document.getElementById('menuList');
+      MENU.forEach(function (item) {
+        menuList.appendChild(stepperRow(item, '<div class="upsell-thumb img"><img src="' + item.img + '" alt="' + item.name + '"></div>'));
+      });
+      var sauceList = document.getElementById('sauceList');
+      SAUCES.forEach(function (item) {
+        sauceList.appendChild(stepperRow(item, '<div class="upsell-thumb" style="background:' + item.color + ';">' + item.label + '</div>'));
+      });
+      document.querySelectorAll('.stepper .plus').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          bag[btn.dataset.id] = (bag[btn.dataset.id] || 0) + 1;
+          renderBag(); renderSteppers();
+        });
+      });
+      document.querySelectorAll('.stepper .minus').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (!bag[btn.dataset.id]) return;
+          bag[btn.dataset.id] -= 1;
+          if (bag[btn.dataset.id] < 1) delete bag[btn.dataset.id];
+          renderBag(); renderSteppers();
+        });
+      });
+    }
+
+    var storeSelect = document.getElementById('storeId');
+    STORES.forEach(function (s) { var opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name; storeSelect.appendChild(opt); });
+
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'Placing Order...';
+      var selectedItems = Object.keys(bag).map(function (id) { return { itemId: id, qty: bag[id] }; });
+      try {
+        var res = await fetch('/api/tacobell/order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storeId: document.getElementById('storeId').value,
+            pickupTime: document.getElementById('pickupTime').value,
+            contactName: document.getElementById('contactName').value,
+            rewardsTier: document.getElementById('rewardsTier').value,
+            items: selectedItems,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) showToast('error', 'Order Failed', data.errorClass + ': ' + data.error);
+        else showToast('success', 'Order Confirmed!', 'Order #' + data.orderId.slice(0, 8).toUpperCase() + ' • Total $' + data.total + ' • Pickup: ' + data.pickup.storeName + ' • ' + data.rewardsPoints + ' rewards points earned');
+      } catch (err) { showToast('error', 'Network Error', err.message); }
+      finally { btn.disabled = false; btn.textContent = 'Proceed to Checkout'; }
+    });
+
+    buildLists();
+    renderBag();
+    renderSteppers();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

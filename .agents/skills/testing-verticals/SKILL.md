@@ -258,6 +258,7 @@ Open `https://devindemos.com/<slug>` in the browser and:
 | Healthcare | `/healthcare` | Click "Schedule Appointment" (December) | `Cannot read properties of null (reading 'copayAmount')` |
 | Telco | `/telco` | Click "Upgrade Plan" (Family Plus) | `Cannot read properties of null (reading '1')` |
 | Retail | `/retail` | Add item to cart, checkout, click "Place Order" | `Cannot read properties of undefined (reading 'name')` |
+| Taco Bell | `/tacobell` | Click "Proceed to Checkout" (Rewards Tier defaults to "Fire!") | `Cannot read properties of undefined (reading 'pointsMultiplier')`; switch tier to "Hot" → success; empty bag → 400 EmptyBagError |
 
 ### Custom Customer Verticals
 

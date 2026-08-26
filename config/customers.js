@@ -399,6 +399,10 @@ const CUSTOMERS = {
     label: 'Chipotle Order Ahead',
     triggerMode: 'api',
   },
+  tacobell: {
+    label: 'Taco Bell Order Ahead',
+    triggerMode: 'api',
+  },
   coppel: {
     label: 'Coppel Mi Carrito',
     triggerMode: 'api',
