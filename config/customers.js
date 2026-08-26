@@ -427,6 +427,10 @@ const CUSTOMERS = {
     label: 'Baylor Scott & White Health',
     triggerMode: 'api',
   },
+  '4f2fb968': {
+    label: 'Canada Tire Company',
+    triggerMode: 'api',
+  },
   b014618f: {
     label: 'Capital One Travel',
     triggerMode: 'api',
