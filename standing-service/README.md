@@ -29,6 +29,12 @@ investigator has to weigh:
   token refresh retries, slow warehouse queries).
 - The stamped history lands a harmless matcher-logging commit at T-1d, so
   "did we ship anything yesterday?" has a plausible deploy to rule out.
+- The log stream itself is production-noisy: the service logs routine
+  request/ingest/executor/pool activity with terse fields, and the emitter
+  floods the host's log pipeline every 10s with plain-text access-log lines,
+  gc/pool debug chatter, and benign known-error stacks (ECONNRESET,
+  ETIMEDOUT, 429s) from neighboring services — the real failure line is one
+  error among many red-but-harmless ones.
 
 ## Regenerate the standing repo (quarterly, or whenever history looks stale)
 

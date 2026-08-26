@@ -5,6 +5,7 @@ const express = require('express');
 const demo = require('./demo');
 const vpc = require('./vpc');
 const { recordHeartbeat } = require('../src/runtime-stats');
+const { log } = require('../src/telemetry');
 
 function tokenMatches(presented, configured) {
   if (typeof presented !== 'string' || presented.length === 0) return false;
@@ -29,6 +30,16 @@ function requireAdminToken(req, res, next) {
 function createAdminServer() {
   const app = express();
   app.use(express.json());
+
+  app.use((req, res, next) => {
+    const started = Date.now();
+    res.on('finish', () => {
+      log('info', 'http', {
+        m: req.method, p: req.path, s: res.statusCode, ms: Date.now() - started,
+      });
+    });
+    next();
+  });
 
   app.get('/healthz', (req, res) => res.json({ ok: true }));
 

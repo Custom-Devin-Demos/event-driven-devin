@@ -59,6 +59,9 @@ const SOURCE_BASELINES = {
 
 // Unrelated platform services whose routine warnings share the incident
 // dashboards with the automations metrics.
-const DECOY_SERVICES = ['scheduler-ui', 'billing-sync', 'notifications-relay'];
+const DECOY_SERVICES = [
+  'scheduler-ui', 'billing-sync', 'notifications-relay', 'usage-metering',
+  'audit-export', 'session-gc', 'webhook-fanout', 'search-indexer',
+];
 
 module.exports = { ENTERPRISES, LONG_TAIL_COUNT, longTailOrgs, BENIGN_SUBPATHS, SOURCE_BASELINES, DECOY_SERVICES };
