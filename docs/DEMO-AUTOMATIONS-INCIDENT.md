@@ -22,12 +22,13 @@ only through its HTTP admin contract.
 Click **Declare** when Status says **Safe to declare** (at least 30–45 minutes
 after arm, with errors flowing).
 
-The control plane creates a public channel named
-`sev-1-incident-<mmdd>-scheduled-automations-failing` (in
-`AUTOMATIONS_DEMO_TZ`, default `America/Los_Angeles`). If the name exists, it
-tries `-2`, `-3`, and so on. It posts a factual SEV-1 declaration card, then
-drips ambient human conversation at T+30s, 1m, 2m, 3m, and 4m. It invites the
-Devin Slack user; the organization's prefix-based public-channel join hook
+The control plane declares a SEV-1 incident through the Datadog Incidents
+API. Datadog's Slack integration then creates the public incident channel
+(named from the Datadog template, containing `incident-<publicId>-`). The
+control plane polls `conversations.list` for that channel (up to ~10 minutes),
+joins it, posts a factual SEV-1 declaration card, invites the Devin Slack
+user, and drips ambient human conversation at T+30s, 1m, 2m, 3m, and 4m from
+the declaration. The organization's prefix-based public-channel join hook
 starts the incident session.
 
 The card intentionally contains no root-cause claim:
@@ -45,10 +46,10 @@ curl -X POST "$DEMO_BASE/api/automations-demo/stop"
 ```
 
 Cleanup cancels timers, posts a wrap message, disarms the standing instance,
-closes open Devin-authored (`devin/*`) PRs in the standing repo, marks the run
-stopped, and records the channel for the 24-hour archive sweep. The wrap
-message says that the channel is archived after the run. Slack/GitHub failures
-are logged and do not strand cleanup.
+closes open Devin-authored (`devin/*`) PRs in the standing repo, resolves the
+Datadog incident, and marks the run stopped. Datadog's Slack integration owns
+the channel lifecycle and archives it after resolution on its own schedule.
+Slack/GitHub/Datadog failures are logged and do not strand cleanup.
 
 **Manual step:** disabling the Devin-side incident automation is not
 automatable today. After the demo, disable that automation manually in the
@@ -115,12 +116,14 @@ unreachable, the presenter page must say **standing instance unreachable**.
 | `AUTOMATIONS_DEMO_SERVICE_BASE_URL` | Base URL of the standing instance, without a trailing slash |
 | `AUTOMATIONS_DEMO_SERVICE_TOKEN` | Bearer token for standing admin calls |
 | `AUTOMATIONS_DEMO_TOKEN` | Required token for mutation endpoints; pass it to the presenter page with `?token=...` |
-| `AUTOMATIONS_DEMO_TZ` | Presenter timezone for `<mmdd>` channel names; default `America/Los_Angeles` |
+| `AUTOMATIONS_DEMO_TZ` | Presenter timezone for card timestamps; default `America/Los_Angeles` |
 | `AUTOMATIONS_DEMO_RUN_WINDOW_MS` | Auto-stop duration; default 3600000 |
 | `AUTOMATIONS_DEMO_IC_NAME` | Incident commander shown on the declaration card |
 | `AUTOMATIONS_DEMO_STANDING_REPO_URL` | Repository link shown on the card; defaults to the standing repo |
 | `AUTOMATIONS_DEMO_SERVICE_TAG` | Service tag shown on the card; default `automations-service` |
-| `SLACK_BOT_TOKEN` | Slack token with channel management, history, message, invite, and `chat:write.customize` scopes |
+| `DD_API_KEY` / `DD_INCIDENT_APP_KEY` (or `DD_APPLICATION_KEY`) | Datadog keys used to declare/resolve the incident; declare fails closed without them |
+| `DD_SITE` | Datadog site; default `us5.datadoghq.com` |
+| `SLACK_ONCALL_BOT_TOKEN` (falls back to `SLACK_BOT_TOKEN`) | Slack token with `channels:read`, `channels:join`, `channels:write.invites`, history, message, and `chat:write.customize` scopes — no `channels:manage` needed |
 | `SLACK_TEAM_ID` | Optional Slack team ID for presenter channel links |
 | `DEVIN_SLACK_USER_ID` | Slack member ID invited into the public incident channel |
 | `GITHUB_TOKEN` / `GH_TOKEN` | Optional GitHub token for closing `devin/*` PRs; cleanup logs a warning when absent |
@@ -140,15 +143,14 @@ unauthenticated so the presenter page can load before its token is entered.
 - `GET /api/automations-demo/status`
 - `POST /api/automations-demo/stop`
 - `POST /api/automations-demo/smoke`
-- `POST /api/automations-demo/archive-stale`
 
 ## Monthly smoke
 
 The smoke run arms, waits for `AUTOMATIONS_DEMO_SMOKE_ACCUMULATION_WAIT_MS`
 (default 30 minutes) so the standing emitter has the same accumulation window
-as a presenter run, declares into a required-prefix channel ending in
-`-smoke`, polls channel history for a Devin root-cause post for up to 20
-minutes, and always stops/cleans up. The CLI timeout is the configured wait
+as a presenter run, declares a Datadog incident titled with a `[smoke]`
+marker, waits for the Datadog-created channel, polls channel history for a
+Devin root-cause post for up to 20 minutes, and always stops/cleans up. The CLI timeout is the configured wait
 plus the 20-minute poll window plus a one-minute margin (51 minutes by
 default). On failure it posts to `SLACK_ONCALL_ALERTS_CHANNEL_ID` and returns
 failure.

@@ -2,20 +2,22 @@ const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const {
-  archiveChannel,
-  createChannel,
+  findChannelByNameFragment,
   getChannelHistory,
   inviteToChannel,
+  joinChannel,
   postMessage,
   postPersonaMessage,
 } = require('./slack');
+const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 
 const DEFAULT_RUN_WINDOW_MS = 60 * 60 * 1000;
 const MIN_SAFE_TO_DECLARE_MS = 30 * 60 * 1000;
 const SMOKE_POLL_WINDOW_MS = 20 * 60 * 1000;
 const DEFAULT_TIME_ZONE = 'America/Los_Angeles';
 const STANDING_REPO = 'ananthv26-cog-demo-repos/automations-service';
-const CHANNEL_PREFIX = 'sev-1-incident';
+const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
+const CHANNEL_LOOKUP_MAX_ATTEMPTS = 40;
 const CHATTER = [
   { afterMs: 30 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
   { afterMs: 60 * 1000, username: 'Ethan Brooks (ENG)', icon: ':man-technologist:', text: 'did we ship anything yesterday? I don\'t see a deploy' },
@@ -29,11 +31,11 @@ const state = {
   armedAt: null,
   declaredAt: null,
   channel: null,
+  incident: null,
   chatterPosted: 0,
   autoStopAt: null,
   scheduledDeclareAt: null,
   scheduledArmAt: null,
-  archiveCandidates: [],
   timers: new Set(),
   declarePromise: null,
   stopPromise: null,
@@ -100,6 +102,7 @@ async function arm(customer = 'CUST_1', options = {}) {
   const hasFutureSchedule = state.scheduledDeclareAt
     && Date.parse(state.scheduledDeclareAt) > Date.now();
   state.channel = null;
+  state.incident = null;
   state.declaredAt = null;
   state.chatterPosted = 0;
   state.autoStopAt = null;
@@ -130,48 +133,15 @@ function scheduleTimer(callback, delay) {
   return timer;
 }
 
-function cancelTimers(except) {
+function cancelTimers() {
   for (const timer of state.timers) {
-    if (except?.has(timer)) continue;
     clearTimeout(timer);
     state.timers.delete(timer);
   }
 }
 
-function localDateParts(date, timeZone = process.env.AUTOMATIONS_DEMO_TZ || DEFAULT_TIME_ZONE) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date);
-  return {
-    month: parts.find((part) => part.type === 'month').value,
-    day: parts.find((part) => part.type === 'day').value,
-  };
-}
-
-function baseChannelName(date = new Date(), smoke = false) {
-  const { month, day } = localDateParts(date);
-  return `${CHANNEL_PREFIX}-${month}${day}-scheduled-automations-failing${smoke ? '-smoke' : ''}`;
-}
-
-async function createDemoChannel(date, smoke = false) {
-  if (!process.env.SLACK_BOT_TOKEN) {
-    throw new Error('Slack is not configured: set SLACK_BOT_TOKEN');
-  }
-  const base = baseChannelName(date, smoke);
-  for (let suffix = 0; suffix < 3; suffix += 1) {
-    const name = suffix === 0 ? base : `${base}-${suffix + 1}`;
-    try {
-      return await createChannel(process.env.SLACK_BOT_TOKEN, name);
-    } catch (error) {
-      if (error.code !== 'name_taken' && !error.message.includes('Slack API error: name_taken')) {
-        throw error;
-      }
-      logger.info('Automations demo channel name taken; retrying', { name });
-    }
-  }
-  throw new Error('Unable to find an available demo channel name');
+function slackToken() {
+  return process.env.SLACK_ONCALL_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
 }
 
 function declarationBlocks(armedAt) {
@@ -208,16 +178,16 @@ function declarationBlocks(armedAt) {
 
 async function postDeclaration(channel) {
   const text = 'SEV-1 — Scheduled automations failing. Since the arm time, all scheduled automations are failing.';
-  return postMessage(process.env.SLACK_BOT_TOKEN, channel.id, text, declarationBlocks(state.armedAt));
+  return postMessage(slackToken(), channel.id, text, declarationBlocks(state.armedAt));
 }
 
-function startChatter(channel) {
-  CHATTER.forEach((line) => {
+function startChatter(channel, declaredAtMs) {
+  CHATTER.forEach((line, index) => {
     scheduleTimer(async () => {
       if (state.runState !== 'declared') return;
       try {
         await postPersonaMessage(
-          process.env.SLACK_BOT_TOKEN,
+          slackToken(),
           channel.id,
           line.text,
           line.username,
@@ -230,7 +200,7 @@ function startChatter(channel) {
           error: error.message,
         });
       }
-    }, line.afterMs);
+    }, Math.max(index * 3000, line.afterMs - (Date.now() - declaredAtMs)));
   });
 }
 
@@ -243,7 +213,67 @@ function getChannelLink(channel) {
 
 async function inviteDevin(channelId) {
   if (!process.env.DEVIN_SLACK_USER_ID) return;
-  await inviteToChannel(process.env.SLACK_BOT_TOKEN, channelId, [process.env.DEVIN_SLACK_USER_ID]);
+  await inviteToChannel(slackToken(), channelId, [process.env.DEVIN_SLACK_USER_ID]);
+}
+
+/**
+ * Datadog's Slack integration creates the incident channel on its own
+ * schedule, so the channel is discovered by the `incident-<publicId>-`
+ * name marker and everything channel-bound (card, Devin invite, chatter)
+ * happens once it appears. Chatter timings stay anchored to declaration.
+ */
+function startChannelDiscovery(publicId, declaredAtMs) {
+  const marker = `incident-${publicId}-`;
+  let attempts = 0;
+  const locate = async () => {
+    if (state.runState !== 'declared') return;
+    attempts += 1;
+    let channel = null;
+    try {
+      channel = await findChannelByNameFragment(slackToken(), marker);
+    } catch (error) {
+      logger.warn('Automations demo channel lookup failed', { marker, error: error.message });
+    }
+    if (state.runState !== 'declared') return;
+    if (!channel) {
+      if (attempts >= CHANNEL_LOOKUP_MAX_ATTEMPTS) {
+        logger.warn('Automations demo incident channel never appeared', { marker });
+        return;
+      }
+      scheduleTimer(locate, CHANNEL_LOOKUP_INTERVAL_MS);
+      return;
+    }
+    try {
+      await joinChannel(slackToken(), channel.id);
+    } catch (error) {
+      const permanent =
+        /Slack API error: (missing_scope|invalid_auth|account_inactive|token_revoked|is_archived|channel_not_found|method_not_supported_for_channel_type)/.test(
+          error.message,
+        );
+      logger.warn('Automations demo channel join failed', { channel: channel.name, error: error.message });
+      if (state.runState !== 'declared') return;
+      if (permanent || attempts >= CHANNEL_LOOKUP_MAX_ATTEMPTS) {
+        logger.warn('Automations demo gave up joining the incident channel', { channel: channel.name });
+        return;
+      }
+      scheduleTimer(locate, CHANNEL_LOOKUP_INTERVAL_MS);
+      return;
+    }
+    if (state.runState !== 'declared') return;
+    state.channel = channel;
+    try {
+      await postDeclaration(channel);
+    } catch (error) {
+      logger.warn('Automations demo declaration card failed', { channel: channel.name, error: error.message });
+    }
+    try {
+      await inviteDevin(channel.id);
+    } catch (error) {
+      logger.warn('Automations demo Devin invite failed', { error: error.message });
+    }
+    startChatter(channel, declaredAtMs);
+  };
+  scheduleTimer(locate, CHANNEL_LOOKUP_INTERVAL_MS);
 }
 
 async function declare(options = {}) {
@@ -257,12 +287,13 @@ async function declare(options = {}) {
     error.statusCode = 400;
     throw error;
   }
-  if (state.runState === 'declared' && state.channel) {
+  if (state.runState === 'declared') {
     return {
       ok: true,
       alreadyActive: true,
-      channel: state.channel.name,
-      channelLink: getChannelLink(state.channel),
+      publicId: state.incident?.publicId ?? null,
+      channel: state.channel?.name ?? null,
+      channelLink: state.channel ? getChannelLink(state.channel) : null,
     };
   }
   if (state.declarePromise) {
@@ -285,47 +316,36 @@ async function declare(options = {}) {
       error.statusCode = 400;
       throw error;
     }
-    const channel = await createDemoChannel(new Date(), Boolean(options.smoke));
-    const hasFutureSchedule = state.scheduledDeclareAt
-      && Date.parse(state.scheduledDeclareAt) > Date.now();
-    const scheduledTimers = hasFutureSchedule ? new Set(state.timers) : undefined;
-    try {
-      await postDeclaration(channel);
-      state.channel = channel;
-      state.declaredAt = new Date().toISOString();
-      state.runState = 'declared';
-      state.chatterPosted = 0;
-      startChatter(channel);
-      try {
-        await inviteDevin(channel.id);
-      } catch (error) {
-        logger.warn('Automations demo Devin invite failed', { error: error.message });
-      }
-      const runWindow = envNumber('AUTOMATIONS_DEMO_RUN_WINDOW_MS', DEFAULT_RUN_WINDOW_MS);
-      state.autoStopAt = new Date(Date.now() + runWindow).toISOString();
-      scheduleTimer(() => stop('auto-stop'), runWindow);
-    } catch (error) {
-      state.channel = null;
-      state.declaredAt = null;
-      state.chatterPosted = 0;
-      state.autoStopAt = null;
-      if (!hasFutureSchedule) {
-        state.scheduledDeclareAt = null;
-        state.scheduledArmAt = null;
-      }
-      state.archiveCandidates.push({
-        ...channel,
-        createdAt: new Date().toISOString(),
-      });
-      state.runState = 'armed';
-      cancelTimers(scheduledTimers);
+    if (!slackToken()) {
+      throw new Error('Slack is not configured: set SLACK_ONCALL_BOT_TOKEN or SLACK_BOT_TOKEN');
+    }
+    const runRef = `run-${crypto.randomBytes(6).toString('hex')}`;
+    const incident = await declareDatadogIncident({
+      title: `Scheduled automations failing${options.smoke ? ' [smoke]' : ''}`,
+      summary: 'All scheduled automations are failing; reported by an employee, no monitor fired.',
+      runRef,
+      repoUrl: process.env.AUTOMATIONS_DEMO_STANDING_REPO_URL || `https://github.com/${STANDING_REPO}`,
+    });
+    if (!incident) {
+      const error = new Error('Datadog Incident Management is not configured: set DD_API_KEY and DD_INCIDENT_APP_KEY');
+      error.statusCode = 503;
       throw error;
     }
+    state.incident = incident;
+    state.channel = null;
+    state.declaredAt = new Date().toISOString();
+    state.runState = 'declared';
+    state.chatterPosted = 0;
+    startChannelDiscovery(incident.publicId, Date.parse(state.declaredAt));
+    const runWindow = envNumber('AUTOMATIONS_DEMO_RUN_WINDOW_MS', DEFAULT_RUN_WINDOW_MS);
+    state.autoStopAt = new Date(Date.now() + runWindow).toISOString();
+    scheduleTimer(() => stop('auto-stop'), runWindow);
     return {
       ok: true,
       alreadyActive: false,
-      channel: channel.name,
-      channelLink: getChannelLink(channel),
+      publicId: incident.publicId,
+      channel: null,
+      channelLink: null,
       autoStopAt: state.autoStopAt,
     };
   })();
@@ -415,9 +435,9 @@ async function stop(reason = 'manual') {
     if (state.channel) {
       try {
         await postMessage(
-          process.env.SLACK_BOT_TOKEN,
+          slackToken(),
           state.channel.id,
-          'The automations incident demo has stopped. This channel is archived after the run.',
+          'The automations incident demo has stopped. Datadog archives this channel after the incident resolves.',
         );
       } catch (error) {
         logger.warn('Automations demo wrap message failed', { error: error.message });
@@ -429,11 +449,16 @@ async function stop(reason = 'manual') {
       logger.warn('Standing instance disarm failed during cleanup', { error: error.message });
     }
     await closeDevinPullRequests();
-    if (state.channel) {
-      state.archiveCandidates.push({
-        ...state.channel,
-        createdAt: state.declaredAt || new Date().toISOString(),
-      });
+    if (state.incident) {
+      try {
+        await resolveDatadogIncident(state.incident.id);
+      } catch (error) {
+        logger.warn('Automations demo Datadog incident resolve failed', {
+          publicId: state.incident.publicId,
+          error: error.message,
+        });
+      }
+      state.incident = null;
     }
     state.runState = 'stopped';
     state.autoStopAt = null;
@@ -445,26 +470,6 @@ async function stop(reason = 'manual') {
   } finally {
     state.stopPromise = null;
   }
-}
-
-async function archiveStale() {
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-  const stale = state.archiveCandidates.filter((channel) => Date.parse(channel.createdAt) <= cutoff);
-  let archived = 0;
-  for (const channel of stale) {
-    try {
-      await archiveChannel(process.env.SLACK_BOT_TOKEN, channel.id);
-    } catch (error) {
-      logger.warn('Automations demo stale channel archive failed', {
-        channel: channel.name,
-        error: error.message,
-      });
-      continue;
-    }
-    state.archiveCandidates = state.archiveCandidates.filter((candidate) => candidate.id !== channel.id);
-    archived += 1;
-  }
-  return { ok: true, archived };
 }
 
 function schedule(declareAt) {
@@ -554,8 +559,12 @@ async function smoke() {
     const deadline = Date.now() + SMOKE_POLL_WINDOW_MS;
     let found = false;
     while (Date.now() < deadline) {
+      if (!state.channel) {
+        await new Promise((resolve) => setTimeout(resolve, 30 * 1000));
+        continue;
+      }
       const messages = await getChannelHistory(
-        process.env.SLACK_BOT_TOKEN,
+        slackToken(),
         state.channel.id,
         { limit: 100, oldest: Date.parse(state.declaredAt) / 1000 },
       );
@@ -572,7 +581,7 @@ async function smoke() {
   } catch (error) {
     try {
       await postMessage(
-        process.env.SLACK_BOT_TOKEN,
+        slackToken(),
         process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID,
         `Automations demo smoke failed: ${error.message}`,
       );
@@ -602,6 +611,7 @@ function getState() {
       name: state.channel.name,
       link: getChannelLink(state.channel),
     } : null,
+    incident_public_id: state.incident?.publicId ?? null,
     chatter_posted: state.chatterPosted,
     chatter_total: CHATTER.length,
     auto_stop_at: state.autoStopAt,
@@ -655,11 +665,11 @@ function resetForTests() {
     armedAt: null,
     declaredAt: null,
     channel: null,
+    incident: null,
     chatterPosted: 0,
     autoStopAt: null,
     scheduledDeclareAt: null,
     scheduledArmAt: null,
-    archiveCandidates: [],
     declarePromise: null,
     stopPromise: null,
     smokeInProgress: false,
@@ -668,8 +678,6 @@ function resetForTests() {
 
 module.exports = {
   arm,
-  archiveStale,
-  baseChannelName,
   declare,
   getStatus,
   resetForTests,
