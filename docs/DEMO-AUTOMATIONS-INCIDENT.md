@@ -27,12 +27,14 @@ API. Datadog's Slack integration then creates the public incident channel
 (named from the Datadog template, containing `incident-<publicId>-`). The
 control plane polls `conversations.list` for that channel (up to ~10 minutes),
 joins it, posts a factual SEV-1 declaration card, invites the Devin Slack
-user, and drips 16 lines of ambient human conversation from T+30s through
-T+18m of the declaration — modeled on the anonymized incident transcript:
-early confusion, wrong theories (deploys, AWS), the IC's evolving mental
-model, a severity/blast-radius question, an explicit fix delegation that
-@-mentions Devin at T+8m, mitigation debate, and a "disabled the automation"
-mitigation at T+18m. The organization's prefix-based public-channel join hook
+user, and drips 43 lines of ambient human conversation from T+30s through
+T+40m of the declaration — modeled on the anonymized incident transcript:
+early confusion, wrong theories (yesterday's matcher deploy, auth retries,
+the second noisy tenant, AWS), the IC's evolving mental model, a
+severity/blast-radius debate, an explicit fix delegation that @-mentions
+Devin at T+8m, a mitigation-strategy argument (global flag vs targeted
+disable), a "disabled the customer's automation" mitigation at T+24m, and
+post-mitigation recovery/backfill/retro chatter through T+40m. The organization's prefix-based public-channel join hook
 starts the incident session.
 
 The card intentionally contains no root-cause claim:
