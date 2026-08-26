@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart | Chewy.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --chewy-blue: #1c49c2;
+      --chewy-blue-dark: #16379a;
+      --chewy-navy: #12266b;
+      --chewy-orange: #e4632b;
+      --chewy-orange-dark: #c8511e;
+      --chewy-yellow: #ffc220;
+      --chewy-red: #c8102e;
+      --chewy-text: #1c1d1f;
+      --chewy-muted: #5c5f66;
+      --chewy-border: #d5d8dd;
+      --chewy-bg: #f0f1f3;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--chewy-text);
+      background: var(--chewy-bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--chewy-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Header ── */
+    header.nav { background: var(--chewy-blue); padding: 0 24px; }
+    .nav-top {
+      max-width: 1500px; margin: 0 auto; height: 66px;
+      display: flex; align-items: center; gap: 22px;
+    }
+    .brand {
+      font-family: 'Baloo 2', 'Nunito', cursive; font-size: 38px; font-weight: 800;
+      color: #fff; letter-spacing: -1px; line-height: 1;
+    }
+    .brand:hover { text-decoration: none; }
+    .search {
+      flex: 0 1 420px; display: flex; align-items: center; background: #fff;
+      border-radius: 4px; height: 42px; padding: 0 6px 0 14px;
+    }
+    .search input { flex: 1; border: none; outline: none; font-family: inherit; font-size: 15px; }
+    .search input::placeholder { color: #8a8d93; }
+    .search .go {
+      width: 34px; height: 34px; border: none; background: transparent; cursor: pointer;
+      color: var(--chewy-blue); font-size: 17px;
+    }
+    .nav-actions { display: flex; align-items: center; gap: 20px; margin-left: auto; color: #fff; }
+    .nav-item {
+      display: flex; align-items: center; gap: 6px; color: #fff;
+      font-size: 14px; font-weight: 700; white-space: nowrap;
+    }
+    .nav-item:hover { text-decoration: none; opacity: .9; }
+    .nav-item .caret { font-size: 10px; opacity: .9; }
+    .use-app {
+      border: 1.5px solid #fff; border-radius: 20px; padding: 7px 16px;
+      color: #fff; font-size: 14px; font-weight: 700;
+    }
+    .cart-link { position: relative; }
+    .cart-badge {
+      position: absolute; top: -7px; left: 11px; background: var(--chewy-yellow);
+      color: var(--chewy-navy); font-size: 11px; font-weight: 900;
+      border-radius: 50%; width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-bottom {
+      max-width: 1500px; margin: 0 auto; height: 42px;
+      display: flex; align-items: center; gap: 22px;
+    }
+    .nav-bottom a {
+      color: #fff; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 5px;
+    }
+    .nav-bottom a:hover { text-decoration: none; opacity: .9; }
+    .nav-bottom .promo { margin-left: auto; color: var(--chewy-yellow); font-weight: 800; }
+
+    /* ── Promo strip ── */
+    .promo-strip { background: var(--chewy-bg); padding: 14px 24px 0; }
+    .promo-strip .inner {
+      max-width: 1290px; margin: 0 auto; background: linear-gradient(90deg, var(--chewy-blue) 0%, var(--chewy-navy) 100%);
+      color: #fff; border-radius: 4px; text-align: center; padding: 11px;
+      font-size: 15px; font-weight: 700;
+    }
+
+    /* ── Layout ── */
+    .wrap { max-width: 1500px; margin: 0 auto; padding: 14px 24px 60px; }
+    .cart-grid { display: grid; grid-template-columns: minmax(0,1fr) 330px; gap: 20px; align-items: start; }
+    @media (max-width: 1000px) { .cart-grid { grid-template-columns: 1fr; } }
+    .card { background: #fff; border-radius: 6px; }
+
+    /* ── Cart panel ── */
+    .cart-panel { position: relative; overflow: hidden; }
+    .cart-head { padding: 20px 24px; border-bottom: 1px solid var(--chewy-border); }
+    .cart-head h1 { font-size: 24px; font-weight: 800; }
+    .deal-flag {
+      position: absolute; top: 60px; left: 0; background: var(--chewy-red); color: #fff;
+      font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 0 3px 3px 0;
+    }
+    .line { display: grid; grid-template-columns: 145px minmax(0,1fr) 150px; gap: 18px; padding: 26px 24px 24px; }
+    @media (max-width: 700px) { .line { grid-template-columns: 1fr; } }
+    .thumb-wrap { display: flex; align-items: flex-start; justify-content: center; }
+    .thumb { width: 130px; height: 130px; object-fit: cover; border-radius: 6px; }
+    .item-name { font-size: 15px; line-height: 1.45; margin-bottom: 8px; }
+    .item-name strong { font-weight: 800; }
+    .item-price { font-size: 19px; font-weight: 800; margin-bottom: 12px; }
+    .deal-note {
+      display: flex; gap: 7px; align-items: flex-start; font-size: 13px;
+      color: var(--chewy-text); margin-bottom: 22px; line-height: 1.4;
+    }
+    .deal-note .tag { color: var(--chewy-red); font-size: 14px; }
+    .autoship-row { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+    .autoship-row input { width: 17px; height: 17px; accent-color: var(--chewy-blue); cursor: pointer; }
+    .autoship-row label { cursor: pointer; }
+    .autoship-row .as-brand { color: var(--chewy-blue); font-weight: 800; }
+    .autoship-row .as-save { color: var(--chewy-red); font-weight: 800; }
+    .qty-col { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+    .qty-col .qty-label { font-size: 13px; color: var(--chewy-muted); margin-bottom: -6px; }
+    .qty-col select {
+      width: 100%; height: 42px; border: 1px solid #9a9da3; border-radius: 4px;
+      padding: 0 10px; font-family: inherit; font-size: 15px; background: #fff; cursor: pointer;
+    }
+    .btn-remove {
+      width: 100%; height: 42px; border: 1px solid var(--chewy-blue); border-radius: 4px;
+      background: #fff; color: var(--chewy-blue); font-family: inherit; font-size: 14px;
+      font-weight: 700; cursor: pointer;
+    }
+    .btn-remove:hover { background: #f2f5ff; }
+
+    /* ── Summary rail ── */
+    .summary { padding: 20px; margin-bottom: 16px; }
+    .sum-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .sum-top h2 { font-size: 21px; font-weight: 800; }
+    .sum-top .amt { font-size: 21px; font-weight: 800; }
+    .sum-sub { display: flex; justify-content: space-between; font-size: 13px; color: var(--chewy-muted); margin-top: 2px; }
+    .sum-sub a { font-weight: 700; text-decoration: underline; }
+    .ships-free { font-size: 15px; font-weight: 800; margin-top: 16px; }
+    .progress { height: 5px; border-radius: 3px; background: var(--chewy-border); margin-top: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; background: var(--chewy-blue); }
+    .btn-checkout {
+      width: 100%; margin-top: 16px; background: var(--chewy-orange); color: #fff;
+      border: none; border-radius: 4px; padding: 15px; font-family: inherit;
+      font-size: 17px; font-weight: 800; cursor: pointer; transition: background .12s;
+    }
+    .btn-checkout:hover { background: var(--chewy-orange-dark); }
+    .btn-checkout:disabled { opacity: .65; cursor: not-allowed; }
+    .side-card { padding: 18px 20px; margin-bottom: 16px; display: flex; gap: 12px; }
+    .side-card .ico { font-size: 20px; flex: 0 0 24px; }
+    .side-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+    .side-card p { font-size: 13px; color: var(--chewy-muted); line-height: 1.45; }
+    .side-card p a { text-decoration: underline; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 999; max-width: 400px;
+      background: #fff; border-left: 5px solid var(--chewy-red);
+      box-shadow: 0 12px 40px rgba(0,0,0,.22); border-radius: 6px; padding: 16px 18px;
+      transform: translateY(180%); transition: transform .35s ease;
+    }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: #1f8a3b; }
+    .toast-title { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.45; }
+
+    footer.site { background: var(--chewy-blue); color: #dbe3ff; padding: 32px 24px; text-align: center; font-size: 13px; }
+    footer.site .brand { justify-content: center; margin-bottom: 12px; font-size: 30px; }
+    footer.site a { color: #fff; margin: 0 10px; opacity: .92; }
+
+    @media (max-width: 1100px) {
+      .nav-bottom .promo, .search { display: none; }
+    }
+    @media (max-width: 760px) {
+      body { overflow-x: hidden; }
+      header.nav { overflow-x: hidden; }
+      .nav-bottom { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+      .nav-bottom::-webkit-scrollbar { display: none; }
+      .nav-bottom a { flex: 0 0 auto; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-top">
+      <a class="brand" href="#">chewy</a>
+      <div class="search">
+        <input type="text" placeholder="Search" aria-label="Search">
+        <button class="go" type="button" aria-label="Search">&#128269;</button>
+      </div>
+      <div class="nav-actions">
+        <a class="nav-item" href="#">&#127482;&#127480; USA <span class="caret">&#9660;</span></a>
+        <a class="use-app" href="#">Use App</a>
+        <a class="nav-item" href="#">&#128172; 24/7 Help <span class="caret">&#9660;</span></a>
+        <a class="nav-item" href="#">&#128100; Sign In <span class="caret">&#9660;</span></a>
+        <a class="nav-item cart-link" href="#">&#128722;<span class="cart-badge" id="cartBadge">1</span> Cart <span class="caret">&#9660;</span></a>
+      </div>
+    </div>
+    <div class="nav-bottom">
+      <a href="#">Dog <span class="caret">&#9660;</span></a>
+      <a href="#">Cat <span class="caret">&#9660;</span></a>
+      <a href="#">Other Animals <span class="caret">&#9660;</span></a>
+      <a href="#">Pharmacy <span class="caret">&#9660;</span></a>
+      <a href="#">Services <span class="caret">&#9660;</span></a>
+      <a href="#">Education <span class="caret">&#9660;</span></a>
+      <a href="#">Give Back <span class="caret">&#9660;</span></a>
+      <a href="#">New Arrivals</a>
+      <a href="#">Deals</a>
+      <a href="#">&#9728;&#65039; Flea &amp; Tick</a>
+      <span class="promo">Free delivery on first-time orders over $35</span>
+    </div>
+  </header>
+
+  <div class="promo-strip">
+    <div class="inner">Free $30 eGift card with your $100 order</div>
+  </div>
+
+  <div class="wrap">
+    <div class="cart-grid">
+      <!-- Cart -->
+      <section class="card cart-panel">
+        <div class="cart-head"><h1>Shopping Cart</h1></div>
+        <span class="deal-flag">Deal</span>
+        <form class="line" id="cartForm">
+          <div class="thumb-wrap">
+            <img class="thumb"
+                 src="https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400&q=80"
+                 alt="Lone Wolf Ranch Power Foods Complete Beef Air-Dried Dog Food, 24-oz bag">
+          </div>
+          <div>
+            <div class="item-name"><strong>Lone Wolf Ranch</strong> Power Foods Complete Beef Air-Dried Dog Food, 24-oz bag</div>
+            <div class="item-price" id="itemPrice">$42.99</div>
+            <div class="deal-note">
+              <span class="tag">&#127991;</span>
+              <span>New Customers Only: Spend $49+, get $20 eGift Card + free shipping with code WELCOME <a href="#">Details</a></span>
+            </div>
+            <div class="autoship-row">
+              <input type="checkbox" id="autoship">
+              <label for="autoship">
+                <span class="as-brand">&#8635; Autoship</span>
+                <span class="as-save">Save 35%</span> today and <span class="as-save">10%</span> on future orders
+              </label>
+            </div>
+          </div>
+          <div class="qty-col">
+            <span class="qty-label">Qty:</span>
+            <select id="qty">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <button type="button" class="btn-remove" id="removeBtn">&#128465; Remove</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Order summary rail -->
+      <aside>
+        <div class="card summary">
+          <div class="sum-top"><h2>Subtotal</h2><span class="amt" id="sumSubtotal">$42.99</span></div>
+          <div class="sum-sub">
+            <span id="sumCount">1 item</span>
+            <a href="#">See estimated total +</a>
+          </div>
+          <div class="ships-free" id="shipMsg">Your order ships FREE! &#128666;</div>
+          <div class="progress"><div class="progress-fill" id="shipFill"></div></div>
+          <button type="submit" form="cartForm" class="btn-checkout" id="checkoutBtn">Proceed to Checkout</button>
+        </div>
+        <div class="card side-card">
+          <span class="ico">&#8635;</span>
+          <div>
+            <h3>FREE 365-day returns</h3>
+            <p>Some exceptions apply. <a href="#">Details</a></p>
+          </div>
+        </div>
+        <div class="card side-card">
+          <span class="ico">&#128179;</span>
+          <div>
+            <h3>Buy now, pay later</h3>
+            <p>Pay in 4 interest-free payments of <span id="paypalInstallment">$10.75</span>. <a href="#">Learn more</a>.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="brand">chewy</div>
+    <div>
+      <a href="#">About Chewy</a><a href="#">Careers</a><a href="#">Help Center</a>
+      <a href="#">Privacy Notice</a><a href="#">Terms of Use</a>
+    </div>
+    <p style="margin-top:16px;opacity:.75;">&copy; 2026 Chewy, Inc. All rights reserved.</p>
+  </footer>
+
+  <div class="toast" id="toast">
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var SKU = 'LWR-PFC-BEEF-24OZ';
+    var UNIT_PRICE = 42.99;
+    var AUTOSHIP_RATE = 0.35;
+    var FREE_SHIP_THRESHOLD = 49;
+
+    function fmt(n) { return '$' + n.toFixed(2); }
+
+    function render() {
+      var qty = parseInt(document.getElementById('qty').value, 10);
+      var autoship = document.getElementById('autoship').checked;
+      var lineTotal = UNIT_PRICE * qty;
+      var subtotal = autoship ? lineTotal * (1 - AUTOSHIP_RATE) : lineTotal;
+      document.getElementById('itemPrice').textContent = fmt(lineTotal);
+      document.getElementById('sumSubtotal').textContent = fmt(subtotal);
+      document.getElementById('sumCount').textContent = qty + (qty === 1 ? ' item' : ' items');
+      document.getElementById('cartBadge').textContent = qty;
+      document.getElementById('paypalInstallment').textContent = fmt(subtotal / 4);
+      var remaining = FREE_SHIP_THRESHOLD - subtotal;
+      document.getElementById('shipMsg').innerHTML = remaining > 0
+        ? 'Add ' + fmt(remaining) + ' to your order to get FREE shipping'
+        : 'Your order ships FREE! &#128666;';
+      document.getElementById('shipFill').style.width =
+        Math.min(100, (subtotal / FREE_SHIP_THRESHOLD) * 100).toFixed(0) + '%';
+    }
+
+    document.getElementById('qty').addEventListener('change', render);
+    document.getElementById('autoship').addEventListener('change', render);
+    document.getElementById('removeBtn').addEventListener('click', function () {});
+
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+
+    document.getElementById('cartForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('checkoutBtn');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      try {
+        var res = await fetch('/api/chewy/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: [{ sku: SKU, qty: parseInt(document.getElementById('qty').value, 10) }],
+            autoship: document.getElementById('autoship').checked,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showToast('error', 'We couldn\u2019t start checkout', data.errorClass + ': ' + data.error);
+        } else {
+          showToast('success', 'Order placed!', 'Order #' + data.orderId.slice(0, 8).toUpperCase()
+            + ' \u2022 Total ' + fmt(data.total));
+        }
+      } catch (err) {
+        showToast('error', 'Network error', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Proceed to Checkout';
+      }
+    });
+
+    render();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
