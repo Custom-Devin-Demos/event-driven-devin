@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GK Software - Making interactions in retail simple</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1c1c1c;
+      --grey: #6d6d6d;
+      --light-grey: #9a9a9a;
+      --blue: #2e6ff2;
+      --blue-dark: #1f5be0;
+      --page: #ffffff;
+      --card-bg: #ffffff;
+      --section-bg: #f4f4f4;
+      --beige: #f7f2f0;
+      --radius: 20px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Roboto', Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--page);
+      font-weight: 300;
+    }
+
+    /* ---------- Header ---------- */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 18px 48px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(6px);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .nav .logo {
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      line-height: 1;
+    }
+
+    .gk-mark {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .gk-petal {
+      position: relative;
+      width: 22px;
+      height: 22px;
+      flex: none;
+    }
+
+    .gk-petal span {
+      position: absolute;
+      width: 9px;
+      height: 15px;
+      border-radius: 6px;
+      left: 6.5px;
+      top: 3.5px;
+      transform-origin: 50% 50%;
+    }
+
+    .gk-petal span:nth-child(1) { background: #ff4125; transform: rotate(0deg) translateY(-5px); }
+    .gk-petal span:nth-child(2) { background: #ffc000; transform: rotate(72deg) translateY(-5px); }
+    .gk-petal span:nth-child(3) { background: #41cd9d; transform: rotate(144deg) translateY(-5px); }
+    .gk-petal span:nth-child(4) { background: #007884; transform: rotate(216deg) translateY(-5px); }
+    .gk-petal span:nth-child(5) { background: #a06cc8; transform: rotate(288deg) translateY(-5px); }
+
+    .gk-word {
+      font-size: 27px;
+      font-weight: 700;
+      color: #23233c;
+      letter-spacing: 0.5px;
+    }
+
+    .gk-sub {
+      font-size: 9px;
+      color: var(--grey);
+      margin-top: 3px;
+      margin-left: 29px;
+      letter-spacing: 0.2px;
+    }
+
+    .nav .links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .nav .links a {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 9px 20px;
+      font-size: 14px;
+      font-weight: 400;
+      text-decoration: none;
+      border: 1px solid #d9d9d9;
+      color: var(--ink);
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .pill.dark { background: #1c1c1c; border-color: #1c1c1c; color: #fff; }
+    .nav .menu { font-size: 15px; color: var(--ink); margin-left: 10px; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background:
+        linear-gradient(rgba(10, 16, 28, 0.45), rgba(10, 16, 28, 0.55)),
+        url('https://www.gk-software.com/images/banners/leire-cavia-py6GvYD5B4I-unsplash.jpg') center / cover no-repeat, #101828;
+      color: #fff;
+      padding: 0 48px 64px;
+    }
+
+    .hero .eyebrow {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: clamp(44px, 7vw, 84px);
+      font-weight: 300;
+      line-height: 1.08;
+      max-width: 760px;
+    }
+
+    .hero .cta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 48px;
+    }
+
+    .btn {
+      display: inline-block;
+      border: none;
+      border-radius: 999px;
+      padding: 13px 26px;
+      font-size: 15px;
+      font-family: inherit;
+      font-weight: 400;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-blue:hover { background: var(--blue-dark); }
+    .btn-white { background: #fff; color: var(--ink); }
+
+    /* ---------- Solution split cards ---------- */
+    .solutions { background: var(--section-bg); padding: 24px 24px 8px; }
+
+    .split-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 0 auto 24px;
+      max-width: 1320px;
+      min-height: 460px;
+    }
+
+    .split-card .copy {
+      padding: 56px 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .eyebrow-sm {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 26px;
+    }
+
+    .split-card h2 {
+      font-size: clamp(30px, 3.4vw, 46px);
+      font-weight: 300;
+      line-height: 1.15;
+      color: var(--ink);
+      max-width: 420px;
+    }
+
+    .split-card .desc {
+      margin-top: auto;
+      padding-top: 40px;
+      font-size: 17px;
+      color: var(--grey);
+      max-width: 380px;
+    }
+
+    .split-card .cta { margin-top: 26px; }
+
+    .split-card .media {
+      min-height: 320px;
+      background-size: cover;
+      background-position: center;
+      background-color: #dfe3ea;
+    }
+
+    /* ---------- Customers ---------- */
+    .customers { padding: 110px 48px 40px; }
+
+    .customers .eyebrow-sm { margin-bottom: 20px; }
+
+    .customers h2 {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 300;
+      line-height: 1.18;
+      max-width: 820px;
+    }
+
+    .link-arrow {
+      display: inline-block;
+      margin-top: 22px;
+      color: var(--blue);
+      font-size: 15px;
+      font-weight: 400;
+      text-decoration: none;
+    }
+
+    .link-arrow::after { content: ' \2192'; }
+
+    .customers .photo {
+      margin: 44px auto 0;
+      max-width: 1320px;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .customers .photo img { width: 100%; display: block; }
+
+    /* ---------- Logo marquee ---------- */
+    .logo-strip {
+      overflow: hidden;
+      padding: 34px 0 10px;
+    }
+
+    .logo-track {
+      display: flex;
+      align-items: center;
+      gap: 90px;
+      width: max-content;
+      animation: marquee 32s linear infinite;
+      padding: 0 45px;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .logo-track img { height: 52px; width: auto; opacity: 0.9; }
+
+    /* ---------- Testimonial ---------- */
+    .quote-section { padding: 60px 24px 30px; }
+
+    .quote-card {
+      background: var(--beige);
+      border-radius: var(--radius);
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 56px 52px 48px;
+      display: flex;
+      flex-direction: column;
+      min-height: 300px;
+    }
+
+    .quote-card .quote {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--ink);
+      max-width: 720px;
+      font-weight: 400;
+    }
+
+    .quote-card .attribution {
+      margin-top: auto;
+      padding-top: 56px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .quote-card .who { font-size: 15px; color: var(--ink); }
+    .quote-card .who strong { font-weight: 500; display: block; }
+    .quote-card .who span { color: var(--grey); }
+    .quote-card img { height: 64px; width: auto; }
+
+    .dots {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 26px;
+    }
+
+    .dots i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #c9c9c9;
+    }
+
+    .dots i.active { background: #1c1c1c; }
+
+    /* ---------- Meet us / events ---------- */
+    .meet { padding: 100px 48px 30px; }
+    .meet .eyebrow-sm { margin-bottom: 20px; }
+
+    .meet h2 {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 300;
+      line-height: 1.18;
+      max-width: 700px;
+    }
+
+    .events { background: var(--section-bg); padding: 40px 24px 8px; margin-top: 44px; }
+
+    .event-card .copy .date {
+      font-size: 14px;
+      color: var(--light-grey);
+      margin-bottom: 22px;
+    }
+
+    .event-card h3 {
+      font-size: clamp(26px, 3vw, 40px);
+      font-weight: 300;
+      line-height: 1.15;
+      color: #7c7c7c;
+      max-width: 420px;
+    }
+
+    /* ---------- Contact / demo form ---------- */
+    .contact { padding: 110px 48px 90px; }
+
+    .contact .inner { max-width: 860px; margin: 0 auto; }
+
+    .contact .eyebrow-sm { margin-bottom: 18px; }
+
+    .contact h2 {
+      font-size: clamp(32px, 4vw, 50px);
+      font-weight: 300;
+      margin-bottom: 40px;
+    }
+
+    .contact form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px 24px;
+    }
+
+    .contact .full { grid-column: 1 / -1; }
+
+    .contact label {
+      display: block;
+      font-size: 13px;
+      color: var(--grey);
+      margin-bottom: 7px;
+    }
+
+    .contact input,
+    .contact select,
+    .contact textarea {
+      width: 100%;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      padding: 13px 15px;
+      outline: none;
+    }
+
+    .contact input:focus,
+    .contact select:focus,
+    .contact textarea:focus { border-color: var(--blue); }
+
+    .contact textarea { min-height: 110px; resize: vertical; }
+
+    .form-ok {
+      display: none;
+      grid-column: 1 / -1;
+      background: #e9f8f0;
+      border: 1px solid #35b57c;
+      color: #14663f;
+      border-radius: 10px;
+      padding: 15px 18px;
+      font-size: 15px;
+      font-weight: 400;
+    }
+
+    .form-ok.show { display: block; }
+
+    /* ---------- Bottom banner ---------- */
+    .promo-banner {
+      position: fixed;
+      left: 24px;
+      right: 24px;
+      bottom: 20px;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 26px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #1f6ef2 0%, #17a3b8 55%, #35d08e 100%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 400;
+    }
+
+    .promo-banner .actions { display: flex; align-items: center; gap: 18px; }
+    .promo-banner .close {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* ---------- Footer ---------- */
+    footer {
+      background: #fff;
+      border-top: 1px solid #ececec;
+      padding: 64px 48px 120px;
+    }
+
+    footer .footer-grid {
+      display: grid;
+      grid-template-columns: 240px repeat(4, 1fr);
+      gap: 40px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    footer img.gk-fujitsu {
+      height: 40px;
+      width: auto;
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    footer .col-title { font-size: 14px; font-weight: 500; margin-bottom: 14px; }
+    footer ul { list-style: none; }
+    footer li { margin-bottom: 9px; }
+    footer a { font-size: 13.5px; color: var(--grey); text-decoration: none; }
+    footer a:hover { color: var(--ink); }
+
+    footer .fine {
+      max-width: 1320px;
+      margin: 48px auto 0;
+      font-size: 12.5px;
+      color: var(--light-grey);
+    }
+
+    /* ---------- Error toast ---------- */
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 104px;
+      z-index: 40;
+      max-width: 400px;
+      background: #fff;
+      border-left: 4px solid #e0342b;
+      border-radius: 10px;
+      box-shadow: 0 10px 34px rgba(20, 20, 20, 0.22);
+      padding: 16px 18px;
+      transform: translateX(120%);
+      transition: transform 0.35s ease;
+      white-space: pre-line;
+    }
+
+    .toast.show { transform: translateX(0); }
+    .toast-title { font-weight: 500; color: #b1261e; margin-bottom: 5px; font-size: 15px; }
+    .toast-body { font-size: 13.5px; color: #4c4c4c; line-height: 1.5; }
+
+    @media (max-width: 900px) {
+      .nav { padding: 14px 20px; }
+      .hero { padding: 0 20px 40px; }
+      .split-card { grid-template-columns: 1fr; }
+      .customers, .meet, .contact { padding-left: 20px; padding-right: 20px; }
+      .contact form { grid-template-columns: 1fr; }
+      footer .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="logo" href="#top" aria-label="GK Software">
+    <span class="gk-mark">
+      <span class="gk-petal"><span></span><span></span><span></span><span></span><span></span></span>
+      <span class="gk-word">GK</span>
+    </span>
+    <span class="gk-sub">a Fujitsu company</span>
+  </a>
+  <div class="links">
+    <a class="pill" href="#customers">Search</a>
+    <a href="#solutions">&#127760; EN &#9662;</a>
+    <a class="pill dark" href="#contact">Contact GK</a>
+    <span class="menu">Menu</span>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div>
+    <div class="eyebrow">GK Software</div>
+    <h1>Making interactions in&nbsp;retail simple</h1>
+  </div>
+  <div class="cta-row">
+    <a class="btn btn-blue" href="#solutions">Discover CLOUD4RETAIL</a>
+    <a class="btn btn-white" href="#contact">Get in touch</a>
+  </div>
+</section>
+
+<div class="solutions" id="solutions">
+  <div class="split-card">
+    <div class="copy">
+      <div class="eyebrow-sm">GK CLOUD4RETAIL</div>
+      <h2>Store &amp; Associate Operations</h2>
+      <div class="desc">Fast, Seamless and Rich Personalized Omnichannel Services</div>
+      <div class="cta"><a class="btn btn-blue" href="#contact">Discover</a></div>
+    </div>
+    <div class="media" style="background-image:url('https://www.gk-software.com/images/b70246a8bdb7b097ca91505deca1e13.jpeg');"></div>
+  </div>
+
+  <div class="split-card">
+    <div class="copy">
+      <div class="eyebrow-sm">GK AIR Price Optimizer</div>
+      <h2>Pricing &amp; Category Optimization</h2>
+      <div class="desc">Clear and Seamless Price and Promotion Management</div>
+      <div class="cta"><a class="btn btn-blue" href="#contact">Discover</a></div>
+    </div>
+    <div class="media" style="background-image:url('https://www.gk-software.com/images/banners/GK-Air-New.jpg');"></div>
+  </div>
+
+  <div class="split-card">
+    <div class="copy">
+      <div class="eyebrow-sm">GK Engage</div>
+      <h2>Loyalty &amp; Retention Strategies</h2>
+      <div class="desc">Customer Interactions, Next-Level Loyalty &amp; Personalization at every Touchpoint</div>
+      <div class="cta"><a class="btn btn-blue" href="#contact">Discover</a></div>
+    </div>
+    <div class="media" style="background-image:url('https://www.gk-software.com/images/banners/leire-cavia-py6GvYD5B4I-unsplash.jpg');"></div>
+  </div>
+</div>
+
+<section class="customers" id="customers">
+  <div class="eyebrow-sm">Customers</div>
+  <h2>Our software and services deliver instant value and safeguard our customers&rsquo; long-term success</h2>
+  <a class="link-arrow" href="#contact">Our customers</a>
+  <div class="photo">
+    <img src="https://www.gk-software.com/images/banners/Customers-1.jpg" alt="Retail customers"
+         onerror="this.onerror=null;this.parentNode.style.display='none';">
+  </div>
+</section>
+
+<div class="logo-strip" aria-hidden="true">
+  <div class="logo-track">
+    <img src="https://www.gk-software.com/images/Customer/190x95/adidas.png" alt="adidas" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/coop.png" alt="coop" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/lidl.png" alt="Lidl" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/shoprite_190x95.png" alt="Shoprite" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/edeka.png" alt="Edeka" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/valora.png" alt="Valora" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/HyVee.png" alt="Hy-Vee" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/aldi.png" alt="Aldi" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/adidas.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/coop.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/lidl.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/shoprite_190x95.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/edeka.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/valora.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/HyVee.png" alt="" onerror="this.remove()">
+    <img src="https://www.gk-software.com/images/Customer/190x95/aldi.png" alt="" onerror="this.remove()">
+  </div>
+</div>
+
+<section class="quote-section">
+  <div class="quote-card">
+    <div class="quote">&ldquo;The satisfaction of customers and employees worldwide is adidas&rsquo; highest priority. Future-proof and flexible technologies ensure the best possible customer service in the store and webshop. With OmniPOS, we are able to implement new trends quickly.&rdquo;</div>
+    <div class="attribution">
+      <div class="who">
+        <strong>Andreas Bierlmeier</strong>
+        <span>Senior Director Digital Store Solutions, adidas</span>
+      </div>
+      <img src="https://www.gk-software.com/images/Customer/adidas.png" alt="adidas"
+           onerror="this.onerror=null;this.style.display='none';">
+    </div>
+  </div>
+  <div class="dots"><i></i><i class="active"></i><i></i><i></i><i></i></div>
+</section>
+
+<section class="meet" id="events">
+  <div class="eyebrow-sm">Meet us</div>
+  <h2>Get in touch with us during the world&rsquo;s leading tradeshows</h2>
+  <a class="link-arrow" href="#contact">Discover</a>
+</section>
+
+<div class="events">
+  <div class="split-card event-card">
+    <div class="copy">
+      <div class="date">September 15&ndash;17, 2026</div>
+      <h3>NRF 2026: Retail's Big Show Europe in Paris</h3>
+      <div class="desc">Meet GK at NRF Europe 2026 in Paris, one of the most important industry events for the European retail sector.</div>
+      <div class="cta"><a class="link-arrow" href="#contact">Learn more</a></div>
+    </div>
+    <div class="media" style="background-image:url('https://www.gk-software.com/images/e76ac32c0521d80554eb854ccdb7bc6c.jpg');"></div>
+  </div>
+
+  <div class="split-card event-card">
+    <div class="copy">
+      <div class="date">October 7&ndash;9, 2026</div>
+      <h3>NACS Show 2026 in Las Vegas</h3>
+      <div class="desc">Meet GK at the NACS Show, the leading event for convenience and fuel retailers.</div>
+      <div class="cta"><a class="link-arrow" href="#contact">Learn more</a></div>
+    </div>
+    <div class="media" style="background-image:url('https://www.gk-software.com/images/Events/2025/20260819_NACS-Show_LasVegas.jpg');"></div>
+  </div>
+</div>
+
+<section class="contact" id="contact">
+  <div class="inner">
+    <div class="eyebrow-sm">Contact GK</div>
+    <h2>Request a demo</h2>
+    <form onsubmit="return false;">
+      <div class="full">
+        <label for="solution">Solution</label>
+        <select id="solution">
+          <option value="cloud4retail" selected>GK CLOUD4RETAIL</option>
+          <option value="omnipos">GK OmniPOS</option>
+          <option value="engage">GK Engage &mdash; Loyalty &amp; Personalization</option>
+          <option value="air-price">GK AIR Price Optimizer</option>
+          <option value="air-personalization">GK AIR Personalization</option>
+        </select>
+      </div>
+      <div>
+        <label for="name">Name</label>
+        <input id="name" type="text" value="Petra Lindqvist">
+      </div>
+      <div>
+        <label for="company">Company</label>
+        <input id="company" type="text" value="Nordkette Retail Group">
+      </div>
+      <div class="full">
+        <label for="email">E-Mail</label>
+        <input id="email" type="email" value="petra.lindqvist@example.com">
+      </div>
+      <div class="full">
+        <label for="message">Message</label>
+        <textarea id="message">Hello — we operate 300 grocery stores across Northern Europe and would like a demo of CLOUD4RETAIL for our store modernization program.</textarea>
+      </div>
+      <div class="full">
+        <button class="btn btn-blue" data-cta type="submit">Request a Demo</button>
+      </div>
+      <div class="form-ok" data-ok></div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <img class="gk-fujitsu" src="https://www.gk-software.com/images/GK_Fujitsu_Logo_White.png" alt="GK Software - a Fujitsu company"
+           onerror="this.onerror=null;this.style.display='none';">
+    </div>
+    <div>
+      <div class="col-title">Solutions</div>
+      <ul>
+        <li><a href="#solutions">GK CLOUD4RETAIL</a></li>
+        <li><a href="#solutions">GK OmniPOS</a></li>
+        <li><a href="#solutions">GK MobilePOS</a></li>
+        <li><a href="#solutions">GK Engage</a></li>
+        <li><a href="#solutions">GK AIR Price Optimizer</a></li>
+        <li><a href="#solutions">GK AIR Personalization</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="col-title">About</div>
+      <ul>
+        <li><a href="#customers">About GK</a></li>
+        <li><a href="#customers">Partners</a></li>
+        <li><a href="#customers">Customers</a></li>
+        <li><a href="#customers">ESG &amp; CSR</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="col-title">Newsroom</div>
+      <ul>
+        <li><a href="#events">Corporate News</a></li>
+        <li><a href="#events">Blog</a></li>
+        <li><a href="#events">Success &amp; Customer Stories</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="col-title">Meet GK</div>
+      <ul>
+        <li><a href="#events">Events &amp; Tradeshows</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="fine">&copy; 2026 GK Software SE, Germany. All trademarks are the property of their respective owners. Demo environment.</div>
+</footer>
+
+<div class="promo-banner" data-banner>
+  <span>Meet GK at NRF 2026 Europe in Paris on September 15&ndash;17, 2026!</span>
+  <span class="actions">
+    <a class="btn btn-white" href="#events" style="padding:9px 20px;font-size:14px;">Meet us</a>
+    <button class="close" aria-label="Close" onclick="document.querySelector('[data-banner]').remove()">&#10005;</button>
+  </span>
+</div>
+
+<div class="toast" data-toast>
+  <div class="toast-title">Something went wrong</div>
+  <div class="toast-body"></div>
+</div>
+
+<script>
+  /* Ensure locked-mode config is in localStorage for direct navigation */
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<script>
+  var toastTimer = null;
+
+  function showToast(payload) {
+    var toast = document.querySelector('[data-toast]');
+    toast.querySelector('.toast-body').textContent =
+      (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+      + '\n' + (payload.code || 'DEMO_REQUEST_ROUTING_FAILED')
+      + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+  }
+
+  function showConfirmation(confirmation) {
+    var ok = document.querySelector('[data-ok]');
+    ok.textContent = 'Demo request received \u2014 ' + confirmation.nextStep
+      + ' Reference: ' + confirmation.requestId + '.';
+    ok.classList.add('show');
+  }
+
+  function submitDemoRequest(button) {
+    if (button._running) return;
+    button._running = true;
+    var original = button.innerHTML;
+    button.textContent = 'Sending\u2026';
+    button.style.pointerEvents = 'none';
+    document.querySelector('[data-ok]').classList.remove('show');
+
+    fetch('/api/784ffbc5/demo-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        solution: document.getElementById('solution').value,
+        name: document.getElementById('name').value.trim(),
+        company: document.getElementById('company').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        message: document.getElementById('message').value.trim(),
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showToast(result.body);
+        else showConfirmation(result.body);
+      })
+      .catch(function (err) {
+        showToast({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.innerHTML = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      submitDemoRequest(button);
+    });
+  });
+</script>
+</body>
+</html>
