@@ -18,13 +18,61 @@ const DEFAULT_TIME_ZONE = 'America/Los_Angeles';
 const STANDING_REPO = 'ananthv26-cog-demo-repos/automations-service';
 const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const CHANNEL_LOOKUP_MAX_ATTEMPTS = 40;
+const IC = { username: 'Maya Chen (IC)', icon: ':female-technologist:' };
+const ENG = { username: 'Ethan Brooks (ENG)', icon: ':male-technologist:' };
+const INFRA = { username: 'Priya Shah (INFRA)', icon: ':female-technologist:' };
+const BIZ = { username: 'Jordan Ellis (BIZ)', icon: ':briefcase:' };
+const LEAD = { username: 'Sam Ortiz (ENG LEAD)', icon: ':necktie:' };
 const CHATTER = [
-  { afterMs: 30 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
-  { afterMs: 60 * 1000, username: 'Ethan Brooks (ENG)', icon: ':male-technologist:', text: 'did we ship anything yesterday? I don\'t see a deploy' },
-  { afterMs: 120 * 1000, username: 'Priya Shah (ENG_B)', icon: ':female-technologist:', text: 'is the queue itself down? AWS status is green' },
-  { afterMs: 180 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'looks like one customer has been poisoning our automations queue somehow' },
-  { afterMs: 240 * 1000, username: 'Jordan Ellis (BIZ)', icon: ':briefcase:', text: 'customers are asking — blast radius? is this a sev2?' },
+  { afterMs: 30 * 1000, ...IC, text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
+  { afterMs: 50 * 1000, ...INFRA, text: 'hey, do you need infra help here?' },
+  { afterMs: 75 * 1000, ...IC, text: 'no / well — for a class-of-issues fix later yes, but for now no' },
+  { afterMs: 100 * 1000, ...ENG, text: 'looking at the dashboard now. errors are steady, not spiking — this has been going for a while?' },
+  { afterMs: 2 * 60 * 1000, ...ENG, text: 'did we ship anything yesterday? I see a matcher change in the log' },
+  { afterMs: 150 * 1000, ...LEAD, text: 'that was log wording only, I reviewed it — but worth ruling out, can someone diff it?' },
+  { afterMs: 3 * 60 * 1000, ...IC, text: 'diffed it, one log line, no behavior change. it\'s not the deploy' },
+  { afterMs: 210 * 1000, ...INFRA, text: 'I also see auth token refresh retries on billing-sync around the same window — related?' },
+  { afterMs: 4 * 60 * 1000, ...IC, text: 'don\'t think so, those retries are always there at low volume. keep it on the list though' },
+  { afterMs: 270 * 1000, ...ENG, text: 'there\'s a second org throwing retried-write warnings too. two customers at once?' },
+  { afterMs: 5 * 60 * 1000, ...INFRA, text: 'is the queue itself down? AWS status is green' },
+  { afterMs: 330 * 1000, ...IC, text: 'queue is fine, messages are flowing — they\'re just not acking. redeliveries climbing' },
+  { afterMs: 6 * 60 * 1000, ...BIZ, text: 'customers are asking — blast radius? is this a sev2?' },
+  { afterMs: 390 * 1000, ...IC, text: 'hold sev until we know scope. right now it\'s scheduled automations only as far as I can tell' },
+  { afterMs: 7 * 60 * 1000, ...LEAD, text: 'what\'s actually broken for customers right now — all scheduled automations, or just that one org?' },
+  { afterMs: 450 * 1000, ...IC, text: 'looks like one customer has been poisoning our automations queue somehow — the queued event carries an indirect-data blob and the name we picked for it doesn\'t work on every storage provider' },
+  { afterMs: 8 * 60 * 1000, ...IC, text: '{devin} can you confirm the root cause, and start a task to put up a fix so one org\'s failed storage upload doesn\'t fail the whole tick — mark that org\'s events failed immediately instead (unless that hurts ingest perf, lmk)' },
+  { afterMs: 9 * 60 * 1000, ...ENG, text: 'the second org with retries — is that the same failure mode or noise?' },
+  { afterMs: 10 * 60 * 1000, ...IC, text: 'different signature. those are transient timeouts that succeed on retry, zero of them terminal. parking it' },
+  { afterMs: 11 * 60 * 1000, ...IC, text: 'and there\'s some bad logic where if one org\'s upload fails, the whole batch fails' },
+  { afterMs: 12 * 60 * 1000, ...LEAD, text: 'so any org that lands in the same tick as the bad one eats the failure? that\'s the class-of-issues fix Priya asked about' },
+  { afterMs: 13 * 60 * 1000, ...INFRA, text: 'why is the error count so flat though? same failure every tick?' },
+  { afterMs: 14 * 60 * 1000, ...IC, text: 'yes — the cursor never advances when the tick aborts, so the same occurrence gets rematched every time. it\'ll grind forever until we break the loop' },
+  { afterMs: 15 * 60 * 1000, ...ENG, text: 'what\'s the fastest way to disable that customer\'s automation? request prod db access or impersonate their org admin?' },
+  { afterMs: 16 * 60 * 1000, ...IC, text: 'I think we can turn off automations ingest with the feature flag and stop the bleeding, then cherry-pick a fix and turn it back on' },
+  { afterMs: 17 * 60 * 1000, ...LEAD, text: 'flag kills ingest for everyone though. if it\'s really one org, disabling their trigger is way smaller blast radius' },
+  { afterMs: 18 * 60 * 1000, ...ENG, text: 'wait — non-scheduled automations go through the same queue right? so everything from that org is broken anyway?' },
+  { afterMs: 19 * 60 * 1000, ...IC, text: 'yes, all of that org\'s automations are broken — but other orgs only get hit when a schedule tick batches them together' },
+  { afterMs: 20 * 60 * 1000, ...BIZ, text: 'ok upgrading to sev2 comms then, cross-customer impact is confirmed. do we need a status page update? I can start drafting' },
+  { afterMs: 21 * 60 * 1000, ...IC, text: 'draft it but hold publish — if the trigger disable lands in the next few minutes the customer-visible window stays small' },
+  { afterMs: 22 * 60 * 1000, ...ENG, text: 'going with the targeted disable, Sam\'s right about blast radius. need someone to approve the prod access request' },
+  { afterMs: 23 * 60 * 1000, ...LEAD, text: 'approved' },
+  { afterMs: 24 * 60 * 1000, ...ENG, text: 'disabled the customer\'s automation — should mitigate this now :crossed_fingers:' },
+  { afterMs: 25 * 60 * 1000, ...INFRA, text: 'error rate dropping. redeliveries draining' },
+  { afterMs: 26 * 60 * 1000, ...IC, text: 'watching the DLQ — depth stopped growing. keep eyes on it another few minutes before we call mitigated' },
+  { afterMs: 28 * 60 * 1000, ...BIZ, text: 'what do I tell the affected customers about the runs that failed? do they rerun themselves or do we backfill?' },
+  { afterMs: 29 * 60 * 1000, ...IC, text: 'committed ticks dedupe on redelivery, so nothing double-ran. the failed occurrences need a replay once the fix ships — I\'ll scope the backfill' },
+  { afterMs: 31 * 60 * 1000, ...ENG, text: 'zero new errors in the last 5 min. calling it mitigated' },
+  { afterMs: 32 * 60 * 1000, ...IC, text: 'mitigated ≠ resolved — the poisoned org is just off. root-cause fix still needs to land before we re-enable them' },
+  { afterMs: 34 * 60 * 1000, ...LEAD, text: 'follow-ups I want in the retro: per-org upload isolation, container-name validation at trigger create, and an alert on redelivery rate not just DLQ depth' },
+  { afterMs: 36 * 60 * 1000, ...INFRA, text: 'adding one: the flag is all-or-nothing. we should have a per-org kill switch for exactly this' },
+  { afterMs: 38 * 60 * 1000, ...BIZ, text: 'customer comms sent to the affected org, holding the status page since impact window closed' },
+  { afterMs: 40 * 60 * 1000, ...IC, text: 'thanks all — keeping the incident open until the fix PR is reviewed, then we schedule the re-enable + backfill' },
 ];
+
+function renderChatterText(text) {
+  const devinId = process.env.DEVIN_SLACK_USER_ID;
+  return text.replace('{devin}', devinId ? `<@${devinId}>` : 'Devin');
+}
 
 const state = {
   runState: 'idle',
@@ -189,7 +237,7 @@ function startChatter(channel, declaredAtMs) {
         await postPersonaMessage(
           slackToken(),
           channel.id,
-          line.text,
+          renderChatterText(line.text),
           line.username,
           line.icon,
         );
