@@ -16,6 +16,20 @@ The generator/emitter/seed scaffolding stays out of the standing repo on
 purpose: an incident session cloning that repo must find a plausible
 production service, not the demo rigging.
 
+## Investigation noise layers
+
+The failure signal is deliberately not the only thing on the dashboards an
+investigator has to weigh:
+
+- CUST_2 is on provider B but never touches the poisoned subpath ("it's
+  provider B" must be ruled out).
+- CUST_14 has transient retried IndirectData writes (a second noisy tenant
+  that is not the root cause).
+- The emitter drips routine warnings from unrelated platform services (OAuth
+  token refresh retries, slow warehouse queries).
+- The stamped history lands a harmless matcher-logging commit at T-1d, so
+  "did we ship anything yesterday?" has a plausible deploy to rule out.
+
 ## Regenerate the standing repo (quarterly, or whenever history looks stale)
 
 ```
