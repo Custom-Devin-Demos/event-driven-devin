@@ -303,7 +303,6 @@ async function scheduleRepair(data) {
       verticalLabel: 'Service Scheduling',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '4f2fb968',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/4f2fb968/schedule-repair' },
         { key: 'service', value: 'customer-4f2fb968-service-scheduling' },
