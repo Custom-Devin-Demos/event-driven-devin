@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Ahead | Taco Bell</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tb-purple: #702082;
+      --tb-purple-dark: #4c1458;
+      --tb-pink: #E93CAC;
+      --tb-black: #151515;
+      --tb-lavender: #f5eef8;
+      --tb-muted: #68616b;
+      --tb-border: #e4d5e9;
+      --tb-green: #2d7d46;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--tb-black); background: #fff; -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    header.nav {
+      position: sticky; top: 0; z-index: 50; height: 68px; padding: 0 28px;
+      background: var(--tb-purple); display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand {
+      color: #fff; font-weight: 900; font-size: 25px; letter-spacing: 1.5px;
+      text-transform: uppercase; display: flex; align-items: center; gap: 9px;
+    }
+    .brand .bell { font-size: 24px; }
+    .nav-links { display: flex; gap: 26px; align-items: center; }
+    .nav-links a { color: #fff; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .6px; }
+    .nav-links a:hover { color: #f8c9ed; }
+    .nav-cta { background: #fff; color: var(--tb-purple) !important; padding: 10px 20px; border-radius: 999px; }
+    .hero { position: relative; height: 320px; overflow: hidden; display: flex; align-items: center; background: var(--tb-black); }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 52%; opacity: .53; }
+    .hero-inner { position: relative; z-index: 2; padding: 0 48px; max-width: 760px; }
+    .hero h1 { color: #fff; font-size: 56px; font-weight: 900; line-height: 1.02; letter-spacing: -.5px; }
+    .hero p { color: #f5eaf8; font-size: 18px; margin-top: 14px; font-weight: 500; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+    .order-grid { display: grid; grid-template-columns: 1fr 340px; gap: 32px; align-items: start; }
+    @media (max-width: 900px) { .order-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) { .menu-grid { grid-template-columns: 1fr !important; } .hero-inner { padding: 0 28px; } .hero h1 { font-size: 43px; } .nav-links a:not(.nav-cta) { display: none; } }
+    .section-title { font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--tb-purple); margin: 26px 0 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .menu-item { border: 2px solid var(--tb-border); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; background: #fff; transition: border-color .12s, box-shadow .12s; }
+    .menu-item:hover { border-color: #cba7d5; }
+    .menu-item.selected { border-color: var(--tb-purple); box-shadow: 0 0 0 1px var(--tb-purple) inset; }
+    .menu-check { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 22px; border: 2px solid #cdbbd2; position: relative; }
+    .menu-item.selected .menu-check { background: var(--tb-purple); border-color: var(--tb-purple); }
+    .menu-item.selected .menu-check::after { content: '✓'; color: #fff; font-size: 13px; font-weight: 900; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .menu-info { flex: 1; }
+    .menu-name { font-weight: 700; font-size: 15px; }
+    .menu-price { color: var(--tb-muted); font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .menu-qty { width: 54px; padding: 6px; border: 1.5px solid var(--tb-border); border-radius: 8px; text-align: center; font-family: inherit; font-weight: 700; }
+    .bag { background: var(--tb-lavender); border-radius: 18px; padding: 24px; position: sticky; top: 92px; border: 1px solid var(--tb-border); }
+    .bag h2 { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--tb-muted); margin-bottom: 6px; }
+    .field select, .field input { width: 100%; padding: 11px 12px; border: 1.5px solid #d8c3de; border-radius: 10px; font-family: inherit; font-size: 14px; background: #fff; }
+    .btn-order { width: 100%; background: var(--tb-purple); color: #fff; border: none; padding: 15px; border-radius: 999px; font-family: inherit; font-size: 16px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; margin-top: 6px; transition: background .12s; }
+    .btn-order:hover { background: var(--tb-purple-dark); }
+    .btn-order:disabled { opacity: .6; cursor: not-allowed; }
+    .bag-note { font-size: 12px; color: var(--tb-muted); text-align: center; margin-top: 12px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 999; max-width: 380px; background: #fff; border-left: 5px solid var(--tb-pink); box-shadow: 0 12px 40px rgba(0,0,0,.22); border-radius: 12px; padding: 16px 18px; transform: translateY(140%); transition: transform .35s ease; }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-left-color: var(--tb-green); }
+    .toast-title { font-weight: 900; font-size: 15px; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; color: #444; line-height: 1.4; }
+    footer.site { background: var(--tb-black); color: #d8c9dc; padding: 40px 24px; text-align: center; font-size: 13px; }
+    footer.site .brand { justify-content: center; margin-bottom: 12px; }
+    footer.site a { margin: 0 10px; opacity: .85; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#"><span class="bell">🔔</span> Taco Bell</a>
+    <nav class="nav-links">
+      <a href="#">Order</a><a href="#">Menu</a><a href="#">Rewards</a><a href="#">Gift Cards</a><a class="nav-cta" href="#">Sign In</a>
+    </nav>
+  </header>
+  <section class="hero">
+    <img src="https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=1600&q=80"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?w=1600&q=80';"
+         alt="Tacos with fresh toppings">
+    <div class="hero-inner">
+      <h1>Cravings<br>Can't Wait.</h1>
+      <p>Order now, pick up at your local Taco Bell.</p>
+    </div>
+  </section>
+  <div class="wrap">
+    <div class="order-grid">
+      <div>
+        <div class="section-title">Tacos</div><div class="menu-grid" id="Tacos"></div>
+        <div class="section-title">Burritos</div><div class="menu-grid" id="Burritos"></div>
+        <div class="section-title">Specialties</div><div class="menu-grid" id="Specialties"></div>
+        <div class="section-title">Sides &amp; Sweets</div><div class="menu-grid" id="Sides & Sweets"></div>
+        <div class="section-title">Drinks</div><div class="menu-grid" id="Drinks"></div>
+      </div>
+      <form class="bag" id="orderForm">
+        <h2>Your Bag</h2>
+        <div class="field"><label for="storeId">Pickup Store</label><select id="storeId"></select></div>
+        <div class="field"><label for="pickupTime">Pickup Time</label><select id="pickupTime"><option value="ASAP (15–20 min)">ASAP (15–20 min)</option><option value="In 30 min">In 30 min</option><option value="In 1 hour">In 1 hour</option></select></div>
+        <div class="field"><label for="contactName">Name for Order</label><input type="text" id="contactName" value="Alex" required></div>
+        <div class="field"><label for="rewardsTier">Rewards Tier</label><select id="rewardsTier"><option value="hot">Hot</option><option value="fire" selected>Fire!</option></select></div>
+        <button type="submit" class="btn-order" id="submitBtn">Place Order</button>
+        <div class="bag-note">Live Más. Rewards points on every order.</div>
+      </form>
+    </div>
+  </div>
+  <footer class="site">
+    <div class="brand"><span class="bell">🔔</span> Taco Bell</div>
+    <div><a href="#">About</a><a href="#">Careers</a><a href="#">Nutrition</a><a href="#">Rewards</a><a href="#">Contact</a></div>
+    <p style="margin-top:16px;opacity:.7;">&copy; 2026 Taco Bell. All rights reserved.</p>
+  </footer>
+  <div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-detail" id="toastDetail"></div></div>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var MENU = [
+      { id: 'TACO-CRUNCHY', name: 'Crunchy Taco', category: 'Tacos', price: 1.79 },
+      { id: 'TACO-SOFT', name: 'Soft Taco', category: 'Tacos', price: 1.79 },
+      { id: 'TACO-DORITOS', name: 'Doritos Locos Taco', category: 'Tacos', price: 2.49 },
+      { id: 'BURRITO-5LAYER', name: 'Beefy 5-Layer Burrito', category: 'Burritos', price: 3.69 },
+      { id: 'BURRITO-BEAN', name: 'Bean Burrito', category: 'Burritos', price: 1.99 },
+      { id: 'SPEC-CRUNCHWRAP', name: 'Crunchwrap Supreme', category: 'Specialties', price: 5.49 },
+      { id: 'SPEC-QUESADILLA', name: 'Quesadilla Chicken', category: 'Specialties', price: 5.79 },
+      { id: 'SPEC-PIZZA', name: 'Mexican Pizza', category: 'Specialties', price: 5.99 },
+      { id: 'SIDE-FRIES', name: 'Nacho Fries', category: 'Sides & Sweets', price: 2.69 },
+      { id: 'SIDE-TWISTS', name: 'Cinnamon Twists', category: 'Sides & Sweets', price: 1.29 },
+      { id: 'DRINK-BAJA', name: 'Baja Blast', category: 'Drinks', price: 2.79 },
+      { id: 'DRINK-FOUNTAIN', name: 'Regular Fountain Drink', category: 'Drinks', price: 2.49 },
+    ];
+    var STORES = [
+      { id: 'TB-0420', name: 'Taco Bell — Irvine Spectrum' },
+      { id: 'TB-1187', name: 'Taco Bell — Denver LoDo' },
+      { id: 'TB-2043', name: 'Taco Bell — Chicago Loop' },
+      { id: 'TB-3310', name: 'Taco Bell — Austin Riverside' },
+      { id: 'TB-4521', name: 'Taco Bell — Queens Boulevard' },
+    ];
+    MENU.forEach(function (item) {
+      var grid = document.getElementById(item.category);
+      if (!grid) return;
+      var div = document.createElement('div');
+      div.className = 'menu-item'; div.dataset.itemId = item.id;
+      div.innerHTML = '<div class="menu-check"></div><div class="menu-info"><div class="menu-name">' + item.name + '</div><div class="menu-price">$' + item.price.toFixed(2) + '</div></div><input type="number" class="menu-qty" value="1" min="1" max="20" onclick="event.stopPropagation()">';
+      div.addEventListener('click', function () { div.classList.toggle('selected'); });
+      grid.appendChild(div);
+    });
+    document.querySelector('#Tacos .menu-item').classList.add('selected');
+    document.querySelector('#Drinks .menu-item').classList.add('selected');
+    var storeSelect = document.getElementById('storeId');
+    STORES.forEach(function (s) { var opt = document.createElement('option'); opt.value = s.id; opt.textContent = s.name; storeSelect.appendChild(opt); });
+    function showToast(type, title, detail) {
+      var toast = document.getElementById('toast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.className = 'toast show' + (type === 'success' ? ' success' : '');
+      setTimeout(function () { toast.className = 'toast' + (type === 'success' ? ' success' : ''); }, 6000);
+    }
+    document.getElementById('orderForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn'); btn.disabled = true; btn.textContent = 'Placing Order...';
+      var selectedItems = [];
+      document.querySelectorAll('.menu-item.selected').forEach(function (el) {
+        selectedItems.push({ itemId: el.dataset.itemId, qty: parseInt(el.querySelector('.menu-qty').value, 10) || 1 });
+      });
+      try {
+        var res = await fetch('/api/tacobell/order', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storeId: document.getElementById('storeId').value,
+            pickupTime: document.getElementById('pickupTime').value,
+            contactName: document.getElementById('contactName').value,
+            rewardsTier: document.getElementById('rewardsTier').value,
+            items: selectedItems,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await res.json();
+        if (!res.ok) showToast('error', 'Order Failed', data.errorClass + ': ' + data.error);
+        else showToast('success', 'Order Confirmed!', 'Order #' + data.orderId.slice(0, 8).toUpperCase() + ' • Total $' + data.total + ' • Pickup: ' + data.pickup.storeName + ' • ' + data.rewardsPoints + ' rewards points earned');
+      } catch (err) { showToast('error', 'Network Error', err.message); }
+      finally { btn.disabled = false; btn.textContent = 'Place Order'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
