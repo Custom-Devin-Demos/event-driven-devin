@@ -639,10 +639,10 @@ describe('automations incident demo control plane', () => {
     await jest.advanceTimersByTimeAsync(30 * 1000);
     expect(slack.postPersonaMessage.mock.calls.map((call) => call[2])).toEqual([
       'sorry to the platform team you all got added, we don\'t have a team on automations',
-      'did we ship anything yesterday? I don\'t see a deploy',
+      'hey, do you need infra help here?',
     ]);
     await demo.stop();
-    await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+    await jest.advanceTimersByTimeAsync(20 * 60 * 1000);
     expect(slack.postPersonaMessage).toHaveBeenCalledTimes(2);
   });
 

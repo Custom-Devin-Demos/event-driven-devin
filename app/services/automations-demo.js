@@ -18,13 +18,34 @@ const DEFAULT_TIME_ZONE = 'America/Los_Angeles';
 const STANDING_REPO = 'ananthv26-cog-demo-repos/automations-service';
 const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const CHANNEL_LOOKUP_MAX_ATTEMPTS = 40;
+const IC = { username: 'Maya Chen (IC)', icon: ':female-technologist:' };
+const ENG = { username: 'Ethan Brooks (ENG)', icon: ':male-technologist:' };
+const INFRA = { username: 'Priya Shah (INFRA)', icon: ':female-technologist:' };
+const BIZ = { username: 'Jordan Ellis (BIZ)', icon: ':briefcase:' };
+const LEAD = { username: 'Sam Ortiz (ENG LEAD)', icon: ':necktie:' };
 const CHATTER = [
-  { afterMs: 30 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
-  { afterMs: 60 * 1000, username: 'Ethan Brooks (ENG)', icon: ':male-technologist:', text: 'did we ship anything yesterday? I don\'t see a deploy' },
-  { afterMs: 120 * 1000, username: 'Priya Shah (ENG_B)', icon: ':female-technologist:', text: 'is the queue itself down? AWS status is green' },
-  { afterMs: 180 * 1000, username: 'Maya Chen (IC)', icon: ':female-technologist:', text: 'looks like one customer has been poisoning our automations queue somehow' },
-  { afterMs: 240 * 1000, username: 'Jordan Ellis (BIZ)', icon: ':briefcase:', text: 'customers are asking — blast radius? is this a sev2?' },
+  { afterMs: 30 * 1000, ...IC, text: 'sorry to the platform team you all got added, we don\'t have a team on automations' },
+  { afterMs: 60 * 1000, ...INFRA, text: 'hey, do you need infra help here?' },
+  { afterMs: 90 * 1000, ...IC, text: 'no / well — for a class-of-issues fix later yes, but for now no' },
+  { afterMs: 2 * 60 * 1000, ...ENG, text: 'did we ship anything yesterday? I don\'t see a deploy' },
+  { afterMs: 3 * 60 * 1000, ...IC, text: 'looks like one customer has been poisoning our automations queue somehow — the queued event carries an indirect-data blob and the name we picked for it doesn\'t work on every storage provider' },
+  { afterMs: 4 * 60 * 1000, ...IC, text: 'and there\'s some bad logic where if one org\'s upload fails, the whole batch fails' },
+  { afterMs: 5 * 60 * 1000, ...INFRA, text: 'is the queue itself down? AWS status is green' },
+  { afterMs: 6 * 60 * 1000, ...BIZ, text: 'customers are asking — blast radius? is this a sev2?' },
+  { afterMs: 7 * 60 * 1000, ...LEAD, text: 'what\'s actually broken for customers right now — all scheduled automations, or just that one org?' },
+  { afterMs: 8 * 60 * 1000, ...IC, text: '{devin} can you confirm the root cause, and start a task to put up a fix so one org\'s failed storage upload doesn\'t fail the whole tick — mark that org\'s events failed immediately instead (unless that hurts ingest perf, lmk)' },
+  { afterMs: 10 * 60 * 1000, ...ENG, text: 'what\'s the fastest way to disable that customer\'s automation? request prod db access or impersonate their org admin?' },
+  { afterMs: 11 * 60 * 1000, ...IC, text: 'I think we can turn off automations ingest with the feature flag and stop the bleeding, then cherry-pick a fix and turn it back on' },
+  { afterMs: 13 * 60 * 1000, ...ENG, text: 'wait — non-scheduled automations go through the same queue right? so everything from that org is broken anyway?' },
+  { afterMs: 14 * 60 * 1000, ...IC, text: 'yes, all of that org\'s automations are broken — but other orgs only get hit when a schedule tick batches them together' },
+  { afterMs: 16 * 60 * 1000, ...BIZ, text: 'do we need a status page update? I can start drafting the customer-facing statement' },
+  { afterMs: 18 * 60 * 1000, ...ENG, text: 'disabled the customer\'s automation — should mitigate this now :crossed_fingers:' },
 ];
+
+function renderChatterText(text) {
+  const devinId = process.env.DEVIN_SLACK_USER_ID;
+  return text.replace('{devin}', devinId ? `<@${devinId}>` : 'Devin');
+}
 
 const state = {
   runState: 'idle',
@@ -189,7 +210,7 @@ function startChatter(channel, declaredAtMs) {
         await postPersonaMessage(
           slackToken(),
           channel.id,
-          line.text,
+          renderChatterText(line.text),
           line.username,
           line.icon,
         );
