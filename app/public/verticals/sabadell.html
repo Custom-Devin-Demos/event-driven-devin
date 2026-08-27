@@ -415,6 +415,15 @@
 
   <script>
     (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    }());
+  </script>
+  <script>
+    (function () {
       var form = document.getElementById('account-form');
       var panel = document.getElementById('result-panel');
       var submitButton = form.querySelector('button[type="submit"]');
@@ -454,8 +463,8 @@
             documentId: document.getElementById('documentId').value,
             monthlyIncomeEur: Number(document.getElementById('monthlyIncomeEur').value),
             payrollDirectDeposit: document.getElementById('payrollDirectDeposit').checked,
-            // User id is intentionally omitted so the session is created as the service user.
-            devinOrgId: 'org_69IXJFLrljx8zSAw',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || ''
           })
         })
