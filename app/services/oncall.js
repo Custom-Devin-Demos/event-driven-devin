@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -327,8 +327,10 @@ function datadogActions() {
   };
 }
 
-function contextBlock(service, triggeredBy) {
-  const parts = [`Service: \`${service || 'checkout-api'}\``, new Date().toISOString()];
+function contextBlock(service, triggeredBy, submittedFrom) {
+  const parts = [`Service: \`${service || 'checkout-api'}\``];
+  if (submittedFrom) parts.push(`Submitted from: <${submittedFrom}|${submittedFrom.replace(/^https?:\/\//, '')}>`);
+  parts.push(new Date().toISOString());
   if (triggeredBy) parts.push(`Triggered by ${triggeredBy}`);
   return {
     type: 'context',
@@ -482,7 +484,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
         severity ? ['Severity', severity] : null,
       ]),
       mrkdwnSection(body),
-      contextBlock(centerSlug, triggeredBy),
+      contextBlock(centerSlug, triggeredBy, skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null),
     ];
   }
 
@@ -494,15 +496,6 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     // never posted, don't leave the app silently degraded for the full window.
     if (activated) revertScopedInfra(runRef, 'bug report post failed');
     throw error;
-  }
-  // The demo-page link goes in the thread so the ticket itself stays a plain
-  // customer report while the responder still finds the reproduction surface.
-  if (skinSlug) {
-    try {
-      await postThreadReply(token, bugsChannel, ts, `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skinSlug} — reproduce the symptom on this branded page`);
-    } catch (err) {
-      logger.warn('Failed to post demo page thread reply on bug report', { error: err.message });
-    }
   }
   logger.info('On-Call bug report posted', {
     scenario: scenarioId || 'custom',
