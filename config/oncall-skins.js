@@ -481,6 +481,27 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MEDICODIO SITE — internal demo only, not affiliated with, endorsed by, or a real MediCodio product.',
   },
+
+  '03848ffe': {
+    slug: '03848ffe',
+    company: 'Genspark',
+    brandMark: 'G',
+    vertical: 'hightech',
+    page: {
+      file: '03848ffe.html',
+      title: 'Genspark - Upgrade to Team Plan',
+    },
+    theme: {
+      '--accent': '#0F7FFF',
+      '--ink': '#232425',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Genspark Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A GENSPARK SITE — internal demo only, not affiliated with, endorsed by, or a real Genspark product.',
+  },
 };
 
 function getOncallSkin(slug) {
