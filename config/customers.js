@@ -435,6 +435,10 @@ const CUSTOMERS = {
     label: 'Cardinal Health',
     triggerMode: 'api',
   },
+  sabadell: {
+    label: 'Banco Sabadell',
+    triggerMode: 'api',
+  },
   '4f2fb968': {
     label: 'Canada Tire Company',
     triggerMode: 'api',

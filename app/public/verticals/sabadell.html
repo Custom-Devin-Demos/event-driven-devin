@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sabadell | Personal banking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2E6BF6;
+      --blue-hover: #1F4FD1;
+      --page: #FAFAFA;
+      --ink: #000;
+      --secondary: #4A4A4A;
+      --border: #E0E0E0;
+      --content: 1200px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      padding: 0 0 90px;
+      color: var(--ink);
+      background: var(--page);
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.45;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .container { width: min(calc(100% - 48px), var(--content)); margin: 0 auto; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: 80px;
+      background: #FFF;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+      height: 100%;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      gap: 10px;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+    }
+    .brand-mark { width: 38px; height: 38px; }
+    .main-nav {
+      display: flex;
+      align-self: stretch;
+      align-items: center;
+      gap: 28px;
+      color: var(--secondary);
+      font-size: 17px;
+      white-space: nowrap;
+    }
+    .main-nav a {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+    .main-nav a.active { color: var(--ink); font-weight: 600; }
+    .main-nav a.active::after {
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 3px;
+      background: var(--blue);
+      content: "";
+    }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1.5px solid var(--blue);
+      border-radius: 999px;
+      color: var(--blue);
+      background: #FFF;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .access { gap: 8px; padding: 10px 19px; }
+    .primary {
+      border-color: var(--blue);
+      color: #FFF;
+      background: var(--blue);
+    }
+    .primary:hover { background: var(--blue-hover); border-color: var(--blue-hover); }
+    .header-actions .primary { padding: 14px 26px; font-size: 17px; }
+    .circle-icon, .hamburger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #FFF;
+    }
+    .circle-icon { border: 1.5px solid var(--blue); color: var(--blue); font-size: 21px; font-weight: 700; }
+    .hamburger { border: 0; padding: 0; }
+    .hamburger span, .hamburger::before, .hamburger::after {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--ink);
+      content: "";
+    }
+    .hamburger { position: relative; }
+    .hamburger span { position: absolute; }
+    .hamburger::before { transform: translateY(-6px); }
+    .hamburger::after { transform: translateY(6px); }
+
+    .risk-block { padding: 34px 0 0; }
+    .risk-caption {
+      margin: 0 0 7px;
+      color: var(--secondary);
+      font-size: 12px;
+      text-align: right;
+    }
+    .risk-table {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid var(--ink);
+      background: #FFF;
+      font-size: 13px;
+    }
+    .risk-cell { padding: 14px 17px; }
+    .risk-cell + .risk-cell { border-left: 1px solid var(--ink); }
+    .risk-value { margin-bottom: 6px; font-size: 26px; line-height: 1; }
+    .risk-value .muted { color: #8A8A8A; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 58px;
+      align-items: stretch;
+      padding: 72px 0 86px;
+    }
+    .hero-copy { align-self: center; }
+    .eyebrow {
+      margin: 0 0 18px;
+      color: var(--blue);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+    }
+    h1 {
+      max-width: 570px;
+      margin: 0 0 25px;
+      font-size: clamp(42px, 5vw, 54px);
+      font-weight: 800;
+      letter-spacing: -2.5px;
+      line-height: 1.05;
+    }
+    .earnings { margin: 0 0 30px; font-size: 30px; font-weight: 700; line-height: 1.13; }
+    .earnings strong { display: block; color: var(--blue); font-size: 72px; letter-spacing: -3px; line-height: .98; }
+    .hero-cta { padding: 16px 27px; font-size: 17px; }
+    .hero-photo { min-height: 500px; width: 100%; object-fit: cover; object-position: center center; filter: grayscale(1); }
+
+    .section { padding: 74px 0; background: #FFF; }
+    .section-heading { margin: 0 0 28px; font-size: 36px; letter-spacing: -1.2px; }
+    .products { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .product-card {
+      min-height: 180px;
+      padding: 22px 18px;
+      border: 1px solid var(--border);
+      background: #FFF;
+    }
+    .product-card h3 { margin: 0 0 11px; font-size: 20px; }
+    .product-card p { min-height: 63px; margin: 0 0 15px; color: var(--secondary); font-size: 14px; }
+    .more { color: var(--blue); font-size: 14px; font-weight: 700; }
+
+    .application-section { background: var(--page); }
+    .application-layout { max-width: 760px; margin: 0 auto; }
+    .application-card {
+      padding: 36px;
+      border: 1px solid var(--border);
+      background: #FFF;
+    }
+    .application-card h2 { margin: 0 0 9px; font-size: 34px; letter-spacing: -1px; line-height: 1.1; }
+    .application-card .intro { margin: 0 0 26px; color: var(--secondary); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 14px; font-weight: 700; }
+    .field input, .field select {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid #BDBDBD;
+      border-radius: 2px;
+      color: var(--ink);
+      background: #FFF;
+    }
+    .checkbox {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      margin: 23px 0 25px;
+      color: var(--secondary);
+      font-size: 14px;
+    }
+    .checkbox input { width: 18px; height: 18px; accent-color: var(--blue); }
+    .submit { padding: 15px 26px; font-size: 16px; }
+    .result-panel {
+      display: none;
+      margin-top: 14px;
+      padding: 21px 24px;
+      border: 1px solid transparent;
+      font-size: 15px;
+    }
+    .result-panel.show { display: block; }
+    .result-panel.error { border-color: #F2B8B5; color: #B3261E; background: #FDECEC; }
+    .result-panel.success { border-color: #B6DDBD; color: #1E6B32; background: #EAF6EC; }
+    .result-panel strong { display: block; margin-bottom: 7px; font-size: 17px; }
+    .result-panel p { margin: 4px 0; }
+    .result-panel .technical { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    footer { padding: 54px 0 32px; background: #F2F2F2; }
+    .footer-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+    .footer-links h3 { margin: 0 0 15px; font-size: 16px; }
+    .footer-links a { display: block; margin: 9px 0; color: var(--secondary); font-size: 14px; }
+    .legal { margin: 42px 0 0; padding-top: 21px; border-top: 1px solid #D4D4D4; color: var(--secondary); font-size: 12px; }
+    .promo-bar {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 23px;
+      min-height: 64px;
+      padding: 10px 24px;
+      border-top: 1px solid var(--border);
+      background: #FFF;
+      font-size: 18px;
+    }
+    .promo-bar .primary { padding: 11px 23px; font-size: 15px; }
+
+    @media (max-width: 1050px) {
+      .main-nav { gap: 16px; font-size: 14px; }
+      .header-actions .primary { padding-right: 16px; padding-left: 16px; font-size: 14px; }
+      .products { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 760px) {
+      body { padding-bottom: 126px; }
+      .container { width: min(calc(100% - 32px), var(--content)); }
+      header { height: 70px; }
+      .brand { font-size: 24px; }
+      .brand-mark { width: 31px; height: 31px; }
+      .main-nav { display: none; }
+      .header-actions .access, .header-actions .primary, .circle-icon { display: none; }
+      .risk-block { padding-top: 20px; }
+      .risk-table { grid-template-columns: 1fr; }
+      .risk-cell + .risk-cell { border-top: 1px solid var(--ink); border-left: 0; }
+      .hero { grid-template-columns: 1fr; gap: 36px; padding: 48px 0 64px; }
+      .hero-photo { min-height: 320px; }
+      .eyebrow { font-size: 22px; }
+      h1 { font-size: 43px; }
+      .earnings { font-size: 24px; }
+      .earnings strong { font-size: 61px; }
+      .products { grid-template-columns: 1fr 1fr; }
+      .application-card { padding: 25px 20px; }
+      .application-card h2 { font-size: 29px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .footer-links { grid-template-columns: 1fr 1fr; }
+      .promo-bar { flex-direction: column; gap: 7px; padding: 9px 16px; text-align: center; font-size: 14px; }
+    }
+    @media (max-width: 430px) {
+      .products { grid-template-columns: 1fr; }
+      .footer-links { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="Sabadell home">
+        <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="Sabadell logo">
+          <circle cx="20" cy="20" r="19" fill="#000"/>
+          <text x="20" y="27" fill="#FFF" font-family="Arial, sans-serif" font-size="24" font-weight="700" text-anchor="middle">B</text>
+        </svg>
+        Sabadell
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a class="active" href="#top">Personal</a>
+        <a href="#products">Companies and self-employed</a>
+        <a href="#products">Private Banking</a>
+      </nav>
+      <div class="header-actions">
+        <a class="pill access" href="#open-account">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c.8-4 3.4-6 8-6s7.2 2 8 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          Access
+        </a>
+        <a class="pill primary" href="#open-account">Become a customer</a>
+        <a class="circle-icon" href="#open-account" aria-label="Help">?</a>
+        <button class="hamburger" aria-label="Open menu"><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="container">
+      <section class="risk-block" aria-label="Risk indicator">
+        <p class="risk-caption">Risk indicator applicable to Sabadell Online Account and Sabadell Savings Account</p>
+        <div class="risk-table">
+          <div class="risk-cell">
+            <div class="risk-value"><span class="muted">1</span>/6</div>
+            This number is indicative of the risk of the product, 1/6 represents the lowest risk and 6/6 the highest.
+          </div>
+          <div class="risk-cell">
+            Banco de Sabadell, S.A. is a member of the Spanish Deposit Guarantee Fund for Credit Institutions. The maximum amount currently guaranteed by the aforementioned fund is €100,000 per depositor.
+          </div>
+        </div>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Sabadell Online Account</p>
+          <h1>Change your pace and start earning</h1>
+          <p class="earnings">Get up to <strong>€2,580</strong>the first year</p>
+          <a class="pill primary hero-cta" href="#open-account">Find out more about the Sabadell Online Account</a>
+        </div>
+        <img class="hero-photo" src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&amp;q=85" alt="Black and white basketball court">
+      </section>
+    </div>
+
+    <section class="section" id="products">
+      <div class="container">
+        <h2 class="section-heading">Explore our products</h2>
+        <div class="products">
+          <article class="product-card"><h3>Accounts</h3><p>Everyday banking designed around your goals.</p><a class="more" href="#open-account">See more →</a></article>
+          <article class="product-card"><h3>Cards</h3><p>Pay simply and securely wherever you go.</p><a class="more" href="#open-account">See more →</a></article>
+          <article class="product-card"><h3>Mortgages</h3><p>Find a home loan that moves at your pace.</p><a class="more" href="#open-account">See more →</a></article>
+          <article class="product-card"><h3>Loans</h3><p>Flexible finance for the plans that matter.</p><a class="more" href="#open-account">See more →</a></article>
+          <article class="product-card"><h3>Investment</h3><p>Make your money work for the future.</p><a class="more" href="#open-account">See more →</a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section application-section" id="open-account">
+      <div class="container application-layout">
+        <form class="application-card" id="account-form">
+          <h2>Open your Sabadell Online Account</h2>
+          <p class="intro">Complete your details and discover the benefits of banking with us.</p>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="applicantName">Full name</label>
+              <input id="applicantName" name="applicantName" value="Marta Serrano Vidal" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="documentId">DNI/NIE</label>
+              <input id="documentId" name="documentId" value="45892137Z" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="product">Product</label>
+              <select id="product" name="product">
+                <option value="cuenta-online" selected>Sabadell Online Account — 2026 relaunch</option>
+                <option value="cuenta-expansion">Sabadell Expansión Account</option>
+                <option value="cuenta-ahorro">Sabadell Savings Account</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="monthlyIncomeEur">Monthly income (€)</label>
+              <input id="monthlyIncomeEur" name="monthlyIncomeEur" type="number" min="0" value="2400">
+            </div>
+          </div>
+          <label class="checkbox" for="payrollDirectDeposit">
+            <input id="payrollDirectDeposit" name="payrollDirectDeposit" type="checkbox" checked>
+            I will arrange my payroll direct deposit with Sabadell
+          </label>
+          <button class="pill primary submit" type="submit">Open my account</button>
+        </form>
+        <div class="result-panel" id="result-panel" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <div><h3>Products</h3><a href="#products">Accounts</a><a href="#products">Cards</a><a href="#products">Mortgages</a><a href="#products">Loans</a></div>
+        <div><h3>Help</h3><a href="#open-account">Contact us</a><a href="#open-account">FAQs</a><a href="#open-account">Security</a></div>
+        <div><h3>About Sabadell</h3><a href="#top">Who we are</a><a href="#top">Sustainability</a><a href="#top">News</a></div>
+        <div><h3>Legal</h3><a href="#top">Privacy policy</a><a href="#top">Cookies</a><a href="#top">Accessibility</a></div>
+      </div>
+      <p class="legal">© Banco de Sabadell, S.A. — Avda. Óscar Esplá, 37, 03007 Alicante. Registered in the Bank of Spain register under number 0081.</p>
+    </div>
+  </footer>
+
+  <div class="promo-bar">
+    <span>Open your Online Account and enjoy all its advantages. Only for new customers!</span>
+    <a class="pill primary" href="#open-account">Become a customer</a>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('account-form');
+      var panel = document.getElementById('result-panel');
+      var submitButton = form.querySelector('button[type="submit"]');
+
+      function text(value) {
+        return String(value == null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function showError(payload) {
+        panel.className = 'result-panel show error';
+        panel.innerHTML = '<strong>We could not open your account</strong>'
+          + '<p class="technical">' + text(payload.errorClass || 'Error') + ': ' + text(payload.error || 'Unknown error') + '</p>';
+      }
+
+      function showSuccess(payload) {
+        panel.className = 'result-panel show success';
+        panel.innerHTML = '<strong>Your account application is ready</strong>'
+          + '<p>You could earn €' + text(Number(payload.firstYearReturnEur).toFixed(2)) + ' in the first year.</p>'
+          + '<p>Contract: ' + text(payload.contractNumber) + ' · IBAN: ' + text(payload.iban) + '</p>'
+          + '<p>' + text(payload.remunerationProgram) + ' · Gross rate ' + text(payload.grossRatePct) + '% · Payroll bonus €' + text(payload.payrollBonusEur) + ' · ' + text(payload.settlementCadence) + ' settlement</p>';
+      }
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        submitButton.disabled = true;
+        submitButton.textContent = 'Opening your account…';
+        fetch('/api/sabadell/open-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product: document.getElementById('product').value,
+            applicantName: document.getElementById('applicantName').value,
+            documentId: document.getElementById('documentId').value,
+            monthlyIncomeEur: Number(document.getElementById('monthlyIncomeEur').value),
+            payrollDirectDeposit: document.getElementById('payrollDirectDeposit').checked,
+            // User id is intentionally omitted so the session is created as the service user.
+            devinOrgId: 'org_69IXJFLrljx8zSAw',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        })
+          .then(function (response) {
+            return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+          })
+          .then(function (result) {
+            if (!result.ok || result.body.success === false) showError(result.body);
+            else showSuccess(result.body);
+          })
+          .catch(function (error) {
+            showError({ errorClass: 'NetworkError', error: error.message });
+          })
+          .finally(function () {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Open my account';
+          });
+      });
+    }());
+  </script>
+</body>
+</html>
