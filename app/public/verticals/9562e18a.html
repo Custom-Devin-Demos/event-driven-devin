@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserve a Vehicle | Enterprise Rent-A-Car</title>
+  <style>
+    :root {
+      --green: #127f4a;
+      --dark-green: #006639;
+      --secondary-green: #169a5a;
+      --ink: #181918;
+      --muted: #616161;
+      --page: #f3f3f3;
+      --line: #d7d7d7;
+      --dark-band: #333;
+      --font: din-2014, Arial-Scaled, Arial, Helvetica, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); font-size: 14px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { background: var(--green); color: #fff; min-height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 12px 4.2%; }
+    .logo-box { border: 2px solid #fff; width: 166px; height: 49px; display: flex; align-items: center; justify-content: center; background: var(--green); }
+    .logo-box img { width: 145px; max-height: 38px; object-fit: contain; }
+    .top-actions { display: flex; align-items: center; gap: 32px; }
+    .terms { border: 1px solid #fff; border-radius: 22px; padding: 11px 20px; background: transparent; color: #fff; font-weight: 700; }
+    .total { display: flex; gap: 12px; align-items: baseline; text-transform: uppercase; font-weight: 700; letter-spacing: .08em; }
+    .total strong { font-size: 31px; letter-spacing: -.04em; }
+    .total small { font-size: 19px; }
+    .stepper { background: #fff; border-bottom: 1px solid var(--line); display: flex; justify-content: center; padding: 0 4%; }
+    .step { min-height: 84px; display: flex; align-items: center; gap: 12px; padding: 14px 23px; position: relative; min-width: 165px; }
+    .step:not(:last-child)::after { content: '›'; color: #8b8b8b; font-size: 31px; position: absolute; right: -7px; top: 26px; }
+    .step-number { border: 2px solid #919191; border-radius: 50%; color: #585858; width: 27px; height: 27px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+    .step.complete .step-number, .step.active .step-number { background: var(--green); border-color: var(--green); color: #fff; }
+    .step-copy { display: grid; gap: 3px; }
+    .step-copy b { font-size: 12px; letter-spacing: .06em; white-space: nowrap; }
+    .step-copy span { color: var(--green); font-size: 12px; line-height: 1.25; }
+    .step-copy .edit { text-decoration: underline; color: var(--muted); }
+    main { max-width: 1390px; margin: 0 auto; padding: 25px 30px 130px; }
+    .details { background: #fff; border: 1px solid var(--line); padding: 24px 27px 21px; box-shadow: 0 1px 1px #ddd; }
+    .details h1 { margin: 0 0 20px; font-size: 22px; font-weight: 600; }
+    .form-grid { display: grid; grid-template-columns: 2.2fr 1.15fr 1.15fr .8fr 1.25fr; gap: 17px; align-items: end; }
+    .field { display: grid; gap: 7px; }
+    .field label { font-size: 12px; font-weight: 700; }
+    .field input, .field select { background: #fff; border: 1px solid #878787; border-radius: 2px; min-height: 43px; padding: 10px 11px; color: var(--ink); width: 100%; }
+    .age-field { position: relative; }
+    .policy { position: absolute; right: 0; top: 0; font-size: 11px; color: var(--green); text-decoration: underline; }
+    .location-note { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .content-head { display: flex; justify-content: space-between; align-items: center; margin: 29px 0 16px; }
+    .content-head h2 { margin: 0; font-size: 25px; font-weight: 500; }
+    .content-head h2 span { color: var(--muted); font-size: 15px; margin-left: 8px; }
+    .sort { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+    .sort select { border: 1px solid #999; background: #fff; min-width: 170px; padding: 10px; }
+    .booking-layout { display: grid; grid-template-columns: 244px 1fr; gap: 22px; }
+    .sidebar { display: grid; align-content: start; gap: 17px; }
+    .plus-card { color: #fff; background: #050505; padding: 20px 18px 18px; min-height: 172px; }
+    .plus-card h3 { margin: 0 0 9px; font-size: 20px; }
+    .plus-card p { color: #d4d4d4; font-size: 12px; line-height: 1.4; margin: 0 0 22px; }
+    .toggle { display: flex; border: 1px solid #aaa; }
+    .toggle button { flex: 1; color: #fff; border: 0; background: transparent; padding: 8px 3px; font-size: 12px; }
+    .toggle button.active { background: #fff; color: #111; }
+    .filters { background: #fff; border: 1px solid var(--line); padding: 18px; }
+    .filters h3 { margin: 0 0 17px; font-size: 18px; }
+    .filter-total-header { color: var(--muted); font-size: 11px; padding-bottom: 4px; text-align: right; }
+    .filter-group { border-top: 1px solid var(--line); padding: 16px 0 7px; }
+    .filter-group h4 { margin: 0 0 12px; font-size: 11px; letter-spacing: .08em; }
+    .check { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin: 12px 0; color: #3f3f3f; font-size: 13px; }
+    .check span { display: flex; gap: 8px; align-items: center; }
+    .check b { color: #333; font-size: 12px; font-weight: 600; }
+    .check input { accent-color: var(--green); }
+    .cards { display: grid; gap: 14px; }
+    .vehicle-card { position: relative; display: grid; grid-template-columns: 190px 1fr 156px; min-height: 210px; background: #fff; border: 1px solid var(--line); overflow: hidden; }
+    .vehicle-card.selected { border: 2px solid var(--green); }
+    .vehicle-image { display: flex; justify-content: center; align-items: center; padding: 12px; background: #fff; }
+    .vehicle-image img { width: 176px; height: 145px; object-fit: contain; }
+    .vehicle-details { padding: 23px 15px 15px 5px; }
+    .vehicle-details h3 { margin: 0 0 5px; font-size: 20px; font-weight: 600; }
+    .model { color: #545454; font-size: 13px; margin-bottom: 18px; }
+    .specs { display: flex; gap: 10px; color: #414141; font-size: 12px; flex-wrap: wrap; }
+    .specs span + span::before { content: '·'; margin-right: 10px; color: #888; }
+    .feature { border: 1px solid #555; border-radius: 18px; background: #fff; padding: 7px 12px; margin-top: 19px; color: #333; font-size: 11px; font-weight: 700; }
+    .vehicle-price { border-left: 1px solid var(--line); padding: 22px 15px; text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+    .pay-later { font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+    .price-day { margin-top: 10px; font-size: 22px; font-weight: 700; }
+    .price-day small, .price-total small { font-size: 11px; display: block; color: #555; font-weight: 400; }
+    .price-total { margin-top: 8px; font-size: 16px; font-weight: 700; }
+    .select-btn { margin-top: auto; background: var(--green); border: 1px solid var(--green); color: #fff; font-weight: 700; padding: 9px 21px; min-width: 96px; }
+    .select-btn:hover, .reserve:hover { background: var(--dark-green); }
+    .selection-ribbon { position: absolute; top: 0; left: 0; background: var(--green); color: #fff; padding: 6px 15px; font-size: 11px; font-weight: 700; }
+    .extras { margin-top: 37px; }
+    .extras h2 { font-size: 24px; font-weight: 500; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin: 0; }
+    .upgrade { margin: 20px 0 27px; background: var(--dark-band); color: #fff; padding: 15px 26px; display: flex; align-items: center; gap: 25px; min-height: 130px; }
+    .upgrade img { width: 120px; height: 78px; object-fit: contain; background: #fff; }
+    .upgrade .arrow { font-size: 32px; color: #bbb; }
+    .upgrade-copy { flex: 1; }
+    .upgrade-copy b { font-size: 18px; }
+    .upgrade-copy p { margin: 7px 0 0; color: #ddd; }
+    .outline { background: transparent; border: 1px solid #fff; color: #fff; padding: 10px 26px; font-weight: 700; }
+    .extras-section h3 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+    .extras-section + .extras-section { margin-top: 27px; }
+    .extra-row { background: #fff; border: 1px solid var(--line); padding: 16px 17px; min-height: 104px; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 9px 12px; align-items: center; justify-items: end; }
+    .extra-row + .extra-row { border-top: 0; }
+    .extra-row h4 { margin: 0; font-size: 15px; }
+    .extra-row p { margin: 4px 0 0; color: #555; font-size: 12px; line-height: 1.35; }
+    .extra-row a { color: var(--green); font-size: 11px; text-decoration: underline; }
+    .extra-row > div:first-child { grid-column: 1; grid-row: 1 / span 2; justify-self: stretch; }
+    .extra-price { grid-column: 2; grid-row: 1; text-align: right; white-space: nowrap; font-weight: 700; align-self: end; }
+    .extra-price strong { display: block; font-size: 22px; line-height: 1.1; }
+    .extra-price small { display: block; color: #555; font-weight: 400; font-size: 11px; margin-top: 5px; }
+    .add-btn { grid-column: 2; grid-row: 2; align-self: start; border: 1px solid var(--green); color: var(--green); background: #fff; padding: 7px 13px; font-weight: 700; font-size: 11px; }
+    .add-btn.added { background: var(--green); color: #fff; }
+    .confirmation { display: none; margin-top: 25px; background: #fff; border-left: 5px solid var(--green); padding: 25px; }
+    .confirmation.visible { display: block; }
+    .confirmation h2 { margin: 0 0 10px; color: var(--green); }
+    .confirmation p { margin: 6px 0; }
+    .charge-list { padding-left: 18px; line-height: 1.7; }
+    footer { background: #fff; border-top: 1px solid var(--line); padding: 36px 6% 30px; }
+    .footer-columns { max-width: 1120px; margin: 0 auto 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+    footer h3 { font-size: 15px; margin: 0 0 15px; }
+    footer a { display: block; color: #444; font-size: 13px; margin: 9px 0; text-decoration: none; }
+    .copyright { border-top: 1px solid var(--line); padding-top: 20px; text-align: center; color: #666; font-size: 12px; }
+    .bottom-bar { position: fixed; z-index: 5; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #bbb; min-height: 73px; display: flex; align-items: center; justify-content: flex-end; gap: 28px; padding: 10px 5%; box-shadow: 0 -2px 8px #00000016; }
+    .bottom-total { font-size: 14px; font-weight: 700; text-transform: uppercase; }
+    .bottom-total strong { font-size: 25px; margin-left: 12px; }
+    .reserve { border: 0; background: var(--green); color: #fff; padding: 14px 39px; font-weight: 700; font-size: 15px; }
+    .toast { position: fixed; z-index: 20; right: 25px; bottom: 91px; width: min(430px, calc(100vw - 40px)); background: #fff; border-top: 5px solid #c62828; box-shadow: 0 4px 19px #0004; padding: 19px; display: none; }
+    .toast.visible { display: block; }
+    .toast h3 { color: #9d1818; margin: 0 0 9px; font-size: 17px; }
+    .toast p { margin: 7px 0; line-height: 1.4; }
+    .toast .ref { color: #666; font-size: 11px; }
+    @media (max-width: 900px) {
+      .stepper { overflow-x: auto; justify-content: flex-start; }
+      .step { min-width: 145px; padding: 12px; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      .booking-layout { grid-template-columns: 1fr; }
+      .sidebar { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 620px) {
+      .topbar { padding: 10px 14px; }
+      .logo-box { width: 125px; }
+      .logo-box img { width: 110px; }
+      .top-actions { gap: 8px; }
+      .terms { padding: 8px; font-size: 11px; }
+      .total { gap: 4px; }
+      .total strong { font-size: 21px; }
+      .total small { font-size: 13px; }
+      main { padding: 15px 12px 125px; }
+      .form-grid, .sidebar { grid-template-columns: 1fr; }
+      .vehicle-card { grid-template-columns: 120px 1fr; }
+      .vehicle-image img { width: 112px; }
+      .vehicle-price { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); flex-direction: row; align-items: center; gap: 15px; text-align: left; }
+      .select-btn { margin-top: 0; margin-left: auto; }
+      .upgrade { flex-wrap: wrap; gap: 12px; }
+      .bottom-bar { gap: 10px; padding: 9px 12px; }
+      .bottom-total strong { font-size: 19px; margin-left: 4px; }
+      .reserve { padding: 12px 17px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="logo-box"><img src="https://www.enterprise.com/content/dam/ecom/logo-enterprise.png" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22145%22 height=%2238%22%3E%3Ctext x=%2210%22 y=%2225%22 fill=%22white%22 font-size=%2218%22%3Eenterprise%3C/text%3E%3C/svg%3E';" alt="Enterprise Rent-A-Car"></div>
+    <div class="top-actions">
+      <button class="terms">Terms &amp; Conditions / Policies</button>
+      <div class="total">Total <strong id="header-total">$133</strong><small id="header-cents">.32</small></div>
+    </div>
+  </header>
+  <nav class="stepper" aria-label="Reservation progress">
+    <div class="step complete"><div class="step-number">✓</div><div class="step-copy"><b>RENTAL DETAILS</b><span class="edit">Edit</span><span>Fri, Aug 28, 12:00 PM</span><span>Sat, Aug 29, 12:00 PM</span></div></div>
+    <div class="step complete"><div class="step-number">✓</div><div class="step-copy"><b>PICK-UP &amp; RETURN</b><span class="edit">Edit</span><span>San Francisco International Airport</span></div></div>
+    <div class="step active"><div class="step-number">3</div><div class="step-copy"><b>VEHICLE</b><span id="step-vehicle">Compact SUV</span></div></div>
+    <div class="step"><div class="step-number">4</div><div class="step-copy"><b>EXTRAS</b></div></div>
+    <div class="step"><div class="step-number">5</div><div class="step-copy"><b>REVIEW &amp; RESERVE</b></div></div>
+  </nav>
+  <main>
+    <section class="details">
+      <h1>Reserve a Vehicle</h1>
+      <div class="form-grid">
+        <div class="field">
+          <label for="location">Pick-up &amp; Return Location (ZIP, City or Airport)*</label>
+          <select id="location">
+            <option value="San Francisco International Airport" data-code="SFO">San Francisco International Airport (SFO)</option>
+            <option value="San Francisco Intl. Airport Exotics" data-code="SFO">San Francisco Intl. Airport Exotics (SFO)</option>
+            <option value="Oakland International Airport" data-code="OAK">Oakland International Airport (OAK)</option>
+            <option value="San Jose International Airport" data-code="SJC">San Jose International Airport (SJC)</option>
+          </select>
+          <span class="location-note">San Francisco International Airport (SFO)</span>
+        </div>
+        <div class="field"><label for="pickup">Pick-up*</label><input id="pickup" type="datetime-local" value="2026-08-28T12:00"></div>
+        <div class="field"><label for="return">Return*</label><input id="return" type="datetime-local" value="2026-08-29T12:00"></div>
+        <div class="field age-field"><label for="age">Renter Age</label><a class="policy" href="#">Policy</a><select id="age"><option>25+</option><option>21-24</option><option>18-20</option></select></div>
+        <div class="field"><label for="corporate">Corporate Account Number</label><input id="corporate" type="text" placeholder="Optional"></div>
+      </div>
+    </section>
+
+    <div class="content-head"><h2>Choose a Vehicle Class <span>75 Results</span></h2><label class="sort">SORT BY <select><option>Featured</option><option>Price: Low to High</option><option>Price: High to Low</option></select></label></div>
+    <div class="booking-layout">
+      <aside class="sidebar">
+        <div class="plus-card"><h3>Enterprise Plus®</h3><p>Earn points and enjoy rewards on your rental.</p><div class="toggle"><button class="active">Pay in $</button><button>Pay in Points</button></div></div>
+        <div class="filters"><h3>Filters</h3><div class="filter-total-header">Total from</div><div class="filter-group"><h4>MILEAGE</h4><label class="check"><span><input type="checkbox" checked> Unlimited Mileage</span><b>$134</b></label><label class="check"><span><input type="checkbox"> Limited Mileage</span><b>—</b></label></div><div class="filter-group"><h4>VEHICLE TYPE</h4><label class="check"><span><input type="checkbox" checked> SUVs</span><b>$134</b></label><label class="check"><span><input type="checkbox"> Cars</span><b>$146</b></label><label class="check"><span><input type="checkbox"> Vans</span><b>$161</b></label><label class="check"><span><input type="checkbox"> Trucks</span><b>—</b></label></div></div>
+      </aside>
+      <section>
+        <div id="vehicle-cards" class="cards"></div>
+        <div class="extras">
+          <h2>Add Optional Extras</h2>
+          <div class="upgrade"><img src="https://assets.gcs.ehi.com/content/enterprise_cros/data/vehicle/bookingCountries/US/SUVS/CFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755026990592.png" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2278%22%3E%3Crect width=%22120%22 height=%2278%22 fill=%22white%22/%3E%3C/svg%3E';" alt="Compact SUV"><span class="arrow">→</span><img src="https://assets.gcs.ehi.com/content/enterprise_cros/data/vehicle/bookingCountries/US/SUVS/SFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755027916679.png" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2278%22%3E%3Crect width=%22120%22 height=%2278%22 fill=%22white%22/%3E%3C/svg%3E';" alt="Standard SUV"><div class="upgrade-copy"><b>You&apos;re eligible to upgrade!</b><p>Upgrade now to Standard SUV for only $ 25.49 more. ($ 158.81 total)</p></div><button class="outline" id="upgrade">Upgrade</button></div>
+          <div class="extras-section"><h3>① Protection Products</h3><div id="protection-list"></div></div>
+          <div class="extras-section"><h3>② Equipment</h3><div id="equipment-list"></div></div>
+          </div>
+        </div>
+        <div id="confirmation" class="confirmation"></div>
+      </section>
+    </div>
+  </main>
+  <footer><div class="footer-columns"><div><h3>Reservations</h3><a href="#">Start a Reservation</a><a href="#">View/Modify/Cancel</a><a href="#">Get a Receipt</a></div><div><h3>Vehicles</h3><a href="#">Cars</a><a href="#">SUVs</a><a href="#">Trucks</a><a href="#">Minivans &amp; Vans</a><a href="#">Exotic Cars</a></div><div><h3>Customer Service</h3><a href="#">Help &amp; FAQs</a><a href="#">Contact Us</a><a href="#">Site Map</a></div></div><div class="copyright">© 2026 Enterprise Holdings, Inc. All Rights Reserved</div></footer>
+  <div class="bottom-bar"><div class="bottom-total">Estimated Total <strong id="bottom-total">$133.32</strong></div><button id="reserve" class="reserve">Reserve Now</button></div>
+  <div id="toast" class="toast" role="alert"><h3>We couldn&apos;t complete your reservation</h3><p id="toast-message"></p><p id="toast-class"></p><p class="ref">Reference: <span id="toast-ref"></span></p></div>
+  <script>
+    const vehicleClasses = [
+      { code: 'CFAR', name: 'Compact SUV', model: 'Hyundai Kona or similar', seats: 5, bags: 3, perDay: 81.19, total: 133.32, image: 'SUVS/CFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755026990592.png' },
+      { code: 'CFDR', name: 'Compact SUV AWD', model: 'Hyundai Kona AWD or similar', seats: 5, bags: 3, perDay: 86.56, total: 140.35, image: 'SUVS/CFDR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755026990592.png' },
+      { code: 'IFAR', name: 'Midsize SUV', model: 'Nissan Rogue or similar', seats: 5, bags: 4, perDay: 86.26, total: 140.35, image: 'SUVS/IFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1740004522317.png' },
+      { code: 'IFDR', name: 'Midsize SUV AWD', model: 'Nissan Rogue AWD or similar', seats: 5, bags: 4, perDay: 89.57, total: 144.55, image: 'SUVS/IFDR.doi.200.high.imageSmallThreeQuarterNodePath.png/1740004522317.png' },
+      { code: 'SFAR', name: 'Standard SUV', model: 'Chevrolet Equinox or similar', seats: 5, bags: 5, perDay: 94.32, total: 158.81, image: 'SUVS/SFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755027916679.png' },
+      { code: 'ECAR', name: 'Economy', model: 'Mitsubishi Mirage or similar', seats: 4, bags: 2, perDay: 71.44, total: 118.90, image: 'CARS/ECAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1747407583249.png' },
+      { code: 'CCAR', name: 'Compact', model: 'Nissan Versa or similar', seats: 5, bags: 2, perDay: 73.10, total: 121.66, image: 'CARS/CCAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1747407751625.png' },
+      { code: 'ICAR', name: 'Midsize', model: 'Toyota Corolla or similar', seats: 5, bags: 3, perDay: 76.55, total: 127.14, image: 'CARS/ICAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1740003621705.png' },
+      { code: 'SCAR', name: 'Standard', model: 'Volkswagen Jetta or similar', seats: 5, bags: 3, perDay: 79.90, total: 132.48, image: 'CARS/SCAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1740003713013.png' },
+      { code: 'FCAR', name: 'Full Size', model: 'Nissan Altima or similar', seats: 5, bags: 4, perDay: 82.75, total: 137.02, image: 'CARS/FCAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1781016474407.png' },
+      { code: 'MVAR', name: '7 Passenger Minivan', model: 'Chrysler Pacifica or similar', seats: 7, bags: 5, perDay: 112.66, total: 179.44, image: 'VANS/MVAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1750437904732.png' },
+      { code: 'STAR', name: 'Convertible', model: 'Ford Mustang Convertible or similar', seats: 4, bags: 2, perDay: 129.99, total: 208.10, image: 'CARS/STAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1747408500972.png' },
+    ];
+    const protectionProducts = [
+      { id: 'damage-waiver', name: 'Damage Waiver', description: 'Protect your wallet and let us protect the car with this optional coverage!', price: 26.99, badge: 'Recommended for You' },
+      { id: 'personal-effects', name: 'Personal Effects Coverage', description: 'Protect your belongings in the car!', price: 6.60 },
+      { id: 'roadside-protection', name: 'Roadside Protection', description: 'Get 24/7 roadside assistance (where available) for lost keys, flat tire, and more.', price: 5.99 },
+      { id: 'supplemental-liability', name: 'Supplemental Liability Protection', description: 'Protects all authorized drivers against third-party claims with up to $300,000 in a combined single limit.', price: 12.95 },
+    ];
+    const equipment = [
+      { id: 'sirius-xm', name: 'Sirius XM®', description: 'Listen to anything you want, everywhere you drive.', price: 5.99, max: 49.98 },
+      { id: 'gps', name: 'GPS', description: 'Find your destination easier with this GPS device.', price: 15.99, max: 319.99 },
+      { id: 'child-safety-seat', name: 'Child Safety Seat', description: 'Travel with child safely and securely.', price: 13.99, max: 85.00 },
+      { id: 'baby-seat', name: 'Baby Seat', description: 'Travel with your baby safely and securely.', price: 13.99, max: 85.00 },
+      { id: 'carbon-offset', name: 'Carbon Offset Program', description: 'Choose to add on today.', price: 1.25, perRental: true },
+    ];
+    let selectedVehicle = 'CFAR';
+    const selectedProtection = new Set(['damage-waiver']);
+    const selectedEquipment = new Set();
+    const cdn = 'https://assets.gcs.ehi.com/content/enterprise_cros/data/vehicle/bookingCountries/US/';
+    const escapeHtml = (value) => String(value == null ? '' : value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const rentalDays = () => Math.max(1, Math.ceil((new Date(document.getElementById('return').value) - new Date(document.getElementById('pickup').value)) / 86400000));
+    const money = (value) => `$${Number(value).toFixed(2)}`;
+    function renderVehicles() {
+      document.getElementById('vehicle-cards').innerHTML = vehicleClasses.map((vehicle) => `<article class="vehicle-card ${vehicle.code === selectedVehicle ? 'selected' : ''}" data-code="${vehicle.code}">${vehicle.code === selectedVehicle ? '<div class="selection-ribbon">Current Selection</div>' : ''}<div class="vehicle-image"><img src="${cdn}${vehicle.image}" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22176%22 height=%22145%22%3E%3Crect width=%22176%22 height=%22145%22 fill=%22%23f3f3f3%22/%3E%3Ctext x=%2230%22 y=%2275%22 fill=%22%23666%22%3EVehicle%3C/text%3E%3C/svg%3E';" alt="${escapeHtml(vehicle.name)}"></div><div class="vehicle-details"><h3>${escapeHtml(vehicle.name)}</h3><div class="model">${escapeHtml(vehicle.model)}</div><div class="specs"><span>Automatic</span><span>${vehicle.seats} People</span><span>${vehicle.bags} Bags</span></div><button class="feature" type="button">Features &amp; Price Details</button></div><div class="vehicle-price"><div class="pay-later">PAY LATER</div><div class="price-day">${money(vehicle.perDay)}<small>Per Day</small></div><div class="price-total">${money(vehicle.total)}<small>Total</small></div><button class="select-btn" type="button">Select</button></div></article>`).join('');
+      document.querySelectorAll('.vehicle-card').forEach((card) => card.addEventListener('click', () => { selectedVehicle = card.dataset.code; renderVehicles(); updateTotal(); }));
+      document.getElementById('step-vehicle').textContent = vehicleClasses.find((item) => item.code === selectedVehicle).name;
+    }
+    function extraMarkup(item, isEquipment) {
+      const selected = (isEquipment ? selectedEquipment : selectedProtection).has(item.id);
+      const priceText = money(item.price);
+      const unitText = isEquipment && item.max ? `Per Day (${money(item.max)} max)` : item.perRental ? 'Per Rental' : 'Per Day';
+      return `<div class="extra-row"><div><h4>${escapeHtml(item.name)}</h4>${item.badge ? `<span style="color:#127f4a;font-size:11px;font-weight:700">${escapeHtml(item.badge)}</span>` : ''}<p>${escapeHtml(item.description)}</p><a href="#">Details</a></div><div class="extra-price"><strong>${priceText}</strong><small>${unitText}</small></div><button class="add-btn ${selected ? 'added' : ''}" data-extra="${item.id}" data-equipment="${isEquipment}" type="button">${selected ? '✓ Added' : '+ Add'}</button></div>`;
+    }
+    function renderExtras() {
+      document.getElementById('protection-list').innerHTML = protectionProducts.map((item) => extraMarkup(item, false)).join('');
+      document.getElementById('equipment-list').innerHTML = equipment.map((item) => extraMarkup(item, true)).join('');
+      document.querySelectorAll('.add-btn').forEach((button) => button.addEventListener('click', (event) => { event.stopPropagation(); const set = button.dataset.equipment === 'true' ? selectedEquipment : selectedProtection; set.has(button.dataset.extra) ? set.delete(button.dataset.extra) : set.add(button.dataset.extra); renderExtras(); updateTotal(); }));
+    }
+    function updateTotal() {
+      const vehicle = vehicleClasses.find((item) => item.code === selectedVehicle);
+      const days = rentalDays();
+      let total = vehicle.total;
+      protectionProducts.forEach((item) => { if (selectedProtection.has(item.id)) total += item.price * days; });
+      equipment.forEach((item) => { if (selectedEquipment.has(item.id)) total += item.perRental ? item.price : item.price * days; });
+      const [dollars, cents] = total.toFixed(2).split('.');
+      document.getElementById('header-total').textContent = `$${dollars}`;
+      document.getElementById('header-cents').textContent = `.${cents}`;
+      document.getElementById('bottom-total').textContent = money(total);
+    }
+    function showToast(message, errorClass, requestId) {
+      document.getElementById('toast-message').textContent = message;
+      document.getElementById('toast-class').textContent = `Error class: ${errorClass}`;
+      document.getElementById('toast-ref').textContent = requestId || 'unavailable';
+      document.getElementById('toast').classList.add('visible');
+      setTimeout(() => document.getElementById('toast').classList.remove('visible'), 6000);
+    }
+    document.getElementById('location').addEventListener('change', (event) => { document.querySelector('.location-note').textContent = `${event.target.value} (${event.target.selectedOptions[0].dataset.code})`; });
+    document.getElementById('pickup').addEventListener('change', updateTotal);
+    document.getElementById('return').addEventListener('change', updateTotal);
+    document.getElementById('upgrade').addEventListener('click', () => { selectedVehicle = 'SFAR'; renderVehicles(); updateTotal(); });
+    document.getElementById('reserve').addEventListener('click', async () => {
+      const location = document.getElementById('location');
+      const payload = {
+        pickupLocation: location.value,
+        pickupLocationCode: location.selectedOptions[0].dataset.code,
+        pickupAt: document.getElementById('pickup').value,
+        returnAt: document.getElementById('return').value,
+        renterAge: document.getElementById('age').value,
+        corporateAccountNumber: document.getElementById('corporate').value,
+        vehicleClass: selectedVehicle,
+        protectionProducts: [...selectedProtection],
+        equipment: [...selectedEquipment],
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+      try {
+        const response = await fetch('/api/9562e18a/reserve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const result = await response.json();
+        if (!response.ok) { showToast(result.error, result.errorClass, result.requestId); return; }
+        document.getElementById('confirmation').innerHTML = `<h2>Reservation confirmed</h2><p>Your confirmation number is <strong>${escapeHtml(result.confirmationNumber)}</strong>.</p><p>${escapeHtml(result.vehicle.name)} — ${escapeHtml(result.pickup.location)}</p><ul class="charge-list">${result.protectionProducts.map((line) => `<li>${escapeHtml(line.name)}: ${money(line.price)}</li>`).join('')}${result.equipment.map((line) => `<li>${escapeHtml(line.name)}: ${money(line.price)}</li>`).join('')}<li>Taxes: ${money(result.taxes)}</li><li><strong>Estimated total: ${money(result.estimatedTotalUsd)}</strong></li></ul>`;
+        document.getElementById('confirmation').classList.add('visible');
+        document.getElementById('confirmation').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (error) { showToast(error.message, error.name, 'unavailable'); }
+    });
+    renderVehicles();
+    renderExtras();
+    updateTotal();
+  </script>
+</body>
+</html>
