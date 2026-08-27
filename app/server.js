@@ -211,20 +211,4 @@ function gracefulShutdown(signal) {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// ── Unhandled rejections ─────────────────────────────────────────
-// Report to Sentry with the original stack instead of letting Node tear the
-// process down and take healthy in-flight requests with it.
-process.on('unhandledRejection', (reason) => {
-  const error = reason instanceof Error ? reason : new Error(String(reason));
-
-  logger.error('Unhandled promise rejection', {
-    error: error.message,
-    errorClass: error.name,
-    stack: error.stack,
-    service: process.env.DD_SERVICE || 'checkout-api',
-  });
-
-  Sentry.captureException(error);
-});
-
 module.exports = app;
