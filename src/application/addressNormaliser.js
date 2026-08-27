@@ -39,25 +39,37 @@ function isValidPostalCode(value) {
   return POSTAL_CODE_PATTERN.test(String(value).replace(/[\s-]/g, '').toUpperCase());
 }
 
+function upcase(value) {
+  return value.trim().toUpperCase();
+}
+
+// Every address field runs through exactly one of these in a single pass.
+const FIELD_NORMALISERS = {
+  street: upcase,
+  unit: upcase,
+  city: upcase,
+  province: upcase,
+  postalCode: formatPostalCode,
+};
+
 /**
  * Normalise an applicant address.
  *
  * @param {{street: string, unit?: string, city: string, province: string, postalCode: string}} input
- * @returns {{street: string, unit: string|null, city: string, province: string, postalCode: string, country: string}}
+ * @returns {{street: string, unit: string, city: string, province: string, postalCode: string, country: string}}
  */
 function normaliseAddress(input) {
   if (!input || typeof input !== 'object') {
     throw new TypeError('normaliseAddress requires an address object');
   }
 
-  return {
-    street: input.street.trim().toUpperCase(),
-    unit: input.unit ? input.unit.trim().toUpperCase() : null,
-    city: input.city.trim().toUpperCase(),
-    province: String(input.province).trim().toUpperCase(),
-    postalCode: formatPostalCode(input.postalCode),
-    country: 'CA',
-  };
+  const address = { country: 'CA' };
+
+  Object.entries(FIELD_NORMALISERS).forEach(([field, normalise]) => {
+    address[field] = normalise(input[field]);
+  });
+
+  return address;
 }
 
 module.exports = {

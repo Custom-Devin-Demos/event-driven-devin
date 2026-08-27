@@ -618,7 +618,17 @@
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-          showErrors(result.errors || { firstName: result.error || 'Something went wrong' });
+          if (result.errors) {
+            showErrors(result.errors);
+          } else {
+            formError.innerHTML =
+              '<strong>We could not submit your application.</strong><br>' +
+              (result.error || 'Something went wrong. Please try again.') +
+              (result.errorClass ? ' (' + result.errorClass + ')' : '') +
+              (result.requestId ? '<br>Reference: ' + result.requestId : '');
+            formError.classList.add('is-visible');
+            formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
           return;
         }
 
