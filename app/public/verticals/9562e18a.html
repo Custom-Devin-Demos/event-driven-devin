@@ -62,11 +62,13 @@
     .toggle button.active { background: #fff; color: #111; }
     .filters { background: #fff; border: 1px solid var(--line); padding: 18px; }
     .filters h3 { margin: 0 0 17px; font-size: 18px; }
+    .filter-total-header { color: var(--muted); font-size: 11px; padding-bottom: 4px; text-align: right; }
     .filter-group { border-top: 1px solid var(--line); padding: 16px 0 7px; }
     .filter-group h4 { margin: 0 0 12px; font-size: 11px; letter-spacing: .08em; }
-    .check { display: flex; gap: 8px; align-items: center; margin: 12px 0; color: #3f3f3f; font-size: 13px; }
+    .check { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin: 12px 0; color: #3f3f3f; font-size: 13px; }
+    .check span { display: flex; gap: 8px; align-items: center; }
+    .check b { color: #333; font-size: 12px; font-weight: 600; }
     .check input { accent-color: var(--green); }
-    .total-from { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 13px; display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
     .cards { display: grid; gap: 14px; }
     .vehicle-card { position: relative; display: grid; grid-template-columns: 190px 1fr 156px; min-height: 210px; background: #fff; border: 1px solid var(--line); overflow: hidden; }
     .vehicle-card.selected { border: 2px solid var(--green); }
@@ -95,15 +97,16 @@
     .upgrade-copy b { font-size: 18px; }
     .upgrade-copy p { margin: 7px 0 0; color: #ddd; }
     .outline { background: transparent; border: 1px solid #fff; color: #fff; padding: 10px 26px; font-weight: 700; }
-    .extras-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
     .extras-section h3 { font-size: 18px; font-weight: 600; margin: 0 0 12px; }
+    .extras-section + .extras-section { margin-top: 27px; }
     .extra-row { background: #fff; border: 1px solid var(--line); padding: 16px 17px; min-height: 104px; display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; align-items: center; }
     .extra-row + .extra-row { border-top: 0; }
     .extra-row h4 { margin: 0; font-size: 15px; }
     .extra-row p { margin: 4px 0 0; color: #555; font-size: 12px; line-height: 1.35; }
     .extra-row a { color: var(--green); font-size: 11px; text-decoration: underline; }
     .extra-price { grid-row: 1 / span 2; grid-column: 2; text-align: right; white-space: nowrap; font-weight: 700; }
-    .extra-price small { display: block; color: #555; font-weight: 400; font-size: 11px; margin-bottom: 7px; }
+    .extra-price strong { display: block; font-size: 22px; line-height: 1.1; }
+    .extra-price small { display: block; color: #555; font-weight: 400; font-size: 11px; margin-top: 5px; }
     .add-btn { grid-column: 2; grid-row: 2; border: 1px solid var(--green); color: var(--green); background: #fff; padding: 7px 13px; font-weight: 700; font-size: 11px; }
     .add-btn.added { background: var(--green); color: #fff; }
     .confirmation { display: none; margin-top: 25px; background: #fff; border-left: 5px solid var(--green); padding: 25px; }
@@ -128,7 +131,7 @@
     @media (max-width: 900px) {
       .stepper { overflow-x: auto; justify-content: flex-start; }
       .step { min-width: 145px; padding: 12px; }
-      .form-grid, .extras-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
       .booking-layout { grid-template-columns: 1fr; }
       .sidebar { grid-template-columns: 1fr 1fr; }
     }
@@ -142,7 +145,7 @@
       .total strong { font-size: 21px; }
       .total small { font-size: 13px; }
       main { padding: 15px 12px 125px; }
-      .form-grid, .extras-grid, .sidebar { grid-template-columns: 1fr; }
+      .form-grid, .sidebar { grid-template-columns: 1fr; }
       .vehicle-card { grid-template-columns: 120px 1fr; }
       .vehicle-image img { width: 112px; }
       .vehicle-price { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); flex-direction: row; align-items: center; gap: 15px; text-align: left; }
@@ -194,16 +197,15 @@
     <div class="booking-layout">
       <aside class="sidebar">
         <div class="plus-card"><h3>Enterprise Plus®</h3><p>Earn points and enjoy rewards on your rental.</p><div class="toggle"><button class="active">Pay in $</button><button>Pay in Points</button></div></div>
-        <div class="filters"><h3>Filters</h3><div class="filter-group"><h4>MILEAGE</h4><label class="check"><input type="checkbox" checked> Unlimited Mileage</label><label class="check"><input type="checkbox"> Limited Mileage</label></div><div class="filter-group"><h4>VEHICLE TYPE</h4><label class="check"><input type="checkbox" checked> SUVs</label><label class="check"><input type="checkbox"> Cars</label><label class="check"><input type="checkbox"> Vans</label><label class="check"><input type="checkbox"> Trucks</label></div><div class="total-from"><span>Total from</span><b>Per Day</b></div></div>
+        <div class="filters"><h3>Filters</h3><div class="filter-total-header">Total from</div><div class="filter-group"><h4>MILEAGE</h4><label class="check"><span><input type="checkbox" checked> Unlimited Mileage</span><b>$134</b></label><label class="check"><span><input type="checkbox"> Limited Mileage</span><b>—</b></label></div><div class="filter-group"><h4>VEHICLE TYPE</h4><label class="check"><span><input type="checkbox" checked> SUVs</span><b>$134</b></label><label class="check"><span><input type="checkbox"> Cars</span><b>$146</b></label><label class="check"><span><input type="checkbox"> Vans</span><b>$161</b></label><label class="check"><span><input type="checkbox"> Trucks</span><b>—</b></label></div></div>
       </aside>
       <section>
         <div id="vehicle-cards" class="cards"></div>
         <div class="extras">
-          <h2>① Protection Products</h2>
+          <h2>Add Optional Extras</h2>
           <div class="upgrade"><img src="https://assets.gcs.ehi.com/content/enterprise_cros/data/vehicle/bookingCountries/US/SUVS/CFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755026990592.png" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2278%22%3E%3Crect width=%22120%22 height=%2278%22 fill=%22white%22/%3E%3C/svg%3E';" alt="Compact SUV"><span class="arrow">→</span><img src="https://assets.gcs.ehi.com/content/enterprise_cros/data/vehicle/bookingCountries/US/SUVS/SFAR.doi.200.high.imageSmallThreeQuarterNodePath.png/1755027916679.png" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2278%22%3E%3Crect width=%22120%22 height=%2278%22 fill=%22white%22/%3E%3C/svg%3E';" alt="Standard SUV"><div class="upgrade-copy"><b>You&apos;re eligible to upgrade!</b><p>Upgrade now to Standard SUV for only $ 25.49 more. ($ 158.81 total)</p></div><button class="outline" id="upgrade">Upgrade</button></div>
-          <div class="extras-grid">
-            <div class="extras-section" id="protection-list"></div>
-            <div class="extras-section"><h3>② Equipment</h3><div id="equipment-list"></div></div>
+          <div class="extras-section"><h3>① Protection Products</h3><div id="protection-list"></div></div>
+          <div class="extras-section"><h3>② Equipment</h3><div id="equipment-list"></div></div>
           </div>
         </div>
         <div id="confirmation" class="confirmation"></div>
@@ -255,8 +257,9 @@
     }
     function extraMarkup(item, isEquipment) {
       const selected = (isEquipment ? selectedEquipment : selectedProtection).has(item.id);
-      const priceText = isEquipment && item.max ? `${money(item.price)} / ${item.max.toFixed(2)} max` : money(item.price);
-      return `<div class="extra-row"><div><h4>${escapeHtml(item.name)}</h4>${item.badge ? `<span style="color:#127f4a;font-size:11px;font-weight:700">${escapeHtml(item.badge)}</span>` : ''}<p>${escapeHtml(item.description)}</p><a href="#">Details</a></div><div class="extra-price"><small>${priceText}</small>${item.perRental ? 'Per Rental' : 'Per Day'}</div><button class="add-btn ${selected ? 'added' : ''}" data-extra="${item.id}" data-equipment="${isEquipment}" type="button">${selected ? '✓ Added' : '+ Add'}</button></div>`;
+      const priceText = money(item.price);
+      const unitText = isEquipment && item.max ? `Per Day (${money(item.max)} max)` : item.perRental ? 'Per Rental' : 'Per Day';
+      return `<div class="extra-row"><div><h4>${escapeHtml(item.name)}</h4>${item.badge ? `<span style="color:#127f4a;font-size:11px;font-weight:700">${escapeHtml(item.badge)}</span>` : ''}<p>${escapeHtml(item.description)}</p><a href="#">Details</a></div><div class="extra-price"><strong>${priceText}</strong><small>${unitText}</small></div><button class="add-btn ${selected ? 'added' : ''}" data-extra="${item.id}" data-equipment="${isEquipment}" type="button">${selected ? '✓ Added' : '+ Add'}</button></div>`;
     }
     function renderExtras() {
       document.getElementById('protection-list').innerHTML = protectionProducts.map((item) => extraMarkup(item, false)).join('');
