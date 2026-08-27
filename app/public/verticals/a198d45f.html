@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediCodio AI — CODIO Coding Workspace</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #00309F;
+      --blue-bright: #0050E6;
+      --ink: #141834;
+      --muted: #5C6A89;
+      --wash: #F5F7FC;
+      --wash-2: #EEF4FD;
+      --line: #DCE5F8;
+      --white: #ffffff;
+      --green: #059669;
+      --red: #dc2626;
+      --heading: 'Sora', 'Montserrat', sans-serif;
+      --body: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--body); background: var(--white); color: var(--ink); font-size: 15px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    header.top { display: flex; align-items: center; gap: 36px; height: 72px; padding: 0 clamp(20px, 4vw, 56px); max-width: 1440px; margin: 0 auto; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-badge { width: 34px; height: 34px; border-radius: 9px; background: var(--blue); display: flex; align-items: center; justify-content: center; }
+    .logo-badge svg { width: 20px; height: 20px; }
+    .logo-word { display: flex; flex-direction: column; line-height: 1.1; }
+    .logo-word .word { font-family: var(--heading); font-weight: 800; font-size: 17px; letter-spacing: 0.02em; color: var(--ink); }
+    .logo-word .word b { color: var(--blue); }
+    .logo-word .tag { font-size: 8.5px; font-weight: 600; letter-spacing: 0.04em; color: var(--muted); }
+    nav.links { display: flex; gap: 26px; font-size: 14px; font-weight: 500; color: var(--ink); }
+    nav.links a.active { color: var(--blue); border-bottom: 2px solid var(--blue); padding-bottom: 3px; }
+    .top-right { margin-left: auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 26px; border-radius: 999px; font-family: var(--body); font-size: 14.5px; font-weight: 600; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-bright); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    @media (max-width: 940px) { nav.links { display: none; } }
+
+    .hero { text-align: center; padding: 56px 24px 40px; background: linear-gradient(180deg, var(--wash) 0%, #ffffff 100%); }
+    .attest { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 7px 18px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+    .attest .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue-bright); }
+    h1 { font-family: var(--heading); font-weight: 800; font-size: clamp(30px, 4.6vw, 46px); line-height: 1.15; letter-spacing: -0.5px; margin-top: 22px; }
+    h1 .ai { color: var(--blue-bright); }
+    .hero p.sub { margin: 14px auto 0; max-width: 560px; color: var(--muted); font-size: 15.5px; }
+    .statbar { margin-top: 28px; display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 0; border: 1px solid var(--line); border-radius: 999px; background: #fff; padding: 8px 0; font-size: 13px; }
+    .statbar > div { padding: 2px 20px; display: flex; gap: 8px; align-items: baseline; }
+    .statbar > div + div { border-left: 1px solid var(--line); }
+    .statbar b { font-weight: 700; color: var(--ink); }
+    .statbar span { color: var(--muted); font-weight: 500; }
+    @media (max-width: 640px) { .statbar { flex-direction: column; align-items: stretch; border-radius: 14px; } .statbar > div + div { border-left: none; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 6px; } }
+
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 24px 72px; }
+    .queue { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
+    @media (max-width: 860px) { .queue { grid-template-columns: 1fr; } }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(20,24,52,0.05); }
+    .card .label { font-size: 13px; font-weight: 600; color: var(--muted); }
+    .card .value { font-family: var(--heading); font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .card .meta { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+    .card .meta.up { color: var(--green); }
+
+    .work-wrap { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; margin-bottom: 44px; }
+    @media (max-width: 860px) { .work-wrap { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px; box-shadow: 0 1px 3px rgba(20,24,52,0.05); }
+    .panel h2 { font-family: var(--heading); font-size: 19px; font-weight: 700; }
+    .panel .sub { color: var(--muted); font-size: 13.5px; margin: 6px 0 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .form-group select, .form-group input { width: 100%; height: 44px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); font-family: var(--body); font-size: 14px; appearance: none; }
+    .form-group select { padding-right: 34px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235C6A89' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--blue-bright); box-shadow: 0 0 0 3px rgba(0,80,230,0.12); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+    #submitBtn { width: 100%; margin-top: 6px; }
+    .result-box { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 13.5px; display: none; }
+    .result-box.success { display: block; background: rgba(5,150,105,0.06); border: 1px solid rgba(5,150,105,0.3); color: var(--green); }
+    .result-box.error { display: block; background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.3); color: var(--red); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 12.5px; opacity: 0.9; word-break: break-word; }
+
+    .aside { background: var(--wash-2); border: 1px solid var(--line); border-radius: 14px; padding: 26px; }
+    .aside h3 { font-family: var(--heading); font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+    .aside ul { list-style: none; font-size: 13.5px; color: var(--muted); }
+    .aside li { padding: 10px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+    .aside li:last-child { border-bottom: none; }
+    .aside li b { font-weight: 600; color: var(--ink); }
+    .mode-pill { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 600; color: var(--blue); }
+
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+    .section-head h2 { font-family: var(--heading); font-size: 19px; font-weight: 700; }
+    .section-head span { font-size: 13px; color: var(--muted); }
+    .charts-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+    table.charts { width: 100%; border-collapse: collapse; background: #fff; }
+    table.charts th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--wash); }
+    table.charts td { padding: 13px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+    table.charts tbody tr:last-child td { border-bottom: none; }
+    .code-chip { display: inline-block; background: var(--wash-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 8px; font-size: 12px; font-weight: 600; color: var(--blue); margin-right: 4px; }
+    .status-done { color: var(--green); font-weight: 600; }
+    .status-pending { color: var(--muted); font-weight: 600; }
+    @media (max-width: 620px) { table.charts th:nth-child(3), table.charts td:nth-child(3) { display: none; } }
+
+    footer { border-top: 1px solid var(--line); margin-top: 40px; background: var(--wash); }
+    .foot-inner { max-width: 1120px; margin: 0 auto; padding: 36px 24px 48px; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; font-size: 14px; }
+    @media (max-width: 700px) { .foot-cols { grid-template-columns: 1fr 1fr; } }
+    .foot-cols h4 { font-family: var(--heading); font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
+    .foot-cols a { display: block; color: var(--muted); padding: 5px 0; }
+    .foot-legal { margin-top: 28px; font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a class="logo" href="#" aria-label="MediCodio AI">
+      <span class="logo-badge">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 12h4l2-5 4 10 2-5h4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="logo-word">
+        <span class="word">MEDI<b>CODIO AI</b></span>
+        <span class="tag">AI Powered Medical Coding</span>
+      </span>
+    </a>
+    <nav class="links">
+      <a href="#">Home</a>
+      <a href="#" class="active">CODIO AI</a>
+      <a href="#">Expert Services</a>
+      <a href="#">Who We Serve</a>
+      <a href="#">Resources</a>
+      <a href="#">Contact Us</a>
+    </nav>
+    <div class="top-right">
+      <a class="btn btn-primary" href="#workspace">Book a Demo</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="attest"><span class="dot"></span>We are SOC 2 Type 2 Attested</div>
+    <h1>Fewer Denied Claims. Faster Coding.<br>One <span class="ai">AI</span>-Powered Platform.</h1>
+    <p class="sub">CODIO AI validates every assigned ICD-10-CM, CPT, and HCPCS code before the claim goes out — in CoPilot mode with human review, or AutoPilot end to end.</p>
+    <div class="statbar">
+      <div><b>98%+</b><span>Coding Accuracy</span></div>
+      <div><b>1.5 min</b><span>Average Per Chart</span></div>
+      <div><b>100%</b><span>Code-Level Audit Trail</span></div>
+    </div>
+  </section>
+
+  <main>
+    <div class="queue">
+      <div class="card">
+        <div class="label">Charts in queue</div>
+        <div class="value">142</div>
+        <div class="meta">Across 6 facilities</div>
+      </div>
+      <div class="card">
+        <div class="label">Coded today</div>
+        <div class="value">318</div>
+        <div class="meta up">96% first-pass, no coder edits</div>
+      </div>
+      <div class="card">
+        <div class="label">Average turnaround</div>
+        <div class="value">1.4 min</div>
+        <div class="meta">Per chart, last 7 days</div>
+      </div>
+    </div>
+
+    <div class="work-wrap" id="workspace">
+      <div class="panel">
+        <h2>Submit chart for coding</h2>
+        <div class="sub">CODIO assigns ICD-10-CM, CPT, and HCPCS codes, runs NCCI edits, and submits the claim to the payer.</div>
+        <form id="claimForm">
+          <div class="form-group">
+            <label for="policyId">Facility contract</label>
+            <select id="policyId">
+              <option value="POL-5001">Eastern Orange ASC &mdash; Outpatient</option>
+              <option value="POL-5002">Prima Care Physician Group &mdash; Professional</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="claimType">Chart type</label>
+              <select id="claimType">
+                <option value="em_office_visit">E/M Office Visit</option>
+                <option value="outpatient_surgery">Outpatient Surgery</option>
+                <option value="ed_visit">Emergency Department</option>
+                <option value="radiology">Radiology</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="amount">Billed charges ($)</label>
+              <input type="number" id="amount" value="2500" min="1" step="0.01" placeholder="$0.00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="description">Chart summary</label>
+            <input type="text" id="description" value="Established patient, level 4 office visit with EKG" placeholder="Brief encounter summary">
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Code &amp; Submit Claim</button>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+
+      <div class="aside">
+        <h3>Workspace</h3>
+        <ul>
+          <li><span>Operating mode</span><span class="mode-pill">AutoPilot</span></li>
+          <li><span>Coder on review</span><b>R. Iyer, CPC</b></li>
+          <li><span>Code sets</span><b>ICD-10-CM &middot; CPT &middot; HCPCS</b></li>
+          <li><span>NCCI edits</span><b>Enabled</b></li>
+          <li><span>Specialties covered</span><b>35+</b></li>
+          <li><span>Audit trail</span><b>Code-level, 100%</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Recent charts</h2><span>Today</span></div>
+    <div class="charts-scroll">
+    <table class="charts">
+      <thead><tr><th>Chart</th><th>Facility</th><th>Codes assigned</th><th>Mode</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>CHT-40912</td><td>Eastern Orange ASC</td><td><span class="code-chip">29881</span><span class="code-chip">M23.205</span></td><td>AutoPilot</td><td class="status-done">Claim submitted</td></tr>
+        <tr><td>CHT-40911</td><td>Prima Care Physician Group</td><td><span class="code-chip">99214</span><span class="code-chip">E11.65</span></td><td>CoPilot</td><td class="status-done">Claim submitted</td></tr>
+        <tr><td>CHT-40910</td><td>Eastern Orange ASC</td><td><span class="code-chip">45380</span><span class="code-chip">K63.5</span></td><td>AutoPilot</td><td class="status-done">Claim submitted</td></tr>
+        <tr><td>CHT-40909</td><td>Prima Care Physician Group</td><td><span class="code-chip">93000</span><span class="code-chip">I10</span></td><td>CoPilot</td><td class="status-pending">In coder review</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-cols">
+        <div><h4>Platform</h4><a href="#">CODIO AI</a><a href="#">CoPilot Mode</a><a href="#">AutoPilot Mode</a></div>
+        <div><h4>Expert Services</h4><a href="#">Medical Coding</a><a href="#">Auditing</a><a href="#">CDI</a><a href="#">Staffing</a></div>
+        <div><h4>Who We Serve</h4><a href="#">Hospitals</a><a href="#">ASCs</a><a href="#">Physician Groups</a><a href="#">RCM Companies</a></div>
+        <div><h4>Company</h4><a href="#">About Us</a><a href="#">Contact Us</a><a href="#">Webinars</a></div>
+      </div>
+      <div class="foot-legal">HIPAA Compliant &middot; ISO/IEC 27001:2022 Certified &middot; SOC 2 Type 2 Attested &middot; &copy; 2026 MediCodio</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('claimForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Coding chart...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/insurance/claim', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ policyId: document.getElementById('policyId').value, claimType: document.getElementById('claimType').value, amount: parseFloat(document.getElementById('amount').value), description: document.getElementById('description').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Claim submission failed</div><div class="error-detail">${data.errorClass || data.code}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Claim submitted</div><div class="error-detail">Claim #${data.claimId} &mdash; approved amount $${data.payout} (after $${data.deductible} adjustment)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Code & Submit Claim'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
