@@ -447,6 +447,10 @@ const CUSTOMERS = {
     label: 'Capital One Travel',
     triggerMode: 'api',
   },
+  '9562e18a': {
+    label: 'Customer 9562',
+    triggerMode: 'api',
+  },
   a69bcc34: {
     label: 'The Home Depot',
     triggerMode: 'api',
