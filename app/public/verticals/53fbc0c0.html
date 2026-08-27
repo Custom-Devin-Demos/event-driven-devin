@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home | CLAAS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --claas-green: #b3cc21;
+    --claas-green-dark: #9db31c;
+    --claas-red: #e30613;
+    --ink: #1a1a1a;
+    --grey-bg: #efefef;
+    --text: #333;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Roboto', Helvetica, Arial, sans-serif; color: var(--text); background: var(--grey-bg); }
+  h1, h2, h3 { font-family: 'Poppins', Helvetica, Arial, sans-serif; font-weight: 300; color: var(--ink); }
+  img { display: block; }
+
+  /* Header */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(20, 22, 18, 0.72);
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; gap: 40px;
+    padding: 14px 48px;
+  }
+  .logo-box { background: #fff; padding: 10px 18px; transform: skewX(-8deg); }
+  .logo-box img { height: 30px; transform: skewX(8deg); }
+  nav { display: flex; gap: 28px; }
+  nav a { color: #fff; text-decoration: none; font-weight: 500; font-size: 15px; }
+  nav a:hover { color: var(--claas-green); }
+  .header-icons { margin-left: auto; display: flex; gap: 22px; color: #fff; font-size: 18px; }
+  .header-icons span { cursor: pointer; opacity: .85; }
+
+  /* Hero */
+  .hero {
+    position: relative; height: 92vh; min-height: 540px; overflow: hidden;
+    display: flex; align-items: flex-end;
+  }
+  .hero img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.05) 40%, rgba(0,0,0,.25)); }
+  .hero-content { position: relative; z-index: 2; padding: 0 96px 90px; max-width: 900px; }
+  .hero-content h1 { color: #fff; font-size: 54px; line-height: 1.15; font-weight: 300; margin-bottom: 28px; }
+  .btn {
+    display: inline-block; border: none; cursor: pointer; text-decoration: none;
+    background: var(--claas-green); color: var(--ink);
+    font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 15px;
+    padding: 13px 26px; border-radius: 3px;
+  }
+  .btn:hover { background: var(--claas-green-dark); }
+  .btn-outline {
+    display: inline-block; cursor: pointer; text-decoration: none;
+    background: #fff; color: var(--ink); font-weight: 500; font-size: 15px;
+    padding: 12px 24px; border: 1px solid var(--claas-green); border-radius: 3px;
+  }
+  .btn-outline:hover { background: #f5f8e6; }
+
+  .section { max-width: 1240px; margin: 0 auto; padding: 56px 36px; }
+
+  /* Stats band */
+  .stats { background: #fff; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
+  .stats-grid .value { font-family: 'Poppins', sans-serif; font-size: 40px; font-weight: 300; color: var(--ink); }
+  .stats-grid .label { font-size: 14px; color: #666; margin-top: 6px; }
+
+  /* Two-up teaser cards */
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  .card { background: #fff; display: flex; flex-direction: column; }
+  .card img { width: 100%; height: 320px; object-fit: cover; }
+  .card-body { padding: 28px 24px 32px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+  .card-body h2 { font-size: 32px; }
+  .card-body p { font-size: 15px; line-height: 1.55; color: #444; flex: 1; }
+  .card-body .btn, .card-body .btn-outline { align-self: flex-start; }
+
+  /* Product highlights */
+  .three-up { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+  .three-up .card img { height: 230px; }
+  .three-up .card h3 { font-size: 24px; }
+
+  /* CLAAS connect split */
+  .connect { background: #fff; }
+  .connect-inner { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+  .connect-text { padding: 64px 56px; }
+  .connect-text .rule { width: 110px; height: 2px; background: var(--claas-green); margin-bottom: 26px; }
+  .connect-text h2 { font-size: 40px; margin-bottom: 18px; }
+  .connect-text p { font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 26px; max-width: 420px; }
+  .connect-inner img { width: 100%; height: 460px; object-fit: cover; }
+
+  /* News */
+  .news-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 26px; align-items: start; }
+  .news-grid .lede h2 { font-size: 40px; margin-bottom: 24px; }
+  .news-item { background: #fff; padding: 24px 22px; }
+  .news-item h3 { font-size: 18px; font-weight: 600; font-family: 'Roboto', sans-serif; color: #16233d; margin-bottom: 12px; }
+  .news-item p { font-size: 14px; line-height: 1.55; color: #444; }
+
+  /* Contact form */
+  .contact { background: #fff; }
+  .contact-inner { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; }
+  .contact-inner img { width: 100%; height: 100%; min-height: 560px; object-fit: cover; }
+  .contact-form { padding: 60px 56px; }
+  .contact-form h2 { font-size: 38px; margin-bottom: 8px; }
+  .contact-form .sub { color: #666; font-size: 15px; margin-bottom: 30px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 11px 12px; border: 1px solid #ccc; border-radius: 3px;
+    font-family: 'Roboto', sans-serif; font-size: 14px; background: #fff;
+  }
+  .field textarea { resize: vertical; min-height: 90px; }
+  .success-banner {
+    display: none; margin-top: 20px; padding: 16px 18px; border-left: 4px solid var(--claas-green);
+    background: #f4f8e3; color: #3d4a12; font-size: 14px; line-height: 1.5;
+  }
+
+  /* Footer */
+  footer { background: #191c17; color: #bbb; padding: 48px 48px 32px; }
+  .footer-grid { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+  .footer-grid h4 { color: #fff; font-size: 14px; margin-bottom: 14px; font-weight: 500; }
+  .footer-grid a { display: block; color: #bbb; text-decoration: none; font-size: 13px; margin-bottom: 9px; }
+  .footer-grid a:hover { color: var(--claas-green); }
+  .footer-bottom { max-width: 1240px; margin: 36px auto 0; border-top: 1px solid #333; padding-top: 20px; font-size: 12px; color: #777; }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 26px; right: 26px; z-index: 300; max-width: 420px;
+    background: #2b1113; border-left: 4px solid var(--claas-red); color: #ffd9db;
+    padding: 16px 18px; border-radius: 4px; font-size: 13.5px; line-height: 1.5;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35); display: none;
+  }
+  #toast .toast-title { font-weight: 700; color: #ff8a90; margin-bottom: 5px; }
+
+  @media (max-width: 900px) {
+    .two-up, .three-up, .news-grid, .connect-inner, .contact-inner, .stats-grid, .footer-grid { grid-template-columns: 1fr; }
+    .hero-content { padding: 0 28px 60px; }
+    .hero-content h1 { font-size: 36px; }
+    header { padding: 12px 20px; gap: 18px; }
+    nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-box">
+    <img src="https://www.claas.com/assets/images/logo_claas_island.svg" alt="CLAAS"
+         onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('span'),{textContent:'CLAAS',style:'color:#e30613;font-weight:700;font-size:22px;font-style:italic;transform:skewX(8deg);display:inline-block;'}))">
+  </div>
+  <nav>
+    <a href="#products">Products</a>
+    <a href="#connect">Smart Farming</a>
+    <a href="#contact">Service &amp; Parts</a>
+  </nav>
+  <div class="header-icons">
+    <span title="Dealer locator">&#9906;</span>
+    <span title="Search">&#128269;</span>
+    <span title="Menu">&#9776;</span>
+  </div>
+</header>
+
+<section class="hero">
+  <img class="bg"
+       src="https://www.claas.com/caas/v1/media/1358690/data/519ab1a8dabde8ae0b2b9b2a6f38fe9b/landscape_ratio16x9/2500/1002084-27.jpg"
+       alt="CLAAS tractor mowing a field"
+       onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=2400&q=80';">
+  <div class="hero-content">
+    <h1>Made for any challenge in your operation.</h1>
+    <a class="btn" href="#products">Explore the CLAAS lineup</a>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="section">
+    <div class="stats-grid" id="statsGrid">
+      <div><div class="value">250+</div><div class="label">North American Dealers</div></div>
+      <div><div class="value">140</div><div class="label">Countries Served</div></div>
+      <div><div class="value">12,000+</div><div class="label">Employees Worldwide</div></div>
+      <div><div class="value">110+</div><div class="label">Years of Harvest Innovation</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="products">
+  <div class="two-up">
+    <div class="card">
+      <img src="https://www.claas.com/caas/v1/media/1172352/data/6d92f0ea432145237b078b25a51e37ef/landscape_ratio5x4/768/hay-tools-banner.jpg"
+           alt="CLAAS mower in a green field"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200&q=80';">
+      <div class="card-body">
+        <h2>Want CLAAS savings?</h2>
+        <p>Check out promotions on AXION and ARION tractors, as well as balers and hay tools.</p>
+        <a class="btn-outline" href="#contact">Find out more</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://www.claas.com/caas/v1/media/668152/data/4f5996b0f2e6dd66ca3c6f53c1f43460/landscape_ratio5x4/768/847724.jpg"
+           alt="CLAAS combine harvesting wheat"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1591086559154-a5f5c9111f28?w=1200&q=80';">
+      <div class="card-body">
+        <h2>Combines</h2>
+        <p>Our machines underline our ongoing effort to provide the best solutions for your harvesting requirements. So that you can harvest more efficiently, more precisely, more comfortably, and more reliably.</p>
+        <a class="btn-outline" href="#contact">Explore combines</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+  <div class="three-up">
+    <div class="card">
+      <img src="https://www.claas.com/caas/v1/media/1360854/data/965bf01c26443788517dbf0d0e009d45/landscape_ratio5x4/768/xerioncrop.jpg"
+           alt="XERION 12 Series tractor"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1530267981375-f0de937f5f13?w=900&q=80';">
+      <div class="card-body">
+        <h3>XERION 12 Series</h3>
+        <p>Boost your productivity with our new top-of-range tractor segment up to 650 hp. These new models are the result of over 25 years' experience in the large tractor segment.</p>
+        <a class="btn-outline" href="#contact">Details</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://www.claas.com/caas/v1/media/527306/data/31dd8bc76a2d5f7d5692418aae8835f9/landscape_ratio5x4/768/500383-25.jpg"
+           alt="JAGUAR 900 forage harvester"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=900&q=80';">
+      <div class="card-body">
+        <h3>JAGUAR 900</h3>
+        <p>With engine outputs of up to 1,110 hp, throughput of up to 400 t/h, outstanding operator assistance systems, and a wide range of corncracker rollers, including patented SHREDLAGE technology.</p>
+        <a class="btn-outline" href="#contact">Details</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://www.claas.com/caas/v1/media/1401212/data/86e0e404b7f854664e8aca79054e4efe/landscape_ratio5x4/768/arion-with-disco.jpg"
+           alt="ARION tractor with DISCO mower"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1595508064774-5ff825ff0f81?w=900&q=80';">
+      <div class="card-body">
+        <h3>It's Time to Upgrade Your Mower</h3>
+        <p>Whether you're running a single mower on a growing operation or running an aging double or triple mower season after season, there comes a point when your equipment starts working against you.</p>
+        <a class="btn-outline" href="#contact">Find out more</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="connect" id="connect">
+  <div class="connect-inner">
+    <div class="connect-text">
+      <div class="rule"></div>
+      <h2>CLAAS connect.</h2>
+      <p>Connect with your CLAAS machine and discover your very own world of CLAAS.</p>
+      <a class="btn" href="#contact">Find out more</a>
+    </div>
+    <img src="https://www.claas.com/caas/v1/media/1142154/data/769b6685f550772ae865cfe269d45701/portrait_ratio1x1/768/745201.jpg"
+         alt="Farmer with CLAAS connect app"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=1200&q=80';">
+  </div>
+</section>
+
+<section class="section">
+  <div class="news-grid">
+    <div class="lede">
+      <h2>CLAAS<br>News</h2>
+      <a class="btn" href="#contact">All press releases</a>
+    </div>
+    <div class="news-item">
+      <h3>CLAAS Foundation, UNL partner to empower ag...</h3>
+      <p>In commemoration of Helmut Claas&rsquo; 100th birthday, his foundation invests in the next generation of agricultural technology talent.</p>
+    </div>
+    <div class="news-item">
+      <h3>Commitment to Nebraska and North America</h3>
+      <p>Two ceremonies in one week highlight facility and workforce development.</p>
+    </div>
+    <div class="news-item">
+      <h3>CLAAS Advances Dealer Strategy with New...</h3>
+      <p>New genAG locations in North and South Dakota and continued investments in Iowa and Minnesota reinforce farmer service and support.</p>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <img src="https://www.claas.com/caas/v1/media/1345184/data/1dad7b93a1e73b5b381be6a3b87e8d57/landscape_ratio5x4/768/1028001-25.jpg"
+         alt="Farmers in a field with CLAAS combine"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200&q=80';">
+    <div class="contact-form">
+      <h2>Any questions about our products?</h2>
+      <p class="sub">Get in touch now &mdash; a specialist from your regional dealer network will follow up.</p>
+      <form id="inquiryForm">
+        <div class="field">
+          <label for="productLine">Product line</label>
+          <select id="productLine" name="productLine">
+            <option value="combines" selected>Combines</option>
+            <option value="forage-harvesters">Forage Harvesters</option>
+            <option value="tractors">Tractors</option>
+            <option value="balers-hay">Balers &amp; Hay Tools</option>
+            <option value="smart-farming">CLAAS connect &amp; Smart Farming</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="farmName">Farm / operation name</label>
+          <input id="farmName" name="farmName" type="text" value="Prairie Ridge Farms" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="name">Your name</label>
+          <input id="name" name="name" type="text" value="Dale Hutchinson" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" value="dale@prairieridgefarms.com" autocomplete="email">
+        </div>
+        <div class="field">
+          <label for="message">Message</label>
+          <textarea id="message" name="message">We're looking at upgrading our harvesting fleet ahead of next season. Interested in current combine availability and financing options.</textarea>
+        </div>
+        <button class="btn" type="submit" id="submitBtn">Get in touch now</button>
+      </form>
+      <div class="success-banner" id="successBanner"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <h4>Products</h4>
+      <a href="#products">Combines</a>
+      <a href="#products">Forage Harvesters</a>
+      <a href="#products">Tractors</a>
+      <a href="#products">Balers &amp; Hay Tools</a>
+    </div>
+    <div>
+      <h4>Smart Farming</h4>
+      <a href="#connect">CLAAS connect</a>
+      <a href="#connect">CEMOS</a>
+      <a href="#connect">Precision Farming</a>
+    </div>
+    <div>
+      <h4>Service &amp; Parts</h4>
+      <a href="#contact">Find a dealer</a>
+      <a href="#contact">ORIGINAL parts</a>
+      <a href="#contact">Financing</a>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <a href="#contact">About CLAAS</a>
+      <a href="#contact">Careers</a>
+      <a href="#contact">Press</a>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; CLAAS KGaA mbH &middot; Data privacy &middot; Legal notice &middot; Cookie settings</div>
+</footer>
+
+<div id="toast">
+  <div class="toast-title" id="toastTitle">Request failed</div>
+  <div id="toastBody"></div>
+</div>
+
+<script>
+  const form = document.getElementById('inquiryForm');
+  const successBanner = document.getElementById('successBanner');
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+
+  function showToast(title, body) {
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastBody').textContent = body;
+    toast.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 6000);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    successBanner.style.display = 'none';
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    try {
+      const res = await fetch('/api/53fbc0c0/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productLine: document.getElementById('productLine').value,
+          farmName: document.getElementById('farmName').value,
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          message: document.getElementById('message').value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        showToast((data.errorClass || 'Error') + ' \u2014 ' + (data.code || 'INQUIRY_ROUTING_FAILED'), data.error || 'Something went wrong routing your inquiry. Our team has been notified.');
+      } else {
+        successBanner.innerHTML = '<strong>Inquiry received.</strong> ' + data.nextStep
+          + '<br>Reference: ' + data.inquiryId;
+        successBanner.style.display = 'block';
+      }
+    } catch (err) {
+      showToast('NetworkError', err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Get in touch now';
+    }
+  });
+</script>
+
+</body>
+</html>
