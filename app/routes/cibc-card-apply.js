@@ -4,6 +4,8 @@ const { v4: uuidv4 } = require('uuid');
 
 const logger = require('../telemetry/logger');
 const { incrementMetric } = require('../telemetry/datadog');
+const { Sentry } = require('../telemetry/sentry');
+const { createSessionAndAlert } = require('../services/devin-session');
 const {
   normaliseAddress,
   isValidPostalCode,
@@ -26,6 +28,16 @@ const REQUIRED_FIELDS = [
 ];
 
 const ADDRESS_FIELDS = ['street', 'unit', 'city', 'province', 'postalCode'];
+
+const FUNNEL_DIRECTIVE = [
+  'Step 1 of the CIBC card application funnel at /cibc-card-apply-demo fails for a subset of',
+  'applicants. Reproduce by POSTing a valid application to',
+  'POST /api/cibc-card-apply/applications and compare a submission that includes an Apt / Unit',
+  'value against one that omits it — the Apt / Unit field is optional on the form, so the address',
+  'normaliser must handle its absence. Fix the normalisation path rather than the route, add',
+  'regression coverage for the failing input, and verify the form reaches the confirmation panel',
+  'end-to-end on /cibc-card-apply-demo.',
+].join(' ');
 
 function isBlank(value) {
   return value === undefined || value === null || String(value).trim() === '';
@@ -92,6 +104,65 @@ function buildApplicationPayload(body) {
 }
 
 /**
+ * Report a failed submission to Sentry/Datadog and open a Devin investigation.
+ */
+function reportSubmitFailure(error, body, requestId) {
+  incrementMetric('card_application.failure', {
+    route: '/api/cibc-card-apply/applications',
+    errorClass: error.name,
+  });
+
+  logger.error('Card application step 1 failed', {
+    error: error.message,
+    errorClass: error.name,
+    stack: error.stack,
+    province: body.province,
+    service: 'cibc-card-apply',
+  });
+
+  Sentry.captureException(error, {
+    tags: {
+      route: '/api/cibc-card-apply/applications',
+      service: 'cibc-card-apply',
+      step: '1',
+      page: '/cibc-card-apply-demo',
+    },
+    extra: { requestId, province: body.province },
+  });
+
+  createSessionAndAlert({
+    issueTitle: `${error.name}: ${error.message}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+    culprit: 'src/application/addressNormaliser.js — normaliseAddress',
+    errorType: error.name || 'Error',
+    errorValue: error.message,
+    devinUserId: body.devinUserId,
+    devinEmail: body.devinEmail,
+    devinOrgId: body.devinOrgId,
+    service: 'cibc-card-apply',
+    verticalLabel: 'CIBC Card Application',
+    tags: [
+      { key: 'route', value: '/api/cibc-card-apply/applications' },
+      { key: 'service', value: 'cibc-card-apply' },
+      { key: 'step', value: '1' },
+      { key: 'page', value: '/cibc-card-apply-demo' },
+    ],
+    promptAppendix: FUNNEL_DIRECTIVE,
+    extra: { requestId, province: body.province },
+    level: 'error',
+    platform: 'node',
+    lastSeen: new Date().toISOString(),
+    project: 'event-driven-devin',
+    release: process.env.SENTRY_RELEASE || 'cibc-card-apply@1.0.0',
+    environment: process.env.DD_ENV || 'prod',
+  }).catch((err) => {
+    logger.error('Failed to trigger Devin session from card application error', {
+      error: err.message,
+    });
+  });
+}
+
+/**
  * Normalise the submitted form, record the application and answer the client.
  */
 async function recordApplication(body, res) {
@@ -141,7 +212,18 @@ router.post('/api/cibc-card-apply/applications', (req, res) => {
     return res.status(400).json({ success: false, errors });
   }
 
-  recordApplication(body, res);
+  recordApplication(body, res).catch((error) => {
+    reportSubmitFailure(error, body, req.requestId);
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: 'We could not process your application. Our team has been notified.',
+        errorClass: error.name,
+        requestId: req.requestId,
+      });
+    }
+  });
 });
 
 module.exports = router;
