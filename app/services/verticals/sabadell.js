@@ -172,7 +172,6 @@ async function openAccount(data) {
       verticalLabel: 'Banco Sabadell Online Account',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: 'sabadell',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/sabadell/open-account' },
         { key: 'service', value: 'customer-sabadell-account-opening' },
