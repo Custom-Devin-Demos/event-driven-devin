@@ -481,6 +481,50 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MEDICODIO SITE — internal demo only, not affiliated with, endorsed by, or a real MediCodio product.',
   },
+
+  '03848ffe': {
+    slug: '03848ffe',
+    company: 'Genspark',
+    brandMark: 'G',
+    vertical: 'hightech',
+    page: {
+      file: '03848ffe.html',
+      title: 'Genspark - Upgrade to Team Plan',
+    },
+    theme: {
+      '--accent': '#0F7FFF',
+      '--ink': '#232425',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Genspark Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A GENSPARK SITE — internal demo only, not affiliated with, endorsed by, or a real Genspark product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'hightech',
+          label: 'AI Workspace \u2014 Team Seats & Provisioning',
+          persona: { name: 'Elena Sorokin', email: 'elena.sorokin@northloop.io', sev: 'Medium' },
+          templates: [
+            {
+              id: 'hightech-provision-slowdown',
+              label: 'Adding seats is very slow',
+              sev: 'Medium',
+              text: 'Adding seats to our Team plan is painfully slow — every time I hit "Get Team seats" it sits for seven or eight seconds before the workspace updates. It does go through, it is just slow, and it feels a little worse each time we add another batch.',
+            },
+            {
+              id: 'hightech-renewal-slow',
+              label: 'Bulk seat expansion crawling before renewal',
+              sev: 'High',
+              text: 'We are expanding from 40 to 200 seats ahead of our renewal on Friday and every seat batch in the workspace admin sits there for ages before it completes. Our IT lead is convinced the platform cannot handle our org size.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 function getOncallSkin(slug) {
