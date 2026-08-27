@@ -435,6 +435,10 @@ const CUSTOMERS = {
     label: 'Cardinal Health',
     triggerMode: 'api',
   },
+  '7a6ccff6': {
+    label: 'Warner Music Group',
+    triggerMode: 'api',
+  },
   sabadell: {
     label: 'Banco Sabadell',
     triggerMode: 'api',
