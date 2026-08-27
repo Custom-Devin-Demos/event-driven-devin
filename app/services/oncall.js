@@ -459,7 +459,14 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   }
 
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
-  let message = triggeredBy ? `${body}\nTriggered by: ${triggeredBy}` : body;
+  // The page a skinned ticket came from is stamped on the ticket itself, the way
+  // a support tool records the originating URL — no separate demo-page message.
+  const submittedFrom = skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null;
+  let message = [
+    body,
+    triggeredBy ? `Triggered by: ${triggeredBy}` : null,
+    submittedFrom ? `Submitted from: ${submittedFrom}` : null,
+  ].filter((l) => l !== null).join('\n');
   let blocks = null;
   if (reporter || severity || productArea) {
     const reportedBy = reporter && (reporter.name || reporter.email)
@@ -475,6 +482,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
       triggeredBy ? `Triggered by: ${triggeredBy}` : null,
       '',
       body,
+      submittedFrom ? `Submitted from: ${submittedFrom}` : null,
     ].filter((l) => l !== null).join('\n');
     blocks = [
       headerBlock(`:inbox_tray: New support ticket — ${centerName}`),
@@ -484,7 +492,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
         severity ? ['Severity', severity] : null,
       ]),
       mrkdwnSection(body),
-      contextBlock(centerSlug, triggeredBy, skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null),
+      contextBlock(centerSlug, triggeredBy, submittedFrom),
     ];
   }
 
