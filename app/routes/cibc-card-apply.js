@@ -4,7 +4,6 @@ const { v4: uuidv4 } = require('uuid');
 
 const logger = require('../telemetry/logger');
 const { incrementMetric } = require('../telemetry/datadog');
-const { Sentry } = require('../telemetry/sentry');
 const {
   normaliseAddress,
   isValidPostalCode,
@@ -25,6 +24,8 @@ const REQUIRED_FIELDS = [
   ['province', 'Province'],
   ['postalCode', 'Postal code'],
 ];
+
+const ADDRESS_FIELDS = ['street', 'unit', 'city', 'province', 'postalCode'];
 
 function isBlank(value) {
   return value === undefined || value === null || String(value).trim() === '';
@@ -58,6 +59,21 @@ function validateApplicant(body) {
 }
 
 /**
+ * Collect the address fields the applicant actually supplied.
+ */
+function addressInput(body) {
+  const input = {};
+
+  ADDRESS_FIELDS.forEach((field) => {
+    if (!isBlank(body[field])) {
+      input[field] = body[field];
+    }
+  });
+
+  return input;
+}
+
+/**
  * Build the application payload posted to the applications endpoint.
  */
 function buildApplicationPayload(body) {
@@ -71,14 +87,32 @@ function buildApplicationPayload(body) {
       email: String(body.email).trim().toLowerCase(),
       phone: String(body.phone).replace(/[^\d]/g, ''),
     },
-    address: normaliseAddress({
-      street: body.street,
-      unit: body.unit,
-      city: body.city,
-      province: body.province,
-      postalCode: body.postalCode,
-    }),
+    address: normaliseAddress(addressInput(body)),
   };
+}
+
+/**
+ * Normalise the submitted form, record the application and answer the client.
+ */
+async function recordApplication(body, res) {
+  const payload = buildApplicationPayload(body);
+  const applicationId = `CC-${uuidv4().slice(0, 8).toUpperCase()}`;
+
+  logger.info('Card application step 1 accepted', {
+    applicationId,
+    product: payload.product,
+    province: payload.address.province,
+    service: 'cibc-card-apply',
+  });
+  incrementMetric('card_application.accepted', { step: '1' });
+
+  res.json({
+    success: true,
+    applicationId,
+    referenceNumber: applicationId,
+    nextStep: { step: 2, label: 'Employment and income' },
+    application: payload,
+  });
 }
 
 /**
@@ -107,49 +141,7 @@ router.post('/api/cibc-card-apply/applications', (req, res) => {
     return res.status(400).json({ success: false, errors });
   }
 
-  try {
-    const payload = buildApplicationPayload(body);
-    const applicationId = `CC-${uuidv4().slice(0, 8).toUpperCase()}`;
-
-    logger.info('Card application step 1 accepted', {
-      applicationId,
-      product: payload.product,
-      province: payload.address.province,
-      service: 'cibc-card-apply',
-    });
-    incrementMetric('card_application.accepted', { step: '1' });
-
-    return res.json({
-      success: true,
-      applicationId,
-      referenceNumber: applicationId,
-      nextStep: { step: 2, label: 'Employment and income' },
-      application: payload,
-    });
-  } catch (error) {
-    logger.error('Card application step 1 failed', {
-      error: error.message,
-      errorClass: error.name,
-      stack: error.stack,
-      service: 'cibc-card-apply',
-    });
-
-    Sentry.captureException(error, {
-      tags: {
-        route: '/api/cibc-card-apply/applications',
-        service: 'cibc-card-apply',
-        step: '1',
-      },
-      extra: { requestId: req.requestId, province: body.province },
-    });
-
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-      errorClass: error.name,
-      requestId: req.requestId,
-    });
-  }
+  recordApplication(body, res);
 });
 
 module.exports = router;
