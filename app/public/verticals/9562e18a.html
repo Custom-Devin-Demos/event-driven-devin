@@ -273,8 +273,9 @@
       let total = vehicle.total;
       protectionProducts.forEach((item) => { if (selectedProtection.has(item.id)) total += item.price * days; });
       equipment.forEach((item) => { if (selectedEquipment.has(item.id)) total += item.perRental ? item.price : item.price * days; });
-      document.getElementById('header-total').textContent = `$${Math.floor(total)}`;
-      document.getElementById('header-cents').textContent = `.${String(Math.round((total % 1) * 100)).padStart(2, '0')}`;
+      const [dollars, cents] = total.toFixed(2).split('.');
+      document.getElementById('header-total').textContent = `$${dollars}`;
+      document.getElementById('header-cents').textContent = `.${cents}`;
       document.getElementById('bottom-total').textContent = money(total);
     }
     function showToast(message, errorClass, requestId) {
