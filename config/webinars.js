@@ -7,4 +7,9 @@ module.exports = {
     webinarTitle: 'Scaling Engineering with the Cognition Platform',
     customerName: 'Acme Test',
   },
+  'eli-lilly-webinar': {
+    webinarId: 'web-2026-eli-lilly-001',
+    webinarTitle: 'Scaling Engineering with the Cognition Platform',
+    customerName: 'Eli Lilly',
+  },
 };
