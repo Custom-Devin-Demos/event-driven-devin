@@ -391,12 +391,14 @@
       .catch(function () { return identity; });
   }
 
-  var cta = document.getElementById('find-class-cta');
-  cta.addEventListener('click', function () {
-    if (cta._running) return;
-    cta._running = true;
+  var running = false;
+
+  function submitRegistration(cta) {
+    if (running) return;
+    running = true;
+    var swapText = cta.childElementCount === 0;
     var original = cta.textContent;
-    cta.textContent = 'Finding classes\u2026';
+    if (swapText) cta.textContent = 'One moment\u2026';
 
     getIdentity().then(function (identity) {
       return fetch('/api/dae1efec/class-registration', {
@@ -426,9 +428,16 @@
         showToast('Network error', err.message);
       })
       .finally(function () {
-        cta.textContent = original;
-        cta._running = false;
+        if (swapText) cta.textContent = original;
+        running = false;
       });
+  }
+
+  document.querySelectorAll('a[href="#"], button').forEach(function (el) {
+    el.addEventListener('click', function (event) {
+      event.preventDefault();
+      submitRegistration(el);
+    });
   });
 </script>
 </body>
