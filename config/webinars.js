@@ -9,7 +9,7 @@ module.exports = {
   },
   'eli-lilly-webinar': {
     webinarId: 'web-2026-eli-lilly-001',
-    webinarTitle: 'Scaling Engineering with the Cognition Platform',
+    webinarTitle: 'The Cognition Platform for Lilly Engineering Leaders',
     customerName: 'Eli Lilly',
   },
 };
