@@ -97,7 +97,7 @@ function normalizeRegistration(data, classEntry) {
  * and compute the earliest available session date.
  */
 function scheduleClassSession(registration, classEntry) {
-  const rules = DELIVERY_FORMATS[registration.delivery];
+  const rules = DELIVERY_FORMATS[registration.delivery.mode] || DELIVERY_FORMATS.in_person;
   const earliest = new Date(Date.now() + rules.leadTimeDays * 86400000);
 
   return {
