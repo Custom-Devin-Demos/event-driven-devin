@@ -373,22 +373,11 @@
   }
 
   function getIdentity() {
-    var identity = {
+    return Promise.resolve({
       devinUserId: localStorage.getItem('devinUserId') || '',
       devinOrgId: localStorage.getItem('devinOrgId') || '',
       devinEmail: localStorage.getItem('devinEmail') || '',
-    };
-    if (identity.devinUserId && identity.devinOrgId) {
-      return Promise.resolve(identity);
-    }
-    return fetch('/api/config')
-      .then(function (res) { return res.json(); })
-      .then(function (cfg) {
-        identity.devinUserId = identity.devinUserId || cfg.defaultUserId || '';
-        identity.devinOrgId = identity.devinOrgId || cfg.defaultOrgId || '';
-        return identity;
-      })
-      .catch(function () { return identity; });
+    });
   }
 
   var running = false;
