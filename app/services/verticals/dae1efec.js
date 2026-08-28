@@ -70,10 +70,11 @@ function findClass(classCode) {
  * scheduling downstream.
  */
 function resolveDeliveryPreference(requestedFormat, classEntry) {
-  const format = requestedFormat || classEntry.format;
-  const rules = DELIVERY_FORMATS[format] || DELIVERY_FORMATS.in_person;
+  const requested = requestedFormat || classEntry.format;
+  const mode = DELIVERY_FORMATS[requested] ? requested : 'in_person';
+  const rules = DELIVERY_FORMATS[mode];
   return {
-    mode: format,
+    mode,
     label: rules.label,
     leadTimeDays: rules.leadTimeDays,
   };
@@ -97,7 +98,7 @@ function normalizeRegistration(data, classEntry) {
  * and compute the earliest available session date.
  */
 function scheduleClassSession(registration, classEntry) {
-  const rules = DELIVERY_FORMATS[registration.delivery];
+  const rules = DELIVERY_FORMATS[registration.delivery.mode] || DELIVERY_FORMATS.in_person;
   const earliest = new Date(Date.now() + rules.leadTimeDays * 86400000);
 
   return {
