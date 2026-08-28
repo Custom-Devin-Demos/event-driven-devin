@@ -372,14 +372,6 @@
     toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
   }
 
-  function getIdentity() {
-    return Promise.resolve({
-      devinUserId: localStorage.getItem('devinUserId') || '',
-      devinOrgId: localStorage.getItem('devinOrgId') || '',
-      devinEmail: localStorage.getItem('devinEmail') || '',
-    });
-  }
-
   var running = false;
 
   function submitRegistration(cta) {
@@ -389,19 +381,14 @@
     var original = cta.textContent;
     if (swapText) cta.textContent = 'One moment\u2026';
 
-    getIdentity().then(function (identity) {
-      return fetch('/api/dae1efec/class-registration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          classCode: 'ks-intro-101',
-          format: 'in_person',
-          zipCode: '80202',
-          devinUserId: identity.devinUserId,
-          devinOrgId: identity.devinOrgId,
-          devinEmail: identity.devinEmail,
-        }),
-      });
+    fetch('/api/dae1efec/class-registration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        classCode: 'ks-intro-101',
+        format: 'in_person',
+        zipCode: '80202',
+      }),
     })
       .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
       .then(function (result) {
