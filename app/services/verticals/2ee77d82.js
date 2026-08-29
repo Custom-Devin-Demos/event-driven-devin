@@ -51,6 +51,11 @@ const MARKET_PROFILES = {
  * owns the follow-up, plus the brand set quoted in the response.
  */
 const SEGMENT_ROUTING = {
+  franchise_global: {
+    desk: 'global-franchise-development',
+    responseSlaHours: 24,
+    brands: ['kfc', 'tacobell', 'pizzahut', 'habit'],
+  },
   franchise_intl: {
     desk: 'international-development',
     responseSlaHours: 48,
@@ -92,7 +97,7 @@ function resolveMarketProfile(market) {
  * Resolve the corporate routing entry for a market profile.
  */
 function resolveSegmentRouting(profile) {
-  return SEGMENT_ROUTING[profile.segment];
+  return SEGMENT_ROUTING[profile && profile.segment] || SEGMENT_ROUTING.franchise_global;
 }
 
 /**
