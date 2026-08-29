@@ -70,7 +70,7 @@ function findVisitType(code) {
  * Build the calendar lane identifier for a network and visit type pairing.
  */
 function buildCalendarLane(visitType) {
-  return `${visitType.network}_${visitType.code}`;
+  return `${visitType.network}-${visitType.code.replace(/_/g, '-')}`;
 }
 
 /**
@@ -92,6 +92,13 @@ function normalizeInquiry(data, visitType) {
  */
 function reserveVisitSlot(inquiry, visitType) {
   const window = SCHEDULING_WINDOWS[inquiry.lane];
+
+  if (!window) {
+    const error = new Error(`No scheduling window configured for calendar lane "${inquiry.lane}"`);
+    error.code = 'SCHEDULING_WINDOW_NOT_FOUND';
+    throw error;
+  }
+
   const firstAvailable = new Date(Date.now() + window.firstAvailableHours * 3600000);
 
   return {
@@ -235,6 +242,8 @@ async function submitAppointmentInquiry(data) {
 
 module.exports = {
   submitAppointmentInquiry,
+  buildCalendarLane,
+  reserveVisitSlot,
   VISIT_TYPES,
   SCHEDULING_WINDOWS,
   REMEDIATION_DIRECTIVE,
