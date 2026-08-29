@@ -563,6 +563,10 @@ const CUSTOMERS = {
     label: 'Mount Sinai',
     triggerMode: 'api',
   },
+  '2ee77d82': {
+    label: 'Yum! Brands',
+    triggerMode: 'api',
+  },
 };
 
 /**
