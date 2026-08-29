@@ -18,6 +18,9 @@ const express = require('express');
 const axios = require('axios');
 
 const app = express();
+// nginx is the only ingress; trust exactly one proxy hop so req.ip is the
+// real client address from X-Forwarded-For and cannot be forged by clients
+app.set('trust proxy', 1);
 app.use(express.json());
 
 const PORT = process.env.PORT || 3200;
@@ -213,22 +216,28 @@ router.get('/api/config', (req, res) => {
 // attempts from one client IP, lock that IP out for a cooldown period
 const CODE_ATTEMPT_LIMIT = 10;
 const CODE_LOCKOUT_MS = 15 * 60 * 1000;
+// global budget across all sources so rotating addresses cannot buy
+// unlimited guesses against the short code
+const CODE_GLOBAL_LIMIT = 100;
 const codeAttempts = new Map(); // ip -> { count, lockedUntil }
-
-function clientIp(req) {
-  return String(req.get('x-real-ip') || req.ip || 'unknown');
-}
+let globalFailures = { count: 0, windowStart: 0 };
 
 function checkCode(req, code) {
   if (!ACCESS_CODE) return { ok: true };
-  const ip = clientIp(req);
+  const ip = String(req.ip || 'unknown');
   const entry = codeAttempts.get(ip) || { count: 0, lockedUntil: 0 };
   const now = Date.now();
-  if (entry.lockedUntil > now) return { ok: false, locked: true };
+  if (now - globalFailures.windowStart > CODE_LOCKOUT_MS) {
+    globalFailures = { count: 0, windowStart: now };
+  }
+  if (entry.lockedUntil > now || globalFailures.count >= CODE_GLOBAL_LIMIT) {
+    return { ok: false, locked: true };
+  }
   if (String(code || '') === ACCESS_CODE) {
     codeAttempts.delete(ip);
     return { ok: true };
   }
+  globalFailures.count += 1;
   entry.count += 1;
   if (entry.count >= CODE_ATTEMPT_LIMIT) {
     entry.lockedUntil = now + CODE_LOCKOUT_MS;
