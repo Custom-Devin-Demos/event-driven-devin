@@ -308,7 +308,7 @@ async function submitClaim(data) {
       service: 'customer-qbe-claim',
       verticalLabel: 'QBE Claims — File a Claim',
       customer: 'qbe',
-      slackMemberId: QBE_SLACK_MEMBER_ID,
+      slackMemberId: data.devinEmail ? '' : QBE_SLACK_MEMBER_ID,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
