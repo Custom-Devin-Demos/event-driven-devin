@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>PNC Personal Banking</title>
+<link rel="icon" type="image/png" href="/verticals/assets/4b7e1d37/favicon.png">
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --v-blue: #0069aa;
+    --v-blue-dark: #00558a;
+    --v-orange: #ef6a00;
+    --v-slate: #414e58;
+    --v-slate-dark: #2d3943;
+    --v-slate-mid: #323f48;
+    --v-ink: #484848;
+    --v-gray-bg: #ededef;
+    --v-gray-light: #f1f4f6;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--v-ink);
+    background: #fff;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  h1, h2, h3 { font-weight: 600; margin: 0; line-height: 1.2; color: var(--v-ink); }
+
+  .all-demos {
+    position: fixed; bottom: 8px; left: 8px; z-index: 60;
+    font-size: 11px; color: #9aa4ad; padding: 3px 8px;
+    background: rgba(255,255,255,0.75); border-radius: 4px;
+  }
+  .all-demos:hover { color: var(--v-blue); }
+
+  .nav-top {
+    background: var(--v-slate); color: #fff;
+    display: flex; align-items: stretch; height: 72px;
+    padding: 0 32px 0 0; font-size: 15px;
+  }
+  .nav-top .logo {
+    display: flex; align-items: center; padding: 0 48px 0 40px;
+    background: var(--v-slate);
+  }
+  .nav-top .logo img { height: 32px; }
+  .nav-top .tabs { display: flex; align-items: stretch; }
+  .nav-top .tabs a {
+    display: flex; align-items: center; padding: 0 26px;
+    color: #fff; font-weight: 600; letter-spacing: 0.04em; font-size: 14px;
+  }
+  .nav-top .tabs a.active {
+    background: #fff; color: var(--v-ink);
+    border-top: 4px solid var(--v-orange);
+  }
+  .nav-top .utility {
+    margin-left: auto; display: flex; align-items: center; gap: 22px; font-size: 14px;
+  }
+  .nav-main {
+    background: var(--v-slate-dark); color: #fff;
+    display: flex; align-items: center; height: 74px; padding: 0 32px 0 104px;
+    gap: 34px; font-size: 15px;
+  }
+  .nav-main a { color: #fff; font-weight: 600; letter-spacing: 0.05em; font-size: 14px; }
+  .nav-main .right { margin-left: auto; display: flex; align-items: center; gap: 28px; }
+  .nav-main .search { letter-spacing: 0.05em; font-weight: 600; font-size: 14px; }
+  .nav-main .signon {
+    background: #fff; color: var(--v-slate-dark); font-weight: 600;
+    padding: 12px 22px; border-radius: 2px; font-size: 14px; letter-spacing: 0.03em;
+  }
+
+  .hero {
+    position: relative; background: var(--v-gray-bg);
+    display: flex; align-items: center; min-height: 480px; overflow: hidden;
+  }
+  .hero .pattern {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 170px;
+    background: url('/verticals/assets/4b7e1d37/semicircles-dark.png') repeat;
+    background-size: 170px; opacity: 0.12; filter: grayscale(1);
+  }
+  .hero .inner { position: relative; padding: 60px 40px 60px 220px; max-width: 940px; }
+  .hero h1 { font-size: 40px; font-weight: 600; margin-bottom: 10px; white-space: nowrap; }
+  .hero .rule { width: 126px; height: 5px; background: var(--v-orange); margin: 14px 0 26px; }
+  .hero p { font-size: 28px; font-weight: 300; color: #58595b; margin: 0 0 30px; max-width: 500px; line-height: 1.4; }
+  .hero .art { position: relative; margin-left: auto; align-self: stretch; width: 540px; min-height: 480px; }
+  .hero .art .circle-a {
+    position: absolute; width: 380px; height: 380px; border-radius: 50%;
+    background: var(--v-orange); left: 0; top: 50px;
+  }
+  .hero .art .circle-b {
+    position: absolute; width: 340px; height: 340px; border-radius: 50%;
+    background: var(--v-orange); right: -150px; top: 70px;
+  }
+  .hero .art img {
+    position: relative; width: 260px; margin: 40px 0 0 120px;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.25));
+  }
+
+  .btn {
+    display: inline-block; font-size: 16px; font-weight: 600;
+    padding: 12px 24px; background: var(--v-blue); color: #fff;
+    border: none; border-radius: 2px; cursor: pointer; font-family: inherit;
+  }
+  .btn:hover { background: var(--v-blue-dark); }
+
+  .section-head { text-align: center; padding: 56px 24px 0; }
+  .section-head h2 { font-size: 34px; font-weight: 600; }
+  .section-head .rule { width: 120px; height: 4px; background: var(--v-orange); margin: 16px auto 0; }
+  .section-head .sub { font-size: 26px; font-weight: 300; color: #58595b; margin: 34px 0 0; }
+
+  .products { padding: 44px 64px 64px; }
+  .products .grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 24px; text-align: center;
+  }
+  .products .cell img { width: 84px; height: 84px; margin: 0 auto 18px; }
+  .products .cell a.link { color: var(--v-blue); font-size: 17px; }
+  .products .cell a.link::after { content: ' \2192'; color: var(--v-blue); }
+
+  .planning {
+    position: relative; background: var(--v-slate-mid) url('/verticals/assets/4b7e1d37/semicircles-dark.png') repeat;
+    background-size: 90px; color: #fff; overflow: hidden;
+    display: grid; grid-template-columns: 1.05fr 1fr; align-items: center;
+  }
+  .planning .copy { padding: 64px 24px 64px 120px; }
+  .planning h2 { font-size: 34px; color: #fff; }
+  .planning .rule { width: 120px; height: 4px; background: var(--v-orange); margin: 18px 0 34px; }
+  .planning .lede { font-size: 26px; font-weight: 300; margin: 0 0 26px; line-height: 1.4; }
+  .planning p { margin: 0 0 30px; }
+  .planning .art { position: relative; min-height: 480px; }
+  .planning .art .half-circle {
+    position: absolute; width: 300px; height: 600px; left: 300px; top: -40px;
+    background: var(--v-orange); border-radius: 0 300px 300px 0;
+  }
+  .planning .art img {
+    position: absolute; width: 300px; height: 300px; object-fit: cover;
+    object-position: center center; border-radius: 50%; left: 20px; top: 90px;
+  }
+
+  .insights { background: var(--v-gray-light); padding-bottom: 64px; }
+  .insights .cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;
+    max-width: 1020px; margin: 44px auto 0; padding: 0 24px;
+  }
+  .insights .card { background: transparent; }
+  .insights .card img { width: 100%; height: 170px; object-fit: cover; }
+  .insights .card .kicker { font-size: 13px; color: #58595b; margin: 16px 0 6px; }
+  .insights .card h3 { font-size: 19px; color: var(--v-blue); line-height: 1.35; }
+  .insights .card p { font-size: 14px; margin: 10px 0 8px; }
+  .insights .card .read { font-size: 13px; color: #58595b; }
+  .insights .more { text-align: center; margin-top: 40px; }
+  .insights .more a { color: var(--v-blue); font-size: 17px; }
+  .insights .more a::after { content: ' \2192'; }
+
+  .mobile-app { padding-bottom: 56px; }
+  .mobile-app .slide {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;
+    max-width: 960px; margin: 40px auto 0; padding: 0 24px;
+  }
+  .mobile-app .slide .copy h3 { font-size: 24px; margin-bottom: 14px; }
+  .mobile-app .slide .copy .fine { font-style: italic; color: #58595b; font-size: 14px; }
+  .mobile-app .slide img { width: 250px; margin: 0 auto; }
+  .mobile-app .dots { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 28px; }
+  .mobile-app .dots button {
+    background: none; border: none; cursor: pointer; padding: 0;
+  }
+  .mobile-app .dots .arrow { font-size: 26px; color: #58595b; }
+  .mobile-app .dots .dot { width: 13px; height: 13px; border-radius: 50%; background: #d5d9dc; }
+  .mobile-app .dots .dot.active { background: #00539b; }
+  .mobile-app .download { text-align: center; margin-top: 36px; }
+  .mobile-app .download h3 { font-size: 26px; }
+  .mobile-app .download p { font-size: 17px; }
+  .mobile-app .badges { display: flex; justify-content: center; gap: 16px; margin-top: 18px; }
+  .mobile-app .badges img { height: 44px; }
+
+  .contact { background: var(--v-slate-mid) url('/verticals/assets/4b7e1d37/semicircles-dark.png') repeat; background-size: 90px; color: #fff; padding: 56px 24px 64px; }
+  .contact h2 { text-align: center; font-size: 32px; color: #fff; }
+  .contact .rule { width: 120px; height: 4px; background: var(--v-orange); margin: 16px auto 44px; }
+  .contact .cols {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    max-width: 1060px; margin: 0 auto; text-align: center;
+  }
+  .contact .col img { width: 88px; height: 88px; margin: 0 auto 20px; }
+  .contact .col h3 { color: #fff; font-size: 24px; margin-bottom: 14px; }
+  .contact .col p { margin: 0 0 20px; }
+  .contact .col a.action { color: #fff; font-weight: 600; }
+  .contact .col a.action::after { content: ' \2192'; color: var(--v-orange); }
+
+  .legal { background: var(--v-slate); color: #dfe3e6; }
+  .legal .bar {
+    background: var(--v-slate-dark); color: #fff; font-size: 22px; font-weight: 600;
+    padding: 22px 40px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .legal .body { padding: 40px 110px 56px; font-size: 14px; line-height: 1.6; }
+  .legal .body p { margin: 0 0 22px; }
+  .legal .body a { text-decoration: underline; color: #fff; }
+  .legal .box {
+    border: 3px solid #9aa4ad; padding: 16px 20px; font-weight: 700; margin: 0 0 26px;
+  }
+  .legal .ehl { width: 70px; margin-bottom: 8px; }
+
+  footer .links {
+    background: var(--v-slate-dark); color: #fff;
+    display: grid; grid-template-columns: 1.6fr 1.2fr 1.2fr 1fr; gap: 24px;
+    padding: 64px 110px 40px; font-size: 15px;
+  }
+  footer .links h4 {
+    font-size: 14px; letter-spacing: 0.05em; margin: 0 0 16px; font-weight: 600; color: #fff;
+  }
+  footer .links .stack a { display: block; padding: 6px 0; color: #fff; }
+  footer .links .primary a { display: block; padding: 8px 0; font-weight: 600; letter-spacing: 0.04em; font-size: 14px; }
+  footer .bottom {
+    background: var(--v-slate-dark); color: #fff; padding: 26px 110px 34px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px;
+    font-size: 13px;
+  }
+  footer .bottom .fine a { color: #fff; padding: 0 10px; border-right: 1px solid rgba(255,255,255,0.4); }
+  footer .bottom .fine a:last-child { border-right: none; }
+  footer .bottom .copyright { margin-top: 10px; }
+  footer .social { display: flex; gap: 12px; }
+  footer .social a {
+    width: 34px; height: 34px; border-radius: 50%; background: #fff; color: var(--v-slate-dark);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;
+  }
+
+  .toast {
+    position: fixed; right: 24px; bottom: 24px; z-index: 90;
+    max-width: 380px; background: rgba(33, 37, 41, 0.94); color: #fff;
+    padding: 14px 18px; border-radius: 6px; font-size: 14px; line-height: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    transform: translateX(calc(100% + 32px)); transition: transform 0.35s ease;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast .title { font-weight: 700; margin-bottom: 4px; }
+  .toast .detail { color: #cfd4d9; font-size: 13px; }
+
+  @media (max-width: 1000px) {
+    .nav-top .tabs, .nav-top .utility, .nav-main a:not(.signon) { display: none; }
+    .hero .art { display: none; }
+    .hero .inner { padding: 48px 28px; }
+    .products .grid { grid-template-columns: repeat(2, 1fr); }
+    .planning { grid-template-columns: 1fr; }
+    .planning .copy { padding: 44px 28px; }
+    .planning .art { display: none; }
+    .insights .cards, .contact .cols, .mobile-app .slide { grid-template-columns: 1fr; }
+    .legal .body, footer .links, footer .bottom { padding-left: 28px; padding-right: 28px; }
+    footer .links { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<a class="all-demos" href="/">&larr; All Demos</a>
+
+<div class="nav-top">
+  <a class="logo" href="#">
+    <img src="/verticals/assets/4b7e1d37/logo-rev.svg" alt="PNC"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?w=140';">
+  </a>
+  <nav class="tabs">
+    <a class="active" href="#">PERSONAL</a>
+    <a href="#">SMALL BUSINESS</a>
+    <a href="#">CORPORATE &amp; INSTITUTIONAL</a>
+    <a href="#">ABOUT</a>
+  </nav>
+  <div class="utility">
+    <a href="#">&#127760; Espa&ntilde;ol</a>
+    <a href="#">Customer Service</a>
+    <a href="#">Locations</a>
+    <a href="#">Security</a>
+  </div>
+</div>
+
+<div class="nav-main">
+  <a href="#">PRODUCTS &amp; SERVICES</a>
+  <a href="#">LEARNING</a>
+  <a href="#">SUPPORT</a>
+  <a href="#">OFFERS</a>
+  <div class="right">
+    <a class="search" href="#">&#128269; SEARCH</a>
+    <a class="signon" href="#">&#128100; SIGN ON</a>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="pattern"></div>
+  <div class="inner">
+    <h1>Open a Checking Account Online</h1>
+    <div class="rule"></div>
+    <p>Find the account that fits your banking needs.</p>
+    <button class="btn" id="hero-cta" type="button">Get Started</button>
+  </div>
+  <div class="art">
+    <div class="circle-a"></div>
+    <div class="circle-b"></div>
+    <img src="/verticals/assets/4b7e1d37/hero-phone.png" alt="Mobile banking app showing spending and budgets"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=520';">
+  </div>
+</section>
+
+<div class="section-head">
+  <h2>Products &amp; Services</h2>
+  <div class="rule"></div>
+  <p class="sub">Explore and apply online.</p>
+</div>
+
+<section class="products">
+  <div class="grid">
+    <div class="cell">
+      <img src="/verticals/assets/4b7e1d37/icon-checking.svg" alt="Checking icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1601597111158-2fceff292cdc?w=120';">
+      <a class="link" href="#">Checking</a>
+    </div>
+    <div class="cell">
+      <img src="/verticals/assets/4b7e1d37/icon-credit-cards.svg" alt="Credit cards icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=120';">
+      <a class="link" href="#">Credit Cards</a>
+    </div>
+    <div class="cell">
+      <img src="/verticals/assets/4b7e1d37/icon-savings.svg" alt="Savings icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=120';">
+      <a class="link" href="#">Savings</a>
+    </div>
+    <div class="cell">
+      <img src="/verticals/assets/4b7e1d37/icon-home-loans.svg" alt="Home loans icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=120';">
+      <a class="link" href="#">Home Loans</a>
+    </div>
+    <div class="cell">
+      <img src="/verticals/assets/4b7e1d37/icon-wealth.svg" alt="Wealth management icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=120';">
+      <a class="link" href="#">Wealth Management</a>
+    </div>
+    <div class="cell">
+      <img src="/verticals/assets/4b7e1d37/icon-auto-loans.svg" alt="Auto loans icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=120';">
+      <a class="link" href="#">Auto Loans</a>
+    </div>
+  </div>
+</section>
+
+<section class="planning">
+  <div class="copy">
+    <h2>For what you're planning - and for life's surprises.</h2>
+    <div class="rule"></div>
+    <p class="lede">Did you know a loan could help you meet your goals and stay on track?</p>
+    <p>Whatever you are facing, whether it's managing daily spending, making a major purchase or consolidating debt, we have resources to help you find what works best for you. You can browse calculators and tools, informative articles, apply for products online, or schedule an appointment to talk with us.</p>
+    <button class="btn" type="button">Explore and Learn</button>
+  </div>
+  <div class="art">
+    <div class="half-circle"></div>
+    <img src="/verticals/assets/4b7e1d37/lending.png" alt="Woman researching loans on her laptop"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600';">
+  </div>
+</section>
+
+<section class="insights">
+  <div class="section-head">
+    <h2>Insights</h2>
+    <div class="rule"></div>
+    <p class="sub">Make today the day you take the next step toward your financial goals.</p>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <img src="/verticals/assets/4b7e1d37/insight-insurance.jpg" alt="Family reviewing insurance plans"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800';">
+      <div class="kicker">Invest</div>
+      <h3><a href="#">Insurance Plays a Key Role in Protecting and Preserving Wealth</a></h3>
+      <p>Financial success depends on protecting assets from risks that can threaten long-term goals.</p>
+      <div class="read">5 min read</div>
+    </div>
+    <div class="card">
+      <img src="/verticals/assets/4b7e1d37/insight-stocks.jpg" alt="Investor researching stocks"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800';">
+      <div class="kicker">Invest</div>
+      <h3><a href="#">How To Buy Stocks: A Step-by-Step Guide to Getting Started</a></h3>
+      <p>Buying stocks involves defining your goals, opening a brokerage account, and then determining the right mixture of companies to hold for long-term growth.</p>
+      <div class="read">6 min read</div>
+    </div>
+    <div class="card">
+      <img src="/verticals/assets/4b7e1d37/insight-risk.jpg" alt="Couple discussing risk tolerance"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800';">
+      <div class="kicker">Invest</div>
+      <h3><a href="#">What Is Risk Tolerance &amp; Why Does It Matter?</a></h3>
+      <p>Discover what is risk tolerance and why understanding your comfort with financial risk is key to smart investment decisions tailored to your goals.</p>
+      <div class="read">7 min read</div>
+    </div>
+  </div>
+  <div class="more"><a href="#">View More Insights</a></div>
+</section>
+
+<section class="mobile-app">
+  <div class="section-head">
+    <h2>Mobile App</h2>
+    <div class="rule"></div>
+    <p class="sub">Bank anytime, anywhere. Get started with the PNC Mobile App.</p>
+  </div>
+  <div class="slide">
+    <div class="copy">
+      <h3>Accounts Dashboard</h3>
+      <p>View balances and recent transactions &ndash; Review current account activity for your checking, savings, credit card and loan accounts.</p>
+      <p class="fine">Image for illustrative purposes only.</p>
+    </div>
+    <img src="/verticals/assets/4b7e1d37/phone-account-summary.png" alt="PNC Mobile App accounts dashboard"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=420';">
+  </div>
+  <div class="dots">
+    <button class="arrow" type="button" aria-label="Previous">&#8249;</button>
+    <button class="dot active" type="button" aria-label="Slide 1"></button>
+    <button class="dot" type="button" aria-label="Slide 2"></button>
+    <button class="dot" type="button" aria-label="Slide 3"></button>
+    <button class="dot" type="button" aria-label="Slide 4"></button>
+    <button class="arrow" type="button" aria-label="Next">&#8250;</button>
+  </div>
+  <div class="download">
+    <h3>Download our app</h3>
+    <p>Find the PNC Mobile app in the App Store or Google Play.</p>
+    <div class="badges">
+      <a href="#"><img src="/verticals/assets/4b7e1d37/badge-appstore.svg" alt="Download on the App Store"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611262588024-d12430b98920?w=180';"></a>
+      <a href="#"><img src="/verticals/assets/4b7e1d37/badge-googleplay.svg" alt="Get it on Google Play"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?w=180';"></a>
+    </div>
+  </div>
+</section>
+
+<section class="contact">
+  <h2>Contact Us</h2>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col">
+      <img src="/verticals/assets/4b7e1d37/icon-meet.svg" alt="Calendar appointment icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=120';">
+      <h3>Let&rsquo;s Meet</h3>
+      <p>Review your calendar and find a<br>convenient time to meet with us.</p>
+      <a class="action" href="#">Schedule an Appointment</a>
+    </div>
+    <div class="col">
+      <img src="/verticals/assets/4b7e1d37/icon-branch.svg" alt="Bank branch icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554469384-e58fac16e23a?w=120';">
+      <h3>Visit Us</h3>
+      <p>Find a PNC location near you<br>and stop by to see us.</p>
+      <a class="action" href="#">Find a PNC Branch</a>
+    </div>
+    <div class="col">
+      <img src="/verticals/assets/4b7e1d37/icon-call.svg" alt="Phone call icon"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1523966211575-eb4a01e7dd51?w=120';">
+      <h3>Call Us</h3>
+      <p>Mon - Fri: 8 a.m. - 9 p.m. ET<br>Sat - Sun: 8 a.m. - 5 p.m. ET</p>
+      <a class="action" href="#">Call 1-888-762-2265</a>
+    </div>
+  </div>
+</section>
+
+<section class="legal">
+  <div class="bar">Important Legal Disclosures &amp; Information <span>&#8722;</span></div>
+  <div class="body">
+    <p>PNC does not charge a fee for Mobile Banking. However, third party message and data rates may apply. These include fees your wireless carrier may charge you for data usage and text messaging services. Check with your wireless carrier for details regarding your specific wireless plan and any data usage or text messaging charges that may apply. Also, a supported mobile device is needed to use the Mobile Banking App. Mobile Deposit is a feature of PNC Mobile Banking. Use of the Mobile Deposit feature requires a supported camera-equipped device and you must download a PNC mobile banking app. Eligible PNC Bank account and PNC Bank Online Banking required. Certain other restrictions apply. See the mobile banking terms and conditions in the <a href="#">Digital Services Agreement</a>.</p>
+    <p>PNC is a registered service mark of The PNC Financial Services Group, Inc. (&ldquo;PNC&rdquo;). All loans are provided by PNC Bank, National Association, a subsidiary of PNC, and are subject to credit approval and property appraisal. Certain restrictions and conditions apply.</p>
+    <img class="ehl" src="/verticals/assets/4b7e1d37/equal-housing.png" alt="Equal Housing Lender"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=70';">
+    <p>&copy;2026 The PNC Financial Services Group, Inc. All rights reserved.<br>PNC Bank, National Association. <strong>Member FDIC</strong></p>
+    <p>This material is meant to educate and not to provide legal, tax, accounting or investment advice. PNC Wealth Management and its affiliates and vendors do not provide legal, tax or accounting advice.</p>
+    <p><a href="#">Important Investor Information:</a> <strong>Brokerage and insurance products are:</strong></p>
+    <div class="box">
+      &bull; NOT FDIC INSURED<br>
+      &bull; NOT INSURED BY ANY FEDERAL GOVERNMENT AGENCY<br>
+      &bull; NOT A DEPOSIT OR OTHER OBLIGATION OF, OR GUARANTEED BY, PNC BANK, N.A. OR ANY OF ITS AFFILIATES<br>
+      &bull; SUBJECT TO INVESTMENT RISKS, INCLUDING POSSIBLE LOSS OF THE PRINCIPAL AMOUNT INVESTED
+    </div>
+    <p>Securities products and brokerage services as well as managed account advisory services are offered by PNC Wealth Management LLC, a registered broker-dealer and a registered investment adviser and Member <a href="#">FINRA</a> and <a href="#">SIPC</a>. Annuities and other insurance products are offered through PNC Insurance Services, LLC, a licensed insurance agency (CA License #0B57695).</p>
+    <p>PNC Wealth Management and PNC Insurance Services do not provide legal, tax, or accounting advice.</p>
+    <p>PNC, Virtual Wallet, Low Cash Mode, Danger Day, Money Bar, PNC HomeHQ and PNC Easy Lock are registered marks of The PNC Financial Services Group, Inc.</p>
+    <p>Apple, and iPod, and iPad and are trademarks of Apple Inc., registered in the U.S. and other countries. iPhone is a trademark of Apple Inc.</p>
+    <p>Google Pay and Google Play&trade; and Google Play logo are trademarks of Google LLC.</p>
+    <p><a href="#">Read a summary of privacy rights for California residents</a> which outlines the types of information we collect, and how and why we use that information.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="links">
+    <div class="primary">
+      <a href="#">PERSONAL</a>
+      <a href="#">SMALL BUSINESS</a>
+      <a href="#">CORPORATE &amp; INSTITUTIONAL</a>
+    </div>
+    <div class="stack">
+      <h4>SUPPORT</h4>
+      <a href="#">Accessible Banking</a>
+      <a href="#">Customer Service</a>
+      <a href="#">@PNCBank_Help</a>
+      <a href="#">Feedback</a>
+    </div>
+    <div class="stack">
+      <h4>ON THE GO</h4>
+      <a href="#">Locate ATM/Branch</a>
+      <a href="#">Mobile Apps Directory</a>
+    </div>
+    <div class="stack">
+      <h4>ABOUT</h4>
+      <a href="#">Careers</a>
+      <a href="#">Corporate Responsibility</a>
+    </div>
+  </div>
+  <div class="bottom">
+    <div>
+      <span class="fine">
+        <a href="#">Security</a><a href="#">Terms &amp; Conditions</a><a href="#">Privacy Policy</a><a href="#">Cookie Preferences</a><a href="#">Do Not Sell or Share My Personal Information</a>
+      </span>
+      <div class="copyright">&copy;2026 The PNC Financial Services Group, Inc. All rights reserved.</div>
+    </div>
+    <div class="social">
+      <a href="#" aria-label="Facebook">f</a>
+      <a href="#" aria-label="X">&#120143;</a>
+      <a href="#" aria-label="LinkedIn">in</a>
+      <a href="#" aria-label="Pinterest">p</a>
+      <a href="#" aria-label="Instagram">&#9635;</a>
+      <a href="#" aria-label="YouTube">&#9658;</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast">
+  <div class="title" id="toast-title">Something went wrong</div>
+  <div class="detail" id="toast-detail"></div>
+</div>
+
+<script>
+  var toast = document.getElementById('toast');
+  var toastTitle = document.getElementById('toast-title');
+  var toastDetail = document.getElementById('toast-detail');
+  var toastTimer = null;
+
+  function showToast(title, detail) {
+    toastTitle.textContent = title;
+    toastDetail.textContent = detail;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+  }
+
+  var running = false;
+
+  function submitInquiry(cta) {
+    if (running) return;
+    running = true;
+    var swapText = cta.id === 'hero-cta';
+    var original = cta.textContent;
+    if (swapText) cta.textContent = 'One moment\u2026';
+
+    fetch('/api/4b7e1d37/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productCode: 'vw-checking',
+        zipCode: '15222',
+        devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+        devinOrgId: 'org-5f7abb8a778d4053a39b9ae09f75cd71',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) {
+          showToast('We couldn\u2019t start your application',
+            (result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error')
+            + ' \u00b7 Reference: ' + (result.body.requestId || 'unavailable'));
+        } else {
+          showToast('Application started', 'Reference ' + result.body.referenceNumber);
+        }
+      })
+      .catch(function (err) {
+        showToast('Network error', err.message);
+      })
+      .finally(function () {
+        if (swapText) cta.textContent = original;
+        running = false;
+      });
+  }
+
+  document.addEventListener('click', function (event) {
+    var el = event.target.closest('a, button');
+    if (!el || el.classList.contains('all-demos')) return;
+    event.preventDefault();
+    submitInquiry(el);
+  });
+</script>
+</body>
+</html>
