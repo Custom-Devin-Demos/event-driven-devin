@@ -450,9 +450,17 @@
   </div>
 
   <script>
-    // Blank so the server falls back to DEVIN_USER_ID_QBE, whose account owns the QBE service key.
-    var DEVIN_USER_ID = '';
-    var DEVIN_ORG_ID = 'org_69IXJFLrljx8zSAw';
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side QBE identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
 
     var POLICIES = {
       'QBE-PA-4417293': {
@@ -532,7 +540,7 @@
       okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    function submitClaim(button) {
+    async function submitClaim(button) {
       if (button._running) return;
       button._running = true;
       button.disabled = true;
@@ -542,6 +550,8 @@
       okBox.classList.remove('show');
 
       var photos = document.getElementById('photos');
+
+      await identityReady;
 
       fetch('/api/qbe/claim', {
         method: 'POST',
@@ -554,8 +564,8 @@
           damageDescription: document.getElementById('damageDescription').value.trim(),
           photoCount: photos && photos.files ? photos.files.length : 0,
           channel: 'web',
-          devinUserId: DEVIN_USER_ID,
-          devinOrgId: DEVIN_ORG_ID,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
           devinEmail: localStorage.getItem('devinEmail') || '',
         }),
       })

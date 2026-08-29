@@ -255,6 +255,10 @@ async function postAlertToSlack(alertData) {
       }
     }
 
+    if (!alertData.slackMemberId && alertData.slackMemberIdFallback) {
+      alertData.slackMemberId = alertData.slackMemberIdFallback;
+    }
+
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData);
     const threadTs = await postMessage(token, channel, text, blocks);
