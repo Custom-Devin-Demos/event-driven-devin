@@ -277,6 +277,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | Capital One Travel (b014618f) | `/b014618f`, `/capitalone` | "Book now" (Venture X card selected by default — its `venture_x_premium` rewards program is missing from the redemption map; error shows in an inline red panel, not a toast; selecting Venture or SavorOne → green confirmation panel) | `Cannot read properties of undefined (reading 'milesIncrement')` |
 | U.S. Bank Business Bill Pay (4f9ede2a) | `/4f9ede2a`, `/usbank` | "Pay" on the SwiftHost Web Services row ($2,876.00 routes onto the same-day ACH rail, which has no remittance format registered; error shows in an inline red panel below the table; rows under $2,500 e.g. ABC Print → green confirmation panel; vendors with no unpaid bills → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'railName')` |
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
+| QBE North America Claims (qbe) | `/qbe` | "Submit Claim" (QBE-PA-4417293 collision claim) | `Cannot read properties of undefined (reading 'collisionDeductible')` |
 
 ### API Testing (curl)
 
@@ -334,6 +335,9 @@ curl -s -X POST http://localhost:3000/api/4f9ede2a/pay -H 'Content-Type: applica
 
 # Custom — The Home Depot (a69bcc34)
 curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: application/json' -d '{"items":[{"sku":"1005643790","qty":1,"fulfillment":"delivery"}],"promoCode":"HDCC25","storeNumber":"6177","zipCode":"10010","devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
+
+# Custom — QBE North America Claims (qbe)
+curl -s -X POST http://localhost:3000/api/qbe/claim -H 'Content-Type: application/json' -d '{"policyNumber":"QBE-PA-4417293","incidentType":"collision","incidentDate":"2026-08-21","damageDescription":"Front-end damage after a collision","vin":"1HGCV1F34LA015872"}'
 
 # Custom — Capital One Travel (b014618f) — venture-x triggers TypeError; venture/savorone succeed
 curl -s -X POST http://localhost:3000/api/b014618f/redeem-miles -H 'Content-Type: application/json' -d '{"cardProduct":"venture-x","bookingType":"hotel","tripTotalUsd":1284.50,"milesApplied":90000,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
