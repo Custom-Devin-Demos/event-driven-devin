@@ -103,6 +103,7 @@
 
 <script>
 const API = 'api';
+function authHeaders() { return { 'X-Access-Code': sessionStorage.getItem('mct_code') || '' }; }
 let config = null;
 let pollTimer = null;
 let currentRunId = null;
@@ -113,7 +114,7 @@ async function init() {
   config = await (await fetch(`${API}/config`)).json();
   if (config.accessCodeRequired && sessionStorage.getItem('mct_auth') !== '1') {
     const qp = new URLSearchParams(location.search).get('code');
-    if (qp && (await verify(qp))) { sessionStorage.setItem('mct_auth','1'); }
+    if (qp && (await verify(qp))) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', qp); }
     else { document.getElementById('gate').classList.remove('hidden'); }
   }
   document.getElementById('graph').innerHTML = config.graphs.map(g => `<option>${esc(g)}</option>`).join('');
@@ -130,7 +131,7 @@ async function verify(code) {
 }
 async function submitCode() {
   const code = document.getElementById('gate-code').value;
-  if (await verify(code)) { sessionStorage.setItem('mct_auth','1'); document.getElementById('gate').classList.add('hidden'); }
+  if (await verify(code)) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', code); document.getElementById('gate').classList.add('hidden'); }
   else document.getElementById('gate-err').textContent = 'Incorrect code';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('gate').classList.contains('hidden')) submitCode(); });
@@ -139,7 +140,7 @@ async function startRun() {
   const graph = document.getElementById('graph').value;
   const env = document.getElementById('env').value;
   document.getElementById('run-btn').disabled = true;
-  const run = await (await fetch(`${API}/runs`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({graph, env})})).json();
+  const run = await (await fetch(`${API}/runs`, {method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({graph, env})})).json();
   currentRunId = run.id;
   poll();
 }
@@ -220,7 +221,7 @@ function renderCurrent(run) {
 }
 
 async function dispatchRun(id) {
-  const d = await (await fetch(`${API}/runs/${id}/dispatch`, {method:'POST'})).json();
+  const d = await (await fetch(`${API}/runs/${id}/dispatch`, {method:'POST',headers:authHeaders()})).json();
   const run = await (await fetch(`${API}/runs/${id}`)).json();
   renderCurrent(run);
   refreshHistory();

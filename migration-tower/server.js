@@ -180,6 +180,13 @@ router.post('/api/verify-code', (req, res) => {
   res.json({ ok });
 });
 
+// server-side gate for mutating endpoints: the browser sends the code in
+// an X-Access-Code header once the user has passed the gate
+function requireAccessCode(req, res, next) {
+  if (!ACCESS_CODE || String(req.get('x-access-code') || '') === ACCESS_CODE) return next();
+  return res.status(403).json({ error: 'invalid access code' });
+}
+
 router.get('/api/runs', (req, res) => {
   res.json(runs.slice(-30).reverse());
 });
@@ -190,7 +197,7 @@ router.get('/api/runs/:id', (req, res) => {
   res.json(run);
 });
 
-router.post('/api/runs', (req, res) => {
+router.post('/api/runs', requireAccessCode, (req, res) => {
   const { graph, env } = req.body || {};
   if (!GRAPHS.includes(graph) || !ENVS.includes(env)) {
     return res.status(400).json({ error: `graph must be one of ${GRAPHS}, env one of ${ENVS}` });
@@ -211,11 +218,18 @@ router.post('/api/runs', (req, res) => {
       await dispatchToDevin(run);
       persistRuns();
     }
+  }).catch((e) => {
+    console.error('parity run failed:', e);
+    run.status = 'error';
+    run.overall = 'error';
+    run.error = e.message;
+    run.finishedAt = new Date().toISOString();
+    persistRuns();
   });
   res.status(202).json(run);
 });
 
-router.post('/api/runs/:id/dispatch', async (req, res) => {
+router.post('/api/runs/:id/dispatch', requireAccessCode, async (req, res) => {
   const run = runs.find((r) => r.id === req.params.id);
   if (!run) return res.status(404).json({ error: 'not found' });
   if (run.status !== 'done' || run.overall !== 'fail') {
@@ -233,7 +247,9 @@ router.get('/health', (req, res) => res.json({ ok: true }));
 
 router.use(express.static(path.join(__dirname, 'public')));
 
-// mounted at /migration so nginx can proxy without rewriting
+// mounted at /migration so nginx can proxy without rewriting; the UI uses
+// relative API paths, so /migration must redirect to /migration/
+app.get('/migration', (req, res) => res.redirect(301, '/migration/'));
 app.use('/migration', router);
 app.get('/health', (req, res) => res.json({ ok: true }));
 
