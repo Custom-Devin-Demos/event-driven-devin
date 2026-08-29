@@ -141,10 +141,17 @@ async function startRun() {
   const env = document.getElementById('env').value;
   document.getElementById('run-btn').disabled = true;
   document.getElementById('run-note').textContent = '';
-  const resp = await fetch(`${API}/runs`, {method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({graph, env})});
-  const run = await resp.json();
-  if (!resp.ok || !run.id) {
-    document.getElementById('run-note').textContent = run.error || `run request failed (${resp.status})`;
+  let run;
+  try {
+    const resp = await fetch(`${API}/runs`, {method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({graph, env})});
+    run = await resp.json().catch(() => ({ error: `run request failed (${resp.status})` }));
+    if (!resp.ok || !run.id) {
+      document.getElementById('run-note').textContent = run.error || `run request failed (${resp.status})`;
+      document.getElementById('run-btn').disabled = false;
+      return;
+    }
+  } catch (e) {
+    document.getElementById('run-note').textContent = `run request failed: ${e.message}`;
     document.getElementById('run-btn').disabled = false;
     return;
   }
