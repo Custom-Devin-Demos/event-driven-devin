@@ -48,10 +48,15 @@ for (const r of runs) {
   }
 }
 
-// keep at most 100 records in memory, evicting oldest terminal runs first;
+const MAX_RUNS = 100;
+// parity runs are serialized and take ~1-2 min each, so a deep backlog is
+// never useful; bounding it also keeps the active set well under MAX_RUNS
+const MAX_ACTIVE_RUNS = 20;
+
+// keep at most MAX_RUNS records in memory, evicting oldest terminal runs first;
 // queued/running runs are never evicted so their results always land
 function pruneRuns() {
-  let excess = runs.length - 100;
+  let excess = runs.length - MAX_RUNS;
   if (excess <= 0) return;
   runs = runs.filter((r) => {
     if (excess > 0 && r.status !== 'queued' && r.status !== 'running') {
@@ -71,6 +76,8 @@ function persistRuns() {
     console.error('failed to persist runs:', e.message);
   }
 }
+
+persistRuns();
 
 // ── serialized pipeline execution (shared DuckDB file) ───────────────────
 let queue = Promise.resolve();
@@ -202,15 +209,47 @@ router.get('/api/config', (req, res) => {
   });
 });
 
+// brute-force protection for the short access code: after too many failed
+// attempts from one client IP, lock that IP out for a cooldown period
+const CODE_ATTEMPT_LIMIT = 10;
+const CODE_LOCKOUT_MS = 15 * 60 * 1000;
+const codeAttempts = new Map(); // ip -> { count, lockedUntil }
+
+function clientIp(req) {
+  return String(req.get('x-real-ip') || req.ip || 'unknown');
+}
+
+function checkCode(req, code) {
+  if (!ACCESS_CODE) return { ok: true };
+  const ip = clientIp(req);
+  const entry = codeAttempts.get(ip) || { count: 0, lockedUntil: 0 };
+  const now = Date.now();
+  if (entry.lockedUntil > now) return { ok: false, locked: true };
+  if (String(code || '') === ACCESS_CODE) {
+    codeAttempts.delete(ip);
+    return { ok: true };
+  }
+  entry.count += 1;
+  if (entry.count >= CODE_ATTEMPT_LIMIT) {
+    entry.lockedUntil = now + CODE_LOCKOUT_MS;
+    entry.count = 0;
+  }
+  codeAttempts.set(ip, entry);
+  return { ok: false, locked: entry.lockedUntil > now };
+}
+
 router.post('/api/verify-code', (req, res) => {
-  const ok = !ACCESS_CODE || String(req.body?.code || '') === ACCESS_CODE;
-  res.json({ ok });
+  const check = checkCode(req, req.body?.code);
+  if (check.locked) return res.status(429).json({ ok: false, error: 'too many attempts, try again later' });
+  res.json({ ok: check.ok });
 });
 
 // server-side gate for mutating endpoints: the browser sends the code in
 // an X-Access-Code header once the user has passed the gate
 function requireAccessCode(req, res, next) {
-  if (!ACCESS_CODE || String(req.get('x-access-code') || '') === ACCESS_CODE) return next();
+  const check = checkCode(req, req.get('x-access-code'));
+  if (check.ok) return next();
+  if (check.locked) return res.status(429).json({ error: 'too many attempts, try again later' });
   return res.status(403).json({ error: 'invalid access code' });
 }
 
@@ -228,6 +267,10 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
   const { graph, env } = req.body || {};
   if (!GRAPHS.includes(graph) || !ENVS.includes(env)) {
     return res.status(400).json({ error: `graph must be one of ${GRAPHS}, env one of ${ENVS}` });
+  }
+  const active = runs.filter((r) => r.status === 'queued' || r.status === 'running').length;
+  if (active >= MAX_ACTIVE_RUNS) {
+    return res.status(429).json({ error: 'too many runs in progress, try again shortly' });
   }
   const run = {
     id: crypto.randomBytes(6).toString('hex'),
