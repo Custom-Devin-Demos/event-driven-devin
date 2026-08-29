@@ -219,14 +219,28 @@ const CODE_LOCKOUT_MS = 15 * 60 * 1000;
 // global budget across all sources so rotating addresses cannot buy
 // unlimited guesses against the short code
 const CODE_GLOBAL_LIMIT = 100;
-const codeAttempts = new Map(); // ip -> { count, lockedUntil }
+const codeAttempts = new Map(); // ip -> { count, lockedUntil, lastSeen }
 let globalFailures = { count: 0, windowStart: 0 };
+
+// drop attempt records that have gone a full lockout window without activity
+// so the map cannot grow without bound
+function sweepCodeAttempts(now) {
+  for (const [ip, e] of codeAttempts) {
+    if (e.lockedUntil <= now && now - e.lastSeen > CODE_LOCKOUT_MS) codeAttempts.delete(ip);
+  }
+}
 
 function checkCode(req, code) {
   if (!ACCESS_CODE) return { ok: true };
   const ip = String(req.ip || 'unknown');
-  const entry = codeAttempts.get(ip) || { count: 0, lockedUntil: 0 };
   const now = Date.now();
+  sweepCodeAttempts(now);
+  const entry = codeAttempts.get(ip) || { count: 0, lockedUntil: 0, lastSeen: now };
+  entry.lastSeen = now;
+  if (entry.lockedUntil && entry.lockedUntil <= now) {
+    entry.lockedUntil = 0;
+    entry.count = 0;
+  }
   if (now - globalFailures.windowStart > CODE_LOCKOUT_MS) {
     globalFailures = { count: 0, windowStart: now };
   }

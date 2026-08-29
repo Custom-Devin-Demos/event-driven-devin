@@ -114,7 +114,7 @@ async function init() {
   config = await (await fetch(`${API}/config`)).json();
   if (config.accessCodeRequired && sessionStorage.getItem('mct_auth') !== '1') {
     const qp = new URLSearchParams(location.search).get('code');
-    if (qp && (await verify(qp))) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', qp); }
+    if (qp && (await verify(qp)).ok) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', qp); }
     else { document.getElementById('gate').classList.remove('hidden'); }
   }
   document.getElementById('graph').innerHTML = config.graphs.map(g => `<option>${esc(g)}</option>`).join('');
@@ -126,13 +126,19 @@ async function init() {
 }
 
 async function verify(code) {
-  const r = await (await fetch(`${API}/verify-code`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})})).json();
-  return r.ok;
+  try {
+    const resp = await fetch(`${API}/verify-code`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const r = await resp.json().catch(() => ({}));
+    return { ok: Boolean(r.ok), error: r.error || (resp.ok ? '' : `verification failed (${resp.status})`) };
+  } catch (e) {
+    return { ok: false, error: `verification failed: ${e.message}` };
+  }
 }
 async function submitCode() {
   const code = document.getElementById('gate-code').value;
-  if (await verify(code)) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', code); document.getElementById('gate').classList.add('hidden'); }
-  else document.getElementById('gate-err').textContent = 'Incorrect code';
+  const result = await verify(code);
+  if (result.ok) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', code); document.getElementById('gate').classList.add('hidden'); }
+  else document.getElementById('gate-err').textContent = result.error || 'Incorrect code';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('gate').classList.contains('hidden')) submitCode(); });
 
