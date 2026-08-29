@@ -45,6 +45,8 @@ const SCHEDULING_WINDOWS = {
   'mshs-telehealth': { horizonDays: 14, firstAvailableHours: 4, desk: 'digital-health-desk' },
 };
 
+const DEFAULT_LANE = 'mshs-primary-care';
+
 /**
  * Scenario directive appended to the Devin investigation prompt.
  *
@@ -70,7 +72,7 @@ function findVisitType(code) {
  * Build the calendar lane identifier for a network and visit type pairing.
  */
 function buildCalendarLane(visitType) {
-  return `${visitType.network}_${visitType.code}`;
+  return `${visitType.network}-${visitType.code.replace(/_/g, '-')}`;
 }
 
 /**
@@ -91,7 +93,7 @@ function normalizeInquiry(data, visitType) {
  * coordination desk that will confirm the appointment.
  */
 function reserveVisitSlot(inquiry, visitType) {
-  const window = SCHEDULING_WINDOWS[inquiry.lane];
+  const window = SCHEDULING_WINDOWS[inquiry.lane] || SCHEDULING_WINDOWS[DEFAULT_LANE];
   const firstAvailable = new Date(Date.now() + window.firstAvailableHours * 3600000);
 
   return {
@@ -235,7 +237,10 @@ async function submitAppointmentInquiry(data) {
 
 module.exports = {
   submitAppointmentInquiry,
+  buildCalendarLane,
+  reserveVisitSlot,
   VISIT_TYPES,
   SCHEDULING_WINDOWS,
+  DEFAULT_LANE,
   REMEDIATION_DIRECTIVE,
 };
