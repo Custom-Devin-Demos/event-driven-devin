@@ -91,6 +91,8 @@ function buildFlightQuote(route, product, fares, passengers) {
  * Assemble the customer-facing quote summary returned to the search widget.
  */
 function summarizeQuote(quote, route) {
+  const accrual = quote.accrual;
+
   return {
     routeId: quote.routeId,
     itinerary: `${quote.origin} \u2192 ${quote.destination}`,
@@ -101,8 +103,9 @@ function summarizeQuote(quote, route) {
     baseFare: quote.pricing.baseFare,
     taxesAndFees: quote.pricing.taxesAndFees,
     checkedBags: quote.entitlements.checkedBags,
-    milesEarned: quote.accrual.milesEarned,
-    qualifyingDollars: quote.accrual.qualifyingDollars,
+    accrualEligible: Boolean(accrual),
+    milesEarned: accrual ? accrual.milesEarned : 0,
+    qualifyingDollars: accrual ? accrual.qualifyingDollars : 0,
     distanceMiles: route.distanceMiles,
   };
 }
