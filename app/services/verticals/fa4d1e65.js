@@ -107,8 +107,8 @@ function resolveCoverageProfile(region) {
  * Build the engagement lane identifier for a practice and coverage pairing.
  */
 function buildEngagementLane(practice, profile) {
-  const scope = profile.crossBorder ? 'cross_border' : 'domestic';
-  return `${practice.desk}_${scope}`;
+  const scope = profile.crossBorder ? 'cross-border' : 'domestic';
+  return `${practice.desk}-${scope}`;
 }
 
 /**
@@ -126,6 +126,12 @@ function resolveMandateTier(transactionValueUsd) {
 function buildFeeIndication(practice, profile, mandateTier) {
   const lane = buildEngagementLane(practice, profile);
   const desk = ENGAGEMENT_DESKS[lane];
+
+  if (!desk) {
+    const error = new Error(`No engagement desk configured for lane "${lane}"`);
+    error.code = 'ENGAGEMENT_DESK_NOT_FOUND';
+    throw error;
+  }
 
   return {
     lane,
