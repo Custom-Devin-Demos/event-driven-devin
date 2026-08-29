@@ -72,6 +72,7 @@ function executeParity(run) {
         run.overall = 'error';
         run.error = `runner exit ${code}: ${stderr.slice(-2000)}`;
       }
+      try { fs.rmSync(outFile, { force: true }); } catch (e) { /* best effort */ }
       run.finishedAt = new Date().toISOString();
       persistRuns();
       resolve(run);
@@ -210,6 +211,7 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
     startedAt: new Date().toISOString(),
   };
   runs.push(run);
+  if (runs.length > 100) runs = runs.slice(-100);
   persistRuns();
   queue = queue.then(async () => {
     run.status = 'running';
