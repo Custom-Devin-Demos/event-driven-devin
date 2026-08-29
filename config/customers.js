@@ -198,6 +198,10 @@ const CUSTOMERS = {
     label: 'Customer 841A',
     triggerMode: 'api',
   },
+  '4b7e1d37': {
+    label: 'Customer 4B7E',
+    triggerMode: 'api',
+  },
   '6f543fa2': {
     label: 'BNSF Railway',
     triggerMode: 'api',
