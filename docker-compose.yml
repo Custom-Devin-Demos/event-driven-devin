@@ -356,6 +356,8 @@ services:
     depends_on:
       checkout-api:
         condition: service_healthy
+      migration-tower:
+        condition: service_started
     restart: unless-stopped
 
   # ─── Certbot (Let's Encrypt certificate renewal) ──────
@@ -397,6 +399,33 @@ services:
     expose:
       - "4001"
 
+  # ─── Migration Control Tower (Ab Initio -> dbt parity demo) ───
+  migration-tower:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    expose:
+      - "3200"
+    environment:
+      - PORT=3200
+      - GITHUB_PAT=${GITHUB_PAT:-}
+      - MDP_REF=${MIGRATION_MDP_REF:-main}
+      - LEGACY_REF=${MIGRATION_LEGACY_REF:-main}
+      - MIGRATION_ACCESS_CODE=${MIGRATION_ACCESS_CODE:-}
+      - MIGRATION_AUTO_DISPATCH=${MIGRATION_AUTO_DISPATCH:-false}
+      - MIGRATION_TOWER_URL=${MIGRATION_TOWER_URL:-https://devindemos.com/migration}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN:-}
+      - SLACK_MIGRATION_CHANNEL_ID=${SLACK_MIGRATION_CHANNEL_ID:-}
+      - DEVIN_SERVICE_KEY_MIGRATION=${DEVIN_SERVICE_KEY_MIGRATION:-}
+      - DEVIN_SERVICE_KEY=${DEVIN_SERVICE_KEY:-}
+      - DEVIN_ORG_ID=${DEVIN_ORG_ID:-}
+      - DEVIN_USER_ID=${DEVIN_USER_ID:-}
+      - DEVIN_PLAYBOOK_ID_MIGRATION=${DEVIN_PLAYBOOK_ID_MIGRATION:-}
+    volumes:
+      - migration-repos:/repos
+      - migration-data:/data
+    restart: unless-stopped
+
   # ─── Datadog Agent ──────────────────────────────────
   datadog-agent:
     image: gcr.io/datadoghq/agent:7
@@ -418,3 +447,7 @@ services:
       - /proc/:/host/proc/:ro
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
     restart: unless-stopped
+
+volumes:
+  migration-repos:
+  migration-data:
