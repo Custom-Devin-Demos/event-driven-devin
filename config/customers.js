@@ -551,6 +551,10 @@ const CUSTOMERS = {
     label: 'Stripe',
     triggerMode: 'api',
   },
+  fa4d1e65: {
+    label: 'Evercore Engagement Inquiry',
+    triggerMode: 'api',
+  },
 };
 
 /**
