@@ -36,12 +36,13 @@ const ENROLLMENT_CHANNELS = {
     label: 'Online application',
     identityCheck: 'knowledge-based-verification',
     fundingOptions: ['external_transfer', 'debit_card'],
+    cardIssuance: { network: 'visa-debit', arrivalDays: 7 },
   },
   branch: {
     label: 'In-branch appointment',
     identityCheck: 'document-review',
     fundingOptions: ['cash', 'check', 'external_transfer'],
-    instantIssue: { network: 'branch-print', arrivalDays: 0 },
+    cardIssuance: { network: 'branch-print', arrivalDays: 0 },
   },
 };
 
@@ -73,7 +74,7 @@ function buildOnboardingPlan(inquiry, product) {
     channelLabel: channel.label,
     identityCheck: channel.identityCheck,
     fundingOptions: channel.fundingOptions,
-    cardIssuance: channel.instantIssue,
+    cardIssuance: channel.cardIssuance || null,
   };
 
   return plan;
@@ -93,8 +94,8 @@ function summarizeInquiry(referenceNumber, inquiry, plan, product) {
     channel: plan.channelLabel,
     identityCheck: plan.identityCheck,
     fundingOptions: plan.fundingOptions,
-    cardNetwork: plan.cardIssuance.network,
-    cardArrivalDays: plan.cardIssuance.arrivalDays,
+    cardNetwork: plan.cardIssuance ? plan.cardIssuance.network : null,
+    cardArrivalDays: plan.cardIssuance ? plan.cardIssuance.arrivalDays : null,
     zipCode: inquiry.zipCode,
   };
 }
