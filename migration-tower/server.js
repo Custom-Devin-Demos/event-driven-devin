@@ -37,10 +37,24 @@ try {
   runs = JSON.parse(fs.readFileSync(RUNS_FILE, 'utf8'));
 } catch (e) { /* first boot */ }
 
+// keep at most 100 records in memory, evicting oldest terminal runs first;
+// queued/running runs are never evicted so their results always land
+function pruneRuns() {
+  let excess = runs.length - 100;
+  if (excess <= 0) return;
+  runs = runs.filter((r) => {
+    if (excess > 0 && r.status !== 'queued' && r.status !== 'running') {
+      excess -= 1;
+      return false;
+    }
+    return true;
+  });
+}
+
 function persistRuns() {
   try {
     fs.mkdirSync(path.dirname(RUNS_FILE), { recursive: true });
-    fs.writeFileSync(RUNS_FILE, JSON.stringify(runs.slice(-100), null, 2));
+    fs.writeFileSync(RUNS_FILE, JSON.stringify(runs, null, 2));
   } catch (e) {
     console.error('failed to persist runs:', e.message);
   }
@@ -211,7 +225,7 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
     startedAt: new Date().toISOString(),
   };
   runs.push(run);
-  if (runs.length > 100) runs = runs.slice(-100);
+  pruneRuns();
   persistRuns();
   queue = queue.then(async () => {
     run.status = 'running';
