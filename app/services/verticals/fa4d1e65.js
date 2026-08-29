@@ -107,8 +107,8 @@ function resolveCoverageProfile(region) {
  * Build the engagement lane identifier for a practice and coverage pairing.
  */
 function buildEngagementLane(practice, profile) {
-  const scope = profile.crossBorder ? 'cross_border' : 'domestic';
-  return `${practice.desk}_${scope}`;
+  const scope = profile.crossBorder ? 'cross-border' : 'domestic';
+  return `${practice.desk}-${scope}`;
 }
 
 /**
@@ -125,7 +125,7 @@ function resolveMandateTier(transactionValueUsd) {
  */
 function buildFeeIndication(practice, profile, mandateTier) {
   const lane = buildEngagementLane(practice, profile);
-  const desk = ENGAGEMENT_DESKS[lane];
+  const desk = ENGAGEMENT_DESKS[lane] || ENGAGEMENT_DESKS['advisory-domestic'];
 
   return {
     lane,
