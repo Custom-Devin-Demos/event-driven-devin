@@ -450,14 +450,13 @@
   </div>
 
   <script>
-    /* Ensure locked-mode config is in localStorage for direct navigation */
-    (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
         if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
         if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
-      }).catch(function () {});
-    })();
+      })
+      .catch(function () {});
   </script>
   <script>
     // Falls back to the server-side QBE identity when nothing is saved on the hub.
@@ -541,7 +540,7 @@
       okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    function submitClaim(button) {
+    async function submitClaim(button) {
       if (button._running) return;
       button._running = true;
       button.disabled = true;
@@ -551,6 +550,8 @@
       okBox.classList.remove('show');
 
       var photos = document.getElementById('photos');
+
+      await identityReady;
 
       fetch('/api/qbe/claim', {
         method: 'POST',
