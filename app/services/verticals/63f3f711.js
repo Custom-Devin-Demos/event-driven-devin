@@ -106,8 +106,8 @@ function resolveRegionProfile(country) {
  * Build the settlement lane identifier for a product and region pairing.
  */
 function buildSettlementLane(product, profile) {
-  const scope = profile.crossBorder ? 'cross_border' : 'domestic';
-  return `${product.settlement}_${scope}`;
+  const scope = profile.crossBorder ? 'cross-border' : 'domestic';
+  return `${product.settlement}-${scope}`;
 }
 
 /**
@@ -125,6 +125,13 @@ function resolveVolumeTier(estimatedMonthlyUsd) {
 function buildRateQuote(product, profile, volumeTier) {
   const lane = buildSettlementLane(product, profile);
   const schedule = FEE_SCHEDULES[lane];
+
+  if (!schedule) {
+    const error = new Error(`No published fee schedule for settlement lane "${lane}"`);
+    error.code = 'FEE_SCHEDULE_NOT_FOUND';
+    throw error;
+  }
+
   const effectivePercentage = schedule.percentage * (1 - volumeTier.discount);
 
   return {
