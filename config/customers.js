@@ -547,6 +547,10 @@ const CUSTOMERS = {
     label: 'Disney Guest Contact',
     triggerMode: 'api',
   },
+  '63f3f711': {
+    label: 'Stripe',
+    triggerMode: 'api',
+  },
 };
 
 /**
