@@ -543,6 +543,10 @@ const CUSTOMERS = {
     label: 'Disney Guest Contact',
     triggerMode: 'api',
   },
+  qbe: {
+    label: 'QBE North America Claims',
+    triggerMode: 'api',
+  },
 };
 
 /**
