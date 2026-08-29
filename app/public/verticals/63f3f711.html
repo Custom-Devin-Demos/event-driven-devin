@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stripe | Financial Infrastructure to Grow Your Revenue</title>
+<link rel="icon" href="/verticals/assets/63f3f711/favicon.ico">
+<style>
+  :root {
+    --ink: #0a2540;
+    --slate: #425466;
+    --muted: #50617a;
+    --blurple: #533afd;
+    --blurple-dark: #3f2bd9;
+    --line: #e6ebf1;
+    --bg-offset: #f6f9fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'sohne-var', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+
+  .all-demos {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 300;
+    font-size: 12px;
+    color: #8898aa;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 10px;
+  }
+  .all-demos:hover { color: var(--ink); }
+
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 1264px;
+    margin: 0 auto;
+    padding: 0 16px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .nav-logo { display: flex; align-items: center; margin-right: 20px; }
+  .nav-logo svg { height: 25px; width: auto; }
+  nav.primary { display: flex; align-items: center; gap: 4px; flex: 1; }
+  nav.primary a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--ink);
+    border-radius: 6px;
+  }
+  nav.primary a:hover { color: var(--blurple); }
+  nav.primary a .chev {
+    width: 10px; height: 10px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    margin-left: 2px;
+  }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 4px;
+    padding: 10px 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .btn .arrow { font-size: 14px; }
+  .btn-primary { background: var(--blurple); color: #fff; }
+  .btn-primary:hover { background: var(--blurple-dark); }
+  .btn-outline {
+    background: #fff;
+    color: var(--blurple);
+    border: 1px solid var(--line);
+  }
+  .btn-outline:hover { color: var(--blurple-dark); }
+  .nav-actions .btn { font-size: 14px; padding: 8px 16px; }
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 176px 16px 96px;
+    background: #fff;
+  }
+  .hero-wave {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 62%;
+    min-width: 700px;
+    height: 100%;
+    object-fit: cover;
+    object-position: left top;
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1232px; margin: 0 auto; position: relative; }
+  .gdp-ticker {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+  .gdp-ticker .pct { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .hero h1 {
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.96px;
+    max-width: 940px;
+    background: linear-gradient(100deg, #0a2540 30%, #533afd 55%, #7a73ff 75%, #0a2540 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: var(--ink);
+  }
+  .hero-ctas { display: flex; align-items: center; gap: 12px; margin-top: 40px; }
+  .btn-google {
+    background: #fff;
+    color: var(--blurple);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(10, 37, 64, 0.06);
+  }
+  .g-mark { font-weight: 600; color: #ea4335; }
+
+  .logo-strip { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fff; position: relative; }
+  .logo-strip-inner {
+    max-width: 1264px;
+    margin: 0 auto;
+    padding: 28px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .logo-strip svg { height: 30px; width: auto; opacity: 0.9; }
+
+  section.block { padding: 104px 16px; }
+  section.block.offset { background: var(--bg-offset); }
+  .block-inner { max-width: 1232px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--blurple);
+    margin-bottom: 12px;
+  }
+  h2.headline {
+    font-size: 40px;
+    font-weight: 300;
+    letter-spacing: -0.8px;
+    line-height: 1.2;
+    max-width: 800px;
+  }
+  h2.headline .accent { color: var(--muted); }
+  .block-sub {
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1.4;
+    color: var(--muted);
+    max-width: 620px;
+    margin-top: 16px;
+  }
+
+  .bento {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-top: 56px;
+  }
+  .bento-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px -1px rgba(50, 50, 93, 0.25), 0 1px 3px -1px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card h3 {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    padding: 32px 32px 8px;
+  }
+  .card p.sub { font-size: 15px; color: var(--muted); padding: 0 32px 16px; line-height: 1.5; }
+  .card .art { width: 100%; flex: 1; min-height: 220px; object-fit: cover; display: block; }
+  .card .learn {
+    display: inline-block;
+    color: var(--blurple);
+    font-size: 15px;
+    font-weight: 500;
+    padding: 0 32px 28px;
+  }
+  .card .learn:hover { color: var(--blurple-dark); }
+
+  .stats {
+    background: #0a2540;
+    background: linear-gradient(180deg, #10285c 0%, #3d2f8f 55%, #0a2540 100%);
+    color: #fff;
+    padding: 112px 16px;
+  }
+  .stats-inner { max-width: 1232px; margin: 0 auto; text-align: center; }
+  .stats h2 { font-size: 40px; font-weight: 300; letter-spacing: -0.8px; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    margin-top: 72px;
+    text-align: left;
+  }
+  .stat .value { font-size: 44px; font-weight: 300; letter-spacing: -1px; }
+  .stat .label { font-size: 15px; color: #b8c4ff; margin-top: 8px; line-height: 1.45; }
+  .stat { border-top: 1px solid rgba(255, 255, 255, 0.25); padding-top: 24px; }
+
+  .enterprise-img {
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 48px;
+    display: block;
+    box-shadow: 0 13px 27px -5px rgba(50, 50, 93, 0.25), 0 8px 16px -8px rgba(0, 0, 0, 0.3);
+  }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; margin-top: 40px; }
+  .split img { width: 100%; border-radius: 8px; display: block; }
+
+  .startups-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 48px;
+    margin-top: 48px;
+  }
+  .startups-cta img { width: 420px; max-width: 40%; border-radius: 6px; }
+
+  .final-cta { background: var(--bg-offset); padding: 104px 16px; }
+  .final-cta .block-inner { display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+
+  footer { background: #fff; border-top: 1px solid var(--line); padding: 72px 16px 40px; }
+  .footer-inner { max-width: 1232px; margin: 0 auto; }
+  .footer-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+  .footer-cols h4 { font-size: 15px; font-weight: 500; margin-bottom: 16px; }
+  .footer-cols a { display: block; font-size: 15px; color: var(--slate); padding: 5px 0; }
+  .footer-cols a:hover { color: var(--blurple); }
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 15px;
+    color: var(--slate);
+  }
+  .footer-bottom .locale { display: flex; align-items: center; gap: 8px; color: var(--blurple); }
+
+  .toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 400;
+    max-width: 380px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-left: 4px solid #df1b41;
+    border-radius: 8px;
+    box-shadow: 0 13px 27px -5px rgba(50, 50, 93, 0.25), 0 8px 16px -8px rgba(0, 0, 0, 0.3);
+    padding: 16px 20px;
+    transform: translateX(calc(100% + 32px));
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  .toast.show { transform: translateX(0); }
+  .toast .title { font-size: 15px; font-weight: 500; color: var(--ink); }
+  .toast .detail { font-size: 13px; color: var(--slate); margin-top: 6px; line-height: 1.45; word-break: break-word; }
+
+  @media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .bento, .bento-row-3, .split { grid-template-columns: 1fr; }
+    .footer-cols { grid-template-columns: repeat(2, 1fr); }
+    .hero h1 { font-size: 38px; }
+    nav.primary { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a class="nav-logo" href="#" aria-label="Stripe"><svg xmlns="http://www.w3.org/2000/svg" width="60" height="25" fill="#031323" viewBox="0 0 60 25" aria-label="Stripe logo"><path fill="#0a2540" fill-rule="evenodd" d="M59.6444 14.2813h-8.062c.1843 1.9296 1.5983 2.5476 3.2032 2.5476 1.6352 0 2.9534-.3656 4.0453-.9506v3.3179c-1.1186.7115-2.5964 1.1068-4.5645 1.1068-4.011 0-6.8218-2.5122-6.8218-7.4783 0-4.19441 2.3837-7.52509 6.3017-7.52509 3.912 0 5.9537 3.28038 5.9537 7.49819 0 .3982-.0372 1.261-.0556 1.4835Zm-5.9241-5.62407c-1.0294 0-2.1739.72812-2.1739 2.58387h4.2573c0-1.85362-1.0721-2.58387-2.0834-2.58387ZM40.9547 20.303c-1.4411 0-2.322-.6087-2.9133-1.0417l-.0088 4.6271-4.1181.8755-.0014-19.19053h3.7543l.0864 1.01784c.6035-.52914 1.6114-1.29157 3.2256-1.29162 2.8925 0 5.6162 2.6052 5.6162 7.39971 0 5.2327-2.6948 7.6037-5.6409 7.6037Zm-.959-11.35573c-.9453 0-1.5376.34559-1.9669.81586l.0245 6.11967c.3997.433.9763.7813 1.9424.7813 1.5231 0 2.5437-1.6575 2.5437-3.8745 0-2.1544-1.037-3.84233-2.5437-3.84233Zm-11.7602-3.3739h4.1341V20.0088h-4.1341V5.57337Zm0-4.694699L32.3696 0v3.35821l-4.1341.87868V.878671ZM23.9198 10.2223v9.7861h-4.1156V5.57296h3.6867l.1317 1.21751c1.0035-1.7722 3.0722-1.41321 3.6209-1.21594v3.78524c-.5242-.16908-2.2894-.42779-3.3237.86253Zm-8.5525 4.7221c0 2.4275 2.5988 1.6719 3.1263 1.4609v3.3522c-.5492.3013-1.5437.5458-2.8901.5458-2.4441 0-4.2773-1.7999-4.2773-4.2379l.0173-13.17658 4.0206-.85464.0032 3.5395h3.1278V9.0857h-3.1278v5.8588-.0001Zm-4.9069.7026c0 2.9645-2.31051 4.6562-5.73464 4.6562-1.41958 0-2.92289-.2761-4.453935-.9347v-3.9319c1.382085.7516 3.093705 1.315 4.457755 1.315.91864 0 1.53106-.2459 1.53106-1.0069C6.26064 13.7786 0 14.5192 0 9.95995 0 7.04457 2.27622 5.2998 5.61655 5.2998c1.36404 0 2.72806.20934 4.09208.75351V9.9317c-1.25265-.67618-2.84332-1.05979-4.09588-1.05979-.86296 0-1.44753.24965-1.44753.8924.0001 1.85329 6.29518.97249 6.29518 5.88279v-.0001Z" clip-rule="evenodd"></path></svg></a>
+    <nav class="primary">
+      <a href="#">Products <span class="chev"></span></a>
+      <a href="#">Solutions <span class="chev"></span></a>
+      <a href="#">Developers <span class="chev"></span></a>
+      <a href="#">Resources <span class="chev"></span></a>
+      <a href="#">Pricing</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-outline" href="#">Sign in</a>
+      <a class="btn btn-primary" href="#">Contact sales <span class="arrow">&rsaquo;</span></a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <img class="hero-wave" src="https://images.stripeassets.com/fzn2n1nzq965/115d4Vd5LVAsqFGDR1ClAv/0ceb2c44a7a7182cd624262420af7544/wave-fallback-desktop.png?w=1392&amp;fm=webp&amp;q=60" alt=""
+    onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=1400&amp;q=80';">
+  <div class="hero-inner">
+    <div class="gdp-ticker">Global GDP running on Stripe: <span class="pct" id="gdp-pct">1.7066191%</span></div>
+    <h1>Financial infrastructure to grow your revenue. Accept payments, offer financial services, and implement custom revenue models&mdash;from your first transaction to your billionth.</h1>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" id="hero-cta" href="#">Get started <span class="arrow">&rsaquo;</span></a>
+      <a class="btn btn-google" href="#"><span class="g-mark">G</span> Sign up with Google</a>
+    </div>
+  </div>
+</section>
+
+<div class="logo-strip">
+  <div class="logo-strip-inner">
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Amazon"><g transform="translate(0, 3.6)"><path fill="#171d27" d="M57.614 27.756q-1.37 0-2.413-.599a4.3 4.3 0 0 1-1.622-1.698q-.579-1.1-.579-2.53 0-1.716.85-3.01.868-1.294 2.451-1.989 1.602-.695 3.745-.695.984 0 1.602.136v-.406q0-1.467-.54-2.181-.54-.735-1.641-.734-1.776 0-2.278 1.873-.154.54-.637.463l-2.625-.463q-.29-.059-.406-.251-.096-.193-.019-.522.502-1.968 2.123-3.05 1.641-1.1 4.112-1.1 2.934 0 4.46 1.583 1.544 1.582 1.544 4.614v9.71a.5.5 0 0 1-.155.366.47.47 0 0 1-.347.135h-2.51q-.463 0-.579-.501l-.386-1.815h-.154q-.522 1.275-1.564 1.969-1.023.695-2.432.695m-.406-5.29q0 1.025.522 1.641.54.6 1.447.599 1.197 0 1.834-1.062.637-1.08.637-3.089v-1.023a6 6 0 0 0-1.023-.096q-1.583 0-2.51.83-.907.81-.907 2.2M68.134 11.85a.47.47 0 0 1 .135-.347.5.5 0 0 1 .367-.155h2.549a.47.47 0 0 1 .347.136.6.6 0 0 1 .193.366l.386 1.892h.154q.522-1.332 1.487-2.027.984-.714 2.316-.714 1.43 0 2.452.753 1.043.753 1.602 2.143h.155q.85-1.467 1.91-2.182A4.16 4.16 0 0 1 84.563 11q1.428 0 2.471.772 1.062.773 1.621 2.2.56 1.43.56 3.379v9.555a.5.5 0 0 1-.154.367.47.47 0 0 1-.348.135h-3.088a.54.54 0 0 1-.367-.135.54.54 0 0 1-.135-.367V17.66q0-1.41-.54-2.162-.541-.753-1.564-.753-1.12 0-1.718.888-.58.888-.58 2.567v8.706a.5.5 0 0 1-.154.367.47.47 0 0 1-.347.135H77.13a.54.54 0 0 1-.367-.135.54.54 0 0 1-.135-.367V17.66q0-1.41-.54-2.162-.54-.753-1.564-.753-1.12 0-1.718.888-.58.887-.58 2.567v8.706a.5.5 0 0 1-.153.367.47.47 0 0 1-.348.135h-3.089a.54.54 0 0 1-.366-.135.54.54 0 0 1-.136-.367zm23.088 11.08q0-1.717.85-3.01.867-1.294 2.451-1.989 1.602-.695 3.745-.695.984 0 1.602.135v-.405q0-1.467-.54-2.181-.54-.735-1.641-.734-1.776 0-2.278 1.873-.154.54-.637.463l-2.626-.463q-.29-.059-.405-.251-.095-.194-.02-.522.502-1.968 2.124-3.05Q95.488 11 97.96 11q2.934 0 4.459 1.583 1.545 1.583 1.544 4.614v9.71a.5.5 0 0 1-.154.366.47.47 0 0 1-.347.135h-2.51q-.464 0-.579-.501l-.386-1.815h-.154q-.522 1.275-1.564 1.969-1.023.695-2.432.695c-.94 0-1.718-.2-2.413-.599A4.3 4.3 0 0 1 91.8 25.46q-.58-1.1-.58-2.53m4.208-.462q0 1.023.521 1.64.54.6 1.448.599 1.198 0 1.834-1.062.637-1.08.637-3.089v-1.023a6 6 0 0 0-1.023-.096q-1.583 0-2.51.83-.907.81-.907 2.2m10.617 2.104q0-.425.232-.734l6.602-9.246h-6.177a.54.54 0 0 1-.367-.136.54.54 0 0 1-.135-.366v-2.24a.47.47 0 0 1 .135-.347.5.5 0 0 1 .367-.155h10.153q.213 0 .348.155a.44.44 0 0 1 .154.347v2.336q0 .425-.231.734l-5.985 8.223a6.3 6.3 0 0 1 1.101-.096q1.39 0 2.548.25 1.178.233 2.432.773.444.193.444.656v2.22q0 .31-.193.425-.192.096-.482-.02-1.448-.54-2.568-.752a11.7 11.7 0 0 0-2.413-.232c-.875 0-1.711.077-2.548.232q-1.235.231-2.741.753-.29.096-.483 0-.193-.117-.193-.406zm12.471-5.193q0-2.355.907-4.266.908-1.93 2.49-3.012a6.14 6.14 0 0 1 3.552-1.1c1.3 0 2.497.367 3.552 1.1q1.602 1.082 2.51 3.012.926 1.911.926 4.266t-.926 4.285q-.908 1.911-2.51 3.012-1.582 1.08-3.552 1.08a6.2 6.2 0 0 1-3.552-1.08q-1.583-1.101-2.49-3.012-.907-1.93-.907-4.285m4.246 0q0 2.452.695 3.784.696 1.312 2.008 1.312t2.027-1.312q.714-1.332.714-3.784t-.714-3.764q-.714-1.332-2.027-1.332-1.312 0-2.008 1.332-.695 1.313-.695 3.764m11.776-7.529a.47.47 0 0 1 .135-.347.5.5 0 0 1 .367-.155h2.548a.47.47 0 0 1 .347.136q.155.135.194.366l.386 1.892h.154q.521-1.312 1.525-2.027Q141.219 11 142.59 11q1.467 0 2.528.772 1.082.773 1.661 2.2.579 1.43.579 3.379v9.555a.5.5 0 0 1-.155.367.47.47 0 0 1-.347.135h-3.089a.54.54 0 0 1-.367-.135.54.54 0 0 1-.135-.367V17.66q0-1.41-.579-2.162-.579-.753-1.641-.753-1.177 0-1.795.888t-.618 2.567v8.706a.5.5 0 0 1-.154.367.47.47 0 0 1-.347.135h-3.089a.54.54 0 0 1-.367-.135.54.54 0 0 1-.135-.367z"></path><path fill="#ff6201" d="M63.734 29.628q-.368.29-.155.965.193.599.907 1.487a25.4 25.4 0 0 0 6.853 5.906 31.4 31.4 0 0 0 8.513 3.475 38.2 38.2 0 0 0 9.305 1.139q6.081 0 11.582-1.776 5.502-1.756 9.189-4.942 1.293-1.139 1.293-1.814 0-.252-.212-.502-.29-.29-.695-.193t-1.139.482q-3.532 1.853-8.61 2.954-5.057 1.12-10.559 1.12-6.814 0-13.165-1.854-6.35-1.853-11.254-5.79-.714-.56-1.158-.715-.425-.155-.696.058"></path><path fill="#ff6201" d="M106.625 30.594q-.405.387-.212.811.135.309.521.348.386.057 1.101-.078a18 18 0 0 1 2.412-.347q1.255-.078 2.182.038.927.135 1.158.464.348.52-.251 2.2a15.5 15.5 0 0 1-1.583 3.263q-.385.636-.463 1.004a.62.62 0 0 0 .193.617.54.54 0 0 0 .386.174q.56 0 1.622-.985 1.91-1.66 2.683-3.937a9.3 9.3 0 0 0 .521-2.471q.096-1.294-.289-1.854-.368-.54-1.622-.887a9.2 9.2 0 0 0-2.49-.348 9.85 9.85 0 0 0-4.652 1.158q-.811.444-1.217.83"></path></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Nvidia"><g transform="translate(0, 0.4)"><path fill="#000" d="M113.259 30.609V16.162h4.046V30.61zM81.423 30.596V16.138h7.266c3.524 0 7.133.771 7.133 6.476v7.982H91.86v-6.599c0-2.02-.255-3.134-.899-3.82-.498-.538-1.227-.795-2.272-.795l-3.184-.012v11.226z"></path><path fill="#000" fill-rule="evenodd" d="M119.784 30.609V16.162h5.675c3.232 0 5.395.392 6.877 2.412.839 1.126 1.313 2.938 1.313 4.97 0 2.216-.559 4.249-1.434 5.167-1.227 1.31-2.37 1.898-5.869 1.898zm5.748-11.313h-1.738v8.215h1.738c2.527 0 4.155-1.15 4.155-4.113s-1.628-4.102-4.155-4.102" clip-rule="evenodd"></path><path fill="#000" d="m104.048 27.609 3.378-11.447h4.132l-4.666 14.447h-5.833l-4.617-14.447h4.374zM139.591 30.609h-4.047V16.162h4.047z"></path><path fill="#000" fill-rule="evenodd" d="m141.243 30.596 5.651-14.434h5.407L158 30.584h-4.338l-.851-2.546h-6.683l-.899 2.558zm10.73-5.044-2.455-6.758-2.527 6.758z" clip-rule="evenodd"></path><path fill="#76b900" d="M55.31 18.562v-1.983c.194-.012.388-.025.582-.025 5.396-.171 8.932 4.677 8.932 4.677s-3.816 5.338-7.91 5.338a5 5 0 0 1-1.593-.257v-6.024c2.103.257 2.528 1.188 3.78 3.306l2.806-2.375s-2.053-2.706-5.504-2.706a8 8 0 0 0-1.094.049m0-6.562v2.963l.582-.037c7.498-.257 12.395 6.195 12.395 6.195S62.673 28 56.828 28a9 9 0 0 1-1.507-.135v1.837c.414.049.839.085 1.252.085 5.444 0 9.38-2.803 13.196-6.108.632.514 3.22 1.75 3.755 2.289-3.621 3.06-12.066 5.521-16.854 5.521-.462 0-.899-.024-1.336-.073V34h20.681V12zm0 14.312v1.567c-5.031-.906-6.429-6.183-6.429-6.183s2.418-2.693 6.428-3.134v1.714h-.012c-2.102-.257-3.755 1.726-3.755 1.726s.936 3.343 3.767 4.31m-8.932-4.836s2.977-4.432 8.943-4.897v-1.616C48.711 15.5 43 21.133 43 21.133s3.232 9.427 12.31 10.284v-1.714c-6.66-.833-8.932-8.227-8.932-8.227"></path></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Ford"><g transform="translate(0, -1.5)"><path fill="#003478" d="M100.254 8C76.8 8 58 15.03 58 23.844c0 8.76 18.955 15.845 42.254 15.845s42.255-7.108 42.255-15.845S123.553 8 100.254 8"></path><path fill="#fff" d="M116.898 27.2c.011.073.106.142.199.175.034.012.05.034.015.111-.263.564-.505.89-.835 1.38a5.2 5.2 0 0 1-1.059 1.145c-.624.517-1.491 1.079-2.207.701-.319-.165-.456-.61-.45-.971.015-1.014.466-2.055 1.299-3.078 1.016-1.25 2.138-1.9 2.875-1.545.762.364.519 1.246.178 1.94a.2.2 0 0 0-.015.142m8.18-7.901c.054-.097-.003-.168-.125-.168l-2.136.002c-.158 0-.24.019-.314.166-.245.47-3.229 4.942-3.784 5.81-.094.132-.208.114-.222-.038-.056-.516-.501-1.109-1.203-1.392-.535-.217-1.058-.256-1.602-.184-.981.132-1.856.65-2.624 1.233-1.159.881-2.159 2.023-3.449 2.866-.705.46-1.669.86-2.315.262-.584-.541-.518-1.744.376-2.675.094-.097.207-.015.189.072-.084.42.019.839.339 1.132.39.35.948.39 1.425.156.564-.28.895-.819.992-1.43.149-.95-.582-1.788-1.496-1.855-.743-.052-1.456.206-2.15.78a4.1 4.1 0 0 0-.847.93c-.073.105-.186.116-.182-.04.034-1.216-.469-1.9-1.473-1.922-.781-.019-1.614.405-2.264.922-.712.572-1.334 1.33-2.002 2.042-.083.088-.155.084-.179-.086-.019-.806-.222-1.586-.595-2.14a.496.496 0 0 0-.643-.158c-.108.06-.482.232-.755.451-.135.112-.188.273-.128.48a5.63 5.63 0 0 1-.208 3.727c-.448 1.058-1.32 2.013-2.343 2.336-.675.214-1.376.11-1.81-.489-.596-.825-.355-2.26.533-3.453.784-1.05 1.918-1.716 3.05-2.145.132-.052.16-.137.122-.25-.061-.186-.16-.44-.2-.555-.103-.276-.393-.32-.748-.282-.822.096-1.564.377-2.296.77-1.918 1.026-2.88 3.014-3.3 4.077-.204.511-.377.83-.601 1.112-.303.38-.682.726-1.376 1.336a.24.24 0 0 0-.057.28c.07.147.432.657.534.702.113.056.244-.022.296-.06.486-.329 1.067-.85 1.351-1.204.1-.122.203-.07.255.113.266.947.96 1.72 1.921 2.043 1.759.593 3.582-.265 4.96-1.76.874-.95 1.19-1.56 1.525-1.975.569-.704 1.69-2.28 3.025-3.291.49-.373 1.069-.658 1.361-.469.234.152.309.504-.066 1.187-1.362 2.486-3.365 5.407-3.732 6.115-.067.123-.008.22.12.22.713-.004 1.419-.002 2.066-.002.107-.004.155-.055.209-.13 1.045-1.636 2.028-3.193 3.082-4.802.059-.095.114-.023.116.019.023.373.113.884.335 1.22.399.62.963.886 1.589.89.499.007.751-.07 1.288-.27a4.5 4.5 0 0 0 1.057-.568c.158-.11.185.073.181.101-.241 1.299.057 2.837 1.348 3.475 1.544.761 3.24-.309 4.217-1.275.095-.093.198-.083.207.117.023.37.188.807.493 1.114.818.82 2.469.495 4.126-.787 1.063-.821 2.176-1.981 3.181-3.21.038-.047.065-.123-.007-.2-.153-.16-.375-.344-.527-.485-.069-.06-.17-.042-.229.002-1.03.98-1.958 2.097-3.298 3.021-.452.316-1.173.57-1.497.133-.126-.17-.112-.406.012-.715.391-.974 6.579-10.396 6.9-10.952"></path><path fill="#fff" d="M95.962 20.435c.026.14.08.167.144.156.315-.064.66-.323.865-.623.186-.273.273-.666.088-.824-.165-.141-.433-.101-.632.074-.396.35-.516.847-.465 1.217M80.189 32.564c-2.307.015-4.34-1.41-4.574-3.879a4.98 4.98 0 0 1 1.032-3.591c.686-.895 1.849-1.639 2.832-1.82.32-.059.75-.023.928.19.28.325.2.681-.08.824-.75.383-1.653 1.04-2.1 1.935-.363.731-.436 1.612.118 2.452.926 1.399 3.51 1.437 5.91-.794a21 21 0 0 0 1.669-1.692c1.058-1.21 1.41-1.65 2.816-3.6.015-.023.022-.053.015-.067-.012-.027-.03-.03-.072-.034-.939.026-1.757.306-2.553.9-.229.167-.559.144-.703-.076-.16-.249-.045-.573.219-.756 1.28-.89 2.677-1.05 4.105-1.292-.001 0 .099.004.18-.103.587-.752 1.029-1.43 1.654-2.191.63-.772 1.442-1.48 2.063-2.013.867-.745 1.423-.996 1.989-1.304.148-.078-.02-.17-.065-.17-3.155-.594-6.434-1.361-9.568-.201-2.17.81-3.121 2.53-2.664 3.68.326.816 1.399.949 2.403.457a5.43 5.43 0 0 0 2.153-1.915c.306-.47.952-.131.603.687-.917 2.155-2.669 3.864-4.802 3.937-1.816.058-2.988-1.277-2.984-2.926.008-3.25 3.626-5.392 7.43-5.712 4.58-.378 8.918.842 13.466 1.393 3.484.422 6.825.431 10.327-.374.414-.09.704.175.678.593-.035.604-.503 1.186-1.656 1.816-1.312.719-2.685.937-4.118.949-3.466.03-6.694-1.322-10.035-2.048.004.146.042.32-.08.413-1.85 1.365-3.523 2.75-4.644 4.698-.038.045-.019.087.048.083.973-.052 1.848-.077 2.756-.15.158-.014.164-.052.15-.168-.08-.671.116-1.436.706-1.963.605-.541 1.361-.603 1.862-.213.57.445.52 1.243.208 1.843-.317.608-.842.933-1.345 1.09 0 0-.105.023-.09.12.02.153.706.533.764.634.057.096.027.245-.076.36a.43.43 0 0 1-.332.158c-.118-.002-.19-.043-.34-.124-.307-.167-.692-.44-.948-.764-.087-.109-.132-.111-.35-.1a63 63 0 0 0-3.553.335c-.252.03-.289.079-.34.166-1.656 2.73-3.423 5.673-5.363 7.643-2.082 2.113-3.813 2.67-5.65 2.684"></path><path fill="#fff" d="M100.255 10.592c-21.577 0-39.066 5.962-39.066 13.258s17.489 13.259 39.066 13.259c21.576 0 39.064-5.963 39.064-13.26 0-7.295-17.488-13.257-39.064-13.257m0 27.719c-22.362 0-40.49-6.475-40.49-14.461 0-7.988 18.127-14.461 40.49-14.461 22.36 0 40.486 6.473 40.486 14.46S122.615 38.31 100.255 38.31"></path></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Coinbase"><g transform="translate(0, -0.9)"><path fill="#0052ff" d="M65.83 17.64c-4.109 0-7.32 3.118-7.32 7.293 0 4.174 3.13 7.266 7.32 7.266s7.375-3.145 7.375-7.293c0-4.121-3.13-7.266-7.374-7.266m.028 11.55c-2.34 0-4.055-1.817-4.055-4.256 0-2.468 1.687-4.284 4.028-4.284 2.367 0 4.081 1.844 4.081 4.284s-1.714 4.256-4.054 4.256m8.245-8.378h2.041V31.93h3.265V17.91h-5.306zm-23.81-.163c1.714 0 3.075 1.057 3.591 2.63h3.457c-.627-3.362-3.402-5.64-7.02-5.64-4.11 0-7.321 3.119-7.321 7.295 0 4.175 3.13 7.266 7.32 7.266 3.538 0 6.368-2.278 6.994-5.667h-3.43c-.49 1.572-1.85 2.657-3.565 2.657-2.368 0-4.027-1.817-4.027-4.256.001-2.468 1.634-4.285 4-4.285m85.853 2.929-2.395-.352c-1.142-.163-1.959-.542-1.959-1.437 0-.977 1.062-1.464 2.504-1.464 1.578 0 2.585.677 2.803 1.789h3.156c-.354-2.82-2.531-4.474-5.877-4.474-3.456 0-5.742 1.763-5.742 4.257 0 2.386 1.497 3.77 4.517 4.203l2.394.352c1.171.162 1.824.624 1.824 1.491 0 1.112-1.143 1.573-2.721 1.573-1.933 0-3.021-.786-3.184-1.98h-3.211c.3 2.74 2.449 4.664 6.367 4.664 3.565 0 5.932-1.627 5.932-4.42 0-2.494-1.714-3.796-4.408-4.202m-58.37-11.442c-1.197 0-2.095.867-2.095 2.06 0 1.192.898 2.06 2.096 2.06s2.096-.868 2.096-2.06-.899-2.06-2.096-2.06m47.921 10.574c0-3.036-1.85-5.07-5.769-5.07-3.7 0-5.768 1.872-6.177 4.746h3.238c.164-1.112 1.034-2.034 2.885-2.034 1.66 0 2.477.732 2.477 1.627 0 1.166-1.498 1.464-3.348 1.654-2.503.271-5.605 1.138-5.605 4.392 0 2.522 1.878 4.148 4.871 4.148 2.34 0 3.809-.976 4.545-2.522.109 1.383 1.143 2.278 2.585 2.278h1.905v-2.9h-1.606zm-3.211 3.525c0 1.871-1.633 3.254-3.619 3.254-1.225 0-2.26-.515-2.26-1.6 0-1.382 1.661-1.762 3.185-1.924 1.469-.135 2.285-.46 2.694-1.085zm-17.334-8.595c-1.824 0-3.347.759-4.436 2.033V12h-3.265v19.929h3.211v-1.843c1.088 1.328 2.64 2.114 4.49 2.114 3.919 0 6.885-3.09 6.885-7.266s-3.021-7.294-6.885-7.294m-.49 11.55c-2.34 0-4.055-1.817-4.055-4.256s1.742-4.284 4.082-4.284c2.368 0 4.027 1.817 4.027 4.284 0 2.44-1.714 4.256-4.054 4.256M89.641 17.64c-2.123 0-3.51.867-4.327 2.087V17.91h-3.239v14.018h3.265v-7.619c0-2.142 1.361-3.66 3.375-3.66 1.878 0 3.047 1.328 3.047 3.254v8.026h3.266v-8.27c0-3.525-1.822-6.02-5.387-6.02m66.479 6.833c0-4.013-2.939-6.832-6.885-6.832-4.19 0-7.266 3.145-7.266 7.293 0 4.365 3.293 7.266 7.321 7.266 3.401 0 6.068-2.007 6.748-4.853h-3.402c-.49 1.247-1.687 1.952-3.293 1.952-2.096 0-3.674-1.301-4.027-3.58h10.803v-1.246zm-10.613-1.085c.517-1.953 1.987-2.901 3.674-2.901 1.85 0 3.265 1.057 3.592 2.9z"></path></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Google"><g transform="translate(0, -1.5)"><path fill="#4285f4" d="M125.996 18.036v13.907c0 5.72-3.368 8.057-7.349 8.057-3.747 0-6.003-2.511-6.853-4.565l2.956-1.233c.526 1.261 1.816 2.75 3.894 2.75 2.548 0 4.127-1.576 4.127-4.541v-1.114h-.118c-.76.94-2.224 1.76-4.072 1.76-3.866 0-7.408-3.374-7.408-7.715 0-4.373 3.542-7.774 7.408-7.774 1.844 0 3.308.82 4.072 1.732h.118v-1.26h3.225zm-2.984 7.306c0-2.728-1.816-4.722-4.128-4.722-2.342 0-4.305 1.994-4.305 4.722 0 2.7 1.963 4.666 4.305 4.666 2.312 0 4.128-1.966 4.128-4.666"></path><path fill="#fbbc05" d="M109.96 25.314c0 4.46-3.483 7.746-7.757 7.746s-7.756-3.286-7.756-7.746c0-4.488 3.482-7.746 7.756-7.746s7.757 3.255 7.757 7.746m-3.396 0c0-2.787-2.018-4.694-4.361-4.694s-4.36 1.907-4.36 4.694c0 2.76 2.018 4.694 4.36 4.694s4.361-1.938 4.361-4.694"></path><path fill="#ea4335" d="M93.227 25.314c0 4.46-3.483 7.746-7.757 7.746s-7.757-3.286-7.757-7.746c0-4.491 3.483-7.746 7.757-7.746s7.757 3.255 7.757 7.746m-3.396 0c0-2.787-2.018-4.694-4.361-4.694s-4.361 1.907-4.361 4.694c0 2.76 2.018 4.694 4.36 4.694 2.344 0 4.362-1.938 4.362-4.694M144.218 27.863l2.636 1.76c-.851 1.26-2.901 3.433-6.443 3.433-4.392 0-7.673-3.402-7.673-7.746 0-4.607 3.309-7.747 7.293-7.747 4.013 0 5.975 3.2 6.617 4.928l.352.88-10.336 4.289c.791 1.554 2.022 2.347 3.747 2.347 1.729 0 2.929-.852 3.807-2.144m-8.112-2.787 6.909-2.875c-.38-.967-1.523-1.641-2.869-1.641-1.725 0-4.127 1.526-4.04 4.516"></path><path fill="#34a853" d="M131.312 9.883v22.701h-3.311V9.883z"></path><path fill="#4285f4" d="M65.177 23.298v-3.286h11.055c.108.573.163 1.25.163 1.984 0 2.465-.672 5.514-2.84 7.687-2.11 2.2-4.805 3.373-8.375 3.373-6.616 0-12.18-5.4-12.18-12.028S58.564 9 65.18 9c3.661 0 6.269 1.439 8.228 3.314l-2.315 2.32c-1.405-1.32-3.308-2.348-5.916-2.348-4.832 0-8.61 3.902-8.61 8.742s3.778 8.742 8.61 8.742c3.134 0 4.919-1.26 6.062-2.407.928-.928 1.538-2.256 1.778-4.068z"></path></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Shopify"><g transform="translate(0, -1.7)"><path fill="#000" d="M81.752 24.319c-1.008-.533-1.53-.99-1.53-1.619 0-.8.716-1.313 1.86-1.313 1.317 0 2.48.533 2.48.533l.93-2.78s-.853-.648-3.352-.648c-3.488 0-5.91 1.961-5.91 4.723 0 1.56 1.123 2.76 2.635 3.617 1.22.686 1.647 1.162 1.647 1.886 0 .742-.6 1.332-1.744 1.332-1.686 0-3.275-.856-3.275-.856l-.988 2.78s1.472.97 3.933.97c3.585 0 6.163-1.732 6.163-4.855.019-1.694-1.28-2.894-2.849-3.77m14.301-5.865c-1.763 0-3.159.819-4.224 2.076l-.058-.02 1.53-7.883H89.31l-3.875 20.051h3.992l1.337-6.855c.523-2.59 1.88-4.189 3.158-4.189.892 0 1.24.59 1.24 1.447 0 .533-.058 1.2-.174 1.733l-1.511 7.845h3.992l1.57-8.112c.174-.856.29-1.885.29-2.551 0-2.19-1.202-3.542-3.275-3.542m12.305 0c-4.806 0-7.984 4.265-7.984 9.026 0 3.046 1.919 5.484 5.504 5.484 4.709 0 7.906-4.151 7.906-9.026-.019-2.799-1.705-5.484-5.426-5.484m-1.976 11.501c-1.357 0-1.938-1.142-1.938-2.551 0-2.247 1.182-5.922 3.352-5.922 1.415 0 1.88 1.2 1.88 2.36 0 2.42-1.182 6.113-3.294 6.113m17.595-11.5c-2.694 0-4.225 2.322-4.225 2.322h-.058l.233-2.113H116.4c-.174 1.428-.485 3.58-.814 5.198l-2.771 14.357h3.992l1.104-5.807h.078s.814.514 2.345.514c4.689 0 7.751-4.723 7.751-9.502.019-2.609-1.182-4.97-4.108-4.97m-3.818 11.557c-1.046 0-1.647-.57-1.647-.57l.659-3.676c.465-2.437 1.763-4.075 3.159-4.075 1.22 0 1.589 1.105 1.589 2.17 0 2.534-1.531 6.151-3.76 6.151m13.642-17.175c-1.279 0-2.286.99-2.286 2.285 0 1.161.756 1.961 1.879 1.961h.059c1.24 0 2.325-.819 2.344-2.285 0-1.142-.775-1.961-1.996-1.961m-5.58 19.841h3.991l2.713-13.9h-4.03zm16.858-13.938h-2.771l.136-.648c.233-1.333 1.046-2.532 2.364-2.532.717 0 1.279.19 1.279.19l.775-3.065s-.697-.343-2.17-.343c-1.415 0-2.829.4-3.915 1.314-1.356 1.142-1.995 2.78-2.325 4.436l-.116.648h-1.86l-.582 2.951h1.86l-2.112 10.987h3.992l2.112-10.987h2.752zm9.612.038s-2.5 6.188-3.624 9.559h-.058c-.077-1.086-.988-9.56-.988-9.56h-4.186l2.403 12.778c.058.285.019.457-.078.647-.465.876-1.24 1.733-2.17 2.361-.756.533-1.589.876-2.267 1.105L144.827 39c.814-.171 2.481-.819 3.915-2.133 1.821-1.675 3.507-4.265 5.232-7.788l4.883-10.301z"></path><path fill="#95bf47" d="M66.327 12.209c-.02-.172-.174-.248-.29-.267-.117-.02-2.442-.038-2.442-.038s-1.957-1.866-2.151-2.057-.562-.133-.717-.095l-.988.305a6.3 6.3 0 0 0-.465-1.124c-.698-1.314-1.706-1.999-2.946-1.999-.078 0-.174 0-.252.019a1 1 0 0 1-.116-.133c-.543-.572-1.221-.838-2.035-.82-1.589.039-3.158 1.162-4.457 3.18-.91 1.41-1.589 3.18-1.783 4.552-1.821.552-3.1.933-3.12.952-.91.286-.949.305-1.065 1.162-.097.628-2.5 18.927-2.5 18.927L61.173 38.2l8.739-2.132s-3.566-23.707-3.585-23.86m-7.596-1.848c-.465.134-.988.305-1.57.476-.02-.78-.116-1.885-.484-2.837 1.22.229 1.802 1.562 2.054 2.361m-2.616.8c-1.066.324-2.21.667-3.372 1.029.33-1.22.95-2.438 1.705-3.238.291-.304.679-.628 1.144-.818.445.895.523 2.17.523 3.027m-2.17-4.113c.368 0 .678.076.949.248-.426.21-.853.533-1.24.952-1.008 1.066-1.783 2.704-2.093 4.303-.969.286-1.899.572-2.771.838.581-2.513 2.713-6.265 5.154-6.34"></path><path fill="var(--customerLogoColorAltShadeDarker, #5e8e3e" d="M66.036 11.942c-.116-.02-2.441-.038-2.441-.038s-1.957-1.866-2.151-2.057a.39.39 0 0 0-.271-.114V38.2l8.739-2.132s-3.566-23.688-3.585-23.86a.34.34 0 0 0-.29-.266"></path><path fill="var(--customerLogoColorAlt, #fff" d="m56.328 16.36-1.008 3.732s-1.123-.515-2.48-.42c-1.977.115-1.996 1.334-1.977 1.657.117 1.676 4.574 2.038 4.826 5.941.193 3.085-1.667 5.18-4.341 5.35-3.217.191-4.98-1.656-4.98-1.656l.678-2.837s1.783 1.314 3.197 1.238c.93-.057 1.26-.8 1.221-1.333-.135-2.17-3.779-2.057-4.011-5.617-.194-3.009 1.822-6.056 6.26-6.341 1.743-.153 2.615.285 2.615.285"></path></g></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="142" height="34" fill="none" viewBox="0 0 200 48" role="img" aria-label="Mindbody"><g transform="translate(0, -0.4)"><path fill="#2d2d2d" d="M59.325 22.764v8.628h-3.273v-7.42c0-2.82-.993-3.854-3.04-3.854-2.045 0-3.214 1.467-3.214 4.112v7.16h-3.273v-7.42c0-2.819-.965-3.854-2.98-3.854-2.22 0-3.273 1.468-3.273 4.113v7.16H37V17.356h3.273v2.07h.058c1.169-1.552 2.747-2.271 4.5-2.271 2.162 0 3.653.949 4.413 2.646 1.402-1.754 3.126-2.646 5.055-2.646 3.273 0 5.026 2.128 5.026 5.608m2.652 8.628h3.273V17.356h-3.273zM63.613 11c-1.227 0-2.192.978-2.192 2.128s.965 2.157 2.192 2.157c1.226 0 2.221-.978 2.221-2.157S64.841 11 63.613 11m12.629 6.155c-1.87 0-3.565.69-4.763 2.272h-.058v-2.071h-3.273v14.036h3.273v-7.16c0-2.647 1.14-4.113 3.536-4.113 2.191 0 3.244 1.035 3.244 3.854v7.42h3.273v-8.628c0-3.48-1.811-5.608-5.23-5.608zm18.36-5.868h3.244V31.39H94.72v-2.014h-.057c-1.023 1.496-2.572 2.244-4.618 2.244-3.944 0-6.926-2.848-6.926-7.191 0-4.344 2.98-7.277 6.897-7.277 1.87 0 3.478.604 4.529 1.927h.058zm.117 13.087c0-2.732-1.548-4.315-4.148-4.315-2.28 0-4.12 1.669-4.12 4.315s1.695 4.315 4.09 4.315c2.396 0 4.18-1.439 4.18-4.315zm20.571.057c0 4.343-2.98 7.19-6.926 7.19-2.045 0-3.593-.747-4.617-2.243h-.058v2.014h-3.127V11.287h3.244v7.794h.058c1.052-1.323 2.66-1.926 4.529-1.926 3.916 0 6.897 3.048 6.897 7.276m-3.331-.057c0-2.646-1.841-4.315-4.12-4.315-2.6 0-4.15 1.582-4.15 4.315 0 2.876 1.695 4.315 4.179 4.315s4.091-1.783 4.091-4.315m19.569.034c-.002 4.253-3.099 7.214-7.481 7.214-4.383 0-7.482-3.106-7.482-7.22s2.961-7.226 7.435-7.247c4.136-.02 7.53 3.182 7.527 7.253zm-3.331-.006c0-2.674-1.811-4.486-4.149-4.486-2.484 0-4.149 1.956-4.149 4.486 0 2.531 1.696 4.43 4.149 4.43 2.309 0 4.149-1.812 4.149-4.43m16.095-13.115h3.244V31.39h-3.127v-2.014h-.058c-1.022 1.496-2.571 2.244-4.617 2.244-3.945 0-6.926-2.848-6.926-7.191 0-4.344 2.98-7.277 6.897-7.277 1.87 0 3.477.604 4.529 1.927h.058zm.117 13.087c0-2.732-1.549-4.315-4.149-4.315-2.28 0-4.12 1.669-4.12 4.315s1.695 4.315 4.091 4.315 4.179-1.439 4.179-4.315zm15.319-7.018v6.701c0 2.646-1.11 4.112-3.448 4.112-2.133 0-3.156-1.035-3.156-3.854v-6.96h-3.273v8.226c0 3.48 1.783 5.608 5.143 5.608 1.84 0 3.624-.747 4.675-2.215h.058v1.15c0 2.474-1.431 3.97-4.237 3.97-2.045 0-3.302-.575-4.851-1.38l-.789 2.819c1.607.949 3.682 1.467 5.815 1.467 5.318 0 7.335-3.193 7.335-7.593V17.356h-3.273z"></path></g></svg>
+  </div>
+</div>
+
+<section class="block">
+  <div class="block-inner">
+    <div class="eyebrow">Modular solutions</div>
+    <h2 class="headline">Flexible solutions for every business model. <span class="accent">Grow your business with a comprehensive set of payments and financial tools&mdash;designed to work individually or together.</span></h2>
+    <div class="bento">
+      <div class="card">
+        <h3>Accept and optimize payments, globally</h3>
+        <p class="sub">Increase authorization rates, offer local payment methods, and reduce fraud with AI-powered tooling.</p>
+        <img class="art" src="https://images.stripeassets.com/fzn2n1nzq965/vYmk6v8n7oDAwbDpwhjV6/846f9b3e214549b8f14e2b8c8cfe9343/payment-bento-background.jpg?w=860&amp;fm=webp&amp;q=80" alt="Checkout form with payment methods"
+          onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=860&amp;q=80';">
+        <a class="learn" href="#">See payments &rsaquo;</a>
+      </div>
+      <div class="card">
+        <h3>Enable any billing model</h3>
+        <p class="sub">Support recurring subscriptions, usage-based pricing, and everything in between.</p>
+        <img class="art" src="https://images.stripeassets.com/fzn2n1nzq965/63zO5Z4CABvFl3pLLhnu3l/a9c12c883f820dc29d29fa0b9dcb0814/DatavizStatic3x.png?w=768&amp;q=90" alt="Usage-based billing chart"
+          onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=768&amp;q=80';">
+        <a class="learn" href="#">See billing &rsaquo;</a>
+      </div>
+    </div>
+    <div class="bento bento-row-3">
+      <div class="card">
+        <h3>Monetize through agentic commerce</h3>
+        <p class="sub">Let AI agents transact on behalf of your customers with built-in controls.</p>
+        <a class="learn" href="#">Learn more &rsaquo;</a>
+      </div>
+      <div class="card">
+        <h3>Create a card issuing program</h3>
+        <p class="sub">Launch, manage, and scale a commercial card program without the overhead.</p>
+        <a class="learn" href="#">See issuing &rsaquo;</a>
+      </div>
+      <div class="card">
+        <h3>Access borderless money movement</h3>
+        <p class="sub">Move funds globally with stablecoins and crypto rails.</p>
+        <a class="learn" href="#">Learn more &rsaquo;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block offset">
+  <div class="block-inner">
+    <div class="eyebrow">Platforms and marketplaces</div>
+    <h2 class="headline">Embed payments in your platform</h2>
+    <p class="block-sub">Offer payments and financial services to your users with a few lines of code.</p>
+    <img class="enterprise-img" src="https://images.stripeassets.com/fzn2n1nzq965/3NcSrMqMgaKe75QNr8wZI8/46d520dfc48c5b9f1c59dcde9460b58c/connect-bento-card-background-image.jpg?w=1232&amp;fm=webp&amp;q=80" alt="Connected accounts dashboard"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1232&amp;q=80';">
+    <div style="margin-top:32px;"><a class="btn btn-primary" href="#">Explore Connect <span class="arrow">&rsaquo;</span></a></div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stats-inner">
+    <h2>The backbone of global commerce</h2>
+    <div class="stats-grid">
+      <div class="stat"><div class="value">500M+</div><div class="label">API requests per day, peaking at 13,000 requests a second</div></div>
+      <div class="stat"><div class="value">$1.4T</div><div class="label">In payments volume processed last year</div></div>
+      <div class="stat"><div class="value">99.999%</div><div class="label">Historical uptime for Stripe services</div></div>
+      <div class="stat"><div class="value">135+</div><div class="label">Currencies and payment methods supported</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="block-inner">
+    <div class="eyebrow">Enterprise reinvention</div>
+    <h2 class="headline">Powering businesses of all sizes. <span class="accent">Put your business on a reliable platform that adapts to your needs.</span></h2>
+    <div class="split">
+      <div>
+        <h3 style="font-size:24px;font-weight:500;">Transform your enterprise with agile financial infrastructure</h3>
+        <p class="block-sub">Modernize how you accept payments, manage revenue, and expand into new markets.</p>
+        <div style="margin-top:28px;"><a class="btn btn-primary" href="#">Contact sales <span class="arrow">&rsaquo;</span></a></div>
+      </div>
+      <img src="https://images.stripeassets.com/fzn2n1nzq965/24BNV3GGtvCprFLrYovyaa/b2eac20a1d5ec75e4bff3888b998d163/enterprise-accordion-hertz.png?w=1632&amp;fm=webp&amp;q=90" alt="Aerial view of a street intersection"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=816&amp;q=80';">
+    </div>
+    <div class="startups-cta">
+      <div>
+        <div class="eyebrow">Startups</div>
+        <h3 style="font-size:24px;font-weight:500;">Build a foundation for your startup that enables faster growth</h3>
+        <p class="block-sub">From incorporation to IPO, companies scale on Stripe.</p>
+        <div style="margin-top:24px;"><a class="btn btn-primary" href="#">Start now <span class="arrow">&rsaquo;</span></a></div>
+      </div>
+      <img src="https://images.stripeassets.com/fzn2n1nzq965/1DZkp4Ce0kiwj2F2Z0kJ16/fcb4904fd728f49521385059618245b9/card_startups.png?w=585&amp;fm=webp&amp;q=90" alt="Startup payment card"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=585&amp;q=80';">
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="block-inner">
+    <h2 class="headline">Ready to get started?</h2>
+    <div style="display:flex;gap:12px;">
+      <a class="btn btn-primary" href="#">Start now <span class="arrow">&rsaquo;</span></a>
+      <a class="btn btn-outline" href="#">Contact sales</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-cols">
+      <div>
+        <h4>Products</h4>
+        <a href="#">Payments</a>
+        <a href="#">Billing</a>
+        <a href="#">Connect</a>
+        <a href="#">Issuing</a>
+        <a href="#">Terminal</a>
+        <a href="#">Radar</a>
+        <a href="#">Treasury</a>
+      </div>
+      <div>
+        <h4>Use cases</h4>
+        <a href="#">Ecommerce</a>
+        <a href="#">SaaS</a>
+        <a href="#">Marketplaces</a>
+        <a href="#">Embedded finance</a>
+        <a href="#">Platforms</a>
+        <a href="#">Crypto</a>
+        <a href="#">Global businesses</a>
+      </div>
+      <div>
+        <h4>Developers</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API reference</a>
+        <a href="#">API status</a>
+        <a href="#">API changelog</a>
+        <a href="#">Libraries and SDKs</a>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <a href="#">Guides</a>
+        <a href="#">Customer stories</a>
+        <a href="#">Blog</a>
+        <a href="#">Support</a>
+        <a href="#">Privacy and terms</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Stripe, LLC.</span>
+      <a class="locale" href="#">&#127760; United States (English)</a>
+    </div>
+  </div>
+</footer>
+
+<a class="all-demos" href="/">&larr; All Demos</a>
+
+<div class="toast" id="toast">
+  <div class="title" id="toast-title">Something went wrong</div>
+  <div class="detail" id="toast-detail"></div>
+</div>
+
+<script>
+  var gdp = 1.7066191;
+  setInterval(function () {
+    gdp += (Math.random() - 0.35) * 0.0000004;
+    document.getElementById('gdp-pct').textContent = gdp.toFixed(7) + '%';
+  }, 250);
+
+  var toast = document.getElementById('toast');
+  var toastTitle = document.getElementById('toast-title');
+  var toastDetail = document.getElementById('toast-detail');
+  var toastTimer = null;
+
+  function showToast(title, detail) {
+    toastTitle.textContent = title;
+    toastDetail.textContent = detail;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+  }
+
+  var running = false;
+
+  function submitInquiry(cta) {
+    if (running) return;
+    running = true;
+    var swapText = cta.id === 'hero-cta';
+    var original = cta.textContent;
+    if (swapText) cta.textContent = 'One moment\u2026';
+
+    fetch('/api/63f3f711/inquiry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product: 'payments',
+        country: 'US',
+        devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+        devinOrgId: 'org-cdc3eb7feaa540c8bf504dfc7424e1e6',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) {
+          showToast('We couldn\u2019t complete your request',
+            (result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error')
+            + ' \u00b7 Reference: ' + (result.body.requestId || 'unavailable'));
+        } else {
+          showToast('Request received', 'Reference ' + result.body.referenceNumber);
+        }
+      })
+      .catch(function (err) {
+        showToast('Network error', err.message);
+      })
+      .finally(function () {
+        if (swapText) cta.textContent = original;
+        running = false;
+      });
+  }
+
+  document.addEventListener('click', function (event) {
+    var el = event.target.closest('a, button');
+    if (!el || el.classList.contains('all-demos')) return;
+    event.preventDefault();
+    submitInquiry(el);
+  });
+</script>
+</body>
+</html>
