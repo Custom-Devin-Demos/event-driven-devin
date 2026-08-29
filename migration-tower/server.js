@@ -328,7 +328,12 @@ router.use(express.static(path.join(__dirname, 'public')));
 
 // mounted at /migration so nginx can proxy without rewriting; the UI uses
 // relative API paths, so /migration must redirect to /migration/
-app.get('/migration', (req, res) => res.redirect(301, '/migration/'));
+// non-strict routing would make '/migration' also match '/migration/',
+// causing a redirect loop, so match the exact path only
+app.use((req, res, next) => {
+  if (req.path === '/migration') return res.redirect(301, '/migration/');
+  next();
+});
 app.use('/migration', router);
 app.get('/health', (req, res) => res.json({ ok: true }));
 
