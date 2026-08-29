@@ -551,6 +551,10 @@ const CUSTOMERS = {
     label: 'Stripe',
     triggerMode: 'api',
   },
+  e370cc3c: {
+    label: 'Delta',
+    triggerMode: 'api',
+  },
 };
 
 /**
