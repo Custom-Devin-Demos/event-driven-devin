@@ -551,6 +551,14 @@ const CUSTOMERS = {
     label: 'Stripe',
     triggerMode: 'api',
   },
+  e370cc3c: {
+    label: 'Delta',
+    triggerMode: 'api',
+  },
+  fa4d1e65: {
+    label: 'Evercore Engagement Inquiry',
+    triggerMode: 'api',
+  },
   '6469d508': {
     label: 'Mount Sinai',
     triggerMode: 'api',
