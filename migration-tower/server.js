@@ -37,6 +37,17 @@ try {
   runs = JSON.parse(fs.readFileSync(RUNS_FILE, 'utf8'));
 } catch (e) { /* first boot */ }
 
+// the execution queue is process-local, so any non-terminal run loaded from
+// disk was interrupted by a restart and will never finish
+for (const r of runs) {
+  if (r.status === 'queued' || r.status === 'running') {
+    r.status = 'error';
+    r.overall = 'error';
+    r.error = 'interrupted by server restart';
+    r.finishedAt = r.finishedAt || new Date().toISOString();
+  }
+}
+
 // keep at most 100 records in memory, evicting oldest terminal runs first;
 // queued/running runs are never evicted so their results always land
 function pruneRuns() {
@@ -52,6 +63,7 @@ function pruneRuns() {
 }
 
 function persistRuns() {
+  pruneRuns();
   try {
     fs.mkdirSync(path.dirname(RUNS_FILE), { recursive: true });
     fs.writeFileSync(RUNS_FILE, JSON.stringify(runs, null, 2));
@@ -225,7 +237,6 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
     startedAt: new Date().toISOString(),
   };
   runs.push(run);
-  pruneRuns();
   persistRuns();
   queue = queue.then(async () => {
     run.status = 'running';
