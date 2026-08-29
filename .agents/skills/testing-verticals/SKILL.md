@@ -354,6 +354,34 @@ The deploy GitHub Action copies code but does NOT update `.env`. Per-customer en
 docker exec ubuntu-checkout-api-1 env | grep '<SLUG_UPPER>'
 ```
 
+### Slack alert posts but Devin session creation 403s (`org.devins.use`)
+If `Alert posted to Slack` appears but `Devin session created via v3 API` does not, and the container logs
+`Failed to create Devin session via v3 API` with `status: 403` and
+`detail: "Missing required permission 'org.devins.use' on this organization"` against
+`/v3/organizations/<devinOrgId>/sessions`, the per-customer key/user/org triple is mismatched — not missing.
+`hasApiKey: true` / `hasDevinUserId: true` proves only that env vars exist; it does **not** prove the key works,
+so always grep for the session-creation line itself.
+
+Two things to check, in this order:
+1. **Do not hard-code `devinUserId` in the vertical HTML.** A stale `clerk-user_...` value in
+   `app/public/verticals/<slug>.html` overrides the env var. Send `var DEVIN_USER_ID = '';` so
+   `app/services/devin-session.js` falls back to `config.devinUserId` (= `DEVIN_USER_ID_<SLUG>`).
+   A healthy run logs `devinUserId: "none"` on `Posting alert and triggering Devin` and the resolved
+   `clerk-user_...` on `Devin session created and linked in Slack thread`.
+2. **Point `DEVIN_SERVICE_KEY_<SLUG>` / `DEVIN_USER_ID_<SLUG>` at a key/user pair authorized on the
+   `devinOrgId` in the HTML.** Not every key on the host has `org.devins.use` on every org — copy the pair
+   from a vertical whose session creation is known to work. Back up `/home/ubuntu/.env` before editing,
+   then `docker compose up -d --build checkout-api`.
+
+Beware the masking fallback: the Sentry webhook path can independently create sessions as
+`customer: "default"` / `userId: "service-user"` ~20-30s later (and can deliver twice, producing duplicate
+"View in Devin" replies in the thread). Grep both paths and match on `customer` before declaring health:
+```bash
+docker logs ubuntu-checkout-api-1 --since 10m 2>&1 | grep -E "Resolved customer-specific|Posting alert|Alert posted|Devin session|Failed to create Devin|Sentry webhook received"
+```
+Counting `"sessionId":"..."` occurrences (`| grep -oE '"sessionId":"[0-9a-f]+"' | sort -u`) is the quickest way
+to prove exactly one session came out of one click.
+
 ### Git pull fails on EC2 (no credentials)
 The EC2 host may not have git credentials configured. If `git pull` fails with "could not read Username", use SCP to copy changed files directly:
 ```bash
