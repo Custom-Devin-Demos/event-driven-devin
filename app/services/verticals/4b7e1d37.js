@@ -36,6 +36,7 @@ const ENROLLMENT_CHANNELS = {
     label: 'Online application',
     identityCheck: 'knowledge-based-verification',
     fundingOptions: ['external_transfer', 'debit_card'],
+    instantIssue: { network: 'visa', arrivalDays: 7 },
   },
   branch: {
     label: 'In-branch appointment',
@@ -93,8 +94,8 @@ function summarizeInquiry(referenceNumber, inquiry, plan, product) {
     channel: plan.channelLabel,
     identityCheck: plan.identityCheck,
     fundingOptions: plan.fundingOptions,
-    cardNetwork: plan.cardIssuance.network,
-    cardArrivalDays: plan.cardIssuance.arrivalDays,
+    cardNetwork: plan.cardIssuance ? plan.cardIssuance.network : null,
+    cardArrivalDays: plan.cardIssuance ? plan.cardIssuance.arrivalDays : null,
     zipCode: inquiry.zipCode,
   };
 }
