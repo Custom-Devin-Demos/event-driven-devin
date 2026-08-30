@@ -150,7 +150,17 @@ async function verify(code) {
 async function submitCode() {
   const code = document.getElementById('gate-code').value;
   const result = await verify(code);
-  if (result.ok) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', code); document.getElementById('gate').classList.add('hidden'); refreshHistory(); }
+  if (result.ok) {
+    sessionStorage.setItem('mct_auth','1');
+    sessionStorage.setItem('mct_code', code);
+    document.getElementById('gate').classList.add('hidden');
+    // resume watching a run whose polling was interrupted by a code rotation
+    if (currentRunId) {
+      document.getElementById('run-btn').disabled = true;
+      poll();
+    }
+    refreshHistory();
+  }
   else document.getElementById('gate-err').textContent = result.error || 'Incorrect code';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('gate').classList.contains('hidden')) submitCode(); });
