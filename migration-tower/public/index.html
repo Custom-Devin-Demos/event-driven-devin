@@ -195,7 +195,8 @@ function poll() {
     if (resp.status === 403) { authLost(); return; }
     const run = await resp.json();
     renderCurrent(run);
-    const awaitingDispatch = run.status === 'done' && run.overall === 'fail' && !run.dispatch;
+    const awaitingDispatch = run.status === 'done' && run.overall === 'fail' && run.env === 'staging'
+      && config?.autoDispatch && !run.dispatch;
     if ((run.status === 'done' && !awaitingDispatch) || run.status === 'error') {
       clearInterval(pollTimer);
       document.getElementById('run-btn').disabled = false;
@@ -257,7 +258,7 @@ function renderCurrent(run) {
         <span class="muted">Slack alert: ${esc(run.dispatch.slack || '-')}</span>
         ${run.dispatch.sessionUrl ? `<span>Devin session: <a href="${esc(run.dispatch.sessionUrl)}" target="_blank">${esc(run.dispatch.sessionUrl)}</a></span>` : `<span class="muted">Devin: ${esc(run.dispatch.devin || '-')}</span>`}
       </div>`;
-    } else {
+    } else if (config?.autoDispatch && run.env === 'staging') {
       dispatch = `<div class="dispatch"><span class="spinner"></span>
         <span class="muted">alerting Slack and creating a Devin remediation session…</span></div>`;
     }

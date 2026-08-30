@@ -177,9 +177,11 @@ function dispatchOnce(run) {
   return p;
 }
 
+// run.dispatch is only assigned once the dispatch object is terminal (both
+// slack and devin fields populated), so its presence is a completion signal
+// for API consumers and the polling UI
 async function dispatchToDevin(run) {
   const dispatch = { requestedAt: new Date().toISOString() };
-  run.dispatch = dispatch;
 
   // Slack alert (best effort)
   const slackToken = process.env.SLACK_BOT_TOKEN || '';
@@ -207,6 +209,7 @@ async function dispatchToDevin(run) {
   const orgId = process.env.DEVIN_ORG_ID_MIGRATION || process.env.DEVIN_ORG_ID || '';
   if (!serviceKey || !orgId) {
     dispatch.devin = 'not_configured';
+    run.dispatch = dispatch;
     return dispatch;
   }
   try {
@@ -223,6 +226,7 @@ async function dispatchToDevin(run) {
   } catch (e) {
     dispatch.devin = `error: ${e.response?.status || ''} ${e.message}`;
   }
+  run.dispatch = dispatch;
   return dispatch;
 }
 
@@ -344,7 +348,7 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
   queue = queue.then(async () => {
     run.status = 'running';
     await executeParity(run);
-    if (run.overall === 'fail' && process.env.MIGRATION_AUTO_DISPATCH !== 'false') {
+    if (run.overall === 'fail' && run.env === 'staging' && process.env.MIGRATION_AUTO_DISPATCH !== 'false') {
       await dispatchOnce(run);
       persistRuns();
     }
