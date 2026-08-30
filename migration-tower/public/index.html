@@ -117,9 +117,14 @@ async function init() {
     // after a code rotation must reveal the gate, not silently break runs
     const stored = sessionStorage.getItem('mct_auth') === '1' ? sessionStorage.getItem('mct_code') : null;
     const qp = new URLSearchParams(location.search).get('code');
-    const candidate = stored || qp;
-    if (candidate && (await verify(candidate)).ok) {
-      sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', candidate);
+    // try each distinct candidate in turn so a stale stored code cannot
+    // shadow a valid link code
+    let authed = null;
+    for (const candidate of [...new Set([stored, qp].filter(Boolean))]) {
+      if ((await verify(candidate)).ok) { authed = candidate; break; }
+    }
+    if (authed) {
+      sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', authed);
     } else {
       sessionStorage.removeItem('mct_auth'); sessionStorage.removeItem('mct_code');
       document.getElementById('gate').classList.remove('hidden');
@@ -145,7 +150,7 @@ async function verify(code) {
 async function submitCode() {
   const code = document.getElementById('gate-code').value;
   const result = await verify(code);
-  if (result.ok) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', code); document.getElementById('gate').classList.add('hidden'); }
+  if (result.ok) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', code); document.getElementById('gate').classList.add('hidden'); refreshHistory(); }
   else document.getElementById('gate-err').textContent = result.error || 'Incorrect code';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('gate').classList.contains('hidden')) submitCode(); });
@@ -176,7 +181,9 @@ async function startRun() {
 function poll() {
   clearInterval(pollTimer);
   pollTimer = setInterval(async () => {
-    const run = await (await fetch(`${API}/runs/${currentRunId}`, {headers: authHeaders()})).json();
+    const resp = await fetch(`${API}/runs/${currentRunId}`, {headers: authHeaders()});
+    if (resp.status === 403) { authLost(); return; }
+    const run = await resp.json();
     renderCurrent(run);
     if (run.status === 'done' || run.status === 'error') {
       clearInterval(pollTimer);
@@ -184,6 +191,15 @@ function poll() {
       refreshHistory();
     }
   }, 1500);
+}
+
+// the access code was rotated mid-session: stop polling, drop the stale
+// credentials, and reveal the gate so the user can re-authenticate
+function authLost() {
+  clearInterval(pollTimer);
+  document.getElementById('run-btn').disabled = false;
+  sessionStorage.removeItem('mct_auth'); sessionStorage.removeItem('mct_code');
+  document.getElementById('gate').classList.remove('hidden');
 }
 
 const STAGE_LABELS = { legacy_run: 'Legacy runner (Co>Op emulator)', dbt_build: 'dbt build (DuckDB)', reconcile: 'Reconciliation' };
@@ -256,7 +272,8 @@ async function dispatchRun(id) {
 }
 
 async function refreshHistory() {
-  const list = await (await fetch(`${API}/runs`, {headers: authHeaders()})).json();
+  const resp = await fetch(`${API}/runs`, {headers: authHeaders()});
+  const list = await resp.json().catch(() => null);
   if (!Array.isArray(list)) return;
   document.querySelector('#history tbody').innerHTML = list.map(r => `<tr>
     <td>${esc((r.startedAt || '').replace('T',' ').slice(0,19))}</td>
