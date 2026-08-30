@@ -382,7 +382,10 @@ router.use(express.static(path.join(__dirname, 'public')));
 // non-strict routing would make '/migration' also match '/migration/',
 // causing a redirect loop, so match the exact path only
 app.use((req, res, next) => {
-  if (req.path === '/migration') return res.redirect(301, '/migration/');
+  if (req.path === '/migration') {
+    const qs = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+    return res.redirect(301, `/migration/${qs}`);
+  }
   next();
 });
 app.use('/migration', router);
