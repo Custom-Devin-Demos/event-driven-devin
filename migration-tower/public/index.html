@@ -112,10 +112,18 @@ function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;',
 
 async function init() {
   config = await (await fetch(`${API}/config`)).json();
-  if (config.accessCodeRequired && sessionStorage.getItem('mct_auth') !== '1') {
+  if (config.accessCodeRequired) {
+    // always re-verify the stored/query code: a stale sessionStorage marker
+    // after a code rotation must reveal the gate, not silently break runs
+    const stored = sessionStorage.getItem('mct_auth') === '1' ? sessionStorage.getItem('mct_code') : null;
     const qp = new URLSearchParams(location.search).get('code');
-    if (qp && (await verify(qp)).ok) { sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', qp); }
-    else { document.getElementById('gate').classList.remove('hidden'); }
+    const candidate = stored || qp;
+    if (candidate && (await verify(candidate)).ok) {
+      sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', candidate);
+    } else {
+      sessionStorage.removeItem('mct_auth'); sessionStorage.removeItem('mct_code');
+      document.getElementById('gate').classList.remove('hidden');
+    }
   }
   document.getElementById('graph').innerHTML = config.graphs.map(g => `<option>${esc(g)}</option>`).join('');
   document.getElementById('env').innerHTML = config.envs.map(e => `<option>${esc(e)}</option>`).join('');
@@ -168,7 +176,7 @@ async function startRun() {
 function poll() {
   clearInterval(pollTimer);
   pollTimer = setInterval(async () => {
-    const run = await (await fetch(`${API}/runs/${currentRunId}`)).json();
+    const run = await (await fetch(`${API}/runs/${currentRunId}`, {headers: authHeaders()})).json();
     renderCurrent(run);
     if (run.status === 'done' || run.status === 'error') {
       clearInterval(pollTimer);
@@ -242,13 +250,14 @@ function renderCurrent(run) {
 
 async function dispatchRun(id) {
   const d = await (await fetch(`${API}/runs/${id}/dispatch`, {method:'POST',headers:authHeaders()})).json();
-  const run = await (await fetch(`${API}/runs/${id}`)).json();
+  const run = await (await fetch(`${API}/runs/${id}`, {headers: authHeaders()})).json();
   renderCurrent(run);
   refreshHistory();
 }
 
 async function refreshHistory() {
-  const list = await (await fetch(`${API}/runs`)).json();
+  const list = await (await fetch(`${API}/runs`, {headers: authHeaders()})).json();
+  if (!Array.isArray(list)) return;
   document.querySelector('#history tbody').innerHTML = list.map(r => `<tr>
     <td>${esc((r.startedAt || '').replace('T',' ').slice(0,19))}</td>
     <td><code>${esc(r.graph)}</code></td><td>${esc(r.env)}</td>

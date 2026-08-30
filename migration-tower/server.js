@@ -97,8 +97,22 @@ function executeParity(run) {
     ], { cwd: MDP_REPO });
 
     let stderr = '';
+    let settled = false;
+    const finishError = (msg) => {
+      if (settled) return;
+      settled = true;
+      run.status = 'error';
+      run.overall = 'error';
+      run.error = msg;
+      run.finishedAt = new Date().toISOString();
+      persistRuns();
+      resolve(run);
+    };
+    proc.on('error', (e) => finishError(`failed to start parity runner: ${e.message}`));
     proc.stderr.on('data', (d) => { stderr += d; });
     proc.on('close', (code) => {
+      if (settled) return;
+      settled = true;
       try {
         run.result = JSON.parse(fs.readFileSync(outFile, 'utf8'));
         run.status = 'done';
@@ -148,6 +162,19 @@ Mismatch details:
 ${mismatchSummary(run.result)}
 
 The legacy estate is ${LEGACY_REPO_URL} (the legacy runner defines correct behavior; for the staging feed image run scripts/run_graph.py ${run.graph} --indir data/staging_in). The migrated dbt project is ${MDP_REPO_URL}. Reproduce the failure with control_tower/run_parity.py --graph ${run.graph} --env ${run.env} --legacy-repo <legacy checkout>, isolate the mismatched rows, determine whether the defect is in the migrated model SQL or a shared transpiler rule, fix it, add a regression test, and rerun until parity is 100%. Open a PR that includes the initial failing parity evidence and the final passing report.`;
+}
+
+// single-flight guard: concurrent dispatch requests for the same run reuse
+// the in-flight promise instead of alerting Slack / creating sessions twice
+const dispatchInFlight = new Map(); // run.id -> Promise<dispatch>
+
+function dispatchOnce(run) {
+  let p = dispatchInFlight.get(run.id);
+  if (!p) {
+    p = dispatchToDevin(run).finally(() => dispatchInFlight.delete(run.id));
+    dispatchInFlight.set(run.id, p);
+  }
+  return p;
 }
 
 async function dispatchToDevin(run) {
@@ -276,11 +303,21 @@ function requireAccessCode(req, res, next) {
   return res.status(403).json({ error: 'invalid access code' });
 }
 
-router.get('/api/runs', (req, res) => {
+// read gate: run records include mismatch samples, error output, and
+// remediation session links, so reads are also behind the access code.
+// unlike requireAccessCode this never counts toward the brute-force
+// limiter, so background polling with a stale code cannot lock a client out
+function requireAccessCodeRead(req, res, next) {
+  if (!ACCESS_CODE) return next();
+  if (String(req.get('x-access-code') || '') === ACCESS_CODE) return next();
+  return res.status(403).json({ error: 'invalid access code' });
+}
+
+router.get('/api/runs', requireAccessCodeRead, (req, res) => {
   res.json(runs.slice(-30).reverse());
 });
 
-router.get('/api/runs/:id', (req, res) => {
+router.get('/api/runs/:id', requireAccessCodeRead, (req, res) => {
   const run = runs.find((r) => r.id === req.params.id);
   if (!run) return res.status(404).json({ error: 'not found' });
   res.json(run);
@@ -308,7 +345,7 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
     run.status = 'running';
     await executeParity(run);
     if (run.overall === 'fail' && process.env.MIGRATION_AUTO_DISPATCH === 'true') {
-      await dispatchToDevin(run);
+      await dispatchOnce(run);
       persistRuns();
     }
   }).catch((e) => {
@@ -331,7 +368,7 @@ router.post('/api/runs/:id/dispatch', requireAccessCode, async (req, res) => {
   if (run.dispatch && run.dispatch.devin === 'created') {
     return res.json(run.dispatch);
   }
-  const dispatch = await dispatchToDevin(run);
+  const dispatch = await dispatchOnce(run);
   persistRuns();
   res.json(dispatch);
 });
