@@ -234,7 +234,7 @@ router.get('/api/config', (req, res) => {
     graphs: GRAPHS,
     envs: ENVS,
     accessCodeRequired: Boolean(ACCESS_CODE),
-    autoDispatch: process.env.MIGRATION_AUTO_DISPATCH === 'true',
+    autoDispatch: process.env.MIGRATION_AUTO_DISPATCH !== 'false',
     repos: { legacy: LEGACY_REPO_URL, target: MDP_REPO_URL },
   });
 });
@@ -344,7 +344,7 @@ router.post('/api/runs', requireAccessCode, (req, res) => {
   queue = queue.then(async () => {
     run.status = 'running';
     await executeParity(run);
-    if (run.overall === 'fail' && process.env.MIGRATION_AUTO_DISPATCH === 'true') {
+    if (run.overall === 'fail' && process.env.MIGRATION_AUTO_DISPATCH !== 'false') {
       await dispatchOnce(run);
       persistRuns();
     }

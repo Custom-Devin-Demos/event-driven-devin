@@ -195,7 +195,8 @@ function poll() {
     if (resp.status === 403) { authLost(); return; }
     const run = await resp.json();
     renderCurrent(run);
-    if (run.status === 'done' || run.status === 'error') {
+    const awaitingDispatch = run.status === 'done' && run.overall === 'fail' && !run.dispatch;
+    if ((run.status === 'done' && !awaitingDispatch) || run.status === 'error') {
       clearInterval(pollTimer);
       document.getElementById('run-btn').disabled = false;
       refreshHistory();
@@ -257,8 +258,8 @@ function renderCurrent(run) {
         ${run.dispatch.sessionUrl ? `<span>Devin session: <a href="${esc(run.dispatch.sessionUrl)}" target="_blank">${esc(run.dispatch.sessionUrl)}</a></span>` : `<span class="muted">Devin: ${esc(run.dispatch.devin || '-')}</span>`}
       </div>`;
     } else {
-      dispatch = `<div class="dispatch"><button class="danger" onclick="dispatchRun('${esc(run.id)}')">Alert Slack &amp; send to Devin</button>
-        <span class="muted" style="font-size:.85rem">posts the failing parity evidence and triggers a remediation session</span></div>`;
+      dispatch = `<div class="dispatch"><span class="spinner"></span>
+        <span class="muted">alerting Slack and creating a Devin remediation session…</span></div>`;
     }
   }
 
@@ -274,12 +275,6 @@ function renderCurrent(run) {
   </div>`;
 }
 
-async function dispatchRun(id) {
-  const d = await (await fetch(`${API}/runs/${id}/dispatch`, {method:'POST',headers:authHeaders()})).json();
-  const run = await (await fetch(`${API}/runs/${id}`, {headers: authHeaders()})).json();
-  renderCurrent(run);
-  refreshHistory();
-}
 
 async function refreshHistory() {
   const resp = await fetch(`${API}/runs`, {headers: authHeaders()});
