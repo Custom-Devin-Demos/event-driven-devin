@@ -141,6 +141,10 @@ describe('incident-lab engine lifecycle', () => {
   });
 
   test('triggerPhase refuses timed (non-manual) phases', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-test', publicId: 1 }; },
+    });
     await engine.arm('flowforge-scheduled-workflows');
     await engine.declare();
     const result = await engine.triggerPhase('red-herring-redis');
