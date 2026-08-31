@@ -7,6 +7,21 @@ const { getScopedConfig } = require('../../incidentModes');
 /**
  * Compliance screening parameters — operational settings owned by the ops
  * runtime environment (SCREENING_WINDOW_DAYS / SCREENING_CONCURRENCY).
+ *
+ * The 90-day lookback is fixed by compliance directive AML-2026-014 and cannot
+ * be narrowed. Screening concurrency is how many screening-partner calls are in
+ * flight per batch; every transaction in the window is still screened exactly
+ * once regardless of the value.
+ *
+ * Change log:
+ *  - apex-bank@1.0.2: screeningWindowDays 7, screeningConcurrency 4.
+ *  - apex-bank@1.0.3: AML-2026-014 widened the window 7 → 90 days. Concurrency
+ *    was dropped 4 → 1 as a temporary workaround for the screening partner's
+ *    per-client rate limit (VendorOps VO-8821).
+ *  - VO-8821 is closed: the partner raised the per-client ceiling to 32
+ *    concurrent calls, so the temporary cap of 4 no longer applies. Any value
+ *    up to 32 is sanctioned and needs no further VendorOps sign-off; the
+ *    shipped default was never raised back.
  */
 const COMPLIANCE_CONFIG = {
   screeningWindowDays: Number(process.env.SCREENING_WINDOW_DAYS) > 0
