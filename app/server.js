@@ -28,6 +28,7 @@ const oncallRoutes = require('./routes/oncall');
 const oncallVerticalRoutes = require('./routes/oncall-verticals');
 const internalJobsRoutes = require('./routes/internal-jobs');
 const cibcCardApplyRoutes = require('./routes/cibc-card-apply');
+const incidentLabRoutes = require('./routes/incident-lab');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
 
@@ -111,6 +112,7 @@ app.use(oncallRoutes);
 app.use(oncallVerticalRoutes);
 app.use(internalJobsRoutes);
 app.use(cibcCardApplyRoutes);
+app.use(incidentLabRoutes);
 app.use(verticalRoutes);
 
 // 404 handler

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Incident Lab</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 40px 20px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #8b949e; margin: 0 0 24px; font-size: 14px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; }
+  input, select { width: 100%; box-sizing: border-box; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; font-size: 14px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 8px 16px; font-size: 14px; cursor: pointer; }
+  button.primary { background: #b62324; border-color: #b62324; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  pre { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px; font-size: 12px; overflow: auto; max-height: 340px; white-space: pre-wrap; }
+  .warning { color: #f85149; font-size: 13px; min-height: 18px; margin-top: 8px; }
+  .status { font-size: 13px; color: #8b949e; }
+  .status b { color: #e6edf3; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Incident Lab</h1>
+  <p class="sub">Arm a scenario to start baseline telemetry, then declare when ready. Datadog creates the incident channel; the responder auto-joins; the persona timeline and telemetry evolve from there.</p>
+
+  <div class="card">
+    <label for="token">Lab token</label>
+    <input id="token" type="password" autocomplete="off" placeholder="INCIDENT_LAB_TOKEN">
+    <label for="scenario">Scenario</label>
+    <select id="scenario"></select>
+    <label for="phase">Manual phase</label>
+    <select id="phase"><option value="mitigated">mitigated</option></select>
+    <div class="controls">
+      <button id="arm">Arm</button>
+      <button id="declare" class="primary" disabled>Declare</button>
+      <button id="trigger-phase" disabled>Trigger phase</button>
+      <button id="stop">Stop</button>
+      <button id="refresh">Refresh</button>
+    </div>
+    <div id="warning" class="warning"></div>
+  </div>
+
+  <div class="card">
+    <div id="summary" class="status">Loading…</div>
+    <pre id="log"></pre>
+  </div>
+</div>
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  async function call(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Lab-Token': $('token').value,
+        ...(options.headers || {}),
+      },
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || body.ok === false) {
+      throw new Error(body.error || `HTTP ${response.status}`);
+    }
+    return body;
+  }
+
+  async function refresh() {
+    try {
+      const status = await fetch('/api/incident-lab/status').then((r) => r.json());
+      const select = $('scenario');
+      if (select.options.length !== (status.scenarios || []).length) {
+        select.innerHTML = '';
+        for (const s of status.scenarios || []) {
+          const option = document.createElement('option');
+          option.value = s.id;
+          option.textContent = `${s.title} (${s.id})`;
+          select.appendChild(option);
+        }
+      }
+      $('summary').innerHTML =
+        `State: <b>${status.status}</b>` +
+        (status.runRef ? ` · Run: <b>${status.runRef}</b>` : '') +
+        (status.incident ? ` · Incident: <b>#${status.incident.publicId}</b>` : '') +
+        (status.phases && status.phases.length ? ` · Phases: <b>${status.phases.join(', ')}</b>` : '') +
+        (status.elapsedMs != null ? ` · Elapsed: <b>${Math.round(status.elapsedMs / 60000)}m</b>` : '');
+      $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
+      $('declare').disabled = status.status !== 'armed';
+      $('trigger-phase').disabled = status.status !== 'declared';
+      $('warning').textContent = '';
+    } catch (error) {
+      $('warning').textContent = error.message;
+    }
+  }
+
+  async function act(button, path, body) {
+    $(button).disabled = true;
+    try {
+      await call(path, { method: 'POST', body: JSON.stringify(body || {}) });
+      await refresh();
+    } catch (error) {
+      $('warning').textContent = error.message;
+    } finally {
+      $(button).disabled = false;
+    }
+  }
+
+  $('arm').onclick = () => act('arm', '/api/incident-lab/arm', { scenario: $('scenario').value });
+  $('declare').onclick = () => act('declare', '/api/incident-lab/declare');
+  $('trigger-phase').onclick = () => act('trigger-phase', '/api/incident-lab/phase', { phase: $('phase').value });
+  $('stop').onclick = () => act('stop', '/api/incident-lab/stop');
+  $('refresh').onclick = refresh;
+
+  refresh();
+  setInterval(refresh, 15000);
+</script>
+</body>
+</html>

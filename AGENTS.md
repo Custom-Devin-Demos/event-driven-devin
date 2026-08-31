@@ -122,6 +122,15 @@ Three things are deliberately separate:
 
 `PARITY_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec, the build's missing coverage gate, and the harness's fail-open exclusion logic. Regression coverage for both paths lives in `tests/spgi-feed-parity.test.js`.
 
+### Incident Lab (evolving-incident demo)
+
+The Incident Lab (`/oncall/incident-lab`, unlisted) runs a long-form incident where the data develops over time and Devin investigates an external subject repo (the n8n fork at `ananthv26-cog-demo-repos/n8n`) rather than this app. Scenarios are JSON documents in `config/incident-lab/`; the run engine is `app/services/incident-lab/engine.js` with two sinks:
+
+- **Datadog emitter** (`app/services/incident-lab/datadog-emitter.js`) — emits real metrics (`<prefix>.*` under `service:<scenario.service>`) and logs to Datadog: messy baseline noise while armed, prelude precursor bursts, outage phases with backfilled history at declaration, and recovery on the manual `mitigated` phase. Declares/resolves the incident through the Datadog Incidents API with the scenario's severity.
+- **Slack persona layer** (`app/services/incident-lab/personas.js`) — waits for the channel that Datadog's Slack integration creates (`incident-<publicId>-` marker), joins it, and posts the scripted persona timeline (`chat:write.customize`), including scripted @Devin asks. With `OPENAI_API_KEY` set, a small-LLM responder answers investigator messages in character, restricted to facts unlocked at the current timeline position (never the planted root cause).
+
+The engine never creates Slack channels — the flow is: declare via Datadog Incidents API → Datadog Slack integration creates the channel → the incident responder auto-joins on the channel prefix → personas and telemetry evolve in that channel. Control endpoints (`/api/incident-lab/arm|declare|phase|stop`) require `INCIDENT_LAB_TOKEN` via the `X-Lab-Token` header; status is public. Tests: `tests/incident-lab-*.test.js`.
+
 ## Repository Structure
 
 ```
