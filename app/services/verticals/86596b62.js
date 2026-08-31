@@ -258,7 +258,6 @@ async function submitOrder(data) {
       verticalLabel: 'Distribution Ordering',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '86596b62',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/86596b62/submit-order' },
         { key: 'service', value: 'customer-86596b62-distribution-ordering' },

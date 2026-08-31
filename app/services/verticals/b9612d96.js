@@ -190,7 +190,6 @@ async function processDispatch(orderData) {
       service: 'croda-samples',
       verticalLabel: 'Croda Sample Dispatch',
       customer: 'b9612d96',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/b9612d96/dispatch' },
         { key: 'service', value: 'croda-samples' },

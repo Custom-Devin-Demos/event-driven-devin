@@ -188,7 +188,6 @@ async function processOrder(orderData) {
       service: 'icrc-relief',
       verticalLabel: 'ICRC Relief Supplies',
       customer: '9309cd53',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/9309cd53/checkout' },
         { key: 'service', value: 'icrc-relief' },

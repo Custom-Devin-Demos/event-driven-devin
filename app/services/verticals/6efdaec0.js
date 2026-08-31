@@ -169,7 +169,6 @@ async function processSignIn(data) {
       service: 'customer-6efdaec0-signin',
       verticalLabel: 'Player Account Sign-In',
       customer: '6efdaec0',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/6efdaec0/signin' },
         { key: 'service', value: 'customer-6efdaec0-signin' },

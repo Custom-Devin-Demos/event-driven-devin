@@ -167,7 +167,6 @@ async function processMissionBriefing(data) {
       service: 'customer-e1da8ec4-demo',
       verticalLabel: 'Mission Briefing Request',
       customer: 'e1da8ec4',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/e1da8ec4/mission-briefing' },
         { key: 'service', value: 'customer-e1da8ec4-demo' },

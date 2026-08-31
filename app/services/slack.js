@@ -3,6 +3,23 @@ const logger = require('../telemetry/logger');
 
 const SLACK_API_BASE = 'https://slack.com/api';
 
+// Fictional on-call persona shown on demo alerts. Alerts fire on every demo
+// run, so the card must not ping a real teammate: the mention is only rendered
+// when DEMO_ONCALL_SLACK_MEMBER_ID names an account (a demo bot, or the
+// presenter's own) that opted into the notifications.
+const DEMO_ONCALL_PERSONA = () => process.env.DEMO_ONCALL_PERSONA || 'Riley Chen (platform-oncall)';
+const DEMO_ONCALL_MEMBER_ID = () => process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
+
+// Slack member IDs are alphanumeric; anything else would inject mrkdwn
+// (e.g. <!channel>) into every alert card.
+const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
+
+function onCallText(slackMemberId) {
+  const memberId = slackMemberId || DEMO_ONCALL_MEMBER_ID();
+  if (memberId && MEMBER_ID_RE.test(memberId)) return `<@${memberId}>`;
+  return `${DEMO_ONCALL_PERSONA()} — demo persona, do not resolve to a real Slack user`;
+}
+
 /**
  * Post a message to a Slack channel.
  * Returns the message timestamp (ts) for threading replies.
@@ -167,13 +184,10 @@ function buildAlertBlocks(alertData, options = {}) {
     });
   }
 
-  // Tag the demo user as on-call so they get a Slack notification for their alert
-  if (alertData.slackMemberId) {
-    onCallFields.push({
-      type: 'mrkdwn',
-      text: `*On-Call:*\n<@${alertData.slackMemberId}>`,
-    });
-  }
+  onCallFields.push({
+    type: 'mrkdwn',
+    text: `*On-Call:*\n${onCallText(alertData.slackMemberId)}`,
+  });
 
   if (onCallFields.length > 0) {
     blocks.push({
@@ -257,6 +271,9 @@ async function postAlertToSlack(alertData) {
 
     if (!alertData.slackMemberId && alertData.slackMemberIdFallback) {
       alertData.slackMemberId = alertData.slackMemberIdFallback;
+    }
+    if (!alertData.slackMemberId) {
+      alertData.slackMemberId = DEMO_ONCALL_MEMBER_ID();
     }
 
     const text = buildAlertText(alertData);

@@ -193,7 +193,6 @@ async function processSignup(data) {
       service: 'customer-99a8ba1a-rideshare',
       verticalLabel: 'Rider Signup',
       customer: '99a8ba1a',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/99a8ba1a/signup' },
         { key: 'service', value: 'customer-99a8ba1a-rideshare' },

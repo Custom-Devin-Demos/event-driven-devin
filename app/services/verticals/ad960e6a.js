@@ -168,7 +168,6 @@ async function processQuoteRequest(data) {
       service: 'customer-ad960e6a-internet',
       verticalLabel: 'Business Internet Quote',
       customer: 'ad960e6a',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/ad960e6a/quote' },
         { key: 'service', value: 'customer-ad960e6a-internet' },

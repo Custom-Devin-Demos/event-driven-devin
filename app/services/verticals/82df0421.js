@@ -213,7 +213,6 @@ async function processQuote(data) {
       service: 'customer-82df0421-quote',
       verticalLabel: 'Auto Quote',
       customer: '82df0421',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/82df0421/quote' },
         { key: 'service', value: 'customer-82df0421-quote' },

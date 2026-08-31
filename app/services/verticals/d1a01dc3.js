@@ -244,7 +244,6 @@ async function scheduleVisit(data) {
       verticalLabel: 'Patient Scheduling',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: 'd1a01dc3',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/d1a01dc3/schedule-visit' },
         { key: 'service', value: 'customer-d1a01dc3-patient-scheduling' },

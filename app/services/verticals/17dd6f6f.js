@@ -188,7 +188,6 @@ async function processTrackShipment(data) {
       service: 'customer-17dd6f6f-logistics',
       verticalLabel: 'Shipment Tracking',
       customer: '17dd6f6f',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/17dd6f6f/track-shipment' },
         { key: 'service', value: 'customer-17dd6f6f-logistics' },

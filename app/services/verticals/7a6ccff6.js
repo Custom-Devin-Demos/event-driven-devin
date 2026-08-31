@@ -287,7 +287,6 @@ async function requestPayout(data) {
       verticalLabel: 'Royalty Payout',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '7a6ccff6',
-      slackMemberId: 'U0BL94AFWM7',
       tags: [
         { key: 'route', value: '/api/7a6ccff6/request-payout' },
         { key: 'service', value: 'customer-7a6ccff6-royalty-payout' },

@@ -211,7 +211,6 @@ async function processInquiry(data) {
       service: 'customer-d5fc3172-workspace',
       verticalLabel: 'Workspace Inquiry',
       customer: 'd5fc3172',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/d5fc3172/inquiry' },
         { key: 'service', value: 'customer-d5fc3172-workspace' },

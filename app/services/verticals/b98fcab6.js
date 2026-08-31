@@ -121,7 +121,6 @@ async function processGlobalAccountQuote(data) {
       service: 'customer-b98fcab6-global-account',
       verticalLabel: 'Global Account Registration',
       customer: 'b98fcab6',
-      slackMemberId: 'U0BKWFUG3PU',
       tags: [
         { key: 'route', value: '/api/b98fcab6/global-account' },
         { key: 'service', value: 'customer-b98fcab6-global-account' },

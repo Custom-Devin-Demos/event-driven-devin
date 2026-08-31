@@ -109,7 +109,7 @@ async function processKeyMetricsRequest(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       devinUserId: data.devinUserId,
-      devinEmail: 'jaime@cognition.ai',
+      devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-bec5e1bb-metrics',
       verticalLabel: 'Movistar Fibra 1Gb',

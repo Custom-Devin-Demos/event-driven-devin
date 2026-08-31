@@ -167,7 +167,6 @@ async function processCardRequest(data) {
       service: 'customer-054f8313-cards',
       verticalLabel: 'Credit Card Application',
       customer: '054f8313',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/054f8313/apply' },
         { key: 'service', value: 'customer-054f8313-cards' },

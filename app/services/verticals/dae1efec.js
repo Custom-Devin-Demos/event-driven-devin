@@ -211,7 +211,6 @@ async function registerForClass(data) {
       verticalLabel: 'Kidney Care Education',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: 'dae1efec',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/dae1efec/class-registration' },
         { key: 'service', value: 'customer-dae1efec-class-registration' },

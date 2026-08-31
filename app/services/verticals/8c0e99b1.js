@@ -191,7 +191,6 @@ async function processDemoRequest(data) {
       service: 'customer-8c0e99b1-demo',
       verticalLabel: 'Demo Environment Request',
       customer: '8c0e99b1',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/8c0e99b1/demo-request' },
         { key: 'service', value: 'customer-8c0e99b1-demo' },
