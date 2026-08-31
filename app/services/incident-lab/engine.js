@@ -42,10 +42,10 @@ function makeRunRef() {
   return `LAB-${new Date().toISOString().slice(0, 10)}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
 
-function scheduleTimer(fn, delayMs) {
+function scheduleTimer(forRun, fn, delayMs) {
   const timer = setTimeout(fn, Math.max(delayMs, 0));
   if (timer.unref) timer.unref();
-  run.timers.push(timer);
+  forRun.timers.push(timer);
   return timer;
 }
 
@@ -71,9 +71,10 @@ async function arm(scenarioId) {
     timers: [],
     log: [],
   };
+  const thisRun = run;
   note(`armed scenario ${scenario.id}`);
-  await fanOut('onArm', run);
-  return { ok: true, runRef: run.runRef, status: run.status };
+  await fanOut('onArm', thisRun);
+  return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
 }
 
 /**
@@ -85,24 +86,44 @@ async function declare() {
   if (!run || run.status !== 'armed') {
     return { ok: false, error: run ? `Run is ${run.status}, expected armed` : 'No armed run' };
   }
-  run.status = 'declared';
-  run.declaredAt = Date.now();
+  const thisRun = run;
+  thisRun.status = 'declared';
+  thisRun.declaredAt = Date.now();
   note('incident declared');
-  await fanOut('onDeclare', run);
+  // First sink to set run.incident wins; later sinks cannot replace it.
+  for (const sink of sinks) {
+    if (typeof sink.onDeclare !== 'function') continue;
+    const existing = thisRun.incident;
+    try {
+      await sink.onDeclare(thisRun);
+    } catch (error) {
+      logger.warn('Incident Lab sink hook failed', {
+        hook: 'onDeclare',
+        sink: sink.name || 'anonymous',
+        error: error.message,
+      });
+    }
+    if (existing && thisRun.incident !== existing) thisRun.incident = existing;
+  }
+  // A slow sink may outlive a stop() (or stop + re-arm) issued meanwhile:
+  // schedule nothing for a run that is no longer the active declared run.
+  if (run !== thisRun || thisRun.status !== 'declared') {
+    return { ok: false, error: 'Run was stopped during declaration' };
+  }
 
-  const phases = (run.scenario.datadog && run.scenario.datadog.phases) || [];
+  const phases = (thisRun.scenario.datadog && thisRun.scenario.datadog.phases) || [];
   for (const phase of phases) {
     if (phase.manual || !Number.isFinite(phase.startMs)) continue;
     // Negative startMs means the phase began before declaration (detection
     // gap): it activates immediately and sinks backfill its history.
-    scheduleTimer(() => activatePhase(phase.id), phase.startMs);
+    scheduleTimer(thisRun, () => activatePhase(phase.id), phase.startMs);
   }
-  scheduleTimer(() => {
-    if (run && run.status === 'declared') {
+  scheduleTimer(thisRun, () => {
+    if (run === thisRun && thisRun.status === 'declared') {
       note('scenario window elapsed');
     }
-  }, run.scenario.durationMs);
-  return { ok: true, runRef: run.runRef, status: run.status, incident: run.incident };
+  }, thisRun.scenario.durationMs);
+  return { ok: true, runRef: thisRun.runRef, status: thisRun.status, incident: thisRun.incident };
 }
 
 async function activatePhase(phaseId) {
@@ -117,13 +138,20 @@ async function activatePhase(phaseId) {
   return { ok: true, phase: phaseId };
 }
 
-/** Presenter override for manual phases (e.g. "mitigated"). */
+/** Presenter override, restricted to phases marked "manual" (e.g.
+ *  "mitigated") — timed phases belong to the scheduler alone. */
 async function triggerPhase(phaseId) {
+  if (!run || run.status !== 'declared') return { ok: false, error: 'No declared run' };
+  const phase = ((run.scenario.datadog && run.scenario.datadog.phases) || [])
+    .find((p) => p.id === phaseId);
+  if (!phase) return { ok: false, error: `Unknown phase: ${phaseId}` };
+  if (!phase.manual) return { ok: false, error: `Phase ${phaseId} is not manually triggerable` };
   return activatePhase(phaseId);
 }
 
 async function stop(reason = 'stopped by presenter') {
   if (!run) return { ok: false, error: 'No run' };
+  if (run.status === 'stopped') return { ok: false, error: 'Run already stopped' };
   for (const timer of run.timers) clearTimeout(timer);
   run.timers = [];
   const prior = run.status;

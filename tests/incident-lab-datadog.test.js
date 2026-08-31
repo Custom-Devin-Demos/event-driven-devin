@@ -82,6 +82,102 @@ describe('incident-lab datadog emitter', () => {
     expect(resolveDatadogIncident).toHaveBeenCalledWith('abc');
   });
 
+  test('backfill still submits logs when metric intake fails', async () => {
+    post.mockImplementation((url) =>
+      (url.includes('/api/v2/series') ? Promise.reject(new Error('intake down')) : Promise.resolve({ data: {} })));
+    const run = makeRun();
+    await sink.onArm(run);
+    const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+    await sink.onPhase(run, onset);
+    const logCalls = post.mock.calls.filter(([url]) => url.includes('http-intake.logs'));
+    expect(logCalls.length).toBeGreaterThan(0);
+  });
+
+  test('expired duration-limited logs backfill but never emit live', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      const redis = run.scenario.datadog.phases.find((p) => p.id === 'red-herring-redis');
+      await sink.onPhase(run, redis);
+      const backfilled = post.mock.calls.filter(([url, body]) =>
+        url.includes('http-intake.logs') && body.some((e) => e.ddtags.includes('logger:flowforge.redis')));
+      expect(backfilled.length).toBeGreaterThan(0);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const live = post.mock.calls.filter(([url, body]) =>
+        url.includes('http-intake.logs') && body.some((e) => e.ddtags.includes('logger:flowforge.redis')));
+      expect(live).toHaveLength(0);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('catchUpBurst layers a temporary recovery spike over the steady rate', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      const mitigated = run.scenario.datadog.phases.find((p) => p.id === 'mitigated');
+      await sink.onPhase(run, mitigated);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(60000);
+      let total = 0;
+      for (const [url, body] of post.mock.calls) {
+        if (!url.includes('/api/v2/series')) continue;
+        for (const series of body.series) {
+          if (series.metric !== 'flowforge.executions.started') continue;
+          total += series.points.reduce((sum, p) => sum + p.value, 0);
+        }
+      }
+      // Steady rate alone is 6/min (max ~8 with jitter); 220-over-15m adds ~14.7/min.
+      expect(total).toBeGreaterThanOrEqual(10);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('prelude burst stops posting after onStop', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      run.scenario = {
+        ...run.scenario,
+        datadog: {
+          metricPrefix: 'flowforge',
+          baseline: {},
+          phases: [],
+          prelude: [{
+            afterArmMs: 0,
+            logs: [{ count: 3, intervalMs: 1000, status: 'error', logger: 'flowforge.test', template: 'boom' }],
+          }],
+        },
+      };
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(0);
+      const before = post.mock.calls.filter(([url]) => url.includes('http-intake.logs')).length;
+      expect(before).toBe(1);
+      await sink.onStop(run);
+      // Stop settles the in-flight delay immediately: the burst promise
+      // resolves without posting and without waiting out its interval.
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(jest.getTimerCount()).toBe(0);
+      await jest.advanceTimersByTimeAsync(5000);
+      const after = post.mock.calls.filter(([url]) => url.includes('http-intake.logs')).length;
+      expect(after).toBe(before);
+
+      // A fresh arm after the interrupted burst behaves normally.
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(0);
+      const rearmed = post.mock.calls.filter(([url]) => url.includes('http-intake.logs')).length;
+      expect(rearmed).toBe(before + 1);
+      await sink.onStop(run);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('does nothing when DD_API_KEY is missing', async () => {
     delete process.env.DD_API_KEY;
     const run = makeRun();
