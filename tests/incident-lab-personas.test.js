@@ -31,7 +31,7 @@ describe('incident-lab persona knowledge gating', () => {
 
   test('responder prompt separates known from locked facts', () => {
     const midMs = 1000000;
-    const prompt = buildResponderPrompt(scenario, midMs, 'investigator: which project is affected?');
+    const prompt = buildResponderPrompt(scenario, midMs);
     for (const fact of unlockedFacts(scenario, midMs)) {
       expect(prompt.indexOf(fact)).toBeLessThan(prompt.indexOf('Facts NOT yet known'));
     }
@@ -39,6 +39,12 @@ describe('incident-lab persona knowledge gating', () => {
       expect(prompt.indexOf(fact)).toBeGreaterThan(prompt.indexOf('Facts NOT yet known'));
     }
     expect(prompt).toContain(scenario.llm.guardrails);
+  });
+
+  test('responder prompt never embeds participant transcript text', () => {
+    const prompt = buildResponderPrompt(scenario, 1000000);
+    expect(prompt).not.toContain('Recent transcript');
+    expect(prompt).toContain('untrusted channel content');
   });
 
   test('renderLine substitutes the Devin mention', () => {
@@ -131,5 +137,73 @@ describe('incident-lab slack persona sink', () => {
     expect(draft).toHaveBeenCalled();
     expect(posted.some((p) => p.username === 'Diego Marek')).toBe(true);
     await sink.onStop(run);
+  });
+
+  test('responder answers Devin app (bot_profile) messages but skips its own persona posts', async () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    const draft = jest.fn().mockResolvedValue(null);
+    const personaName = scenario.personas[0].username;
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn().mockResolvedValue(),
+        history: jest.fn().mockResolvedValue([
+          { type: 'message', ts: '3.0', text: 'checking the queue now', bot_profile: { name: 'Devin' } },
+          { type: 'message', ts: '2.0', text: 'scripted line', username: personaName, bot_profile: { name: 'incident-lab' } },
+        ]),
+        draft,
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const run = makeRun();
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup
+    await jest.advanceTimersByTimeAsync(20000); // responder poll
+    expect(draft).toHaveBeenCalledTimes(1);
+    const transcript = draft.mock.calls[0][2];
+    expect(transcript).toContain('checking the queue now');
+    expect(transcript).not.toContain('scripted line');
+    await sink.onStop(run);
+  });
+
+  test('a stopped run\u2019s pending channel lookup cannot hijack a newer run', async () => {
+    let resolveFirstLookup;
+    const firstLookup = new Promise((resolve) => { resolveFirstLookup = resolve; });
+    const posted = [];
+    const findChannel = jest.fn()
+      .mockImplementationOnce(() => firstLookup)
+      .mockResolvedValue({ id: 'C-NEW', name: 'incident-42-flowforge-new' });
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel,
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text) => {
+          posted.push({ channel, text });
+          return Promise.resolve();
+        }),
+        history: jest.fn().mockResolvedValue([]),
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const oldRun = makeRun({ runRef: 'LAB-OLD' });
+    await sink.onDeclare(oldRun);
+    await jest.advanceTimersByTimeAsync(15000); // old lookup starts, hangs
+    await sink.onStop(oldRun);
+
+    const newRun = makeRun({ runRef: 'LAB-NEW' });
+    await sink.onDeclare(newRun);
+    await jest.advanceTimersByTimeAsync(15000); // new lookup resolves C-NEW
+
+    // Old run's lookup finally resolves with a stale channel — it must not
+    // reschedule, post, or overwrite the new run's channel.
+    resolveFirstLookup({ id: 'C-OLD', name: 'incident-42-flowforge-old' });
+    await jest.advanceTimersByTimeAsync(scenario.durationMs + 1000);
+
+    expect(posted.length).toBe(scenario.script.length);
+    expect(posted.every((p) => p.channel === 'C-NEW')).toBe(true);
+    await sink.onStop(newRun);
   });
 });
