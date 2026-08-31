@@ -87,6 +87,11 @@
     $('stop').disabled = !(status === 'armed' || status === 'declared');
   }
 
+  // Whether the visible warning came from a status poll (cleared once
+  // polling recovers) rather than a failed action (kept until the next
+  // successful action or manual refresh).
+  let warningFromRefresh = false;
+
   async function refresh({ clearWarning = false } = {}) {
     try {
       // The lab token unlocks the full run detail (run ref, incident, log);
@@ -113,9 +118,13 @@
       summaryPart(summary, 'Elapsed', status.elapsedMs != null ? `${Math.round(status.elapsedMs / 60000)}m` : null);
       $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
       applyButtons(status.status);
-      if (clearWarning) $('warning').textContent = '';
+      if (clearWarning || warningFromRefresh) {
+        $('warning').textContent = '';
+        warningFromRefresh = false;
+      }
     } catch (error) {
       $('warning').textContent = error.message;
+      warningFromRefresh = true;
     }
   }
 
@@ -127,6 +136,7 @@
     } catch (error) {
       failed = true;
       $('warning').textContent = error.message;
+      warningFromRefresh = false;
     }
     // refresh() owns button state: it re-enables what the new lifecycle
     // state allows, so completed actions stay disabled instead of
