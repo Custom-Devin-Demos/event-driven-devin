@@ -3,6 +3,19 @@ const http = require('http');
 
 process.env.INCIDENT_LAB_TOKEN = 'lab-test-token';
 
+// The routes module registers the real Datadog/Slack sinks at require time;
+// stub them so route tests never emit external traffic and declare() gets
+// its incident from a test double.
+jest.mock('../app/services/incident-lab/datadog-emitter', () => ({
+  createDatadogSink: () => ({
+    name: 'datadog-stub',
+    onDeclare: (run) => { run.incident = { id: 'inc-test', publicId: 7 }; },
+  }),
+}));
+jest.mock('../app/services/incident-lab/personas', () => ({
+  createSlackPersonaSink: () => ({ name: 'personas-stub' }),
+}));
+
 const incidentLabRoutes = require('../app/routes/incident-lab');
 const engine = require('../app/services/incident-lab/engine');
 

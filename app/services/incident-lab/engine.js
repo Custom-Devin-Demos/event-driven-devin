@@ -41,6 +41,18 @@ async function fanOut(hook, ...args) {
 
 let run = null;
 
+// Lifecycle mutations are serialized: sink hooks await external APIs
+// (Datadog, Slack), and a stop() or arm() interleaving with an in-flight
+// declare() could inspect the run before its incident exists — leaking a
+// just-declared incident past cleanup or attaching resources to a
+// replacement run. Every mutation waits for the previous one to settle.
+let lifecycleChain = Promise.resolve();
+function serialized(fn) {
+  const next = lifecycleChain.then(fn, fn);
+  lifecycleChain = next.then(() => {}, () => {});
+  return next;
+}
+
 function makeRunRef() {
   return `LAB-${new Date().toISOString().slice(0, 10)}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
@@ -56,7 +68,11 @@ function scheduleTimer(fn, delayMs) {
  * Arm a scenario: baseline telemetry starts flowing and prelude events
  * (precursor bursts) are scheduled relative to now. No incident exists yet.
  */
-async function arm(scenarioId) {
+function arm(scenarioId) {
+  return serialized(() => armImpl(scenarioId));
+}
+
+async function armImpl(scenarioId) {
   if (run && run.status !== 'stopped') {
     return { ok: false, error: `A run is already ${run.status} (${run.runRef}). Stop it first.` };
   }
@@ -84,32 +100,37 @@ async function arm(scenarioId) {
  * timeline. Sinks own the actual Datadog declaration/Slack posting; the
  * first sink to set run.incident ({ id, publicId }) wins.
  */
-async function declare() {
+function declare() {
+  return serialized(() => declareImpl());
+}
+
+async function declareImpl() {
   if (!run || run.status !== 'armed') {
     return { ok: false, error: run ? `Run is ${run.status}, expected armed` : 'No armed run' };
   }
   run.status = 'declared';
   run.declaredAt = Date.now();
-  note('incident declared');
   const errors = await fanOut('onDeclare', run);
   // The Datadog declaration is the core of declare(): without an incident
-  // there is no Slack channel and no timeline. A sink failure with no
-  // incident re-arms the run (baseline noise keeps flowing) so the
-  // presenter can retry; sink failures after an incident exists stay
-  // isolated as usual.
-  if (errors.length && !run.incident) {
+  // there is no Slack channel and no timeline. No incident — whether a
+  // sink failed or no sink is configured to declare one — re-arms the run
+  // (baseline noise keeps flowing) so the presenter can fix the setup and
+  // retry; sink failures after an incident exists stay isolated as usual.
+  if (!run.incident) {
+    const cause = errors.length ? errors[0].message : 'no sink declared an incident (Datadog incident keys missing?)';
     run.status = 'armed';
     run.declaredAt = null;
-    note(`declaration failed — run re-armed (${errors[0].message})`);
-    return { ok: false, error: `Incident declaration failed: ${errors[0].message}`, runRef: run.runRef, status: run.status };
+    note(`declaration failed — run re-armed (${cause})`);
+    return { ok: false, error: `Incident declaration failed: ${cause}`, runRef: run.runRef, status: run.status };
   }
+  note('incident declared');
 
   const phases = (run.scenario.datadog && run.scenario.datadog.phases) || [];
   for (const phase of phases) {
     if (phase.manual || !Number.isFinite(phase.startMs)) continue;
     // Negative startMs means the phase began before declaration (detection
     // gap): it activates immediately and sinks backfill its history.
-    scheduleTimer(() => activatePhase(phase.id), phase.startMs);
+    scheduleTimer(() => serialized(() => activatePhase(phase.id)), phase.startMs);
   }
   scheduleTimer(() => {
     if (run && run.status === 'declared') {
@@ -132,11 +153,15 @@ async function activatePhase(phaseId) {
 }
 
 /** Presenter override for manual phases (e.g. "mitigated"). */
-async function triggerPhase(phaseId) {
-  return activatePhase(phaseId);
+function triggerPhase(phaseId) {
+  return serialized(() => activatePhase(phaseId));
 }
 
-async function stop(reason = 'stopped by presenter') {
+function stop(reason = 'stopped by presenter') {
+  return serialized(() => stopImpl(reason));
+}
+
+async function stopImpl(reason) {
   if (!run) return { ok: false, error: 'No run' };
   for (const timer of run.timers) clearTimeout(timer);
   run.timers = [];

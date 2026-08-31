@@ -64,7 +64,10 @@ describe('incident-lab engine lifecycle', () => {
     engine.registerSink({
       name: 'test',
       onArm: (run) => events.push(['arm', run.status]),
-      onDeclare: (run) => events.push(['declare', run.status]),
+      onDeclare: (run) => {
+        run.incident = { id: 'inc-test', publicId: 1 };
+        events.push(['declare', run.status]);
+      },
       onPhase: (_run, phase) => events.push(['phase', phase.id]),
       onStop: (_run, reason) => events.push(['stop', reason]),
     });
@@ -95,6 +98,10 @@ describe('incident-lab engine lifecycle', () => {
   });
 
   test('refuses double-arm and declare without arm', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-test', publicId: 1 }; },
+    });
     expect((await engine.declare()).ok).toBe(false);
     await engine.arm('flowforge-scheduled-workflows');
     expect((await engine.arm('flowforge-scheduled-workflows')).ok).toBe(false);
@@ -103,6 +110,10 @@ describe('incident-lab engine lifecycle', () => {
   });
 
   test('rejects unknown scenario and unknown phase', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-test', publicId: 1 }; },
+    });
     expect((await engine.arm('nope')).ok).toBe(false);
     await engine.arm('flowforge-scheduled-workflows');
     await engine.declare();
@@ -116,6 +127,35 @@ describe('incident-lab engine lifecycle', () => {
     });
     const armed = await engine.arm('flowforge-scheduled-workflows');
     expect(armed.ok).toBe(true);
+  });
+
+  test('declare fails and re-arms when no sink declares an incident at all', async () => {
+    await engine.arm('flowforge-scheduled-workflows');
+    const declared = await engine.declare();
+    expect(declared.ok).toBe(false);
+    expect(declared.error).toMatch(/no sink declared an incident/);
+    expect(engine.status().status).toBe('armed');
+  });
+
+  test('concurrent stop waits for an in-flight declare and cleans up its incident', async () => {
+    const stops = [];
+    engine.registerSink({
+      name: 'slow-datadog',
+      onDeclare: async (run) => {
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        run.incident = { id: 'inc-race', publicId: 9 };
+      },
+      onStop: (run) => stops.push(run.incident && run.incident.id),
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    const declarePromise = engine.declare();
+    const stopPromise = engine.stop('concurrent stop');
+    const [declared, stopped] = await Promise.all([declarePromise, stopPromise]);
+    expect(declared.ok).toBe(true);
+    expect(stopped.ok).toBe(true);
+    // stop ran after declare settled, so it saw (and could resolve) the incident
+    expect(stops).toEqual(['inc-race']);
+    expect(engine.status().status).toBe('stopped');
   });
 
   test('a declaration failure with no incident re-arms the run and is retryable', async () => {
