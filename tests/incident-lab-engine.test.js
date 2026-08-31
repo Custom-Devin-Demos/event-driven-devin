@@ -53,6 +53,26 @@ describe('incident-lab scenario loader', () => {
         { atMs: 100, persona: 'a', text: 'earlier' },
       ],
     }, 'x.json')).toThrow(/ordered by atMs/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [{ atMs: 5000, persona: 'a', text: 'too late' }],
+    }, 'x.json')).toThrow(/beyond durationMs/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [],
+      knowledge: [{ unlockAtMs: 5000, facts: ['f'] }],
+    }, 'x.json')).toThrow(/beyond durationMs/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [],
+      datadog: {
+        metricPrefix: 'x',
+        phases: [{ id: 'p', startMs: 0 }, { id: 'p', manual: true }],
+      },
+    }, 'x.json')).toThrow(/duplicate datadog phase id/);
   });
 });
 
@@ -118,6 +138,48 @@ describe('incident-lab engine lifecycle', () => {
     await engine.arm('flowforge-scheduled-workflows');
     await engine.declare();
     expect((await engine.triggerPhase('nope')).ok).toBe(false);
+  });
+
+  test('triggerPhase refuses timed (non-manual) phases', async () => {
+    await engine.arm('flowforge-scheduled-workflows');
+    await engine.declare();
+    const result = await engine.triggerPhase('red-herring-redis');
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/not manually triggerable/);
+  });
+
+  test('stop is idempotent — second stop does not rerun sink cleanup', async () => {
+    let stops = 0;
+    engine.registerSink({ name: 'counter', onStop: () => { stops += 1; } });
+    await engine.arm('flowforge-scheduled-workflows');
+    await engine.declare();
+    expect((await engine.stop()).ok).toBe(true);
+    expect((await engine.stop()).ok).toBe(false);
+    expect(stops).toBe(1);
+  });
+
+  test('first sink to set run.incident wins', async () => {
+    const first = { id: '1', publicId: '11' };
+    engine.registerSink({ name: 'a', onDeclare: (run) => { run.incident = first; } });
+    engine.registerSink({ name: 'b', onDeclare: (run) => { run.incident = { id: '2', publicId: '22' }; } });
+    await engine.arm('flowforge-scheduled-workflows');
+    const declared = await engine.declare();
+    expect(declared.incident).toBe(first);
+  });
+
+  test('a stop during a slow declare does not schedule stale timers', async () => {
+    engine.registerSink({
+      name: 'slow',
+      onDeclare: () => new Promise((resolve) => setTimeout(resolve, 30)),
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    const declaring = engine.declare();
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await engine.stop('interrupt');
+    const declared = await declaring;
+    expect(declared.ok).toBe(false);
+    expect(engine.status().status).toBe('stopped');
+    expect(engine.currentRun().timers).toHaveLength(0);
   });
 
   test('a failing sink does not break the lifecycle', async () => {

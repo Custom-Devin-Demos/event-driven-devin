@@ -57,10 +57,10 @@ function makeRunRef() {
   return `LAB-${new Date().toISOString().slice(0, 10)}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
 
-function scheduleTimer(fn, delayMs) {
+function scheduleTimer(forRun, fn, delayMs) {
   const timer = setTimeout(fn, Math.max(delayMs, 0));
   if (timer.unref) timer.unref();
-  run.timers.push(timer);
+  forRun.timers.push(timer);
   return timer;
 }
 
@@ -90,9 +90,10 @@ async function armImpl(scenarioId) {
     timers: [],
     log: [],
   };
+  const thisRun = run;
   note(`armed scenario ${scenario.id}`);
-  await fanOut('onArm', run);
-  return { ok: true, runRef: run.runRef, status: run.status };
+  await fanOut('onArm', thisRun);
+  return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
 }
 
 /**
@@ -108,36 +109,58 @@ async function declareImpl() {
   if (!run || run.status !== 'armed') {
     return { ok: false, error: run ? `Run is ${run.status}, expected armed` : 'No armed run' };
   }
-  run.status = 'declared';
-  run.declaredAt = Date.now();
-  const errors = await fanOut('onDeclare', run);
+  const thisRun = run;
+  thisRun.status = 'declared';
+  thisRun.declaredAt = Date.now();
+  // First sink to set run.incident wins; later sinks cannot replace it.
+  const errors = [];
+  for (const sink of sinks) {
+    if (typeof sink.onDeclare !== 'function') continue;
+    const existing = thisRun.incident;
+    try {
+      await sink.onDeclare(thisRun);
+    } catch (error) {
+      errors.push(error);
+      logger.warn('Incident Lab sink hook failed', {
+        hook: 'onDeclare',
+        sink: sink.name || 'anonymous',
+        error: error.message,
+      });
+    }
+    if (existing && thisRun.incident !== existing) thisRun.incident = existing;
+  }
+  // A slow sink may outlive a stop() (or stop + re-arm) issued meanwhile:
+  // schedule nothing for a run that is no longer the active declared run.
+  if (run !== thisRun || thisRun.status !== 'declared') {
+    return { ok: false, error: 'Run was stopped during declaration' };
+  }
   // The Datadog declaration is the core of declare(): without an incident
   // there is no Slack channel and no timeline. No incident — whether a
   // sink failed or no sink is configured to declare one — re-arms the run
   // (baseline noise keeps flowing) so the presenter can fix the setup and
   // retry; sink failures after an incident exists stay isolated as usual.
-  if (!run.incident) {
+  if (!thisRun.incident) {
     const cause = errors.length ? errors[0].message : 'no sink declared an incident (Datadog incident keys missing?)';
-    run.status = 'armed';
-    run.declaredAt = null;
+    thisRun.status = 'armed';
+    thisRun.declaredAt = null;
     note(`declaration failed — run re-armed (${cause})`);
-    return { ok: false, error: `Incident declaration failed: ${cause}`, runRef: run.runRef, status: run.status };
+    return { ok: false, error: `Incident declaration failed: ${cause}`, runRef: thisRun.runRef, status: thisRun.status };
   }
   note('incident declared');
 
-  const phases = (run.scenario.datadog && run.scenario.datadog.phases) || [];
+  const phases = (thisRun.scenario.datadog && thisRun.scenario.datadog.phases) || [];
   for (const phase of phases) {
     if (phase.manual || !Number.isFinite(phase.startMs)) continue;
     // Negative startMs means the phase began before declaration (detection
     // gap): it activates immediately and sinks backfill its history.
-    scheduleTimer(() => serialized(() => activatePhase(phase.id)), phase.startMs);
+    scheduleTimer(thisRun, () => serialized(() => activatePhase(phase.id)), phase.startMs);
   }
-  scheduleTimer(() => {
-    if (run && run.status === 'declared') {
+  scheduleTimer(thisRun, () => {
+    if (run === thisRun && thisRun.status === 'declared') {
       note('scenario window elapsed');
     }
-  }, run.scenario.durationMs);
-  return { ok: true, runRef: run.runRef, status: run.status, incident: run.incident };
+  }, thisRun.scenario.durationMs);
+  return { ok: true, runRef: thisRun.runRef, status: thisRun.status, incident: thisRun.incident };
 }
 
 async function activatePhase(phaseId) {
@@ -152,9 +175,17 @@ async function activatePhase(phaseId) {
   return { ok: true, phase: phaseId };
 }
 
-/** Presenter override for manual phases (e.g. "mitigated"). */
+/** Presenter override, restricted to phases marked "manual" (e.g.
+ *  "mitigated") — timed phases belong to the scheduler alone. */
 function triggerPhase(phaseId) {
-  return serialized(() => activatePhase(phaseId));
+  return serialized(() => {
+    if (!run || run.status !== 'declared') return { ok: false, error: 'No declared run' };
+    const phase = ((run.scenario.datadog && run.scenario.datadog.phases) || [])
+      .find((p) => p.id === phaseId);
+    if (!phase) return { ok: false, error: `Unknown phase: ${phaseId}` };
+    if (!phase.manual) return { ok: false, error: `Phase ${phaseId} is not manually triggerable` };
+    return activatePhase(phaseId);
+  });
 }
 
 function stop(reason = 'stopped by presenter') {
@@ -163,6 +194,7 @@ function stop(reason = 'stopped by presenter') {
 
 async function stopImpl(reason) {
   if (!run) return { ok: false, error: 'No run' };
+  if (run.status === 'stopped') return { ok: false, error: 'Run already stopped' };
   for (const timer of run.timers) clearTimeout(timer);
   run.timers = [];
   const prior = run.status;

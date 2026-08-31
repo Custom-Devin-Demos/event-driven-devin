@@ -147,11 +147,17 @@ function createDatadogSink({ post = axios.post } = {}) {
       }
     }
 
+    // Metrics and logs are independent intakes — a failure of one must not
+    // suppress the other.
     try {
       await submitMetrics(run, series);
+    } catch (error) {
+      logger.warn('Incident Lab Datadog metric flush failed', { error: error.message });
+    }
+    try {
       await submitLogs(run, logs);
     } catch (error) {
-      logger.warn('Incident Lab Datadog flush failed', { error: error.message });
+      logger.warn('Incident Lab Datadog log flush failed', { error: error.message });
     }
   }
 
@@ -159,19 +165,50 @@ function createDatadogSink({ post = axios.post } = {}) {
     for (const spec of specs || []) {
       if (spec.replacesBaseline) state.metricRates.delete(metricKey(spec));
       if (Number.isFinite(spec.perMinute)) state.metricRates.set(metricKey(spec), spec);
+      if (spec.catchUpBurst && Number.isFinite(spec.catchUpBurst.count)) {
+        applyCatchUpBurst(spec);
+      }
     }
   }
 
-  function applyLogSpecs(specs, phaseId) {
+  /** A catch-up burst layers `count` extra events over `windowMs` on top of
+   *  the steady rate (e.g. backed-up jobs draining after mitigation). */
+  function applyCatchUpBurst(spec) {
+    const windowMs = spec.catchUpBurst.windowMs || 900000;
+    const burstSpec = {
+      metric: spec.metric,
+      tags: spec.tags,
+      perMinute: spec.catchUpBurst.count / (windowMs / 60000),
+      jitter: spec.jitter,
+    };
+    const key = `${metricKey(spec)}|catch-up`;
+    state.metricRates.set(key, burstSpec);
+    const timer = setTimeout(() => {
+      if (state) state.metricRates.delete(key);
+    }, windowMs);
+    if (timer.unref) timer.unref();
+    state.timers.push(timer);
+  }
+
+  /**
+   * @param elapsedMs how long the phase has already been running before now
+   *   (negative-start phases); duration-limited logs only run live for what
+   *   remains of their window, and expired ones never start.
+   */
+  function applyLogSpecs(specs, phaseId, elapsedMs = 0) {
     for (const spec of specs || []) {
       const entry = { ...spec, phase: phaseId };
-      state.logRates.push(entry);
       if (Number.isFinite(spec.durationMs)) {
+        const remainingMs = spec.durationMs - elapsedMs;
+        if (remainingMs <= 0) continue;
+        state.logRates.push(entry);
         const timer = setTimeout(() => {
           state.logRates = state.logRates.filter((s) => s !== entry);
-        }, spec.durationMs);
+        }, remainingMs);
         if (timer.unref) timer.unref();
         state.timers.push(timer);
+      } else {
+        state.logRates.push(entry);
       }
     }
   }
@@ -184,8 +221,13 @@ function createDatadogSink({ post = axios.post } = {}) {
     if (sinceMs <= 0) return;
     const logs = [];
     for (const spec of phase.logs || []) {
+      // A duration-limited log only ran for the overlap of its window with
+      // the pre-declaration period, anchored at the phase start.
+      const activeMs = Number.isFinite(spec.durationMs)
+        ? Math.min(spec.durationMs, sinceMs)
+        : sinceMs;
       const total = Math.min(
-        Math.round((spec.perHour / 3600000) * sinceMs),
+        Math.round((spec.perHour / 3600000) * activeMs),
         LOG_BACKFILL_MAX_EVENTS,
       );
       for (let i = 0; i < total; i++) {
@@ -193,7 +235,7 @@ function createDatadogSink({ post = axios.post } = {}) {
           logger: spec.logger,
           status: spec.status,
           message: renderTemplate(spec.template),
-          timestamp: now - Math.floor(Math.random() * sinceMs),
+          timestamp: now - sinceMs + Math.floor(Math.random() * activeMs),
         });
       }
     }
@@ -213,18 +255,40 @@ function createDatadogSink({ post = axios.post } = {}) {
     logs.sort((a, b) => a.timestamp - b.timestamp);
     try {
       await submitMetrics(run, series);
+    } catch (error) {
+      logger.warn('Incident Lab Datadog metric backfill failed', { phase: phase.id, error: error.message });
+    }
+    try {
       for (let i = 0; i < logs.length; i += 200) {
         await submitLogs(run, logs.slice(i, i + 200));
       }
     } catch (error) {
-      logger.warn('Incident Lab Datadog backfill failed', { phase: phase.id, error: error.message });
+      logger.warn('Incident Lab Datadog log backfill failed', { phase: phase.id, error: error.message });
     }
   }
 
+  /** A delay that onStop can settle immediately, so an in-flight burst
+   *  never stays pending after its run is stopped. */
+  function cancellableDelay(forState, ms) {
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        forState.delayResolvers.delete(resolve);
+        resolve();
+      }, ms);
+      if (timer.unref) timer.unref();
+      forState.timers.push(timer);
+      forState.delayResolvers.add(resolve);
+    });
+  }
+
   async function burst(run, prelude) {
+    // Capture the state this burst belongs to: onStop clears the module
+    // state while a burst may still be awaiting delivery, and resuming
+    // against the shared reference would throw (an unhandled rejection).
+    const burstState = state;
     for (const spec of prelude.logs || []) {
       for (let i = 0; i < (spec.count || 1); i++) {
-        if (!state || state.stopped) return;
+        if (!burstState || burstState.stopped || state !== burstState) return;
         try {
           await submitLogs(run, [{
             logger: spec.logger,
@@ -236,14 +300,11 @@ function createDatadogSink({ post = axios.post } = {}) {
           logger.warn('Incident Lab prelude burst failed', { error: error.message });
         }
         if (spec.intervalMs && i < spec.count - 1) {
-          await new Promise((resolve) => {
-            const timer = setTimeout(resolve, spec.intervalMs);
-            if (timer.unref) timer.unref();
-            state.timers.push(timer);
-          });
+          await cancellableDelay(burstState, spec.intervalMs);
         }
       }
     }
+    if (!burstState || burstState.stopped || state !== burstState) return;
     const series = (prelude.metrics || [])
       .filter((m) => Number.isFinite(m.count))
       .map((m) => ({
@@ -277,6 +338,7 @@ function createDatadogSink({ post = axios.post } = {}) {
         logRates: [],
         logAccrual: new Map(),
         timers: [],
+        delayResolvers: new Set(),
       };
       applyMetricSpecs((dd.baseline || {}).metrics);
       applyLogSpecs((dd.baseline || {}).logs, 'baseline');
@@ -317,9 +379,10 @@ function createDatadogSink({ post = axios.post } = {}) {
 
     async onPhase(run, phase) {
       if (!state || state.stopped) return;
+      const elapsedMs = Number.isFinite(phase.startMs) && phase.startMs < 0 ? -phase.startMs : 0;
       applyMetricSpecs(phase.metrics);
-      applyLogSpecs(phase.logs, phase.id);
-      if (Number.isFinite(phase.startMs) && phase.startMs < 0) {
+      applyLogSpecs(phase.logs, phase.id, elapsedMs);
+      if (elapsedMs > 0) {
         await backfillPhase(run, phase);
       }
     },
@@ -329,6 +392,8 @@ function createDatadogSink({ post = axios.post } = {}) {
         state.stopped = true;
         if (state.interval) clearInterval(state.interval);
         for (const timer of state.timers) clearTimeout(timer);
+        for (const resolve of state.delayResolvers) resolve();
+        state.delayResolvers.clear();
         state = null;
       }
       if (run.incident && run.incident.id) {

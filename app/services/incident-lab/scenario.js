@@ -32,6 +32,7 @@ function validateScenario(scenario, file) {
   let lastAt = -1;
   for (const line of scenario.script) {
     if (!Number.isFinite(line.atMs) || line.atMs < 0) fail('script line missing "atMs"');
+    if (line.atMs > scenario.durationMs) fail(`script line at ${line.atMs}ms is beyond durationMs`);
     if (line.atMs < lastAt) fail('script lines must be ordered by atMs');
     lastAt = line.atMs;
     if (!personaIds.has(line.persona)) fail(`script line references unknown persona "${line.persona}"`);
@@ -41,14 +42,18 @@ function validateScenario(scenario, file) {
     if (!Array.isArray(scenario.knowledge)) fail('"knowledge" must be an array');
     for (const entry of scenario.knowledge) {
       if (!Number.isFinite(entry.unlockAtMs)) fail('knowledge entry missing "unlockAtMs"');
+      if (entry.unlockAtMs > scenario.durationMs) fail(`knowledge unlock at ${entry.unlockAtMs}ms is beyond durationMs`);
       if (!Array.isArray(entry.facts) || !entry.facts.length) fail('knowledge entry missing "facts"');
     }
   }
   const dd = scenario.datadog;
   if (dd) {
     if (typeof dd.metricPrefix !== 'string' || !dd.metricPrefix.trim()) fail('datadog missing "metricPrefix"');
+    const phaseIds = new Set();
     for (const phase of dd.phases || []) {
       if (typeof phase.id !== 'string' || !phase.id.trim()) fail('datadog phase missing "id"');
+      if (phaseIds.has(phase.id)) fail(`duplicate datadog phase id "${phase.id}"`);
+      phaseIds.add(phase.id);
       if (!phase.manual && !Number.isFinite(phase.startMs)) {
         fail(`datadog phase "${phase.id}" needs "startMs" or "manual": true`);
       }
