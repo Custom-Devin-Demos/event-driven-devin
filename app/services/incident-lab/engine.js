@@ -203,6 +203,7 @@ function resetForTests() {
   if (run) for (const timer of run.timers) clearTimeout(timer);
   run = null;
   sinks.length = 0;
+  lifecycleChain = Promise.resolve();
 }
 
 module.exports = {
@@ -210,7 +211,7 @@ module.exports = {
   arm,
   declare,
   triggerPhase,
-  activatePhase,
+  activatePhase: triggerPhase,
   stop,
   status,
   currentRun,

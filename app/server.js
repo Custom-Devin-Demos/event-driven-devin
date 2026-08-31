@@ -212,11 +212,13 @@ function gracefulShutdown(signal) {
     });
   });
 
-  // Force exit if draining takes longer than 10s (Docker stop_grace_period is 15s)
+  // Force exit just inside Docker's stop_grace_period (15s). Lab stop is
+  // serialized behind any in-flight lifecycle work (e.g. a Datadog
+  // declaration), so cleanup needs as much of the grace window as possible.
   setTimeout(() => {
     logger.warn('Graceful shutdown timed out — forcing exit');
     process.exit(1);
-  }, 10000).unref();
+  }, 14000).unref();
 }
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
