@@ -174,7 +174,7 @@ function applyUnicajaBranding(alertData) {
       ...alertData,
       customer: 'unicaja',
       verticalLabel: 'Unicaja Banca Digital',
-      devinEmail: alertData.devinEmail || 'jaime@cognition.ai',
+      devinEmail: alertData.devinEmail,
       release: 'unicaja-banca-digital@1.0.0',
     };
   }
