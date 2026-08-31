@@ -243,6 +243,34 @@ describe('incident-lab slack persona sink', () => {
     await sink.onStop(run);
   });
 
+  test('a message posted while the watermark initializes is still drafted', async () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    const draft = jest.fn().mockResolvedValue(null);
+    // Posted after attachment (channel lookup resolves at +15s) but already
+    // visible in the watermark-init history response — the race case.
+    const racedTs = (Date.now() / 1000 + 16).toFixed(4);
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn().mockResolvedValue(),
+        history: jest.fn().mockResolvedValue([
+          { type: 'message', ts: racedTs, text: 'early investigator question' },
+        ]),
+        draft,
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const run = makeRun();
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup + watermark init
+    await jest.advanceTimersByTimeAsync(20000); // first poll
+    expect(draft).toHaveBeenCalledTimes(1);
+    expect(draft.mock.calls[0][2]).toContain('early investigator question');
+    await sink.onStop(run);
+  });
+
   test('a rejected draft releases its reserved reply capacity', async () => {
     process.env.OPENAI_API_KEY = 'sk-test';
     const draft = jest.fn()

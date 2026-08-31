@@ -305,13 +305,20 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         if (process.env.OPENAI_API_KEY) {
           // Anchor the responder watermark at attachment: pre-existing channel
           // backlog is excluded, while anything posted from here on is drafted
-          // against on the next poll. Falls back to the first poll's
-          // watermark-only pass when this fetch fails.
+          // against on the next poll. The backlog fetch itself races with new
+          // posts, so the watermark is capped at the attachment moment — a
+          // backlog head that arrives mid-fetch stays ahead of the watermark
+          // and is picked up by the first poll instead of being skipped.
+          // (1s of slack absorbs clock skew; own/persona filters keep any
+          // re-read of that second harmless.)
+          const attachTs = (Date.now() / 1000 - 1).toFixed(6);
           try {
             const backlog = await api.history(token, channel.id, { limit: 1 });
             if (stale(runState)) return;
-            runState.lastSeenTs = backlog.length ? backlog[0].ts : '0';
+            const backlogTs = backlog.length ? backlog[0].ts : '0';
+            runState.lastSeenTs = Number(backlogTs) < Number(attachTs) ? backlogTs : attachTs;
           } catch (error) {
+            runState.lastSeenTs = attachTs;
             logger.warn('Incident Lab responder watermark init failed', { runRef: run.runRef, error: error.message });
           }
           runState.responderInterval = setInterval(() => pollResponder(runState, run), RESPONDER_POLL_MS);
