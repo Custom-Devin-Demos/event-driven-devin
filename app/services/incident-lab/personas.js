@@ -214,7 +214,13 @@ function createSlackPersonaSink({ deps = {} } = {}) {
       // Reserve capacity before the draft so a slow draft cannot let a later
       // poll spend the same allowance; release it when no reply is produced.
       runState.replies++;
-      const reply = await api.draft(run.scenario, elapsedMs, transcript);
+      let reply;
+      try {
+        reply = await api.draft(run.scenario, elapsedMs, transcript);
+      } catch (error) {
+        runState.replies--;
+        throw error;
+      }
       if (!reply || stale(runState)) {
         runState.replies--;
         return;
@@ -295,9 +301,19 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         if (stale(runState)) return;
         runState.channelId = channel.id;
         runState.channelName = channel.name;
-        runState.lastSeenTs = undefined;
         scheduleScript(runState, run);
         if (process.env.OPENAI_API_KEY) {
+          // Anchor the responder watermark at attachment: pre-existing channel
+          // backlog is excluded, while anything posted from here on is drafted
+          // against on the next poll. Falls back to the first poll's
+          // watermark-only pass when this fetch fails.
+          try {
+            const backlog = await api.history(token, channel.id, { limit: 1 });
+            if (stale(runState)) return;
+            runState.lastSeenTs = backlog.length ? backlog[0].ts : '0';
+          } catch (error) {
+            logger.warn('Incident Lab responder watermark init failed', { runRef: run.runRef, error: error.message });
+          }
           runState.responderInterval = setInterval(() => pollResponder(runState, run), RESPONDER_POLL_MS);
           if (runState.responderInterval.unref) runState.responderInterval.unref();
         } else {

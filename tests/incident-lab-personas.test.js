@@ -213,6 +213,72 @@ describe('incident-lab slack persona sink', () => {
     await sink.onStop(newRun);
   });
 
+  test('backlog at attachment is excluded but later investigator messages are drafted', async () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    const draft = jest.fn().mockResolvedValue(null);
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn().mockResolvedValue(),
+        history: jest.fn()
+          .mockResolvedValueOnce([{ type: 'message', ts: '5.0', text: 'stale backlog message' }])
+          .mockResolvedValue([
+            { type: 'message', ts: '6.0', text: 'fresh investigator question' },
+            { type: 'message', ts: '5.0', text: 'stale backlog message' },
+          ]),
+        draft,
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const run = makeRun();
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup + watermark init
+    await jest.advanceTimersByTimeAsync(20000); // first poll
+    expect(draft).toHaveBeenCalledTimes(1);
+    const transcript = draft.mock.calls[0][2];
+    expect(transcript).toContain('fresh investigator question');
+    expect(transcript).not.toContain('stale backlog message');
+    await sink.onStop(run);
+  });
+
+  test('a rejected draft releases its reserved reply capacity', async () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    const draft = jest.fn()
+      .mockRejectedValueOnce(new Error('openai 500'))
+      .mockResolvedValue({ persona: scenario.personas[0], text: 'recovered reply' });
+    const posted = [];
+    let ts = 10;
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text, username) => {
+          posted.push({ text, username });
+          return Promise.resolve(`${ts++}.0`);
+        }),
+        history: jest.fn()
+          .mockResolvedValueOnce([])
+          .mockImplementation(() => Promise.resolve([
+            { type: 'message', ts: `${ts++}.5`, text: 'investigator question' },
+          ])),
+        draft,
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const run = makeRun();
+    run.scenario = { ...scenario, script: [], llm: { ...scenario.llm, maxRepliesPerRun: 1 } };
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup + watermark init
+    await jest.advanceTimersByTimeAsync(20000); // poll: draft rejects, capacity released
+    await jest.advanceTimersByTimeAsync(20000); // poll: draft succeeds within the cap
+    await jest.advanceTimersByTimeAsync(120000); // reply delay
+    expect(posted.some((p) => p.text === 'recovered reply')).toBe(true);
+    await sink.onStop(run);
+  });
+
   test('a slow draft cannot let overlapping polls exceed the reply cap', async () => {
     process.env.OPENAI_API_KEY = 'sk-test';
     let resolveDraft;
