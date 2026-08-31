@@ -109,6 +109,19 @@ describe('advisor trade booking — commission pricing', () => {
     expect(order.feeScheduleLabel).toBe('Equity Agency — Limit');
   });
 
+  test('nets fees out of proceeds and credits cash on a sell', async () => {
+    const order = await submitOrder({
+      ...ADVISORY_ORDER,
+      orderType: 'market',
+      side: 'sell',
+    });
+
+    expect(order.side).toBe('Sell');
+    expect(order.totalFees).toBe(688.97);
+    expect(order.estimatedProceeds).toBe(568011.03);
+    expect(order.cashRemaining).toBe(1854441.21);
+  });
+
   test('assigns the routing desk named by the fee schedule', () => {
     const schedule = resolveFeeSchedule(ORDER_TYPES.market);
     expect(assignRoutingDesk(schedule).name).toBe('Equity Agency Desk');

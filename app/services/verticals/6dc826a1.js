@@ -138,7 +138,7 @@ function calculateCommission(orderType, principal) {
   };
 }
 
-function buildOrderPreview(account, instrument, orderType, quantity, limitPrice) {
+function buildOrderPreview(account, instrument, orderType, quantity, limitPrice, side) {
   const executionPrice = orderType.requiresLimitPrice && limitPrice
     ? Number(limitPrice)
     : instrument.lastPrice;
@@ -147,6 +147,8 @@ function buildOrderPreview(account, instrument, orderType, quantity, limitPrice)
   const desk = assignRoutingDesk(fees.schedule);
   const settlementDate = new Date();
   settlementDate.setUTCDate(settlementDate.getUTCDate() + fees.schedule.settlementDays + 1);
+  const isSell = side === 'sell';
+  const netAmount = isSell ? principal - fees.totalFees : principal + fees.totalFees;
 
   return {
     executionPrice: roundMoney(executionPrice),
@@ -154,8 +156,10 @@ function buildOrderPreview(account, instrument, orderType, quantity, limitPrice)
     fees,
     desk,
     settlementDate: settlementDate.toISOString().slice(0, 10),
-    estimatedProceeds: roundMoney(principal + fees.totalFees),
-    cashRemaining: roundMoney(account.cashAvailable - (principal + fees.totalFees)),
+    estimatedProceeds: roundMoney(netAmount),
+    cashRemaining: roundMoney(isSell
+      ? account.cashAvailable + netAmount
+      : account.cashAvailable - netAmount),
   };
 }
 
@@ -209,7 +213,14 @@ async function submitOrder(data) {
   await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
 
   try {
-    const preview = buildOrderPreview(account, instrument, orderType, quantity, data.limitPrice);
+    const preview = buildOrderPreview(
+      account,
+      instrument,
+      orderType,
+      quantity,
+      data.limitPrice,
+      data.side === 'sell' ? 'sell' : 'buy',
+    );
     const duration = Date.now() - startTime;
 
     incrementMetric('trade_booking.success', {
