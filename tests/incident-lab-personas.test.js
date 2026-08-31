@@ -121,9 +121,11 @@ describe('incident-lab slack persona sink', () => {
           posted.push({ text, username });
           return Promise.resolve();
         }),
-        history: jest.fn().mockResolvedValue([
-          { type: 'message', ts: '2.0', text: 'what is the queue retry policy?' },
-        ]),
+        history: jest.fn()
+          .mockResolvedValueOnce([])
+          .mockResolvedValue([
+            { type: 'message', ts: '2.0', text: 'what is the queue retry policy?' },
+          ]),
         draft,
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
@@ -132,6 +134,7 @@ describe('incident-lab slack persona sink', () => {
     const run = makeRun();
     await sink.onDeclare(run);
     await jest.advanceTimersByTimeAsync(15000); // channel lookup
+    await jest.advanceTimersByTimeAsync(20000); // first poll: watermark only
     await jest.advanceTimersByTimeAsync(20000); // responder poll
     await jest.advanceTimersByTimeAsync(120000); // reply delay
     expect(draft).toHaveBeenCalled();
@@ -148,10 +151,12 @@ describe('incident-lab slack persona sink', () => {
         findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
         join: jest.fn().mockResolvedValue(true),
         post: jest.fn().mockResolvedValue(),
-        history: jest.fn().mockResolvedValue([
-          { type: 'message', ts: '3.0', text: 'checking the queue now', bot_profile: { name: 'Devin' } },
-          { type: 'message', ts: '2.0', text: 'scripted line', username: personaName, bot_profile: { name: 'incident-lab' } },
-        ]),
+        history: jest.fn()
+          .mockResolvedValueOnce([])
+          .mockResolvedValue([
+            { type: 'message', ts: '3.0', text: 'checking the queue now', bot_profile: { name: 'Devin' } },
+            { type: 'message', ts: '2.0', text: 'scripted line', username: personaName, bot_profile: { name: 'incident-lab' } },
+          ]),
         draft,
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
@@ -160,6 +165,7 @@ describe('incident-lab slack persona sink', () => {
     const run = makeRun();
     await sink.onDeclare(run);
     await jest.advanceTimersByTimeAsync(15000); // channel lookup
+    await jest.advanceTimersByTimeAsync(20000); // first poll: watermark only
     await jest.advanceTimersByTimeAsync(20000); // responder poll
     expect(draft).toHaveBeenCalledTimes(1);
     const transcript = draft.mock.calls[0][2];
@@ -205,5 +211,44 @@ describe('incident-lab slack persona sink', () => {
     expect(posted.length).toBe(scenario.script.length);
     expect(posted.every((p) => p.channel === 'C-NEW')).toBe(true);
     await sink.onStop(newRun);
+  });
+
+  test('a slow draft cannot let overlapping polls exceed the reply cap', async () => {
+    process.env.OPENAI_API_KEY = 'sk-test';
+    let resolveDraft;
+    const draft = jest.fn(() => new Promise((resolve) => { resolveDraft = resolve; }));
+    const posted = [];
+    let ts = 10;
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text, username) => {
+          posted.push({ text, username });
+          return Promise.resolve(`${ts++}.0`);
+        }),
+        history: jest.fn()
+          .mockResolvedValueOnce([])
+          .mockImplementation(() => Promise.resolve([
+            { type: 'message', ts: `${ts++}.5`, text: 'another investigator question' },
+          ])),
+        draft,
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const run = makeRun();
+    run.scenario = { ...scenario, script: [], llm: { ...scenario.llm, maxRepliesPerRun: 1 } };
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup
+    await jest.advanceTimersByTimeAsync(20000); // first poll: watermark only
+    await jest.advanceTimersByTimeAsync(20000); // poll starts, draft hangs
+    await jest.advanceTimersByTimeAsync(20000); // overlapping poll must be skipped
+    expect(draft).toHaveBeenCalledTimes(1);
+    resolveDraft({ persona: scenario.personas[0], text: 'only reply' });
+    await jest.advanceTimersByTimeAsync(120000); // reply delay + later polls
+    expect(posted.filter((p) => p.text === 'only reply').length).toBe(1);
+    expect(draft).toHaveBeenCalledTimes(1); // cap of 1 reached, no further drafts
+    await sink.onStop(run);
   });
 });

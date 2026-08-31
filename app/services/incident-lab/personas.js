@@ -144,13 +144,14 @@ function createSlackPersonaSink({ deps = {} } = {}) {
       addTimer(runState, async () => {
         if (stale(runState)) return;
         try {
-          await api.post(
+          const ts = await api.post(
             slackToken(),
             runState.channelId,
             renderLine(line.text),
             persona.username,
             persona.icon,
           );
+          if (ts) runState.ownTs.add(ts);
         } catch (error) {
           logger.warn('Incident Lab persona line failed', { runRef: run.runRef, error: error.message });
         }
@@ -173,21 +174,32 @@ function createSlackPersonaSink({ deps = {} } = {}) {
 
   async function pollResponder(runState, run) {
     if (stale(runState)) return;
+    // Polls are serialized: a draft can outlast the polling interval, and
+    // overlapping polls would each pass the reply-cap check.
+    if (runState.polling) return;
+    runState.polling = true;
     try {
       const messages = await api.history(slackToken(), runState.channelId, {
         oldest: runState.lastSeenTs,
         limit: 30,
       });
       if (stale(runState)) return;
-      // Persona lines are posted by this bot under persona display names
-      // (chat:write.customize); skip only those. Other bot posts — the Devin
-      // Slack app included — are real participants and must be answered.
+      // The first poll only sets the watermark: a reused or pre-populated
+      // channel must not feed its backlog into the responder.
+      if (!runState.lastSeenTs) {
+        runState.lastSeenTs = messages.length ? messages[0].ts : '0';
+        return;
+      }
+      // Skip this bot's own posts — matched by the recorded ts of everything
+      // it posted, with persona display names as a fallback. Other bot posts
+      // (the Devin Slack app included) are real participants.
       const personaNames = new Set(run.scenario.personas.map((p) => p.username));
       // conversations.history returns newest first; walk oldest→newest.
       const fresh = messages
         .filter((m) => m.ts !== runState.lastSeenTs)
         .reverse()
         .filter((m) => m.type === 'message' && !m.subtype && m.text
+          && !runState.ownTs.has(m.ts)
           && !personaNames.has(m.username || (m.bot_profile && m.bot_profile.name)));
       if (messages.length) {
         runState.lastSeenTs = messages[0].ts;
@@ -199,20 +211,28 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         .join('\n')
         .slice(-4000);
       const elapsedMs = Date.now() - run.declaredAt;
-      const reply = await api.draft(run.scenario, elapsedMs, transcript);
-      if (!reply || stale(runState)) return;
+      // Reserve capacity before the draft so a slow draft cannot let a later
+      // poll spend the same allowance; release it when no reply is produced.
       runState.replies++;
+      const reply = await api.draft(run.scenario, elapsedMs, transcript);
+      if (!reply || stale(runState)) {
+        runState.replies--;
+        return;
+      }
       const [minDelay, maxDelay] = (run.scenario.llm && run.scenario.llm.replyDelayMs) || [15000, 60000];
       addTimer(runState, async () => {
         if (stale(runState)) return;
         try {
-          await api.post(slackToken(), runState.channelId, reply.text, reply.persona.username, reply.persona.icon);
+          const ts = await api.post(slackToken(), runState.channelId, reply.text, reply.persona.username, reply.persona.icon);
+          if (ts && !stale(runState)) runState.ownTs.add(ts);
         } catch (error) {
           logger.warn('Incident Lab responder post failed', { error: error.message });
         }
       }, minDelay + Math.random() * (maxDelay - minDelay));
     } catch (error) {
       logger.warn('Incident Lab responder poll failed', { error: error.message });
+    } finally {
+      runState.polling = false;
     }
   }
 
@@ -235,6 +255,8 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         stopped: false,
         timers: [],
         replies: 0,
+        polling: false,
+        ownTs: new Set(),
         maxReplies: (run.scenario.llm && run.scenario.llm.maxRepliesPerRun) || 40,
       };
       state = runState;
