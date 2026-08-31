@@ -379,6 +379,8 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
+| `DEMO_ONCALL_PERSONA` | Fictional name rendered in the *On-Call* field of alert cards (default `Riley Chen (platform-oncall)`) | No |
+| `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as on-call on every alert. Unset (default) means the persona is rendered as plain text and nobody is pinged | No |
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |

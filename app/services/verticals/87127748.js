@@ -112,7 +112,6 @@ async function processInsightsRequest(data) {
       service: 'customer-87127748-demo',
       verticalLabel: 'P&L Insights Request',
       customer: '87127748',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/87127748/insights' },
         { key: 'service', value: 'customer-87127748-demo' },

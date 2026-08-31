@@ -188,7 +188,6 @@ async function processCateringOrder(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: 'U08S7AVJ478',
       service: 'b3587482-api',
       verticalLabel: 'Catering Order',
       customer: 'b3587482',

@@ -154,7 +154,6 @@ async function filterPortfolio(data) {
       service: 'customer-6a766bce-portfolio',
       verticalLabel: 'Project Portfolio Filter',
       customer: '6a766bce',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/6a766bce/filter' },
         { key: 'service', value: 'customer-6a766bce-portfolio' },

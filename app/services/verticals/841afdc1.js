@@ -209,7 +209,6 @@ async function processAccountSummary(data) {
       service: 'customer-841afdc1-credit',
       verticalLabel: 'Account Manager Summary',
       customer: '841afdc1',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/841afdc1/account-summary' },
         { key: 'service', value: 'customer-841afdc1-credit' },

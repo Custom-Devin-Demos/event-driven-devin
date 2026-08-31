@@ -145,7 +145,6 @@ async function processReplenishment(data) {
       service: 'kraftheinz-supply-chain',
       verticalLabel: 'Kraft Heinz Replenishment Order',
       customer: '058bcc4c',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/058bcc4c/replenishment' },
         { key: 'service', value: 'kraftheinz-supply-chain' },

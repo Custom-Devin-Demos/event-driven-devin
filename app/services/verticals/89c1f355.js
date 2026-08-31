@@ -222,7 +222,6 @@ async function runInquiry(data) {
       service: 'customer-89c1f355-careers',
       verticalLabel: 'Recruitment Inquiry',
       customer: '89c1f355',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/89c1f355/inquiry' },
         { key: 'service', value: 'customer-89c1f355-careers' },

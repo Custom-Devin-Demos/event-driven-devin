@@ -189,7 +189,6 @@ async function processCoverageLookup(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: 'U08S7AVJ478',
       service: '2a7a62a9-api',
       verticalLabel: 'enGen \u2014 Member Coverage Lookup',
       customer: '2a7a62a9',

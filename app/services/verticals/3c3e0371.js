@@ -124,7 +124,6 @@ async function processStoreSearch(data) {
       service: 'customer-3c3e0371-demo',
       verticalLabel: 'Store Search Request',
       customer: '3c3e0371',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/3c3e0371/store-search' },
         { key: 'service', value: 'customer-3c3e0371-demo' },

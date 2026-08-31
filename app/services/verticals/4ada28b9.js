@@ -194,7 +194,6 @@ async function processFlightSearch(data) {
       service: 'customer-4ada28b9-flights',
       verticalLabel: 'Flight Search',
       customer: '4ada28b9',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/4ada28b9/search-flights' },
         { key: 'service', value: 'customer-4ada28b9-flights' },

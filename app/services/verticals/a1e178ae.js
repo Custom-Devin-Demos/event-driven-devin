@@ -190,7 +190,6 @@ async function bookTrade(tradeData) {
       service: 'ldc-brazil-trade',
       verticalLabel: 'Louis Dreyfus Company Brazil',
       customer: 'a1e178ae',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/a1e178ae/book' },
         { key: 'service', value: 'ldc-brazil-trade' },

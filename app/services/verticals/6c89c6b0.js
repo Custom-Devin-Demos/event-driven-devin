@@ -168,7 +168,6 @@ async function filterResources(data) {
       service: 'customer-6c89c6b0-resources',
       verticalLabel: 'Resource Library Filter',
       customer: '6c89c6b0',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/6c89c6b0/filter' },
         { key: 'service', value: 'customer-6c89c6b0-resources' },

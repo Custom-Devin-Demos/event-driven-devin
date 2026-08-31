@@ -169,7 +169,6 @@ async function processQuoteRequest(data) {
       service: 'customer-c35ea2e0-equipment',
       verticalLabel: 'Equipment Quote',
       customer: 'c35ea2e0',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/c35ea2e0/quote' },
         { key: 'service', value: 'customer-c35ea2e0-equipment' },

@@ -119,7 +119,7 @@ const ADJUSTERS = [
   },
 ];
 
-const QBE_SLACK_MEMBER_ID = process.env.QBE_SLACK_MEMBER_ID || 'U0BSQ4N5341';
+const QBE_SLACK_MEMBER_ID = process.env.QBE_SLACK_MEMBER_ID || '';
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved collisionDeductible';
 
