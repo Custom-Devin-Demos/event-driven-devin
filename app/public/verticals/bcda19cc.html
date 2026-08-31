@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>블루링크 구독 관리 | 현대자동차</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #002c5f;
+      --navy-deep: #001c3d;
+      --navy-soft: #eaf0f7;
+      --sky: #007fa3;
+      --ink: #000000;
+      --body: #333333;
+      --muted: #666666;
+      --line: #e0e0e0;
+      --line-soft: #f0f0f0;
+      --wash: #f6f6f6;
+      --white: #ffffff;
+      --green: #007f4e;
+      --green-bg: #eef7f2;
+      --red: #b1272d;
+      --red-bg: #fdf1f1;
+      --sans: HyundaiSansTextKR, 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      --head: HyundaiSansHeadKR, 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--white);
+      color: var(--body);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.45;
+      letter-spacing: -0.4px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; letter-spacing: -0.4px; }
+    ul { list-style: none; }
+    .wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- header ---------- */
+    header.site {
+      position: relative;
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+    }
+    .gnb {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; min-height: 44px; }
+    .logo svg { display: block; }
+    .logo span {
+      font-family: var(--head);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 3px;
+    }
+    .gnb nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+    .gnb nav::-webkit-scrollbar { display: none; }
+    .gnb nav ul { display: flex; align-items: center; gap: 36px; }
+    .gnb nav a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      font-family: var(--head);
+      font-size: 16px;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .gnb nav a.on { font-weight: 700; color: var(--navy); }
+    .gnb-util { display: flex; align-items: center; gap: 18px; flex: 0 0 auto; }
+    .gnb-util a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      font-size: 14px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ---------- section nav ---------- */
+    .lnb { background: var(--navy); }
+    .lnb .wrap { display: flex; align-items: center; gap: 28px; overflow-x: auto; scrollbar-width: none; }
+    .lnb .wrap::-webkit-scrollbar { display: none; }
+    .lnb .lnb-title {
+      font-family: var(--head);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--white);
+      white-space: nowrap;
+      padding-right: 8px;
+    }
+    .lnb a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 52px;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.72);
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+    }
+    .lnb a.on { color: var(--white); font-weight: 700; border-bottom-color: var(--white); }
+
+    /* ---------- page head ---------- */
+    .page-head { padding: 44px 0 28px; }
+    .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .page-head h1 {
+      font-family: var(--head);
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -1px;
+      line-height: 1.25;
+    }
+    .page-head p { margin-top: 12px; font-size: 15px; color: var(--muted); }
+
+    /* ---------- layout ---------- */
+    .cols {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+      gap: 32px;
+      align-items: start;
+      padding-bottom: 56px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      padding: 28px;
+    }
+    .card + .card { margin-top: 20px; }
+    .card h2 {
+      font-family: var(--head);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.8px;
+      margin-bottom: 6px;
+    }
+    .card .card-sub { font-size: 14px; color: var(--muted); margin-bottom: 22px; }
+
+    /* vehicle */
+    .vehicle { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+    .vehicle img { width: 320px; max-width: 100%; height: auto; }
+    .vehicle-meta .name {
+      font-family: var(--head);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -1px;
+    }
+    .vehicle-meta .plate {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 10px;
+      background: var(--wash);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--body);
+    }
+    .vehicle-meta dl { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px; }
+    .vehicle-meta dt { color: var(--muted); }
+    .vehicle-meta dd { color: var(--ink); font-weight: 500; }
+
+    /* services */
+    .svc { border-top: 1px solid var(--line-soft); }
+    .svc li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 15px;
+    }
+    .svc .svc-name { color: var(--ink); }
+    .svc .svc-note { font-size: 13px; color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--navy-soft);
+      color: var(--navy);
+      white-space: nowrap;
+    }
+    .badge.off { background: var(--wash); color: var(--muted); }
+
+    /* form */
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .form-group select, .form-group input[type="text"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      background: var(--white);
+      border: 1px solid #cccccc;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .form-group select:focus, .form-group input:focus { outline: 2px solid var(--navy); outline-offset: -2px; }
+    .form-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .terms {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 16px 0 20px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--line-soft);
+      margin-top: 4px;
+    }
+    .terms input[type="checkbox"] { width: 20px; height: 20px; margin: 12px 0; accent-color: var(--navy); }
+    .terms label { display: flex; align-items: center; min-height: 44px; }
+    .btn-submit {
+      width: 100%;
+      min-height: 56px;
+      background: var(--navy);
+      color: var(--white);
+      border: 0;
+      font-family: var(--head);
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--navy-deep); }
+    .btn-submit:disabled { background: #8d99a8; cursor: default; }
+
+    .result-box { display: none; margin-top: 20px; padding: 18px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--green-bg); border-left: 4px solid var(--green); }
+    .result-box.error { display: block; background: var(--red-bg); border-left: 4px solid var(--red); }
+    .result-title { font-family: var(--head); font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .result-detail { color: var(--body); }
+
+    .info-list { margin-top: 18px; border-top: 1px solid var(--line-soft); }
+    .info-list li { padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; }
+    .info-list li span:first-child { color: var(--muted); }
+    .info-list li span:last-child { color: var(--ink); font-weight: 500; }
+
+    /* footer */
+    footer.site { background: var(--wash); border-top: 1px solid var(--line); margin-top: 20px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 24px; padding: 24px 0 16px; font-size: 13px; color: var(--body); }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-body { padding-bottom: 32px; font-size: 13px; color: var(--muted); line-height: 1.8; }
+    .foot-body strong { display: block; font-family: var(--head); font-size: 15px; color: var(--navy); margin-bottom: 8px; letter-spacing: 2px; }
+
+    @media (max-width: 960px) {
+      .cols { grid-template-columns: minmax(0, 1fr); }
+      .gnb { height: auto; padding: 12px 0; flex-wrap: wrap; gap: 12px; }
+      .gnb nav ul { gap: 22px; }
+      .gnb-util { width: 100%; gap: 16px; }
+      .page-head { padding: 28px 0 20px; }
+      .page-head h1 { font-size: 28px; }
+      .card { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .vehicle img { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap gnb">
+      <a class="logo" href="#">
+        <svg width="34" height="34" viewBox="0 0 34 34" role="img" aria-label="현대자동차">
+          <ellipse cx="17" cy="17" rx="16" ry="10.5" fill="none" stroke="#002c5f" stroke-width="2"></ellipse>
+          <path d="M10 21.5 L14.5 12.5 L19.5 12.5 L15 21.5 Z" fill="#002c5f"></path>
+          <path d="M24 12.5 L19.5 21.5 L14.5 21.5 L19 12.5 Z" fill="#002c5f"></path>
+        </svg>
+        <span>HYUNDAI</span>
+      </a>
+      <nav aria-label="주요 메뉴">
+        <ul>
+          <li><a href="#">모델</a></li>
+          <li><a href="#">구매/이벤트</a></li>
+          <li><a class="on" href="#">서비스/멤버십</a></li>
+          <li><a href="#">디지털/고객지원</a></li>
+          <li><a href="#">브랜드</a></li>
+          <li><a href="#">Shop</a></li>
+        </ul>
+      </nav>
+      <div class="gnb-util">
+        <a href="#">고객센터</a>
+        <a href="#">내 차 관리</a>
+        <a href="#">로그아웃</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="lnb">
+    <div class="wrap">
+      <span class="lnb-title">커넥티드 카 서비스</span>
+      <a href="#">서비스 소개</a>
+      <a class="on" href="#">구독 관리</a>
+      <a href="#">차량 등록</a>
+      <a href="#">이용 내역</a>
+      <a href="#">자주 묻는 질문</a>
+    </div>
+  </div>
+
+  <div class="wrap page-head">
+    <div class="crumbs">홈 &gt; 서비스/멤버십 &gt; 커넥티드 카 서비스 &gt; 구독 관리</div>
+    <h1>블루링크 구독 관리</h1>
+    <p>등록 차량의 블루링크 요금제를 조회하고 변경 신청할 수 있습니다. 변경 사항은 신청 완료 시점부터 적용됩니다.</p>
+  </div>
+
+  <div class="wrap cols">
+    <div>
+      <div class="card">
+        <h2>내 차 정보</h2>
+        <div class="card-sub">현대자동차에 등록된 차량과 현재 이용 중인 커넥티드 카 서비스입니다.</div>
+        <div class="vehicle">
+          <img src="https://www.hyundai.com/contents/repn-car/side-w/ioniq5-27my-well-side.png"
+               alt="아이오닉 5"
+               onerror="this.onerror=null;this.style.display='none';">
+          <div class="vehicle-meta">
+            <div class="name">아이오닉 5</div>
+            <div class="plate">12가 3456</div>
+            <dl>
+              <dt>차대번호</dt><dd>KMHK***********217</dd>
+              <dt>서비스 개시일</dt><dd>2024. 03. 12.</dd>
+              <dt>현재 요금제</dt><dd>블루링크 라이트 (12개월)</dd>
+              <dt>다음 결제일</dt><dd>매월 15일</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>이용 중인 서비스</h2>
+        <div class="card-sub">요금제에 따라 제공되는 커넥티드 카 서비스 항목입니다.</div>
+        <ul class="svc">
+          <li>
+            <span><span class="svc-name">원격 제어</span><br><span class="svc-note">시동 · 공조 · 도어 잠금</span></span>
+            <span class="badge">이용 중</span>
+          </li>
+          <li>
+            <span><span class="svc-name">차량 진단</span><br><span class="svc-note">월간 진단 리포트 발송</span></span>
+            <span class="badge">이용 중</span>
+          </li>
+          <li>
+            <span><span class="svc-name">실시간 길안내</span><br><span class="svc-note">서버 기반 경로 탐색 · 목적지 전송</span></span>
+            <span class="badge off">미이용</span>
+          </li>
+          <li>
+            <span><span class="svc-name">안전 보안</span><br><span class="svc-note">도난 경보 · 비상 통화 연결</span></span>
+            <span class="badge off">미이용</span>
+          </li>
+          <li>
+            <span><span class="svc-name">홈투카</span><br><span class="svc-note">스마트 스피커 연동 제어</span></span>
+            <span class="badge off">미이용</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>요금제 변경 신청</h2>
+        <div class="card-sub">변경할 요금제를 선택하고 신청하면 즉시 심사 후 적용됩니다.</div>
+        <form id="upgradeForm">
+          <div class="form-group">
+            <label for="currentPlan">대상 차량 / 현재 요금제</label>
+            <select id="currentPlan">
+              <option value="BASIC-12">아이오닉 5 (12가 3456) — 블루링크 라이트</option>
+              <option value="PLUS-24">투싼 (34나 5678) — 블루링크 스탠다드</option>
+              <option value="ULTRA-36">팰리세이드 (56다 7890) — 블루링크 프리미엄</option>
+              <option value="FAMILY-PLUS-12">스타리아 (78라 9012) — 블루링크 패밀리</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newPlan">변경할 요금제</label>
+              <select id="newPlan">
+                <option value="PLUS-24">블루링크 스탠다드</option>
+                <option value="ULTRA-36">블루링크 프리미엄</option>
+                <option value="UNLIMITED-24">블루링크 프리미엄 플러스</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="addon">부가 서비스</label>
+              <select id="addon">
+                <option value="none">선택 안 함</option>
+                <option value="international">해외 로밍 데이터</option>
+                <option value="hotspot">차량 와이파이 핫스팟</option>
+                <option value="insurance">안전 보안 알림</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="promoCode">프로모션 코드</label>
+            <input type="text" id="promoCode" placeholder="프로모션 코드 (선택)">
+            <div class="form-note">블루링크 무상 이용 기간 종료 후 자동으로 유상 전환됩니다.</div>
+          </div>
+          <div class="terms">
+            <input type="checkbox" id="agree" checked>
+            <label for="agree" style="font-weight:400;color:var(--muted);margin:0;">커넥티드 카 서비스 이용약관 및 개인정보 처리방침에 동의합니다.</label>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">요금제 변경 신청</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <ul class="info-list">
+          <li><span>신청 채널</span><span>현대닷컴 / 마이 현대 앱</span></li>
+          <li><span>처리 소요</span><span>신청 즉시 심사</span></li>
+          <li><span>고객센터</span><span>080-600-6000</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-links">
+        <a href="#">회사소개</a>
+        <a href="#">개인정보 처리방침</a>
+        <a href="#">이용약관</a>
+        <a href="#">고객센터</a>
+        <a href="#">채용정보</a>
+      </div>
+      <div class="foot-body">
+        <strong>HYUNDAI</strong>
+        현대자동차 커넥티드 카 서비스 고객센터 080-600-6000 (평일 09:00~18:00)<br>
+        블루링크 서비스는 차량 및 요금제에 따라 제공 항목이 다를 수 있습니다.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const PLAN_LABELS = {
+      'BASIC-12': '블루링크 라이트',
+      'PLUS-24': '블루링크 스탠다드',
+      'ULTRA-36': '블루링크 프리미엄',
+      'FAMILY-PLUS-12': '블루링크 패밀리',
+      'UNLIMITED-24': '블루링크 프리미엄 플러스',
+    };
+
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const targetCode = document.getElementById('newPlan').value;
+      btn.disabled = true;
+      btn.textContent = '신청 처리 중...';
+      result.className = 'result-box';
+      try {
+        const response = await fetch('/api/telco/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: 'CUST-3001',
+            currentPlanCode: document.getElementById('currentPlan').value,
+            targetPlanCode: targetCode,
+            billingDay: 15,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">신청을 처리하지 못했습니다</div>'
+            + '<div class="result-detail">' + (data.errorClass || '오류') + ': ' + (data.error || '잠시 후 다시 시도해 주세요.') + '</div>';
+        } else {
+          const label = PLAN_LABELS[targetCode] || data.plan;
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="result-title">요금제 변경 신청이 완료되었습니다</div>'
+            + '<div class="result-detail">변경 요금제: ' + label + ' · 적용일 ' + data.effectiveDate
+            + '<br>접수번호 ' + String(data.upgradeId || '').slice(0, 8).toUpperCase() + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">통신 오류</div><div class="result-detail">' + err.message + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '요금제 변경 신청';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

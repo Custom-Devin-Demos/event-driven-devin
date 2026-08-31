@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>신세계 유니버스 클럽 멤버십 관리 | 신세계포인트</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #000000;
+      --body: #222222;
+      --muted: #767676;
+      --line: #e5e5e5;
+      --line-soft: #f1f1f1;
+      --wash: #fbfbfb;
+      --white: #ffffff;
+      --space-deep: #05071a;
+      --gold: #a3833f;
+      --green: #00834f;
+      --green-bg: #f0f8f4;
+      --red: #cc0000;
+      --red-bg: #fdf2f2;
+      --sans: SDGothicNeo, SDGothic, Pretendard, 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      --serif: 'Noto Serif KR', Garamond, SDGothic, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--white);
+      color: var(--body);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+      letter-spacing: -0.25px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; letter-spacing: -0.25px; }
+    ul { list-style: none; }
+    .wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- header ---------- */
+    header.site { background: var(--white); border-bottom: 1px solid var(--line); }
+    .gnb { height: 88px; display: flex; align-items: center; gap: 40px; }
+    .brand { display: flex; align-items: center; gap: 10px; min-height: 44px; flex: 0 0 auto; }
+    .brand svg { display: block; }
+    .brand .mark-text {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: 3.5px;
+    }
+    .brand .mark-sub { font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: -0.5px; }
+    .gnb nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; display: flex; justify-content: flex-end; }
+    .gnb nav::-webkit-scrollbar { display: none; }
+    .gnb nav ul { display: flex; align-items: center; gap: 40px; }
+    .gnb nav a {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      font-size: 17px;
+      color: var(--body);
+      white-space: nowrap;
+    }
+    .gnb nav a.on { font-weight: 700; color: var(--ink); }
+    .gnb nav a.on::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #f0b429, #e2542c, #b2338f, #2f6dd0);
+    }
+
+    /* ---------- hero ---------- */
+    .hero {
+      background:
+        radial-gradient(1px 1px at 18% 32%, rgba(255,255,255,0.9), transparent 60%),
+        radial-gradient(1px 1px at 42% 18%, rgba(255,255,255,0.7), transparent 60%),
+        radial-gradient(1.5px 1.5px at 66% 44%, rgba(255,255,255,0.85), transparent 60%),
+        radial-gradient(1px 1px at 82% 24%, rgba(255,255,255,0.7), transparent 60%),
+        radial-gradient(1px 1px at 28% 70%, rgba(255,255,255,0.6), transparent 60%),
+        radial-gradient(120% 90% at 50% 130%, #26386f 0%, #101a44 42%, var(--space-deep) 100%);
+      color: var(--white);
+      text-align: center;
+      padding: 72px 0 64px;
+    }
+    .hero .kicker { font-size: 14px; letter-spacing: 5px; color: rgba(255,255,255,0.72); }
+    .hero h1 {
+      margin-top: 14px;
+      font-family: var(--serif);
+      font-size: 54px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      line-height: 1.15;
+    }
+    .hero .hero-ko { margin-top: 18px; font-size: 17px; color: rgba(255,255,255,0.82); letter-spacing: -0.4px; }
+    .hero .hero-meta {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px 28px;
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(255,255,255,0.22);
+      font-size: 14px;
+      color: rgba(255,255,255,0.78);
+    }
+
+    /* ---------- page head ---------- */
+    .page-head { padding: 44px 0 26px; }
+    .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .page-head h2 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -1.2px;
+      line-height: 1.3;
+    }
+    .page-head p { margin-top: 12px; font-size: 15px; color: var(--muted); }
+
+    /* ---------- layout ---------- */
+    .cols {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 452px);
+      gap: 30px;
+      align-items: start;
+      padding-bottom: 56px;
+    }
+    .card { background: var(--white); border: 1px solid var(--line); padding: 28px; }
+    .card + .card { margin-top: 20px; }
+    .card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.8px;
+      margin-bottom: 6px;
+    }
+    .card .card-sub { font-size: 14px; color: var(--muted); margin-bottom: 22px; }
+
+    /* membership summary */
+    .member { display: flex; align-items: flex-start; gap: 26px; flex-wrap: wrap; }
+    .member-seal {
+      width: 132px;
+      height: 132px;
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: linear-gradient(160deg, #24325f 0%, var(--space-deep) 100%);
+      color: var(--white);
+    }
+    .member-seal .seal-mark { font-family: var(--serif); font-size: 17px; letter-spacing: 2px; text-align: center; line-height: 1.35; }
+    .member-seal .seal-ko { font-size: 11px; letter-spacing: 1px; color: rgba(255,255,255,0.78); }
+    .member-meta { min-width: 0; }
+    .member-meta .name { font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.8px; }
+    .member-meta .tag {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 10px;
+      background: var(--wash);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--body);
+    }
+    .member-meta dl { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; font-size: 14px; }
+    .member-meta dt { color: var(--muted); }
+    .member-meta dd { color: var(--ink); font-weight: 500; }
+
+    /* brand benefits */
+    .benefits { border-top: 1px solid var(--line-soft); }
+    .benefits li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 15px 0;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 15px;
+    }
+    .benefits .b-name { color: var(--ink); font-weight: 500; }
+    .benefits .b-note { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f4f1ea;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    .badge.off { background: var(--wash); color: var(--muted); }
+
+    /* form */
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .form-group select, .form-group input[type="text"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 14px;
+      background: var(--white);
+      border: 1px solid #cccccc;
+      border-radius: 8px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .form-group select:focus, .form-group input:focus { outline: 2px solid var(--ink); outline-offset: -2px; }
+    .form-note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .terms {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 16px 0 20px;
+      margin-top: 4px;
+      border-top: 1px solid var(--line-soft);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .terms input[type="checkbox"] { width: 24px; height: 24px; margin: 10px 0; accent-color: var(--ink); }
+    .terms label { display: flex; align-items: center; min-height: 44px; }
+    .btn-submit {
+      width: 100%;
+      min-height: 56px;
+      background: #383838;
+      color: var(--white);
+      border: 0;
+      border-radius: 8px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-submit:hover { background: var(--ink); }
+    .btn-submit:disabled { background: #9b9b9b; cursor: default; }
+
+    .result-box { display: none; margin-top: 20px; padding: 18px; font-size: 14px; }
+    .result-box.success { display: block; background: var(--green-bg); border-left: 4px solid var(--green); }
+    .result-box.error { display: block; background: var(--red-bg); border-left: 4px solid var(--red); }
+    .result-title { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+    .result-detail { color: var(--body); }
+
+    .info-list { margin-top: 18px; border-top: 1px solid var(--line-soft); }
+    .info-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 14px;
+    }
+    .info-list li span:first-child { color: var(--muted); }
+    .info-list li span:last-child { color: var(--ink); font-weight: 500; }
+
+    /* footer */
+    footer.site { background: var(--wash); border-top: 1px solid var(--line); margin-top: 20px; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 26px; padding: 24px 0 14px; font-size: 13px; color: var(--body); }
+    .foot-links a { display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-body { padding-bottom: 34px; font-size: 13px; color: var(--muted); line-height: 1.9; }
+    .foot-body strong { display: block; font-size: 14px; color: var(--ink); letter-spacing: 3px; margin-bottom: 8px; }
+
+    @media (max-width: 960px) {
+      .cols { grid-template-columns: minmax(0, 1fr); }
+      .gnb { height: auto; padding: 12px 0; flex-wrap: wrap; gap: 10px; }
+      .gnb nav { justify-content: flex-start; }
+      .gnb nav ul { gap: 24px; }
+      .hero { padding: 52px 0 46px; }
+      .hero h1 { font-size: 34px; letter-spacing: 4px; }
+      .page-head { padding: 28px 0 20px; }
+      .page-head h2 { font-size: 26px; }
+      .card { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; }
+      .member-seal { width: 108px; height: 108px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap gnb">
+      <a class="brand" href="#">
+        <svg width="30" height="30" viewBox="0 0 30 30" role="img" aria-label="신세계포인트">
+          <circle cx="15" cy="15" r="14" fill="none" stroke="#000000" stroke-width="1.4"></circle>
+          <circle cx="15" cy="15" r="4.6" fill="#000000"></circle>
+          <path d="M15 1.2 A13.8 13.8 0 0 1 28.8 15" fill="none" stroke="#a3833f" stroke-width="2.4"></path>
+        </svg>
+        <span class="mark-text">SHINSEGAE</span>
+        <span class="mark-sub">Point</span>
+      </a>
+      <nav aria-label="주요 메뉴">
+        <ul>
+          <li><a href="#">신세계포인트</a></li>
+          <li><a class="on" href="#">멤버십 서비스</a></li>
+          <li><a href="#">이벤트</a></li>
+          <li><a href="#">고객센터</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">SHINSEGAE</div>
+      <h1>UNIVERSE CLUB</h1>
+      <div class="hero-ko">신세계 유니버스 클럽은 한 번의 가입으로 신세계백화점 · 이마트 · SSG.COM · G마켓 · 옥션 · 스타벅스 · 신세계면세점 혜택을 함께 이용하는 연회원 멤버십입니다.</div>
+      <div class="hero-meta">
+        <span>연회비 30,000원</span>
+        <span>연회원 1년 단위 이용</span>
+        <span>가입 브랜드 기준 혜택 제공</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap page-head">
+    <div class="crumbs">홈 &gt; 멤버십 서비스 &gt; 신세계 유니버스 클럽 &gt; 멤버십 관리</div>
+    <h2>멤버십 관리</h2>
+    <p>가입된 신세계 유니버스 클럽 멤버십을 조회하고 변경 신청할 수 있습니다. 변경 사항은 신청 완료 시점부터 적용됩니다.</p>
+  </div>
+
+  <div class="wrap cols">
+    <div>
+      <div class="card">
+        <h3>내 멤버십 정보</h3>
+        <div class="card-sub">신세계포인트 통합회원 계정에 연결된 멤버십입니다.</div>
+        <div class="member">
+          <div class="member-seal">
+            <span class="seal-mark">UNIVERSE<br>CLUB</span>
+            <span class="seal-ko">유니버스 클럽</span>
+          </div>
+          <div class="member-meta">
+            <div class="name">신세계 유니버스 클럽 연회원</div>
+            <span class="tag">가입 브랜드 · SSG.COM</span>
+            <dl>
+              <dt>신세계포인트 회원번호</dt><dd>9412 **** **** 3001</dd>
+              <dt>가입일</dt><dd>2025. 09. 12.</dd>
+              <dt>이용 기간</dt><dd>2025. 09. 12. ~ 2026. 09. 11.</dd>
+              <dt>현재 멤버십</dt><dd>유니버스 클럽 연회원 (SSG.COM 가입)</dd>
+              <dt>다음 결제일</dt><dd>매월 15일</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>브랜드별 이용 혜택</h3>
+        <div class="card-sub">가입 브랜드 인증 여부에 따라 제공되는 혜택 항목입니다.</div>
+        <ul class="benefits">
+          <li>
+            <span><span class="b-name">SSG.COM</span><span class="b-note">매월 5% 할인쿠폰 3장 · 7% 할인쿠폰 2장</span></span>
+            <span class="badge">이용 중</span>
+          </li>
+          <li>
+            <span><span class="b-name">이마트</span><span class="b-note">매월 5% 할인쿠폰 4장 · 이달의 플러스 혜택</span></span>
+            <span class="badge">이용 중</span>
+          </li>
+          <li>
+            <span><span class="b-name">신세계백화점</span><span class="b-note">패션 · 잡화 최대 5% 할인 세일리지 (신백 멤버스 가입 필요)</span></span>
+            <span class="badge off">미인증</span>
+          </li>
+          <li>
+            <span><span class="b-name">G마켓 · 옥션</span><span class="b-note">5% 할인쿠폰 · 매월 최대 15% 할인쿠폰 4장</span></span>
+            <span class="badge off">미인증</span>
+          </li>
+          <li>
+            <span><span class="b-name">스타벅스</span><span class="b-note">별 추가 적립 · 사이즈업 쿠폰</span></span>
+            <span class="badge off">미인증</span>
+          </li>
+          <li>
+            <span><span class="b-name">신세계면세점</span><span class="b-note">GOLD 멤버십 · 매월 최대 3만원 즉시 할인</span></span>
+            <span class="badge off">미인증</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>멤버십 변경 신청</h3>
+        <div class="card-sub">변경할 멤버십을 선택하고 신청하면 심사 후 적용됩니다.</div>
+        <form id="upgradeForm">
+          <div class="form-group">
+            <label for="currentPlan">현재 멤버십</label>
+            <select id="currentPlan">
+              <option value="BASIC-12">신세계포인트 일반 회원 (무료)</option>
+              <option value="PLUS-24">유니버스 클럽 연회원 — SSG.COM 가입</option>
+              <option value="ULTRA-36">유니버스 클럽 연회원 — 신세계백화점 가입</option>
+              <option value="FAMILY-PLUS-12">유니버스 클럽 연회원 — 이마트 가입</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newPlan">변경할 멤버십</label>
+              <select id="newPlan">
+                <option value="PLUS-24">유니버스 클럽 — SSG.COM</option>
+                <option value="ULTRA-36">유니버스 클럽 — 신세계백화점</option>
+                <option value="UNLIMITED-24">유니버스 클럽 — G마켓 · 옥션</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="addon">추가 브랜드 인증</label>
+              <select id="addon">
+                <option value="none">선택 안 함</option>
+                <option value="department">신백 멤버스</option>
+                <option value="starbucks">스타벅스 계정 연동</option>
+                <option value="dutyfree">신세계면세점 GOLD 멤버십</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="promoCode">프로모션 코드</label>
+            <input type="text" id="promoCode" placeholder="프로모션 코드 (선택)">
+            <div class="form-note">연회비는 변경 신청일 기준으로 재산정되며, 잔여 이용 기간은 그대로 유지됩니다.</div>
+          </div>
+          <div class="terms">
+            <input type="checkbox" id="agree" checked>
+            <label for="agree" style="font-weight:400;color:var(--muted);margin:0;">신세계 유니버스 클럽 이용약관 및 개인정보 처리방침에 동의합니다.</label>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">멤버십 변경 신청</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <ul class="info-list">
+          <li><span>신청 채널</span><span>신세계포인트 웹 / 앱</span></li>
+          <li><span>처리 소요</span><span>신청 즉시 심사</span></li>
+          <li><span>고객센터</span><span>1899-4349</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-links">
+        <a href="#">서비스 이용약관</a>
+        <a href="#">개인정보 처리방침</a>
+        <a href="#">회원탈퇴</a>
+        <a href="#">고객센터</a>
+        <a href="#">가맹점 소개</a>
+      </div>
+      <div class="foot-body">
+        <strong>SHINSEGAE POINT</strong>
+        신세계포인트 고객센터 1899-4349 (평일 09:00~18:00) · SSG.COM 1577-3419 · 신세계백화점 1588-1234<br>
+        신세계 유니버스 클럽 혜택은 연회원 1년 단위로 이용 가능하며, 브랜드별 혜택은 각 브랜드 앱 또는 홈페이지에서 확인할 수 있습니다.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const PLAN_LABELS = {
+      'BASIC-12': '신세계포인트 일반 회원',
+      'PLUS-24': '유니버스 클럽 — SSG.COM',
+      'ULTRA-36': '유니버스 클럽 — 신세계백화점',
+      'FAMILY-PLUS-12': '유니버스 클럽 — 이마트',
+      'UNLIMITED-24': '유니버스 클럽 — G마켓 · 옥션',
+    };
+
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const targetCode = document.getElementById('newPlan').value;
+      btn.disabled = true;
+      btn.textContent = '신청 처리 중...';
+      result.className = 'result-box';
+      try {
+        const response = await fetch('/api/telco/upgrade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accountId: 'CUST-3001',
+            currentPlanCode: document.getElementById('currentPlan').value,
+            targetPlanCode: targetCode,
+            billingDay: 15,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">신청을 처리하지 못했습니다</div>'
+            + '<div class="result-detail">' + (data.errorClass || '오류') + ': ' + (data.error || '잠시 후 다시 시도해 주세요.') + '</div>';
+        } else {
+          const label = PLAN_LABELS[targetCode] || data.plan;
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="result-title">멤버십 변경 신청이 완료되었습니다</div>'
+            + '<div class="result-detail">변경 멤버십: ' + label + ' · 적용일 ' + data.effectiveDate
+            + '<br>접수번호 ' + String(data.upgradeId || '').slice(0, 8).toUpperCase() + '</div>';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="result-title">통신 오류</div><div class="result-detail">' + err.message + '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '멤버십 변경 신청';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

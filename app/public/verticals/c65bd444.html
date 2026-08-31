@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>스카이패스 마일리지 양도/합산 | 대한항공</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #051766;
+      --sky: #57BBEB;
+      --red: #DA291C;
+      --wash: #F7F7F7;
+      --border: #E0E0E0;
+      --muted: #5E5E5E;
+      --font: 'KoreanAir Sans KR', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { overflow-x: hidden; }
+    body { margin: 0; color: #000; background: #fff; font-family: var(--font); font-size: 16px; line-height: 24px; }
+    a { min-height: 44px; color: inherit; text-decoration: none; }
+    button, input, select { min-height: 44px; font: inherit; }
+    button, a, input, select { -webkit-tap-highlight-color: transparent; }
+    .utility { border-bottom: 1px solid var(--border); color: var(--muted); font-size: 13px; line-height: 20px; }
+    .utility-inner, .header-inner, .content-shell, .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .utility-inner { min-height: 32px; display: flex; align-items: center; justify-content: flex-end; gap: 20px; padding: 4px 0; }
+    .utility a { min-height: 44px; display: inline-flex; align-items: center; }
+    .site-header { background: #fff; border-bottom: 1px solid var(--border); }
+    .header-inner { min-height: 80px; display: flex; align-items: center; gap: 44px; padding: 12px 0; }
+    .brand { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; color: var(--navy); font-size: 20px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; }
+    .brand svg { display: block; flex: 0 0 auto; }
+    .main-nav { display: flex; align-items: center; gap: 32px; color: var(--navy); font-size: 16px; font-weight: 500; }
+    .main-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .search { width: 250px; height: 44px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 9999px; padding: 0 14px 0 18px; color: var(--muted); }
+    .search input { min-width: 0; width: 100%; height: 44px; border: 0; outline: 0; color: var(--muted); background: transparent; font-size: 13px; }
+    .search svg { flex: 0 0 auto; }
+    .login { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--navy); border-radius: 9999px; padding: 8px 24px; color: var(--navy); font-size: 14px; font-weight: 500; }
+    .content-shell { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 40px; padding: 48px 0 80px; }
+    .sidebar { color: var(--navy); }
+    .sidebar-title { margin: 0 0 20px; padding: 0 8px 14px; border-bottom: 1px solid var(--navy); font-size: 18px; font-weight: 700; }
+    .side-group { margin-bottom: 24px; }
+    .side-group-title { display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 8px; font-size: 16px; font-weight: 700; }
+    .side-group-title::after { content: ''; width: 8px; height: 8px; border-top: 1px solid var(--navy); border-right: 1px solid var(--navy); transform: rotate(-45deg); margin-right: 4px; }
+    .side-links { list-style: none; margin: 0; padding: 0; }
+    .side-links a { display: flex; align-items: center; min-height: 44px; border-radius: 4px; padding: 8px; color: var(--muted); font-size: 14px; }
+    .side-links a.active { background: var(--wash); color: var(--navy); font-weight: 700; }
+    .side-single { display: flex; align-items: center; min-height: 44px; border-top: 1px solid var(--border); padding: 10px 8px; font-size: 14px; }
+    .eyebrow { margin: 0 0 8px; color: var(--muted); font-size: 14px; line-height: 20px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 32px; color: var(--navy); font-size: 32px; line-height: 48px; font-weight: 700; }
+    h2 { color: var(--navy); font-size: 24px; line-height: 36px; font-weight: 700; }
+    .info-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 28px; border: 1px solid var(--border); border-radius: 8px; background: var(--wash); padding: 28px 32px; }
+    .info-item { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 16px; align-items: start; }
+    .info-icon { color: var(--navy); padding-top: 2px; }
+    .info-item strong { display: block; margin-bottom: 8px; color: var(--navy); font-size: 16px; line-height: 24px; }
+    .info-item p { margin-bottom: 0; color: var(--navy); font-size: 14px; line-height: 22px; }
+    .action-card { margin-bottom: 56px; border: 1px solid var(--border); border-radius: 4px; background: #fff; padding: 36px 40px 32px; }
+    .action-card h2 { margin-bottom: 8px; }
+    .subline { margin-bottom: 28px; color: var(--muted); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; color: var(--navy); font-size: 16px; font-weight: 700; }
+    .form-group select, .form-group input { width: 100%; height: 48px; border: 1px solid #BDBDBD; border-radius: 4px; padding: 0 14px; background: #fff; color: #000; font-size: 16px; }
+    .form-group select:focus, .form-group input:focus { outline: 2px solid var(--sky); outline-offset: 1px; border-color: var(--navy); }
+    .input-hint { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; line-height: 20px; }
+    #submitBtn { width: 100%; min-height: 48px; border: 1px solid var(--navy); border-radius: 9999px; padding: 10px 24px; background: var(--navy); color: #fff; cursor: pointer; font-size: 16px; font-weight: 700; }
+    #submitBtn:hover { background: #0b2b8e; }
+    #submitBtn:disabled { opacity: 0.6; cursor: wait; }
+    .result-box { display: none; margin-top: 16px; border-radius: 4px; padding: 14px 16px; font-size: 14px; }
+    .result-box.success { display: block; border: 1px solid #9ACFA8; background: #F2FBF4; color: #175C29; }
+    .result-box.error { display: block; border: 1px solid #E2A7A2; background: #FFF5F4; color: #8D2018; }
+    .error-title { margin-bottom: 2px; font-weight: 700; }
+    .error-detail { word-break: break-word; }
+    .form-note { margin: 16px 0 0; color: var(--muted); font-size: 14px; }
+    .notice { margin-bottom: 64px; }
+    .notice h2 { margin-bottom: 20px; }
+    .notice ul { margin: 0; padding-left: 22px; color: var(--navy); }
+    .notice li { margin-bottom: 10px; padding-left: 4px; }
+    .recommendations { background: var(--wash); }
+    .recommendations-inner { max-width: 1200px; margin: 0 auto; padding: 44px 0 48px; }
+    .recommendations h2 { margin-bottom: 20px; }
+    .recommendation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .recommendation-card { min-height: 132px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1px solid var(--border); border-radius: 8px; background: #fff; padding: 24px; color: var(--navy); }
+    .recommendation-card h3 { margin-bottom: 8px; font-size: 18px; line-height: 28px; font-weight: 700; }
+    .recommendation-card p { margin-bottom: 0; color: var(--navy); font-size: 14px; line-height: 22px; }
+    .chevron { flex: 0 0 auto; width: 12px; height: 12px; border-top: 2px solid var(--navy); border-right: 2px solid var(--navy); transform: rotate(45deg); }
+    .site-footer { border-top: 1px solid var(--border); background: #fff; }
+    .footer-inner { padding: 48px 0 28px; }
+    .footer-columns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; padding-bottom: 36px; }
+    .footer-column h3 { margin-bottom: 14px; color: var(--navy); font-size: 16px; line-height: 24px; font-weight: 700; }
+    .footer-column a { display: flex; align-items: center; min-height: 44px; color: var(--navy); font-size: 14px; }
+    .legal { border-top: 1px solid var(--border); padding-top: 20px; color: var(--muted); font-size: 13px; line-height: 22px; }
+    .legal p { margin-bottom: 4px; }
+    @media (max-width: 1248px) {
+      .utility-inner, .header-inner, .content-shell, .recommendations-inner, .footer-inner { margin-left: 24px; margin-right: 24px; }
+    }
+    @media (max-width: 900px) {
+      .header-inner { min-height: 72px; gap: 20px; }
+      .main-nav { gap: 16px; }
+      .search { width: 200px; }
+      .content-shell { grid-template-columns: 1fr; gap: 32px; padding-top: 32px; }
+      .sidebar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+      .sidebar-title { grid-column: 1 / -1; margin-bottom: 0; }
+      .side-single { align-self: end; border-top: 0; }
+    }
+    @media (max-width: 640px) {
+      .utility-inner, .header-inner, .content-shell, .recommendations-inner, .footer-inner { margin-left: 16px; margin-right: 16px; }
+      .utility-inner { gap: 10px; font-size: 12px; }
+      .header-inner { flex-wrap: wrap; padding-top: 10px; padding-bottom: 10px; }
+      .brand { font-size: 18px; }
+      .main-nav { order: 3; width: 100%; justify-content: space-between; gap: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+      .main-nav a { font-size: 14px; }
+      .header-actions { gap: 8px; }
+      .search { width: min(52vw, 210px); }
+      .search input { font-size: 12px; }
+      .login { padding: 8px 16px; }
+      .content-shell { margin-left: 16px; margin-right: 16px; padding-top: 24px; padding-bottom: 48px; }
+      h1 { margin-bottom: 24px; font-size: 28px; line-height: 40px; }
+      .sidebar { display: block; }
+      .sidebar-title { margin-bottom: 12px; }
+      .side-group { margin-bottom: 12px; }
+      .side-links a { min-height: 44px; }
+      .info-panel { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
+      .action-card { padding: 28px 20px 24px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .recommendations-inner { padding: 32px 0 36px; }
+      .recommendation-grid { grid-template-columns: 1fr; gap: 12px; }
+      .recommendation-card { min-height: 112px; padding: 20px; }
+      .footer-inner { padding-top: 32px; }
+      .footer-columns { grid-template-columns: repeat(2, 1fr); gap: 24px 16px; }
+    }
+    @media (max-width: 390px) {
+      .utility-inner { gap: 7px; }
+      .brand { letter-spacing: 0; }
+      .search { width: 48vw; }
+      .search input { letter-spacing: -0.5px; }
+      .login { padding-left: 12px; padding-right: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="utility-inner">
+      <a href="#">이벤트</a>
+      <a href="#">대한민국 - 한국어</a>
+      <a href="#">회원가입</a>
+    </div>
+  </div>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#" aria-label="대한항공 홈">
+        <svg width="34" height="34" viewBox="0 0 34 34" role="img" aria-hidden="true">
+          <circle cx="17" cy="17" r="16" fill="#051766"/>
+          <path d="M6.5 18.2c3.1-5.9 10.8-8.8 17.3-5.8 1.4.6 2.6 1.5 3.7 2.5-3.9-1.9-8.2-1.4-11.3.9-2.4 1.8-4.2 4.4-4.8 7.4-2.2-1.1-3.9-2.8-4.9-5Z" fill="#fff"/>
+          <path d="M8 21.7c3.1 3.2 8.1 4.3 12.4 2.5 2.5-1 4.4-2.8 5.6-5.1-3.8 3.1-8.5 4.2-12.8 2.4-1.8-.7-3.6-.7-5.2.2Z" fill="#57BBEB"/>
+        </svg>
+        <span>KOREAN AIR</span>
+      </a>
+      <nav class="main-nav" aria-label="주요 메뉴">
+        <a href="#">예약</a>
+        <a href="#">여행 준비</a>
+        <a href="#">스카이패스</a>
+      </nav>
+      <div class="header-actions">
+        <label class="search">
+          <input type="text" aria-label="검색" placeholder="궁금한 것을 검색해 보세요!" readonly>
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="7.5" cy="7.5" r="4.5" fill="none" stroke="#051766"/><path d="m11 11 4 4" stroke="#051766" stroke-linecap="round"/></svg>
+        </label>
+        <a class="login" href="#">로그인</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="content-shell">
+    <aside class="sidebar">
+      <h2 class="sidebar-title">회원 혜택</h2>
+      <section class="side-group">
+        <h3 class="side-group-title">등급 안내</h3>
+        <ul class="side-links">
+          <li><a href="#">스카이패스 클럽</a></li>
+          <li><a href="#">모닝캄 클럽</a></li>
+          <li><a href="#">모닝캄 프리미엄 클럽</a></li>
+          <li><a href="#">밀리언 마일러 클럽</a></li>
+        </ul>
+      </section>
+      <section class="side-group">
+        <h3 class="side-group-title">가족 마일리지</h3>
+        <ul class="side-links">
+          <li><a href="#">가족 등록</a></li>
+          <li><a class="active" href="#" aria-current="page">양도/합산</a></li>
+        </ul>
+      </section>
+      <a class="side-single" href="#">스카이팀 공동혜택</a>
+    </aside>
+
+    <main>
+      <p class="eyebrow">가족 마일리지</p>
+      <h1>양도/합산</h1>
+
+      <section class="info-panel" aria-label="양도 및 합산 안내">
+        <div class="info-item">
+          <div class="info-icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 23.5h24v3H4zM7 22v-5.5l7-3.5 7 3.5V22" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M16 5v7m-3-4 3-3 3 3M12 20h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <strong>가족에게 보너스를 선물할 때</strong>
+            <p>내 마일리지를 사용하여 가족의 보너스 항공권이나 상품을 구매할 수 있어요</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon" aria-hidden="true">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="11" cy="13" r="6" stroke="currentColor" stroke-width="1.7"/><circle cx="21" cy="19" r="6" stroke="currentColor" stroke-width="1.7"/><path d="M9 13h4m-2-2v4m8 4h4m-2-2v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <strong>내 마일리지가 부족할 때</strong>
+            <p>내 마일리지에 가족의 마일을 합산하여 나의 보너스 항공권이나 상품을 구매할 수 있어요</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="action-card">
+        <h2>마일리지 양도/합산 신청</h2>
+        <p class="subline">등록된 가족 회원에게 마일리지를 양도하거나 나의 보너스 구매를 위해 합산할 수 있습니다.</p>
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fromAccount">보내는 회원</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">보너스 계정 ****1001</option>
+                <option value="ACCT-1002">보너스 계정 ****1002</option>
+                <option value="ACCT-1003">보너스 계정 ****1003</option>
+                <option value="ACCT-1004">보너스 계정 ****1004</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="toAccount">받는 가족 회원</label>
+              <select id="toAccount">
+                <option value="ACCT-1002">보너스 계정 ****1002</option>
+                <option value="ACCT-1001">보너스 계정 ****1001</option>
+                <option value="ACCT-1003">보너스 계정 ****1003</option>
+                <option value="ACCT-1004">보너스 계정 ****1004</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="amount">마일리지</label>
+            <input type="number" id="amount" value="500000" min="1000" step="1000" inputmode="numeric">
+            <span class="input-hint">마일</span>
+          </div>
+          <div class="form-group">
+            <label for="accountTier">SKYPASS 회원 등급</label>
+            <select id="accountTier">
+              <option value="premium">모닝캄 프리미엄</option>
+              <option value="standard">모닝캄</option>
+              <option value="basic">일반</option>
+            </select>
+          </div>
+          <button type="submit" id="submitBtn">양도/합산 신청</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <p class="form-note">신청 결과는 처리 완료 후 아래에 표시됩니다.</p>
+      </section>
+
+      <section class="notice">
+        <h2>알아두세요</h2>
+        <ul>
+          <li>가족 등록이 완료되면 등록한 가족 간 별도의 동의 절차 없이 서로의 마일리지를 합산하여 사용할 수 있습니다.</li>
+          <li>가족의 마일리지와 합산하여 발급된 보너스를 환불하는 경우 보너스 신청 회원에게 마일리지가 환급됩니다.</li>
+          <li>가족 마일리지 합산을 원하지 않는 경우 등록된 가족을 삭제하여 주시기 바랍니다.</li>
+          <li>스카이팀 보너스/좌석승급은 가족 마일리지 합산이 제한됩니다.</li>
+        </ul>
+      </section>
+
+    </main>
+  </div>
+
+  <section class="recommendations">
+    <div class="recommendations-inner">
+      <h2>이런 주제는 어떠세요?</h2>
+      <div class="recommendation-grid">
+        <a class="recommendation-card" href="#">
+          <div><h3>가족 등록 및 변경 안내</h3><p>마일리지를 더욱 유용하게 사용할 수 있도록 가족 마일리지 제도에 대해 알아보세요.</p></div>
+          <span class="chevron" aria-hidden="true"></span>
+        </a>
+        <a class="recommendation-card" href="#">
+          <div><h3>마일리지 예매</h3><p>꿈의 목적지로의 항공권을 예매하고, 대한항공과 즐거운 여행을 계획해 보세요.</p></div>
+          <span class="chevron" aria-hidden="true"></span>
+        </a>
+        <a class="recommendation-card" href="#">
+          <div><h3>대한항공 보너스 이용 안내</h3><p>마일리지를 사용하여 대한항공 보너스 항공권을 예매하는 방법을 안내해 드립니다.</p></div>
+          <span class="chevron" aria-hidden="true"></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-columns">
+        <div class="footer-column"><h3>회사소개</h3><a href="#">Our Transformation</a><a href="#">대한항공에 대하여</a><a href="#">기업지배구조</a><a href="#">투자정보</a><a href="#">지속가능경영</a><a href="#">뉴스룸</a></div>
+        <div class="footer-column"><h3>고객지원</h3><a href="#">공지사항</a><a href="#">고객의 말씀</a><a href="#">서비스센터</a><a href="#">e-서식함</a><a href="#">디지털 접근성</a></div>
+        <div class="footer-column"><h3>약관 및 규정</h3><a href="#">개인정보 처리방침</a><a href="#">이용 약관</a><a href="#">운송약관 및 고지사항</a><a href="#">소비자 안전 관련 정보</a><a href="#">운임 및 서비스 요금표</a><a href="#">쿠키 설정</a></div>
+        <div class="footer-column"><h3>기타 안내</h3><a href="#">기업 출장 / 전용기</a><a href="#">고객 안내 서비스</a><a href="#">항공교통이용자 서비스 계획</a><a href="#">항공교통이용자 피해 구제</a><a href="#">관련 사이트</a><a href="#">사이트맵</a></div>
+        <div class="footer-column"><h3>인기 방문국가</h3><a href="#">미국</a><a href="#">일본</a><a href="#">중국</a><a href="#">캐나다</a><a href="#">태국</a></div>
+      </div>
+      <div class="legal">
+        <p>(주) 대한항공&nbsp;&nbsp; 대표: 우기홍 외 1명 | 주소: 서울특별시 강서구 하늘길 260 | 전화: 1588-2001 / 02-2656-2001</p>
+        <p>© 2026 KOREAN AIR</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = '처리 중...';
+      result.className = 'result-box';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: localStorage.getItem('userId') || 'usr_alice_chen',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">신청에 실패했습니다</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">신청이 완료되었습니다</div><div class="error-detail">마일리지 ' + data.receipt.amount + '마일이 처리되었습니다.</div>';
+        }
+      } catch (error) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">네트워크 오류</div><div class="error-detail">' + error.message + '</div>';
+      } finally {
+        button.disabled = false;
+        button.textContent = '양도/합산 신청';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
