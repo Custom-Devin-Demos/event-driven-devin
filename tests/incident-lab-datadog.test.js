@@ -158,9 +158,21 @@ describe('incident-lab datadog emitter', () => {
       const before = post.mock.calls.filter(([url]) => url.includes('http-intake.logs')).length;
       expect(before).toBe(1);
       await sink.onStop(run);
+      // Stop settles the in-flight delay immediately: the burst promise
+      // resolves without posting and without waiting out its interval.
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(jest.getTimerCount()).toBe(0);
       await jest.advanceTimersByTimeAsync(5000);
       const after = post.mock.calls.filter(([url]) => url.includes('http-intake.logs')).length;
       expect(after).toBe(before);
+
+      // A fresh arm after the interrupted burst behaves normally.
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(0);
+      const rearmed = post.mock.calls.filter(([url]) => url.includes('http-intake.logs')).length;
+      expect(rearmed).toBe(before + 1);
+      await sink.onStop(run);
     } finally {
       jest.useRealTimers();
     }

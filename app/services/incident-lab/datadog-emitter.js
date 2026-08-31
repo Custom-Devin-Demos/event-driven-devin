@@ -267,6 +267,20 @@ function createDatadogSink({ post = axios.post } = {}) {
     }
   }
 
+  /** A delay that onStop can settle immediately, so an in-flight burst
+   *  never stays pending after its run is stopped. */
+  function cancellableDelay(forState, ms) {
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        forState.delayResolvers.delete(resolve);
+        resolve();
+      }, ms);
+      if (timer.unref) timer.unref();
+      forState.timers.push(timer);
+      forState.delayResolvers.add(resolve);
+    });
+  }
+
   async function burst(run, prelude) {
     // Capture the state this burst belongs to: onStop clears the module
     // state while a burst may still be awaiting delivery, and resuming
@@ -286,11 +300,7 @@ function createDatadogSink({ post = axios.post } = {}) {
           logger.warn('Incident Lab prelude burst failed', { error: error.message });
         }
         if (spec.intervalMs && i < spec.count - 1) {
-          await new Promise((resolve) => {
-            const timer = setTimeout(resolve, spec.intervalMs);
-            if (timer.unref) timer.unref();
-            burstState.timers.push(timer);
-          });
+          await cancellableDelay(burstState, spec.intervalMs);
         }
       }
     }
@@ -328,6 +338,7 @@ function createDatadogSink({ post = axios.post } = {}) {
         logRates: [],
         logAccrual: new Map(),
         timers: [],
+        delayResolvers: new Set(),
       };
       applyMetricSpecs((dd.baseline || {}).metrics);
       applyLogSpecs((dd.baseline || {}).logs, 'baseline');
@@ -379,6 +390,8 @@ function createDatadogSink({ post = axios.post } = {}) {
         state.stopped = true;
         if (state.interval) clearInterval(state.interval);
         for (const timer of state.timers) clearTimeout(timer);
+        for (const resolve of state.delayResolvers) resolve();
+        state.delayResolvers.clear();
         state = null;
       }
       if (run.incident && run.incident.id) {
