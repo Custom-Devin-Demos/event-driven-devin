@@ -27,8 +27,6 @@ const webinarRoutes = require('./routes/webinar');
 const oncallRoutes = require('./routes/oncall');
 const oncallVerticalRoutes = require('./routes/oncall-verticals');
 const internalJobsRoutes = require('./routes/internal-jobs');
-const automationsRoutes = require('./routes/automations');
-const automationsDemoRoutes = require('./routes/automations-demo');
 const cibcCardApplyRoutes = require('./routes/cibc-card-apply');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
@@ -112,8 +110,6 @@ app.use(webinarRoutes);
 app.use(oncallRoutes);
 app.use(oncallVerticalRoutes);
 app.use(internalJobsRoutes);
-app.use(automationsRoutes);
-app.use(automationsDemoRoutes);
 app.use(cibcCardApplyRoutes);
 app.use(verticalRoutes);
 

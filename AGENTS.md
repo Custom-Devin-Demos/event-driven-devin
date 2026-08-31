@@ -131,8 +131,6 @@ Three things are deliberately separate:
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
-│   │   ├── automations.html       # Slow-query patrol explainer and Run Now control
-│   │   ├── automations-demo.html  # Presenter control plane for the automations incident demo
 │   │   ├── oncall-report.html     # Shared customer-skinned support portal
 │   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
@@ -165,8 +163,6 @@ Three things are deliberately separate:
 │   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
-│   │   ├── automations.js         # Automations explainer page and Run Now Devin session endpoint
-│   │   ├── automations-demo.js    # Presenter arm/schedule/declare/status/cleanup API
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -178,7 +174,6 @@ Three things are deliberately separate:
 │   ├── services/
 │   │   ├── devin-session.js       # Builds investigation prompt, posts Slack alert, triggers Devin
 │   │   ├── slack.js               # Slack API helpers (post messages, thread replies, delete messages)
-│   │   ├── automations-demo.js    # Standing-instance client and incident run lifecycle
 │   │   ├── verticals/
 │   │   │   ├── banking.js         # Banking business logic
 │   │   │   ├── financial-services.js  # Trading business logic
@@ -235,15 +230,11 @@ Three things are deliberately separate:
 ├── tests/
 │   ├── ...                         # Vertical, pipeline, and integration test suites
 │   ├── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
-│   ├── automations.test.js        # Automations page and Run Now endpoint tests
-│   └── automations-demo.test.js   # Automations incident control-plane tests
 ├── docs/
 │   ├── ...                         # Demo runbooks and scenario documentation
 │   ├── patrol-evidence-chart.template.html # Shared evidence chart template for the daily patrol
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── prompts/
-│   ├── automations-patrol-backtest.md # Mode delta for presenter backtests
-│   └── automations-patrol-production.md # Mirrors the scheduled automation's stored prompt; not loaded by code
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
@@ -408,19 +399,6 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `INTERNAL_JOB_RATE_WINDOW_MS` | Sliding-window duration for internal job requests | No (default: `60000`) |
 | `INTERNAL_JOB_PER_IP_RATE_LIMIT` | Accepted internal job requests per IP per window | No (default: `4`) |
 | `INTERNAL_JOB_PROCESS_RATE_LIMIT` | Accepted internal job requests process-wide per window | No (default: `6`) |
-| `AUTOMATIONS_RUN_TOKEN` | Presenter token for the `/automations` Run Now action; unset disables it | No |
-| `AUTOMATIONS_RUN_MAX_PER_HOUR` | Max on-demand patrol sessions per hour (default: `3`) | No |
-| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `45`) | No |
-| `AUTOMATIONS_DEMO_SERVICE_BASE_URL` | Base URL for the standing automations service admin API | For automations incident demo |
-| `AUTOMATIONS_DEMO_SERVICE_TOKEN` | Bearer token for the standing automations service | For automations incident demo |
-| `AUTOMATIONS_DEMO_TOKEN` | Optional presenter token for automations incident mutations | No |
-| `AUTOMATIONS_DEMO_TZ` | Presenter timezone for incident channel dates (default: `America/Los_Angeles`) | No |
-| `AUTOMATIONS_DEMO_RUN_WINDOW_MS` | Automations incident auto-stop window (default: 60 minutes) | No |
-| `AUTOMATIONS_DEMO_IC_NAME` | Incident commander shown on the declaration card | No |
-| `AUTOMATIONS_DEMO_STANDING_REPO_URL` | Standing repo link shown on the declaration card | No |
-| `AUTOMATIONS_DEMO_SERVICE_TAG` | Service tag shown on the declaration card | No |
-| `SLACK_TEAM_ID` | Optional Slack team ID used for incident links | No |
-| `GITHUB_TOKEN` / `GH_TOKEN` | Optional token for closing Devin-authored standing-repo PRs during cleanup | No |
 | `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment
@@ -575,16 +553,6 @@ When the app is running (locally at `localhost:3000` or on EC2 via `https://<DOM
 | Slack (`#automated-alerts`) | Alert notifications, Devin triggering | `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN` (slack mode), `SLACK_CHANNEL_ID` |
 | [Devin API](https://api.devin.ai) | Direct session creation (api mode) | `DEVIN_API_KEY` |
 | Datadog Dashboard | checkout-api overview | `DD_DASHBOARD_URL` |
-
-### Automations incident demo
-
-The presenter control plane is served at `/automations-demo` and exposes:
-`POST /api/automations-demo/arm`, `POST /api/automations-demo/schedule`,
-`POST /api/automations-demo/declare`, `GET /api/automations-demo/status`,
-`POST /api/automations-demo/stop`, `POST /api/automations-demo/smoke`, and
-`POST /api/automations-demo/archive-stale`. It talks to the standing
-automations service over HTTP; it does not run the standing emitter. See
-`docs/DEMO-AUTOMATIONS-INCIDENT.md` for the run sheet and contract.
 
 ## Common Tasks
 

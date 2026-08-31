@@ -50,6 +50,12 @@ jobs:
           # Extract new code (old containers keep serving traffic)
           tar xzf acme-demo.tar.gz
 
+          # Remove retired files that tar extraction leaves behind
+          rm -f /home/ubuntu/app/public/automations.html /home/ubuntu/app/public/automations-demo.html
+          rm -f /home/ubuntu/app/routes/automations.js /home/ubuntu/app/routes/automations-demo.js
+          rm -f /home/ubuntu/app/services/automations-demo.js
+          rm -rf /home/ubuntu/standing-service
+
           # Restore .env if it was overwritten
           if [ ! -f /home/ubuntu/.env ]; then
             cp /home/ubuntu/.env.bak /home/ubuntu/.env
