@@ -547,6 +547,11 @@ const CUSTOMERS = {
     label: 'QBE North America Claims',
     triggerMode: 'api',
   },
+  '6dc826a1': {
+    label: 'Morgan Stanley WM — Advisor Trade Booking',
+    triggerMode: 'api',
+    githubOrg: 'COG-GTM',
+  },
 };
 
 /**

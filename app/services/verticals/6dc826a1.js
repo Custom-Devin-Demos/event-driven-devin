@@ -322,6 +322,7 @@ async function submitOrder(data) {
       errorValue: error.message,
       service: '6dc826a1-api',
       verticalLabel: 'Wealth Management — Advisor Trade Booking',
+      customer: '6dc826a1',
       slackMemberId: VERTICAL_SLACK_MEMBER_ID,
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
