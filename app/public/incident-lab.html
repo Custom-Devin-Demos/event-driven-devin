@@ -87,10 +87,11 @@
     $('stop').disabled = !(status === 'armed' || status === 'declared');
   }
 
-  // Whether the visible warning came from a status poll (cleared once
-  // polling recovers) rather than a failed action (kept until the next
-  // successful action or manual refresh).
-  let warningFromRefresh = false;
+  // Source of the visible warning: a status-poll error ('refresh') is
+  // cleared once polling recovers, while a failed action's ('action') is
+  // kept — and never overwritten by poll errors — until the next
+  // successful action or manual refresh.
+  let warningSource = null;
 
   async function refresh({ clearWarning = false } = {}) {
     try {
@@ -118,13 +119,15 @@
       summaryPart(summary, 'Elapsed', status.elapsedMs != null ? `${Math.round(status.elapsedMs / 60000)}m` : null);
       $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
       applyButtons(status.status);
-      if (clearWarning || warningFromRefresh) {
+      if (clearWarning || warningSource === 'refresh') {
         $('warning').textContent = '';
-        warningFromRefresh = false;
+        warningSource = null;
       }
     } catch (error) {
-      $('warning').textContent = error.message;
-      warningFromRefresh = true;
+      if (warningSource !== 'action') {
+        $('warning').textContent = error.message;
+        warningSource = 'refresh';
+      }
     }
   }
 
@@ -136,7 +139,7 @@
     } catch (error) {
       failed = true;
       $('warning').textContent = error.message;
-      warningFromRefresh = false;
+      warningSource = 'action';
     }
     // refresh() owns button state: it re-enables what the new lifecycle
     // state allows, so completed actions stay disabled instead of
