@@ -21,7 +21,13 @@ describe('incident-lab datadog emitter', () => {
   let post;
   let sink;
 
+  const savedEnv = {};
+
   beforeEach(() => {
+    for (const key of ['DD_API_KEY', 'DD_INCIDENT_APP_KEY', 'DD_APPLICATION_KEY']) {
+      savedEnv[key] = process.env[key];
+      delete process.env[key];
+    }
     process.env.DD_API_KEY = 'test-key';
     post = jest.fn().mockResolvedValue({ data: {} });
     sink = createDatadogSink({ post });
@@ -31,7 +37,10 @@ describe('incident-lab datadog emitter', () => {
 
   afterEach(async () => {
     await sink.onStop(makeRun());
-    delete process.env.DD_API_KEY;
+    for (const key of ['DD_API_KEY', 'DD_INCIDENT_APP_KEY', 'DD_APPLICATION_KEY']) {
+      if (savedEnv[key] === undefined) delete process.env[key];
+      else process.env[key] = savedEnv[key];
+    }
   });
 
   test('onDeclare declares the incident with the scenario severity', async () => {
@@ -49,6 +58,14 @@ describe('incident-lab datadog emitter', () => {
     declareDatadogIncident.mockResolvedValue(null);
     const run = makeRun();
     await sink.onDeclare(run);
+    expect(run.incident).toBeNull();
+  });
+
+  test('onDeclare fails loudly when keys are configured but no incident comes back', async () => {
+    process.env.DD_INCIDENT_APP_KEY = 'test-app-key';
+    declareDatadogIncident.mockResolvedValue(null);
+    const run = makeRun();
+    await expect(sink.onDeclare(run)).rejects.toThrow(/no incident/);
     expect(run.incident).toBeNull();
   });
 

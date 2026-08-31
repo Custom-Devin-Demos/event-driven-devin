@@ -22,11 +22,13 @@ function registerSink(sink) {
 }
 
 async function fanOut(hook, ...args) {
+  const errors = [];
   for (const sink of sinks) {
     if (typeof sink[hook] !== 'function') continue;
     try {
       await sink[hook](...args);
     } catch (error) {
+      errors.push(error);
       logger.warn('Incident Lab sink hook failed', {
         hook,
         sink: sink.name || 'anonymous',
@@ -34,6 +36,7 @@ async function fanOut(hook, ...args) {
       });
     }
   }
+  return errors;
 }
 
 let run = null;
@@ -88,7 +91,18 @@ async function declare() {
   run.status = 'declared';
   run.declaredAt = Date.now();
   note('incident declared');
-  await fanOut('onDeclare', run);
+  const errors = await fanOut('onDeclare', run);
+  // The Datadog declaration is the core of declare(): without an incident
+  // there is no Slack channel and no timeline. A sink failure with no
+  // incident re-arms the run (baseline noise keeps flowing) so the
+  // presenter can retry; sink failures after an incident exists stay
+  // isolated as usual.
+  if (errors.length && !run.incident) {
+    run.status = 'armed';
+    run.declaredAt = null;
+    note(`declaration failed — run re-armed (${errors[0].message})`);
+    return { ok: false, error: `Incident declaration failed: ${errors[0].message}`, runRef: run.runRef, status: run.status };
+  }
 
   const phases = (run.scenario.datadog && run.scenario.datadog.phases) || [];
   for (const phase of phases) {

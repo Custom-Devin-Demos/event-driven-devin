@@ -83,9 +83,15 @@ describe('incident-lab routes', () => {
     });
     expect(phase.status).toBe(200);
 
-    const status = await (await request('GET', '/api/incident-lab/status')).json();
+    const status = await (await request('GET', '/api/incident-lab/status', { token })).json();
     expect(status.status).toBe('declared');
     expect(status.phases).toContain('mitigated');
+
+    const publicStatus = await (await request('GET', '/api/incident-lab/status')).json();
+    expect(publicStatus.status).toBe('declared');
+    expect(publicStatus.runRef).toBeUndefined();
+    expect(publicStatus.incident).toBeUndefined();
+    expect(publicStatus.log).toBeUndefined();
 
     const stopped = await request('POST', '/api/incident-lab/stop', { token });
     expect(stopped.status).toBe(200);
@@ -110,4 +116,20 @@ describe('incident-lab routes', () => {
     });
     expect(badPhase.status).toBe(400);
   });
+
+  test('mutations are throttled per window', async () => {
+    const token = 'lab-test-token';
+    process.env.INCIDENT_LAB_MUTATION_LIMIT = '1';
+    process.env.INCIDENT_LAB_MUTATION_WINDOW_MS = '5000';
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 5100)); // let prior tests' mutations age out
+      const first = await request('POST', '/api/incident-lab/stop', { token });
+      expect([200, 400]).toContain(first.status);
+      const second = await request('POST', '/api/incident-lab/stop', { token });
+      expect(second.status).toBe(429);
+    } finally {
+      delete process.env.INCIDENT_LAB_MUTATION_LIMIT;
+      delete process.env.INCIDENT_LAB_MUTATION_WINDOW_MS;
+    }
+  }, 15000);
 });

@@ -33,30 +33,53 @@ function requireLabToken(req, res, next) {
   return next();
 }
 
+// Real Datadog/Slack traffic rides on every mutation: throttle them so a
+// scripted or runaway client cannot burn external quotas mid-demo.
+let mutationTimestamps = [];
+function throttleMutations(_req, res, next) {
+  const windowMs = Number(process.env.INCIDENT_LAB_MUTATION_WINDOW_MS) || 60000;
+  const limit = Number(process.env.INCIDENT_LAB_MUTATION_LIMIT) || 20;
+  const now = Date.now();
+  mutationTimestamps = mutationTimestamps.filter((t) => now - t < windowMs);
+  if (mutationTimestamps.length >= limit) {
+    return res.status(429).json({ ok: false, error: 'Too many control requests — try again shortly' });
+  }
+  mutationTimestamps.push(now);
+  return next();
+}
+
 router.get('/oncall/incident-lab', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'incident-lab.html'));
 });
 
-router.get('/api/incident-lab/status', (_req, res) => {
-  res.json({ ok: true, ...engine.status() });
+// Run details (run refs, incident ids, phases, log) are presenter-only:
+// without a valid lab token the status is reduced to the scenario catalog
+// and coarse state so outsiders cannot watch an exercise in real time.
+router.get('/api/incident-lab/status', (req, res) => {
+  const full = engine.status();
+  const expected = process.env.INCIDENT_LAB_TOKEN;
+  if (expected && req.get('X-Lab-Token') === expected) {
+    return res.json({ ok: true, ...full });
+  }
+  return res.json({ ok: true, status: full.status, scenarios: full.scenarios });
 });
 
-router.post('/api/incident-lab/arm', requireLabToken, async (req, res) => {
+router.post('/api/incident-lab/arm', requireLabToken, throttleMutations, async (req, res) => {
   const result = await engine.arm((req.body || {}).scenario);
   res.status(result.ok ? 200 : 400).json(result);
 });
 
-router.post('/api/incident-lab/declare', requireLabToken, async (_req, res) => {
+router.post('/api/incident-lab/declare', requireLabToken, throttleMutations, async (_req, res) => {
   const result = await engine.declare();
   res.status(result.ok ? 200 : 400).json(result);
 });
 
-router.post('/api/incident-lab/phase', requireLabToken, async (req, res) => {
+router.post('/api/incident-lab/phase', requireLabToken, throttleMutations, async (req, res) => {
   const result = await engine.triggerPhase((req.body || {}).phase);
   res.status(result.ok ? 200 : 400).json(result);
 });
 
-router.post('/api/incident-lab/stop', requireLabToken, async (_req, res) => {
+router.post('/api/incident-lab/stop', requireLabToken, throttleMutations, async (_req, res) => {
   const result = await engine.stop('stopped via control page');
   res.status(result.ok ? 200 : 400).json(result);
 });

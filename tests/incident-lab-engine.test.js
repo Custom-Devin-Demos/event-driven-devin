@@ -117,4 +117,42 @@ describe('incident-lab engine lifecycle', () => {
     const armed = await engine.arm('flowforge-scheduled-workflows');
     expect(armed.ok).toBe(true);
   });
+
+  test('a declaration failure with no incident re-arms the run and is retryable', async () => {
+    let attempts = 0;
+    engine.registerSink({
+      name: 'flaky-datadog',
+      onDeclare: (run) => {
+        attempts++;
+        if (attempts === 1) throw new Error('datadog 500');
+        run.incident = { id: 'inc-1', publicId: 42 };
+      },
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+
+    const failed = await engine.declare();
+    expect(failed.ok).toBe(false);
+    expect(failed.error).toMatch(/datadog 500/);
+    expect(engine.status().status).toBe('armed');
+
+    const retried = await engine.declare();
+    expect(retried.ok).toBe(true);
+    expect(engine.status().status).toBe('declared');
+    expect(engine.currentRun().incident.publicId).toBe(42);
+  });
+
+  test('a sink failure after the incident exists stays isolated', async () => {
+    engine.registerSink({
+      name: 'datadog',
+      onDeclare: (run) => { run.incident = { id: 'inc-1', publicId: 7 }; },
+    });
+    engine.registerSink({
+      name: 'broken-personas',
+      onDeclare: () => { throw new Error('slack down'); },
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    const declared = await engine.declare();
+    expect(declared.ok).toBe(true);
+    expect(engine.status().status).toBe('declared');
+  });
 });

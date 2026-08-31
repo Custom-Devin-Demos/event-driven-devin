@@ -70,9 +70,30 @@
     return body;
   }
 
+  // Server-provided values only ever land in the DOM via textContent —
+  // never innerHTML — so status/scenario metadata cannot execute here.
+  function summaryPart(container, label, value) {
+    if (value == null || value === '') return;
+    container.appendChild(document.createTextNode(`${container.childNodes.length ? ' · ' : ''}${label}: `));
+    const b = document.createElement('b');
+    b.textContent = String(value);
+    container.appendChild(b);
+  }
+
+  function applyButtons(status) {
+    $('arm').disabled = status === 'armed' || status === 'declared';
+    $('declare').disabled = status !== 'armed';
+    $('trigger-phase').disabled = status !== 'declared';
+    $('stop').disabled = !(status === 'armed' || status === 'declared');
+  }
+
   async function refresh() {
     try {
-      const status = await fetch('/api/incident-lab/status').then((r) => r.json());
+      // The lab token unlocks the full run detail (run ref, incident, log);
+      // without it the server returns only coarse state + scenario list.
+      const status = await fetch('/api/incident-lab/status', {
+        headers: $('token').value ? { 'X-Lab-Token': $('token').value } : {},
+      }).then((r) => r.json());
       const select = $('scenario');
       if (select.options.length !== (status.scenarios || []).length) {
         select.innerHTML = '';
@@ -83,15 +104,15 @@
           select.appendChild(option);
         }
       }
-      $('summary').innerHTML =
-        `State: <b>${status.status}</b>` +
-        (status.runRef ? ` · Run: <b>${status.runRef}</b>` : '') +
-        (status.incident ? ` · Incident: <b>#${status.incident.publicId}</b>` : '') +
-        (status.phases && status.phases.length ? ` · Phases: <b>${status.phases.join(', ')}</b>` : '') +
-        (status.elapsedMs != null ? ` · Elapsed: <b>${Math.round(status.elapsedMs / 60000)}m</b>` : '');
+      const summary = $('summary');
+      summary.textContent = '';
+      summaryPart(summary, 'State', status.status);
+      summaryPart(summary, 'Run', status.runRef);
+      summaryPart(summary, 'Incident', status.incident ? `#${status.incident.publicId}` : null);
+      summaryPart(summary, 'Phases', status.phases && status.phases.length ? status.phases.join(', ') : null);
+      summaryPart(summary, 'Elapsed', status.elapsedMs != null ? `${Math.round(status.elapsedMs / 60000)}m` : null);
       $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
-      $('declare').disabled = status.status !== 'armed';
-      $('trigger-phase').disabled = status.status !== 'declared';
+      applyButtons(status.status);
       $('warning').textContent = '';
     } catch (error) {
       $('warning').textContent = error.message;
@@ -102,12 +123,13 @@
     $(button).disabled = true;
     try {
       await call(path, { method: 'POST', body: JSON.stringify(body || {}) });
-      await refresh();
     } catch (error) {
       $('warning').textContent = error.message;
-    } finally {
-      $(button).disabled = false;
     }
+    // refresh() owns button state: it re-enables what the new lifecycle
+    // state allows, so completed actions stay disabled instead of
+    // re-enabling for invalid repeats.
+    await refresh();
   }
 
   $('arm').onclick = () => act('arm', '/api/incident-lab/arm', { scenario: $('scenario').value });

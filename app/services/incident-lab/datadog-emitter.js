@@ -308,6 +308,8 @@ function createDatadogSink({ post = axios.post } = {}) {
           runRef: run.runRef,
           publicId: incident.publicId,
         });
+      } else if (process.env.DD_API_KEY && (process.env.DD_INCIDENT_APP_KEY || process.env.DD_APPLICATION_KEY)) {
+        throw new Error('Datadog returned no incident');
       } else {
         logger.warn('Incident Lab: Datadog incident keys not configured — no incident declared');
       }
