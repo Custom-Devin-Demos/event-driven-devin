@@ -87,7 +87,7 @@
     $('stop').disabled = !(status === 'armed' || status === 'declared');
   }
 
-  async function refresh() {
+  async function refresh({ clearWarning = false } = {}) {
     try {
       // The lab token unlocks the full run detail (run ref, incident, log);
       // without it the server returns only coarse state + scenario list.
@@ -113,7 +113,7 @@
       summaryPart(summary, 'Elapsed', status.elapsedMs != null ? `${Math.round(status.elapsedMs / 60000)}m` : null);
       $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
       applyButtons(status.status);
-      $('warning').textContent = '';
+      if (clearWarning) $('warning').textContent = '';
     } catch (error) {
       $('warning').textContent = error.message;
     }
@@ -121,22 +121,25 @@
 
   async function act(button, path, body) {
     $(button).disabled = true;
+    let failed = false;
     try {
       await call(path, { method: 'POST', body: JSON.stringify(body || {}) });
     } catch (error) {
+      failed = true;
       $('warning').textContent = error.message;
     }
     // refresh() owns button state: it re-enables what the new lifecycle
     // state allows, so completed actions stay disabled instead of
-    // re-enabling for invalid repeats.
-    await refresh();
+    // re-enabling for invalid repeats. A failed action's warning stays
+    // visible until the next successful action or manual refresh.
+    await refresh({ clearWarning: !failed });
   }
 
   $('arm').onclick = () => act('arm', '/api/incident-lab/arm', { scenario: $('scenario').value });
   $('declare').onclick = () => act('declare', '/api/incident-lab/declare');
   $('trigger-phase').onclick = () => act('trigger-phase', '/api/incident-lab/phase', { phase: $('phase').value });
   $('stop').onclick = () => act('stop', '/api/incident-lab/stop');
-  $('refresh').onclick = refresh;
+  $('refresh').onclick = () => refresh({ clearWarning: true });
 
   refresh();
   setInterval(refresh, 15000);
