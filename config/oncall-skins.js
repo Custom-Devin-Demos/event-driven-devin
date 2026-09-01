@@ -659,6 +659,25 @@ const ONCALL_SKINS = {
     supportCenter: '정부24 고객센터',
     disclaimer: 'NOT ACTUALLY A GOV.KR (정부24) SITE — internal demo only, not affiliated with, endorsed by, or a real Government of Korea service.',
   },
+  'bf5f21e3': {
+    slug: 'bf5f21e3',
+    company: 'Forrester',
+    brandMark: 'F',
+    vertical: 'hightech',
+    page: {
+      file: 'bf5f21e3.html',
+      title: 'Forrester Decisions | Manage Seats',
+    },
+    theme: {
+      '--accent': '#10398C',
+      '--ink': '#1F2733',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Forrester Client Support',
+    disclaimer: 'NOT ACTUALLY A FORRESTER SITE — internal demo only, not affiliated with, endorsed by, or a real Forrester product.',
+  },
 };
 
 function getOncallSkin(slug) {
