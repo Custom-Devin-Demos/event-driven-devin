@@ -96,6 +96,45 @@ describe('incident-lab datadog emitter', () => {
     expect(sampleLog.message).not.toMatch(/\{\w+\}/);
   });
 
+  test('a phase log spec with replacesBaseline retires the baseline template', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+      await sink.onPhase(run, onset);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const messages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .map((event) => event.message);
+      expect(messages.length).toBeGreaterThan(0);
+      expect(messages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('a backdated prelude burst lands immediately with historical timestamps', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(70000);
+      const events = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .filter((event) => event.message.includes('InvalidBucketName'));
+      expect(events).toHaveLength(8);
+      for (const event of events) {
+        expect(event.timestamp).toBeLessThan(Date.now() - 3600000);
+      }
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('onStop resolves the Datadog incident', async () => {
     const run = makeRun();
     run.incident = { id: 'abc', publicId: 42 };

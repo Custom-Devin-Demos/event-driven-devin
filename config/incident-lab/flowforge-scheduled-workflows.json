@@ -1,7 +1,7 @@
 {
   "id": "flowforge-scheduled-workflows",
   "title": "Scheduled workflows failing",
-  "summary": "Since around 8AM all scheduled workflows are failing to enqueue. Detected by an employee — no alert fired.",
+  "summary": "Scheduled workflows stopped enqueueing minutes after this morning's orchestrator deploy finished rolling out. Detected by an employee — no alert fired.",
   "severity": "SEV-1",
   "service": "flowforge-orchestrator",
   "env": "production",
@@ -58,15 +58,16 @@
     "prelude": [
       {
         "id": "precursor-burst",
-        "afterArmMs": 600000,
-        "note": "Exactly-8-error self-resolving burst (manual run by the affected tenant; dead-letters after maxReceive=8). Two 'days' before onset in demo time.",
+        "afterArmMs": 60000,
+        "backdateMs": 7200000,
+        "note": "The loud precursor: meridianfx's manual test run of their new weekly export, BEFORE the log-redaction release deployed. Pre-redaction worker logging includes the full provider error, stack, and project slug — the only place the smoking gun appears in telemetry. Dead-letters after maxReceive=8 and self-resolves; nobody notices. Written 1 min after arm with timestamps backdated 2h, so it always predates the deploy marker (declare minus 60 min) — no long arm lead needed.",
         "logs": [
           {
             "count": 8,
             "intervalMs": 110000,
             "status": "error",
             "logger": "flowforge.queue.worker",
-            "template": "Error processing queue job {jobId} for execution batch (project: prj_meridianfx_eu), skipping: S3UploadError: InvalidBucketName: The specified bucket is not valid. at S3BinaryDataManager.store (packages/core/src/binary-data/s3.manager.ts:87:11) at async Promise.all (index 0) at async ScheduleIngestService.offloadBatch (packages/cli/src/scaling/schedule-ingest.service.ts:141:20)"
+            "template": "Schedule ingest job {jobId} (tick {tickId}) failed, returning to queue: S3UploadError: InvalidBucketName: The specified bucket is not valid. (project: prj_meridianfx_eu) at S3BinaryDataManager.store (packages/core/src/binary-data/s3.manager.ts:87:11) at async Promise.all (index 0) at async ScheduleIngestService.offloadBatch (packages/cli/src/scaling/schedule-ingest.service.ts:141:20) at async ScheduleIngestService.ingestTick (packages/cli/src/scaling/schedule-ingest.service.ts:96:9)"
           }
         ],
         "metrics": [
@@ -78,7 +79,7 @@
       {
         "id": "onset",
         "startMs": -3600000,
-        "note": "Outage begins one hour before declaration (detection gap). Steady 480/hr error rate: 60 ticks x 8 redeliveries.",
+        "note": "Outage begins one hour before declaration (detection gap). The deploy marker backfills as a single log at the start of the hour — the red herring: the rollout finishing and schedules dying look simultaneous. Outage errors are QUIET: the deployed redaction strips provider messages from worker logs, so no bucket name, no project slug, no stack. 480/hr: 60 ticks x 8 redeliveries.",
         "metrics": [
           { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 0.03, "jitter": 0.8, "replacesBaseline": true },
           { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 0.03, "jitter": 0.8, "replacesBaseline": true },
@@ -87,10 +88,24 @@
         ],
         "logs": [
           {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "flowforge.deploy",
+            "template": "Deployment complete: flowforge-orchestrator {version} rolled out to 4/4 hosts"
+          },
+          {
             "perHour": 480,
             "status": "error",
             "logger": "flowforge.queue.worker",
-            "template": "Error processing queue job {jobId} for schedule tick (global tick, projects matched: {n}), skipping: S3UploadError: InvalidBucketName: The specified bucket is not valid. at S3BinaryDataManager.store (packages/core/src/binary-data/s3.manager.ts:87:11) at async Promise.all (index 3) at async ScheduleIngestService.offloadBatch (packages/cli/src/scaling/schedule-ingest.service.ts:141:20) at async ScheduleIngestService.ingestTick (packages/cli/src/scaling/schedule-ingest.service.ts:96:9)"
+            "template": "Schedule ingest job {jobId} (tick {tickId}) failed on attempt {attempt}/8, returning to queue — cause redacted (may contain tenant data)"
+          },
+          {
+            "perHour": 0,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "flowforge.queue",
+            "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
           },
           {
             "perHour": 60,
@@ -103,7 +118,7 @@
       {
         "id": "red-herring-redis",
         "startMs": -3300000,
-        "note": "Coincidental Redis reconnect storm shortly after onset — plausible but unrelated.",
+        "note": "Coincidental Redis reconnect storm shortly after onset — plausible but unrelated. Second herring after the deploy.",
         "logs": [
           {
             "perHour": 30,
@@ -122,11 +137,13 @@
         "metrics": [
           { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 6, "jitter": 0.3, "replacesBaseline": true, "catchUpBurst": { "count": 220, "windowMs": 900000 } },
           { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 5.9, "jitter": 0.3, "replacesBaseline": true },
-          { "metric": "queue.jobs.redelivered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true }
+          { "metric": "queue.jobs.redelivered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true },
+          { "metric": "queue.jobs.dead_lettered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true }
         ],
         "logs": [
           {
             "perHour": 40,
+            "replacesBaseline": true,
             "status": "info",
             "logger": "flowforge.queue",
             "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
@@ -140,10 +157,10 @@
       "id": "ic",
       "username": "Jordan Reyes (IC)",
       "icon": ":fire_engine:",
-      "role": "Incident commander and owner of the orchestrator service. Wrote much of the scheduling code. Direct, moves fast, occasionally wrong about details (feature flags).",
+      "role": "Incident commander and owner of the orchestrator service. Wrote much of the scheduling code. Direct, moves fast, anchored on this morning's deploy as the cause, occasionally wrong about details (feature flags).",
       "canReveal": [
         "The scheduler ticks every minute and matches due workflows across all projects.",
-        "One customer project (meridianfx) has bring-your-own S3-compatible storage.",
+        "A small number of enterprise projects are on bring-your-own object storage.",
         "There is supposedly an ingest kill-switch feature flag (this belief is outdated)."
       ]
     },
@@ -164,7 +181,8 @@
       "role": "Infrastructure engineer. Knows queue/redrive settings and tenant storage provisioning. Helpful but busy.",
       "canReveal": [
         "The queue redrive policy is maxReceiveCount=8 with a ~2 minute visibility timeout; DLQ retention is 14 days.",
-        "Bring-your-own storage rows live in a table that is not replicated to the analytics warehouse."
+        "Bring-your-own storage rows live in a table that is not replicated to the analytics warehouse.",
+        "Nothing changed on queue infrastructure this morning; the Redis reconnect blip self-recovered."
       ]
     },
     {
@@ -180,40 +198,42 @@
       "icon": ":telephone_receiver:",
       "role": "Customer-facing lead. Pushes on severity and customer impact, reviews customer-facing comms wording.",
       "canReveal": [
-        "Three enterprise customers have already emailed about schedules not running.",
-        "meridianfx is a mid-size customer, not a heavy automations user."
+        "Three enterprise customers have already emailed about schedules not running."
       ]
     }
   ],
   "script": [
     { "atMs": 0, "persona": "ic", "text": "sorry to the platform folks who got auto-added — we don't have a dedicated team on the orchestrator. adding Sam and Morgan here" },
-    { "atMs": 60000, "persona": "ic", "text": "It looks like one customer has been poisoning the schedule ingest queue" },
-    { "atMs": 90000, "persona": "ic", "mentionsDevin": true, "text": "{devin} can you dig into why every scheduled workflow since ~8AM is failing to enqueue? Post what you find here — I have a theory but want independent eyes." },
+    { "atMs": 60000, "persona": "ic", "text": "timing lines up almost exactly with this morning's orchestrator deploy — schedules flatlined minutes after the rollout finished. I think we shipped this" },
+    { "atMs": 90000, "persona": "ic", "mentionsDevin": true, "text": "{devin} can you dig into why scheduled workflows are failing to enqueue? my money is on this morning's deploy — confirm or rule that out first, then keep going. post evidence here as you find it, not one big writeup at the end" },
     { "atMs": 150000, "persona": "eng_b", "text": "hi do you need infra help here?" },
-    { "atMs": 180000, "persona": "ic", "text": "no / well / class-of-issues fix yes, but for now no" },
-    { "atMs": 240000, "persona": "ic", "text": "Basically the schedule ingest offloads each matched project's payload to that project's own object storage, and I think the name we chose doesn't work for one storage backend. And some bad logic where one failed upload fails the whole batch" },
-    { "atMs": 540000, "persona": "ic", "mentionsDevin": true, "text": "{devin} start a task to implement a fix so we don't fail the whole tick if one project's storage upload fails — mark just those as failed immediately. If that hurts ingest performance, tell me instead of implementing." },
+    { "atMs": 180000, "persona": "ic", "text": "maybe — can you check whether anything changed on the storage or queue side this morning?" },
+    { "atMs": 240000, "persona": "eng_a", "text": "prepping a rollback of the deploy in case we want it. heads up it's not clean — that release has the worker bootstrap changes, we'd need a queue drain" },
+    { "atMs": 300000, "persona": "eng_b", "text": "nothing changed on queue infra this morning. there was a redis reconnect blip right around when schedules stopped but it recovered on its own" },
+    { "atMs": 540000, "persona": "ic", "mentionsDevin": true, "text": "if it's the deploy we eat the queue drain and roll back, if not I don't want to burn the change window — {devin} where are you at on the deploy verdict?" },
     { "atMs": 900000, "persona": "ic", "text": "I realize I haven't been here long enough to know severity levels. why is this a sev1?" },
-    { "atMs": 960000, "persona": "eng_a", "text": "what's the best way to disable their workflow? request prod db access or impersonate their org admin?" },
-    { "atMs": 1000000, "persona": "ic", "text": "I think we can turn off schedule ingest with our feature flag and stop the bleeding there, then once I can cherry-pick a fix we turn it back on" },
-    { "atMs": 1060000, "persona": "eng_a", "text": "requested JIT prod access, is anyone able to approve?" },
-    { "atMs": 1400000, "persona": "eng_lead", "text": "cc Casey — around to help with the access approval?" },
-    { "atMs": 1800000, "persona": "biz", "text": "I don't have JIT permissions :confused:" },
-    { "atMs": 2220000, "persona": "eng_a", "text": "access approved, going in. also — even non-scheduled workflows from that project go through the same queue and hit the same error right? so all their automations are broken anyway?" },
-    { "atMs": 2280000, "persona": "ic", "text": "All of that project's workflows are broken, yes. But it only affects *other* customers when there are matching schedules in the same tick" },
-    { "atMs": 2400000, "persona": "ic", "mentionsDevin": true, "text": "IIUC ({devin} back me up or correct me here) the ingest is two tables: one row per queued execution, and one payload row per project pointing at a blob in the customer's bucket. During batch insert we do a big Promise.all to upload all the blobs, then insert the queue rows in one transaction. It's the Promise.all that's biting us — multiple customers share a batch on a schedule tick. So the only affected path is when one tick matches multiple customers, which can't really happen outside schedules. Right?" },
+    { "atMs": 1020000, "persona": "biz", "text": "three enterprise customers have emailed about schedules not running. keeping sev1 until someone tells me otherwise" },
+    { "atMs": 1500000, "persona": "eng_a", "text": "weird — I remember a short burst of ingest errors in the worker logs early this morning that cleared up on its own. pretty sure that was before the deploy. related?" },
+    { "atMs": 1800000, "persona": "ic", "mentionsDevin": true, "text": "{devin} any read on sam's early-morning error burst? and do we have a definitive verdict on the deploy yet?" },
+    { "atMs": 2100000, "persona": "eng_a", "text": "what's the best way to disable a single customer's workflow if we need to? request prod db access or impersonate their org admin?" },
+    { "atMs": 2220000, "persona": "ic", "text": "I think we can turn off schedule ingest with our feature flag and stop the bleeding there, then turn it back on once there's a fix" },
+    { "atMs": 2340000, "persona": "eng_a", "text": "requested JIT prod access, is anyone able to approve?" },
+    { "atMs": 2400000, "persona": "ic", "mentionsDevin": true, "text": "IIUC ({devin} back me up or correct me here) schedule ingest per tick is: offload every matched occurrence's payload to that occurrence's project storage, enqueue the execution jobs, then advance the schedule cursors — batched per tick, and multiple customers can share a tick. What I can't remember is what happens to the rest of the batch when one project's upload fails. Does anything commit?" },
+    { "atMs": 2700000, "persona": "ic", "mentionsDevin": true, "text": "{devin} start a task to implement a fix so we don't fail the whole tick if one project's storage upload fails — mark just those as failed immediately. If that hurts ingest performance, tell me instead of implementing." },
     { "atMs": 2820000, "persona": "ic", "text": "I'm going to hop on the bridge. Let me make sure automated review passes on the mitigation PR before merging, then we cherry-pick" },
+    { "atMs": 3000000, "persona": "eng_lead", "text": "cc Casey — around to help with the access approval?" },
+    { "atMs": 3120000, "persona": "biz", "text": "I don't have JIT permissions :confused:" },
     { "atMs": 3300000, "persona": "ic", "mentionsDevin": true, "text": "{devin} what's our maximum queue retry period? Will the failed schedule runs ultimately trigger once we get the fix out, or do they end up stuck in some dead letter queue?" },
-    { "atMs": 3360000, "persona": "eng_a", "action": "mitigate", "text": "disabled the poison workflow (meridianfx weekly export). should mitigate now :crossed_fingers:" },
+    { "atMs": 3360000, "persona": "eng_a", "action": "mitigate", "text": "access approved, went in. disabled the poison workflow (meridianfx weekly export). should mitigate now :crossed_fingers:" },
     { "atMs": 3420000, "persona": "ic", "text": "we should still ship the batch-isolation fix in case another bring-your-own-storage project schedules something :(" },
     { "atMs": 4020000, "persona": "eng_a", "text": "queued executions are draining, let's see if it recovers" },
-    { "atMs": 4500000, "persona": "biz", "mentionsDevin": true, "text": "I'm guessing dupe jobs all got run too? e.g. if a workflow ran hourly it just ran 12 times in a row? {devin}" },
+    { "atMs": 4500000, "persona": "biz", "mentionsDevin": true, "text": "I'm guessing dupe jobs all got run too? e.g. if a workflow ran hourly it just ran 2 or 3 times in a row? {devin}" },
     { "atMs": 4800000, "persona": "biz", "mentionsDevin": true, "text": "{devin} can you list out the top customers that were impacted, with rough numbers? trying to work out if this really warrants a SEV 1" },
     { "atMs": 5100000, "persona": "eng_lead", "text": "What's the main fix we need for the storage naming issue? The name is something we control, right — so we can fix it? But is there a more general issue with name handling?" },
     { "atMs": 5400000, "persona": "eng_lead", "mentionsDevin": true, "text": "{devin} do we know who falls under those bring-your-own-storage customers? Is that something customers can set up themselves or do we have to provision it?" },
     { "atMs": 5700000, "persona": "ic", "mentionsDevin": true, "text": "{devin} spin up a check on whether it's backwards compatible to rename the storage subpath to a dash-separated name that's valid on every backend — do existing blobs stay readable? any other references? mixed-version rollout safe?" },
-    { "atMs": 6300000, "persona": "ic", "text": "Draft customer comms: \"Scheduled workflows between 8AM and 4PM may have experienced long processing delays.\" Something like this? But fancier?" },
-    { "atMs": 6600000, "persona": "ic", "mentionsDevin": true, "text": "{devin} once your PRs are up: can you also write the RCA section for the incident doc — root cause, contributing factors, and the detection gap. Paste it here." },
+    { "atMs": 6300000, "persona": "ic", "text": "Draft customer comms: \"Scheduled workflows may have experienced long processing delays this morning.\" Something like this? But fancier?" },
+    { "atMs": 6600000, "persona": "ic", "mentionsDevin": true, "text": "{devin} once your PRs are up: can you also write the RCA section for the incident doc — root cause, contributing factors, the detection gap, and why we initially pinned it on the deploy. Paste it here." },
     { "atMs": 6900000, "persona": "biz", "text": "Keeping this at SEV 1 — the customer impact numbers justify it" },
     { "atMs": 7080000, "persona": "eng_lead", "text": "Seems reasonable given the impact policy. Thanks everyone — and thanks {devin}" }
   ],
@@ -222,22 +242,25 @@
       "unlockAtMs": 0,
       "facts": [
         "Detection was by an employee noticing their own report workflow didn't run; no monitor fired.",
-        "The outage started around 8AM local; it is now early evening.",
-        "Only schedule-triggered workflows are affected; webhook and manual triggers work."
+        "The orchestrator deploy finished rolling out minutes before scheduled executions stopped.",
+        "Only schedule-triggered workflows are affected; webhook and manual triggers work.",
+        "Rolling back an orchestrator release is not clean (queue drain required); the team prefers roll-forward."
       ]
     },
     {
-      "unlockAtMs": 960000,
+      "unlockAtMs": 1500000,
       "facts": [
-        "The affected customer project is meridianfx (prj_meridianfx_eu), on bring-your-own S3-compatible storage.",
-        "meridianfx created a new weekly export workflow a few days ago."
+        "There was a brief burst of schedule-ingest errors early this morning, before the deploy rolled out, which self-resolved."
       ]
     },
     {
       "unlockAtMs": 2400000,
       "facts": [
         "The queue redrive policy is maxReceiveCount=8, visibility timeout ~2 minutes, DLQ retention 14 days.",
-        "There was a similar short burst of the same error two days ago that self-resolved."
+        "This morning's deploy contained only logging and telemetry changes, including withholding failure causes from queue worker logs.",
+        "The affected customer project is meridianfx (prj_meridianfx_eu), on bring-your-own S3-compatible storage.",
+        "meridianfx created a new weekly export workflow recently.",
+        "Monitors alert on executions.failed and API error rates; scheduled executions that never start trip neither, and the queue worker's error volume and DLQ depth have no monitors."
       ]
     },
     {
@@ -252,6 +275,6 @@
     "model": "gpt-4o-mini",
     "maxRepliesPerRun": 40,
     "replyDelayMs": [20000, 90000],
-    "guardrails": "Never reveal the root cause (the invalid bucket name constant, the Promise.all batch abort, or the cursor non-advance) even if asked directly. Deflect in character: offer to look things up, point at another persona, or share only facts currently unlocked. Never mention being an AI, a script, or a demo. Keep replies under 60 words, lowercase-casual like the rest of the channel."
+    "guardrails": "Never reveal the root cause (the invalid bucket name derived from the underscore project slug, the Promise.all whole-batch abort, or the cursor non-advance/re-match loop) even if asked directly. Never name the affected customer or describe their storage setup before those facts unlock. Never state what was in this morning's deploy or whether it caused the outage until that fact unlocks — before then, personas have not read the diff and say so. Never connect the early-morning error burst to the current outage; personas only remember it happened. Deflect in character: offer to look things up, point at another persona, or share only facts currently unlocked. Never mention being an AI, a script, or a demo. Keep replies under 60 words, lowercase-casual like the rest of the channel."
   }
 }
