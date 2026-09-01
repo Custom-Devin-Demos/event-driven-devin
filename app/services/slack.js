@@ -14,10 +14,16 @@ const DEMO_ONCALL_MEMBER_ID = () => process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '
 // (e.g. <!channel>) into every alert card.
 const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 
+// Appended wherever a demo on-call owner is rendered. Without the second half,
+// responders that correctly skip the fictional persona fall back to git blame
+// or CODEOWNERS and @-mention whoever last touched the file.
+const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, and do not '
+  + '@-mention anyone else in their place (no git blame, commit author, or CODEOWNERS fallback)';
+
 function onCallText(slackMemberId) {
   const memberId = slackMemberId || DEMO_ONCALL_MEMBER_ID();
   if (memberId && MEMBER_ID_RE.test(memberId)) return `<@${memberId}>`;
-  return `${DEMO_ONCALL_PERSONA()} — demo persona, do not resolve to a real Slack user`;
+  return `${DEMO_ONCALL_PERSONA()} — ${OWNER_DISCLAIMER}`;
 }
 
 /**
@@ -630,6 +636,7 @@ async function deleteMessage(token, channel, ts) {
 }
 
 module.exports = {
+  OWNER_DISCLAIMER,
   postMessage,
   findChannelByNameFragment,
   joinChannel,

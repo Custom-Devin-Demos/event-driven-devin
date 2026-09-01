@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { OWNER_DISCLAIMER, postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -355,7 +355,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
-    `*Owner:* ${scenario.owner} — demo persona, do not resolve to a real Slack user`,
+    `*Owner:* ${scenario.owner} — ${OWNER_DISCLAIMER}`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
@@ -403,7 +403,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       ['Baseline', scenario.baseline],
       ['Release', scenario.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', `${scenario.owner} — demo persona, do not resolve to a real Slack user`],
+      ['Owner', `${scenario.owner} — ${OWNER_DISCLAIMER}`],
       runRef ? ['Incident Ref', runRef] : null,
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
@@ -757,7 +757,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const card = incident.build(now);
-  const ownerLine = `${incident.owner} — demo persona, do not resolve to a real Slack user`;
+  const ownerLine = `${incident.owner} — ${OWNER_DISCLAIMER}`;
   const text = [
     `${card.title}`,
     `Monitor: ${card.monitor}`,
