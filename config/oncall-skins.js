@@ -621,6 +621,44 @@ const ONCALL_SKINS = {
     supportCenter: '현대자동차 고객센터',
     disclaimer: 'NOT ACTUALLY A HYUNDAI SITE — internal demo only, not affiliated with, endorsed by, or a real Hyundai product.',
   },
+  '4f8523aa': {
+    slug: '4f8523aa',
+    company: 'Kakao Pay',
+    brandMark: 'K',
+    vertical: 'banking',
+    page: {
+      file: '4f8523aa.html',
+      title: '카카오페이 | 결제',
+    },
+    theme: {
+      '--accent': '#FFEB00',
+      '--ink': '#060B11',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#191C20',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Kakao Pay Support',
+    disclaimer: 'NOT ACTUALLY A KAKAO PAY SITE — internal demo only, not affiliated with, endorsed by, or a real Kakao Pay product.',
+  },
+  '1ac469b4': {
+    slug: '1ac469b4',
+    company: '정부24',
+    brandMark: 'G',
+    vertical: 'banking',
+    page: {
+      file: '1ac469b4.html',
+      title: '증명서 발급 수수료 결제 | 정부24',
+    },
+    theme: {
+      '--accent': '#256ef4',
+      '--ink': '#1e2124',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#052b57',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: '정부24 고객센터',
+    disclaimer: 'NOT ACTUALLY A GOV.KR (정부24) SITE — internal demo only, not affiliated with, endorsed by, or a real Government of Korea service.',
+  },
 };
 
 function getOncallSkin(slug) {
