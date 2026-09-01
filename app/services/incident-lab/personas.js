@@ -35,7 +35,7 @@ const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
 const RESPONDER_POLL_MS = 20000;
 
 function slackToken() {
-  return process.env.SLACK_BOT_TOKEN;
+  return process.env.INCIDENT_LAB_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
 }
 
 function renderLine(text) {
@@ -251,7 +251,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     async onDeclare(run) {
       const token = slackToken();
       if (!token) {
-        logger.warn('Incident Lab: SLACK_BOT_TOKEN not configured — persona layer disabled');
+        logger.warn('Incident Lab: no Slack bot token configured (INCIDENT_LAB_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN) — persona layer disabled');
         return;
       }
       if (!run.incident || run.incident.publicId == null) {
