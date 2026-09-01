@@ -3,6 +3,7 @@ const logger = require('../../telemetry/logger');
 const {
   findChannelByNameFragment,
   joinChannel,
+  inviteToChannel,
   postPersonaMessage,
   getChannelHistory,
 } = require('../slack');
@@ -26,7 +27,8 @@ const { triggerPhase } = require('./engine');
  *    the timeline. Requires OPENAI_API_KEY; skipped without it.
  *
  * Required Slack scopes: channels:read, channels:join, chat:write,
- * chat:write.customize, channels:history (responder only).
+ * chat:write.customize, channels:history (responder only), and
+ * channels:write.invites (INCIDENT_LAB_INVITE_USER_IDS only).
  */
 
 const CHANNEL_LOOKUP_INTERVAL_MS = 15000;
@@ -117,6 +119,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
   const api = {
     findChannel: deps.findChannel || findChannelByNameFragment,
     join: deps.join || joinChannel,
+    invite: deps.invite || inviteToChannel,
     post: deps.post || postPersonaMessage,
     history: deps.history || getChannelHistory,
     draft: deps.draft || draftReply,
@@ -296,6 +299,24 @@ function createSlackPersonaSink({ deps = {} } = {}) {
             runRef: run.runRef,
             channel: channel.name,
             error: error.message,
+          });
+        }
+        // Pull the presenter (and anyone else configured) into the incident
+        // channel — Slack user IDs, comma-separated. Best-effort: a failed
+        // invite never blocks the persona layer.
+        const inviteIds = (process.env.INCIDENT_LAB_INVITE_USER_IDS || '')
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean);
+        if (inviteIds.length) {
+          // Not awaited: inviteToChannel is one sequential Slack call per
+          // user, and the script timeline must not wait on it.
+          Promise.resolve(api.invite(token, channel.id, inviteIds)).catch((error) => {
+            logger.warn('Incident Lab: could not invite configured users', {
+              runRef: run.runRef,
+              channel: channel.name,
+              error: error.message,
+            });
           });
         }
         if (stale(runState)) return;

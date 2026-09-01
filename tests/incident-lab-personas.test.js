@@ -98,6 +98,57 @@ describe('incident-lab slack persona sink', () => {
     await sink.onStop(run);
   });
 
+  test('invites configured users after joining, without blocking the script', async () => {
+    process.env.INCIDENT_LAB_INVITE_USER_IDS = ' U111, U222 ,,';
+    const posted = [];
+    let rejectInvite;
+    const invite = jest.fn(() => new Promise((resolve, reject) => { rejectInvite = reject; }));
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        invite,
+        post: jest.fn((token, channel, text, username) => {
+          posted.push({ channel, text, username });
+          return Promise.resolve();
+        }),
+        history: jest.fn().mockResolvedValue([]),
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+
+    const run = makeRun();
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup tick
+    expect(invite).toHaveBeenCalledWith('xoxb-test', 'C123', ['U111', 'U222']);
+    // The invite promise is still pending — the script must run regardless.
+    await jest.advanceTimersByTimeAsync(scenario.durationMs + 1000);
+    expect(posted.length).toBe(scenario.script.length);
+    rejectInvite(new Error('missing_scope')); // swallowed, only logged
+    await Promise.resolve();
+    await sink.onStop(run);
+    delete process.env.INCIDENT_LAB_INVITE_USER_IDS;
+  });
+
+  test('does not invite when INCIDENT_LAB_INVITE_USER_IDS is unset', async () => {
+    const invite = jest.fn();
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        invite,
+        post: jest.fn().mockResolvedValue(),
+        history: jest.fn().mockResolvedValue([]),
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+    const run = makeRun();
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000);
+    expect(invite).not.toHaveBeenCalled();
+    await sink.onStop(run);
+  });
+
   test('skips entirely when there is no Datadog incident public id', async () => {
     const findChannel = jest.fn();
     const sink = createSlackPersonaSink({ deps: { findChannel } });
