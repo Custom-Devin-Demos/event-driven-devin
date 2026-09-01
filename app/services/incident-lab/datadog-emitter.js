@@ -230,6 +230,29 @@ function createDatadogSink({ post = axios.post } = {}) {
     }
   }
 
+  /**
+   * Baseline specs that a negative-start phase retires with `replacesBaseline`
+   * are withheld while armed: that phase backfills the pre-declaration window
+   * the armed period sits inside, and intake cannot retract live points and
+   * events already written there. Specs the phase does not replace keep
+   * emitting, so the healthy noise around the outage is unaffected.
+   */
+  function withholdRetroactiveReplacements(phases) {
+    for (const phase of phases || []) {
+      if (!(Number.isFinite(phase.startMs) && phase.startMs < 0)) continue;
+      for (const spec of phase.metrics || []) {
+        if (spec.replacesBaseline) state.metricRates.delete(metricKey(spec));
+      }
+      for (const spec of phase.logs || []) {
+        if (spec.replacesBaseline) {
+          state.logRates = state.logRates.filter(
+            (s) => !(s.logger === spec.logger && s.template === spec.template),
+          );
+        }
+      }
+    }
+  }
+
   /** Emit a phase's error-log history for the time it was already running
    *  before declaration (the detection gap), within intake limits. */
   async function backfillPhase(run, phase) {
@@ -393,6 +416,7 @@ function createDatadogSink({ post = axios.post } = {}) {
     };
     applyMetricSpecs((dd.baseline || {}).metrics);
     applyLogSpecs((dd.baseline || {}).logs, 'baseline');
+    if (!run.declaredAt) withholdRetroactiveReplacements(dd.phases);
     state.interval = setInterval(() => flush(run), FLUSH_INTERVAL_MS);
     if (state.interval.unref) state.interval.unref();
     for (const prelude of dd.prelude || []) {

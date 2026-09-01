@@ -99,8 +99,15 @@ describe('incident-lab datadog emitter', () => {
   test('a phase log spec with replacesBaseline retires the baseline template', async () => {
     jest.useFakeTimers();
     try {
-      const run = makeRun();
+      const run = { ...makeRun(), declaredAt: Date.now() };
       await sink.onArm(run);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const armedMessages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .map((event) => event.message);
+      expect(armedMessages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(true);
       const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
       await sink.onPhase(run, onset);
       post.mockClear();
@@ -111,6 +118,30 @@ describe('incident-lab datadog emitter', () => {
         .map((event) => event.message);
       expect(messages.length).toBeGreaterThan(0);
       expect(messages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('while armed, baseline specs a retroactive phase replaces are withheld', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const messages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .map((event) => event.message);
+      expect(messages.some((m) => m.startsWith('Schedule tick'))).toBe(true);
+      expect(messages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(false);
+      const series = post.mock.calls
+        .filter(([url]) => url.includes('/api/v2/series'))
+        .flatMap(([, body]) => body.series)
+        .map((s) => `${s.metric}|${(s.tags || []).join(',')}`);
+      expect(series.some((s) => s.includes('executions.started|') && s.includes('trigger:webhook'))).toBe(true);
+      expect(series.some((s) => s.includes('executions.started|') && s.includes('trigger:schedule'))).toBe(false);
     } finally {
       jest.useRealTimers();
     }

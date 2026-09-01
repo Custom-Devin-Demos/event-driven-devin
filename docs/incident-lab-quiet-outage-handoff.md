@@ -41,7 +41,7 @@ Nothing is pre-seeded; the emitter writes everything at arm/declare. Verify:
 
 ## Part 4 — Run-of-show constraints (tell the presenter)
 
-- **Arm 2–5 minutes before declaring, no earlier.** The loud burst is written 1 minute after arm with timestamps backdated 2 hours, so it always predates the backfilled deploy marker (declare minus ~60 min) — no long lead is needed for that. Arming early actively hurts: while armed, the sink emits the healthy baseline live (schedule-triggered `executions.started`, "Enqueued execution batch … advanced schedule cursors" success logs), and those events cannot be retracted when onset backfills the last hour at declare. Every minute of arm lead is a minute of contradictory healthy telemetry inside the outage window.
+- **Arm 2–55 minutes before declaring.** The loud burst is written 1 minute after arm with timestamps backdated 2 hours, so it always predates the backfilled deploy marker (declare minus ~60 min) — no long lead is needed for that. While armed, the sink withholds the baseline specs that onset retroactively replaces (schedule-triggered `executions.started`/`executions.completed`, the "Enqueued execution batch … advanced schedule cursors" success log) because intake cannot retract them once onset backfills the last hour at declare; the rest of the healthy noise emits live. Onset backfills those metrics for 55 minutes, so an arm lead beyond that leaves a gap in the schedule-execution series between arm and the backfill window.
 - Mitigation fires automatically from Sam's scripted line at ~56 min; no manual phase trigger needed.
 - Nobody in the channel should name times of day; the telemetry only spans hours, not "since 8AM". The scripted lines already respect this.
 
