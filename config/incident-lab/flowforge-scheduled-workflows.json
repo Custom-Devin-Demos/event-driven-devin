@@ -65,6 +65,7 @@
           {
             "count": 8,
             "intervalMs": 110000,
+            "sameMessage": true,
             "status": "error",
             "logger": "flowforge.queue.worker",
             "template": "Schedule ingest job {jobId} (tick {tickId}) failed, returning to queue: S3UploadError: InvalidBucketName: The specified bucket is not valid. (project: prj_meridianfx_eu) at S3BinaryDataManager.store (packages/core/src/binary-data/s3.manager.ts:87:11) at async Promise.all (index 0) at async ScheduleIngestService.offloadBatch (packages/cli/src/scaling/schedule-ingest.service.ts:141:20) at async ScheduleIngestService.ingestTick (packages/cli/src/scaling/schedule-ingest.service.ts:96:9)"
@@ -208,7 +209,7 @@
     { "atMs": 90000, "persona": "ic", "mentionsDevin": true, "text": "{devin} can you dig into why scheduled workflows are failing to enqueue? my money is on this morning's deploy — confirm or rule that out first, then keep going. post evidence here as you find it, not one big writeup at the end" },
     { "atMs": 150000, "persona": "eng_b", "text": "hi do you need infra help here?" },
     { "atMs": 180000, "persona": "ic", "text": "maybe — can you check whether anything changed on the storage or queue side this morning?" },
-    { "atMs": 240000, "persona": "eng_a", "text": "prepping a rollback of the deploy in case we want it. heads up it's not clean — that release has the worker bootstrap changes, we'd need a queue drain" },
+    { "atMs": 240000, "persona": "eng_a", "text": "prepping a rollback of the deploy in case we want it. heads up it's not clean — flipping worker versions on the orchestrator means a queue drain first, in-flight jobs don't survive it" },
     { "atMs": 300000, "persona": "eng_b", "text": "nothing changed on queue infra this morning. there was a redis reconnect blip right around when schedules stopped but it recovered on its own" },
     { "atMs": 540000, "persona": "ic", "mentionsDevin": true, "text": "if it's the deploy we eat the queue drain and roll back, if not I don't want to burn the change window — {devin} where are you at on the deploy verdict?" },
     { "atMs": 900000, "persona": "ic", "text": "I realize I haven't been here long enough to know severity levels. why is this a sev1?" },

@@ -304,6 +304,8 @@ function createDatadogSink({ post = axios.post } = {}) {
    * time — the presenter doesn't have to arm `backdateMs` early for the
    * burst to sit that far in the past. `intervalMs` spaces the backdated
    * timestamps; the metric point is clamped to what metric intake accepts.
+   * A log spec with `sameMessage` renders its template once and repeats it
+   * (one job redelivered `count` times), instead of `count` distinct events.
    */
   async function burst(run, prelude) {
     // Capture the state this burst belongs to: onStop clears the module
@@ -314,6 +316,8 @@ function createDatadogSink({ post = axios.post } = {}) {
       ? Math.min(prelude.backdateMs, LOG_BACKFILL_MAX_MS)
       : 0;
     for (const spec of prelude.logs || []) {
+      const fixedMessage = spec.sameMessage ? renderTemplate(spec.template) : null;
+      const message = () => fixedMessage ?? renderTemplate(spec.template);
       if (backdateMs > 0) {
         if (!burstState || burstState.stopped || state !== burstState) return;
         const base = Date.now() - backdateMs;
@@ -322,7 +326,7 @@ function createDatadogSink({ post = axios.post } = {}) {
           events.push({
             logger: spec.logger,
             status: spec.status,
-            message: renderTemplate(spec.template),
+            message: message(),
             timestamp: base + i * (spec.intervalMs || 0),
           });
         }
@@ -339,7 +343,7 @@ function createDatadogSink({ post = axios.post } = {}) {
           await submitLogs(run, [{
             logger: spec.logger,
             status: spec.status,
-            message: renderTemplate(spec.template),
+            message: message(),
             timestamp: Date.now(),
           }]);
         } catch (error) {

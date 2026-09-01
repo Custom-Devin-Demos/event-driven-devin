@@ -130,6 +130,7 @@ describe('incident-lab datadog emitter', () => {
       for (const event of events) {
         expect(event.timestamp).toBeLessThan(Date.now() - 3600000);
       }
+      expect(new Set(events.map((event) => event.message)).size).toBe(1);
     } finally {
       jest.useRealTimers();
     }
