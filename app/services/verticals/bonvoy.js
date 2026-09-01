@@ -31,7 +31,7 @@ const LEDGER_SHARDS = {
  * Demo member profile returned by the (stubbed) member directory.
  */
 const MEMBERS = {
-  '384201776': { name: 'Neil Kelly', tier: 'titanium', pointsBalance: 148250 },
+  '184302771': { name: 'Neil Kelly', tier: 'titanium', pointsBalance: 148250 },
   '512330908': { name: 'Jordan Reyes', tier: 'gold', pointsBalance: 72400 },
 };
 
