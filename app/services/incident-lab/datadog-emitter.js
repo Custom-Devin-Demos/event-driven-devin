@@ -161,20 +161,25 @@ function createDatadogSink({ post = axios.post } = {}) {
     }
   }
 
-  function applyMetricSpecs(specs) {
+  /** @param elapsedMs how long the phase has already been running before
+   *   now — an already-expired catch-up burst never re-fires, and a
+   *   partially-elapsed one only runs for its remaining window. */
+  function applyMetricSpecs(specs, elapsedMs = 0) {
     for (const spec of specs || []) {
       if (spec.replacesBaseline) state.metricRates.delete(metricKey(spec));
       if (Number.isFinite(spec.perMinute)) state.metricRates.set(metricKey(spec), spec);
       if (spec.catchUpBurst && Number.isFinite(spec.catchUpBurst.count)) {
-        applyCatchUpBurst(spec);
+        applyCatchUpBurst(spec, elapsedMs);
       }
     }
   }
 
   /** A catch-up burst layers `count` extra events over `windowMs` on top of
    *  the steady rate (e.g. backed-up jobs draining after mitigation). */
-  function applyCatchUpBurst(spec) {
+  function applyCatchUpBurst(spec, elapsedMs = 0) {
     const windowMs = spec.catchUpBurst.windowMs || 900000;
+    const remainingMs = windowMs - elapsedMs;
+    if (remainingMs <= 0) return;
     const burstSpec = {
       metric: spec.metric,
       tags: spec.tags,
@@ -185,7 +190,7 @@ function createDatadogSink({ post = axios.post } = {}) {
     state.metricRates.set(key, burstSpec);
     const timer = setTimeout(() => {
       if (state) state.metricRates.delete(key);
-    }, windowMs);
+    }, remainingMs);
     if (timer.unref) timer.unref();
     state.timers.push(timer);
   }
@@ -421,7 +426,7 @@ function createDatadogSink({ post = axios.post } = {}) {
         const elapsedMs = activatedAt
           ? Date.now() - activatedAt + (Number.isFinite(phase.startMs) && phase.startMs < 0 ? -phase.startMs : 0)
           : 0;
-        applyMetricSpecs(phase.metrics);
+        applyMetricSpecs(phase.metrics, elapsedMs);
         applyLogSpecs(phase.logs, phase.id, elapsedMs);
       }
     },

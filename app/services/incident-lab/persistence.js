@@ -46,6 +46,13 @@ function clearRunState() {
     if (fs.existsSync(file)) fs.unlinkSync(file);
   } catch (error) {
     logger.warn('Incident Lab: could not clear persisted run state', { error: error.message });
+    // Fall back to a stopped tombstone so a failed delete can never be
+    // resumed as an active run on the next startup.
+    try {
+      fs.writeFileSync(file, JSON.stringify({ status: 'stopped' }));
+    } catch (tombstoneError) {
+      logger.warn('Incident Lab: could not tombstone persisted run state', { error: tombstoneError.message });
+    }
   }
 }
 

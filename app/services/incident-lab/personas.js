@@ -145,7 +145,16 @@ function createSlackPersonaSink({ deps = {} } = {}) {
    *  lines at or after that point in the timeline are (re)scheduled. */
   function scheduleScript(runState, run, skipBeforeMs = 0) {
     for (const line of run.scenario.script) {
-      if (line.atMs < skipBeforeMs) continue;
+      if (line.atMs < skipBeforeMs) {
+        // The message itself is not reposted, but a line-attached phase
+        // action must still land — activatePhase dedups already-active
+        // phases, so this is safe if the action ran before the restart.
+        if (line.action) {
+          Promise.resolve(api.activatePhase(line.action === 'mitigate' ? 'mitigated' : line.action))
+            .catch((error) => logger.warn('Incident Lab script action failed', { action: line.action, error: error.message }));
+        }
+        continue;
+      }
       const persona = run.scenario.personas.find((p) => p.id === line.persona);
       addTimer(runState, async () => {
         if (stale(runState)) return;
