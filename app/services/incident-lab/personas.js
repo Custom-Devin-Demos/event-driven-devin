@@ -309,15 +309,15 @@ function createSlackPersonaSink({ deps = {} } = {}) {
           .map((id) => id.trim())
           .filter(Boolean);
         if (inviteIds.length) {
-          try {
-            await api.invite(token, channel.id, inviteIds);
-          } catch (error) {
+          // Not awaited: inviteToChannel is one sequential Slack call per
+          // user, and the script timeline must not wait on it.
+          Promise.resolve(api.invite(token, channel.id, inviteIds)).catch((error) => {
             logger.warn('Incident Lab: could not invite configured users', {
               runRef: run.runRef,
               channel: channel.name,
               error: error.message,
             });
-          }
+          });
         }
         if (stale(runState)) return;
         runState.channelId = channel.id;
