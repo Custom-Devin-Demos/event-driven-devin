@@ -29,6 +29,8 @@ Devin (and Sam via JIT access) may query the demo Supabase during the incident. 
 
 Do not invent new tables if equivalents exist; conform to whatever the schema calls these things. After seeding, print the verification queries and their results (project slug, storage row, workflow schedule) so the presenter can eyeball them.
 
+**Status:** seeded via `scripts/incident-lab/seed-flowforge-supabase.sql` into the `flowforge` schema of the incidents-demo Supabase (`SUPABASE_WAREHOUSE_URL`; the database had no equivalent tables — only `public.dim_sessions`, untouched). The script is idempotent and recomputes relative timestamps (Weekly Export created 5 days ago, this morning's dead-lettered job at now−2h), so **re-run it shortly before arming** so the DLQ rows line up with the backdated burst. The direct `db.<ref>.supabase.co` host is IPv6-only; from an IPv4-only box connect through the session pooler (`aws-0-us-west-1.pooler.supabase.com:5432`, user `postgres.<ref>`). The DLQ row records only the error class (`S3UploadError`), never the provider message or slug — the full message stays exclusive to the backdated burst.
+
 ## Part 3 — Datadog
 
 Nothing is pre-seeded; the emitter writes everything at arm/declare. Verify:
