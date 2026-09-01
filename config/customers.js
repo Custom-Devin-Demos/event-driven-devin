@@ -552,6 +552,10 @@ const CUSTOMERS = {
     triggerMode: 'api',
     githubOrg: 'COG-GTM',
   },
+  '4c351052': {
+    label: 'Publix',
+    triggerMode: 'api',
+  },
 };
 
 /**
