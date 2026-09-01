@@ -427,6 +427,10 @@ const CUSTOMERS = {
     label: 'U.S. Bank Business Bill Pay',
     triggerMode: 'api',
   },
+  '2ab0c5c9': {
+    label: 'Citizens Bank',
+    triggerMode: 'api',
+  },
   d1a01dc3: {
     label: 'Baylor Scott & White Health',
     triggerMode: 'api',
