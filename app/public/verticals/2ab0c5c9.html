@@ -394,6 +394,16 @@
       e.preventDefault();
       const btn = document.getElementById('openBtn');
       const result = document.getElementById('result');
+      const renderResult = (title, detail) => {
+        result.replaceChildren();
+        const t = document.createElement('div');
+        t.className = 'r-title';
+        t.textContent = title;
+        const d = document.createElement('div');
+        d.className = 'r-detail';
+        d.textContent = detail;
+        result.append(t, d);
+      };
       btn.disabled = true; btn.textContent = 'Opening account...';
       result.className = 'result-box';
       try {
@@ -412,14 +422,14 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="r-title">We couldn't open your account</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+          renderResult("We couldn't open your account", `${data.errorClass}: ${data.error}`);
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="r-title">You're all set!</div><div class="r-detail">${data.product} approved &mdash; application ${data.applicationId.slice(0, 8)}. Welcome package: ${data.welcomePackage.programName}.</div>`;
+          renderResult("You're all set!", `${data.product} approved \u2014 application ${data.applicationId.slice(0, 8)}. Welcome package: ${data.welcomePackage.programName}.`);
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+        renderResult('Network Error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Open your account'; }
     });
   </script>
