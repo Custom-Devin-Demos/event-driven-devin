@@ -19,6 +19,18 @@ const { createSlackPersonaSink } = require('../services/incident-lab/personas');
 engine.registerSink(createDatadogSink());
 engine.registerSink(createSlackPersonaSink());
 
+// A run suspended by a restart/deploy resumes where it left off — armed
+// baseline noise restarts and a declared run's remaining timeline picks
+// back up against the original clock.
+Promise.resolve()
+  .then(() => engine.resume())
+  .then((result) => {
+    if (result.ok) {
+      logger.info('Incident Lab run resumed after restart', { runRef: result.runRef, status: result.status });
+    }
+  })
+  .catch((error) => logger.warn('Incident Lab resume failed', { error: error.message }));
+
 const router = express.Router();
 
 function requireLabToken(req, res, next) {

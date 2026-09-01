@@ -141,8 +141,11 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     return timer;
   }
 
-  function scheduleScript(runState, run) {
+  /** `skipBeforeMs` drops lines already delivered before a restart: only
+   *  lines at or after that point in the timeline are (re)scheduled. */
+  function scheduleScript(runState, run, skipBeforeMs = 0) {
     for (const line of run.scenario.script) {
+      if (line.atMs < skipBeforeMs) continue;
       const persona = run.scenario.personas.find((p) => p.id === line.persona);
       addTimer(runState, async () => {
         if (stale(runState)) return;
@@ -249,116 +252,137 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     name: 'slack-personas',
 
     async onDeclare(run) {
-      const token = slackToken();
-      if (!token) {
-        logger.warn('Incident Lab: no Slack bot token configured (INCIDENT_LAB_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN) — persona layer disabled');
-        return;
-      }
-      if (!run.incident || run.incident.publicId == null) {
-        logger.warn('Incident Lab: no Datadog incident public id — persona layer disabled', {
-          runRef: run.runRef,
-        });
-        return;
-      }
-      const runState = {
-        stopped: false,
-        timers: [],
-        replies: 0,
-        polling: false,
-        ownTs: new Set(),
-        maxReplies: (run.scenario.llm && run.scenario.llm.maxRepliesPerRun) || 40,
-      };
-      state = runState;
-      const marker = `incident-${run.incident.publicId}-`;
-      const maxAttempts = Math.max(12, Math.floor(run.scenario.durationMs / 4 / CHANNEL_LOOKUP_INTERVAL_MS));
-      let attempts = 0;
+      return attach(run, { resumed: false });
+    },
 
-      const locate = async () => {
-        if (stale(runState)) return;
-        attempts++;
-        let channel = null;
-        try {
-          channel = await api.findChannel(token, marker);
-        } catch (error) {
-          logger.warn('Incident Lab channel lookup failed', { runRef: run.runRef, error: error.message });
-        }
-        if (stale(runState)) return;
-        if (!channel) {
-          if (attempts >= maxAttempts) {
-            logger.warn('Incident Lab: incident channel never appeared', { runRef: run.runRef, marker });
-            runState.stopped = true;
-            return;
-          }
-          addTimer(runState, locate, CHANNEL_LOOKUP_INTERVAL_MS);
+    /** Reattach after a restart: relocate the incident channel and pick the
+     *  script back up from the current timeline position — lines already
+     *  posted before the restart are not repeated, and configured users are
+     *  not re-invited. */
+    async onResume(run) {
+      if (run.status !== 'declared') return;
+      return attach(run, { resumed: true });
+    },
+
+    async onSuspend() {
+      teardown();
+    },
+
+    async onStop() {
+      teardown();
+    },
+  };
+
+  function teardown() {
+    if (!state) return;
+    state.stopped = true;
+    for (const timer of state.timers) clearTimeout(timer);
+    if (state.responderInterval) clearInterval(state.responderInterval);
+    state = null;
+  }
+
+  async function attach(run, { resumed }) {
+    const token = slackToken();
+    if (!token) {
+      logger.warn('Incident Lab: no Slack bot token configured (INCIDENT_LAB_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN) — persona layer disabled');
+      return;
+    }
+    if (!run.incident || run.incident.publicId == null) {
+      logger.warn('Incident Lab: no Datadog incident public id — persona layer disabled', {
+        runRef: run.runRef,
+      });
+      return;
+    }
+    const runState = {
+      stopped: false,
+      timers: [],
+      replies: 0,
+      polling: false,
+      ownTs: new Set(),
+      maxReplies: (run.scenario.llm && run.scenario.llm.maxRepliesPerRun) || 40,
+    };
+    state = runState;
+    const marker = `incident-${run.incident.publicId}-`;
+    const maxAttempts = Math.max(12, Math.floor(run.scenario.durationMs / 4 / CHANNEL_LOOKUP_INTERVAL_MS));
+    let attempts = 0;
+
+    const locate = async () => {
+      if (stale(runState)) return;
+      attempts++;
+      let channel = null;
+      try {
+        channel = await api.findChannel(token, marker);
+      } catch (error) {
+        logger.warn('Incident Lab channel lookup failed', { runRef: run.runRef, error: error.message });
+      }
+      if (stale(runState)) return;
+      if (!channel) {
+        if (attempts >= maxAttempts) {
+          logger.warn('Incident Lab: incident channel never appeared', { runRef: run.runRef, marker });
+          runState.stopped = true;
           return;
         }
-        try {
-          await api.join(token, channel.id);
-        } catch (error) {
-          logger.warn('Incident Lab: could not join incident channel', {
+        addTimer(runState, locate, CHANNEL_LOOKUP_INTERVAL_MS);
+        return;
+      }
+      try {
+        await api.join(token, channel.id);
+      } catch (error) {
+        logger.warn('Incident Lab: could not join incident channel', {
+          runRef: run.runRef,
+          channel: channel.name,
+          error: error.message,
+        });
+      }
+      // Pull the presenter (and anyone else configured) into the incident
+      // channel — Slack user IDs, comma-separated. Best-effort: a failed
+      // invite never blocks the persona layer.
+      const inviteIds = (process.env.INCIDENT_LAB_INVITE_USER_IDS || '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean);
+      if (inviteIds.length && !resumed) {
+        // Not awaited: inviteToChannel is one sequential Slack call per
+        // user, and the script timeline must not wait on it.
+        Promise.resolve(api.invite(token, channel.id, inviteIds)).catch((error) => {
+          logger.warn('Incident Lab: could not invite configured users', {
             runRef: run.runRef,
             channel: channel.name,
             error: error.message,
           });
+        });
+      }
+      if (stale(runState)) return;
+      runState.channelId = channel.id;
+      runState.channelName = channel.name;
+      scheduleScript(runState, run, resumed ? Date.now() - run.declaredAt : 0);
+      if (process.env.OPENAI_API_KEY) {
+        // Anchor the responder watermark at attachment: pre-existing channel
+        // backlog is excluded, while anything posted from here on is drafted
+        // against on the next poll. The backlog fetch itself races with new
+        // posts, so the watermark is capped at the attachment moment — a
+        // backlog head that arrives mid-fetch stays ahead of the watermark
+        // and is picked up by the first poll instead of being skipped.
+        // (1s of slack absorbs clock skew; own/persona filters keep any
+        // re-read of that second harmless.)
+        const attachTs = (Date.now() / 1000 - 1).toFixed(6);
+        try {
+          const backlog = await api.history(token, channel.id, { limit: 1 });
+          if (stale(runState)) return;
+          const backlogTs = backlog.length ? backlog[0].ts : '0';
+          runState.lastSeenTs = Number(backlogTs) < Number(attachTs) ? backlogTs : attachTs;
+        } catch (error) {
+          runState.lastSeenTs = attachTs;
+          logger.warn('Incident Lab responder watermark init failed', { runRef: run.runRef, error: error.message });
         }
-        // Pull the presenter (and anyone else configured) into the incident
-        // channel — Slack user IDs, comma-separated. Best-effort: a failed
-        // invite never blocks the persona layer.
-        const inviteIds = (process.env.INCIDENT_LAB_INVITE_USER_IDS || '')
-          .split(',')
-          .map((id) => id.trim())
-          .filter(Boolean);
-        if (inviteIds.length) {
-          // Not awaited: inviteToChannel is one sequential Slack call per
-          // user, and the script timeline must not wait on it.
-          Promise.resolve(api.invite(token, channel.id, inviteIds)).catch((error) => {
-            logger.warn('Incident Lab: could not invite configured users', {
-              runRef: run.runRef,
-              channel: channel.name,
-              error: error.message,
-            });
-          });
-        }
-        if (stale(runState)) return;
-        runState.channelId = channel.id;
-        runState.channelName = channel.name;
-        scheduleScript(runState, run);
-        if (process.env.OPENAI_API_KEY) {
-          // Anchor the responder watermark at attachment: pre-existing channel
-          // backlog is excluded, while anything posted from here on is drafted
-          // against on the next poll. The backlog fetch itself races with new
-          // posts, so the watermark is capped at the attachment moment — a
-          // backlog head that arrives mid-fetch stays ahead of the watermark
-          // and is picked up by the first poll instead of being skipped.
-          // (1s of slack absorbs clock skew; own/persona filters keep any
-          // re-read of that second harmless.)
-          const attachTs = (Date.now() / 1000 - 1).toFixed(6);
-          try {
-            const backlog = await api.history(token, channel.id, { limit: 1 });
-            if (stale(runState)) return;
-            const backlogTs = backlog.length ? backlog[0].ts : '0';
-            runState.lastSeenTs = Number(backlogTs) < Number(attachTs) ? backlogTs : attachTs;
-          } catch (error) {
-            runState.lastSeenTs = attachTs;
-            logger.warn('Incident Lab responder watermark init failed', { runRef: run.runRef, error: error.message });
-          }
-          runState.responderInterval = setInterval(() => pollResponder(runState, run), RESPONDER_POLL_MS);
-          if (runState.responderInterval.unref) runState.responderInterval.unref();
-        } else {
-          logger.info('Incident Lab: OPENAI_API_KEY not set — dynamic responder disabled');
-        }
-      };
-      addTimer(runState, locate, CHANNEL_LOOKUP_INTERVAL_MS);
-    },
-
-    async onStop() {
-      if (!state) return;
-      state.stopped = true;
-      for (const timer of state.timers) clearTimeout(timer);
-      if (state.responderInterval) clearInterval(state.responderInterval);
-      state = null;
-    },
-  };
+        runState.responderInterval = setInterval(() => pollResponder(runState, run), RESPONDER_POLL_MS);
+        if (runState.responderInterval.unref) runState.responderInterval.unref();
+      } else {
+        logger.info('Incident Lab: OPENAI_API_KEY not set — dynamic responder disabled');
+      }
+    };
+  addTimer(runState, locate, CHANNEL_LOOKUP_INTERVAL_MS);
+  }
 }
 
 module.exports = {

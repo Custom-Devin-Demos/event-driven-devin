@@ -2,6 +2,10 @@ const express = require('express');
 const http = require('http');
 
 process.env.INCIDENT_LAB_TOKEN = 'lab-test-token';
+process.env.INCIDENT_LAB_STATE_FILE = require('path').join(
+  require('os').tmpdir(),
+  `incident-lab-routes-test-${process.pid}-${Date.now()}.json`,
+);
 
 // The routes module registers the real Datadog/Slack sinks at require time;
 // stub them so route tests never emit external traffic and declare() gets
