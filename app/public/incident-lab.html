@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Incident Lab</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 40px 20px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #8b949e; margin: 0 0 24px; font-size: 14px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; }
+  input, select { width: 100%; box-sizing: border-box; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; font-size: 14px; margin-bottom: 12px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 8px 16px; font-size: 14px; cursor: pointer; }
+  button.primary { background: #b62324; border-color: #b62324; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  pre { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px; font-size: 12px; overflow: auto; max-height: 340px; white-space: pre-wrap; }
+  .warning { color: #f85149; font-size: 13px; min-height: 18px; margin-top: 8px; }
+  .status { font-size: 13px; color: #8b949e; }
+  .status b { color: #e6edf3; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Incident Lab</h1>
+  <p class="sub">Arm a scenario to start baseline telemetry, then declare when ready. Datadog creates the incident channel; the responder auto-joins; the persona timeline and telemetry evolve from there.</p>
+
+  <div class="card">
+    <label for="token">Lab token</label>
+    <input id="token" type="password" autocomplete="off" placeholder="INCIDENT_LAB_TOKEN">
+    <label for="scenario">Scenario</label>
+    <select id="scenario"></select>
+    <label for="phase">Manual phase</label>
+    <select id="phase"><option value="mitigated">mitigated</option></select>
+    <div class="controls">
+      <button id="arm">Arm</button>
+      <button id="declare" class="primary" disabled>Declare</button>
+      <button id="trigger-phase" disabled>Trigger phase</button>
+      <button id="stop">Stop</button>
+      <button id="refresh">Refresh</button>
+    </div>
+    <div id="warning" class="warning"></div>
+  </div>
+
+  <div class="card">
+    <div id="summary" class="status">Loading…</div>
+    <pre id="log"></pre>
+  </div>
+</div>
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  async function call(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Lab-Token': $('token').value,
+        ...(options.headers || {}),
+      },
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || body.ok === false) {
+      throw new Error(body.error || `HTTP ${response.status}`);
+    }
+    return body;
+  }
+
+  // Server-provided values only ever land in the DOM via textContent —
+  // never innerHTML — so status/scenario metadata cannot execute here.
+  function summaryPart(container, label, value) {
+    if (value == null || value === '') return;
+    container.appendChild(document.createTextNode(`${container.childNodes.length ? ' · ' : ''}${label}: `));
+    const b = document.createElement('b');
+    b.textContent = String(value);
+    container.appendChild(b);
+  }
+
+  function applyButtons(status) {
+    $('arm').disabled = status === 'armed' || status === 'declared';
+    $('declare').disabled = status !== 'armed';
+    $('trigger-phase').disabled = status !== 'declared';
+    $('stop').disabled = !(status === 'armed' || status === 'declared');
+  }
+
+  // Source of the visible warning: a status-poll error ('refresh') is
+  // cleared once polling recovers, while a failed action's ('action') is
+  // kept — and never overwritten by poll errors — until the next
+  // successful action or manual refresh.
+  let warningSource = null;
+
+  async function refresh({ clearWarning = false } = {}) {
+    try {
+      // The lab token unlocks the full run detail (run ref, incident, log);
+      // without it the server returns only coarse state + scenario list.
+      const status = await fetch('/api/incident-lab/status', {
+        headers: $('token').value ? { 'X-Lab-Token': $('token').value } : {},
+      }).then((r) => r.json());
+      const select = $('scenario');
+      if (select.options.length !== (status.scenarios || []).length) {
+        select.innerHTML = '';
+        for (const s of status.scenarios || []) {
+          const option = document.createElement('option');
+          option.value = s.id;
+          option.textContent = `${s.title} (${s.id})`;
+          select.appendChild(option);
+        }
+      }
+      const summary = $('summary');
+      summary.textContent = '';
+      summaryPart(summary, 'State', status.status);
+      summaryPart(summary, 'Run', status.runRef);
+      summaryPart(summary, 'Incident', status.incident ? `#${status.incident.publicId}` : null);
+      summaryPart(summary, 'Phases', status.phases && status.phases.length ? status.phases.join(', ') : null);
+      summaryPart(summary, 'Elapsed', status.elapsedMs != null ? `${Math.round(status.elapsedMs / 60000)}m` : null);
+      $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
+      applyButtons(status.status);
+      if (clearWarning || warningSource === 'refresh') {
+        $('warning').textContent = '';
+        warningSource = null;
+      }
+    } catch (error) {
+      if (warningSource !== 'action' || clearWarning) {
+        $('warning').textContent = error.message;
+        warningSource = 'refresh';
+      }
+    }
+  }
+
+  async function act(button, path, body) {
+    $(button).disabled = true;
+    let failed = false;
+    try {
+      await call(path, { method: 'POST', body: JSON.stringify(body || {}) });
+    } catch (error) {
+      failed = true;
+      $('warning').textContent = error.message;
+      warningSource = 'action';
+    }
+    // refresh() owns button state: it re-enables what the new lifecycle
+    // state allows, so completed actions stay disabled instead of
+    // re-enabling for invalid repeats. A failed action's warning stays
+    // visible until the next successful action or manual refresh.
+    await refresh({ clearWarning: !failed });
+  }
+
+  $('arm').onclick = () => act('arm', '/api/incident-lab/arm', { scenario: $('scenario').value });
+  $('declare').onclick = () => act('declare', '/api/incident-lab/declare');
+  $('trigger-phase').onclick = () => act('trigger-phase', '/api/incident-lab/phase', { phase: $('phase').value });
+  $('stop').onclick = () => act('stop', '/api/incident-lab/stop');
+  $('refresh').onclick = () => refresh({ clearWarning: true });
+
+  refresh();
+  setInterval(refresh, 15000);
+</script>
+</body>
+</html>

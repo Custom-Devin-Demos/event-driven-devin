@@ -24,10 +24,10 @@ function ddHeaders({ apiKey, appKey }) {
 }
 
 /**
- * Declare a SEV-1 incident in Datadog Incident Management.
+ * Declare an incident in Datadog Incident Management (SEV-1 by default).
  * Returns { id, publicId } or null when the Datadog keys are not configured.
  */
-async function declareDatadogIncident({ title, summary, runRef, triggeredBy, repoUrl }) {
+async function declareDatadogIncident({ title, summary, runRef, triggeredBy, repoUrl, severity = 'SEV-1' }) {
   const env = ddIncidentEnv();
   if (!env.apiKey || !env.appKey) {
     return null;
@@ -44,7 +44,7 @@ async function declareDatadogIncident({ title, summary, runRef, triggeredBy, rep
           title: `${title} (${runRef})`,
           customer_impacted: true,
           fields: {
-            severity: { type: 'dropdown', value: 'SEV-1' },
+            severity: { type: 'dropdown', value: severity },
             summary: {
               type: 'textbox',
               value: `${summary} Incident Ref: ${runRef}.${triggeredBy ? ` Declared by: ${triggeredBy}.` : ''}${repoUrl ? ` Repo: ${repoUrl}` : ''}`,
