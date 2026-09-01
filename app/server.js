@@ -198,12 +198,12 @@ function gracefulShutdown(signal) {
     service: process.env.DD_SERVICE || 'checkout-api',
   });
 
-  // Stop any active Incident Lab run so its Datadog incident is resolved
-  // and its timers/persona activity end before the process exits — a
-  // restarted process has no handle on the previous run.
+  // Suspend any active Incident Lab run: timers and persona activity end
+  // before the process exits, the run state is persisted to disk, and the
+  // Datadog incident stays open — the restarted process resumes the run.
   const labStopped = Promise.resolve()
-    .then(() => incidentLabEngine.stop(`process ${signal}`))
-    .catch((error) => logger.warn('Incident Lab shutdown stop failed', { error: error.message }));
+    .then(() => incidentLabEngine.suspend(`process ${signal}`))
+    .catch((error) => logger.warn('Incident Lab shutdown suspend failed', { error: error.message }));
 
   server.close(() => {
     labStopped.then(() => {

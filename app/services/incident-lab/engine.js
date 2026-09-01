@@ -1,5 +1,6 @@
 const logger = require('../../telemetry/logger');
 const { getScenario, listScenarios } = require('./scenario');
+const { saveRunState, loadRunState, clearRunState } = require('./persistence');
 
 /**
  * Incident Lab run engine: the lifecycle and clock for one evolving
@@ -11,6 +12,8 @@ const { getScenario, listScenarios } = require('./scenario');
  *   declare()        → sinks.onDeclare outage phases + scripted timeline start
  *   phase changes    → sinks.onPhase  (automatic by startMs, or manual via triggerPhase)
  *   stop()/reset()   → sinks.onStop   all timers cleared
+ *   suspend()        → sinks.onSuspend timers cleared, run persisted (restart)
+ *   resume()         → sinks.onResume  persisted run rebuilt after a restart
  *
  * Only one run is active at a time — the lab is a single-presenter surface.
  */
@@ -53,6 +56,29 @@ function serialized(fn) {
   return next;
 }
 
+function snapshot() {
+  if (!run) return null;
+  return {
+    runRef: run.runRef,
+    scenarioId: run.scenario.id,
+    status: run.status,
+    armedAt: run.armedAt,
+    declaredAt: run.declaredAt,
+    incident: run.incident,
+    phases: run.phases,
+    phaseTimes: run.phaseTimes,
+    log: run.log,
+  };
+}
+
+function persist() {
+  if (!run || run.status === 'stopped') {
+    clearRunState();
+  } else {
+    saveRunState(snapshot());
+  }
+}
+
 function makeRunRef() {
   return `LAB-${new Date().toISOString().slice(0, 10)}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
@@ -87,11 +113,13 @@ async function armImpl(scenarioId) {
     declaredAt: null,
     incident: null,
     phases: [],
+    phaseTimes: {},
     timers: [],
     log: [],
   };
   const thisRun = run;
   note(`armed scenario ${scenario.id}`);
+  persist();
   await fanOut('onArm', thisRun);
   return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
 }
@@ -144,9 +172,11 @@ async function declareImpl() {
     thisRun.status = 'armed';
     thisRun.declaredAt = null;
     note(`declaration failed — run re-armed (${cause})`);
+    persist();
     return { ok: false, error: `Incident declaration failed: ${cause}`, runRef: thisRun.runRef, status: thisRun.status };
   }
   note('incident declared');
+  persist();
 
   const phases = (thisRun.scenario.datadog && thisRun.scenario.datadog.phases) || [];
   for (const phase of phases) {
@@ -170,7 +200,9 @@ async function activatePhase(phaseId) {
     .find((p) => p.id === phaseId);
   if (!phase) return { ok: false, error: `Unknown phase: ${phaseId}` };
   run.phases.push(phaseId);
+  run.phaseTimes[phaseId] = Date.now();
   note(`phase ${phaseId} active`);
+  persist();
   await fanOut('onPhase', run, phase);
   return { ok: true, phase: phaseId };
 }
@@ -200,8 +232,81 @@ async function stopImpl(reason) {
   const prior = run.status;
   run.status = 'stopped';
   note(`stopped (${reason})`);
+  persist();
   await fanOut('onStop', run, reason);
   return { ok: true, priorStatus: prior };
+}
+
+/**
+ * Suspend for a restart: persist the run and tear down timers without
+ * resolving the Datadog incident or ending the run — resume() rebuilds it
+ * when the new process starts.
+ */
+function suspend(reason = 'process restarting') {
+  return serialized(() => suspendImpl(reason));
+}
+
+async function suspendImpl(reason) {
+  if (!run || run.status === 'stopped') return { ok: false, error: 'No active run' };
+  for (const timer of run.timers) clearTimeout(timer);
+  run.timers = [];
+  note(`suspended (${reason})`);
+  persist();
+  await fanOut('onSuspend', run, reason);
+  return { ok: true, status: run.status };
+}
+
+/**
+ * Resume a persisted run after a restart: rebuild the run in memory,
+ * reschedule pending automatic phases against the original clock, and let
+ * sinks reattach (baseline telemetry, persona script) via onResume.
+ */
+function resume() {
+  return serialized(() => resumeImpl());
+}
+
+async function resumeImpl() {
+  if (run && run.status !== 'stopped') return { ok: false, error: 'A run is already active' };
+  const saved = loadRunState();
+  if (!saved || (saved.status !== 'armed' && saved.status !== 'declared')) {
+    return { ok: false, error: 'No resumable run' };
+  }
+  const scenario = getScenario(saved.scenarioId);
+  if (!scenario) {
+    clearRunState();
+    return { ok: false, error: `Persisted run references unknown scenario: ${saved.scenarioId}` };
+  }
+  run = {
+    runRef: saved.runRef,
+    scenario,
+    status: saved.status,
+    armedAt: saved.armedAt,
+    declaredAt: saved.declaredAt,
+    incident: saved.incident,
+    phases: saved.phases || [],
+    phaseTimes: saved.phaseTimes || {},
+    timers: [],
+    log: saved.log || [],
+  };
+  const thisRun = run;
+  note('resumed after restart');
+  if (thisRun.status === 'declared') {
+    const phases = (thisRun.scenario.datadog && thisRun.scenario.datadog.phases) || [];
+    for (const phase of phases) {
+      if (phase.manual || !Number.isFinite(phase.startMs)) continue;
+      if (thisRun.phases.includes(phase.id)) continue;
+      const delayMs = thisRun.declaredAt + phase.startMs - Date.now();
+      scheduleTimer(thisRun, () => serialized(() => activatePhase(phase.id)), delayMs);
+    }
+    scheduleTimer(thisRun, () => {
+      if (run === thisRun && thisRun.status === 'declared') {
+        note('scenario window elapsed');
+      }
+    }, thisRun.declaredAt + thisRun.scenario.durationMs - Date.now());
+  }
+  persist();
+  await fanOut('onResume', thisRun);
+  return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
 }
 
 function note(message) {
@@ -236,6 +341,7 @@ function resetForTests() {
   run = null;
   sinks.length = 0;
   lifecycleChain = Promise.resolve();
+  clearRunState();
 }
 
 module.exports = {
@@ -245,6 +351,8 @@ module.exports = {
   triggerPhase,
   activatePhase: triggerPhase,
   stop,
+  suspend,
+  resume,
   status,
   currentRun,
   resetForTests,

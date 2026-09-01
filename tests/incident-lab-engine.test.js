@@ -1,4 +1,13 @@
+const os = require('os');
+const path = require('path');
+
+process.env.INCIDENT_LAB_STATE_FILE = path.join(
+  os.tmpdir(),
+  `incident-lab-engine-test-${process.pid}-${Date.now()}.json`,
+);
+
 const engine = require('../app/services/incident-lab/engine');
+const { loadRunState } = require('../app/services/incident-lab/persistence');
 const {
   loadScenarios,
   getScenario,
@@ -260,5 +269,84 @@ describe('incident-lab engine lifecycle', () => {
     const declared = await engine.declare();
     expect(declared.ok).toBe(true);
     expect(engine.status().status).toBe('declared');
+  });
+});
+
+describe('incident-lab engine persistence (suspend/resume)', () => {
+  afterEach(() => engine.resetForTests());
+
+  test('mutations persist a snapshot and stop clears it', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-1', publicId: 7 }; },
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    let saved = loadRunState();
+    expect(saved.status).toBe('armed');
+    expect(saved.scenarioId).toBe('flowforge-scheduled-workflows');
+
+    await engine.declare();
+    saved = loadRunState();
+    expect(saved.status).toBe('declared');
+    expect(saved.incident).toEqual({ id: 'inc-1', publicId: 7 });
+
+    await engine.stop('done');
+    expect(loadRunState()).toBeNull();
+  });
+
+  test('suspend keeps the snapshot and does not fan out onStop', async () => {
+    const hooks = [];
+    engine.registerSink({
+      name: 'watching',
+      onDeclare: (run) => { run.incident = { id: 'inc-1', publicId: 7 }; },
+      onSuspend: () => hooks.push('suspend'),
+      onStop: () => hooks.push('stop'),
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    await engine.declare();
+    const suspended = await engine.suspend('deploy');
+    expect(suspended.ok).toBe(true);
+    expect(hooks).toEqual(['suspend']);
+    const saved = loadRunState();
+    expect(saved.status).toBe('declared');
+    expect(engine.currentRun().timers).toHaveLength(0);
+  });
+
+  test('resume rebuilds a declared run and fans out onResume', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-1', publicId: 7 }; },
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    await engine.declare();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    const beforePhases = engine.status().phases;
+    const runRef = engine.status().runRef;
+    await engine.suspend('deploy');
+
+    // Simulate the restarted process: fresh engine state, same state file.
+    jest.resetModules();
+    const engine2 = require('../app/services/incident-lab/engine');
+    const resumeHooks = [];
+    engine2.registerSink({ name: 'resumer', onResume: (run) => resumeHooks.push(run.status) });
+    const resumed = await engine2.resume();
+    expect(resumed.ok).toBe(true);
+    expect(resumed.runRef).toBe(runRef);
+    expect(engine2.status().status).toBe('declared');
+    expect(engine2.status().phases).toEqual(expect.arrayContaining(beforePhases));
+    expect(resumeHooks).toEqual(['declared']);
+    engine2.resetForTests();
+  });
+
+  test('resume without a persisted run is a no-op', async () => {
+    const resumed = await engine.resume();
+    expect(resumed.ok).toBe(false);
+    expect(engine.status().status).toBe('idle');
+  });
+
+  test('resume refuses while a run is already active', async () => {
+    await engine.arm('flowforge-scheduled-workflows');
+    const resumed = await engine.resume();
+    expect(resumed.ok).toBe(false);
   });
 });

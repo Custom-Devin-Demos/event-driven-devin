@@ -161,20 +161,25 @@ function createDatadogSink({ post = axios.post } = {}) {
     }
   }
 
-  function applyMetricSpecs(specs) {
+  /** @param elapsedMs how long the phase has already been running before
+   *   now — an already-expired catch-up burst never re-fires, and a
+   *   partially-elapsed one only runs for its remaining window. */
+  function applyMetricSpecs(specs, elapsedMs = 0) {
     for (const spec of specs || []) {
       if (spec.replacesBaseline) state.metricRates.delete(metricKey(spec));
       if (Number.isFinite(spec.perMinute)) state.metricRates.set(metricKey(spec), spec);
       if (spec.catchUpBurst && Number.isFinite(spec.catchUpBurst.count)) {
-        applyCatchUpBurst(spec);
+        applyCatchUpBurst(spec, elapsedMs);
       }
     }
   }
 
   /** A catch-up burst layers `count` extra events over `windowMs` on top of
    *  the steady rate (e.g. backed-up jobs draining after mitigation). */
-  function applyCatchUpBurst(spec) {
+  function applyCatchUpBurst(spec, elapsedMs = 0) {
     const windowMs = spec.catchUpBurst.windowMs || 900000;
+    const remainingMs = windowMs - elapsedMs;
+    if (remainingMs <= 0) return;
     const burstSpec = {
       metric: spec.metric,
       tags: spec.tags,
@@ -185,7 +190,7 @@ function createDatadogSink({ post = axios.post } = {}) {
     state.metricRates.set(key, burstSpec);
     const timer = setTimeout(() => {
       if (state) state.metricRates.delete(key);
-    }, windowMs);
+    }, remainingMs);
     if (timer.unref) timer.unref();
     state.timers.push(timer);
   }
@@ -321,39 +326,59 @@ function createDatadogSink({ post = axios.post } = {}) {
     }
   }
 
+  /** Start baseline noise and schedule preludes. `sinceArmMs` shifts the
+   *  prelude schedule for a resumed run: bursts already past never refire,
+   *  future ones keep their original wall-clock moment. */
+  function startTelemetry(run, sinceArmMs = 0) {
+    const dd = run.scenario.datadog;
+    if (!dd) return false;
+    if (!ddEnv().apiKey) {
+      logger.warn('Incident Lab: DD_API_KEY not configured — telemetry disabled');
+      return false;
+    }
+    state = {
+      stopped: false,
+      metricRates: new Map(),
+      metricAccrual: new Map(),
+      logRates: [],
+      logAccrual: new Map(),
+      timers: [],
+      delayResolvers: new Set(),
+    };
+    applyMetricSpecs((dd.baseline || {}).metrics);
+    applyLogSpecs((dd.baseline || {}).logs, 'baseline');
+    state.interval = setInterval(() => flush(run), FLUSH_INTERVAL_MS);
+    if (state.interval.unref) state.interval.unref();
+    for (const prelude of dd.prelude || []) {
+      const delayMs = (prelude.afterArmMs || 0) - sinceArmMs;
+      if (sinceArmMs > 0 && delayMs < 0) continue;
+      const timer = setTimeout(() => burst(run, prelude), Math.max(delayMs, 0));
+      if (timer.unref) timer.unref();
+      state.timers.push(timer);
+    }
+    logger.info('Incident Lab Datadog baseline started', {
+      runRef: run.runRef,
+      metrics: state.metricRates.size,
+      logTemplates: state.logRates.length,
+    });
+    return true;
+  }
+
+  function teardown() {
+    if (!state) return;
+    state.stopped = true;
+    if (state.interval) clearInterval(state.interval);
+    for (const timer of state.timers) clearTimeout(timer);
+    for (const resolve of state.delayResolvers) resolve();
+    state.delayResolvers.clear();
+    state = null;
+  }
+
   return {
     name: 'datadog',
 
     async onArm(run) {
-      const dd = run.scenario.datadog;
-      if (!dd) return;
-      if (!ddEnv().apiKey) {
-        logger.warn('Incident Lab: DD_API_KEY not configured — telemetry disabled');
-        return;
-      }
-      state = {
-        stopped: false,
-        metricRates: new Map(),
-        metricAccrual: new Map(),
-        logRates: [],
-        logAccrual: new Map(),
-        timers: [],
-        delayResolvers: new Set(),
-      };
-      applyMetricSpecs((dd.baseline || {}).metrics);
-      applyLogSpecs((dd.baseline || {}).logs, 'baseline');
-      state.interval = setInterval(() => flush(run), FLUSH_INTERVAL_MS);
-      if (state.interval.unref) state.interval.unref();
-      for (const prelude of dd.prelude || []) {
-        const timer = setTimeout(() => burst(run, prelude), prelude.afterArmMs || 0);
-        if (timer.unref) timer.unref();
-        state.timers.push(timer);
-      }
-      logger.info('Incident Lab Datadog baseline started', {
-        runRef: run.runRef,
-        metrics: state.metricRates.size,
-        logTemplates: state.logRates.length,
-      });
+      startTelemetry(run);
     },
 
     async onDeclare(run) {
@@ -387,15 +412,33 @@ function createDatadogSink({ post = axios.post } = {}) {
       }
     },
 
-    async onStop(run) {
-      if (state) {
-        state.stopped = true;
-        if (state.interval) clearInterval(state.interval);
-        for (const timer of state.timers) clearTimeout(timer);
-        for (const resolve of state.delayResolvers) resolve();
-        state.delayResolvers.clear();
-        state = null;
+    /** Reattach after a restart: baseline noise restarts and each already
+     *  active phase's steady rates re-apply against its original activation
+     *  time. History was backfilled when the phase first activated, so no
+     *  re-backfill — only the live rates resume. */
+    async onResume(run) {
+      if (!startTelemetry(run, Date.now() - run.armedAt)) return;
+      const phases = (run.scenario.datadog && run.scenario.datadog.phases) || [];
+      for (const phaseId of run.phases) {
+        const phase = phases.find((p) => p.id === phaseId);
+        if (!phase) continue;
+        const activatedAt = (run.phaseTimes || {})[phaseId];
+        const elapsedMs = activatedAt
+          ? Date.now() - activatedAt + (Number.isFinite(phase.startMs) && phase.startMs < 0 ? -phase.startMs : 0)
+          : 0;
+        applyMetricSpecs(phase.metrics, elapsedMs);
+        applyLogSpecs(phase.logs, phase.id, elapsedMs);
       }
+    },
+
+    /** Restart pending: stop emitting but leave the Datadog incident open
+     *  for the resumed process to pick back up. */
+    async onSuspend() {
+      teardown();
+    },
+
+    async onStop(run) {
+      teardown();
       if (run.incident && run.incident.id) {
         try {
           await resolveDatadogIncident(run.incident.id);

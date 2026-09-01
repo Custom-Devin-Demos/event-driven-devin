@@ -1,3 +1,8 @@
+process.env.INCIDENT_LAB_STATE_FILE = require('path').join(
+  require('os').tmpdir(),
+  `incident-lab-personas-test-${process.pid}-${Date.now()}.json`,
+);
+
 const {
   createSlackPersonaSink,
   buildResponderPrompt,

@@ -1,3 +1,8 @@
+process.env.INCIDENT_LAB_STATE_FILE = require('path').join(
+  require('os').tmpdir(),
+  `incident-lab-datadog-test-${process.pid}-${Date.now()}.json`,
+);
+
 jest.mock('../app/services/datadog-incidents', () => ({
   declareDatadogIncident: jest.fn(),
   resolveDatadogIncident: jest.fn(),
