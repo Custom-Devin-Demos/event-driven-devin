@@ -129,6 +129,9 @@ async function armImpl(scenarioId) {
   note(`armed scenario ${scenario.id}`);
   persist();
   await fanOut('onArm', thisRun);
+  // Again after the fan-out: sinks record their own outcome on the run log
+  // (the warehouse seed's result, for one), which the first snapshot missed.
+  persist();
   return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
 }
 

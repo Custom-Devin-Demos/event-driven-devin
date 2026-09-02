@@ -79,6 +79,13 @@ describe('Incident Lab warehouse seed', () => {
     expect(state.log).toEqual([]);
   });
 
+  test('the transaction boundary survives reformatting of the commit line', () => {
+    const sql = executableSql('insert into t values (1);\n  COMMIT ;\n\\echo done\nselect 1;\n');
+
+    expect(sql.trimEnd().endsWith('COMMIT ;')).toBe(true);
+    expect(sql).not.toContain('select 1');
+  });
+
   test('the shipped seed reduces to a single runnable transaction', () => {
     const sql = executableSql(fs.readFileSync(SEED_FILE, 'utf8'));
 

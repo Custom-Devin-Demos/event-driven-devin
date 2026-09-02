@@ -19,6 +19,10 @@ const logger = require('../../telemetry/logger');
 
 const SEED_DIR = path.join(__dirname, '..', '..', '..', 'scripts', 'incident-lab');
 const CONNECT_TIMEOUT_MS = 15000;
+// Arm is serialized with every other lifecycle action, so a warehouse that
+// accepts the connection and then blocks the transaction on a lock would
+// freeze the lab's controls. The seed is a few dozen small statements.
+const STATEMENT_TIMEOUT_MS = 30000;
 
 function warehouseUrl() {
   return process.env.INCIDENT_LAB_WAREHOUSE_URL || process.env.SUPABASE_WAREHOUSE_URL;
@@ -38,10 +42,10 @@ function seedPath(scenario) {
  *  presenter-facing verification written in psql meta-commands, which the
  *  wire protocol cannot run. Only the transaction body is replayed here. */
 function executableSql(source) {
-  const end = source.lastIndexOf('commit;');
-  const body = end === -1 ? source : source.slice(0, end + 'commit;'.length);
-  return body
-    .split('\n')
+  const rows = source.split('\n');
+  const end = rows.reduce((last, row, index) => (/^\s*commit\s*;/i.test(row) ? index : last), -1);
+  return rows
+    .slice(0, end === -1 ? rows.length : end + 1)
     .filter((row) => !row.startsWith('\\'))
     .join('\n');
 }
@@ -55,7 +59,12 @@ function note(run, message) {
 function createSupabaseSeedSink({ deps = {} } = {}) {
   const api = {
     run: async (url, sql) => {
-      const client = new Client({ connectionString: url, connectionTimeoutMillis: CONNECT_TIMEOUT_MS });
+      const client = new Client({
+        connectionString: url,
+        connectionTimeoutMillis: CONNECT_TIMEOUT_MS,
+        statement_timeout: STATEMENT_TIMEOUT_MS,
+        query_timeout: STATEMENT_TIMEOUT_MS,
+      });
       await client.connect();
       try {
         await client.query(sql);
