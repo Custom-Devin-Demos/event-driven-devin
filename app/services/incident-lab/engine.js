@@ -68,6 +68,7 @@ function snapshot() {
     phases: run.phases,
     phaseTimes: run.phaseTimes,
     log: run.log,
+    telemetryService: run.telemetryService,
   };
 }
 
@@ -105,8 +106,9 @@ async function armImpl(scenarioId) {
   const scenario = getScenario(scenarioId);
   if (!scenario) return { ok: false, error: `Unknown scenario: ${scenarioId}` };
 
+  const runRef = makeRunRef();
   run = {
-    runRef: makeRunRef(),
+    runRef,
     scenario,
     status: 'armed',
     armedAt: Date.now(),
@@ -116,6 +118,12 @@ async function armImpl(scenarioId) {
     phaseTimes: {},
     timers: [],
     log: [],
+    // Per-run telemetry identity (cluster-style suffix from the run ref):
+    // Datadog keeps prior runs' logs and metrics for its retention window,
+    // and a rerun under the same service tag lets an investigator read a
+    // previous run's telemetry as evidence for this one. Each run emits
+    // under its own service so old runs read as a different cluster.
+    telemetryService: `${scenario.service}-${runRef.split('-').pop().slice(0, 3).toLowerCase()}`,
   };
   const thisRun = run;
   note(`armed scenario ${scenario.id}`);
@@ -287,6 +295,9 @@ async function resumeImpl() {
     phaseTimes: saved.phaseTimes || {},
     timers: [],
     log: saved.log || [],
+    // Runs persisted before per-run identity existed fall back to the
+    // scenario's base service, matching what they already emitted under.
+    telemetryService: saved.telemetryService || scenario.service,
   };
   const thisRun = run;
   note('resumed after restart');
@@ -321,6 +332,7 @@ function status() {
     status: run.status,
     runRef: run.runRef,
     scenario: run.scenario.id,
+    telemetryService: run.telemetryService,
     armedAt: run.armedAt ? new Date(run.armedAt).toISOString() : null,
     declaredAt: run.declaredAt ? new Date(run.declaredAt).toISOString() : null,
     elapsedMs: run.declaredAt ? Date.now() - run.declaredAt : null,

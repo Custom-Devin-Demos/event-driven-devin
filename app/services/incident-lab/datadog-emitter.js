@@ -67,9 +67,15 @@ function metricKey(spec) {
 function createDatadogSink({ post = axios.post } = {}) {
   let state = null;
 
+  /** Per-run service identity — see engine.armImpl. Falls back to the
+   *  scenario's base service for runs persisted before it existed. */
+  function serviceName(run) {
+    return run.telemetryService || run.scenario.service;
+  }
+
   function baseTags(run) {
     return [
-      `service:${run.scenario.service}`,
+      `service:${serviceName(run)}`,
       `env:${run.scenario.env || 'production'}`,
       'source:incident-lab',
     ];
@@ -100,11 +106,11 @@ function createDatadogSink({ post = axios.post } = {}) {
       events.map((e) => ({
         ddsource: 'nodejs',
         ddtags: [...baseTags(run), `logger:${e.logger || 'app'}`].join(','),
-        service: run.scenario.service,
+        service: serviceName(run),
         status: e.status || 'info',
         message: e.message,
         timestamp: e.timestamp,
-        hostname: `${run.scenario.service}-${1 + Math.floor(Math.random() * 4)}`,
+        hostname: `${serviceName(run)}-${1 + Math.floor(Math.random() * 4)}`,
       })),
       { headers: { 'DD-API-KEY': apiKey, 'Content-Type': 'application/json' }, timeout: 15000 },
     );
@@ -456,6 +462,7 @@ function createDatadogSink({ post = axios.post } = {}) {
         title: run.scenario.title,
         summary: run.scenario.summary,
         runRef: run.runRef,
+        service: serviceName(run),
         repoUrl: run.scenario.repoUrl,
         severity: run.scenario.severity || 'SEV-1',
       });

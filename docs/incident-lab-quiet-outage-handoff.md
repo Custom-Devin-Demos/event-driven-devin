@@ -33,11 +33,13 @@ Do not invent new tables if equivalents exist; conform to whatever the schema ca
 
 ## Part 3 — Datadog
 
+**Per-run telemetry identity:** each run emits under its own service tag, `flowforge-orchestrator-<3-char suffix>` (suffix from the run ref; shown in `GET /api/incident-lab/status` and in the incident summary as "Service: ..."). Prior runs' telemetry stays in Datadog under their own service names until log retention ages it out, so a rerun can't read yesterday's loud logs as evidence for today's incident. Scope all Log Explorer / metric queries to the current run's service.
+
 Nothing is pre-seeded; the emitter writes everything at arm/declare. Verify:
 
 1. The deployed `event-driven-devin` app has the updated scenario + emitter (redeploy per `AGENTS.md` deployment section; back up `.env` first).
 2. No Datadog monitor exists on `flowforge.*` metrics or `service:flowforge-orchestrator` logs. "No alert fired" is a premise; a monitor firing mid-demo breaks it.
-3. Rehearsal (recommended): `POST /api/incident-lab/arm` with header `X-Lab-Token: $INCIDENT_LAB_TOKEN` and body `{"scenario":"flowforge-scheduled-workflows"}`. After ~2 minutes, confirm in Log Explorer (`service:flowforge-orchestrator`, time range: past 3 hours) that the 8-error loud burst appears with the full provider message, timestamped ~2h ago. Then `POST /api/incident-lab/declare`, confirm: one `flowforge.deploy` "Deployment complete" log backfilled ~60 min ago, redacted `flowforge.queue.worker` errors at ~480/hr across the past hour, `executions.started{trigger:schedule}` flat near zero for an hour while `trigger:webhook` is healthy. Then `POST /api/incident-lab/stop` (resolves the Datadog incident).
+3. Rehearsal (recommended): `POST /api/incident-lab/arm` with header `X-Lab-Token: $INCIDENT_LAB_TOKEN` and body `{"scenario":"flowforge-scheduled-workflows"}`. After ~2 minutes, confirm in Log Explorer (`service:` the run's telemetry service from the status endpoint, time range: past 3 hours) that the 8-error loud burst appears with the full provider message, timestamped ~2h ago. Then `POST /api/incident-lab/declare`, confirm: one `flowforge.deploy` "Deployment complete" log backfilled ~60 min ago, redacted `flowforge.queue.worker` errors at ~480/hr across the past hour, `executions.started{trigger:schedule}` flat near zero for an hour while `trigger:webhook` is healthy. Then `POST /api/incident-lab/stop` (resolves the Datadog incident).
 
 ## Part 4 — Run-of-show constraints (tell the presenter)
 
