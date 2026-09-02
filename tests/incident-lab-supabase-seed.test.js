@@ -67,6 +67,22 @@ describe('Incident Lab warehouse seed', () => {
     expect(run).not.toHaveBeenCalled();
   });
 
+  test('a restart replays a seed the arm never finished, and leaves finished ones alone', async () => {
+    process.env.INCIDENT_LAB_WAREHOUSE_URL = 'postgres://seed';
+    const run = jest.fn().mockResolvedValue();
+    const sink = createSupabaseSeedSink({ deps: { run, read: () => 'commit;' } });
+
+    const interrupted = { ...makeRun({ seedFile: 'seed-flowforge-supabase.sql' }), status: 'armed', warehouseSeeded: false };
+    await sink.onResume(interrupted);
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(interrupted.warehouseSeeded).toBe(true);
+
+    await sink.onResume(interrupted);
+    const declared = { ...makeRun({ seedFile: 'seed-flowforge-supabase.sql' }), status: 'declared', warehouseSeeded: false };
+    await sink.onResume(declared);
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
   test('a scenario cannot point the seed outside the seed directory', async () => {
     process.env.INCIDENT_LAB_WAREHOUSE_URL = 'postgres://seed';
     const run = jest.fn();

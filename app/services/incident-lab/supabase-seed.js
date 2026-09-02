@@ -76,30 +76,45 @@ function createSupabaseSeedSink({ deps = {} } = {}) {
     ...deps,
   };
 
+  async function seed(run) {
+    const file = seedPath(run.scenario);
+    if (!file) {
+      run.warehouseSeeded = true;
+      return;
+    }
+    const url = warehouseUrl();
+    if (!url) {
+      note(run, 'warehouse seed skipped (no warehouse URL configured)');
+      run.warehouseSeeded = true;
+      return;
+    }
+    try {
+      await api.run(url, executableSql(api.read(file)));
+      note(run, 'warehouse seed applied');
+      run.warehouseSeeded = true;
+      logger.info('Incident Lab warehouse seed applied', {
+        runRef: run.runRef,
+        scenario: run.scenario.id,
+      });
+    } catch (error) {
+      note(run, `warehouse seed failed: ${error.message}`);
+      logger.warn('Incident Lab warehouse seed failed', {
+        runRef: run.runRef,
+        error: error.message,
+      });
+    }
+  }
+
   return {
     name: 'supabase-seed',
-    async onArm(run) {
-      const file = seedPath(run.scenario);
-      if (!file) return;
-      const url = warehouseUrl();
-      if (!url) {
-        note(run, 'warehouse seed skipped (no warehouse URL configured)');
-        return;
-      }
-      try {
-        await api.run(url, executableSql(api.read(file)));
-        note(run, 'warehouse seed applied');
-        logger.info('Incident Lab warehouse seed applied', {
-          runRef: run.runRef,
-          scenario: run.scenario.id,
-        });
-      } catch (error) {
-        note(run, `warehouse seed failed: ${error.message}`);
-        logger.warn('Incident Lab warehouse seed failed', {
-          runRef: run.runRef,
-          error: error.message,
-        });
-      }
+    onArm: seed,
+    // A restart can kill an arm mid-seed — the run is persisted before the
+    // arm fan-out finishes — leaving the incident to declare against stale
+    // warehouse rows. Seeding is idempotent, so an armed run that never
+    // recorded a seed replays it; anything already declared is left alone.
+    async onResume(run) {
+      if (run.status !== 'armed' || run.warehouseSeeded) return;
+      await seed(run);
     },
   };
 }

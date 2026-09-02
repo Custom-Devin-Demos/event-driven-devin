@@ -79,6 +79,7 @@ function snapshot() {
     phases: run.phases,
     phaseTimes: run.phaseTimes,
     autoDeclareAt: run.autoDeclareAt,
+    warehouseSeeded: run.warehouseSeeded,
     log: run.log,
     telemetryService: run.telemetryService,
   };
@@ -137,6 +138,7 @@ async function armImpl(scenarioId, options) {
     phases: [],
     phaseTimes: {},
     autoDeclareAt: null,
+    warehouseSeeded: false,
     timers: [],
     log: [],
     // Per-run telemetry identity (cluster-style suffix from the run ref):
@@ -339,6 +341,7 @@ async function resumeImpl() {
     phases: saved.phases || [],
     phaseTimes: saved.phaseTimes || {},
     autoDeclareAt: saved.autoDeclareAt || null,
+    warehouseSeeded: saved.warehouseSeeded || false,
     timers: [],
     log: saved.log || [],
     // Runs persisted before per-run identity existed fall back to the
@@ -366,6 +369,9 @@ async function resumeImpl() {
   }
   persist();
   await fanOut('onResume', thisRun);
+  // Sinks recover their own state on resume (a warehouse seed the restart
+  // interrupted, for one) and record it on the run.
+  persist();
   return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
 }
 
