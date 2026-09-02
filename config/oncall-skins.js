@@ -757,6 +757,25 @@ const ONCALL_SKINS = {
     supportCenter: 'KRAFTON 고객지원',
     disclaimer: 'NOT ACTUALLY A KRAFTON SITE — internal demo only, not affiliated with, endorsed by, or a real KRAFTON product.',
   },
+  'd92336aa': {
+    slug: 'd92336aa',
+    company: '카카오톡 선물하기',
+    brandMark: 'K',
+    vertical: 'banking',
+    page: {
+      file: 'd92336aa.html',
+      title: '선물 결제 | 카카오톡 선물하기',
+    },
+    theme: {
+      '--accent': '#F6432F',
+      '--ink': '#191919',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#191919',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: '카카오 고객센터',
+    disclaimer: 'NOT ACTUALLY A KAKAO SITE — internal demo only, not affiliated with, endorsed by, or a real Kakao product.',
+  },
 };
 
 function getOncallSkin(slug) {
