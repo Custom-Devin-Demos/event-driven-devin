@@ -99,4 +99,35 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
 
     expect(alertMock).toHaveBeenCalledTimes(1);
   });
+
+  test('alerting can be switched off entirely while the 500 still fires', async () => {
+    jest.resetModules();
+    process.env.BONVOY_ALERTS_ENABLED = 'false';
+    const service = require('../app/services/verticals/bonvoy');
+    const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
+    delete process.env.BONVOY_ALERTS_ENABLED;
+
+    await expect(
+      service.redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 }),
+    ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
+    expect(alertMock).not.toHaveBeenCalled();
+  });
+
+  test('alerts stop once the hourly cap is reached', async () => {
+    jest.resetModules();
+    process.env.BONVOY_ALERT_MAX_PER_HOUR = '2';
+    const service = require('../app/services/verticals/bonvoy');
+    const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
+    delete process.env.BONVOY_ALERT_MAX_PER_HOUR;
+
+    const redeem = () => service
+      .redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 })
+      .catch(() => {});
+    await redeem();
+    await redeem();
+    await redeem();
+    await redeem();
+
+    expect(alertMock).toHaveBeenCalledTimes(2);
+  });
 });

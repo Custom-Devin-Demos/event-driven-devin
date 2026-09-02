@@ -89,24 +89,41 @@ function sanitizeText(value, maxLength = 80) {
  */
 const BONVOY_OWNER_EMAIL = process.env.BONVOY_OWNER_EMAIL || 'neil.kelly@cognition.ai';
 
+function envInt(name, fallback) {
+  const parsed = parseInt(process.env[name], 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 /**
  * Minimum spacing between Bonvoy alerts. A session triggered by an alert can
  * reach this endpoint while verifying its fix, which would alert again; the
  * cooldown bounds that feedback loop while still letting a presenter
  * demonstrate repeat firing.
  */
-const ALERT_COOLDOWN_MS = (() => {
-  const parsed = parseInt(process.env.BONVOY_ALERT_COOLDOWN_SECONDS, 10);
-  return (Number.isNaN(parsed) ? 45 : parsed) * 1000;
-})();
+const ALERT_COOLDOWN_MS = envInt('BONVOY_ALERT_COOLDOWN_SECONDS', 45) * 1000;
+
+/** Ceiling on alerts per rolling hour, so a loop cannot outlast the cooldown. */
+const ALERT_MAX_PER_HOUR = envInt('BONVOY_ALERT_MAX_PER_HOUR', 4);
+
+/** Kill switch: set to `false` to keep the 500 while silencing alerts entirely. */
+const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'true').toLowerCase() !== 'false';
 
 let lastAlertAt = 0;
+let recentAlerts = [];
 
-function shouldAlert() {
+function alertBlockReason() {
   const now = Date.now();
-  if (now - lastAlertAt < ALERT_COOLDOWN_MS) return false;
+  if (!ALERTS_ENABLED) return 'alerting disabled by BONVOY_ALERTS_ENABLED';
+  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
+    return `within the ${ALERT_COOLDOWN_MS / 1000}s cooldown of the previous alert`;
+  }
+  recentAlerts = recentAlerts.filter((at) => now - at < 3600000);
+  if (recentAlerts.length >= ALERT_MAX_PER_HOUR) {
+    return `hourly cap of ${ALERT_MAX_PER_HOUR} alerts reached`;
+  }
   lastAlertAt = now;
-  return true;
+  recentAlerts.push(now);
+  return null;
 }
 
 /**
@@ -305,10 +322,10 @@ async function redeemPoints(data) {
       extra: { redemptionId, hotel, nights, points },
     });
 
-    if (!shouldAlert()) {
-      logger.warn('Suppressing Bonvoy alert — within cooldown of the previous one', {
+    const blockReason = alertBlockReason();
+    if (blockReason) {
+      logger.warn(`Suppressing Bonvoy alert — ${blockReason}`, {
         redemptionId,
-        cooldownSeconds: ALERT_COOLDOWN_MS / 1000,
         client,
         service: 'customer-bonvoy-points-redemption',
       });
