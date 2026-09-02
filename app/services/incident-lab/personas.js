@@ -44,6 +44,7 @@ const RESPONDER_POLL_MS = 20000;
 const DIRECTOR_HOLD_MS = 120000;
 const DIRECTOR_MAX_HOLDS = 2;
 const DIRECTOR_ADVANCE_MS = 180000;
+const DIRECTOR_MAX_SHIFT_MS = 600000;
 const DIRECTOR_TRANSCRIPT_LINES = 8;
 
 function slackToken() {
@@ -253,6 +254,13 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     addTimer(runState, () => deliverLine(runState, run), dueMs - (Date.now() - run.declaredAt));
   }
 
+  /** Facts unlock against the script's position, not the wall clock: pulling
+   *  beats forward has to pull their `unlockAtMs` knowledge with them, or a
+   *  persona states something the responder still refuses to discuss. */
+  function scriptElapsedMs(runState, run) {
+    return Date.now() - run.declaredAt - runState.shiftMs;
+  }
+
   async function deliverLine(runState, run) {
     if (stale(runState)) return;
     const line = runState.pending.shift();
@@ -267,7 +275,9 @@ function createSlackPersonaSink({ deps = {} } = {}) {
       scheduleNextLine(runState, run);
       return;
     }
-    if (verdict === 'advance') runState.shiftMs -= DIRECTOR_ADVANCE_MS;
+    if (verdict === 'advance') {
+      runState.shiftMs = Math.max(runState.shiftMs - DIRECTOR_ADVANCE_MS, -DIRECTOR_MAX_SHIFT_MS);
+    }
 
     if (verdict !== 'skip') {
       const persona = run.scenario.personas.find((p) => p.id === line.persona);
@@ -305,7 +315,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     try {
       verdict = await api.direct(
         run.scenario,
-        Date.now() - run.declaredAt,
+        scriptElapsedMs(runState, run),
         runState.recent.join('\n').slice(-4000),
         line,
         runState.pending,
@@ -364,7 +374,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         .map((m) => `investigator: ${m.text}`)
         .join('\n')
         .slice(-4000);
-      const elapsedMs = Date.now() - run.declaredAt;
+      const elapsedMs = scriptElapsedMs(runState, run);
       // Reserve capacity before the draft so a slow draft cannot let a later
       // poll spend the same allowance; release it when no reply is produced.
       runState.replies++;

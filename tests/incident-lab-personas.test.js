@@ -491,6 +491,19 @@ describe('incident-lab script director', () => {
     await stop();
   });
 
+  test('"advance" moves the knowledge clock with the beats', async () => {
+    const direct = jest.fn()
+      .mockResolvedValueOnce({ decision: 'advance' })
+      .mockResolvedValue({ decision: 'post' });
+    const { stop } = await runDirector([BEAT, LATER], direct);
+    const beforeMs = direct.mock.calls[0][1];
+    await jest.advanceTimersByTimeAsync(360000);
+    // The second beat is judged 3 min further along the script than the wall
+    // clock, so the facts its text depends on are already unlocked.
+    expect(direct.mock.calls[1][1]).toBe(beforeMs + 360000 + 180000);
+    await stop();
+  });
+
   test('"hold" defers a beat, and a beat cannot be held forever', async () => {
     const direct = jest.fn().mockResolvedValue({ decision: 'hold' });
     const { posted, stop } = await runDirector([BEAT], direct);
