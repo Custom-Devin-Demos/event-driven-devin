@@ -123,7 +123,7 @@ async function armImpl(scenarioId) {
     // and a rerun under the same service tag lets an investigator read a
     // previous run's telemetry as evidence for this one. Each run emits
     // under its own service so old runs read as a different cluster.
-    telemetryService: `${scenario.service}-${runRef.split('-').pop().slice(0, 3).toLowerCase()}`,
+    telemetryService: `${scenario.service}-${runRef.split('-').pop().toLowerCase()}`,
   };
   const thisRun = run;
   note(`armed scenario ${scenario.id}`);
