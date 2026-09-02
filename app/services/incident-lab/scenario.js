@@ -46,17 +46,21 @@ function validateScenario(scenario, file) {
     if (!personaIds.has(line.persona)) fail(`script line references unknown persona "${line.persona}"`);
     if (typeof line.text !== 'string' || !line.text.trim()) fail('script line missing "text"');
   }
+  const phaseIds = new Set(((scenario.datadog || {}).phases || []).map((p) => p.id));
+  const manualPhases = new Set(
+    ((scenario.datadog || {}).phases || []).filter((p) => p.manual).map((p) => p.id),
+  );
   if (scenario.knowledge != null) {
     if (!Array.isArray(scenario.knowledge)) fail('"knowledge" must be an array');
     for (const entry of scenario.knowledge) {
       if (!Number.isFinite(entry.unlockAtMs)) fail('knowledge entry missing "unlockAtMs"');
       if (entry.unlockAtMs > scenario.durationMs) fail(`knowledge unlock at ${entry.unlockAtMs}ms is beyond durationMs`);
       if (!Array.isArray(entry.facts) || !entry.facts.length) fail('knowledge entry missing "facts"');
+      if (entry.phase !== undefined && !phaseIds.has(entry.phase)) {
+        fail(`knowledge entry unlocks on "${entry.phase}", which is not a datadog phase`);
+      }
     }
   }
-  const manualPhases = new Set(
-    ((scenario.datadog || {}).phases || []).filter((p) => p.manual).map((p) => p.id),
-  );
   if (scenario.mitigations != null) {
     const options = scenario.mitigations.options;
     if (!Array.isArray(options) || !options.length) fail('"mitigations" needs a non-empty "options" array');
