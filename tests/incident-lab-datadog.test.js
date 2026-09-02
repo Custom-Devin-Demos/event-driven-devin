@@ -59,6 +59,32 @@ describe('incident-lab datadog emitter', () => {
     expect(run.incident).toEqual({ id: 'abc', publicId: 42 });
   });
 
+  test('a run with a per-run telemetry service emits and declares under it', async () => {
+    const run = { ...makeRun(), telemetryService: 'flowforge-orchestrator-zry' };
+    await sink.onDeclare(run);
+    expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({
+      service: 'flowforge-orchestrator-zry',
+    }));
+    await sink.onArm(run);
+    const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+    await sink.onPhase(run, onset);
+    const logCalls = post.mock.calls.filter(([url]) => url.includes('http-intake.logs'));
+    const metricCalls = post.mock.calls.filter(([url]) => url.includes('/api/v2/series'));
+    expect(logCalls.length).toBeGreaterThan(0);
+    for (const [, body] of logCalls) {
+      for (const event of body) {
+        expect(event.service).toBe('flowforge-orchestrator-zry');
+        expect(event.hostname).toMatch(/^flowforge-orchestrator-zry-\d$/);
+        expect(event.ddtags).toContain('service:flowforge-orchestrator-zry');
+      }
+    }
+    for (const [, body] of metricCalls) {
+      for (const series of body.series) {
+        expect(series.tags).toEqual(expect.arrayContaining(['service:flowforge-orchestrator-zry']));
+      }
+    }
+  });
+
   test('onDeclare tolerates missing Datadog incident keys', async () => {
     declareDatadogIncident.mockResolvedValue(null);
     const run = makeRun();
