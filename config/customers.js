@@ -403,6 +403,10 @@ const CUSTOMERS = {
     label: 'Taco Bell Order Ahead',
     triggerMode: 'api',
   },
+  bonvoy: {
+    label: 'Marriott Bonvoy (Android)',
+    triggerMode: 'api',
+  },
   coppel: {
     label: 'Coppel Mi Carrito',
     triggerMode: 'api',
