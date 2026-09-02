@@ -33,7 +33,7 @@ Do not invent new tables if equivalents exist; conform to whatever the schema ca
 
 ## Part 3 — Datadog
 
-**Per-run telemetry identity:** each run emits under its own service tag, `flowforge-orchestrator-<3-char suffix>` (suffix from the run ref; shown in `GET /api/incident-lab/status` and in the incident summary as "Service: ..."). Prior runs' telemetry stays in Datadog under their own service names until log retention ages it out, so a rerun can't read yesterday's loud logs as evidence for today's incident. Scope all Log Explorer / metric queries to the current run's service.
+**Per-run telemetry identity:** each run emits under its own service tag, `flowforge-orchestrator-<5-char suffix>` (the run ref's random segment, lowercased; shown in `GET /api/incident-lab/status` and in the incident summary as "Service: ..."). Prior runs' telemetry stays in Datadog under their own service names until log retention ages it out, so a rerun can't read yesterday's loud logs as evidence for today's incident. Scope all Log Explorer / metric queries to the current run's service.
 
 Nothing is pre-seeded; the emitter writes everything at arm/declare. Verify:
 

@@ -60,10 +60,10 @@ describe('incident-lab datadog emitter', () => {
   });
 
   test('a run with a per-run telemetry service emits and declares under it', async () => {
-    const run = { ...makeRun(), telemetryService: 'flowforge-orchestrator-zry' };
+    const run = { ...makeRun(), telemetryService: 'flowforge-orchestrator-zrya2' };
     await sink.onDeclare(run);
     expect(declareDatadogIncident).toHaveBeenCalledWith(expect.objectContaining({
-      service: 'flowforge-orchestrator-zry',
+      service: 'flowforge-orchestrator-zrya2',
     }));
     await sink.onArm(run);
     const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
@@ -73,14 +73,14 @@ describe('incident-lab datadog emitter', () => {
     expect(logCalls.length).toBeGreaterThan(0);
     for (const [, body] of logCalls) {
       for (const event of body) {
-        expect(event.service).toBe('flowforge-orchestrator-zry');
-        expect(event.hostname).toMatch(/^flowforge-orchestrator-zry-\d$/);
-        expect(event.ddtags).toContain('service:flowforge-orchestrator-zry');
+        expect(event.service).toBe('flowforge-orchestrator-zrya2');
+        expect(event.hostname).toMatch(/^flowforge-orchestrator-zrya2-\d$/);
+        expect(event.ddtags).toContain('service:flowforge-orchestrator-zrya2');
       }
     }
     for (const [, body] of metricCalls) {
       for (const series of body.series) {
-        expect(series.tags).toEqual(expect.arrayContaining(['service:flowforge-orchestrator-zry']));
+        expect(series.tags).toEqual(expect.arrayContaining(['service:flowforge-orchestrator-zrya2']));
       }
     }
   });

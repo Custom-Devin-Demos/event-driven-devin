@@ -284,7 +284,7 @@ describe('incident-lab engine persistence (suspend/resume)', () => {
     let saved = loadRunState();
     expect(saved.status).toBe('armed');
     expect(saved.scenarioId).toBe('flowforge-scheduled-workflows');
-    expect(saved.telemetryService).toMatch(/^flowforge-orchestrator-[a-z0-9]{3}$/);
+    expect(saved.telemetryService).toMatch(/^flowforge-orchestrator-[a-z0-9]{5}$/);
 
     await engine.declare();
     saved = loadRunState();
