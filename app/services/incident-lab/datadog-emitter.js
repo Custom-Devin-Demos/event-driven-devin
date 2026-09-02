@@ -275,14 +275,12 @@ function createDatadogSink({ post = axios.post } = {}) {
       .map((p) => p.startMs)
       .filter((startMs) => Number.isFinite(startMs) && startMs < 0);
     if (!specs.length || !phaseStarts.length) return;
-    // Declare time is projected: exact for auto-declare, the scenario's
-    // lead-in for a manual arm (declaring later just widens the quiet gap
-    // between healthy history and the outage backfill, never overlaps it).
-    const leadMs = run.autoDeclareAt
-      ? Math.max(run.autoDeclareAt - Date.now(), 0)
-      : Math.max(run.scenario.leadInMs || 0, 0);
+    // Healthy history ends where the *earliest possible* declaration would
+    // put the start of the outage — arming time, since declaring is a manual
+    // call away. Declaring later only widens the quiet gap between healthy
+    // history and the outage backfill; it can never overlap it.
     const now = Date.now();
-    const end = now + leadMs + Math.min(...phaseStarts);
+    const end = now + Math.min(...phaseStarts);
     const start = now - LOG_BACKFILL_MAX_MS;
     if (end <= start) return;
     const logs = [];

@@ -32,14 +32,16 @@ describe('incident-lab repo sweep', () => {
     expect(repoFromUrl('https://github.com/acme-demo/n8n')).toEqual({ owner: 'acme-demo', repo: 'n8n' });
     expect(repoFromUrl('https://github.com/acme-demo/n8n.git')).toEqual({ owner: 'acme-demo', repo: 'n8n' });
     expect(repoFromUrl('https://example.com/not-github')).toBeNull();
+    expect(repoFromUrl('https://elsewhere.example/github.com/acme-demo/n8n')).toBeNull();
   });
 
   test('closes devin/* fix PRs and deletes devin/* branches, nothing else', async () => {
     request.get.mockImplementation((url) => {
       if (url.includes('/pulls')) {
         return Promise.resolve({ data: [
-          { number: 7, head: { ref: 'devin/123-fix-offload' } },
-          { number: 8, head: { ref: 'feature/unrelated' } },
+          { number: 7, head: { ref: 'devin/123-fix-offload', repo: { full_name: 'acme-demo/n8n' } } },
+          { number: 8, head: { ref: 'feature/unrelated', repo: { full_name: 'acme-demo/n8n' } } },
+          { number: 9, head: { ref: 'devin/789-contributor', repo: { full_name: 'outsider/n8n' } } },
         ] });
       }
       return Promise.resolve({ data: [
@@ -61,6 +63,28 @@ describe('incident-lab repo sweep', () => {
     for (const url of deleted) {
       expect(url).toMatch(/\/git\/refs\/heads\/devin%2F/);
     }
+  });
+
+  test('sweeps at arm too, so a run that is never stopped leaves no residue', async () => {
+    request.get.mockResolvedValue({ data: [{ name: 'devin/123-fix-offload' }] });
+    const sink = createRepoSweepSink({ request });
+
+    await sink.onArm(makeRun());
+
+    expect(request.delete).toHaveBeenCalledTimes(1);
+  });
+
+  test('follows pagination past the first page of branches', async () => {
+    const page1 = Array.from({ length: 100 }, (_, i) => ({ name: `devin/branch-${i}` }));
+    request.get.mockImplementation((url) => {
+      if (url.includes('/pulls')) return Promise.resolve({ data: [] });
+      return Promise.resolve({ data: url.endsWith('page=1') ? page1 : [{ name: 'devin/branch-100' }] });
+    });
+    const sink = createRepoSweepSink({ request });
+
+    await sink.onStop(makeRun());
+
+    expect(request.delete).toHaveBeenCalledTimes(101);
   });
 
   test('does nothing without a token', async () => {
