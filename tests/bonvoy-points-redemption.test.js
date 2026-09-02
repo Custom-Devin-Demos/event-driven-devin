@@ -2,6 +2,8 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
 
+process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
+
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { redeemPoints } = require('../app/services/verticals/bonvoy');
 
@@ -79,5 +81,22 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     expect(createSessionAndAlert).toHaveBeenCalledWith(
       expect.objectContaining({ devinEmail: 'neil.kelly@cognition.ai' }),
     );
+  });
+
+  test('repeat failures inside the cooldown alert only once', async () => {
+    jest.resetModules();
+    process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '60';
+    const service = require('../app/services/verticals/bonvoy');
+    const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
+    process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
+
+    const redeem = () => service
+      .redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 })
+      .catch(() => {});
+    await redeem();
+    await redeem();
+    await redeem();
+
+    expect(alertMock).toHaveBeenCalledTimes(1);
   });
 });

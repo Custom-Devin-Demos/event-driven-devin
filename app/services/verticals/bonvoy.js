@@ -60,8 +60,14 @@ const REMEDIATION_DIRECTIVE = [
   '',
   '*Deliverable:* Open a pull request against `main` in `neil-z-kelly/bonvoy-android`.',
   'Before opening it, build the debug APK, launch the `devin` AVD, install the app,',
-  'sign in, pick a hotel, tap *Redeem points* against the live backend, and verify the',
-  'new error state on screen. Record the emulator verification and attach it to the PR.',
+  'sign in, pick a hotel, tap *Redeem points*, and verify the new error state on screen.',
+  'Record the emulator verification and attach it to the PR.',
+  '',
+  '*Verification target:* never point the app at the deployed backend — every redeem',
+  'against it raises a fresh production alert. Run this repo locally (`npm ci`,',
+  '`PORT=3000 node app/server.js`) and build with',
+  '`./gradlew assembleDebug -PbonvoyBaseUrl=http://10.0.2.2:3000` (the emulator default),',
+  'which reproduces the same 500 without paging anyone.',
 ].join('\n');
 
 /**
@@ -82,6 +88,26 @@ function sanitizeText(value, maxLength = 80) {
  * so the demo owner is configured here rather than taken from the request.
  */
 const BONVOY_OWNER_EMAIL = process.env.BONVOY_OWNER_EMAIL || 'neil.kelly@cognition.ai';
+
+/**
+ * Minimum spacing between Bonvoy alerts. A session triggered by an alert can
+ * reach this endpoint while verifying its fix, which would alert again; the
+ * cooldown bounds that feedback loop while still letting a presenter
+ * demonstrate repeat firing.
+ */
+const ALERT_COOLDOWN_MS = (() => {
+  const parsed = parseInt(process.env.BONVOY_ALERT_COOLDOWN_SECONDS, 10);
+  return (Number.isNaN(parsed) ? 45 : parsed) * 1000;
+})();
+
+let lastAlertAt = 0;
+
+function shouldAlert() {
+  const now = Date.now();
+  if (now - lastAlertAt < ALERT_COOLDOWN_MS) return false;
+  lastAlertAt = now;
+  return true;
+}
 
 /**
  * Devin identities supplied by the caller are only honoured when the operator
@@ -278,6 +304,16 @@ async function redeemPoints(data) {
       },
       extra: { redemptionId, hotel, nights, points },
     });
+
+    if (!shouldAlert()) {
+      logger.warn('Suppressing Bonvoy alert — within cooldown of the previous one', {
+        redemptionId,
+        cooldownSeconds: ALERT_COOLDOWN_MS / 1000,
+        client,
+        service: 'customer-bonvoy-points-redemption',
+      });
+      throw error;
+    }
 
     createSessionAndAlert({
       issueTitle: `${error.name}: ${sanitizeText(error.message, 200)}`,
