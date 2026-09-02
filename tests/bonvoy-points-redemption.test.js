@@ -20,10 +20,7 @@ const redeemFailing = () => redeemPoints({
 describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
   beforeEach(() => {
     createSessionAndAlert.mockClear();
-    // The suite alerts repeatedly, which the production limits would suppress.
-    Object.assign(alerting, {
-      enabled: true, cooldownMs: 0, maxPerHour: 100, lastAlertAt: 0, recent: [],
-    });
+    alerting.enabled = true;
   });
 
   test('rejects an incomplete request with a 400 ValidationError and no alert', async () => {
@@ -123,14 +120,12 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     );
   });
 
-  test('repeat failures inside the cooldown alert only once', async () => {
-    alerting.cooldownMs = 60000;
-
+  test('every presenter redemption alerts, with no throttling', async () => {
     await redeemFailing();
     await redeemFailing();
     await redeemFailing();
 
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(3);
   });
 
   test('the kill switch silences alerting entirely', async () => {
@@ -144,14 +139,4 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  test('alerts stop once the hourly cap is reached', async () => {
-    alerting.maxPerHour = 2;
-
-    await redeemFailing();
-    await redeemFailing();
-    await redeemFailing();
-    await redeemFailing();
-
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
-  });
 });
