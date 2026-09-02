@@ -120,7 +120,7 @@ const ALERT_SCENARIOS = {
     service: 'inference-gateway',
     endpoint: 'POST /api/oncall/inference/completions',
     monitor: 'p95 time to first token trending up — POST /api/oncall/inference/completions',
-    metricQuery: 'p95:inference.ttft{service:checkout-api,route:/api/oncall/inference/completions}',
+    metricQuery: 'p95:demo.inference.ttft{service:checkout-api,route:/api/oncall/inference/completions}',
     metricValue: '6.4s TTFT and climbing',
     threshold: '> 1.5s',
     baseline: '~310ms (7-day p95 TTFT, before helix-serve@1.0.4)',
