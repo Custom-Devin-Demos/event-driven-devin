@@ -559,6 +559,10 @@ const CUSTOMERS = {
     label: 'QBE North America Claims',
     triggerMode: 'api',
   },
+  nab: {
+    label: 'NAB Internet Banking',
+    triggerMode: 'api',
+  },
   '6dc826a1': {
     label: 'Morgan Stanley WM — Advisor Trade Booking',
     triggerMode: 'api',
