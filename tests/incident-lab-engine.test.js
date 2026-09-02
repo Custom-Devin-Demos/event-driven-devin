@@ -271,6 +271,32 @@ describe('incident-lab engine lifecycle', () => {
     expect(engine.status().declaresInMs).toBeNull();
   });
 
+  test('an automatic declaration that fails retries itself', async () => {
+    let attempts = 0;
+    engine.registerSink({
+      name: 'flaky-datadog',
+      onDeclare: (run) => {
+        attempts += 1;
+        if (attempts === 1) throw new Error('datadog 500');
+        run.incident = { id: 'inc-1', publicId: 7 };
+      },
+    });
+    jest.useFakeTimers();
+    try {
+      await engine.arm('flowforge-scheduled-workflows', { autoDeclare: true, leadInMs: 1000 });
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(attempts).toBe(1);
+      expect(engine.status().status).toBe('armed');
+      expect(engine.status().declaresInMs).toBeGreaterThan(0);
+
+      await jest.advanceTimersByTimeAsync(30000);
+      expect(attempts).toBe(2);
+      expect(engine.status().status).toBe('declared');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('a stop inside the lead-in cancels the pending declaration', async () => {
     let declares = 0;
     engine.registerSink({

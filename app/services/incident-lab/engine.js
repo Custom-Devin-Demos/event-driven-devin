@@ -24,6 +24,11 @@ const { saveRunState, loadRunState, clearRunState } = require('./persistence');
 // burst to exist before the incident points an investigator at them.
 const DEFAULT_LEAD_IN_MS = 180000;
 
+// A failed automatic declaration re-arms the run and tries again after this
+// long: the control surface has no Declare button, so a transient Datadog
+// failure must not leave an armed run with nothing left to do but stop.
+const DECLARE_RETRY_MS = 30000;
+
 const sinks = [];
 
 function registerSink(sink) {
@@ -215,6 +220,11 @@ async function declareImpl() {
     thisRun.status = 'armed';
     thisRun.declaredAt = null;
     note(`declaration failed — run re-armed (${cause})`);
+    if (thisRun.autoDeclareAt) {
+      thisRun.autoDeclareAt = Date.now() + DECLARE_RETRY_MS;
+      scheduleAutoDeclare(thisRun);
+      note(`retrying declaration in ${Math.round(DECLARE_RETRY_MS / 1000)}s`);
+    }
     persist();
     return { ok: false, error: `Incident declaration failed: ${cause}`, runRef: thisRun.runRef, status: thisRun.status };
   }

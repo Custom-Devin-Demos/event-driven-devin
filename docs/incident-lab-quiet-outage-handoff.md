@@ -45,7 +45,7 @@ Nothing is pre-seeded; the emitter writes everything at arm/declare. Verify:
 
 - **Run declares 3 minutes after arming** (`leadInMs` in the scenario JSON). The bounds below are what that lead-in has to stay inside if you change it.
 - **Arm 2–55 minutes before declaring.** The loud burst is written 1 minute after arm with timestamps backdated 2 hours, so it always predates the backfilled deploy marker (declare minus ~60 min) — no long lead is needed for that. While armed, the sink withholds the baseline specs that onset retroactively replaces (schedule-triggered `executions.started`/`executions.completed`, the "Enqueued execution batch … advanced schedule cursors" success log) because intake cannot retract them once onset backfills the last hour at declare; the rest of the healthy noise emits live. Onset backfills those metrics for 55 minutes, so an arm lead beyond that leaves a gap in the schedule-execution series between arm and the backfill window.
-- Mitigation fires automatically from Sam's scripted line at ~56 min; no manual phase trigger needed.
+- Mitigation fires automatically from Sam's scripted line at ~30 min; no manual phase trigger needed. The scripted timeline is front-loaded — the opening beats land ~3x faster than authored pacing so the channel reads like the first minutes of a real incident, easing back to roughly authored spacing after mitigation, with the last line at ~80 min.
 - Nobody in the channel should name times of day; the telemetry only spans hours, not "since 8AM". The scripted lines already respect this.
 
 ## Acceptance checklist
