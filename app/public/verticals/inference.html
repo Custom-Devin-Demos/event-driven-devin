@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Helix Serve &mdash; Inference Console</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa; --white: #ffffff;
+      --teal: #4f46e5; --teal-light: #635bf0; --teal-dim: rgba(79,70,229,0.05);
+      --teal-border: rgba(79,70,229,0.14);
+      --gray-50: #fafafa; --gray-100: #f4f4f5; --gray-200: #e4e4e7;
+      --gray-300: #d4d4d8; --gray-400: #a1a1aa; --gray-500: #71717a;
+      --gray-600: #52525b; --gray-700: #3f3f46; --gray-800: #27272a; --gray-900: #18181b;
+      --danger: #dc2626; --danger-bg: #fef2f2; --danger-border: #fecaca;
+      --success: #16a34a; --success-bg: #f0fdf4; --success-border: #bbf7d0;
+      --sans: 'Sora', -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--gray-800); line-height: 1.6; -webkit-font-smoothing: antialiased; font-size: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fi { animation: fadeIn 0.4s ease both; }
+    .fi1 { animation-delay: 0.05s; } .fi2 { animation-delay: 0.1s; } .fi3 { animation-delay: 0.15s; }
+
+    .app-shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    @media (max-width: 800px) { .app-shell { grid-template-columns: 1fr; } .sidebar-nav { display: none; } }
+
+    .sidebar-nav { background: var(--white); border-right: 1px solid var(--gray-200); padding: 1.25rem 0; display: flex; flex-direction: column; }
+    .sidebar-brand { padding: 0 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .sidebar-logo { width: 28px; height: 28px; background: var(--teal); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-logo svg { width: 16px; height: 16px; fill: #fff; }
+    .sidebar-name { font-size: 0.95rem; font-weight: 700; color: var(--gray-900); letter-spacing: -0.03em; }
+    .nav-section { padding: 0 0.75rem; margin-bottom: 0.5rem; }
+    .nav-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-400); padding: 0 0.5rem; margin-bottom: 0.25rem; }
+    .nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.75rem; font-size: 0.82rem; font-weight: 500; color: var(--gray-500); text-decoration: none; border-radius: 6px; transition: all 0.15s; margin-bottom: 1px; }
+    .nav-item:hover { background: var(--gray-100); color: var(--gray-800); }
+    .nav-item.active { background: var(--teal-dim); color: var(--teal); font-weight: 600; border: 1px solid var(--teal-border); }
+    .sidebar-footer { margin-top: auto; padding: 0.75rem 1.25rem; border-top: 1px solid var(--gray-200); }
+    .sidebar-user { font-size: 0.78rem; font-weight: 600; color: var(--gray-700); }
+    .sidebar-role { font-size: 0.68rem; color: var(--gray-400); }
+
+    .main { padding: 1.5rem 2rem; overflow-y: auto; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--teal); text-decoration: none; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .page-header h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; color: var(--gray-900); }
+    .page-header p { font-size: 0.82rem; color: var(--gray-500); margin-top: 0.15rem; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+    @media (max-width: 800px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+    .metric { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.15rem; }
+    .metric-label { font-size: 0.68rem; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+    .metric-val { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; color: var(--gray-900); }
+    .metric-change { font-size: 0.7rem; font-weight: 600; margin-top: 0.15rem; }
+    .metric-change.up { color: var(--success); }
+
+    .section-title { font-size: 0.85rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+
+    .play-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+    @media (max-width: 1000px) { .play-grid { grid-template-columns: 1fr; } }
+    .card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 1.5rem; }
+    .card h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1.15rem; color: var(--gray-900); }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--gray-500); margin-bottom: 0.2rem; }
+    .form-group select, .form-group textarea, .form-group input { width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--gray-200); border-radius: 8px; font-family: var(--sans); font-size: 0.82rem; color: var(--gray-800); background: #fff; transition: all 0.15s; }
+    .form-group textarea { min-height: 110px; resize: vertical; line-height: 1.5; font-family: var(--mono); font-size: 0.78rem; }
+    .form-group select:focus, .form-group textarea:focus, .form-group input:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(79,70,229,0.08); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .btn-run { width: 100%; padding: 0.65rem; min-height: 44px; background: var(--teal); color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; font-family: var(--sans); cursor: pointer; transition: all 0.15s; }
+    .btn-run:hover { background: var(--teal-light); transform: translateY(-1px); }
+    .btn-run:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .stream-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
+    .stream-head h2 { margin-bottom: 0; }
+    .ttft { font-family: var(--mono); font-size: 0.78rem; font-weight: 600; color: var(--gray-400); }
+    .ttft.waiting { color: var(--danger); }
+    .ttft.done { color: var(--gray-600); }
+    .stream { font-family: var(--mono); font-size: 0.78rem; line-height: 1.65; color: var(--gray-800); background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.8rem; min-height: 190px; white-space: pre-wrap; word-break: break-word; }
+    .stream .caret { display: inline-block; width: 7px; height: 14px; background: var(--teal); vertical-align: -2px; animation: blink 1s steps(2, start) infinite; }
+    @keyframes blink { to { visibility: hidden; } }
+    .usage { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 0.7rem; font-family: var(--mono); font-size: 0.7rem; color: var(--gray-500); }
+    .curl { margin-top: 1rem; font-family: var(--mono); font-size: 0.68rem; color: var(--gray-500); background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.7rem 0.8rem; white-space: pre-wrap; word-break: break-all; }
+    .result-box { margin-top: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px; font-size: 0.78rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 0.1rem; }
+    .result-box .error-detail { font-family: var(--mono); font-size: 0.68rem; opacity: 0.85; word-break: break-all; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar-nav">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.3 6.5 3.6L12 11.5 5.5 7.9 12 4.3zM5 9.6l6 3.3v6.6l-6-3.3V9.6zm14 0v6.6l-6 3.3v-6.6l6-3.3z"/></svg></div>
+        <div class="sidebar-name">Helix Serve</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Serving</div>
+        <a href="#" class="nav-item active">Playground</a>
+        <a href="#" class="nav-item">Deployments</a>
+        <a href="#" class="nav-item">Models</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Observability</div>
+        <a href="#" class="nav-item">Traces</a>
+        <a href="#" class="nav-item">Usage</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Settings</div>
+        <a href="#" class="nav-item">API Keys</a>
+        <a href="#" class="nav-item">Members</a>
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">Dana Whitfield</div>
+        <div class="sidebar-role">Platform Admin</div>
+      </div>
+    </aside>
+    <main class="main">
+      <a href="/" class="back-link fi">&larr; All Demos</a>
+      <div class="page-header fi fi1">
+        <div><h1>Playground</h1><p>Send a chat completion to a running deployment</p></div>
+      </div>
+      <div class="metrics fi fi2">
+        <div class="metric"><div class="metric-label">Tokens Today</div><div class="metric-val">184M</div><div class="metric-change up">+8% vs yesterday</div></div>
+        <div class="metric"><div class="metric-label">Deployments</div><div class="metric-val">3</div><div class="metric-change">18 replicas running</div></div>
+        <div class="metric"><div class="metric-label">Requests / min</div><div class="metric-val">2,410</div><div class="metric-change">rolling 5m</div></div>
+        <div class="metric"><div class="metric-label">Cache Hit Rate</div><div class="metric-val">61%</div><div class="metric-change">prefix reuse, 1h</div></div>
+      </div>
+      <div class="fi fi3">
+        <div class="section-title">Chat Completion</div>
+        <div class="play-grid">
+          <div class="card">
+            <h2>Request</h2>
+            <form id="completionForm">
+              <div class="form-group"><label>Prompt</label><textarea id="prompt" placeholder="Explain continuous batching in one paragraph.">Explain continuous batching in one paragraph.</textarea></div>
+              <div class="form-row">
+                <div class="form-group"><label>Model</label><select id="model"><option value="deepseek-v3">DeepSeek-V3</option><option value="qwen3-32b">Qwen3-32B</option><option value="llama-3.3-70b">Llama-3.3-70B-Instruct</option></select></div>
+                <div class="form-group"><label>Deployment</label><select id="deployment"><option value="chat-prod">chat-prod</option><option value="autocomplete-prod">autocomplete-prod</option><option value="batch-eval">batch-eval</option></select></div>
+              </div>
+              <div class="form-group"><label>Max tokens</label><input id="maxTokens" type="number" value="64" min="8" max="512"></div>
+              <button type="submit" class="btn-run" id="submitBtn">Run completion</button>
+            </form>
+            <div id="result" class="result-box"></div>
+          </div>
+          <div class="card">
+            <div class="stream-head">
+              <h2>Response</h2>
+              <span class="ttft" id="ttft">TTFT &mdash;</span>
+            </div>
+            <div class="stream" id="stream"></div>
+            <div class="usage" id="usage"></div>
+            <div class="curl" id="curl">curl https://api.helixserve.dev/v1/chat/completions \
+  -H "Authorization: Bearer $HELIX_API_KEY" \
+  -d '{"model":"deepseek-v3","stream":true,"messages":[{"role":"user","content":"..."}]}'</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('completionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const streamEl = document.getElementById('stream');
+      const ttftEl = document.getElementById('ttft');
+      const usageEl = document.getElementById('usage');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      btn.disabled = true; btn.textContent = 'Streaming...';
+      result.className = 'result-box';
+      streamEl.innerHTML = '<span class="caret"></span>';
+      usageEl.textContent = '';
+      const started = Date.now();
+      let firstToken = 0;
+      ttftEl.className = 'ttft waiting';
+      const tick = setInterval(() => {
+        if (!firstToken) ttftEl.textContent = 'TTFT ' + ((Date.now() - started) / 1000).toFixed(1) + 's — waiting for first token';
+      }, 100);
+
+      let text = '';
+      const render = () => { streamEl.innerHTML = esc(text) + '<span class="caret"></span>'; };
+      try {
+        const res = await fetch('/api/inference/completions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: document.getElementById('model').value,
+            deployment: document.getElementById('deployment').value,
+            prompt: document.getElementById('prompt').value,
+            maxTokens: parseInt(document.getElementById('maxTokens').value, 10) || 64,
+            stream: true,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let usage = null;
+        let failure = null;
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split('\n\n');
+          buffer = frames.pop();
+          for (const frame of frames) {
+            const line = frame.replace(/^data: /, '').trim();
+            if (!line || line === '[DONE]') continue;
+            const chunk = JSON.parse(line);
+            if (chunk.error) { failure = chunk.error; continue; }
+            if (chunk.ttftMs && !firstToken) {
+              firstToken = chunk.ttftMs;
+              clearInterval(tick);
+              ttftEl.className = 'ttft done';
+              ttftEl.textContent = 'TTFT ' + (chunk.ttftMs / 1000).toFixed(2) + 's';
+            }
+            const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+            if (delta && delta.content) { text += delta.content; render(); }
+            if (chunk.usage) usage = chunk;
+          }
+        }
+        clearInterval(tick);
+        if (failure) throw new Error(failure.message);
+        streamEl.innerHTML = esc(text);
+        if (usage) {
+          usageEl.textContent = usage.usage.prompt_tokens + ' prompt · ' + usage.usage.completion_tokens
+            + ' completion · ' + usage.tokensPerSecond + ' tok/s · ' + usage.model;
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Completion Finished</div><div class="error-detail">${esc(usage.id)} — first token in ${(usage.ttftMs / 1000).toFixed(2)}s</div>`;
+        }
+      } catch (err) {
+        clearInterval(tick);
+        ttftEl.className = 'ttft';
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Completion Failed</div><div class="error-detail">${esc(err.message)}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Run completion'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

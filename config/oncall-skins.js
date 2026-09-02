@@ -390,6 +390,28 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  'cdf0771d': {
+    slug: 'cdf0771d',
+    company: 'RadixArk',
+    brandMark: 'R',
+    vertical: 'inference',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cdf0771d.html',
+      title: 'RadixArk — Serving Console',
+    },
+    theme: {
+      '--accent': '#D55816',
+      '--ink': '#1A1512',
+      '--surface': '#FBF7F2',
+      '--chrome-bg': '#0C0B0A',
+      '--chrome-text': '#F8F2EA',
+    },
+    supportCenter: 'RadixArk Support',
+    supportCenterSub: 'Platform Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A RADIXARK SITE — internal demo only, not affiliated with, endorsed by, or a real RadixArk product.',
+  },
   '2acc11fd': {
     slug: '2acc11fd',
     company: 'Wispr Flow',
