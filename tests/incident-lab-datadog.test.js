@@ -188,6 +188,76 @@ describe('incident-lab datadog emitter', () => {
     expect(events.some((event) => event.message.startsWith('Enqueued execution batch'))).toBe(true);
   });
 
+  test('cycled onset failures reuse a job identity pool with redelivery cadence', async () => {
+    const run = makeRun();
+    await sink.onArm(run);
+    const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+    await sink.onPhase(run, onset);
+    const failures = post.mock.calls
+      .filter(([url]) => url.includes('http-intake.logs'))
+      .flatMap(([, body]) => body)
+      .filter((event) => event.message.startsWith('Schedule ingest job') && event.message.includes('cause redacted'));
+    expect(failures.length).toBeGreaterThan(100);
+    const byId = new Map();
+    for (const event of failures) {
+      const id = /Schedule ingest job (\d+)/.exec(event.message)[1];
+      byId.set(id, (byId.get(id) || []).concat(event.timestamp));
+    }
+    // Ids are reused ~8 times, not minted per line...
+    expect(byId.size).toBeLessThan(failures.length / 4);
+    const full = [...byId.values()].find((stamps) => stamps.length === 8);
+    expect(full).toBeDefined();
+    // ...and one job's redeliveries spread across minutes, not one instant.
+    expect(Math.max(...full) - Math.min(...full)).toBeGreaterThan(300000);
+  });
+
+  test('the mitigated phase retires the outage failure logs', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = { ...makeRun(), declaredAt: Date.now() };
+      await sink.onArm(run);
+      const phases = run.scenario.datadog.phases;
+      await sink.onPhase(run, phases.find((p) => p.id === 'onset'));
+      await sink.onPhase(run, phases.find((p) => p.id === 'mitigated'));
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(180000);
+      // Live emission only — the backdated precursor burst (2h in the past)
+      // legitimately carries failure lines and fires within this window.
+      const messages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .filter((event) => event.timestamp > Date.now() - 600000)
+        .map((event) => event.message);
+      expect(messages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(true);
+      expect(messages.some((m) => m.includes('cause redacted'))).toBe(false);
+      expect(messages.some((m) => m.includes('cursor not advanced'))).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('burst specs share tokens: the cursor warning names the failing job tick', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(70000);
+      const events = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body);
+      const errors = events.filter((e) => e.message.includes('InvalidBucketName'));
+      const warns = events.filter((e) => e.message.includes('cursor not advanced for 1 due workflow(s)'));
+      expect(errors).toHaveLength(8);
+      expect(warns).toHaveLength(8);
+      const tickId = /\(tick (\d+)\)/.exec(errors[0].message)[1];
+      expect(warns[0].message).toContain(`Schedule tick ${tickId}:`);
+      // Each warning trails its failure by the spec's offset.
+      expect(Math.min(...warns.map((e) => e.timestamp))).toBe(Math.min(...errors.map((e) => e.timestamp)) + 3000);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('a backdated prelude burst lands immediately with historical timestamps', async () => {
     jest.useFakeTimers();
     try {

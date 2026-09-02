@@ -55,9 +55,42 @@ const TOKEN_FILLERS = {
   version: () => `v${new Date().toISOString().slice(0, 10).replace(/-/g, '.')}-1`,
 };
 
-function renderTemplate(template) {
-  return template.replace(/\{(\w+)\}/g, (match, token) =>
-    (TOKEN_FILLERS[token] ? TOKEN_FILLERS[token]() : match));
+function renderTemplate(template, overrides = {}) {
+  return template.replace(/\{(\w+)\}/g, (match, token) => {
+    if (overrides[token] != null) return overrides[token];
+    return TOKEN_FILLERS[token] ? TOKEN_FILLERS[token]() : match;
+  });
+}
+
+/**
+ * Rotating identity pool for a log spec's `cycle` config
+ * (`{ "tokens": ["jobId", "tickId"], "pool": 15, "uses": 8 }`): `pool`
+ * concurrent identities are handed out round-robin and each is reused
+ * `uses` times before being replaced. A queue redelivering ~pool jobs on a
+ * steady cadence looks like this — a fresh id on every line does not, and
+ * an investigator reading "hundreds of ids, none redelivered" rightly
+ * concludes the redrive policy isn't real.
+ */
+function makeCycler(cycle) {
+  const tokens = cycle.tokens || [];
+  const size = Math.max(cycle.pool || 1, 1);
+  const uses = Math.max(cycle.uses || 1, 1);
+  const slots = [];
+  let next = 0;
+  return () => {
+    const index = next % size;
+    next += 1;
+    let slot = slots[index];
+    if (!slot || slot.used >= uses) {
+      slot = { used: 0, values: {} };
+      for (const token of tokens) {
+        slot.values[token] = TOKEN_FILLERS[token] ? TOKEN_FILLERS[token]() : `{${token}}`;
+      }
+      slots[index] = slot;
+    }
+    slot.used += 1;
+    return slot.values;
+  };
 }
 
 function metricKey(spec) {
@@ -149,7 +182,7 @@ function createDatadogSink({ post = axios.post } = {}) {
         logs.push({
           logger: spec.logger,
           status: spec.status,
-          message: renderTemplate(spec.template),
+          message: renderTemplate(spec.template, spec.cycler ? spec.cycler() : undefined),
           timestamp: now - Math.floor(Math.random() * FLUSH_INTERVAL_MS),
         });
       }
@@ -221,6 +254,7 @@ function createDatadogSink({ post = axios.post } = {}) {
       }
       if (!(spec.perHour > 0)) continue;
       const entry = { ...spec, phase: phaseId };
+      if (spec.cycle) entry.cycler = makeCycler(spec.cycle);
       if (Number.isFinite(spec.durationMs)) {
         const remainingMs = spec.durationMs - elapsedMs;
         if (remainingMs <= 0) continue;
@@ -325,12 +359,18 @@ function createDatadogSink({ post = axios.post } = {}) {
         Math.round((spec.perHour / 3600000) * activeMs),
         LOG_BACKFILL_MAX_EVENTS,
       );
+      // A cycled spec keeps identity order: timestamps ascend through the
+      // window so the pool's redelivery cadence survives the final sort
+      // (random timestamps would scatter a job's redeliveries).
+      const cycler = spec.cycle ? makeCycler(spec.cycle) : null;
       for (let i = 0; i < total; i++) {
         logs.push({
           logger: spec.logger,
           status: spec.status,
-          message: renderTemplate(spec.template),
-          timestamp: now - sinceMs + Math.floor(Math.random() * activeMs),
+          message: renderTemplate(spec.template, cycler ? cycler() : undefined),
+          timestamp: cycler
+            ? now - sinceMs + Math.floor(((i + Math.random()) / total) * activeMs)
+            : now - sinceMs + Math.floor(Math.random() * activeMs),
         });
       }
     }
@@ -384,6 +424,10 @@ function createDatadogSink({ post = axios.post } = {}) {
    * timestamps; the metric point is clamped to what metric intake accepts.
    * A log spec with `sameMessage` renders its template once and repeats it
    * (one job redelivered `count` times), instead of `count` distinct events.
+   * `sharedTokens` on the prelude renders those tokens once for the whole
+   * burst, so specs describing the same event (a failure line and its
+   * cursor warning) agree on ids; a spec's `offsetMs` shifts its backdated
+   * timestamps (the warning lands seconds after the failure it follows).
    */
   async function burst(run, prelude) {
     // Capture the state this burst belongs to: onStop clears the module
@@ -393,12 +437,16 @@ function createDatadogSink({ post = axios.post } = {}) {
     const backdateMs = Number.isFinite(prelude.backdateMs)
       ? Math.min(prelude.backdateMs, LOG_BACKFILL_MAX_MS)
       : 0;
+    const shared = {};
+    for (const token of prelude.sharedTokens || []) {
+      shared[token] = TOKEN_FILLERS[token] ? TOKEN_FILLERS[token]() : `{${token}}`;
+    }
     for (const spec of prelude.logs || []) {
-      const fixedMessage = spec.sameMessage ? renderTemplate(spec.template) : null;
-      const message = () => fixedMessage ?? renderTemplate(spec.template);
+      const fixedMessage = spec.sameMessage ? renderTemplate(spec.template, shared) : null;
+      const message = () => fixedMessage ?? renderTemplate(spec.template, shared);
       if (backdateMs > 0) {
         if (!burstState || burstState.stopped || state !== burstState) return;
-        const base = Date.now() - backdateMs;
+        const base = Date.now() - backdateMs + (spec.offsetMs || 0);
         const events = [];
         for (let i = 0; i < (spec.count || 1); i++) {
           events.push({

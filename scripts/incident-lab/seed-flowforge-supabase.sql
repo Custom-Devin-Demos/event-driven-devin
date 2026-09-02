@@ -95,20 +95,15 @@ insert into flowforge.projects (id, slug, org_id, region, created_at) values
   ('proj_01htid', 'prj-tidewater-ins',    'org_tidewater',  'us-east-1',    now() - interval '28 months')
 on conflict (id) do update set slug = excluded.slug, org_id = excluded.org_id, region = excluded.region;
 
--- Tenant storage: exactly one bring-your-own row (meridianfx) ---------------
+-- Tenant storage: uniform platform provisioning with derived buckets --------
+-- (No BYO tier: the orchestrator code derives <base_bucket>-<slug> for every
+-- project, and personas no longer claim otherwise. The DB clue is the slug.)
 insert into flowforge.tenant_storage_configs (project_id, provider, endpoint, base_bucket, storage_region, updated_at)
-select id, 'platform', null, null, null, now() - interval '30 days'
+select id, 'platform', null, 'flowforge-artifacts', region, now() - interval '30 days'
 from flowforge.projects
-where slug <> 'prj_meridianfx_eu'
 on conflict (project_id) do update
-  set provider = excluded.provider, endpoint = null, base_bucket = null, storage_region = null;
-
-insert into flowforge.tenant_storage_configs (project_id, provider, endpoint, base_bucket, storage_region, updated_at) values
-  ('proj_01hmfx', 'byo_s3', 'https://minio.storage.meridianfx.internal:9000', 'flowforge-artifacts', 'eu-central-1', now() - interval '11 days')
-on conflict (project_id) do update
-  set provider = excluded.provider, endpoint = excluded.endpoint,
-      base_bucket = excluded.base_bucket, storage_region = excluded.storage_region,
-      updated_at = excluded.updated_at;
+  set provider = 'platform', endpoint = null,
+      base_bucket = excluded.base_bucket, storage_region = excluded.storage_region;
 
 -- Workflows -----------------------------------------------------------------
 insert into flowforge.workflows (id, project_id, name, trigger_type, schedule_cron, active, created_at, updated_at) values
@@ -172,8 +167,8 @@ commit;
 \echo
 \echo '== project slug'
 select p.slug, p.region, o.name as org from flowforge.projects p join flowforge.organizations o on o.id = p.org_id order by p.slug;
-\echo '== storage rows (byo_s3)'
-select p.slug, s.provider, s.endpoint, s.base_bucket, s.storage_region from flowforge.tenant_storage_configs s join flowforge.projects p on p.id = s.project_id where s.provider = 'byo_s3';
+\echo '== storage rows'
+select p.slug, s.provider, s.base_bucket, s.storage_region from flowforge.tenant_storage_configs s join flowforge.projects p on p.id = s.project_id order by p.slug;
 \echo '== active scheduled workflows'
 select p.slug, w.name, w.schedule_cron, w.created_at::date as created from flowforge.workflows w join flowforge.projects p on p.id = w.project_id where w.trigger_type = 'schedule' and w.active order by p.slug, w.name;
 \echo '== dead-lettered job'
