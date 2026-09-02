@@ -119,6 +119,9 @@ async function submitPayment(data) {
     name: data.payeeName,
     bsb: data.payeeBsb,
     account: data.payeeAccount,
+    payId: data.payId,
+    billerCode: data.billerCode,
+    billerReference: data.billerReference,
   };
 
   if (!account) {
@@ -127,14 +130,30 @@ async function submitPayment(data) {
   if (!(data.amount > 0)) {
     throw validationError('Payment amount must be greater than zero');
   }
+  if (data.amount > account.balance) {
+    throw validationError(`Payment amount exceeds the available balance of ${account.balance.toFixed(2)}`);
+  }
+  if (!['pay_anyone', 'payid', 'bpay'].includes(data.paymentMethod)) {
+    throw validationError('Unsupported payment method');
+  }
   if (!data.payeeName || !String(data.payeeName).trim()) {
     throw validationError('Payee name is required');
   }
-  if (!data.payeeBsb || !String(data.payeeBsb).trim()) {
-    throw validationError('Payee BSB is required');
-  }
-  if (!data.payeeAccount || !String(data.payeeAccount).trim()) {
-    throw validationError('Payee account is required');
+  if (data.paymentMethod === 'pay_anyone') {
+    if (!data.payeeBsb || !String(data.payeeBsb).trim()) {
+      throw validationError('Payee BSB is required');
+    }
+    if (!data.payeeAccount || !String(data.payeeAccount).trim()) {
+      throw validationError('Payee account is required');
+    }
+  } else if (data.paymentMethod === 'payid') {
+    if (!data.payId || !String(data.payId).trim()) {
+      throw validationError('PayID is required');
+    }
+  } else if (!data.billerCode || !String(data.billerCode).trim()) {
+    throw validationError('Biller code is required');
+  } else if (!data.billerReference || !String(data.billerReference).trim()) {
+    throw validationError('Biller reference is required');
   }
 
   logger.info('Submitting NAB payment', {
@@ -175,6 +194,10 @@ async function submitPayment(data) {
       requestId,
     };
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      throw error;
+    }
+
     const duration = Date.now() - startTime;
 
     incrementMetric('nab_payment.failure', {
@@ -217,6 +240,9 @@ async function submitPayment(data) {
         payeeName: data.payeeName,
         payeeBsb: data.payeeBsb,
         payeeAccount: data.payeeAccount,
+        payId: data.payId,
+        billerCode: data.billerCode,
+        billerReference: data.billerReference,
       },
     });
 
@@ -251,6 +277,9 @@ async function submitPayment(data) {
         payeeName: data.payeeName,
         payeeBsb: data.payeeBsb,
         payeeAccount: data.payeeAccount,
+        payId: data.payId,
+        billerCode: data.billerCode,
+        billerReference: data.billerReference,
       },
       level: 'error',
       platform: 'node',
@@ -270,6 +299,7 @@ async function submitPayment(data) {
       });
     });
 
+    error.requestId = requestId;
     throw error;
   }
 }

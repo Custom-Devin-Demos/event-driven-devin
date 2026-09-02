@@ -9,7 +9,14 @@ router.get('/nab', (_req, res) => {
 });
 
 router.get('/api/nab/accounts', (_req, res) => {
-  res.json({ accounts: ACCOUNTS });
+  res.json({
+    accounts: Object.values(ACCOUNTS).map((account) => ({
+      accountNumber: account.accountNumber,
+      productLabel: account.productLabel,
+      holderName: account.holderName,
+      balance: account.balance,
+    })),
+  });
 });
 
 router.post('/api/nab/payment', async (req, res) => {
@@ -27,6 +34,9 @@ router.post('/api/nab/payment', async (req, res) => {
       payeeAccount: valueOrDefault('payeeAccount', '55910238'),
       amount: valueOrDefault('amount', 1250),
       description: valueOrDefault('description', 'Invoice 2261'),
+      payId: body.payId,
+      billerCode: body.billerCode,
+      billerReference: body.billerReference,
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
@@ -39,7 +49,7 @@ router.post('/api/nab/payment', async (req, res) => {
         error: error.message,
         errorClass: error.name,
         code: error.code || 'INVALID_PAYMENT',
-        requestId: req.requestId,
+        requestId: error.requestId || req.requestId,
       });
     }
 
@@ -48,7 +58,7 @@ router.post('/api/nab/payment', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: 'PAYMENT_SETTLEMENT_FAILED',
-      requestId: req.requestId,
+      requestId: error.requestId || req.requestId,
     });
   }
 });

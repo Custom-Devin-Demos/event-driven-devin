@@ -247,6 +247,25 @@
                 </div>
               </div>
 
+              <div class="form-row" id="payid-fields" hidden>
+                <div class="field">
+                  <label for="payId">PayID *</label>
+                  <span class="hint">Email, mobile number or ABN</span>
+                  <input id="payId" type="text" value="harper.electrical@example.com.au">
+                </div>
+              </div>
+
+              <div class="form-row" id="bpay-fields" hidden>
+                <div class="field">
+                  <label for="billerCode">Biller code *</label>
+                  <input id="billerCode" type="text" value="87524">
+                </div>
+                <div class="field">
+                  <label for="billerReference">Reference *</label>
+                  <input id="billerReference" type="text" value="2261 0088 4417">
+                </div>
+              </div>
+
               <div class="form-row">
                 <div class="field">
                   <label for="description">Description</label>
@@ -368,6 +387,12 @@
     var okDetails = document.getElementById('payment-ok-details');
     var paymentMethod = 'pay_anyone';
 
+    function syncPaymentFields() {
+      document.getElementById('bank-fields').hidden = paymentMethod !== 'pay_anyone';
+      document.getElementById('payid-fields').hidden = paymentMethod !== 'payid';
+      document.getElementById('bpay-fields').hidden = paymentMethod !== 'bpay';
+    }
+
     function money(value) {
       return '$' + Number(value).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -384,6 +409,7 @@
         document.querySelectorAll('.method-tabs button').forEach(function (t) { t.classList.remove('is-active'); });
         tab.classList.add('is-active');
         paymentMethod = tab.getAttribute('data-method');
+        syncPaymentFields();
       });
     });
 
@@ -439,6 +465,9 @@
           payeeName: document.getElementById('payeeName').value.trim(),
           payeeBsb: document.getElementById('payeeBsb').value.trim(),
           payeeAccount: document.getElementById('payeeAccount').value.trim(),
+          payId: document.getElementById('payId').value.trim(),
+          billerCode: document.getElementById('billerCode').value.trim(),
+          billerReference: document.getElementById('billerReference').value.trim(),
           amount: Number(document.getElementById('amount').value),
           description: document.getElementById('description').value.trim(),
           channel: 'web',
