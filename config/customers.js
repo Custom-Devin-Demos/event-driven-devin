@@ -407,6 +407,10 @@ const CUSTOMERS = {
     label: 'Marriott Bonvoy (Android)',
     triggerMode: 'api',
   },
+  eaconnect: {
+    label: 'EA Connect (Android)',
+    triggerMode: 'api',
+  },
   coppel: {
     label: 'Coppel Mi Carrito',
     triggerMode: 'api',
