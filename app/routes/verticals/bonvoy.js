@@ -17,6 +17,7 @@ router.post('/api/bonvoy/points/redeem', async (req, res) => {
       nights: req.body.nights,
       points: req.body.points,
       client: req.get('X-Bonvoy-Client'),
+      demoToken: req.get('X-Bonvoy-Demo-Token'),
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,

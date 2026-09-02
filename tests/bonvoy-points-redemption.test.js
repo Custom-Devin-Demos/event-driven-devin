@@ -9,6 +9,10 @@ jest.mock('../app/telemetry/sentry', () => ({
 
 process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
 process.env.BONVOY_ALERTS_ENABLED = 'true';
+process.env.BONVOY_ALERT_MAX_PER_HOUR = '100';
+process.env.BONVOY_DEMO_TOKEN = 'test-presenter-token';
+
+const DEMO_TOKEN = 'test-presenter-token';
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
@@ -48,6 +52,7 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
         hotel: 'W Austin',
         nights: 1,
         points: 1000,
+        demoToken: DEMO_TOKEN,
       }),
     ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
     expect(createSessionAndAlert).toHaveBeenCalled();
@@ -87,6 +92,7 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
         points: 1000,
         devinOrgId: 'org-attacker',
         devinUserId: 'user-attacker',
+        demoToken: DEMO_TOKEN,
       }),
     ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
     expect(createSessionAndAlert).toHaveBeenCalledWith(
@@ -94,9 +100,18 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     );
   });
 
-  test('the alert is attributed to the configured owner email', async () => {
+  test('a redemption without the presenter token fails without alerting', async () => {
     await expect(
       redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 }),
+    ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('the alert is attributed to the configured owner email', async () => {
+    await expect(
+      redeemPoints({
+        memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
+      }),
     ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
     expect(createSessionAndAlert).toHaveBeenCalledWith(
       expect.objectContaining({ devinEmail: 'neil.kelly@cognition.ai' }),
@@ -111,7 +126,9 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
 
     const redeem = () => service
-      .redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 })
+      .redeemPoints({
+        memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
+      })
       .catch(() => {});
     await redeem();
     await redeem();
@@ -120,15 +137,17 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     expect(alertMock).toHaveBeenCalledTimes(1);
   });
 
-  test('alerting stays off unless it is explicitly enabled', async () => {
+  test('the kill switch silences alerting entirely', async () => {
     jest.resetModules();
-    delete process.env.BONVOY_ALERTS_ENABLED;
+    process.env.BONVOY_ALERTS_ENABLED = 'false';
     const service = require('../app/services/verticals/bonvoy');
     const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
     process.env.BONVOY_ALERTS_ENABLED = 'true';
 
     await expect(
-      service.redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 }),
+      service.redeemPoints({
+        memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
+      }),
     ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
     expect(alertMock).not.toHaveBeenCalled();
   });
@@ -141,7 +160,9 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     delete process.env.BONVOY_ALERT_MAX_PER_HOUR;
 
     const redeem = () => service
-      .redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 })
+      .redeemPoints({
+        memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
+      })
       .catch(() => {});
     await redeem();
     await redeem();

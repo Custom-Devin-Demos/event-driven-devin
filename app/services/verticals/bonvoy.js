@@ -62,11 +62,11 @@ const REMEDIATION_DIRECTIVE = [
   'sign in, pick a hotel, tap *Redeem points*, and verify the new error state on screen.',
   'Record the emulator verification and attach it to the PR.',
   '',
-  '*Verification target:* never point the app at the deployed backend — every redeem',
-  'against it raises a fresh production alert. Run this repo locally (`npm ci`,',
-  '`PORT=3000 node app/server.js`) and build with',
-  '`./gradlew assembleDebug -PbonvoyBaseUrl=http://10.0.2.2:3000` (the emulator default),',
-  'which reproduces the same 500 without paging anyone.',
+  '*Verification target:* run this repo locally (`npm ci`, `PORT=3000 node app/server.js`)',
+  'and build with `./gradlew assembleDebug -PbonvoyBaseUrl=http://10.0.2.2:3000` (the',
+  'emulator default), which reproduces the same 500. Never point the app at the deployed',
+  'backend, and never set `-PbonvoyDemoToken`: that token is the presenter build\'s, and',
+  'sending it turns a verification tap into a production page.',
 ].join('\n');
 
 /**
@@ -102,21 +102,28 @@ function envInt(name, fallback) {
 const ALERT_COOLDOWN_MS = envInt('BONVOY_ALERT_COOLDOWN_SECONDS', 45) * 1000;
 
 /** Ceiling on alerts per rolling hour, so a loop cannot outlast the cooldown. */
-const ALERT_MAX_PER_HOUR = envInt('BONVOY_ALERT_MAX_PER_HOUR', 4);
+const ALERT_MAX_PER_HOUR = envInt('BONVOY_ALERT_MAX_PER_HOUR', 2);
+
+const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'true').toLowerCase() === 'true';
 
 /**
- * Alerting is opt-in: the endpoint keeps returning its intentional 500, but no
- * Slack card or Devin session is raised unless a presenter turns it on for a
- * demo run.
+ * Only the presenter's build alerts. The Android client sends this token when
+ * it is built with `-PbonvoyDemoToken`, which the debug build a triggered
+ * session produces does not set — so a session that reaches the deployed
+ * endpoint while verifying its fix gets the intentional 500 and nothing else,
+ * instead of paging and spawning another session.
  */
-const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'false').toLowerCase() === 'true';
+const DEMO_TOKEN = process.env.BONVOY_DEMO_TOKEN || 'bonvoy-presenter-demo';
 
 let lastAlertAt = 0;
 let recentAlerts = [];
 
-function alertBlockReason() {
+function alertBlockReason(demoToken) {
   const now = Date.now();
   if (!ALERTS_ENABLED) return 'alerting disabled by BONVOY_ALERTS_ENABLED';
+  if (String(demoToken || '') !== DEMO_TOKEN) {
+    return 'request did not carry the presenter demo token';
+  }
   if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
     return `within the ${ALERT_COOLDOWN_MS / 1000}s cooldown of the previous alert`;
   }
@@ -320,7 +327,7 @@ async function redeemPoints(data) {
     // alert and Devin session below, and a Sentry issue would fan the same 500
     // out to the generic webhook path as a second, unguarded card and session.
 
-    const blockReason = alertBlockReason();
+    const blockReason = alertBlockReason(data.demoToken);
     if (blockReason) {
       logger.warn(`Suppressing Bonvoy alert — ${blockReason}`, {
         redemptionId,
