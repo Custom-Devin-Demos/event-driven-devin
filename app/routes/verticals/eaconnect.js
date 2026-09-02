@@ -10,16 +10,17 @@ const router = express.Router();
  * is no web page for this vertical.
  */
 router.post('/api/eaconnect/party/invite', async (req, res) => {
+  const body = req.body || {};
   try {
     const result = await sendPartyInvite({
-      accountId: req.body.account_id || req.body.accountId,
-      friendId: req.body.friend_id || req.body.friendId,
-      game: req.body.game,
+      accountId: body.account_id || body.accountId,
+      friendId: body.friend_id || body.friendId,
+      game: body.game,
       client: req.get('X-EAConnect-Client'),
       demoToken: req.get('X-EAConnect-Demo-Token'),
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(result);
   } catch (error) {
