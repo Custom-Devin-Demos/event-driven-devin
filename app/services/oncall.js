@@ -110,6 +110,27 @@ const ALERT_SCENARIOS = {
     // growth, so retries within the window join the same incident.
     retryWindow: true,
   },
+  inference: {
+    vertical: 'inference',
+    page: 'inference.html',
+    apiPath: '/api/inference/completions',
+    oncallApiPath: '/api/oncall/inference/completions',
+    owner: 'Dana Whitfield (serving-platform-oncall)',
+    brand: 'Helix Serve (Inference Console)',
+    service: 'inference-gateway',
+    endpoint: 'POST /api/oncall/inference/completions',
+    monitor: 'p95 time to first token trending up — POST /api/oncall/inference/completions',
+    metricQuery: 'p95:trace.express.request.duration{service:checkout-api,resource:POST /api/oncall/inference/completions}',
+    metricValue: '6.4s TTFT and climbing',
+    threshold: '> 1.5s',
+    baseline: '~310ms (7-day p95 TTFT, before helix-serve@1.0.4)',
+    release: 'helix-serve@1.0.4',
+    symptom: 'Time to first token jumped after the last release and creeps higher with every completion served. Inter-token latency is unchanged and error rate is normal. Process RSS trends up alongside TTFT.',
+    impact: 'Every completion waits several seconds before the first token, and the wait grows under sustained traffic. Streaming clients look hung.',
+    // Climbing-latency scenario: repeat completions demonstrate the
+    // per-request growth, so retries within the window join the same incident.
+    retryWindow: true,
+  },
   telco: {
     vertical: 'telco',
     page: 'telco.html',

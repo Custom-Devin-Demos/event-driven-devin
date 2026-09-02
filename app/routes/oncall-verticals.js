@@ -4,6 +4,7 @@ const { upgradePlan } = require('../services/oncall-verticals/telco');
 const { provisionLicense } = require('../services/oncall-verticals/hightech');
 const { processClaim } = require('../services/oncall-verticals/insurance');
 const { finalizeTranscript } = require('../services/oncall-verticals/voice');
+const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
@@ -105,6 +106,69 @@ router.post('/api/oncall/voice/transcribe', async (req, res) => {
       requestId: req.requestId,
     });
   }
+});
+
+/**
+ * POST /api/oncall/inference/completions — run a chat completion.
+ * With `stream: true` the response is server-sent events in the
+ * OpenAI-compatible chunk shape, so a client can measure time to first token
+ * rather than only total wall clock.
+ */
+router.post('/api/oncall/inference/completions', async (req, res) => {
+  const payload = {
+    model: String(req.body.model || 'deepseek-v3').toLowerCase(),
+    deployment: req.body.deployment || 'chat-prod',
+    prompt: String(req.body.prompt || '').slice(0, 8000),
+    maxTokens: req.body.maxTokens,
+  };
+  const options = { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) };
+
+  if (req.body.stream !== true) {
+    try {
+      res.json(await runCompletion(payload, options));
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        errorClass: error.name,
+        code: error.code || 'COMPLETION_FAILED',
+        requestId: req.requestId,
+      });
+    }
+    return;
+  }
+
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+  });
+  res.flushHeaders();
+  const send = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+
+  try {
+    const result = await runCompletion(payload, {
+      ...options,
+      onFirstToken: (ttftMs) => send({ object: 'chat.completion.chunk', ttftMs }),
+      onToken: (token) => send({
+        object: 'chat.completion.chunk',
+        choices: [{ index: 0, delta: { content: token } }],
+      }),
+    });
+    send({
+      object: 'chat.completion.chunk',
+      choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+      usage: result.usage,
+      ttftMs: result.ttftMs,
+      tokensPerSecond: result.tokensPerSecond,
+      id: result.id,
+      model: result.model,
+    });
+    res.write('data: [DONE]\n\n');
+  } catch (error) {
+    send({ error: { message: error.message, code: error.code || 'COMPLETION_FAILED' } });
+  }
+  res.end();
 });
 
 /**
