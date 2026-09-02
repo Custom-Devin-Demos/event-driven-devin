@@ -1,7 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
-const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
@@ -58,16 +57,23 @@ const REMEDIATION_DIRECTIVE = [
   'temporarily unavailable, a Retry action, and a way back to the hotel search — and',
   'surface the backend `error`/`message`/`requestId` fields only as subdued support details.',
   '',
-  '*Deliverable:* Open a pull request against `main` in `neil-z-kelly/bonvoy-android`.',
-  'Before opening it, build the debug APK, launch the `devin` AVD, install the app,',
-  'sign in, pick a hotel, tap *Redeem points*, and verify the new error state on screen.',
-  'Record the emulator verification and attach it to the PR.',
+  '*Deliverable:* Open a pull request against `main` in `neil-z-kelly/bonvoy-android`,',
+  'with a single screen recording of the emulator attached that shows the before and',
+  'after in one take:',
+  '1. *Before* — the unfixed app: sign in, pick a hotel, tap *Redeem points*, and let the',
+  '   raw exception / stack trace stay on screen long enough to read.',
+  '2. *Fix* — apply your change and rebuild/reinstall the APK.',
+  '3. *After* — repeat the same taps and hold on the graceful error state, showing the',
+  '   friendly message, the Retry action, the way back to search, and the subdued',
+  '   support details.',
+  'The recording is the proof the fix is real, so do not skip the before segment and do',
+  'not stitch in a screenshot in place of a live run.',
   '',
-  '*Verification target:* never point the app at the deployed backend — every redeem',
-  'against it raises a fresh production alert. Run this repo locally (`npm ci`,',
-  '`PORT=3000 node app/server.js`) and build with',
-  '`./gradlew assembleDebug -PbonvoyBaseUrl=http://10.0.2.2:3000` (the emulator default),',
-  'which reproduces the same 500 without paging anyone.',
+  '*Verification target:* run this repo locally (`npm ci`, `PORT=3000 node app/server.js`)',
+  'and build with `./gradlew assembleDebug -PbonvoyBaseUrl=http://10.0.2.2:3000` (the',
+  'emulator default), which reproduces the same 500. Never point the app at the deployed',
+  'backend, and never set `-PbonvoyDemoToken`: that token is the presenter build\'s, and',
+  'sending it turns a verification tap into a production page.',
 ].join('\n');
 
 /**
@@ -85,69 +91,60 @@ function sanitizeText(value, maxLength = 80) {
 
 /**
  * Owner shown on the Bonvoy alert card. The Android client is unauthenticated,
- * so the demo owner is configured here rather than taken from the request.
+ * so the demo owner is fixed here rather than taken from the request.
  */
-const BONVOY_OWNER_EMAIL = process.env.BONVOY_OWNER_EMAIL || 'neil.kelly@cognition.ai';
-
-function envInt(name, fallback) {
-  const parsed = parseInt(process.env[name], 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
-}
+const OWNER_EMAIL = 'neil.kelly@cognition.ai';
 
 /**
- * Minimum spacing between Bonvoy alerts. A session triggered by an alert can
- * reach this endpoint while verifying its fix, which would alert again; the
- * cooldown bounds that feedback loop while still letting a presenter
- * demonstrate repeat firing.
+ * Alerting limits. The deployment has no Bonvoy-specific host configuration, so
+ * these are code constants — changing one is a merge. `enabled` is the kill
+ * switch: false keeps the intentional 500 and drops the Slack card and session.
+ * `cooldownMs` and `maxPerHour` bound the feedback loop a triggered session can
+ * create by reaching this endpoint while verifying its fix.
  */
-const ALERT_COOLDOWN_MS = envInt('BONVOY_ALERT_COOLDOWN_SECONDS', 45) * 1000;
-
-/** Ceiling on alerts per rolling hour, so a loop cannot outlast the cooldown. */
-const ALERT_MAX_PER_HOUR = envInt('BONVOY_ALERT_MAX_PER_HOUR', 4);
+const alerting = {
+  enabled: true,
+  cooldownMs: 45000,
+  maxPerHour: 2,
+  lastAlertAt: 0,
+  recent: [],
+};
 
 /**
- * Alerting is opt-in: the endpoint keeps returning its intentional 500, but no
- * Slack card or Devin session is raised unless a presenter turns it on for a
- * demo run.
+ * Only the presenter's build alerts. The Android client sends this token when
+ * it is built with `-PbonvoyDemoToken`, which the debug build a triggered
+ * session produces does not set — so a session that reaches the deployed
+ * endpoint while verifying its fix gets the intentional 500 and nothing else,
+ * instead of paging and spawning another session. The value is not a secret:
+ * the guard works because triggered builds send no token at all.
  */
-const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'false').toLowerCase() === 'true';
+const DEMO_TOKEN = 'bonvoy-presenter-demo';
 
-let lastAlertAt = 0;
-let recentAlerts = [];
-
-function alertBlockReason() {
+function alertBlockReason(demoToken) {
   const now = Date.now();
-  if (!ALERTS_ENABLED) return 'alerting disabled by BONVOY_ALERTS_ENABLED';
-  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
-    return `within the ${ALERT_COOLDOWN_MS / 1000}s cooldown of the previous alert`;
+  if (!alerting.enabled) return 'Bonvoy alerting is switched off';
+  if (String(demoToken || '') !== DEMO_TOKEN) {
+    return 'request did not carry the presenter demo token';
   }
-  recentAlerts = recentAlerts.filter((at) => now - at < 3600000);
-  if (recentAlerts.length >= ALERT_MAX_PER_HOUR) {
-    return `hourly cap of ${ALERT_MAX_PER_HOUR} alerts reached`;
+  if (now - alerting.lastAlertAt < alerting.cooldownMs) {
+    return `within the ${alerting.cooldownMs / 1000}s cooldown of the previous alert`;
   }
-  lastAlertAt = now;
-  recentAlerts.push(now);
+  alerting.recent = alerting.recent.filter((at) => now - at < 3600000);
+  if (alerting.recent.length >= alerting.maxPerHour) {
+    return `hourly cap of ${alerting.maxPerHour} alerts reached`;
+  }
+  alerting.lastAlertAt = now;
+  alerting.recent.push(now);
   return null;
 }
 
 /**
- * Devin identities supplied by the caller are only honoured when the operator
- * has allow-listed them; otherwise the customer's configured identity is used.
+ * The redeem endpoint is unauthenticated, so a Devin identity in the request
+ * body is never honoured — sessions are always created as the customer's
+ * configured identity.
  */
 function resolveDevinIdentity(data) {
-  const allowed = String(process.env.BONVOY_ALLOWED_DEVIN_ORG_IDS || '')
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
   const requestedOrgId = String(data.devinOrgId || '').trim();
-
-  if (requestedOrgId && allowed.includes(requestedOrgId)) {
-    return {
-      devinOrgId: requestedOrgId,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail || BONVOY_OWNER_EMAIL,
-    };
-  }
 
   if (requestedOrgId) {
     logger.warn('Ignoring caller-supplied Devin identity for Bonvoy redemption', {
@@ -156,7 +153,7 @@ function resolveDevinIdentity(data) {
     });
   }
 
-  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: BONVOY_OWNER_EMAIL };
+  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: OWNER_EMAIL };
 }
 
 function findMember(memberNumber) {
@@ -317,16 +314,11 @@ async function redeemPoints(data) {
       service: 'customer-bonvoy-points-redemption',
     });
 
-    Sentry.captureException(error, {
-      tags: {
-        route: '/api/bonvoy/points/redeem',
-        service: 'customer-bonvoy-points-redemption',
-        client,
-      },
-      extra: { redemptionId, hotel, nights, points },
-    });
+    // Deliberately not reported to Sentry: this vertical raises its own branded
+    // alert and Devin session below, and a Sentry issue would fan the same 500
+    // out to the generic webhook path as a second, unguarded card and session.
 
-    const blockReason = alertBlockReason();
+    const blockReason = alertBlockReason(data.demoToken);
     if (blockReason) {
       logger.warn(`Suppressing Bonvoy alert — ${blockReason}`, {
         redemptionId,
@@ -377,6 +369,7 @@ async function redeemPoints(data) {
 
 module.exports = {
   redeemPoints,
+  alerting,
   REMEDIATION_DIRECTIVE,
   ELITE_TIERS,
   LEDGER_SHARDS,
