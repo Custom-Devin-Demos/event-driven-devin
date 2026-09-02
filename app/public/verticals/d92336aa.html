@@ -330,6 +330,10 @@
     })();
   </script>
   <script>
+    function formatWon(value) {
+      return Number(value).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+    }
+
     document.getElementById('transferForm').addEventListener('submit', async function (event) {
       event.preventDefault();
       var button = document.getElementById('submitBtn');
@@ -357,7 +361,7 @@
           result.textContent = '선물 결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.';
         } else {
           result.className = 'result-box success';
-          result.innerHTML = '<div class="result-title">선물 결제 완료</div><div class="result-detail">' + Number(data.debitAmount).toLocaleString('ko-KR') + '원 결제가 완료되었습니다 (결제 수수료 ' + Number(data.fee).toLocaleString('ko-KR') + '원 포함)<br>주문번호 ' + data.transferId + '</div>';
+          result.innerHTML = '<div class="result-title">선물 결제 완료</div><div class="result-detail">' + formatWon(data.debitAmount) + '원 결제가 완료되었습니다 (결제 수수료 ' + formatWon(data.fee) + '원 포함)<br>주문번호 ' + data.transferId + '</div>';
         }
       } catch (error) {
         result.className = 'result-box error';
