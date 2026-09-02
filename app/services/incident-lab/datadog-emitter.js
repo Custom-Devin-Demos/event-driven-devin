@@ -42,16 +42,16 @@ function diurnalFactor(atMs) {
 }
 
 const TOKEN_FILLERS = {
-  executionId: () => String(100000 + Math.floor(Math.random() * 900000)),
-  workflowId: () => `wf_${Math.random().toString(36).slice(2, 10)}`,
-  jobId: () => String(40000 + Math.floor(Math.random() * 60000)),
-  batchId: () => `b_${Math.random().toString(36).slice(2, 10)}`,
-  tickId: () => String(800000 + Math.floor(Math.random() * 200000)),
-  ip: () => `10.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 254) + 1}`,
-  ms: () => String(200 + Math.floor(Math.random() * 4800)),
-  n: () => String(1 + Math.floor(Math.random() * 14)),
-  m: () => String(1 + Math.floor(Math.random() * 6)),
-  attempt: () => String(1 + Math.floor(Math.random() * 8)),
+  executionId: (rand = Math.random) => String(100000 + Math.floor(rand() * 900000)),
+  workflowId: (rand = Math.random) => `wf_${rand().toString(36).slice(2, 10)}`,
+  jobId: (rand = Math.random) => String(40000 + Math.floor(rand() * 60000)),
+  batchId: (rand = Math.random) => `b_${rand().toString(36).slice(2, 10)}`,
+  tickId: (rand = Math.random) => String(800000 + Math.floor(rand() * 200000)),
+  ip: (rand = Math.random) => `10.${Math.floor(rand() * 256)}.${Math.floor(rand() * 256)}.${Math.floor(rand() * 254) + 1}`,
+  ms: (rand = Math.random) => String(200 + Math.floor(rand() * 4800)),
+  n: (rand = Math.random) => String(1 + Math.floor(rand() * 14)),
+  m: (rand = Math.random) => String(1 + Math.floor(rand() * 6)),
+  attempt: (rand = Math.random) => String(1 + Math.floor(rand() * 8)),
   version: () => `v${new Date().toISOString().slice(0, 10).replace(/-/g, '.')}-1`,
 };
 
@@ -62,35 +62,81 @@ function renderTemplate(template, overrides = {}) {
   });
 }
 
-/**
- * Rotating identity pool for a log spec's `cycle` config
- * (`{ "tokens": ["jobId", "tickId"], "pool": 15, "uses": 8 }`): `pool`
- * concurrent identities are handed out round-robin and each is reused
- * `uses` times before being replaced. A queue redelivering ~pool jobs on a
- * steady cadence looks like this — a fresh id on every line does not, and
- * an investigator reading "hundreds of ids, none redelivered" rightly
- * concludes the redrive policy isn't real.
- */
-function makeCycler(cycle) {
-  const tokens = cycle.tokens || [];
-  const size = Math.max(cycle.pool || 1, 1);
-  const uses = Math.max(cycle.uses || 1, 1);
-  const slots = [];
-  let next = 0;
+function seededRandom(seed) {
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  let value = hash >>> 0 || 1;
   return () => {
-    const index = next % size;
-    next += 1;
-    let slot = slots[index];
-    if (!slot || slot.used >= uses) {
-      slot = { used: 0, values: {} };
-      for (const token of tokens) {
-        slot.values[token] = TOKEN_FILLERS[token] ? TOKEN_FILLERS[token]() : `{${token}}`;
-      }
-      slots[index] = slot;
-    }
-    slot.used += 1;
-    return slot.values;
+    value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
+    return value / 4294967296;
   };
+}
+
+/**
+ * A cadence spec models a queue job's whole life instead of a log rate: one
+ * job is born every `birthIntervalMs`, fails `attempts` times spaced
+ * `attemptIntervalMs` apart, then stops (dead-lettered). Identities are
+ * derived from the absolute clock and the run ref rather than handed out by
+ * a counter, so backfilled history, live emission and a resumed process all
+ * compute the same job ids for the same instant — a job's redeliveries stay
+ * intact across the declaration boundary and across restarts.
+ *
+ * Specs sharing a cadence `id` and a token draw the same value for the same
+ * job: the cursor warning names the tick its failures cite. Without that,
+ * warnings and failures never join, which is itself evidence — and it is
+ * exactly the join an investigator runs to test whether two code paths are
+ * the same one.
+ */
+function cadenceIdentity(seed, cadence, index) {
+  const values = {};
+  for (const token of cadence.tokens || []) {
+    const rand = seededRandom(`${seed}|${cadence.id}|${token}|${index}`);
+    values[token] = TOKEN_FILLERS[token] ? TOKEN_FILLERS[token](rand) : `{${token}}`;
+  }
+  return values;
+}
+
+/**
+ * The events a cadence spec produces in [fromMs, toMs). `bornAfterMs` and
+ * `bornBeforeMs` bound which jobs exist: the outage spec only births jobs
+ * from the phase start, and the drain that replaces it at mitigation births
+ * none at all — the jobs already in flight keep failing until they exhaust
+ * their redeliveries, which is what recovery actually looks like from the
+ * outside.
+ */
+function cadenceEvents(spec, seed, fromMs, toMs, { bornAfterMs, bornBeforeMs } = {}) {
+  const cadence = spec.cadence;
+  const birthMs = Math.max(cadence.birthIntervalMs || 60000, 1);
+  const attempts = Math.max(cadence.attempts || 1, 1);
+  const attemptMs = cadence.attemptIntervalMs || birthMs;
+  const offsetMs = cadence.offsetMs || 0;
+  const jitterMs = cadence.jitterMs || 0;
+  const lifetimeMs = offsetMs + (attempts - 1) * attemptMs + jitterMs;
+  const events = [];
+  const firstIndex = Math.floor((Math.max(fromMs, bornAfterMs || fromMs) - lifetimeMs) / birthMs);
+  const lastIndex = Math.floor(toMs / birthMs);
+  for (let index = firstIndex; index <= lastIndex; index++) {
+    const bornAt = index * birthMs;
+    if (Number.isFinite(bornAfterMs) && bornAt < bornAfterMs) continue;
+    if (Number.isFinite(bornBeforeMs) && bornAt >= bornBeforeMs) break;
+    let identity = null;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      const rand = seededRandom(`${seed}|${cadence.id}|${index}|${attempt}`);
+      const at = bornAt + offsetMs + attempt * attemptMs + Math.round((rand() * 2 - 1) * jitterMs);
+      if (at < fromMs || at >= toMs) continue;
+      identity = identity || cadenceIdentity(seed, cadence, index);
+      events.push({
+        logger: spec.logger,
+        status: spec.status,
+        message: renderTemplate(spec.template, identity),
+        timestamp: at,
+      });
+    }
+  }
+  return events;
 }
 
 function metricKey(spec) {
@@ -173,6 +219,11 @@ function createDatadogSink({ post = axios.post } = {}) {
       }
     }
     for (const spec of state.logRates) {
+      if (spec.cadence) {
+        logs.push(...cadenceEvents(spec, run.runRef, spec.lastEmitAt, now, spec));
+        spec.lastEmitAt = now;
+        continue;
+      }
       const key = `${spec.logger}|${spec.template}`;
       accrue(state.logAccrual, key, spec.perHour / 60, 0.5);
       const owed = state.logAccrual.get(key) || 0;
@@ -182,7 +233,7 @@ function createDatadogSink({ post = axios.post } = {}) {
         logs.push({
           logger: spec.logger,
           status: spec.status,
-          message: renderTemplate(spec.template, spec.cycler ? spec.cycler() : undefined),
+          message: renderTemplate(spec.template),
           timestamp: now - Math.floor(Math.random() * FLUSH_INTERVAL_MS),
         });
       }
@@ -252,9 +303,16 @@ function createDatadogSink({ post = axios.post } = {}) {
           (s) => !(s.logger === spec.logger && s.template === spec.template),
         );
       }
-      if (!(spec.perHour > 0)) continue;
+      if (!spec.cadence && !(spec.perHour > 0)) continue;
       const entry = { ...spec, phase: phaseId };
-      if (spec.cycle) entry.cycler = makeCycler(spec.cycle);
+      if (spec.cadence) {
+        const now = Date.now();
+        entry.lastEmitAt = now;
+        // `inherit` continues the jobs an earlier spec was already failing
+        // instead of starting a new population.
+        if (spec.cadence.inherit) entry.bornBeforeMs = now - elapsedMs;
+        else entry.bornAfterMs = now - elapsedMs;
+      }
       if (Number.isFinite(spec.durationMs)) {
         const remainingMs = spec.durationMs - elapsedMs;
         if (remainingMs <= 0) continue;
@@ -350,6 +408,18 @@ function createDatadogSink({ post = axios.post } = {}) {
     if (sinceMs <= 0) return;
     const logs = [];
     for (const spec of phase.logs || []) {
+      if (spec.cadence) {
+        // Same derivation the live flush uses, so a job whose redeliveries
+        // straddle the declaration keeps its identity across the seam.
+        const startedAt = now - sinceMs;
+        const events = cadenceEvents(spec, run.runRef, startedAt, now, { bornAfterMs: startedAt });
+        logs.push(...events.slice(-LOG_BACKFILL_MAX_EVENTS));
+        const live = state && state.logRates.find(
+          (s) => s.logger === spec.logger && s.template === spec.template,
+        );
+        if (live) live.lastEmitAt = now;
+        continue;
+      }
       // A duration-limited log only ran for the overlap of its window with
       // the pre-declaration period, anchored at the phase start.
       const activeMs = Number.isFinite(spec.durationMs)
@@ -359,18 +429,12 @@ function createDatadogSink({ post = axios.post } = {}) {
         Math.round((spec.perHour / 3600000) * activeMs),
         LOG_BACKFILL_MAX_EVENTS,
       );
-      // A cycled spec keeps identity order: timestamps ascend through the
-      // window so the pool's redelivery cadence survives the final sort
-      // (random timestamps would scatter a job's redeliveries).
-      const cycler = spec.cycle ? makeCycler(spec.cycle) : null;
       for (let i = 0; i < total; i++) {
         logs.push({
           logger: spec.logger,
           status: spec.status,
-          message: renderTemplate(spec.template, cycler ? cycler() : undefined),
-          timestamp: cycler
-            ? now - sinceMs + Math.floor(((i + Math.random()) / total) * activeMs)
-            : now - sinceMs + Math.floor(Math.random() * activeMs),
+          message: renderTemplate(spec.template),
+          timestamp: now - sinceMs + Math.floor(Math.random() * activeMs),
         });
       }
     }

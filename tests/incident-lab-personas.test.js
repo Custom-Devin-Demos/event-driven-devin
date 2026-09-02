@@ -605,13 +605,18 @@ describe('incident-lab script director', () => {
   test('overdue beats drain with a gap instead of landing together', async () => {
     const direct = jest.fn().mockResolvedValue({ decision: 'post' });
     const overdue = { persona: 'biz', text: 'overdue beat', atMs: 61000 };
-    const { posted, stop } = await runDirector([BEAT, overdue], direct);
+    const random = jest.spyOn(Math, 'random').mockReturnValue(0.5); // mid drain gap
+    try {
+      const { posted, stop } = await runDirector([BEAT, overdue], direct);
 
-    expect(posted).toEqual(['scripted beat']);
-    await jest.advanceTimersByTimeAsync(19000);
-    expect(posted).toEqual(['scripted beat']);
-    await jest.advanceTimersByTimeAsync(26000);
-    expect(posted).toEqual(['scripted beat', 'overdue beat']);
-    await stop();
+      expect(posted).toEqual(['scripted beat']);
+      await jest.advanceTimersByTimeAsync(19000);
+      expect(posted).toEqual(['scripted beat']);
+      await jest.advanceTimersByTimeAsync(26000);
+      expect(posted).toEqual(['scripted beat', 'overdue beat']);
+      await stop();
+    } finally {
+      random.mockRestore();
+    }
   });
 });

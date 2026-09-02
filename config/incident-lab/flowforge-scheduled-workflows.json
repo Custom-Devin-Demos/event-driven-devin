@@ -94,7 +94,7 @@
       {
         "id": "onset",
         "startMs": -3600000,
-        "note": "Outage begins one hour before declaration (detection gap). The deploy marker backfills as a single log at the start of the hour — the red herring: the rollout finishing and schedules dying look simultaneous. Outage errors are QUIET: the deployed redaction strips provider messages from worker logs, so no bucket name, no project slug, no stack. 480/hr: 60 ticks x 8 redeliveries.",
+        "note": "Outage begins one hour before declaration (detection gap). The deploy marker backfills as a single log at the start of the hour — the red herring: the rollout finishing and schedules dying look simultaneous. Outage errors are QUIET: the deployed redaction strips provider messages from worker logs, so no bucket name, no project slug, no stack. 480/hr, as one poisoned job per tick failing 8 times ~112s apart before dead-lettering: the failure lines and the scheduler's cursor warning share the tick id (cadence 'ingest-tick'), so pre- and post-deploy code paths join identically. A fresh id per line is a tell — IR-113's investigator counted 753 single-use job ids and correctly concluded the redrive policy wasn't real.",
         "metrics": [
           { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 0.03, "jitter": 0.8, "replacesBaseline": true },
           { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 0.03, "jitter": 0.8, "replacesBaseline": true },
@@ -114,8 +114,7 @@
             "template": "Deployment complete: flowforge-orchestrator {version} rolled out to 4/4 hosts"
           },
           {
-            "perHour": 480,
-            "cycle": { "tokens": ["jobId", "tickId"], "pool": 15, "uses": 8 },
+            "cadence": { "id": "ingest-tick", "tokens": ["jobId", "tickId"], "birthIntervalMs": 60000, "attempts": 8, "attemptIntervalMs": 112500, "jitterMs": 4000 },
             "status": "error",
             "logger": "flowforge.queue.worker",
             "template": "Schedule ingest job {jobId} (tick {tickId}) failed, returning to queue — cause redacted (may contain tenant data)"
@@ -128,7 +127,7 @@
             "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
           },
           {
-            "perHour": 60,
+            "cadence": { "id": "ingest-tick", "tokens": ["tickId"], "birthIntervalMs": 60000, "attempts": 1, "offsetMs": 3000, "jitterMs": 1200 },
             "status": "warn",
             "logger": "flowforge.scheduler",
             "template": "Schedule tick {tickId}: cursor not advanced for {n} due workflow(s) — batch ingest did not commit, occurrences will re-match next tick"
@@ -153,7 +152,7 @@
         "id": "mitigated",
         "startMs": null,
         "manual": true,
-        "note": "Presenter (or scripted ENG_A line) marks mitigation: the poison workflow disabled. Schedule executions resume with a catch-up burst.",
+        "note": "Presenter (or scripted ENG_A line) marks mitigation: the poison workflow disabled. Schedule executions resume with a catch-up burst. Disabling the workflow stops new poisoned jobs, not the ones already in the queue, so the failure logs drain over the redelivery window instead of stopping dead — the same taper in queue.jobs.redelivered and dead_lettered. A cliff would contradict the maxReceive=8 / 2-minute redrive policy the personas describe, and the drain is what the responder watching recovery actually reports on.",
         "metrics": [
           { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 6, "jitter": 0.3, "replacesBaseline": true, "catchUpBurst": { "count": 220, "windowMs": 900000 } },
           { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 5.9, "jitter": 0.3, "replacesBaseline": true },
@@ -161,8 +160,8 @@
           { "metric": "queue.jobs.active", "tags": [], "perMinute": 16.5, "jitter": 0.35, "diurnal": true, "replacesBaseline": true },
           { "metric": "binary_data.uploads", "tags": ["backend:filesystem"], "perMinute": 11, "jitter": 0.4, "diurnal": true, "replacesBaseline": true },
           { "metric": "binary_data.uploads", "tags": ["backend:s3"], "perMinute": 4, "jitter": 0.5, "diurnal": true, "replacesBaseline": true },
-          { "metric": "queue.jobs.redelivered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true },
-          { "metric": "queue.jobs.dead_lettered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true }
+          { "metric": "queue.jobs.redelivered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true, "catchUpBurst": { "count": 56, "windowMs": 840000 } },
+          { "metric": "queue.jobs.dead_lettered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true, "catchUpBurst": { "count": 14, "windowMs": 840000 } }
         ],
         "logs": [
           {
@@ -173,7 +172,8 @@
             "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
           },
           {
-            "perHour": 0,
+            "cadence": { "id": "ingest-tick", "tokens": ["jobId", "tickId"], "birthIntervalMs": 60000, "attempts": 8, "attemptIntervalMs": 112500, "jitterMs": 4000, "inherit": true },
+            "durationMs": 1200000,
             "replacesBaseline": true,
             "status": "error",
             "logger": "flowforge.queue.worker",
