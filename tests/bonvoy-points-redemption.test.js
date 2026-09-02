@@ -3,6 +3,7 @@ jest.mock('../app/services/devin-session', () => ({
 }));
 
 process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
+process.env.BONVOY_ALERTS_ENABLED = 'true';
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { redeemPoints } = require('../app/services/verticals/bonvoy');
@@ -100,12 +101,12 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     expect(alertMock).toHaveBeenCalledTimes(1);
   });
 
-  test('alerting can be switched off entirely while the 500 still fires', async () => {
+  test('alerting stays off unless it is explicitly enabled', async () => {
     jest.resetModules();
-    process.env.BONVOY_ALERTS_ENABLED = 'false';
+    delete process.env.BONVOY_ALERTS_ENABLED;
     const service = require('../app/services/verticals/bonvoy');
     const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
-    delete process.env.BONVOY_ALERTS_ENABLED;
+    process.env.BONVOY_ALERTS_ENABLED = 'true';
 
     await expect(
       service.redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 }),

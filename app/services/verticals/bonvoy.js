@@ -105,8 +105,12 @@ const ALERT_COOLDOWN_MS = envInt('BONVOY_ALERT_COOLDOWN_SECONDS', 45) * 1000;
 /** Ceiling on alerts per rolling hour, so a loop cannot outlast the cooldown. */
 const ALERT_MAX_PER_HOUR = envInt('BONVOY_ALERT_MAX_PER_HOUR', 4);
 
-/** Kill switch: set to `false` to keep the 500 while silencing alerts entirely. */
-const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'true').toLowerCase() !== 'false';
+/**
+ * Alerting is opt-in: the endpoint keeps returning its intentional 500, but no
+ * Slack card or Devin session is raised unless a presenter turns it on for a
+ * demo run.
+ */
+const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'false').toLowerCase() === 'true';
 
 let lastAlertAt = 0;
 let recentAlerts = [];
