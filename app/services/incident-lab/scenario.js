@@ -20,6 +20,9 @@ function validateScenario(scenario, file) {
     if (typeof scenario[key] !== 'string' || !scenario[key].trim()) fail(`missing "${key}"`);
   }
   if (!Number.isFinite(scenario.durationMs) || scenario.durationMs <= 0) fail('missing "durationMs"');
+  if (scenario.leadInMs !== undefined && (!Number.isFinite(scenario.leadInMs) || scenario.leadInMs < 0)) {
+    fail('"leadInMs" must be a non-negative number');
+  }
   if (!Array.isArray(scenario.personas) || !scenario.personas.length) fail('missing "personas"');
   const personaIds = new Set();
   for (const persona of scenario.personas) {
