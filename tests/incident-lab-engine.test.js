@@ -82,6 +82,22 @@ describe('incident-lab scenario loader', () => {
         phases: [{ id: 'p', startMs: 0 }, { id: 'p', manual: true }],
       },
     }, 'x.json')).toThrow(/duplicate datadog phase id/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [],
+      knowledge: [{ unlockAtMs: 0, facts: ['f'], phase: 'nope' }],
+    }, 'x.json')).toThrow(/not a datadog phase/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [],
+      mitigations: {
+        options: [{
+          id: 'o', persona: 'a', proposal: 'p', ack: 'a', observation: 'o', observeAfterMs: 5000,
+        }],
+      },
+    }, 'x.json')).toThrow(/out-of-range "observeAfterMs"/);
   });
 });
 
