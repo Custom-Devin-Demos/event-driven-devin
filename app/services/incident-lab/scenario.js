@@ -11,6 +11,16 @@ const path = require('path');
 
 const SCENARIO_DIR = path.join(__dirname, '..', '..', '..', 'config', 'incident-lab');
 
+// A responder who says "trying that" and has it done in the same breath reads
+// fake, and the observation has to wait for the telemetry to actually move.
+const MITIGATION_ACT_MS = 120000;
+const MITIGATION_OBSERVE_MS = 240000;
+
+/** The datadog phase a script beat's or mitigation option's action activates. */
+function phaseForAction(action) {
+  return action === 'mitigate' ? 'mitigated' : action;
+}
+
 function validateScenario(scenario, file) {
   const fail = (msg) => {
     throw new Error(`Invalid incident-lab scenario ${file}: ${msg}`);
@@ -31,6 +41,10 @@ function validateScenario(scenario, file) {
     if (personaIds.has(persona.id)) fail(`duplicate persona id "${persona.id}"`);
     personaIds.add(persona.id);
   }
+  const phaseIds = new Set(((scenario.datadog || {}).phases || []).map((p) => p.id));
+  const manualPhases = new Set(
+    ((scenario.datadog || {}).phases || []).filter((p) => p.manual).map((p) => p.id),
+  );
   if (!Array.isArray(scenario.script)) fail('missing "script"');
   let lastAt = -1;
   for (const line of scenario.script) {
@@ -40,6 +54,10 @@ function validateScenario(scenario, file) {
     lastAt = line.atMs;
     if (!personaIds.has(line.persona)) fail(`script line references unknown persona "${line.persona}"`);
     if (typeof line.text !== 'string' || !line.text.trim()) fail('script line missing "text"');
+    // A beat announcing a recovery the run cannot activate is worse than no beat.
+    if (line.action !== undefined && !manualPhases.has(phaseForAction(line.action))) {
+      fail(`script line acts on "${line.action}", which is not a manual datadog phase`);
+    }
   }
   if (scenario.knowledge != null) {
     if (!Array.isArray(scenario.knowledge)) fail('"knowledge" must be an array');
@@ -47,6 +65,42 @@ function validateScenario(scenario, file) {
       if (!Number.isFinite(entry.unlockAtMs)) fail('knowledge entry missing "unlockAtMs"');
       if (entry.unlockAtMs > scenario.durationMs) fail(`knowledge unlock at ${entry.unlockAtMs}ms is beyond durationMs`);
       if (!Array.isArray(entry.facts) || !entry.facts.length) fail('knowledge entry missing "facts"');
+      if (entry.phase !== undefined && !phaseIds.has(entry.phase)) {
+        fail(`knowledge entry unlocks on "${entry.phase}", which is not a datadog phase`);
+      }
+    }
+  }
+  if (scenario.mitigations != null) {
+    const options = scenario.mitigations.options;
+    if (!Array.isArray(options) || !options.length) fail('"mitigations" needs a non-empty "options" array');
+    const ids = new Set();
+    for (const option of options) {
+      if (typeof option.id !== 'string' || !option.id.trim()) fail('mitigation option missing "id"');
+      if (ids.has(option.id)) fail(`duplicate mitigation option id "${option.id}"`);
+      ids.add(option.id);
+      for (const key of ['proposal', 'ack', 'observation']) {
+        if (typeof option[key] !== 'string' || !option[key].trim()) fail(`mitigation option "${option.id}" missing "${key}"`);
+      }
+      if (!personaIds.has(option.persona)) fail(`mitigation option "${option.id}" references unknown persona "${option.persona}"`);
+      if (option.observePersona !== undefined && !personaIds.has(option.observePersona)) {
+        fail(`mitigation option "${option.id}" references unknown persona "${option.observePersona}"`);
+      }
+      let exchangeMs = 0;
+      for (const [key, fallback] of [['actAfterMs', MITIGATION_ACT_MS], ['observeAfterMs', MITIGATION_OBSERVE_MS]]) {
+        if (option[key] !== undefined && (!Number.isFinite(option[key]) || option[key] < 0)) {
+          fail(`mitigation option "${option.id}" has an out-of-range "${key}"`);
+        }
+        exchangeMs += option[key] === undefined ? fallback : option[key];
+      }
+      // The exchange runs from the ask, so its whole span has to fit the window.
+      if (exchangeMs > scenario.durationMs) {
+        fail(`mitigation option "${option.id}" runs ${exchangeMs}ms, beyond durationMs`);
+      }
+      // An action naming a phase the run cannot activate on demand would
+      // acknowledge the investigator and then recover nothing.
+      if (option.action !== undefined && !manualPhases.has(phaseForAction(option.action))) {
+        fail(`mitigation option "${option.id}" acts on "${option.action}", which is not a manual datadog phase`);
+      }
     }
   }
   const dd = scenario.datadog;
@@ -105,4 +159,13 @@ function clearScenarioCache() {
   cache = null;
 }
 
-module.exports = { loadScenarios, getScenario, listScenarios, validateScenario, clearScenarioCache };
+module.exports = {
+  loadScenarios,
+  getScenario,
+  listScenarios,
+  validateScenario,
+  clearScenarioCache,
+  phaseForAction,
+  MITIGATION_ACT_MS,
+  MITIGATION_OBSERVE_MS,
+};
