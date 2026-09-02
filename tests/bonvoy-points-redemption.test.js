@@ -2,10 +2,16 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
 
+jest.mock('../app/telemetry/sentry', () => ({
+  Sentry: { captureException: jest.fn() },
+  initSentry: jest.fn(),
+}));
+
 process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
 process.env.BONVOY_ALERTS_ENABLED = 'true';
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { Sentry } = require('../app/telemetry/sentry');
 const { redeemPoints } = require('../app/services/verticals/bonvoy');
 
 describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
@@ -33,6 +39,19 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     expect(result.pointsDebited).toBe(50000);
     expect(result.newBalance).toBe(22400);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('the ledger outage is not reported to Sentry, which would double-alert', async () => {
+    await expect(
+      redeemPoints({
+        memberNumber: '184302771',
+        hotel: 'W Austin',
+        nights: 1,
+        points: 1000,
+      }),
+    ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
+    expect(createSessionAndAlert).toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
   test('an unknown member number is rejected instead of receiving a funded account', async () => {

@@ -1,7 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
-const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
 /**
@@ -317,14 +316,9 @@ async function redeemPoints(data) {
       service: 'customer-bonvoy-points-redemption',
     });
 
-    Sentry.captureException(error, {
-      tags: {
-        route: '/api/bonvoy/points/redeem',
-        service: 'customer-bonvoy-points-redemption',
-        client,
-      },
-      extra: { redemptionId, hotel, nights, points },
-    });
+    // Deliberately not reported to Sentry: this vertical raises its own branded
+    // alert and Devin session below, and a Sentry issue would fan the same 500
+    // out to the generic webhook path as a second, unguarded card and session.
 
     const blockReason = alertBlockReason();
     if (blockReason) {
