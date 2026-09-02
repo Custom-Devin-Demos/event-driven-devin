@@ -64,9 +64,59 @@ const REMEDIATION_DIRECTIVE = [
   'new error state on screen. Record the emulator verification and attach it to the PR.',
 ].join('\n');
 
+/**
+ * Free-text fields flow into Slack alert cards and the Devin investigation
+ * prompt, so callers must not be able to smuggle markup or instructions in.
+ */
+function sanitizeText(value, maxLength = 80) {
+  return String(value == null ? '' : value)
+    .replace(/[\r\n\t]+/g, ' ')
+    .replace(/[`*_~<>|@#\\]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+/**
+ * Devin identities supplied by the caller are only honoured when the operator
+ * has allow-listed them; otherwise the customer's configured identity is used.
+ */
+function resolveDevinIdentity(data) {
+  const allowed = String(process.env.BONVOY_ALLOWED_DEVIN_ORG_IDS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const requestedOrgId = String(data.devinOrgId || '').trim();
+
+  if (requestedOrgId && allowed.includes(requestedOrgId)) {
+    return {
+      devinOrgId: requestedOrgId,
+      devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
+    };
+  }
+
+  if (requestedOrgId) {
+    logger.warn('Ignoring caller-supplied Devin identity for Bonvoy redemption', {
+      requestedOrgId,
+      service: 'customer-bonvoy-points-redemption',
+    });
+  }
+
+  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: undefined };
+}
+
 function findMember(memberNumber) {
   const key = String(memberNumber || '').replace(/\s+/g, '');
-  return MEMBERS[key] || { name: 'Bonvoy Member', tier: 'titanium', pointsBalance: 148250 };
+  const member = MEMBERS[key];
+  if (!member) {
+    const error = new Error('Member number not found.');
+    error.name = 'MemberNotFound';
+    error.code = 'MEMBER_NOT_FOUND';
+    error.statusCode = 404;
+    throw error;
+  }
+  return member;
 }
 
 function resolveTier(tierCode) {
@@ -105,6 +155,13 @@ function resolveLedgerShard(tier) {
  */
 function debitLedger(member, tier, pricing) {
   const shard = resolveLedgerShard(tier);
+  if (pricing.pointsToDebit > member.pointsBalance) {
+    const error = new Error('Not enough points available for this redemption.');
+    error.name = 'InsufficientPoints';
+    error.code = 'INSUFFICIENT_POINTS';
+    error.statusCode = 400;
+    throw error;
+  }
   return {
     shard: shard.id,
     pointsDebited: pricing.pointsToDebit,
@@ -137,8 +194,10 @@ async function redeemPoints(data) {
 
   const nights = Number(data.nights);
   const points = Number(data.points);
+  const hotel = sanitizeText(data.hotel);
+  const client = sanitizeText(data.client, 40) || 'unknown';
 
-  if (!data.hotel || !Number.isFinite(nights) || nights <= 0 || !Number.isFinite(points) || points <= 0) {
+  if (!hotel || !Number.isInteger(nights) || nights <= 0 || !Number.isInteger(points) || points <= 0) {
     const validationError = new Error('Select a hotel and at least one night to redeem points.');
     validationError.name = 'ValidationError';
     validationError.code = 'INVALID_REDEMPTION_REQUEST';
@@ -148,7 +207,7 @@ async function redeemPoints(data) {
 
   logger.info('Redeeming Bonvoy points for stay', {
     redemptionId,
-    hotel: data.hotel,
+    hotel,
     nights,
     points,
     service: 'customer-bonvoy-points-redemption',
@@ -162,7 +221,7 @@ async function redeemPoints(data) {
     const tier = resolveTier(member.tier);
     const pricing = priceRedemption(points, tier);
     const ledger = debitLedger(member, tier, pricing);
-    const result = buildConfirmation(redemptionId, member, tier, { hotel: data.hotel, nights }, pricing, ledger);
+    const result = buildConfirmation(redemptionId, member, tier, { hotel, nights }, pricing, ledger);
 
     const duration = Date.now() - startTime;
     incrementMetric('bonvoy_redemption.success', {
@@ -184,12 +243,23 @@ async function redeemPoints(data) {
       error: 'true',
     });
 
+    if (error.statusCode && error.statusCode < 500) {
+      logger.warn('Bonvoy points redemption rejected', {
+        redemptionId,
+        error: error.message,
+        errorClass: error.name,
+        durationMs: duration,
+        service: 'customer-bonvoy-points-redemption',
+      });
+      throw error;
+    }
+
     logger.error('Bonvoy points redemption failed', {
       redemptionId,
       error: error.message,
       errorClass: error.name,
       durationMs: duration,
-      hotel: data.hotel,
+      hotel,
       nights,
       service: 'customer-bonvoy-points-redemption',
     });
@@ -198,20 +268,18 @@ async function redeemPoints(data) {
       tags: {
         route: '/api/bonvoy/points/redeem',
         service: 'customer-bonvoy-points-redemption',
-        client: data.client || 'unknown',
+        client,
       },
-      extra: { redemptionId, hotel: data.hotel, nights, points },
+      extra: { redemptionId, hotel, nights, points },
     });
 
     createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
+      issueTitle: `${error.name}: ${sanitizeText(error.message, 200)}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/bonvoy.js \u2014 resolveLedgerShard',
       errorType: error.name || 'Error',
       errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
+      ...resolveDevinIdentity(data),
       service: 'customer-bonvoy-points-redemption',
       verticalLabel: 'Marriott Bonvoy Points Redemption (Android)',
       promptAppendix: REMEDIATION_DIRECTIVE,
@@ -219,10 +287,10 @@ async function redeemPoints(data) {
       tags: [
         { key: 'route', value: '/api/bonvoy/points/redeem' },
         { key: 'service', value: 'customer-bonvoy-points-redemption' },
-        { key: 'client', value: data.client || 'unknown' },
-        { key: 'hotel', value: data.hotel },
+        { key: 'client', value: client },
+        { key: 'hotel', value: hotel },
       ],
-      extra: { redemptionId, hotel: data.hotel, nights, points },
+      extra: { redemptionId, hotel, nights, points },
       level: 'error',
       platform: 'node',
       firstSeen: '',
