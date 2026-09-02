@@ -245,6 +245,35 @@
       ]
     }
   ],
+  "mitigations": {
+    "note": "Remediations the investigator can ask for in channel. A responder acknowledges the ask, the phase (if the option carries one) activates two minutes later, and the responder reports what the telemetry actually did four minutes after that. Only options listed here can be matched — the model never invents one — and an option with no action changes nothing, which is how a confident wrong proposal fails honestly. The scripted mitigate beat at 50 min stays as the floor for a run that never converges.",
+    "options": [
+      {
+        "id": "disable-poison-workflow",
+        "persona": "eng_a",
+        "action": "mitigate",
+        "observePersona": "eng_b",
+        "proposal": "Disable or pause the specific customer workflow whose schedule keeps failing (the meridianfx weekly export), or otherwise take that one project's schedule out of the tick.",
+        "ack": "ok trying that — requesting jit access to the admin console now, will pause the meridianfx weekly export as soon as it lands",
+        "observation": "paused it. new tick failures stopped, but the jobs already in flight are still redriving — redeliveries and DLQ are tapering, not cliffing. give it the redrive window"
+      },
+      {
+        "id": "rollback-deploy",
+        "persona": "eng_a",
+        "observePersona": "ic",
+        "proposal": "Roll back or revert this morning's orchestrator deploy.",
+        "ack": "ok, rolling back the orchestrator to the previous build — give it a few min to cycle",
+        "observation": "rollback's through and schedules are still failing at exactly the same rate. that deploy wasn't it"
+      },
+      {
+        "id": "requeue-dlq",
+        "persona": "eng_b",
+        "proposal": "Redrive or replay the dead-lettered schedule jobs back onto the queue.",
+        "ack": "sure, replaying the dlq back onto the ingest queue now",
+        "observation": "replayed and they failed straight back into the dlq, same path. whatever's rejecting them is still rejecting them"
+      }
+    ]
+  },
   "script": [
     { "atMs": 0, "persona": "ic", "text": "sorry to the platform folks who got auto-added — we don't have a dedicated team on the orchestrator. adding Sam and Morgan here" },
     { "atMs": 20000, "persona": "ic", "text": "timing lines up almost exactly with this morning's orchestrator deploy — schedules flatlined minutes after the rollout finished. I think we shipped this" },

@@ -49,6 +49,23 @@ function validateScenario(scenario, file) {
       if (!Array.isArray(entry.facts) || !entry.facts.length) fail('knowledge entry missing "facts"');
     }
   }
+  if (scenario.mitigations != null) {
+    const options = scenario.mitigations.options;
+    if (!Array.isArray(options) || !options.length) fail('"mitigations" needs a non-empty "options" array');
+    const ids = new Set();
+    for (const option of options) {
+      if (typeof option.id !== 'string' || !option.id.trim()) fail('mitigation option missing "id"');
+      if (ids.has(option.id)) fail(`duplicate mitigation option id "${option.id}"`);
+      ids.add(option.id);
+      for (const key of ['proposal', 'ack', 'observation']) {
+        if (typeof option[key] !== 'string' || !option[key].trim()) fail(`mitigation option "${option.id}" missing "${key}"`);
+      }
+      if (!personaIds.has(option.persona)) fail(`mitigation option "${option.id}" references unknown persona "${option.persona}"`);
+      if (option.observePersona !== undefined && !personaIds.has(option.observePersona)) {
+        fail(`mitigation option "${option.id}" references unknown persona "${option.observePersona}"`);
+      }
+    }
+  }
   const dd = scenario.datadog;
   if (dd) {
     if (typeof dd.metricPrefix !== 'string' || !dd.metricPrefix.trim()) fail('datadog missing "metricPrefix"');

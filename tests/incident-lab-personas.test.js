@@ -10,6 +10,7 @@ const {
   lockedFacts,
   renderLine,
   personaIcon,
+  buildMitigationPrompt,
 } = require('../app/services/incident-lab/personas');
 const { getScenario } = require('../app/services/incident-lab/scenario');
 
@@ -202,6 +203,7 @@ describe('incident-lab slack persona sink', () => {
             { type: 'message', ts: '2.0', text: 'what is the queue retry policy?' },
           ]),
         draft,
+        matchMitigation: jest.fn().mockResolvedValue(null),
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
     });
@@ -233,6 +235,7 @@ describe('incident-lab slack persona sink', () => {
             { type: 'message', ts: '2.0', text: 'scripted line', username: personaName, bot_profile: { name: 'incident-lab' } },
           ]),
         draft,
+        matchMitigation: jest.fn().mockResolvedValue(null),
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
     });
@@ -303,6 +306,7 @@ describe('incident-lab slack persona sink', () => {
             { type: 'message', ts: '5.0', text: 'stale backlog message' },
           ]),
         draft,
+        matchMitigation: jest.fn().mockResolvedValue(null),
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
     });
@@ -333,6 +337,7 @@ describe('incident-lab slack persona sink', () => {
           { type: 'message', ts: racedTs, text: 'early investigator question' },
         ]),
         draft,
+        matchMitigation: jest.fn().mockResolvedValue(null),
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
     });
@@ -426,6 +431,7 @@ describe('incident-lab slack persona sink', () => {
             { type: 'message', ts: `${ts++}.5`, text: 'investigator question' },
           ])),
         draft,
+        matchMitigation: jest.fn().mockResolvedValue(null),
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
     });
@@ -461,6 +467,7 @@ describe('incident-lab slack persona sink', () => {
             { type: 'message', ts: `${ts++}.5`, text: 'another investigator question' },
           ])),
         draft,
+        matchMitigation: jest.fn().mockResolvedValue(null),
         activatePhase: jest.fn().mockResolvedValue({ ok: true }),
       },
     });
@@ -517,6 +524,7 @@ describe('incident-lab script director', () => {
             { type: 'message', ts: `${ts++}.5`, text: 'already ruled the deploy out' },
           ])),
         draft: jest.fn().mockResolvedValue(null),
+        matchMitigation: jest.fn().mockResolvedValue(null),
         direct,
         activatePhase: jest.fn((id) => {
           phases.push(id);
@@ -618,5 +626,136 @@ describe('incident-lab script director', () => {
     } finally {
       random.mockRestore();
     }
+  });
+});
+
+describe('incident-lab mitigation exchange', () => {
+  const FLOOR = { persona: 'eng_a', text: 'scripted mitigate beat', atMs: 3000000, action: 'mitigate' };
+  const WORKS = scenario.mitigations.options.find((o) => o.id === 'disable-poison-workflow');
+  const FAILS = scenario.mitigations.options.find((o) => o.id === 'rollback-deploy');
+
+  beforeEach(() => {
+    process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+    process.env.OPENAI_API_KEY = 'sk-test';
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    delete process.env.SLACK_BOT_TOKEN;
+    delete process.env.OPENAI_API_KEY;
+  });
+
+  /** Runs a script whose only beat is the scripted mitigation floor, with the
+   *  investigator saying `said` in channel on every poll. */
+  async function runExchange(matchMitigation, { script = [FLOOR] } = {}) {
+    const posted = [];
+    const phases = [];
+    let ts = 10;
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text) => {
+          posted.push(text);
+          return Promise.resolve(`${ts++}.0`);
+        }),
+        history: jest.fn()
+          .mockResolvedValueOnce([])
+          .mockImplementation(() => Promise.resolve([
+            { type: 'message', ts: `${ts++}.5`, text: 'can someone pause the meridianfx weekly export?' },
+          ])),
+        draft: jest.fn().mockResolvedValue(null),
+        matchMitigation,
+        direct: jest.fn().mockResolvedValue({ decision: 'post' }),
+        activatePhase: jest.fn((id) => {
+          phases.push(id);
+          return Promise.resolve({ ok: true });
+        }),
+      },
+    });
+    const run = makeRun();
+    run.scenario = { ...scenario, script, llm: { ...scenario.llm, maxRepliesPerRun: 0 } };
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup + watermark
+    await jest.advanceTimersByTimeAsync(40000); // polls: investigator message seen
+    return { posted, phases, matchMitigation, stop: () => sink.onStop(run) };
+  }
+
+  test('an authored proposal is acknowledged, acted on, then reported', async () => {
+    const match = jest.fn().mockResolvedValueOnce(WORKS).mockResolvedValue(null);
+    const { posted, phases, stop } = await runExchange(match);
+
+    expect(posted).toContain(WORKS.ack);
+    expect(phases).toEqual([]); // nobody fixes it in the same breath
+    await jest.advanceTimersByTimeAsync(120000);
+    expect(phases).toEqual(['mitigated']);
+    expect(posted).not.toContain(WORKS.observation); // the curve needs time
+    await jest.advanceTimersByTimeAsync(240000);
+    expect(posted).toContain(WORKS.observation);
+    await stop();
+  });
+
+  test('the matcher only sees the scenario\u2019s own options, and only untried ones', async () => {
+    const match = jest.fn().mockResolvedValueOnce(WORKS).mockResolvedValue(null);
+    const { stop } = await runExchange(match);
+    const offered = match.mock.calls[0][1];
+    expect(offered.map((o) => o.id)).toEqual(scenario.mitigations.options.map((o) => o.id));
+    await jest.advanceTimersByTimeAsync(60000); // another poll, same proposal
+    const laterOffers = match.mock.calls[match.mock.calls.length - 1][1];
+    expect(laterOffers.map((o) => o.id)).not.toContain(WORKS.id);
+    await stop();
+  });
+
+  test('a proposal the telemetry cannot honour recovers nothing', async () => {
+    const match = jest.fn().mockResolvedValueOnce(FAILS).mockResolvedValue(null);
+    const { posted, phases, stop } = await runExchange(match);
+
+    await jest.advanceTimersByTimeAsync(360000);
+    expect(posted).toContain(FAILS.ack);
+    expect(posted).toContain(FAILS.observation);
+    expect(phases).toEqual([]);
+    await stop();
+  });
+
+  test('nothing happens without a match, and a matcher error is not a mitigation', async () => {
+    const { posted, phases, stop } = await runExchange(jest.fn().mockResolvedValue(null));
+    await jest.advanceTimersByTimeAsync(360000);
+    expect(posted).toEqual([]);
+    expect(phases).toEqual([]);
+    await stop();
+
+    const broken = await runExchange(jest.fn().mockRejectedValue(new Error('fireworks 500')));
+    await jest.advanceTimersByTimeAsync(360000);
+    expect(broken.posted).toEqual([]);
+    expect(broken.phases).toEqual([]);
+    await broken.stop();
+  });
+
+  test('the scripted beat is the floor when no one proposes anything', async () => {
+    const { posted, phases, stop } = await runExchange(jest.fn().mockResolvedValue(null));
+    await jest.advanceTimersByTimeAsync(3000000);
+    expect(posted).toContain('scripted mitigate beat');
+    expect(phases).toEqual(['mitigated']);
+    await stop();
+  });
+
+  test('the exchange replaces the scripted beat rather than repeating it', async () => {
+    const match = jest.fn().mockResolvedValueOnce(WORKS).mockResolvedValue(null);
+    const { posted, phases, stop } = await runExchange(match);
+    await jest.advanceTimersByTimeAsync(3000000);
+    expect(posted).not.toContain('scripted mitigate beat');
+    expect(phases).toEqual(['mitigated']);
+    await stop();
+  });
+
+  test('the prompt lists only authored options and refuses to invent one', () => {
+    const prompt = buildMitigationPrompt(scenario, scenario.mitigations.options);
+    for (const option of scenario.mitigations.options) {
+      expect(prompt).toContain(option.id);
+      expect(prompt).toContain(option.proposal);
+    }
+    expect(prompt).toContain('Never invent');
+    expect(prompt).toContain('untrusted');
   });
 });
