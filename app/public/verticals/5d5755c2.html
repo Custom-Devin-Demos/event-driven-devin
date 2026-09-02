@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>라이선스 프로비저닝 | MegazoneCloud</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #6C4CF1;
+      --accent-blue: #414AFF;
+      --ink: #F7F7F8;
+      --muted: #A9AFB6;
+      --surface: #0A0F10;
+      --card: #16191C;
+      --line: #24282C;
+      --sans: Pretendard, 'Noto Sans KR', -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--surface); font-family: var(--sans); line-height: 1.55; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1240px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar { border-bottom: 1px solid var(--line); }
+    .topbar .shell { display: flex; align-items: center; justify-content: space-between; min-height: 80px; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; color: #fff; white-space: nowrap; }
+    .brand-mark { width: 32px; height: 32px; flex: 0 0 32px; color: var(--accent); }
+    .brand-lockup { display: grid; line-height: .96; font-size: 14px; font-weight: 800; letter-spacing: .16em; }
+    .brand-lockup span:last-child { margin-left: 12px; font-size: 12px; letter-spacing: .34em; }
+    .nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 26px; color: #DCE0E3; font-size: 13px; font-weight: 700; }
+    .nav a:hover { color: #B99EFF; }
+    .header-tools { display: flex; align-items: center; gap: 15px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .header-tools b { color: #fff; }
+    .hero { padding: 76px 0 58px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: #B99EFF; font-size: 12px; font-weight: 800; letter-spacing: .17em; text-transform: uppercase; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { max-width: 780px; margin-top: 16px; color: #fff; font-size: clamp(36px, 6vw, 70px); font-weight: 800; letter-spacing: -0.06em; line-height: 1.04; }
+    .hero-copy { max-width: 630px; margin-top: 22px; color: var(--muted); font-size: 16px; }
+    .hero-line { width: 100%; height: 3px; margin-top: 42px; background: linear-gradient(90deg, var(--accent), var(--accent-blue), transparent); }
+    .workspace { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; padding: 38px 0 80px; }
+    .rail, .card { border: 1px solid var(--line); background: var(--card); }
+    .rail { align-self: start; }
+    .rail-head, .card-head { padding: 20px 22px; border-bottom: 1px solid var(--line); }
+    .rail-head h2, .card-head h2 { color: #fff; font-size: 16px; font-weight: 800; letter-spacing: -0.03em; }
+    .rail-head p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .rail-list { display: grid; gap: 19px; margin: 0; padding: 21px 22px 24px; list-style: none; }
+    .rail-list span { display: block; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .rail-list b { display: block; margin-top: 4px; color: #fff; font-size: 14px; font-weight: 700; }
+    .card-body { padding: 24px 22px 26px; }
+    .form-intro { margin-bottom: 22px; color: var(--muted); font-size: 13px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { display: grid; gap: 8px; }
+    .field + .field { margin-top: 18px; }
+    .field-grid .field + .field { margin-top: 0; }
+    label { color: #E7E8EA; font-size: 13px; font-weight: 700; }
+    select, input[type="number"] { width: 100%; min-width: 0; height: 50px; padding: 0 14px; border: 1px solid var(--line); border-radius: 5px; color: #fff; background: #0D1113; }
+    select:focus, input:focus { outline: 3px solid rgba(108,76,241,.3); border-color: var(--accent); }
+    .field-note { color: var(--muted); font-size: 12px; }
+    .submit { width: 100%; min-height: 50px; margin-top: 24px; border: 0; border-radius: 5px; color: #fff; background: var(--accent); font-weight: 800; }
+    .submit:hover { background: #795ff3; }
+    .submit:disabled { opacity: .5; cursor: wait; }
+    .result-box { display: none; margin-top: 18px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 5px; font-size: 13px; }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { border-color: #6751D2; background: rgba(108,76,241,.12); color: #E9E3FF; }
+    .result-box.error { border-color: #71383D; background: rgba(115,40,49,.18); color: #FFB6BA; }
+    .result-title { margin-bottom: 5px; font-weight: 800; }
+    .result-detail { color: inherit; line-height: 1.8; }
+    .status-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .status-chip { padding: 7px 11px; border: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .status-chip strong { color: #fff; }
+    footer { padding: 25px 0 38px; border-top: 1px solid var(--line); color: #747B82; font-size: 11px; }
+    footer .shell { display: flex; justify-content: space-between; gap: 20px; }
+    @media (max-width: 780px) {
+      .topbar .shell { flex-wrap: wrap; padding: 17px 0; }
+      .nav { order: 3; flex-basis: 100%; justify-content: flex-start; gap: 14px 20px; }
+      .header-tools { margin-left: auto; }
+      .workspace { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 28px, 1240px); }
+      .hero { padding: 52px 0 40px; }
+      h1 { font-size: 39px; }
+      .field-grid { grid-template-columns: 1fr; gap: 18px; }
+      .field-grid .field + .field { margin-top: 0; }
+      footer .shell { display: block; }
+      footer .shell > div + div { margin-top: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="shell">
+      <a class="brand" href="#">
+        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <path d="M20 3 36 31H25l-5-9-5 9H4L20 3Z" fill="none" stroke="currentColor" stroke-width="3"/>
+          <path d="m13 20 7-7 7 7-7 7-7-7Z" fill="currentColor" opacity=".65"/>
+        </svg>
+        <span class="brand-lockup"><span>MEGAZONE</span><span>CLOUD</span></span>
+      </a>
+      <nav class="nav" aria-label="주요 메뉴">
+        <a href="#">Solutions</a><a href="#">Partners</a><a href="#">Case Stories</a><a href="#">Resources</a><a href="#">About</a><a href="#">Contact Us</a>
+      </nav>
+      <div class="header-tools"><span>CONSOLE</span><b>서울 리전</b></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="shell">
+        <div class="eyebrow">Managed cloud subscription</div>
+        <h1>클라우드 구독 좌석 관리</h1>
+        <p class="hero-copy">계약 조직의 라이선스와 사용 중인 시트를 확인하고 필요한 좌석을 프로비저닝합니다.</p>
+        <div class="hero-line"></div>
+      </div>
+    </section>
+    <div class="shell workspace">
+      <aside class="rail">
+        <div class="rail-head"><h2>현재 구독</h2><p>계약 상태와 사용량</p></div>
+        <ul class="rail-list">
+          <li><span>계약 조직</span><b>MegazoneCloud 운영 조직</b></li>
+          <li><span>사용 중 시트</span><b>184 / 250</b></li>
+          <li><span>계약 형태</span><b>Enterprise · Annual</b></li>
+        </ul>
+      </aside>
+      <section class="card">
+        <div class="card-head"><h2>라이선스 프로비저닝</h2></div>
+        <div class="card-body">
+          <p class="form-intro">제품, 추가 시트, 플랜과 리전을 선택하면 계약 조직에 라이선스가 추가됩니다.</p>
+          <form id="provisionForm">
+            <div class="field">
+              <label for="product">제품</label>
+              <select id="product">
+                <option value="google_workspace_enterprise">Google Workspace Enterprise Plus</option>
+                <option value="microsoft_365_e3">Microsoft 365 E3</option>
+                <option value="aws_enterprise_support">AWS Enterprise Support</option>
+                <option value="megazonecloud_managed_service">MegazoneCloud Managed Service</option>
+              </select>
+            </div>
+            <div class="field-grid">
+              <div class="field">
+                <label for="seats">추가 시트</label>
+                <input type="number" id="seats" value="25" min="1">
+              </div>
+              <div class="field">
+                <label for="planTier">플랜</label>
+                <select id="planTier">
+                  <option value="enterprise" selected>Enterprise</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Starter</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="region">리전</label>
+              <select id="region">
+                <option value="seoul">서울 (ap-northeast-2)</option>
+                <option value="tokyo">도쿄 (ap-northeast-1)</option>
+                <option value="singapore">싱가포르 (ap-southeast-1)</option>
+                <option value="virginia">버지니아 (us-east-1)</option>
+              </select>
+              <span class="field-note">선택한 리전은 운영 정보에 기록됩니다.</span>
+            </div>
+            <button type="submit" class="submit" id="submitBtn">시트 프로비저닝</button>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <div class="status-strip"><span class="status-chip">상태 <strong>ACTIVE</strong></span><span class="status-chip">청구 <strong>ANNUAL</strong></span><span class="status-chip">지원 <strong>PRIORITY</strong></span></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer><div class="shell"><div>MegazoneCloud 고객지원 · Managed Cloud Console</div><div>서비스 약관 · 개인정보처리방침</div></div></footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var button = document.getElementById('submitBtn');
+      var result = document.getElementById('result');
+      var product = document.getElementById('product');
+      var productLabel = product.options[product.selectedIndex].textContent;
+      button.disabled = true;
+      button.textContent = '프로비저닝 요청 처리 중...';
+      result.className = 'result-box';
+      try {
+        var response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: product.value,
+            planName: document.getElementById('planTier').value,
+            seats: parseInt(document.getElementById('seats').value, 10),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.textContent = '프로비저닝을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="result-title">프로비저닝 완료</div><div class="result-detail">' + productLabel + ' · ' + data.seatsAdded + '시트 · 플랜 ' + data.plan + '<br>라이선스 ID ' + data.licenseId + '</div>';
+        }
+      } catch (error) {
+        result.className = 'result-box error';
+        result.textContent = '프로비저닝을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      } finally {
+        button.disabled = false;
+        button.textContent = '시트 프로비저닝';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
