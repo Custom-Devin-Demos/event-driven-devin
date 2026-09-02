@@ -169,7 +169,7 @@
           <div class="summary-coin"><span>충전 수량</span><strong id="summaryCoins">1,000 G-COIN</strong></div>
           <div class="summary-lines">
             <div class="summary-line"><span>결제금액</span><b id="summaryAmount">11,000원</b></div>
-            <div class="summary-line"><span>충전 계정</span><b>player_84120</b></div>
+            <div class="summary-line"><span>충전 계정</span><b id="summaryAccount">player_84120</b></div>
             <div class="summary-line"><span>게임</span><b>PUBG: BATTLEGROUNDS</b></div>
           </div>
           <p class="summary-note">충전된 G-COIN은 KRAFTON ID 계정의 PUBG: BATTLEGROUNDS에서 사용할 수 있습니다.</p>
@@ -193,17 +193,22 @@
     (function () {
       var form = document.getElementById('transferForm');
       var amount = document.getElementById('amount');
+      var account = document.getElementById('toAccount');
       var summaryCoins = document.getElementById('summaryCoins');
       var summaryAmount = document.getElementById('summaryAmount');
+      var summaryAccount = document.getElementById('summaryAccount');
       var defaultAmount = amount.value;
       function updateSummary() {
         var amountValue = Number(amount.value) || 0;
         var selectedPackage = document.querySelector('.package[data-amount="' + amount.value + '"]');
         var coins = selectedPackage ? Number(selectedPackage.dataset.coins) : Math.max(0, Math.round(amountValue / 11));
+        var accountLabel = account.options[account.selectedIndex].textContent.split('·').pop().trim();
         summaryCoins.textContent = coins.toLocaleString('ko-KR') + ' G-COIN';
         summaryAmount.textContent = amountValue.toLocaleString('ko-KR') + '원';
+        summaryAccount.textContent = accountLabel;
       }
       amount.addEventListener('input', updateSummary);
+      account.addEventListener('change', updateSummary);
       document.querySelectorAll('.package[data-amount]').forEach(function (packageButton) {
         packageButton.addEventListener('click', function () {
           amount.value = packageButton.dataset.amount;

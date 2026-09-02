@@ -134,6 +134,7 @@
       text-align: left;
       font-size: 12px;
     }
+    .message-card.selected { border-color: var(--ink); }
     .message-card:nth-child(2) { background: linear-gradient(135deg, #eaf8f7, #fff); }
     .message-card:nth-child(3) { background: linear-gradient(135deg, #f7edff, #fff); }
     .message-card b { display: block; margin-bottom: 3px; color: var(--ink); font-size: 15px; }
@@ -258,11 +259,11 @@
             <div class="message-block">
               <h2>선물 메시지</h2>
               <div class="message-cards" aria-label="메시지 카드 선택">
-                <button type="button" class="message-card"><b>축하해요</b>따뜻한 마음을 전해요</button>
-                <button type="button" class="message-card"><b>고마워요</b>감사의 마음을 담아요</button>
-                <button type="button" class="message-card"><b>응원해요</b>오늘도 힘내세요</button>
+                <button type="button" class="message-card" data-message="축하해요! 좋은 일만 가득하길 바라요."><b>축하해요</b>따뜻한 마음을 전해요</button>
+                <button type="button" class="message-card" data-message="고마워요. 늘 감사한 마음 전해요."><b>고마워요</b>감사의 마음을 담아요</button>
+                <button type="button" class="message-card" data-message="오늘도 힘내세요. 늘 응원해요!"><b>응원해요</b>오늘도 힘내세요</button>
               </div>
-              <textarea placeholder="축하하는 마음을 담아 메시지를 남겨보세요."></textarea>
+              <textarea id="giftMessage" placeholder="축하하는 마음을 담아 메시지를 남겨보세요."></textarea>
             </div>
             <button type="submit" class="submit" id="submitBtn">선물 결제하기</button>
             <button type="reset" class="reset">다시선택</button>
@@ -301,6 +302,8 @@
       var summaryGift = document.getElementById('summaryGift');
       var summaryRecipient = document.getElementById('summaryRecipient');
       var summaryAmount = document.getElementById('summaryAmount');
+      var giftMessage = document.getElementById('giftMessage');
+      var messageCards = document.querySelectorAll('.message-card');
       var defaultAmount = amount.value;
       var defaultGift = document.querySelector('.gift-chip[data-amount="' + defaultAmount + '"]').dataset.gift;
       function updateSummary() {
@@ -312,6 +315,13 @@
       }
       amount.addEventListener('input', updateSummary);
       recipient.addEventListener('change', updateSummary);
+      messageCards.forEach(function (card) {
+        card.addEventListener('click', function () {
+          giftMessage.value = card.dataset.message;
+          messageCards.forEach(function (messageCard) { messageCard.classList.remove('selected'); });
+          card.classList.add('selected');
+        });
+      });
       document.querySelectorAll('.gift-chip[data-amount]').forEach(function (chip) {
         chip.addEventListener('click', function () {
           amount.value = chip.dataset.amount;
@@ -323,6 +333,8 @@
           amount.value = defaultAmount;
           var chip = document.querySelector('.gift-chip[data-gift="' + defaultGift + '"]');
           if (chip) summaryGift.textContent = chip.dataset.gift;
+          giftMessage.value = '';
+          messageCards.forEach(function (messageCard) { messageCard.classList.remove('selected'); });
           updateSummary();
         }, 0);
       });
