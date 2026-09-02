@@ -340,6 +340,13 @@ curl -s -X POST http://localhost:3000/api/a69bcc34/checkout -H 'Content-Type: ap
 # Custom — QBE North America Claims (qbe)
 curl -s -X POST http://localhost:3000/api/qbe/claim -H 'Content-Type: application/json' -d '{"policyNumber":"QBE-PA-4417293","incidentType":"collision","incidentDate":"2026-08-21","damageDescription":"Front-end damage after a collision","vin":"1HGCV1F34LA015872"}'
 
+# Custom — NAB Internet Banking (nab) — default 082-001 40817266 (everyday_global_2026) has no payment-limit
+# schedule → TypeError 500 PAYMENT_SETTLEMENT_FAILED; 082-001 14872931 (Classic, $20k limit) → Osko success;
+# 082-001 22059347 (iSaver, $5k limit, 24h hold) → Direct Entry success; paymentMethod "bpay" forces Direct Entry.
+# Validation 400s (no alert): amount > balance, amount <= 0, missing payeeName/payeeBsb/payeeAccount/payId/billerCode.
+# GET /api/nab/accounts lists the three accounts.
+curl -s -X POST http://localhost:3000/api/nab/payment -H 'Content-Type: application/json' -d '{"fromAccount":"082-001 40817266","paymentMethod":"pay_anyone","payeeName":"Harper Electrical Services","payeeBsb":"083-004","payeeAccount":"55910238","amount":1250,"description":"Invoice 2261","channel":"web"}'
+
 # Custom — Capital One Travel (b014618f) — venture-x triggers TypeError; venture/savorone succeed
 curl -s -X POST http://localhost:3000/api/b014618f/redeem-miles -H 'Content-Type: application/json' -d '{"cardProduct":"venture-x","bookingType":"hotel","tripTotalUsd":1284.50,"milesApplied":90000,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
 
@@ -389,6 +396,26 @@ The EC2 host may not have git credentials configured. If `git pull` fails with "
 scp -i ~/.ssh/ec2_key <local-file> ubuntu@<EC2_IP>:/home/ubuntu/<path>
 ```
 Then rebuild the container with `docker compose up -d --build checkout-api`.
+
+### `[hidden]` field groups all render at once (multi-tab / multi-method forms)
+Verticals whose form has method tabs (e.g. NAB `/nab` Pay Anyone / PayID / BPAY, or any page that toggles
+field groups with `element.hidden = true`) can show **every** group at once. The user-agent rule
+`[hidden] { display: none }` has lower specificity than a page rule like `.form-row { display: flex }`,
+so an explicit `display` on the group's class silently wins and the `hidden` attribute has no visual effect.
+The symptom is that clicking a tab only moves the active underline while all payee/biller fields stay visible.
+
+Diagnose from the browser console (attribute is set but computed display is not `none`):
+```js
+['bank-fields','payid-fields','bpay-fields'].map(function (id) {
+  var el = document.getElementById(id);
+  return { id: id, hiddenAttr: el.hidden, display: getComputedStyle(el).display };
+});
+```
+The fix is a CSS rule such as `.form-row[hidden] { display: none; }` plus calling the sync function once on
+load (not only on tab click), otherwise the initial render leaks the non-default groups.
+
+When testing any tabbed vertical form, always check the field groups **on fresh load** and **after switching
+to every tab** — a tab handler that works on click can still leave the first paint wrong.
 
 ### Optimizely CDN images are pre-rendered blocks
 Some CDN images (e.g., credit card promotional blocks) are complete pre-rendered compositions containing text, badges, and buttons baked into the image. Do NOT duplicate this content with separate HTML elements — use a single `<img>` tag. Adding HTML text on top of such images causes visual duplication and overflow.
