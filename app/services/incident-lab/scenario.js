@@ -11,6 +11,11 @@ const path = require('path');
 
 const SCENARIO_DIR = path.join(__dirname, '..', '..', '..', 'config', 'incident-lab');
 
+/** The datadog phase a script beat's or mitigation option's action activates. */
+function phaseForAction(action) {
+  return action === 'mitigate' ? 'mitigated' : action;
+}
+
 function validateScenario(scenario, file) {
   const fail = (msg) => {
     throw new Error(`Invalid incident-lab scenario ${file}: ${msg}`);
@@ -49,6 +54,9 @@ function validateScenario(scenario, file) {
       if (!Array.isArray(entry.facts) || !entry.facts.length) fail('knowledge entry missing "facts"');
     }
   }
+  const manualPhases = new Set(
+    ((scenario.datadog || {}).phases || []).filter((p) => p.manual).map((p) => p.id),
+  );
   if (scenario.mitigations != null) {
     const options = scenario.mitigations.options;
     if (!Array.isArray(options) || !options.length) fail('"mitigations" needs a non-empty "options" array');
@@ -63,6 +71,11 @@ function validateScenario(scenario, file) {
       if (!personaIds.has(option.persona)) fail(`mitigation option "${option.id}" references unknown persona "${option.persona}"`);
       if (option.observePersona !== undefined && !personaIds.has(option.observePersona)) {
         fail(`mitigation option "${option.id}" references unknown persona "${option.observePersona}"`);
+      }
+      // An action naming a phase the run cannot activate on demand would
+      // acknowledge the investigator and then recover nothing.
+      if (option.action !== undefined && !manualPhases.has(phaseForAction(option.action))) {
+        fail(`mitigation option "${option.id}" acts on "${option.action}", which is not a manual datadog phase`);
       }
     }
   }
@@ -122,4 +135,6 @@ function clearScenarioCache() {
   cache = null;
 }
 
-module.exports = { loadScenarios, getScenario, listScenarios, validateScenario, clearScenarioCache };
+module.exports = {
+  loadScenarios, getScenario, listScenarios, validateScenario, clearScenarioCache, phaseForAction,
+};

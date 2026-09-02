@@ -648,9 +648,12 @@ describe('incident-lab mitigation exchange', () => {
 
   /** Runs a script whose only beat is the scripted mitigation floor, with the
    *  investigator saying `said` in channel on every poll. */
-  async function runExchange(matchMitigation, { script = [FLOOR] } = {}) {
+  async function runExchange(matchMitigation, {
+    script = [FLOOR], draft = jest.fn().mockResolvedValue(null), maxReplies = 0, activateFails = false,
+  } = {}) {
     const posted = [];
     const phases = [];
+    const drafted = [];
     let ts = 10;
     const sink = createSlackPersonaSink({
       deps: {
@@ -665,21 +668,27 @@ describe('incident-lab mitigation exchange', () => {
           .mockImplementation(() => Promise.resolve([
             { type: 'message', ts: `${ts++}.5`, text: 'can someone pause the meridianfx weekly export?' },
           ])),
-        draft: jest.fn().mockResolvedValue(null),
+        draft: jest.fn((s, elapsedMs, transcript) => {
+          drafted.push(elapsedMs);
+          return draft(s, elapsedMs, transcript);
+        }),
         matchMitigation,
         direct: jest.fn().mockResolvedValue({ decision: 'post' }),
         activatePhase: jest.fn((id) => {
+          if (activateFails) return Promise.reject(new Error('datadog 503'));
           phases.push(id);
           return Promise.resolve({ ok: true });
         }),
       },
     });
     const run = makeRun();
-    run.scenario = { ...scenario, script, llm: { ...scenario.llm, maxRepliesPerRun: 0 } };
+    run.scenario = { ...scenario, script, llm: { ...scenario.llm, maxRepliesPerRun: maxReplies } };
     await sink.onDeclare(run);
     await jest.advanceTimersByTimeAsync(15000); // channel lookup + watermark
     await jest.advanceTimersByTimeAsync(40000); // polls: investigator message seen
-    return { posted, phases, matchMitigation, stop: () => sink.onStop(run) };
+    return {
+      posted, phases, drafted, matchMitigation, stop: () => sink.onStop(run),
+    };
   }
 
   test('an authored proposal is acknowledged, acted on, then reported', async () => {
@@ -746,6 +755,37 @@ describe('incident-lab mitigation exchange', () => {
     await jest.advanceTimersByTimeAsync(3000000);
     expect(posted).not.toContain('scripted mitigate beat');
     expect(phases).toEqual(['mitigated']);
+    await stop();
+  });
+
+  test('the acknowledgement is the reply — the responder does not answer the same ask again', async () => {
+    const draft = jest.fn().mockResolvedValue({ persona: scenario.personas[0], text: 'responder reply' });
+    const match = jest.fn().mockResolvedValueOnce(WORKS).mockResolvedValue(null);
+    const { posted, stop } = await runExchange(match, { draft, maxReplies: 3 });
+
+    expect(posted).toContain(WORKS.ack);
+    expect(posted).not.toContain('responder reply');
+    await jest.advanceTimersByTimeAsync(100000); // a later, unmatched message is answered
+    expect(posted).toContain('responder reply');
+    await stop();
+  });
+
+  test('an activation the engine rejects leaves the scripted beat as the retry', async () => {
+    const match = jest.fn().mockResolvedValueOnce(WORKS).mockResolvedValue(null);
+    const { posted, stop } = await runExchange(match, { activateFails: true });
+
+    await jest.advanceTimersByTimeAsync(3000000);
+    expect(posted).toContain('scripted mitigate beat');
+    await stop();
+  });
+
+  test('recovering early unlocks the facts the scripted beat would have carried', async () => {
+    const draft = jest.fn().mockResolvedValue(null);
+    const match = jest.fn().mockResolvedValueOnce(WORKS).mockResolvedValue(null);
+    const { drafted, stop } = await runExchange(match, { draft, maxReplies: 3 });
+
+    await jest.advanceTimersByTimeAsync(180000);
+    expect(Math.max(...drafted)).toBeGreaterThanOrEqual(FLOOR.atMs);
     await stop();
   });
 

@@ -8,6 +8,7 @@ const {
   getChannelHistory,
 } = require('../slack');
 const { triggerPhase } = require('./engine');
+const { phaseForAction } = require('./scenario');
 
 /**
  * Incident Lab Slack sink: the human side of the incident.
@@ -68,10 +69,6 @@ const DRAIN_GAP_MAX_MS = 45000;
 // fake, and the observation has to wait for the telemetry to actually move.
 const MITIGATION_ACT_MS = 120000;
 const MITIGATION_OBSERVE_MS = 240000;
-
-function phaseForAction(action) {
-  return action === 'mitigate' ? 'mitigated' : action;
-}
 
 function slackToken() {
   return process.env.INCIDENT_LAB_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
@@ -381,10 +378,17 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     runState.lastPostAt = Date.now();
   }
 
+  /** Only an activation that actually landed counts as done — a rejected one
+   *  leaves the scripted beat carrying the same action as the retry. */
   async function activateAction(runState, run, action) {
-    runState.actionsDone.add(action);
     try {
       await api.activatePhase(phaseForAction(action));
+      runState.actionsDone.add(action);
+      // The scripted beat for this action carries the facts that go with it;
+      // recovering early without them leaves the responder denying what the
+      // channel just saw.
+      const scripted = (run.scenario.script || []).find((l) => l.action === action);
+      if (scripted) runState.factFloorMs = Math.max(runState.factFloorMs, scripted.atMs);
     } catch (error) {
       logger.warn('Incident Lab script action failed', { action, error: error.message });
     }
@@ -405,13 +409,14 @@ function createSlackPersonaSink({ deps = {} } = {}) {
       addTimer(
         runState,
         () => postAs(runState, run, option.observePersona || option.persona, option.observation),
-        option.observeAfterMs || MITIGATION_OBSERVE_MS,
+        Number.isFinite(option.observeAfterMs) ? option.observeAfterMs : MITIGATION_OBSERVE_MS,
       );
-    }, option.actAfterMs || MITIGATION_ACT_MS);
+    }, Number.isFinite(option.actAfterMs) ? option.actAfterMs : MITIGATION_ACT_MS);
   }
 
   /** Options are single-use, and one that carries an already-active phase is
-   *  off the table — the telemetry cannot recover twice. */
+   *  off the table — the telemetry cannot recover twice. Returns whether the
+   *  investigator's message was answered by an exchange. */
   async function watchForMitigation(runState, run, transcript) {
     const options = ((run.scenario.mitigations || {}).options || []).filter((option) => (
       !runState.tried.has(option.id)
@@ -420,15 +425,16 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         || (run.phases || []).includes(phaseForAction(option.action))
       ))
     ));
-    if (!options.length || !llmProvider(run.scenario)) return;
+    if (!options.length || !llmProvider(run.scenario)) return false;
     let option = null;
     try {
       option = await api.matchMitigation(run.scenario, options, transcript);
     } catch (error) {
       logger.warn('Incident Lab mitigation match failed', { runRef: run.runRef, error: error.message });
     }
-    if (!option || stale(runState)) return;
+    if (!option || stale(runState)) return false;
     await runMitigation(runState, run, option);
+    return true;
   }
 
   /** 'post' unless the director says otherwise: no LLM configured, nothing the
@@ -501,10 +507,12 @@ function createSlackPersonaSink({ deps = {} } = {}) {
         .slice(-4000);
       // Watched on every poll, not just when the responder has capacity left:
       // the remediation exchange is what moves the incident.
-      await watchForMitigation(runState, run, transcript);
-      if (stale(runState) || runState.replies >= runState.maxReplies) return;
+      // The acknowledgement is the answer to a remediation ask, so the
+      // responder does not also reply to it.
+      const answered = await watchForMitigation(runState, run, transcript);
+      if (answered || stale(runState) || runState.replies >= runState.maxReplies) return;
 
-      const elapsedMs = scriptElapsedMs(runState, run);
+      const elapsedMs = Math.max(scriptElapsedMs(runState, run), runState.factFloorMs);
       // Reserve capacity before the draft so a slow draft cannot let a later
       // poll spend the same allowance; release it when no reply is produced.
       runState.replies++;
@@ -596,6 +604,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
       holds: new Map(),
       tried: new Set(),
       actionsDone: new Set(),
+      factFloorMs: 0,
       director: Boolean(llmProvider(run.scenario)) && (run.scenario.llm || {}).director !== false,
     };
     state = runState;
