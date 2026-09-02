@@ -26,6 +26,15 @@ describe('incident-lab datadog emitter', () => {
   let post;
   let sink;
 
+  const logEvents = () => post.mock.calls
+    .filter(([url]) => url.includes('http-intake.logs'))
+    .flatMap(([, body]) => body);
+  /** Emission from now, excluding the backdated precursor burst. */
+  const liveEvents = () => logEvents().filter((e) => e.timestamp > Date.now() - 600000);
+  const failingJobIds = () => new Set(liveEvents()
+    .filter((e) => e.message.includes('cause redacted'))
+    .map((e) => /Schedule ingest job (\d+)/.exec(e.message)[1]));
+
   const savedEnv = {};
 
   beforeEach(() => {
@@ -186,6 +195,121 @@ describe('incident-lab datadog emitter', () => {
     expect(latest).toBeLessThanOrEqual(Date.now() - 3400000);
     // The healthy "before" includes the success log the outage silences.
     expect(events.some((event) => event.message.startsWith('Enqueued execution batch'))).toBe(true);
+  });
+
+  test('onset failures are one job per tick redelivered 8 times, warned on the same tick', async () => {
+    const run = makeRun();
+    await sink.onArm(run);
+    const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+    await sink.onPhase(run, onset);
+    const events = logEvents();
+    const failures = events.filter((e) => e.message.includes('cause redacted'));
+    const warns = events.filter((e) => e.message.includes('cursor not advanced'));
+    expect(failures.length).toBeGreaterThan(100);
+    const byId = new Map();
+    for (const event of failures) {
+      const id = /Schedule ingest job (\d+)/.exec(event.message)[1];
+      byId.set(id, (byId.get(id) || []).concat(event.timestamp));
+    }
+    // Ids are reused ~8 times, not minted per line...
+    expect(byId.size).toBeLessThan(failures.length / 4);
+    const full = [...byId.values()].find((stamps) => stamps.length === 8);
+    expect(full).toBeDefined();
+    // ...spread over the redelivery window rather than one instant...
+    expect(Math.max(...full) - Math.min(...full)).toBeGreaterThan(700000);
+    // ...and every cursor warning names a tick the failures cite, so the
+    // outage joins the same way the pre-deploy burst does.
+    const failedTicks = new Set(failures.map((e) => /\(tick (\d+)\)/.exec(e.message)[1]));
+    const warnedTicks = warns.map((e) => /Schedule tick (\d+):/.exec(e.message)[1]);
+    expect(warnedTicks.length).toBeGreaterThan(10);
+    expect(warnedTicks.every((tick) => failedTicks.has(tick))).toBe(true);
+  });
+
+  test('a job keeps its identity across the declaration seam and a restart', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = { ...makeRun(), armedAt: Date.now(), declaredAt: Date.now() };
+      await sink.onArm(run);
+      const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+      await sink.onPhase(run, onset);
+      const backfilled = failingJobIds();
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      // Jobs backfilled mid-redelivery keep failing live under the same id
+      // rather than the live emitter starting a fresh pool at declaration.
+      const live = failingJobIds();
+      expect(live.size).toBeGreaterThan(0);
+      expect([...live].some((id) => backfilled.has(id))).toBe(true);
+
+      run.phases = ['onset'];
+      run.phaseTimes = { onset: Date.now() };
+      await sink.onSuspend(run);
+      await sink.onResume(run);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const resumed = failingJobIds();
+      expect([...resumed].some((id) => live.has(id) || backfilled.has(id))).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('mitigation drains the in-flight failures instead of silencing them', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = { ...makeRun(), declaredAt: Date.now() };
+      await sink.onArm(run);
+      const phases = run.scenario.datadog.phases;
+      await sink.onPhase(run, phases.find((p) => p.id === 'onset'));
+      const beforeMitigation = failingJobIds();
+      await sink.onPhase(run, phases.find((p) => p.id === 'mitigated'));
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(180000);
+      // Live emission only — the backdated precursor burst (2h in the past)
+      // legitimately carries failure lines and fires within this window.
+      const draining = liveEvents();
+      expect(draining.some((e) => e.message.startsWith('Enqueued execution batch'))).toBe(true);
+      // Disabling the workflow stops new poisoned jobs; the queue still has
+      // to exhaust the ones already in flight.
+      const drainingIds = new Set(draining
+        .filter((e) => e.message.includes('cause redacted'))
+        .map((e) => /Schedule ingest job (\d+)/.exec(e.message)[1]));
+      expect(drainingIds.size).toBeGreaterThan(0);
+      expect([...drainingIds].every((id) => beforeMitigation.has(id))).toBe(true);
+      // The cursor commits again immediately, so the warning stops dead.
+      expect(draining.some((e) => e.message.includes('cursor not advanced'))).toBe(false);
+
+      // ...and once the last one dead-letters, the failures are over well
+      // before the spec's own expiry.
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(900000);
+      const tail = logEvents().filter((e) => e.timestamp > Date.now() - 240000);
+      expect(tail.some((e) => e.message.includes('cause redacted'))).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('burst specs share tokens: the cursor warning names the failing job tick', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(70000);
+      const events = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body);
+      const errors = events.filter((e) => e.message.includes('InvalidBucketName'));
+      const warns = events.filter((e) => e.message.includes('cursor not advanced for 1 due workflow(s)'));
+      expect(errors).toHaveLength(8);
+      expect(warns).toHaveLength(8);
+      const tickId = /\(tick (\d+)\)/.exec(errors[0].message)[1];
+      expect(warns[0].message).toContain(`Schedule tick ${tickId}:`);
+      // Each warning trails its failure by the spec's offset.
+      expect(Math.min(...warns.map((e) => e.timestamp))).toBe(Math.min(...errors.map((e) => e.timestamp)) + 3000);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('a backdated prelude burst lands immediately with historical timestamps', async () => {
