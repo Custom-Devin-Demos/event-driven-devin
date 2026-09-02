@@ -96,19 +96,11 @@ function sanitizeText(value, maxLength = 80) {
 const OWNER_EMAIL = 'neil.kelly@cognition.ai';
 
 /**
- * Alerting limits. The deployment has no Bonvoy-specific host configuration, so
- * these are code constants — changing one is a merge. `enabled` is the kill
- * switch: false keeps the intentional 500 and drops the Slack card and session.
- * `cooldownMs` and `maxPerHour` bound the feedback loop a triggered session can
- * create by reaching this endpoint while verifying its fix.
+ * Kill switch. The deployment has no Bonvoy-specific host configuration, so this
+ * is a code constant — flipping it is a merge. False keeps the intentional 500
+ * and drops the Slack card and the Devin session.
  */
-const alerting = {
-  enabled: true,
-  cooldownMs: 45000,
-  maxPerHour: 2,
-  lastAlertAt: 0,
-  recent: [],
-};
+const alerting = { enabled: true };
 
 /**
  * Only the presenter's build alerts. The Android client sends this token when
@@ -120,21 +112,15 @@ const alerting = {
  */
 const DEMO_TOKEN = 'bonvoy-presenter-demo';
 
+/**
+ * The token is the loop guard, so presenter taps are deliberately unthrottled:
+ * every redemption from the demo build pages, and nothing else can.
+ */
 function alertBlockReason(demoToken) {
-  const now = Date.now();
   if (!alerting.enabled) return 'Bonvoy alerting is switched off';
   if (String(demoToken || '') !== DEMO_TOKEN) {
     return 'request did not carry the presenter demo token';
   }
-  if (now - alerting.lastAlertAt < alerting.cooldownMs) {
-    return `within the ${alerting.cooldownMs / 1000}s cooldown of the previous alert`;
-  }
-  alerting.recent = alerting.recent.filter((at) => now - at < 3600000);
-  if (alerting.recent.length >= alerting.maxPerHour) {
-    return `hourly cap of ${alerting.maxPerHour} alerts reached`;
-  }
-  alerting.lastAlertAt = now;
-  alerting.recent.push(now);
   return null;
 }
 
