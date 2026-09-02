@@ -402,3 +402,101 @@ describe('incident-lab slack persona sink', () => {
     await sink.onStop(run);
   });
 });
+
+describe('incident-lab script director', () => {
+  const BEAT = { persona: 'ic', text: 'scripted beat', atMs: 60000 };
+  const LATER = { persona: 'biz', text: 'later beat', atMs: 600000 };
+
+  beforeEach(() => {
+    process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+    process.env.OPENAI_API_KEY = 'sk-test';
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    delete process.env.SLACK_BOT_TOKEN;
+    delete process.env.OPENAI_API_KEY;
+  });
+
+  /** Runs `script` far enough for the investigator's message to reach the
+   *  director and the first beat to come due. */
+  async function runDirector(script, direct) {
+    const posted = [];
+    const phases = [];
+    let ts = 10;
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text) => {
+          posted.push(text);
+          return Promise.resolve(`${ts++}.0`);
+        }),
+        history: jest.fn()
+          .mockResolvedValueOnce([])
+          .mockImplementation(() => Promise.resolve([
+            { type: 'message', ts: `${ts++}.5`, text: 'already ruled the deploy out' },
+          ])),
+        draft: jest.fn().mockResolvedValue(null),
+        direct,
+        activatePhase: jest.fn((id) => {
+          phases.push(id);
+          return Promise.resolve({ ok: true });
+        }),
+      },
+    });
+    const run = makeRun();
+    run.scenario = { ...scenario, script, llm: { ...scenario.llm, maxRepliesPerRun: 0 } };
+    await sink.onDeclare(run);
+    await jest.advanceTimersByTimeAsync(15000); // channel lookup + watermark
+    await jest.advanceTimersByTimeAsync(40000); // polls: investigator message seen
+    await jest.advanceTimersByTimeAsync(10000); // first beat comes due
+    return { posted, phases, direct, stop: () => sink.onStop(run) };
+  }
+
+  test('a beat the investigator already covered is dropped', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'skip' });
+    const { posted, direct: called, stop } = await runDirector([BEAT], direct);
+    expect(called).toHaveBeenCalled();
+    expect(posted).not.toContain('scripted beat');
+    await stop();
+  });
+
+  test('a beat carrying a phase action is posted even when skipped', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'skip' });
+    const { posted, phases, stop } = await runDirector([{ ...BEAT, action: 'mitigate' }], direct);
+    expect(posted).toContain('scripted beat');
+    expect(phases).toContain('mitigated');
+    await stop();
+  });
+
+  test('a director error leaves the beat exactly as scripted', async () => {
+    const direct = jest.fn().mockRejectedValue(new Error('fireworks 500'));
+    const { posted, stop } = await runDirector([BEAT], direct);
+    expect(posted).toContain('scripted beat');
+    await stop();
+  });
+
+  test('"advance" pulls the remaining beats forward', async () => {
+    const direct = jest.fn()
+      .mockResolvedValueOnce({ decision: 'advance' })
+      .mockResolvedValue({ decision: 'post' });
+    const { posted, stop } = await runDirector([BEAT, LATER], direct);
+    expect(posted).toContain('scripted beat');
+    expect(posted).not.toContain('later beat');
+    // 600000 - 180000 leaves the queued beat due at 420000, not 600000.
+    await jest.advanceTimersByTimeAsync(360000);
+    expect(posted).toContain('later beat');
+    await stop();
+  });
+
+  test('"hold" defers a beat, and a beat cannot be held forever', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'hold' });
+    const { posted, stop } = await runDirector([BEAT], direct);
+    expect(posted).not.toContain('scripted beat');
+    await jest.advanceTimersByTimeAsync(2 * 120000 + 1000);
+    expect(posted).toContain('scripted beat'); // third verdict is forced to post
+    await stop();
+  });
+});
