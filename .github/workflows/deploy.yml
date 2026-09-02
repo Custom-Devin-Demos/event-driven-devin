@@ -21,10 +21,25 @@ jobs:
           chmod 600 ~/.ssh/ec2_key
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Check disk space on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} bash -s <<'EOF'
+          set -e
+          docker image prune -f >/dev/null
+          docker builder prune -af >/dev/null 2>&1 || true
+          df -h /
+          AVAIL_MB=$(df -Pm / | awk 'NR==2 {print $4}')
+          if [ "$AVAIL_MB" -lt 3072 ]; then
+            echo "Only ${AVAIL_MB}MB free on / — need at least 3GB to build images safely"
+            docker system df
+            exit 1
+          fi
+          EOF
+
       - name: Back up .env on EC2
         run: |
           ssh -i ~/.ssh/ec2_key ubuntu@${{ secrets.EC2_HOST }} \
-            "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
+            "cp /home/ubuntu/.env /home/ubuntu/.env.bak.tmp && mv /home/ubuntu/.env.bak.tmp /home/ubuntu/.env.bak"
 
       - name: Create deployment tarball
         run: |
@@ -98,7 +113,12 @@ jobs:
           # 5. Reconcile remaining services (no-op if configs unchanged)
           docker compose up -d
 
+          # 6. Drop the previous build's now-dangling images so the disk
+          #    doesn't fill up across deploys
+          docker image prune -f >/dev/null
+
           echo "Deploy complete — zero downtime"
+          df -h /
           EOF
 
       - name: Clean up SSH key

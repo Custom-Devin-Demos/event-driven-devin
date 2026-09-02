@@ -468,6 +468,11 @@ services:
       - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
       - DD_CONTAINER_EXCLUDE="name:datadog-agent"
       - DD_PROCESS_AGENT_ENABLED=true
+    # Process collection ptraces host processes; under the docker-default
+    # AppArmor profile the kernel logs a denial every few seconds and dmesg
+    # fills the disk (DataDog/datadog-agent#6915)
+    security_opt:
+      - apparmor:unconfined
     ports:
       - "8126:8126"   # APM traces
       - "8125:8125/udp" # DogStatsD
