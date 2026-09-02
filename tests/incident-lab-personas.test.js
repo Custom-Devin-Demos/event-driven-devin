@@ -789,6 +789,8 @@ describe('incident-lab mitigation exchange', () => {
 
     await jest.advanceTimersByTimeAsync(3000000);
     expect(posted).toContain('scripted mitigate beat');
+    // Nothing recovered, so nobody reports a recovery curve.
+    expect(posted).not.toContain(WORKS.observation);
     await stop();
   });
 

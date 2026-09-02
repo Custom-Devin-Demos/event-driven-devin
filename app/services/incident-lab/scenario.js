@@ -36,6 +36,10 @@ function validateScenario(scenario, file) {
     if (personaIds.has(persona.id)) fail(`duplicate persona id "${persona.id}"`);
     personaIds.add(persona.id);
   }
+  const phaseIds = new Set(((scenario.datadog || {}).phases || []).map((p) => p.id));
+  const manualPhases = new Set(
+    ((scenario.datadog || {}).phases || []).filter((p) => p.manual).map((p) => p.id),
+  );
   if (!Array.isArray(scenario.script)) fail('missing "script"');
   let lastAt = -1;
   for (const line of scenario.script) {
@@ -45,11 +49,11 @@ function validateScenario(scenario, file) {
     lastAt = line.atMs;
     if (!personaIds.has(line.persona)) fail(`script line references unknown persona "${line.persona}"`);
     if (typeof line.text !== 'string' || !line.text.trim()) fail('script line missing "text"');
+    // A beat announcing a recovery the run cannot activate is worse than no beat.
+    if (line.action !== undefined && !manualPhases.has(phaseForAction(line.action))) {
+      fail(`script line acts on "${line.action}", which is not a manual datadog phase`);
+    }
   }
-  const phaseIds = new Set(((scenario.datadog || {}).phases || []).map((p) => p.id));
-  const manualPhases = new Set(
-    ((scenario.datadog || {}).phases || []).filter((p) => p.manual).map((p) => p.id),
-  );
   if (scenario.knowledge != null) {
     if (!Array.isArray(scenario.knowledge)) fail('"knowledge" must be an array');
     for (const entry of scenario.knowledge) {
@@ -76,11 +80,17 @@ function validateScenario(scenario, file) {
       if (option.observePersona !== undefined && !personaIds.has(option.observePersona)) {
         fail(`mitigation option "${option.id}" references unknown persona "${option.observePersona}"`);
       }
+      let exchangeMs = 0;
       for (const key of ['actAfterMs', 'observeAfterMs']) {
         if (option[key] === undefined) continue;
-        if (!Number.isFinite(option[key]) || option[key] < 0 || option[key] > scenario.durationMs) {
+        if (!Number.isFinite(option[key]) || option[key] < 0) {
           fail(`mitigation option "${option.id}" has an out-of-range "${key}"`);
         }
+        exchangeMs += option[key];
+      }
+      // The exchange runs from the ask, so its whole span has to fit the window.
+      if (exchangeMs > scenario.durationMs) {
+        fail(`mitigation option "${option.id}" runs ${exchangeMs}ms, beyond durationMs`);
       }
       // An action naming a phase the run cannot activate on demand would
       // acknowledge the investigator and then recover nothing.

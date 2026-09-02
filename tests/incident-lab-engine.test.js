@@ -94,10 +94,31 @@ describe('incident-lab scenario loader', () => {
       script: [],
       mitigations: {
         options: [{
-          id: 'o', persona: 'a', proposal: 'p', ack: 'a', observation: 'o', observeAfterMs: 5000,
+          id: 'o', persona: 'a', proposal: 'p', ack: 'a', observation: 'o', observeAfterMs: -1,
         }],
       },
     }, 'x.json')).toThrow(/out-of-range "observeAfterMs"/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [],
+      mitigations: {
+        options: [{
+          id: 'o',
+          persona: 'a',
+          proposal: 'p',
+          ack: 'a',
+          observation: 'o',
+          actAfterMs: 600,
+          observeAfterMs: 600,
+        }],
+      },
+    }, 'x.json')).toThrow(/runs 1200ms, beyond durationMs/);
+    expect(() => validateScenario({
+      id: 'x', title: 't', summary: 's', service: 'svc', durationMs: 1000,
+      personas: [{ id: 'a', username: 'A' }],
+      script: [{ atMs: 0, persona: 'a', text: 'hi', action: 'mitigate' }],
+    }, 'x.json')).toThrow(/not a manual datadog phase/);
   });
 });
 

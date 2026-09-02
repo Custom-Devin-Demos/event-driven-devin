@@ -394,8 +394,10 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     try {
       await api.activatePhase(phaseForAction(action));
       runState.actionsDone.add(action);
+      return true;
     } catch (error) {
       logger.warn('Incident Lab script action failed', { action, error: error.message });
+      return false;
     }
   }
 
@@ -415,7 +417,9 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     }
     addTimer(runState, async () => {
       if (stale(runState)) return;
-      if (option.action) await activateAction(runState, run, option.action);
+      // The observation describes a curve the telemetry produced, so it is only
+      // true if the phase landed; the scripted beat stays as the retry.
+      if (option.action && !await activateAction(runState, run, option.action)) return;
       addTimer(
         runState,
         () => postAs(runState, run, option.observePersona || option.persona, option.observation),
