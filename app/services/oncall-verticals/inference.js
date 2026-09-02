@@ -166,7 +166,8 @@ async function runCompletion(data, options = {}) {
   const completionId = `cmpl_${uuidv4().replace(/-/g, '').slice(0, 24)}`;
   const model = String(data.model || 'deepseek-v3').toLowerCase();
   const config = getModelConfig(model);
-  const maxTokens = Math.min(parseInt(data.maxTokens, 10) || 64, 512);
+  const requestedTokens = parseInt(data.maxTokens, 10);
+  const maxTokens = Math.min(Math.max(requestedTokens > 0 ? requestedTokens : 64, 1), 512);
 
   logger.info('Chat completion accepted', {
     completionId,

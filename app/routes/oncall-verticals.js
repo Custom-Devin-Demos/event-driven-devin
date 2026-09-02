@@ -142,6 +142,7 @@ router.post('/api/oncall/inference/completions', async (req, res) => {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
   });
   res.flushHeaders();
   const send = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
