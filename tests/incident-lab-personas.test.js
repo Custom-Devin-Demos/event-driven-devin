@@ -512,4 +512,28 @@ describe('incident-lab script director', () => {
     expect(posted).toContain('scripted beat'); // third verdict is forced to post
     await stop();
   });
+
+  test('a beat carrying a phase action outwaits an ordinary one before it is forced', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'hold' });
+    const { posted, stop } = await runDirector([{ ...BEAT, action: 'mitigate' }], direct);
+
+    await jest.advanceTimersByTimeAsync(2 * 120000 + 1000);
+    expect(posted).not.toContain('scripted beat'); // an ordinary beat would be out of holds
+    await jest.advanceTimersByTimeAsync(8 * 120000 + 1000);
+    expect(posted).toContain('scripted beat');
+    await stop();
+  });
+
+  test('overdue beats drain with a gap instead of landing together', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'post' });
+    const overdue = { persona: 'biz', text: 'overdue beat', atMs: 61000 };
+    const { posted, stop } = await runDirector([BEAT, overdue], direct);
+
+    expect(posted).toEqual(['scripted beat']);
+    await jest.advanceTimersByTimeAsync(19000);
+    expect(posted).toEqual(['scripted beat']);
+    await jest.advanceTimersByTimeAsync(26000);
+    expect(posted).toEqual(['scripted beat', 'overdue beat']);
+    await stop();
+  });
 });
