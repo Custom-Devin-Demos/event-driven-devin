@@ -9,6 +9,7 @@ const {
   unlockedFacts,
   lockedFacts,
   renderLine,
+  personaIcon,
 } = require('../app/services/incident-lab/personas');
 const { getScenario } = require('../app/services/incident-lab/scenario');
 
@@ -25,6 +26,24 @@ function makeRun(overrides = {}) {
     ...overrides,
   };
 }
+
+describe('incident-lab persona avatars', () => {
+  test('an avatar path resolves against the demo host, an emoji is left alone', () => {
+    const previous = process.env.ONCALL_DEMO_BASE_URL;
+    process.env.ONCALL_DEMO_BASE_URL = 'https://demo.example.com/';
+    expect(personaIcon({ avatar: '/incident-lab/avatars/ic.png', icon: ':x:' }))
+      .toBe('https://demo.example.com/incident-lab/avatars/ic.png');
+    expect(personaIcon({ icon: ':x:' })).toBe(':x:');
+    if (previous === undefined) delete process.env.ONCALL_DEMO_BASE_URL;
+    else process.env.ONCALL_DEMO_BASE_URL = previous;
+  });
+
+  test('every scripted persona has an avatar', () => {
+    for (const persona of scenario.personas) {
+      expect(personaIcon(persona)).toMatch(/^https:\/\/\S+\.png$/);
+    }
+  });
+});
 
 describe('incident-lab persona knowledge gating', () => {
   test('facts unlock as the timeline advances', () => {

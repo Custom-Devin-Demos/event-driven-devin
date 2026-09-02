@@ -61,6 +61,16 @@ function slackToken() {
   return process.env.INCIDENT_LAB_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;
 }
 
+/** A persona's `avatar` (a path under `app/public/`) is served from the demo
+ *  host so Slack renders a real profile picture; `icon` is the emoji used
+ *  when a scenario declares no avatar. */
+function personaIcon(persona) {
+  if (!persona.avatar) return persona.icon;
+  if (/^https?:\/\//.test(persona.avatar)) return persona.avatar;
+  const base = (process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '');
+  return `${base}${persona.avatar}`;
+}
+
 function renderLine(text) {
   const devin = process.env.DEVIN_SLACK_USER_ID
     ? `<@${process.env.DEVIN_SLACK_USER_ID}>`
@@ -306,7 +316,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
           runState.channelId,
           renderLine(line.text),
           persona.username,
-          persona.icon,
+          personaIcon(persona),
         );
         if (ts) runState.ownTs.add(ts);
       } catch (error) {
@@ -414,7 +424,7 @@ function createSlackPersonaSink({ deps = {} } = {}) {
       addTimer(runState, async () => {
         if (stale(runState)) return;
         try {
-          const ts = await api.post(slackToken(), runState.channelId, reply.text, reply.persona.username, reply.persona.icon);
+          const ts = await api.post(slackToken(), runState.channelId, reply.text, reply.persona.username, personaIcon(reply.persona));
           if (ts && !stale(runState)) runState.ownTs.add(ts);
         } catch (error) {
           logger.warn('Incident Lab responder post failed', { error: error.message });
@@ -576,6 +586,7 @@ module.exports = {
   buildResponderPrompt,
   buildDirectorPrompt,
   llmProvider,
+  personaIcon,
   unlockedFacts,
   lockedFacts,
   renderLine,

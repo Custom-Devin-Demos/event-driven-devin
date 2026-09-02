@@ -527,15 +527,18 @@ async function inviteToChannel(token, channelId, userIds) {
 }
 
 /**
- * Post a message under a persona display name/emoji instead of the bot's
- * own identity. Requires the `chat:write.customize` scope.
+ * Post a message under a persona display name/avatar instead of the bot's
+ * own identity. Requires the `chat:write.customize` scope. `icon` is either
+ * an emoji shortcode (`:wrench:`) or an image URL, which Slack fetches and
+ * renders like a real profile picture.
  */
-async function postPersonaMessage(token, channel, text, username, iconEmoji) {
+async function postPersonaMessage(token, channel, text, username, icon) {
+  const image = /^https?:\/\//.test(icon || '');
   const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, {
     channel,
     text,
     username,
-    icon_emoji: iconEmoji,
+    ...(image ? { icon_url: icon } : { icon_emoji: icon }),
   }, {
     headers: {
       'Authorization': `Bearer ${token}`,
