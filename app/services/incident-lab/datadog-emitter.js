@@ -51,6 +51,8 @@ const TOKEN_FILLERS = {
   ms: () => String(200 + Math.floor(Math.random() * 4800)),
   n: () => String(1 + Math.floor(Math.random() * 14)),
   m: () => String(1 + Math.floor(Math.random() * 6)),
+  attempt: () => String(1 + Math.floor(Math.random() * 8)),
+  version: () => `v${new Date().toISOString().slice(0, 10).replace(/-/g, '.')}-1`,
 };
 
 function renderTemplate(template) {
@@ -199,9 +201,19 @@ function createDatadogSink({ post = axios.post } = {}) {
    * @param elapsedMs how long the phase has already been running before now
    *   (negative-start phases); duration-limited logs only run live for what
    *   remains of their window, and expired ones never start.
+   *
+   * A spec with `replacesBaseline` retires any live spec with the same
+   * logger+template first (e.g. a success log that must stop during an
+   * outage); with `perHour` 0 it emits nothing itself.
    */
   function applyLogSpecs(specs, phaseId, elapsedMs = 0) {
     for (const spec of specs || []) {
+      if (spec.replacesBaseline) {
+        state.logRates = state.logRates.filter(
+          (s) => !(s.logger === spec.logger && s.template === spec.template),
+        );
+      }
+      if (!(spec.perHour > 0)) continue;
       const entry = { ...spec, phase: phaseId };
       if (Number.isFinite(spec.durationMs)) {
         const remainingMs = spec.durationMs - elapsedMs;
@@ -214,6 +226,29 @@ function createDatadogSink({ post = axios.post } = {}) {
         state.timers.push(timer);
       } else {
         state.logRates.push(entry);
+      }
+    }
+  }
+
+  /**
+   * Baseline specs that a negative-start phase retires with `replacesBaseline`
+   * are withheld while armed: that phase backfills the pre-declaration window
+   * the armed period sits inside, and intake cannot retract live points and
+   * events already written there. Specs the phase does not replace keep
+   * emitting, so the healthy noise around the outage is unaffected.
+   */
+  function withholdRetroactiveReplacements(phases) {
+    for (const phase of phases || []) {
+      if (!(Number.isFinite(phase.startMs) && phase.startMs < 0)) continue;
+      for (const spec of phase.metrics || []) {
+        if (spec.replacesBaseline) state.metricRates.delete(metricKey(spec));
+      }
+      for (const spec of phase.logs || []) {
+        if (spec.replacesBaseline) {
+          state.logRates = state.logRates.filter(
+            (s) => !(s.logger === spec.logger && s.template === spec.template),
+          );
+        }
       }
     }
   }
@@ -286,19 +321,52 @@ function createDatadogSink({ post = axios.post } = {}) {
     });
   }
 
+  /**
+   * A prelude with `backdateMs` is written in one pass with historical
+   * timestamps (log intake accepts ~18h) instead of playing out in real
+   * time — the presenter doesn't have to arm `backdateMs` early for the
+   * burst to sit that far in the past. `intervalMs` spaces the backdated
+   * timestamps; the metric point is clamped to what metric intake accepts.
+   * A log spec with `sameMessage` renders its template once and repeats it
+   * (one job redelivered `count` times), instead of `count` distinct events.
+   */
   async function burst(run, prelude) {
     // Capture the state this burst belongs to: onStop clears the module
     // state while a burst may still be awaiting delivery, and resuming
     // against the shared reference would throw (an unhandled rejection).
     const burstState = state;
+    const backdateMs = Number.isFinite(prelude.backdateMs)
+      ? Math.min(prelude.backdateMs, LOG_BACKFILL_MAX_MS)
+      : 0;
     for (const spec of prelude.logs || []) {
+      const fixedMessage = spec.sameMessage ? renderTemplate(spec.template) : null;
+      const message = () => fixedMessage ?? renderTemplate(spec.template);
+      if (backdateMs > 0) {
+        if (!burstState || burstState.stopped || state !== burstState) return;
+        const base = Date.now() - backdateMs;
+        const events = [];
+        for (let i = 0; i < (spec.count || 1); i++) {
+          events.push({
+            logger: spec.logger,
+            status: spec.status,
+            message: message(),
+            timestamp: base + i * (spec.intervalMs || 0),
+          });
+        }
+        try {
+          await submitLogs(run, events);
+        } catch (error) {
+          logger.warn('Incident Lab prelude burst failed', { error: error.message });
+        }
+        continue;
+      }
       for (let i = 0; i < (spec.count || 1); i++) {
         if (!burstState || burstState.stopped || state !== burstState) return;
         try {
           await submitLogs(run, [{
             logger: spec.logger,
             status: spec.status,
-            message: renderTemplate(spec.template),
+            message: message(),
             timestamp: Date.now(),
           }]);
         } catch (error) {
@@ -310,12 +378,13 @@ function createDatadogSink({ post = axios.post } = {}) {
       }
     }
     if (!burstState || burstState.stopped || state !== burstState) return;
+    const metricAgeMs = Math.min(backdateMs, METRIC_BACKFILL_MAX_MS);
     const series = (prelude.metrics || [])
       .filter((m) => Number.isFinite(m.count))
       .map((m) => ({
         metric: m.metric,
         tags: m.tags,
-        points: [{ timestamp: Math.floor(Date.now() / 1000), value: m.count }],
+        points: [{ timestamp: Math.floor((Date.now() - metricAgeMs) / 1000), value: m.count }],
       }));
     if (series.length) {
       try {
@@ -347,6 +416,7 @@ function createDatadogSink({ post = axios.post } = {}) {
     };
     applyMetricSpecs((dd.baseline || {}).metrics);
     applyLogSpecs((dd.baseline || {}).logs, 'baseline');
+    if (!run.declaredAt) withholdRetroactiveReplacements(dd.phases);
     state.interval = setInterval(() => flush(run), FLUSH_INTERVAL_MS);
     if (state.interval.unref) state.interval.unref();
     for (const prelude of dd.prelude || []) {

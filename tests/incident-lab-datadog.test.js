@@ -96,6 +96,77 @@ describe('incident-lab datadog emitter', () => {
     expect(sampleLog.message).not.toMatch(/\{\w+\}/);
   });
 
+  test('a phase log spec with replacesBaseline retires the baseline template', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = { ...makeRun(), declaredAt: Date.now() };
+      await sink.onArm(run);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const armedMessages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .map((event) => event.message);
+      expect(armedMessages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(true);
+      const onset = run.scenario.datadog.phases.find((p) => p.id === 'onset');
+      await sink.onPhase(run, onset);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const messages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .map((event) => event.message);
+      expect(messages.length).toBeGreaterThan(0);
+      expect(messages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('while armed, baseline specs a retroactive phase replaces are withheld', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      post.mockClear();
+      await jest.advanceTimersByTimeAsync(120000);
+      const messages = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .map((event) => event.message);
+      expect(messages.some((m) => m.startsWith('Schedule tick'))).toBe(true);
+      expect(messages.some((m) => m.startsWith('Enqueued execution batch'))).toBe(false);
+      const series = post.mock.calls
+        .filter(([url]) => url.includes('/api/v2/series'))
+        .flatMap(([, body]) => body.series)
+        .map((s) => `${s.metric}|${(s.tags || []).join(',')}`);
+      expect(series.some((s) => s.includes('executions.started|') && s.includes('trigger:webhook'))).toBe(true);
+      expect(series.some((s) => s.includes('executions.started|') && s.includes('trigger:schedule'))).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test('a backdated prelude burst lands immediately with historical timestamps', async () => {
+    jest.useFakeTimers();
+    try {
+      const run = makeRun();
+      await sink.onArm(run);
+      await jest.advanceTimersByTimeAsync(70000);
+      const events = post.mock.calls
+        .filter(([url]) => url.includes('http-intake.logs'))
+        .flatMap(([, body]) => body)
+        .filter((event) => event.message.includes('InvalidBucketName'));
+      expect(events).toHaveLength(8);
+      for (const event of events) {
+        expect(event.timestamp).toBeLessThan(Date.now() - 3600000);
+      }
+      expect(new Set(events.map((event) => event.message)).size).toBe(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('onStop resolves the Datadog incident', async () => {
     const run = makeRun();
     run.incident = { id: 'abc', publicId: 42 };
