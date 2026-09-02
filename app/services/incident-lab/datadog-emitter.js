@@ -259,6 +259,55 @@ function createDatadogSink({ post = axios.post } = {}) {
     }
   }
 
+  /**
+   * Write the healthy "before" at arm: baseline log history from the intake
+   * horizon back to the moment the earliest negative-start phase will claim
+   * once the run declares. Without it the run's service has no telemetry
+   * predating the outage, and an investigator can neither prove things were
+   * ever healthy nor see when the failing began. Metrics are not backfilled
+   * here — metric intake only accepts ~1h-old points, which the outage
+   * window already spends.
+   */
+  async function backfillBaselineLogs(run) {
+    const dd = run.scenario.datadog;
+    const specs = (dd.baseline || {}).logs || [];
+    const phaseStarts = (dd.phases || [])
+      .map((p) => p.startMs)
+      .filter((startMs) => Number.isFinite(startMs) && startMs < 0);
+    if (!specs.length || !phaseStarts.length) return;
+    // Healthy history ends where the *earliest possible* declaration would
+    // put the start of the outage — arming time, since declaring is a manual
+    // call away. Declaring later only widens the quiet gap between healthy
+    // history and the outage backfill; it can never overlap it.
+    const now = Date.now();
+    const end = now + Math.min(...phaseStarts);
+    const start = now - LOG_BACKFILL_MAX_MS;
+    if (end <= start) return;
+    const logs = [];
+    for (const spec of specs) {
+      const total = Math.min(
+        Math.round((spec.perHour / 3600000) * (end - start)),
+        LOG_BACKFILL_MAX_EVENTS,
+      );
+      for (let i = 0; i < total; i++) {
+        logs.push({
+          logger: spec.logger,
+          status: spec.status,
+          message: renderTemplate(spec.template),
+          timestamp: start + Math.floor(Math.random() * (end - start)),
+        });
+      }
+    }
+    logs.sort((a, b) => a.timestamp - b.timestamp);
+    try {
+      for (let i = 0; i < logs.length; i += 200) {
+        await submitLogs(run, logs.slice(i, i + 200));
+      }
+    } catch (error) {
+      logger.warn('Incident Lab baseline log backfill failed', { error: error.message });
+    }
+  }
+
   /** Emit a phase's error-log history for the time it was already running
    *  before declaration (the detection gap), within intake limits. */
   async function backfillPhase(run, phase) {
@@ -454,7 +503,10 @@ function createDatadogSink({ post = axios.post } = {}) {
     name: 'datadog',
 
     async onArm(run) {
-      startTelemetry(run);
+      if (!startTelemetry(run)) return;
+      // A fresh arm writes the healthy pre-outage history; a resumed run
+      // already wrote it at its original arm (onResume skips this path).
+      if (!run.declaredAt) await backfillBaselineLogs(run);
     },
 
     async onDeclare(run) {

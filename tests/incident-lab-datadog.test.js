@@ -173,6 +173,21 @@ describe('incident-lab datadog emitter', () => {
     }
   });
 
+  test('arming backfills healthy baseline logs up to the projected outage start', async () => {
+    const run = makeRun();
+    await sink.onArm(run);
+    const events = post.mock.calls
+      .filter(([url]) => url.includes('http-intake.logs'))
+      .flatMap(([, body]) => body);
+    expect(events.length).toBeGreaterThan(0);
+    // All history predates the outage window the onset phase will backfill
+    // (declare-lead 3 min + onset start -60 min => ~57 min before arm).
+    const latest = Math.max(...events.map((event) => event.timestamp));
+    expect(latest).toBeLessThanOrEqual(Date.now() - 3400000);
+    // The healthy "before" includes the success log the outage silences.
+    expect(events.some((event) => event.message.startsWith('Enqueued execution batch'))).toBe(true);
+  });
+
   test('a backdated prelude burst lands immediately with historical timestamps', async () => {
     jest.useFakeTimers();
     try {
