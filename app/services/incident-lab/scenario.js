@@ -76,6 +76,12 @@ function validateScenario(scenario, file) {
       if (option.observePersona !== undefined && !personaIds.has(option.observePersona)) {
         fail(`mitigation option "${option.id}" references unknown persona "${option.observePersona}"`);
       }
+      for (const key of ['actAfterMs', 'observeAfterMs']) {
+        if (option[key] === undefined) continue;
+        if (!Number.isFinite(option[key]) || option[key] < 0 || option[key] > scenario.durationMs) {
+          fail(`mitigation option "${option.id}" has an out-of-range "${key}"`);
+        }
+      }
       // An action naming a phase the run cannot activate on demand would
       // acknowledge the investigator and then recover nothing.
       if (option.action !== undefined && !manualPhases.has(phaseForAction(option.action))) {
