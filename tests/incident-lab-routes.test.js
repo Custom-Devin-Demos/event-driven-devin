@@ -114,6 +114,25 @@ describe('incident-lab routes', () => {
     expect(stopped.status).toBe(200);
   });
 
+  test('run arms with a pending declaration and requires the lab token', async () => {
+    const token = 'lab-test-token';
+    expect((await request('POST', '/api/incident-lab/run', {
+      body: { scenario: 'flowforge-scheduled-workflows' },
+    })).status).toBe(403);
+
+    const started = await request('POST', '/api/incident-lab/run', {
+      token,
+      body: { scenario: 'flowforge-scheduled-workflows' },
+    });
+    expect(started.status).toBe(200);
+
+    const status = await (await request('GET', '/api/incident-lab/status', { token })).json();
+    expect(status.status).toBe('armed');
+    expect(status.declaresInMs).toBeGreaterThan(0);
+
+    expect((await request('POST', '/api/incident-lab/stop', { token })).status).toBe(200);
+  });
+
   test('rejects invalid scenario and phase values', async () => {
     const token = 'lab-test-token';
     const badScenario = await request('POST', '/api/incident-lab/arm', {

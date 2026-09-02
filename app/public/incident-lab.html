@@ -5,31 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>Incident Lab</title>
+<link rel="icon" type="image/png" href="/favicon.png">
 <style>
-  :root { color-scheme: dark; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 40px 20px; }
-  .wrap { max-width: 760px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: #8b949e; margin: 0 0 24px; font-size: 14px; }
-  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-  label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; }
-  input, select { width: 100%; box-sizing: border-box; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; font-size: 14px; margin-bottom: 12px; }
-  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
-  button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 8px 16px; font-size: 14px; cursor: pointer; }
-  button.primary { background: #b62324; border-color: #b62324; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  pre { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 12px; font-size: 12px; overflow: auto; max-height: 340px; white-space: pre-wrap; }
-  .warning { color: #f85149; font-size: 13px; min-height: 18px; margin-top: 8px; }
-  .status { font-size: 13px; color: #8b949e; }
-  .status b { color: #e6edf3; }
+  /* Same tokens as the rest of the site (see oncall.html): licensed brand
+     faces, light surfaces, ink text, dark chrome for the header band. */
+  @font-face { font-family:'STK Bureau Serif'; src:url('/brand/STKBureauSerif-Book.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
+  @font-face { font-family:'NB International Pro'; src:url('/brand/NBInternationalPro-Regular.otf') format('opentype'); font-weight:400; font-style:normal; font-display:swap; }
+  :root {
+    --surface:#fff; --ink:#0f131c;
+    --muted:rgb(130,132,137);
+    --line:rgba(15,19,28,.08);
+    --surface-muted:rgb(243,243,244); --wash:var(--surface-muted); --body-bg:var(--surface-muted);
+    --danger:#b3261e;
+    --accent:#7c8aff; --chrome-bg:#141924; --chrome-text:#eaf0f9;
+    --chrome-muted:rgba(234,240,249,.5);
+    --chrome-line:rgba(234,240,249,.12);
+    --serif:'STK Bureau Serif', Georgia, 'Times New Roman', serif;
+    --sans:'NB International Pro', 'Helvetica Neue', Arial, sans-serif;
+    --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @supports (color:color-mix(in srgb,red 50%,blue)) {
+    :root {
+      --muted:color-mix(in srgb,var(--ink) 52%,var(--surface));
+      --line:color-mix(in srgb,var(--ink) 8%,transparent);
+      --surface-muted:color-mix(in srgb,var(--surface) 95%,var(--ink)); --wash:var(--surface-muted); --body-bg:var(--surface-muted);
+      --chrome-muted:color-mix(in srgb,var(--chrome-text) 50%,transparent);
+      --chrome-line:color-mix(in srgb,var(--chrome-text) 12%,transparent);
+    }
+  }
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--body-bg); color:var(--ink); font:400 15px/1.6 var(--sans); min-height:100vh; -webkit-font-smoothing:antialiased; }
+  .hero { background:var(--chrome-bg); color:var(--chrome-text); padding:44px 40px 40px; }
+  .hero-inner, .wrap { max-width:820px; margin:0 auto; }
+  .hero-badge { display:inline-flex; align-items:center; gap:8px; padding:5px 14px; border:1px solid var(--chrome-line); border-radius:100px; color:var(--chrome-muted); font-size:11px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:20px; }
+  .hero-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  h1 { font:400 clamp(30px,5vw,42px)/1.15 var(--serif); letter-spacing:-.02em; margin-bottom:12px; }
+  .sub { color:var(--chrome-muted); font-size:15px; max-width:620px; }
+  .wrap { padding:32px 40px 72px; }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:24px; margin-bottom:16px; }
+  .card-title { color:var(--muted); font-size:11px; letter-spacing:.14em; text-transform:uppercase; margin-bottom:16px; }
+  label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+  input, select { width:100%; min-height:42px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:9px 12px; font:inherit; font-size:14px; margin-bottom:14px; outline:none; transition:border-color .15s,box-shadow .15s; }
+  input:focus, select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,138,255,.18); }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  button { min-height:40px; background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 20px; font:500 13px var(--sans); letter-spacing:.02em; cursor:pointer; transition:opacity .2s,background .2s; }
+  button:hover:not(:disabled) { background:var(--wash); }
+  button.primary { background:var(--ink); border-color:var(--ink); color:#fff; }
+  button.primary:hover:not(:disabled) { background:var(--ink); opacity:.85; }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  pre { background:var(--wash); border:1px solid var(--line); border-radius:8px; padding:14px; font:12px/1.65 var(--mono); color:var(--ink); overflow:auto; max-height:340px; white-space:pre-wrap; }
+  .warning { color:var(--danger); font-size:13px; min-height:18px; margin-top:10px; }
+  .status { font-size:13px; color:var(--muted); margin-bottom:14px; }
+  .status b { color:var(--ink); font-weight:500; }
+  .countdown { font:400 26px/1.2 var(--serif); font-variant-numeric:tabular-nums; margin-top:16px; min-height:32px; letter-spacing:-.01em; }
 </style>
 </head>
 <body>
+<header class="hero">
+  <div class="hero-inner">
+    <span class="hero-badge">Incident Lab</span>
+    <h1>Run an evolving incident</h1>
+    <p class="sub">Baseline telemetry and the pre-incident history start immediately, and the incident declares itself once the lead-in elapses. Datadog creates the incident channel; the responder auto-joins; the persona timeline and telemetry evolve from there.</p>
+  </div>
+</header>
 <div class="wrap">
-  <h1>Incident Lab</h1>
-  <p class="sub">Arm a scenario to start baseline telemetry, then declare when ready. Datadog creates the incident channel; the responder auto-joins; the persona timeline and telemetry evolve from there.</p>
-
   <div class="card">
+    <div class="card-title">Controls</div>
     <label for="token">Lab token</label>
     <input id="token" type="password" autocomplete="off" placeholder="INCIDENT_LAB_TOKEN">
     <label for="scenario">Scenario</label>
@@ -37,16 +78,17 @@
     <label for="phase">Manual phase</label>
     <select id="phase"><option value="mitigated">mitigated</option></select>
     <div class="controls">
-      <button id="arm">Arm</button>
-      <button id="declare" class="primary" disabled>Declare</button>
+      <button id="run" class="primary">Run</button>
       <button id="trigger-phase" disabled>Trigger phase</button>
       <button id="stop">Stop</button>
       <button id="refresh">Refresh</button>
     </div>
+    <div id="countdown" class="countdown"></div>
     <div id="warning" class="warning"></div>
   </div>
 
   <div class="card">
+    <div class="card-title">Run status</div>
     <div id="summary" class="status">Loading…</div>
     <pre id="log"></pre>
   </div>
@@ -81,10 +123,26 @@
   }
 
   function applyButtons(status) {
-    $('arm').disabled = status === 'armed' || status === 'declared';
-    $('declare').disabled = status !== 'armed';
+    $('run').disabled = status === 'armed' || status === 'declared';
     $('trigger-phase').disabled = status !== 'declared';
     $('stop').disabled = !(status === 'armed' || status === 'declared');
+  }
+
+  // The status poll is 15s apart, so the countdown ticks locally between
+  // polls from the remaining time the server last reported.
+  let declaresInMs = null;
+  let declaresInSince = 0;
+
+  function renderCountdown() {
+    const remaining = declaresInMs == null ? null : Math.max(declaresInMs - (Date.now() - declaresInSince), 0);
+    if (remaining == null) {
+      $('countdown').textContent = '';
+      return;
+    }
+    const total = Math.round(remaining / 1000);
+    $('countdown').textContent = remaining === 0
+      ? 'Declaring the incident…'
+      : `Declares in ${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
   }
 
   // Source of the visible warning: a status-poll error ('refresh') is
@@ -117,6 +175,9 @@
       summaryPart(summary, 'Incident', status.incident ? `#${status.incident.publicId}` : null);
       summaryPart(summary, 'Phases', status.phases && status.phases.length ? status.phases.join(', ') : null);
       summaryPart(summary, 'Elapsed', status.elapsedMs != null ? `${Math.round(status.elapsedMs / 60000)}m` : null);
+      declaresInMs = status.declaresInMs;
+      declaresInSince = Date.now();
+      renderCountdown();
       $('log').textContent = (status.log || []).map((l) => `${l.at}  ${l.message}`).join('\n');
       applyButtons(status.status);
       if (clearWarning || warningSource === 'refresh') {
@@ -148,14 +209,14 @@
     await refresh({ clearWarning: !failed });
   }
 
-  $('arm').onclick = () => act('arm', '/api/incident-lab/arm', { scenario: $('scenario').value });
-  $('declare').onclick = () => act('declare', '/api/incident-lab/declare');
+  $('run').onclick = () => act('run', '/api/incident-lab/run', { scenario: $('scenario').value });
   $('trigger-phase').onclick = () => act('trigger-phase', '/api/incident-lab/phase', { phase: $('phase').value });
   $('stop').onclick = () => act('stop', '/api/incident-lab/stop');
   $('refresh').onclick = () => refresh({ clearWarning: true });
 
   refresh();
   setInterval(refresh, 15000);
+  setInterval(renderCountdown, 1000);
 </script>
 </body>
 </html>

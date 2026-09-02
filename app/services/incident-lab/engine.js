@@ -9,6 +9,7 @@ const { saveRunState, loadRunState, clearRunState } = require('./persistence');
  * lifecycle callbacks:
  *
  *   arm(scenarioId)  → sinks.onArm    baseline noise starts, prelude events schedule
+ *   arm(id, { autoDeclare: true })    declares itself once the lead-in elapses
  *   declare()        → sinks.onDeclare outage phases + scripted timeline start
  *   phase changes    → sinks.onPhase  (automatic by startMs, or manual via triggerPhase)
  *   stop()/reset()   → sinks.onStop   all timers cleared
@@ -17,6 +18,11 @@ const { saveRunState, loadRunState, clearRunState } = require('./persistence');
  *
  * Only one run is active at a time — the lab is a single-presenter surface.
  */
+
+// Lead-in between arming and an automatic declaration, when the scenario
+// does not set its own: long enough for baseline telemetry and the prelude
+// burst to exist before the incident points an investigator at them.
+const DEFAULT_LEAD_IN_MS = 180000;
 
 const sinks = [];
 
@@ -67,6 +73,7 @@ function snapshot() {
     incident: run.incident,
     phases: run.phases,
     phaseTimes: run.phaseTimes,
+    autoDeclareAt: run.autoDeclareAt,
     log: run.log,
     telemetryService: run.telemetryService,
   };
@@ -95,11 +102,19 @@ function scheduleTimer(forRun, fn, delayMs) {
  * Arm a scenario: baseline telemetry starts flowing and prelude events
  * (precursor bursts) are scheduled relative to now. No incident exists yet.
  */
-function arm(scenarioId) {
-  return serialized(() => armImpl(scenarioId));
+function arm(scenarioId, options = {}) {
+  return serialized(() => armImpl(scenarioId, options));
 }
 
-async function armImpl(scenarioId) {
+/** How long a scenario wants between arming and its declaration: the
+ *  investigator needs a "before" to correlate against, so baseline
+ *  telemetry and the prelude burst land first. */
+function leadInMs(scenario, options) {
+  const configured = Number.isFinite(options.leadInMs) ? options.leadInMs : scenario.leadInMs;
+  return Number.isFinite(configured) ? Math.max(configured, 0) : DEFAULT_LEAD_IN_MS;
+}
+
+async function armImpl(scenarioId, options) {
   if (run && run.status !== 'stopped') {
     return { ok: false, error: `A run is already ${run.status} (${run.runRef}). Stop it first.` };
   }
@@ -116,6 +131,7 @@ async function armImpl(scenarioId) {
     incident: null,
     phases: [],
     phaseTimes: {},
+    autoDeclareAt: null,
     timers: [],
     log: [],
     // Per-run telemetry identity (cluster-style suffix from the run ref):
@@ -126,13 +142,29 @@ async function armImpl(scenarioId) {
     telemetryService: `${scenario.service}-${runRef.split('-').pop().toLowerCase()}`,
   };
   const thisRun = run;
-  note(`armed scenario ${scenario.id}`);
+  if (options.autoDeclare) {
+    const leadIn = leadInMs(scenario, options);
+    thisRun.autoDeclareAt = thisRun.armedAt + leadIn;
+    scheduleAutoDeclare(thisRun);
+    note(`armed scenario ${scenario.id} — declaring in ${Math.round(leadIn / 1000)}s`);
+  } else {
+    note(`armed scenario ${scenario.id}`);
+  }
   persist();
   await fanOut('onArm', thisRun);
   // Again after the fan-out: sinks record their own outcome on the run log
   // (the warehouse seed's result, for one), which the first snapshot missed.
   persist();
   return { ok: true, runRef: thisRun.runRef, status: thisRun.status };
+}
+
+/** The auto-declare fires against the run it was scheduled for: a stop, or
+ *  a stop-and-re-arm, in the lead-in must not declare the replacement. */
+function scheduleAutoDeclare(forRun) {
+  scheduleTimer(forRun, () => serialized(() => {
+    if (run !== forRun || forRun.status !== 'armed') return { ok: false, error: 'Run is no longer armed' };
+    return declareImpl();
+  }), forRun.autoDeclareAt - Date.now());
 }
 
 /**
@@ -296,6 +328,7 @@ async function resumeImpl() {
     incident: saved.incident,
     phases: saved.phases || [],
     phaseTimes: saved.phaseTimes || {},
+    autoDeclareAt: saved.autoDeclareAt || null,
     timers: [],
     log: saved.log || [],
     // Runs persisted before per-run identity existed fall back to the
@@ -304,6 +337,9 @@ async function resumeImpl() {
   };
   const thisRun = run;
   note('resumed after restart');
+  // A restart inside the lead-in still declares — late if the restart
+  // outlasted it, which beats a run that silently never declares.
+  if (thisRun.status === 'armed' && thisRun.autoDeclareAt) scheduleAutoDeclare(thisRun);
   if (thisRun.status === 'declared') {
     const phases = (thisRun.scenario.datadog && thisRun.scenario.datadog.phases) || [];
     for (const phase of phases) {
@@ -338,6 +374,7 @@ function status() {
     telemetryService: run.telemetryService,
     armedAt: run.armedAt ? new Date(run.armedAt).toISOString() : null,
     declaredAt: run.declaredAt ? new Date(run.declaredAt).toISOString() : null,
+    declaresInMs: run.status === 'armed' && run.autoDeclareAt ? Math.max(run.autoDeclareAt - Date.now(), 0) : null,
     elapsedMs: run.declaredAt ? Date.now() - run.declaredAt : null,
     incident: run.incident,
     phases: run.phases,

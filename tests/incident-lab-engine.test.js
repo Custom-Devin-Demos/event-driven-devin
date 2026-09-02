@@ -256,6 +256,45 @@ describe('incident-lab engine lifecycle', () => {
     expect(engine.currentRun().incident.publicId).toBe(42);
   });
 
+  test('auto-declare arms, then declares itself once the lead-in elapses', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-1', publicId: 7 }; },
+    });
+    const armed = await engine.arm('flowforge-scheduled-workflows', { autoDeclare: true, leadInMs: 20 });
+    expect(armed.ok).toBe(true);
+    expect(engine.status().status).toBe('armed');
+    expect(engine.status().declaresInMs).toBeGreaterThan(0);
+
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(engine.status().status).toBe('declared');
+    expect(engine.status().declaresInMs).toBeNull();
+  });
+
+  test('a stop inside the lead-in cancels the pending declaration', async () => {
+    let declares = 0;
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { declares += 1; run.incident = { id: 'inc-1', publicId: 7 }; },
+    });
+    await engine.arm('flowforge-scheduled-workflows', { autoDeclare: true, leadInMs: 30 });
+    await engine.stop('changed my mind');
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    expect(declares).toBe(0);
+    expect(engine.status().status).toBe('stopped');
+  });
+
+  test('a manual arm never declares itself', async () => {
+    engine.registerSink({
+      name: 'declaring',
+      onDeclare: (run) => { run.incident = { id: 'inc-1', publicId: 7 }; },
+    });
+    await engine.arm('flowforge-scheduled-workflows');
+    expect(engine.status().declaresInMs).toBeNull();
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    expect(engine.status().status).toBe('armed');
+  });
+
   test('a sink failure after the incident exists stays isolated', async () => {
     engine.registerSink({
       name: 'datadog',

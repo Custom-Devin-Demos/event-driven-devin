@@ -86,6 +86,14 @@ router.post('/api/incident-lab/arm', requireLabToken, throttleMutations, async (
   res.status(result.ok ? 200 : 400).json(result);
 });
 
+// One-click run: arm, then declare once the scenario's lead-in has elapsed
+// (the declaration is scheduled server-side, so it survives the presenter
+// closing the control page).
+router.post('/api/incident-lab/run', requireLabToken, throttleMutations, async (req, res) => {
+  const result = await engine.arm((req.body || {}).scenario, { autoDeclare: true });
+  res.status(result.ok ? 200 : 400).json(result);
+});
+
 router.post('/api/incident-lab/declare', requireLabToken, throttleMutations, async (_req, res) => {
   const result = await engine.declare();
   res.status(result.ok ? 200 : 400).json(result);
