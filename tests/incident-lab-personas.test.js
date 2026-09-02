@@ -346,6 +346,65 @@ describe('incident-lab slack persona sink', () => {
     await sink.onStop(run);
   });
 
+  test('a restart mid-hold still delivers the recovery beat instead of only its phase', async () => {
+    const posted = [];
+    const phases = [];
+    const deps = {
+      findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+      join: jest.fn().mockResolvedValue(true),
+      post: jest.fn((token, channel, text) => {
+        posted.push(text);
+        return Promise.resolve();
+      }),
+      history: jest.fn().mockResolvedValue([]),
+      activatePhase: jest.fn((id) => {
+        phases.push(id);
+        return Promise.resolve({ ok: true });
+      }),
+    };
+    const sink = createSlackPersonaSink({ deps });
+    const script = [{ persona: 'eng_a', text: 'recovery beat', atMs: 60000, action: 'mitigate' }];
+    // Declared an hour ago, phase never activated: the beat was still held.
+    const run = makeRun({
+      scenario: { ...scenario, script, llm: { ...scenario.llm, director: false } },
+      declaredAt: Date.now() - 3600000,
+      phases: [],
+    });
+
+    await sink.onResume(run);
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(posted).toContain('recovery beat');
+    expect(phases).toEqual(['mitigated']);
+    await sink.onStop(run);
+  });
+
+  test('a restart after the recovery beat landed does not repost it', async () => {
+    const posted = [];
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text) => {
+          posted.push(text);
+          return Promise.resolve();
+        }),
+        history: jest.fn().mockResolvedValue([]),
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+    const script = [{ persona: 'eng_a', text: 'recovery beat', atMs: 60000, action: 'mitigate' }];
+    const run = makeRun({
+      scenario: { ...scenario, script, llm: { ...scenario.llm, director: false } },
+      declaredAt: Date.now() - 3600000,
+      phases: ['mitigated'],
+    });
+
+    await sink.onResume(run);
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(posted).not.toContain('recovery beat');
+    await sink.onStop(run);
+  });
+
   test('a rejected draft releases its reserved reply capacity', async () => {
     process.env.OPENAI_API_KEY = 'sk-test';
     const draft = jest.fn()

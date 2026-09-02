@@ -249,13 +249,14 @@ function createSlackPersonaSink({ deps = {} } = {}) {
     runState.pending = [];
     for (const line of [...run.scenario.script].sort((a, b) => a.atMs - b.atMs)) {
       if (line.atMs < skipBeforeMs) {
-        // The message itself is not reposted, but a line-attached phase
-        // action must still land — activatePhase dedups already-active
-        // phases, so this is safe if the action ran before the restart.
-        if (line.action) {
-          Promise.resolve(api.activatePhase(line.action === 'mitigate' ? 'mitigated' : line.action))
-            .catch((error) => logger.warn('Incident Lab script action failed', { action: line.action, error: error.message }));
-        }
+        // Wall-clock position alone does not prove a line carrying a phase
+        // action was delivered — the director may hold it long past its
+        // authored time — so it counts as delivered only once its phase is
+        // active. Otherwise it stays queued and lands as an overdue beat,
+        // message and action together, rather than recovering the telemetry
+        // while its culprit line is dropped.
+        const phaseId = line.action && (line.action === 'mitigate' ? 'mitigated' : line.action);
+        if (phaseId && !(run.phases || []).includes(phaseId)) runState.pending.push(line);
         continue;
       }
       runState.pending.push(line);
