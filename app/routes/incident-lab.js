@@ -4,6 +4,7 @@ const logger = require('../telemetry/logger');
 const engine = require('../services/incident-lab/engine');
 const { createDatadogSink } = require('../services/incident-lab/datadog-emitter');
 const { createSlackPersonaSink } = require('../services/incident-lab/personas');
+const { createSupabaseSeedSink } = require('../services/incident-lab/supabase-seed');
 
 /**
  * Incident Lab presenter surface (unlisted): arm and declare an evolving
@@ -16,6 +17,10 @@ const { createSlackPersonaSink } = require('../services/incident-lab/personas');
  * creates real Datadog incidents and Slack traffic.
  */
 
+// Seeding first: the warehouse rows a scenario points an investigator at
+// are timestamped relative to the arm, so they are refreshed before any
+// telemetry starts flowing.
+engine.registerSink(createSupabaseSeedSink());
 engine.registerSink(createDatadogSink());
 engine.registerSink(createSlackPersonaSink());
 
