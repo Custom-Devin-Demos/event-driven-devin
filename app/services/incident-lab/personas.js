@@ -8,7 +8,7 @@ const {
   getChannelHistory,
 } = require('../slack');
 const { triggerPhase } = require('./engine');
-const { phaseForAction } = require('./scenario');
+const { phaseForAction, MITIGATION_ACT_MS, MITIGATION_OBSERVE_MS } = require('./scenario');
 
 /**
  * Incident Lab Slack sink: the human side of the incident.
@@ -65,10 +65,6 @@ const DIRECTOR_TRANSCRIPT_LINES = 8;
 // back-to-back, several personas posting in the same second.
 const DRAIN_GAP_MIN_MS = 20000;
 const DRAIN_GAP_MAX_MS = 45000;
-// A responder who says "trying that" and has it done in the same breath reads
-// fake, and the observation has to wait for the telemetry to actually move.
-const MITIGATION_ACT_MS = 120000;
-const MITIGATION_OBSERVE_MS = 240000;
 
 function slackToken() {
   return process.env.INCIDENT_LAB_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;

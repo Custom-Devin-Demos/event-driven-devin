@@ -11,6 +11,11 @@ const path = require('path');
 
 const SCENARIO_DIR = path.join(__dirname, '..', '..', '..', 'config', 'incident-lab');
 
+// A responder who says "trying that" and has it done in the same breath reads
+// fake, and the observation has to wait for the telemetry to actually move.
+const MITIGATION_ACT_MS = 120000;
+const MITIGATION_OBSERVE_MS = 240000;
+
 /** The datadog phase a script beat's or mitigation option's action activates. */
 function phaseForAction(action) {
   return action === 'mitigate' ? 'mitigated' : action;
@@ -81,12 +86,11 @@ function validateScenario(scenario, file) {
         fail(`mitigation option "${option.id}" references unknown persona "${option.observePersona}"`);
       }
       let exchangeMs = 0;
-      for (const key of ['actAfterMs', 'observeAfterMs']) {
-        if (option[key] === undefined) continue;
-        if (!Number.isFinite(option[key]) || option[key] < 0) {
+      for (const [key, fallback] of [['actAfterMs', MITIGATION_ACT_MS], ['observeAfterMs', MITIGATION_OBSERVE_MS]]) {
+        if (option[key] !== undefined && (!Number.isFinite(option[key]) || option[key] < 0)) {
           fail(`mitigation option "${option.id}" has an out-of-range "${key}"`);
         }
-        exchangeMs += option[key];
+        exchangeMs += option[key] === undefined ? fallback : option[key];
       }
       // The exchange runs from the ask, so its whole span has to fit the window.
       if (exchangeMs > scenario.durationMs) {
@@ -156,5 +160,12 @@ function clearScenarioCache() {
 }
 
 module.exports = {
-  loadScenarios, getScenario, listScenarios, validateScenario, clearScenarioCache, phaseForAction,
+  loadScenarios,
+  getScenario,
+  listScenarios,
+  validateScenario,
+  clearScenarioCache,
+  phaseForAction,
+  MITIGATION_ACT_MS,
+  MITIGATION_OBSERVE_MS,
 };
