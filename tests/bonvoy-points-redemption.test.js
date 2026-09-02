@@ -10,9 +10,8 @@ jest.mock('../app/telemetry/sentry', () => ({
 process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
 process.env.BONVOY_ALERTS_ENABLED = 'true';
 process.env.BONVOY_ALERT_MAX_PER_HOUR = '100';
-process.env.BONVOY_DEMO_TOKEN = 'test-presenter-token';
 
-const DEMO_TOKEN = 'test-presenter-token';
+const DEMO_TOKEN = 'bonvoy-presenter-demo';
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');

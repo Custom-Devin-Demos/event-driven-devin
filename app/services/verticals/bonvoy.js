@@ -118,9 +118,10 @@ const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'true').toLow
  * it is built with `-PbonvoyDemoToken`, which the debug build a triggered
  * session produces does not set — so a session that reaches the deployed
  * endpoint while verifying its fix gets the intentional 500 and nothing else,
- * instead of paging and spawning another session.
+ * instead of paging and spawning another session. The value is not a secret:
+ * the guard works because triggered builds send no token at all.
  */
-const DEMO_TOKEN = process.env.BONVOY_DEMO_TOKEN || 'bonvoy-presenter-demo';
+const DEMO_TOKEN = 'bonvoy-presenter-demo';
 
 let lastAlertAt = 0;
 let recentAlerts = [];
