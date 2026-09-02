@@ -5,6 +5,7 @@ const engine = require('../services/incident-lab/engine');
 const { createDatadogSink } = require('../services/incident-lab/datadog-emitter');
 const { createSlackPersonaSink } = require('../services/incident-lab/personas');
 const { createSupabaseSeedSink } = require('../services/incident-lab/supabase-seed');
+const { createRepoSweepSink } = require('../services/incident-lab/repo-sweep');
 
 /**
  * Incident Lab presenter surface (unlisted): arm and declare an evolving
@@ -23,6 +24,9 @@ const { createSupabaseSeedSink } = require('../services/incident-lab/supabase-se
 engine.registerSink(createSupabaseSeedSink());
 engine.registerSink(createDatadogSink());
 engine.registerSink(createSlackPersonaSink());
+// Sweep last, at stop: the investigator's fix branches/PRs on the subject
+// repo are residue that would hand the next run a ready-made answer.
+engine.registerSink(createRepoSweepSink());
 
 // A run suspended by a restart/deploy resumes where it left off — armed
 // baseline noise restarts and a declared run's remaining timeline picks
