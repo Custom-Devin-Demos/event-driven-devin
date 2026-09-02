@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay someone | NAB Internet Banking - NAB</title>
+  <link rel="icon" href="https://www.nab.com.au/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --nab-red: #C20000; --nab-red-dark: #A50000; --nab-red-light: #ED0000;
+      --black: #000000; --ink: #1A1A1A; --grey-900: #333333; --grey-700: #545454;
+      --grey-500: #767676; --grey-300: #D6D6D6; --grey-200: #E6E6E6; --grey-100: #F5F5F5;
+      --white: #FFFFFF;
+      --link: #C20000;
+      --success: #007A3D; --success-bg: #EEF7F1; --success-border: #A8D8B9;
+      --danger: #C20000; --danger-bg: #FDF0F0; --danger-border: #F0B8B8;
+      --sans: 'Source Sans 3', 'source-sans-pro', Helvetica, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--sans); background: var(--grey-100); color: var(--black); font-size: 16px; line-height: 1.5; }
+    a { color: var(--link); }
+    .wrap { max-width: 1170px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header — black bar with red NAB logo */
+    .navbar { background: var(--black); height: 64px; }
+    .navbar .wrap { height: 100%; display: flex; align-items: center; gap: 4px; }
+    .navbar__logo { display: flex; align-items: center; height: 100%; padding-right: 28px; }
+    .navbar__logo img { height: 36px; width: auto; display: block; }
+    .logo-fallback { display: none; color: var(--white); font-weight: 700; font-size: 24px; letter-spacing: 0.02em; }
+    .navbar__items { display: flex; list-style: none; height: 100%; }
+    .navbar__items a { display: flex; align-items: center; height: 100%; padding: 0 16px; color: var(--white); text-decoration: none; font-size: 16px; border-bottom: 3px solid transparent; }
+    .navbar__items a.is-active { border-bottom-color: var(--nab-red); }
+    .navbar__items a:hover { border-bottom-color: rgba(255,255,255,0.5); }
+    .navbar__spacer { flex: 1; }
+    .navbar__search { display: flex; align-items: center; justify-content: center; width: 48px; height: 100%; color: var(--white); }
+    .navbar__search svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .navbar__ib { display: flex; align-items: center; gap: 12px; height: 100%; padding: 0 20px; background: #1E1E1E; color: var(--white); font-size: 15px; }
+    .navbar__ib .user { color: rgba(255,255,255,0.75); font-size: 13px; }
+    .navbar__logout { display: flex; align-items: center; height: 100%; padding: 0 24px; background: var(--nab-red); color: var(--white); text-decoration: none; font-weight: 600; font-size: 16px; }
+    .navbar__logout:hover { background: var(--nab-red-dark); }
+
+    /* Breadcrumb */
+    .crumbs { background: var(--white); border-bottom: 1px solid var(--grey-200); font-size: 12px; padding: 10px 0; }
+    .crumbs a { color: var(--black); text-decoration: underline; }
+    .crumbs span { color: var(--grey-500); margin: 0 6px; }
+    .crumbs strong { font-weight: 700; }
+
+    /* Hero — photo with overlapping white card, like nab.com.au */
+    .hero { position: relative; min-height: 330px; background: #3f3f3f; overflow: hidden; }
+    .hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; }
+    .hero .wrap { position: relative; padding-top: 48px; padding-bottom: 48px; }
+    .hero__card { background: var(--white); max-width: 440px; padding: 32px; box-shadow: var(--shadow); }
+    .hero__eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--grey-900); margin-bottom: 8px; }
+    .hero__card h1 { font-size: 40px; line-height: 1.15; font-weight: 300; color: var(--black); margin-bottom: 14px; }
+    .hero__card p { font-size: 15px; color: var(--grey-900); margin-bottom: 14px; }
+    .hero__meta { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--grey-700); margin-bottom: 20px; }
+    .hero__meta svg { width: 16px; height: 16px; stroke: var(--grey-700); fill: none; stroke-width: 2; }
+    .hero__ctas { display: flex; align-items: center; gap: 22px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--sans); font-size: 16px; font-weight: 600; padding: 12px 26px; border: 2px solid var(--nab-red); background: var(--nab-red); color: var(--white); text-decoration: none; cursor: pointer; border-radius: 0; transition: background 0.15s, border-color 0.15s; }
+    .btn:hover { background: var(--nab-red-dark); border-color: var(--nab-red-dark); }
+    .btn:disabled { opacity: 0.65; cursor: default; }
+    .btn--ghost { background: var(--white); color: var(--nab-red); }
+    .btn--ghost:hover { background: #FBEAEA; }
+    .hero__link { color: var(--nab-red); font-weight: 600; text-decoration: underline; font-size: 15px; }
+
+    /* Main */
+    .section { padding: 44px 0 56px; }
+    .grid { display: flex; gap: 32px; align-items: flex-start; }
+    .col-main { flex: 1 1 auto; min-width: 0; }
+    .col-side { flex: 0 0 360px; display: flex; flex-direction: column; gap: 24px; }
+    .card { background: var(--white); border: 1px solid var(--grey-200); }
+    .card__body { padding: 32px; }
+    .card h2 { font-size: 28px; font-weight: 300; margin-bottom: 8px; }
+    .card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .lede { color: var(--grey-700); font-size: 15px; margin-bottom: 24px; }
+
+    .account-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; background: var(--grey-100); border-left: 4px solid var(--nab-red); padding: 16px 20px; margin-bottom: 28px; }
+    .account-strip span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--grey-500); }
+    .account-strip strong { display: block; font-size: 15px; font-weight: 700; color: var(--black); margin-top: 2px; }
+
+    .form-row { display: flex; gap: 20px; margin-bottom: 20px; }
+    .field { flex: 1; }
+    .field label { display: block; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .field .hint { display: block; font-size: 13px; color: var(--grey-500); margin-bottom: 6px; }
+    .field input, .field select, .field textarea { width: 100%; font-family: var(--sans); font-size: 16px; padding: 11px 12px; border: 1px solid var(--grey-900); border-radius: 0; background: var(--white); color: var(--black); }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--nab-red); outline-offset: 1px; }
+    .field textarea { resize: vertical; min-height: 72px; }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: '$'; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--grey-700); font-size: 16px; }
+    .amount-wrap input { padding-left: 26px; }
+    .method-tabs { display: flex; border-bottom: 2px solid var(--grey-200); margin-bottom: 24px; }
+    .method-tabs button { font-family: var(--sans); font-size: 16px; font-weight: 600; background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 10px 18px; color: var(--grey-700); cursor: pointer; }
+    .method-tabs button.is-active { color: var(--black); border-bottom-color: var(--nab-red); }
+    .actions { display: flex; align-items: center; gap: 24px; margin-top: 8px; }
+    .actions .cancel { color: var(--nab-red); font-weight: 600; text-decoration: underline; cursor: pointer; }
+    .fineprint { font-size: 13px; color: var(--grey-500); margin-top: 20px; }
+
+    .result { display: none; margin-top: 28px; padding: 20px 24px; border: 1px solid; border-left-width: 6px; }
+    .result.show { display: block; }
+    .result h4 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .result--error { background: var(--danger-bg); border-color: var(--danger-border); border-left-color: var(--danger); }
+    .result--error h4 { color: var(--danger); }
+    .result--error pre { font-family: var(--mono); font-size: 13px; color: var(--grey-900); white-space: pre-wrap; word-break: break-word; margin-top: 10px; }
+    .result--ok { background: var(--success-bg); border-color: var(--success-border); border-left-color: var(--success); }
+    .result--ok h4 { color: var(--success); }
+    .result dl { display: grid; grid-template-columns: 200px 1fr; gap: 6px 16px; margin-top: 12px; font-size: 15px; }
+    .result dt { color: var(--grey-700); }
+    .result dd { font-weight: 700; }
+
+    .side-list { list-style: none; }
+    .side-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--grey-200); font-size: 15px; }
+    .side-list li:last-child { border-bottom: none; }
+    .side-list .num { font-family: var(--mono); font-size: 12px; color: var(--grey-500); display: block; }
+    .side-list strong { font-weight: 700; }
+    .side-links a { display: block; padding: 10px 0; border-bottom: 1px solid var(--grey-200); color: var(--nab-red); text-decoration: underline; font-size: 15px; }
+    .side-links a:last-child { border-bottom: none; }
+    .tick { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--success); color: var(--success); align-items: center; justify-content: center; font-size: 11px; margin-right: 8px; }
+
+    /* Footer */
+    .footer { background: var(--white); border-top: 1px solid var(--grey-200); padding: 40px 0 28px; font-size: 14px; }
+    .footer__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 32px; }
+    .footer h5 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .footer a { display: block; color: var(--black); text-decoration: underline; padding: 4px 0; }
+    .footer__ack { color: var(--grey-700); font-size: 13px; border-top: 1px solid var(--grey-200); padding-top: 20px; }
+    .footer__ack p + p { margin-top: 10px; }
+
+    @media (max-width: 960px) {
+      .grid, .form-row { flex-direction: column; }
+      .col-side { flex: 1 1 auto; width: 100%; }
+      .navbar__items, .navbar__ib, .navbar__search { display: none; }
+      .account-strip { grid-template-columns: repeat(2, 1fr); }
+      .footer__cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="wrap">
+      <a class="navbar__logo" href="#" aria-label="NAB home">
+        <img src="https://www.nab.com.au/etc.clientlibs/nab/clientlibs/clientlib-generated-components/resources/images/svg/nab-logo.svg"
+             alt="NAB"
+             onerror="this.onerror=null;this.style.display='none';document.getElementById('logo-fallback').style.display='inline';">
+        <span class="logo-fallback" id="logo-fallback">NAB</span>
+      </a>
+      <ul class="navbar__items">
+        <li><a href="#" class="is-active">Personal</a></li>
+        <li><a href="#">Business</a></li>
+        <li><a href="#">Corporate</a></li>
+        <li><a href="#">About us</a></li>
+        <li><a href="#">Help and support</a></li>
+      </ul>
+      <span class="navbar__spacer"></span>
+      <a class="navbar__search" href="#" aria-label="Search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5L21 21"></path></svg>
+      </a>
+      <div class="navbar__ib">Internet Banking <span class="user">Isabella N.</span></div>
+      <a class="navbar__logout" href="#">Log out</a>
+    </div>
+  </nav>
+
+  <div class="crumbs">
+    <div class="wrap">
+      <a href="#">Personal</a><span>&rsaquo;</span><a href="#">Internet Banking</a><span>&rsaquo;</span><strong>Pay someone</strong>
+    </div>
+  </div>
+
+  <section class="hero">
+    <img class="hero__bg"
+         src="https://www.nab.com.au/personal/online-banking/nab-internet-banking/_jcr_content/root/banner/image.coreimg.90.1920.jpeg/1730348766197/mother-and-son-on-computers-digban-2500x900.jpeg"
+         alt="Mother and son using laptops at a kitchen table"
+         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1920&amp;q=80';">
+    <div class="wrap">
+      <div class="hero__card">
+        <div class="hero__eyebrow">Personal banking</div>
+        <h1>Pay someone</h1>
+        <p>Pay anyone in Australia using their BSB and account number, PayID or BPAY. Payments to Osko-enabled banks usually arrive in under a minute.</p>
+        <div class="hero__meta">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          Most payments arrive in less than a minute.
+        </div>
+        <div class="hero__ctas">
+          <a class="btn" href="#pay-someone">Make a payment</a>
+          <a class="hero__link" href="#">Manage payees &#8964;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="grid">
+        <div class="col-main">
+          <section class="card" id="pay-someone">
+            <div class="card__body">
+              <h2>Make a payment</h2>
+              <p class="lede">Choose the account to pay from, enter your payee&rsquo;s details and the amount. We&rsquo;ll check your daily payment limit and send the payment by the fastest available rail.</p>
+
+              <div class="account-strip">
+                <div><span>Account holder</span><strong id="holder-name">Isabella Nguyen</strong></div>
+                <div><span>Product</span><strong id="product-label">NAB Everyday Global (2026)</strong></div>
+                <div><span>Available balance</span><strong id="balance">$6,482.15</strong></div>
+                <div><span>Payments help</span><strong>13 22 65</strong></div>
+              </div>
+
+              <div class="method-tabs" role="tablist">
+                <button type="button" data-method="pay_anyone" class="is-active">Pay Anyone</button>
+                <button type="button" data-method="payid">PayID</button>
+                <button type="button" data-method="bpay">BPAY</button>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="fromAccount">Pay from *</label>
+                  <select id="fromAccount">
+                    <option value="082-001 40817266">NAB Everyday Global (2026) &middot; 082-001 40817266</option>
+                    <option value="082-001 14872931">NAB Classic Banking &middot; 082-001 14872931</option>
+                    <option value="082-001 22059347">NAB iSaver &middot; 082-001 22059347</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="amount">Amount *</label>
+                  <div class="amount-wrap"><input id="amount" type="number" step="0.01" min="0" value="1250.00"></div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="payeeName">Payee name *</label>
+                  <input id="payeeName" type="text" value="Harper Electrical Services">
+                </div>
+              </div>
+
+              <div class="form-row" id="bank-fields">
+                <div class="field">
+                  <label for="payeeBsb">BSB *</label>
+                  <span class="hint">6 digits, e.g. 083-004</span>
+                  <input id="payeeBsb" type="text" value="083-004">
+                </div>
+                <div class="field">
+                  <label for="payeeAccount">Account number *</label>
+                  <span class="hint">Up to 9 digits</span>
+                  <input id="payeeAccount" type="text" value="55910238">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="description">Description</label>
+                  <span class="hint">Shown on both statements (max 18 characters)</span>
+                  <input id="description" type="text" maxlength="18" value="Invoice 2261">
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="btn" id="pay-now" type="button">Pay now</button>
+                <span class="cancel">Cancel</span>
+              </div>
+              <p class="fineprint">By selecting Pay now you confirm the payee details are correct. NAB does not check that the account name matches the BSB and account number.</p>
+
+              <div class="result result--error" id="payment-error" role="alert">
+                <h4>We couldn&rsquo;t process this payment</h4>
+                <p>Something went wrong while we were checking your payment limit. Your account hasn&rsquo;t been debited. Please try again or call us on 13 22 65.</p>
+                <pre id="payment-error-tech"></pre>
+              </div>
+
+              <div class="result result--ok" id="payment-ok" role="status">
+                <h4>Payment sent</h4>
+                <p id="payment-ok-lede"></p>
+                <dl id="payment-ok-details"></dl>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="col-side">
+          <section class="card">
+            <div class="card__body">
+              <h3>Your accounts</h3>
+              <ul class="side-list">
+                <li><div>NAB Everyday Global (2026)<span class="num">082-001 40817266</span></div><strong>$6,482.15</strong></li>
+                <li><div>NAB Classic Banking<span class="num">082-001 14872931</span></div><strong>$3,210.40</strong></li>
+                <li><div>NAB iSaver<span class="num">082-001 22059347</span></div><strong>$18,750.00</strong></li>
+              </ul>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card__body">
+              <h3>Paying safely</h3>
+              <p style="font-size:15px;color:var(--grey-700);margin-bottom:12px;"><span class="tick">&#10003;</span>Check the payee&rsquo;s details with them directly.</p>
+              <p style="font-size:15px;color:var(--grey-700);margin-bottom:12px;"><span class="tick">&#10003;</span>New payees are held for 24 hours on some accounts.</p>
+              <p style="font-size:15px;color:var(--grey-700);"><span class="tick">&#10003;</span>Your daily payment limit applies across all channels.</p>
+            </div>
+          </section>
+          <section class="card">
+            <div class="card__body side-links">
+              <h3>Related</h3>
+              <a href="#">Manage payees</a>
+              <a href="#">Scheduled payments</a>
+              <a href="#">Change your daily payment limit</a>
+              <a href="#">Report a scam or fraud</a>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__cols">
+        <div>
+          <h5>Quick links</h5>
+          <a href="#">Security and fraud</a>
+          <a href="#">Contact us</a>
+          <a href="#">Feedback</a>
+          <a href="#">Find us</a>
+        </div>
+        <div>
+          <h5>Policies and terms</h5>
+          <a href="#">Privacy</a>
+          <a href="#">Website disclaimer</a>
+          <a href="#">Financial Services Guide</a>
+          <a href="#">Important information</a>
+        </div>
+        <div>
+          <h5>Connect with us</h5>
+          <a href="#">LinkedIn</a>
+          <a href="#">Facebook</a>
+          <a href="#">Instagram</a>
+          <a href="#">YouTube</a>
+        </div>
+      </div>
+      <div class="footer__ack">
+        <p>NAB acknowledges the Traditional Owners of the land as Australia&rsquo;s First Peoples and recognises their continuing connection to lands, water and country. We pay our respects to Elders past and present.</p>
+        <p>&copy; National Australia Bank Limited. ABN 12 004 044 937 AFSL and Australian Credit Licence 230686.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side NAB identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    var ACCOUNTS = {
+      '082-001 40817266': { holderName: 'Isabella Nguyen', productLabel: 'NAB Everyday Global (2026)', balance: 6482.15 },
+      '082-001 14872931': { holderName: 'Isabella Nguyen', productLabel: 'NAB Classic Banking', balance: 3210.40 },
+      '082-001 22059347': { holderName: 'Isabella Nguyen', productLabel: 'NAB iSaver', balance: 18750.00 },
+    };
+
+    var fromSelect = document.getElementById('fromAccount');
+    var errorBox = document.getElementById('payment-error');
+    var errorTech = document.getElementById('payment-error-tech');
+    var okBox = document.getElementById('payment-ok');
+    var okLede = document.getElementById('payment-ok-lede');
+    var okDetails = document.getElementById('payment-ok-details');
+    var paymentMethod = 'pay_anyone';
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function syncAccount() {
+      var account = ACCOUNTS[fromSelect.value];
+      document.getElementById('holder-name').textContent = account.holderName;
+      document.getElementById('product-label').textContent = account.productLabel;
+      document.getElementById('balance').textContent = money(account.balance);
+    }
+
+    document.querySelectorAll('.method-tabs button').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        document.querySelectorAll('.method-tabs button').forEach(function (t) { t.classList.remove('is-active'); });
+        tab.classList.add('is-active');
+        paymentMethod = tab.getAttribute('data-method');
+      });
+    });
+
+    function showError(payload) {
+      okBox.classList.remove('show');
+      errorTech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'PAYMENT_SETTLEMENT_FAILED')
+        + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+      errorBox.classList.add('show');
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(receipt) {
+      errorBox.classList.remove('show');
+      okLede.textContent = 'Receipt ' + receipt.receiptNumber + ' \u2014 ' + money(receipt.amount) + ' sent to ' + receipt.payeeName
+        + ' via ' + receipt.settlementRail + '.';
+      okDetails.innerHTML = '';
+      [
+        ['From', receipt.productLabel + ' \u00b7 ' + receipt.fromAccount],
+        ['Transfer fee', money(receipt.transferFee)],
+        ['Total debited', money(receipt.totalDebited)],
+        ['Estimated arrival', new Date(receipt.estimatedArrival).toLocaleString('en-AU', { dateStyle: 'long', timeStyle: 'short' })],
+        ['Remaining daily limit', money(receipt.remainingDailyLimit)],
+      ].forEach(function (row) {
+        var dt = document.createElement('dt');
+        dt.textContent = row[0];
+        var dd = document.createElement('dd');
+        dd.textContent = row[1];
+        okDetails.appendChild(dt);
+        okDetails.appendChild(dd);
+      });
+      okBox.classList.add('show');
+      okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function submitPayment(button) {
+      if (button._running) return;
+      button._running = true;
+      button.disabled = true;
+      var original = button.textContent;
+      button.textContent = 'Sending payment\u2026';
+      errorBox.classList.remove('show');
+      okBox.classList.remove('show');
+
+      await identityReady;
+
+      fetch('/api/nab/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fromAccount: fromSelect.value,
+          paymentMethod: paymentMethod,
+          payeeName: document.getElementById('payeeName').value.trim(),
+          payeeBsb: document.getElementById('payeeBsb').value.trim(),
+          payeeAccount: document.getElementById('payeeAccount').value.trim(),
+          amount: Number(document.getElementById('amount').value),
+          description: document.getElementById('description').value.trim(),
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    }
+
+    fromSelect.addEventListener('change', syncAccount);
+    document.getElementById('pay-now').addEventListener('click', function () { submitPayment(this); });
+    syncAccount();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -278,6 +278,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | U.S. Bank Business Bill Pay (4f9ede2a) | `/4f9ede2a`, `/usbank` | "Pay" on the SwiftHost Web Services row ($2,876.00 routes onto the same-day ACH rail, which has no remittance format registered; error shows in an inline red panel below the table; rows under $2,500 e.g. ABC Print → green confirmation panel; vendors with no unpaid bills → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'railName')` |
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 | QBE North America Claims (qbe) | `/qbe` | "Submit Claim" (QBE-PA-4417293 collision claim) | `Cannot read properties of undefined (reading 'collisionDeductible')` |
+| NAB Internet Banking (nab) | `/nab` | "Pay now" (082-001 40817266 Pay Anyone payment) | `Cannot read properties of undefined (reading 'dailyLimit')` |
 
 ### API Testing (curl)
 
