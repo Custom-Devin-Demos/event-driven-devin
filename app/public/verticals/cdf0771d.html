@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Serving Console &middot; RadixArk</title>
-  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="icon" type="image/png" href="https://www.radixark.com/images/radixark-favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -28,36 +28,49 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { background: var(--bg); color: var(--text); min-height: 100vh; font-family: var(--sans); overflow-x: hidden; }
+    /* Ember horizon: warm glow above a thin light line, as on the marketing site. */
+    body::before { content: ''; position: fixed; inset: 0 0 auto; height: 460px; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(110% 90% at 50% -10%, #d5581626 0%, #d558160a 40%, transparent 70%),
+        linear-gradient(180deg, #f5a73712 0%, transparent 55%); }
+    .nav, main, footer { position: relative; z-index: 1; }
     body { font-weight: 300; line-height: 1.6; -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
 
-    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; padding: 0 clamp(20px, 5vw, 56px); border-bottom: 1px solid var(--line); }
+    .nav { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; padding: 0 clamp(20px, 5vw, 56px); }
+    /* Ember horizon line, as on the marketing site. */
+    .nav::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+      background: linear-gradient(90deg, #ffffff0f 0%, #d5581659 22%, #f5a737b3 46%, #f7bd69 50%, #f5a737b3 54%, #d5581659 78%, #ffffff0f 100%); }
     .brand { display: flex; align-items: center; gap: 10px; }
-    .brand svg { width: 26px; height: 26px; display: block; }
-    .brand-name { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-    .nav-right { display: flex; align-items: center; gap: 10px; }
-    .nav-link { color: var(--muted); font-family: var(--ui); font-size: 13px; font-weight: 400; padding: 8px 4px; }
+    .brand .lockup { height: 24px; width: auto; display: block; }
+    .fallback-brand { display: none; align-items: center; gap: 10px; }
+    .brand svg { width: 22px; height: 26px; display: block; }
+    .brand-name { font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
+    .brand-name em { font-style: normal; color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 18px; }
+    .nav-link { color: #ffffffd1; font-family: var(--ui); font-size: 15px; font-weight: 400; letter-spacing: -0.01em; padding: 8px 2px; }
     .nav-link:hover { color: var(--text); }
-    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; min-height: 36px; border: 1px solid var(--line-strong); border-radius: 999px; background: #ffffff0a; color: #ffffffb3; font-family: var(--ui); font-size: 13px; white-space: nowrap; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; min-height: 38px; border: 1px solid #ffffff59; border-radius: 999px; background: transparent; color: #ffffffe6; font-family: var(--ui); font-size: 14px; white-space: nowrap; }
     .pill:hover { background: #ffffff12; border-color: #ffffff4d; color: #ffffffe6; }
     .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent-warm); flex: none; }
+    @media (max-width: 720px) { .nav-link { display: none; } }
 
     .wrap { max-width: 1180px; margin: 0 auto; padding: clamp(28px, 5vh, 48px) clamp(20px, 5vw, 56px) 64px; }
-    .eyebrow { font-family: var(--ui); font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-    h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
-    .lede { color: var(--muted); font-size: 17px; margin-top: 12px; max-width: 620px; }
+    .eyebrow { font-family: var(--ui); font-size: 12px; font-weight: 400; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff8c; margin-bottom: 14px; }
+    h1 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.08; color: var(--accent); }
+    .lede { color: #ffffffd9; font-size: 17px; font-weight: 300; line-height: 1.6; margin-top: 14px; max-width: 620px; }
 
     .deployments { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 36px 0 32px; }
     @media (max-width: 860px) { .deployments { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .stat { border: 1px solid var(--line); background: var(--panel); border-radius: 20px; padding: 20px 22px; }
     .stat-label { font-family: var(--ui); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); }
-    .stat-val { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-top: 6px; }
+    .stat-val { font-size: 28px; font-weight: 400; letter-spacing: -0.02em; margin-top: 6px; }
     .stat-sub { font-size: 13px; color: var(--muted); }
 
     .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; align-items: start; }
     @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
     .card { border: 1px solid var(--line); background: var(--panel); border-radius: 20px; padding: 26px; }
-    .card h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .card h2 { font-size: 19px; font-weight: 400; letter-spacing: -0.015em; }
     .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 
     label { display: block; font-family: var(--ui); font-size: 13px; font-weight: 500; color: #ffffffa6; margin-bottom: 8px; }
@@ -97,18 +110,21 @@
 <body>
   <nav class="nav">
     <a class="brand" href="#">
-      <svg viewBox="0 0 32 32" aria-hidden="true" fill="none">
-        <path d="M16 3 28 10v12L16 29 4 22V10L16 3Z" stroke="#d55816" stroke-width="1.6" stroke-linejoin="round"/>
-        <path d="M16 10.5 22 14v7l-6 3.5L10 21v-7l6-3.5Z" fill="#d55816" fill-opacity="0.22" stroke="#f5a737" stroke-width="1.2" stroke-linejoin="round"/>
-        <circle cx="16" cy="17.5" r="2" fill="#f5a737"/>
-      </svg>
-      <span class="brand-name">RadixArk</span>
+      <img class="lockup" src="https://www.radixark.com/images/RadixArk-Wordmark-Full.svg" alt="RadixArk"
+           onerror="this.remove(); document.getElementById('markFallback').style.display='flex';">
+      <span class="fallback-brand" id="markFallback">
+        <svg viewBox="0 0 22 26" aria-hidden="true" fill="none">
+          <path d="M11 1C6 8 1.6 12.6 1.6 17.4 1.6 22 5.8 25 11 25s9.4-3 9.4-7.6C20.4 12.6 16 8 11 1Z" stroke="#d55816" stroke-width="1.6"/>
+          <path d="M11 9.5c-2.4 3.2-3.6 5.1-3.6 7 0 2.1 1.6 3.6 3.6 3.6s3.6-1.5 3.6-3.6c0-1.9-1.2-3.8-3.6-7Z" fill="#d55816"/>
+        </svg>
+        <span class="brand-name">Radix<em>Ark</em></span>
+      </span>
     </a>
     <div class="nav-right">
       <a class="nav-link" href="#">Deployments</a>
       <a class="nav-link" href="#">Models</a>
       <a class="nav-link" href="#">Docs</a>
-      <span class="pill"><span class="dot"></span>us-west-2 · healthy</span>
+      <span class="pill"><span class="dot"></span>us-west-2 &middot; healthy</span>
     </div>
   </nav>
 
@@ -191,7 +207,7 @@
   </main>
 
   <footer>
-    <span>&copy; 2026 RadixArk</span>
+    <span>&copy; 2026 Radix<em style="font-style:normal;color:var(--accent)">Ark</em></span>
     <span>Status &middot; Docs &middot; Support</span>
   </footer>
 
