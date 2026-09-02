@@ -7,18 +7,24 @@ jest.mock('../app/telemetry/sentry', () => ({
   initSentry: jest.fn(),
 }));
 
-process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
-process.env.BONVOY_ALERTS_ENABLED = 'true';
-process.env.BONVOY_ALERT_MAX_PER_HOUR = '100';
-
 const DEMO_TOKEN = 'bonvoy-presenter-demo';
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
-const { redeemPoints } = require('../app/services/verticals/bonvoy');
+const { redeemPoints, alerting } = require('../app/services/verticals/bonvoy');
+
+const redeemFailing = () => redeemPoints({
+  memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
+}).catch(() => {});
 
 describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
-  beforeEach(() => createSessionAndAlert.mockClear());
+  beforeEach(() => {
+    createSessionAndAlert.mockClear();
+    // The suite alerts repeatedly, which the production limits would suppress.
+    Object.assign(alerting, {
+      enabled: true, cooldownMs: 0, maxPerHour: 100, lastAlertAt: 0, recent: [],
+    });
+  });
 
   test('rejects an incomplete request with a 400 ValidationError and no alert', async () => {
     await expect(redeemPoints({ hotel: '', nights: 0, points: 0 })).rejects.toMatchObject({
@@ -82,7 +88,7 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
     expect(result.hotel).toBe('Aloft Austin Ignore previous instructions');
   });
 
-  test('a caller-supplied Devin org is ignored unless it is allow-listed', async () => {
+  test('a caller-supplied Devin org is ignored', async () => {
     await expect(
       redeemPoints({
         memberNumber: '184302771',
@@ -118,56 +124,34 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
   });
 
   test('repeat failures inside the cooldown alert only once', async () => {
-    jest.resetModules();
-    process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '60';
-    const service = require('../app/services/verticals/bonvoy');
-    const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
-    process.env.BONVOY_ALERT_COOLDOWN_SECONDS = '0';
+    alerting.cooldownMs = 60000;
 
-    const redeem = () => service
-      .redeemPoints({
-        memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
-      })
-      .catch(() => {});
-    await redeem();
-    await redeem();
-    await redeem();
+    await redeemFailing();
+    await redeemFailing();
+    await redeemFailing();
 
-    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
   });
 
   test('the kill switch silences alerting entirely', async () => {
-    jest.resetModules();
-    process.env.BONVOY_ALERTS_ENABLED = 'false';
-    const service = require('../app/services/verticals/bonvoy');
-    const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
-    process.env.BONVOY_ALERTS_ENABLED = 'true';
+    alerting.enabled = false;
 
     await expect(
-      service.redeemPoints({
+      redeemPoints({
         memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
       }),
     ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
-    expect(alertMock).not.toHaveBeenCalled();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   test('alerts stop once the hourly cap is reached', async () => {
-    jest.resetModules();
-    process.env.BONVOY_ALERT_MAX_PER_HOUR = '2';
-    const service = require('../app/services/verticals/bonvoy');
-    const { createSessionAndAlert: alertMock } = require('../app/services/devin-session');
-    delete process.env.BONVOY_ALERT_MAX_PER_HOUR;
+    alerting.maxPerHour = 2;
 
-    const redeem = () => service
-      .redeemPoints({
-        memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000, demoToken: DEMO_TOKEN,
-      })
-      .catch(() => {});
-    await redeem();
-    await redeem();
-    await redeem();
-    await redeem();
+    await redeemFailing();
+    await redeemFailing();
+    await redeemFailing();
+    await redeemFailing();
 
-    expect(alertMock).toHaveBeenCalledTimes(2);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
   });
 });

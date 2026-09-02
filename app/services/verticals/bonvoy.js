@@ -91,27 +91,24 @@ function sanitizeText(value, maxLength = 80) {
 
 /**
  * Owner shown on the Bonvoy alert card. The Android client is unauthenticated,
- * so the demo owner is configured here rather than taken from the request.
+ * so the demo owner is fixed here rather than taken from the request.
  */
-const BONVOY_OWNER_EMAIL = process.env.BONVOY_OWNER_EMAIL || 'neil.kelly@cognition.ai';
-
-function envInt(name, fallback) {
-  const parsed = parseInt(process.env[name], 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
-}
+const OWNER_EMAIL = 'neil.kelly@cognition.ai';
 
 /**
- * Minimum spacing between Bonvoy alerts. A session triggered by an alert can
- * reach this endpoint while verifying its fix, which would alert again; the
- * cooldown bounds that feedback loop while still letting a presenter
- * demonstrate repeat firing.
+ * Alerting limits. The deployment has no Bonvoy-specific host configuration, so
+ * these are code constants — changing one is a merge. `enabled` is the kill
+ * switch: false keeps the intentional 500 and drops the Slack card and session.
+ * `cooldownMs` and `maxPerHour` bound the feedback loop a triggered session can
+ * create by reaching this endpoint while verifying its fix.
  */
-const ALERT_COOLDOWN_MS = envInt('BONVOY_ALERT_COOLDOWN_SECONDS', 45) * 1000;
-
-/** Ceiling on alerts per rolling hour, so a loop cannot outlast the cooldown. */
-const ALERT_MAX_PER_HOUR = envInt('BONVOY_ALERT_MAX_PER_HOUR', 2);
-
-const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'true').toLowerCase() === 'true';
+const alerting = {
+  enabled: true,
+  cooldownMs: 45000,
+  maxPerHour: 2,
+  lastAlertAt: 0,
+  recent: [],
+};
 
 /**
  * Only the presenter's build alerts. The Android client sends this token when
@@ -123,45 +120,31 @@ const ALERTS_ENABLED = String(process.env.BONVOY_ALERTS_ENABLED || 'true').toLow
  */
 const DEMO_TOKEN = 'bonvoy-presenter-demo';
 
-let lastAlertAt = 0;
-let recentAlerts = [];
-
 function alertBlockReason(demoToken) {
   const now = Date.now();
-  if (!ALERTS_ENABLED) return 'alerting disabled by BONVOY_ALERTS_ENABLED';
+  if (!alerting.enabled) return 'Bonvoy alerting is switched off';
   if (String(demoToken || '') !== DEMO_TOKEN) {
     return 'request did not carry the presenter demo token';
   }
-  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
-    return `within the ${ALERT_COOLDOWN_MS / 1000}s cooldown of the previous alert`;
+  if (now - alerting.lastAlertAt < alerting.cooldownMs) {
+    return `within the ${alerting.cooldownMs / 1000}s cooldown of the previous alert`;
   }
-  recentAlerts = recentAlerts.filter((at) => now - at < 3600000);
-  if (recentAlerts.length >= ALERT_MAX_PER_HOUR) {
-    return `hourly cap of ${ALERT_MAX_PER_HOUR} alerts reached`;
+  alerting.recent = alerting.recent.filter((at) => now - at < 3600000);
+  if (alerting.recent.length >= alerting.maxPerHour) {
+    return `hourly cap of ${alerting.maxPerHour} alerts reached`;
   }
-  lastAlertAt = now;
-  recentAlerts.push(now);
+  alerting.lastAlertAt = now;
+  alerting.recent.push(now);
   return null;
 }
 
 /**
- * Devin identities supplied by the caller are only honoured when the operator
- * has allow-listed them; otherwise the customer's configured identity is used.
+ * The redeem endpoint is unauthenticated, so a Devin identity in the request
+ * body is never honoured — sessions are always created as the customer's
+ * configured identity.
  */
 function resolveDevinIdentity(data) {
-  const allowed = String(process.env.BONVOY_ALLOWED_DEVIN_ORG_IDS || '')
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
   const requestedOrgId = String(data.devinOrgId || '').trim();
-
-  if (requestedOrgId && allowed.includes(requestedOrgId)) {
-    return {
-      devinOrgId: requestedOrgId,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail || BONVOY_OWNER_EMAIL,
-    };
-  }
 
   if (requestedOrgId) {
     logger.warn('Ignoring caller-supplied Devin identity for Bonvoy redemption', {
@@ -170,7 +153,7 @@ function resolveDevinIdentity(data) {
     });
   }
 
-  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: BONVOY_OWNER_EMAIL };
+  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: OWNER_EMAIL };
 }
 
 function findMember(memberNumber) {
@@ -386,6 +369,7 @@ async function redeemPoints(data) {
 
 module.exports = {
   redeemPoints,
+  alerting,
   REMEDIATION_DIRECTIVE,
   ELITE_TIERS,
   LEDGER_SHARDS,
