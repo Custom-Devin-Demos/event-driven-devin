@@ -71,4 +71,13 @@ describe('Marriott Bonvoy points redemption service (bonvoy)', () => {
       expect.objectContaining({ devinOrgId: undefined, devinUserId: undefined }),
     );
   });
+
+  test('the alert is attributed to the configured owner email', async () => {
+    await expect(
+      redeemPoints({ memberNumber: '184302771', hotel: 'W Austin', nights: 1, points: 1000 }),
+    ).rejects.toMatchObject({ name: 'PointsLedgerUnavailable' });
+    expect(createSessionAndAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ devinEmail: 'neil.kelly@cognition.ai' }),
+    );
+  });
 });

@@ -78,6 +78,12 @@ function sanitizeText(value, maxLength = 80) {
 }
 
 /**
+ * Owner shown on the Bonvoy alert card. The Android client is unauthenticated,
+ * so the demo owner is configured here rather than taken from the request.
+ */
+const BONVOY_OWNER_EMAIL = process.env.BONVOY_OWNER_EMAIL || 'neil.kelly@cognition.ai';
+
+/**
  * Devin identities supplied by the caller are only honoured when the operator
  * has allow-listed them; otherwise the customer's configured identity is used.
  */
@@ -92,7 +98,7 @@ function resolveDevinIdentity(data) {
     return {
       devinOrgId: requestedOrgId,
       devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
+      devinEmail: data.devinEmail || BONVOY_OWNER_EMAIL,
     };
   }
 
@@ -103,7 +109,7 @@ function resolveDevinIdentity(data) {
     });
   }
 
-  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: undefined };
+  return { devinOrgId: undefined, devinUserId: undefined, devinEmail: BONVOY_OWNER_EMAIL };
 }
 
 function findMember(memberNumber) {
