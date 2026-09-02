@@ -9,6 +9,7 @@ const {
   unlockedFacts,
   lockedFacts,
   renderLine,
+  personaIcon,
 } = require('../app/services/incident-lab/personas');
 const { getScenario } = require('../app/services/incident-lab/scenario');
 
@@ -25,6 +26,24 @@ function makeRun(overrides = {}) {
     ...overrides,
   };
 }
+
+describe('incident-lab persona avatars', () => {
+  test('an avatar path resolves against the demo host, an emoji is left alone', () => {
+    const previous = process.env.ONCALL_DEMO_BASE_URL;
+    process.env.ONCALL_DEMO_BASE_URL = 'https://demo.example.com/';
+    expect(personaIcon({ avatar: '/incident-lab/avatars/ic.png', icon: ':x:' }))
+      .toBe('https://demo.example.com/incident-lab/avatars/ic.png');
+    expect(personaIcon({ icon: ':x:' })).toBe(':x:');
+    if (previous === undefined) delete process.env.ONCALL_DEMO_BASE_URL;
+    else process.env.ONCALL_DEMO_BASE_URL = previous;
+  });
+
+  test('every scripted persona has an avatar', () => {
+    for (const persona of scenario.personas) {
+      expect(personaIcon(persona)).toMatch(/^https:\/\/\S+\.png$/);
+    }
+  });
+});
 
 describe('incident-lab persona knowledge gating', () => {
   test('facts unlock as the timeline advances', () => {
@@ -327,6 +346,65 @@ describe('incident-lab slack persona sink', () => {
     await sink.onStop(run);
   });
 
+  test('a restart mid-hold still delivers the recovery beat instead of only its phase', async () => {
+    const posted = [];
+    const phases = [];
+    const deps = {
+      findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+      join: jest.fn().mockResolvedValue(true),
+      post: jest.fn((token, channel, text) => {
+        posted.push(text);
+        return Promise.resolve();
+      }),
+      history: jest.fn().mockResolvedValue([]),
+      activatePhase: jest.fn((id) => {
+        phases.push(id);
+        return Promise.resolve({ ok: true });
+      }),
+    };
+    const sink = createSlackPersonaSink({ deps });
+    const script = [{ persona: 'eng_a', text: 'recovery beat', atMs: 60000, action: 'mitigate' }];
+    // Declared an hour ago, phase never activated: the beat was still held.
+    const run = makeRun({
+      scenario: { ...scenario, script, llm: { ...scenario.llm, director: false } },
+      declaredAt: Date.now() - 3600000,
+      phases: [],
+    });
+
+    await sink.onResume(run);
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(posted).toContain('recovery beat');
+    expect(phases).toEqual(['mitigated']);
+    await sink.onStop(run);
+  });
+
+  test('a restart after the recovery beat landed does not repost it', async () => {
+    const posted = [];
+    const sink = createSlackPersonaSink({
+      deps: {
+        findChannel: jest.fn().mockResolvedValue({ id: 'C123', name: 'incident-42-flowforge' }),
+        join: jest.fn().mockResolvedValue(true),
+        post: jest.fn((token, channel, text) => {
+          posted.push(text);
+          return Promise.resolve();
+        }),
+        history: jest.fn().mockResolvedValue([]),
+        activatePhase: jest.fn().mockResolvedValue({ ok: true }),
+      },
+    });
+    const script = [{ persona: 'eng_a', text: 'recovery beat', atMs: 60000, action: 'mitigate' }];
+    const run = makeRun({
+      scenario: { ...scenario, script, llm: { ...scenario.llm, director: false } },
+      declaredAt: Date.now() - 3600000,
+      phases: ['mitigated'],
+    });
+
+    await sink.onResume(run);
+    await jest.advanceTimersByTimeAsync(60000);
+    expect(posted).not.toContain('recovery beat');
+    await sink.onStop(run);
+  });
+
   test('a rejected draft releases its reserved reply capacity', async () => {
     process.env.OPENAI_API_KEY = 'sk-test';
     const draft = jest.fn()
@@ -510,6 +588,30 @@ describe('incident-lab script director', () => {
     expect(posted).not.toContain('scripted beat');
     await jest.advanceTimersByTimeAsync(2 * 120000 + 1000);
     expect(posted).toContain('scripted beat'); // third verdict is forced to post
+    await stop();
+  });
+
+  test('a beat carrying a phase action outwaits an ordinary one before it is forced', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'hold' });
+    const { posted, stop } = await runDirector([{ ...BEAT, action: 'mitigate' }], direct);
+
+    await jest.advanceTimersByTimeAsync(2 * 120000 + 1000);
+    expect(posted).not.toContain('scripted beat'); // an ordinary beat would be out of holds
+    await jest.advanceTimersByTimeAsync(8 * 120000 + 1000);
+    expect(posted).toContain('scripted beat');
+    await stop();
+  });
+
+  test('overdue beats drain with a gap instead of landing together', async () => {
+    const direct = jest.fn().mockResolvedValue({ decision: 'post' });
+    const overdue = { persona: 'biz', text: 'overdue beat', atMs: 61000 };
+    const { posted, stop } = await runDirector([BEAT, overdue], direct);
+
+    expect(posted).toEqual(['scripted beat']);
+    await jest.advanceTimersByTimeAsync(19000);
+    expect(posted).toEqual(['scripted beat']);
+    await jest.advanceTimersByTimeAsync(26000);
+    expect(posted).toEqual(['scripted beat', 'overdue beat']);
     await stop();
   });
 });
