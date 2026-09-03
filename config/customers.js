@@ -563,6 +563,10 @@ const CUSTOMERS = {
     label: 'NAB Internet Banking',
     triggerMode: 'api',
   },
+  ausunity: {
+    label: 'Australian Unity Health Claims',
+    triggerMode: 'api',
+  },
   '6dc826a1': {
     label: 'Morgan Stanley WM — Advisor Trade Booking',
     triggerMode: 'api',
