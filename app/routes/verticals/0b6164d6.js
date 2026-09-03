@@ -15,11 +15,12 @@ router.get('/api/0b6164d6/clusters', (_req, res) => {
  */
 router.post('/api/0b6164d6/cluster-ui', async (req, res) => {
   try {
+    const body = req.body || {};
     const snapshot = await renderClusterUi({
-      clusterId: req.body.clusterId,
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      clusterId: body.clusterId,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(snapshot);
   } catch (error) {

@@ -208,8 +208,17 @@
   const uptime = (minutes) => (minutes >= 60 ? Math.floor(minutes / 60) + 'h ' + (minutes % 60) + 'm' : minutes + 'm');
 
   async function loadClusters() {
-    const res = await fetch('/api/0b6164d6/clusters');
-    const data = await res.json();
+    let data;
+    try {
+      const res = await fetch('/api/0b6164d6/clusters');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      data = await res.json();
+      if (!Array.isArray(data.clusters)) throw new Error('malformed cluster list');
+    } catch (err) {
+      document.getElementById('clusterRows').innerHTML =
+        '<tr><td colspan="7" class="placeholder">Could not load compute &mdash; ' + err.message + '. Refresh to retry.</td></tr>';
+      return;
+    }
     document.getElementById('clusterRows').innerHTML = data.clusters.map((cluster) => `
       <tr data-row="${cluster.id}">
         <td>
