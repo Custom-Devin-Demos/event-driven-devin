@@ -700,6 +700,82 @@ const ONCALL_SKINS = {
     supportCenter: 'Forrester Client Support',
     disclaimer: 'NOT ACTUALLY A FORRESTER SITE — internal demo only, not affiliated with, endorsed by, or a real Forrester product.',
   },
+  '0c15262a': {
+    slug: '0c15262a',
+    company: '하나은행',
+    brandMark: 'H',
+    vertical: 'banking',
+    page: {
+      file: '0c15262a.html',
+      title: '계좌이체 | 하나은행',
+    },
+    theme: {
+      '--accent': '#009591',
+      '--ink': '#191919',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#00605e',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: '하나은행 고객센터',
+    disclaimer: 'NOT ACTUALLY A HANA BANK (하나은행) SITE — internal demo only, not affiliated with, endorsed by, or a real Hana Bank product.',
+  },
+  '5d5755c2': {
+    slug: '5d5755c2',
+    company: 'MegazoneCloud',
+    brandMark: 'M',
+    vertical: 'hightech',
+    page: {
+      file: '5d5755c2.html',
+      title: '라이선스 프로비저닝 | MegazoneCloud',
+    },
+    theme: {
+      '--accent': '#6C4CF1',
+      '--ink': '#191919',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0A0F10',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'MegazoneCloud 고객지원',
+    disclaimer: 'NOT ACTUALLY A MEGAZONECLOUD SITE — internal demo only, not affiliated with, endorsed by, or a real MegazoneCloud product.',
+  },
+  'f5a5bdad': {
+    slug: 'f5a5bdad',
+    company: 'KRAFTON',
+    brandMark: 'K',
+    vertical: 'banking',
+    page: {
+      file: 'f5a5bdad.html',
+      title: 'G-COIN 충전 | KRAFTON',
+    },
+    theme: {
+      '--accent': '#F73A31',
+      '--ink': '#191919',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'KRAFTON 고객지원',
+    disclaimer: 'NOT ACTUALLY A KRAFTON SITE — internal demo only, not affiliated with, endorsed by, or a real KRAFTON product.',
+  },
+  'd92336aa': {
+    slug: 'd92336aa',
+    company: '카카오톡 선물하기',
+    brandMark: 'K',
+    vertical: 'banking',
+    page: {
+      file: 'd92336aa.html',
+      title: '선물 결제 | 카카오톡 선물하기',
+    },
+    theme: {
+      '--accent': '#F6432F',
+      '--ink': '#191919',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#191919',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: '카카오 고객센터',
+    disclaimer: 'NOT ACTUALLY A KAKAO SITE — internal demo only, not affiliated with, endorsed by, or a real Kakao product.',
+  },
 };
 
 function getOncallSkin(slug) {

@@ -261,8 +261,9 @@
                 <div class="ctl">
                   <select id="toAccount">
                     <option value="ACCT-GOV-001">행정안전부 주민과 (주민등록 증명 수수료)</option>
-                    <option value="ACCT-GOV-002">대법원 전자가족관계등록시스템</option>
+                    <option value="ACCT-GOV-002" selected>대법원 전자가족관계등록시스템</option>
                     <option value="ACCT-GOV-003">시·군·구 세입계좌 (지방세 증명)</option>
+                    <option value="ACCT-GOV-004">법원행정처 등기수입증지 (등기사항 증명)</option>
                   </select>
                 </div>
                 <p class="note">수수료는 민원을 처리하는 소관기관의 세입계좌로 수납됩니다.</p>
@@ -277,9 +278,9 @@
                   <span class="won">원</span>
                 </div>
                 <div class="chips">
-                  <button type="button" class="chip" data-fee="400">주민등록표 등본 400원</button>
-                  <button type="button" class="chip" data-fee="1000">가족관계증명서(상세) 1,000원</button>
-                  <button type="button" class="chip" data-fee="700">등기사항전부증명서 700원</button>
+                  <button type="button" class="chip" data-fee="400" data-service="주민등록표 등본" data-agency="ACCT-GOV-001">주민등록표 등본 400원</button>
+                  <button type="button" class="chip" data-fee="1000" data-service="가족관계증명서(상세)" data-agency="ACCT-GOV-002">가족관계증명서(상세) 1,000원</button>
+                  <button type="button" class="chip" data-fee="700" data-service="등기사항전부증명서" data-agency="ACCT-GOV-004">등기사항전부증명서 700원</button>
                 </div>
                 <p class="note" id="amountNote">수수료는 민원 종류와 통수에 따라 달라집니다. 온라인 발급이 무료인 민원은 결제 단계가 표시되지 않습니다.</p>
               </div>
@@ -301,7 +302,7 @@
 
             <div class="summary">
               <dl>
-                <div><dt>신청민원</dt><dd>가족관계증명서(상세)</dd></div>
+                <div><dt>신청민원</dt><dd id="summaryService">가족관계증명서(상세)</dd></div>
                 <div><dt>발급방법</dt><dd>온라인 발급(전자문서)</dd></div>
                 <div><dt>처리기간</dt><dd>즉시</dd></div>
                 <div><dt>인증수단</dt><dd>간편인증 · 공동인증서</dd></div>
@@ -334,9 +335,9 @@
             <h2>자주 찾는 서비스</h2>
             <div class="in">
               <ul class="fav">
-                <li><a href="#pay" data-fee="400" data-agency="ACCT-GOV-001"><span>주민등록표 등본(초본)</span><span class="pick">선택</span></a></li>
-                <li><a href="#pay" data-fee="1000" data-agency="ACCT-GOV-002"><span>가족관계증명서(상세)</span><span class="pick">선택</span></a></li>
-                <li><a href="#pay" data-fee="800" data-agency="ACCT-GOV-003"><span>지방세 납세증명서</span><span class="pick">선택</span></a></li>
+                <li><a href="#pay" data-fee="400" data-agency="ACCT-GOV-001" data-service="주민등록표 등본(초본)"><span>주민등록표 등본(초본)</span><span class="pick">선택</span></a></li>
+                <li><a href="#pay" data-fee="1000" data-agency="ACCT-GOV-002" data-service="가족관계증명서(상세)"><span>가족관계증명서(상세)</span><span class="pick">선택</span></a></li>
+                <li><a href="#pay" data-fee="800" data-agency="ACCT-GOV-003" data-service="지방세 납세증명서"><span>지방세 납세증명서</span><span class="pick">선택</span></a></li>
               </ul>
             </div>
           </div>
@@ -439,16 +440,18 @@
     (function () {
       const amount = document.getElementById('amount');
       const agency = document.getElementById('toAccount');
-      document.querySelectorAll('.chip[data-fee]').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-          amount.value = chip.dataset.fee;
-        });
+      const summaryService = document.getElementById('summaryService');
+      const defaultService = summaryService.textContent;
+      function applySelection(element) {
+        if (element.dataset.fee) amount.value = element.dataset.fee;
+        if (element.dataset.agency) agency.value = element.dataset.agency;
+        if (element.dataset.service) summaryService.textContent = element.dataset.service;
+      }
+      document.querySelectorAll('.chip[data-fee], .fav a[data-fee]').forEach(function (element) {
+        element.addEventListener('click', function () { applySelection(element); });
       });
-      document.querySelectorAll('.fav a[data-fee]').forEach(function (link) {
-        link.addEventListener('click', function () {
-          amount.value = link.dataset.fee;
-          if (link.dataset.agency) agency.value = link.dataset.agency;
-        });
+      document.getElementById('transferForm').addEventListener('reset', function () {
+        setTimeout(function () { summaryService.textContent = defaultService; }, 0);
       });
     })();
 

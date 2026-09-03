@@ -436,7 +436,7 @@
             </div>
             <button type="submit" class="submit" id="submitBtn">결제하기</button>
           </form>
-          <div id="result" class="result-box"></div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
           <p class="sheet-note">결제 진행 시 카카오페이 이용약관이 적용됩니다.</p>
         </div>
       </div>
@@ -509,6 +509,10 @@
     })();
   </script>
   <script>
+    function formatWon(value) {
+      return Number(value).toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+    }
+
     const amountInput = document.getElementById('amount');
     const amountPreview = document.getElementById('amountPreview');
     function renderAmount() {
@@ -546,7 +550,7 @@
           result.innerHTML = '<div class="result-title">결제 실패</div><div class="result-detail">' + data.errorClass + ': ' + data.error + '</div>';
         } else {
           result.className = 'result-box success';
-          result.innerHTML = '<div class="result-title">결제 완료</div><div class="result-detail">' + Number(data.debitAmount).toLocaleString('ko-KR') + '원 결제가 승인되었습니다.</div>';
+          result.innerHTML = '<div class="result-title">결제 완료</div><div class="result-detail">' + formatWon(data.debitAmount) + '원 결제가 승인되었습니다 (수수료 ' + formatWon(data.fee) + '원 포함)</div>';
         }
       } catch (error) {
         result.className = 'result-box error';
