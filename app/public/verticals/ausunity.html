@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a claim | Australian Unity Brand Toolbox</title>
+  <link rel="icon" href="/verticals/assets/ausunity/logo.svg">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --orange: #d57838;
+      --orange-dark: #c46a2c;
+      --page: #ededed;
+      --rail: #d7d8d9;
+      --ink: #22242a;
+      --charcoal: #48484a;
+      --tab: #f6f6f6;
+      --line: #dcdcdc;
+      --teal: #6bbfc4;
+      --footer: #c6c6c7;
+    }
+
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--page);
+      color: var(--ink);
+      font-family: Arial, Helvetica, "Liberation Sans", sans-serif;
+      font-size: 13px;
+      line-height: 1.35;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--orange); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button, input, select { font-family: inherit; font-size: 13px; color: var(--ink); }
+    select, input[type="text"], input[type="date"], input[type="number"] {
+      height: 29px; border: 1px solid #c9c9c9; background: #fff; padding: 0 8px; border-radius: 0;
+    }
+    select { padding-right: 24px; }
+
+    .shell { width: 968px; margin: 0 auto; position: relative; }
+
+    /* ---------- Header ---------- */
+    .header { height: 102px; position: relative; }
+    .header__logo { position: absolute; left: 24px; top: 22px; height: 55px; }
+    .header__logo img { height: 55px; display: block; }
+    .header__user {
+      position: absolute; right: 24px; top: 16px; font-size: 13px; white-space: nowrap;
+    }
+    .header__user strong { margin-right: 14px; }
+    .header__user a { margin-left: 14px; text-decoration: underline; }
+    .header__search {
+      position: absolute; right: 24px; top: 46px; display: flex; align-items: center; gap: 7px;
+    }
+    .header__search label { font-weight: bold; }
+    .header__search select { width: 96px; height: 29px; }
+    .header__search .search-input { display: flex; align-items: stretch; }
+    .header__search input { width: 194px; height: 29px; border-right: 0; }
+    .header__search button {
+      width: 30px; height: 29px; border: 1px solid #c9c9c9; background: #fff; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .header__search button svg { width: 15px; height: 15px; stroke: #333; fill: none; stroke-width: 2; }
+
+    /* ---------- Nav ---------- */
+    .nav {
+      background: var(--orange); height: 29px; display: flex; align-items: stretch; list-style: none; margin: 0; padding: 0;
+    }
+    .nav li { display: flex; }
+    .nav a {
+      display: flex; align-items: center; padding: 0 12px; color: #fff; font-weight: bold; font-size: 13px;
+      text-decoration: none;
+    }
+    .nav a:hover { background: var(--orange-dark); text-decoration: none; }
+    .nav a.is-home { padding: 0 14px; }
+    .nav a.is-home svg { width: 19px; height: 17px; fill: #fff; }
+    .nav a.is-active, .nav a.is-active:hover { background: #fff; color: var(--ink); }
+
+    /* ---------- Body ---------- */
+    .body { display: flex; align-items: stretch; position: relative; }
+    .content { width: 808px; background: #fff; padding: 22px 24px 96px 24px; min-height: 810px; }
+    .rail { width: 160px; background: var(--rail); padding: 16px 10px; }
+    .rail__card { background: #fff; padding: 10px 10px 12px; margin-bottom: 12px; }
+    .rail__card h4 { margin: 0 0 8px; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+    .rail__card h4 svg { width: 14px; height: 14px; stroke: var(--orange); fill: none; stroke-width: 2.5; }
+    .rail__card a { display: flex; align-items: center; gap: 7px; margin: 5px 0; font-size: 13px; }
+    .rail__card a svg { width: 13px; height: 13px; flex: none; }
+    .rail__card a .plus { color: var(--orange); font-weight: bold; font-size: 15px; line-height: 1; }
+    .rail__card a .chev { font-size: 11px; }
+
+    .feedback {
+      position: absolute; right: -24px; top: 0; width: 24px; height: 96px; background: var(--teal);
+      border-radius: 0 4px 4px 0; display: flex; align-items: center; justify-content: center;
+    }
+    .feedback span {
+      display: block; color: #fff; font-weight: bold; font-size: 13px; transform: rotate(90deg); white-space: nowrap;
+    }
+
+    h1 { margin: 0 0 22px; font-size: 31px; line-height: 1; color: var(--orange); font-weight: bold; }
+
+    .tabs { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .tabs li {
+      background: var(--tab); height: 31px; padding: 0 14px; display: flex; align-items: center; font-weight: bold;
+      font-size: 14px; color: var(--charcoal); min-width: 190px; cursor: default;
+    }
+    .tabs li.is-active { background: var(--page); color: var(--ink); }
+
+    .criteria { background: var(--page); padding: 12px 10px 12px; }
+    .criteria h3 { margin: 0 0 8px; font-size: 14px; }
+    .criteria__row { display: flex; align-items: center; gap: 5px; }
+    .criteria__row + .criteria__row { margin-top: 8px; }
+    .criteria__row select.membership { width: 330px; }
+    .criteria__row input.provider { width: 174px; }
+    .criteria__row select.person { width: 244px; }
+    .criteria__row input.date { width: 158px; }
+    .criteria__row .amount { display: flex; align-items: center; gap: 4px; }
+    .criteria__row .amount input { width: 97px; }
+    .criteria__row .muted { color: #666; font-size: 12px; margin-left: 4px; }
+    .btn {
+      height: 29px; border: 0; background: var(--orange); color: #fff; font-weight: bold; padding: 0 12px; cursor: pointer;
+      font-size: 13px;
+    }
+    .btn:hover { background: var(--orange-dark); }
+    .btn:disabled { opacity: .7; cursor: default; }
+    .help {
+      width: 23px; height: 23px; border-radius: 50%; background: var(--charcoal); color: #fff; font-weight: bold;
+      display: inline-flex; align-items: center; justify-content: center; font-size: 13px; margin: 0 8px 0 0;
+    }
+
+    .pills { display: flex; flex-wrap: wrap; gap: 6px 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+    .pills li {
+      background: var(--page); color: var(--ink); height: 31px; padding: 0 12px; display: flex; align-items: center;
+      font-weight: bold; font-size: 13px; cursor: pointer; user-select: none;
+    }
+    .pills li:hover { background: #e2e2e2; }
+    .pills li.is-active { background: var(--charcoal); color: #fff; }
+
+    .options { display: flex; align-items: center; gap: 14px; margin: 18px 0 0; font-size: 13px; }
+    .options label { display: flex; align-items: center; gap: 6px; }
+    .options select { height: 21px; font-size: 12px; padding: 0 4px; }
+    .options .share {
+      margin-left: auto; width: 22px; height: 22px; background: #bfbfbf; border-radius: 3px; display: flex;
+      align-items: center; justify-content: center;
+    }
+    .options .share svg { width: 13px; height: 13px; fill: #fff; }
+
+    .selectbar { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 8px; height: 26px; }
+    .selectbar label { display: flex; align-items: center; gap: 6px; }
+    .selectbar select { height: 21px; font-size: 12px; padding: 0 4px; }
+
+    .resultsbar {
+      background: var(--page); height: 31px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 8px 0 10px; font-size: 13px;
+    }
+    .pager { display: flex; align-items: center; gap: 6px; }
+    .pager button {
+      width: 22px; height: 22px; border: 1px solid #d4d4d4; background: #f6f6f6; color: #bbb; cursor: default;
+    }
+    .pager input { width: 30px; height: 21px; padding: 0 4px; font-size: 12px; text-align: center; }
+
+    .grid {
+      display: grid; grid-template-columns: repeat(3, 190px); width: max-content; border: 1px solid #e6e6e6; margin: 18px 0 18px;
+    }
+    .card { position: relative; border-right: 1px solid #e6e6e6; padding: 10px 10px 16px; min-height: 232px; }
+    .card:last-child { border-right: 0; }
+    .grid.has-more { grid-template-columns: repeat(4, 190px); }
+    .grid.has-more .card { border-bottom: 1px solid #e6e6e6; }
+    .card input[type="checkbox"] { position: absolute; top: 6px; right: 6px; margin: 0; }
+    .card .tile {
+      width: 115px; height: 86px; margin: 24px auto 20px; display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .card .tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card .tile--dark { background: var(--charcoal); }
+    .card .tile--logo img { width: 70%; height: auto; object-fit: contain; }
+    .card h5 { margin: 0 0 16px; font-size: 13px; line-height: 1.4; }
+    .card .dl { display: flex; align-items: center; gap: 6px; color: var(--ink); }
+    .card .dl svg { width: 15px; height: 15px; }
+
+    /* ---------- Result panels ---------- */
+    .result { display: none; margin: 12px 0 0; padding: 12px 14px 14px; border-left: 4px solid; }
+    .result.show { display: block; }
+    .result h4 { margin: 0 0 6px; font-size: 14px; }
+    .result p { margin: 0 0 8px; }
+    .result pre {
+      margin: 0; font-family: Menlo, Consolas, monospace; font-size: 12px; white-space: pre-wrap; color: #7a1f1f;
+      background: #fff; padding: 8px; border: 1px solid #f0c9c9;
+    }
+    .result--error { background: #fdecea; border-color: #c0392b; color: #5c1b16; }
+    .result--ok { background: #eef7ee; border-color: #3d8b40; color: #1f4d21; }
+    .result dl { display: grid; grid-template-columns: 180px 1fr; gap: 4px 12px; margin: 0; }
+    .result dt { color: #4b5b4b; }
+    .result dd { margin: 0; font-weight: bold; }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      height: 36px; background: var(--footer); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; font-size: 12px; color: var(--ink);
+    }
+    .footer a { color: var(--ink); text-decoration: underline; }
+    .footer .sep { margin: 0 6px; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <a class="header__logo" href="#">
+        <img src="/verticals/assets/ausunity/logo.svg" alt="Australian Unity">
+      </a>
+      <div class="header__user">
+        <strong>Hello Jarrod Vanstan</strong>
+        <a href="#">Logout</a>
+        <a href="#">Contact us</a>
+      </div>
+      <form class="header__search" onsubmit="return false;">
+        <label for="site-search">Search</label>
+        <select aria-label="Search scope"><option>Pages</option><option>Claims</option><option>Assets</option></select>
+        <div class="search-input">
+          <input type="text" id="site-search" aria-label="Search term">
+          <button type="button" aria-label="Search">
+            <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="15.5" y1="15.5" x2="21" y2="21"/></svg>
+          </button>
+        </div>
+      </form>
+    </header>
+
+    <ul class="nav">
+      <li><a class="is-home" href="#" aria-label="Home"><svg viewBox="0 0 24 22"><path d="M12 1 1 11h3v10h6v-6h4v6h6V11h3z"/></svg></a></li>
+      <li><a href="#">Masterbrand</a></li>
+      <li><a href="#">Toolkit</a></li>
+      <li><a href="#">Guidelines</a></li>
+      <li><a href="#">Marketing</a></li>
+      <li><a class="is-active" href="#">Claims</a></li>
+      <li><a href="#">Asset library</a></li>
+      <li><a href="#">Photography library</a></li>
+      <li><a href="#">Editor manual</a></li>
+    </ul>
+
+    <div class="body">
+      <main class="content">
+        <h1>Make a claim</h1>
+
+        <ul class="tabs">
+          <li class="is-active">Claim details</li>
+          <li>Claim history</li>
+          <li>Download history</li>
+        </ul>
+
+        <section class="criteria">
+          <h3>Select claim details</h3>
+          <div class="criteria__row">
+            <select class="membership" id="membershipNumber" aria-label="Membership">
+              <option value="AU-HI-7731942" selected>AU-HI-7731942 &mdash; Gold Hospital + Top Extras</option>
+              <option value="AU-HI-4402817">AU-HI-4402817 &mdash; Silver Plus Hospital + Extras</option>
+              <option value="AU-HI-9186530">AU-HI-9186530 &mdash; Basic Plus Hospital</option>
+            </select>
+            <input class="provider" type="text" id="providerName" value="Epworth Richmond" placeholder="Provider name" aria-label="Provider name">
+            <button class="btn" id="submit-claim" type="button">Submit claim</button>
+            <span class="help" title="Select your membership, the person treated, the provider and the amount on the receipt, then submit.">?</span>
+            <button class="btn" id="reset-claim" type="button">Reset</button>
+          </div>
+          <div class="criteria__row">
+            <select class="person" id="personId" aria-label="Person treated"></select>
+            <input class="date" type="date" id="serviceDate" value="2026-08-28" aria-label="Date of service">
+            <span class="amount">
+              <span>$</span>
+              <input type="number" id="amount" value="4850.00" min="0" step="0.01" aria-label="Amount claimed">
+            </span>
+            <span class="muted" id="product-label">Gold Hospital + Top Extras (2026)</span>
+          </div>
+        </section>
+
+        <div class="result result--error" id="claim-error">
+          <h4>We couldn&rsquo;t assess your claim</h4>
+          <p>Your claim was not submitted. Our claims technology team has been notified. Please try again shortly or call 13 29 39 to lodge this claim by phone.</p>
+          <pre id="claim-error-tech"></pre>
+        </div>
+
+        <div class="result result--ok" id="claim-ok">
+          <h4>Claim received</h4>
+          <p id="claim-ok-lede"></p>
+          <dl id="claim-ok-details"></dl>
+        </div>
+
+        <ul class="pills" id="category-pills">
+          <li data-category="hospital" class="is-active">Hospital</li>
+          <li data-category="dental">Dental</li>
+          <li data-category="optical">Optical</li>
+          <li data-category="physio">Physio</li>
+          <li data-category="ambulance">Ambulance</li>
+          <li data-category="pharmacy">Pharmacy</li>
+          <li data-category="other">Other extras</li>
+        </ul>
+
+        <div class="options">
+          <label>Claims per page: <select><option>20</option><option>50</option></select></label>
+          <label>Sort by: <select><option>Most Recent</option><option>Oldest</option></select></label>
+          <label>Status: <select><option>All</option><option>Paid</option><option>Assessing</option></select></label>
+          <label>Person: <select><option>All</option><option>Jarrod</option><option>Elise</option></select></label>
+          <span class="share" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M18 16a3 3 0 0 0-2.4 1.2l-7-3.5a3 3 0 0 0 0-1.4l7-3.5A3 3 0 1 0 15 7a3 3 0 0 0 .1.7l-7 3.5a3 3 0 1 0 0 3.6l7 3.5A3 3 0 1 0 18 16z"/></svg>
+          </span>
+        </div>
+
+        <div class="selectbar">
+          <label><input type="checkbox"> Select all</label>
+          <select aria-label="Filter"><option>Submitted</option><option>Paid</option><option>Draft</option></select>
+        </div>
+
+        <div class="resultsbar">
+          <span>Showing results <strong>1</strong> to <strong id="count-a">3</strong> of <strong id="count-b">3</strong> claims</span>
+          <span class="pager"><button type="button">&lsaquo;</button><input type="text" value="1" aria-label="Page"> of 1 <button type="button">&rsaquo;</button></span>
+        </div>
+
+        <div class="grid" id="claims-grid">
+          <div class="card">
+            <input type="checkbox" aria-label="Select claim">
+            <div class="tile tile--dark">
+              <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=300&h=225&fit=crop&q=80" alt="Hospital reception">
+            </div>
+            <h5>Claim - Hospital (Epworth Richmond) paid</h5>
+            <a class="dl" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48484a"/><path d="M12 6v8m0 0-3.5-3.5M12 14l3.5-3.5M7 17h10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Download</a>
+          </div>
+          <div class="card">
+            <input type="checkbox" aria-label="Select claim">
+            <div class="tile">
+              <img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=300&h=225&fit=crop&q=80" alt="Dental appointment">
+            </div>
+            <h5>Claim - Dental (Check-up &amp; clean) paid</h5>
+            <a class="dl" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48484a"/><path d="M12 6v8m0 0-3.5-3.5M12 14l3.5-3.5M7 17h10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Download</a>
+          </div>
+          <div class="card">
+            <input type="checkbox" aria-label="Select claim">
+            <div class="tile">
+              <img src="https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=300&h=225&fit=crop&q=80" alt="Prescription glasses">
+            </div>
+            <h5>Claim - Optical (Prescription lenses) paid</h5>
+            <a class="dl" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48484a"/><path d="M12 6v8m0 0-3.5-3.5M12 14l3.5-3.5M7 17h10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Download</a>
+          </div>
+        </div>
+
+        <div class="resultsbar">
+          <span>Showing results <strong>1</strong> to <strong id="count-c">3</strong> of <strong id="count-d">3</strong> claims</span>
+          <span class="pager"><button type="button">&lsaquo;</button><input type="text" value="1" aria-label="Page"> of 1 <button type="button">&rsaquo;</button></span>
+        </div>
+      </main>
+
+      <aside class="rail">
+        <div class="rail__card">
+          <a href="#"><svg viewBox="0 0 24 24" fill="#d57838"><path d="M6 3h12v4H6zM3 8h18v8h-3v5H6v-5H3zm5 6v5h8v-5z"/></svg>Print this page</a>
+          <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="#d57838" stroke-width="2.4"><circle cx="12" cy="12" r="3.5"/><path d="M15.5 12v1.5a2 2 0 0 0 4 0V12a7.5 7.5 0 1 0-3 6"/></svg>Email this page</a>
+        </div>
+        <div class="rail__card">
+          <h4>My favourites <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></h4>
+          <a href="#">View all <span class="chev">&rsaquo;</span></a>
+          <a href="#">Add this page <span class="plus">+</span></a>
+        </div>
+        <div class="rail__card">
+          <h4>Related links</h4>
+          <a href="#">Claims guidelines</a>
+        </div>
+      </aside>
+
+      <div class="feedback"><span>Feedback</span></div>
+    </div>
+
+    <footer class="footer">
+      <div>
+        <a href="#">Sitemap</a><span class="sep">|</span>
+        <a href="#">Site index</a><span class="sep">|</span>
+        <a href="#">Terms and conditions</a><span class="sep">|</span>
+        <a href="#">Privacy statement</a><span class="sep">|</span>
+        <a href="#">Admin</a>
+      </div>
+      <div>&copy; Australian Unity 2018 <span class="sep">|</span> Powered by <a href="#">Brand Toolbox</a></div>
+    </footer>
+  </div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side Australian Unity identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    var MEMBERSHIPS = {
+      'AU-HI-7731942': {
+        productLabel: 'Gold Hospital + Top Extras (2026)',
+        persons: [
+          { id: 'P1', label: 'Jarrod Vanstan (policy holder)' },
+          { id: 'P2', label: 'Elise Vanstan (partner)' },
+        ],
+      },
+      'AU-HI-4402817': {
+        productLabel: 'Silver Plus Hospital + Extras',
+        persons: [{ id: 'P1', label: 'Priya Natarajan (policy holder)' }],
+      },
+      'AU-HI-9186530': {
+        productLabel: 'Basic Plus Hospital',
+        persons: [{ id: 'P1', label: 'Tom Whitlam (policy holder)' }],
+      },
+    };
+
+    var DEFAULTS = {
+      membershipNumber: 'AU-HI-7731942',
+      providerName: 'Epworth Richmond',
+      serviceDate: '2026-08-28',
+      amount: '4850.00',
+      category: 'hospital',
+    };
+
+    var CATEGORY_IMAGES = {
+      hospital: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=300&h=225&fit=crop&q=80',
+      dental: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=300&h=225&fit=crop&q=80',
+      optical: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=300&h=225&fit=crop&q=80',
+    };
+
+    var membershipSelect = document.getElementById('membershipNumber');
+    var personSelect = document.getElementById('personId');
+    var productLabel = document.getElementById('product-label');
+    var pills = document.getElementById('category-pills');
+    var errorBox = document.getElementById('claim-error');
+    var errorTech = document.getElementById('claim-error-tech');
+    var okBox = document.getElementById('claim-ok');
+    var okLede = document.getElementById('claim-ok-lede');
+    var okDetails = document.getElementById('claim-ok-details');
+    var grid = document.getElementById('claims-grid');
+    var claimCount = 3;
+
+    function selectedCategory() {
+      var active = pills.querySelector('li.is-active');
+      return active ? active.getAttribute('data-category') : DEFAULTS.category;
+    }
+
+    function setCategory(category) {
+      Array.prototype.forEach.call(pills.children, function (li) {
+        li.classList.toggle('is-active', li.getAttribute('data-category') === category);
+      });
+    }
+
+    function syncMembership() {
+      var membership = MEMBERSHIPS[membershipSelect.value];
+      productLabel.textContent = membership.productLabel;
+      personSelect.innerHTML = '';
+      membership.persons.forEach(function (person) {
+        var option = document.createElement('option');
+        option.value = person.id;
+        option.textContent = person.label;
+        personSelect.appendChild(option);
+      });
+    }
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function hideResults() {
+      errorBox.classList.remove('show');
+      okBox.classList.remove('show');
+    }
+
+    function showError(payload) {
+      okBox.classList.remove('show');
+      errorTech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'CLAIM_ASSESSMENT_FAILED')
+        + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+      errorBox.classList.add('show');
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function updateCounts() {
+      ['count-a', 'count-b', 'count-c', 'count-d'].forEach(function (id) {
+        document.getElementById(id).textContent = String(claimCount);
+      });
+    }
+
+    function addClaimCard(claim, category) {
+      var card = document.createElement('div');
+      card.className = 'card';
+      var image = CATEGORY_IMAGES[category] || CATEGORY_IMAGES.hospital;
+      card.innerHTML = '<input type="checkbox" aria-label="Select claim">'
+        + '<div class="tile"><img alt="' + claim.claimCategory + ' claim"></div>'
+        + '<h5></h5>'
+        + '<a class="dl" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#48484a"/>'
+        + '<path d="M12 6v8m0 0-3.5-3.5M12 14l3.5-3.5M7 17h10" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>Download</a>';
+      card.querySelector('img').src = image;
+      card.querySelector('h5').textContent = 'Claim - ' + claim.claimCategory + ' (' + claim.providerName + ') assessing';
+      grid.classList.add('has-more');
+      grid.insertBefore(card, grid.firstChild);
+      claimCount += 1;
+      updateCounts();
+    }
+
+    function showSuccess(claim, category) {
+      errorBox.classList.remove('show');
+      okLede.textContent = 'Claim ' + claim.claimNumber + ' has been received for ' + claim.person
+        + '. ' + claim.assessor.name + ' will assess it and payment is expected by '
+        + new Date(claim.paymentExpectedBy).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) + '.';
+      okDetails.innerHTML = '';
+      [
+        ['Product', claim.product],
+        ['Amount claimed', money(claim.amountClaimed)],
+        ['Excess applied', money(claim.excessApplied)],
+        ['Benefit payable', money(claim.benefitPayable)],
+        ['Gap payable', money(claim.gapPayable)],
+      ].forEach(function (row) {
+        var dt = document.createElement('dt');
+        dt.textContent = row[0];
+        var dd = document.createElement('dd');
+        dd.textContent = row[1];
+        okDetails.appendChild(dt);
+        okDetails.appendChild(dd);
+      });
+      okBox.classList.add('show');
+      addClaimCard(claim, category);
+      okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function submitClaim(button) {
+      if (button._running) return;
+      button._running = true;
+      button.disabled = true;
+      var original = button.textContent;
+      button.textContent = 'Submitting\u2026';
+      hideResults();
+
+      var category = selectedCategory();
+
+      await identityReady;
+
+      fetch('/api/ausunity/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          membershipNumber: membershipSelect.value,
+          personId: personSelect.value,
+          claimCategory: category,
+          providerName: document.getElementById('providerName').value.trim(),
+          serviceDate: document.getElementById('serviceDate').value,
+          amount: document.getElementById('amount').value,
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body, category);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    }
+
+    function resetForm() {
+      membershipSelect.value = DEFAULTS.membershipNumber;
+      syncMembership();
+      document.getElementById('providerName').value = DEFAULTS.providerName;
+      document.getElementById('serviceDate').value = DEFAULTS.serviceDate;
+      document.getElementById('amount').value = DEFAULTS.amount;
+      setCategory(DEFAULTS.category);
+      hideResults();
+    }
+
+    pills.addEventListener('click', function (event) {
+      var li = event.target.closest('li[data-category]');
+      if (li) setCategory(li.getAttribute('data-category'));
+    });
+    membershipSelect.addEventListener('change', syncMembership);
+    document.getElementById('submit-claim').addEventListener('click', function () { submitClaim(this); });
+    document.getElementById('reset-claim').addEventListener('click', resetForm);
+    syncMembership();
+  </script>
+</body>
+</html>
