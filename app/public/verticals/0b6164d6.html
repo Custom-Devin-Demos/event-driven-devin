@@ -267,9 +267,12 @@
       </div>`;
   }
 
+  let selectedClusterId = null;
+
   async function openSparkUi(button) {
     const result = document.getElementById('result');
     const clusterId = button.dataset.cluster;
+    selectedClusterId = clusterId;
     document.querySelectorAll('#clusterRows tr').forEach((row) => row.classList.toggle('selected', row.dataset.row === clusterId));
     button.disabled = true;
     button.textContent = 'Loading...';
@@ -286,6 +289,7 @@
         }),
       });
       const data = await res.json();
+      if (selectedClusterId !== clusterId) return;
       if (!res.ok) {
         document.getElementById('sparkCtx').textContent = clusterId + ' \u00b7 render failed';
         document.getElementById('sparkPanel').innerHTML = '<div class="card"><div class="placeholder">Spark UI unavailable for this cluster.</div></div>';
@@ -297,6 +301,9 @@
         result.innerHTML = `<div class="result-title">Spark UI loaded</div><div class="result-detail">${data.executors.length} executors \u00b7 ${data.utilization.totalCores} cores \u00b7 ${data.utilization.totalMemoryGb} GB across ${data.cluster.workers} workers</div>`;
       }
     } catch (err) {
+      if (selectedClusterId !== clusterId) return;
+      document.getElementById('sparkCtx').textContent = clusterId + ' \u00b7 request failed';
+      document.getElementById('sparkPanel').innerHTML = '<div class="card"><div class="placeholder">Spark UI unavailable for this cluster.</div></div>';
       result.className = 'result-box error';
       result.innerHTML = `<div class="result-title">Network Error</div><div class="result-detail">${err.message}</div>`;
     } finally {
