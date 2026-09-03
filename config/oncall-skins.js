@@ -776,6 +776,25 @@ const ONCALL_SKINS = {
     supportCenter: '카카오 고객센터',
     disclaimer: 'NOT ACTUALLY A KAKAO SITE — internal demo only, not affiliated with, endorsed by, or a real Kakao product.',
   },
+  'c70eca54': {
+    slug: 'c70eca54',
+    company: '삼성카드',
+    brandMark: 'S',
+    vertical: 'banking',
+    page: {
+      file: 'c70eca54.html',
+      title: '카드대금 즉시결제 | 삼성카드',
+    },
+    theme: {
+      '--accent': '#2090FF',
+      '--ink': '#111111',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#101010',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: '삼성카드 고객센터',
+    disclaimer: 'NOT ACTUALLY A SAMSUNG CARD SITE — internal demo only, not affiliated with, endorsed by, or a real Samsung Card product.',
+  },
 };
 
 function getOncallSkin(slug) {
