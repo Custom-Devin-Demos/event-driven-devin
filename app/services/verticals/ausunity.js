@@ -44,14 +44,14 @@ const BENEFIT_SCHEDULES = {
   silver_plus_hospital_extras: {
     label: 'Silver Plus Hospital + Extras',
     hospitalExcess: 500,
-    extrasLimits: { dental: 800, optical: 250, physio: 500, pharmacy: 300, ambulance: 0 },
+    extrasLimits: { dental: 800, optical: 250, physio: 500, pharmacy: 300, ambulance: 0, other: 200 },
     extrasRebatePct: 60,
     assessmentQueue: 'health-standard',
   },
   basic_plus_hospital: {
     label: 'Basic Plus Hospital',
     hospitalExcess: 750,
-    extrasLimits: { dental: 0, optical: 0, physio: 0, pharmacy: 0, ambulance: 0 },
+    extrasLimits: { dental: 0, optical: 0, physio: 0, pharmacy: 0, ambulance: 0, other: 0 },
     extrasRebatePct: 0,
     assessmentQueue: 'health-standard',
   },
@@ -95,7 +95,23 @@ const CLAIM_CATEGORIES = {
     typicalCharge: 86,
     severity: 'low',
   },
+  other: {
+    label: 'Other extras',
+    limitKey: 'other',
+    benefitType: 'extras',
+    typicalCharge: 140,
+    severity: 'low',
+  },
 };
+
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseServiceDate(value) {
+  if (typeof value !== 'string' || !ISO_DATE_PATTERN.test(value)) return null;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) return null;
+  return parsed;
+}
 
 const ASSESSORS = [
   {
@@ -141,7 +157,7 @@ function calculateBenefitAssessment(membership, category, amount) {
     excessApplied = schedule.hospitalExcess;
     benefit = Math.max(amount - excessApplied, 0);
   } else {
-    const limit = schedule.extrasLimits[category.label.toLowerCase()] || 0;
+    const limit = schedule.extrasLimits[category.limitKey || category.label.toLowerCase()] || 0;
     benefit = Math.min(amount * (schedule.extrasRebatePct / 100), limit);
   }
 
@@ -186,12 +202,17 @@ async function submitClaim(data) {
   if (!serviceDate) {
     throw validationError('Date of service is required');
   }
+  if (!parseServiceDate(serviceDate)) {
+    throw validationError(`Date of service must be a valid YYYY-MM-DD date: ${serviceDate}`);
+  }
   if (!Number.isFinite(amount) || amount <= 0) {
     throw validationError('Claim amount must be greater than zero');
   }
 
-  const person = membership.persons.find((candidate) => candidate.id === data.personId)
-    || membership.persons[0];
+  const person = membership.persons.find((candidate) => candidate.id === data.personId);
+  if (!person) {
+    throw validationError(`Unknown person for membership ${membershipNumber}: ${data.personId || '(none)'}`);
+  }
 
   logger.info('Submitting Australian Unity health claim', {
     claimNumber,
@@ -205,7 +226,7 @@ async function submitClaim(data) {
 
   try {
     const assessment = calculateBenefitAssessment(membership, category, amount);
-    const paymentDate = new Date(`${serviceDate}T05:00:00.000Z`);
+    const paymentDate = new Date();
     paymentDate.setUTCDate(paymentDate.getUTCDate() + 2);
     const submittedAt = new Date().toISOString();
     const duration = Date.now() - startTime;
