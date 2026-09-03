@@ -576,6 +576,10 @@ const CUSTOMERS = {
     label: 'Publix',
     triggerMode: 'api',
   },
+  '0b6164d6': {
+    label: 'Databricks',
+    triggerMode: 'api',
+  },
 };
 
 /**

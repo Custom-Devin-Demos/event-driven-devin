@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compute &mdash; Databricks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --db-red: #FF3621; --db-red-dark: #C4280F;
+      --db-navy: #1B3139; --db-navy-light: #24424D;
+      --oat: #F9F7F4; --white: #FFFFFF;
+      --gray-100: #F2F4F5; --gray-200: #E4E7E9; --gray-300: #CDD2D4;
+      --gray-400: #97A3A8; --gray-500: #6B7B82; --gray-600: #4A5D64;
+      --ink: #11171C;
+      --green: #1B843F; --green-bg: #E8F5EC; --green-border: #B7E0C4;
+      --danger: #B4231A; --danger-bg: #FDF0EE; --danger-border: #F5C4BC;
+      --amber: #A5670A;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--oat); color: var(--ink); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.3s ease-out both; }
+
+    .shell { display: flex; min-height: 100vh; }
+
+    aside { width: 232px; flex: none; background: var(--db-navy); color: #fff; padding: 0.9rem 0; position: sticky; top: 0; height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 0.55rem; padding: 0 1rem 1rem; }
+    .brand svg { display: block; }
+    .brand span { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.01em; }
+    .side-search { margin: 0 1rem 0.9rem; background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 0.35rem 0.6rem; font-size: 0.76rem; color: rgba(255,255,255,0.55); }
+    .side-group { padding: 0.5rem 0; }
+    .side-group h4 { font-size: 0.63rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); padding: 0 1rem 0.35rem; font-weight: 600; }
+    .side-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.42rem 1rem; font-size: 0.83rem; color: rgba(255,255,255,0.82); text-decoration: none; border-left: 3px solid transparent; }
+    .side-item:hover { background: rgba(255,255,255,0.06); }
+    .side-item.active { background: rgba(255,255,255,0.1); border-left-color: var(--db-red); color: #fff; font-weight: 600; }
+    .side-item i { font-style: normal; width: 16px; text-align: center; opacity: 0.85; }
+
+    main { flex: 1; min-width: 0; }
+    header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 0.6rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+    header .crumbs { font-size: 0.8rem; color: var(--gray-500); }
+    header .crumbs b { color: var(--ink); font-weight: 600; }
+    header .workspace { margin-left: auto; display: flex; align-items: center; gap: 0.9rem; font-size: 0.78rem; color: var(--gray-500); }
+    header .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--db-navy); color: #fff; font-size: 0.68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+    .content { padding: 1.35rem 1.5rem 3rem; max-width: 1280px; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1rem; }
+    .page-head h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .page-head p { font-size: 0.8rem; color: var(--gray-500); margin-top: 0.15rem; }
+    .btn-primary { background: var(--db-red); color: #fff; border: none; border-radius: 5px; padding: 0.48rem 1rem; font-size: 0.81rem; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+    .btn-primary:hover { background: var(--db-red-dark); }
+
+    .tabs { display: flex; gap: 1.4rem; border-bottom: 1px solid var(--gray-200); margin-bottom: 1rem; }
+    .tabs span { font-size: 0.83rem; font-weight: 600; color: var(--gray-500); padding-bottom: 0.55rem; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tabs span.active { color: var(--ink); border-bottom-color: var(--db-red); }
+
+    .card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { text-align: left; font-size: 0.67rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--gray-500); font-weight: 700; padding: 0.65rem 1rem; background: var(--gray-100); border-bottom: 1px solid var(--gray-200); }
+    tbody td { padding: 0.7rem 1rem; font-size: 0.83rem; border-bottom: 1px solid var(--gray-200); color: var(--gray-600); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.selected { background: #FFF6F4; }
+    .cluster-name { font-weight: 600; color: var(--ink); }
+    .cluster-sub { font-size: 0.72rem; color: var(--gray-400); }
+    .state { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; font-weight: 600; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .state.running { color: var(--green); } .state.running .dot { background: var(--green); }
+    .state.terminated { color: var(--gray-400); } .state.terminated .dot { background: var(--gray-300); }
+    .pill { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; padding: 0.1rem 0.4rem; border-radius: 4px; background: #FFECE8; color: var(--db-red-dark); margin-left: 0.35rem; }
+    .mono { font-family: var(--mono); font-size: 0.78rem; }
+    .btn-ui { background: var(--white); border: 1px solid var(--gray-300); color: var(--ink); border-radius: 5px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+    .btn-ui:hover { border-color: var(--db-navy); }
+    .btn-ui:disabled { opacity: 0.55; cursor: default; }
+
+    .spark { margin-top: 1.5rem; }
+    .spark-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
+    .spark-head h2 { font-size: 1.05rem; font-weight: 700; }
+    .spark-head .ctx { font-size: 0.78rem; color: var(--gray-500); font-family: var(--mono); }
+    .spark-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--gray-200); margin-bottom: 0.9rem; }
+    .spark-tabs span { font-size: 0.78rem; font-weight: 600; color: var(--gray-500); padding: 0.4rem 0.7rem; border-radius: 5px 5px 0 0; cursor: pointer; }
+    .spark-tabs span.active { color: var(--ink); background: var(--white); border: 1px solid var(--gray-200); border-bottom-color: var(--white); margin-bottom: -1px; }
+
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+    .metric { background: var(--white); border: 1px solid var(--gray-200); border-radius: 8px; padding: 0.75rem 0.9rem; }
+    .metric label { display: block; font-size: 0.67rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-500); font-weight: 700; margin-bottom: 0.25rem; }
+    .metric .value { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+    .metric .sub { font-size: 0.72rem; color: var(--gray-400); }
+    .bar { height: 5px; border-radius: 3px; background: var(--gray-200); margin-top: 0.45rem; overflow: hidden; }
+    .bar div { height: 100%; background: var(--db-red); }
+
+    .result-box { display: none; margin-top: 1rem; border-radius: 8px; padding: 0.9rem 1.05rem; font-size: 0.83rem; border: 1px solid transparent; }
+    .result-box.error { display: block; background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+    .result-box.info { display: block; background: var(--gray-100); border-color: var(--gray-200); color: var(--gray-600); }
+    .result-title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result-detail { font-family: var(--mono); font-size: 0.77rem; }
+    .placeholder { color: var(--gray-400); font-size: 0.83rem; padding: 1.5rem 1rem; text-align: center; }
+    .foot { margin-top: 1.75rem; font-size: 0.7rem; color: var(--gray-400); }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="brand">
+      <svg width="22" height="24" viewBox="0 0 22 24" aria-hidden="true">
+        <path d="M11 0.8 21 6.2v3.1L11 3.9 1 9.3V6.2z" fill="#FF3621"/>
+        <path d="M11 8.2 21 13.6v3.1L11 11.3 1 16.7v-3.1z" fill="#FF3621"/>
+        <path d="M11 15.6 21 21v3.1L11 18.7 1 24.1V21z" fill="#FF3621"/>
+      </svg>
+      <span>databricks</span>
+    </div>
+    <div class="side-search">Search data, notebooks&hellip;</div>
+    <div class="side-group">
+      <a class="side-item" href="#"><i>&#9634;</i>New</a>
+      <a class="side-item" href="#"><i>&#9776;</i>Workspace</a>
+      <a class="side-item" href="#"><i>&#9737;</i>Recents</a>
+      <a class="side-item" href="#"><i>&#9635;</i>Catalog</a>
+    </div>
+    <div class="side-group">
+      <h4>Data Engineering</h4>
+      <a class="side-item" href="#"><i>&#9881;</i>Job Runs</a>
+      <a class="side-item" href="#"><i>&#8644;</i>Pipelines</a>
+      <a class="side-item active" href="#"><i>&#9632;</i>Compute</a>
+    </div>
+    <div class="side-group">
+      <h4>Machine Learning</h4>
+      <a class="side-item" href="#"><i>&#9678;</i>Experiments</a>
+      <a class="side-item" href="#"><i>&#9873;</i>Serving</a>
+    </div>
+    <div class="side-group">
+      <h4>SQL</h4>
+      <a class="side-item" href="#"><i>&#9998;</i>SQL Editor</a>
+      <a class="side-item" href="#"><i>&#9707;</i>Dashboards</a>
+    </div>
+  </aside>
+
+  <main>
+    <header>
+      <div class="crumbs">Data Science &amp; Engineering &nbsp;/&nbsp; <b>Compute</b></div>
+      <div class="workspace">
+        <span>field-eng-prod.cloud.databricks.com</span>
+        <span>US-East-1</span>
+        <div class="avatar">DE</div>
+      </div>
+    </header>
+
+    <div class="content fade-in">
+      <div class="page-head">
+        <div>
+          <h1>Compute</h1>
+          <p>All-purpose and job compute in this workspace. Select a cluster to open its Spark UI.</p>
+        </div>
+        <button class="btn-primary">Create compute</button>
+      </div>
+
+      <div class="tabs">
+        <span class="active">All-purpose compute</span>
+        <span>Job compute</span>
+        <span>SQL warehouses</span>
+        <span>Vector Search</span>
+        <span>Pools</span>
+        <span>Policies</span>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>State</th><th>Node type</th><th>Workers</th><th>Runtime</th><th>DBR uptime</th><th>Spark UI</th></tr>
+          </thead>
+          <tbody id="clusterRows">
+            <tr><td colspan="7" class="placeholder">Loading compute&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <section class="spark">
+        <div class="spark-head">
+          <h2>Spark UI</h2>
+          <span class="ctx" id="sparkCtx">no cluster selected</span>
+        </div>
+        <div class="spark-tabs">
+          <span>Jobs</span><span>Stages</span><span>Storage</span><span>Environment</span>
+          <span class="active">Executors</span><span>SQL / DataFrame</span>
+        </div>
+        <div id="sparkPanel">
+          <div class="card"><div class="placeholder">Select a cluster and choose <b>Open Spark UI</b> to load its executors.</div></div>
+        </div>
+        <div id="result" class="result-box"></div>
+      </section>
+
+      <div class="foot">Databricks Runtime metrics are sampled every 60 seconds. Executor totals reflect the workspace compute policy in effect at cluster creation.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+</script>
+<script>
+  const uptime = (minutes) => (minutes >= 60 ? Math.floor(minutes / 60) + 'h ' + (minutes % 60) + 'm' : minutes + 'm');
+
+  async function loadClusters() {
+    const res = await fetch('/api/0b6164d6/clusters');
+    const data = await res.json();
+    document.getElementById('clusterRows').innerHTML = data.clusters.map((cluster) => `
+      <tr data-row="${cluster.id}">
+        <td>
+          <div class="cluster-name">${cluster.name}${cluster.photon ? '<span class="pill">PHOTON</span>' : ''}</div>
+          <div class="cluster-sub mono">${cluster.id}</div>
+        </td>
+        <td><span class="state ${cluster.state.toLowerCase()}"><span class="dot"></span>${cluster.state}</span></td>
+        <td class="mono">${cluster.nodeTypeId}</td>
+        <td>${cluster.workers}</td>
+        <td>${cluster.runtime}</td>
+        <td>${cluster.state === 'RUNNING' ? uptime(cluster.uptimeMinutes) : '&mdash;'}</td>
+        <td><button class="btn-ui" data-cluster="${cluster.id}">Open Spark UI</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderExecutors(data) {
+    const u = data.utilization;
+    document.getElementById('sparkCtx').textContent = data.cluster.id + ' \u00b7 ' + data.cluster.runtime;
+    document.getElementById('sparkPanel').innerHTML = `
+      <div class="metrics">
+        <div class="metric"><label>Total cores</label><div class="value">${u.totalCores}</div><div class="sub">${u.coresInUse} in use</div>
+          <div class="bar"><div style="width:${Math.round(u.coreUtilization * 100)}%"></div></div></div>
+        <div class="metric"><label>Cluster memory</label><div class="value">${u.totalMemoryGb} GB</div><div class="sub">${u.totalDiskGb} GB local disk</div></div>
+        <div class="metric"><label>Active tasks</label><div class="value">${data.jobs.active ? u.coresInUse : 0}</div><div class="sub">${data.jobs.active} active job${data.jobs.active === 1 ? '' : 's'}</div></div>
+        <div class="metric"><label>Shuffle read / write</label><div class="value">${u.shuffleReadGb} GB</div><div class="sub">${u.shuffleWriteGb} GB written</div></div>
+        <div class="metric"><label>DBU / hour</label><div class="value">${u.dbuPerHour}</div><div class="sub">GC ${u.gcTimeSeconds}s</div></div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Executor ID</th><th>Host : Port</th><th>Node type</th><th>Cores</th><th>Storage memory</th><th>Active tasks</th><th>Complete</th><th>Failed</th></tr></thead>
+          <tbody>
+            ${data.executors.map((ex) => `
+              <tr>
+                <td class="mono">${ex.executorId}</td>
+                <td class="mono">${ex.host}</td>
+                <td class="mono">${ex.nodeType}</td>
+                <td>${ex.cores}</td>
+                <td>${ex.storageMemoryGb} GB</td>
+                <td>${ex.activeTasks}</td>
+                <td>${ex.completedTasks.toLocaleString('en-US')}</td>
+                <td>${ex.failedTasks}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  async function openSparkUi(button) {
+    const result = document.getElementById('result');
+    const clusterId = button.dataset.cluster;
+    document.querySelectorAll('#clusterRows tr').forEach((row) => row.classList.toggle('selected', row.dataset.row === clusterId));
+    button.disabled = true;
+    button.textContent = 'Loading...';
+    result.className = 'result-box';
+    try {
+      const res = await fetch('/api/0b6164d6/cluster-ui', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clusterId,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('sparkCtx').textContent = clusterId + ' \u00b7 render failed';
+        document.getElementById('sparkPanel').innerHTML = '<div class="card"><div class="placeholder">Spark UI unavailable for this cluster.</div></div>';
+        result.className = 'result-box ' + (data.errorClass === 'ValidationError' ? 'info' : 'error');
+        result.innerHTML = `<div class="result-title">${data.errorClass === 'ValidationError' ? 'Spark UI not available' : 'Spark UI failed to render'}</div><div class="result-detail">${data.errorClass}: ${data.error}</div>`;
+      } else {
+        renderExecutors(data);
+        result.className = 'result-box success';
+        result.innerHTML = `<div class="result-title">Spark UI loaded</div><div class="result-detail">${data.executors.length} executors \u00b7 ${data.utilization.totalCores} cores \u00b7 ${data.utilization.totalMemoryGb} GB across ${data.cluster.workers} workers</div>`;
+      }
+    } catch (err) {
+      result.className = 'result-box error';
+      result.innerHTML = `<div class="result-title">Network Error</div><div class="result-detail">${err.message}</div>`;
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Open Spark UI';
+    }
+  }
+
+  document.getElementById('clusterRows').addEventListener('click', (event) => {
+    const button = event.target.closest('.btn-ui');
+    if (button) openSparkUi(button);
+  });
+
+  loadClusters();
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
