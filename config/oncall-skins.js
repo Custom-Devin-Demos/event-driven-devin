@@ -795,6 +795,25 @@ const ONCALL_SKINS = {
     supportCenter: '삼성카드 고객센터',
     disclaimer: 'NOT ACTUALLY A SAMSUNG CARD SITE — internal demo only, not affiliated with, endorsed by, or a real Samsung Card product.',
   },
+  '9f7a8436': {
+    slug: '9f7a8436',
+    company: 'Mercedes-Benz',
+    brandMark: 'M',
+    vertical: 'telco',
+    page: {
+      file: '9f7a8436.html',
+      title: 'Mercedes me connect — Digital Extras',
+    },
+    theme: {
+      '--accent': '#0078D6',
+      '--ink': '#141414',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Mercedes-Benz Customer Assistance',
+    disclaimer: 'NOT ACTUALLY A MERCEDES-BENZ SITE — internal demo only, not affiliated with, endorsed by, or a real Mercedes-Benz product.',
+  },
 };
 
 function getOncallSkin(slug) {
