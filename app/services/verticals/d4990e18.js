@@ -113,7 +113,7 @@ function formatSearchResult(requestId, restaurants, basket, quote, fulfillmentPl
 
 async function processSearch(data) {
   const startTime = Date.now();
-  const requestId = uuidv4();
+  const requestId = data.requestId || uuidv4();
   const address = String(data.address || '1455 Market Street, San Francisco').trim();
   const deliveryWindow = data.deliveryWindow || 'asap';
 
@@ -216,6 +216,7 @@ async function processSearch(data) {
       });
     });
 
+    error.requestId = requestId;
     throw error;
   }
 }

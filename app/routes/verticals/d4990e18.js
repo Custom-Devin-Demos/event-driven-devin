@@ -17,20 +17,25 @@ router.get('/api/d4990e18/catalog', (_req, res) => {
 });
 
 router.post('/api/d4990e18/search', async (req, res) => {
+  const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body)
+    ? req.body
+    : {};
+
   try {
     const result = await processSearch({
-      address: req.body.address,
-      deliveryWindow: req.body.deliveryWindow,
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      address: body.address,
+      deliveryWindow: body.deliveryWindow,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
+      requestId: req.requestId,
     });
     res.json(result);
   } catch (error) {
     res.status(500).json({
       error: error.message,
       errorClass: error.name || 'Error',
-      requestId: req.requestId,
+      requestId: error.requestId || req.requestId,
     });
   }
 });
