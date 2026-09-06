@@ -1,7 +1,352 @@
-<style>#oncall-unique{min-height:44px!important;height:44px!important;width:44px!important;min-width:44px!important}</style>
-<style>#oncall-unique{min-height:44px;width:44px}</style>
 <!doctype html>
-<html lang="en-GB"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BMW ConnectedDrive Store | Digital packages</title><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"><style>
-*{box-sizing:border-box}body{margin:0;color:#262626;font:15px Roboto,Arial,sans-serif}header{height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;border-bottom:1px solid #D8D8D8}.brand{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:300}.roundel{width:32px;height:32px;border:2px solid #262626;border-radius:50%;background:conic-gradient(#1C69D4 0 25%,#fff 0 50%,#1C69D4 0 75%,#fff 0)}.nav{display:flex;gap:24px}.nav a{min-height:44px;display:flex;align-items:center}.hero{background:#262626;color:#fff;padding:62px 5vw 70px}.hero h1{font-size:clamp(38px,5vw,56px);font-weight:300;margin:10px 0}.hero p{color:#ddd;font-size:19px}.wrap{max-width:1120px;margin:auto;padding:44px 22px}.services{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:32px}.service{border:1px solid #D8D8D8;padding:17px;min-height:100px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:22px}.panel{border:1px solid #D8D8D8;padding:24px}.field{margin-bottom:15px}.field label{display:block;font-weight:500;margin-bottom:6px}.field select,.field input{width:100%;height:48px;border:1px solid #999;padding:0 10px;font:inherit}.btn{width:100%;height:50px;background:#262626;color:#fff;border:0;font:inherit;cursor:pointer}.result-box{margin-top:14px;padding:14px;border-left:4px solid #1C69D4}.success{background:#edf7ff}.error{background:#fff0f0;color:#952b2b}.side{background:#F2F2F2;padding:24px}.footer{background:#262626;color:#fff;padding:35px 5vw}.footer a{margin-right:20px}@media(max-width:760px){.nav a:nth-child(-n+3){display:none}.services{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.wrap{padding:30px 16px}}
-</style></head><body><header><a class="brand" href="#"><span class="roundel" aria-hidden="true"></span> BMW ConnectedDrive.</a><nav class="nav"><a href="#">Models</a><a href="#">Shop</a><a href="#">Electric</a><a href="#">Owners</a><a href="#">Log in</a></nav></header><section class="hero"><div>ConnectedDrive Store</div><h1>Digital packages.</h1><p>Explore services that make every journey more connected.</p></section><main class="wrap"><h2>Available services – please select:</h2><div class="services"><div class="service">Driving Assistant Plus</div><div class="service">BMW Drive Recorder</div><div class="service">High Beam Assistant</div><div class="service">Parking Assistant Professional</div><div class="service">BMW Remote Services</div></div><div class="layout"><section class="panel"><h2>Upgrade your digital package</h2><form id="upgradeForm"><div class="field"><label for="currentPlan">Current package</label><select id="currentPlan"><option value="BASIC-12">ConnectedDrive Basic — 12 months</option><option value="PLUS-24">Connected Package Plus — 24 months</option><option value="ULTRA-36">Connected Package Professional — 36 months</option><option value="FAMILY-PLUS-12">Connected Package Family — 12 months</option></select></div><div class="field"><label for="newPlan">New package</label><select id="newPlan"><option value="PLUS-24">Connected Package Plus — £119</option><option value="ULTRA-36">Connected Package Professional — £249</option><option value="UNLIMITED-24">Connected Package Unlimited — £399</option></select></div><div class="field"><label for="addon">Additional service</label><select id="addon"><option value="none">No additional service</option><option value="international">Real Time Traffic Information</option><option value="hotspot">Personal eSIM Hotspot</option><option value="insurance">BMW Service Inclusive</option></select></div><div class="field"><label for="promoCode">Voucher code (optional)</label><input id="promoCode" type="text"></div><button class="btn" id="submitBtn" type="submit">Purchase package</button><div id="result" class="result-box" role="status" aria-live="polite"></div></form></section><aside class="side"><h2>Connected services</h2><p>Digital packages can be activated for your vehicle in a few steps.</p><div id="liveSummary">Connected Package Plus — £119</div></aside></div></main><footer class="footer"><strong>BMW ConnectedDrive.</strong><p><a href="#">Provider</a><a href="#">Legal notice</a><a href="#">Privacy</a><a href="#">Contact</a></p></footer>
-<script>(function(){if(localStorage.getItem('devinOrgId')&&localStorage.getItem('devinUserId'))return;fetch('/api/config').then(r=>r.json()).then(c=>{if(c.lockOrg&&c.defaultOrgId)localStorage.setItem('devinOrgId',c.defaultOrgId);if(c.lockUser&&c.defaultUserId)localStorage.setItem('devinUserId',c.defaultUserId)}).catch(()=>{})})();const f=document.getElementById('upgradeForm'),p=document.getElementById('newPlan'),s=document.getElementById('liveSummary');function sync(){s.textContent=p.options[p.selectedIndex].textContent}p.addEventListener('change',sync);f.addEventListener('reset',sync);sync();f.addEventListener('submit',async e=>{e.preventDefault();const b=document.getElementById('submitBtn'),r=document.getElementById('result');b.disabled=true;r.className='result-box';try{const res=await fetch('/api/telco/upgrade',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accountId:'CUST-3001',currentPlanCode:document.getElementById('currentPlan').value,targetPlanCode:p.value,billingDay:15,devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});let d={};try{d=await res.json()}catch(_){}if(!res.ok){r.className='result-box error';r.textContent='Your package could not be activated right now. Your current package is unchanged.'}else{r.className='result-box success';r.textContent=`Package activated — ${d.plan}. Services are available in your vehicle within a few minutes.`}}catch(_){r.className='result-box error';r.textContent='Your package could not be activated right now. Your current package is unchanged.'}finally{b.disabled=false}});</script><script src="/session-cap-banner.js"></script></body></html>
+<html lang="en-GB">
+  <head>
+    <style>
+      #oncall-unique {
+        min-height: 44px !important;
+        height: 44px !important;
+        width: 44px !important;
+        min-width: 44px !important;
+      }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BMW ConnectedDrive Store | Digital packages</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: #262626;
+        font:
+          15px Roboto,
+          Arial,
+          sans-serif;
+      }
+      header {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 5vw;
+        border-bottom: 1px solid #d8d8d8;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 19px;
+        font-weight: 300;
+      }
+      .roundel {
+        width: 32px;
+        height: 32px;
+        border: 2px solid #262626;
+        border-radius: 50%;
+        background: conic-gradient(
+          #1c69d4 0 25%,
+          #fff 0 50%,
+          #1c69d4 0 75%,
+          #fff 0
+        );
+      }
+      .nav {
+        display: flex;
+        gap: 24px;
+      }
+      .nav a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+      .hero {
+        background: #262626;
+        color: #fff;
+        padding: 62px 5vw 70px;
+      }
+      .hero h1 {
+        font-size: clamp(38px, 5vw, 56px);
+        font-weight: 300;
+        margin: 10px 0;
+      }
+      .hero p {
+        color: #ddd;
+        font-size: 19px;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: auto;
+        padding: 44px 22px;
+      }
+      .services {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-bottom: 32px;
+      }
+      .service {
+        border: 1px solid #d8d8d8;
+        padding: 17px;
+        min-height: 100px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+      .panel {
+        border: 1px solid #d8d8d8;
+        padding: 24px;
+      }
+      .field {
+        margin-bottom: 15px;
+      }
+      .field label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .field select,
+      .field input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid #999;
+        padding: 0 10px;
+        font: inherit;
+      }
+      .btn {
+        width: 100%;
+        height: 50px;
+        background: #262626;
+        color: #fff;
+        border: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+      .result-box {
+        margin-top: 14px;
+        padding: 14px;
+        border-left: 4px solid #1c69d4;
+      }
+      .success {
+        background: #edf7ff;
+      }
+      .error {
+        background: #fff0f0;
+        color: #952b2b;
+      }
+      .side {
+        background: #f2f2f2;
+        padding: 24px;
+      }
+      .footer {
+        background: #262626;
+        color: #fff;
+        padding: 35px 5vw;
+      }
+      .footer a {
+        margin-right: 20px;
+      }
+      @media (max-width: 760px) {
+        .nav a:nth-child(-n + 3) {
+          display: none;
+        }
+        .services {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .wrap {
+          padding: 30px 16px;
+        }
+      }
+
+      :root {
+        --accent: #1c69d4;
+        --ink: #262626;
+        --chrome-bg: #262626;
+        --chrome-text: #ffffff;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      header a,
+      .head a,
+      nav a,
+      .nav a,
+      .utility a,
+      footer a,
+      .footer a {
+        color: inherit;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#"
+        ><span class="roundel" aria-hidden="true"></span> BMW ConnectedDrive.</a
+      >
+      <nav class="nav">
+        <a href="#">Models</a><a href="#">Shop</a><a href="#">Electric</a
+        ><a href="#">Owners</a><a href="#">Log in</a>
+      </nav>
+    </header>
+    <section class="hero">
+      <div>ConnectedDrive Store</div>
+      <h1>Digital packages.</h1>
+      <p>Explore services that make every journey more connected.</p>
+    </section>
+    <main class="wrap">
+      <h2>Available services – please select:</h2>
+      <div class="services">
+        <div class="service">Driving Assistant Plus</div>
+        <div class="service">BMW Drive Recorder</div>
+        <div class="service">High Beam Assistant</div>
+        <div class="service">Parking Assistant Professional</div>
+        <div class="service">BMW Remote Services</div>
+      </div>
+      <div class="layout">
+        <section class="panel">
+          <h2>Upgrade your digital package</h2>
+          <form id="upgradeForm">
+            <div class="field">
+              <label for="currentPlan">Current package</label
+              ><select id="currentPlan">
+                <option value="BASIC-12">
+                  ConnectedDrive Basic — 12 months
+                </option>
+                <option value="PLUS-24">
+                  Connected Package Plus — 24 months
+                </option>
+                <option value="ULTRA-36">
+                  Connected Package Professional — 36 months
+                </option>
+                <option value="FAMILY-PLUS-12">
+                  Connected Package Family — 12 months
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="newPlan">New package</label
+              ><select id="newPlan">
+                <option value="PLUS-24">Connected Package Plus — £119</option>
+                <option value="ULTRA-36">
+                  Connected Package Professional — £249
+                </option>
+                <option value="UNLIMITED-24">
+                  Connected Package Unlimited — £399
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="addon">Additional service</label
+              ><select id="addon">
+                <option value="none">No additional service</option>
+                <option value="international">
+                  Real Time Traffic Information
+                </option>
+                <option value="hotspot">Personal eSIM Hotspot</option>
+                <option value="insurance">BMW Service Inclusive</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="promoCode">Voucher code (optional)</label
+              ><input id="promoCode" type="text" />
+            </div>
+            <button class="btn" id="submitBtn" type="submit">
+              Purchase package
+            </button>
+            <div
+              id="result"
+              class="result-box"
+              role="status"
+              aria-live="polite"
+            ></div>
+          </form>
+        </section>
+        <aside class="side">
+          <h2>Connected services</h2>
+          <p>
+            Digital packages can be activated for your vehicle in a few steps.
+          </p>
+          <div id="liveSummary">Connected Package Plus — £119</div>
+        </aside>
+      </div>
+    </main>
+    <footer class="footer">
+      <strong>BMW ConnectedDrive.</strong>
+      <p>
+        <a href="#">Provider</a><a href="#">Legal notice</a
+        ><a href="#">Privacy</a><a href="#">Contact</a>
+      </p>
+    </footer>
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+      const f = document.getElementById("upgradeForm"),
+        p = document.getElementById("newPlan"),
+        s = document.getElementById("liveSummary");
+      function sync() {
+        s.textContent = p.options[p.selectedIndex].textContent;
+      }
+      p.addEventListener("change", sync);
+      f.addEventListener("reset", sync);
+      sync();
+      f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const b = document.getElementById("submitBtn"),
+          r = document.getElementById("result");
+        b.disabled = true;
+        r.className = "result-box";
+        try {
+          const res = await fetch("/api/telco/upgrade", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              accountId: "CUST-3001",
+              currentPlanCode: document.getElementById("currentPlan").value,
+              targetPlanCode: p.value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem("devinUserId") || "",
+              devinOrgId: localStorage.getItem("devinOrgId") || "",
+              devinEmail: localStorage.getItem("devinEmail") || "",
+            }),
+          });
+          let d = {};
+          try {
+            d = await res.json();
+          } catch (_) {}
+          if (!res.ok) {
+            r.className = "result-box error";
+            r.textContent =
+              "Your package could not be activated right now. Your current package is unchanged.";
+          } else {
+            r.className = "result-box success";
+            r.textContent = `Package activated — ${d.plan}. Services are available in your vehicle within a few minutes.`;
+          }
+        } catch (_) {
+          r.className = "result-box error";
+          r.textContent =
+            "Your package could not be activated right now. Your current package is unchanged.";
+        } finally {
+          b.disabled = false;
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

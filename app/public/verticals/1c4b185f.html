@@ -1,9 +1,343 @@
-<script>window.addEventListener('DOMContentLoaded',()=>{const a=document.getElementById('amount');if(a)a.step='any'});</script>
-<style>html,body{overflow-x:hidden}.footer{overflow-wrap:anywhere}</style>
-<style>#oncall-unique{min-height:44px!important;height:44px!important;width:44px!important;min-width:44px!important}</style>
-<style>#oncall-unique{min-height:44px;width:44px}</style>
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Make a payment | Stellantis Financial Services</title><link href="https://fonts.googleapis.com/css2?family=Encode+Sans+Condensed:wght@400;500;600&display=swap" rel="stylesheet"><style>
-*{box-sizing:border-box}body{margin:0;color:#212529;font:16px 'Encode Sans Condensed',Arial,sans-serif}header{height:80px;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;border-bottom:1px solid #ddd}.brand{color:#243882;font-weight:600;letter-spacing:.18em;font-size:18px}.brand small{display:block;letter-spacing:.08em;font-size:10px}.nav{display:flex;gap:24px}.nav a{min-height:44px;display:flex;align-items:center}.hero{padding:58px 5vw;background:#f4f6fb}.hero h1{font-size:clamp(36px,5vw,54px);font-weight:500;margin:10px 0;color:#243882}.wrap{max-width:1120px;margin:auto;padding:42px 22px}.summary{padding:20px;border-left:5px solid #243882;background:#f4f6fb;margin-bottom:26px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}.panel{border:1px solid #d4d6da;padding:24px}.field{margin-bottom:15px}.field label{display:block;font-weight:500;margin-bottom:6px}.field select,.field input{width:100%;height:48px;border:1px solid #979ba1;padding:0 12px;font:inherit}.btn{width:100%;height:50px;border:0;background:#243882;color:#fff;font:inherit;font-weight:600;cursor:pointer}.result-box{margin-top:14px;padding:14px}.success{background:#e8f7ed;color:#1c6537}.error{background:#fff0f0;color:#942a2a}.side img{width:100%;height:220px;object-fit:cover}.footer{padding:30px 5vw;border-top:1px solid #ddd;color:#505050}.legal{background:#282B34;color:#fff;padding:17px 5vw}@media(max-width:760px){.nav a:nth-child(-n+3){display:none}.layout{grid-template-columns:1fr}.wrap{padding:30px 16px}}
-</style></head><body><header><a class="brand" href="#">⌃<span> STELLANTIS<small>FINANCIAL SERVICES</small></span></a><nav class="nav"><a href="#">My Account</a><a href="#">Payments</a><a href="#">Vehicles</a><a href="#">Support</a><a href="#">EN</a></nav></header><section class="hero"><div>Stellantis Financial Services</div><h1>Make a payment</h1><p>Manage your account and make a secure payment.</p></section><main class="wrap"><div class="summary"><strong>Jeep Grand Cherokee — Retail Contract ••••4821</strong><br>Next payment due · Amount due $842.50</div><div class="layout"><section class="panel"><h2>Payment details</h2><form id="transferForm"><div class="field"><label for="fromAccount">Pay from</label><select id="fromAccount"><option value="ACCT-1001">Checking ••••1042</option><option value="ACCT-1002">Savings ••••2211</option></select></div><div class="field"><label for="toAccount">Pay to</label><select id="toAccount"><option value="ACCT-1002">Retail Contract ••••4821</option><option value="ACCT-1001">Lease Agreement ••••7734</option><option value="ACCT-EXT-001">Extra principal — Retail Contract ••••4821</option></select></div><div class="field"><label for="amount">Payment amount ($)</label><input id="amount" type="number" min="1" value="842.50" required></div><div class="field"><label for="accountTier">Account type</label><select id="accountTier"><option value="premium">Preferred</option><option value="standard">Standard</option><option value="basic">Basic</option></select></div><button class="btn" id="submitBtn" type="submit">Submit payment</button><div id="result" class="result-box" role="status" aria-live="polite"></div></form></section><aside class="panel"><h2>Payment summary</h2><p>Review the destination and amount before submitting.</p><div id="liveSummary">Payment to Retail Contract ••••4821 · $842.50</div><img src="https://www.stellantis.com/content/dam/stellantis-corporate/home-page-carousel/STLA-One.jpg" alt="Vehicle" onerror="this.style.display='none'"></aside></div></main><footer class="footer"><strong>Stellantis Financial Services</strong><p>Abarth · Alfa Romeo · Chrysler · Citroën · Dodge · DS · Fiat · Jeep · Lancia · Maserati · Opel · Peugeot · Ram · Vauxhall</p></footer><div class="legal">Customer care · Privacy · Legal notice</div>
-<script>(function(){if(localStorage.getItem('devinOrgId')&&localStorage.getItem('devinUserId'))return;fetch('/api/config').then(r=>r.json()).then(c=>{if(c.lockOrg&&c.defaultOrgId)localStorage.setItem('devinOrgId',c.defaultOrgId);if(c.lockUser&&c.defaultUserId)localStorage.setItem('devinUserId',c.defaultUserId)}).catch(()=>{})})();const f=document.getElementById('transferForm'),to=document.getElementById('toAccount'),amt=document.getElementById('amount'),s=document.getElementById('liveSummary');function sync(){s.textContent=`Payment to ${to.options[to.selectedIndex].textContent} · $${amt.value}`}[to,amt].forEach(x=>x.addEventListener('input',sync));f.addEventListener('reset',sync);sync();f.addEventListener('submit',async e=>{e.preventDefault();const b=document.getElementById('submitBtn'),r=document.getElementById('result');b.disabled=true;r.className='result-box';try{const res=await fetch('/api/banking/transfer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fromAccount:document.getElementById('fromAccount').value,toAccount:to.value,amount:parseFloat(amt.value),accountTier:document.getElementById('accountTier').value,devinUserId:localStorage.getItem('devinUserId')||'',devinOrgId:localStorage.getItem('devinOrgId')||'',devinEmail:localStorage.getItem('devinEmail')||''})});let d={};try{d=await res.json()}catch(_){}if(!res.ok){r.className='result-box error';r.textContent="We couldn't process your payment right now. No funds were moved from your account."}else{r.className='result-box success';r.textContent=`Payment scheduled — $${amt.value} to ${to.options[to.selectedIndex].textContent}. Confirmation ${d.receipt&&d.receipt.receiptId||d.transactionId||''}.`}}catch(_){r.className='result-box error';r.textContent="We couldn't process your payment right now. No funds were moved from your account."}finally{b.disabled=false}});</script><script src="/session-cap-banner.js"></script></body></html>
+<html lang="en">
+  <head>
+    <style>
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      .footer {
+        overflow-wrap: anywhere;
+      }
+    </style>
+    <style>
+      #oncall-unique {
+        min-height: 44px !important;
+        height: 44px !important;
+        width: 44px !important;
+        min-width: 44px !important;
+      }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Make a payment | Stellantis Financial Services</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Encode+Sans+Condensed:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: #212529;
+        font:
+          16px "Encode Sans Condensed",
+          Arial,
+          sans-serif;
+      }
+      header {
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 5vw;
+        border-bottom: 1px solid #ddd;
+      }
+      .brand {
+        color: #243882;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        font-size: 18px;
+      }
+      .brand small {
+        display: block;
+        letter-spacing: 0.08em;
+        font-size: 10px;
+      }
+      .nav {
+        display: flex;
+        gap: 24px;
+      }
+      .nav a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+      .hero {
+        padding: 58px 5vw;
+        background: #f4f6fb;
+      }
+      .hero h1 {
+        font-size: clamp(36px, 5vw, 54px);
+        font-weight: 500;
+        margin: 10px 0;
+        color: #243882;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: auto;
+        padding: 42px 22px;
+      }
+      .summary {
+        padding: 20px;
+        border-left: 5px solid #243882;
+        background: #f4f6fb;
+        margin-bottom: 26px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .panel {
+        border: 1px solid #d4d6da;
+        padding: 24px;
+      }
+      .field {
+        margin-bottom: 15px;
+      }
+      .field label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .field select,
+      .field input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid #979ba1;
+        padding: 0 12px;
+        font: inherit;
+      }
+      .btn {
+        width: 100%;
+        height: 50px;
+        border: 0;
+        background: #243882;
+        color: #fff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .result-box {
+        margin-top: 14px;
+        padding: 14px;
+      }
+      .success {
+        background: #e8f7ed;
+        color: #1c6537;
+      }
+      .error {
+        background: #fff0f0;
+        color: #942a2a;
+      }
+      .side img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+      }
+      .footer {
+        padding: 30px 5vw;
+        border-top: 1px solid #ddd;
+        color: #505050;
+      }
+      .legal {
+        background: #282b34;
+        color: #fff;
+        padding: 17px 5vw;
+      }
+      @media (max-width: 760px) {
+        .nav a:nth-child(-n + 3) {
+          display: none;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .wrap {
+          padding: 30px 16px;
+        }
+      }
+
+      :root {
+        --accent: #243882;
+        --ink: #212529;
+        --chrome-bg: #282b34;
+        --chrome-text: #ffffff;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      header a,
+      .head a,
+      nav a,
+      .nav a,
+      .utility a,
+      footer a,
+      .footer a {
+        color: inherit;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#"
+        >⌃<span> STELLANTIS<small>FINANCIAL SERVICES</small></span></a
+      >
+      <nav class="nav">
+        <a href="#">My Account</a><a href="#">Payments</a
+        ><a href="#">Vehicles</a><a href="#">Support</a><a href="#">EN</a>
+      </nav>
+    </header>
+    <section class="hero">
+      <div>Stellantis Financial Services</div>
+      <h1>Make a payment</h1>
+      <p>Manage your account and make a secure payment.</p>
+    </section>
+    <main class="wrap">
+      <div class="summary">
+        <strong>Jeep Grand Cherokee — Retail Contract ••••4821</strong
+        ><br />Next payment due · Amount due $842.50
+      </div>
+      <div class="layout">
+        <section class="panel">
+          <h2>Payment details</h2>
+          <form id="transferForm">
+            <div class="field">
+              <label for="fromAccount">Pay from</label
+              ><select id="fromAccount">
+                <option value="ACCT-1001">Checking ••••1042</option>
+                <option value="ACCT-1002">Savings ••••2211</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">Pay to</label
+              ><select id="toAccount">
+                <option value="ACCT-1002">Retail Contract ••••4821</option>
+                <option value="ACCT-1001">Lease Agreement ••••7734</option>
+                <option value="ACCT-EXT-001">
+                  Extra principal — Retail Contract ••••4821
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="amount">Payment amount ($)</label
+              ><input
+                id="amount"
+                type="number"
+                min="1"
+                value="842.50"
+                required
+              />
+            </div>
+            <div class="field">
+              <label for="accountTier">Account type</label
+              ><select id="accountTier">
+                <option value="premium">Preferred</option>
+                <option value="standard">Standard</option>
+                <option value="basic">Basic</option>
+              </select>
+            </div>
+            <button class="btn" id="submitBtn" type="submit">
+              Submit payment
+            </button>
+            <div
+              id="result"
+              class="result-box"
+              role="status"
+              aria-live="polite"
+            ></div>
+          </form>
+        </section>
+        <aside class="panel">
+          <h2>Payment summary</h2>
+          <p>Review the destination and amount before submitting.</p>
+          <div id="liveSummary">
+            Payment to Retail Contract ••••4821 · $842.50
+          </div>
+          <img
+            src="https://www.stellantis.com/content/dam/stellantis-corporate/home-page-carousel/STLA-One.jpg"
+            alt="Vehicle"
+            onerror="this.style.display='none'"
+          />
+        </aside>
+      </div>
+    </main>
+    <footer class="footer">
+      <strong>Stellantis Financial Services</strong>
+      <p>
+        Abarth · Alfa Romeo · Chrysler · Citroën · Dodge · DS · Fiat · Jeep ·
+        Lancia · Maserati · Opel · Peugeot · Ram · Vauxhall
+      </p>
+    </footer>
+    <div class="legal">Customer care · Privacy · Legal notice</div>
+    <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+      const f = document.getElementById("transferForm"),
+        to = document.getElementById("toAccount"),
+        amt = document.getElementById("amount"),
+        s = document.getElementById("liveSummary");
+      function sync() {
+        s.textContent = `Payment to ${to.options[to.selectedIndex].textContent} · $${amt.value}`;
+      }
+      [to, amt].forEach((x) => x.addEventListener("input", sync));
+      f.addEventListener("reset", sync);
+      sync();
+      f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const b = document.getElementById("submitBtn"),
+          r = document.getElementById("result");
+        b.disabled = true;
+        r.className = "result-box";
+        try {
+          const res = await fetch("/api/banking/transfer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fromAccount: document.getElementById("fromAccount").value,
+              toAccount: to.value,
+              amount: parseFloat(amt.value),
+              accountTier: document.getElementById("accountTier").value,
+              devinUserId: localStorage.getItem("devinUserId") || "",
+              devinOrgId: localStorage.getItem("devinOrgId") || "",
+              devinEmail: localStorage.getItem("devinEmail") || "",
+            }),
+          });
+          let d = {};
+          try {
+            d = await res.json();
+          } catch (_) {}
+          if (!res.ok) {
+            r.className = "result-box error";
+            r.textContent =
+              "We couldn't process your payment right now. No funds were moved from your account.";
+          } else {
+            r.className = "result-box success";
+            r.textContent = `Payment scheduled — $${amt.value} to ${to.options[to.selectedIndex].textContent}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}.`;
+          }
+        } catch (_) {
+          r.className = "result-box error";
+          r.textContent =
+            "We couldn't process your payment right now. No funds were moved from your account.";
+        } finally {
+          b.disabled = false;
+        }
+      });
+      window.addEventListener("DOMContentLoaded", () => {
+        const a = document.getElementById("amount");
+        if (a) a.step = "any";
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
