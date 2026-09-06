@@ -396,17 +396,14 @@
               devinEmail: localStorage.getItem("devinEmail") || "",
             }),
           });
-          let d = {};
-          try {
-            d = await res.json();
-          } catch (_) {}
+          await res.json().catch(function () {});
           if (!res.ok) {
             r.className = "result-box error";
             r.textContent =
               "We couldn't update your subscription right now. Your current plan is unchanged.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Subscription updated — ${d.plan}, $${d.monthlyTotal}/mo. Your eTextbooks are available now.`;
+            r.textContent = `Subscription updated — ${plan.options[plan.selectedIndex].textContent.trim()}. Your eTextbooks are available now.`;
           }
         } catch (_) {
           r.className = "result-box error";

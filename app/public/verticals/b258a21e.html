@@ -322,17 +322,14 @@
               devinEmail: localStorage.getItem("devinEmail") || "",
             }),
           });
-          let d = {};
-          try {
-            d = await res.json();
-          } catch (_) {}
+          await res.json().catch(function () {});
           if (!res.ok) {
             r.className = "result-box error";
             r.textContent =
               "Der Tarifwechsel konnte gerade nicht abgeschlossen werden. Ihr aktueller Tarif bleibt bestehen.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Tarifwechsel bestätigt — ${d.plan}, ${d.monthlyTotal} €/mtl. Der neue Tarif ist ab sofort aktiv.`;
+            r.textContent = `Tarifwechsel bestätigt — ${p.options[p.selectedIndex].textContent.trim()}. Der neue Tarif ist ab sofort aktiv.`;
           }
         } catch (_) {
           r.className = "result-box error";
