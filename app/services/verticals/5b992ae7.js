@@ -50,6 +50,12 @@ const ENGINE_PROGRAMS = {
     family: 'business',
     inService: 40,
   },
+  rise: {
+    code: 'rise',
+    name: 'CFM RISE',
+    family: 'narrowbody',
+    inService: 0,
+  },
 };
 
 /**
@@ -123,15 +129,15 @@ function resolveSupportRouting(profile) {
  * Build the engine coverage quoted back to the requester for a routing entry.
  */
 function buildEngineCoverage(routing) {
-  return routing.programs.map((code) => {
-    const program = ENGINE_PROGRAMS[code];
-    return {
+  return (routing.programs || [])
+    .map((code) => ENGINE_PROGRAMS[code])
+    .filter(Boolean)
+    .map((program) => ({
       code: program.code,
       name: program.name,
       family: program.family,
       inService: program.inService,
-    };
-  });
+    }));
 }
 
 /**
