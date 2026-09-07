@@ -15,7 +15,7 @@ The app starts without external services (Sentry, Datadog, Slack are optional). 
 - `/` — Hub landing page with vertical cards
 - `/retail` — Retail storefront with checkout demo
 - `/banking`, `/insurance`, `/cpg`, etc. — Industry vertical demo pages
-- `/{uuid}` — Customer-specific vertical pages (UUIDs map to customers, see `config/customers.js`)
+- `/{uuid}` — Customer-specific vertical pages (UUIDs map to customers, see `config/customers/<uuid>.js`)
 
 ## Key API Endpoints
 
@@ -60,7 +60,7 @@ The `/retail` page's "Place Order" button triggers `POST /api/storefront/checkou
 
 ## Customer UUID Mapping
 
-Customer names are anonymized as UUIDs in routes and config. The mapping is in `config/customers.js`. Customer-specific env vars use `_<UUID>` suffixes (e.g., `DEVIN_API_KEY_A6B38C63`).
+Customer names are anonymized as UUIDs in routes and config. The mapping is one file per customer under `config/customers/`, loaded by `config/customers.js`. Customer-specific env vars use `_<UUID>` suffixes (e.g., `DEVIN_API_KEY_A6B38C63`).
 
 ## Lint
 

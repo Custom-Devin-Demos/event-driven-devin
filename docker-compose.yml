@@ -11,6 +11,12 @@ services:
     volumes:
       # Persist webinar signup capture across rebuilds/redeploys
       - ./data:/app/data
+    # Every variable in .env reaches the container (per-customer
+    # DEVIN_SERVICE_KEY_<SLUG> / DEVIN_USER_ID_<SLUG> included), so a new
+    # customer needs no entry below. Explicit entries still win for defaults.
+    env_file:
+      - path: .env
+        required: false
     environment:
       - PORT=3000
       - NODE_ENV=production
