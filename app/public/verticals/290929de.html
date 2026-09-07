@@ -308,6 +308,11 @@
         gap: 22px;
         margin: 14px 0 18px;
       }
+      .foot-links a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+      }
       .foot small {
         opacity: 0.75;
         font-size: 13px;
@@ -449,9 +454,7 @@
               <div class="sum-row"><span>סכום</span><span>₪1,000</span></div>
               <div class="sum-row"><span>עמלה</span><span>ללא עמלה</span></div>
             </div>
-            <p class="aside-note">
-              יתרה זמינה בעובר ושב ••••1042: ₪25,430.00
-            </p>
+            <p class="aside-note" id="balanceNote"></p>
             <div class="quick">
               <a href="#">תנועות אחרונות</a>
               <a href="#">הפקדת שיק באפליקציה</a>
@@ -498,9 +501,13 @@
       const toSel = document.getElementById('toAccount');
       const amountEl = document.getElementById('amount');
       const summary = document.getElementById('liveSummary');
+      const balanceNote = document.getElementById('balanceNote');
       const fmt = (n) => '₪' + Number(n || 0).toLocaleString('he-IL');
+      const BALANCES = { 'ACCT-1001': 25430.0, 'ACCT-1004': 108250.75 };
 
       function sync() {
+        const fromLabel = fromSel.options[fromSel.selectedIndex].textContent;
+        balanceNote.textContent = `יתרה זמינה ב${fromLabel}: ${fmt(BALANCES[fromSel.value])}`;
         summary.innerHTML =
           `<div class="sum-row"><span>מחשבון</span><span>${fromSel.options[fromSel.selectedIndex].textContent}</span></div>` +
           `<div class="sum-row"><span>לחשבון</span><span>${toSel.options[toSel.selectedIndex].textContent}</span></div>` +
@@ -515,6 +522,7 @@
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const box = document.getElementById('result');
+        const submittedAmount = parseFloat(amountEl.value);
         btn.disabled = true;
         box.className = 'result-box';
         box.textContent = '';
@@ -525,7 +533,7 @@
             body: JSON.stringify({
               fromAccount: fromSel.value,
               toAccount: toSel.value,
-              amount: parseFloat(amountEl.value),
+              amount: submittedAmount,
               accountTier: document.getElementById('accountTier').value,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
@@ -542,7 +550,7 @@
           } else {
             const ref = (data.receipt && data.receipt.receiptId) || data.transactionId || '';
             box.className = 'result-box success';
-            box.textContent = `ההעברה בוצעה — ${fmt(amountEl.value)}. אסמכתא ${ref}.`;
+            box.textContent = `ההעברה בוצעה — ${fmt(submittedAmount)}. אסמכתא ${ref}.`;
           }
         } catch (_) {
           box.className = 'result-box error';
