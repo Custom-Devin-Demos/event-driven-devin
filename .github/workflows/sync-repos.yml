@@ -1,0 +1,162 @@
+name: Sync to sibling repo
+
+# COG-GTM/event-driven-devin and Custom-Devin-Demos/event-driven-devin both
+# deploy to devindemos.com. Every push to main here is offered to the other
+# repo as a PR from branch `sync/from-<this-org>`; the PR is merged
+# automatically when GitHub reports it mergeable, and left open (with a Slack
+# ping + optional Devin session) when it conflicts.
+#
+# The same file lives in both repos. Termination: the job is a no-op when the
+# other repo's main already has an identical tree, so a merged sync PR does
+# not bounce back.
+#
+# Secret (per repo): SYNC_GH_TOKEN — a token with Contents: RW + Pull requests:
+# RW on the *other* repo. Fine-grained PATs are per-org, so each repo carries a
+# token for the opposite org under the same secret name.
+# Optional: SLACK_BOT_TOKEN + SLACK_CHANNEL_ID (conflict alert),
+#           DEVIN_API_KEY (open a Devin session to resolve the conflict).
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: sync-repos
+  cancel-in-progress: false
+
+env:
+  REPO_A: COG-GTM/event-driven-devin
+  REPO_B: Custom-Devin-Demos/event-driven-devin
+
+jobs:
+  sync:
+    name: Open/merge sync PR in the sibling repo
+    runs-on: ubuntu-latest
+    if: github.repository == 'COG-GTM/event-driven-devin' || github.repository == 'Custom-Devin-Demos/event-driven-devin'
+    steps:
+      - name: Checkout main (full history)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve sibling repo
+        id: target
+        run: |
+          if [ "$GITHUB_REPOSITORY" = "$REPO_A" ]; then TARGET="$REPO_B"; else TARGET="$REPO_A"; fi
+          echo "repo=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "branch=sync/from-${GITHUB_REPOSITORY_OWNER}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch sibling main
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_GH_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::SYNC_GH_TOKEN is not set in this repo's Actions secrets"; exit 1
+          fi
+          git remote add sibling "https://x-access-token:${GH_TOKEN}@github.com/${{ steps.target.outputs.repo }}.git"
+          git fetch --no-tags sibling main
+
+      - name: Decide whether a sync is needed
+        id: decide
+        run: |
+          if git diff --quiet sibling/main HEAD; then
+            echo "sibling main already has an identical tree — nothing to sync"
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          elif git merge-base --is-ancestor HEAD sibling/main; then
+            echo "sibling main already contains this commit — nothing to sync"
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push our main to the sibling's sync branch
+        if: steps.decide.outputs.needed == 'true'
+        run: |
+          # The sync branch is owned by this workflow, so replacing it is safe.
+          git push --force sibling "HEAD:refs/heads/${{ steps.target.outputs.branch }}"
+
+      - name: Open or reuse the sync PR
+        if: steps.decide.outputs.needed == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_GH_TOKEN }}
+          TARGET: ${{ steps.target.outputs.repo }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+        run: |
+          NUM=$(gh pr list --repo "$TARGET" --head "$BRANCH" --base main --state open --json number --jq '.[0].number // empty')
+          SHORT=${GITHUB_SHA:0:7}
+          if [ -z "$NUM" ]; then
+            BODY=$(printf '%s\n' \
+              "## Summary" \
+              "Automated sync of \`${GITHUB_REPOSITORY}\` main (\`${GITHUB_SHA}\`) into this repo so both sources of devindemos.com stay identical." \
+              "" \
+              "- Merged automatically when mergeable." \
+              "- If this PR shows conflicts, resolve them on branch \`${BRANCH}\` (keep both sides for anything under \`app/routes/verticals\`, \`app/public/verticals\`, \`app/services/verticals\`, \`config/customers\`), run \`npm run lint && npm test\`, and merge." \
+              "" \
+              "Triggered by ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
+            NUM=$(gh pr create --repo "$TARGET" --base main --head "$BRANCH" \
+              --title "sync: ${GITHUB_REPOSITORY} main @ ${SHORT}" \
+              --body "$BODY" | grep -oE '[0-9]+$')
+            echo "opened PR #$NUM in $TARGET"
+          else
+            echo "reusing open PR #$NUM in $TARGET (branch updated)"
+          fi
+          echo "number=$NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Merge when mergeable
+        if: steps.decide.outputs.needed == 'true'
+        id: merge
+        env:
+          GH_TOKEN: ${{ secrets.SYNC_GH_TOKEN }}
+          TARGET: ${{ steps.target.outputs.repo }}
+          NUM: ${{ steps.pr.outputs.number }}
+        run: |
+          STATE=UNKNOWN
+          for _ in $(seq 1 12); do
+            STATE=$(gh pr view "$NUM" --repo "$TARGET" --json mergeable --jq .mergeable)
+            [ "$STATE" != "UNKNOWN" ] && break
+            sleep 5
+          done
+          echo "mergeable=$STATE"
+          echo "state=$STATE" >> "$GITHUB_OUTPUT"
+          case "$STATE" in
+            MERGEABLE)
+              # --auto waits for required checks when branch protection has them; fall
+              # back to an immediate merge when auto-merge is not enabled on the repo.
+              gh pr merge "$NUM" --repo "$TARGET" --merge --auto \
+                || gh pr merge "$NUM" --repo "$TARGET" --merge
+              ;;
+            CONFLICTING)
+              echo "::warning::sync PR #$NUM in $TARGET has conflicts and needs a human or Devin"
+              ;;
+            *)
+              echo "::warning::mergeability of PR #$NUM in $TARGET still $STATE; leaving it open"
+              ;;
+          esac
+
+      - name: Alert on conflict
+        if: steps.decide.outputs.needed == 'true' && steps.merge.outputs.state == 'CONFLICTING'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          TARGET: ${{ steps.target.outputs.repo }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+          NUM: ${{ steps.pr.outputs.number }}
+        run: |
+          PR_URL="https://github.com/$TARGET/pull/$NUM"
+          if [ -n "$SLACK_BOT_TOKEN" ] && [ -n "$SLACK_CHANNEL_ID" ]; then
+            curl -s -o /dev/null -X POST https://slack.com/api/chat.postMessage \
+              -H "Authorization: Bearer $SLACK_BOT_TOKEN" -H 'content-type: application/json' \
+              -d "$(jq -cn --arg c "$SLACK_CHANNEL_ID" --arg t ":warning: repo sync conflict: $GITHUB_REPOSITORY main could not be merged into $TARGET — $PR_URL" '{channel:$c,text:$t}')"
+          fi
+          if [ -n "$DEVIN_API_KEY" ]; then
+            PROMPT="Resolve the merge conflicts on branch $BRANCH in $TARGET (PR $PR_URL). It is an automated sync of $GITHUB_REPOSITORY main; both repos deploy to the same host, so keep BOTH sides for anything under app/routes/verticals, app/public/verticals, app/services/verticals, config/customers, docker-compose.yml and nginx/nginx.conf. Run npm run lint and npm test, push the resolution to the same branch, and merge the PR."
+            curl -s -o /dev/null -X POST https://api.devin.ai/v1/sessions \
+              -H "Authorization: Bearer $DEVIN_API_KEY" -H 'content-type: application/json' \
+              -d "$(jq -cn --arg p "$PROMPT" --arg t "sync conflict: $TARGET" '{prompt:$p,title:$t}')"
+          fi

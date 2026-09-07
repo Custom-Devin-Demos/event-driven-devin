@@ -183,13 +183,17 @@ grep '<SLUG_UPPER>' .env
 DEPLOY
 ```
 
-### Step 2: Rebuild and Restart the Container
+### Step 2: Let CI deploy the code, then restart for the new env vars
+Do **not** copy/extract code onto the host yourself. Merging to `main` runs the
+`Deploy to EC2` workflow, which hands the tree to `scripts/deploy-ec2.sh` on the
+host (lock, backup, mirror without deleting other verticals, health + smoke of
+every slug, rollback on failure). Wait for that run to go green
+(`git_pr_checks` / the Actions tab), then restart `checkout-api` so it picks up
+the `.env` additions from Step 1:
 ```bash
 ssh -i /tmp/ec2_key ubuntu@<EC2_IP> bash -s <<'RESTART'
 cd /home/ubuntu
-docker compose up -d --build --no-deps checkout-api
-
-# Wait for health check
+docker compose up -d --no-deps checkout-api
 for i in $(seq 1 20); do
   STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health || true)
   [ "$STATUS" = "200" ] && echo "Healthy on attempt $i" && break
@@ -197,6 +201,8 @@ for i in $(seq 1 20); do
 done
 RESTART
 ```
+If the workflow is red (or its secrets are missing in this repo), run the manual
+path in AGENTS.md "EC2 Redeploy Steps" — it uses the same script.
 
 ### Step 3: Verify Env Vars in Container
 ```bash

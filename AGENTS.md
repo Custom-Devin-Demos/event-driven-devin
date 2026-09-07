@@ -474,32 +474,23 @@ After the initial setup, certificate renewal is fully automatic (certbot checks 
 
 ### EC2 Redeploy Steps
 
-Deployments are automated via GitHub Actions on push to `main`. For manual redeploy:
+Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/home/ubuntu/incoming/<sha>` and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
 
 ```bash
-# 1. Build tarball from latest main (locally or on your dev machine)
-git checkout main && git pull origin main
-tar czf /tmp/acme-demo.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
-
-# 2. Back up the .env on EC2 BEFORE extracting (critical — secrets live here)
-ssh ubuntu@<EC2_IP> "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
-
-# 3. SCP the tarball to EC2
-scp /tmp/acme-demo.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/acme-demo.tar.gz
-
-# 4. Extract over existing code (the --exclude above ensures .env and certs are not in the tarball)
-ssh ubuntu@<EC2_IP> "cd /home/ubuntu && tar xzf acme-demo.tar.gz"
-
-# 5. Verify .env is still present (if missing, restore from backup)
-ssh ubuntu@<EC2_IP> "test -f /home/ubuntu/.env || cp /home/ubuntu/.env.bak /home/ubuntu/.env"
-
-# 6. Stop old containers, rebuild, and start
-ssh ubuntu@<EC2_IP> "cd /home/ubuntu && docker compose down && docker compose up -d --build"
-
-# 7. Verify the app is healthy
-ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health"
-# Should return 200
+tar czf /tmp/release.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
+scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/release-manual.tar.gz
+ssh ubuntu@<EC2_IP> bash -s <<'EOF'
+set -euo pipefail
+S=/home/ubuntu/incoming/manual; rm -rf "$S"; mkdir -p "$S"
+tar xzf /home/ubuntu/release-manual.tar.gz -C "$S"; rm -f /home/ubuntu/release-manual.tar.gz
+trap 'rm -rf "$S"' EXIT
+bash "$S/scripts/deploy-ec2.sh" "$S" manual
+EOF
 ```
+
+`scripts/deploy-ec2.sh` (run on the host) does, in order: `flock /home/ubuntu/.deploy.lock`; free-space check; back up `.env` and every top-level entry it is about to touch to `/home/ubuntu/releases/<ts>.tgz` (last 5 kept); log any vertical files present on the host but absent from the release; `rsync --delete` each top-level entry of the release into place **except** that `app/routes/verticals`, `app/public/verticals`, `app/services/verticals` and `config/customers` are never deleted from (so a demo merged in only one repo keeps working until the sync PR lands) and `.env*`, `.ssh`, `certbot/`, `docker-compose.override.yml`, `archive/`, `releases/` are never touched; `docker compose build checkout-api loadgen` + `up -d --no-deps checkout-api`; wait for `/health`; GET every `app/public/verticals/*.html` slug, every alias and a fixed critical list (`/`, `/retail`, `/api/verticals`, `/oncall`, …) and require 200 from all; then restart loadgen and `docker compose up -d`. Any failure after the sync step restores the backup, rebuilds, and posts to Slack (`SLACK_BOT_TOKEN`/`SLACK_CHANNEL_ID` from the host `.env`). Exit code is non-zero on failure so the workflow run goes red.
+
+**Repo sync.** `.github/workflows/sync-repos.yml` (identical in both repos) runs on every push to `main` and every 6h: it force-pushes this repo's `main` to `sync/from-<org>` in the sibling repo, opens (or reuses) a PR there, and merges it when GitHub reports it mergeable; it is a no-op when the sibling already has an identical tree, which is what stops the ping-pong. On conflict the PR is left open, Slack is pinged and — if `DEVIN_API_KEY` is set — a Devin session is started to resolve it (keep both sides for anything under the vertical directories). Needs the `SYNC_GH_TOKEN` Actions secret in each repo with Contents + Pull requests + Workflows write on the *other* repo.
 
 ### Important Notes
 
