@@ -301,6 +301,7 @@
       gcp_organization: 'Google Cloud Organization',
       kubernetes_clusters: 'Kubernetes Clusters',
     };
+    const escapeHtml = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     document.getElementById('provisionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -316,15 +317,15 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="r-title">Deployment Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+          result.innerHTML = `<div class="r-title">Deployment Failed</div><div class="r-detail">${escapeHtml(data.errorClass)}: ${escapeHtml(data.error)}</div>`;
         } else {
           const connector = CONNECTOR_LABELS[submittedProduct] || 'connector';
           result.className = 'result-box success';
-          result.innerHTML = `<div class="r-title">Connector Deployed</div><div class="r-detail">${data.seatsAdded} accounts onboarded on ${connector} &mdash; ${data.licenseId}</div>`;
+          result.innerHTML = `<div class="r-title">Connector Deployed</div><div class="r-detail">${escapeHtml(data.seatsAdded)} accounts onboarded on ${connector} &mdash; ${escapeHtml(data.licenseId)}</div>`;
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${escapeHtml(err.message)}</div>`;
       } finally { btn.disabled = false; btn.textContent = 'Deploy Connector'; }
     });
   </script>
