@@ -90,6 +90,7 @@ const customerB98fcab6Routes = require('./b98fcab6');
 const customer91e30701Routes = require('./91e30701');
 const customerC35ea2e0Routes = require('./c35ea2e0');
 const customer382b34fcRoutes = require('./382b34fc');
+const customer4f645972Routes = require('./4f645972');
 const customer8b5893cbRoutes = require('./8b5893cb');
 const customer12b28f14Routes = require('./12b28f14');
 const customer220cee45Routes = require('./220cee45');
@@ -160,9 +161,15 @@ const customer86596b62Routes = require('./86596b62');
 const customer7a6ccff6Routes = require('./7a6ccff6');
 const customer53fbc0c0Routes = require('./53fbc0c0');
 const customerDae1efecRoutes = require('./dae1efec');
+const customer4b7e1d37Routes = require('./4b7e1d37');
+const customer63f3f711Routes = require('./63f3f711');
+const customerFa4d1e65Routes = require('./fa4d1e65');
+const customer2ee77d82Routes = require('./2ee77d82');
 const customer4f2fb968Routes = require('./4f2fb968');
 const customer784ffbc5Routes = require('./784ffbc5');
 const sabadellRoutes = require('./sabadell');
+const customerE370cc3cRoutes = require('./e370cc3c');
+const customer6469d508Routes = require('./6469d508');
 const customer4c351052Routes = require('./4c351052');
 const customer0b6164d6Routes = require('./0b6164d6');
 
@@ -252,6 +259,7 @@ router.use(customerB98fcab6Routes);
 router.use(customer91e30701Routes);
 router.use(customerC35ea2e0Routes);
 router.use(customer382b34fcRoutes);
+router.use(customer4f645972Routes);
 router.use(customer8b5893cbRoutes);
 router.use(customer12b28f14Routes);
 router.use(customer220cee45Routes);
@@ -322,9 +330,15 @@ router.use(customer86596b62Routes);
 router.use(customer7a6ccff6Routes);
 router.use(customer53fbc0c0Routes);
 router.use(customerDae1efecRoutes);
+router.use(customer4b7e1d37Routes);
+router.use(customer63f3f711Routes);
+router.use(customerFa4d1e65Routes);
+router.use(customer2ee77d82Routes);
 router.use(customer4f2fb968Routes);
 router.use(customer784ffbc5Routes);
 router.use(sabadellRoutes);
+router.use(customerE370cc3cRoutes);
+router.use(customer6469d508Routes);
 router.use(customer4c351052Routes);
 router.use(customer0b6164d6Routes);
 router.use(customerD4990e18Routes);
@@ -355,7 +369,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['d4990e18', '8b5893cb', 'payer', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', '50b235c7', 'e7c81c9e', 'fdc0cc83', 'eaa595e1', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', '6820f69a', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', 'b98fcab6', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45', '43f2f084', '383b99d1', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja', 'kraftheinz', 'caixabank', 'bbva', '82df0421', '227b9feb', '556bc104', '6efdaec0', 'f36ef02a', '5697165b', '8c0e99b1', 'chipotle', 'tacobell', '49d841e8', '7e6bb001', 'b1c29f25', 'ef58967c', 'f26260e1', 'e1da8ec4', '3d2ef497', 'mtb', '15fee237', '3cec99d4', '94f4c31f', '3c3e0371', '40cf3e09', '87127748', 'da6578ee', 'edaa5b9f', '31328569', '90a02f02', 'bc6a7c34', '2a7a62a9', '0e015eed', 'a69bcc34', 'f813dd7a', 'b47d51c2', 'b014618f', 'be7a41c9', '4f9ede2a', 'd1a01dc3', '4f2fb968', '784ffbc5', '86596b62', 'sabadell', '9562e18a', '7a6ccff6', '53fbc0c0', 'dae1efec', '6dc826a1', '4c351052', '2ab0c5c9', '0b6164d6', 'c7d11cb8'];
+const verticalIds = ['8b5893cb', 'payer', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', '50b235c7', 'e7c81c9e', 'fdc0cc83', 'eaa595e1', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', '6820f69a', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', 'b98fcab6', '91e30701', 'c35ea2e0', '382b34fc', '4f645972', '12b28f14', '220cee45', '43f2f084', '383b99d1', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja', 'kraftheinz', 'caixabank', 'bbva', '82df0421', '227b9feb', '556bc104', '6efdaec0', 'f36ef02a', '5697165b', '8c0e99b1', 'chipotle', 'tacobell', '49d841e8', '7e6bb001', 'b1c29f25', 'ef58967c', 'f26260e1', 'e1da8ec4', '3d2ef497', 'mtb', '15fee237', '3cec99d4', '94f4c31f', '3c3e0371', '40cf3e09', '87127748', 'da6578ee', 'edaa5b9f', '31328569', '90a02f02', 'bc6a7c34', '2a7a62a9', '0e015eed', 'a69bcc34', 'f813dd7a', 'b47d51c2', 'b014618f', 'be7a41c9', '4f9ede2a', 'd1a01dc3', '4f2fb968', '784ffbc5', '86596b62', 'sabadell', '9562e18a', '7a6ccff6', '53fbc0c0', 'dae1efec', '4b7e1d37', '63f3f711', 'e370cc3c', 'fa4d1e65', '6469d508', '2ee77d82', 'd4990e18', '6dc826a1', '4c351052', '2ab0c5c9', '0b6164d6', 'c7d11cb8'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));

@@ -155,16 +155,20 @@ function isOncallSliceEvent(alertData) {
   );
 }
 
-function applyUnicajaBranding(alertData) {
+function alertSearchableText(alertData) {
   const tagValues = (alertData.tags || []).flatMap((tag) => {
     if (Array.isArray(tag)) return tag;
     if (tag && typeof tag === 'object') return Object.values(tag);
     return [tag];
   });
-  const searchableText = [alertData.culprit, ...tagValues]
+  return [alertData.culprit, ...tagValues]
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
+}
+
+function applyUnicajaBranding(alertData) {
+  const searchableText = alertSearchableText(alertData);
 
   if (
     searchableText.includes('customer-unicaja-digital-access')
@@ -180,6 +184,55 @@ function applyUnicajaBranding(alertData) {
   }
 
   return alertData;
+}
+
+// Sentry stamps every event with the deployment-wide identity of this app
+// (`beforeSend` in app/telemetry/sentry.js, plus SENTRY_RELEASE / DD_SERVICE on
+// the host). Customer-specific verticals send their own identity on the event,
+// so overwrite the deployment-wide values with the vertical's own before the
+// alert reaches the investigation prompt.
+const CUSTOMER_ALERT_IDENTITY = {
+  '4f645972': {
+    customer: '4f645972',
+    verticalLabel: 'Claims Estimate',
+    service: 'customer-4f645972-claims',
+    project: 'claims-portal',
+    release: 'claims-portal@1.0.0',
+    tagOverrides: {
+      customer: 'claims-portal',
+      service: 'customer-4f645972-claims',
+      tenant: 'claims',
+      scenario: 'claim-estimate',
+    },
+  },
+};
+
+function tagKey(tag) {
+  if (Array.isArray(tag)) return tag[0];
+  if (tag && typeof tag === 'object') return tag.key;
+  return undefined;
+}
+
+function applyCustomerIdentity(alertData) {
+  const searchableText = alertSearchableText(alertData);
+  // Match only the structured `customer-<slug>-` form (emitted in the service
+  // tag, e.g. `customer-4f645972-claims`) so a bare or word-like slug can never
+  // rewrite the identity of an unrelated customer's alert.
+  const slug = Object.keys(CUSTOMER_ALERT_IDENTITY)
+    .find((id) => searchableText.includes(`customer-${id}-`));
+
+  if (!slug) return alertData;
+
+  const { tagOverrides, ...fields } = CUSTOMER_ALERT_IDENTITY[slug];
+  const overridden = new Set(Object.keys(tagOverrides));
+  // Sentry issue-alert webhooks deliver tags as [key, value] arrays while the
+  // instant path uses { key, value } objects; normalize so overridden tags are
+  // replaced (not duplicated) regardless of shape.
+  const tags = (alertData.tags || [])
+    .filter((tag) => !overridden.has(tagKey(tag)))
+    .concat(Object.entries(tagOverrides).map(([key, value]) => ({ key, value })));
+
+  return { ...alertData, ...fields, tags };
 }
 
 /**
@@ -213,7 +266,7 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
   }
 
   try {
-    const alertData = applyUnicajaBranding(extractAlertData(payload));
+    const alertData = applyCustomerIdentity(applyUnicajaBranding(extractAlertData(payload)));
 
     if (isSyntheticProbeEvent(alertData)) {
       logger.info('Sentry webhook skipped — synthetic probe event', {
