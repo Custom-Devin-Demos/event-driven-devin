@@ -57,7 +57,7 @@ Customer skins receive the alerts surface by default. Optional `bugPortal` and `
 
 The payer vertical models a plan-configuration defect rather than an infrastructure failure: `PLAN_CONFIGS` carries a 7-digit `rxBin` (`0044336` instead of `004336`) for two plans, `generateMemberIdCard()` copies it onto member ID cards unvalidated, and `adjudicateClaim()` then finds no `PAYER_REGISTRY` entry for that BIN. Every service stays healthy — the only signal is the `pharmacy_claim.rejected` business metric.
 
-The page is not registered in the `VERTICALS` array in `app/routes/verticals/index.js`, so it does not appear on the hub: it is plan-branded and the hub is on screen during customer demos. Reach it at `/welcome-season`.
+The page is not listed in the `VERTICALS` array in `app/routes/verticals/index.js`, so it does not appear on the hub: it is plan-branded and the hub is on screen during customer demos. Reach it at `/welcome-season`.
 
 Two things are deliberately separate:
 
@@ -167,7 +167,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   ├── routes/
 │   │   ├── storefront.js          # Retail: product catalog + checkout
 │   │   ├── verticals/
-│   │   │   ├── index.js           # Mounts all vertical route files
+│   │   │   ├── index.js           # Discovers + mounts every vertical route file and page (no hand edits)
 │   │   │   ├── banking.js         # Banking: accounts + transfer
 │   │   │   ├── financial-services.js  # Financial Services: portfolio + trade
 │   │   │   ├── insurance.js       # Insurance: policies + claims
@@ -338,7 +338,7 @@ Both paths call the same `createSessionAndAlert()` function. There is no dedupli
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
 2. **`api`:** Calls `POST https://api.devin.ai/v1/sessions` directly via `DEVIN_API_KEY`. Posts a "View in Devin" button in the Slack thread. No user token or Devin Slack app needed — ideal for customer-specific demos running against a different Devin org.
 
-**Per-customer configuration** (see `config/customers.js`):
+**Per-customer configuration** (see `config/customers.js` and `config/customers/<slug>.js`):
 Multiple customers can run simultaneously in a single deployment, each with their own Devin org/API key. Verticals pass `customer: '<slug>'` in their `alertData` to route to the correct config. Customer-specific env vars use a `_<SLUG>` suffix (e.g. `DEVIN_API_KEY_WAYFAIR`). See [Adding a new customer demo](#adding-a-new-customer-demo) below.
 
 ## Key Services
@@ -349,7 +349,18 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 
 ### `config/customers.js`
 - `getCustomerConfig(customerSlug)` — Resolves Devin trigger config for a customer. Returns `{ triggerMode, apiKey, playbookId, slackUserId, targetRepo }`. Falls back to global env vars for the default customer.
-- `CUSTOMERS` — Registry of customer slugs and their config overrides.
+- `CUSTOMERS` — Registry of customer slugs and their config overrides. `default` is inline; every other entry is loaded from `config/customers/<slug>.js` at require time, so a new customer adds one file and never edits a shared one.
+- `listAliases()` — `{ alias: slug }` for every `aliases: [...]` declared in a customer file (friendly URLs such as `/publix` → `4c351052.html`). Duplicate aliases throw at boot.
+
+### `app/routes/verticals/index.js` (filesystem discovery)
+Nothing is registered by hand. At require time the router:
+1. mounts every `app/routes/verticals/<id>.js` (sorted; each must export an express Router);
+2. serves every alias from `listAliases()` (an alias must target an existing page);
+3. serves every `app/public/verticals/<id>.html` at `/<id>` (route modules and aliases come first, so a module may own its own `/<id>` and an alias always beats a page of the same name).
+
+Registry problems never crash boot: a module that fails to load or an alias with a missing target is logged (`logger.error`) and skipped, and a page that shadows an alias logs a warning. This matters because the EC2 tree can hold stale vertical files that neither repo has any more (deploys historically never deleted). The committed tree must still be clean — `tests/verticals-registry.test.js` fails on a skipped module, a page that does not serve 200, an alias with a missing target or one that shadows a page, or a service that passes a `customer` slug with no config file; `tests/verticals-stale-files.test.js` covers the tolerant-boot behavior against a scratch tree.
+
+Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of what the landing page shows. Customer demos are deliberately absent from it (direct URL only).
 
 ### `app/services/devin-api.js`
 - `createDevinSession(prompt, options)` — Creates a Devin session via `POST /v1/sessions`. Accepts per-customer `apiKey` and `playbookId` via `options`. Returns `{ sessionId, url }`.
@@ -463,32 +474,23 @@ After the initial setup, certificate renewal is fully automatic (certbot checks 
 
 ### EC2 Redeploy Steps
 
-Deployments are automated via GitHub Actions on push to `main`. For manual redeploy:
+Deployments are automated: the `Deploy to EC2` workflow (`.github/workflows/deploy.yml`) runs on every push to `main` in **both** source repos (COG-GTM and Custom-Devin-Demos), uploads the tree to `/home/ubuntu/incoming/<sha>` and hands it to `scripts/deploy-ec2.sh` on the host. Never `tar xzf` over `/home/ubuntu` by hand — that is how stale files and unregistered verticals used to pile up. For a manual redeploy use the same script:
 
 ```bash
-# 1. Build tarball from latest main (locally or on your dev machine)
-git checkout main && git pull origin main
-tar czf /tmp/acme-demo.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
-
-# 2. Back up the .env on EC2 BEFORE extracting (critical — secrets live here)
-ssh ubuntu@<EC2_IP> "cp /home/ubuntu/.env /home/ubuntu/.env.bak"
-
-# 3. SCP the tarball to EC2
-scp /tmp/acme-demo.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/acme-demo.tar.gz
-
-# 4. Extract over existing code (the --exclude above ensures .env and certs are not in the tarball)
-ssh ubuntu@<EC2_IP> "cd /home/ubuntu && tar xzf acme-demo.tar.gz"
-
-# 5. Verify .env is still present (if missing, restore from backup)
-ssh ubuntu@<EC2_IP> "test -f /home/ubuntu/.env || cp /home/ubuntu/.env.bak /home/ubuntu/.env"
-
-# 6. Stop old containers, rebuild, and start
-ssh ubuntu@<EC2_IP> "cd /home/ubuntu && docker compose down && docker compose up -d --build"
-
-# 7. Verify the app is healthy
-ssh ubuntu@<EC2_IP> "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health"
-# Should return 200
+tar czf /tmp/release.tar.gz --exclude=node_modules --exclude=.git --exclude=.env --exclude=certbot -C . .
+scp /tmp/release.tar.gz ubuntu@<EC2_IP>:/home/ubuntu/release-manual.tar.gz
+ssh ubuntu@<EC2_IP> bash -s <<'EOF'
+set -euo pipefail
+S=/home/ubuntu/incoming/manual; rm -rf "$S"; mkdir -p "$S"
+tar xzf /home/ubuntu/release-manual.tar.gz -C "$S"; rm -f /home/ubuntu/release-manual.tar.gz
+trap 'rm -rf "$S"' EXIT
+bash "$S/scripts/deploy-ec2.sh" "$S" manual
+EOF
 ```
+
+`scripts/deploy-ec2.sh` (run on the host) does, in order: `flock /home/ubuntu/.deploy.lock`; free-space check; back up `.env` and every top-level entry it is about to touch to `/home/ubuntu/releases/<ts>.tgz` (last 5 kept); log any vertical files present on the host but absent from the release; `rsync --delete` each top-level entry of the release into place **except** that `app/routes/verticals`, `app/public/verticals`, `app/services/verticals` and `config/customers` are never deleted from (so a demo merged in only one repo keeps working until the sync PR lands) and `.env*`, `.ssh`, `certbot/`, `docker-compose.override.yml`, `archive/`, `releases/` are never touched; `docker compose build checkout-api loadgen` + `up -d --no-deps checkout-api`; wait for `/health`; GET every `app/public/verticals/*.html` slug, every alias and a fixed critical list (`/`, `/retail`, `/api/verticals`, `/oncall`, …) and require 200 from all; then restart loadgen and `docker compose up -d`. Any failure after the sync step restores the backup, rebuilds, and posts to Slack (`SLACK_BOT_TOKEN`/`SLACK_CHANNEL_ID` from the host `.env`). Exit code is non-zero on failure so the workflow run goes red.
+
+**Repo sync.** `.github/workflows/sync-repos.yml` (identical in both repos) runs on every push to `main` and every 6h: it force-pushes this repo's `main` to `sync/from-<org>` in the sibling repo, opens (or reuses) a PR there, and merges it when GitHub reports it mergeable; it is a no-op when the sibling already has an identical tree, which is what stops the ping-pong. On conflict the PR is left open, Slack is pinged and — if `DEVIN_API_KEY` is set — a Devin session is started to resolve it (keep both sides for anything under the vertical directories). Needs the `SYNC_GH_TOKEN` Actions secret in each repo with Contents + Pull requests + Workflows write on the *other* repo.
 
 ### Important Notes
 
@@ -586,17 +588,21 @@ Edit `buildAlertBlocks()` in `app/services/slack.js`. The function returns Slack
 Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Markdown tables for structured data. Keep it detailed — this is the only context Devin gets when starting an investigation.
 
 ### Adding a new customer demo
-1. Add the customer slug to `config/customers.js` in the `CUSTOMERS` object:
+A new vertical touches only its own files; do **not** edit `app/routes/verticals/index.js`, `config/customers.js`, or `docker-compose.yml`. This is what lets both source repos (COG-GTM and Custom-Devin-Demos) deploy to the same host without unregistering each other's demos.
+1. Create `config/customers/<slug>.js` (the file name is the slug):
    ```js
-   acme: {
+   module.exports = {
      label: 'Acme Corp',
      triggerMode: 'api',
-   },
+     aliases: ['acme'],      // optional friendly URL(s) → /<slug>.html
+   };
    ```
-2. Set the customer's env vars (suffixed with `_<SLUG>`):
+2. Add the page `app/public/verticals/<slug>.html` (served at `/<slug>` automatically) and, if the demo has an API, `app/routes/verticals/<slug>.js` exporting an express Router (mounted automatically) plus its service under `app/services/verticals/<slug>.js`.
+3. Pass `customer: '<slug>'` in the vertical's `alertData` when calling `createSessionAndAlert()`.
+4. Set the customer's env vars (suffixed with `_<SLUG>`) in the host `.env` and document them in `.env.example`:
    ```
-   DEVIN_API_KEY_ACME=dv-abc123...
-   SONAR_TARGET_REPO_ACME=COG-GTM/acme-etl-pipeline
+   DEVIN_SERVICE_KEY_ACME=dv-abc123...
+   DEVIN_USER_ID_ACME=...
    ```
-3. Pass `customer: 'acme'` in the vertical's `alertData` when calling `createSessionAndAlert()`.
-4. Add the env vars to `docker-compose.yml` and `.env.example`.
+   `checkout-api` loads the whole `.env` via `env_file`, so no `docker-compose.yml` entry is needed.
+5. Run `npm test -- tests/verticals-registry.test.js` — it verifies the page, alias, and config are all wired.

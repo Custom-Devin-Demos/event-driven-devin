@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const logger = require('../app/telemetry/logger');
 
 /**
@@ -9,8 +11,8 @@ const logger = require('../app/telemetry/logger');
  * "default" entry is used (which reads the global env vars).
  *
  * Adding a new customer:
- *   1. Add an entry here with a unique slug
- *   2. Set the corresponding env vars (suffixed with _<SLUG>)
+ *   1. Create config/customers/<slug>.js exporting { label, triggerMode, aliases? }
+ *   2. Set the corresponding env vars (suffixed with _<SLUG>) in .env
  *   3. Pass `customer: '<slug>'` in the vertical's alertData
  *
  * Env var naming convention for customer-specific vars:
@@ -29,590 +31,35 @@ const logger = require('../app/telemetry/logger');
  *   DEVIN_USER_ID_A6B38C63=cog_user_123
  *   SONAR_TARGET_REPO_A6B38C63=SomeGitHubOrg/etl-pipeline-demo
  */
+const CUSTOMERS_DIR = path.join(__dirname, 'customers');
+
+/**
+ * Registry of customer entries, keyed by slug.
+ *
+ * `default` is defined inline; every other entry is loaded from
+ * `config/customers/<slug>.js`, so adding a customer never edits a shared file.
+ * An entry may also carry `aliases: ['friendly-url', ...]` — friendly paths that
+ * serve `app/public/verticals/<slug>.html` (see app/routes/verticals/index.js).
+ */
 const CUSTOMERS = {
   default: {
     label: 'Default (landing page demos)',
     // Uses global env vars — no suffix
   },
-  a6b38c63: {
-    label: 'Customer A6B3',
-    triggerMode: 'api',
-  },
-  ef5d1dc1: {
-    label: 'Customer EF5D',
-    triggerMode: 'api',
-  },
-  e0c16510: {
-    label: 'Customer E0C1',
-    triggerMode: 'api',
-  },
-  '53a9884e': {
-    label: 'Customer 53A9',
-    triggerMode: 'api',
-  },
-  acf4303d: {
-    label: 'Customer ACF4',
-    triggerMode: 'api',
-  },
-  f3ff1d33: {
-    label: 'Customer F3FF',
-    triggerMode: 'api',
-  },
-  '430a4200': {
-    label: 'Customer 430A',
-    triggerMode: 'api',
-  },
-  b62fa21d: {
-    label: 'Customer B62F',
-    triggerMode: 'api',
-  },
-  f2f54159: {
-    label: 'Customer F2F5',
-    triggerMode: 'api',
-  },
-  '304db83f': {
-    label: 'Customer 304D',
-    triggerMode: 'api',
-  },
-  '1a459b91': {
-    label: 'Customer 1A45',
-    triggerMode: 'api',
-  },
-  beb4d43e: {
-    label: 'Customer BEB4',
-    triggerMode: 'api',
-  },
-  '4feeb7bb': {
-    label: 'Customer 4FEE',
-    triggerMode: 'api',
-  },
-  '89c1f355': {
-    label: 'Customer 89C1',
-    triggerMode: 'api',
-  },
-  '99a8ba1a': {
-    label: 'Customer 99A8',
-    triggerMode: 'api',
-  },
-  'b3e22436': {
-    label: 'Customer B3E2',
-    triggerMode: 'api',
-  },
-  d5fc3172: {
-    label: 'Customer D5FC',
-    triggerMode: 'api',
-  },
-  c4a8e2b7: {
-    label: 'Customer C4A8',
-    triggerMode: 'api',
-  },
-  '7d2e9f4a': {
-    label: 'Customer 7D2E',
-    triggerMode: 'api',
-  },
-  b3587482: {
-    label: 'Chick-fil-A',
-    triggerMode: 'api',
-  },
-  '46d4846d': {
-    label: "Levi's",
-    triggerMode: 'api',
-  },
-  c7d11cb8: {
-    label: 'Morgan Stanley',
-    triggerMode: 'api',
-  },
-  '50b235c7': {
-    label: 'lululemon',
-    triggerMode: 'api',
-  },
-  e7c81c9e: {
-    label: 'Nordstrom',
-    triggerMode: 'api',
-  },
-  fdc0cc83: {
-    label: 'Walmart',
-    triggerMode: 'api',
-  },
-  eaa595e1: {
-    label: 'Kroger',
-    triggerMode: 'api',
-  },
-  b1c29f25: {
-    label: 'Highmark Health',
-    triggerMode: 'api',
-  },
-  '2a7a62a9': {
-    label: 'Highmark enGen',
-    triggerMode: 'api',
-  },
-  'cba5be2d': {
-    label: 'Timberland',
-    triggerMode: 'api',
-  },
-  '696ecb91': {
-    label: 'Lingo by Abbott',
-    triggerMode: 'api',
-  },
-  '74124a39': {
-    label: 'Coca-Cola',
-    triggerMode: 'api',
-  },
-  '91fe5a5f': {
-    label: 'Target',
-    triggerMode: 'api',
-  },
-  'eb2f4ad1': {
-    label: 'The Home Depot',
-    triggerMode: 'api',
-  },
-  'a131fea3': {
-    label: "O'Reilly Auto Parts",
-    triggerMode: 'api',
-  },
-  '8096ad15': {
-    label: 'Eli Lilly',
-    triggerMode: 'api',
-  },
-  '4886afe1': {
-    label: 'BBVA Banking',
-    triggerMode: 'api',
-  },
-  '6074332d': {
-    label: 'Best Buy',
-    triggerMode: 'api',
-  },
-  'eb3df102': {
-    label: 'Sysco',
-    triggerMode: 'api',
-  },
-  'f9296fb3': {
-    label: 'VF Corporation',
-    triggerMode: 'api',
-  },
-  '3699f348': {
-    label: 'Visa',
-    triggerMode: 'api',
-  },
-  '8491be2c': {
-    label: 'S&P Global',
-    triggerMode: 'api',
-  },
-  '841afdc1': {
-    label: 'Customer 841A',
-    triggerMode: 'api',
-  },
-  '4b7e1d37': {
-    label: 'Customer 4B7E',
-    triggerMode: 'api',
-  },
-  '6f543fa2': {
-    label: 'BNSF Railway',
-    triggerMode: 'api',
-  },
-  'f91c0df3': {
-    label: 'Avis',
-    triggerMode: 'api',
-  },
-  'bc6a7c34': {
-    label: 'Electronic Arts',
-    triggerMode: 'api',
-  },
-  '058419ac': {
-    label: 'Optum Rx',
-    triggerMode: 'api',
-  },
-  '31328569': {
-    label: 'UnitedHealth Group',
-    triggerMode: 'api',
-  },
-  '90a02f02': {
-    label: 'Zup Innovation',
-    triggerMode: 'api',
-  },
-  '058bcc4c': {
-    label: 'Kraft Heinz',
-    triggerMode: 'api',
-  },
-  'f5a355e7': {
-    label: 'Loblaws',
-    triggerMode: 'api',
-  },
-  'b683fdf3': {
-    label: 'Walgreens',
-    triggerMode: 'api',
-  },
-  '0141c475': {
-    label: "Macy's",
-    triggerMode: 'api',
-  },
-  '8d933e67': {
-    label: 'TD Bank',
-    triggerMode: 'api',
-  },
-  '6820f69a': {
-    label: 'Fifth Third Bank',
-    triggerMode: 'api',
-  },
-  'ac1752e4': {
-    label: 'KeyBank',
-    triggerMode: 'api',
-  },
-  '17dd6f6f': {
-    label: 'Customer 17DD',
-    triggerMode: 'api',
-  },
-  '08381313': {
-    label: 'Customer 0838',
-    triggerMode: 'api',
-  },
-  'df3f450c': {
-    label: 'athenahealth',
-    triggerMode: 'api',
-  },
-  'e433d32d': {
-    label: 'Scotiabank',
-    triggerMode: 'api',
-  },
-  '16ebec74': {
-    label: 'Scotiabank Chile',
-    triggerMode: 'api',
-  },
-  '4ada28b9': {
-    label: 'Customer 4ADA',
-    triggerMode: 'api',
-  },
-  'a8585092': {
-    label: 'Bank of America',
-    triggerMode: 'api',
-  },
-  '61875a84': {
-    label: 'Bank of America Transactions',
-    triggerMode: 'api',
-  },
-  ad960e6a: {
-    label: 'Comcast Business',
-    triggerMode: 'api',
-  },
-  bec5e1bb: {
-    label: 'Telefónica',
-    triggerMode: 'api',
-  },
-  '054f8313': {
-    label: 'Banamex',
-    triggerMode: 'api',
-  },
-  b98fcab6: {
-    label: 'Customer B98F',
-    triggerMode: 'api',
-  },
-  '91e30701': {
-    label: 'Comarch',
-    triggerMode: 'api',
-  },
-  '382b34fc': {
-    label: 'GEICO',
-    triggerMode: 'api',
-  },
-  '4f645972': {
-    label: 'Progressive Claims',
-    triggerMode: 'api',
-  },
-  c35ea2e0: {
-    label: 'Terex',
-    triggerMode: 'api',
-  },
-  '8b5893cb': {
-    label: 'T. Rowe Price',
-    triggerMode: 'api',
-    githubOrg: 'COG-GTM',
-  },
-  '12b28f14': {
-    label: 'Pepsi',
-    triggerMode: 'api',
-  },
-  '220cee45': {
-    label: 'Thermo Fisher Scientific',
-    triggerMode: 'api',
-  },
-  '43f2f084': {
-    label: 'Gap',
-    triggerMode: 'api',
-  },
-  '383b99d1': {
-    label: 'Gap Data Intelligence',
-    triggerMode: 'api',
-  },
-  efbf4b55: {
-    label: 'Customer EFBF',
-    triggerMode: 'api',
-  },
-  '9309cd53': {
-    label: 'ICRC (Red Cross Geneva)',
-    triggerMode: 'api',
-  },
-  a1e178ae: {
-    label: 'Louis Dreyfus Company Brazil',
-    triggerMode: 'api',
-  },
-  'b9612d96': {
-    label: 'Croda',
-    triggerMode: 'api',
-  },
-  b634a963: {
-    label: 'Customer B634',
-    triggerMode: 'api',
-  },
-  unicaja: {
-    label: 'Unicaja Digital Banking',
-    triggerMode: 'api',
-  },
-  kraftheinz: {
-    label: 'Kraft Heinz Distributor Orders',
-    triggerMode: 'api',
-  },
-  '82df0421': {
-    label: 'Customer 82DF',
-    triggerMode: 'api',
-  },
-  '227b9feb': {
-    label: 'Customer 227B',
-    triggerMode: 'api',
-  },
-  '556bc104': {
-    label: 'Customer 556B',
-    triggerMode: 'api',
-  },
-  '6efdaec0': {
-    label: 'Customer 6EFD',
-    triggerMode: 'api',
-  },
-  f36ef02a: {
-    label: 'Customer F36E',
-    triggerMode: 'api',
-  },
-  caixabank: {
-    label: 'CaixaBank Online Banking',
-    triggerMode: 'api',
-  },
-  bbva: {
-    label: 'BBVA Online Banking',
-    triggerMode: 'api',
-  },
-  '5697165b': {
-    label: 'Customer 5697',
-    triggerMode: 'api',
-  },
-  '8c0e99b1': {
-    label: 'Customer 8C0E',
-    triggerMode: 'api',
-  },
-  chipotle: {
-    label: 'Chipotle Order Ahead',
-    triggerMode: 'api',
-  },
-  tacobell: {
-    label: 'Taco Bell Order Ahead',
-    triggerMode: 'api',
-  },
-  bonvoy: {
-    label: 'Marriott Bonvoy (Android)',
-    triggerMode: 'api',
-  },
-  eaconnect: {
-    label: 'EA Connect (Android)',
-    triggerMode: 'api',
-  },
-  coppel: {
-    label: 'Coppel Mi Carrito',
-    triggerMode: 'api',
-  },
-  chewy: {
-    label: 'Chewy Shopping Cart',
-    triggerMode: 'api',
-  },
-  '49d841e8': {
-    label: 'Customer 49D8',
-    triggerMode: 'api',
-  },
-  '3cec99d4': {
-    label: 'RBC Royal Bank',
-    triggerMode: 'api',
-  },
-  '94f4c31f': {
-    label: 'Citi Self Invest',
-    triggerMode: 'api',
-  },
-  '4f9ede2a': {
-    label: 'U.S. Bank Business Bill Pay',
-    triggerMode: 'api',
-  },
-  '2ab0c5c9': {
-    label: 'Citizens Bank',
-    triggerMode: 'api',
-  },
-  d1a01dc3: {
-    label: 'Baylor Scott & White Health',
-    triggerMode: 'api',
-  },
-  '86596b62': {
-    label: 'Cardinal Health',
-    triggerMode: 'api',
-  },
-  dae1efec: {
-    label: 'DaVita',
-    triggerMode: 'api',
-  },
-  '7a6ccff6': {
-    label: 'Warner Music Group',
-    triggerMode: 'api',
-  },
-  sabadell: {
-    label: 'Banco Sabadell',
-    triggerMode: 'api',
-  },
-  '4f2fb968': {
-    label: 'Canada Tire Company',
-    triggerMode: 'api',
-  },
-  b014618f: {
-    label: 'Capital One Travel',
-    triggerMode: 'api',
-  },
-  '9562e18a': {
-    label: 'Customer 9562',
-    triggerMode: 'api',
-  },
-  a69bcc34: {
-    label: 'The Home Depot',
-    triggerMode: 'api',
-  },
-  '0e015eed': {
-    label: 'Tapestry',
-    triggerMode: 'api',
-  },
-  cd83ac3c: {
-    label: 'Staples',
-    triggerMode: 'api',
-  },
-  '7e6bb001': {
-    label: 'Humana',
-    triggerMode: 'api',
-  },
-  ef58967c: {
-    label: 'Charles Schwab',
-    triggerMode: 'api',
-  },
-  f26260e1: {
-    label: 'Customer F262',
-    triggerMode: 'api',
-  },
-  e1da8ec4: {
-    label: 'Customer E1DA',
-    triggerMode: 'api',
-  },
-  '3d2ef497': {
-    label: 'Customer 3D2E',
-    triggerMode: 'api',
-  },
-  '3c3e0371': {
-    label: 'Customer 3C3E',
-    triggerMode: 'api',
-  },
-  '40cf3e09': {
-    label: 'Customer 40CF',
-    triggerMode: 'api',
-  },
-  '87127748': {
-    label: 'Customer 8712',
-    triggerMode: 'api',
-  },
-  da6578ee: {
-    label: 'S&P Global MI — Feed Migration',
-    triggerMode: 'api',
-  },
-  '6c89c6b0': {
-    label: 'Procurement Resources Library',
-    triggerMode: 'api',
-  },
-  '88ad5a84': {
-    label: 'RBC Online Banking',
-    triggerMode: 'api',
-  },
-  '718eb882': {
-    label: 'Huntington Online Banking',
-    triggerMode: 'api',
-  },
-  '2ef89b23': {
-    label: 'FIS Payments One',
-    triggerMode: 'api',
-  },
-  '9db3d08f': {
-    label: 'Insurance Claims Workspace',
-    triggerMode: 'api',
-  },
-  mtb: {
-    label: 'M&T Bank Online Banking',
-    triggerMode: 'api',
-  },
-  '15fee237': {
-    label: 'Morgan Stanley',
-    triggerMode: 'api',
-  },
-  '6a766bce': {
-    label: 'AECOM Project Portfolio',
-    triggerMode: 'api',
-  },
-  edaa5b9f: {
-    label: 'Disney Guest Contact',
-    triggerMode: 'api',
-  },
-  '63f3f711': {
-    label: 'Stripe',
-    triggerMode: 'api',
-  },
-  e370cc3c: {
-    label: 'Delta',
-    triggerMode: 'api',
-  },
-  fa4d1e65: {
-    label: 'Evercore Engagement Inquiry',
-    triggerMode: 'api',
-  },
-  '6469d508': {
-    label: 'Mount Sinai',
-    triggerMode: 'api',
-  },
-  '2ee77d82': {
-    label: 'Yum! Brands',
-    triggerMode: 'api',
-  },
-  qbe: {
-    label: 'QBE North America Claims',
-    triggerMode: 'api',
-  },
-  nab: {
-    label: 'NAB Internet Banking',
-    triggerMode: 'api',
-  },
-  ausunity: {
-    label: 'Australian Unity Health Claims',
-    triggerMode: 'api',
-  },
-  '6dc826a1': {
-    label: 'Morgan Stanley WM — Advisor Trade Booking',
-    triggerMode: 'api',
-    githubOrg: 'COG-GTM',
-  },
-  '4c351052': {
-    label: 'Publix',
-    triggerMode: 'api',
-  },
-  '0b6164d6': {
-    label: 'Databricks',
-    triggerMode: 'api',
-  },
 };
+
+for (const file of fs.readdirSync(CUSTOMERS_DIR).sort()) {
+  if (!file.endsWith('.js')) continue;
+  const slug = file.slice(0, -3);
+  if (slug === 'default') {
+    throw new Error(`config/customers/${file}: "default" is reserved; define it inline in config/customers.js`);
+  }
+  const entry = require(path.join(CUSTOMERS_DIR, file));
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    throw new Error(`config/customers/${file} must export an object`);
+  }
+  CUSTOMERS[slug] = entry;
+}
 
 /**
  * Resolve the Devin configuration for a given customer.
@@ -691,8 +138,26 @@ function listCustomers() {
   }));
 }
 
+/**
+ * Friendly-URL aliases declared by customer entries, as { alias: slug }.
+ * Throws when two entries claim the same alias.
+ */
+function listAliases() {
+  const aliases = {};
+  for (const [slug, entry] of Object.entries(CUSTOMERS)) {
+    for (const alias of entry.aliases || []) {
+      if (aliases[alias] && aliases[alias] !== slug) {
+        throw new Error(`Alias "/${alias}" is claimed by both ${aliases[alias]} and ${slug}`);
+      }
+      aliases[alias] = slug;
+    }
+  }
+  return aliases;
+}
+
 module.exports = {
   getCustomerConfig,
   listCustomers,
+  listAliases,
   CUSTOMERS,
 };
