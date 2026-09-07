@@ -355,10 +355,12 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 ### `app/routes/verticals/index.js` (filesystem discovery)
 Nothing is registered by hand. At require time the router:
 1. mounts every `app/routes/verticals/<id>.js` (sorted; each must export an express Router);
-2. serves every `app/public/verticals/<id>.html` at `/<id>` (route modules are mounted first, so a module may own its own `/<id>`);
-3. serves every alias from `listAliases()` — an alias must target an existing page and may not shadow one.
+2. serves every alias from `listAliases()` (an alias must target an existing page);
+3. serves every `app/public/verticals/<id>.html` at `/<id>` (route modules and aliases come first, so a module may own its own `/<id>` and an alias always beats a page of the same name).
 
-Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of what the landing page shows. Customer demos are deliberately absent from it (direct URL only). `tests/verticals-registry.test.js` fails on a page that does not serve 200, an alias with a missing target, or a service that passes a `customer` slug with no config file.
+Registry problems never crash boot: a module that fails to load or an alias with a missing target is logged (`logger.error`) and skipped, and a page that shadows an alias logs a warning. This matters because the EC2 tree can hold stale vertical files that neither repo has any more (deploys historically never deleted). The committed tree must still be clean — `tests/verticals-registry.test.js` fails on a skipped module, a page that does not serve 200, an alias with a missing target or one that shadows a page, or a service that passes a `customer` slug with no config file; `tests/verticals-stale-files.test.js` covers the tolerant-boot behavior against a scratch tree.
+
+Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of what the landing page shows. Customer demos are deliberately absent from it (direct URL only).
 
 ### `app/services/devin-api.js`
 - `createDevinSession(prompt, options)` — Creates a Devin session via `POST /v1/sessions`. Accepts per-customer `apiKey` and `playbookId` via `options`. Returns `{ sessionId, url }`.
