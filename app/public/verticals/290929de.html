@@ -428,7 +428,7 @@
             <div class="grid2">
               <div class="field">
                 <label for="amount">סכום (₪)</label>
-                <input id="amount" type="number" min="1" value="1000" required />
+                <input id="amount" type="number" min="1" step="0.01" value="1000" required />
               </div>
               <div class="field">
                 <label for="accountTier">מסלול החשבון</label>
@@ -506,6 +506,13 @@
       const BALANCES = { 'ACCT-1001': 25430.0, 'ACCT-1004': 156200.0 };
 
       function sync() {
+        Array.from(toSel.options).forEach((opt) => {
+          opt.disabled = opt.value === fromSel.value;
+        });
+        if (toSel.options[toSel.selectedIndex].disabled) {
+          const next = Array.from(toSel.options).find((opt) => !opt.disabled);
+          if (next) toSel.value = next.value;
+        }
         const fromLabel = fromSel.options[fromSel.selectedIndex].textContent;
         balanceNote.textContent = `יתרה זמינה ב${fromLabel}: ${fmt(BALANCES[fromSel.value])}`;
         summary.innerHTML =
