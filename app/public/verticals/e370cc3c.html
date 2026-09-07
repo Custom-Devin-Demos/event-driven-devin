@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Airline Tickets &amp; Flights: Book Direct</title>
+<link rel="icon" href="/verticals/assets/e370cc3c/favicon.ico" />
+<style>
+  :root {
+    --v-primary: #001122;
+    --v-accent: #e01933;
+    --v-ink: #001e3c;
+    --v-body: #3e414f;
+    --v-link: #0066cc;
+    --v-muted: #9599ac;
+    --v-cream: #f5ecd9;
+    --v-line: #e6e8ec;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #ffffff; }
+  body {
+    font-family: Whitney, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--v-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; cursor: pointer; }
+  button { font-family: inherit; cursor: pointer; }
+  img { display: block; }
+
+  .all-demos {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 300;
+    font-size: 12px;
+    color: #66707f;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--v-line);
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
+  .all-demos:hover { color: var(--v-ink); }
+
+  /* Top navy header */
+  .topbar {
+    background: var(--v-primary);
+    color: #ffffff;
+    padding: 14px 24px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 28px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand img.logo { height: 26px; }
+  .brand img.alliance { height: 18px; opacity: 0.9; }
+  .topnav { display: flex; gap: 22px; align-items: center; }
+  .topnav a { color: #ffffff; font-size: 14px; font-weight: 600; line-height: 18px; }
+  .topnav a.active { border-bottom: 2px solid var(--v-accent); padding-bottom: 4px; }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .topbar-right a { color: #ffffff; font-size: 13px; font-weight: 500; }
+  .btn-login {
+    background: var(--v-accent);
+    color: #ffffff;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 8px 12px;
+  }
+  .icon-btn { background: none; border: none; color: #ffffff; font-size: 16px; padding: 2px 4px; }
+
+  /* Tabs row */
+  .tabsbar {
+    background: var(--v-primary);
+    padding: 0 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    padding: 12px;
+    border-radius: 8px 8px 0 0;
+  }
+  .tab.active { background: #ffffff; color: var(--v-ink); }
+  .tabsbar .spacer { flex: 1; }
+  .tabsbar .side-links { display: flex; gap: 18px; padding-bottom: 12px; }
+  .tabsbar .side-links a { color: #ffffff; font-size: 13px; font-weight: 500; }
+
+  /* Search widget */
+  .search-widget {
+    background: #ffffff;
+    border-radius: 0 0 8px 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 17, 34, 0.08);
+  }
+  .search-row { display: flex; align-items: center; gap: 12px; max-width: 1180px; margin: 0 auto; }
+  .airport-box {
+    border: 1px solid #c9ccd4;
+    border-radius: 8px;
+    padding: 8px 18px;
+    text-align: center;
+    min-width: 130px;
+  }
+  .airport-box .code { font-size: 24px; font-weight: 600; line-height: 28px; color: var(--v-ink); }
+  .airport-box .city { font-size: 12px; color: var(--v-body); }
+  .swap { background: none; border: none; font-size: 18px; color: var(--v-link); padding: 0 2px; }
+  .select-box {
+    border: 1px solid #c9ccd4;
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--v-ink);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-find {
+    background: var(--v-accent);
+    color: #ffffff;
+    border: none;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 16px 32px;
+    margin-left: auto;
+  }
+  .search-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    max-width: 1180px;
+    margin: 18px auto 0;
+    font-size: 14px;
+    color: var(--v-ink);
+  }
+  .search-options label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .search-options a { color: var(--v-link); font-weight: 600; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(90deg, #faf4e4 0%, var(--v-cream) 55%, #ede1c3 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    padding: 28px 48px;
+  }
+  .hero-copy { max-width: 560px; }
+  .hero-copy .kicker { font-size: 24px; font-weight: 600; line-height: 30px; color: var(--v-ink); margin-bottom: 8px; }
+  .hero-copy h1 {
+    font-family: 'Whitney Condensed', 'Arial Narrow', sans-serif;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 48px;
+    letter-spacing: 0.24px;
+    white-space: nowrap;
+    color: var(--v-ink);
+    margin-bottom: 10px;
+  }
+  .hero-copy p { font-size: 20px; font-weight: 600; line-height: 28px; color: var(--v-ink); margin-bottom: 20px; }
+  .btn-hero {
+    display: inline-block;
+    background: var(--v-accent);
+    color: #ffffff;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 12px 28px;
+  }
+  .hero-copy .fine { font-size: 11px; line-height: 15px; color: var(--v-body); margin-top: 18px; }
+  .hero-media { position: relative; }
+  .hero-media img.scene {
+    width: 620px;
+    height: 300px;
+    object-fit: cover;
+    object-position: center center;
+    border-radius: 4px;
+  }
+  .hero-media img.card-art {
+    position: absolute;
+    right: -24px;
+    bottom: -18px;
+    width: 220px;
+    filter: drop-shadow(0 8px 18px rgba(0, 17, 34, 0.35));
+  }
+
+  /* Experience section */
+  .experience { padding: 56px 24px 72px; max-width: 1180px; margin: 0 auto; }
+  .experience .eyebrow {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: var(--v-ink);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .experience h2 {
+    text-align: center;
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 38px;
+    color: var(--v-ink);
+    margin-bottom: 36px;
+  }
+  .feature-card {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0, 17, 34, 0.12);
+    overflow: hidden;
+  }
+  .wide-card { display: flex; margin-bottom: 28px; }
+  .wide-card img { width: 280px; height: 100%; min-height: 220px; object-fit: cover; object-position: center center; }
+  .wide-card .card-copy { padding: 32px 36px; }
+  .card-copy h3 { font-size: 20px; font-weight: 600; line-height: 26px; color: var(--v-ink); }
+  .card-copy p { font-size: 16px; line-height: 24px; color: var(--v-body); margin-top: 12px; }
+  .card-copy .details { display: inline-flex; align-items: center; gap: 4px; margin-top: 18px; font-size: 16px; font-weight: 600; line-height: 20px; color: var(--v-link); }
+  .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-bottom: 28px; }
+  .grid-card img { width: 100%; height: 210px; object-fit: cover; object-position: center center; }
+  .grid-card .card-copy { padding: 26px 28px 30px; }
+  .map-card { display: flex; margin-bottom: 28px; }
+  .map-card .card-copy { padding: 40px 44px; flex: 1; }
+  .map-card img { width: 420px; height: 260px; object-fit: cover; object-position: center center; }
+  .app-card { display: flex; }
+  .app-card img { width: 280px; height: 260px; object-fit: cover; object-position: center top; }
+  .app-card .card-copy { padding: 40px 44px; }
+
+  /* Footer */
+  .footer { background: var(--v-primary); color: #ffffff; padding: 48px 24px 28px; }
+  .footer-inner { max-width: 1120px; margin: 0 auto; }
+  .ask-row { display: flex; justify-content: center; margin-bottom: 22px; }
+  .ask-box {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 6px;
+    overflow: hidden;
+    width: 420px;
+  }
+  .ask-box input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 12px 14px;
+    font-family: inherit;
+    color: var(--v-ink);
+  }
+  .ask-box button { background: none; border: none; font-size: 16px; padding: 0 14px; color: var(--v-ink); }
+  .popular { display: flex; justify-content: center; align-items: center; gap: 22px; margin-bottom: 40px; font-size: 15px; }
+  .popular .lbl { font-size: 18px; font-weight: 600; color: var(--v-muted); }
+  .popular a { color: #ffffff; font-weight: 600; }
+  .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 36px; }
+  .foot-cols h3 { font-size: 18px; font-weight: 600; line-height: 24px; color: var(--v-muted); margin-bottom: 14px; }
+  .foot-cols ul { list-style: none; }
+  .foot-cols li { margin-bottom: 10px; }
+  .foot-cols a { color: #ffffff; font-size: 15px; }
+  .foot-cols a:hover { text-decoration: underline; }
+  .legal { text-align: center; margin-top: 44px; font-size: 13px; line-height: 20px; color: #c8ccd6; }
+  .legal a { color: #ffffff; text-decoration: underline; }
+  .foot-bottom { display: flex; justify-content: center; align-items: center; gap: 26px; margin-top: 26px; }
+  .foot-bottom img { width: 30px; height: 30px; }
+  .foot-bottom a { color: #ffffff; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 400;
+    max-width: 380px;
+    background: rgba(10, 16, 26, 0.92);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast .title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .toast .detail { font-size: 12.5px; line-height: 18px; color: #c9d2de; }
+
+  @media (max-width: 1100px) {
+    .hero { flex-direction: column; }
+    .hero-media img.scene { width: 100%; max-width: 620px; }
+    .card-grid { grid-template-columns: 1fr; }
+    .wide-card, .map-card, .app-card { flex-direction: column; }
+    .wide-card img, .map-card img, .app-card img { width: 100%; }
+    .search-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <a class="brand" href="#" aria-label="Home">
+      <img class="logo" src="https://www.delta.com/content/dam/delta_homepage_redesign/Logo/Delta-Logo.svg" alt="Logo"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200&q=60';" />
+      <img class="alliance" src="https://www.delta.com/content/dam/delta_homepage_redesign/Logo/Sky%20Team.svg" alt="Alliance"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1529074963764-98f45c47344b?w=120&q=60';" />
+    </a>
+    <nav class="topnav">
+      <a class="active" href="#">Book</a>
+      <a href="#">Check-in</a>
+      <a href="#">My Trips</a>
+      <a href="#">Flight Status</a>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <a href="#">Travel Info</a>
+    <a href="#">SkyMiles</a>
+    <a href="#">Need Help?</a>
+    <a href="#">Sign Up</a>
+    <button class="btn-login">Log in</button>
+    <button class="icon-btn" aria-label="Notifications">&#128276;</button>
+    <button class="icon-btn" aria-label="Search">&#128269;</button>
+  </div>
+</header>
+
+<div class="tabsbar">
+  <button class="tab active">&#9992; Flights</button>
+  <button class="tab">&#127976; Stays</button>
+  <button class="tab">&#128663; Cars</button>
+  <button class="tab">&#127958; Vacations</button>
+  <button class="tab">&#128674; Cruises &#9662;</button>
+  <div class="spacer"></div>
+  <div class="side-links">
+    <a href="#">&#128179; AMEX Cards &#9662;</a>
+    <a href="#">&#127873; Gift Cards</a>
+    <a href="#">Updated Bags &amp; Travel Fees</a>
+  </div>
+</div>
+
+<section class="search-widget">
+  <div class="search-row">
+    <div class="airport-box">
+      <div class="code">SFO</div>
+      <div class="city">San Francisco, CA</div>
+    </div>
+    <button class="swap" aria-label="Swap airports">&#8644;</button>
+    <div class="airport-box">
+      <div class="code">To</div>
+      <div class="city">Destination</div>
+    </div>
+    <button class="select-box">&#9711; Round Trip &#9662;</button>
+    <button class="select-box">&#128197; Depart - Return &#9662;</button>
+    <button class="select-box">&#128100; 1 &#9662;</button>
+    <button class="btn-find">Find Flights</button>
+  </div>
+  <div class="search-options">
+    <label><input type="checkbox" /> Shop with Miles</label>
+    <label><input type="checkbox" /> My Dates are Flexible</label>
+    <label><input type="checkbox" checked /> Include Basic</label>
+    <label><input type="checkbox" /> Refundable Only &#9432;</label>
+    <a href="#">&#9776; Advanced Search &#9662;</a>
+  </div>
+</section>
+
+<section class="hero">
+  <div class="hero-copy">
+    <div class="kicker">Limited Time Offer</div>
+    <h1>As High As 80K Bonus Miles</h1>
+    <p>Learn your offer, which could be as high as 80,000 miles plus earn a $250 statement credit.</p>
+    <a class="btn-hero" href="#">Learn More &#8599;</a>
+    <div class="fine">Offer ends November 4, 2026.<br />Minimum spend required. Terms apply.</div>
+  </div>
+  <div class="hero-media">
+    <img class="scene" src="https://www.delta.com/content/dam/delta-tnt/homepage/hero/2026/fall-lto-2026/wf-4907851-gold-launch-1600x624.webp" alt="Golden pavilion"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1200&q=70';" />
+    <img class="card-art" src="https://www.delta.com/content/dam/delta-tnt/homepage/card-art/amex-gold-refresh-384x244.png" alt="Card art"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&q=60';" />
+  </div>
+</section>
+
+<section class="experience">
+  <div class="eyebrow">The Delta Customer Experience</div>
+  <h2>Supporting You Through Your Travel Journey</h2>
+
+  <div class="feature-card wide-card">
+    <img src="https://www.delta.com/content/dam/delta-tnt/homepage/btf/wf-4509973-960x720.webp" alt="Mountain lake traveler"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&q=70';" />
+    <div class="card-copy">
+      <h3>Unlock 15% Off Award Travel</h3>
+      <p>Delta SkyMiles&reg; Gold, Platinum, and Reserve Amex Card Members save 15% when booking Award Travel with Miles on Delta-operated flights. Not applicable to partner-operated flights or to taxes and fees. Terms apply.</p>
+      <a class="details" href="#">Details &#8599;</a>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="feature-card grid-card">
+      <img src="https://www.delta.com/content/dam/delta-tnt/homepage/btf/wf-4577600-02-1050x600.webp" alt="Traveler overlooking a coastal town"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800&q=70';" />
+      <div class="card-copy">
+        <h3>Discover Travel Products</h3>
+        <p>Explore products for all your travel needs. Choose from a la carte hotels, car rentals, cruises and vacation packages, and get exclusive SkyMiles&reg; Member benefits.</p>
+        <a class="details" href="#">Details</a>
+      </div>
+    </div>
+    <div class="feature-card grid-card">
+      <img src="https://www.delta.com/content/dam/delta-tnt/homepage/card-cd/brycecanyon-ut-slc-945.webp" alt="Canyon hoodoos"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=70';" />
+      <div class="card-copy">
+        <h3>Ready For Adventure?</h3>
+        <p>Explore flight deals to places you already love or discover new destinations that await you. Plan your next adventure today.</p>
+        <a class="details" href="#">Search Deals</a>
+      </div>
+    </div>
+    <div class="feature-card grid-card">
+      <img src="https://www.delta.com/content/dam/delta-tnt/homepage/card-cd/premium-cabin-deals-945.webp" alt="Passengers relaxing in premium cabin"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1540339832862-474599807836?w=800&q=70';" />
+      <div class="card-copy">
+        <h3>Elevate Your Flight Experience</h3>
+        <p>Stretch out and relax with more spacious seats in Delta Comfort or Delta First. Check out our Premium Cabin flight deals today.</p>
+        <a class="details" href="#">Details</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="feature-card map-card">
+    <div class="card-copy">
+      <h3>See Where You Can Fly With Delta</h3>
+      <p>Explore our entire network and discover more destinations with our new interactive route map.</p>
+      <a class="details" href="#">Explore Map</a>
+    </div>
+    <img src="https://www.delta.com/content/dam/delta-tnt/homepage/btf/wf-3175001-02-1050x600.webp" alt="Route map"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=70';" />
+  </div>
+
+  <div class="feature-card app-card">
+    <img src="https://www.delta.com/content/dam/delta-com/products/map/fda-homepage-700x425.webp" alt="Mobile app screens"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=700&q=70';" />
+    <div class="card-copy">
+      <h3>Everything You Need, All in One Place</h3>
+      <p>Download the Fly Delta app to plan, book, track your flight status, make changes to your trip, chat with a live agent and more.</p>
+      <a class="details" href="#">Go to Download</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="ask-row">
+      <div class="ask-box">
+        <input type="text" placeholder="Try Asking Me A Question" aria-label="Ask a question" />
+        <button aria-label="Search">&#128269;</button>
+      </div>
+    </div>
+    <div class="popular">
+      <span class="lbl">Popular Topics:</span>
+      <a href="#">Help Center</a>
+      <a href="#">Delta Discover Map</a>
+      <a href="#">eCredits</a>
+    </div>
+    <div class="foot-cols">
+      <div>
+        <h3>About Delta</h3>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">News Hub &#8599;</a></li>
+          <li><a href="#">Investor Relations &#8599;</a></li>
+          <li><a href="#">Business Travel &#8599;</a></li>
+          <li><a href="#">Travel Agents &#8599;</a></li>
+          <li><a href="#">Mobile App</a></li>
+          <li><a href="#">Delta Shop &#8599;</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Customer Service</h3>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Message Us</a></li>
+          <li><a href="#">Comment/Complaint</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Site Support</h3>
+        <ul>
+          <li><a href="#">Login Help</a></li>
+          <li><a href="#">Site Map</a></li>
+          <li><a href="#">Browser Compatibility</a></li>
+          <li><a href="#">Accessibility</a></li>
+          <li><a href="#">Booking Information</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Policies</h3>
+        <ul>
+          <li><a href="#">Customer Service Plan</a></li>
+          <li><a href="#">Tarmac Delay Plan</a></li>
+          <li><a href="#">Legal</a></li>
+          <li><a href="#">Sustainability</a></li>
+          <li><a href="#">Contract of Carriage</a></li>
+          <li><a href="#">Cookies, Privacy &amp; Security</a></li>
+          <li><a href="#">Combatting Modern Slavery (PDF)</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      &#8599; This link opens another site in a new window that may not follow the same accessibility policies as Delta Air Lines.<br /><br />
+      &copy; 2026 Delta Air Lines, Inc. &nbsp;|&nbsp; Travel may be on other airlines.<br />
+      Terms and conditions apply to all offers and SkyMiles benefits. See specific offer for details, and visit <a href="#">SkyMiles Membership Guide &amp; Program Rules</a>
+    </div>
+    <div class="foot-bottom">
+      <a href="#" aria-label="Meta"><img src="https://www.delta.com/content/dam/delta_homepage_redesign/hpr_optimized_images/social_icons/logo-meta-47.png" alt="Meta"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=60&q=60';" /></a>
+      <a href="#" aria-label="X"><img src="https://www.delta.com/content/dam/delta_homepage_redesign/hpr_optimized_images/social_icons/logo-x-47.png" alt="X"
+        onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611605698335-8b1569810432?w=60&q=60';" /></a>
+      <a href="#">&#127760; United States - English</a>
+      <a href="#">Espa&ntilde;ol</a>
+    </div>
+  </div>
+</footer>
+
+<a class="all-demos" href="/">&larr; All Demos</a>
+
+<div class="toast" id="toast">
+  <div class="title" id="toast-title">Something went wrong</div>
+  <div class="detail" id="toast-detail"></div>
+</div>
+
+<script>
+  var toast = document.getElementById('toast');
+  var toastTitle = document.getElementById('toast-title');
+  var toastDetail = document.getElementById('toast-detail');
+  var toastTimer = null;
+
+  function showToast(title, detail) {
+    toastTitle.textContent = title;
+    toastDetail.textContent = detail;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 5500);
+  }
+
+  var running = false;
+
+  function requestQuote() {
+    if (running) return;
+    running = true;
+    fetch('/api/e370cc3c/flight-quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        origin: 'SFO',
+        destination: 'JFK',
+        fareProduct: 'comfort_plus',
+        passengers: 1,
+        devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+        devinOrgId: 'org-464e51f21ff24e5cb86f03aa7b3f30c9',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) {
+          showToast('We couldn\u2019t complete your request',
+            (result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error')
+            + ' \u00b7 Reference: ' + (result.body.requestId || 'unavailable'));
+        } else {
+          showToast('Request received', 'Confirmation ' + result.body.confirmationCode);
+        }
+      })
+      .catch(function (err) {
+        showToast('Network error', err.message);
+      })
+      .finally(function () {
+        running = false;
+      });
+  }
+
+  document.addEventListener('click', function (event) {
+    var el = event.target.closest('a, button');
+    if (!el || el.classList.contains('all-demos')) return;
+    event.preventDefault();
+    requestQuote();
+  });
+</script>
+</body>
+</html>

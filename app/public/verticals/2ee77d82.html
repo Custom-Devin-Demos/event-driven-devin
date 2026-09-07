@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yum.Com</title>
+<link rel="shortcut icon" href="/verticals/assets/2ee77d82/favicon.ico" type="image/x-icon">
+<style>
+  :root {
+    --navy: #141f46;
+    --cold-blue: #1f3164;
+    --light-blue: #8fb8e8;
+    --red: #e4002b;
+    --ink: #212529;
+    --line: #dee2e6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { text-decoration: none; color: inherit; }
+  img { display: block; max-width: 100%; }
+
+  .all-demos {
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    z-index: 500;
+    font-size: 12px;
+    color: #8a93a6;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 10px;
+  }
+  .all-demos:hover { color: var(--navy); }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 300;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .nav-logo img { height: 62px; width: auto; }
+  nav.primary { display: flex; align-items: center; gap: 6px; flex: 1; }
+  nav.primary a {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    color: var(--navy);
+    text-transform: uppercase;
+  }
+  nav.primary a:hover { color: var(--red); }
+  nav.primary a .caret {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid currentColor;
+  }
+  .nav-right { display: flex; align-items: center; gap: 22px; }
+  .earnings-btn {
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 12px 26px;
+    border: none;
+    cursor: pointer;
+  }
+  .earnings-btn:hover { background: var(--cold-blue); }
+  .ticker { text-align: left; line-height: 1.15; color: var(--navy); }
+  .ticker .sym { font-size: 12px; font-weight: 700; letter-spacing: .05em; }
+  .ticker .price { font-size: 19px; font-weight: 700; }
+  .ticker .chg { font-size: 11px; color: #2e7d32; }
+
+  /* Hero carousel */
+  .hero { position: relative; height: 400px; overflow: hidden; }
+  .hero .slide {
+    position: absolute;
+    inset: 0;
+    background-position: left center;
+    background-size: cover;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .hero .slide.active { opacity: 1; }
+
+  /* Headline band */
+  .headline-band {
+    background: var(--navy);
+    display: flex;
+    justify-content: center;
+    padding: 34px 16px;
+  }
+  .headline-band h1 {
+    max-width: 880px;
+    text-align: center;
+    color: #fff;
+    font-size: 2.6em;
+    line-height: 1.25;
+    font-weight: 700;
+  }
+  .headline-band .lb { color: var(--light-blue); }
+
+  /* Stats */
+  .stats {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 34px 16px 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .stat { text-align: center; }
+  .stat h6 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin: 8px 0;
+    color: var(--ink);
+  }
+  .stat .num {
+    font-size: 56px;
+    font-weight: 700;
+    color: var(--cold-blue);
+    line-height: .9em;
+  }
+  .stat .icon {
+    width: 108px;
+    height: 108px;
+    margin: 14px auto 0;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+  }
+
+  /* Link cards */
+  .cards {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 26px;
+  }
+  .card { display: block; }
+  .card img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    object-position: center center;
+  }
+  .card .kicker {
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .card h3 {
+    margin-top: 4px;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+  .card:hover h3 { text-decoration: underline; }
+
+  /* Brands */
+  .brands-band { background: #f4f6f9; padding: 46px 16px 54px; }
+  .brands-band h2 {
+    text-align: center;
+    color: var(--navy);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 30px;
+  }
+  .brands {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+  }
+  .brand { background: #fff; box-shadow: 0 2px 10px rgba(20,31,70,.08); }
+  .brand img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: center center;
+  }
+  .brand .body { padding: 16px 18px 20px; }
+  .brand h3 { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .brand p { font-size: 14px; color: #4a5268; margin-top: 6px; }
+  .brand a.more {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+
+  /* News */
+  .news { max-width: 1240px; margin: 0 auto; padding: 50px 16px 30px; }
+  .news h2 {
+    text-align: center;
+    color: var(--navy);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 30px;
+  }
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+  }
+  .news-card { display: block; border: 1px solid var(--line); }
+  .news-card img {
+    width: 100%;
+    aspect-ratio: 7 / 4;
+    object-fit: cover;
+    object-position: center center;
+  }
+  .news-card .body { padding: 14px 16px 18px; }
+  .news-card .tag {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--red);
+  }
+  .news-card h4 { margin-top: 5px; font-size: 16px; font-weight: 700; color: var(--navy); line-height: 1.35; }
+  .news-card .read { margin-top: 8px; font-size: 12px; color: #6c7285; }
+  .news-card:hover h4 { text-decoration: underline; }
+  .news-more { text-align: center; margin-top: 30px; }
+  .news-more a {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 13px 30px;
+  }
+  .news-more a:hover { background: var(--cold-blue); }
+
+  /* Food strip */
+  .food-strip { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .food-strip img {
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  /* Footer */
+  footer { background: var(--navy); color: #fff; padding: 54px 16px 30px; }
+  .footer-inner { max-width: 1240px; margin: 0 auto; }
+  .footer-tag {
+    font-size: 22px;
+    font-weight: 700;
+    max-width: 460px;
+    line-height: 1.35;
+    margin-bottom: 34px;
+  }
+  .footer-cols {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+  }
+  .footer-cols ul { list-style: none; }
+  .footer-cols li { margin: 5px 0; font-size: 13px; }
+  .footer-cols a { color: #c9d2e8; }
+  .footer-cols a:hover { color: #fff; }
+  .footer-cols a.head { color: #fff; font-weight: 700; }
+  .footer-bottom {
+    margin-top: 40px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255,255,255,.18);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 12px;
+    color: #aeb8d2;
+  }
+  .footer-bottom .legal { display: flex; gap: 18px; flex-wrap: wrap; }
+  .footer-bottom a:hover { color: #fff; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 600;
+    max-width: 380px;
+    background: rgba(20, 25, 40, 0.92);
+    color: #fff;
+    font-size: 13.5px;
+    line-height: 1.45;
+    border-radius: 8px;
+    padding: 13px 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    transform: translateX(120%);
+    transition: transform .35s ease;
+  }
+  .toast.show { transform: translateX(0); }
+  .toast .toast-title { font-weight: 700; margin-bottom: 3px; }
+
+  @media (max-width: 980px) {
+    nav.primary { display: none; }
+    .stats, .cards, .news-grid, .brands { grid-template-columns: 1fr 1fr; }
+    .footer-cols { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<a class="all-demos" href="/">&larr; All Demos</a>
+
+<header>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" aria-label="Home">
+      <img src="/verticals/assets/2ee77d82/lockup.svg" alt="Yum! Brands">
+    </a>
+    <nav class="primary">
+      <a href="#">Company <span class="caret"></span></a>
+      <a href="#">Careers <span class="caret"></span></a>
+      <a href="#">Impact <span class="caret"></span></a>
+      <a href="#">Investors <span class="caret"></span></a>
+      <a href="#">News &amp; Stories <span class="caret"></span></a>
+    </nav>
+    <div class="nav-right">
+      <button class="earnings-btn" type="button">Q2 2026 Earnings</button>
+      <div class="ticker">
+        <div class="sym">YUM &ndash; NYSE</div>
+        <div class="price">153.86</div>
+        <div class="chg">+3.11</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="hero" id="hero">
+  <div class="slide active" style="background-image:url('/verticals/assets/2ee77d82/hero-1.jpg')"></div>
+  <div class="slide" style="background-image:url('/verticals/assets/2ee77d82/hero-2.jpg')"></div>
+  <div class="slide" style="background-image:url('/verticals/assets/2ee77d82/hero-3.jpg')"></div>
+  <div class="slide" style="background-image:url('/verticals/assets/2ee77d82/hero-4.jpg')"></div>
+</div>
+
+<div class="headline-band">
+  <h1>We're building the world's <span class="lb">most loved, trusted</span> and <span class="lb">connected</span> restaurant brands in partnership with the <span class="lb">best franchise operators</span> in the business.</h1>
+</div>
+
+<section class="stats">
+  <div class="stat">
+    <h6>Approximately</h6>
+    <div class="num">1,500</div>
+    <h6>Franchisees</h6>
+    <div class="icon" aria-hidden="true">&#128101;</div>
+  </div>
+  <div class="stat">
+    <h6>Operating</h6>
+    <div class="num">63,000+</div>
+    <h6>Restaurants</h6>
+    <div class="icon" aria-hidden="true">&#127978;</div>
+  </div>
+  <div class="stat">
+    <h6>In</h6>
+    <div class="num">155+</div>
+    <h6>Countries &amp; Territories</h6>
+    <div class="icon" aria-hidden="true">&#127760;</div>
+  </div>
+</section>
+
+<section class="cards">
+  <a class="card" href="#">
+    <img src="/verticals/assets/2ee77d82/card-1.jpg" alt="Impact" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=900&q=80'">
+    <div class="kicker">Impact</div>
+    <h3>We have a recipe for good growth</h3>
+  </a>
+  <a class="card" href="#">
+    <img src="/verticals/assets/2ee77d82/card-2.jpg" alt="Careers" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=900&q=80'">
+    <div class="kicker">Careers</div>
+    <h3>Be your best self at Yum!</h3>
+  </a>
+  <a class="card" href="#">
+    <img src="/verticals/assets/2ee77d82/card-3.jpg" alt="Investors" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&q=80'">
+    <div class="kicker">Investors</div>
+    <h3>Check out our latest earnings release</h3>
+  </a>
+</section>
+
+<section class="brands-band">
+  <h2>Our Brands</h2>
+  <div class="brands">
+    <div class="brand">
+      <img src="/verticals/assets/2ee77d82/brand-1.jpg" alt="KFC" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=900&q=80'">
+      <div class="body">
+        <h3>KFC</h3>
+        <p>The world's most popular chicken restaurant brand.</p>
+        <a class="more" href="#">Learn More</a>
+      </div>
+    </div>
+    <div class="brand">
+      <img src="/verticals/assets/2ee77d82/brand-2.jpg" alt="Taco Bell" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=900&q=80'">
+      <div class="body">
+        <h3>Taco Bell</h3>
+        <p>A category of one, serving craveable Mexican-inspired food.</p>
+        <a class="more" href="#">Learn More</a>
+      </div>
+    </div>
+    <div class="brand">
+      <img src="/verticals/assets/2ee77d82/brand-3.jpg" alt="Pizza Hut" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513104890138-7c749659a591?w=900&q=80'">
+      <div class="body">
+        <h3>Pizza Hut</h3>
+        <p>The pizza restaurant more people trust for delivery and carryout.</p>
+        <a class="more" href="#">Learn More</a>
+      </div>
+    </div>
+    <div class="brand">
+      <img src="/verticals/assets/2ee77d82/brand-4.jpg" alt="Habit Burger &amp; Grill" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80'">
+      <div class="body">
+        <h3>Habit Burger &amp; Grill</h3>
+        <p>Award-winning chargrilled burgers and made-to-order fare.</p>
+        <a class="more" href="#">Learn More</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="news">
+  <h2>Trending Yum! News</h2>
+  <div class="news-grid">
+    <a class="news-card" href="#">
+      <img src="/verticals/assets/2ee77d82/news-1.png" alt="How I Got Here: Rob Swain" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=80'">
+      <div class="body">
+        <div class="tag">Yum! Brands</div>
+        <h4>How I Got Here: Rob Swain</h4>
+        <div class="read">3 min read</div>
+      </div>
+    </a>
+    <a class="news-card" href="#">
+      <img src="/verticals/assets/2ee77d82/news-2.png" alt="Live Well Day" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=80'">
+      <div class="body">
+        <div class="tag">Yum! Brands</div>
+        <h4>Why (almost) all Yum! Brands employees will be off work on August 19</h4>
+        <div class="read">4 min read</div>
+      </div>
+    </a>
+    <a class="news-card" href="#">
+      <img src="/verticals/assets/2ee77d82/news-3.png" alt="TIME leaders 2026" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1552664730-d307ca884978?w=900&q=80'">
+      <div class="body">
+        <div class="tag">Yum! Brands</div>
+        <h4>Yum! named to TIME's list of the World's Best Companies</h4>
+        <div class="read">2 min read</div>
+      </div>
+    </a>
+    <a class="news-card" href="#">
+      <img src="/verticals/assets/2ee77d82/brand-4.jpg" alt="Habit Burger &amp; Grill" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1550547660-d9450f859349?w=900&q=80'">
+      <div class="body">
+        <div class="tag">Habit</div>
+        <h4>Habit Burger &amp; Grill fires up chargrilled favorites for summer</h4>
+        <div class="read">3 min read</div>
+      </div>
+    </a>
+  </div>
+  <div class="news-more"><a href="#">View All News &amp; Stories</a></div>
+</section>
+
+<div class="food-strip">
+  <img src="/verticals/assets/2ee77d82/food-1.jpg" alt="KFC food" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1562967914-608f82629710?w=900&q=80'">
+  <img src="/verticals/assets/2ee77d82/food-2.jpg" alt="Taco Bell food" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=900&q=80'">
+  <img src="/verticals/assets/2ee77d82/food-3.jpg" alt="Pizza Hut food" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=900&q=80'">
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-tag">Building the world's most loved, trusted and connected restaurant brands</div>
+    <div class="footer-cols">
+      <ul>
+        <li><a class="head" href="#">Company</a></li>
+        <li><a href="#">Good Growth Strategy</a></li>
+        <li><a href="#">Leadership</a></li>
+        <li><a class="head" href="#">Brands</a></li>
+        <li><a href="#">KFC</a></li>
+        <li><a href="#">Taco Bell</a></li>
+        <li><a href="#">Pizza Hut</a></li>
+        <li><a href="#">Habit Burger &amp; Grill</a></li>
+        <li><a href="#">Franchising &amp; Real Estate</a></li>
+      </ul>
+      <ul>
+        <li><a class="head" href="#">Careers</a></li>
+        <li><a href="#">Search Jobs</a></li>
+        <li><a href="#">Our Culture</a></li>
+        <li><a href="#">How We Work</a></li>
+        <li><a href="#">Our Functions</a></li>
+        <li><a href="#">Professional Development</a></li>
+        <li><a href="#">The Candidate Experience</a></li>
+        <li><a href="#">Yum! Digital &amp; Tech</a></li>
+      </ul>
+      <ul>
+        <li><a class="head" href="#">Impact</a></li>
+        <li><a href="#">Approach</a></li>
+        <li><a href="#">Strategy &amp; Governance</a></li>
+        <li><a href="#">Stakeholder Engagement</a></li>
+        <li><a href="#">Reporting &amp; Materiality</a></li>
+        <li><a class="head" href="#">People</a></li>
+        <li><a href="#">Unrivaled Culture &amp; Talent</a></li>
+        <li><a href="#">Community Impact</a></li>
+        <li><a href="#">Ethics &amp; Human Rights</a></li>
+      </ul>
+      <ul>
+        <li><a class="head" href="#">Food</a></li>
+        <li><a href="#">Food Safety</a></li>
+        <li><a href="#">Balanced Choices</a></li>
+        <li><a href="#">Raised Responsibly</a></li>
+        <li><a class="head" href="#">Planet</a></li>
+        <li><a href="#">Climate</a></li>
+        <li><a href="#">Nature</a></li>
+        <li><a href="#">Packaging &amp; Circularity</a></li>
+        <li><a href="#">Reporting &amp; Policies</a></li>
+      </ul>
+      <ul>
+        <li><a class="head" href="#">Investors</a></li>
+        <li><a href="#">News &amp; Events</a></li>
+        <li><a href="#">Financial Releases</a></li>
+        <li><a href="#">SEC Filings</a></li>
+        <li><a href="#">Annual Reports</a></li>
+        <li><a href="#">Stock</a></li>
+        <li><a href="#">Dividend History</a></li>
+        <li><a href="#">Governance</a></li>
+        <li><a href="#">Board of Directors</a></li>
+      </ul>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Yum! Brands, Inc. All rights reserved.</div>
+      <div class="legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Cookie Preferences</a>
+        <a href="#">Accessibility</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <div class="toast-title" id="toastTitle"></div>
+  <div id="toastBody"></div>
+</div>
+
+<script>
+  (function () {
+    var slides = document.querySelectorAll('.hero .slide');
+    var current = 0;
+    setInterval(function () {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 5000);
+
+    var toast = document.getElementById('toast');
+    var toastTimer = null;
+    function showToast(title, body) {
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastBody').textContent = body;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+
+    function submitInquiry(sourceLabel) {
+      fetch('/api/2ee77d82/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: 'investor-relations',
+          market: 'US',
+          source: sourceLabel,
+          devinUserId: 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV',
+          devinOrgId: 'org-0117dd07d70d46d38bb813ca80d0c989'
+        })
+      })
+        .then(function (res) {
+          return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        })
+        .then(function (result) {
+          if (!result.ok) {
+            showToast('Something went wrong', (result.data && result.data.errorClass ? result.data.errorClass + ': ' : '') + (result.data && result.data.error ? result.data.error : 'Unexpected error. Please try again later.'));
+          } else {
+            showToast('Request received', 'Thanks — our team will follow up shortly.');
+          }
+        })
+        .catch(function (err) {
+          showToast('Something went wrong', err.message);
+        });
+    }
+
+    document.addEventListener('click', function (event) {
+      var el = event.target.closest('a, button');
+      if (!el) return;
+      if (el.classList.contains('all-demos')) return;
+      event.preventDefault();
+      var label = (el.textContent || '').trim().slice(0, 60) || 'link';
+      submitInquiry(label);
+    });
+  })();
+</script>
+</body>
+</html>

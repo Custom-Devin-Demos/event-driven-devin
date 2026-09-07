@@ -202,6 +202,10 @@ const CUSTOMERS = {
     label: 'Customer 841A',
     triggerMode: 'api',
   },
+  '4b7e1d37': {
+    label: 'Customer 4B7E',
+    triggerMode: 'api',
+  },
   '6f543fa2': {
     label: 'BNSF Railway',
     triggerMode: 'api',
@@ -308,6 +312,10 @@ const CUSTOMERS = {
   },
   '382b34fc': {
     label: 'GEICO',
+    triggerMode: 'api',
+  },
+  '4f645972': {
+    label: 'Progressive Claims',
     triggerMode: 'api',
   },
   c35ea2e0: {
@@ -557,6 +565,26 @@ const CUSTOMERS = {
   },
   edaa5b9f: {
     label: 'Disney Guest Contact',
+    triggerMode: 'api',
+  },
+  '63f3f711': {
+    label: 'Stripe',
+    triggerMode: 'api',
+  },
+  e370cc3c: {
+    label: 'Delta',
+    triggerMode: 'api',
+  },
+  fa4d1e65: {
+    label: 'Evercore Engagement Inquiry',
+    triggerMode: 'api',
+  },
+  '6469d508': {
+    label: 'Mount Sinai',
+    triggerMode: 'api',
+  },
+  '2ee77d82': {
+    label: 'Yum! Brands',
     triggerMode: 'api',
   },
   qbe: {
