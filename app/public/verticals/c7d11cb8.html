@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Morgan Stanley Online &mdash; Rebalance Review</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Source+Serif+4:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #f7f9fb;
+      --surface: #eaeef2;
+      --border: #dfe4ea;
+      --border-light: #ccd3db;
+      --text: #10202e;
+      --text-muted: #5a6b7a;
+      --text-dim: #8a97a3;
+      --ms-navy: #002b49;
+      --ms-navy-hover: #001d33;
+      --ms-blue: #0f6fc5;
+      --ms-blue-dim: rgba(15,111,197,0.08);
+      --ms-blue-border: rgba(15,111,197,0.2);
+      --danger: #b3202e;
+      --danger-bg: rgba(179,32,46,0.06);
+      --danger-border: rgba(179,32,46,0.16);
+      --success: #1f7a4d;
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --serif: 'Source Serif 4', Georgia, serif;
+      --mono: 'JetBrains Mono', monospace;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-up { animation: fadeUp 0.7s var(--ease-out) both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* ── Utility bar ── */
+    .util-bar {
+      background: var(--ms-navy);
+      color: rgba(255,255,255,0.82);
+      padding: 0.5rem clamp(1.5rem, 4vw, 3rem);
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .util-bar span { text-transform: uppercase; }
+    .util-bar .util-right { display: flex; gap: 1.25rem; }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 4vw, 3rem);
+      height: 72px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-mark { width: 4px; height: 30px; background: var(--ms-navy); }
+    .logo-word {
+      font-family: var(--serif); font-size: 1.15rem; font-weight: 600;
+      color: var(--ms-navy); letter-spacing: 0.02em; line-height: 1.05;
+    }
+    .logo-sub {
+      font-size: 0.6rem; color: var(--text-dim);
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    nav { display: flex; align-items: center; gap: 1.75rem; }
+    nav a {
+      color: var(--text); text-decoration: none; font-size: 0.78rem;
+      font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 0.35rem 0; border-bottom: 2px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    nav a:hover, nav a.active { color: var(--ms-navy); border-bottom-color: var(--ms-blue); }
+    .nav-icons { display: flex; align-items: center; gap: 1.25rem; }
+    .nav-icon {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); transition: color 0.2s; cursor: pointer;
+    }
+    .nav-icon:hover { color: var(--ms-blue); }
+
+    /* ── Page ── */
+    .page {
+      max-width: 880px; margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 3rem);
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      color: var(--ms-blue); text-decoration: none; font-size: 0.8rem;
+      font-weight: 500; letter-spacing: 0.05em; margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--ms-navy); }
+
+    .page-title {
+      font-family: var(--serif);
+      font-size: clamp(1.7rem, 4vw, 2.3rem);
+      font-weight: 700; line-height: 1.2; margin-bottom: 0.5rem;
+      letter-spacing: -0.01em; color: var(--ms-navy);
+    }
+    .page-desc {
+      font-size: 0.92rem; color: var(--text-muted); max-width: 560px;
+      line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    /* ── Account strip ── */
+    .account-strip {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+      background: var(--border); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem;
+    }
+    .account-cell { background: var(--bg-card); padding: 1rem 1.25rem; }
+    .account-cell .k {
+      font-size: 0.64rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.3rem;
+    }
+    .account-cell .v { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .account-cell .v small { font-family: var(--mono); font-size: 0.72rem; font-weight: 400; color: var(--text-muted); }
+
+    /* ── Blotter Card ── */
+    .order-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(16,32,46,0.05);
+    }
+    .order-header {
+      padding: 1.15rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .order-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+    .order-header .item-count {
+      font-size: 0.68rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .order-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .order-item:hover { background: var(--bg-elevated); }
+    .side-tag {
+      width: 52px; flex-shrink: 0; text-align: center;
+      font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.3rem 0; border-radius: 4px;
+    }
+    .side-tag.buy { background: rgba(31,122,77,0.1); color: var(--success); }
+    .side-tag.sell { background: var(--danger-bg); color: var(--danger); }
+    .item-details { flex: 1; }
+    .item-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.15rem; }
+    .item-symbol { font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim); }
+    .item-class { font-size: 0.75rem; color: var(--text-muted); }
+    .item-meta { text-align: right; }
+    .item-qty { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.1rem; }
+    .item-price { font-weight: 700; font-size: 0.95rem; }
+
+    .order-totals {
+      padding: 1.15rem 1.5rem; background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+    }
+    .total-line {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--text-muted); padding: 0.25rem 0;
+    }
+    .total-line.grand {
+      font-weight: 700; color: var(--text); font-size: 1rem;
+      border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 0.75rem;
+    }
+    .tier-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--ms-blue-dim); color: var(--ms-blue);
+      font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.6rem;
+      border-radius: 4px; margin-top: 0.5rem;
+    }
+
+    /* ── Submit form ── */
+    .action-section {
+      margin-top: 1.5rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(16,32,46,0.05);
+    }
+    .action-section h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.66rem; font-weight: 600; color: var(--text-dim);
+      margin-bottom: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border-light); border-radius: 8px;
+      font-size: 0.88rem; font-family: var(--sans);
+      color: var(--text); background: #fff;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: none; border-color: var(--ms-blue);
+      box-shadow: 0 0 0 3px var(--ms-blue-dim);
+    }
+
+    .place-order-btn {
+      width: 100%; padding: 1rem; margin-top: 0.5rem;
+      background: var(--ms-navy); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+      font-family: var(--sans); letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.3s, transform 0.2s;
+    }
+    .place-order-btn:hover { background: var(--ms-navy-hover); transform: translateY(-1px); }
+    .place-order-btn:disabled { background: var(--surface); color: var(--text-dim); cursor: not-allowed; transform: none; }
+
+    .disclosure {
+      margin-top: 0.85rem; font-size: 0.7rem; color: var(--text-dim); line-height: 1.6;
+    }
+
+    .processing {
+      display: none; align-items: center; justify-content: center;
+      gap: 0.75rem; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;
+    }
+    .processing.visible { display: flex; }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid var(--border-light);
+      border-top-color: var(--ms-blue); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box {
+      margin-top: 1rem; padding: 1.15rem 1.35rem; border-radius: 10px;
+      font-size: 0.85rem; display: none;
+      animation: fadeUp 0.4s var(--ease-out);
+    }
+    .result-box.error {
+      display: block;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+    }
+    .result-box.success {
+      display: block;
+      background: rgba(31,122,77,0.06); border: 1px solid rgba(31,122,77,0.2);
+    }
+    .result-box h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box p { color: var(--text-muted); line-height: 1.6; }
+    .result-box code {
+      background: rgba(179,32,46,0.08); padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-size: 0.76rem; font-family: var(--mono); color: var(--danger);
+    }
+    .error-meta {
+      margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--danger-border);
+      font-size: 0.72rem; color: var(--text-dim); font-family: var(--mono);
+    }
+    .error-meta span { display: block; margin-bottom: 0.15rem; }
+
+    /* ── Bug Hint ── */
+    .bug-hint {
+      margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--danger-bg); border: 1px solid var(--danger-border);
+      border-radius: 10px; font-size: 0.8rem; color: #8b3a3a; line-height: 1.6;
+    }
+    .bug-hint strong { color: var(--danger); }
+    .bug-hint code {
+      background: rgba(179,32,46,0.08); padding: 0.1rem 0.35rem;
+      border-radius: 4px; font-family: var(--mono); font-size: 0.75rem; color: var(--danger);
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem); margin-top: 3rem;
+      background: #fff;
+    }
+    .footer-inner {
+      max-width: 880px; margin: 0 auto; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .footer-brand {
+      font-size: 0.82rem; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.03em;
+    }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 0.75rem;
+      letter-spacing: 0.04em; text-transform: uppercase; transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-muted); }
+    .footer-devin { margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-dim); }
+    .footer-devin a { color: var(--ms-blue); text-decoration: none; }
+    .footer-devin a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .form-row, .account-strip { grid-template-columns: 1fr; }
+      nav a { display: none; }
+      .footer-inner { flex-direction: column; gap: 1rem; text-align: center; }
+      .util-bar { font-size: 0.65rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="util-bar">
+    <span>Morgan Stanley Online</span>
+    <div class="util-right">
+      <span>Alexandra Whitfield</span>
+      <span>Last login: Today 8:14 AM ET</span>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-mark"></div>
+      <div>
+        <div class="logo-word">Morgan Stanley</div>
+        <div class="logo-sub">Wealth Management</div>
+      </div>
+    </div>
+    <nav>
+      <a href="#">Accounts</a>
+      <a href="#" class="active">Portfolio</a>
+      <a href="#">Research</a>
+      <a href="#">Move Money</a>
+    </nav>
+    <div class="nav-icons">
+      <div class="nav-icon" title="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="nav-icon" title="Alerts">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="nav-icon" title="Profile">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link animate-up">&larr; All Demos</a>
+
+    <h1 class="page-title animate-up delay-1">Rebalance Review</h1>
+    <p class="page-desc animate-up delay-2">Your advisor&rsquo;s proposed Q1 allocation drift correction is ready. Click <strong>Submit Trades</strong> to run the rebalance pipeline and watch the bug surface in real time.</p>
+
+    <div class="account-strip animate-up delay-3">
+      <div class="account-cell">
+        <div class="k">Advisory Account</div>
+        <div class="v"><small>MS-8842-01179</small></div>
+      </div>
+      <div class="account-cell">
+        <div class="k">Total Value</div>
+        <div class="v">$1,284,610.22</div>
+      </div>
+      <div class="account-cell">
+        <div class="k">Financial Advisor</div>
+        <div class="v" style="font-size:0.9rem;">Daniel Okafor, CFP&reg;</div>
+      </div>
+    </div>
+
+    <div class="order-card animate-up delay-3">
+      <div class="order-header">
+        <h2>Proposed Trades</h2>
+        <span class="item-count">3 orders</span>
+      </div>
+      <div class="order-items">
+        <div class="order-item">
+          <div class="side-tag buy">Buy</div>
+          <div class="item-details">
+            <div class="item-name">Vanguard Total Stock Market ETF</div>
+            <div class="item-class">US Equity &middot; Market on close</div>
+            <div class="item-symbol">VTI</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">400 shares</div>
+            <div class="item-price">$115,764.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="side-tag sell">Sell</div>
+          <div class="item-details">
+            <div class="item-name">iShares Core U.S. Aggregate Bond ETF</div>
+            <div class="item-class">Fixed Income &middot; Market on close</div>
+            <div class="item-symbol">AGG</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">900 shares</div>
+            <div class="item-price">$88,848.00</div>
+          </div>
+        </div>
+        <div class="order-item">
+          <div class="side-tag buy">Buy</div>
+          <div class="item-details">
+            <div class="item-name">Morgan Stanley Institutional Growth Portfolio</div>
+            <div class="item-class">US Equity &middot; NAV</div>
+            <div class="item-symbol">MSIQX</div>
+          </div>
+          <div class="item-meta">
+            <div class="item-qty">1,200 shares</div>
+            <div class="item-price">$75,360.00</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-totals">
+        <div class="total-line"><span>Traded notional</span><span>$279,972.00</span></div>
+        <div class="total-line"><span>Advisory fee</span><span>Calculated at submission</span></div>
+        <div class="total-line"><span>Householding breakpoint</span><span>10% (household &gt; $250K)</span></div>
+        <div class="total-line grand"><span>Est. annual fee</span><span>$3,149.69</span></div>
+        <div class="tier-badge">&#x1F4C8; Select UMA &mdash; discretionary rebalancing enabled</div>
+      </div>
+    </div>
+
+    <div class="action-section animate-up delay-4">
+      <h3>Submit for Execution</h3>
+      <form id="rebalanceForm" onsubmit="submitRebalance(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Account Holder</label>
+            <input type="text" value="Alexandra Whitfield" readonly>
+          </div>
+          <div class="form-group">
+            <label>Account Number</label>
+            <input type="text" value="MS-8842-01179" readonly>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Advisory Program</label>
+            <select id="programSelect">
+              <option value="SELECT_UMA" selected>Select UMA</option>
+              <option value="CONSULTING_GROUP">Consulting Group Advisor</option>
+              <option value="PORTFOLIO_MGMT">Portfolio Management</option>
+              <option value="ACCESS_INVESTING">Access Investing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Settlement</label>
+            <input type="text" value="T+1 &middot; Cash Sweep ****3308" readonly>
+          </div>
+        </div>
+        <button type="submit" class="place-order-btn" id="submitBtn">Submit Trades</button>
+      </form>
+      <div class="disclosure">Orders are routed for execution at the next available market close. Advisory fees are billed quarterly in arrears based on average daily household value.</div>
+      <div class="processing" id="processingIndicator">
+        <div class="spinner"></div>
+        <span>Submitting rebalance to the trading desk&hellip;</span>
+      </div>
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="bug-hint animate-up delay-5">
+      <strong>&#x1F41E; Bug:</strong> The rebalance pipeline appends a policy-mandated liquidity sleeve (<code>MS-CASH-SWEEP-2026</code>) that doesn&rsquo;t exist in the security master. When the trade confirmation formatter tries to look up its name, it crashes with a <code>TypeError</code>.
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">Morgan Stanley Smith Barney LLC &copy; 2026 &middot; Member SIPC</div>
+        <div class="footer-devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a> &middot; Built in &lt;1 day</div>
+      </div>
+      <div class="footer-links">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Disclosures</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var TRADES = [
+      { symbol: 'VTI', side: 'buy', qty: 400, notional: 115764.00 },
+      { symbol: 'AGG', side: 'sell', qty: 900, notional: 88848.00 },
+      { symbol: 'MSIQX', side: 'buy', qty: 1200, notional: 75360.00 }
+    ];
+    var NOTIONAL = 279972.00;
+
+    function submitRebalance(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      var programCode = document.getElementById('programSelect').value;
+
+      fetch('/api/c7d11cb8/rebalance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId: 'MS-8842-01179',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          trades: TRADES,
+          notional: NOTIONAL,
+          programCode: programCode
+        })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function(result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Rebalance Failed</h3>' +
+            '<p>Your trades could not be submitted.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Rebalance Submitted</h3>' +
+            '<p>Order batch <strong>' + result.data.rebalanceId + '</strong> routed to the trading desk.<br>' +
+            'Notional: $' + result.data.notional.toFixed(2) + ' &middot; Est. annual advisory fee: $' + result.data.netFee.toFixed(2) + '</p>';
+        }
+        btn.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Submit Trades';
+      })
+      .catch(function(err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'block';
+        btn.disabled = false;
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

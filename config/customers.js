@@ -118,6 +118,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  c7d11cb8: {
+    label: 'Morgan Stanley',
+    triggerMode: 'api',
+  },
   '50b235c7': {
     label: 'lululemon',
     triggerMode: 'api',
@@ -407,6 +411,10 @@ const CUSTOMERS = {
     label: 'Marriott Bonvoy (Android)',
     triggerMode: 'api',
   },
+  eaconnect: {
+    label: 'EA Connect (Android)',
+    triggerMode: 'api',
+  },
   coppel: {
     label: 'Coppel Mi Carrito',
     triggerMode: 'api',
@@ -555,6 +563,14 @@ const CUSTOMERS = {
     label: 'QBE North America Claims',
     triggerMode: 'api',
   },
+  nab: {
+    label: 'NAB Internet Banking',
+    triggerMode: 'api',
+  },
+  ausunity: {
+    label: 'Australian Unity Health Claims',
+    triggerMode: 'api',
+  },
   '6dc826a1': {
     label: 'Morgan Stanley WM — Advisor Trade Booking',
     triggerMode: 'api',
@@ -562,6 +578,10 @@ const CUSTOMERS = {
   },
   '4c351052': {
     label: 'Publix',
+    triggerMode: 'api',
+  },
+  '0b6164d6': {
+    label: 'Databricks',
     triggerMode: 'api',
   },
 };
