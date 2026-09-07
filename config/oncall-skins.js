@@ -990,6 +990,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Bank Leumi Customer Service',
     disclaimer: 'NOT ACTUALLY A BANK LEUMI SITE — internal demo only, not affiliated with, endorsed by, or a real Bank Leumi product.',
   },
+  '2e94691c': {
+    slug: '2e94691c',
+    company: 'Wiz',
+    brandMark: 'W',
+    vertical: 'hightech',
+    page: { file: '2e94691c.html', title: 'Wiz — Cloud Connector Deployment' },
+    accent: '#0254EC',
+    accentDark: '#0143C0',
+    theme: {
+      '--accent': '#0254EC',
+      '--ink': '#393F49',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#25242F',
+      '--chrome-text': '#F4F4F6',
+    },
+    supportCenter: 'Wiz Support',
+    supportCenterSub: 'Deployment Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A WIZ SITE — internal demo only, not affiliated with, endorsed by, or a real Wiz product.',
+  },
 };
 
 function getOncallSkin(slug) {
