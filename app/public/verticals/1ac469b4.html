@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>증명서 발급 수수료 결제 | 정부24</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #256ef4;
+      --blue-dark: #1f5ed0;
+      --blue-wash: #eef4ff;
+      --blue-line: #c5d9fb;
+      --navy: #052b57;
+      --navy-2: #0b3d75;
+      --ink: #1e2124;
+      --ink-2: #333b42;
+      --muted: #58616a;
+      --muted-2: #8a949e;
+      --line: #cdd1d5;
+      --line-2: #e4e7ea;
+      --wash: #eef2f7;
+      --wash-2: #f6f8fa;
+      --red: #de3d3d;
+      --green: #17845a;
+      --white: #ffffff;
+      --sans: 'Pretendard GOV', Pretendard, 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', Dotum, 돋움, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); font-size: 17px; line-height: 1.5; color: var(--ink); background: var(--white); word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    ul, ol { list-style: none; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---------- gov band ---------- */
+    .gov-band { background: var(--wash); border-bottom: 1px solid var(--line-2); }
+    .gov-band .in { display: flex; align-items: center; gap: 8px; padding: 9px 0; font-size: 14px; color: var(--ink-2); }
+    .gov-band .flag { width: 20px; height: 14px; flex: 0 0 20px; border: 1px solid #d6dade; border-radius: 2px; }
+
+    /* ---------- header ---------- */
+    header.gnb { background: #fff; border-bottom: 1px solid var(--line-2); }
+    .gnb-top { display: flex; align-items: center; gap: 16px; padding: 18px 0 14px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; font-size: 27px; font-weight: 700; letter-spacing: -0.04em; color: var(--ink); }
+    .logo-mark { width: 40px; height: 40px; flex: 0 0 40px; }
+    .head-right { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .util { display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--muted); }
+    .util a { display: inline-flex; align-items: center; gap: 4px; }
+    .util a:hover { color: var(--blue); text-decoration: underline; }
+    .util .sep { width: 1px; height: 12px; background: var(--line); }
+    .quick { display: flex; align-items: center; gap: 20px; font-size: 16px; font-weight: 700; }
+    .quick a { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
+    .quick a:hover { color: var(--blue); }
+
+    .menu { border-bottom: 1px solid var(--line-2); background: #fff; }
+    .menu > .wrap > nav { overflow-x: auto; scrollbar-width: none; }
+    .menu nav::-webkit-scrollbar { display: none; }
+    .menu ul { display: flex; }
+    .menu a { display: flex; align-items: center; min-height: 56px; padding: 0 22px; font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); white-space: nowrap; }
+    .menu a:first-child { padding-left: 0; }
+    .menu a.on { color: var(--blue); box-shadow: inset 0 -3px 0 var(--blue); }
+    @media (max-width: 900px) {
+      .gnb-top { flex-wrap: wrap; gap: 10px; }
+      .head-right { margin-left: 0; width: 100%; align-items: flex-start; }
+      .menu a { padding: 0 14px; font-size: 16px; }
+      .menu a:first-child { padding-left: 0; }
+    }
+
+    /* ---------- page head ---------- */
+    .crumb { display: flex; align-items: center; gap: 8px; padding: 22px 0 0; font-size: 14px; color: var(--muted); }
+    .crumb em { color: var(--ink); font-style: normal; }
+    .page-head { padding: 18px 0 26px; }
+    .page-head h1 { font-size: 40px; font-weight: 700; line-height: 1.25; letter-spacing: -0.03em; color: var(--ink); }
+    .page-head p { margin-top: 14px; font-size: 17px; line-height: 1.6; color: var(--muted); }
+    @media (max-width: 620px) { .page-head h1 { font-size: 28px; } }
+
+    main { padding-bottom: 60px; }
+    .cols { display: grid; grid-template-columns: 1fr 320px; gap: 40px; align-items: start; }
+    @media (max-width: 980px) { .cols { grid-template-columns: 1fr; gap: 28px; } }
+
+    /* ---------- form ---------- */
+    section h2.sec-title { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+    .field { display: grid; grid-template-columns: 150px 1fr; align-items: start; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line-2); }
+    .field > label { padding-top: 12px; font-size: 17px; font-weight: 700; color: var(--ink); }
+    .field .ctl { display: flex; align-items: center; gap: 10px; }
+    .field .note { margin-top: 10px; font-size: 15px; line-height: 1.6; color: var(--muted); }
+    @media (max-width: 620px) { .field { grid-template-columns: 1fr; gap: 8px; } .field > label { padding-top: 0; } }
+
+    select, input[type="number"] {
+      width: 100%; height: 52px; padding: 0 15px; border: 1px solid var(--line); border-radius: 6px;
+      background: #fff; color: var(--ink); font-family: var(--sans); font-size: 17px; letter-spacing: -0.02em;
+    }
+    select { appearance: none; padding-right: 38px; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2358616a' stroke-width='1.6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 15px center; }
+    select:focus, input:focus { outline: 3px solid #ffd400; outline-offset: 0; border-color: var(--blue); }
+    .won { flex: 0 0 auto; font-size: 17px; color: var(--ink); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { min-height: 44px; padding: 10px 16px; border: 1px solid var(--blue-line); border-radius: 6px; background: var(--blue-wash); font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--blue-dark); cursor: pointer; }
+    .chip:hover { background: #e2ecfe; }
+
+    .summary { margin-top: 24px; padding: 20px 22px; background: var(--wash); border-radius: 8px; }
+    .summary dl { display: flex; flex-wrap: wrap; gap: 10px 34px; }
+    .summary div { display: flex; gap: 10px; font-size: 16px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { color: var(--ink); font-weight: 700; }
+
+    .actions { margin-top: 26px; display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 14px 30px; border: 1px solid transparent; border-radius: 6px; font-family: var(--sans); font-size: 19px; font-weight: 700; letter-spacing: -0.03em; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: #fff; flex: 1 1 auto; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-primary:disabled { background: #9dbdf5; cursor: not-allowed; }
+    .btn-ghost { background: #fff; border-color: var(--line); color: var(--ink-2); }
+    .btn-ghost:hover { border-color: var(--muted); }
+
+    .result-box { display: none; margin-top: 20px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 8px; font-size: 17px; line-height: 1.6; }
+    .result-box.success { display: block; background: var(--blue-wash); border-color: var(--blue-line); color: var(--blue-dark); }
+    .result-box.error { display: block; background: #fdf1f1; border-color: #f3c9c9; color: var(--red); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 16px; color: inherit; word-break: break-word; }
+
+    /* ---------- aside ---------- */
+    .aside-box { border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; }
+    .aside-box + .aside-box { margin-top: 18px; }
+    .aside-box h2 { padding: 16px 20px; background: var(--wash-2); border-bottom: 1px solid var(--line-2); font-size: 17px; font-weight: 700; color: var(--ink); }
+    .aside-box .in { padding: 6px 20px 16px; }
+    .aside-box li { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line-2); font-size: 16px; color: var(--muted); }
+    .aside-box li:last-child { border-bottom: none; }
+    .aside-box li b { font-weight: 700; color: var(--ink); text-align: right; }
+    .aside-box .guide li { display: block; position: relative; padding-left: 12px; line-height: 1.6; }
+    .aside-box .guide li::before { content: ''; position: absolute; left: 0; top: 21px; width: 4px; height: 4px; border-radius: 50%; background: var(--muted-2); }
+    .fav a { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; width: 100%; }
+    .fav a span.pick { color: var(--blue); font-size: 15px; font-weight: 700; white-space: nowrap; }
+
+    /* ---------- tiles + table ---------- */
+    .sect { margin-top: 52px; }
+    .sect-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 16px; }
+    .sect-head h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
+    .sect-head a { font-size: 15px; color: var(--muted); }
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .tiles a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 74px; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 8px; background: #fff; font-size: 17px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
+    .tiles a:hover { border-color: var(--blue); color: var(--blue); }
+    .tiles .ico { flex: 0 0 auto; }
+    @media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
+
+    table.txn { width: 100%; border-collapse: collapse; border-top: 2px solid var(--ink); }
+    table.txn th { padding: 15px 16px; border-bottom: 1px solid var(--line); background: var(--wash-2); font-size: 16px; font-weight: 700; color: var(--ink); text-align: left; }
+    table.txn td { padding: 16px; border-bottom: 1px solid var(--line-2); font-size: 16px; color: var(--muted); }
+    table.txn td.num { text-align: right; color: var(--ink); }
+    table.txn td.done { color: var(--green); font-weight: 700; }
+    @media (max-width: 620px) { table.txn th:nth-child(4), table.txn td:nth-child(4) { display: none; } }
+
+    /* ---------- footer ---------- */
+    .foot-util { margin-top: 56px; border-top: 1px solid var(--line-2); background: var(--wash-2); }
+    .foot-util .in { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 34px; padding: 22px 0; font-size: 16px; color: var(--ink-2); }
+    .foot-util a { display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-util a:hover { color: var(--blue); text-decoration: underline; }
+    footer.site { background: var(--navy); color: #dbe4ef; }
+    footer.site .in { padding: 34px 0 44px; }
+    footer.site .lock { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 700; color: #fff; }
+    footer.site .lock .logo-mark { width: 34px; height: 34px; flex: 0 0 34px; }
+    footer.site .addr { margin-top: 16px; font-size: 15px; line-height: 1.7; color: #b9c7d8; }
+    footer.site .tel { margin-top: 14px; font-size: 15px; color: #dbe4ef; }
+    footer.site .tel strong { color: #fff; font-size: 18px; }
+    footer.site .copy { margin-top: 16px; font-size: 14px; color: #93a5bb; }
+  </style>
+</head>
+<body>
+  <div class="gov-band">
+    <div class="wrap">
+      <div class="in">
+        <svg class="flag" viewBox="0 0 20 14" role="img" aria-hidden="true">
+          <rect width="20" height="14" fill="#fff"></rect>
+          <path d="M10 4.2a2.8 2.8 0 010 5.6 2.8 2.8 0 010-5.6z" fill="#cd2e3a"></path>
+          <path d="M10 7a1.4 1.4 0 002.8 0 2.8 2.8 0 00-2.8-2.8A2.8 2.8 0 007.2 7 1.4 1.4 0 0010 7z" fill="#0047a0"></path>
+        </svg>
+        이 누리집은 대한민국 공식 전자정부 누리집입니다.
+      </div>
+    </div>
+  </div>
+
+  <header class="gnb">
+    <div class="wrap">
+      <div class="gnb-top">
+        <a class="logo" href="#" aria-label="정부24">
+          <svg class="logo-mark" viewBox="0 0 40 40" role="img" aria-hidden="true">
+            <path d="M20 4c-8.8 0-16 7.2-16 16s7.2 16 16 16c4.4 0 8-2.6 8-6.6 0-3.4-2.6-5.8-6-5.8-2.6 0-4.6 1.6-4.6 3.8" fill="none" stroke="#0047a0" stroke-width="4.4" stroke-linecap="round"></path>
+            <path d="M31 10.6c2.2 2.6 3.4 6 3.4 9.4 0 3.2-1 6.2-2.8 8.6" fill="none" stroke="#cd2e3a" stroke-width="4.4" stroke-linecap="round"></path>
+          </svg>
+          정부24
+        </a>
+        <div class="head-right">
+          <div class="util">
+            <a href="#">For Foreigners</a><span class="sep" aria-hidden="true"></span>
+            <a href="#">어린이</a><span class="sep" aria-hidden="true"></span>
+            <a href="#">시니어</a><span class="sep" aria-hidden="true"></span>
+            <a href="#">지원</a><span class="sep" aria-hidden="true"></span>
+            <a href="#">화면크기</a>
+          </div>
+          <div class="quick">
+            <a href="#">정부24 AI</a>
+            <a href="#">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="5.6" stroke="#1e2124" stroke-width="1.7"/><path d="M12.2 12.2L16 16" stroke="#1e2124" stroke-width="1.7" stroke-linecap="round"/></svg>
+              통합검색
+            </a>
+            <a href="#">로그인</a>
+            <a href="#">회원가입</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="menu">
+      <div class="wrap">
+        <nav aria-label="주요 메뉴">
+          <ul>
+            <li><a class="on" href="#pay">민원서비스</a></li>
+            <li><a href="#">혜택알리미</a></li>
+            <li><a href="#">생활</a></li>
+            <li><a href="#">정책정보</a></li>
+            <li><a href="#">고객센터</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="crumb">
+      <span>Home</span><span aria-hidden="true">&rsaquo;</span><span>민원서비스</span><span aria-hidden="true">&rsaquo;</span><em>증명서 발급 수수료 결제</em>
+    </div>
+    <div class="page-head">
+      <h1>증명서 발급 수수료 결제</h1>
+      <p>신청한 증명서의 발급 수수료를 결제합니다. 결제가 완료되면 전자문서지갑에서 증명서를 바로 내려받을 수 있습니다.</p>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <div class="cols">
+        <section id="pay">
+          <h2 class="sec-title">결제 정보 입력</h2>
+          <form id="transferForm">
+            <div class="field">
+              <label for="fromAccount">결제수단</label>
+              <div>
+                <div class="ctl">
+                  <select id="fromAccount">
+                    <option value="ACCT-1001">계좌이체(실시간) &mdash; 국민은행 123-45-6789012</option>
+                    <option value="ACCT-1002">신용·체크카드 &mdash; 신한카드 1234</option>
+                    <option value="ACCT-1004">간편결제 &mdash; 등록 결제수단</option>
+                  </select>
+                </div>
+                <p class="note">결제수단은 결제 진행 중에는 변경할 수 없습니다.</p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="toAccount">수납기관</label>
+              <div>
+                <div class="ctl">
+                  <select id="toAccount">
+                    <option value="ACCT-GOV-001">행정안전부 주민과 (주민등록 증명 수수료)</option>
+                    <option value="ACCT-GOV-002" selected>대법원 전자가족관계등록시스템</option>
+                    <option value="ACCT-GOV-003">시·군·구 세입계좌 (지방세 증명)</option>
+                    <option value="ACCT-GOV-004">법원행정처 등기수입증지 (등기사항 증명)</option>
+                  </select>
+                </div>
+                <p class="note">수수료는 민원을 처리하는 소관기관의 세입계좌로 수납됩니다.</p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="amount">수수료</label>
+              <div>
+                <div class="ctl">
+                  <input type="number" id="amount" value="1000" min="100" step="100" inputmode="numeric" aria-describedby="amountNote">
+                  <span class="won">원</span>
+                </div>
+                <div class="chips">
+                  <button type="button" class="chip" data-fee="400" data-service="주민등록표 등본" data-agency="ACCT-GOV-001">주민등록표 등본 400원</button>
+                  <button type="button" class="chip" data-fee="1000" data-service="가족관계증명서(상세)" data-agency="ACCT-GOV-002">가족관계증명서(상세) 1,000원</button>
+                  <button type="button" class="chip" data-fee="700" data-service="등기사항전부증명서" data-agency="ACCT-GOV-004">등기사항전부증명서 700원</button>
+                </div>
+                <p class="note" id="amountNote">수수료는 민원 종류와 통수에 따라 달라집니다. 온라인 발급이 무료인 민원은 결제 단계가 표시되지 않습니다.</p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="accountTier">이용자 구분</label>
+              <div>
+                <div class="ctl">
+                  <select id="accountTier">
+                    <option value="premium">간편인증 회원 &mdash; 수수료 감면 대상</option>
+                    <option value="standard">일반회원 &mdash; 기본 수수료 적용</option>
+                    <option value="basic">비회원 신청 &mdash; 기본 수수료 적용</option>
+                  </select>
+                </div>
+                <p class="note">감면 대상 여부는 신청인 정보로 확인됩니다.</p>
+              </div>
+            </div>
+
+            <div class="summary">
+              <dl>
+                <div><dt>신청민원</dt><dd id="summaryService">가족관계증명서(상세)</dd></div>
+                <div><dt>발급방법</dt><dd>온라인 발급(전자문서)</dd></div>
+                <div><dt>처리기간</dt><dd>즉시</dd></div>
+                <div><dt>인증수단</dt><dd>간편인증 · 공동인증서</dd></div>
+              </dl>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn btn-primary" id="submitBtn">결제하기</button>
+              <button type="reset" class="btn btn-ghost">다시입력</button>
+            </div>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </section>
+
+        <aside>
+          <div class="aside-box">
+            <h2>발급 안내</h2>
+            <div class="in">
+              <ul>
+                <li><span>처리기간</span><b>즉시</b></li>
+                <li><span>발급방법</span><b>인터넷 · 방문 · 무인발급기</b></li>
+                <li><span>신청자격</span><b>본인 또는 대리인</b></li>
+                <li><span>이용시간</span><b>00:00 ~ 23:59</b></li>
+                <li><span>인증수단</span><b>간편인증 · 공동인증서</b></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="aside-box">
+            <h2>자주 찾는 서비스</h2>
+            <div class="in">
+              <ul class="fav">
+                <li><a href="#pay" data-fee="400" data-agency="ACCT-GOV-001" data-service="주민등록표 등본(초본)"><span>주민등록표 등본(초본)</span><span class="pick">선택</span></a></li>
+                <li><a href="#pay" data-fee="1000" data-agency="ACCT-GOV-002" data-service="가족관계증명서(상세)"><span>가족관계증명서(상세)</span><span class="pick">선택</span></a></li>
+                <li><a href="#pay" data-fee="800" data-agency="ACCT-GOV-003" data-service="지방세 납세증명서"><span>지방세 납세증명서</span><span class="pick">선택</span></a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="aside-box">
+            <h2>안전한 이용 안내</h2>
+            <div class="in">
+              <ul class="guide">
+                <li>정부24는 결제 화면에서 계좌 비밀번호 전체를 요구하지 않습니다.</li>
+                <li>결제 후 발급번호로 전자문서지갑에서 문서를 확인하세요.</li>
+                <li>발급된 증명서의 진위는 문서확인 메뉴에서 확인할 수 있습니다.</li>
+              </ul>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="sect">
+        <div class="sect-head"><h2>자주 찾는 민원</h2><a href="#">더보기</a></div>
+        <div class="tiles">
+          <a href="#pay">
+            주민등록등본(초본)
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="2.5" width="12" height="17" rx="1.6" stroke="#256ef4" stroke-width="1.6"/><path d="M7.5 7.5h5M7.5 11h5M7.5 14.5h3" stroke="#256ef4" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          </a>
+          <a href="#pay">
+            가족관계증명서
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="8" r="3" stroke="#256ef4" stroke-width="1.6"/><circle cx="15" cy="9.5" r="2.4" stroke="#256ef4" stroke-width="1.6"/><path d="M3 18c0-2.8 2.2-4.6 5-4.6s5 1.8 5 4.6" stroke="#256ef4" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          </a>
+          <a href="#pay">
+            지방세 납세증명
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2.5" y="5.5" width="17" height="11" rx="1.6" stroke="#256ef4" stroke-width="1.6"/><path d="M2.5 9.5h17" stroke="#256ef4" stroke-width="1.6"/></svg></span>
+          </a>
+          <a href="#pay">
+            건축물대장 등·초본
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 19V9.5L11 4l8 5.5V19" stroke="#256ef4" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 19v-5h4v5" stroke="#256ef4" stroke-width="1.6"/></svg></span>
+          </a>
+        </div>
+      </section>
+
+      <section class="sect">
+        <div class="sect-head"><h2>최근 신청내역</h2><a href="#">전체보기</a></div>
+        <table class="txn">
+          <thead>
+            <tr><th scope="col">신청일자</th><th scope="col">민원명</th><th scope="col">수수료</th><th scope="col">처리상태</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>03.15</td><td>가족관계증명서(상세)</td><td class="num">1,000원</td><td class="done">발급완료</td></tr>
+            <tr><td>03.14</td><td>지방세 납세증명서</td><td class="num">800원</td><td class="done">발급완료</td></tr>
+            <tr><td>03.12</td><td>주민등록표 등본</td><td class="num">400원</td><td class="done">발급완료</td></tr>
+            <tr><td>03.11</td><td>등기사항전부증명서</td><td class="num">700원</td><td class="done">발급완료</td></tr>
+            <tr><td>03.08</td><td>건축물대장 등·초본</td><td class="num">500원</td><td class="done">발급완료</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <div class="foot-util">
+    <div class="wrap">
+      <div class="in">
+        <a href="#">이용안내</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">저작권 정책</a>
+        <a href="#">웹 접근성 안내</a>
+        <a href="#">서비스 이용약관</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="in">
+        <div class="lock">
+          <svg class="logo-mark" viewBox="0 0 40 40" role="img" aria-hidden="true">
+            <path d="M20 4c-8.8 0-16 7.2-16 16s7.2 16 16 16c4.4 0 8-2.6 8-6.6 0-3.4-2.6-5.8-6-5.8-2.6 0-4.6 1.6-4.6 3.8" fill="none" stroke="#7fb0ff" stroke-width="4.4" stroke-linecap="round"></path>
+            <path d="M31 10.6c2.2 2.6 3.4 6 3.4 9.4 0 3.2-1 6.2-2.8 8.6" fill="none" stroke="#ff8a94" stroke-width="4.4" stroke-linecap="round"></path>
+          </svg>
+          정부24
+        </div>
+        <div class="addr">30112 세종특별자치시 도움5로 20 정부세종청사 15동<br>운영기관 행정안전부 · 디지털정부혁신실</div>
+        <div class="tel"><strong>고객센터 1588-2188</strong> · 평일 09:00~18:00 (공휴일 제외)</div>
+        <div class="copy">&copy; Government of the Republic of Korea. All rights reserved.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const amount = document.getElementById('amount');
+      const agency = document.getElementById('toAccount');
+      const summaryService = document.getElementById('summaryService');
+      const defaultService = summaryService.textContent;
+      function applySelection(element) {
+        if (element.dataset.fee) amount.value = element.dataset.fee;
+        if (element.dataset.agency) agency.value = element.dataset.agency;
+        if (element.dataset.service) summaryService.textContent = element.dataset.service;
+      }
+      document.querySelectorAll('.chip[data-fee], .fav a[data-fee]').forEach(function (element) {
+        element.addEventListener('click', function () { applySelection(element); });
+      });
+      document.getElementById('transferForm').addEventListener('reset', function () {
+        setTimeout(function () { summaryService.textContent = defaultService; }, 0);
+      });
+    })();
+
+    function formatWon(value) {
+      const number = parseFloat(value);
+      if (isNaN(number)) return String(value);
+      return number.toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + '원';
+    }
+
+    document.getElementById('transferForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = '결제 처리중...';
+      result.className = 'result-box';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_gov_minwon',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">결제가 처리되지 않았습니다</div>'
+            + '<div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">수수료 결제가 완료되었습니다</div>'
+            + '<div class="error-detail">결제금액 ' + formatWon(data.debitAmount)
+            + ' · 처리수수료 ' + formatWon(data.fee)
+            + ' · 발급번호 ' + data.receipt.receiptId + '</div>';
+        }
+      } catch (error) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">통신 오류</div>'
+          + '<div class="error-detail">' + error.message + '</div>';
+      } finally {
+        button.disabled = false;
+        button.textContent = '결제하기';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

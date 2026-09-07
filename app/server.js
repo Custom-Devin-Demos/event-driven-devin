@@ -27,9 +27,9 @@ const webinarRoutes = require('./routes/webinar');
 const oncallRoutes = require('./routes/oncall');
 const oncallVerticalRoutes = require('./routes/oncall-verticals');
 const internalJobsRoutes = require('./routes/internal-jobs');
-const automationsRoutes = require('./routes/automations');
-const automationsDemoRoutes = require('./routes/automations-demo');
 const cibcCardApplyRoutes = require('./routes/cibc-card-apply');
+const incidentLabRoutes = require('./routes/incident-lab');
+const incidentLabEngine = require('./services/incident-lab/engine');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
 
@@ -112,9 +112,8 @@ app.use(webinarRoutes);
 app.use(oncallRoutes);
 app.use(oncallVerticalRoutes);
 app.use(internalJobsRoutes);
-app.use(automationsRoutes);
-app.use(automationsDemoRoutes);
 app.use(cibcCardApplyRoutes);
+app.use(incidentLabRoutes);
 app.use(verticalRoutes);
 
 // 404 handler
@@ -191,21 +190,35 @@ const server = app.listen(PORT, () => {
 // ── Graceful shutdown (zero-downtime deploys) ────────────────────
 // When Docker sends SIGTERM, stop accepting new connections and let
 // in-flight requests finish before the process exits.
+let shuttingDown = false;
 function gracefulShutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   logger.info(`${signal} received — draining connections`, {
     service: process.env.DD_SERVICE || 'checkout-api',
   });
 
+  // Suspend any active Incident Lab run: timers and persona activity end
+  // before the process exits, the run state is persisted to disk, and the
+  // Datadog incident stays open — the restarted process resumes the run.
+  const labStopped = Promise.resolve()
+    .then(() => incidentLabEngine.suspend(`process ${signal}`))
+    .catch((error) => logger.warn('Incident Lab shutdown suspend failed', { error: error.message }));
+
   server.close(() => {
-    logger.info('All connections drained — exiting');
-    process.exit(0);
+    labStopped.then(() => {
+      logger.info('All connections drained — exiting');
+      process.exit(0);
+    });
   });
 
-  // Force exit if draining takes longer than 10s (Docker stop_grace_period is 15s)
+  // Force exit just inside Docker's stop_grace_period (15s). Lab stop is
+  // serialized behind any in-flight lifecycle work (e.g. a Datadog
+  // declaration), so cleanup needs as much of the grace window as possible.
   setTimeout(() => {
     logger.warn('Graceful shutdown timed out — forcing exit');
     process.exit(1);
-  }, 10000).unref();
+  }, 14000).unref();
 }
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

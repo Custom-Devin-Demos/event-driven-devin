@@ -110,7 +110,6 @@ async function processAccountActivation(data) {
       service: 'customer-40cf3e09-demo',
       verticalLabel: 'Account Activation Request',
       customer: '40cf3e09',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/40cf3e09/activate' },
         { key: 'service', value: 'customer-40cf3e09-demo' },

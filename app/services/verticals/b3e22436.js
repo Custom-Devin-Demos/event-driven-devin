@@ -211,7 +211,6 @@ async function processInquiry(data) {
       service: 'customer-b3e22436-crm',
       verticalLabel: 'Platform Inquiry',
       customer: 'b3e22436',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/b3e22436/inquiry' },
         { key: 'service', value: 'customer-b3e22436-crm' },

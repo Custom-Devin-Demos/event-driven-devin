@@ -167,7 +167,6 @@ async function processQuoteRequest(data) {
       service: 'customer-382b34fc-insurance',
       verticalLabel: 'Insurance Quote',
       customer: '382b34fc',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/382b34fc/quote' },
         { key: 'service', value: 'customer-382b34fc-insurance' },

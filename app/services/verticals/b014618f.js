@@ -250,7 +250,6 @@ async function redeemMiles(data) {
       verticalLabel: 'Travel Rewards Redemption',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: 'b014618f',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/b014618f/redeem-miles' },
         { key: 'service', value: 'customer-b014618f-travel-redemption' },

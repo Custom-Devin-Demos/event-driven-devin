@@ -287,7 +287,6 @@ async function submitPersonalInfo(data) {
       verticalLabel: 'Online Brokerage Application',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '94f4c31f',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/94f4c31f/personal-info' },
         { key: 'service', value: 'customer-94f4c31f-account-application' },

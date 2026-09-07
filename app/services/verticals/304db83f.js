@@ -198,7 +198,6 @@ async function processAccountLookup(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: 'U08S7AVJ478',
       service: '304db83f-api',
       verticalLabel: 'Account Lookup',
       customer: '304db83f',

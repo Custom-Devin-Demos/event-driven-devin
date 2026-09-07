@@ -169,7 +169,6 @@ async function processPrequalification(data) {
       service: 'customer-556bc104-prequal',
       verticalLabel: 'Card Prequalification',
       customer: '556bc104',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/556bc104/prequal' },
         { key: 'service', value: 'customer-556bc104-prequal' },

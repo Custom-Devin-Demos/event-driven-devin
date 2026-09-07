@@ -206,7 +206,6 @@ async function processClaimLookup(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: 'U08S7AVJ478',
       service: '7d2e9f4a-api',
       verticalLabel: 'Claim Status Lookup',
       customer: '7d2e9f4a',

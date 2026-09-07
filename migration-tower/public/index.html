@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Migration Control Tower</title>
+<style>
+  :root {
+    --bg: #0F172A; --card: #1E293B; --card2: #24344d;
+    --text: #FFFFFF; --text2: #CBD5E1; --muted: #94A3B8;
+    --pos: #4ADE80; --neg: #F87171; --cyan: #22D3EE; --blue: #60A5FA; --indigo: #818CF8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  h1 { font-size: 1.45rem; margin: 0; }
+  h1 .accent { color: var(--cyan); }
+  .sub { color: var(--muted); font-size: .85rem; margin-bottom: 22px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 6px; }
+  select { background: var(--card2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; font-size: .95rem; min-width: 210px; }
+  .controls { display: flex; gap: 18px; align-items: flex-end; flex-wrap: wrap; }
+  button { background: var(--blue); color: #0B1220; border: 0; border-radius: 6px; padding: 10px 22px; font-size: .95rem; font-weight: 600; cursor: pointer; }
+  button:hover { filter: brightness(1.1); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.danger { background: var(--neg); }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .pill.pass { background: rgba(74,222,128,.15); color: var(--pos); }
+  .pill.fail { background: rgba(248,113,113,.15); color: var(--neg); }
+  .pill.running, .pill.queued { background: rgba(96,165,250,.15); color: var(--blue); }
+  .pill.not_migrated, .pill.error { background: rgba(148,163,184,.15); color: var(--muted); }
+  .stages { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0 4px; }
+  .stage { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; min-width: 160px; }
+  .stage .name { color: var(--text2); font-size: .8rem; }
+  .stage .st { font-weight: 700; font-size: .9rem; margin-top: 2px; }
+  .stage.ok .st { color: var(--pos); }
+  .stage.error .st { color: var(--neg); }
+  .stage.pending .st { color: var(--muted); }
+  .stage.running .st { color: var(--cyan); }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .87rem; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  td { padding: 7px 10px; color: var(--text2); }
+  tr:nth-child(even) td { background: rgba(255,255,255,.025); }
+  td.num { font-variant-numeric: tabular-nums; }
+  .good { color: var(--pos); font-weight: 600; }
+  .bad { color: var(--neg); font-weight: 600; }
+  .mismatch { background: rgba(248,113,113,.07); border: 1px solid rgba(248,113,113,.35); border-radius: 8px; padding: 12px 14px; margin-top: 12px; }
+  .mismatch h4 { margin: 0 0 8px; color: var(--neg); font-size: .9rem; }
+  code { background: #0B1220; padding: 2px 6px; border-radius: 4px; font-size: .82rem; color: var(--cyan); }
+  .dispatch { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  a { color: var(--blue); }
+  .hist td { font-size: .84rem; }
+  .muted { color: var(--muted); }
+  /* access gate */
+  #gate { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 50; }
+  #gate .card { width: 320px; text-align: center; }
+  #gate input { background: var(--card2); border: 1px solid var(--border); color: var(--text); font-size: 1.4rem; letter-spacing: .5em; text-align: center; border-radius: 6px; padding: 10px; width: 180px; }
+  #gate .err { color: var(--neg); font-size: .8rem; min-height: 1em; margin-top: 8px; }
+  .hidden { display: none !important; }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid var(--border); border-top-color: var(--cyan); border-radius:50%; animation: spin .8s linear infinite; vertical-align:-2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="gate" class="hidden">
+  <div class="card">
+    <h1 style="font-size:1.1rem">Migration <span class="accent">Control Tower</span></h1>
+    <p class="muted" style="font-size:.85rem">Enter access code</p>
+    <input id="gate-code" maxlength="4" inputmode="numeric" autocomplete="off">
+    <div class="err" id="gate-err"></div>
+    <button style="margin-top:10px" onclick="submitCode()">Enter</button>
+  </div>
+</div>
+
+<div class="wrap" id="main">
+  <header>
+    <h1>Migration <span class="accent">Control Tower</span></h1>
+    <span class="muted" style="font-size:.8rem">Ab Initio &rarr; dbt / Snowflake &middot; parallel-run parity</span>
+  </header>
+  <div class="sub" id="repos"></div>
+
+  <div class="card">
+    <div class="controls">
+      <div><label>Graph</label><select id="graph"></select></div>
+      <div><label>Input environment</label><select id="env"></select></div>
+      <button id="run-btn" onclick="startRun()">Run parity check</button>
+      <span id="run-note" class="muted" style="font-size:.85rem"></span>
+    </div>
+  </div>
+
+  <div id="current"></div>
+
+  <div class="card">
+    <h3 style="margin:0 0 4px;font-size:1rem;color:var(--text2)">Run history</h3>
+    <table class="hist" id="history"><thead>
+      <tr><th>Time (UTC)</th><th>Graph</th><th>Env</th><th>Status</th><th>Parity</th><th>Remediation</th></tr>
+    </thead><tbody></tbody></table>
+  </div>
+</div>
+
+<script>
+const API = 'api';
+function authHeaders() { return { 'X-Access-Code': sessionStorage.getItem('mct_code') || '' }; }
+let config = null;
+let pollTimer = null;
+let currentRunId = null;
+
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function init() {
+  config = await (await fetch(`${API}/config`)).json();
+  if (config.accessCodeRequired) {
+    // always re-verify the stored/query code: a stale sessionStorage marker
+    // after a code rotation must reveal the gate, not silently break runs
+    const stored = sessionStorage.getItem('mct_auth') === '1' ? sessionStorage.getItem('mct_code') : null;
+    const qp = new URLSearchParams(location.search).get('code');
+    // try each distinct candidate in turn so a stale stored code cannot
+    // shadow a valid link code
+    let authed = null;
+    for (const candidate of [...new Set([stored, qp].filter(Boolean))]) {
+      if ((await verify(candidate)).ok) { authed = candidate; break; }
+    }
+    if (authed) {
+      sessionStorage.setItem('mct_auth','1'); sessionStorage.setItem('mct_code', authed);
+    } else {
+      sessionStorage.removeItem('mct_auth'); sessionStorage.removeItem('mct_code');
+      document.getElementById('gate').classList.remove('hidden');
+    }
+  }
+  document.getElementById('graph').innerHTML = config.graphs.map(g => `<option>${esc(g)}</option>`).join('');
+  document.getElementById('env').innerHTML = config.envs.map(e => `<option>${esc(e)}</option>`).join('');
+  document.getElementById('repos').innerHTML =
+    `legacy: <a href="${esc(config.repos.legacy)}" target="_blank">abinitio-retail-dwh</a> &middot; ` +
+    `target: <a href="${esc(config.repos.target)}" target="_blank">modern-data-platform</a>`;
+  refreshHistory();
+}
+
+async function verify(code) {
+  try {
+    const resp = await fetch(`${API}/verify-code`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const r = await resp.json().catch(() => ({}));
+    return { ok: Boolean(r.ok), error: r.error || (resp.ok ? '' : `verification failed (${resp.status})`) };
+  } catch (e) {
+    return { ok: false, error: `verification failed: ${e.message}` };
+  }
+}
+async function submitCode() {
+  const code = document.getElementById('gate-code').value;
+  const result = await verify(code);
+  if (result.ok) {
+    sessionStorage.setItem('mct_auth','1');
+    sessionStorage.setItem('mct_code', code);
+    document.getElementById('gate').classList.add('hidden');
+    // resume watching a run whose polling was interrupted by a code rotation
+    if (currentRunId) {
+      document.getElementById('run-btn').disabled = true;
+      poll();
+    }
+    refreshHistory();
+  }
+  else document.getElementById('gate-err').textContent = result.error || 'Incorrect code';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && !document.getElementById('gate').classList.contains('hidden')) submitCode(); });
+
+async function startRun() {
+  const graph = document.getElementById('graph').value;
+  const env = document.getElementById('env').value;
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('run-note').textContent = '';
+  let run;
+  try {
+    const resp = await fetch(`${API}/runs`, {method:'POST',headers:{'Content-Type':'application/json',...authHeaders()},body:JSON.stringify({graph, env})});
+    run = await resp.json().catch(() => ({ error: `run request failed (${resp.status})` }));
+    if (!resp.ok || !run.id) {
+      document.getElementById('run-note').textContent = run.error || `run request failed (${resp.status})`;
+      document.getElementById('run-btn').disabled = false;
+      return;
+    }
+  } catch (e) {
+    document.getElementById('run-note').textContent = `run request failed: ${e.message}`;
+    document.getElementById('run-btn').disabled = false;
+    return;
+  }
+  currentRunId = run.id;
+  poll();
+}
+
+function poll() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    const resp = await fetch(`${API}/runs/${currentRunId}`, {headers: authHeaders()});
+    if (resp.status === 403) { authLost(); return; }
+    const run = await resp.json();
+    renderCurrent(run);
+    const awaitingDispatch = run.status === 'done' && run.overall === 'fail' && run.env === 'staging'
+      && config?.autoDispatch && !run.dispatch;
+    if ((run.status === 'done' && !awaitingDispatch) || run.status === 'error') {
+      clearInterval(pollTimer);
+      document.getElementById('run-btn').disabled = false;
+      refreshHistory();
+    }
+  }, 1500);
+}
+
+// the access code was rotated mid-session: stop polling, drop the stale
+// credentials, and reveal the gate so the user can re-authenticate
+function authLost() {
+  clearInterval(pollTimer);
+  document.getElementById('run-btn').disabled = false;
+  sessionStorage.removeItem('mct_auth'); sessionStorage.removeItem('mct_code');
+  document.getElementById('gate').classList.remove('hidden');
+}
+
+const STAGE_LABELS = { legacy_run: 'Legacy runner (Co>Op emulator)', dbt_build: 'dbt build (DuckDB)', reconcile: 'Reconciliation' };
+
+function renderCurrent(run) {
+  const el = document.getElementById('current');
+  const stages = ['legacy_run','dbt_build','reconcile'].map(name => {
+    const s = (run.result?.stages || run.stages || []).find(x => x.stage === name);
+    const st = s ? s.status : (run.status === 'running' || run.status === 'queued' ? 'pending' : 'pending');
+    const lbl = st === 'ok' ? 'complete' : st === 'error' ? 'failed' : st === 'running' ? 'running…' : 'pending';
+    return `<div class="stage ${st}"><div class="name">${STAGE_LABELS[name]}</div><div class="st">${lbl}${s?.duration_s ? ` <span class="muted" style="font-weight:400">(${s.duration_s}s)</span>` : ''}</div></div>`;
+  }).join('');
+
+  let verdict = '';
+  if (run.status === 'running' || run.status === 'queued') {
+    verdict = `<span class="spinner"></span> <span class="muted">running ${esc(run.graph)} on ${esc(run.env)} data…</span>`;
+  } else {
+    verdict = `<span class="pill ${esc(run.overall)}">${esc((run.overall || '').toUpperCase().replace('_',' '))}</span>`;
+  }
+
+  let tables = '';
+  for (const t of run.result?.tables || []) {
+    if (t.status === 'not_migrated') {
+      tables += `<p class="muted"><code>${esc(t.table)}</code> — not migrated yet, comparison skipped.</p>`;
+      continue;
+    }
+    const cls = t.status === 'pass' ? 'good' : 'bad';
+    tables += `<table><thead><tr><th>Table</th><th>Legacy rows</th><th>Target rows</th><th>Matched</th><th>Parity</th><th>Checksums</th></tr></thead><tbody>
+      <tr><td><code>${esc(t.table)}</code></td><td class="num">${t.legacy_rows}</td><td class="num">${t.target_rows}</td>
+      <td class="num">${t.matched_rows}</td><td class="num ${cls}">${t.parity_pct}%</td>
+      <td>${t.legacy_checksum === t.target_checksum ? '<span class="good">match</span>' : '<span class="bad">differ</span>'}</td></tr></tbody></table>`;
+    for (const m of t.mismatched_columns || []) {
+      const rows = (m.samples || []).map(s =>
+        `<tr><td><code>${esc(s.key.join(', '))}</code></td><td class="num good">${esc(s.legacy)}</td><td class="num bad">${esc(s.target)}</td></tr>`).join('');
+      tables += `<div class="mismatch"><h4>${esc(t.table)}.${esc(m.column)} — ${m.count} mismatched rows</h4>
+        <table><thead><tr><th>Key</th><th>Legacy (source of truth)</th><th>Target (dbt)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+  }
+
+  let dispatch = '';
+  if (run.status === 'done' && run.overall === 'fail') {
+    if (run.dispatch) {
+      dispatch = `<div class="dispatch">
+        <span class="muted">Slack alert: ${esc(run.dispatch.slack || '-')}</span>
+        ${run.dispatch.sessionUrl ? `<span>Devin session: <a href="${esc(run.dispatch.sessionUrl)}" target="_blank">${esc(run.dispatch.sessionUrl)}</a></span>` : `<span class="muted">Devin: ${esc(run.dispatch.devin || '-')}</span>`}
+      </div>`;
+    } else if (config?.autoDispatch && run.env === 'staging') {
+      dispatch = `<div class="dispatch"><span class="spinner"></span>
+        <span class="muted">alerting Slack and creating a Devin remediation session…</span></div>`;
+    }
+  }
+
+  el.innerHTML = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <h3 style="margin:0;font-size:1rem;color:var(--text2)">${esc(run.graph)} <span class="muted">on</span> ${esc(run.env)} <span class="muted">data</span></h3>
+      <div>${verdict}</div>
+    </div>
+    <div class="stages">${stages}</div>
+    ${tables}
+    ${run.error ? `<div class="mismatch"><h4>Pipeline error</h4><pre style="white-space:pre-wrap;color:var(--text2);font-size:.8rem">${esc(run.error)}</pre></div>` : ''}
+    ${dispatch}
+  </div>`;
+}
+
+
+async function refreshHistory() {
+  const resp = await fetch(`${API}/runs`, {headers: authHeaders()});
+  const list = await resp.json().catch(() => null);
+  if (!Array.isArray(list)) return;
+  document.querySelector('#history tbody').innerHTML = list.map(r => `<tr>
+    <td>${esc((r.startedAt || '').replace('T',' ').slice(0,19))}</td>
+    <td><code>${esc(r.graph)}</code></td><td>${esc(r.env)}</td>
+    <td><span class="pill ${esc(r.overall || r.status)}">${esc((r.overall || r.status || '').toUpperCase().replace('_',' '))}</span></td>
+    <td class="num">${r.result?.tables?.filter(t=>t.parity_pct!=null).map(t=>t.parity_pct+'%').join(' / ') || '-'}</td>
+    <td>${r.dispatch?.sessionUrl ? `<a href="${esc(r.dispatch.sessionUrl)}" target="_blank">session</a>` : '<span class="muted">-</span>'}</td>
+  </tr>`).join('');
+}
+
+init();
+</script>
+</body>
+</html>

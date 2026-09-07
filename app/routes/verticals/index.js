@@ -14,6 +14,7 @@ const healthcareRoutes = require('./healthcare');
 const telcoRoutes = require('./telco');
 const payerRoutes = require('./payer');
 const voiceRoutes = require('./voice');
+const customerD4990e18Routes = require('./d4990e18');
 const customerA6b38c63Routes = require('./a6b38c63');
 const customerEf5d1dc1Routes = require('./ef5d1dc1');
 const customer13ec88e4Routes = require('./13ec88e4');
@@ -43,6 +44,7 @@ const customer2a7a62a9Routes = require('./2a7a62a9');
 const customer20cd1314Routes = require('./20cd1314');
 const customer8096ad15Routes = require('./8096ad15');
 const customer46d4846dRoutes = require('./46d4846d');
+const customerC7d11cb8Routes = require('./c7d11cb8');
 const customer50b235c7Routes = require('./50b235c7');
 const customerE7c81c9eRoutes = require('./e7c81c9e');
 const customerFdc0cc83Routes = require('./fdc0cc83');
@@ -88,6 +90,7 @@ const customerB98fcab6Routes = require('./b98fcab6');
 const customer91e30701Routes = require('./91e30701');
 const customerC35ea2e0Routes = require('./c35ea2e0');
 const customer382b34fcRoutes = require('./382b34fc');
+const customer4f645972Routes = require('./4f645972');
 const customer8b5893cbRoutes = require('./8b5893cb');
 const customer12b28f14Routes = require('./12b28f14');
 const customer220cee45Routes = require('./220cee45');
@@ -112,6 +115,8 @@ const customer5697165bRoutes = require('./5697165b');
 const customer8c0e99b1Routes = require('./8c0e99b1');
 const chipotleRoutes = require('./chipotle');
 const tacobellRoutes = require('./tacobell');
+const bonvoyRoutes = require('./bonvoy');
+const eaconnectRoutes = require('./eaconnect');
 const customer49d841e8Routes = require('./49d841e8');
 const customer3cec99d4Routes = require('./3cec99d4');
 const customer94f4c31fRoutes = require('./94f4c31f');
@@ -119,6 +124,10 @@ const customerB014618fRoutes = require('./b014618f');
 const customer9562e18aRoutes = require('./9562e18a');
 const customer0e015eedRoutes = require('./0e015eed');
 const customerA69bcc34Routes = require('./a69bcc34');
+const qbeRoutes = require('./qbe');
+const nabRoutes = require('./nab');
+const ausunityRoutes = require('./ausunity');
+const customer6dc826a1Routes = require('./6dc826a1');
 const coppelRoutes = require('./coppel');
 const chewyRoutes = require('./chewy');
 const customerCd83ac3cRoutes = require('./cd83ac3c');
@@ -146,6 +155,7 @@ const customerF813dd7aRoutes = require('./f813dd7a');
 const customerB47d51c2Routes = require('./b47d51c2');
 const customerBe7a41c9Routes = require('./be7a41c9');
 const customer4f9ede2aRoutes = require('./4f9ede2a');
+const customer2ab0c5c9Routes = require('./2ab0c5c9');
 const customerD1a01dc3Routes = require('./d1a01dc3');
 const customer86596b62Routes = require('./86596b62');
 const customer7a6ccff6Routes = require('./7a6ccff6');
@@ -160,6 +170,8 @@ const customer784ffbc5Routes = require('./784ffbc5');
 const sabadellRoutes = require('./sabadell');
 const customerE370cc3cRoutes = require('./e370cc3c');
 const customer6469d508Routes = require('./6469d508');
+const customer4c351052Routes = require('./4c351052');
+const customer0b6164d6Routes = require('./0b6164d6');
 
 // Mount API routes for each vertical
 router.use(bankingRoutes);
@@ -201,6 +213,7 @@ router.use(customer2a7a62a9Routes);
 router.use(customer20cd1314Routes);
 router.use(customer8096ad15Routes);
 router.use(customer46d4846dRoutes);
+router.use(customerC7d11cb8Routes);
 router.use(customer50b235c7Routes);
 router.use(customerE7c81c9eRoutes);
 router.use(customerFdc0cc83Routes);
@@ -246,6 +259,7 @@ router.use(customerB98fcab6Routes);
 router.use(customer91e30701Routes);
 router.use(customerC35ea2e0Routes);
 router.use(customer382b34fcRoutes);
+router.use(customer4f645972Routes);
 router.use(customer8b5893cbRoutes);
 router.use(customer12b28f14Routes);
 router.use(customer220cee45Routes);
@@ -270,6 +284,8 @@ router.use(customer5697165bRoutes);
 router.use(customer8c0e99b1Routes);
 router.use(chipotleRoutes);
 router.use(tacobellRoutes);
+router.use(bonvoyRoutes);
+router.use(eaconnectRoutes);
 router.use(customer49d841e8Routes);
 router.use(customer3cec99d4Routes);
 router.use(customer94f4c31fRoutes);
@@ -277,6 +293,10 @@ router.use(customerB014618fRoutes);
 router.use(customer9562e18aRoutes);
 router.use(customer0e015eedRoutes);
 router.use(customerA69bcc34Routes);
+router.use('/', qbeRoutes);
+router.use('/', nabRoutes);
+router.use('/', ausunityRoutes);
+router.use(customer6dc826a1Routes);
 router.use(coppelRoutes);
 router.use(chewyRoutes);
 router.use(customerCd83ac3cRoutes);
@@ -304,6 +324,7 @@ router.use(customerF813dd7aRoutes);
 router.use(customerB47d51c2Routes);
 router.use(customerBe7a41c9Routes);
 router.use(customer4f9ede2aRoutes);
+router.use(customer2ab0c5c9Routes);
 router.use(customerD1a01dc3Routes);
 router.use(customer86596b62Routes);
 router.use(customer7a6ccff6Routes);
@@ -318,6 +339,9 @@ router.use(customer784ffbc5Routes);
 router.use(sabadellRoutes);
 router.use(customerE370cc3cRoutes);
 router.use(customer6469d508Routes);
+router.use(customer4c351052Routes);
+router.use(customer0b6164d6Routes);
+router.use(customerD4990e18Routes);
 
 /**
  * Vertical metadata for the landing page and URL routing
@@ -345,7 +369,7 @@ router.get('/api/verticals', (_req, res) => {
  * Serve vertical-specific HTML pages
  * Each vertical gets its own clean URL: /banking, /insurance, /telco, etc.
  */
-const verticalIds = ['8b5893cb', 'payer', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', '50b235c7', 'e7c81c9e', 'fdc0cc83', 'eaa595e1', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', '6820f69a', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', 'b98fcab6', '91e30701', 'c35ea2e0', '382b34fc', '12b28f14', '220cee45', '43f2f084', '383b99d1', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja', 'kraftheinz', 'caixabank', 'bbva', '82df0421', '227b9feb', '556bc104', '6efdaec0', 'f36ef02a', '5697165b', '8c0e99b1', 'chipotle', 'tacobell', '49d841e8', '7e6bb001', 'b1c29f25', 'ef58967c', 'f26260e1', 'e1da8ec4', '3d2ef497', 'mtb', '15fee237', '3cec99d4', '94f4c31f', '3c3e0371', '40cf3e09', '87127748', 'da6578ee', 'edaa5b9f', '31328569', '90a02f02', 'bc6a7c34', '2a7a62a9', '0e015eed', 'a69bcc34', 'f813dd7a', 'b47d51c2', 'b014618f', 'be7a41c9', '4f9ede2a', 'd1a01dc3', '4f2fb968', '784ffbc5', '86596b62', 'sabadell', '9562e18a', '7a6ccff6', '53fbc0c0', 'dae1efec', '4b7e1d37', '63f3f711', 'e370cc3c', 'fa4d1e65', '6469d508', '2ee77d82'];
+const verticalIds = ['8b5893cb', 'payer', 'banking', 'financial-services', 'insurance', 'cpg', 'hightech', 'industrials', 'healthcare', 'telco', 'a6b38c63', 'ef5d1dc1', '13ec88e4', '8de4a567', '1845924d', 'e0c16510', '53a9884e', 'acf4303d', 'f3ff1d33', '430a4200', 'b62fa21d', 'f2f54159', '304db83f', '1a459b91', 'beb4d43e', '4feeb7bb', '89c1f355', '99a8ba1a', 'b3e22436', 'd5fc3172', 'a30498ae', '766718e2', 'c4a8e2b7', '7d2e9f4a', 'c65e3d81', '20cd1314', '8096ad15', '46d4846d', '50b235c7', 'e7c81c9e', 'fdc0cc83', 'eaa595e1', 'cba5be2d', '696ecb91', 'eb2f4ad1', 'a131fea3', '3a224949', 'b3587482', '4886afe1', '6074332d', 'eb3df102', 'f9296fb3', '3699f348', '8491be2c', '841afdc1', '74124a39', '91fe5a5f', '6f543fa2', 'f91c0df3', '058419ac', 'f5a355e7', 'b683fdf3', '0141c475', '8d933e67', '6820f69a', 'ac1752e4', '17dd6f6f', '08381313', 'df3f450c', 'e433d32d', '16ebec74', '4ada28b9', 'a8585092', 'ad960e6a', 'bec5e1bb', '054f8313', 'b98fcab6', '91e30701', 'c35ea2e0', '382b34fc', '4f645972', '12b28f14', '220cee45', '43f2f084', '383b99d1', '058bcc4c', 'efbf4b55', '9309cd53', 'a1e178ae', 'b9612d96', 'b634a963', 'unicaja', 'kraftheinz', 'caixabank', 'bbva', '82df0421', '227b9feb', '556bc104', '6efdaec0', 'f36ef02a', '5697165b', '8c0e99b1', 'chipotle', 'tacobell', '49d841e8', '7e6bb001', 'b1c29f25', 'ef58967c', 'f26260e1', 'e1da8ec4', '3d2ef497', 'mtb', '15fee237', '3cec99d4', '94f4c31f', '3c3e0371', '40cf3e09', '87127748', 'da6578ee', 'edaa5b9f', '31328569', '90a02f02', 'bc6a7c34', '2a7a62a9', '0e015eed', 'a69bcc34', 'f813dd7a', 'b47d51c2', 'b014618f', 'be7a41c9', '4f9ede2a', 'd1a01dc3', '4f2fb968', '784ffbc5', '86596b62', 'sabadell', '9562e18a', '7a6ccff6', '53fbc0c0', 'dae1efec', '4b7e1d37', '63f3f711', 'e370cc3c', 'fa4d1e65', '6469d508', '2ee77d82', 'd4990e18', '6dc826a1', '4c351052', '2ab0c5c9', '0b6164d6', 'c7d11cb8'];
 for (const id of verticalIds) {
   router.get(`/${id}`, (_req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', `${id}.html`));
@@ -365,6 +389,11 @@ router.get('/uhg', (_req, res) => {
 // The Home Depot customer demo — friendly public URL, serves the a69bcc34 page (hidden from hub)
 router.get('/homedepot', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'a69bcc34.html'));
+});
+
+// Publix customer demo — friendly public URL, serves the 4c351052 page (hidden from hub)
+router.get('/publix', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '4c351052.html'));
 });
 
 // RBC customer demo — friendly public URL, serves the 3cec99d4 page (hidden from hub)
@@ -397,9 +426,19 @@ router.get('/cba', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'cba.html'));
 });
 
+// Citizens Bank customer demo — friendly public URL, serves the 2ab0c5c9 page (hidden from hub)
+router.get('/citizens', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '2ab0c5c9.html'));
+});
+
 // Macquarie Online Banking demo — friendly public URL, serves the macbank page (hidden from hub)
 router.get('/macbank', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'macbank.html'));
+});
+
+// Morgan Stanley Wealth Management demo — friendly public URL, serves the c7d11cb8 page (hidden from hub)
+router.get('/morganstanley', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'c7d11cb8.html'));
 });
 
 // Gap data-intelligence demo — friendly public URL, serves the 383b99d1 page (hidden from hub)
@@ -490,6 +529,11 @@ router.get('/buyersedge', (_req, res) => {
 // MiniBeats beat-marketplace demo — friendly public URL, serves the b47d51c2 page (hidden from hub)
 router.get('/beatstars', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'b47d51c2.html'));
+});
+
+// Databricks compute demo — friendly public URL, serves the 0b6164d6 page (hidden from hub)
+router.get('/databricks', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', '0b6164d6.html'));
 });
 
 // Retail uses the existing index.html at /retail

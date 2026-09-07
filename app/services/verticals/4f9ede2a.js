@@ -274,7 +274,6 @@ async function payVendor(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: 'U0BQZBHCNMA',
       service: 'customer-4f9ede2a-bill-pay',
       verticalLabel: 'Business Bill Pay',
       promptAppendix: REMEDIATION_DIRECTIVE,

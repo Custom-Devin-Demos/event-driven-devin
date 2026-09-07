@@ -1,0 +1,353 @@
+{
+  "id": "flowforge-scheduled-workflows",
+  "title": "Scheduled workflows failing",
+  "summary": "Scheduled workflows stopped enqueueing minutes after this morning's orchestrator deploy finished rolling out. Detected by an employee — no alert fired.",
+  "severity": "SEV-1",
+  "service": "flowforge-orchestrator",
+  "env": "production",
+  "repoUrl": "https://github.com/ananthv26-cog-demo-repos/n8n",
+  "repoBranch": "flowforge-prod",
+  "warehouse": {
+    "seedFile": "seed-flowforge-supabase.sql"
+  },
+  "leadInMs": 180000,
+  "durationMs": 7200000,
+  "datadog": {
+    "metricPrefix": "flowforge",
+    "baseline": {
+      "metrics": [
+        { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 6, "jitter": 0.3, "diurnal": true },
+        { "metric": "executions.started", "tags": ["trigger:webhook"], "perMinute": 9, "jitter": 0.4, "diurnal": true },
+        { "metric": "executions.started", "tags": ["trigger:manual"], "perMinute": 1.5, "jitter": 0.6, "diurnal": true },
+        { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 5.9, "jitter": 0.3, "diurnal": true },
+        { "metric": "executions.completed", "tags": ["trigger:webhook"], "perMinute": 8.9, "jitter": 0.4, "diurnal": true },
+        { "metric": "queue.jobs.enqueued", "tags": [], "perMinute": 17, "jitter": 0.35, "diurnal": true },
+        { "metric": "queue.jobs.active", "tags": [], "perMinute": 16.5, "jitter": 0.35, "diurnal": true },
+        { "metric": "binary_data.uploads", "tags": ["backend:filesystem"], "perMinute": 11, "jitter": 0.4, "diurnal": true },
+        { "metric": "binary_data.uploads", "tags": ["backend:s3"], "perMinute": 4, "jitter": 0.5, "diurnal": true }
+      ],
+      "logs": [
+        {
+          "perHour": 3,
+          "status": "error",
+          "logger": "n8n.nodes.HttpRequest",
+          "template": "Workflow execution {executionId} node \"HTTP Request\" failed: connect ETIMEDOUT {ip}:443 — will retry per node settings"
+        },
+        {
+          "perHour": 2,
+          "status": "error",
+          "logger": "flowforge.webhooks",
+          "template": "Webhook delivery for workflow {workflowId} returned 429 Too Many Requests from customer endpoint; backing off"
+        },
+        {
+          "perHour": 1,
+          "status": "error",
+          "logger": "flowforge.redis",
+          "template": "Redis connection lost (read ECONNRESET) — reconnected after {ms}ms, resuming queue polling"
+        },
+        {
+          "perHour": 40,
+          "status": "info",
+          "logger": "flowforge.scheduler",
+          "template": "Schedule tick {tickId}: matched {n} due workflow(s) across {m} project(s), enqueueing batch"
+        },
+        {
+          "perHour": 40,
+          "status": "info",
+          "logger": "flowforge.queue",
+          "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
+        }
+      ]
+    },
+    "prelude": [
+      {
+        "id": "precursor-burst",
+        "afterArmMs": 60000,
+        "backdateMs": 7200000,
+        "sharedTokens": ["jobId", "tickId"],
+        "note": "The loud precursor: meridianfx's manual test run of their new weekly export, BEFORE the log-redaction release deployed. Pre-redaction worker logging includes the full provider error, stack, and project slug — the only place the smoking gun appears in telemetry. Each failed attempt also logs the ingest service's cursor warning (same code path as the outage — IR-113's investigator read the warning's absence as proof the pre-deploy build ran different ingest code). Dead-letters after maxReceive=8 and self-resolves; nobody notices. Written 1 min after arm with timestamps backdated 2h, so it always predates the deploy marker (declare minus 60 min) — no long arm lead needed.",
+        "logs": [
+          {
+            "count": 8,
+            "intervalMs": 110000,
+            "sameMessage": true,
+            "status": "error",
+            "logger": "flowforge.queue.worker",
+            "template": "Schedule ingest job {jobId} (tick {tickId}) failed, returning to queue: S3UploadError: InvalidBucketName: The specified bucket is not valid. (project: prj_meridianfx_eu) at S3BinaryDataManager.store (packages/core/src/binary-data/s3.manager.ts:87:11) at async Promise.all (index 0) at async ScheduleIngestService.offloadBatch (packages/cli/src/scaling/schedule-ingest.service.ts:141:20) at async ScheduleIngestService.ingestTick (packages/cli/src/scaling/schedule-ingest.service.ts:96:9)"
+          },
+          {
+            "count": 8,
+            "intervalMs": 110000,
+            "offsetMs": 3000,
+            "sameMessage": true,
+            "status": "warn",
+            "logger": "flowforge.scheduler",
+            "template": "Schedule tick {tickId}: cursor not advanced for 1 due workflow(s) — batch ingest did not commit, occurrences will re-match next tick"
+          }
+        ],
+        "metrics": [
+          { "metric": "queue.jobs.dead_lettered", "tags": ["source:schedule"], "count": 1 }
+        ]
+      }
+    ],
+    "phases": [
+      {
+        "id": "onset",
+        "startMs": -3600000,
+        "note": "Outage begins one hour before declaration (detection gap). The deploy marker backfills as a single log at the start of the hour — the red herring: the rollout finishing and schedules dying look simultaneous. Outage errors are QUIET: the deployed redaction strips provider messages from worker logs, so no bucket name, no project slug, no stack. 480/hr, as one poisoned job per tick failing 8 times ~112s apart before dead-lettering: the failure lines and the scheduler's cursor warning share the tick id (cadence 'ingest-tick'), so pre- and post-deploy code paths join identically. A fresh id per line is a tell — IR-113's investigator counted 753 single-use job ids and correctly concluded the redrive policy wasn't real.",
+        "metrics": [
+          { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 0.03, "jitter": 0.8, "replacesBaseline": true },
+          { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 0.03, "jitter": 0.8, "replacesBaseline": true },
+          { "metric": "queue.jobs.enqueued", "tags": [], "perMinute": 10.5, "jitter": 0.35, "diurnal": true, "replacesBaseline": true },
+          { "metric": "queue.jobs.active", "tags": [], "perMinute": 10, "jitter": 0.35, "diurnal": true, "replacesBaseline": true },
+          { "metric": "binary_data.uploads", "tags": ["backend:filesystem"], "perMinute": 7, "jitter": 0.4, "diurnal": true, "replacesBaseline": true },
+          { "metric": "binary_data.uploads", "tags": ["backend:s3"], "perMinute": 3.5, "jitter": 0.5, "diurnal": true, "replacesBaseline": true },
+          { "metric": "queue.jobs.redelivered", "tags": ["source:schedule"], "perMinute": 8, "jitter": 0.05 },
+          { "metric": "queue.jobs.dead_lettered", "tags": ["source:schedule"], "perMinute": 1, "jitter": 0.05 }
+        ],
+        "logs": [
+          {
+            "perHour": 60,
+            "durationMs": 60000,
+            "status": "info",
+            "logger": "flowforge.deploy",
+            "template": "Deployment complete: flowforge-orchestrator {version} rolled out to 4/4 hosts"
+          },
+          {
+            "cadence": { "id": "ingest-tick", "tokens": ["jobId", "tickId"], "birthIntervalMs": 60000, "attempts": 8, "attemptIntervalMs": 112500, "jitterMs": 4000 },
+            "status": "error",
+            "logger": "flowforge.queue.worker",
+            "template": "Schedule ingest job {jobId} (tick {tickId}) failed, returning to queue — cause redacted (may contain tenant data)"
+          },
+          {
+            "perHour": 0,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "flowforge.queue",
+            "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
+          },
+          {
+            "cadence": { "id": "ingest-tick", "tokens": ["tickId"], "birthIntervalMs": 60000, "attempts": 1, "offsetMs": 3000, "jitterMs": 1200 },
+            "status": "warn",
+            "logger": "flowforge.scheduler",
+            "template": "Schedule tick {tickId}: cursor not advanced for {n} due workflow(s) — batch ingest did not commit, occurrences will re-match next tick"
+          }
+        ]
+      },
+      {
+        "id": "red-herring-redis",
+        "startMs": -3300000,
+        "note": "Coincidental Redis reconnect storm shortly after onset — plausible but unrelated. Second herring after the deploy.",
+        "logs": [
+          {
+            "perHour": 30,
+            "durationMs": 900000,
+            "status": "error",
+            "logger": "flowforge.redis",
+            "template": "Redis connection lost (read ECONNRESET) — reconnected after {ms}ms, resuming queue polling"
+          }
+        ]
+      },
+      {
+        "id": "mitigated",
+        "startMs": null,
+        "manual": true,
+        "note": "Presenter (or scripted ENG_A line) marks mitigation: the poison workflow disabled. Schedule executions resume with a catch-up burst. Disabling the workflow stops new poisoned jobs, not the ones already in the queue, so the failure logs drain over the redelivery window instead of stopping dead — the same taper in queue.jobs.redelivered and dead_lettered. A cliff would contradict the maxReceive=8 / 2-minute redrive policy the personas describe, and the drain is what the responder watching recovery actually reports on.",
+        "metrics": [
+          { "metric": "executions.started", "tags": ["trigger:schedule"], "perMinute": 6, "jitter": 0.3, "replacesBaseline": true, "catchUpBurst": { "count": 220, "windowMs": 900000 } },
+          { "metric": "executions.completed", "tags": ["trigger:schedule"], "perMinute": 5.9, "jitter": 0.3, "replacesBaseline": true },
+          { "metric": "queue.jobs.enqueued", "tags": [], "perMinute": 17, "jitter": 0.35, "diurnal": true, "replacesBaseline": true, "catchUpBurst": { "count": 220, "windowMs": 900000 } },
+          { "metric": "queue.jobs.active", "tags": [], "perMinute": 16.5, "jitter": 0.35, "diurnal": true, "replacesBaseline": true },
+          { "metric": "binary_data.uploads", "tags": ["backend:filesystem"], "perMinute": 11, "jitter": 0.4, "diurnal": true, "replacesBaseline": true },
+          { "metric": "binary_data.uploads", "tags": ["backend:s3"], "perMinute": 4, "jitter": 0.5, "diurnal": true, "replacesBaseline": true },
+          { "metric": "queue.jobs.redelivered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true, "catchUpBurst": { "count": 56, "windowMs": 840000 } },
+          { "metric": "queue.jobs.dead_lettered", "tags": ["source:schedule"], "perMinute": 0, "replacesBaseline": true, "catchUpBurst": { "count": 14, "windowMs": 840000 } }
+        ],
+        "logs": [
+          {
+            "perHour": 40,
+            "replacesBaseline": true,
+            "status": "info",
+            "logger": "flowforge.queue",
+            "template": "Enqueued execution batch {batchId} ({n} jobs) — offloaded payloads and advanced schedule cursors"
+          },
+          {
+            "cadence": { "id": "ingest-tick", "tokens": ["jobId", "tickId"], "birthIntervalMs": 60000, "attempts": 8, "attemptIntervalMs": 112500, "jitterMs": 4000, "inherit": true },
+            "durationMs": 1200000,
+            "replacesBaseline": true,
+            "status": "error",
+            "logger": "flowforge.queue.worker",
+            "template": "Schedule ingest job {jobId} (tick {tickId}) failed, returning to queue — cause redacted (may contain tenant data)"
+          },
+          {
+            "perHour": 0,
+            "replacesBaseline": true,
+            "status": "warn",
+            "logger": "flowforge.scheduler",
+            "template": "Schedule tick {tickId}: cursor not advanced for {n} due workflow(s) — batch ingest did not commit, occurrences will re-match next tick"
+          }
+        ]
+      }
+    ]
+  },
+  "personas": [
+    {
+      "id": "ic",
+      "username": "Jordan Reyes (IC)",
+      "avatar": "/incident-lab/avatars/ic.png",
+      "icon": ":rotating_light:",
+      "role": "Incident commander and owner of the orchestrator service. Wrote much of the scheduling code. Direct, moves fast, anchored on this morning's deploy as the cause, occasionally wrong about details (feature flags).",
+      "canReveal": [
+        "The scheduler ticks every minute and matches due workflows across all projects.",
+        "Every project's schedule artifacts land in a per-project bucket derived from the project slug; deploy tooling provisions the buckets at project creation.",
+        "There is supposedly an ingest kill-switch feature flag (this belief is outdated)."
+      ]
+    },
+    {
+      "id": "eng_a",
+      "username": "Sam Whitfield",
+      "avatar": "/incident-lab/avatars/eng_a.png",
+      "icon": ":hammer_and_wrench:",
+      "role": "Engineer on the orchestrator service. Practical, does the hands-on mitigation. Asks about prod access.",
+      "canReveal": [
+        "Prod DB access requires just-in-time approval.",
+        "The affected customer's workflow can be disabled from the admin console once access is approved."
+      ]
+    },
+    {
+      "id": "eng_b",
+      "username": "Diego Marek",
+      "avatar": "/incident-lab/avatars/eng_b.png",
+      "icon": ":satellite_antenna:",
+      "role": "Infrastructure engineer. Knows queue/redrive settings and tenant storage provisioning. Helpful but busy.",
+      "canReveal": [
+        "The queue redrive policy is maxReceiveCount=8 with a ~2 minute visibility timeout; DLQ retention is 14 days.",
+        "Project slugs are minted by the provisioning tooling at project creation; customers don't choose them.",
+        "Nothing changed on queue infrastructure this morning; the Redis reconnect blip self-recovered."
+      ]
+    },
+    {
+      "id": "eng_lead",
+      "username": "Morgan Hale",
+      "avatar": "/incident-lab/avatars/eng_lead.png",
+      "icon": ":clipboard:",
+      "role": "Engineering lead. Asks scoping and customer-impact questions, approves PRs. Does not know implementation details.",
+      "canReveal": []
+    },
+    {
+      "id": "biz",
+      "username": "Casey Lin",
+      "avatar": "/incident-lab/avatars/biz.png",
+      "icon": ":handshake:",
+      "role": "Customer-facing lead. Pushes on severity and customer impact, reviews customer-facing comms wording.",
+      "canReveal": [
+        "Three enterprise customers have already emailed about schedules not running."
+      ]
+    }
+  ],
+  "mitigations": {
+    "note": "Remediations the investigator can ask for in channel. A responder acknowledges the ask, the phase (if the option carries one) activates two minutes later, and the responder reports what the telemetry actually did four minutes after that. Only options listed here can be matched — the model never invents one — and an option with no action changes nothing, which is how a confident wrong proposal fails honestly. The scripted mitigate beat at 50 min stays as the floor for a run that never converges.",
+    "options": [
+      {
+        "id": "disable-poison-workflow",
+        "persona": "eng_a",
+        "action": "mitigate",
+        "observePersona": "eng_b",
+        "proposal": "Disable or pause the specific customer workflow whose schedule keeps failing (the meridianfx weekly export), or otherwise take that one project's schedule out of the tick.",
+        "ack": "ok trying that — requesting jit access to the admin console now, will pause the meridianfx weekly export as soon as it lands",
+        "observation": "paused it. new tick failures stopped, but the jobs already in flight are still redriving — redeliveries and DLQ are tapering, not cliffing. give it the redrive window"
+      },
+      {
+        "id": "rollback-deploy",
+        "persona": "eng_a",
+        "observePersona": "ic",
+        "proposal": "Roll back or revert this morning's orchestrator deploy.",
+        "ack": "ok, rolling back the orchestrator to the previous build — give it a few min to cycle",
+        "observation": "rollback's through and schedules are still failing at exactly the same rate. that deploy wasn't it"
+      },
+      {
+        "id": "requeue-dlq",
+        "persona": "eng_b",
+        "proposal": "Redrive or replay the dead-lettered schedule jobs back onto the queue.",
+        "ack": "sure, replaying the dlq back onto the ingest queue now",
+        "observation": "replayed and they failed straight back into the dlq, same path. whatever's rejecting them is still rejecting them"
+      }
+    ]
+  },
+  "script": [
+    { "atMs": 0, "persona": "ic", "text": "sorry to the platform folks who got auto-added — we don't have a dedicated team on the orchestrator. adding Sam and Morgan here" },
+    { "atMs": 20000, "persona": "ic", "text": "timing lines up almost exactly with this morning's orchestrator deploy — schedules flatlined minutes after the rollout finished. I think we shipped this" },
+    { "atMs": 30000, "persona": "ic", "mentionsDevin": true, "text": "{devin} can you dig into why scheduled workflows are failing to enqueue? my money is on this morning's deploy — confirm or rule that out first, then keep going. post evidence here as you find it, not one big writeup at the end" },
+    { "atMs": 50000, "persona": "eng_b", "text": "hi do you need infra help here?" },
+    { "atMs": 60000, "persona": "ic", "text": "maybe — can you check whether anything changed on the storage or queue side this morning?" },
+    { "atMs": 80000, "persona": "eng_a", "text": "prepping a rollback of the deploy in case we want it. heads up it's not clean — flipping worker versions on the orchestrator means a queue drain first, in-flight jobs don't survive it" },
+    { "atMs": 100000, "persona": "eng_b", "text": "nothing changed on queue infra this morning. there was a redis reconnect blip right around when schedules stopped but it recovered on its own" },
+    { "atMs": 196000, "persona": "ic", "mentionsDevin": true, "text": "if it's the deploy we eat the queue drain and roll back, if not I don't want to burn the change window — {devin} where are you at on the deploy verdict?" },
+    { "atMs": 340000, "persona": "ic", "text": "I realize I haven't been here long enough to know severity levels. why is this a sev1?" },
+    { "atMs": 388000, "persona": "biz", "text": "three enterprise customers have emailed about schedules not running. keeping sev1 until someone tells me otherwise" },
+    { "atMs": 580000, "persona": "eng_a", "text": "weird — I remember a short burst of ingest errors in the worker logs early this morning that cleared up on its own. pretty sure that was before the deploy. related?" },
+    { "atMs": 780000, "persona": "ic", "mentionsDevin": true, "text": "{devin} any read on sam's early-morning error burst? and do we have a definitive verdict on the deploy yet?" },
+    { "atMs": 980000, "persona": "eng_a", "text": "what's the best way to disable a single customer's workflow if we need to? request prod db access or impersonate their org admin?" },
+    { "atMs": 1060000, "persona": "ic", "text": "I think we can turn off schedule ingest with our feature flag and stop the bleeding there, then turn it back on once there's a fix" },
+    { "atMs": 1320000, "persona": "eng_a", "text": "requested JIT prod access, is anyone able to approve?" },
+    { "atMs": 1620000, "persona": "eng_lead", "text": "cc Casey — around to help with the access approval?" },
+    { "atMs": 1740000, "persona": "biz", "text": "I don't have JIT permissions :confused:" },
+    { "atMs": 1920000, "persona": "ic", "mentionsDevin": true, "text": "{devin} what's our maximum queue retry period? Will the failed schedule runs ultimately trigger once we get the fix out, or do they end up stuck in some dead letter queue?" },
+    { "atMs": 2100000, "persona": "ic", "mentionsDevin": true, "text": "IIUC ({devin} back me up or correct me here) schedule ingest per tick is: offload every matched occurrence's payload to that occurrence's project storage, enqueue the execution jobs, then advance the schedule cursors — batched per tick, and multiple customers can share a tick. What I can't remember is what happens to the rest of the batch when one project's upload fails. Does anything commit?" },
+    { "atMs": 2400000, "persona": "ic", "mentionsDevin": true, "text": "{devin} start a task to implement a fix so we don't fail the whole tick if one project's storage upload fails — mark just those as failed immediately. If that hurts ingest performance, tell me instead of implementing." },
+    { "atMs": 2520000, "persona": "ic", "text": "I'm going to hop on the bridge. Let me make sure automated review passes on the mitigation PR before merging, then we cherry-pick" },
+    { "atMs": 3000000, "persona": "eng_a", "action": "mitigate", "text": "access approved, went in. disabled the poison workflow (meridianfx weekly export). should mitigate now :crossed_fingers:" },
+    { "atMs": 3120000, "persona": "ic", "text": "we should still ship the batch-isolation fix in case another project with a weird slug shows up with a schedule :(" },
+    { "atMs": 3600000, "persona": "eng_a", "text": "queued executions are draining, let's see if it recovers" },
+    { "atMs": 3984000, "persona": "biz", "mentionsDevin": true, "text": "I'm guessing dupe jobs all got run too? e.g. if a workflow ran hourly it just ran 2 or 3 times in a row? {devin}" },
+    { "atMs": 4224000, "persona": "biz", "mentionsDevin": true, "text": "{devin} can you list out the top customers that were impacted, with rough numbers? trying to work out if this really warrants a SEV 1" },
+    { "atMs": 4464000, "persona": "eng_lead", "text": "What's the main fix we need for the storage naming issue? The name is something we control, right — so we can fix it? But is there a more general issue with name handling?" },
+    { "atMs": 4704000, "persona": "eng_lead", "mentionsDevin": true, "text": "{devin} where do project slugs like that even come from — can customers pick or rename them themselves, or do we mint them? and how many existing projects would fail the same way?" },
+    { "atMs": 4944000, "persona": "ic", "mentionsDevin": true, "text": "{devin} spin up a check on whether it's backwards compatible to rename the storage subpath to a dash-separated name that's valid on every backend — do existing blobs stay readable? any other references? mixed-version rollout safe?" },
+    { "atMs": 5424000, "persona": "ic", "text": "Draft customer comms: \"Scheduled workflows may have experienced long processing delays this morning.\" Something like this? But fancier?" },
+    { "atMs": 5664000, "persona": "ic", "mentionsDevin": true, "text": "{devin} your running incident report probably has most of this already — paste the RCA section here for the incident doc: root cause, contributing factors, the detection gap, and why we initially pinned it on the deploy." },
+    { "atMs": 5904000, "persona": "biz", "text": "Keeping this at SEV 1 — the customer impact numbers justify it" },
+    { "atMs": 6048000, "persona": "eng_lead", "text": "Seems reasonable given the impact policy. Thanks everyone — and thanks {devin}" }
+  ],
+  "knowledge": [
+    {
+      "unlockAtMs": 0,
+      "facts": [
+        "Detection was by an employee noticing their own report workflow didn't run; no monitor fired.",
+        "The orchestrator deploy finished rolling out minutes before scheduled executions stopped.",
+        "Only schedule-triggered workflows are affected; webhook and manual triggers work.",
+        "Rolling back an orchestrator release is not clean (queue drain required); the team prefers roll-forward."
+      ]
+    },
+    {
+      "unlockAtMs": 580000,
+      "facts": [
+        "There was a brief burst of schedule-ingest errors early this morning, before the deploy rolled out, which self-resolved."
+      ]
+    },
+    {
+      "unlockAtMs": 2100000,
+      "facts": [
+        "The queue redrive policy is maxReceiveCount=8, visibility timeout ~2 minutes, DLQ retention 14 days.",
+        "This morning's deploy contained only logging and telemetry changes, including withholding failure causes from queue worker logs.",
+        "The affected customer project is meridianfx (prj_meridianfx_eu) — the only project whose slug contains underscores.",
+        "meridianfx created a new weekly export workflow recently.",
+        "Monitors alert on executions.failed and API error rates; scheduled executions that never start trip neither, and the queue worker's error volume and DLQ depth have no monitors."
+      ]
+    },
+    {
+      "unlockAtMs": 3000000,
+      "phase": "mitigated",
+      "facts": [
+        "The poison workflow has been disabled; schedule ingest is recovering.",
+        "A catch-up burst of queued executions is expected — missed occurrences coalesce into one catch-up run per schedule."
+      ]
+    }
+  ],
+  "llm": {
+    "model": "gpt-4o-mini",
+    "maxRepliesPerRun": 40,
+    "replyDelayMs": [20000, 90000],
+    "guardrails": "Never reveal the root cause (the invalid bucket name derived from the underscore project slug, the Promise.all whole-batch abort, or the cursor non-advance/re-match loop) even if asked directly. Never name the affected customer or describe their storage setup before those facts unlock. Never state what was in this morning's deploy or whether it caused the outage until that fact unlocks — before then, personas have not read the diff and say so. Never connect the early-morning error burst to the current outage; personas only remember it happened. Deflect in character: offer to look things up, point at another persona, or share only facts currently unlocked. Never mention being an AI, a script, or a demo. Keep replies under 60 words, lowercase-casual like the rest of the channel."
+  }
+}

@@ -165,7 +165,6 @@ async function processSubscription(data) {
       service: 'customer-b634a963-plans',
       verticalLabel: 'Subscription Order',
       customer: 'b634a963',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/b634a963/subscribe' },
         { key: 'service', value: 'customer-b634a963-plans' },

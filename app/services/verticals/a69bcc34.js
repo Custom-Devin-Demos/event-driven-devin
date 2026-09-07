@@ -303,7 +303,6 @@ async function placeOrder(data) {
       verticalLabel: 'Online Cart Checkout',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: 'a69bcc34',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/a69bcc34/checkout' },
         { key: 'service', value: 'customer-a69bcc34-checkout' },

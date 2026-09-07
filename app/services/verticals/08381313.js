@@ -167,7 +167,6 @@ async function processSupplyInquiry(data) {
       service: 'customer-08381313-supply',
       verticalLabel: 'Supply Chain Inquiry',
       customer: '08381313',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/08381313/supply-inquiry' },
         { key: 'service', value: 'customer-08381313-supply' },
