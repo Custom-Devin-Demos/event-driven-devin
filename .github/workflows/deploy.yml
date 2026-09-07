@@ -23,11 +23,34 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
+          if [ -z "$EC2_SSH_KEY" ] || [ -z "$EC2_HOST" ]; then
+            echo "::error::EC2_SSH_KEY and EC2_HOST must both be set in this repo's Actions secrets"; exit 1
+          fi
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key
+          umask 077
+          # Accept the PEM as pasted with real newlines, with literal "\n", or flattened onto
+          # one line (newlines turned into spaces) and rewrite it in canonical form.
+          KEY=$(printf '%s' "$EC2_SSH_KEY" | sed 's/\\n/\n/g' | tr -d '\r')
+          if [ "$(printf '%s\n' "$KEY" | wc -l)" -gt 2 ]; then
+            printf '%s\n' "$KEY" > ~/.ssh/ec2_key
+          else
+            HEAD=$(printf '%s' "$KEY" | grep -oE -- '-----BEGIN [A-Z ]+-----' | head -1)
+            TAIL=$(printf '%s' "$KEY" | grep -oE -- '-----END [A-Z ]+-----' | head -1)
+            {
+              printf '%s\n' "$HEAD"
+              printf '%s' "$KEY" | sed -e "s/$HEAD//" -e "s/$TAIL//" | tr -d ' \n' | fold -w 64
+              printf '\n%s\n' "$TAIL"
+            } > ~/.ssh/ec2_key
+          fi
           chmod 600 ~/.ssh/ec2_key
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          if ! ssh-keygen -y -f ~/.ssh/ec2_key > /dev/null 2>&1; then
+            echo "::error::EC2_SSH_KEY is not a parseable private key (check it was pasted completely)"; exit 1
+          fi
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Create release tarball
         run: |
