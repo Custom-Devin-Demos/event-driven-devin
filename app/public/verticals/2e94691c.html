@@ -307,17 +307,18 @@
       const result = document.getElementById('result');
       btn.disabled = true; btn.textContent = 'Deploying...';
       result.className = 'result-box';
+      const submittedProduct = document.getElementById('product').value;
       try {
         const res = await fetch('/api/licenses/provision', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ orgName: submittedProduct, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
           result.innerHTML = `<div class="r-title">Deployment Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
         } else {
-          const connector = CONNECTOR_LABELS[document.getElementById('product').value] || 'connector';
+          const connector = CONNECTOR_LABELS[submittedProduct] || 'connector';
           result.className = 'result-box success';
           result.innerHTML = `<div class="r-title">Connector Deployed</div><div class="r-detail">${data.seatsAdded} accounts onboarded on ${connector} &mdash; ${data.licenseId}</div>`;
         }
