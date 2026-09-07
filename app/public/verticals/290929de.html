@@ -452,7 +452,7 @@
               <div class="sum-row"><span>מחשבון</span><span>עובר ושב ••••1042</span></div>
               <div class="sum-row"><span>לחשבון</span><span>חיסכון ••••7734</span></div>
               <div class="sum-row"><span>סכום</span><span>₪1,000</span></div>
-              <div class="sum-row"><span>עמלה</span><span>ללא עמלה</span></div>
+              <div class="sum-row"><span>עמלה</span><span>לפי מסלול החשבון</span></div>
             </div>
             <p class="aside-note" id="balanceNote"></p>
             <div class="quick">
@@ -503,7 +503,7 @@
       const summary = document.getElementById('liveSummary');
       const balanceNote = document.getElementById('balanceNote');
       const fmt = (n) => '₪' + Number(n || 0).toLocaleString('he-IL');
-      const BALANCES = { 'ACCT-1001': 25430.0, 'ACCT-1004': 108250.75 };
+      const BALANCES = { 'ACCT-1001': 25430.0, 'ACCT-1004': 156200.0 };
 
       function sync() {
         const fromLabel = fromSel.options[fromSel.selectedIndex].textContent;
@@ -512,7 +512,7 @@
           `<div class="sum-row"><span>מחשבון</span><span>${fromSel.options[fromSel.selectedIndex].textContent}</span></div>` +
           `<div class="sum-row"><span>לחשבון</span><span>${toSel.options[toSel.selectedIndex].textContent}</span></div>` +
           `<div class="sum-row"><span>סכום</span><span>${fmt(amountEl.value)}</span></div>` +
-          `<div class="sum-row"><span>עמלה</span><span>ללא עמלה</span></div>`;
+          `<div class="sum-row"><span>עמלה</span><span>לפי מסלול החשבון</span></div>`;
       }
       [fromSel, toSel, amountEl].forEach((el) => el.addEventListener('input', sync));
       form.addEventListener('reset', sync);
@@ -550,7 +550,10 @@
           } else {
             const ref = (data.receipt && data.receipt.receiptId) || data.transactionId || '';
             box.className = 'result-box success';
-            box.textContent = `ההעברה בוצעה — ${fmt(submittedAmount)}. אסמכתא ${ref}.`;
+            const debit = data.debitAmount !== undefined ? Number(data.debitAmount) : submittedAmount;
+            const feeText =
+              data.fee !== undefined ? ` (כולל עמלה ${fmt(Number(data.fee))})` : '';
+            box.textContent = `ההעברה בוצעה — חיוב ${fmt(debit)}${feeText}. אסמכתא ${ref}.`;
           }
         } catch (_) {
           box.className = 'result-box error';
