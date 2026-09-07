@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wiz &mdash; Cloud Connector Deployment</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --wiz-blue: #0254EC;
+      --wiz-blue-dark: #0143c0;
+      --wiz-blue-wash: #EEF3FE;
+      --wiz-pink: #FFC6F8;
+      --wiz-ink: #393F49;
+      --wiz-ink-strong: #25242F;
+      --wiz-muted: #6b7280;
+      --wiz-line: #E3E6EB;
+      --wiz-danger: #d92d20;
+      --wiz-green: #12805c;
+      --sans: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: #fff;
+      color: var(--wiz-ink);
+      line-height: 1.6;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .utility { border-bottom: 1px solid var(--wiz-line); }
+    .utility-inner { max-width: 1240px; margin: 0 auto; padding: 8px 24px; display: flex; justify-content: flex-end; gap: 14px; font-size: 13px; color: var(--wiz-ink); }
+    .utility-inner a { color: var(--wiz-ink); text-decoration: none; }
+    .utility-inner a:hover { color: var(--wiz-blue); }
+    .utility-sep { color: var(--wiz-line); }
+
+    header.site { background: #fff; }
+    nav.site-nav { max-width: 1240px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 28px; }
+    .logo { display: inline-flex; align-items: flex-start; text-decoration: none; }
+    .logo .wordmark { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; color: var(--wiz-blue); line-height: 1; }
+    .logo .plus { font-size: 0.8rem; font-weight: 700; color: var(--wiz-blue); line-height: 1; margin-left: 2px; }
+    .nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
+    .nav-links a { color: var(--wiz-ink); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 12px; border-radius: 8px; }
+    .nav-links a:hover { color: var(--wiz-blue); }
+    .nav-links a.active { color: var(--wiz-blue); font-weight: 600; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 24px;
+      border-radius: 999px; font-family: var(--sans); font-size: 14px; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none; background: var(--wiz-blue); color: #fff;
+      transition: background .15s, transform .15s;
+    }
+    .pill:hover { background: var(--wiz-blue-dark); transform: translateY(-1px); }
+    @media (max-width: 1000px) { .nav-links { display: none; } }
+
+    .hero { position: relative; overflow: hidden; padding: 56px 24px 32px; }
+    .hero::after {
+      content: ''; position: absolute; right: -140px; top: -120px; width: 520px; height: 420px;
+      background: radial-gradient(closest-side, rgba(255,198,248,0.55), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 1240px; margin: 0 auto; position: relative; z-index: 1; }
+    .eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--wiz-blue); margin-bottom: 12px; }
+    .hero h1 { font-size: clamp(2rem, 4.6vw, 3.25rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.12; color: var(--wiz-ink); max-width: 760px; }
+    .hero h1 .hl { color: var(--wiz-blue); background: linear-gradient(180deg, rgba(255,198,248,0) 58%, var(--wiz-pink) 58%); padding: 0 2px; }
+    .hero p { font-size: 1.02rem; color: var(--wiz-muted); max-width: 660px; margin-top: 16px; }
+
+    main.console { max-width: 1240px; margin: 0 auto; padding: 8px 24px 64px; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 28px 0; }
+    @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+    .metric { background: #fff; border: 1px solid var(--wiz-line); border-radius: 14px; padding: 18px 20px; }
+    .metric-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--wiz-muted); margin-bottom: 4px; }
+    .metric-val { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; color: var(--wiz-ink-strong); }
+    .metric-sub { font-size: 0.74rem; color: var(--wiz-muted); margin-top: 2px; }
+    .metric-sub.pos { color: var(--wiz-green); }
+
+    .panel { background: #fff; border: 1px solid var(--wiz-line); border-radius: 18px; overflow: hidden; margin-bottom: 22px; box-shadow: 0 1px 2px rgba(37,36,47,0.04); }
+    .panel-head { padding: 20px 26px 0; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+    .panel-head h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; color: var(--wiz-ink-strong); }
+    .panel-head .sub { font-size: 0.8rem; color: var(--wiz-muted); }
+
+    .env-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .env-table th { text-align: left; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--wiz-muted); padding: 10px 26px; border-bottom: 1px solid var(--wiz-line); }
+    .env-table td { padding: 13px 26px; border-bottom: 1px solid var(--wiz-line); font-size: 0.86rem; vertical-align: middle; }
+    .env-table tbody tr:last-child td { border-bottom: none; }
+    .env-table .env { font-weight: 600; color: var(--wiz-ink-strong); }
+    .env-table .env small { display: block; font-weight: 400; font-size: 0.72rem; color: var(--wiz-muted); }
+    .mono { font-family: var(--mono); font-size: 0.74rem; color: var(--wiz-muted); }
+    .badge-scan { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 600; color: var(--wiz-green); background: rgba(18,128,92,0.09); padding: 3px 11px; border-radius: 20px; white-space: nowrap; }
+    .badge-scan::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--wiz-green); }
+    .badge-queued { display: inline-flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 600; color: var(--wiz-blue); background: var(--wiz-blue-wash); padding: 3px 11px; border-radius: 20px; white-space: nowrap; }
+    .badge-queued::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--wiz-blue); }
+    @media (max-width: 760px) {
+      .env-table th:nth-child(4), .env-table td:nth-child(4) { display: none; }
+      .env-table th, .env-table td { padding: 11px 16px; }
+    }
+
+    .deploy-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 0; }
+    @media (max-width: 860px) { .deploy-grid { grid-template-columns: 1fr; } .deploy-info { display: none; } }
+    .deploy-body { padding: 24px 26px 28px; }
+    .deploy-body h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--wiz-ink-strong); }
+    .deploy-body .sub { font-size: 0.8rem; color: var(--wiz-muted); margin-bottom: 20px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.74rem; font-weight: 600; color: var(--wiz-muted); margin-bottom: 5px; }
+    .form-group select, .form-group input {
+      width: 100%; height: 46px; padding: 0 14px; border: 1px solid var(--wiz-line); border-radius: 10px;
+      font-family: var(--sans); font-size: 0.88rem; color: var(--wiz-ink); background: #fff; transition: border-color .15s, box-shadow .15s;
+    }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--wiz-blue); box-shadow: 0 0 0 3px rgba(2,84,236,0.12); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-deploy {
+      width: 100%; height: 48px; border-radius: 999px; background: var(--wiz-blue); color: #fff;
+      font-family: var(--sans); font-size: 0.92rem; font-weight: 600; border: none; cursor: pointer;
+      transition: background .15s, transform .15s; margin-top: 6px;
+    }
+    .btn-deploy:hover { background: var(--wiz-blue-dark); transform: translateY(-1px); }
+    .btn-deploy:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .result-box { margin-top: 14px; padding: 13px 16px; border-radius: 12px; font-size: 0.82rem; display: none; }
+    .result-box.error { display: block; background: #fef3f2; border: 1px solid #fecdca; color: var(--wiz-danger); }
+    .result-box.success { display: block; background: rgba(18,128,92,0.07); border: 1px solid rgba(18,128,92,0.28); color: var(--wiz-green); }
+    .result-box .r-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .r-detail { font-family: var(--mono); font-size: 0.7rem; opacity: 0.9; word-break: break-word; }
+
+    .deploy-info { background: var(--wiz-ink-strong); color: #fff; padding: 28px 30px; display: flex; flex-direction: column; justify-content: center; }
+    .deploy-info h3 { font-size: 1.1rem; font-weight: 600; line-height: 1.4; margin-bottom: 12px; }
+    .deploy-info p { font-size: 0.84rem; color: rgba(255,255,255,0.78); margin-bottom: 14px; }
+    .deploy-info ul { list-style: none; }
+    .deploy-info li { font-size: 0.82rem; color: rgba(255,255,255,0.9); padding-left: 22px; position: relative; margin-bottom: 9px; }
+    .deploy-info li::before { content: ''; position: absolute; left: 0; top: 7px; width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(120deg, var(--wiz-blue), var(--wiz-pink)); }
+
+    footer.site { background: var(--wiz-ink-strong); color: rgba(255,255,255,0.72); padding: 40px 24px 32px; }
+    .foot-inner { max-width: 1240px; margin: 0 auto; }
+    .foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-bottom: 26px; }
+    @media (max-width: 700px) { .foot-cols { grid-template-columns: 1fr 1fr; } }
+    .foot-col h4 { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 10px; }
+    .foot-col a { display: block; font-size: 0.82rem; color: rgba(255,255,255,0.82); text-decoration: none; margin-bottom: 6px; }
+    .foot-col a:hover { color: #fff; }
+    .foot-note { border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; font-size: 0.75rem; color: rgba(255,255,255,0.55); }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="utility-inner">
+      <a href="#">Sign in</a>
+      <span class="utility-sep">|</span>
+      <a href="#">Experiencing an incident?</a>
+    </div>
+  </div>
+
+  <header class="site">
+    <nav class="site-nav">
+      <a class="logo" href="#"><span class="wordmark">WIZ</span><span class="plus">+</span></a>
+      <ul class="nav-links">
+        <li><a href="#">Platform</a></li>
+        <li><a href="#">Solutions</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#" class="active">Deployment</a></li>
+        <li><a href="#">Resources</a></li>
+        <li><a href="#">Company</a></li>
+      </ul>
+      <div class="nav-right">
+        <a class="pill" href="#deploy">Get a demo</a>
+      </div>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Deployment</div>
+      <h1>Connect your <span class="hl">cloud</span> environments to the Security Graph</h1>
+      <p>Deploy agentless connectors across your cloud organizations, subscriptions, and clusters, and track scan coverage as each environment comes online.</p>
+    </div>
+  </section>
+
+  <main class="console">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Connected Environments</div><div class="metric-val">38</div><div class="metric-sub">across 4 cloud providers</div></div>
+      <div class="metric"><div class="metric-label">Resources Scanned</div><div class="metric-val">1.24M</div><div class="metric-sub pos">+6% vs. last week</div></div>
+      <div class="metric"><div class="metric-label">Critical Issues</div><div class="metric-val">27</div><div class="metric-sub">on toxic combination paths</div></div>
+      <div class="metric"><div class="metric-label">Scan Coverage</div><div class="metric-val">99.2%</div><div class="metric-sub">of in-scope accounts</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Connected Environments</h2>
+        <span class="sub">Agentless connectors currently reporting into the Security Graph</span>
+      </div>
+      <table class="env-table">
+        <thead><tr><th>Environment</th><th>Connector</th><th>Accounts</th><th>Last Full Scan</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="env">Production AWS Organization<small>Workload &amp; identity scanning</small></td><td class="mono">CON-AWS-4417</td><td>214 accounts</td><td>18 min ago</td><td><span class="badge-scan">Scanning</span></td></tr>
+          <tr><td class="env">Azure Commercial Tenant<small>Subscription &amp; entitlement scanning</small></td><td class="mono">CON-AZR-2286</td><td>96 subscriptions</td><td>24 min ago</td><td><span class="badge-scan">Scanning</span></td></tr>
+          <tr><td class="env">Google Cloud Organization<small>Project &amp; data security posture</small></td><td class="mono">CON-GCP-1904</td><td>61 projects</td><td>31 min ago</td><td><span class="badge-scan">Scanning</span></td></tr>
+          <tr><td class="env">EKS Runtime Clusters<small>Runtime sensor &amp; admission control</small></td><td class="mono">CON-K8S-1071</td><td>18 clusters</td><td>Pending first scan</td><td><span class="badge-queued">Queued</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel" id="deploy">
+      <div class="deploy-grid">
+        <div class="deploy-body">
+          <h2>Deploy Connector</h2>
+          <div class="sub">Onboard a cloud environment and provision scanning capacity for your tenant.</div>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label>Connector Type</label>
+              <select id="product">
+                <option value="aws_organization">AWS Organization</option>
+                <option value="azure_tenant">Azure Tenant</option>
+                <option value="gcp_organization">Google Cloud Organization</option>
+                <option value="kubernetes_clusters">Kubernetes Clusters</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Accounts In Scope</label><input type="number" id="seats" value="25" min="1"></div>
+              <div class="form-group">
+                <label>Deployment Tier</label>
+                <select id="planTier">
+                  <option value="enterprise">Enterprise</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Trial</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Tenant Region</label>
+              <select id="region">
+                <option value="us-east">US East</option>
+                <option value="us-west">US West</option>
+                <option value="eu-west">EU West</option>
+                <option value="ap-south">AP South</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-deploy" id="submitBtn">Deploy Connector</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+        <div class="deploy-info">
+          <h3>Agentless by default, with runtime context where you need it.</h3>
+          <p>New environments are scanned without agents and mapped onto the Security Graph, so exposure, identity, and data findings are correlated the moment the connector lands.</p>
+          <ul>
+            <li>Full workload visibility without deploying agents</li>
+            <li>Toxic combinations correlated across cloud, code, and runtime</li>
+            <li>Identity and entitlement analysis per account</li>
+            <li>Findings routed to the owning team automatically</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="foot-inner">
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>Platform</h4>
+          <a href="#">Cloud &amp; AI Security</a>
+          <a href="#">Wiz Code</a>
+          <a href="#">Wiz Cloud</a>
+          <a href="#">Wiz Defend</a>
+          <a href="#">Integrations</a>
+        </div>
+        <div class="foot-col">
+          <h4>Learn</h4>
+          <a href="#">Customer Stories</a>
+          <a href="#">Documentation</a>
+          <a href="#">CloudSec Academy</a>
+          <a href="#">Vulnerability Database</a>
+        </div>
+        <div class="foot-col">
+          <h4>Company</h4>
+          <a href="#">About Wiz</a>
+          <a href="#">Join the Team</a>
+          <a href="#">Trust Center</a>
+          <a href="#">Contact Us</a>
+        </div>
+      </div>
+      <div class="foot-note">&copy; 2026 Wiz, Inc. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const CONNECTOR_LABELS = {
+      aws_organization: 'AWS Organization',
+      azure_tenant: 'Azure Tenant',
+      gcp_organization: 'Google Cloud Organization',
+      kubernetes_clusters: 'Kubernetes Clusters',
+    };
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Deploying...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="r-title">Deployment Failed</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          const connector = CONNECTOR_LABELS[document.getElementById('product').value] || 'connector';
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="r-title">Connector Deployed</div><div class="r-detail">${data.seatsAdded} accounts onboarded on ${connector} &mdash; ${data.licenseId}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Deploy Connector'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
