@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const { listAliases } = require('../../../config/customers');
+const logger = require('../../telemetry/logger');
 
 const router = express.Router();
 
@@ -19,6 +20,14 @@ const PAGES_DIR = path.join(__dirname, '..', '..', 'public', 'verticals');
  *
  * Route modules are mounted before pages, so a module may take over its own
  * /<id> path (e.g. qbe.js) and no two modules may register the same path.
+ * Aliases are registered before pages, so an alias always wins over a page of
+ * the same name.
+ *
+ * Registry problems (a module that fails to load, an alias whose target page
+ * is missing) are logged and skipped rather than thrown: the deployed tree can
+ * contain files the repo no longer has, and a stale file must never take the
+ * whole app down. tests/verticals-registry.test.js enforces a clean registry
+ * on the committed tree.
  */
 
 /** Ids of every route module in this directory (sorted, excluding index.js). */
@@ -44,13 +53,24 @@ function sendPage(id) {
 }
 
 // Mount API routes for each vertical
-const routeIds = discoverRouteIds();
-for (const id of routeIds) {
-  const mod = require(path.join(ROUTES_DIR, `${id}.js`));
+const routeIds = [];
+const skippedRouteIds = [];
+for (const id of discoverRouteIds()) {
+  let mod;
+  try {
+    mod = require(path.join(ROUTES_DIR, `${id}.js`));
+  } catch (err) {
+    logger.error('Vertical route module failed to load; skipping', { id, error: err.message });
+    skippedRouteIds.push(id);
+    continue;
+  }
   if (typeof mod !== 'function') {
-    throw new Error(`app/routes/verticals/${id}.js must export an express Router`);
+    logger.error('Vertical route module must export an express Router; skipping', { id });
+    skippedRouteIds.push(id);
+    continue;
   }
   router.use(mod);
+  routeIds.push(id);
 }
 
 /**
@@ -77,22 +97,25 @@ router.get('/api/verticals', (_req, res) => {
   res.json({ verticals: VERTICALS });
 });
 
-// Serve every vertical page at its own clean URL: /banking, /insurance, /<slug>, ...
 const pageIds = discoverPageIds();
-for (const id of pageIds) {
-  router.get(`/${id}`, sendPage(id));
-}
 
 // Friendly public URLs declared in config/customers/<slug>.js (e.g. /publix → 4c351052.html)
-const aliases = listAliases();
-for (const [alias, id] of Object.entries(aliases)) {
+const aliases = {};
+for (const [alias, id] of Object.entries(listAliases())) {
   if (!pageIds.includes(id)) {
-    throw new Error(`Alias "/${alias}" points at missing page app/public/verticals/${id}.html`);
+    logger.error('Alias points at a missing page; skipping', { alias, id });
+    continue;
   }
   if (pageIds.includes(alias)) {
-    throw new Error(`Alias "/${alias}" collides with page app/public/verticals/${alias}.html`);
+    logger.warn('Alias shadows a page of the same name; alias wins', { alias, id });
   }
   router.get(`/${alias}`, sendPage(id));
+  aliases[alias] = id;
+}
+
+// Serve every vertical page at its own clean URL: /banking, /insurance, /<slug>, ...
+for (const id of pageIds) {
+  router.get(`/${id}`, sendPage(id));
 }
 
 // Retail uses the existing index.html at /retail
@@ -108,5 +131,6 @@ router.get('/', (_req, res) => {
 module.exports = router;
 module.exports.VERTICALS = VERTICALS;
 module.exports.routeIds = routeIds;
+module.exports.skippedRouteIds = skippedRouteIds;
 module.exports.pageIds = pageIds;
 module.exports.aliases = aliases;

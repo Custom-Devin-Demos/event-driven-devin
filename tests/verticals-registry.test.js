@@ -14,7 +14,7 @@ const CUSTOMERS_DIR = path.join(ROOT, 'config', 'customers');
 const verticalRoutes = require('../app/routes/verticals');
 const { CUSTOMERS, listAliases, getCustomerConfig } = require('../config/customers');
 
-const { routeIds, pageIds, aliases, VERTICALS } = verticalRoutes;
+const { routeIds, skippedRouteIds, pageIds, aliases, VERTICALS } = verticalRoutes;
 
 let server;
 let baseUrl;
@@ -51,6 +51,7 @@ describe('vertical discovery', () => {
       .map((f) => f.slice(0, -3))
       .sort();
     expect(routeIds).toEqual(expected);
+    expect(skippedRouteIds).toEqual([]);
     expect(routeIds).toEqual(expect.arrayContaining(['banking', 'qbe', '4f645972', '4b7e1d37']));
   });
 
