@@ -974,6 +974,22 @@ const ONCALL_SKINS = {
     supportCenter: 'British Airways Customer Relations',
     disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
   },
+  '290929de': {
+    slug: '290929de',
+    company: 'Bank Leumi',
+    brandMark: 'L',
+    vertical: 'banking',
+    page: { file: '290929de.html', title: 'העברת כספים | לאומי דיגיטל' },
+    theme: {
+      '--accent': '#0066FF',
+      '--ink': '#070762',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#10069A',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Bank Leumi Customer Service',
+    disclaimer: 'NOT ACTUALLY A BANK LEUMI SITE — internal demo only, not affiliated with, endorsed by, or a real Bank Leumi product.',
+  },
   '2e94691c': {
     slug: '2e94691c',
     company: 'Wiz',
