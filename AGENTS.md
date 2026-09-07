@@ -57,7 +57,7 @@ Customer skins receive the alerts surface by default. Optional `bugPortal` and `
 
 The payer vertical models a plan-configuration defect rather than an infrastructure failure: `PLAN_CONFIGS` carries a 7-digit `rxBin` (`0044336` instead of `004336`) for two plans, `generateMemberIdCard()` copies it onto member ID cards unvalidated, and `adjudicateClaim()` then finds no `PAYER_REGISTRY` entry for that BIN. Every service stays healthy — the only signal is the `pharmacy_claim.rejected` business metric.
 
-The page is not registered in the `VERTICALS` array in `app/routes/verticals/index.js`, so it does not appear on the hub: it is plan-branded and the hub is on screen during customer demos. Reach it at `/welcome-season`.
+The page is not listed in the `VERTICALS` array in `app/routes/verticals/index.js`, so it does not appear on the hub: it is plan-branded and the hub is on screen during customer demos. Reach it at `/welcome-season`.
 
 Two things are deliberately separate:
 
@@ -167,7 +167,7 @@ The control page drives `run`, which arms and schedules the declaration for the 
 │   ├── routes/
 │   │   ├── storefront.js          # Retail: product catalog + checkout
 │   │   ├── verticals/
-│   │   │   ├── index.js           # Mounts all vertical route files
+│   │   │   ├── index.js           # Discovers + mounts every vertical route file and page (no hand edits)
 │   │   │   ├── banking.js         # Banking: accounts + transfer
 │   │   │   ├── financial-services.js  # Financial Services: portfolio + trade
 │   │   │   ├── insurance.js       # Insurance: policies + claims
@@ -338,7 +338,7 @@ Both paths call the same `createSessionAndAlert()` function. There is no dedupli
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
 2. **`api`:** Calls `POST https://api.devin.ai/v1/sessions` directly via `DEVIN_API_KEY`. Posts a "View in Devin" button in the Slack thread. No user token or Devin Slack app needed — ideal for customer-specific demos running against a different Devin org.
 
-**Per-customer configuration** (see `config/customers.js`):
+**Per-customer configuration** (see `config/customers.js` and `config/customers/<slug>.js`):
 Multiple customers can run simultaneously in a single deployment, each with their own Devin org/API key. Verticals pass `customer: '<slug>'` in their `alertData` to route to the correct config. Customer-specific env vars use a `_<SLUG>` suffix (e.g. `DEVIN_API_KEY_WAYFAIR`). See [Adding a new customer demo](#adding-a-new-customer-demo) below.
 
 ## Key Services
@@ -349,7 +349,16 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 
 ### `config/customers.js`
 - `getCustomerConfig(customerSlug)` — Resolves Devin trigger config for a customer. Returns `{ triggerMode, apiKey, playbookId, slackUserId, targetRepo }`. Falls back to global env vars for the default customer.
-- `CUSTOMERS` — Registry of customer slugs and their config overrides.
+- `CUSTOMERS` — Registry of customer slugs and their config overrides. `default` is inline; every other entry is loaded from `config/customers/<slug>.js` at require time, so a new customer adds one file and never edits a shared one.
+- `listAliases()` — `{ alias: slug }` for every `aliases: [...]` declared in a customer file (friendly URLs such as `/publix` → `4c351052.html`). Duplicate aliases throw at boot.
+
+### `app/routes/verticals/index.js` (filesystem discovery)
+Nothing is registered by hand. At require time the router:
+1. mounts every `app/routes/verticals/<id>.js` (sorted; each must export an express Router);
+2. serves every `app/public/verticals/<id>.html` at `/<id>` (route modules are mounted first, so a module may own its own `/<id>`);
+3. serves every alias from `listAliases()` — an alias must target an existing page and may not shadow one.
+
+Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of what the landing page shows. Customer demos are deliberately absent from it (direct URL only). `tests/verticals-registry.test.js` fails on a page that does not serve 200, an alias with a missing target, or a service that passes a `customer` slug with no config file.
 
 ### `app/services/devin-api.js`
 - `createDevinSession(prompt, options)` — Creates a Devin session via `POST /v1/sessions`. Accepts per-customer `apiKey` and `playbookId` via `options`. Returns `{ sessionId, url }`.
@@ -586,17 +595,21 @@ Edit `buildAlertBlocks()` in `app/services/slack.js`. The function returns Slack
 Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Markdown tables for structured data. Keep it detailed — this is the only context Devin gets when starting an investigation.
 
 ### Adding a new customer demo
-1. Add the customer slug to `config/customers.js` in the `CUSTOMERS` object:
+A new vertical touches only its own files; do **not** edit `app/routes/verticals/index.js`, `config/customers.js`, or `docker-compose.yml`. This is what lets both source repos (COG-GTM and Custom-Devin-Demos) deploy to the same host without unregistering each other's demos.
+1. Create `config/customers/<slug>.js` (the file name is the slug):
    ```js
-   acme: {
+   module.exports = {
      label: 'Acme Corp',
      triggerMode: 'api',
-   },
+     aliases: ['acme'],      // optional friendly URL(s) → /<slug>.html
+   };
    ```
-2. Set the customer's env vars (suffixed with `_<SLUG>`):
+2. Add the page `app/public/verticals/<slug>.html` (served at `/<slug>` automatically) and, if the demo has an API, `app/routes/verticals/<slug>.js` exporting an express Router (mounted automatically) plus its service under `app/services/verticals/<slug>.js`.
+3. Pass `customer: '<slug>'` in the vertical's `alertData` when calling `createSessionAndAlert()`.
+4. Set the customer's env vars (suffixed with `_<SLUG>`) in the host `.env` and document them in `.env.example`:
    ```
-   DEVIN_API_KEY_ACME=dv-abc123...
-   SONAR_TARGET_REPO_ACME=COG-GTM/acme-etl-pipeline
+   DEVIN_SERVICE_KEY_ACME=dv-abc123...
+   DEVIN_USER_ID_ACME=...
    ```
-3. Pass `customer: 'acme'` in the vertical's `alertData` when calling `createSessionAndAlert()`.
-4. Add the env vars to `docker-compose.yml` and `.env.example`.
+   `checkout-api` loads the whole `.env` via `env_file`, so no `docker-compose.yml` entry is needed.
+5. Run `npm test -- tests/verticals-registry.test.js` — it verifies the page, alias, and config are all wired.

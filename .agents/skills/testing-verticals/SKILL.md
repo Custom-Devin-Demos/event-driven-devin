@@ -86,30 +86,25 @@ Create `app/services/verticals/<slug>.js` following existing patterns:
 - Verify `customer: '<slug>'` is passed — this routes to the correct per-customer config
 
 ### Step 5: Register the Customer
-1. Add the slug to `config/customers.js`:
-   ```js
-   '<slug>': {
-     label: 'Customer <PREFIX>',
-     triggerMode: 'api',
-   },
-   ```
-2. Add env vars to `docker-compose.yml`:
-   ```yaml
-   - DEVIN_SERVICE_KEY_<SLUG_UPPER>=${DEVIN_SERVICE_KEY_<SLUG_UPPER>:-}
-   - DEVIN_USER_ID_<SLUG_UPPER>=${DEVIN_USER_ID_<SLUG_UPPER>:-}
-   ```
-3. Add env vars to `.env.example`:
-   ```bash
-   # Customer <slug>
-   # DEVIN_SERVICE_KEY_<SLUG_UPPER>=
-   # DEVIN_USER_ID_<SLUG_UPPER>=
-   ```
+Create `config/customers/<slug>.js` (one file per customer — do NOT edit `config/customers.js`):
+```js
+module.exports = {
+  label: 'Customer <PREFIX>',
+  triggerMode: 'api',
+  // aliases: ['friendly-name'],   // optional: also serve the page at /friendly-name
+};
+```
+Document the env vars in `.env.example` (the production `.env` is loaded wholesale via `env_file`, so `docker-compose.yml` needs no change):
+```bash
+# Customer <slug>
+# DEVIN_SERVICE_KEY_<SLUG_UPPER>=
+# DEVIN_USER_ID_<SLUG_UPPER>=
+```
 
 ### Step 6: Mount the Route
-Add the route to `app/routes/verticals/index.js`:
-```js
-const <slug>Routes = require('./<slug>');
-router.use('/', <slug>Routes);
+Nothing to do. `app/routes/verticals/index.js` discovers and mounts every `app/routes/verticals/<slug>.js` and serves every `app/public/verticals/<slug>.html` at `/<slug>` on boot. Do NOT edit `index.js` — two source repos deploy to the same host, and hand-edits to shared files are what used to unregister other customers' demos. Verify wiring with:
+```bash
+npx jest tests/verticals-registry.test.js
 ```
 
 ### Step 7: Wire the Frontend CTA
@@ -156,9 +151,10 @@ fetch('/api/<slug>/inquiry', {
 ### Checklist D: Code Verification
 - [ ] Service file catch block calls `createSessionAndAlert()` with `customer: '<slug>'`
 - [ ] Frontend sends `devinUserId` and `devinOrgId` in the POST body
-- [ ] Customer slug exists in `config/customers.js` with `triggerMode: 'api'`
-- [ ] Per-customer env vars listed in both `docker-compose.yml` AND `.env.example`
-- [ ] Route is mounted in `app/routes/verticals/index.js`
+- [ ] `config/customers/<slug>.js` exists with `triggerMode: 'api'`
+- [ ] Per-customer env vars documented in `.env.example`
+- [ ] `app/routes/verticals/index.js`, `config/customers.js`, and `docker-compose.yml` are NOT modified
+- [ ] `npx jest tests/verticals-registry.test.js` passes
 - [ ] `npm run lint` passes (0 errors)
 
 ---
