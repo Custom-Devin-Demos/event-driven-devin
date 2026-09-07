@@ -269,10 +269,13 @@
         s.textContent = `${to.options[to.selectedIndex].textContent} · £${amt.value}`;
       }
       [to, amt].forEach((x) => x.addEventListener("input", sync));
-      f.addEventListener("reset", sync);
+      f.addEventListener("reset", () => setTimeout(sync, 0));
       sync();
       f.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const submittedAmount = amt.value;
+        const submittedFrom = document.getElementById("fromAccount").options[document.getElementById("fromAccount").selectedIndex].textContent.trim();
+        const submittedTo = to.options[to.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
         const label = b.textContent;
@@ -303,7 +306,7 @@
               "We couldn't take your payment right now. No charge has been made to your card.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Payment received — £${amt.value} for booking ${to.options[to.selectedIndex].textContent}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}. Your e-ticket will be emailed shortly.`;
+            r.textContent = `Payment received — £${submittedAmount} for booking ${submittedTo}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}. Your e-ticket will be emailed shortly.`;
           }
         } catch (_) {
           r.className = "result-box error";

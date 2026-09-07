@@ -288,10 +288,13 @@
         s.innerHTML = `From ${fr.options[fr.selectedIndex].textContent}<br>To ${to.options[to.selectedIndex].textContent}<br>$${amt.value}`;
       }
       [fr, to, amt].forEach((x) => x.addEventListener("input", sync));
-      f.addEventListener("reset", sync);
+      f.addEventListener("reset", () => setTimeout(sync, 0));
       sync();
       f.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const submittedAmount = amt.value;
+        const submittedFrom = fr.options[fr.selectedIndex].textContent.trim();
+        const submittedTo = to.options[to.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
         const label = b.textContent;
@@ -322,7 +325,7 @@
               "Your transfer could not be submitted right now. No funds were moved.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Transfer submitted — $${amt.value}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}. Funds typically post within one business day.`;
+            r.textContent = `Transfer submitted — $${submittedAmount}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}. Funds typically post within one business day.`;
           }
         } catch (_) {
           r.className = "result-box error";

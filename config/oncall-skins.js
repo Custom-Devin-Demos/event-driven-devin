@@ -850,8 +850,8 @@ const ONCALL_SKINS = {
     slug: 'd61e15a2',
     company: 'BMW',
     brandMark: 'B',
-    vertical: 'telco',
-    page: { file: 'd61e15a2.html', title: 'BMW ConnectedDrive Store | Digital packages' },
+    vertical: 'banking',
+    page: { file: 'd61e15a2.html', title: 'Reserve your BMW | BMW Shop Online' },
     theme: {
       '--accent': '#1C69D4',
       '--ink': '#262626',
@@ -859,7 +859,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#262626',
       '--chrome-text': '#FFFFFF',
     },
-    supportCenter: 'BMW ConnectedDrive Customer Support',
+    supportCenter: 'BMW Customer Support',
     disclaimer: 'NOT ACTUALLY A BMW SITE — internal demo only, not affiliated with, endorsed by, or a real BMW product.',
   },
   'b258a21e': {
@@ -973,6 +973,22 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'British Airways Customer Relations',
     disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
+  },
+  'df86b36f': {
+    slug: 'df86b36f',
+    company: 'L&G',
+    brandMark: 'L&G',
+    vertical: 'banking',
+    page: { file: 'df86b36f.html', title: 'Fund dealing | L&G Asset Management' },
+    theme: {
+      '--accent': '#005DBA',
+      '--ink': '#1D1D1B',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#002855',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'L&G Client Services',
+    disclaimer: 'NOT ACTUALLY AN L&G SITE — internal demo only, not affiliated with, endorsed by, or a real L&G product.',
   },
 };
 
