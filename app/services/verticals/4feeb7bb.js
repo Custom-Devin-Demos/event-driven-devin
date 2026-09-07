@@ -220,7 +220,6 @@ async function runInquiry(data) {
       service: 'customer-4feeb7bb-banking',
       verticalLabel: 'Mortgage Rate Inquiry',
       customer: '4feeb7bb',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/4feeb7bb/inquiry' },
         { key: 'service', value: 'customer-4feeb7bb-banking' },

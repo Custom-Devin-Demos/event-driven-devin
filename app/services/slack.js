@@ -3,6 +3,29 @@ const logger = require('../telemetry/logger');
 
 const SLACK_API_BASE = 'https://slack.com/api';
 
+// Fictional on-call persona shown on demo alerts. Alerts fire on every demo
+// run, so the card must not ping a real teammate: the mention is only rendered
+// when DEMO_ONCALL_SLACK_MEMBER_ID names an account (a demo bot, or the
+// presenter's own) that opted into the notifications.
+const DEMO_ONCALL_PERSONA = () => process.env.DEMO_ONCALL_PERSONA || 'Riley Chen (platform-oncall)';
+const DEMO_ONCALL_MEMBER_ID = () => process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
+
+// Slack member IDs are alphanumeric; anything else would inject mrkdwn
+// (e.g. <!channel>) into every alert card.
+const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
+
+// Appended wherever a demo on-call owner is rendered. Without the second half,
+// responders that correctly skip the fictional persona fall back to git blame
+// or CODEOWNERS and @-mention whoever last touched the file.
+const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, and do not '
+  + '@-mention anyone else in their place (no git blame, commit author, or CODEOWNERS fallback)';
+
+function onCallText(slackMemberId) {
+  const memberId = slackMemberId || DEMO_ONCALL_MEMBER_ID();
+  if (memberId && MEMBER_ID_RE.test(memberId)) return `<@${memberId}>`;
+  return `${DEMO_ONCALL_PERSONA()} — ${OWNER_DISCLAIMER}`;
+}
+
 /**
  * Post a message to a Slack channel.
  * Returns the message timestamp (ts) for threading replies.
@@ -167,13 +190,10 @@ function buildAlertBlocks(alertData, options = {}) {
     });
   }
 
-  // Tag the demo user as on-call so they get a Slack notification for their alert
-  if (alertData.slackMemberId) {
-    onCallFields.push({
-      type: 'mrkdwn',
-      text: `*On-Call:*\n<@${alertData.slackMemberId}>`,
-    });
-  }
+  onCallFields.push({
+    type: 'mrkdwn',
+    text: `*On-Call:*\n${onCallText(alertData.slackMemberId)}`,
+  });
 
   if (onCallFields.length > 0) {
     blocks.push({
@@ -253,6 +273,13 @@ async function postAlertToSlack(alertData) {
           slackMemberId: memberId,
         });
       }
+    }
+
+    if (!alertData.slackMemberId && alertData.slackMemberIdFallback) {
+      alertData.slackMemberId = alertData.slackMemberIdFallback;
+    }
+    if (!alertData.slackMemberId) {
+      alertData.slackMemberId = DEMO_ONCALL_MEMBER_ID();
     }
 
     const text = buildAlertText(alertData);
@@ -500,15 +527,18 @@ async function inviteToChannel(token, channelId, userIds) {
 }
 
 /**
- * Post a message under a persona display name/emoji instead of the bot's
- * own identity. Requires the `chat:write.customize` scope.
+ * Post a message under a persona display name/avatar instead of the bot's
+ * own identity. Requires the `chat:write.customize` scope. `icon` is either
+ * an emoji shortcode (`:wrench:`) or an image URL, which Slack fetches and
+ * renders like a real profile picture.
  */
-async function postPersonaMessage(token, channel, text, username, iconEmoji) {
+async function postPersonaMessage(token, channel, text, username, icon) {
+  const image = /^https?:\/\//.test(icon || '');
   const response = await axios.post(`${SLACK_API_BASE}/chat.postMessage`, {
     channel,
     text,
     username,
-    icon_emoji: iconEmoji,
+    ...(image ? { icon_url: icon } : { icon_emoji: icon }),
   }, {
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -609,6 +639,7 @@ async function deleteMessage(token, channel, ts) {
 }
 
 module.exports = {
+  OWNER_DISCLAIMER,
   postMessage,
   findChannelByNameFragment,
   joinChannel,

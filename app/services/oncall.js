@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { OWNER_DISCLAIMER, postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -108,6 +108,27 @@ const ALERT_SCENARIOS = {
     impact: 'Every dictation waits several seconds for its polished transcript, and the wait grows under sustained use.',
     // Climbing-latency scenario: repeat submits demonstrate the per-utterance
     // growth, so retries within the window join the same incident.
+    retryWindow: true,
+  },
+  inference: {
+    vertical: 'inference',
+    page: 'inference.html',
+    apiPath: '/api/inference/completions',
+    oncallApiPath: '/api/oncall/inference/completions',
+    owner: 'Dana Whitfield (serving-platform-oncall)',
+    brand: 'Helix Serve (Inference Console)',
+    service: 'inference-gateway',
+    endpoint: 'POST /api/oncall/inference/completions',
+    monitor: 'p95 time to first token trending up — POST /api/oncall/inference/completions',
+    metricQuery: 'p95:demo.inference.ttft{service:checkout-api,route:/api/oncall/inference/completions}',
+    metricValue: '6.4s TTFT and climbing',
+    threshold: '> 1.5s',
+    baseline: '~310ms (7-day p95 TTFT, before helix-serve@1.0.4)',
+    release: 'helix-serve@1.0.4',
+    symptom: 'Time to first token jumped after the last release and creeps higher with every completion served. Inter-token latency is unchanged and error rate is normal. Process RSS trends up alongside TTFT.',
+    impact: 'Every completion waits several seconds before the first token, and the wait grows under sustained traffic. Streaming clients look hung.',
+    // Climbing-latency scenario: repeat completions demonstrate the
+    // per-request growth, so retries within the window join the same incident.
     retryWindow: true,
   },
   telco: {
@@ -355,7 +376,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
-    `*Owner:* ${scenario.owner} — demo persona, do not resolve to a real Slack user`,
+    `*Owner:* ${scenario.owner} — ${OWNER_DISCLAIMER}`,
     runRef ? `*Incident Ref:* ${runRef}` : null,
     triggeredBy ? `*Triggered by:* ${triggeredBy}` : null,
     '',
@@ -403,7 +424,7 @@ async function postOncallAlert(scenarioId, options = {}) {
       ['Baseline', scenario.baseline],
       ['Release', scenario.release],
       ['Events', `${events} | First: ${firstSeen.toISOString()}`],
-      ['Owner', `${scenario.owner} — demo persona, do not resolve to a real Slack user`],
+      ['Owner', `${scenario.owner} — ${OWNER_DISCLAIMER}`],
       runRef ? ['Incident Ref', runRef] : null,
       triggeredBy ? ['Triggered by', triggeredBy] : null,
     ]),
@@ -757,7 +778,7 @@ async function postOncallInfraIncident(kind = 'latency', options = {}) {
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const card = incident.build(now);
-  const ownerLine = `${incident.owner} — demo persona, do not resolve to a real Slack user`;
+  const ownerLine = `${incident.owner} — ${OWNER_DISCLAIMER}`;
   const text = [
     `${card.title}`,
     `Monitor: ${card.monitor}`,

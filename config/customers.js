@@ -118,6 +118,10 @@ const CUSTOMERS = {
     label: "Levi's",
     triggerMode: 'api',
   },
+  c7d11cb8: {
+    label: 'Morgan Stanley',
+    triggerMode: 'api',
+  },
   '50b235c7': {
     label: 'lululemon',
     triggerMode: 'api',
@@ -310,6 +314,10 @@ const CUSTOMERS = {
     label: 'GEICO',
     triggerMode: 'api',
   },
+  '4f645972': {
+    label: 'Progressive Claims',
+    triggerMode: 'api',
+  },
   c35ea2e0: {
     label: 'Terex',
     triggerMode: 'api',
@@ -407,6 +415,14 @@ const CUSTOMERS = {
     label: 'Taco Bell Order Ahead',
     triggerMode: 'api',
   },
+  bonvoy: {
+    label: 'Marriott Bonvoy (Android)',
+    triggerMode: 'api',
+  },
+  eaconnect: {
+    label: 'EA Connect (Android)',
+    triggerMode: 'api',
+  },
   coppel: {
     label: 'Coppel Mi Carrito',
     triggerMode: 'api',
@@ -429,6 +445,10 @@ const CUSTOMERS = {
   },
   '4f9ede2a': {
     label: 'U.S. Bank Business Bill Pay',
+    triggerMode: 'api',
+  },
+  '2ab0c5c9': {
+    label: 'Citizens Bank',
     triggerMode: 'api',
   },
   d1a01dc3: {
@@ -565,6 +585,31 @@ const CUSTOMERS = {
   },
   '2ee77d82': {
     label: 'Yum! Brands',
+    triggerMode: 'api',
+  },
+  qbe: {
+    label: 'QBE North America Claims',
+    triggerMode: 'api',
+  },
+  nab: {
+    label: 'NAB Internet Banking',
+    triggerMode: 'api',
+  },
+  ausunity: {
+    label: 'Australian Unity Health Claims',
+    triggerMode: 'api',
+  },
+  '6dc826a1': {
+    label: 'Morgan Stanley WM — Advisor Trade Booking',
+    triggerMode: 'api',
+    githubOrg: 'COG-GTM',
+  },
+  '4c351052': {
+    label: 'Publix',
+    triggerMode: 'api',
+  },
+  '0b6164d6': {
+    label: 'Databricks',
     triggerMode: 'api',
   },
 };

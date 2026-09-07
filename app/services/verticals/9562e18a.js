@@ -246,7 +246,6 @@ async function reserveVehicle(data) {
       verticalLabel: 'Car Rental Reservation',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '9562e18a',
-      slackMemberId: 'U0BKV8PTK6F',
       tags: [
         { key: 'route', value: '/api/9562e18a/reserve' },
         { key: 'service', value: 'customer-9562e18a-reservation-pricing' },

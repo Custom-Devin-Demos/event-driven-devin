@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>계좌이체 | 신한은행 개인뱅킹</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #2d71c4;
+      --blue-dark: #245da3;
+      --blue-link: #3579d4;
+      --blue-wash: #e7f3ff;
+      --ink: #343434;
+      --ink-2: #555555;
+      --muted: #666666;
+      --muted-2: #878a92;
+      --line: #dcdcdc;
+      --line-2: #e6e6e6;
+      --wash: #f6f8fa;
+      --wash-2: #f9f9f9;
+      --footer: #6a6a6a;
+      --orange: #e99a49;
+      --red: #ed341b;
+      --white: #ffffff;
+      --sans: 'Spoqa Han Sans', 'Noto Sans KR', '돋움', Dotum, -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); font-size: 14px; line-height: 1.25; letter-spacing: -0.02em; color: var(--muted); background: var(--white); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    ul, ol { list-style: none; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---------- header ---------- */
+    header.gnb { background: var(--blue); color: #fff; }
+    .gnb-top { display: flex; align-items: center; gap: 24px; height: 56px; }
+    .logo { display: inline-flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.04em; }
+    .logo-mark { width: 26px; height: 26px; flex: 0 0 26px; }
+    .segs { display: flex; align-items: flex-end; gap: 2px; margin-left: 4px; }
+    .segs a { padding: 6px 14px; font-size: 14px; color: rgba(255,255,255,0.72); }
+    .segs a.on { background: #fff; color: var(--blue); font-weight: 700; }
+    .util { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 12.5px; color: rgba(255,255,255,0.85); }
+    .util .sep { width: 1px; height: 11px; background: rgba(255,255,255,0.3); }
+    .gnb-nav { display: flex; align-items: stretch; border-top: 1px solid rgba(255,255,255,0.18); }
+    .gnb-nav > .wrap { width: 100%; min-width: 0; }
+    .gnb-nav nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .gnb-nav nav::-webkit-scrollbar { display: none; }
+    .gnb-nav ul { display: flex; align-items: stretch; }
+    .gnb-nav a { display: flex; align-items: center; min-height: 48px; padding: 0 18px; font-size: 16px; font-weight: 700; color: #fff; white-space: nowrap; }
+    .gnb-nav a.on { box-shadow: inset 0 -3px 0 #fff; }
+    .allmenu { margin-left: auto; display: flex; align-items: center; justify-content: center; width: 48px; min-height: 48px; background: var(--blue-dark); flex: 0 0 48px; }
+    .allmenu span { display: block; width: 18px; height: 2px; background: #fff; box-shadow: 0 5px 0 #fff, 0 -5px 0 #fff; }
+    @media (max-width: 900px) {
+      .gnb-top { height: auto; padding: 12px 0; flex-wrap: wrap; gap: 10px; }
+      .util { display: none; }
+      .gnb-nav a { font-size: 15px; padding: 0 14px; }
+      .segs a { min-height: 44px; display: inline-flex; align-items: center; }
+      .chips .chip { min-height: 44px; }
+      .foot-util a, footer.site a, .sect-head a, .logo { display: inline-flex; align-items: center; min-height: 44px; }
+    }
+
+    /* ---------- page head ---------- */
+    .crumb { border-bottom: 1px solid var(--line-2); }
+    .crumb-in { display: flex; align-items: center; gap: 8px; height: 40px; font-size: 12.5px; color: var(--muted-2); }
+    .crumb-in em { color: var(--ink); }
+    .page-head { padding: 32px 0 20px; }
+    .page-head h2 { font-size: 26px; font-weight: 700; color: var(--ink); letter-spacing: -0.045em; }
+    .page-head p { margin-top: 10px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+
+    main { padding-bottom: 56px; }
+    .cols { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+    @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+
+    /* ---------- form panel ---------- */
+    .panel { border: 1px solid var(--line); background: #fff; }
+    .panel > h3 { padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--wash); font-size: 16px; font-weight: 700; color: var(--ink); }
+    .panel-body { padding: 4px 20px 20px; }
+    .field { display: grid; grid-template-columns: 128px 1fr; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line-2); }
+    .field > label { font-size: 14px; font-weight: 700; color: var(--ink); }
+    .field .ctl { display: flex; align-items: center; gap: 8px; }
+    .field .note { margin-top: 7px; font-size: 12.5px; color: var(--muted-2); line-height: 1.5; }
+    @media (max-width: 620px) { .field { grid-template-columns: 1fr; gap: 8px; } }
+
+    select, input[type="number"], input[type="text"] {
+      width: 100%; height: 44px; padding: 0 12px; border: 1px solid #c2c2c2; border-radius: 0;
+      background: #fff; color: var(--ink); font-family: var(--sans); font-size: 14px; letter-spacing: -0.02em;
+    }
+    select { appearance: none; padding-right: 32px; text-overflow: ellipsis;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' fill='none'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23666' stroke-width='1.4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; }
+    select:focus, input:focus { outline: 2px solid var(--blue-link); outline-offset: -2px; border-color: var(--blue-link); }
+    .won { flex: 0 0 auto; font-size: 14px; color: var(--ink); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip { min-height: 32px; padding: 6px 12px; border: 1px solid var(--line); background: var(--wash-2); font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+    .chip:hover { border-color: var(--blue-link); color: var(--blue-link); }
+
+    .summary { margin-top: 18px; padding: 16px 18px; background: var(--wash); border: 1px solid var(--line-2); }
+    .summary dl { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+    .summary div { display: flex; gap: 8px; font-size: 13px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { color: var(--ink); font-weight: 700; }
+
+    .actions { margin-top: 20px; display: flex; gap: 8px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 28px; border: 1px solid transparent; border-radius: 0; font-family: var(--sans); font-size: 16px; font-weight: 700; letter-spacing: -0.03em; cursor: pointer; }
+    .btn-primary { background: var(--blue); color: #fff; flex: 1 1 auto; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-primary:disabled { background: #9db8d9; cursor: not-allowed; }
+    .btn-ghost { background: #fff; border-color: var(--line); color: var(--ink); font-weight: 400; }
+    .btn-ghost:hover { border-color: #b5b5b5; }
+
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); font-size: 14px; line-height: 1.6; }
+    .result-box.success { display: block; background: var(--blue-wash); border-color: #b4cff1; color: #245da3; }
+    .result-box.error { display: block; background: #fdf1ef; border-color: #f3c2bb; color: var(--red); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 3px; }
+    .result-box .error-detail { font-size: 13px; color: inherit; word-break: break-word; }
+
+    /* ---------- aside ---------- */
+    .aside-box { border: 1px solid var(--line); }
+    .aside-box + .aside-box { margin-top: 16px; }
+    .aside-box h3 { padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--wash); font-size: 15px; font-weight: 700; color: var(--ink); }
+    .aside-box .in { padding: 6px 18px 14px; }
+    .aside-box li { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line-2); font-size: 13px; }
+    .aside-box li:last-child { border-bottom: none; }
+    .aside-box li b { font-weight: 700; color: var(--ink); }
+    .aside-box .guide li { display: block; position: relative; padding-left: 10px; color: var(--muted); line-height: 1.6; }
+    .aside-box .guide li::before { content: ''; position: absolute; left: 0; top: 17px; width: 3px; height: 3px; background: var(--muted-2); }
+    .fav a { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
+    .fav a span.pick { color: var(--blue-link); font-size: 12.5px; }
+
+    /* ---------- service tiles ---------- */
+    .sect { margin-top: 44px; }
+    .sect-head { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+    .sect-head h2 { font-size: 22px; font-weight: 400; color: #333; letter-spacing: -0.04em; }
+    .sect-head a { font-size: 12.5px; color: var(--muted); }
+    .tiles { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .tiles a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 118px; padding: 16px 8px; border: 1px solid var(--line-2); border-left: none; font-size: 15px; color: var(--ink-2); text-align: center; }
+    .tiles a:first-child { border-left: 1px solid var(--line-2); }
+    .tiles a:hover { color: var(--blue-link); background: var(--wash); }
+    .tiles .ico { width: 46px; height: 46px; border: 1px solid var(--line); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 700px) { .tiles { grid-template-columns: repeat(2, 1fr); } .tiles a { border-left: 1px solid var(--line-2); } }
+
+    /* ---------- promo + table ---------- */
+    .promo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    @media (max-width: 700px) { .promo { grid-template-columns: 1fr; } }
+    .promo-card { border: 1px solid var(--line-2); padding: 18px 20px; }
+    .promo-card h4 { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .promo-card p { margin-top: 8px; font-size: 13px; line-height: 1.6; color: var(--muted); }
+    .promo-card img { display: block; width: 100%; max-width: 320px; height: auto; margin-top: 12px; }
+    .promo-tags { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .promo-tags a { display: block; padding: 18px; color: #fff; }
+    .promo-tags a.b1 { background: var(--blue); }
+    .promo-tags a.b2 { background: #17786f; }
+    .promo-tags em { display: inline-block; padding: 3px 7px; background: rgba(255,255,255,0.22); font-size: 11.5px; }
+    .promo-tags strong { display: block; margin-top: 10px; font-size: 15px; font-weight: 700; letter-spacing: -0.04em; }
+
+    table.txn { width: 100%; border-collapse: collapse; border-top: 2px solid var(--ink); }
+    table.txn th { padding: 12px 14px; border-bottom: 1px solid var(--line); background: var(--wash); font-size: 13px; font-weight: 700; color: var(--ink); text-align: left; }
+    table.txn td { padding: 14px; border-bottom: 1px solid var(--line-2); font-size: 13px; color: var(--ink-2); }
+    table.txn td.num { text-align: right; color: var(--ink); }
+    table.txn td.done { color: var(--blue-link); }
+    @media (max-width: 620px) { table.txn th:nth-child(4), table.txn td:nth-child(4) { display: none; } }
+
+    /* ---------- footer ---------- */
+    .foot-util { margin-top: 48px; background: var(--wash); border-top: 1px solid var(--line-2); }
+    .foot-util .in { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 40px; padding: 26px 0; }
+    .foot-util ul { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; font-size: 13px; }
+    .foot-util .tel strong { display: block; font-size: 18px; font-weight: 700; color: var(--ink); }
+    .foot-util .tel span { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted-2); }
+    footer.site { background: var(--footer); color: #e8e8e8; }
+    footer.site .in { padding: 26px 0 34px; }
+    footer.site ul { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; }
+    footer.site .tel { margin-top: 16px; font-size: 12.5px; color: #dcdcdc; }
+    footer.site .copy { margin-top: 8px; font-size: 12.5px; color: #cccccc; }
+  </style>
+</head>
+<body>
+  <header class="gnb">
+    <div class="wrap">
+      <div class="gnb-top">
+        <a class="logo" href="#" aria-label="신한은행">
+          <svg class="logo-mark" viewBox="0 0 26 26" role="img" aria-hidden="true">
+            <circle cx="13" cy="13" r="13" fill="#ffffff"></circle>
+            <text x="13" y="18.5" text-anchor="middle" font-family="'Noto Sans KR', sans-serif" font-size="16" font-weight="700" fill="#2d71c4">S</text>
+          </svg>
+          신한은행
+        </a>
+        <nav class="segs" aria-label="사이트 구분">
+          <a class="on" href="#">개인</a>
+          <a href="#">기업</a>
+          <a href="#">금융상품</a>
+        </nav>
+        <div class="util">
+          <a href="#">금융서비스</a>
+          <a href="#">고객센터</a>
+          <a href="#">은행소개</a>
+          <span class="sep" aria-hidden="true"></span>
+          <a href="#">신한멤버스</a>
+          <a href="#">GLOBAL</a>
+        </div>
+      </div>
+    </div>
+    <div class="gnb-nav">
+      <div class="wrap" style="display:flex;align-items:stretch;">
+        <nav aria-label="개인뱅킹 메뉴">
+          <ul>
+            <li><a href="#">조회</a></li>
+            <li><a class="on" href="#transfer">이체</a></li>
+            <li><a href="#">금융상품</a></li>
+            <li><a href="#">공과금/법원</a></li>
+            <li><a href="#">뱅킹보안관리</a></li>
+            <li><a href="#">기타금융</a></li>
+            <li><a href="#">부가서비스</a></li>
+            <li><a href="#">사용자관리</a></li>
+            <li><a href="#">카드/증권</a></li>
+          </ul>
+        </nav>
+        <a class="allmenu" href="#" aria-label="전체메뉴"><span aria-hidden="true"></span></a>
+      </div>
+    </div>
+  </header>
+
+  <div class="crumb">
+    <div class="wrap">
+      <div class="crumb-in">
+        <span>개인</span><span aria-hidden="true">&rsaquo;</span><span>이체</span><span aria-hidden="true">&rsaquo;</span><em>계좌이체</em>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="page-head">
+      <h2>계좌이체</h2>
+      <p>출금계좌와 입금계좌를 선택한 후 이체금액을 입력하세요. 이체 결과는 즉시 화면에서 확인할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <div class="cols">
+        <section class="panel" id="transfer">
+          <h3>이체정보 입력</h3>
+          <div class="panel-body">
+            <form id="transferForm">
+              <div class="field">
+                <label for="fromAccount">출금계좌</label>
+                <div>
+                  <div class="ctl">
+                    <select id="fromAccount">
+                      <option value="ACCT-1001">신한 주거래 우대통장 110-234-567890 (잔액 8,412,300원)</option>
+                      <option value="ACCT-1002">쏠편한 입출금통장 110-441-902233 (잔액 3,076,500원)</option>
+                      <option value="ACCT-1004">신한 급여클럽 통장 110-902-118845 (잔액 1,254,000원)</option>
+                    </select>
+                  </div>
+                  <p class="note">출금가능금액은 잔액에서 이체한도와 미결제 내역을 반영한 금액입니다.</p>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="toAccount">입금계좌</label>
+                <div>
+                  <div class="ctl">
+                    <select id="toAccount">
+                      <option value="ACCT-1002">신한은행 쏠편한 저축예금 110-441-902233 (본인)</option>
+                      <option value="ACCT-1003">신한은행 정기예금 110-778-330210 (본인)</option>
+                      <option value="ACCT-EXT-001">국민은행 123-45-6789012 (김민서)</option>
+                    </select>
+                  </div>
+                  <p class="note">타행 입금은 입금은행과 계좌번호가 일치하는지 다시 확인해 주세요.</p>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="amount">이체금액</label>
+                <div>
+                  <div class="ctl">
+                    <input type="number" id="amount" value="500000" min="1000" step="1000" inputmode="numeric" aria-describedby="amountNote">
+                    <span class="won">원</span>
+                  </div>
+                  <div class="chips">
+                    <button type="button" class="chip" data-add="100000">+10만원</button>
+                    <button type="button" class="chip" data-add="500000">+50만원</button>
+                    <button type="button" class="chip" data-add="1000000">+100만원</button>
+                    <button type="button" class="chip" data-clear="1">정정</button>
+                  </div>
+                  <p class="note" id="amountNote">1회 이체한도 5,000만원 / 1일 이체한도 1억원</p>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="accountTier">고객등급</label>
+                <div>
+                  <div class="ctl">
+                    <select id="accountTier">
+                      <option value="premium">프리미어 &mdash; 이체수수료 면제</option>
+                      <option value="standard">일반 &mdash; 기본 수수료 적용</option>
+                      <option value="basic">베이직 &mdash; 기본 수수료 적용</option>
+                    </select>
+                  </div>
+                  <p class="note">등급에 따라 이체수수료가 다르게 적용됩니다.</p>
+                </div>
+              </div>
+
+              <div class="summary">
+                <dl>
+                  <div><dt>이체방식</dt><dd>즉시이체</dd></div>
+                  <div><dt>처리일자</dt><dd>오늘</dd></div>
+                  <div><dt>인증수단</dt><dd>금융인증서 · OTP</dd></div>
+                </dl>
+              </div>
+
+              <div class="actions">
+                <button type="submit" class="btn btn-primary" id="submitBtn">이체하기</button>
+                <button type="reset" class="btn btn-ghost">다시입력</button>
+              </div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <aside>
+          <div class="aside-box">
+            <h3>이체 안내</h3>
+            <div class="in">
+              <ul>
+                <li><span>1일 이체한도</span><b>100,000,000원</b></li>
+                <li><span>1회 이체한도</span><b>50,000,000원</b></li>
+                <li><span>이체 가능시간</span><b>00:10 ~ 23:50</b></li>
+                <li><span>타행이체 수수료</span><b>500원</b></li>
+                <li><span>인증수단</span><b>금융인증서 · OTP</b></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="aside-box">
+            <h3>자주 쓰는 계좌</h3>
+            <div class="in">
+              <ul class="fav">
+                <li><a href="#transfer"><span>쏠편한 저축예금 110-441-902233</span><span class="pick">선택</span></a></li>
+                <li><a href="#transfer"><span>정기예금 110-778-330210</span><span class="pick">선택</span></a></li>
+                <li><a href="#transfer"><span>국민은행 123-45-6789012</span><span class="pick">선택</span></a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="aside-box">
+            <h3>안전한 이체를 위한 확인사항</h3>
+            <div class="in">
+              <ul class="guide">
+                <li>입금계좌의 예금주명을 반드시 확인하세요.</li>
+                <li>보안카드 번호 전체를 요구하는 화면은 정상 화면이 아닙니다.</li>
+                <li>이체 후에는 거래내역에서 처리 결과를 확인해 주세요.</li>
+              </ul>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="sect">
+        <div class="sect-head"><h2>주요서비스</h2><a href="#">더보기</a></div>
+        <div class="tiles">
+          <a href="#">
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="9.5" cy="9.5" r="6.5" stroke="#3579d4" stroke-width="1.6"/><path d="M14.5 14.5L20 20" stroke="#3579d4" stroke-width="1.6"/></svg></span>
+            전계좌조회
+          </a>
+          <a href="#transfer">
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M2 7h15l-4-4M20 15H5l4 4" stroke="#3579d4" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            계좌이체
+          </a>
+          <a href="#">
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="#3579d4" stroke-width="1.6"/><path d="M7 11.2l2.8 2.8L15 8.8" stroke="#3579d4" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+            간편조회서비스
+          </a>
+          <a href="#">
+            <span class="ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2.5" y="5.5" width="17" height="11" stroke="#3579d4" stroke-width="1.6"/><path d="M2.5 9.5h17" stroke="#3579d4" stroke-width="1.6"/></svg></span>
+            지로납부
+          </a>
+        </div>
+      </section>
+
+      <section class="sect">
+        <div class="sect-head"><h2>이벤트 · 추천상품</h2><a href="#">더보기</a></div>
+        <div class="promo">
+          <div class="promo-card">
+            <h4>이벤트</h4>
+            <p>정성껏 준비한 다양하고 풍성한 혜택으로 고객님께 큰 기쁨과 더 큰 행복으로 다가갑니다.</p>
+            <img src="https://image.shinhan.com/rib2017/images/main/ib_banner02.png" alt="" loading="lazy"
+                 onerror="this.style.display='none'">
+          </div>
+          <div class="promo-tags">
+            <a class="b1" href="#"><em>예금</em><strong>신한 안녕, 반가워 적금</strong></a>
+            <a class="b2" href="#"><em>대출</em><strong>쏠편한 직장인대출S</strong></a>
+          </div>
+        </div>
+      </section>
+
+      <section class="sect">
+        <div class="sect-head"><h2>최근 이체내역</h2><a href="#">전체보기</a></div>
+        <table class="txn">
+          <thead>
+            <tr><th scope="col">거래일자</th><th scope="col">내용</th><th scope="col">이체금액</th><th scope="col">처리상태</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>03.15</td><td>쏠편한 저축예금 110-441-902233</td><td class="num">1,200,000원</td><td class="done">이체완료</td></tr>
+            <tr><td>03.14</td><td>국민은행 123-45-6789012 (김민서)</td><td class="num">350,000원</td><td class="done">이체완료</td></tr>
+            <tr><td>03.12</td><td>정기예금 110-778-330210</td><td class="num">2,000,000원</td><td class="done">이체완료</td></tr>
+            <tr><td>03.11</td><td>쏠편한 저축예금 110-441-902233</td><td class="num">500,000원</td><td class="done">이체완료</td></tr>
+            <tr><td>03.10</td><td>급여클럽 통장 110-902-118845</td><td class="num">800,000원</td><td class="done">이체완료</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <div class="foot-util">
+    <div class="wrap">
+      <div class="in">
+        <ul>
+          <li><a href="#">이용시간안내</a></li>
+          <li><a href="#">금리안내</a></li>
+          <li><a href="#">수수료 안내</a></li>
+          <li><a href="#">금융계산기</a></li>
+          <li><a href="#">뱅킹이용약관</a></li>
+        </ul>
+        <div class="tel">
+          <strong>고객센터 1599-8000</strong>
+          <span>평일 09시-18시 (은행휴무일 제외)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="in">
+        <ul>
+          <li><a href="#">개인정보처리방침</a></li>
+          <li><a href="#">신용정보활용체제</a></li>
+          <li><a href="#">전자민원</a></li>
+          <li><a href="#">사고신고</a></li>
+          <li><a href="#">영업점안내</a></li>
+          <li><a href="#">웹접근성이용안내</a></li>
+        </ul>
+        <div class="tel">고객센터 1599-8000 · 평일 09:00~18:00 (은행휴무일 제외)</div>
+        <div class="copy">&copy; SHINHAN BANK. All rights reserved.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (response) {
+        return response.json();
+      }).then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const amount = document.getElementById('amount');
+      document.querySelectorAll('.chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          if (chip.dataset.clear) { amount.value = ''; return; }
+          amount.value = (parseInt(amount.value || '0', 10) || 0) + parseInt(chip.dataset.add, 10);
+        });
+      });
+    })();
+
+    function formatWon(value) {
+      const number = parseFloat(value);
+      if (isNaN(number)) return String(value);
+      return number.toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + '원';
+    }
+
+    document.getElementById('transferForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      button.disabled = true;
+      button.textContent = '이체 처리중...';
+      result.className = 'result-box';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_retail_kim',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">이체가 처리되지 않았습니다</div>'
+            + '<div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">이체가 완료되었습니다</div>'
+            + '<div class="error-detail">출금금액 ' + formatWon(data.debitAmount)
+            + ' · 수수료 ' + formatWon(data.fee)
+            + ' · 거래번호 ' + data.receipt.receiptId + '</div>';
+        }
+      } catch (error) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">통신 오류</div>'
+          + '<div class="error-detail">' + error.message + '</div>';
+      } finally {
+        button.disabled = false;
+        button.textContent = '이체하기';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

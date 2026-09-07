@@ -161,7 +161,6 @@ async function filterAgents(data) {
       service: 'customer-3d2ef497-agents',
       verticalLabel: 'Agent Catalog Filter',
       customer: '3d2ef497',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/3d2ef497/filter-agents' },
         { key: 'service', value: 'customer-3d2ef497-agents' },

@@ -159,7 +159,6 @@ async function filterClaims(data) {
       service: 'customer-9db3d08f-claims',
       verticalLabel: 'Claims Workspace Filter',
       customer: '9db3d08f',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/9db3d08f/filter' },
         { key: 'service', value: 'customer-9db3d08f-claims' },

@@ -23,8 +23,12 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Healthcare** | `/healthcare` | `app/public/verticals/healthcare.html` | `POST /api/healthcare/appointment` | `app/services/verticals/healthcare.js` |
 | **Telco** | `/telco` | `app/public/verticals/telco.html` | `POST /api/telco/upgrade` | `app/services/verticals/telco.js` |
 | **Payer** (unlisted — direct URL only) | `/payer`, `/welcome-season` | `app/public/verticals/payer.html` | `POST /api/payer/pharmacy-claim` | `app/services/verticals/payer.js` |
+| **QBE North America Claims** (unlisted — direct URL only) | `/qbe` | `app/public/verticals/qbe.html` | `POST /api/qbe/claim` | `app/services/verticals/qbe.js` |
+| **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank** (unlisted — direct URL only) | `/cba` | `app/public/verticals/cba.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Macquarie Online Banking** (unlisted — direct URL only) | `/macbank` | `app/public/verticals/macbank.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
+| **Databricks Compute / Spark UI** (unlisted — direct URL only) | `/databricks`, `/0b6164d6` | `app/public/verticals/0b6164d6.html` | `POST /api/0b6164d6/cluster-ui` | `app/services/verticals/0b6164d6.js` |
+| **Morgan Stanley Wealth Management** (unlisted — direct URL only) | `/morganstanley`, `/c7d11cb8` | `app/public/verticals/c7d11cb8.html` | `POST /api/c7d11cb8/rebalance` | `app/services/verticals/c7d11cb8.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
@@ -46,6 +50,8 @@ Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are d
 **Voice fixes require real-audio verification.** Any fix touching the voice transcribe path (`app/services/oncall-verticals/voice.js` or `POST /api/oncall/voice/transcribe`) must be verified with real audio, not typed input: follow the "Voice (dictation) specifics" section of `.agents/skills/testing-oncall-skins/SKILL.md` — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen. Record 2–3 finalizes before and after the fix to show the climbing latency and the flat fast profile.
 
 Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
+
+**Alert cards never route to a real person.** The *Owner* field is a fictional persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on a card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
 
 ### Payer welcome-season scenario
 
@@ -121,6 +127,18 @@ Three things are deliberately separate:
 
 `PARITY_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec, the build's missing coverage gate, and the harness's fail-open exclusion logic. Regression coverage for both paths lives in `tests/spgi-feed-parity.test.js`.
 
+### Incident Lab (evolving-incident demo)
+
+The Incident Lab (`/oncall/incident-lab`, unlisted) runs a long-form incident where the data develops over time and Devin investigates an external subject repo (the n8n fork at `ananthv26-cog-demo-repos/n8n`) rather than this app. Scenarios are JSON documents in `config/incident-lab/`; the run engine is `app/services/incident-lab/engine.js` with three sinks:
+
+- **Warehouse seed** (`app/services/incident-lab/supabase-seed.js`) — on arm, replays the scenario's `warehouse.seedFile` from `scripts/incident-lab/` against `INCIDENT_LAB_WAREHOUSE_URL` (falling back to `SUPABASE_WAREHOUSE_URL`). The seeds are idempotent and carry timestamps relative to the arm, so the warehouse rows an investigator is pointed at always line up with the run's backdated telemetry. Seeding never blocks a run — a missing URL or an unreachable warehouse is reported on the run log and the run arms anyway. From an IPv4-only host, point `INCIDENT_LAB_WAREHOUSE_URL` at Supabase's session pooler; the direct `db.<ref>.supabase.co` host is IPv6-only.
+- **Datadog emitter** (`app/services/incident-lab/datadog-emitter.js`) — emits real metrics (`<prefix>.*` under `service:<scenario.service>`) and logs to Datadog: messy baseline noise while armed, prelude precursor bursts, outage phases with backfilled history at declaration, and recovery on the manual `mitigated` phase. Declares/resolves the incident through the Datadog Incidents API with the scenario's severity.
+- **Slack persona layer** (`app/services/incident-lab/personas.js`) — waits for the channel that Datadog's Slack integration creates (`incident-<publicId>-` marker), joins it, and posts the scripted persona timeline (`chat:write.customize`), including scripted @Devin asks. With `FIREWORKS_API_KEY` (preferred) or `OPENAI_API_KEY` set, a small-LLM responder answers investigator messages in character, restricted to facts unlocked at the current timeline position (never the planted root cause), and a director decides the fate of each scripted beat just before it posts — `post`, `skip` (the investigator already covered it), `hold` (they are mid-task), or `advance` (they are ahead, so pull the rest of the timeline forward). The director fails open to `post`, never skips a beat carrying a phase action, and can be disabled per scenario with `llm.director: false`. Because a spoiler posted early cannot be retracted, the authored timeline keeps the beats that give away the mechanism or the culprit late and lets `advance` pull them forward, and the beat carrying the phase action may be held far longer (20 min) than an ordinary beat (4 min). Beats that fall behind a hold drain with a 20–45s gap rather than all at once. The same LLM also watches for the investigator asking for one of the scenario's authored `mitigations.options`: the named responder acknowledges it, the phase that option carries (if any) activates two minutes later, and a responder then reports what the telemetry actually did. Matching is restricted to that authored list, each option fires once, an option with no phase changes nothing, and the scripted beat carrying the same action stays as the deadline. Knowledge entries may unlock on a `phase` as well as on the script clock, so a mitigation pulled forward brings its own recovery facts and nothing else's. Personas post under illustrated avatars served from this app (`app/public/incident-lab/avatars/`, referenced by a persona's `avatar` path and resolved against `ONCALL_DEMO_BASE_URL`/`DOMAIN_NAME`) so the channel reads like real people rather than emoji-headed bots; a persona with no `avatar` falls back to its `icon` emoji.
+
+The engine never creates Slack channels — the flow is: declare via Datadog Incidents API → Datadog Slack integration creates the channel → the incident responder auto-joins on the channel prefix → personas and telemetry evolve in that channel. Control endpoints (`/api/incident-lab/run|arm|declare|phase|stop`) require `INCIDENT_LAB_TOKEN` via the `X-Lab-Token` header; status is public.
+
+The control page drives `run`, which arms and schedules the declaration for the scenario's `leadInMs` (default 3 min) — long enough for baseline telemetry and the prelude burst to exist before the incident points an investigator at them, and the only pacing a presenter has to think about. The declaration is scheduled server-side and survives a restart (`resume` reschedules it, late rather than never); `stop` inside the lead-in cancels it. `arm` and `declare` remain separate endpoints for scripted rehearsals. Tests: `tests/incident-lab-*.test.js`.
+
 ## Repository Structure
 
 ```
@@ -130,8 +148,6 @@ Three things are deliberately separate:
 │   ├── public/
 │   │   ├── hub.html               # Landing page with cards for the 9 listed verticals (payer is unlisted)
 │   │   ├── index.html             # Retail eCommerce storefront UI
-│   │   ├── automations.html       # Slow-query patrol explainer and Run Now control
-│   │   ├── automations-demo.html  # Presenter control plane for the automations incident demo
 │   │   ├── oncall-report.html     # Shared customer-skinned support portal
 │   │   ├── oncall-incident.html   # Shared customer-skinned SEV-1 incident console
 │   │   └── verticals/
@@ -164,8 +180,6 @@ Three things are deliberately separate:
 │   │   ├── oncall.js              # On-Call demo pages, alert/bug triggers, skinned routes
 │   │   ├── oncall-verticals.js    # On-call vertical slice endpoints (/api/oncall/<vertical>/...)
 │   │   ├── internal-jobs.js       # Slow-query patrol jobs (container-network-only; nginx returns 404)
-│   │   ├── automations.js         # Automations explainer page and Run Now Devin session endpoint
-│   │   ├── automations-demo.js    # Presenter arm/schedule/declare/status/cleanup API
 │   │   ├── checkout.js            # Legacy checkout endpoint
 │   │   ├── sentry-webhook.js      # Receives Sentry alert webhooks, triggers Devin via Slack
 │   │   ├── webhook.js             # GitHub webhook handler
@@ -177,7 +191,6 @@ Three things are deliberately separate:
 │   ├── services/
 │   │   ├── devin-session.js       # Builds investigation prompt, posts Slack alert, triggers Devin
 │   │   ├── slack.js               # Slack API helpers (post messages, thread replies, delete messages)
-│   │   ├── automations-demo.js    # Standing-instance client and incident run lifecycle
 │   │   ├── verticals/
 │   │   │   ├── banking.js         # Banking business logic
 │   │   │   ├── financial-services.js  # Trading business logic
@@ -234,15 +247,11 @@ Three things are deliberately separate:
 ├── tests/
 │   ├── ...                         # Vertical, pipeline, and integration test suites
 │   ├── internal-jobs.test.js      # Slow-query patrol telemetry and ranking tests
-│   ├── automations.test.js        # Automations page and Run Now endpoint tests
-│   └── automations-demo.test.js   # Automations incident control-plane tests
 ├── docs/
 │   ├── ...                         # Demo runbooks and scenario documentation
 │   ├── patrol-evidence-chart.template.html # Shared evidence chart template for the daily patrol
 │   └── slow-query-patrol-backlog.md # Slow-query patrol jobs, cadence, and telemetry contract
 ├── prompts/
-│   ├── automations-patrol-backtest.md # Mode delta for presenter backtests
-│   └── automations-patrol-production.md # Mirrors the scheduled automation's stored prompt; not loaded by code
 ├── docker-compose.yml             # 3 services: checkout-api, loadgen, datadog-agent
 ├── Dockerfile                     # checkout-api container
 ├── Dockerfile.loadgen             # loadgen container
@@ -351,7 +360,7 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 - `postDevinReply(threadTs, prompt, options)` — (slack mode) Replies in the alert thread using `SLACK_USER_TOKEN` with `@Devin + prompt`. Accepts per-customer `slackUserId` via `options`. Auto-deletes the reply after 5 seconds.
 - `postDevinSessionLink(threadTs, sessionUrl)` — (api mode) Posts a "View in Devin" button in the alert thread using `SLACK_BOT_TOKEN`.
 - `postMessage()`, `postThreadReply()`, `deleteMessage()` — Low-level Slack API helpers.
-- `findChannelByNameFragment(token, fragment)`, `joinChannel(token, channelId)`, `postPersonaMessage(token, channel, text, username, iconEmoji)`, `inviteToChannel(token, channelId, userIds)` — SEV-1 persona chatter helpers. The chatter requires the bot to have the `channels:read`, `channels:join`, and `chat:write.customize` scopes; without `channels:join` the chatter logs a warning and skips seeding (the incident flow is unaffected). Inviting the participants (the triggering user resolved via `users.lookupByEmail`, and Devin via `DEVIN_SLACK_USER_ID`) additionally needs `users:read.email` and `channels:write.invites`; without them the invite logs a warning and is skipped.
+- `findChannelByNameFragment(token, fragment)`, `joinChannel(token, channelId)`, `postPersonaMessage(token, channel, text, username, icon)` (the icon is an emoji shortcode or an image URL, sent as `icon_url`), `inviteToChannel(token, channelId, userIds)` — SEV-1 persona chatter helpers. The chatter requires the bot to have the `channels:read`, `channels:join`, and `chat:write.customize` scopes; without `channels:join` the chatter logs a warning and skips seeding (the incident flow is unaffected). Inviting the participants (the triggering user resolved via `users.lookupByEmail`, and Devin via `DEVIN_SLACK_USER_ID`) additionally needs `users:read.email` and `channels:write.invites`; without them the invite logs a warning and is skipped.
 
 ### `app/incidentModes.js`
 - Manages the current scenario state. Valid scenarios: `healthy`, `slow-db`, `checkout-regression`, `dependency-timeout`.
@@ -372,12 +381,14 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `ONCALL_CONFIG_OVERRIDE_TTL_MS` | Lifetime of a per-run config override (`POST /api/oncall/config`; the shipped baseline comes from `SCREENING_WINDOW_DAYS`/`SCREENING_CONCURRENCY`) when its run has no live incident window to inherit (default 45 min) | No |
 | `ONCALL_CONFIG_OVERRIDE_MAX` | Cap on concurrently registered per-run config overrides; at capacity the oldest override without a live incident is evicted first (default 50) | No |
 | `SCREENING_WINDOW_DAYS` | Compliance-screening lookback window for the on-call banking transfer path (default 90) | No |
-| `SCREENING_CONCURRENCY` | Parallel screening-partner calls per batch on the on-call banking transfer path (default 1) | No |
+| `SCREENING_CONCURRENCY` | Parallel screening-partner calls per batch on the on-call banking transfer path (default 1; the screening partner's per-client ceiling is 32 since VendorOps VO-8821 closed) | No |
 | `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
 | `ONCALL_DEMO_BASE_URL` | Base URL for branded demo-page links in skinned on-call alerts (defaults to `https://$DOMAIN_NAME`, then devindemos.com) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
+| `DEMO_ONCALL_PERSONA` | Fictional name rendered in the *On-Call* field of alert cards (default `Riley Chen (platform-oncall)`) | No |
+| `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as on-call on every alert. Unset (default) means the persona is rendered as plain text and nobody is pinged | No |
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
@@ -405,19 +416,6 @@ Multiple customers can run simultaneously in a single deployment, each with thei
 | `INTERNAL_JOB_RATE_WINDOW_MS` | Sliding-window duration for internal job requests | No (default: `60000`) |
 | `INTERNAL_JOB_PER_IP_RATE_LIMIT` | Accepted internal job requests per IP per window | No (default: `4`) |
 | `INTERNAL_JOB_PROCESS_RATE_LIMIT` | Accepted internal job requests process-wide per window | No (default: `6`) |
-| `AUTOMATIONS_RUN_TOKEN` | Presenter token for the `/automations` Run Now action; unset disables it | No |
-| `AUTOMATIONS_RUN_MAX_PER_HOUR` | Max on-demand patrol sessions per hour (default: `3`) | No |
-| `AUTOMATIONS_RUN_ATTACH_WINDOW_MINUTES` | Minutes to attach repeated Run Now requests to the last session (default: `45`) | No |
-| `AUTOMATIONS_DEMO_SERVICE_BASE_URL` | Base URL for the standing automations service admin API | For automations incident demo |
-| `AUTOMATIONS_DEMO_SERVICE_TOKEN` | Bearer token for the standing automations service | For automations incident demo |
-| `AUTOMATIONS_DEMO_TOKEN` | Optional presenter token for automations incident mutations | No |
-| `AUTOMATIONS_DEMO_TZ` | Presenter timezone for incident channel dates (default: `America/Los_Angeles`) | No |
-| `AUTOMATIONS_DEMO_RUN_WINDOW_MS` | Automations incident auto-stop window (default: 60 minutes) | No |
-| `AUTOMATIONS_DEMO_IC_NAME` | Incident commander shown on the declaration card | No |
-| `AUTOMATIONS_DEMO_STANDING_REPO_URL` | Standing repo link shown on the declaration card | No |
-| `AUTOMATIONS_DEMO_SERVICE_TAG` | Service tag shown on the declaration card | No |
-| `SLACK_TEAM_ID` | Optional Slack team ID used for incident links | No |
-| `GITHUB_TOKEN` / `GH_TOKEN` | Optional token for closing Devin-authored standing-repo PRs during cleanup | No |
 | `LOADGEN_INTERVAL_MS` | Interval between synthetic traffic cycles (higher = less traffic = fewer spans) | No (default: `120000`) |
 
 ## Deployment
@@ -572,16 +570,6 @@ When the app is running (locally at `localhost:3000` or on EC2 via `https://<DOM
 | Slack (`#automated-alerts`) | Alert notifications, Devin triggering | `SLACK_BOT_TOKEN`, `SLACK_USER_TOKEN` (slack mode), `SLACK_CHANNEL_ID` |
 | [Devin API](https://api.devin.ai) | Direct session creation (api mode) | `DEVIN_API_KEY` |
 | Datadog Dashboard | checkout-api overview | `DD_DASHBOARD_URL` |
-
-### Automations incident demo
-
-The presenter control plane is served at `/automations-demo` and exposes:
-`POST /api/automations-demo/arm`, `POST /api/automations-demo/schedule`,
-`POST /api/automations-demo/declare`, `GET /api/automations-demo/status`,
-`POST /api/automations-demo/stop`, `POST /api/automations-demo/smoke`, and
-`POST /api/automations-demo/archive-stale`. It talks to the standing
-automations service over HTTP; it does not run the standing emitter. See
-`docs/DEMO-AUTOMATIONS-INCIDENT.md` for the run sheet and contract.
 
 ## Common Tasks
 

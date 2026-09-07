@@ -99,7 +99,7 @@ async function scopeEngagement(data) {
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      devinEmail: data.devinEmail || 'jaime@cognition.ai',
+      devinEmail: data.devinEmail,
       service,
       verticalLabel: 'Zup Innovation Solutions',
       customer: '90a02f02',

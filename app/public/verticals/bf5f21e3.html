@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forrester Decisions | Manage Seats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --blue: #10398C;
+      --yellow: #FFDE00;
+      --ink: #1F2733;
+      --black: #000000;
+      --line: #E2E6EC;
+    }
+    body {
+      font-family: proxima-nova, 'Source Sans 3', Arial, sans-serif;
+      font-size: 16px;
+      color: var(--ink);
+      background: #FFFFFF;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .site-header {
+      background: var(--black);
+      color: #FFFFFF;
+    }
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+    .wordmark {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 26px;
+      letter-spacing: 2px;
+      font-weight: 400;
+      color: #FFFFFF;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .wordmark sup { font-size: 10px; }
+    .main-nav {
+      display: flex;
+      gap: 32px;
+      flex: 1;
+    }
+    .main-nav a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 12px 0;
+    }
+    .main-nav a:hover { text-decoration: underline; }
+    .header-actions { display: flex; align-items: center; gap: 24px; }
+    .header-actions .login {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 12px 0;
+    }
+    .header-actions .talk-to-sales {
+      border: 1px solid #FFFFFF;
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 14px 22px;
+      display: inline-block;
+    }
+    .header-actions .talk-to-sales:hover { background: #FFFFFF; color: var(--black); }
+
+    .breadcrumb-band {
+      background: #081C46;
+      color: #FFFFFF;
+      font-size: 15px;
+    }
+    .breadcrumb-band .crumb-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 18px 24px;
+    }
+    .breadcrumb-band a { color: #FFFFFF; }
+    .breadcrumb-band span { opacity: 0.9; }
+
+    .hero {
+      background: var(--blue);
+      color: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 72px 24px 80px;
+      display: grid;
+      grid-template-columns: minmax(0, 560px) 1fr;
+      gap: 48px;
+      align-items: center;
+      position: relative;
+    }
+    .hero h1 {
+      font-size: 62px;
+      font-weight: 700;
+      line-height: 1.05;
+      color: #FFFFFF;
+    }
+    .hero .rule {
+      width: 100px;
+      height: 4px;
+      background: #FFFFFF;
+      margin: 28px 0;
+    }
+    .hero p {
+      font-size: 18px;
+      line-height: 1.55;
+      max-width: 54ch;
+    }
+    .hero p + p { margin-top: 18px; }
+    .hero-art { justify-self: end; }
+    .cta {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--black);
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 20px 28px;
+      border: none;
+      border-radius: 0;
+      margin-top: 32px;
+      cursor: pointer;
+    }
+    .cta:hover { background: #F0D000; }
+
+    .band {
+      background: var(--blue);
+      color: #FFFFFF;
+      display: inline-block;
+      font-size: 30px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 16px 40px 16px 24px;
+      margin-top: 64px;
+    }
+
+    .content {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px 96px;
+    }
+    .columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 56px;
+      margin-top: 48px;
+      align-items: start;
+    }
+
+    .panel h2 {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .panel .lede { font-size: 17px; line-height: 1.55; margin-bottom: 28px; }
+
+    .form-group { margin-bottom: 22px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+    select, input[type="number"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 16px;
+      color: var(--ink);
+      border: 1px solid #9AA4B2;
+      border-radius: 0;
+      background: #FFFFFF;
+    }
+    select:focus, input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+    button.cta { width: 100%; min-height: 56px; }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 0;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .result-box.show { padding: 18px 20px; border-left: 4px solid var(--blue); background: #F2F5FA; }
+    .result-box.error.show { border-left-color: #B00020; background: #FBF0F1; }
+
+    .seat-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .seat-table th {
+      text-align: left;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 12px 10px;
+      border-bottom: 2px solid var(--ink);
+    }
+    .seat-table td { padding: 14px 10px; border-bottom: 1px solid var(--line); }
+    .seat-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .service-note {
+      margin-top: 28px;
+      padding: 20px 22px;
+      background: #F5F7FA;
+      border-left: 4px solid var(--yellow);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .service-note strong { display: block; margin-bottom: 6px; }
+
+    .site-footer {
+      background: var(--black);
+      color: #FFFFFF;
+      margin-top: 32px;
+    }
+    .footer-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 56px 24px 40px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+    }
+    .footer-inner h3 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+    .footer-inner ul { list-style: none; }
+    .footer-inner li { margin-bottom: 10px; }
+    .footer-inner a { color: #C9CFD8; text-decoration: none; font-size: 15px; }
+    .footer-inner a:hover { color: #FFFFFF; }
+    .footer-legal {
+      border-top: 1px solid #2A2A2A;
+      font-size: 13px;
+      color: #9AA4B2;
+    }
+    .footer-legal .legal-inner { max-width: 1240px; margin: 0 auto; padding: 20px 24px; }
+
+    @media (max-width: 900px) {
+      .header-inner { height: auto; padding: 16px 20px; flex-wrap: wrap; gap: 16px; }
+      .main-nav { order: 3; flex-basis: 100%; gap: 20px; flex-wrap: wrap; }
+      .hero-inner { grid-template-columns: 1fr; padding: 48px 20px 56px; }
+      .hero h1 { font-size: 40px; }
+      .hero-art { display: none; }
+      .columns { grid-template-columns: 1fr; gap: 40px; }
+      .band { font-size: 22px; margin-top: 40px; }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 32px; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .header-actions .talk-to-sales { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="wordmark" href="#">FORRESTER<sup>&reg;</sup></a>
+      <nav class="main-nav">
+        <a href="#">Who We Serve</a>
+        <a href="#">What We Offer</a>
+        <a href="#">How We Think</a>
+        <a href="#">Who We Are</a>
+        <a href="#">Events</a>
+      </nav>
+      <div class="header-actions">
+        <a class="login" href="#">Log In</a>
+        <a class="talk-to-sales" href="#">Talk To Sales</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb-band">
+    <div class="crumb-inner"><a href="#">Home</a> <span>&gt; What We Offer &gt; Forrester Decisions &gt; Manage Seats</span></div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>Manage Your Forrester Decisions Seats</h1>
+        <div class="rule"></div>
+        <p>Give leaders and teams across your organization access to Forrester Decisions — bold research, trusted insights, and guidance sessions with our analysts.</p>
+        <p>Assign additional seats to users in your client account below. New seats are provisioned immediately and available at next sign-in.</p>
+        <a class="cta" href="#assign">ASSIGN SEATS</a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg width="380" height="380" viewBox="0 0 380 380" fill="none">
+          <circle cx="190" cy="190" r="180" stroke="#FFDE00" stroke-width="2"/>
+          <circle cx="190" cy="190" r="132" stroke="#1E5AA8" stroke-width="2"/>
+          <circle cx="190" cy="190" r="88" stroke="#FFFFFF" stroke-width="2"/>
+          <circle cx="190" cy="190" r="44" fill="#FFDE00"/>
+          <circle cx="190" cy="190" r="12" fill="#10398C"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <main class="content">
+    <div class="band" id="assign">Deliver Better Outcomes Faster</div>
+    <div class="columns">
+      <div class="panel">
+        <h2>Assign Additional Seats</h2>
+        <p class="lede">Select a Forrester Decisions service and the number of seats to add to your client account.</p>
+        <form id="provisionForm">
+          <div class="form-group">
+            <label for="product">Forrester Decisions Service</label>
+            <select id="product">
+              <option value="technology_executives">Forrester Decisions for Technology Executives</option>
+              <option value="b2b_marketing">Forrester Decisions for B2B Marketing Executives</option>
+              <option value="security_risk">Forrester Decisions for Security &amp; Risk Leaders</option>
+              <option value="cx_leaders">Forrester Decisions for Customer Experience</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="seats">Additional Seats</label>
+              <input type="number" id="seats" value="25" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="planTier">Plan Tier</label>
+              <select id="planTier">
+                <option value="enterprise">Enterprise</option>
+                <option value="business">Business</option>
+                <option value="starter">Starter</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="region">Hosting Region</label>
+            <select id="region">
+              <option value="us-east">US East</option>
+              <option value="us-west">US West</option>
+              <option value="eu-west">EU West</option>
+              <option value="ap-south">AP South</option>
+            </select>
+          </div>
+          <button type="submit" class="cta" id="submitBtn">ASSIGN SEATS</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Current Seat Allocation</h2>
+        <p class="lede">Seats in use across your client account, by Forrester Decisions service.</p>
+        <table class="seat-table">
+          <thead>
+            <tr><th>Service</th><th class="num">Seats</th><th class="num">In Use</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Forrester Decisions for Technology Executives</td><td class="num">40</td><td class="num">37</td></tr>
+            <tr><td>Forrester Decisions for B2B Marketing Executives</td><td class="num">25</td><td class="num">25</td></tr>
+            <tr><td>Forrester Decisions for Security &amp; Risk Leaders</td><td class="num">15</td><td class="num">11</td></tr>
+            <tr><td>Forrester Decisions for Customer Experience</td><td class="num">10</td><td class="num">9</td></tr>
+          </tbody>
+        </table>
+        <div class="service-note">
+          <strong>Every seat includes</strong>
+          Access to research, analyst inquiry and guidance sessions, certification courses, and peer connections — everything your team needs to move from insight to action.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <a class="wordmark" href="#">FORRESTER<sup>&reg;</sup></a>
+      </div>
+      <div>
+        <h3>What We Offer</h3>
+        <ul>
+          <li><a href="#">Forrester Decisions</a></li>
+          <li><a href="#">Research</a></li>
+          <li><a href="#">Consulting</a></li>
+          <li><a href="#">Events</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Who We Serve</h3>
+        <ul>
+          <li><a href="#">Technology Executives</a></li>
+          <li><a href="#">Marketing Leaders</a></li>
+          <li><a href="#">Security &amp; Risk</a></li>
+          <li><a href="#">Customer Experience</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Support</h3>
+        <ul>
+          <li><a href="#">Client Support</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Log In</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-legal"><div class="legal-inner">&copy; 2026 Client seat administration console.</div></div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'ASSIGNING SEATS…';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: document.getElementById('planTier').value,
+            seats: parseInt(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          result.className = 'result-box show';
+          result.textContent = 'Seats assigned. ' + (data.seats || document.getElementById('seats').value) + ' seats added to your client account and available at next sign-in.';
+        } else {
+          result.className = 'result-box error show';
+          result.textContent = data.error || 'Seat assignment could not be completed. Please try again.';
+        }
+      } catch (err) {
+        result.className = 'result-box error show';
+        result.textContent = 'Seat assignment could not be completed. Please try again.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ASSIGN SEATS';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

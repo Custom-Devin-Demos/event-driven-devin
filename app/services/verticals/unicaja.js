@@ -127,7 +127,7 @@ async function registerDigitalAccess(data) {
       errorValue: error.message,
       devinUserId: data.devinUserId,
       devinOrgId: data.devinOrgId,
-      devinEmail: data.devinEmail || 'jaime@cognition.ai',
+      devinEmail: data.devinEmail,
       service: 'customer-unicaja-digital-access',
       verticalLabel: 'Unicaja Banca Digital',
       customer: 'unicaja',

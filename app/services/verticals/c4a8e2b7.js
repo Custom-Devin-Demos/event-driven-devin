@@ -197,7 +197,6 @@ async function processTransferLookup(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: 'U08S7AVJ478',
       service: 'c4a8e2b7-api',
       verticalLabel: 'Wire Transfer Lookup',
       customer: 'c4a8e2b7',

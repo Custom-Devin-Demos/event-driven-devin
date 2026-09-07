@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serving Console &middot; RadixArk</title>
+  <link rel="icon" type="image/png" href="https://www.radixark.com/images/radixark-favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0b0a;
+      --panel: #ffffff05;
+      --panel-hover: #ffffff0d;
+      --line: #ffffff14;
+      --line-strong: #ffffff26;
+      --text: #f8f2ea;
+      --text-dim: #ffffffd9;
+      --muted: #ffffff80;
+      --faint: #ffffff59;
+      --accent: #d55816;
+      --accent-warm: #f5a737;
+      --danger: #f6a098;
+      --sans: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--bg); color: var(--text); min-height: 100vh; font-family: var(--sans); overflow-x: hidden; }
+    /* Ember horizon: warm glow above a thin light line, as on the marketing site. */
+    body::before { content: ''; position: fixed; inset: 0 0 auto; height: 460px; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(110% 90% at 50% -10%, #d5581626 0%, #d558160a 40%, transparent 70%),
+        linear-gradient(180deg, #f5a73712 0%, transparent 55%); }
+    .nav, main, footer { position: relative; z-index: 1; }
+    body { font-weight: 300; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    .nav { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 72px; padding: 0 clamp(20px, 5vw, 56px); }
+    /* Ember horizon line, as on the marketing site. */
+    .nav::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+      background: linear-gradient(90deg, #ffffff0f 0%, #d5581659 22%, #f5a737b3 46%, #f7bd69 50%, #f5a737b3 54%, #d5581659 78%, #ffffff0f 100%); }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand .lockup { height: 24px; width: auto; display: block; }
+    .fallback-brand { display: none; align-items: center; gap: 10px; }
+    .brand svg { width: 22px; height: 26px; display: block; }
+    .brand-name { font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
+    .brand-name em { font-style: normal; color: var(--accent); }
+    .nav-right { display: flex; align-items: center; gap: 18px; }
+    .nav-link { color: #ffffffd1; font-family: var(--ui); font-size: 15px; font-weight: 400; letter-spacing: -0.01em; padding: 8px 2px; }
+    .nav-link:hover { color: var(--text); }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; min-height: 38px; border: 1px solid #ffffff59; border-radius: 999px; background: transparent; color: #ffffffe6; font-family: var(--ui); font-size: 14px; white-space: nowrap; }
+    .pill:hover { background: #ffffff12; border-color: #ffffff4d; color: #ffffffe6; }
+    .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent-warm); flex: none; }
+    @media (max-width: 720px) { .nav-link { display: none; } }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: clamp(28px, 5vh, 48px) clamp(20px, 5vw, 56px) 64px; }
+    .eyebrow { font-family: var(--ui); font-size: 12px; font-weight: 400; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff8c; margin-bottom: 14px; }
+    h1 { font-size: clamp(30px, 4.4vw, 46px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.08; color: var(--accent); }
+    .lede { color: #ffffffd9; font-size: 17px; font-weight: 300; line-height: 1.6; margin-top: 14px; max-width: 620px; }
+
+    .deployments { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 36px 0 32px; }
+    @media (max-width: 860px) { .deployments { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .stat { border: 1px solid var(--line); background: var(--panel); border-radius: 20px; padding: 20px 22px; }
+    .stat-label { font-family: var(--ui); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); }
+    .stat-val { font-size: 28px; font-weight: 400; letter-spacing: -0.02em; margin-top: 6px; }
+    .stat-sub { font-size: 13px; color: var(--muted); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; align-items: start; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+    .card { border: 1px solid var(--line); background: var(--panel); border-radius: 20px; padding: 26px; }
+    .card h2 { font-size: 19px; font-weight: 400; letter-spacing: -0.015em; }
+    .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+
+    label { display: block; font-family: var(--ui); font-size: 13px; font-weight: 500; color: #ffffffa6; margin-bottom: 8px; }
+    .group { margin-bottom: 20px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .row { grid-template-columns: 1fr; } }
+    input, select, textarea { width: 100%; padding: 13px 16px; min-height: 44px; color: var(--text); background: #ffffff0a; border: 1px solid var(--line-strong); border-radius: 10px; font-family: var(--ui); font-size: 15px; appearance: none; transition: border-color 0.2s; }
+    textarea { min-height: 118px; resize: vertical; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+    select { cursor: pointer; padding-right: 44px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.5)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-position: right 16px center; background-repeat: no-repeat; }
+    select option { color: #fff; background: #1a1410; }
+    input::placeholder, textarea::placeholder { color: #ffffff47; }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { border-color: #d55816b3; outline: none; }
+
+    .run { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px 28px; min-height: 48px; color: #fff; background: transparent; border: 1px solid #ffffff66; border-radius: 999px; font-family: var(--ui); font-size: 16px; font-weight: 500; letter-spacing: -0.01em; cursor: pointer; transition: border-color 0.25s, background-color 0.25s; }
+    .run:hover:not(:disabled) { background: #ffffff0f; border-color: #ffffffd9; }
+    .run:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .ttft { font-family: var(--mono); font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .ttft.waiting { color: var(--accent-warm); }
+    .ttft.done { color: var(--text-dim); }
+    .stream { font-family: var(--mono); font-size: 13px; line-height: 1.7; color: var(--text-dim); background: #00000059; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-height: 232px; white-space: pre-wrap; word-break: break-word; }
+    .caret { display: inline-block; width: 7px; height: 14px; background: var(--accent); vertical-align: -2px; animation: blink 1s steps(2, start) infinite; }
+    @keyframes blink { to { visibility: hidden; } }
+    .usage { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .snippet { margin-top: 18px; }
+    .snippet-label { font-family: var(--ui); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+    pre { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--muted); background: #ffffff08; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; }
+    .result { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 12px; font-family: var(--ui); font-size: 14px; }
+    .result.success { display: block; border: 1px solid #d5581659; background: #d5581614; color: var(--text-dim); }
+    .result.error { display: block; border: 1px solid #f6a09859; background: #f6a09814; color: var(--danger); }
+    .result-title { font-weight: 500; margin-bottom: 2px; }
+    .result-detail { font-family: var(--mono); font-size: 12px; color: var(--muted); word-break: break-all; white-space: pre-wrap; }
+
+    footer { border-top: 1px solid var(--line); color: #ffffffb3; font-family: var(--ui); font-size: 13px; font-weight: 300; padding: 24px clamp(20px, 5vw, 56px); display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="#">
+      <img class="lockup" src="https://www.radixark.com/images/RadixArk-Wordmark-Full.svg" alt="RadixArk"
+           onerror="this.remove(); document.getElementById('markFallback').style.display='flex';">
+      <span class="fallback-brand" id="markFallback">
+        <svg viewBox="0 0 22 26" aria-hidden="true" fill="none">
+          <path d="M11 1C6 8 1.6 12.6 1.6 17.4 1.6 22 5.8 25 11 25s9.4-3 9.4-7.6C20.4 12.6 16 8 11 1Z" stroke="#d55816" stroke-width="1.6"/>
+          <path d="M11 9.5c-2.4 3.2-3.6 5.1-3.6 7 0 2.1 1.6 3.6 3.6 3.6s3.6-1.5 3.6-3.6c0-1.9-1.2-3.8-3.6-7Z" fill="#d55816"/>
+        </svg>
+        <span class="brand-name">Radix<em>Ark</em></span>
+      </span>
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="#">Deployments</a>
+      <a class="nav-link" href="#">Models</a>
+      <a class="nav-link" href="#">Docs</a>
+      <span class="pill"><span class="dot"></span>us-west-2 &middot; healthy</span>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="eyebrow">Serving Console</div>
+    <h1>Chat completions</h1>
+    <p class="lede">Send a request to a running deployment and watch it stream back. Same OpenAI-compatible surface your clients call.</p>
+
+    <section class="deployments">
+      <div class="stat">
+        <div class="stat-label">Tokens served today</div>
+        <div class="stat-val">184M</div>
+        <div class="stat-sub">across 3 deployments</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Replicas</div>
+        <div class="stat-val">18</div>
+        <div class="stat-sub">all running</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Requests / min</div>
+        <div class="stat-val">2,410</div>
+        <div class="stat-sub">rolling 5m</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Prefix cache hits</div>
+        <div class="stat-val">61%</div>
+        <div class="stat-sub">last hour</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <div class="card-head"><h2>Request</h2><span class="ttft">POST /v1/chat/completions</span></div>
+        <form id="completionForm">
+          <div class="group">
+            <label for="prompt">Prompt</label>
+            <textarea id="prompt" placeholder="Explain continuous batching in one paragraph.">Explain continuous batching in one paragraph.</textarea>
+          </div>
+          <div class="row">
+            <div class="group">
+              <label for="model">Model</label>
+              <select id="model">
+                <option value="deepseek-v3">DeepSeek-V3</option>
+                <option value="qwen3-32b">Qwen3-32B</option>
+                <option value="llama-3.3-70b">Llama-3.3-70B-Instruct</option>
+              </select>
+            </div>
+            <div class="group">
+              <label for="deployment">Deployment</label>
+              <select id="deployment">
+                <option value="chat-prod">chat-prod</option>
+                <option value="autocomplete-prod">autocomplete-prod</option>
+                <option value="batch-eval">batch-eval</option>
+              </select>
+            </div>
+          </div>
+          <div class="group">
+            <label for="maxTokens">Max tokens</label>
+            <input id="maxTokens" type="number" value="64" min="8" max="512">
+          </div>
+          <button type="submit" class="run" id="submitBtn">Run completion</button>
+        </form>
+        <div id="result" class="result"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Response</h2><span class="ttft" id="ttft">TTFT &mdash;</span></div>
+        <div class="stream" id="stream"></div>
+        <div class="usage" id="usage"></div>
+        <div class="snippet">
+          <div class="snippet-label">Same request from your terminal</div>
+          <pre>curl -N https://api.radixark.dev/v1/chat/completions \
+  -H "Authorization: Bearer $RADIXARK_API_KEY" \
+  -d '{"model":"deepseek-v3","stream":true,
+       "messages":[{"role":"user","content":"Explain continuous batching."}]}'</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 Radix<em style="font-style:normal;color:var(--accent)">Ark</em></span>
+    <span>Status &middot; Docs &middot; Support</span>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('completionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const streamEl = document.getElementById('stream');
+      const ttftEl = document.getElementById('ttft');
+      const usageEl = document.getElementById('usage');
+      const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      btn.disabled = true; btn.textContent = 'Streaming...';
+      result.className = 'result';
+      streamEl.innerHTML = '<span class="caret"></span>';
+      usageEl.textContent = '';
+      const started = Date.now();
+      let firstToken = 0;
+      ttftEl.className = 'ttft waiting';
+      const tick = setInterval(() => {
+        if (!firstToken) ttftEl.textContent = 'TTFT ' + ((Date.now() - started) / 1000).toFixed(1) + 's — waiting for first token';
+      }, 100);
+
+      let text = '';
+      const render = () => { streamEl.innerHTML = esc(text) + '<span class="caret"></span>'; };
+      try {
+        const res = await fetch('/api/inference/completions', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: document.getElementById('model').value,
+            deployment: document.getElementById('deployment').value,
+            prompt: document.getElementById('prompt').value,
+            maxTokens: parseInt(document.getElementById('maxTokens').value, 10) || 64,
+            stream: true,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let usage = null;
+        let failure = null;
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split('\n\n');
+          buffer = frames.pop();
+          for (const frame of frames) {
+            const line = frame.replace(/^data: /, '').trim();
+            if (!line || line === '[DONE]') continue;
+            const chunk = JSON.parse(line);
+            if (chunk.error) { failure = chunk.error; continue; }
+            if (chunk.ttftMs && !firstToken) {
+              firstToken = chunk.ttftMs;
+              clearInterval(tick);
+              ttftEl.className = 'ttft done';
+              ttftEl.textContent = 'TTFT ' + (chunk.ttftMs / 1000).toFixed(2) + 's';
+            }
+            const delta = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+            if (delta && delta.content) { text += delta.content; render(); }
+            if (chunk.usage) usage = chunk;
+          }
+        }
+        clearInterval(tick);
+        if (failure) throw new Error(failure.message);
+        streamEl.innerHTML = esc(text);
+        if (usage) {
+          usageEl.textContent = usage.usage.prompt_tokens + ' prompt · ' + usage.usage.completion_tokens
+            + ' completion · ' + usage.tokensPerSecond + ' tok/s · ' + usage.model;
+          result.className = 'result success';
+          result.innerHTML = `<div class="result-title">Completion finished</div><div class="result-detail">${esc(usage.id)} — first token in ${(usage.ttftMs / 1000).toFixed(2)}s</div>`;
+        }
+      } catch (err) {
+        clearInterval(tick);
+        ttftEl.className = 'ttft';
+        result.className = 'result error';
+        result.innerHTML = `<div class="result-title">Completion failed</div><div class="result-detail">${esc(err.message)}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Run completion'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

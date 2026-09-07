@@ -170,7 +170,6 @@ async function processCreditReportRequest(data) {
       service: 'customer-f26260e1-demo',
       verticalLabel: 'Credit Report Request',
       customer: 'f26260e1',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/f26260e1/credit-report' },
         { key: 'service', value: 'customer-f26260e1-demo' },

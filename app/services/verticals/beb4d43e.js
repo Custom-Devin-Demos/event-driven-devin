@@ -221,7 +221,6 @@ async function runInquiry(data) {
       service: 'customer-beb4d43e-hospitality',
       verticalLabel: 'Room Availability Inquiry',
       customer: 'beb4d43e',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/beb4d43e/inquiry' },
         { key: 'service', value: 'customer-beb4d43e-hospitality' },

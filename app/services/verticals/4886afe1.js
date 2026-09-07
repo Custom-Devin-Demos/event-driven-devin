@@ -155,7 +155,6 @@ async function processApplication(data) {
       service: 'customer-bbva-api',
       verticalLabel: 'Account Application',
       customer: '4886afe1',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/4886afe1/apply' },
         { key: 'service', value: 'customer-bbva-api' },

@@ -166,7 +166,6 @@ async function processQuoteRequest(data) {
       service: 'customer-91e30701-solutions',
       verticalLabel: 'IT Solution Quote',
       customer: '91e30701',
-      slackMemberId: 'U08S7AVJ478',
       tags: [
         { key: 'route', value: '/api/91e30701/quote' },
         { key: 'service', value: 'customer-91e30701-solutions' },
