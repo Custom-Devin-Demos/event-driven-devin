@@ -120,6 +120,10 @@
         font: inherit;
         cursor: pointer;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         margin-top: 14px;
         padding: 14px;
@@ -303,7 +307,9 @@
         const chosen = p.options[p.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        const label = b.textContent;
         b.disabled = true;
+        b.textContent = "Activating…";
         r.className = "result-box";
         try {
           const res = await fetch("/api/telco/upgrade", {
@@ -334,6 +340,7 @@
             "Your package could not be activated right now. Your current package is unchanged.";
         } finally {
           b.disabled = false;
+          b.textContent = label;
         }
       });
     </script>

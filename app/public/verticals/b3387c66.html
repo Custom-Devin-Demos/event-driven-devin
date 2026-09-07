@@ -113,6 +113,10 @@
         font-weight: 700;
         cursor: pointer;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         margin-top: 14px;
         padding: 15px;
@@ -271,7 +275,9 @@
         e.preventDefault();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        const label = b.textContent;
         b.disabled = true;
+        b.textContent = "Processing payment…";
         r.className = "result-box";
         try {
           const res = await fetch("/api/banking/transfer", {
@@ -305,6 +311,7 @@
             "We couldn't take your payment right now. No charge has been made to your card.";
         } finally {
           b.disabled = false;
+          b.textContent = label;
         }
       });
     </script>
