@@ -15,14 +15,15 @@ router.get('/api/b25c3f24/plans', (_req, res) => {
  */
 router.post('/api/b25c3f24/verify-identity', async (req, res) => {
   try {
+    const body = req.body || {};
     const result = await verifyIdentity({
-      planId: req.body.planId || 'plan-12',
-      ssnLast4: req.body.ssnLast4,
-      orderTotal: req.body.orderTotal || 1944.39,
-      merchant: req.body.merchant || 'brilliant-earth',
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      planId: body.planId || 'plan-12',
+      ssnLast4: body.ssnLast4,
+      orderTotal: body.orderTotal || 1944.39,
+      merchant: body.merchant || 'brilliant-earth',
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(result);
   } catch (error) {
