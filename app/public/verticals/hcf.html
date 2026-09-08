@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make a claim | HCF</title>
+  <link rel="icon" href="https://www.hcf.com.au/content/dam/hcf/images/placeholder/logo_hcf1.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --ruby: #e0004d;
+      --ruby-dark: #b40040;
+      --purple: #51284f;
+      --ink: #3a3637;
+      --muted: #6d6768;
+      --page: #d9d9d6;
+      --border: #d5d5d2;
+      --teal: #57bfb0;
+      --pink: #ef7cae;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Figtree', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--ink);
+      background: var(--page);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--ruby); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+
+    /* ---------- Notice bar ---------- */
+    .notice {
+      background: #efefef; color: var(--ink); font-size: 15px; line-height: 22px;
+    }
+    .notice .wrap { display: flex; align-items: flex-start; gap: 24px; padding-top: 18px; padding-bottom: 18px; }
+    .notice p { margin: 0; flex: 1 1 auto; }
+    .notice em { font-style: italic; }
+    .notice button {
+      background: none; border: 0; cursor: pointer; color: var(--ink);
+      font-size: 20px; line-height: 20px; padding: 0;
+    }
+
+    /* ---------- Header ---------- */
+    header.site { background: #fff; }
+    .util { display: flex; align-items: center; gap: 30px; justify-content: flex-end; flex: 1 1 auto; }
+    .util a { color: var(--ink); font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 9px; }
+    .util a.login { color: var(--ruby); }
+    .util svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+    .header-top { display: flex; align-items: center; padding: 20px 0 18px; }
+    .header-main { display: flex; align-items: center; gap: 34px; padding-bottom: 24px; }
+    .brand { display: flex; align-items: center; }
+    .brand img { height: 46px; display: block; }
+    .brand .brand-fallback {
+      display: none; color: var(--ruby); font-weight: 800; font-size: 34px; letter-spacing: -1px;
+    }
+    nav.primary { display: flex; align-items: center; gap: 28px; flex: 1 1 auto; }
+    nav.primary a { color: var(--ink); font-weight: 700; font-size: 17px; letter-spacing: -0.2px; padding: 6px 0; }
+    nav.primary a.is-active { box-shadow: inset 0 -3px 0 0 var(--ruby); }
+    .search-btn {
+      width: 46px; height: 46px; border: 1px solid var(--border); border-radius: 4px; background: #fff;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .search-btn svg { width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 2; }
+
+    /* ---------- Breadcrumb ---------- */
+    .crumbs { background: #fff; border-top: 1px solid #ededed; }
+    .crumbs .wrap { padding-top: 12px; padding-bottom: 12px; font-size: 15px; color: #8a8586; }
+    .crumbs a { color: var(--ruby); }
+    .crumbs span.sep { padding: 0 10px; color: #b3aeaf; }
+
+    /* ---------- Hero ---------- */
+    .hero { position: relative; background: #fff; }
+    .hero__media { height: 430px; overflow: hidden; }
+    .hero__media img { width: 100%; height: 100%; object-fit: cover; object-position: 60% 35%; display: block; }
+    .hero__panel {
+      position: absolute; left: 0; bottom: 0; background: #fff;
+      padding: 44px 56px 40px 120px; max-width: 660px;
+    }
+    .hero__panel h1 {
+      margin: 0; font-size: 46px; line-height: 42px; font-weight: 800;
+      letter-spacing: -1px; text-transform: uppercase; color: var(--ruby);
+    }
+    .hero__panel h1 span { color: var(--purple); display: block; }
+    .blocks { display: flex; height: 14px; }
+    .blocks i { flex: 1 1 0; display: block; }
+    .blocks i:nth-child(1) { background: var(--ruby); flex-grow: 3; }
+    .blocks i:nth-child(2) { background: var(--purple); }
+    .blocks i:nth-child(3) { background: var(--teal); }
+    .blocks i:nth-child(4) { background: var(--ink); flex-grow: 2; }
+    .blocks i:nth-child(5) { background: var(--pink); }
+
+    /* ---------- Layout ---------- */
+    .section { padding: 48px 0 64px; }
+    .grid { display: flex; gap: 28px; align-items: flex-start; }
+    .col-main { flex: 1 1 auto; min-width: 0; }
+    .col-side { flex: 0 0 330px; }
+
+    .card { background: #fff; }
+    .card__body { padding: 40px 44px 44px; }
+    .card h2 {
+      margin: 0 0 10px; font-size: 32px; line-height: 32px; font-weight: 800;
+      letter-spacing: -0.96px; color: var(--purple); text-transform: uppercase;
+    }
+    .card h3 { margin: 0 0 14px; font-size: 20px; line-height: 26px; font-weight: 700; color: var(--purple); }
+    .card p.lede { margin: 0 0 28px; color: var(--muted); font-size: 15px; }
+
+    .member-strip {
+      display: flex; flex-wrap: wrap; gap: 30px;
+      background: #f7f7f5; border-left: 4px solid var(--ruby);
+      padding: 16px 22px; margin-bottom: 30px;
+    }
+    .member-strip div span {
+      display: block; font-size: 12px; letter-spacing: 0.7px; text-transform: uppercase; color: #8a8586;
+    }
+    .member-strip div strong { font-size: 15px; color: var(--ink); font-weight: 700; }
+
+    .form-row { display: flex; gap: 22px; }
+    .field { margin-bottom: 24px; flex: 1 1 0; min-width: 0; }
+    .field label { display: block; font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+    .field .hint { font-size: 13px; color: #8a8586; margin-top: 7px; }
+    .field input[type=text], .field input[type=date], .field input[type=number], .field select, .field textarea {
+      width: 100%; font-family: 'Figtree', Helvetica, Arial, sans-serif; font-size: 16px; color: var(--ink);
+      padding: 13px 15px; border: 1px solid #a8a3a4; border-radius: 4px; background: #fff; line-height: 22px;
+    }
+    .field textarea { resize: vertical; min-height: 92px; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: var(--ruby); box-shadow: 0 0 0 2px rgba(224, 0, 77, 0.16);
+    }
+    .field select {
+      appearance: none; padding-right: 42px;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e0004d' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+      background-repeat: no-repeat; background-position: right 15px center;
+    }
+    .file-drop {
+      border: 1px dashed #a8a3a4; border-radius: 4px; padding: 18px; background: #fafaf9;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .file-drop span.file-note { font-size: 13px; color: #8a8586; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: 'Figtree', Helvetica, Arial, sans-serif;
+      font-size: 18px; font-weight: 700; letter-spacing: -0.36px;
+      border-radius: 8px; padding: 12px 24px; border: 1px solid var(--ruby); cursor: pointer;
+    }
+    .btn--primary { background: var(--ruby); color: #fff; }
+    .btn--primary:hover { background: var(--ruby-dark); border-color: var(--ruby-dark); text-decoration: none; }
+    .btn--ghost { background: #fff; color: var(--ruby); }
+    .btn--ghost:hover { background: #fdeff4; text-decoration: none; }
+    .btn[disabled] { opacity: 0.65; cursor: default; }
+    .form-actions { display: flex; align-items: center; gap: 22px; margin-top: 4px; flex-wrap: wrap; }
+    .form-actions .legal { font-size: 13px; color: #8a8586; flex: 1 1 240px; }
+
+    /* ---------- Result panels ---------- */
+    .result { display: none; margin-top: 28px; padding: 20px 22px; }
+    .result.show { display: block; }
+    .result h4 { margin: 0 0 8px; font-size: 18px; line-height: 24px; font-weight: 700; }
+    .result p { margin: 0; font-size: 15px; line-height: 23px; }
+    .result--error { background: #fcefee; border: 1px solid #efc3c8; border-left: 4px solid var(--ruby); }
+    .result--error h4 { color: #a8003a; }
+    .result--error pre {
+      margin: 12px 0 0; padding: 12px 14px; background: #fff; border: 1px solid #e8d3d6;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; line-height: 19px;
+      color: #8c0031; white-space: pre-wrap; word-break: break-word;
+    }
+    .result--ok { background: #f1f7f4; border: 1px solid #b9dccd; border-left: 4px solid #1c7a4d; }
+    .result--ok h4 { color: #15633d; }
+    .result--ok dl { margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 20px; font-size: 15px; }
+    .result--ok dt { color: var(--muted); }
+    .result--ok dd { margin: 0; color: var(--ink); font-weight: 700; }
+
+    /* ---------- Side rail ---------- */
+    .rail { background: #fff; padding: 28px 30px; }
+    .rail + .rail { margin-top: 28px; }
+    .rail ul { margin: 0; padding: 0; list-style: none; }
+    .rail li { padding: 9px 0; border-bottom: 1px solid #ededea; font-size: 15px; }
+    .rail li:last-child { border-bottom: none; }
+    .rail .phone { font-size: 30px; font-weight: 800; color: var(--ruby); letter-spacing: -0.6px; }
+
+    /* ---------- Cards row ---------- */
+    .cards { display: flex; gap: 28px; padding-bottom: 72px; }
+    .cards .card { flex: 1 1 0; }
+    .cards .card__body { padding: 26px 28px 30px; }
+    .cards a { display: block; padding: 7px 0; font-weight: 700; font-size: 15px; }
+
+    /* ---------- Help band ---------- */
+    .help { background: var(--purple); color: #fff; }
+    .help .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 44px 40px; }
+    .help h2 {
+      margin: 0; font-size: 34px; line-height: 34px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: -0.9px;
+    }
+    .btn--white { background: #fff; color: var(--purple); border-color: #fff; }
+    .btn--white:hover { background: #f1e9f0; text-decoration: none; }
+
+    /* ---------- Footer ---------- */
+    footer.site { background: var(--ink); color: #fff; }
+    footer.site .wrap { padding-top: 48px; padding-bottom: 36px; }
+    .footer__top { display: flex; gap: 48px; flex-wrap: wrap; }
+    .footer__top img { height: 30px; }
+    .footer__top div { min-width: 160px; }
+    .footer__top strong { display: block; font-size: 15px; padding-bottom: 8px; }
+    .footer__top a { display: block; color: #fff; padding: 5px 0; font-size: 14px; }
+    .footer__bar { border-top: 1px solid rgba(255, 255, 255, 0.2); }
+    .footer__bar .wrap {
+      display: flex; gap: 32px; flex-wrap: wrap; padding-top: 20px; padding-bottom: 26px; font-size: 13px; color: #cfcbcc;
+    }
+
+    @media (max-width: 980px) {
+      .grid, .cards, .form-row { flex-direction: column; }
+      .col-side { flex: 1 1 auto; width: 100%; }
+      nav.primary, .util { display: none; }
+      .hero__panel { position: static; max-width: none; padding: 28px 24px; }
+      .hero__panel h1 { font-size: 34px; line-height: 32px; }
+      .wrap { padding: 0 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="notice" id="notice">
+    <div class="wrap">
+      <p>We&rsquo;ve made some upgrades to our online member services and <em>My Membership</em> app, including now allowing partner access and email log in capabilities. If you&rsquo;re having any issues logging in, you can still use your membership number.</p>
+      <button type="button" aria-label="Close" onclick="document.getElementById('notice').style.display='none';">&times;</button>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="wrap">
+      <div class="header-top">
+        <a class="brand" href="#" aria-label="HCF">
+          <img src="https://www.hcf.com.au/content/dam/hcf/images/placeholder/logo_hcf1.png"
+               alt="HCF"
+               onerror="this.onerror=null;this.style.display='none';document.getElementById('brand-fallback').style.display='inline';">
+          <span class="brand-fallback" id="brand-fallback">HCF</span>
+        </a>
+        <div class="util">
+          <a href="#">
+            <svg viewBox="0 0 24 24"><path d="M4 8v8M8 5v14M12 9v6M16 5v14M20 8v8"/></svg>
+            Health programs
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .9-1 1.6v.4"/><path d="M12 17h.01"/></svg>
+            Get help
+          </a>
+          <a href="#">
+            <svg viewBox="0 0 24 24"><path d="M4 5h13v9H9l-5 4z"/><path d="M8 8h5"/></svg>
+            Chat to us
+          </a>
+          <a class="login" href="#">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.2"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/><circle cx="12" cy="12" r="9.2"/></svg>
+            Login
+          </a>
+        </div>
+      </div>
+      <div class="header-main">
+        <nav class="primary">
+          <a href="#">Compare &amp; Switch</a>
+          <a href="#" class="is-active">Health</a>
+          <a href="#">Overseas Health Cover</a>
+          <a href="#">Life</a>
+          <a href="#">Travel</a>
+          <a href="#">Pet, Home &amp; Car</a>
+          <a href="#">About HCF</a>
+        </nav>
+        <button class="search-btn" type="button" aria-label="Search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5L21 21"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="crumbs">
+    <div class="wrap">
+      <a href="#">Home</a><span class="sep">&rsaquo;</span><a href="#">Health</a><span class="sep">&rsaquo;</span>Make a claim
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="hero__media">
+      <img src="https://www.hcf.com.au/content/dam/hcf/images/campaigns/make-a-claim/HCF-Make-A-Claim-Header-Image-Desktop-2880x1150px.jpg"
+           alt="An HCF member claiming online at home"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1585421514738-01798e348b17?w=2000&amp;q=80';">
+    </div>
+    <div class="hero__panel">
+      <h1>Claim your extras<span>online in minutes</span></h1>
+    </div>
+  </section>
+  <div class="blocks"><i></i><i></i><i></i><i></i><i></i></div>
+
+  <div class="section">
+    <div class="wrap">
+      <div class="grid">
+        <div class="col-main">
+          <section class="card" id="make-a-claim">
+            <div class="card__body">
+              <h2>Claim on your extras cover</h2>
+              <p class="lede">Send us a receipt for dental, optical, physio and other extras services you&rsquo;ve already paid for. We&rsquo;ll assess your benefit and pay it into your nominated bank account &mdash; usually within two business days.</p>
+
+              <div class="member-strip">
+                <div><span>Membership</span><strong id="member-name">Alicia Nguyen</strong></div>
+                <div><span>Cover</span><strong id="cover-tier">Top Extras 60 (2026)</strong></div>
+                <div><span>Status</span><strong>Active &mdash; waiting periods served</strong></div>
+                <div><span>Member services</span><strong>13 13 34</strong></div>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="membershipNumber">Membership number *</label>
+                  <select id="membershipNumber">
+                    <option value="HCF-8815427" selected>HCF-8815427 &mdash; Top Extras 60 (2026)</option>
+                    <option value="HCF-4420913">HCF-4420913 &mdash; Mid Extras 60</option>
+                    <option value="HCF-6733208">HCF-6733208 &mdash; Starter Extras 50</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="personId">Who was the service for? *</label>
+                  <select id="personId"></select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="serviceType">Service claimed *</label>
+                  <select id="serviceType">
+                    <option value="dental" selected>Dental &mdash; comprehensive exam, scale &amp; clean</option>
+                    <option value="optical">Optical &mdash; prescription glasses</option>
+                    <option value="physiotherapy">Physiotherapy &mdash; standard consultation</option>
+                    <option value="chiropractic">Chiropractic &mdash; subsequent consultation</option>
+                    <option value="remedial_massage">Remedial massage &mdash; 60 minutes</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="serviceDate">Date of service *</label>
+                  <input type="date" id="serviceDate" value="2026-08-24">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="field">
+                  <label for="providerName">Provider *</label>
+                  <input type="text" id="providerName" value="Bondi Junction Dental Care">
+                  <div class="hint">The clinic or practitioner shown on your receipt.</div>
+                </div>
+                <div class="field">
+                  <label for="providerNumber">Provider number *</label>
+                  <input type="text" id="providerNumber" value="0451234A">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="receipts">Attach your receipt (optional)</label>
+                <div class="file-drop">
+                  <input type="file" id="receipts" multiple accept="image/*,application/pdf">
+                  <span class="file-note">JPG, PNG or PDF up to 10&nbsp;MB each. An itemised receipt speeds up assessment.</span>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn--primary" id="submit-claim" type="button">Submit claim</button>
+                <span class="legal">By submitting, you declare the service was provided as described and the account has been paid in full. HCF may request the original receipt.</span>
+              </div>
+
+              <div class="result result--error" id="claim-error">
+                <h4>We couldn&rsquo;t assess your claim</h4>
+                <p>Your claim hasn&rsquo;t been submitted. Our digital team has been notified. Please try again shortly, or call member services on 13 13 34 to claim over the phone.</p>
+                <pre id="claim-error-tech"></pre>
+              </div>
+
+              <div class="result result--ok" id="claim-ok">
+                <h4>Claim received</h4>
+                <p id="claim-ok-lede"></p>
+                <dl id="claim-ok-details"></dl>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="col-side">
+          <div class="rail">
+            <h3>Claim over the phone</h3>
+            <div class="phone">13 13 34</div>
+            <p style="margin:6px 0 0;font-size:14px;color:#8a8586;">Monday to Friday, 8am &ndash; 8pm AEST.</p>
+          </div>
+          <div class="rail">
+            <h3>What you&rsquo;ll need</h3>
+            <ul>
+              <li>Your membership number</li>
+              <li>The name of the person treated</li>
+              <li>Date of service and provider number</li>
+              <li>An itemised, fully paid receipt</li>
+              <li>Your nominated bank account for payment</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="cards">
+      <section class="card">
+        <div class="card__body">
+          <h3>Other ways to claim</h3>
+          <a href="#">Claim on the spot with HICAPS</a>
+          <a href="#">Claim in the My Membership app</a>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card__body">
+          <h3>Hospital &amp; ambulance</h3>
+          <a href="#">Claiming for a hospital stay</a>
+          <a href="#">Ambulance cover and claims</a>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card__body">
+          <h3>Your limits</h3>
+          <a href="#">Check your remaining extras limits</a>
+          <a href="#">Find a More for You provider</a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="help">
+    <div class="wrap">
+      <h2>Need a hand with your claim?</h2>
+      <a class="btn btn--white" href="#">Contact us</a>
+    </div>
+  </div>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="footer__top">
+        <div>
+          <img src="https://www.hcf.com.au/etc.clientlibs/hcf-digital/clientlibs-assets/resources/img/icons/logo_hcf-footer.png"
+               alt="HCF"
+               onerror="this.onerror=null;this.style.display='none';">
+        </div>
+        <div>
+          <strong>Health cover</strong>
+          <a href="#">Hospital cover</a>
+          <a href="#">Extras cover</a>
+          <a href="#">Combined cover</a>
+        </div>
+        <div>
+          <strong>Members</strong>
+          <a href="#">Make a claim</a>
+          <a href="#">My Membership app</a>
+          <a href="#">Find a provider</a>
+        </div>
+        <div>
+          <strong>About HCF</strong>
+          <a href="#">Our story</a>
+          <a href="#">HCF Research Foundation</a>
+          <a href="#">Careers</a>
+        </div>
+        <div>
+          <strong>Get in touch</strong>
+          <a href="#">Contact us</a>
+          <a href="#">Find a branch</a>
+          <a href="#">13 13 34</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer__bar">
+      <div class="wrap">
+        <span>&copy; 2026 The Hospitals Contribution Fund of Australia Limited ABN 68 000 026 746 AFSL 241 414</span>
+        <span>Privacy</span>
+        <span>Terms of use</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side HCF identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    var MEMBERSHIPS = {
+      'HCF-8815427': {
+        memberName: 'Alicia Nguyen',
+        coverTierLabel: 'Top Extras 60 (2026)',
+        people: [
+          { personId: 'P01', name: 'Alicia Nguyen', relationship: 'Member' },
+          { personId: 'P02', name: 'Jordan Nguyen', relationship: 'Partner' },
+        ],
+      },
+      'HCF-4420913': {
+        memberName: 'Daniel Whitcombe',
+        coverTierLabel: 'Mid Extras 60',
+        people: [{ personId: 'P01', name: 'Daniel Whitcombe', relationship: 'Member' }],
+      },
+      'HCF-6733208': {
+        memberName: 'Priya Raman',
+        coverTierLabel: 'Starter Extras 50',
+        people: [
+          { personId: 'P01', name: 'Priya Raman', relationship: 'Member' },
+          { personId: 'P02', name: 'Leo Raman', relationship: 'Dependant' },
+        ],
+      },
+    };
+
+    var membershipSelect = document.getElementById('membershipNumber');
+    var personSelect = document.getElementById('personId');
+    var errorBox = document.getElementById('claim-error');
+    var errorTech = document.getElementById('claim-error-tech');
+    var okBox = document.getElementById('claim-ok');
+    var okLede = document.getElementById('claim-ok-lede');
+    var okDetails = document.getElementById('claim-ok-details');
+
+    function syncMembership() {
+      var membership = MEMBERSHIPS[membershipSelect.value];
+      document.getElementById('member-name').textContent = membership.memberName;
+      document.getElementById('cover-tier').textContent = membership.coverTierLabel;
+      personSelect.innerHTML = '';
+      membership.people.forEach(function (person) {
+        var option = document.createElement('option');
+        option.value = person.personId;
+        option.textContent = person.name + ' \u00b7 ' + person.relationship;
+        personSelect.appendChild(option);
+      });
+    }
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function showError(payload) {
+      okBox.classList.remove('show');
+      errorTech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'CLAIM_BENEFIT_FAILED')
+        + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+      errorBox.classList.add('show');
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(claim) {
+      errorBox.classList.remove('show');
+      okLede.textContent = 'Claim ' + claim.claimNumber + ' has been received for ' + claim.patientName
+        + '. ' + claim.benefitPaidTo + ' will be credited by '
+        + new Date(claim.paymentExpectedBy).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) + '.';
+      okDetails.innerHTML = '';
+      [
+        ['Cover', claim.coverTier],
+        ['Service', claim.serviceType],
+        ['Fee charged', money(claim.feeCharged)],
+        ['Benefit paid', money(claim.benefitPaid)],
+        ['Out of pocket', money(claim.outOfPocket)],
+        ['Assessor', claim.assessor.name + ' \u00b7 ' + claim.assessor.phone],
+      ].forEach(function (row) {
+        var dt = document.createElement('dt');
+        dt.textContent = row[0];
+        var dd = document.createElement('dd');
+        dd.textContent = row[1];
+        okDetails.appendChild(dt);
+        okDetails.appendChild(dd);
+      });
+      okBox.classList.add('show');
+      okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function submitClaim(button) {
+      if (button._running) return;
+      button._running = true;
+      button.disabled = true;
+      var original = button.textContent;
+      button.textContent = 'Assessing your claim\u2026';
+      errorBox.classList.remove('show');
+      okBox.classList.remove('show');
+
+      var receipts = document.getElementById('receipts');
+
+      await identityReady;
+
+      fetch('/api/hcf/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          membershipNumber: membershipSelect.value,
+          personId: personSelect.value,
+          serviceType: document.getElementById('serviceType').value,
+          serviceDate: document.getElementById('serviceDate').value,
+          providerName: document.getElementById('providerName').value.trim(),
+          providerNumber: document.getElementById('providerNumber').value.trim(),
+          receiptCount: receipts && receipts.files ? receipts.files.length : 0,
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    }
+
+    membershipSelect.addEventListener('change', syncMembership);
+    document.getElementById('submit-claim').addEventListener('click', function () { submitClaim(this); });
+    syncMembership();
+  </script>
+</body>
+</html>
