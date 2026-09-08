@@ -144,6 +144,10 @@
         font-weight: 700;
         cursor: pointer;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         margin-top: 14px;
         padding: 15px;
@@ -157,7 +161,7 @@
         background: #fff0f0;
         color: #952b2b;
       }
-      .side img {
+      aside img {
         width: 100%;
         height: 210px;
         object-fit: cover;
@@ -315,7 +319,9 @@
           e.preventDefault();
           const b = document.getElementById("submitBtn"),
             r = document.getElementById("result");
+          const label = b.textContent;
           b.disabled = true;
+          b.textContent = "Claim wordt verzonden…";
           r.className = "result-box";
           try {
             const res = await fetch("/api/insurance/claim", {
@@ -349,6 +355,7 @@
               "Je schademelding kon nu niet worden verwerkt. Probeer het later opnieuw.";
           } finally {
             b.disabled = false;
+            b.textContent = label;
           }
         });
     </script>
