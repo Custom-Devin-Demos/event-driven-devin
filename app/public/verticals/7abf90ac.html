@@ -746,6 +746,17 @@
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
         const result = document.getElementById('result');
+        const show = (cls, title, detail) => {
+          result.className = 'result-box ' + cls;
+          result.textContent = '';
+          const t = document.createElement('div');
+          t.className = 'error-title';
+          t.textContent = title;
+          const d = document.createElement('div');
+          d.className = 'error-detail';
+          d.textContent = detail;
+          result.append(t, d);
+        };
         btn.disabled = true;
         btn.textContent = 'Updating your plan\u2026';
         result.className = 'result-box';
@@ -765,16 +776,13 @@
           });
           const data = await res.json();
           if (!res.ok) {
-            result.className = 'result-box error';
-            result.innerHTML = '<div class="error-title">We couldn\u2019t update your plan</div><div class="error-detail">' + data.errorClass + ': ' + data.error + '</div>';
+            show('error', 'We couldn\u2019t update your plan', data.errorClass + ': ' + data.error);
           } else {
             const label = document.getElementById('newPlan').selectedOptions[0].textContent.split(' \u2014 ')[0];
-            result.className = 'result-box success';
-            result.innerHTML = '<div class="error-title">Your plan change is confirmed</div><div class="error-detail">' + label + ' starts on your next billing date. Confirmation sent to your email.</div>';
+            show('success', 'Your plan change is confirmed', label + ' starts on your next billing date. Confirmation sent to your email.');
           }
         } catch (err) {
-          result.className = 'result-box error';
-          result.innerHTML = '<div class="error-title">Network error</div><div class="error-detail">' + err.message + '</div>';
+          show('error', 'Network error', err.message);
         } finally {
           btn.disabled = false;
           btn.textContent = 'Confirm plan change';
