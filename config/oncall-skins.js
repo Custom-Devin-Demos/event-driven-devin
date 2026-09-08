@@ -1069,6 +1069,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MONTE CARLO SITE — internal demo only, not affiliated with, endorsed by, or a real Monte Carlo product.',
   },
+  'a46b7c5e': {
+    slug: 'a46b7c5e',
+    company: 'Erste Bank',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: {
+      file: 'a46b7c5e.html',
+      title: 'Send money | George – Erste Bank',
+    },
+    theme: {
+      '--accent': '#2870ED',
+      '--ink': '#303030',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0B1F42',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Erste Bank Customer Service',
+    disclaimer: 'NOT ACTUALLY AN ERSTE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Erste Group product.',
+  },
 };
 
 function getOncallSkin(slug) {
