@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay someone | Suncorp Bank Internet Banking</title>
+  <link rel="icon" href="https://www.suncorpbank.com.au/content/dam/suncorp/corporate/images/logos/updated-suncorp-bank-198x40.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal-dark: #004346;
+      --teal: #008c80;
+      --teal-tint: #e5f3f2;
+      --yellow: #ffcd05;
+      --yellow-dark: #e8ba00;
+      --ink: #000000;
+      --muted: #55605f;
+      --page: #f2f2ee;
+      --border: #d4d7d5;
+      --error: #c8102e;
+      --error-bg: #fdeceb;
+      --success: #007a3d;
+      --success-bg: #eaf6ef;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: 'Figtree', 'GT-Walsheim', Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--teal); text-decoration: underline; }
+    a:hover { color: var(--teal-dark); }
+
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---------- Internet Banking header ---------- */
+    .ib-header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+    }
+    .ib-header__inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 20px 24px 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { height: 26px; width: auto; display: block; }
+    .brand__fallback {
+      display: none;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      font-size: 19px;
+      color: var(--teal-dark);
+    }
+    .brand__fallback i {
+      display: inline-block;
+      width: 18px; height: 18px;
+      margin-left: 8px;
+      border-radius: 50%;
+      background: var(--yellow);
+      vertical-align: -3px;
+    }
+    .ib-title { text-align: right; }
+    .ib-title__row {
+      display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+    }
+    .ib-title h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 38px;
+      font-weight: 400;
+      color: var(--teal-dark);
+      letter-spacing: -0.3px;
+    }
+    .ib-title__lock {
+      width: 18px; height: 22px;
+      border: 2px solid var(--teal-dark);
+      border-radius: 3px;
+      position: relative;
+      margin-top: 6px;
+    }
+    .ib-title__lock::before {
+      content: '';
+      position: absolute;
+      top: -8px; left: 3px;
+      width: 8px; height: 8px;
+      border: 2px solid var(--teal-dark);
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+    }
+    .ib-title__meta {
+      margin-top: 2px;
+      font-size: 15px;
+      color: var(--teal-dark);
+    }
+    .ib-title__meta strong { font-weight: 700; }
+    .ib-title__meta span { color: var(--muted); }
+
+    /* ---------- Logged-in nav ---------- */
+    .ib-nav { background: var(--teal-dark); }
+    .ib-nav__inner {
+      max-width: 1140px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    }
+    .ib-nav a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 16px;
+      display: block;
+    }
+    .ib-nav a:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+    .ib-nav a.is-active {
+      background: var(--page);
+      color: var(--teal-dark);
+      font-weight: 700;
+    }
+    .ib-nav__spacer { flex: 1; }
+    .ib-nav__user { color: #cfe4e2; font-size: 14px; padding: 14px 8px 14px 16px; }
+    .ib-nav__logout { color: #fff; }
+
+    /* ---------- Layout ---------- */
+    .crumbs {
+      font-size: 14px;
+      color: var(--muted);
+      padding: 16px 0 0;
+    }
+    .crumbs a { color: var(--teal); }
+    .crumbs span { margin: 0 7px; color: #9aa3a1; }
+
+    .page-head { padding: 10px 0 22px; }
+    .page-head h2 {
+      margin: 6px 0 6px;
+      font-size: 36px;
+      line-height: 42px;
+      font-weight: 700;
+      color: var(--teal-dark);
+      letter-spacing: -0.4px;
+    }
+    .page-head p { margin: 0; color: var(--muted); max-width: 640px; }
+
+    .cols {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 344px;
+      gap: 28px;
+      align-items: start;
+      padding-bottom: 48px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 28px 30px 30px;
+    }
+    .card h3 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      line-height: 30px;
+      font-weight: 700;
+      color: var(--teal-dark);
+    }
+    .card__hint { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 7px;
+      color: var(--ink);
+    }
+    .field .sub { font-weight: 400; color: var(--muted); font-size: 14px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 11px 12px;
+      font: inherit;
+      font-size: 16px;
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid #767b7a;
+      border-radius: 0;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 2px var(--yellow);
+    }
+    .field textarea { min-height: 78px; resize: vertical; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+    .amount-wrap { position: relative; }
+    .amount-wrap span {
+      position: absolute; left: 12px; top: 11px; color: var(--muted); font-size: 16px;
+    }
+    .amount-wrap input { padding-left: 26px; font-weight: 700; }
+
+    .radios { display: flex; gap: 10px; flex-wrap: wrap; }
+    .radio {
+      flex: 1 1 160px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+      cursor: pointer;
+      background: #fff;
+    }
+    .radio input { margin: 3px 0 0; width: auto; }
+    .radio b { display: block; font-size: 15px; }
+    .radio small { color: var(--muted); }
+    .radio.is-selected { border-color: var(--teal); background: var(--teal-tint); }
+
+    .acct-strip {
+      background: var(--teal-tint);
+      border: 1px solid #cde3e0;
+      padding: 14px 16px;
+      display: flex; flex-wrap: wrap; gap: 22px;
+      margin-bottom: 22px;
+      font-size: 14px;
+    }
+    .acct-strip div span { display: block; color: var(--muted); }
+    .acct-strip div b { color: var(--teal-dark); font-size: 15px; }
+
+    .actions { display: flex; align-items: center; gap: 18px; margin-top: 26px; }
+    .btn {
+      font: inherit;
+      font-size: 17px;
+      font-weight: 700;
+      border: 1px solid var(--yellow);
+      background: var(--yellow);
+      color: #000;
+      padding: 12px 34px;
+      border-radius: 23px;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--yellow-dark); border-color: var(--yellow-dark); }
+    .btn:disabled { opacity: 0.65; cursor: default; }
+    .btn--ghost {
+      background: transparent;
+      border-color: var(--teal-dark);
+      color: var(--teal-dark);
+      font-weight: 700;
+    }
+    .btn--ghost:hover { background: var(--teal-tint); border-color: var(--teal-dark); }
+
+    /* ---------- Side rail ---------- */
+    .rail { display: grid; gap: 20px; }
+    .rail__card { background: #fff; border: 1px solid var(--border); padding: 22px 24px; }
+    .rail__card h4 {
+      margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--teal-dark);
+    }
+    .rail__card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 15px; }
+    .rail__card ul li { margin-bottom: 8px; }
+    .rail__links { list-style: none; padding: 0; margin: 0; }
+    .rail__links li { border-top: 1px solid var(--border); }
+    .rail__links li:first-child { border-top: none; }
+    .rail__links a {
+      display: block; padding: 11px 0; text-decoration: none; color: var(--teal);
+      font-size: 15px;
+    }
+    .rail__links a::before { content: '›'; margin-right: 8px; color: var(--teal); }
+    .rail__phone { font-size: 22px; font-weight: 700; color: var(--teal-dark); }
+
+    /* ---------- Result panels ---------- */
+    .panel { display: none; margin-top: 24px; padding: 20px 22px; }
+    .panel h4 { margin: 0 0 8px; font-size: 20px; font-weight: 700; }
+    .panel p { margin: 0 0 10px; }
+    .panel--error { background: var(--error-bg); border-left: 5px solid var(--error); }
+    .panel--error h4 { color: var(--error); }
+    .panel--success { background: var(--success-bg); border-left: 5px solid var(--success); }
+    .panel--success h4 { color: var(--success); }
+    .tech {
+      margin: 12px 0 0;
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      color: #3d2020;
+    }
+    .receipt { list-style: none; padding: 0; margin: 12px 0 0; font-size: 15px; }
+    .receipt li {
+      display: flex; justify-content: space-between; gap: 16px;
+      padding: 7px 0; border-bottom: 1px solid #cfe3d6;
+    }
+    .receipt li span { color: var(--muted); }
+    .receipt li b { color: var(--ink); }
+
+    /* ---------- Footer ---------- */
+    .ib-footer { background: #fff; border-top: 1px solid var(--border); padding: 22px 0 34px; }
+    .ib-footer__links { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 12px; }
+    .ib-footer__links a { font-size: 15px; }
+    .ib-footer p { margin: 0 0 6px; font-size: 13px; color: var(--muted); max-width: 900px; }
+
+    @media (max-width: 940px) {
+      .cols { grid-template-columns: minmax(0, 1fr); }
+      .ib-header__inner { flex-direction: column; align-items: flex-start; }
+      .ib-title, .ib-title__row { text-align: left; justify-content: flex-start; }
+      .ib-title h1 { font-size: 28px; }
+      .row2 { grid-template-columns: 1fr; }
+      .page-head h2 { font-size: 30px; line-height: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="ib-header">
+    <div class="ib-header__inner">
+      <div class="brand">
+        <img src="https://www.suncorpbank.com.au/content/dam/suncorp/corporate/images/logos/updated-suncorp-bank-198x40.png"
+             alt="Suncorp Bank"
+             onerror="this.onerror=null;this.style.display='none';document.getElementById('brand-fallback').style.display='inline-block';">
+        <span class="brand__fallback" id="brand-fallback">SUNCORP BANK<i></i></span>
+      </div>
+      <div class="ib-title">
+        <div class="ib-title__row">
+          <h1>Internet Banking</h1>
+          <div class="ib-title__lock" aria-hidden="true"></div>
+        </div>
+        <div class="ib-title__meta">
+          <strong>BSB</strong> 484-799 &nbsp; <strong>Swift Code</strong> <span>METWAU4B</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="ib-nav">
+    <div class="ib-nav__inner">
+      <a href="#">My accounts</a>
+      <a href="#" class="is-active">Pay &amp; transfer</a>
+      <a href="#">Payees &amp; PayID</a>
+      <a href="#">Statements</a>
+      <a href="#">Cards</a>
+      <a href="#">Settings</a>
+      <span class="ib-nav__spacer"></span>
+      <span class="ib-nav__user">Logged in as A. WHITCOMBE</span>
+      <a href="#" class="ib-nav__logout">Log out</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <div class="crumbs">
+        <a href="#">My accounts</a><span>›</span><a href="#">Pay &amp; transfer</a><span>›</span>Pay someone
+      </div>
+      <div class="page-head">
+        <h2>Pay someone</h2>
+        <p>Pay an existing payee from your Suncorp Bank account. Payments to Osko-enabled accounts usually
+          arrive within 60 seconds.</p>
+      </div>
+
+      <div class="cols">
+        <section class="card">
+          <h3>Payment details</h3>
+          <p class="card__hint">Check the payee details carefully — payments can't always be recovered.</p>
+
+          <div class="acct-strip" id="acct-strip">
+            <div><span>Available balance</span><b id="strip-balance">$4,812.55</b></div>
+            <div><span>Account</span><b id="strip-account">484-799 502113847</b></div>
+            <div><span>Product</span><b id="strip-product">Everyday Options (2026)</b></div>
+          </div>
+
+          <div class="field">
+            <label for="fromAccountId">From account</label>
+            <select id="fromAccountId">
+              <option value="502113847">Everyday Options — 484-799 502113847</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="payeeId">Pay to</label>
+            <select id="payeeId">
+              <option value="PAY-1001">Sarah Whitcombe — 124-001 10294477</option>
+            </select>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label for="amount">Amount</label>
+              <div class="amount-wrap">
+                <span>$</span>
+                <input id="amount" type="text" value="850.00" inputmode="decimal">
+              </div>
+            </div>
+            <div class="field">
+              <label for="paymentDate">Payment date</label>
+              <input id="paymentDate" type="date" value="2026-09-08">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="description">Description <span class="sub">— shows on both statements</span></label>
+            <input id="description" type="text" value="Rent — September" maxlength="40">
+          </div>
+
+          <div class="field">
+            <label>Payment method</label>
+            <div class="radios">
+              <label class="radio is-selected" id="method-osko">
+                <input type="radio" name="payMethod" value="osko" checked>
+                <span><b>Osko&reg; payment</b><small>Usually within 60 seconds</small></span>
+              </label>
+              <label class="radio" id="method-payid">
+                <input type="radio" name="payMethod" value="payid">
+                <span><b>Pay to PayID</b><small>Uses the payee's email PayID</small></span>
+              </label>
+              <label class="radio" id="method-direct">
+                <input type="radio" name="payMethod" value="direct">
+                <span><b>Direct credit</b><small>Next business day</small></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="pay-now" type="button">Pay now</button>
+            <button class="btn btn--ghost" type="button">Cancel</button>
+          </div>
+
+          <div class="panel panel--error" id="payment-error">
+            <h4>We couldn't process this payment</h4>
+            <p id="error-copy">Your payment hasn't been made and no money has left your account. Our digital
+              team has been notified. Please try again shortly, or call us on 13 11 75.</p>
+            <pre class="tech" id="error-tech"></pre>
+          </div>
+
+          <div class="panel panel--success" id="payment-success">
+            <h4>Payment submitted</h4>
+            <p id="success-copy"></p>
+            <ul class="receipt" id="success-receipt"></ul>
+          </div>
+        </section>
+
+        <aside class="rail">
+          <div class="rail__card">
+            <h4>Before you pay</h4>
+            <ul>
+              <li>Confirm the BSB and account number with the payee directly.</li>
+              <li>We can't recover a payment sent to the wrong account.</li>
+              <li>Daily payment limits apply and vary by account product.</li>
+            </ul>
+          </div>
+          <div class="rail__card">
+            <h4>Need help?</h4>
+            <p class="rail__phone">13 11 75</p>
+            <p style="margin:0;color:var(--muted);font-size:14px;">Mon–Fri 8am–8pm, Sat 9am–6pm (AEST)</p>
+          </div>
+          <div class="rail__card">
+            <h4>Related</h4>
+            <ul class="rail__links">
+              <li><a href="#">Manage payees &amp; PayID</a></li>
+              <li><a href="#">Change your payment limits</a></li>
+              <li><a href="#">Scheduled &amp; recurring payments</a></li>
+              <li><a href="#">Be alert to common scams</a></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="ib-footer">
+    <div class="wrap">
+      <div class="ib-footer__links">
+        <a href="#">Terms and Conditions</a>
+        <a href="#">Contact Us</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Security</a>
+      </div>
+      <p>&copy; 2026 Suncorp Bank (Norfina Limited ABN 66 010 831 722). Internet Banking issued by
+        Suncorp Bank (Norfina Limited AFSL No 229882).</p>
+      <p>Osko&reg; is a registered trademark of NPP Australia Limited.</p>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side Suncorp identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    // Presenter defaults: the everyday account and payee the demo submits with no typing.
+    var DEFAULT_ACCOUNT_ID = '502113847';
+    var DEFAULT_PAYEE_ID = 'PAY-1001';
+
+    var accountSelect = document.getElementById('fromAccountId');
+    var payeeSelect = document.getElementById('payeeId');
+    var accounts = [];
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', {
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+      });
+    }
+
+    function renderStrip() {
+      var account = accounts.filter(function (a) { return a.accountId === accountSelect.value; })[0];
+      if (!account) return;
+      document.getElementById('strip-balance').textContent = money(account.availableBalance);
+      document.getElementById('strip-account').textContent = account.bsb + ' ' + account.accountNumber;
+      document.getElementById('strip-product').textContent = account.productLabel;
+    }
+
+    fetch('/api/suncorp/accounts')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        accounts = data.accounts || [];
+        if (!accounts.length || !(data.payees || []).length) return;
+        accountSelect.innerHTML = accounts.map(function (a) {
+          return '<option value="' + a.accountId + '">' + a.accountName + ' — ' + a.bsb + ' '
+            + a.accountNumber + ' (' + money(a.availableBalance) + ')</option>';
+        }).join('');
+        payeeSelect.innerHTML = (data.payees || []).map(function (p) {
+          return '<option value="' + p.payeeId + '">' + p.name + ' — ' + p.bsb + ' '
+            + p.accountNumber + '</option>';
+        }).join('');
+        accountSelect.value = DEFAULT_ACCOUNT_ID;
+        payeeSelect.value = DEFAULT_PAYEE_ID;
+        renderStrip();
+      })
+      .catch(function () {});
+
+    accountSelect.addEventListener('change', renderStrip);
+
+    var methodBoxes = Array.prototype.slice.call(document.querySelectorAll('.radio'));
+    methodBoxes.forEach(function (box) {
+      box.addEventListener('click', function () {
+        methodBoxes.forEach(function (other) { other.classList.remove('is-selected'); });
+        box.classList.add('is-selected');
+      });
+    });
+
+    function selectedMethod() {
+      var checked = document.querySelector('input[name="payMethod"]:checked');
+      return checked ? checked.value : 'osko';
+    }
+
+    function hidePanels() {
+      document.getElementById('payment-error').style.display = 'none';
+      document.getElementById('payment-success').style.display = 'none';
+    }
+
+    function showError(payload) {
+      hidePanels();
+      document.getElementById('error-tech').textContent =
+        (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'PAYMENT_AUTHORISATION_FAILED')
+        + ' · Reference ID: ' + (payload.requestId || 'unavailable');
+      document.getElementById('payment-error').style.display = 'block';
+      document.getElementById('payment-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(payload) {
+      hidePanels();
+      document.getElementById('success-copy').textContent =
+        'Your payment to ' + (payload.payeeName || 'the payee') + ' has been submitted. '
+        + (payload.clearedAt ? 'Expected to clear: ' + payload.clearedAt + '.' : '');
+      var rows = [
+        ['Receipt number', payload.receiptNumber],
+        ['From', payload.fromAccount],
+        ['Amount', payload.amount != null ? money(payload.amount) : null],
+        ['Daily limit remaining', payload.remainingDailyLimit != null
+          ? money(payload.remainingDailyLimit) : null],
+        ['Settlement queue', payload.settlementQueue],
+      ].filter(function (row) { return row[1]; });
+      document.getElementById('success-receipt').innerHTML = rows.map(function (row) {
+        return '<li><span>' + row[0] + '</span><b>' + row[1] + '</b></li>';
+      }).join('');
+      document.getElementById('payment-success').style.display = 'block';
+      document.getElementById('payment-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    document.getElementById('pay-now').addEventListener('click', async function () {
+      var button = this;
+      if (button._running) return;
+      button._running = true;
+      var original = button.textContent;
+      button.textContent = 'Processing…';
+      button.disabled = true;
+      hidePanels();
+
+      await identityReady;
+
+      fetch('/api/suncorp/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fromAccountId: accountSelect.value,
+          payeeId: payeeSelect.value,
+          amount: document.getElementById('amount').value.trim(),
+          description: document.getElementById('description').value.trim(),
+          paymentDate: document.getElementById('paymentDate').value,
+          payMethod: selectedMethod(),
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    });
+  </script>
+</body>
+</html>
