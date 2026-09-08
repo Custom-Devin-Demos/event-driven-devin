@@ -137,6 +137,30 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  '70d04b0f': {
+    slug: '70d04b0f',
+    company: 'Cyera',
+    brandMark: 'C',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '70d04b0f.html',
+      title: 'Cyera — Data Security Platform',
+    },
+    accent: '#6D2D93',
+    accentDark: '#441363',
+    theme: {
+      '--accent': '#6D2D93',
+      '--ink': '#160923',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#160923',
+      '--chrome-text': '#f6f5f1',
+    },
+    supportCenter: 'Cyera Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CYERA SITE — internal demo only, not affiliated with, endorsed by, or a real Cyera product.',
+  },
   '71dff37b': {
     slug: '71dff37b',
     company: 'Point72',
