@@ -23,12 +23,40 @@ const { getScopedConfig } = require('../../incidentModes');
  *    up to 32 is sanctioned and needs no further VendorOps sign-off.
  *  - screeningConcurrency default restored to 16, within the sanctioned
  *    ceiling; values are clamped to SCREENING_MAX_CONCURRENCY.
+ *
+ * The 32-call ceiling is per client, not per request: overlapping transfers
+ * share one partner client identity, so screening calls also pass through a
+ * process-wide budget of SCREENING_MAX_CONCURRENCY.
  */
 const SCREENING_MAX_CONCURRENCY = 32;
 const DEFAULT_SCREENING_CONCURRENCY = 16;
 
 function clampConcurrency(value) {
   return Math.min(SCREENING_MAX_CONCURRENCY, Math.max(1, Math.floor(value)));
+}
+
+let screeningCallsInFlight = 0;
+const screeningSlotWaiters = [];
+
+function acquireScreeningSlot() {
+  if (screeningCallsInFlight < SCREENING_MAX_CONCURRENCY) {
+    screeningCallsInFlight += 1;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => screeningSlotWaiters.push(resolve));
+}
+
+function releaseScreeningSlot() {
+  const next = screeningSlotWaiters.shift();
+  if (next) {
+    next();
+    return;
+  }
+  screeningCallsInFlight -= 1;
+}
+
+function screeningCallsInFlightCount() {
+  return screeningCallsInFlight;
 }
 
 const COMPLIANCE_CONFIG = {
@@ -151,8 +179,13 @@ function effectiveComplianceConfig() {
  * Screen a single historical transaction against the sanctions watchlist.
  */
 async function screenTransaction(txn) {
-  await new Promise((resolve) => setTimeout(resolve, 180 + Math.random() * 140));
-  return { txnId: txn.id, counterparty: txn.counterparty, cleared: true };
+  await acquireScreeningSlot();
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 180 + Math.random() * 140));
+    return { txnId: txn.id, counterparty: txn.counterparty, cleared: true };
+  } finally {
+    releaseScreeningSlot();
+  }
 }
 
 /**
@@ -359,4 +392,10 @@ async function processTransfer(data, options = {}) {
   }
 }
 
-module.exports = { processTransfer, ACCOUNTS, COMPLIANCE_CONFIG };
+module.exports = {
+  processTransfer,
+  ACCOUNTS,
+  COMPLIANCE_CONFIG,
+  SCREENING_MAX_CONCURRENCY,
+  screeningCallsInFlightCount,
+};
