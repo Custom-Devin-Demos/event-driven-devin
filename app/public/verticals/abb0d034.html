@@ -234,22 +234,28 @@
       const result = document.getElementById('result');
       btn.disabled = true; btn.textContent = 'Deploying...';
       result.className = 'result';
+      const render = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'rt'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'rd'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      };
       try {
         const res = await fetch('/api/licenses/provision', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', region: document.getElementById('region').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result error';
-          result.innerHTML = `<div class="rt">Deployment failed</div><div class="rd">${data.errorClass}: ${data.error}</div>`;
+          render('Deployment failed', `${data.errorClass}: ${data.error}`);
         } else {
           result.className = 'result success';
-          result.innerHTML = `<div class="rt">Monitors deployed</div><div class="rd">${data.seatsAdded} monitors deployed to ${data.product} &mdash; ${data.region || document.getElementById('region').value}</div>`;
+          render('Monitors deployed', `${data.seatsAdded} monitors deployed to ${data.product}`);
         }
       } catch (err) {
         result.className = 'result error';
-        result.innerHTML = `<div class="rt">Network error</div><div class="rd">${err.message}</div>`;
+        render('Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Deploy monitors'; }
     });
   </script>
