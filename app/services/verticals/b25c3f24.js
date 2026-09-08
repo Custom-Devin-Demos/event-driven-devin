@@ -105,7 +105,7 @@ function buildRemediationDirective(issue) {
     REMEDIATION_DIRECTIVE,
     '',
     `*Linear ticket:* ${issue.identifier} — ${issue.url}`,
-    'The app moves the ticket to In Progress and comments your session link right after your session is created; if you see it still in Todo or without the comment, do both yourself first. Ticket lifecycle you own:',
+    'The app moves the ticket to In Progress and comments your session link right after your session is created. If either update is missing, perform only that update yourself first. Ticket lifecycle you own:',
     `- As soon as your PR is open: comment on the ticket with the PR URL (Linear MCP \`create_comment\` / or the GraphQL API with \`LINEAR_API_KEY\`), add the PR link to the ticket, and move the ticket to the "In Review" state (id '${LINEAR_STATE_IN_REVIEW_ID}').`,
     '- Do NOT move the ticket to Done. The reviewer moves it to Done after approving and merging the PR.',
     '- If you push follow-up commits after review feedback, leave the ticket In Review and add a short comment.',
