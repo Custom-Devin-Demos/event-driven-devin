@@ -5,10 +5,16 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const { declareDatadogIncident } = require('../datadog-incidents');
-const { createLinearIssue } = require('../linear');
+const {
+  createLinearIssue,
+  addLinearComment,
+  updateLinearIssueState,
+} = require('../linear');
 
 const LINEAR_TEAM_ID = process.env.LINEAR_TEAM_ID_B25C3F24 || '3c9f0e1e-54da-442d-8949-a62489060822';
 const LINEAR_ASSIGNEE_ID = process.env.LINEAR_ASSIGNEE_ID_B25C3F24 || '4d616028-0c12-4ad9-b117-0661170e857e';
+const LINEAR_STATE_IN_PROGRESS_ID = process.env.LINEAR_STATE_IN_PROGRESS_B25C3F24 || '99c9b96f-39b3-4a09-9112-53c054f3dbab';
+const LINEAR_STATE_IN_REVIEW_ID = process.env.LINEAR_STATE_IN_REVIEW_B25C3F24 || 'd79ea314-a400-4382-9140-d4861fb4e30f';
 
 const PAYMENT_PLANS = [
   {
@@ -91,6 +97,20 @@ const REMEDIATION_DIRECTIVE = [
   '',
   'Open a pull request against `main` with the fix.',
 ].join('\n');
+
+function buildRemediationDirective(issue) {
+  if (!issue) return REMEDIATION_DIRECTIVE;
+
+  return [
+    REMEDIATION_DIRECTIVE,
+    '',
+    `*Linear ticket:* ${issue.identifier} — ${issue.url}`,
+    'The ticket is already In Progress with a comment linking this session. Ticket lifecycle you own:',
+    `- As soon as your PR is open: comment on the ticket with the PR URL (Linear MCP \`create_comment\` / or the GraphQL API with \`LINEAR_API_KEY\`), add the PR link to the ticket, and move the ticket to the "In Review" state (id '${LINEAR_STATE_IN_REVIEW_ID}').`,
+    '- Do NOT move the ticket to Done. The reviewer moves it to Done after approving and merging the PR.',
+    '- If you push follow-up commits after review feedback, leave the ticket In Review and add a short comment.',
+  ].join('\n');
+}
 
 async function verifyIdentity(data) {
   const startTime = Date.now();
@@ -198,66 +218,85 @@ async function verifyIdentity(data) {
       severity: 'SEV-2',
     }).catch((err) => logger.warn('Failed to declare Datadog incident for Affirm identity verification', { error: err.message, checkoutId }));
 
-    createLinearIssue({
-      title: `[Affirm checkout] ${error.name}: ${error.message}`,
-      description: [
-        `Shoppers selecting the ${plan ? plan.termMonths : 'selected'}-month plan cannot complete SSN identity verification at Affirm checkout (merchant: ${merchant}).`,
-        '',
-        '- Service: `customer-b25c3f24-pay-over-time`',
-        '- Route: `POST /api/b25c3f24/verify-identity`',
-        `- Checkout ref: \`${checkoutId}\``,
-        `- Error: \`${error.name}: ${error.message}\``,
-        '',
-        'Repository: https://github.com/COG-GTM/event-driven-devin (`app/services/verticals/b25c3f24.js`).',
-        'Sentry has the stack trace for this service; Datadog has a SEV-2 incident "Affirm identity verification failing at checkout".',
-        '',
-        'Triage with the `!checkout_verification_triage` playbook.',
-      ].join('\n'),
-      teamId: LINEAR_TEAM_ID,
-      assigneeId: LINEAR_ASSIGNEE_ID,
-      priority: 2,
-    }).catch((err) => logger.warn('Failed to create Linear issue for Affirm identity verification', { error: err.message, checkoutId }));
+    (async () => {
+      let issue = null;
+      try {
+        issue = await createLinearIssue({
+          title: `[Affirm checkout] ${error.name}: ${error.message}`,
+          description: [
+            `Shoppers selecting the ${plan ? plan.termMonths : 'selected'}-month plan cannot complete SSN identity verification at Affirm checkout (merchant: ${merchant}).`,
+            '',
+            '- Service: `customer-b25c3f24-pay-over-time`',
+            '- Route: `POST /api/b25c3f24/verify-identity`',
+            `- Checkout ref: \`${checkoutId}\``,
+            `- Error: \`${error.name}: ${error.message}\``,
+            '',
+            'Repository: https://github.com/COG-GTM/event-driven-devin (`app/services/verticals/b25c3f24.js`).',
+            'Sentry has the stack trace for this service; Datadog has a SEV-2 incident "Affirm identity verification failing at checkout".',
+            '',
+            'Triage with the `!checkout_verification_triage` playbook.',
+          ].join('\n'),
+          teamId: LINEAR_TEAM_ID,
+          assigneeId: LINEAR_ASSIGNEE_ID,
+          priority: 2,
+        });
+      } catch (err) {
+        logger.warn('Failed to create Linear issue for Affirm identity verification', { error: err.message, checkoutId });
+      }
 
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/b25c3f24.js \u2014 buildIdentityCheck',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: 'customer-b25c3f24-pay-over-time',
-      verticalLabel: 'Affirm Pay Over Time Checkout',
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: 'b25c3f24',
-      tags: [
-        { key: 'route', value: '/api/b25c3f24/verify-identity' },
-        { key: 'service', value: 'customer-b25c3f24-pay-over-time' },
-        { key: 'plan', value: data.planId },
-        { key: 'merchant', value: merchant },
-      ],
-      extra: {
-        checkoutId,
-        ssnProvided: Boolean(data.ssnLast4),
-        merchant,
-      },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || 'customer-b25c3f24-pay-over-time@1.0.0',
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((err) => {
-      logger.error('Failed to create Devin session for Affirm identity verification error', {
-        error: err.message,
-        checkoutId,
+      const outcome = await createSessionAndAlert({
+        issueTitle: `${error.name}: ${error.message}`,
+        issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
+        culprit: 'app/services/verticals/b25c3f24.js \u2014 buildIdentityCheck',
+        errorType: error.name || 'Error',
+        errorValue: error.message,
+        devinUserId: data.devinUserId,
+        devinEmail: data.devinEmail,
+        devinOrgId: data.devinOrgId,
+        service: 'customer-b25c3f24-pay-over-time',
+        verticalLabel: 'Affirm Pay Over Time Checkout',
+        promptAppendix: buildRemediationDirective(issue),
+        customer: 'b25c3f24',
+        tags: [
+          { key: 'route', value: '/api/b25c3f24/verify-identity' },
+          { key: 'service', value: 'customer-b25c3f24-pay-over-time' },
+          { key: 'plan', value: data.planId },
+          { key: 'merchant', value: merchant },
+        ],
+        extra: {
+          checkoutId,
+          ssnProvided: Boolean(data.ssnLast4),
+          merchant,
+        },
+        level: 'error',
+        platform: 'node',
+        firstSeen: '',
+        lastSeen: new Date().toISOString(),
+        count: '',
+        shortId: '',
+        project: 'event-driven-devin',
+        release: process.env.SENTRY_RELEASE || 'customer-b25c3f24-pay-over-time@1.0.0',
+        environment: process.env.DD_ENV || 'prod',
+        triggeredRule: '',
       });
-    });
+      const session = outcome && outcome.session;
+      if (issue && session) {
+        await addLinearComment({
+          issueId: issue.id,
+          body: [
+            `Devin picked this up: ${session.url}`,
+            '',
+            'Moving to **In Progress**. The PR link will be posted here and the ticket moved to **In Review** once the fix is ready.',
+          ].join('\n'),
+        });
+        await updateLinearIssueState({ issueId: issue.id, stateId: LINEAR_STATE_IN_PROGRESS_ID });
+        logger.info('Linear issue linked to Devin session', {
+          identifier: issue.identifier,
+          sessionId: session.sessionId,
+          checkoutId,
+        });
+      }
+    })().catch((err) => logger.warn('Affirm incident follow-up failed', { error: err.message, checkoutId }));
 
     throw error;
   }
@@ -268,4 +307,7 @@ module.exports = {
   PAYMENT_PLANS,
   IDENTITY_VERIFICATION_PROVIDERS,
   REMEDIATION_DIRECTIVE,
+  buildRemediationDirective,
+  LINEAR_STATE_IN_PROGRESS_ID,
+  LINEAR_STATE_IN_REVIEW_ID,
 };
