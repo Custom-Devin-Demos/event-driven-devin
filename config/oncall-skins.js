@@ -1009,6 +1009,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Deployment Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WIZ SITE — internal demo only, not affiliated with, endorsed by, or a real Wiz product.',
   },
+  'abb0d034': {
+    slug: 'abb0d034',
+    company: 'Monte Carlo',
+    brandMark: 'MC',
+    vertical: 'hightech',
+    page: {
+      file: 'abb0d034.html',
+      title: 'Monte Carlo | Monitors',
+    },
+    theme: {
+      '--accent': '#FF5700',
+      '--ink': '#00111D',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#00111D',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Monte Carlo Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A MONTE CARLO SITE — internal demo only, not affiliated with, endorsed by, or a real Monte Carlo product.',
+  },
 };
 
 function getOncallSkin(slug) {

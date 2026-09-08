@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monte Carlo | Monitors</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #00111D;
+      --panel: #002135;
+      --panel-soft: rgba(0, 33, 53, 0.7);
+      --orange: #FF5700;
+      --orange-dark: #e64e00;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.62);
+      --faint: rgba(255, 255, 255, 0.40);
+      --line: rgba(255, 255, 255, 0.10);
+      --green: #35D07F;
+      --amber: #FFB020;
+      --red: #FF6B5A;
+      --radius: 14px;
+      --sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+    .topbar { display: flex; align-items: center; gap: 2rem; padding: 1rem 2rem; border-bottom: 1px solid var(--line); }
+    .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--text); }
+    .logo-mark { width: 34px; height: 34px; border-radius: 6px; background: #fff; color: #00111D; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; letter-spacing: -0.03em; }
+    .logo-word { font-weight: 700; font-size: 0.86rem; line-height: 1.05; letter-spacing: 0.01em; text-transform: uppercase; }
+    .top-nav { display: flex; gap: 1.6rem; margin-left: 1rem; }
+    .top-nav a { color: var(--text); text-decoration: none; font-size: 0.95rem; font-weight: 500; opacity: 0.9; }
+    .top-nav a:hover { opacity: 1; }
+    .top-actions { margin-left: auto; display: flex; align-items: center; gap: 1.1rem; }
+    .link-login { color: var(--text); text-decoration: none; font-size: 0.95rem; font-weight: 500; }
+    .btn-demo { background: var(--orange); color: #fff; border: 0; border-radius: var(--radius); padding: 12px 22px; font-family: var(--sans); font-size: 0.95rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .btn-demo:hover { background: var(--orange-dark); }
+    @media (max-width: 900px) { .top-nav { display: none; } .topbar { padding: 0.9rem 1.1rem; gap: 0.75rem; } }
+
+    .shell { display: grid; grid-template-columns: 232px 1fr; min-height: calc(100vh - 67px); }
+    @media (max-width: 900px) { .shell { grid-template-columns: 1fr; } .side { display: none; } }
+
+    .side { border-right: 1px solid var(--line); padding: 1.5rem 0.9rem; }
+    .side-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); padding: 0 0.7rem; margin: 1.15rem 0 0.4rem; }
+    .side-label:first-child { margin-top: 0; }
+    .side a { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .side a:hover { background: var(--panel); color: var(--text); }
+    .side a.active { background: var(--panel); color: var(--text); }
+    .side a .count { margin-left: auto; font-size: 0.72rem; font-weight: 600; color: var(--faint); font-family: var(--mono); }
+
+    .main { padding: 1.9rem 2.2rem 3rem; }
+    @media (max-width: 900px) { .main { padding: 1.3rem 1.1rem 2.5rem; } }
+    .back-link { display: inline-flex; color: var(--orange); text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
+    .head h1 { font-size: 2.1rem; font-weight: 600; letter-spacing: -0.035em; }
+    .head p { color: var(--muted); font-size: 1rem; margin-top: 0.2rem; }
+    @media (max-width: 900px) { .head h1 { font-size: 1.6rem; } }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.9rem; margin: 1.6rem 0; }
+    @media (max-width: 1000px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    .stat { background: var(--panel-soft); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.15rem 1.2rem; }
+    .stat-l { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+    .stat-v { font-size: 1.85rem; font-weight: 600; letter-spacing: -0.03em; margin-top: 0.25rem; }
+    .stat-s { font-size: 0.82rem; color: var(--muted); }
+    .stat-s.up { color: var(--green); }
+
+    .cols { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.2rem; align-items: start; }
+    @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
+
+    .card { background: var(--panel-soft); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .card-h { padding: 1.05rem 1.2rem; border-bottom: 1px solid var(--line); font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+    .card-h span { display: block; font-size: 0.84rem; font-weight: 400; color: var(--muted); margin-top: 0.1rem; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); padding: 0.7rem 1.2rem; border-bottom: 1px solid var(--line); }
+    td { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+    tbody tr:last-child td { border-bottom: none; }
+    .mono { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+    .pill { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.76rem; font-weight: 600; padding: 0.15rem 0.6rem; border-radius: 20px; }
+    .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .pill.ok { color: var(--green); background: rgba(53, 208, 127, 0.12); }
+    .pill.warn { color: var(--amber); background: rgba(255, 176, 32, 0.12); }
+    .pill.alert { color: var(--red); background: rgba(255, 107, 90, 0.12); }
+
+    .form { padding: 1.2rem; }
+    .fg { margin-bottom: 0.9rem; }
+    .fg label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 0.3rem; }
+    .fg select, .fg input { width: 100%; padding: 0.7rem 0.8rem; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; font-family: var(--sans); font-size: 0.95rem; }
+    .fg select:focus, .fg input:focus { outline: none; border-color: var(--orange); }
+    .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+    .btn-primary { width: 100%; min-height: 48px; background: var(--orange); color: #fff; border: 0; border-radius: var(--radius); font-family: var(--sans); font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: var(--orange-dark); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .result { display: none; margin-top: 0.8rem; padding: 0.75rem 0.9rem; border-radius: 10px; font-size: 0.9rem; }
+    .result.success { display: block; background: rgba(53, 208, 127, 0.1); border: 1px solid rgba(53, 208, 127, 0.35); color: var(--green); }
+    .result.error { display: block; background: rgba(255, 107, 90, 0.1); border: 1px solid rgba(255, 107, 90, 0.35); color: var(--red); }
+    .result .rt { font-weight: 600; }
+    .result .rd { font-family: var(--mono); font-size: 0.78rem; opacity: 0.9; word-break: break-word; }
+
+    .foot { border-top: 1px solid var(--line); padding: 1.4rem 2.2rem; color: var(--faint); font-size: 0.84rem; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="#">
+      <span class="logo-mark">MC</span>
+      <span class="logo-word">Monte<br>Carlo</span>
+    </a>
+    <nav class="top-nav">
+      <a href="#">Monitors</a>
+      <a href="#">Incidents</a>
+      <a href="#">Data products</a>
+      <a href="#">Integrations</a>
+    </nav>
+    <div class="top-actions">
+      <a class="link-login" href="#">Docs</a>
+      <a class="btn-demo" href="#">Get a demo</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="side">
+      <div class="side-label">Observability</div>
+      <a href="#" class="active">Monitors <span class="count">318</span></a>
+      <a href="#">Incidents <span class="count">4</span></a>
+      <a href="#">Alerts</a>
+      <a href="#">Data products</a>
+      <div class="side-label">Agents</div>
+      <a href="#">Monitoring Agent</a>
+      <a href="#">Troubleshooting Agent</a>
+      <div class="side-label">Settings</div>
+      <a href="#">Integrations</a>
+      <a href="#">Notifications</a>
+      <a href="#">Account</a>
+    </aside>
+
+    <main class="main">
+      <a href="/" class="back-link">&larr; All Demos</a>
+      <div class="head">
+        <h1>Monitors</h1>
+        <p>Deploy and manage monitoring coverage across your data + AI estate.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="stat-l">Monitors deployed</div><div class="stat-v">318</div><div class="stat-s up">+24 this week</div></div>
+        <div class="stat"><div class="stat-l">Tables covered</div><div class="stat-v">4,182</div><div class="stat-s">92% of production</div></div>
+        <div class="stat"><div class="stat-l">Open incidents</div><div class="stat-v">4</div><div class="stat-s">2 acknowledged</div></div>
+        <div class="stat"><div class="stat-l">Coverage score</div><div class="stat-v">87</div><div class="stat-s up">+3 vs last month</div></div>
+      </div>
+
+      <div class="cols">
+        <section class="card">
+          <div class="card-h">Recent monitors<span>Deployed across your warehouse and lake integrations</span></div>
+          <div class="table-wrap">
+          <table>
+            <thead><tr><th>Monitor</th><th>Asset</th><th>Type</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Freshness &mdash; orders</strong></td><td class="mono">snowflake / analytics.prod.orders</td><td>Freshness</td><td><span class="pill ok">Healthy</span></td></tr>
+              <tr><td><strong>Volume &mdash; sessions</strong></td><td class="mono">databricks / events.web_sessions</td><td>Volume</td><td><span class="pill ok">Healthy</span></td></tr>
+              <tr><td><strong>Field health &mdash; customers</strong></td><td class="mono">bigquery / core.customers</td><td>Field health</td><td><span class="pill warn">Threshold review</span></td></tr>
+              <tr><td><strong>Agent output drift</strong></td><td class="mono">agents / support-copilot</td><td>Custom SQL</td><td><span class="pill alert">Incident open</span></td></tr>
+              <tr><td><strong>Schema &mdash; revenue_daily</strong></td><td class="mono">snowflake / finance.revenue_daily</td><td>Schema</td><td><span class="pill ok">Healthy</span></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h">Deploy monitors<span>Roll out recommended monitors to a domain</span></div>
+          <div class="form">
+            <form id="provisionForm">
+              <div class="fg">
+                <label for="product">Domain</label>
+                <select id="product">
+                  <option value="Analytics Warehouse">Analytics Warehouse</option>
+                  <option value="Customer 360">Customer 360</option>
+                  <option value="Finance Reporting">Finance Reporting</option>
+                  <option value="Agent Telemetry">Agent Telemetry</option>
+                </select>
+              </div>
+              <div class="fr">
+                <div class="fg">
+                  <label for="seats">Monitors to deploy</label>
+                  <input type="number" id="seats" value="25" min="1">
+                </div>
+                <div class="fg">
+                  <label for="planTier">Workspace plan</label>
+                  <select id="planTier">
+                    <option value="enterprise">Enterprise</option>
+                    <option value="business">Business</option>
+                    <option value="starter">Starter</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg">
+                <label for="region">Region</label>
+                <select id="region">
+                  <option value="us-east">US East</option>
+                  <option value="us-west">US West</option>
+                  <option value="eu-west">EU West</option>
+                  <option value="ap-south">AP South</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-primary" id="submitBtn">Deploy monitors</button>
+            </form>
+            <div id="result" class="result"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <footer class="foot">Monte Carlo &mdash; Data + AI Observability</footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Deploying...';
+      result.className = 'result';
+      const render = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'rt'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'rd'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      };
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', region: document.getElementById('region').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result error';
+          render('Deployment failed', `${data.errorClass}: ${data.error}`);
+        } else {
+          result.className = 'result success';
+          render('Monitors deployed', `${data.seatsAdded} monitors deployed to ${data.product}`);
+        }
+      } catch (err) {
+        result.className = 'result error';
+        render('Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Deploy monitors'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
