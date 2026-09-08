@@ -1088,6 +1088,29 @@ const ONCALL_SKINS = {
     supportCenter: 'Erste Bank Customer Service',
     disclaimer: 'NOT ACTUALLY AN ERSTE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Erste Group product.',
   },
+  '7da5a0a9': {
+    slug: '7da5a0a9',
+    company: 'AECOM',
+    brandMark: 'A',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '7da5a0a9.html',
+      title: 'Digital Delivery — Project Access | AECOM',
+    },
+    accent: '#008768',
+    accentDark: '#016b54',
+    theme: {
+      '--accent': '#008768',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#00353E',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'AECOM Digital Support',
+    disclaimer: 'NOT ACTUALLY AN AECOM SITE — internal demo only, not affiliated with, endorsed by, or a real AECOM product.',
+  },
 };
 
 function getOncallSkin(slug) {
