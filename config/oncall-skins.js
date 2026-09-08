@@ -1088,6 +1088,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Erste Bank Customer Service',
     disclaimer: 'NOT ACTUALLY AN ERSTE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Erste Group product.',
   },
+  '4a3e91b9': {
+    slug: '4a3e91b9',
+    company: 'Hargreaves Lansdown',
+    brandMark: 'HL',
+    vertical: 'banking',
+    page: {
+      file: '4a3e91b9.html',
+      title: 'Add money | Stocks and Shares ISA – Hargreaves Lansdown',
+    },
+    theme: {
+      '--accent': '#0A70DC',
+      '--ink': '#1A1A1A',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#071D49',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Hargreaves Lansdown Helpdesk',
+    disclaimer: 'NOT ACTUALLY A HARGREAVES LANSDOWN SITE — internal demo only, not affiliated with, endorsed by, or a real Hargreaves Lansdown product.',
+  },
   '7da5a0a9': {
     slug: '7da5a0a9',
     company: 'AECOM',
@@ -1097,7 +1116,7 @@ const ONCALL_SKINS = {
       // Natively branded custom page: served instead of the vertical's stock
       // page; the brand shim skips the title/logo rewrite for it.
       file: '7da5a0a9.html',
-      title: 'Digital Delivery — Project Access | AECOM',
+      title: 'plan.engage — Project team access | Digital AECOM',
     },
     accent: '#008768',
     accentDark: '#016b54',
@@ -1105,10 +1124,10 @@ const ONCALL_SKINS = {
       '--accent': '#008768',
       '--ink': '#000000',
       '--surface': '#ffffff',
-      '--chrome-bg': '#00353E',
+      '--chrome-bg': '#000000',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'AECOM Digital Support',
+    supportCenter: 'Digital AECOM Support',
     disclaimer: 'NOT ACTUALLY AN AECOM SITE — internal demo only, not affiliated with, endorsed by, or a real AECOM product.',
   },
 };
