@@ -20,6 +20,12 @@ const ENGINE_PROGRAMS = {
     family: 'narrowbody',
     inService: 21000,
   },
+  rise: {
+    code: 'rise',
+    name: 'CFM RISE',
+    family: 'narrowbody',
+    inService: 0,
+  },
   genx: {
     code: 'genx',
     name: 'GEnx',
@@ -123,15 +129,25 @@ function resolveSupportRouting(profile) {
  * Build the engine coverage quoted back to the requester for a routing entry.
  */
 function buildEngineCoverage(routing) {
-  return routing.programs.map((code) => {
+  const programs = Array.isArray(routing && routing.programs) ? routing.programs : [];
+  return programs.reduce((coverage, code) => {
     const program = ENGINE_PROGRAMS[code];
-    return {
+    if (!program) {
+      logger.warn('Unknown engine program in support routing', {
+        code,
+        desk: routing.desk,
+        service: 'customer-5b992ae7-inquiry',
+      });
+      return coverage;
+    }
+    coverage.push({
       code: program.code,
       name: program.name,
       family: program.family,
       inService: program.inService,
-    };
-  });
+    });
+    return coverage;
+  }, []);
 }
 
 /**
