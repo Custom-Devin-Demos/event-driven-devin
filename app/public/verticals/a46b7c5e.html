@@ -456,10 +456,17 @@
         const submittedTo = to.options[to.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        if (from.value === to.value) {
+          r.className = "result-box error";
+          r.textContent =
+            "Choose a payee that is different from the account you are paying from.";
+          return;
+        }
         const label = b.textContent;
         b.disabled = true;
         b.textContent = "Sending transfer…";
         r.className = "result-box";
+        r.textContent = "";
         try {
           const res = await fetch("/api/banking/transfer", {
             method: "POST",
