@@ -395,7 +395,7 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `ONCALL_CONFIG_OVERRIDE_TTL_MS` | Lifetime of a per-run config override (`POST /api/oncall/config`; the shipped baseline comes from `SCREENING_WINDOW_DAYS`/`SCREENING_CONCURRENCY`) when its run has no live incident window to inherit (default 45 min) | No |
 | `ONCALL_CONFIG_OVERRIDE_MAX` | Cap on concurrently registered per-run config overrides; at capacity the oldest override without a live incident is evicted first (default 50) | No |
 | `SCREENING_WINDOW_DAYS` | Compliance-screening lookback window for the on-call banking transfer path (default 90) | No |
-| `SCREENING_CONCURRENCY` | Parallel screening-partner calls per batch on the on-call banking transfer path (default 1; the screening partner's per-client ceiling is 32 since VendorOps VO-8821 closed) | No |
+| `SCREENING_CONCURRENCY` | Parallel screening-partner calls per batch on the on-call banking transfer path (default 16, clamped to the screening partner's per-client ceiling of 32 since VendorOps VO-8821 closed) | No |
 | `ONCALL_REPO_URL` | Repo URL embedded in on-call Slack cards for responders to investigate (defaults to this repo) | No |
 | `ONCALL_DEMO_BASE_URL` | Base URL for branded demo-page links in skinned on-call alerts (defaults to `https://$DOMAIN_NAME`, then devindemos.com) | No |
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
