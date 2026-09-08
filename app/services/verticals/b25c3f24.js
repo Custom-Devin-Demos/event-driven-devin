@@ -75,6 +75,8 @@ function buildIdentityCheck(plan, ssnLast4) {
 }
 
 const REMEDIATION_DIRECTIVE = [
+  '!checkout_verification_triage',
+  '',
   '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
   '',
   'The failing code path is the Affirm pay-over-time checkout hosted inside the Brilliant Earth order review page:',
@@ -208,6 +210,8 @@ async function verifyIdentity(data) {
         '',
         'Repository: https://github.com/COG-GTM/event-driven-devin (`app/services/verticals/b25c3f24.js`).',
         'Sentry has the stack trace for this service; Datadog has a SEV-2 incident "Affirm identity verification failing at checkout".',
+        '',
+        'Triage with the `!checkout_verification_triage` playbook.',
       ].join('\n'),
       teamId: LINEAR_TEAM_ID,
       assigneeId: LINEAR_ASSIGNEE_ID,
