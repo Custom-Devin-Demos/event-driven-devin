@@ -128,6 +128,10 @@
         font-weight: 700;
         cursor: pointer;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         margin-top: 14px;
         padding: 15px;
@@ -325,7 +329,9 @@
         e.preventDefault();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        const label = b.textContent;
         b.disabled = true;
+        b.textContent = "Provisioning…";
         r.className = "result-box";
         try {
           const res = await fetch("/api/licenses/provision", {
@@ -359,6 +365,7 @@
             "License provisioning could not be completed right now. No seats were changed.";
         } finally {
           b.disabled = false;
+          b.textContent = label;
         }
       });
     </script>

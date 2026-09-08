@@ -123,6 +123,10 @@
         font-weight: 700;
         cursor: pointer;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         margin-top: 14px;
         padding: 14px;
@@ -304,9 +308,12 @@
       sync();
       f.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const chosen = p.options[p.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        const label = b.textContent;
         b.disabled = true;
+        b.textContent = "Wird bearbeitet…";
         r.className = "result-box";
         try {
           const res = await fetch("/api/telco/upgrade", {
@@ -329,7 +336,7 @@
               "Der Tarifwechsel konnte gerade nicht abgeschlossen werden. Ihr aktueller Tarif bleibt bestehen.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Tarifwechsel bestätigt — ${p.options[p.selectedIndex].textContent.trim()}. Der neue Tarif ist ab sofort aktiv.`;
+            r.textContent = `Tarifwechsel bestätigt — ${chosen}. Der neue Tarif ist ab sofort aktiv.`;
           }
         } catch (_) {
           r.className = "result-box error";
@@ -337,6 +344,7 @@
             "Der Tarifwechsel konnte gerade nicht abgeschlossen werden. Ihr aktueller Tarif bleibt bestehen.";
         } finally {
           b.disabled = false;
+          b.textContent = label;
         }
       });
     </script>

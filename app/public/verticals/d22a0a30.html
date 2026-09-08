@@ -168,6 +168,10 @@
         width: 100%;
         height: 50px;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         min-height: 0;
         margin-top: 16px;
@@ -378,9 +382,12 @@
       sync();
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const chosen = plan.options[plan.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        const label = b.textContent;
         b.disabled = true;
+        b.textContent = "Updating subscription…";
         r.className = "result-box";
         try {
           const res = await fetch("/api/telco/upgrade", {
@@ -403,7 +410,7 @@
               "We couldn't update your subscription right now. Your current plan is unchanged.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Subscription updated — ${plan.options[plan.selectedIndex].textContent.trim()}. Your eTextbooks are available now.`;
+            r.textContent = `Subscription updated — ${chosen}. Your eTextbooks are available now.`;
           }
         } catch (_) {
           r.className = "result-box error";
@@ -411,6 +418,7 @@
             "We couldn't update your subscription right now. Your current plan is unchanged.";
         } finally {
           b.disabled = false;
+          b.textContent = label;
         }
       });
     </script>

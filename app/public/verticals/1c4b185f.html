@@ -113,6 +113,10 @@
         font-weight: 600;
         cursor: pointer;
       }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .result-box {
         margin-top: 14px;
         padding: 14px;
@@ -125,7 +129,7 @@
         background: #fff0f0;
         color: #942a2a;
       }
-      .side img {
+      aside img {
         width: 100%;
         height: 220px;
         object-fit: cover;
@@ -283,13 +287,17 @@
         s.textContent = `Payment to ${to.options[to.selectedIndex].textContent} · $${amt.value}`;
       }
       [to, amt].forEach((x) => x.addEventListener("input", sync));
-      f.addEventListener("reset", sync);
+      f.addEventListener("reset", () => setTimeout(sync, 0));
       sync();
       f.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const submittedAmount = amt.value;
+        const submittedTo = to.options[to.selectedIndex].textContent.trim();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
+        const label = b.textContent;
         b.disabled = true;
+        b.textContent = "Submitting payment…";
         r.className = "result-box";
         try {
           const res = await fetch("/api/banking/transfer", {
@@ -315,7 +323,7 @@
               "We couldn't process your payment right now. No funds were moved from your account.";
           } else {
             r.className = "result-box success";
-            r.textContent = `Payment scheduled — $${amt.value} to ${to.options[to.selectedIndex].textContent}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}.`;
+            r.textContent = `Payment scheduled — $${submittedAmount} to ${submittedTo}. Confirmation ${(d.receipt && d.receipt.receiptId) || d.transactionId || ""}.`;
           }
         } catch (_) {
           r.className = "result-box error";
@@ -323,6 +331,7 @@
             "We couldn't process your payment right now. No funds were moved from your account.";
         } finally {
           b.disabled = false;
+          b.textContent = label;
         }
       });
       window.addEventListener("DOMContentLoaded", () => {
