@@ -11,15 +11,16 @@ const router = express.Router();
  */
 router.post('/api/fox/live/entitlement', async (req, res) => {
   try {
+    const body = req.body || {};
     const result = await requestLiveEntitlement({
-      profileId: req.body.profile_id || req.body.profileId,
-      channelId: req.body.channel_id || req.body.channelId,
-      device: req.body.device,
+      profileId: body.profile_id || body.profileId,
+      channelId: body.channel_id || body.channelId,
+      device: body.device,
       client: req.get('X-Fox-Client'),
       demoToken: req.get('X-Fox-Demo-Token'),
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(result);
   } catch (error) {
