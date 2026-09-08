@@ -25,6 +25,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Payer** (unlisted — direct URL only) | `/payer`, `/welcome-season` | `app/public/verticals/payer.html` | `POST /api/payer/pharmacy-claim` | `app/services/verticals/payer.js` |
 | **QBE North America Claims** (unlisted — direct URL only) | `/qbe` | `app/public/verticals/qbe.html` | `POST /api/qbe/claim` | `app/services/verticals/qbe.js` |
 | **HCF Extras Claims** (unlisted — direct URL only) | `/hcf` | `app/public/verticals/hcf.html` | `POST /api/hcf/claim` | `app/services/verticals/hcf.js` |
+| **Suncorp Bank Payments** (unlisted — direct URL only) | `/suncorp` | `app/public/verticals/suncorp.html` | `POST /api/suncorp/payment` | `app/services/verticals/suncorp.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank** (unlisted — direct URL only) | `/cba` | `app/public/verticals/cba.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Macquarie Online Banking** (unlisted — direct URL only) | `/macbank` | `app/public/verticals/macbank.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
