@@ -24,7 +24,10 @@
         margin: 0;
         color: var(--ink);
         background: var(--surface);
-        font: 16px "Inter", Arial, sans-serif;
+        font:
+          16px "Inter",
+          Arial,
+          sans-serif;
       }
       a {
         color: var(--accent);
@@ -198,10 +201,16 @@
         margin: 0 0 20px;
         line-height: 1.5;
       }
-      aside img {
-        width: 100%;
-        height: 220px;
-        object-fit: cover;
+      .result-box:empty {
+        display: none;
+      }
+      .facts {
+        margin: 0;
+        padding-left: 18px;
+        line-height: 1.6;
+      }
+      .facts li {
+        margin-bottom: 10px;
       }
       .footer {
         padding: 38px max(28px, calc((100% - 1120px) / 2));
@@ -304,7 +313,7 @@
       <img
         src="https://cdn.erstegroup.com/gemlip/v2/2XBY8mkD2nigxcTM5Dxun7RNQPKp/dam/at/spk-sgruppe/www_sparkasse_at/kampagnen/2026/k3/AIRomance_1-hero.jpg.1782818481.xywh.w3840w2560w1920w1280w1024w820w570_w1920.webp"
         alt="People using modern banking services"
-        onerror="this.style.display='none'"
+        onerror="this.style.display = 'none'"
       />
       <div class="hero-copy">
         <h1>Send money with George</h1>
@@ -325,9 +334,7 @@
                 <option value="ACCT-1001">
                   s Komfort Konto AT61 1100 0… 4302
                 </option>
-                <option value="ACCT-1002">
-                  s Sparkonto AT12 2011 1… 7789
-                </option>
+                <option value="ACCT-1002">s Sparkonto AT12 2011 1… 7789</option>
               </select>
             </div>
             <div class="field">
@@ -368,11 +375,13 @@
             €250 from s Komfort Konto AT61 1100 0… 4302 to Anna Huber — AT48
             3200 0… 1150
           </p>
-          <img
-            src="https://cdn.erstegroup.com/gemlip/v2/VUNfHdeQj3q9eoggdgoU7NUCJoY/dam/at/eh/www_erstegroup_com/de/erste-insights/hero-update3.jpg.1781782873.x11y502w2298h488.w3840w2560w1920w1280w1024w820w570_w1920.webp"
-            alt="Erste Group insights"
-            onerror="this.style.display='none'"
-          />
+          <ul class="facts">
+            <li>
+              SEPA transfers within Austria arrive on the next business day.
+            </li>
+            <li>Instant transfers are available 24/7 for eligible payees.</li>
+            <li>Every transfer is confirmed with your George ID.</li>
+          </ul>
         </aside>
       </div>
     </main>
@@ -411,14 +420,25 @@
       </div>
     </footer>
     <script>
-    /* Ensure locked-mode config is in localStorage for direct navigation */
-    (function () {
-      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
-        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
-      }).catch(function () {});
-    })();
+      /* Ensure locked-mode config is in localStorage for direct navigation */
+      (function () {
+        if (
+          localStorage.getItem("devinOrgId") &&
+          localStorage.getItem("devinUserId")
+        )
+          return;
+        fetch("/api/config")
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId)
+              localStorage.setItem("devinOrgId", cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId)
+              localStorage.setItem("devinUserId", cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
       const f = document.getElementById("transferForm"),
         from = document.getElementById("fromAccount"),
         to = document.getElementById("toAccount"),
