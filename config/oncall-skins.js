@@ -1148,6 +1148,24 @@ const ONCALL_SKINS = {
     supportCenter: 'Coursera Learner Help Center',
     disclaimer: 'NOT ACTUALLY A COURSERA SITE — internal demo only, not affiliated with, endorsed by, or a real Coursera product.',
   },
+  'f9767587': {
+    slug: 'f9767587',
+    company: '1-800-Flowers.com',
+    brandMark: 'F',
+    vertical: 'telco',
+    page: { file: 'f9767587.html', title: 'Celebrations Passport® | Manage Membership - 1-800-Flowers.com' },
+    accent: '#201648',
+    accentDark: '#150e33',
+    theme: {
+      '--accent': '#201648',
+      '--ink': '#2f2f2f',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#201648',
+      '--chrome-text': '#FAFAFA',
+    },
+    supportCenter: '1-800-Flowers.com Customer Service',
+    disclaimer: 'NOT ACTUALLY A 1-800-FLOWERS.COM SITE — internal demo only, not affiliated with, endorsed by, or a real 1-800-Flowers.com product.',
+  },
 };
 
 function getOncallSkin(slug) {
