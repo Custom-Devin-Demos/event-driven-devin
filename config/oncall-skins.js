@@ -1088,6 +1088,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Erste Bank Customer Service',
     disclaimer: 'NOT ACTUALLY AN ERSTE BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Erste Group product.',
   },
+  '4a3e91b9': {
+    slug: '4a3e91b9',
+    company: 'Hargreaves Lansdown',
+    brandMark: 'HL',
+    vertical: 'banking',
+    page: {
+      file: '4a3e91b9.html',
+      title: 'Add money | Stocks and Shares ISA – Hargreaves Lansdown',
+    },
+    theme: {
+      '--accent': '#0A70DC',
+      '--ink': '#1A1A1A',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#071D49',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Hargreaves Lansdown Helpdesk',
+    disclaimer: 'NOT ACTUALLY A HARGREAVES LANSDOWN SITE — internal demo only, not affiliated with, endorsed by, or a real Hargreaves Lansdown product.',
+  },
 };
 
 function getOncallSkin(slug) {
