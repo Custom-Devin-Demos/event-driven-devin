@@ -1146,6 +1146,24 @@ const ONCALL_SKINS = {
     supportCenter: 'Prudential Customer Service',
     disclaimer: 'NOT ACTUALLY A PRUDENTIAL SITE — internal demo only, not affiliated with, endorsed by, or a real Prudential plc product.',
   },
+  '7abf90ac': {
+    slug: '7abf90ac',
+    company: 'Coursera',
+    brandMark: 'C',
+    vertical: 'telco',
+    page: { file: '7abf90ac.html', title: 'Coursera Plus | Manage your subscription' },
+    accent: '#0056D2',
+    accentDark: '#00419e',
+    theme: {
+      '--accent': '#0056D2',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#001129',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Coursera Learner Help Center',
+    disclaimer: 'NOT ACTUALLY A COURSERA SITE — internal demo only, not affiliated with, endorsed by, or a real Coursera product.',
+  },
 };
 
 function getOncallSkin(slug) {
