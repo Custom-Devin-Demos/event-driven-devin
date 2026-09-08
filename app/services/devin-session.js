@@ -210,7 +210,7 @@ async function createSessionAndAlert(alertData) {
       scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
     }
 
-    return { triggered: !throttled, throttled, threadTs };
+    return { triggered: !throttled, throttled, threadTs, session };
   } catch (error) {
     logger.error('Failed to post alert or trigger Devin', {
       error: error.message,
