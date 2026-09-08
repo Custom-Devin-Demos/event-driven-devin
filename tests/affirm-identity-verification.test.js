@@ -116,6 +116,7 @@ describe('Affirm identity verification service (b25c3f24)', () => {
 
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.promptAppendix).toContain('COG-9999');
+    expect(alert.promptAppendix).toContain('The app moves the ticket to In Progress and comments your session link right after your session is created');
     expect(alert.promptAppendix).toContain('In Review');
     expect(alert.promptAppendix).toContain('Do NOT move the ticket to Done');
     expect(addLinearComment).toHaveBeenCalledWith(expect.objectContaining({
@@ -127,6 +128,74 @@ describe('Affirm identity verification service (b25c3f24)', () => {
       issueId: 'iss_1',
       stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
     });
+  });
+
+  test('still comments when moving the Linear issue to In Progress fails', async () => {
+    createLinearIssue.mockResolvedValue({
+      id: 'iss_1',
+      identifier: 'COG-9999',
+      url: 'https://linear.app/cog-gtm/issue/COG-9999',
+    });
+    createSessionAndAlert.mockResolvedValue({
+      triggered: true,
+      throttled: false,
+      threadTs: '1.2',
+      session: {
+        sessionId: 'devin-abc',
+        url: 'https://app.devin.ai/sessions/abc',
+      },
+    });
+    updateLinearIssueState.mockRejectedValueOnce(new Error('boom'));
+
+    await expect(verifyIdentity({
+      planId: 'plan-12',
+      ssnLast4: '1234',
+      orderTotal: 1944.39,
+    })).rejects.toThrow(TypeError);
+    await flushAsyncWork();
+
+    expect(updateLinearIssueState).toHaveBeenCalledWith({
+      issueId: 'iss_1',
+      stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
+    });
+    expect(addLinearComment).toHaveBeenCalledWith(expect.objectContaining({
+      issueId: 'iss_1',
+      body: expect.stringContaining('https://app.devin.ai/sessions/abc'),
+    }));
+  });
+
+  test('still moves the Linear issue to In Progress when commenting fails', async () => {
+    createLinearIssue.mockResolvedValue({
+      id: 'iss_1',
+      identifier: 'COG-9999',
+      url: 'https://linear.app/cog-gtm/issue/COG-9999',
+    });
+    createSessionAndAlert.mockResolvedValue({
+      triggered: true,
+      throttled: false,
+      threadTs: '1.2',
+      session: {
+        sessionId: 'devin-abc',
+        url: 'https://app.devin.ai/sessions/abc',
+      },
+    });
+    addLinearComment.mockRejectedValueOnce(new Error('boom'));
+
+    await expect(verifyIdentity({
+      planId: 'plan-12',
+      ssnLast4: '1234',
+      orderTotal: 1944.39,
+    })).rejects.toThrow(TypeError);
+    await flushAsyncWork();
+
+    expect(updateLinearIssueState).toHaveBeenCalledWith({
+      issueId: 'iss_1',
+      stateId: '99c9b96f-39b3-4a09-9112-53c054f3dbab',
+    });
+    expect(addLinearComment).toHaveBeenCalledWith(expect.objectContaining({
+      issueId: 'iss_1',
+      body: expect.stringContaining('https://app.devin.ai/sessions/abc'),
+    }));
   });
 
   test('uses the base remediation directive and skips Linear follow-up without an issue', async () => {

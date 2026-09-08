@@ -105,7 +105,7 @@ function buildRemediationDirective(issue) {
     REMEDIATION_DIRECTIVE,
     '',
     `*Linear ticket:* ${issue.identifier} — ${issue.url}`,
-    'The ticket is already In Progress with a comment linking this session. Ticket lifecycle you own:',
+    'The app moves the ticket to In Progress and comments your session link right after your session is created; if you see it still in Todo or without the comment, do both yourself first. Ticket lifecycle you own:',
     `- As soon as your PR is open: comment on the ticket with the PR URL (Linear MCP \`create_comment\` / or the GraphQL API with \`LINEAR_API_KEY\`), add the PR link to the ticket, and move the ticket to the "In Review" state (id '${LINEAR_STATE_IN_REVIEW_ID}').`,
     '- Do NOT move the ticket to Done. The reviewer moves it to Done after approving and merging the PR.',
     '- If you push follow-up commits after review feedback, leave the ticket In Review and add a short comment.',
@@ -281,19 +281,42 @@ async function verifyIdentity(data) {
       });
       const session = outcome && outcome.session;
       if (issue && session) {
-        await addLinearComment({
+        const stateUpdated = await updateLinearIssueState({
+          issueId: issue.id,
+          stateId: LINEAR_STATE_IN_PROGRESS_ID,
+        })
+          .then(() => true)
+          .catch((err) => {
+            logger.warn('Failed to move Linear issue to In Progress', {
+              error: err.message,
+              identifier: issue.identifier,
+              checkoutId,
+            });
+            return false;
+          });
+        const commented = await addLinearComment({
           issueId: issue.id,
           body: [
             `Devin picked this up: ${session.url}`,
             '',
             'Moving to **In Progress**. The PR link will be posted here and the ticket moved to **In Review** once the fix is ready.',
           ].join('\n'),
-        });
-        await updateLinearIssueState({ issueId: issue.id, stateId: LINEAR_STATE_IN_PROGRESS_ID });
+        })
+          .then(() => true)
+          .catch((err) => {
+            logger.warn('Failed to comment Devin session on Linear issue', {
+              error: err.message,
+              identifier: issue.identifier,
+              checkoutId,
+            });
+            return false;
+          });
         logger.info('Linear issue linked to Devin session', {
           identifier: issue.identifier,
           sessionId: session.sessionId,
           checkoutId,
+          stateUpdated,
+          commented,
         });
       }
     })().catch((err) => logger.warn('Affirm incident follow-up failed', { error: err.message, checkoutId }));
