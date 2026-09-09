@@ -342,6 +342,18 @@
       return '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function showResult(box, kind, title, detail, ref) {
+      box.className = 'result-box ' + kind;
+      box.textContent = '';
+      [['result-title', title], ['result-detail', detail], ['result-ref', ref]].forEach(function (pair) {
+        if (!pair[1]) return;
+        var el = document.createElement('div');
+        el.className = pair[0];
+        el.textContent = pair[1];
+        box.appendChild(el);
+      });
+    }
+
     function renderHints() {
       var recipient = context.recipients.filter(function (r) { return r.id === recipientSelect.value; })[0];
       var account = context.accounts.filter(function (a) { return a.id === accountSelect.value; })[0];
@@ -356,12 +368,14 @@
     async function loadContext() {
       var res = await fetch('/api/6f43e66c/context');
       context = await res.json();
-      recipientSelect.innerHTML = context.recipients.map(function (r) {
-        return '<option value="' + r.id + '">' + r.name + '</option>';
-      }).join('');
-      accountSelect.innerHTML = context.accounts.map(function (a) {
-        return '<option value="' + a.id + '">' + a.productLabel + ' \u2014 ****' + a.last4 + '</option>';
-      }).join('');
+      recipientSelect.textContent = '';
+      context.recipients.forEach(function (r) {
+        recipientSelect.appendChild(new Option(r.name, r.id));
+      });
+      accountSelect.textContent = '';
+      context.accounts.forEach(function (a) {
+        accountSelect.appendChild(new Option(a.productLabel + ' \u2014 ****' + a.last4, a.id));
+      });
       renderHints();
     }
 
@@ -377,7 +391,7 @@
       button.disabled = true;
       button.textContent = 'Sending\u2026';
       result.className = 'result-box';
-      result.innerHTML = '';
+      result.textContent = '';
       try {
         var res = await fetch('/api/6f43e66c/send', {
           method: 'POST',
@@ -394,20 +408,17 @@
         });
         var data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = '<div class="result-title">We couldn\u2019t complete this transfer</div>'
-            + '<div class="result-detail">Your ' + money(amount) + ' payment to ' + (recipient ? recipient.name : 'this recipient')
-            + ' was declined and no money has left your account. Please try again in a few minutes.</div>'
-            + '<div class="result-ref">' + (data.errorClass || 'Error') + ': ' + (data.error || 'Transfer could not be completed')
-            + (data.requestId ? ' \u00b7 Ref ' + data.requestId : '') + '</div>';
+          showResult(result, 'error', 'We couldn\u2019t complete this transfer',
+            'Your ' + money(amount) + ' payment to ' + (recipient ? recipient.name : 'this recipient')
+              + ' was declined and no money has left your account. Please try again in a few minutes.',
+            (data.errorClass || 'Error') + ': ' + (data.error || 'Transfer could not be completed')
+              + (data.requestId ? ' \u00b7 Ref ' + data.requestId : ''));
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = '<div class="result-title">Sent ' + money(data.amount) + ' to ' + data.recipient + '</div>'
-            + '<div class="result-detail">From ' + data.fundingAccount + '. ' + money(data.dailyHeadroom) + ' remaining on today\u2019s limit.</div>';
+          showResult(result, 'success', 'Sent ' + money(data.amount) + ' to ' + data.recipient,
+            'From ' + data.fundingAccount + '. ' + money(data.dailyHeadroom) + ' remaining on today\u2019s limit.');
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = '<div class="result-title">We couldn\u2019t complete this transfer</div><div class="result-detail">' + err.message + '</div>';
+        showResult(result, 'error', 'We couldn\u2019t complete this transfer', err.message);
       } finally {
         button.disabled = false;
         button.textContent = 'Send money with Zelle\u00ae';
