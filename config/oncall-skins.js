@@ -1130,6 +1130,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Digital AECOM Support',
     disclaimer: 'NOT ACTUALLY AN AECOM SITE — internal demo only, not affiliated with, endorsed by, or a real AECOM product.',
   },
+  '232108b7': {
+    slug: '232108b7',
+    company: 'Prudential',
+    brandMark: 'P',
+    vertical: 'insurance',
+    page: { file: '232108b7.html', title: 'Make a claim | Prudential' },
+    theme: {
+      '--accent': '#DA291C',
+      '--ink': '#1C1D1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1C1D1B',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Prudential Customer Service',
+    disclaimer: 'NOT ACTUALLY A PRUDENTIAL SITE — internal demo only, not affiliated with, endorsed by, or a real Prudential plc product.',
+  },
   '7abf90ac': {
     slug: '7abf90ac',
     company: 'Coursera',
