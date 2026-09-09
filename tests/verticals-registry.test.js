@@ -115,7 +115,14 @@ describe('customer config discovery', () => {
   });
 
   test('every customer entry has a label and only known keys', () => {
-    const allowed = new Set(['label', 'triggerMode', 'githubOrg', 'aliases']);
+    const allowed = new Set([
+      'label',
+      'triggerMode',
+      'githubOrg',
+      'aliases',
+      'itsm',
+      'itsmAssignmentGroup',
+    ]);
     const problems = [];
     for (const [slug, entry] of Object.entries(CUSTOMERS)) {
       if (typeof entry.label !== 'string' || !entry.label) problems.push(`${slug}: missing label`);
