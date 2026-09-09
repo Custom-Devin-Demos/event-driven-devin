@@ -341,6 +341,13 @@
     })();
   </script>
   <script>
+    function showResult(result, state, title, detail) {
+      result.className = 'result-box ' + state;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -354,15 +361,12 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Order could not be placed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult(result, 'error', 'Order could not be placed', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Order placed</div><div class="error-detail">$${data.debitAmount} charged to your debit card (includes $${data.fee} delivery fee). Your driver is being assigned.</div>`;
+          showResult(result, 'success', 'Order placed', `$${data.debitAmount} charged to your debit card (includes $${data.fee} delivery fee). Your driver is being assigned.`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        showResult(result, 'error', 'Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Place order'; }
     });
   </script>
