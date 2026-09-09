@@ -205,6 +205,19 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: 'claim-estimate',
     },
   },
+  '6f43e66c': {
+    customer: '6f43e66c',
+    verticalLabel: 'Consumer Zelle Send',
+    service: 'customer-6f43e66c-zelle-send',
+    project: 'event-driven-devin',
+    release: 'customer-6f43e66c-zelle-send@1.0.0',
+    tagOverrides: {
+      customer: '6f43e66c',
+      service: 'customer-6f43e66c-zelle-send',
+      route: '/api/6f43e66c/send',
+      scenario: 'zelle-send',
+    },
+  },
 };
 
 function tagKey(tag) {
@@ -318,3 +331,4 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.applyCustomerIdentity = applyCustomerIdentity;
