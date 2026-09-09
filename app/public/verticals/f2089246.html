@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Function — Member Dashboard</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --beige: #FEF9EF;
+      --cream: #F5EEE1;
+      --dark-cream: #D1C9BF;
+      --light-gray: #737373;
+      --gray: #515151;
+      --midnight: #2A2B2F;
+      --orange: #B05A36;
+      --orange-10p: #F6E9DC;
+      --green: #79BD8B;
+      --blue: #488AD5;
+      --error: #DB0000;
+      --radius-large: 1.5rem;
+      --radius-base: .75rem;
+      --heading: 'Financier Display', 'Instrument Serif', Georgia, serif;
+      --body: 'FT Base', 'Inter', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--midnight);
+      background: var(--beige);
+      font-family: var(--body);
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .announcement {
+      padding: 10px 16px;
+      color: var(--beige);
+      background: var(--orange);
+      font-size: 14px;
+      line-height: 20px;
+      text-align: center;
+    }
+    .announcement u { text-underline-offset: 2px; }
+
+    .nav-wrap {
+      position: absolute;
+      z-index: 3;
+      top: 16px;
+      right: 64px;
+      left: 64px;
+    }
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 80px;
+      padding: 12px 16px 12px 24px;
+      color: var(--beige);
+      background: rgba(42, 43, 47, .55);
+      border: 1px solid rgba(254, 249, 239, .16);
+      border-radius: 1.25rem;
+      backdrop-filter: blur(12px);
+    }
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--beige);
+      font-size: 32px;
+      font-weight: 400;
+      line-height: 36px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .logo-mark { width: 44px; height: 44px; flex: 0 0 auto; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+      margin: 0 24px;
+      font-size: 16px;
+      line-height: 24px;
+      white-space: nowrap;
+    }
+    .nav-links a, .login-link {
+      color: var(--beige);
+      text-decoration: none;
+      transition: opacity .15s ease;
+    }
+    .nav-links a:hover, .login-link:hover { opacity: .72; }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      white-space: nowrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 12px 25px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 24px;
+      text-decoration: none;
+      transition: background .15s ease, transform .15s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-light { color: var(--orange); background: var(--beige); }
+    .btn-light:hover { background: #fff; }
+    .btn-orange { color: var(--beige); background: var(--orange); }
+    .btn-orange:hover { background: #8f4729; }
+
+    .hero {
+      position: relative;
+      min-height: 560px;
+      overflow: hidden;
+      color: var(--beige);
+      background:
+        linear-gradient(110deg, rgba(42, 43, 47, .82) 0%, rgba(42, 43, 47, .3) 54%, rgba(42, 43, 47, .6) 100%),
+        var(--midnight);
+    }
+    .hero::after {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(0deg, rgba(42, 43, 47, .92) 0%, rgba(42, 43, 47, .12) 62%);
+      content: '';
+    }
+    .hero-image {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: .94;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 560px;
+      padding: 184px 7vw 62px;
+    }
+    .hero-copy { max-width: 710px; }
+    .eyebrow-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 4px 13px;
+      color: var(--beige);
+      background: rgba(254, 249, 239, .17);
+      border: 1px solid rgba(254, 249, 239, .3);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 20px;
+    }
+    h1, h2, h3 {
+      margin: 0;
+      font-family: var(--heading);
+      font-weight: 300;
+      letter-spacing: -.025em;
+    }
+    .hero h1 {
+      margin: 17px 0 9px;
+      color: var(--beige);
+      font-size: clamp(56px, 6vw, 80px);
+      font-style: italic;
+      line-height: .9;
+    }
+    .hero-description {
+      max-width: 610px;
+      margin: 0 0 24px;
+      color: rgba(254, 249, 239, .92);
+      font-size: 18px;
+      line-height: 27px;
+    }
+    .hero-stats {
+      display: flex;
+      align-items: stretch;
+      align-self: flex-end;
+      margin-top: -56px;
+      color: var(--beige);
+    }
+    .hero-stat {
+      min-width: 142px;
+      padding: 0 20px;
+      border-left: 1px solid rgba(254, 249, 239, .52);
+    }
+    .hero-stat:first-child { border-left: 0; }
+    .hero-stat strong {
+      display: block;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 28px;
+    }
+    .hero-stat span {
+      display: block;
+      margin-top: 4px;
+      color: rgba(254, 249, 239, .8);
+      font-size: 16px;
+      line-height: 24px;
+    }
+
+    .section {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 88px 64px;
+    }
+    .section-kicker {
+      margin-bottom: 8px;
+      color: var(--orange);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      line-height: 20px;
+      text-transform: uppercase;
+    }
+    .section h2 {
+      margin-bottom: 34px;
+      font-size: clamp(46px, 5vw, 64px);
+      line-height: .98;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      min-height: 180px;
+      padding: 25px;
+      background: var(--cream);
+      border-radius: var(--radius-large);
+    }
+    .metric-label {
+      min-height: 48px;
+      color: var(--gray);
+      font-size: 15px;
+      line-height: 22px;
+    }
+    .metric-value {
+      margin: 13px 0 1px;
+      color: var(--midnight);
+      font-size: 42px;
+      font-weight: 400;
+      letter-spacing: -.04em;
+      line-height: 46px;
+    }
+    .metric-note {
+      color: var(--light-gray);
+      font-size: 14px;
+      line-height: 21px;
+    }
+    .results-card {
+      overflow: hidden;
+      background: #FFFDF8;
+      border-radius: var(--radius-large);
+    }
+    .results-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 23px 26px 18px;
+    }
+    .results-head h3 { font-size: 34px; line-height: 38px; }
+    .results-head span { color: var(--light-gray); font-size: 14px; }
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    .results-table th {
+      padding: 11px 26px;
+      color: var(--light-gray);
+      border-top: 1px solid var(--dark-cream);
+      border-bottom: 1px solid var(--dark-cream);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 20px;
+    }
+    .results-table td {
+      padding: 15px 26px;
+      border-bottom: 1px solid var(--dark-cream);
+      font-size: 15px;
+      line-height: 22px;
+    }
+    .results-table tr:last-child td { border-bottom: 0; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 20px;
+      white-space: nowrap;
+    }
+    .status-green { color: #2f6b40; background: #f1f3e5; }
+    .status-orange { color: var(--orange); background: var(--orange-10p); }
+    .status-neutral { color: var(--gray); background: var(--cream); }
+
+    .schedule-section { padding-top: 0; }
+    .schedule-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(300px, .94fr);
+      overflow: hidden;
+      background: var(--cream);
+      border-radius: var(--radius-large);
+    }
+    .schedule-form {
+      padding: 42px 44px 44px;
+    }
+    .schedule-form h2 {
+      margin-bottom: 10px;
+      font-size: 34px;
+      line-height: 38px;
+    }
+    .schedule-sub {
+      margin: 0 0 28px;
+      color: var(--gray);
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--gray);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+    }
+    .form-control {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      color: var(--midnight);
+      background: var(--beige);
+      border: 1px solid var(--dark-cream);
+      border-radius: var(--radius-base);
+      outline: none;
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 24px;
+    }
+    .form-control:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(176, 90, 54, .13);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .btn-provision {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 3px;
+      color: var(--beige);
+      background: var(--orange);
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 24px;
+      transition: background .15s ease, transform .15s ease;
+    }
+    .btn-provision:hover { background: #8f4729; transform: translateY(-1px); }
+    .btn-provision:disabled { cursor: wait; opacity: .72; transform: none; }
+    .result-box {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: var(--radius-base);
+      font-size: 14px;
+      line-height: 21px;
+    }
+    .result-box.success { display: block; color: #2f6b40; background: #f1f3e5; }
+    .result-box.error { display: block; color: var(--error); background: #fdecec; }
+    .result-box .r-title { margin-bottom: 3px; font-weight: 600; }
+    .result-box .r-detail { overflow-wrap: anywhere; }
+    .schedule-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px 44px;
+      color: var(--beige);
+      background: var(--midnight);
+    }
+    .schedule-info h3 {
+      max-width: 360px;
+      margin-bottom: 25px;
+      font-size: 34px;
+      line-height: 38px;
+    }
+    .info-list {
+      display: grid;
+      gap: 18px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .info-list li {
+      position: relative;
+      padding-left: 27px;
+      color: rgba(254, 249, 239, .86);
+      line-height: 24px;
+    }
+    .info-list li::before {
+      position: absolute;
+      top: 9px;
+      left: 0;
+      width: 9px;
+      height: 9px;
+      background: var(--orange);
+      border-radius: 50%;
+      content: '';
+    }
+
+    footer {
+      color: var(--beige);
+      background: var(--midnight);
+    }
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 61px 64px 36px;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.4fr repeat(3, 1fr);
+      gap: 28px;
+      padding-bottom: 53px;
+    }
+    .footer-wordmark {
+      font-size: 32px;
+      line-height: 38px;
+    }
+    .footer-column h4 {
+      margin: 0 0 14px;
+      color: rgba(254, 249, 239, .55);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 20px;
+      text-transform: uppercase;
+    }
+    .footer-column a {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--beige);
+      font-size: 15px;
+      line-height: 22px;
+      text-decoration: none;
+    }
+    .footer-column a:hover { opacity: .7; }
+    .footer-legal {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding-top: 21px;
+      color: rgba(254, 249, 239, .58);
+      border-top: 1px solid rgba(254, 249, 239, .2);
+      font-size: 13px;
+      line-height: 20px;
+    }
+    .footer-legal p { max-width: 580px; margin: 0; }
+
+    @media (max-width: 1100px) {
+      .nav-links { gap: 12px; margin-right: 12px; }
+      .nav-wrap { right: 32px; left: 32px; }
+      .section, .footer-inner { padding-right: 32px; padding-left: 32px; }
+      .hero-content { padding-right: 5vw; padding-left: 5vw; }
+    }
+    @media (max-width: 900px) {
+      .nav-wrap { top: 12px; right: 12px; left: 12px; }
+      .nav-links { display: none; }
+      .hero-content { padding-top: 125px; }
+      .hero-stats { align-self: flex-start; margin-top: 36px; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .schedule-panel { grid-template-columns: 1fr; }
+      .schedule-info { padding-top: 38px; padding-bottom: 42px; }
+      .footer-top { grid-template-columns: 1.2fr repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .announcement { font-size: 13px; }
+      .site-nav { min-height: 70px; padding-left: 16px; }
+      .wordmark { font-size: 27px; line-height: 32px; }
+      .logo-mark { width: 38px; height: 38px; }
+      .nav-actions { gap: 10px; }
+      .login-link { display: none; }
+      .nav-actions .btn { min-height: 44px; padding: 10px 17px; font-size: 14px; }
+      .hero { min-height: 650px; }
+      .hero-content { min-height: 650px; padding: 127px 24px 38px; }
+      .hero h1 { font-size: 58px; }
+      .hero-description { font-size: 16px; line-height: 24px; }
+      .hero-stats { width: 100%; margin-top: 32px; }
+      .hero-stat { min-width: 0; flex: 1; padding: 0 11px; }
+      .hero-stat:first-child { padding-left: 0; }
+      .hero-stat strong { font-size: 17px; line-height: 22px; }
+      .hero-stat span { font-size: 13px; line-height: 19px; }
+      .section, .footer-inner { padding: 60px 24px; }
+      .section h2 { font-size: 48px; }
+      .metric-grid { gap: 10px; }
+      .metric-card { min-height: 160px; padding: 18px; }
+      .metric-value { font-size: 36px; line-height: 40px; }
+      .metric-label { min-height: 44px; font-size: 14px; }
+      .results-head { display: block; padding: 20px 18px 14px; }
+      .results-head h3 { font-size: 30px; }
+      .results-head span { display: block; margin-top: 5px; }
+      .results-table th, .results-table td { padding: 12px 14px; }
+      .results-table th:nth-child(3), .results-table td:nth-child(3) { display: none; }
+      .results-table th, .results-table td { font-size: 13px; }
+      .schedule-form, .schedule-info { padding-right: 24px; padding-left: 24px; }
+      .schedule-form h2, .schedule-info h3 { font-size: 32px; line-height: 36px; }
+      .footer-top { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 34px; }
+      .footer-wordmark { grid-column: 1 / -1; }
+      .footer-legal { display: block; }
+      .footer-legal p + p { margin-top: 12px; }
+    }
+    @media (max-width: 480px) {
+      .metric-grid { grid-template-columns: 1fr; }
+      .metric-card { min-height: 135px; }
+      .metric-label { min-height: auto; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="announcement">Use your HSA/FSA funds to <u>Join Function</u></div>
+
+  <section class="hero">
+  <div class="nav-wrap">
+    <nav class="site-nav">
+      <a class="wordmark" href="#">
+        <svg class="logo-mark" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="22" cy="22" r="21" fill="none" stroke="#FEF9EF" stroke-width="1.3"/>
+          <path d="M9 15.5 16.3 8.2M8.2 23 23 8.2M9 31.5 31.5 9M17.5 36 36 17.5M27 35.8 35.8 27" stroke="#FEF9EF" stroke-width="4.2" stroke-linecap="round"/>
+        </svg>
+        <span>Function</span>
+      </a>
+      <div class="nav-links">
+        <a href="#dashboard">How it works</a>
+        <a href="#dashboard">What we test</a>
+        <a href="#schedule">Imaging</a>
+        <a href="#schedule">FAQs</a>
+        <a href="#footer">About</a>
+      </div>
+      <div class="nav-actions">
+        <a class="login-link" href="#schedule">Log in</a>
+        <a class="btn btn-light" href="#schedule">Start testing</a>
+      </div>
+    </nav>
+  </div>
+    <img
+      class="hero-image"
+      src="https://www.functionhealth.com/images/homepage/flutie-first-frame-desktop.webp"
+      alt=""
+      onerror="this.style.display='none'"
+    >
+    <div class="hero-content">
+      <div class="hero-copy">
+        <span class="eyebrow-pill">HSA/FSA Eligible</span>
+        <h1>Check your health.</h1>
+        <p class="hero-description">Every year. Starting with 160+ lab tests detecting 1000+ conditions. Just $365 per year—$1 per day.</p>
+        <a class="btn btn-light" href="#schedule">Start testing</a>
+      </div>
+      <div class="hero-stats" aria-label="Membership facts">
+        <div class="hero-stat"><strong>160+ lab tests</strong><span>Total each year</span></div>
+        <div class="hero-stat"><strong>Whole body</strong><span>Tested 2x per year</span></div>
+        <div class="hero-stat"><strong>$1 per day</strong><span>$365 per year</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section class="section" id="dashboard">
+      <div class="section-kicker">Member dashboard</div>
+      <h2>Your health, in one place.</h2>
+      <div class="metric-grid">
+        <article class="metric-card">
+          <div class="metric-label">Biomarkers tested</div>
+          <div class="metric-value">168</div>
+          <div class="metric-note">across 20 categories</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">In range</div>
+          <div class="metric-value">154</div>
+          <div class="metric-note">92% of results</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Out of range</div>
+          <div class="metric-value">14</div>
+          <div class="metric-note">flagged for review</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Next lab visit</div>
+          <div class="metric-value">Oct 14</div>
+          <div class="metric-note">Quest Diagnostics</div>
+        </article>
+      </div>
+
+      <div class="results-card">
+        <div class="results-head">
+          <h3>Recent results</h3>
+          <span>Last updated Sep 2026</span>
+        </div>
+        <table class="results-table">
+          <thead>
+            <tr><th>Category</th><th>Biomarkers</th><th>Last tested</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Heart</td><td>ApoB, LDL-C, Lp(a) … 28 biomarkers</td><td>Sep 2026</td><td><span class="status status-green">In range</span></td></tr>
+            <tr><td>Hormones</td><td>22</td><td>Sep 2026</td><td><span class="status status-orange">1 out of range</span></td></tr>
+            <tr><td>Metabolic</td><td>18</td><td>Sep 2026</td><td><span class="status status-green">In range</span></td></tr>
+            <tr><td>Thyroid</td><td>6</td><td>Sep 2026</td><td><span class="status status-green">In range</span></td></tr>
+            <tr><td>Cancer detection</td><td>9</td><td>Mar 2026</td><td><span class="status status-neutral">Results pending</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section schedule-section" id="schedule">
+      <div class="schedule-panel">
+        <div class="schedule-form">
+          <h2>Add tests to your next lab visit</h2>
+          <p class="schedule-sub">Choose a panel and we'll add it to your upcoming draw.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">Test panel</label>
+              <select class="form-control" id="product">
+                <option value="core_panel">Function core panel — 160+ lab tests</option>
+                <option value="advanced_heart">Advanced heart health add-on</option>
+                <option value="hormone_health">Hormone health add-on</option>
+                <option value="galleri_mcd">Galleri multi-cancer detection test</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">Household members</label>
+                <input class="form-control" type="number" id="seats" value="1" min="1" required>
+              </div>
+              <div class="form-group">
+                <label for="planTier">Membership</label>
+                <select class="form-control" id="planTier">
+                  <option value="enterprise">Annual membership</option>
+                  <option value="business">Membership + add-ons</option>
+                  <option value="starter">Single visit</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Lab location</label>
+              <select class="form-control" id="region">
+                <option value="us-east">Quest Diagnostics — Austin, TX</option>
+                <option value="us-west">Quest Diagnostics — Los Angeles, CA</option>
+                <option value="eu-west">Quest Diagnostics — New York, NY</option>
+                <option value="ap-south">Quest Diagnostics — Miami, FL</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-provision" id="submitBtn">Add to next visit</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+        <aside class="schedule-info">
+          <h3>Results explained, not just delivered.</h3>
+          <ul class="info-list">
+            <li>Doctor-reviewed insights for every biomarker</li>
+            <li>Track changes across every test, year over year</li>
+            <li>Bring outside results into your Function dashboard</li>
+            <li>HSA/FSA eligible</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-wordmark">Function</div>
+        <div class="footer-column">
+          <h4>Company</h4>
+          <a href="#footer">About</a>
+          <a href="#footer">Careers</a>
+          <a href="#footer">Press</a>
+        </div>
+        <div class="footer-column">
+          <h4>Explore</h4>
+          <a href="#dashboard">How it works</a>
+          <a href="#dashboard">What we test</a>
+          <a href="#schedule">Imaging</a>
+        </div>
+        <div class="footer-column">
+          <h4>Community</h4>
+          <a href="#footer">Member stories</a>
+          <a href="#schedule">FAQs</a>
+          <a href="#schedule">Support</a>
+        </div>
+      </div>
+      <div class="footer-legal">
+        <p>Function Health is not a medical provider. Lab testing is ordered by an independent physician network.</p>
+        <p>© 2026 Function Health. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const PANEL_LABELS = {
+      core_panel: 'Function core panel — 160+ lab tests',
+      advanced_heart: 'Advanced heart health add-on',
+      hormone_health: 'Hormone health add-on',
+      galleri_mcd: 'Galleri multi-cancer detection test',
+    };
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Adding...';
+      result.className = 'result-box';
+      const panel = document.getElementById('product').value;
+      const show = (cls, title, detail) => {
+        result.className = 'result-box ' + cls;
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'r-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: panel, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          show('error', 'Could not add tests', `${data.errorClass}: ${data.error}`);
+        } else {
+          show('success', 'Added to your next visit', `${data.seatsAdded} member(s) — ${PANEL_LABELS[panel]} — requisition ${data.licenseId}`);
+        }
+      } catch (err) {
+        show('error', 'Network Error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Add to next visit'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

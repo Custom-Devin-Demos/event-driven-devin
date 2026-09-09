@@ -1201,6 +1201,30 @@ const ONCALL_SKINS = {
     supportCenter: 'Lloyds Bank Help & Support',
     disclaimer: 'NOT ACTUALLY A LLOYDS BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Lloyds Bank product.',
   },
+  'f2089246': {
+    slug: 'f2089246',
+    company: 'Function Health',
+    brandMark: 'F',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'f2089246.html',
+      title: 'Function — Member Dashboard',
+    },
+    accent: '#B05A36',
+    accentDark: '#8f4729',
+    theme: {
+      '--accent': '#B05A36',
+      '--ink': '#2A2B2F',
+      '--surface': '#FEF9EF',
+      '--chrome-bg': '#2A2B2F',
+      '--chrome-text': '#FEF9EF',
+    },
+    supportCenter: 'Function Support',
+    supportCenterSub: 'Member Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A FUNCTION HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Function Health product.',
+  },
   '1dd18f07': {
     slug: '1dd18f07',
     company: 'Eaze',
