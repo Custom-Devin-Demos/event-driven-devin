@@ -750,22 +750,27 @@
       const result = document.getElementById('result');
       btn.disabled = true; btn.textContent = 'Adding...';
       result.className = 'result-box';
+      const panel = document.getElementById('product').value;
+      const show = (cls, title, detail) => {
+        result.className = 'result-box ' + cls;
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'r-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'r-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
       try {
         const res = await fetch('/api/licenses/provision', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orgName: document.getElementById('product').value, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ orgName: panel, planName: document.getElementById('planTier').value, seats: parseInt(document.getElementById('seats').value), billingCycle: 'annual', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="r-title">Could not add tests</div><div class="r-detail">${data.errorClass}: ${data.error}</div>`;
+          show('error', 'Could not add tests', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="r-title">Added to your next visit</div><div class="r-detail">${data.seatsAdded} member(s) — ${PANEL_LABELS[document.getElementById('product').value]} — requisition ${data.licenseId}</div>`;
+          show('success', 'Added to your next visit', `${data.seatsAdded} member(s) — ${PANEL_LABELS[panel]} — requisition ${data.licenseId}`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="r-title">Network Error</div><div class="r-detail">${err.message}</div>`;
+        show('error', 'Network Error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Add to next visit'; }
     });
   </script>
