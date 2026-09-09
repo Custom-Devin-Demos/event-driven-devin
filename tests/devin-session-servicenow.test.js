@@ -118,4 +118,20 @@ describe('ServiceNow customer routing', () => {
     expect(postDevinSessionLink).toHaveBeenCalled();
     expect(result.session).toEqual(expect.objectContaining({ sessionId: 'session-123' }));
   });
+
+  test('falls back to direct Devin when ServiceNow incident creation fails', async () => {
+    servicenow.isConfigured.mockReturnValue(true);
+    servicenow.createIncident.mockResolvedValue(null);
+
+    const result = await createSessionAndAlert({
+      ...baseAlert,
+      customer: '6f43e66c',
+    });
+
+    expect(servicenow.createIncident).toHaveBeenCalled();
+    expect(createDevinSession).toHaveBeenCalled();
+    expect(postDevinSessionLink).toHaveBeenCalled();
+    expect(result.incident).toBeUndefined();
+    expect(result.session).toEqual(expect.objectContaining({ sessionId: 'session-123' }));
+  });
 });

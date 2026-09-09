@@ -180,26 +180,27 @@ async function createSessionAndAlert(alertData) {
           customer: config.customer,
           threadTs,
         });
-      } else {
-        logger.warn('ServiceNow incident was not created', {
-          issueTitle: alertData.issueTitle,
-          customer: config.customer,
-        });
+        scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
+        return {
+          triggered: true,
+          throttled: false,
+          threadTs,
+          session: null,
+          incident,
+        };
       }
 
-      // Preserve the existing optional vulnerable-PR trigger. The ServiceNow
-      // business rule owns the Devin Automation dispatch for this customer.
-      scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
-      return {
-        triggered: true,
-        throttled: false,
-        threadTs,
-        session: null,
-        incident,
-      };
+      logger.warn('ServiceNow incident was not created — falling back to Devin session creation', {
+        issueTitle: alertData.issueTitle,
+        customer: config.customer,
+      });
     }
 
-    if (config.itsm === 'servicenow' && !servicenowConfigWarningLogged) {
+    if (
+      config.itsm === 'servicenow'
+      && !servicenow.isConfigured()
+      && !servicenowConfigWarningLogged
+    ) {
       servicenowConfigWarningLogged = true;
       logger.warn('ServiceNow is not configured — falling back to Devin session creation', {
         customer: config.customer,
