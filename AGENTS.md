@@ -590,6 +590,12 @@ Edit `buildAlertBlocks()` in `app/services/slack.js`. The function returns Slack
 ### Modifying the Devin investigation prompt
 Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Markdown tables for structured data. Keep it detailed — this is the only context Devin gets when starting an investigation.
 
+### ServiceNow incident trigger (per-customer `itsm: 'servicenow'`)
+For an opted-in customer, a failure opens a P2 ServiceNow incident with `correlation_display=event-driven-devin`.
+The ServiceNow business rule receives the incident and calls the Devin Automation webhook.
+Devin investigates and opens a reviewable PR rather than deploying directly.
+Incident work notes remain the durable record of the investigation and PR outcome.
+
 ### Adding a new customer demo
 A new vertical touches only its own files; do **not** edit `app/routes/verticals/index.js`, `config/customers.js`, or `docker-compose.yml`. This is what lets both source repos (COG-GTM and Custom-Devin-Demos) deploy to the same host without unregistering each other's demos.
 1. Create `config/customers/<slug>.js` (the file name is the slug):

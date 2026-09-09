@@ -1,10 +1,18 @@
 const logger = require('../telemetry/logger');
-const { postAlertToSlack, postBugReportToTriage, postDevinSessionLink } = require('./slack');
+const {
+  postAlertToSlack,
+  postBugReportToTriage,
+  postDevinSessionLink,
+  postIncidentLink,
+} = require('./slack');
 const { createDevinSession } = require('./devin-api');
+const servicenow = require('./servicenow');
 const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getCustomerConfig } = require('../../config/customers');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { legacyAlertsSuppressed } = require('./oncall-suppression');
+
+let servicenowConfigWarningLogged = false;
 
 /**
  * Build the investigation prompt from alert data.
@@ -154,6 +162,49 @@ async function createSessionAndAlert(alertData) {
     // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
     const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
     const resolvedOrgId = alertData.devinOrgId || '';
+
+    if (config.itsm === 'servicenow' && servicenow.isConfigured()) {
+      const incident = await servicenow.createIncident({
+        shortDescription: alertData.title || alertData.issueTitle,
+        description: prompt,
+        assignmentGroup: config.itsmAssignmentGroup,
+        correlationId: alertData.sentryIssueId || alertData.issueId || threadTs,
+        cmdbCi: alertData.service,
+      });
+
+      if (incident) {
+        await postIncidentLink(threadTs, incident, config.itsmAssignmentGroup);
+        logger.info('ServiceNow incident created and linked in Slack thread', {
+          issueTitle: alertData.issueTitle,
+          incidentNumber: incident.number,
+          customer: config.customer,
+          threadTs,
+        });
+      } else {
+        logger.warn('ServiceNow incident was not created', {
+          issueTitle: alertData.issueTitle,
+          customer: config.customer,
+        });
+      }
+
+      // Preserve the existing optional vulnerable-PR trigger. The ServiceNow
+      // business rule owns the Devin Automation dispatch for this customer.
+      scheduleVulnerablePR(0, config.customer, resolvedUserId, resolvedOrgId);
+      return {
+        triggered: true,
+        throttled: false,
+        threadTs,
+        session: null,
+        incident,
+      };
+    }
+
+    if (config.itsm === 'servicenow' && !servicenowConfigWarningLogged) {
+      servicenowConfigWarningLogged = true;
+      logger.warn('ServiceNow is not configured — falling back to Devin session creation', {
+        customer: config.customer,
+      });
+    }
 
     // Step 2: Check global session cap before creating a Devin session
     const capCheck = canCreateSession();

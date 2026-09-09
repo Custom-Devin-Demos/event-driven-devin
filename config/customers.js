@@ -108,6 +108,8 @@ function getCustomerConfig(customerSlug) {
     targetRepo: process.env[`SONAR_TARGET_REPO${suffix}`]
       || process.env.SONAR_TARGET_REPO || `${githubOrg}/etl-pipeline-demo`,
     sonarWorkflowCustomer: process.env[`SONAR_WORKFLOW_CUSTOMER${suffix}`] || slug,
+    itsm: entry.itsm || null,
+    itsmAssignmentGroup: entry.itsmAssignmentGroup || '',
   };
 
   if (slug !== 'default') {
@@ -120,6 +122,7 @@ function getCustomerConfig(customerSlug) {
       hasDevinUserId: !!config.devinUserId,
       targetRepo: config.targetRepo,
       sonarWorkflowCustomer: config.sonarWorkflowCustomer,
+      itsm: config.itsm,
     });
   }
 

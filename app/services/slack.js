@@ -447,6 +447,52 @@ async function postDevinSessionLink(threadTs, sessionUrl) {
 }
 
 /**
+ * Post a thread reply with a link to a ServiceNow incident.
+ * Uses the bot token — no user token needed.
+ */
+async function postIncidentLink(threadTs, incident, assignmentGroup) {
+  const token = process.env.SLACK_BOT_TOKEN;
+  const channel = process.env.SLACK_CHANNEL_ID;
+
+  if (!token || !channel) {
+    logger.warn('Slack not configured — skipping ServiceNow incident link post');
+    return null;
+  }
+
+  try {
+    const incidentLink = `<${incident.url}|${incident.number}>`;
+    const group = assignmentGroup || 'ServiceNow';
+    const text = `:rotating_light: ServiceNow incident ${incidentLink} opened (P2, ${group}) `
+      + '— Devin will be dispatched by the ServiceNow flow.';
+    const blocks = [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text,
+        },
+      },
+    ];
+    const replyTs = await postThreadReply(token, channel, threadTs, text, blocks);
+
+    logger.info('ServiceNow incident link posted to Slack thread', {
+      channel,
+      threadTs,
+      replyTs,
+      incidentNumber: incident.number,
+    });
+    return replyTs;
+  } catch (error) {
+    logger.error('Failed to post ServiceNow incident link', {
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return null;
+  }
+}
+
+/**
  * Find a public channel whose name contains the given fragment.
  * Returns { id, name } or null. Requires the `channels:read` scope.
  */
@@ -647,6 +693,7 @@ module.exports = {
   postAlertToSlack,
   postBugReportToTriage,
   postDevinSessionLink,
+  postIncidentLink,
   postThreadReply,
   lookupSlackUserByEmail,
   inviteToChannel,
