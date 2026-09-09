@@ -1225,6 +1225,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Member Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A FUNCTION HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Function Health product.',
   },
+  '1dd18f07': {
+    slug: '1dd18f07',
+    company: 'Eaze',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: {
+      file: '1dd18f07.html',
+      title: 'Checkout | Eaze',
+    },
+    theme: {
+      '--accent': '#FFE400',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Eaze Support',
+    disclaimer: 'NOT ACTUALLY A EAZE SITE — internal demo only, not affiliated with, endorsed by, or a real Eaze product.',
+  },
 };
 
 function getOncallSkin(slug) {
