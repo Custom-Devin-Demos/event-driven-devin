@@ -1166,6 +1166,25 @@ const ONCALL_SKINS = {
     supportCenter: '1-800-Flowers.com Customer Service',
     disclaimer: 'NOT ACTUALLY A 1-800-FLOWERS.COM SITE — internal demo only, not affiliated with, endorsed by, or a real 1-800-Flowers.com product.',
   },
+  'd9d2f2fd': {
+    slug: 'd9d2f2fd',
+    company: 'Lloyds Bank',
+    brandMark: 'LLOYDS',
+    vertical: 'banking',
+    page: {
+      file: 'd9d2f2fd.html',
+      title: 'Pay & transfer | Internet Banking – Lloyds Bank',
+    },
+    theme: {
+      '--accent': '#11B67A',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#006A4D',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Lloyds Bank Help & Support',
+    disclaimer: 'NOT ACTUALLY A LLOYDS BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Lloyds Bank product.',
+  },
 };
 
 function getOncallSkin(slug) {
