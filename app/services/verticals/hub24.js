@@ -359,8 +359,136 @@ async function submitFeeArrangement(data) {
   }
 }
 
+const MOBILE_SENTRY_ISSUE_QUERY = 'is:unresolved unknownSchedule';
+
+const MOBILE_REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-ios. Scope: only the HUB24 Adviser Desktop iOS fee arrangement failure below. The failing surface is the native SwiftUI iOS/macOS app in COG-GTM/event-driven-ios: the Clients screen -> "New fee arrangement" -> "Review fee arrangement" action in App/Views/FeeArrangementView.swift calls FeeArrangementService.quote in App/Services/FeeArrangementService.swift, which resolves the client's product through FeeSchedules.schedule(for:) in App/Services/FeeSchedule.swift. Start at FeeSchedules.all: it is keyed by ProductCode and the .superChoice product ("HUB24 Super — Choice", the default client Marcus Alderton / HUB24-8842167) is intentionally absent, so the lookup returns nil and quote throws FeeArrangementError.unknownSchedule, which the app surfaces as an inline error banner. Fix this by registering the missing .superChoice FeeSchedule (label "HUB24 Super — Choice", maxOngoingFeePercent 1.1, maxFlatFeeAnnual 16500, minPortfolioValue 50000, consentRenewalMonths 12, feeRunQueue "super-choice-monthly"); do not patch around the error or change the app's look and feel. Do not touch COG-GTM/event-driven-devin. Verify with XcodeGen on a macOS machine: run make generate, boot an iPhone simulator, run make test (all tests in Tests/FeeArrangementServiceTests.swift must pass, including testEveryProductHasASchedule) and make build-mac, then make run and walk the golden path to the accepted screen. Attach simulator screenshots of the fee arrangement form and the accepted screen under a "Fix Verification" heading on the pull request.`;
+
+/**
+ * Instant-path alert for the native iOS/macOS Adviser Desktop app.
+ * The app is offline-first and has no Sentry SDK, so when its fee-schedule
+ * lookup fails it POSTs the handled Swift error here and this service raises
+ * the same Slack alert + Devin session the web vertical raises for its own
+ * TypeError, scoped to the iOS repository.
+ */
+function reportMobileFeeArrangementError(data = {}) {
+  const account = CLIENT_ACCOUNTS[data.clientAccountId];
+  if (!account) {
+    throw validationError(`Unknown client account: ${data.clientAccountId}`);
+  }
+
+  const errorType = typeof data.errorType === 'string' && data.errorType.trim()
+    ? data.errorType.trim()
+    : 'FeeArrangementError.unknownSchedule';
+  const errorMessage = typeof data.errorMessage === 'string' && data.errorMessage.trim()
+    ? data.errorMessage.trim()
+    : `No adviser fee schedule is registered for ${account.productLabel}`;
+  const platform = data.platform === 'macos' ? 'macos' : 'ios';
+  const appVersion = typeof data.appVersion === 'string' && data.appVersion ? data.appVersion : '1.0.0';
+  const feeBasis = data.feeBasis === 'flat' ? 'flat' : 'percentage';
+  const frequency = getFrequencyOption(data.frequency) ? data.frequency : 'monthly';
+  const reportId = makeReceiptNumber();
+
+  incrementMetric('hub24_fee_arrangement.failure', {
+    route: '/api/hub24/mobile-error',
+    errorClass: errorType,
+    productCode: account.productCode,
+    feeBasis,
+    frequency,
+    platform,
+  });
+
+  logger.error('HUB24 Adviser Desktop mobile fee arrangement failed', {
+    reportId,
+    clientAccountId: account.clientAccountId,
+    productCode: account.productCode,
+    platform,
+    appVersion,
+    error: errorMessage,
+    errorClass: errorType,
+    service: 'customer-hub24-adviser-desktop-ios',
+    route: '/api/hub24/mobile-error',
+  });
+
+  const error = new Error(errorMessage);
+  error.name = errorType;
+  Sentry.captureException(error, {
+    tags: {
+      route: '/api/hub24/mobile-error',
+      service: 'customer-hub24-adviser-desktop-ios',
+      productCode: account.productCode,
+      productLabel: account.productLabel,
+      feeBasis,
+      frequency,
+      platform,
+    },
+    extra: {
+      reportId,
+      clientAccountId: account.clientAccountId,
+      clientName: account.clientName,
+      appVersion,
+    },
+  });
+
+  createSessionAndAlert({
+    issueTitle: `${errorType}: ${errorMessage}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=${encodeURIComponent(MOBILE_SENTRY_ISSUE_QUERY)}`,
+    culprit: 'App/Services/FeeArrangementService.swift — FeeArrangementService.quote',
+    errorType,
+    errorValue: errorMessage,
+    service: 'customer-hub24-adviser-desktop-ios',
+    verticalLabel: 'HUB24 — Adviser Fee Arrangement (Adviser Desktop iOS)',
+    customer: 'hub24',
+    slackMemberId: data.devinEmail ? '' : HUB24_SLACK_MEMBER_ID,
+    slackMemberIdFallback: HUB24_SLACK_MEMBER_ID,
+    devinUserId: data.devinUserId,
+    devinEmail: data.devinEmail,
+    devinOrgId: data.devinOrgId,
+    promptAppendix: MOBILE_REMEDIATION_DIRECTIVE,
+    tags: [
+      { key: 'route', value: '/api/hub24/mobile-error' },
+      { key: 'service', value: 'customer-hub24-adviser-desktop-ios' },
+      { key: 'platform', value: platform },
+      { key: 'productCode', value: account.productCode },
+      { key: 'productLabel', value: account.productLabel },
+      { key: 'feeBasis', value: feeBasis },
+      { key: 'frequency', value: frequency },
+    ],
+    extra: {
+      reportId,
+      clientAccountId: account.clientAccountId,
+      clientName: account.clientName,
+      appVersion,
+    },
+    level: 'error',
+    platform: 'cocoa',
+    firstSeen: '',
+    lastSeen: new Date().toISOString(),
+    count: '',
+    shortId: '',
+    project: 'event-driven-ios',
+    release: `hub24-adviser-desktop-ios@${appVersion}`,
+    environment: process.env.DD_ENV || 'prod',
+    triggeredRule: '',
+  }).catch((alertError) => {
+    logger.error('Failed to create Devin session for HUB24 mobile fee arrangement error', {
+      reportId,
+      error: alertError.message,
+    });
+  });
+
+  return {
+    received: true,
+    reportId,
+    service: 'customer-hub24-adviser-desktop-ios',
+    clientAccountId: account.clientAccountId,
+    productCode: account.productCode,
+  };
+}
+
 module.exports = {
   submitFeeArrangement,
+  reportMobileFeeArrangementError,
+  MOBILE_REMEDIATION_DIRECTIVE,
   resolveFeeSchedule,
   calculateAdviserFeeArrangement,
   roundMoney,
