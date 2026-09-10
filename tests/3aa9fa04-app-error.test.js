@@ -160,6 +160,19 @@ describe('Splash Sports mobile failure report (3aa9fa04)', () => {
       expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
     });
 
+    test('answers the Expo Web CORS preflight', async () => {
+      const { port } = server.address();
+      const res = await fetch(`http://127.0.0.1:${port}/api/3aa9fa04/app/error`, {
+        method: 'OPTIONS',
+        headers: { origin: 'http://localhost:8081', 'access-control-request-method': 'POST' },
+      });
+
+      expect(res.status).toBe(204);
+      expect(res.headers.get('access-control-allow-origin')).toBe('*');
+      expect(res.headers.get('access-control-allow-headers')).toMatch(/content-type/i);
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+    });
+
     test('rejects reports that do not carry the mobile identity', async () => {
       const { status, body } = await postJson(server, '/api/3aa9fa04/app/error', {
         ...APP_REPORT,
