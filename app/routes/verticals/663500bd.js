@@ -35,18 +35,20 @@ router.get('/api/663500bd/tiers', (_req, res) => {
  * POST /api/663500bd/checkout — place the bag order
  */
 router.post('/api/663500bd/checkout', async (req, res) => {
+  const body = req.body || {};
+
   try {
     const order = await placeOrder({
-      items: Array.isArray(req.body.items)
-        ? req.body.items
+      items: Array.isArray(body.items)
+        ? body.items
         : [{ sku: '7846231', qty: 1 }],
-      membershipTier: req.body.membershipTier || 'icon',
-      shippingMethod: req.body.shippingMethod || 'standard',
-      storeNumber: req.body.storeNumber || '0013',
-      channel: req.body.channel || 'web',
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      membershipTier: body.membershipTier || 'icon',
+      shippingMethod: body.shippingMethod || 'standard',
+      storeNumber: body.storeNumber || '0013',
+      channel: body.channel || 'web',
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(order);
   } catch (error) {

@@ -180,7 +180,7 @@
         <span class="pill">Local Fillmore</span>
         <span class="pill">98101</span>
         <span class="pill">Sign In</span>
-        <span class="bag-count">3</span>
+        <span class="bag-count" id="bag-count">3</span>
       </div>
     </div>
     <nav class="ns-nav">
@@ -211,7 +211,7 @@
 
 <main>
   <div class="wrap">
-    <h1 class="page-title">Shopping Bag (3 items)</h1>
+    <h1 class="page-title">Shopping Bag (<span id="bag-count-title">3</span> items)</h1>
 
     <div class="checkout">
       <div>
@@ -233,7 +233,7 @@
             </div>
             <div class="links"><a href="#">Save for Later</a><a href="#">Remove</a></div>
           </div>
-          <div class="price">$149.00</div>
+          <div class="price" id="coat-line-total">$149.00</div>
         </div>
 
         <div class="bag-item">
@@ -267,10 +267,10 @@
 
       <aside class="summary">
         <h3>Order Summary</h3>
-        <div class="row"><span>Subtotal (3 items)</span><span>$536.99</span></div>
+        <div class="row"><span>Subtotal (<span id="summary-count">3</span> items)</span><span id="summary-subtotal">$536.99</span></div>
         <div class="row"><span>Estimated Shipping</span><span>Calculated at checkout</span></div>
         <div class="row"><span>Estimated Tax</span><span>Calculated at checkout</span></div>
-        <div class="row total"><span>Estimated Total</span><span>$536.99</span></div>
+        <div class="row total"><span>Estimated Total</span><span id="summary-total">$536.99</span></div>
 
         <div class="field">
           <label for="tier">The Nordy Club Status</label>
@@ -485,12 +485,33 @@
     });
   });
 
+  var COAT_PRICE = 149.0;
+  var OTHER_ITEMS_TOTAL = 228.0 + 159.99;
+
+  function money(value) {
+    return '$' + value.toFixed(2);
+  }
+
+  function syncBagTotals() {
+    var coatQty = parseInt(document.querySelector('[data-qty]').value, 10) || 1;
+    var count = coatQty + 2;
+    var subtotal = COAT_PRICE * coatQty + OTHER_ITEMS_TOTAL;
+
+    document.getElementById('coat-line-total').textContent = money(COAT_PRICE * coatQty);
+    document.getElementById('bag-count').textContent = count;
+    document.getElementById('bag-count-title').textContent = count;
+    document.getElementById('summary-count').textContent = count;
+    document.getElementById('summary-subtotal').textContent = money(subtotal);
+    document.getElementById('summary-total').textContent = money(subtotal);
+  }
+
   document.querySelectorAll('.qty button').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var input = document.querySelector('[data-qty]');
       var current = parseInt(input.value, 10) || 1;
       var next = btn.textContent.trim() === '+' ? current + 1 : current - 1;
       input.value = Math.min(5, Math.max(1, next));
+      syncBagTotals();
     });
   });
 </script>
