@@ -3,6 +3,7 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
 
 /**
  * Citi consumer banking app (github.com/Custom-Devin-Demos/citi-banking-demo-app).
@@ -102,6 +103,28 @@ function isAppReport(body) {
 }
 
 /**
+ * Resolve the reporting user inside the Citi org from the email the hub (or the
+ * native sign-on) supplied, when the client could not supply a user id itself.
+ * Returns '' when nobody matches so the caller falls back to the customer config.
+ */
+async function resolveUserIdByEmail(email, orgId) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized || !orgId) return '';
+  try {
+    const members = await listOrgUsers(orgId);
+    const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
+    if (member) return member.user_id;
+    const admins = await listEnterpriseAdmins();
+    const admin = admins.find((u) => (u.email || '').toLowerCase() === normalized);
+    if (admin) return admin.user_id;
+    logger.warn('Citi mobile reporter email not found in org', { orgId });
+  } catch (err) {
+    logger.warn('Citi mobile reporter lookup failed', { error: err.message, orgId });
+  }
+  return '';
+}
+
+/**
  * Bridge a failure reported by the Citi Flutter client (web, Android or iOS)
  * into the Slack alert + Devin session flow under the mobile identity.
  * The client has already rendered its error card; this is telemetry only.
@@ -158,13 +181,13 @@ function reportAppFailure(report) {
     extra: { reference, release, environment, payment, sentryEventId: report.sentryEventId },
   });
 
-  const sessionPromise = createSessionAndAlert({
+  const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
     culprit: 'lib/domain/payment_schedule.dart \u2014 buildPaymentSchedule',
     errorType,
     errorValue: errorMessage,
-    devinUserId: report.devinUserId,
+    devinUserId,
     devinEmail: report.devinEmail,
     devinOrgId: report.devinOrgId,
     service: APP_SERVICE,
@@ -188,7 +211,14 @@ function reportAppFailure(report) {
     release,
     environment,
     triggeredRule: '',
-  }).catch((err) => {
+  });
+
+  const needsLookup = !report.devinUserId && report.devinEmail && report.devinOrgId;
+  const sessionPromise = (needsLookup
+    ? resolveUserIdByEmail(report.devinEmail, report.devinOrgId)
+      .then((userId) => raiseAlert(userId || undefined))
+    : raiseAlert(report.devinUserId)
+  ).catch((err) => {
     logger.error('Failed to create Devin session for Citi mobile failure report', {
       error: err.message,
       reference,
