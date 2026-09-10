@@ -57,7 +57,18 @@ async function auditPath(account, path) {
   try {
     const result = await fn(serviceData(account, PROBE_AMOUNT));
     if (path === 'send') {
-      return row(account, path, 'ok', expected.label, '-', 'probe completed');
+      const effectiveDailyCap = result.dailyHeadroom + PROBE_AMOUNT;
+      if (effectiveDailyCap !== expected.dailyCap) {
+        return row(
+          account,
+          path,
+          'downgraded',
+          expected.label,
+          String(effectiveDailyCap),
+          'effective daily cap differs',
+        );
+      }
+      return row(account, path, 'ok', expected.label, String(effectiveDailyCap), 'probe completed');
     }
     if (result.limitProfile !== expected.label) {
       return row(account, path, 'downgraded', expected.label, result.limitProfile, 'effective label differs');
