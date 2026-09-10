@@ -424,24 +424,38 @@
     };
     var CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke="#1b7f4b" stroke-width="1.8"><path d="M2 7.5l3 3 7-7"/></svg>';
 
-    function band(n) {
-      if (n > 1000000) return { label: '1M+', rate: 0.12 };
-      if (n > 250000) return { label: '250K–1M', rate: 0.18 };
-      if (n > 100000) return { label: '100K–250K', rate: 0.25 };
-      return { label: 'Included', rate: 0 };
+    var TIERS = [
+      { from: 100000, to: 250000, rate: 0.25, label: '100K–250K' },
+      { from: 250000, to: 1000000, rate: 0.18, label: '250K–1M' },
+      { from: 1000000, to: Infinity, rate: 0.12, label: '1M+' }
+    ];
+    function bandLabel(n) {
+      var label = 'Included';
+      TIERS.forEach(function (t) { if (n > t.from) label = t.label; });
+      return label;
+    }
+    function overage(n) {
+      return TIERS.reduce(function (sum, t) {
+        var billable = Math.min(n, t.to) - t.from;
+        return billable > 0 ? sum + billable * t.rate : sum;
+      }, 0);
     }
     function fmt(n) { return n.toLocaleString('en-US'); }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
 
     function syncSummary() {
       var code = document.getElementById('solutionPackage').value;
       var pkg = PACKAGES[code];
       var ids = parseInt(document.getElementById('identityCount').value, 10) || 0;
-      var b = band(ids);
-      var total = pkg.annualList + Math.max(ids - 100000, 0) * b.rate;
+      var total = pkg.annualList + overage(ids);
       document.getElementById('sumPackage').textContent = pkg.label;
       document.getElementById('sumServices').textContent = pkg.services.length;
       document.getElementById('sumIdentities').textContent = fmt(ids);
-      document.getElementById('sumBand').textContent = b.label;
+      document.getElementById('sumBand').textContent = bandLabel(ids);
       document.getElementById('sumTotal').innerHTML = '$' + fmt(Math.round(total)) + '<small>USD</small>';
       document.getElementById('serviceChips').innerHTML = pkg.services.map(function (s) {
         return '<div class="chip">' + CHECK + s + '</div>';
@@ -483,11 +497,11 @@
           resultBox.className = 'result-box error';
           resultBox.innerHTML =
             '<h3>Environment could not be created</h3>' +
-            '<p>We were unable to write the entitlements for this environment.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<p>We were unable to write the entitlements for this environment.<br><br><code>' + esc(result.data.error || 'Unknown error') + '</code></p>' +
             '<div class="error-meta">' +
-            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
-            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
-            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Error: ' + esc(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + esc(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + esc(result.data.requestId || 'N/A') + '</span>' +
             '<span>Time: ' + new Date().toISOString() + '</span>' +
             '</div>';
           return;
@@ -496,10 +510,10 @@
         resultBox.className = 'result-box success';
         resultBox.innerHTML =
           '<h3>Environment created</h3>' +
-          '<p><strong>' + d.environmentName + '</strong> is provisioning in ' + d.region + '.<br>' +
-          'Environment ID: <code>' + d.environmentId + '</code><br>' +
-          'Authorization endpoint: <code>' + d.authorizationEndpoint + '</code></p>' +
-          '<ul>' + d.entitlements.map(function (en) { return '<li>' + en.name + ' &middot; up to ' + fmt(en.identityLimit) + ' identities</li>'; }).join('') + '</ul>' +
+          '<p><strong>' + esc(d.environmentName) + '</strong> (' + esc(d.environmentType) + ') is provisioning in ' + esc(d.region) + '.<br>' +
+          'Environment ID: <code>' + esc(d.environmentId) + '</code><br>' +
+          'Authorization endpoint: <code>' + esc(d.authorizationEndpoint) + '</code></p>' +
+          '<ul>' + d.entitlements.map(function (en) { return '<li>' + esc(en.name) + ' &middot; up to ' + fmt(en.identityLimit) + ' identities</li>'; }).join('') + '</ul>' +
           '<p style="margin-top:10px">Estimated annual: <strong>$' + fmt(Math.round(d.subscription.annualEstimate)) + ' USD</strong></p>';
       })
       .catch(function (err) {
@@ -508,7 +522,7 @@
         resultBox.className = 'result-box error';
         resultBox.innerHTML =
           '<h3>Network Error</h3>' +
-          '<p>Unable to reach PingOne.<br><br><code>' + err.message + '</code></p>' +
+          '<p>Unable to reach PingOne.<br><br><code>' + esc(err.message) + '</code></p>' +
           '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
       });
     }

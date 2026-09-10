@@ -61,14 +61,28 @@ const REGIONS = {
   au: { label: 'Australia', authHost: 'auth.pingone.com.au', apiHost: 'api.pingone.com.au' },
 };
 
+const INCLUDED_IDENTITIES = 100000;
+
 /**
- * Identity volume bands used to price identities above the package's included count.
+ * Progressive identity volume tiers. Each tier prices the identities that fall
+ * between `from` and the next tier's `from`; the first 100K are included.
  */
+const IDENTITY_TIERS = [
+  { from: 100000, to: 250000, perIdentity: 0.25, label: '100K–250K identities' },
+  { from: 250000, to: 1000000, perIdentity: 0.18, label: '250K–1M identities' },
+  { from: 1000000, to: Infinity, perIdentity: 0.12, label: '1M+ identities' },
+];
+
 function getIdentityBand(identityCount) {
-  if (identityCount > 1000000) return { label: '1M+ identities', perIdentity: 0.12 };
-  if (identityCount > 250000) return { label: '250K–1M identities', perIdentity: 0.18 };
-  if (identityCount > 100000) return { label: '100K–250K identities', perIdentity: 0.25 };
-  return { label: 'Included', perIdentity: 0 };
+  const tier = IDENTITY_TIERS.filter((t) => identityCount > t.from).pop();
+  return tier ? tier.label : 'Included';
+}
+
+function computeIdentityOverage(identityCount) {
+  return IDENTITY_TIERS.reduce((sum, tier) => {
+    const billable = Math.min(identityCount, tier.to) - tier.from;
+    return billable > 0 ? sum + billable * tier.perIdentity : sum;
+  }, 0);
 }
 
 /**
@@ -97,11 +111,11 @@ function resolveRegion(regionCode) {
  * Computes the annual subscription estimate for the environment.
  */
 function computeSubscription(pkg, identityCount) {
-  const band = getIdentityBand(identityCount);
-  const overage = Math.max(identityCount - 100000, 0) * band.perIdentity;
+  const overage = computeIdentityOverage(identityCount);
   return {
     annualList: pkg.annualList,
-    identityBand: band.label,
+    includedIdentities: INCLUDED_IDENTITIES,
+    identityBand: getIdentityBand(identityCount),
     identityOverage: Math.round(overage * 100) / 100,
     annualEstimate: Math.round((pkg.annualList + overage) * 100) / 100,
     currency: 'USD',
@@ -138,6 +152,7 @@ async function provisionEnvironment(data) {
     environmentName: data.environmentName,
     solutionPackage: data.solutionPackage,
     region: data.region,
+    environmentType: data.environmentType,
     identityCount: data.identityCount,
     service: SERVICE,
     route: ROUTE,
@@ -164,6 +179,7 @@ async function provisionEnvironment(data) {
       success: true,
       environmentId,
       environmentName: data.environmentName,
+      environmentType: data.environmentType,
       packageLabel: pkg.label,
       region: region.label,
       authorizationEndpoint: `https://${region.authHost}/${environmentId}/as/authorize`,
@@ -248,6 +264,7 @@ module.exports = {
   provisionEnvironment,
   buildEntitlements,
   computeSubscription,
+  computeIdentityOverage,
   resolvePackage,
   resolveRegion,
   SERVICE_CATALOG,
