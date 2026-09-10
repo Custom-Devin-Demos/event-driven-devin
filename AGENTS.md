@@ -27,6 +27,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **HCF Extras Claims** (unlisted — direct URL only) | `/hcf` | `app/public/verticals/hcf.html` | `POST /api/hcf/claim` | `app/services/verticals/hcf.js` |
 | **Suncorp Bank Payments** (unlisted — direct URL only) | `/suncorp` | `app/public/verticals/suncorp.html` | `POST /api/suncorp/payment` | `app/services/verticals/suncorp.js` |
 | **Insignia Financial Super Allocation** (unlisted — direct URL only) | `/insignia` | `app/public/verticals/insignia.html` | `POST /api/insignia/allocation` | `app/services/verticals/insignia.js` |
+| **HUB24 Adviser Fee Arrangement** (unlisted — direct URL only) | `/hub24` | `app/public/verticals/hub24.html` | `POST /api/hub24/fee-arrangement` | `app/services/verticals/hub24.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank** (unlisted — direct URL only) | `/cba` | `app/public/verticals/cba.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Macquarie Online Banking** (unlisted — direct URL only) | `/macbank` | `app/public/verticals/macbank.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
@@ -139,6 +140,20 @@ The portal plants a routing/catalog mismatch: `SEGMENT_ROUTING` quotes `rise` fo
 Two identities share the slug and must not claim each other's alerts: `CUSTOMER_ALERT_IDENTITY` in `app/routes/sentry-webhook.js` matches on the full service name (`customer-5b992ae7-inquiry` vs `customer-5b992ae7-portal`), not the `customer-<slug>-` prefix. The portal entry appends `PORTAL_REMEDIATION_DIRECTIVE` (exported from `app/services/verticals/5b992ae7.js`) to the Devin prompt: fix the catalog data (register the program, make coverage tolerant), open a PR against `main` in the Flutter repo, stop for human approval, then spawn Linux/Windows/macOS child sessions that build natively, submit the same narrowbody inquiry and post recordings to the PR. Regression coverage lives in `tests/sentry-webhook.test.js`.
 
 To refresh the hosted web build: in the Flutter repo run `flutter build web --release --base-href /5b992ae7/app/`, copy `build/web/` into `app/public/verticals/5b992ae7-app/`, and delete the copied `canvaskit/` directory — the default build loads CanvasKit from Google's CDN, so the 37 MB local copy is dead weight in this repo.
+
+### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
+
+The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `sendMoney()` | Reads the pre-FY26 `account.limitProfile` field and throws before a transfer completes | HTTP 500 `TypeError` → Sentry → Slack → Devin session |
+| `requestMoney()` | Reads the pre-FY26 field and falls back to Standard, so Gold/Platinum requests are declined below their enrolled tier's cap | HTTP 422 with no Sentry/Devin alert; `zelle_request.declined` carries `profile:Standard` |
+
+The defect is deliberately left in place so Devin performs the field-migration fix. The enrolled profile now lives at `account.limits.profile`, but both consumers still read the old location; only the send path crashes.
+
+- **`scripts/6f43e66c-limits-audit.js` is the prevention control** (`npm run audit:zelle`) — it probes both real service paths for every funding account and exits non-zero for unresolved or downgraded profiles. It is not wired into CI, which is why this shipped.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius, ServiceNow incident blast radius, and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'`.
 
 ### Incident Lab (evolving-incident demo)
 
@@ -524,6 +539,7 @@ EOF
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
 | `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
+| `npm run audit:zelle` | Probe send/request limit profiles (exits 1 on unresolved or downgraded rows) |
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |
