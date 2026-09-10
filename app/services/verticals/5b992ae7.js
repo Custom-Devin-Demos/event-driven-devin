@@ -105,6 +105,39 @@ const REMEDIATION_DIRECTIVE = [
 ].join('\n');
 
 /**
+ * Scenario directive for errors raised by the Flutter customer portal
+ * (service tag `customer-5b992ae7-portal`). The portal ships the same
+ * routing/catalog mismatch in Dart, so the fix lands in the Flutter repo, and
+ * the fix is only done once it has been verified natively on every desktop
+ * target the portal ships to.
+ */
+const PORTAL_REMEDIATION_DIRECTIVE = [
+  '*Repository to investigate and fix:* `github.com/Custom-Devin-Demos/ge-customer-portal` (Flutter)',
+  '',
+  'This error was raised by the GE Aerospace Customer Portal, a Flutter app that ships to',
+  'Linux, Windows, macOS/iOS, Android and web from one codebase. Read `AGENTS.md` in that repo first.',
+  '',
+  'The failing code path is the Technical Inquiry submission:',
+  '- Routing: `lib/domain/segment_routing.dart` (segment → desk → program codes)',
+  '- Catalog: `lib/domain/engine_programs.dart` (program code → engine program)',
+  '- Crash site: `lib/domain/engine_coverage.dart` (`buildEngineCoverage`)',
+  '- Screen: `lib/features/inquiry/inquiry_screen.dart`',
+  '',
+  'Steps:',
+  '1. Reproduce with `flutter test` — the domain tests fail on the routed program code that is',
+  '   missing from the catalog.',
+  '2. Fix the data, not just the crash site: register the missing program in the catalog and make',
+  '   `buildEngineCoverage` skip or flag an unregistered code instead of null-asserting it.',
+  '3. Keep `test/domain/segment_routing_test.dart` routing/catalog consistency coverage green and',
+  '   add coverage for the tolerant path. `flutter analyze --fatal-infos` and `flutter test` must pass.',
+  '4. Open a pull request against `main`, request Devin Review, and STOP for human approval.',
+  '5. After approval, spawn child sessions on Linux, Windows and macOS/iOS. Each builds the PR',
+  '   branch natively (`scripts/verify-native.sh <platform>` / `scripts/verify-native.ps1`),',
+  '   launches the app, submits the same narrowbody inquiry, records the screen showing the',
+  '   confirmation, and posts the recording to the PR.',
+].join('\n');
+
+/**
  * Resolve the operator profile for the inquiring party.
  */
 function resolveOperatorProfile(market) {
@@ -268,6 +301,7 @@ async function submitInquiry(data) {
 module.exports = {
   submitInquiry,
   REMEDIATION_DIRECTIVE,
+  PORTAL_REMEDIATION_DIRECTIVE,
   ENGINE_PROGRAMS,
   OPERATOR_PROFILES,
   SEGMENT_ROUTING,

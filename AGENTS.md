@@ -131,6 +131,16 @@ Three things are deliberately separate:
 
 `PARITY_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec, the build's missing coverage gate, and the harness's fail-open exclusion logic. Regression coverage for both paths lives in `tests/spgi-feed-parity.test.js`.
 
+### GE Aerospace Customer Portal scenario (Flutter, external repo)
+
+The GE Aerospace vertical (slug `5b992ae7`) has two surfaces. The marketing page at `/5b992ae7` keeps its Node-side technical-inquiry TypeError. The **customer portal** at `/5b992ae7/app` is a Flutter web build served statically from `app/public/verticals/5b992ae7-app/` (SPA fallback in `app/routes/verticals/5b992ae7.js`); the same codebase ships natively for Linux, Windows, macOS/iOS and Android from `Custom-Devin-Demos/ge-customer-portal`, and that repo — not this one — is where the defect lives and where Devin remediates.
+
+The portal plants a routing/catalog mismatch: `SEGMENT_ROUTING` quotes `rise` for narrowbody operators but the engine catalog never registers it, so `buildEngineCoverage` null-asserts and every US/CA technical inquiry fails. The Flutter client reports to Sentry as service `customer-5b992ae7-portal` (release `ge-customer-portal@<version>`), and `POST /api/5b992ae7/inquiry` recognises a `source: ge-customer-portal/<platform>` body as a registration-only call — it acknowledges the client-generated reference number instead of re-running the Node-side routing logic.
+
+Two identities share the slug and must not claim each other's alerts: `CUSTOMER_ALERT_IDENTITY` in `app/routes/sentry-webhook.js` matches on the full service name (`customer-5b992ae7-inquiry` vs `customer-5b992ae7-portal`), not the `customer-<slug>-` prefix. The portal entry appends `PORTAL_REMEDIATION_DIRECTIVE` (exported from `app/services/verticals/5b992ae7.js`) to the Devin prompt: fix the catalog data (register the program, make coverage tolerant), open a PR against `main` in the Flutter repo, stop for human approval, then spawn Linux/Windows/macOS child sessions that build natively, submit the same narrowbody inquiry and post recordings to the PR. Regression coverage lives in `tests/sentry-webhook.test.js`.
+
+To refresh the hosted web build: in the Flutter repo run `flutter build web --release --base-href /5b992ae7/app/`, copy `build/web/` into `app/public/verticals/5b992ae7-app/`, and delete the copied `canvaskit/` directory — the default build loads CanvasKit from Google's CDN, so the 37 MB local copy is dead weight in this repo.
+
 ### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
 
 The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:

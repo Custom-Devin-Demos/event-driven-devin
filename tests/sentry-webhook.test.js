@@ -27,4 +27,46 @@ describe('Sentry customer identity mapping', () => {
       { key: 'scenario', value: 'zelle-send' },
     ]));
   });
+
+  test('maps Flutter portal service tags to the GE customer identity and Flutter directive', () => {
+    const alertData = applyCustomerIdentity({
+      issueTitle: 'Null check operator used on a null value',
+      culprit: 'buildEngineCoverage',
+      project: 'ge-customer-portal',
+      release: 'ge-customer-portal@1.0.0',
+      tags: [
+        ['service', 'customer-5b992ae7-portal'],
+        ['platform', 'linux'],
+        ['screen', 'inquiry'],
+      ],
+    });
+
+    expect(alertData).toMatchObject({
+      customer: '5b992ae7',
+      verticalLabel: 'GE Aerospace Customer Portal',
+      service: 'customer-5b992ae7-portal',
+      project: 'ge-customer-portal',
+      release: 'ge-customer-portal@1.0.0',
+    });
+    expect(alertData.promptAppendix).toContain('github.com/Custom-Devin-Demos/ge-customer-portal');
+    expect(alertData.promptAppendix).toContain('flutter test');
+    expect(alertData.promptAppendix).toMatch(/Linux, Windows and macOS/);
+    expect(alertData.tags).toEqual(expect.arrayContaining([
+      { key: 'customer', value: 'customer-5b992ae7-portal' },
+      { key: 'service', value: 'customer-5b992ae7-portal' },
+      { key: 'scenario', value: 'technical-inquiry' },
+      ['platform', 'linux'],
+    ]));
+  });
+
+  test('leaves the server-side GE inquiry alert on the Node directive', () => {
+    const alertData = applyCustomerIdentity({
+      issueTitle: 'TypeError: Cannot read properties of undefined',
+      service: 'customer-5b992ae7-inquiry',
+      tags: [['service', 'customer-5b992ae7-inquiry']],
+    });
+
+    expect(alertData.promptAppendix).toBeUndefined();
+    expect(alertData.verticalLabel).toBeUndefined();
+  });
 });
