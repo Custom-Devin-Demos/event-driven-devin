@@ -123,19 +123,144 @@ const PORTAL_REMEDIATION_DIRECTIVE = [
   '- Crash site: `lib/domain/engine_coverage.dart` (`buildEngineCoverage`)',
   '- Screen: `lib/features/inquiry/inquiry_screen.dart`',
   '',
+  'The alert came from the hosted web build at `https://devindemos.com/5b992ae7/app` (served from',
+  '`app/public/verticals/5b992ae7-app/` in `Custom-Devin-Demos/event-driven-devin`). The same commit',
+  'ships natively, so the fix must be verified on web AND every native desktop target.',
+  '',
   'Steps:',
-  '1. Reproduce with `flutter test` — the domain tests fail on the routed program code that is',
-  '   missing from the catalog.',
-  '2. Fix the data, not just the crash site: register the missing program in the catalog and make',
+  '1. Reproduce on web first: run the Flutter repo `main` in Chrome (`flutter run -d chrome`, or',
+  '   `flutter build web` served locally), sign in as Northwind Air (US), open Technical Inquiry and',
+  '   submit — confirm the "couldn\'t submit" card. Then run `flutter test`: the domain tests fail on',
+  '   the routed program code that is missing from the catalog.',
+  '2. Fix the data, not just the crash site: register the missing program in the catalog (CFM RISE,',
+  '   code `rise`, family `narrowbody`, `inService: 0`, status `development`) and make',
   '   `buildEngineCoverage` skip or flag an unregistered code instead of null-asserting it.',
   '3. Keep `test/domain/segment_routing_test.dart` routing/catalog consistency coverage green and',
   '   add coverage for the tolerant path. `flutter analyze --fatal-infos` and `flutter test` must pass.',
-  '4. Open a pull request against `main`, request Devin Review, and STOP for human approval.',
-  '5. After approval, spawn child sessions on Linux, Windows and macOS/iOS. Each builds the PR',
-  '   branch natively (`scripts/verify-native.sh <platform>` / `scripts/verify-native.ps1`),',
-  '   launches the app, submits the same narrowbody inquiry, records the screen showing the',
-  '   confirmation, and posts the recording to the PR.',
+  '   Do not change `AppConfig.serviceName` (`customer-5b992ae7-portal`) or the telemetry tag set.',
+  '4. Re-run the web reproduction on the fix commit and confirm the "Inquiry received" card lists',
+  '   CFM LEAP / CFM56 / CFM RISE for `narrowbody-customer-support`.',
+  '5. Open a pull request against `main`, request Devin Review, and STOP for human approval.',
+  '6. After approval, spawn SEPARATE child sessions on Linux, Windows and macOS/iOS (one per OS).',
+  '   Each checks out the same fix commit SHA, builds the PR branch natively',
+  '   (`scripts/verify-native.sh <platform>` / `scripts/verify-native.ps1` with `RECORD=1`),',
+  '   launches the app, submits the same narrowbody inquiry (Northwind Air, US), records the screen',
+  '   showing the confirmation, and posts the recording and the verified commit SHA to the PR.',
+  '7. Confirm web and all three native children verified the SAME commit SHA before merge.',
+  '8. Refresh the hosted web build: `flutter build web --release --base-href /5b992ae7/app/` on the',
+  '   fix commit, copy `build/web/` into `app/public/verticals/5b992ae7-app/` in',
+  '   `Custom-Devin-Demos/event-driven-devin`, delete the copied `canvaskit/` directory, and open a',
+  '   PR there so the deployed portal at `/5b992ae7/app` picks up the fix.',
 ].join('\n');
+
+const PORTAL_SERVICE = 'customer-5b992ae7-portal';
+const PORTAL_PROJECT = 'ge-customer-portal';
+const PORTAL_RELEASE = 'ge-customer-portal@1.0.0';
+
+function clip(value, max) {
+  const text = value == null ? '' : String(value);
+  return text.length > max ? text.slice(0, max) : text;
+}
+
+/**
+ * Bridge a failure reported directly by the Flutter portal client (web or
+ * native) into the Slack alert + Devin session flow under the portal identity.
+ * The client has already rendered its error card; this is telemetry only.
+ */
+function reportPortalFailure(report) {
+  const reference = uuidv4();
+  const platform = clip(report.platform || 'web', 32);
+  const operator = clip(report.operator || 'US', 8).toUpperCase();
+  const segment = clip(report.segment || 'unknown', 64);
+  const screen = clip(report.screen || 'inquiry', 64);
+  const action = clip(report.action || 'submit_inquiry', 64);
+  const errorType = clip(report.errorType || 'Error', 128);
+  const errorMessage = clip(report.errorMessage || 'Portal request failed', 512);
+  const stackTrace = clip(report.stackTrace, 4000);
+  const release = clip(report.release || PORTAL_RELEASE, 64);
+  const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
+  const inquiry = report.inquiry && typeof report.inquiry === 'object' ? report.inquiry : {};
+
+  const tags = {
+    route: '/api/5b992ae7/portal/error',
+    service: PORTAL_SERVICE,
+    customer: PORTAL_SERVICE,
+    platform,
+    operator,
+    segment,
+    screen,
+    action,
+    scenario: 'technical-inquiry',
+  };
+
+  incrementMetric('portal_inquiry.failure', {
+    route: '/api/5b992ae7/portal/error',
+    errorClass: errorType,
+    platform,
+    segment,
+  });
+
+  logger.error('Flutter portal reported a failure', {
+    reference,
+    service: PORTAL_SERVICE,
+    platform,
+    operator,
+    segment,
+    screen,
+    action,
+    errorClass: errorType,
+    error: errorMessage,
+    sentryEventId: report.sentryEventId || null,
+  });
+
+  const error = new Error(errorMessage);
+  error.name = errorType;
+  if (stackTrace) error.stack = `${errorType}: ${errorMessage}\n${stackTrace}`;
+
+  Sentry.captureException(error, {
+    tags,
+    extra: { reference, release, environment, inquiry, sentryEventId: report.sentryEventId },
+  });
+
+  const sessionPromise = createSessionAndAlert({
+    issueTitle: `${errorType}: ${errorMessage}`,
+    issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${PORTAL_PROJECT}&query=is%3Aunresolved`,
+    culprit: 'lib/domain/engine_coverage.dart \u2014 buildEngineCoverage',
+    errorType,
+    errorValue: errorMessage,
+    devinUserId: report.devinUserId,
+    devinEmail: report.devinEmail || 'shawn@cognition.ai',
+    devinOrgId: report.devinOrgId,
+    service: PORTAL_SERVICE,
+    verticalLabel: 'GE Aerospace Customer Portal',
+    promptAppendix: PORTAL_REMEDIATION_DIRECTIVE,
+    customer: '5b992ae7',
+    tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
+    extra: {
+      reference,
+      stackTrace,
+      sentryEventId: report.sentryEventId || null,
+      inquiry,
+    },
+    level: 'error',
+    platform,
+    firstSeen: '',
+    lastSeen: new Date().toISOString(),
+    count: '',
+    shortId: '',
+    project: PORTAL_PROJECT,
+    release,
+    environment,
+    triggeredRule: '',
+  }).catch((err) => {
+    logger.error('Failed to create Devin session for portal failure report', {
+      error: err.message,
+      reference,
+    });
+  });
+
+  return { reference, sessionPromise };
+}
 
 /**
  * Resolve the operator profile for the inquiring party.
@@ -300,6 +425,7 @@ async function submitInquiry(data) {
 
 module.exports = {
   submitInquiry,
+  reportPortalFailure,
   REMEDIATION_DIRECTIVE,
   PORTAL_REMEDIATION_DIRECTIVE,
   ENGINE_PROGRAMS,
