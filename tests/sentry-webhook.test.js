@@ -59,6 +59,33 @@ describe('Sentry customer identity mapping', () => {
     ]));
   });
 
+  test('maps Splash mobile service tags to the Splash customer identity and mobile-repo directive', () => {
+    const alertData = applyCustomerIdentity({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'multiplier')",
+      culprit: 'submitSlip',
+      tags: [
+        ['service', 'customer-3aa9fa04-mobile'],
+        ['platform', 'android'],
+        ['slate', 'MNF'],
+      ],
+    });
+
+    expect(alertData).toMatchObject({
+      customer: '3aa9fa04',
+      verticalLabel: 'Splash Sports Mobile',
+      service: 'customer-3aa9fa04-mobile',
+      project: 'splash-sports-mobile',
+      release: 'splash-sports-mobile@1.0.0',
+    });
+    expect(alertData.promptAppendix).toContain('github.com/COG-GTM/splash-sports-mobile');
+    expect(alertData.tags).toEqual(expect.arrayContaining([
+      { key: 'customer', value: 'customer-3aa9fa04-mobile' },
+      { key: 'service', value: 'customer-3aa9fa04-mobile' },
+      { key: 'scenario', value: 'nfl-primetime-entry' },
+      ['slate', 'MNF'],
+    ]));
+  });
+
   test('leaves the server-side GE inquiry alert on the Node directive', () => {
     const alertData = applyCustomerIdentity({
       issueTitle: 'TypeError: Cannot read properties of undefined',
