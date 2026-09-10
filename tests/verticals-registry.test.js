@@ -158,12 +158,21 @@ describe('customer config discovery', () => {
 
   test('getCustomerConfig keeps suffixed env-var resolution', () => {
     process.env.DEVIN_SERVICE_KEY_4C351052 = 'publix-key';
+    process.env.DEVIN_ORG_ID_4C351052 = 'org-publix';
+    const previousGlobalOrg = process.env.DEVIN_ORG_ID;
+    process.env.DEVIN_ORG_ID = 'org-global';
     try {
-      expect(getCustomerConfig('4c351052')).toMatchObject({ customer: '4c351052', label: 'Publix', apiKey: 'publix-key' });
+      expect(getCustomerConfig('4c351052')).toMatchObject({
+        customer: '4c351052', label: 'Publix', apiKey: 'publix-key', devinOrgId: 'org-publix',
+      });
       expect(getCustomerConfig('6dc826a1').githubOrg).toBe('COG-GTM');
-      expect(getCustomerConfig(undefined).customer).toBe('default');
+      expect(getCustomerConfig('6dc826a1').devinOrgId).toBe('');
+      expect(getCustomerConfig(undefined)).toMatchObject({ customer: 'default', devinOrgId: '' });
     } finally {
       delete process.env.DEVIN_SERVICE_KEY_4C351052;
+      delete process.env.DEVIN_ORG_ID_4C351052;
+      if (previousGlobalOrg === undefined) delete process.env.DEVIN_ORG_ID;
+      else process.env.DEVIN_ORG_ID = previousGlobalOrg;
     }
   });
 });

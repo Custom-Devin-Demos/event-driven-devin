@@ -128,13 +128,17 @@ async function createSessionAndAlert(alertData) {
     // can use it without additional parameters
     alertData.customerConfig = config;
 
+    // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
+    const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
+    const resolvedOrgId = alertData.devinOrgId || config.devinOrgId || '';
+
     logger.info('Posting alert and triggering Devin', {
       issueTitle: alertData.issueTitle,
       errorType: alertData.errorType,
       errorValue: alertData.errorValue,
       customer: config.customer,
-      devinUserId: alertData.devinUserId || 'none',
-      devinOrgId: alertData.devinOrgId || 'default',
+      devinUserId: resolvedUserId || 'none',
+      devinOrgId: resolvedOrgId || 'default',
     });
 
     // Mirror the bug report to the dedicated triage channel (#automated-devin-triage).
@@ -158,10 +162,6 @@ async function createSessionAndAlert(alertData) {
     if (slackChannel && threadTs) {
       prompt += `\n\n*Slack Thread:* channel=${slackChannel} thread_ts=${threadTs}`;
     }
-
-    // Resolve user/org IDs: prefer alertData overrides, fall back to customer config
-    const resolvedUserId = alertData.devinUserId || config.devinUserId || '';
-    const resolvedOrgId = alertData.devinOrgId || '';
 
     if (config.itsm === 'servicenow' && servicenow.isConfigured()) {
       const incident = await servicenow.createIncident({
