@@ -130,6 +130,20 @@ Three things are deliberately separate:
 
 `PARITY_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec, the build's missing coverage gate, and the harness's fail-open exclusion logic. Regression coverage for both paths lives in `tests/spgi-feed-parity.test.js`.
 
+### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
+
+The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `sendMoney()` | Reads the pre-FY26 `account.limitProfile` field and throws before a transfer completes | HTTP 500 `TypeError` → Sentry → Slack → Devin session |
+| `requestMoney()` | Reads the pre-FY26 field and falls back to Standard, so Gold/Platinum requests are declined below their enrolled tier's cap | HTTP 422 with no Sentry/Devin alert; `zelle_request.declined` carries `profile:Standard` |
+
+The defect is deliberately left in place so Devin performs the field-migration fix. The enrolled profile now lives at `account.limits.profile`, but both consumers still read the old location; only the send path crashes.
+
+- **`scripts/6f43e66c-limits-audit.js` is the prevention control** (`npm run audit:zelle`) — it probes both real service paths for every funding account and exits non-zero for unresolved or downgraded profiles. It is not wired into CI, which is why this shipped.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius, ServiceNow incident blast radius, and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'`.
+
 ### Incident Lab (evolving-incident demo)
 
 The Incident Lab (`/oncall/incident-lab`, unlisted) runs a long-form incident where the data develops over time and Devin investigates an external subject repo (the n8n fork at `ananthv26-cog-demo-repos/n8n`) rather than this app. Scenarios are JSON documents in `config/incident-lab/`; the run engine is `app/services/incident-lab/engine.js` with three sinks:
@@ -514,6 +528,7 @@ EOF
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
 | `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
+| `npm run audit:zelle` | Probe send/request limit profiles (exits 1 on unresolved or downgraded rows) |
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |

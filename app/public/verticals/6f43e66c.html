@@ -109,6 +109,17 @@
     }
     .send-panel h2 img { width: 74px; height: 30px; display: inline-block; }
     .send-panel .sub { margin: 0 0 22px; font-size: 16px; line-height: 22.4px; color: #333; }
+    .mode-toggle {
+      display: inline-flex; margin: 0 0 22px; padding: 4px;
+      border: 1px solid #dcdcdc; border-radius: 24px; background: var(--c-gray);
+    }
+    .mode-tab {
+      min-width: 112px; height: 38px; padding: 0 18px; border: 0; border-radius: 20px;
+      background: transparent; color: var(--c-navy); font: inherit; font-size: 15px;
+      cursor: pointer;
+    }
+    .mode-tab.active { background: var(--c-navy); color: #fff; }
+    .mode-tab:focus { outline: 2px solid var(--c-link); outline-offset: 1px; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field.full { grid-column: 1 / -1; }
@@ -235,23 +246,27 @@
       <p class="lede">Send and receive money with friends and family in minutes<sup>2</sup> — money is sent straight between bank accounts. <a href="#zelle-faqs">Explore our Zelle® FAQs.</a></p>
 
       <div class="send-panel" id="send-panel">
-        <h2>Send money with <img src="https://info.bankofamerica.com/content/dam/consumer-marketing/offers/mb-zelle/Zelle_logo.png" alt="Zelle"></h2>
-        <p class="sub">Choose an enrolled recipient, enter an amount and we’ll send it straight from your Bank of America account.</p>
+        <div class="mode-toggle" role="tablist" aria-label="Zelle transfer type">
+          <button type="button" class="mode-tab active" id="sendTab" role="tab" aria-selected="true">Send</button>
+          <button type="button" class="mode-tab" id="requestTab" role="tab" aria-selected="false">Request</button>
+        </div>
+        <h2><span id="modeHeading">Send money with</span> <img src="https://info.bankofamerica.com/content/dam/consumer-marketing/offers/mb-zelle/Zelle_logo.png" alt="Zelle"></h2>
+        <p class="sub" id="modeSub">Choose an enrolled recipient, enter an amount and we’ll send it straight from your Bank of America account.</p>
         <form id="sendForm" class="form-grid" autocomplete="off">
           <div class="field full">
-            <label for="recipientId">Send to</label>
+            <label for="recipientId" id="recipientLabel">Send to</label>
             <select id="recipientId" name="recipientId" required></select>
             <span class="hint" id="recipientHint"></span>
           </div>
           <div class="field">
-            <label for="fromAccountId">From</label>
+            <label for="fromAccountId" id="fromLabel">From</label>
             <select id="fromAccountId" name="fromAccountId" required></select>
             <span class="hint" id="accountHint"></span>
           </div>
           <div class="field">
             <label for="amount">Amount</label>
             <div class="amount-wrap"><span>$</span><input id="amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" value="45.00" required></div>
-            <span class="hint">Zelle® payments are sent in minutes and typically can’t be canceled.</span>
+            <span class="hint" id="amountHint">Zelle® payments are sent in minutes and typically can’t be canceled.</span>
           </div>
           <div class="field full">
             <label for="memo">What’s it for? (optional)</label>
@@ -260,7 +275,7 @@
         </form>
         <div class="send-actions">
           <button type="submit" form="sendForm" id="sendBtn" class="btn-red">Send money with Zelle®</button>
-          <span class="fine">Only send money to people you know and trust. Neither Bank of America nor Zelle® offers purchase protection.</span>
+          <span class="fine" id="modeFine">Only send money to people you know and trust. Neither Bank of America nor Zelle® offers purchase protection.</span>
         </div>
         <div id="result" class="result-box" role="status" aria-live="polite"></div>
       </div>
@@ -337,6 +352,7 @@
     var recipientSelect = document.getElementById('recipientId');
     var accountSelect = document.getElementById('fromAccountId');
     var context = { accounts: [], recipients: [] };
+    var mode = 'send';
 
     function money(value) {
       return '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -365,6 +381,28 @@
         : '';
     }
 
+    function setMode(nextMode) {
+      mode = nextMode;
+      var isRequest = mode === 'request';
+      document.getElementById('sendTab').classList.toggle('active', !isRequest);
+      document.getElementById('requestTab').classList.toggle('active', isRequest);
+      document.getElementById('sendTab').setAttribute('aria-selected', String(!isRequest));
+      document.getElementById('requestTab').setAttribute('aria-selected', String(isRequest));
+      document.getElementById('modeHeading').textContent = isRequest ? 'Request money with' : 'Send money with';
+      document.getElementById('modeSub').textContent = isRequest
+        ? 'Choose an enrolled contact, enter an amount and we’ll request it from your Bank of America account.'
+        : 'Choose an enrolled recipient, enter an amount and we’ll send it straight from your Bank of America account.';
+      document.getElementById('recipientLabel').textContent = isRequest ? 'Request from' : 'Send to';
+      document.getElementById('fromLabel').textContent = isRequest ? 'Deposit to' : 'From';
+      document.getElementById('amountHint').textContent = isRequest
+        ? 'Requests expire after 14 days if they are not completed.'
+        : 'Zelle® payments are sent in minutes and typically can’t be canceled.';
+      document.getElementById('sendBtn').textContent = isRequest ? 'Request money with Zelle®' : 'Send money with Zelle®';
+      document.getElementById('modeFine').textContent = isRequest
+        ? 'Only request money from people you know and trust. Neither Bank of America nor Zelle® offers purchase protection.'
+        : 'Only send money to people you know and trust. Neither Bank of America nor Zelle® offers purchase protection.';
+    }
+
     async function loadContext() {
       var res = await fetch('/api/6f43e66c/context');
       context = await res.json();
@@ -381,6 +419,8 @@
 
     recipientSelect.addEventListener('change', renderHints);
     accountSelect.addEventListener('change', renderHints);
+    document.getElementById('sendTab').addEventListener('click', function () { setMode('send'); });
+    document.getElementById('requestTab').addEventListener('click', function () { setMode('request'); });
 
     document.getElementById('sendForm').addEventListener('submit', async function (event) {
       event.preventDefault();
@@ -388,12 +428,13 @@
       var result = document.getElementById('result');
       var recipient = context.recipients.filter(function (r) { return r.id === recipientSelect.value; })[0];
       var amount = parseFloat(document.getElementById('amount').value);
+      var isRequest = mode === 'request';
       button.disabled = true;
-      button.textContent = 'Sending\u2026';
+      button.textContent = isRequest ? 'Requesting\u2026' : 'Sending\u2026';
       result.className = 'result-box';
       result.textContent = '';
       try {
-        var res = await fetch('/api/6f43e66c/send', {
+        var res = await fetch(isRequest ? '/api/6f43e66c/request' : '/api/6f43e66c/send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -408,20 +449,33 @@
         });
         var data = await res.json();
         if (!res.ok) {
-          showResult(result, 'error', 'We couldn\u2019t complete this transfer',
-            'Your ' + money(amount) + ' payment to ' + (recipient ? recipient.name : 'this recipient')
-              + ' was declined and no money has left your account. Please try again in a few minutes.',
-            (data.errorClass || 'Error') + ': ' + (data.error || 'Transfer could not be completed')
-              + (data.requestId ? ' \u00b7 Ref ' + data.requestId : ''));
+          if (isRequest) {
+            showResult(result, 'error', 'We couldn\u2019t send this request',
+              data.error || 'Request could not be completed',
+              (data.errorClass || 'Error') + (data.code ? ' [' + data.code + ']' : ''));
+          } else {
+            showResult(result, 'error', 'We couldn\u2019t complete this transfer',
+              'Your ' + money(amount) + ' payment to ' + (recipient ? recipient.name : 'this recipient')
+                + ' was declined and no money has left your account. Please try again in a few minutes.',
+              (data.errorClass || 'Error') + ': ' + (data.error || 'Transfer could not be completed')
+                + (data.requestId ? ' \u00b7 Ref ' + data.requestId : ''));
+          }
         } else {
-          showResult(result, 'success', 'Sent ' + money(data.amount) + ' to ' + data.recipient,
-            'From ' + data.fundingAccount + '. ' + money(data.dailyHeadroom) + ' remaining on today\u2019s limit.');
+          if (isRequest) {
+            showResult(result, 'success',
+              'Request sent to ' + data.recipient + ' for ' + money(data.amount)
+                + ' \u2014 ' + data.limitProfile + ' limits apply',
+              'Deposit to ' + data.fundingAccount + '.');
+          } else {
+            showResult(result, 'success', 'Sent ' + money(data.amount) + ' to ' + data.recipient,
+              'From ' + data.fundingAccount + '. ' + money(data.dailyHeadroom) + ' remaining on today\u2019s limit.');
+          }
         }
       } catch (err) {
-        showResult(result, 'error', 'We couldn\u2019t complete this transfer', err.message);
+        showResult(result, 'error', isRequest ? 'We couldn\u2019t send this request' : 'We couldn\u2019t complete this transfer', err.message);
       } finally {
         button.disabled = false;
-        button.textContent = 'Send money with Zelle\u00ae';
+        button.textContent = mode === 'request' ? 'Request money with Zelle\u00ae' : 'Send money with Zelle\u00ae';
       }
     });
 
