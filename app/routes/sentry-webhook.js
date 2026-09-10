@@ -2,6 +2,7 @@ const express = require('express');
 const logger = require('../telemetry/logger');
 const { createSessionAndAlert } = require('../services/devin-session');
 const { verifySentrySignature } = require('../middleware/verify-session-secret');
+const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7');
 
 const router = express.Router();
 
@@ -218,6 +219,22 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: 'zelle-send',
     },
   },
+  // Flutter customer portal (github.com/Custom-Devin-Demos/ge-customer-portal).
+  // Its events arrive from the app's own Sentry project, not from this host,
+  // and remediation lands in the Flutter repo — the directive names it.
+  '5b992ae7': {
+    customer: '5b992ae7',
+    verticalLabel: 'GE Aerospace Customer Portal',
+    service: 'customer-5b992ae7-portal',
+    project: 'ge-customer-portal',
+    release: 'ge-customer-portal@1.0.0',
+    promptAppendix: PORTAL_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-5b992ae7-portal',
+      service: 'customer-5b992ae7-portal',
+      scenario: 'technical-inquiry',
+    },
+  },
 };
 
 function tagKey(tag) {
@@ -228,11 +245,13 @@ function tagKey(tag) {
 
 function applyCustomerIdentity(alertData) {
   const searchableText = alertSearchableText(alertData);
-  // Match only the structured `customer-<slug>-` form (emitted in the service
-  // tag, e.g. `customer-4f645972-claims`) so a bare or word-like slug can never
-  // rewrite the identity of an unrelated customer's alert.
+  // Match on the entry's full service identity (emitted in the service tag,
+  // e.g. `customer-4f645972-claims`) so a bare or word-like slug can never
+  // rewrite the identity of an unrelated customer's alert, and so two surfaces
+  // of the same customer (e.g. `customer-5b992ae7-inquiry` on this host vs
+  // `customer-5b992ae7-portal` in the Flutter app) never claim each other.
   const slug = Object.keys(CUSTOMER_ALERT_IDENTITY)
-    .find((id) => searchableText.includes(`customer-${id}-`));
+    .find((id) => searchableText.includes(CUSTOMER_ALERT_IDENTITY[id].service));
 
   if (!slug) return alertData;
 
