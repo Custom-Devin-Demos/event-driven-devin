@@ -58,6 +58,20 @@ function clip(value, max) {
   return text.length > max ? text.slice(0, max) : text;
 }
 
+const MAX_EXTRA_KEYS = 12;
+
+/** Keep only flat scalar metadata from the client so Sentry/Slack payloads stay bounded. */
+function sanitizeExtra(extra) {
+  if (!extra || typeof extra !== 'object' || Array.isArray(extra)) return {};
+  const out = {};
+  for (const [key, value] of Object.entries(extra).slice(0, MAX_EXTRA_KEYS)) {
+    if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) {
+      out[clip(key, 64)] = typeof value === 'string' ? clip(value, 256) : value;
+    }
+  }
+  return out;
+}
+
 /** True when a request body carries the Splash mobile identity. */
 function isAppReport(body) {
   const source = body && typeof body.source === 'string' ? body.source : '';
@@ -81,7 +95,7 @@ function reportAppFailure(report) {
   const stackTrace = clip(report.stackTrace, 4000);
   const release = clip(report.release || APP_RELEASE, 64);
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
-  const extra = report.extra && typeof report.extra === 'object' ? report.extra : {};
+  const extra = sanitizeExtra(report.extra);
 
   const tags = {
     route: '/api/3aa9fa04/app/error',

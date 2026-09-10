@@ -3,6 +3,7 @@ const logger = require('../telemetry/logger');
 const { createSessionAndAlert } = require('../services/devin-session');
 const { verifySentrySignature } = require('../middleware/verify-session-secret');
 const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7');
+const { APP_REMEDIATION_DIRECTIVE } = require('../services/verticals/3aa9fa04');
 
 const router = express.Router();
 
@@ -233,6 +234,21 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-5b992ae7-portal',
       service: 'customer-5b992ae7-portal',
       scenario: 'technical-inquiry',
+    },
+  },
+  // Splash Sports Expo app (github.com/COG-GTM/splash-sports-mobile). Reports
+  // arrive via /api/3aa9fa04/app/error; remediation lands in the mobile repo.
+  '3aa9fa04': {
+    customer: '3aa9fa04',
+    verticalLabel: 'Splash Sports Mobile',
+    service: 'customer-3aa9fa04-mobile',
+    project: 'splash-sports-mobile',
+    release: 'splash-sports-mobile@1.0.0',
+    promptAppendix: APP_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-3aa9fa04-mobile',
+      service: 'customer-3aa9fa04-mobile',
+      scenario: 'nfl-primetime-entry',
     },
   },
 };

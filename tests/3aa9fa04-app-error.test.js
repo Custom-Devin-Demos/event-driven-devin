@@ -98,11 +98,24 @@ describe('Splash Sports mobile failure report (3aa9fa04)', () => {
       { key: 'scenario', value: 'nfl-primetime-entry' },
     ]));
     expect(alertData.extra).toMatchObject({ fee: 20, pickCount: 2 });
+    expect(alertData.extra.reference).toBe(reference);
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [captured, context] = Sentry.captureException.mock.calls[0];
     expect(captured.name).toBe('TypeError');
     expect(context.tags.service).toBe('customer-3aa9fa04-mobile');
+  });
+
+  test('drops nested or oversized client metadata', () => {
+    reportAppFailure({
+      ...APP_REPORT,
+      extra: { fee: 20, nested: { deep: true }, list: [1, 2], long: 'x'.repeat(1000) },
+    });
+    const { extra } = createSessionAndAlert.mock.calls[0][0];
+    expect(extra.fee).toBe(20);
+    expect(extra.nested).toBeUndefined();
+    expect(extra.list).toBeUndefined();
+    expect(extra.long).toHaveLength(256);
   });
 
   test('the directive names the Splash repo, requires reproduction + regression test, and stops before merge', () => {
