@@ -109,10 +109,17 @@ describe('Splash Sports mobile failure report (3aa9fa04)', () => {
   test('drops nested or oversized client metadata', () => {
     reportAppFailure({
       ...APP_REPORT,
-      extra: { fee: 20, nested: { deep: true }, list: [1, 2], long: 'x'.repeat(1000) },
+      extra: {
+        ...Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`n${i}`, { deep: true }])),
+        fee: 20,
+        nested: { deep: true },
+        list: [1, 2],
+        long: 'x'.repeat(1000),
+      },
     });
     const { extra } = createSessionAndAlert.mock.calls[0][0];
     expect(extra.fee).toBe(20);
+    expect(extra.n0).toBeUndefined();
     expect(extra.nested).toBeUndefined();
     expect(extra.list).toBeUndefined();
     expect(extra.long).toHaveLength(256);

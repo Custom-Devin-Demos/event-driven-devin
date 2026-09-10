@@ -64,9 +64,10 @@ const MAX_EXTRA_KEYS = 12;
 function sanitizeExtra(extra) {
   if (!extra || typeof extra !== 'object' || Array.isArray(extra)) return {};
   const out = {};
-  for (const [key, value] of Object.entries(extra).slice(0, MAX_EXTRA_KEYS)) {
+  for (const [key, value] of Object.entries(extra)) {
     if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) {
       out[clip(key, 64)] = typeof value === 'string' ? clip(value, 256) : value;
+      if (Object.keys(out).length >= MAX_EXTRA_KEYS) break;
     }
   }
   return out;
