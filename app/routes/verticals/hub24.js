@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const {
   submitFeeArrangement,
+  reportMobileFeeArrangementError,
   CLIENT_ACCOUNTS,
   FREQUENCY_OPTIONS,
 } = require('../../services/verticals/hub24');
@@ -62,6 +63,36 @@ router.post('/api/hub24/fee-arrangement', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'FEE_ARRANGEMENT_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/hub24/mobile-error', (req, res) => {
+  const body = req.body || {};
+
+  try {
+    const result = reportMobileFeeArrangementError({
+      clientAccountId: Object.prototype.hasOwnProperty.call(body, 'clientAccountId')
+        ? body.clientAccountId
+        : 'HUB24-8842167',
+      errorType: body.errorType,
+      errorMessage: body.errorMessage,
+      platform: body.platform,
+      appVersion: body.appVersion,
+      feeBasis: body.feeBasis,
+      frequency: body.frequency,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
+    });
+    res.status(202).json({ ...result, requestId: req.requestId });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'MOBILE_ERROR_REPORT_FAILED',
       requestId: req.requestId,
     });
   }
