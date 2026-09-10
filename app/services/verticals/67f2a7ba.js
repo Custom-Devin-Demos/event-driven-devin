@@ -4,6 +4,7 @@ const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
+const { getCustomerConfig } = require('../../../config/customers');
 
 /**
  * Citi consumer banking app (github.com/Custom-Devin-Demos/citi-banking-demo-app).
@@ -15,7 +16,8 @@ const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
  * /api/67f2a7ba/mobile/error so the Slack alert + Devin session are raised
  * under the mobile identity without a Sentry webhook round-trip.
  */
-const APP_SERVICE = 'customer-67f2a7ba-mobile';
+const CUSTOMER = '67f2a7ba';
+const APP_SERVICE = `customer-${CUSTOMER}-mobile`;
 const APP_PROJECT = 'citi-mobile';
 const APP_RELEASE = 'citi-mobile@1.0.0';
 const APP_SOURCE_PREFIX = 'citi-mobile/';
@@ -106,15 +108,19 @@ function isAppReport(body) {
  * Resolve the reporting user inside the Citi org from the email the hub (or the
  * native sign-on) supplied, when the client could not supply a user id itself.
  * Returns '' when nobody matches so the caller falls back to the customer config.
+ * The lookup authenticates with the Citi service key: the default enterprise key
+ * is not a member of the Citi org and the members endpoint rejects it.
  */
 async function resolveUserIdByEmail(email, orgId) {
   const normalized = String(email || '').trim().toLowerCase();
   if (!normalized || !orgId) return '';
   try {
-    const members = await listOrgUsers(orgId);
+    const { apiKey } = getCustomerConfig(CUSTOMER);
+    const auth = apiKey ? { apiKey } : {};
+    const members = await listOrgUsers(orgId, auth);
     const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
     if (member) return member.user_id;
-    const admins = await listEnterpriseAdmins();
+    const admins = await listEnterpriseAdmins(auth);
     const admin = admins.find((u) => (u.email || '').toLowerCase() === normalized);
     if (admin) return admin.user_id;
     logger.warn('Citi mobile reporter email not found in org', { orgId });
@@ -193,7 +199,7 @@ function reportAppFailure(report) {
     service: APP_SERVICE,
     verticalLabel: 'Citi Mobile',
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
-    customer: '67f2a7ba',
+    customer: CUSTOMER,
     tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     extra: {
       reference,

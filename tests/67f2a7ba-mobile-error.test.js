@@ -152,11 +152,23 @@ describe('Citi mobile failure report (67f2a7ba)', () => {
     const byEmail = { ...APP_REPORT, devinUserId: '', devinEmail: 'member@citi.example' };
     const { sessionPromise } = reportAppFailure(byEmail);
     await sessionPromise;
-    expect(listOrgUsers).toHaveBeenCalledWith('org-8e9e23dde2f340a780125d9a523f8b30');
+    expect(listOrgUsers).toHaveBeenCalledWith('org-8e9e23dde2f340a780125d9a523f8b30', {});
     expect(listEnterpriseAdmins).not.toHaveBeenCalled();
     const alertData = createSessionAndAlert.mock.calls[0][0];
     expect(alertData.devinUserId).toBe('citi-member-1');
     expect(alertData.devinOrgId).toBe('org-8e9e23dde2f340a780125d9a523f8b30');
+  });
+
+  test('looks members up with the Citi service key when one is configured', async () => {
+    process.env.DEVIN_SERVICE_KEY_67F2A7BA = 'cog_citi_test_key';
+    try {
+      await reportAppFailure({ ...APP_REPORT, devinUserId: '', devinEmail: 'admin@enterprise.example' }).sessionPromise;
+    } finally {
+      delete process.env.DEVIN_SERVICE_KEY_67F2A7BA;
+    }
+    const auth = { apiKey: 'cog_citi_test_key' };
+    expect(listOrgUsers).toHaveBeenCalledWith('org-8e9e23dde2f340a780125d9a523f8b30', auth);
+    expect(listEnterpriseAdmins).toHaveBeenCalledWith(auth);
   });
 
   test('falls back to enterprise admins, then to the customer config, for unknown emails', async () => {

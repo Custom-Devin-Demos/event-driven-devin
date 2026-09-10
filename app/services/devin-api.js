@@ -209,10 +209,12 @@ async function listEnterpriseOrgs() {
  * or the service user lacks permissions.
  *
  * @param {string} [orgId] - Override the default org ID
+ * @param {Object} [options] - Per-customer overrides
+ * @param {string} [options.apiKey] - Override the default service key
  * @returns {Array} - Array of { user_id, name, email } objects
  */
-async function listOrgUsers(orgId) {
-  const { serviceKey, orgId: defaultOrgId } = resolveServiceAuth();
+async function listOrgUsers(orgId, options = {}) {
+  const { serviceKey, orgId: defaultOrgId } = resolveServiceAuth(options);
   const targetOrgId = orgId || defaultOrgId;
 
   // Try the API first
@@ -263,10 +265,12 @@ async function listOrgUsers(orgId) {
  * Falls back to DEVIN_ENTERPRISE_ADMINS env var (JSON array) if the API call
  * fails or the service user lacks permissions.
  *
+ * @param {Object} [options] - Per-customer overrides
+ * @param {string} [options.apiKey] - Override the default service key
  * @returns {Array} - Array of { user_id, name, email, is_enterprise_admin } objects
  */
-async function listEnterpriseAdmins() {
-  const { serviceKey } = resolveServiceAuth();
+async function listEnterpriseAdmins(options = {}) {
+  const { serviceKey } = resolveServiceAuth(options);
 
   if (serviceKey) {
     try {
