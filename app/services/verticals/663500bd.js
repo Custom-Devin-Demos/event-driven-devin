@@ -22,7 +22,7 @@ const CATALOG = [
     name: 'Mercer Pebbled Leather Zip Crossbody Bag',
     brand: 'Michael Kors',
     price: 228.0,
-    color: 'Black',
+    color: 'Vanilla',
     size: 'One Size',
     category: 'handbags',
   },
