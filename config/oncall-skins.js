@@ -43,6 +43,30 @@
  */
 
 const ONCALL_SKINS = {
+  'cb414550': {
+    slug: 'cb414550',
+    company: 'Arcadia',
+    brandMark: 'A',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cb414550.html',
+      title: 'Arcadia — Utility Bill Pay',
+    },
+    accent: '#0FFF87',
+    accentDark: '#0be27a',
+    theme: {
+      '--accent': '#104336',
+      '--ink': '#104336',
+      '--surface': '#F9F3E8',
+      '--chrome-bg': '#101F1E',
+      '--chrome-text': '#F9F3E8',
+    },
+    supportCenter: 'Arcadia Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN ARCADIA SITE — internal demo only, not affiliated with, endorsed by, or a real Arcadia product.',
+  },
   '8cc190d2': {
     slug: '8cc190d2',
     company: 'Brex',

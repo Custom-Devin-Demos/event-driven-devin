@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arcadia &mdash; Utility Bill Pay</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #104336; --green-deep: #0B2C24; --green-soft: rgba(0,64,55,0.08); --green-mid: rgba(0,64,55,0.8);
+      --lime: #0FFF87; --lime-dim: #0be27a;
+      --cream: #F3F1EC; --sand: #F9F3E8; --white: #FFFFFF;
+      --black: #000000; --muted: #535E5D; --line: #D6D6D6; --line-soft: #E8E6E0;
+      --chrome: #101F1E;
+      --danger: #D63A2F; --danger-bg: #FDF1F0; --danger-border: #F5C5C0;
+      --warn: #E38A00; --success: #0A9B52; --success-bg: #EAFBF1; --success-border: #B4EBCB;
+      --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      --radius: 8px; --radius-lg: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--cream); }
+    body { font-family: var(--sans); background: var(--cream); color: var(--green); line-height: 1.5; -webkit-font-smoothing: antialiased; font-size: 15px; letter-spacing: 0.1px; }
+    a { color: inherit; text-decoration: none; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.45s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    header { height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; background: var(--cream); position: sticky; top: 0; z-index: 50; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 27px; font-weight: 300; letter-spacing: -0.5px; color: var(--green); line-height: 1; }
+    .logo svg { width: 26px; height: 26px; display: block; }
+    .primary-nav { display: flex; align-items: center; gap: 32px; margin-left: 48px; flex: 1; }
+    .primary-nav a { font-size: 16px; font-weight: 500; color: var(--green); display: inline-flex; align-items: center; gap: 6px; }
+    .primary-nav a::after { content: ''; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }
+    .primary-nav a.active { font-weight: 700; }
+    .primary-nav a.active::after { display: none; }
+    .header-actions { display: flex; gap: 16px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 24px; border-radius: var(--radius); font-family: var(--sans); font-size: 16px; font-weight: 700; line-height: 24px; cursor: pointer; border: 1px solid var(--green); background: transparent; color: var(--green); transition: background 0.2s, color 0.2s, opacity 0.2s; }
+    .btn-solid { background: var(--green); color: var(--white); border-color: var(--green); }
+    .btn-solid:hover { background: var(--green-deep); }
+    .btn-lime { background: var(--lime); color: var(--green); border-color: var(--lime); }
+    .btn-lime:hover { background: var(--lime-dim); }
+
+    .page { max-width: 1440px; margin: 0 auto; padding: 8px 40px 64px; }
+    .back-link { display: inline-flex; align-items: center; gap: 4px; color: var(--green); font-size: 13px; font-weight: 600; margin: 8px 0 16px; }
+
+    .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; min-height: 380px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 64px 32px; background: var(--green-deep); color: var(--white); margin: 16px 0 32px; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+    .hero-inner { position: relative; z-index: 1; max-width: 680px; }
+    .hero h1 { font-size: 56px; font-weight: 300; line-height: 1.1; letter-spacing: 0.56px; margin-bottom: 20px; }
+    .hero p { font-size: 18px; line-height: 27px; font-weight: 400; color: rgba(255,255,255,0.92); margin-bottom: 28px; }
+    .hero .btn { background: var(--white); color: var(--chrome); border-color: var(--white); height: 48px; }
+
+    .eyebrow { font-size: 14px; font-weight: 600; letter-spacing: 0.42px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
+    h2.section-title { font-size: 40px; font-weight: 300; line-height: 1.1; letter-spacing: 0.4px; color: var(--black); margin-bottom: 12px; }
+    .section-lead { font-size: 18px; line-height: 27px; color: var(--green-mid); max-width: 520px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0 48px; }
+    .stat { background: var(--white); border-radius: var(--radius); padding: 20px 22px; border: 1px solid var(--line-soft); }
+    .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .stat-value { font-size: 26px; font-weight: 400; color: var(--black); line-height: 1.1; margin-bottom: 8px; }
+    .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .pill.red { background: var(--danger-bg); color: var(--danger); }
+    .pill.amber { background: #FFF4E0; color: var(--warn); }
+    .pill.green { background: var(--success-bg); color: var(--success); }
+    .stat-sub { font-size: 12px; color: var(--muted); }
+
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+    .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--line-soft); overflow: hidden; }
+    .card-head { padding: 22px 24px 0; }
+    .card-head h3 { font-size: 24px; font-weight: 400; line-height: 28.8px; color: var(--black); margin-bottom: 6px; }
+    .card-head p { font-size: 15px; color: var(--muted); }
+
+    .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 24px 8px; }
+    .account { padding: 16px; border-radius: var(--radius); background: var(--green-soft); }
+    .account-type { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .account-balance { font-size: 24px; font-weight: 400; color: var(--black); margin-bottom: 4px; }
+    .account-number { font-size: 12px; color: var(--muted); }
+
+    .txn-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .txn-table th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); padding: 12px 24px; border-bottom: 1px solid var(--line-soft); }
+    .txn-table td { padding: 14px 24px; border-bottom: 1px solid var(--line-soft); font-size: 15px; color: var(--green); }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+    .status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .status.paid { color: var(--success); }
+    .status.pending { color: var(--muted); }
+    .status.due { color: var(--warn); }
+    .status.overdue { color: var(--danger); }
+    .amt { font-weight: 500; color: var(--black); }
+
+    .pay-card { padding: 22px 24px 24px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 6px; }
+    .form-group select, .form-group input { width: 100%; height: 48px; padding: 0 14px; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); color: var(--black); font-family: var(--sans); font-size: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .btn-pay { width: 100%; height: 48px; margin-top: 4px; }
+    .btn-pay:disabled { opacity: 0.55; cursor: not-allowed; }
+    .result-box { margin-top: 16px; padding: 14px 16px; border-radius: var(--radius); font-size: 14px; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 13px; opacity: 0.9; word-break: break-word; }
+    .fine-print { margin-top: 20px; font-size: 13px; line-height: 20px; color: var(--muted); border-top: 1px solid var(--line-soft); padding-top: 16px; }
+
+    footer { background: var(--chrome); color: var(--sand); padding: 64px 40px 32px; }
+    .footer-grid { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 32px; }
+    .footer-grid h4 { color: var(--lime); font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+    .footer-grid a { display: block; font-size: 16px; line-height: 24px; color: var(--sand); margin-bottom: 10px; }
+    .footer-bottom { max-width: 1440px; margin: 56px auto 0; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; border-top: 1px solid rgba(249,243,232,0.15); padding-top: 24px; font-size: 12px; color: rgba(249,243,232,0.7); }
+    .footer-logo { font-size: 30px; font-weight: 300; letter-spacing: -0.5px; color: var(--sand); line-height: 1; }
+
+    @media (max-width: 1024px) {
+      .primary-nav { display: none; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .layout { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      header { padding: 0 20px; }
+      .header-actions .btn-outline { display: none; }
+      .page { padding: 8px 20px 48px; }
+      .hero { min-height: 320px; padding: 48px 20px; }
+      .hero h1 { font-size: 36px; }
+      .hero p { font-size: 16px; line-height: 24px; }
+      h2.section-title { font-size: 30px; }
+      .stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .accounts { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .txn-table th:nth-child(4), .txn-table td:nth-child(4) { display: none; }
+      .txn-table th, .txn-table td { padding: 12px 16px; }
+      footer { padding: 48px 20px 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="logo" href="#" aria-label="Arcadia">
+      <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 3 3 29h6.2l6.8-14.6L22.8 29H29L16 3Z" fill="currentColor"/><path d="M12.6 22.4h6.8L16 15Z" fill="var(--lime)"/></svg>
+      Arcadia
+    </a>
+    <nav class="primary-nav">
+      <a href="#" class="active">Utility Expense Management</a>
+      <a href="#">Solutions</a>
+      <a href="#">Partners</a>
+      <a href="#">Resources</a>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-outline" href="#">Sign in</a>
+      <a class="btn btn-solid" href="#">Contact us</a>
+    </div>
+  </header>
+
+  <div class="page">
+    <a href="/" class="back-link">&larr; All Demos</a>
+
+    <section class="hero fade-in">
+      <img src="https://images.prismic.io/arcadia-marketing-site-2023/nNs-dxqfZFIRd9QC_GettyImages-9453915744.jpg?auto=format%2Ccompress&amp;fit=max&amp;w=1440" alt="" onerror="this.remove()">
+      <div class="hero-inner">
+        <h1>Automated bill payment across every account.</h1>
+        <p>Arcadia collects, validates, and pays utility invoices across your portfolio &mdash; accurately and on time. Every payment is checked against expected patterns, historical baselines, and tariff structures before it leaves your account.</p>
+        <a class="btn" href="#payInvoice">Pay an invoice</a>
+      </div>
+    </section>
+
+    <div class="fade-in d1">
+      <div class="eyebrow">Automated Bill Payment</div>
+      <h2 class="section-title">Accurate billing. Every account. On time.</h2>
+      <p class="section-lead">Utility expenses are one of the most complex AP categories you manage. This is the portfolio view for the current billing cycle.</p>
+    </div>
+
+    <div class="stats fade-in d2">
+      <div class="stat"><div class="stat-label">Avg unit cost</div><div class="stat-value">$106/MWh</div><span class="pill red">12.5%</span></div>
+      <div class="stat"><div class="stat-label">Total savings</div><div class="stat-value">$145,230</div><span class="stat-sub">Trailing 12 months</span></div>
+      <div class="stat"><div class="stat-label">Bills paid on time</div><div class="stat-value">142</div><span class="pill green">This cycle</span></div>
+      <div class="stat"><div class="stat-label">Bills due in 7 days</div><div class="stat-value">8</div><span class="pill amber">2 overdue &middot; 3 pending</span></div>
+    </div>
+
+    <div class="layout">
+      <div class="fade-in d3">
+        <div class="card">
+          <div class="card-head">
+            <h3>Funding accounts</h3>
+            <p>Utility invoices are paid from these accounts.</p>
+          </div>
+          <div class="accounts">
+            <div class="account"><div class="account-type">Operating account</div><div class="account-balance">$156,200.00</div><div class="account-number">ACCT-1001 &middot; Business Checking</div></div>
+            <div class="account"><div class="account-type">Utility AP clearing</div><div class="account-balance">$84,210.50</div><div class="account-number">ACCT-1002 &middot; Payments Reserve</div></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+          <div class="card-head">
+            <h3>Recent utility payments</h3>
+            <p>Validated invoices and their payment status across the portfolio.</p>
+          </div>
+          <table class="txn-table">
+            <thead><tr><th>Due</th><th>Provider &middot; Site</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Mar 18</td><td>Con Edison &middot; NYC Distribution Center</td><td class="amt">$12,486.20</td><td><span class="status due">Due in 3 days</span></td></tr>
+              <tr><td>Mar 15</td><td>PG&amp;E &middot; Fremont Plant</td><td class="amt">$28,913.75</td><td><span class="status paid">Paid on time</span></td></tr>
+              <tr><td>Mar 14</td><td>Duke Energy &middot; Charlotte Office</td><td class="amt">$4,120.08</td><td><span class="status paid">Paid on time</span></td></tr>
+              <tr><td>Mar 12</td><td>Georgia Power &middot; Atlanta Warehouse</td><td class="amt">$9,674.31</td><td><span class="status overdue">Overdue</span></td></tr>
+              <tr><td>Mar 10</td><td>Xcel Energy &middot; Denver Cold Storage</td><td class="amt">$6,208.90</td><td><span class="status pending">Pending validation</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="fade-in d4">
+        <div class="card pay-card" id="payInvoice">
+          <div class="card-head" style="padding: 0 0 18px;">
+            <h3>Pay a utility invoice</h3>
+            <p>Release a validated invoice for payment from a funding account.</p>
+          </div>
+          <form id="transferForm">
+            <div class="form-row">
+              <div class="form-group"><label for="fromAccount">Funding account</label><select id="fromAccount"><option value="ACCT-1001">Operating &mdash; ACCT-1001</option><option value="ACCT-1002">Utility AP clearing &mdash; ACCT-1002</option></select></div>
+              <div class="form-group"><label for="toAccount">Pay to</label><select id="toAccount"><option value="ACCT-1002">Utility AP clearing &mdash; ACCT-1002</option><option value="ACCT-1001">Operating &mdash; ACCT-1001</option><option value="ACCT-EXT-001">Con Edison &mdash; remit ****4921</option></select></div>
+            </div>
+            <div class="form-group"><label for="amount">Amount (USD)</label><input type="number" id="amount" value="12486.20" min="1" step="0.01" placeholder="Enter amount" required></div>
+            <div class="form-group"><label for="accountTier">Payment rail</label><select id="accountTier"><option value="premium">Same-day ACH (no fee)</option><option value="standard">Standard ACH (0.1%, $2.50 min)</option><option value="basic">Paper check (0.2%, $4.99 min)</option></select></div>
+            <button type="submit" class="btn btn-lime btn-pay" id="submitBtn">Pay invoice</button>
+          </form>
+          <div id="result" class="result-box"></div>
+          <div class="fine-print">Payments are released only after invoice validation completes. Remittance details are sent to the provider with each payment.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-grid">
+      <div><h4>Products</h4><a href="#">Utility Expense Management</a><a href="#">Automated Bill Payment</a><a href="#">Budgets &amp; Forecasting</a><a href="#">Audit &amp; Anomaly Detection</a></div>
+      <div><h4>Platform</h4><a href="#">Data Platform</a><a href="#">Utility Bill &amp; Interval Data</a><a href="#">Tariff &amp; Energy Rate Calculator</a><a href="#">Applied AI</a></div>
+      <div><h4>Solutions</h4><a href="#">Finance</a><a href="#">Energy</a><a href="#">Sustainability</a><a href="#">Operations</a></div>
+      <div><h4>Partners</h4><a href="#">Partner program</a><a href="#">Energy Management</a><a href="#">Carbon Accounting</a></div>
+      <div><h4>Resources</h4><a href="#">Blog</a><a href="#">Customer stories</a><a href="#">Resources library</a></div>
+    </div>
+    <div class="footer-bottom">
+      <div>Arcadia &copy;2026. &ldquo;Arcadia&rdquo; is a registered trademark of Arcadia Power, Inc.</div>
+      <div class="footer-logo">Arcadia</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showResult(kind, title, detail) {
+      const result = document.getElementById('result');
+      result.className = 'result-box ' + kind;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Releasing payment...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult('error', 'Payment failed', `${data.errorClass}: ${data.error}`);
+        } else {
+          showResult('success', 'Payment released', `Debited $${data.debitAmount} from the funding account (includes $${data.fee} rail fee)`);
+        }
+      } catch (err) {
+        showResult('error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Pay invoice'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
