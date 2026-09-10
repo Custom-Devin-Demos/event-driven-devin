@@ -142,6 +142,16 @@ Two identities share the slug and must not claim each other's alerts: `CUSTOMER_
 
 To refresh the hosted web build: in the Flutter repo run `flutter build web --release --base-href /5b992ae7/app/`, copy `build/web/` into `app/public/verticals/5b992ae7-app/`, and delete the copied `canvaskit/` directory — the default build loads CanvasKit from Google's CDN, so the 37 MB local copy is dead weight in this repo.
 
+### Citi consumer banking scenario (67f2a7ba, Flutter, external repo)
+
+The Citi Mobile vertical (slug `67f2a7ba`, aliases `/citimobile`, `/citi-mobile`; unlisted on the hub) is separate from Citi Self Invest (`94f4c31f`, `/citi`), which keeps its Node-side suitability TypeError. `/67f2a7ba/app` serves a Flutter web build from `app/public/verticals/67f2a7ba-app/` (SPA fallback in `app/routes/verticals/67f2a7ba.js`). The same codebase — `Custom-Devin-Demos/citi-banking-demo-app` — renders as a Citi Online desktop site on wide web and as the Citi Mobile app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the card product catalog knows the Citi Strata Elite card, but the payment-posting rules registry never registers it, so scheduling a payment on that card (the default selection) null-asserts and the Pay Card screen shows its error card. The client then `POST`s to `/api/67f2a7ba/mobile/error` with `source: citi-mobile/<screen>` and `service: customer-67f2a7ba-mobile`, plus `platform`, `screen`, `action`, `product`/`cardProduct` tags. `reportAppFailure` in `app/services/verticals/67f2a7ba.js` raises the Slack alert and Devin session directly (Sentry capture + `mobile_payment.failure` metric); successful payments register on `POST /api/67f2a7ba/payments` (`mobile_payment.success`, no alert).
+
+Identity is dynamic: the Flutter client reads `devinEmail` / `devinUserId` / `devinOrgId` / `devinOrgName` that the hub stored in `localStorage` and forwards them on the report. The service passes them through untouched and never invents a fallback identity; `DEVIN_SERVICE_KEY_67F2A7BA` / `DEVIN_USER_ID_67F2A7BA` / `DEVIN_ORG_ID_67F2A7BA` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` in `app/routes/sentry-webhook.js` maps `customer-67f2a7ba-mobile` to `APP_REMEDIATION_DIRECTIVE`, which tells the session to reproduce on web, fix the registry (register the product, make consumers tolerate unknown codes, add a completeness test), verify the same fix commit on web, Android and iOS, and refresh the hosted build here. Regression coverage lives in `tests/67f2a7ba-mobile-error.test.js`.
+
+Refresh the hosted build the same way as GE: `flutter build web --release --base-href /67f2a7ba/app/`, copy `build/web/` into `app/public/verticals/67f2a7ba-app/`, drop `canvaskit/`. Generated Flutter bundles under `app/public/verticals/*-app/` are excluded from `npm run lint`.
+
 ### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
 
 The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
