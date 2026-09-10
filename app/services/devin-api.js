@@ -149,10 +149,12 @@ async function createDevinSession(prompt, options = {}) {
  *
  * Falls back to DEVIN_ORG_LIST env var (JSON array) if the API call fails.
  *
+ * @param {Object} [options] - Per-customer overrides
+ * @param {string} [options.apiKey] - Override the default service key
  * @returns {Array} - Array of { org_id, name } objects
  */
-async function listEnterpriseOrgs() {
-  const { serviceKey } = resolveServiceAuth();
+async function listEnterpriseOrgs(options = {}) {
+  const { serviceKey } = resolveServiceAuth(options);
 
   if (serviceKey) {
     try {
@@ -209,10 +211,12 @@ async function listEnterpriseOrgs() {
  * or the service user lacks permissions.
  *
  * @param {string} [orgId] - Override the default org ID
+ * @param {Object} [options] - Per-customer overrides
+ * @param {string} [options.apiKey] - Override the default service key
  * @returns {Array} - Array of { user_id, name, email } objects
  */
-async function listOrgUsers(orgId) {
-  const { serviceKey, orgId: defaultOrgId } = resolveServiceAuth();
+async function listOrgUsers(orgId, options = {}) {
+  const { serviceKey, orgId: defaultOrgId } = resolveServiceAuth(options);
   const targetOrgId = orgId || defaultOrgId;
 
   // Try the API first
@@ -263,10 +267,12 @@ async function listOrgUsers(orgId) {
  * Falls back to DEVIN_ENTERPRISE_ADMINS env var (JSON array) if the API call
  * fails or the service user lacks permissions.
  *
+ * @param {Object} [options] - Per-customer overrides
+ * @param {string} [options.apiKey] - Override the default service key
  * @returns {Array} - Array of { user_id, name, email, is_enterprise_admin } objects
  */
-async function listEnterpriseAdmins() {
-  const { serviceKey } = resolveServiceAuth();
+async function listEnterpriseAdmins(options = {}) {
+  const { serviceKey } = resolveServiceAuth(options);
 
   if (serviceKey) {
     try {
@@ -311,9 +317,35 @@ async function listEnterpriseAdmins() {
   return [];
 }
 
+/**
+ * Every distinct service key the deployment is configured with: the global
+ * DEVIN_SERVICE_KEY first, then each per-customer DEVIN_SERVICE_KEY_<SLUG>.
+ * Per-customer keys may belong to a different enterprise than the global one,
+ * so org/user lookups that must span all of them iterate this list.
+ *
+ * @returns {Array<{ apiKey: string, source: string }>}
+ */
+function listServiceKeys() {
+  const keys = [];
+  const seen = new Set();
+  const add = (apiKey, source) => {
+    if (apiKey && !seen.has(apiKey)) {
+      seen.add(apiKey);
+      keys.push({ apiKey, source });
+    }
+  };
+  add(resolveServiceAuth().serviceKey, 'default');
+  for (const name of Object.keys(process.env).sort()) {
+    const match = /^DEVIN_SERVICE_KEY_([A-Z0-9_]+)$/.exec(name);
+    if (match) add(process.env[name], match[1].toLowerCase());
+  }
+  return keys;
+}
+
 module.exports = {
   createDevinSession,
   listEnterpriseOrgs,
+  listServiceKeys,
   listOrgUsers,
   listEnterpriseAdmins,
 };
