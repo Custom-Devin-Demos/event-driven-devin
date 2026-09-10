@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a PingOne Environment | Ping Identity</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #051727;
+      --navy-2: #263746;
+      --red: #d20e0f;
+      --red-dark: #b00c0d;
+      --bg: #fbfbfc;
+      --surface: #f1f1f5;
+      --surface-2: #eff0f1;
+      --border: #dcdfe3;
+      --text: #051727;
+      --muted: #505d68;
+      --success: #1b7f4b;
+      --success-bg: rgba(27,127,75,0.06);
+      --danger: #d20e0f;
+      --danger-bg: rgba(210,14,15,0.05);
+      --font: 'Montserrat', helvetica, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font-family: inherit; }
+
+    /* ── Announcement bar ───────────────────────────── */
+    .announce {
+      background: linear-gradient(90deg, var(--red) 0%, var(--red) 62%, #e9e9ee 62.01%, #e9e9ee 100%);
+      height: 36px;
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+    .announce .wrap { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .announce .promo { color: #fff; display: flex; align-items: center; gap: 12px; padding-left: 8px; }
+    .announce .promo svg { width: 18px; height: 12px; }
+    .announce .utility { display: flex; align-items: center; gap: 26px; color: var(--navy); font-weight: 500; }
+    .announce .utility span { display: inline-flex; align-items: center; gap: 6px; }
+    .announce .utility svg { width: 16px; height: 16px; stroke: var(--navy); fill: none; stroke-width: 1.6; }
+    .wrap { width: 100%; max-width: 1310px; margin: 0 auto; padding: 0 56px; }
+
+    /* ── Header ─────────────────────────────────────── */
+    header.site {
+      background: #fff;
+      border-bottom: 1px solid #e6e8eb;
+      height: 72px;
+      position: sticky; top: 0; z-index: 20;
+    }
+    header.site .wrap { display: flex; align-items: center; height: 100%; }
+    .logo img { height: 24px; display: block; }
+    nav.primary { display: flex; gap: 40px; margin-left: 128px; }
+    nav.primary a { font-weight: 600; font-size: 17px; display: inline-flex; align-items: center; gap: 8px; color: var(--navy); }
+    nav.primary a svg { width: 11px; height: 7px; }
+    .header-cta { margin-left: auto; display: flex; gap: 12px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 14px; line-height: 21px;
+      padding: 5px 16px; border: 1.5px solid var(--red);
+      background: var(--red); color: #fff; cursor: pointer;
+      transition: background .15s ease, color .15s ease;
+      border-radius: 0;
+    }
+    .btn:hover { background: var(--red-dark); border-color: var(--red-dark); }
+    .btn.ghost { background: #fff; color: var(--red); }
+    .btn.ghost:hover { background: rgba(210,14,15,0.06); }
+    .btn.lg { font-size: 16px; line-height: 24px; padding: 10px 24px; }
+
+    /* ── Hero ───────────────────────────────────────── */
+    .hero {
+      background: var(--surface);
+      position: relative; overflow: hidden;
+      padding: 72px 0 64px;
+    }
+    .hero .wrap { display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 48px; }
+    .crumbs { font-size: 13px; color: var(--muted); margin-bottom: 20px; display: flex; gap: 8px; align-items: center; }
+    .crumbs span.sep { color: #a3acb5; }
+    .hero h1 { font-size: 52px; line-height: 1.12; font-weight: 500; letter-spacing: -0.01em; }
+    .hero h1 em { font-style: normal; color: var(--red); }
+    .hero p.lede { font-size: 20px; line-height: 1.5; margin-top: 18px; max-width: 560px; color: var(--navy-2); }
+    .hero .meta { display: flex; gap: 32px; margin-top: 28px; }
+    .hero .meta div strong { display: block; font-size: 22px; font-weight: 600; }
+    .hero .meta div span { font-size: 13px; color: var(--muted); }
+    .hero-art { position: relative; height: 380px; }
+    .hero-art .diamond {
+      position: absolute; inset: 0; margin: auto;
+      width: 330px; height: 330px; transform: rotate(45deg);
+      background: #e8e8ec;
+    }
+    .hero-art .diamond.inner { width: 250px; height: 250px; background: #fff; }
+    .hero-art .dots {
+      position: absolute; inset: 0; margin: auto; width: 250px; height: 250px;
+      background-image: radial-gradient(#c7cbd1 1.5px, transparent 1.6px);
+      background-size: 16px 16px; opacity: .9;
+    }
+    .hero-art svg { position: absolute; inset: 0; margin: auto; width: 170px; height: 170px; }
+
+    /* ── Main ───────────────────────────────────────── */
+    main { padding: 56px 0 80px; }
+    main .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 40px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--border); }
+    .card-head { padding: 28px 32px 22px; border-bottom: 1px solid var(--border); }
+    .card-head h2 { font-size: 26px; font-weight: 500; line-height: 1.25; }
+    .card-head p { color: var(--muted); font-size: 15px; margin-top: 6px; }
+    .steps { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+    .steps div { flex: 1; padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--muted); border-right: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .steps div:last-child { border-right: 0; }
+    .steps div i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #c1c7ce; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 11px; }
+    .steps div.active { color: var(--navy); }
+    .steps div.active i { background: var(--red); border-color: var(--red); color: #fff; }
+    .steps div.done i { background: var(--navy); border-color: var(--navy); color: #fff; }
+    form { padding: 28px 32px 32px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+    .field { display: flex; flex-direction: column; gap: 8px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 600; color: var(--navy); }
+    label small { font-weight: 400; color: var(--muted); margin-left: 6px; }
+    input[type=text], input[type=number], select {
+      height: 46px; border: 1px solid #b9c0c7; background: #fff;
+      padding: 0 14px; font-size: 15px; color: var(--navy);
+      border-radius: 0; outline: none; width: 100%;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    select {
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23051727' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+    }
+    input:focus, select:focus { border-color: var(--navy); box-shadow: 0 0 0 2px rgba(5,23,39,0.12); }
+    .hint { font-size: 12px; color: var(--muted); }
+    .radio-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .radio-row label.opt {
+      border: 1px solid #b9c0c7; padding: 14px 16px; cursor: pointer;
+      display: flex; gap: 12px; align-items: flex-start; font-weight: 500; font-size: 14px;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .radio-row label.opt input { margin-top: 3px; accent-color: var(--red); }
+    .radio-row label.opt span small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .radio-row label.opt:has(input:checked) { border-color: var(--red); background: rgba(210,14,15,0.03); }
+    .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .chip {
+      border: 1px solid var(--border); padding: 10px 12px; font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 8px; background: var(--bg);
+    }
+    .chip svg { width: 14px; height: 14px; flex: none; }
+    .chip.add { border-style: dashed; color: var(--red); }
+    .form-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); gap: 16px; flex-wrap: wrap; }
+    .form-foot .terms { font-size: 12px; color: var(--muted); max-width: 420px; }
+    .form-foot .terms a { color: var(--red); font-weight: 600; }
+    .btn:disabled { opacity: .55; cursor: default; }
+
+    /* ── Summary (aside) ────────────────────────────── */
+    aside .card { position: sticky; top: 96px; }
+    .summary-head { padding: 22px 26px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .summary-head h3 { font-size: 16px; font-weight: 600; }
+    .tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; background: var(--navy); color: #fff; }
+    .summary-body { padding: 20px 26px; }
+    .summary-body dl { display: grid; grid-template-columns: 1fr auto; row-gap: 12px; column-gap: 12px; font-size: 14px; }
+    .summary-body dt { color: var(--muted); }
+    .summary-body dd { font-weight: 600; text-align: right; }
+    .summary-total { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; }
+    .summary-total span { font-size: 13px; color: var(--muted); }
+    .summary-total strong { font-size: 26px; font-weight: 600; }
+    .summary-total strong small { font-size: 13px; color: var(--muted); font-weight: 500; margin-left: 4px; }
+    .summary-foot { padding: 16px 26px 22px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
+    .summary-foot a { color: var(--red); font-weight: 600; }
+    .trust { margin-top: 20px; padding: 18px 22px; background: var(--surface); font-size: 13px; color: var(--navy-2); display: flex; gap: 12px; align-items: flex-start; }
+    .trust svg { width: 22px; height: 22px; flex: none; }
+
+    /* ── Processing / result ────────────────────────── */
+    .processing { display: none; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); margin-top: 20px; }
+    .processing.visible { display: flex; }
+    .spinner { width: 18px; height: 18px; border: 2px solid #d5d9de; border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { display: none; margin-top: 22px; padding: 20px 22px; border: 1px solid var(--border); }
+    .result-box.success, .result-box.error { display: block; }
+    .result-box.success { background: var(--success-bg); border-color: rgba(27,127,75,0.3); }
+    .result-box.error { background: var(--danger-bg); border-color: rgba(210,14,15,0.3); }
+    .result-box h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+    .result-box.success h3 { color: var(--success); }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box p { font-size: 14px; color: var(--navy-2); }
+    .result-box code { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 13px; background: #fff; border: 1px solid var(--border); padding: 2px 6px; word-break: break-word; }
+    .result-box .error-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .result-box ul { margin: 10px 0 0 18px; font-size: 13px; color: var(--navy-2); }
+
+    /* ── Footer ─────────────────────────────────────── */
+    footer.site { background: #fff; border-top: 1px solid #e6e8eb; padding: 56px 0 32px; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    footer h4 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+    footer li { list-style: none; font-size: 14px; color: var(--navy-2); margin-bottom: 9px; }
+    footer .legal { margin-top: 44px; padding-top: 22px; border-top: 1px solid #e6e8eb; display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); flex-wrap: wrap; gap: 12px; }
+    footer .legal .links { display: flex; gap: 20px; }
+
+    @media (max-width: 1100px) {
+      nav.primary { display: none; }
+      .hero .wrap { grid-template-columns: 1fr; }
+      .hero-art { display: none; }
+      main .wrap { grid-template-columns: 1fr; }
+      aside .card { position: static; }
+    }
+    @media (max-width: 720px) {
+      .wrap { padding: 0 20px; }
+      .announce .promo span { display: none; }
+      .announce .utility { gap: 16px; }
+      .header-cta .btn.ghost { display: none; }
+      .hero h1 { font-size: 36px; }
+      .grid-2, .radio-row, .services { grid-template-columns: 1fr; }
+      .steps div span { display: none; }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="announce">
+    <div class="wrap">
+      <a class="promo" href="#">
+        <span>Personal AI agents are already at work. Learn how Ping secures Claude from discovery to action</span>
+        <svg viewBox="0 0 18 12" fill="none" stroke="#fff" stroke-width="1.6"><path d="M0 6h16M11 1l5 5-5 5"/></svg>
+      </a>
+      <div class="utility">
+        <span><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="5.5"/><path d="M11 11l4 4"/></svg></span>
+        <span><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M1.5 8h13M8 1.5c2.5 2.5 2.5 10.5 0 13M8 1.5c-2.5 2.5-2.5 10.5 0 13"/></svg></span>
+        <span>Partners <svg viewBox="0 0 16 16" style="width:10px;height:10px"><path d="M3 6l5 5 5-5"/></svg></span>
+        <span><svg viewBox="0 0 16 16"><circle cx="8" cy="6" r="3"/><path d="M2.5 14.5c1-3 3-4.5 5.5-4.5s4.5 1.5 5.5 4.5"/></svg> Sign On</span>
+      </div>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Ping Identity">
+        <img src="https://www.pingidentity.com/content/dam/picr/nav/Ping-Logo-2.svg" alt="Ping Identity Logo">
+      </a>
+      <nav class="primary">
+        <a href="#">Platform <svg viewBox="0 0 11 7" fill="none" stroke="#051727" stroke-width="1.6"><path d="M1 1l4.5 4.5L10 1"/></svg></a>
+        <a href="#">Solutions <svg viewBox="0 0 11 7" fill="none" stroke="#051727" stroke-width="1.6"><path d="M1 1l4.5 4.5L10 1"/></svg></a>
+        <a href="#">Resources <svg viewBox="0 0 11 7" fill="none" stroke="#051727" stroke-width="1.6"><path d="M1 1l4.5 4.5L10 1"/></svg></a>
+        <a href="#">Developers <svg viewBox="0 0 11 7" fill="none" stroke="#051727" stroke-width="1.6"><path d="M1 1l4.5 4.5L10 1"/></svg></a>
+        <a href="#">Support <svg viewBox="0 0 11 7" fill="none" stroke="#051727" stroke-width="1.6"><path d="M1 1l4.5 4.5L10 1"/></svg></a>
+      </nav>
+      <div class="header-cta">
+        <a class="btn" href="#">Try Ping</a>
+        <a class="btn ghost" href="#">Talk to Sales</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <div class="crumbs">
+          <span>Platform</span><span class="sep">/</span><span>PingOne</span><span class="sep">/</span><span>Create Environment</span>
+        </div>
+        <h1>Create your <em>PingOne</em> environment</h1>
+        <p class="lede">Provision a dedicated PingOne environment with the services in your solution package. Your tenant, region, and entitlements are ready in minutes.</p>
+        <div class="meta">
+          <div><strong>200M</strong><span>logins per day</span></div>
+          <div><strong>350+</strong><span>connectors</span></div>
+          <div><strong>FedRAMP</strong><span>SaaS, private cloud &amp; on-prem</span></div>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="diamond"></div>
+        <div class="diamond inner"></div>
+        <div class="dots"></div>
+        <svg viewBox="0 0 170 170" fill="none">
+          <path d="M22 60h46v46H22zM68 60h46v46H68zM68 106h46v46H68z" stroke="#051727" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M108 30l40-8 8 40-40 8z" stroke="#d20e0f" stroke-width="7" stroke-linejoin="round"/>
+          <path d="M6 154h30" stroke="#d20e0f" stroke-width="7"/>
+          <path d="M136 14h20" stroke="#051727" stroke-width="7"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="wrap">
+      <section class="card">
+        <div class="card-head">
+          <h2>Environment details</h2>
+          <p>Tell us about the tenant this environment will serve. You can add services and change the region later from the admin console.</p>
+        </div>
+        <div class="steps">
+          <div class="done"><i>&#10003;</i><span>Organization</span></div>
+          <div class="active"><i>2</i><span>Environment</span></div>
+          <div><i>3</i><span>Administrators</span></div>
+          <div><i>4</i><span>Review</span></div>
+        </div>
+
+        <form id="envForm" onsubmit="createEnvironment(event)">
+          <div class="grid-2">
+            <div class="field">
+              <label for="environmentName">Environment name</label>
+              <input type="text" id="environmentName" value="Acme Retail — Production" required>
+              <span class="hint">Shown in the PingOne admin console and on audit events.</span>
+            </div>
+            <div class="field">
+              <label for="region">Data residency region</label>
+              <select id="region">
+                <option value="na" selected>North America (auth.pingone.com)</option>
+                <option value="ca">Canada (auth.pingone.ca)</option>
+                <option value="eu">European Union (auth.pingone.eu)</option>
+                <option value="ap">Asia-Pacific (auth.pingone.asia)</option>
+                <option value="au">Australia (auth.pingone.com.au)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="solutionPackage">Solution package</label>
+              <select id="solutionPackage" onchange="syncSummary()">
+                <option value="customers_essential">PingOne for Customers — Essential</option>
+                <option value="customers_plus" selected>PingOne for Customers — Plus</option>
+                <option value="workforce_essential">PingOne for Workforce — Essential</option>
+                <option value="workforce_plus">PingOne for Workforce — Plus</option>
+              </select>
+              <span class="hint">Packages follow the Ping Identity Platform pricing page.</span>
+            </div>
+            <div class="field">
+              <label for="identityCount">Expected identities <small>(annual)</small></label>
+              <input type="number" id="identityCount" value="250000" min="1" step="1" oninput="syncSummary()">
+              <span class="hint">100,000 identities are included with every package.</span>
+            </div>
+            <div class="field full">
+              <label>Environment type</label>
+              <div class="radio-row">
+                <label class="opt"><input type="radio" name="envType" value="production" checked><span>Production<small>Full SLA, 24/7 support, and data-residency guarantees.</small></span></label>
+                <label class="opt"><input type="radio" name="envType" value="sandbox"><span>Sandbox<small>Non-production tenant for integration and testing.</small></span></label>
+              </div>
+            </div>
+            <div class="field full">
+              <label>Services in this package</label>
+              <div class="services" id="serviceChips"></div>
+            </div>
+          </div>
+
+          <div class="form-foot">
+            <p class="terms">By creating an environment you agree to the <a href="#">Ping Identity Subscription Terms</a> and acknowledge the <a href="#">Privacy Policy</a>.</p>
+            <button type="submit" class="btn lg" id="submitBtn">Create Environment</button>
+          </div>
+
+          <div class="processing" id="processingIndicator">
+            <div class="spinner"></div>
+            <span>Provisioning environment and writing entitlements&hellip;</span>
+          </div>
+          <div class="result-box" id="resultBox"></div>
+        </form>
+      </section>
+
+      <aside>
+        <div class="card">
+          <div class="summary-head">
+            <h3>Subscription summary</h3>
+            <span class="tag">Estimate</span>
+          </div>
+          <div class="summary-body">
+            <dl>
+              <dt>Package</dt><dd id="sumPackage">PingOne for Customers — Plus</dd>
+              <dt>Services</dt><dd id="sumServices">6</dd>
+              <dt>Identities</dt><dd id="sumIdentities">250,000</dd>
+              <dt>Included identities</dt><dd>100,000</dd>
+              <dt>Identity band</dt><dd id="sumBand">100K–250K</dd>
+            </dl>
+            <div class="summary-total">
+              <span>Estimated annual</span>
+              <strong id="sumTotal">$87,500<small>USD</small></strong>
+            </div>
+          </div>
+          <div class="summary-foot">
+            Starting prices are list. Volume and multi-year discounts are applied on your order form. <a href="#">Talk to Sales</a>
+          </div>
+        </div>
+        <div class="trust">
+          <svg viewBox="0 0 22 22" fill="none" stroke="#051727" stroke-width="1.6"><path d="M11 2l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V5z"/><path d="M7.5 11l2.5 2.5 4.5-5"/></svg>
+          <span>Every environment ships with SOC 2 Type II, ISO 27001, and FedRAMP-authorized infrastructure options.</span>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="cols">
+        <div><h4>Company</h4><ul><li>About Us</li><li>Corporate Social Responsibility</li><li>Leadership Team</li><li>Careers</li><li>Trust Center</li><li>Ping Newsroom</li></ul></div>
+        <div><h4>Why Ping</h4><ul><li>Customer Stories</li><li>Solutions</li><li>Industries</li><li>Analyst Reports</li></ul></div>
+        <div><h4>Get Started</h4><ul><li>Talk with a Strategist</li><li>Try Ping</li><li>Product Demos</li></ul></div>
+        <div><h4>Support</h4><ul><li>Support Portal</li><li>Community Forum</li><li>Documentation</li><li>Frequently Asked Questions</li></ul></div>
+      </div>
+      <div class="legal">
+        <span>&copy; Copyright 2026 Ping Identity. All rights reserved.</span>
+        <div class="links"><span>Integrations</span><span>Legal</span><span>Privacy</span><span>Security</span><span>Cookie Settings</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var PACKAGES = {
+      customers_essential: { label: 'PingOne for Customers — Essential', annualList: 35000, services: ['PingOne SSO', 'PingOne Directory', 'PingOne DaVinci'] },
+      customers_plus: { label: 'PingOne for Customers — Plus', annualList: 50000, services: ['PingOne SSO', 'PingOne Directory', 'PingOne DaVinci', 'PingOne MFA', 'PingOne Authorize', 'PingOne Protect'] },
+      workforce_essential: { label: 'PingOne for Workforce — Essential', annualList: 30000, services: ['PingOne SSO', 'PingOne Directory', 'PingOne MFA'] },
+      workforce_plus: { label: 'PingOne for Workforce — Plus', annualList: 45000, services: ['PingOne SSO', 'PingOne Directory', 'PingOne MFA', 'PingOne Authorize', 'PingOne Verify'] }
+    };
+    var CHECK = '<svg viewBox="0 0 14 14" fill="none" stroke="#1b7f4b" stroke-width="1.8"><path d="M2 7.5l3 3 7-7"/></svg>';
+
+    function band(n) {
+      if (n > 1000000) return { label: '1M+', rate: 0.12 };
+      if (n > 250000) return { label: '250K–1M', rate: 0.18 };
+      if (n > 100000) return { label: '100K–250K', rate: 0.25 };
+      return { label: 'Included', rate: 0 };
+    }
+    function fmt(n) { return n.toLocaleString('en-US'); }
+
+    function syncSummary() {
+      var code = document.getElementById('solutionPackage').value;
+      var pkg = PACKAGES[code];
+      var ids = parseInt(document.getElementById('identityCount').value, 10) || 0;
+      var b = band(ids);
+      var total = pkg.annualList + Math.max(ids - 100000, 0) * b.rate;
+      document.getElementById('sumPackage').textContent = pkg.label;
+      document.getElementById('sumServices').textContent = pkg.services.length;
+      document.getElementById('sumIdentities').textContent = fmt(ids);
+      document.getElementById('sumBand').textContent = b.label;
+      document.getElementById('sumTotal').innerHTML = '$' + fmt(Math.round(total)) + '<small>USD</small>';
+      document.getElementById('serviceChips').innerHTML = pkg.services.map(function (s) {
+        return '<div class="chip">' + CHECK + s + '</div>';
+      }).join('') + '<div class="chip add">+ Add a service</div>';
+    }
+    syncSummary();
+
+    function createEnvironment(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+
+      fetch('/api/81deeb2e/environments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          environmentName: document.getElementById('environmentName').value,
+          solutionPackage: document.getElementById('solutionPackage').value,
+          region: document.getElementById('region').value,
+          identityCount: parseInt(document.getElementById('identityCount').value, 10),
+          environmentType: document.querySelector('input[name="envType"]:checked').value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Environment could not be created</h3>' +
+            '<p>We were unable to write the entitlements for this environment.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+          return;
+        }
+        var d = result.data;
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML =
+          '<h3>Environment created</h3>' +
+          '<p><strong>' + d.environmentName + '</strong> is provisioning in ' + d.region + '.<br>' +
+          'Environment ID: <code>' + d.environmentId + '</code><br>' +
+          'Authorization endpoint: <code>' + d.authorizationEndpoint + '</code></p>' +
+          '<ul>' + d.entitlements.map(function (en) { return '<li>' + en.name + ' &middot; up to ' + fmt(en.identityLimit) + ' identities</li>'; }).join('') + '</ul>' +
+          '<p style="margin-top:10px">Estimated annual: <strong>$' + fmt(Math.round(d.subscription.annualEstimate)) + ' USD</strong></p>';
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach PingOne.<br><br><code>' + err.message + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
