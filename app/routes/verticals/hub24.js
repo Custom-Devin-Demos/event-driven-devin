@@ -73,7 +73,9 @@ router.post('/api/hub24/mobile-error', (req, res) => {
 
   try {
     const result = reportMobileFeeArrangementError({
-      clientAccountId: body.clientAccountId || 'HUB24-8842167',
+      clientAccountId: Object.prototype.hasOwnProperty.call(body, 'clientAccountId')
+        ? body.clientAccountId
+        : 'HUB24-8842167',
       errorType: body.errorType,
       errorMessage: body.errorMessage,
       platform: body.platform,
