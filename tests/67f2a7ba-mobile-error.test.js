@@ -2,6 +2,15 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
 
+jest.mock('../app/services/devin-api', () => ({
+  listOrgUsers: jest.fn(() => Promise.resolve([
+    { user_id: 'citi-member-1', email: 'Member@Citi.example' },
+  ])),
+  listEnterpriseAdmins: jest.fn(() => Promise.resolve([
+    { user_id: 'ent-admin-1', email: 'admin@enterprise.example' },
+  ])),
+}));
+
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
   initSentry: jest.fn(),
@@ -15,6 +24,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 const express = require('express');
 const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { listOrgUsers, listEnterpriseAdmins } = require('../app/services/devin-api');
 const { Sentry } = require('../app/telemetry/sentry');
 const {
   reportAppFailure,
@@ -69,6 +79,8 @@ describe('Citi mobile failure report (67f2a7ba)', () => {
   beforeEach(() => {
     createSessionAndAlert.mockClear();
     Sentry.captureException.mockClear();
+    listOrgUsers.mockClear();
+    listEnterpriseAdmins.mockClear();
   });
 
   test('customer config is separate from Citi Self Invest and targets Custom-Devin-Demos', () => {
@@ -134,6 +146,26 @@ describe('Citi mobile failure report (67f2a7ba)', () => {
     expect(alertData.devinUserId).toBeUndefined();
     expect(alertData.devinOrgId).toBeUndefined();
     expect(alertData.devinEmail).toBeUndefined();
+  });
+
+  test('resolves the hub email to a Citi org member when the client has no user id', async () => {
+    const byEmail = { ...APP_REPORT, devinUserId: '', devinEmail: 'member@citi.example' };
+    const { sessionPromise } = reportAppFailure(byEmail);
+    await sessionPromise;
+    expect(listOrgUsers).toHaveBeenCalledWith('org-8e9e23dde2f340a780125d9a523f8b30');
+    expect(listEnterpriseAdmins).not.toHaveBeenCalled();
+    const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData.devinUserId).toBe('citi-member-1');
+    expect(alertData.devinOrgId).toBe('org-8e9e23dde2f340a780125d9a523f8b30');
+  });
+
+  test('falls back to enterprise admins, then to the customer config, for unknown emails', async () => {
+    await reportAppFailure({ ...APP_REPORT, devinUserId: '', devinEmail: 'admin@enterprise.example' }).sessionPromise;
+    expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('ent-admin-1');
+
+    await reportAppFailure({ ...APP_REPORT, devinUserId: '', devinEmail: 'nobody@citi.example' }).sessionPromise;
+    expect(createSessionAndAlert.mock.calls[1][0].devinUserId).toBeUndefined();
+    expect(createSessionAndAlert.mock.calls[1][0].devinEmail).toBe('nobody@citi.example');
   });
 
   test('the directive names the Flutter repo, all three surfaces, and stops before merge', () => {
