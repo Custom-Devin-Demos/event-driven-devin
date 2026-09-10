@@ -1,6 +1,10 @@
 const express = require('express');
 const path = require('path');
-const { submitInquiry, ENGINE_PROGRAMS } = require('../../services/verticals/5b992ae7');
+const {
+  submitInquiry,
+  reportPortalFailure,
+  ENGINE_PROGRAMS,
+} = require('../../services/verticals/5b992ae7');
 
 const router = express.Router();
 
@@ -28,6 +32,33 @@ router.get('/api/5b992ae7/programs', (_req, res) => {
       family: program.family,
       inService: program.inService,
     })),
+  });
+});
+
+/**
+ * POST /api/5b992ae7/portal/error — failure reported by the Flutter portal
+ * client after its on-device inquiry flow threw. Raises the Slack alert and
+ * Devin session under the portal identity (customer-5b992ae7-portal).
+ */
+router.post('/api/5b992ae7/portal/error', (req, res) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  const source = typeof body.source === 'string' ? body.source : '';
+
+  if (!source.startsWith('ge-customer-portal/') || body.service !== 'customer-5b992ae7-portal') {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected a ge-customer-portal/<platform> source with service customer-5b992ae7-portal',
+    });
+  }
+
+  const { reference } = reportPortalFailure(body);
+
+  return res.status(202).json({
+    received: true,
+    reference,
+    service: 'customer-5b992ae7-portal',
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
   });
 });
 
