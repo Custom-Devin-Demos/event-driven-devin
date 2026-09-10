@@ -4,6 +4,7 @@ const { createSessionAndAlert } = require('../services/devin-session');
 const { verifySentrySignature } = require('../middleware/verify-session-secret');
 const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7');
 const { APP_REMEDIATION_DIRECTIVE } = require('../services/verticals/3aa9fa04');
+const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require('../services/verticals/67f2a7ba');
 
 const router = express.Router();
 
@@ -249,6 +250,23 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-3aa9fa04-mobile',
       service: 'customer-3aa9fa04-mobile',
       scenario: 'nfl-primetime-entry',
+    },
+  },
+  // Citi consumer banking Flutter app (github.com/Custom-Devin-Demos/
+  // citi-banking-demo-app): Citi Online on desktop web, Citi Mobile on
+  // Android/iOS. Reports arrive via /api/67f2a7ba/mobile/error; remediation
+  // lands in the Flutter repo and is verified on all three surfaces.
+  '67f2a7ba': {
+    customer: '67f2a7ba',
+    verticalLabel: 'Citi Mobile',
+    service: 'customer-67f2a7ba-mobile',
+    project: 'citi-mobile',
+    release: 'citi-mobile@1.0.0',
+    promptAppendix: CITI_MOBILE_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-67f2a7ba-mobile',
+      service: 'customer-67f2a7ba-mobile',
+      scenario: 'pay-citi-card',
     },
   },
 };
