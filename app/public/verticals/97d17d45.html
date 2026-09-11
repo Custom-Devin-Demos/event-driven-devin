@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Provision seats | Parallel Platform</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #181818;
+        --ink-2: #202020;
+        --muted: #858483;
+        --line: #e3e2e0;
+        --paper: #ffffff;
+        --wash: #fafaf9;
+        --accent: #fb631b;
+        --accent-dark: #e2540f;
+        --chrome: #434343;
+        --link: #0d6ea5;
+        --sans: gerstnerProgramm, "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+        --mono: "FT System Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font: 16px/1.45 var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        max-width: 1304px;
+        margin: 0 auto;
+        padding: 0 24px;
+        border-left: 1px solid var(--line);
+        border-right: 1px solid var(--line);
+      }
+      .mono {
+        font-family: var(--mono);
+        font-size: 13px;
+        letter-spacing: 0.16px;
+      }
+      .announce {
+        background: #eaf2f8;
+        color: var(--ink);
+        text-align: center;
+        padding: 9px 16px;
+        font-size: 14px;
+      }
+      .announce a {
+        color: var(--link);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 0;
+        flex-wrap: wrap;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        text-decoration: none;
+        color: var(--ink-2);
+      }
+      .logo svg {
+        display: block;
+      }
+      .wordmark {
+        font-family: var(--sans);
+        font-size: 23px;
+        font-weight: 700;
+        letter-spacing: -0.055em;
+        line-height: 1;
+      }
+      nav {
+        display: flex;
+        gap: 26px;
+        flex-wrap: wrap;
+      }
+      nav a {
+        color: var(--muted);
+        text-decoration: none;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      nav a:hover,
+      nav a.active {
+        color: var(--ink);
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-chrome,
+      .btn-accent {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 8px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .btn-chrome {
+        background: var(--chrome);
+      }
+      .btn-accent {
+        background: var(--accent);
+      }
+      .key {
+        background: rgba(255, 255, 255, 0.22);
+        border-radius: 2px;
+        padding: 0 5px;
+        font-size: 11px;
+      }
+      .page-head {
+        padding: 56px 0 28px;
+        border-bottom: 1px solid var(--line);
+      }
+      .eyebrow {
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 22px;
+      }
+      h1 {
+        font-size: clamp(30px, 4vw, 38px);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        margin: 0 0 6px;
+      }
+      .sub {
+        font-size: clamp(18px, 2vw, 24px);
+        color: var(--muted);
+        margin: 0;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid var(--line);
+      }
+      .metric {
+        padding: 22px 22px 24px;
+        border-right: 1px solid var(--line);
+      }
+      .metric:last-child {
+        border-right: none;
+      }
+      .metric .label {
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .metric .val {
+        font-size: 26px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      .metric .note {
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 0;
+      }
+      .col {
+        padding: 30px 24px 44px;
+        min-width: 0;
+      }
+      .col + .col {
+        border-left: 1px solid var(--line);
+      }
+      .section-label {
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      th,
+      td {
+        overflow-wrap: anywhere;
+      }
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 8px 12px;
+        background: var(--wash);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+      }
+      td.k {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: #fdece3;
+        color: var(--accent-dark);
+      }
+      .tag.grey {
+        background: #f2f1ef;
+        color: var(--muted);
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 22px;
+      }
+      .card h2 {
+        font-size: 19px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        margin: 0 0 4px;
+      }
+      .card p.hint {
+        color: var(--muted);
+        font-size: 14px;
+        margin: 0 0 18px;
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      .field label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      select,
+      input {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: #fff;
+        color: var(--ink);
+        font: 15px var(--sans);
+      }
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(251, 99, 27, 0.14);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      #submitBtn {
+        width: 100%;
+        min-height: 46px;
+        margin-top: 6px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-family: var(--mono);
+        font-size: 13px;
+        letter-spacing: 0.16px;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      #submitBtn:hover {
+        background: var(--accent-dark);
+      }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .result-box {
+        display: none;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      .result-box.success {
+        display: block;
+        background: #f1f8f2;
+        border: 1px solid #cbe4cf;
+        color: #1d6b32;
+      }
+      .result-box.error {
+        display: block;
+        background: #fdf1ef;
+        border: 1px solid #f3ccc4;
+        color: #b3341c;
+      }
+      .result-box .t {
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+      .result-box .d {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        opacity: 0.9;
+        word-break: break-word;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 30px 0 46px;
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      footer a {
+        color: var(--muted);
+        text-decoration: none;
+        margin-right: 22px;
+      }
+      footer a:hover {
+        color: var(--ink);
+      }
+      @media (max-width: 900px) {
+        .metrics {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .metric:nth-child(2) {
+          border-right: none;
+        }
+        .metric:nth-child(-n + 2) {
+          border-bottom: 1px solid var(--line);
+        }
+        .cols {
+          grid-template-columns: 1fr;
+        }
+        .col + .col {
+          border-left: none;
+          border-top: 1px solid var(--line);
+        }
+        nav {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announce">
+      Parallel Search Fast is now generally available. <a href="#">Read the announcement.</a>
+    </div>
+    <div class="wrap">
+      <header>
+        <a class="logo" href="#">
+          <svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true">
+            <rect x="0" y="2" width="4" height="16" rx="1" fill="#202020" />
+            <rect x="7" y="2" width="4" height="16" rx="1" fill="#202020" />
+            <rect x="14" y="2" width="4" height="16" rx="1" fill="#fb631b" />
+          </svg>
+          <span class="wordmark">parallel</span>
+        </a>
+        <nav class="mono">
+          <a href="#">Products</a>
+          <a href="#">Usage</a>
+          <a href="#" class="active">Workspace</a>
+          <a href="#">Docs</a>
+          <a href="#">Pricing</a>
+        </nav>
+        <div class="actions mono">
+          <a class="btn-chrome" href="#">Contact <span class="key">C</span></a>
+          <a class="btn-accent" href="#">Platform <span class="key">P</span></a>
+        </div>
+      </header>
+
+      <section class="page-head">
+        <div class="eyebrow mono">Platform / Workspace</div>
+        <h1>Provision API seats</h1>
+        <p class="sub">Add seats and API access for your team across Parallel's APIs.</p>
+      </section>
+
+      <section class="metrics">
+        <div class="metric">
+          <div class="label mono">Requests this month</div>
+          <div class="val">1.84M</div>
+          <div class="note">Across Task, Search, Extract</div>
+        </div>
+        <div class="metric">
+          <div class="label mono">Seats in use</div>
+          <div class="val">1,892 / 2,450</div>
+          <div class="note">77% of provisioned seats</div>
+        </div>
+        <div class="metric">
+          <div class="label mono">Active API keys</div>
+          <div class="val">24</div>
+          <div class="note">6 created in the last 30 days</div>
+        </div>
+        <div class="metric">
+          <div class="label mono">Annual commitment</div>
+          <div class="val">$284K</div>
+          <div class="note">Renews Jun 2026</div>
+        </div>
+      </section>
+
+      <div class="cols">
+        <div class="col">
+          <div class="section-label mono">Workspace entitlements</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Key</th>
+                <th>Seats</th>
+                <th>Plan</th>
+                <th>Renewal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Task API</strong></td>
+                <td class="k">pk-task-2026-001</td>
+                <td>500 / 500</td>
+                <td><span class="tag">Enterprise</span></td>
+                <td>Jun 2026</td>
+              </tr>
+              <tr>
+                <td><strong>Search API</strong></td>
+                <td class="k">pk-srch-2026-003</td>
+                <td>120 / 150</td>
+                <td><span class="tag">Enterprise</span></td>
+                <td>Sep 2026</td>
+              </tr>
+              <tr>
+                <td><strong>Extract API</strong></td>
+                <td class="k">pk-extr-2026-007</td>
+                <td>85 / 100</td>
+                <td><span class="tag grey">Scale</span></td>
+                <td>Dec 2026</td>
+              </tr>
+              <tr>
+                <td><strong>Monitor API</strong></td>
+                <td class="k">pk-mntr-2026-012</td>
+                <td>48 / 50</td>
+                <td><span class="tag grey">Scale</span></td>
+                <td>Apr 2026</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="col">
+          <div class="section-label mono">Provision</div>
+          <div class="card">
+            <h2>Add seats</h2>
+            <p class="hint">New seats are issued against the workspace's existing API keys.</p>
+            <form id="provisionForm">
+              <div class="field">
+                <label for="product">Product</label>
+                <select id="product">
+                  <option value="Task API">Task API</option>
+                  <option value="Search API">Search API</option>
+                  <option value="Extract API">Extract API</option>
+                  <option value="Monitor API">Monitor API</option>
+                </select>
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label for="seats">Additional seats</label>
+                  <input type="number" id="seats" value="25" min="1" required />
+                </div>
+                <div class="field">
+                  <label for="planTier">Plan</label>
+                  <select id="planTier">
+                    <option value="enterprise">Enterprise</option>
+                    <option value="business">Scale</option>
+                    <option value="starter">Build</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="region">Region</label>
+                <select id="region">
+                  <option value="us-east">US East</option>
+                  <option value="us-west">US West</option>
+                  <option value="eu-west">EU West</option>
+                  <option value="ap-south">AP South</option>
+                </select>
+              </div>
+              <button type="submit" id="submitBtn">Provision seats</button>
+            </form>
+            <div id="result" class="result-box"></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="mono">
+        <div>
+          <a href="#">Docs</a><a href="#">Status</a><a href="#">Changelog</a><a href="#">Support</a>
+        </div>
+        <div style="color: var(--muted)">Parallel Web Systems</div>
+      </footer>
+    </div>
+
+    <script>
+      /* Ensure locked-mode config is in localStorage for direct navigation */
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config')
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+    </script>
+    <script>
+      document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        btn.disabled = true;
+        btn.textContent = 'Provisioning...';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: document.getElementById('product').value,
+              planName: document.getElementById('planTier').value,
+              seats: parseInt(document.getElementById('seats').value),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            result.className = 'result-box error';
+            result.innerHTML = `<div class="t">Provisioning failed</div><div class="d">${data.errorClass}: ${data.error}</div>`;
+          } else {
+            result.className = 'result-box success';
+            result.innerHTML = `<div class="t">Seats provisioned</div><div class="d">${data.seatsAdded} seats added to ${data.product} &mdash; $${data.annualCost}/yr</div>`;
+          }
+        } catch (err) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="t">Network error</div><div class="d">${err.message}</div>`;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Provision seats';
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
