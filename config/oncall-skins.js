@@ -1292,6 +1292,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Eaze Support',
     disclaimer: 'NOT ACTUALLY A EAZE SITE — internal demo only, not affiliated with, endorsed by, or a real Eaze product.',
   },
+  '97d17d45': {
+    slug: '97d17d45',
+    company: 'Parallel',
+    brandMark: 'P',
+    vertical: 'hightech',
+    page: {
+      file: '97d17d45.html',
+      title: 'Provision seats | Parallel Platform',
+    },
+    theme: {
+      '--accent': '#FB631B',
+      '--ink': '#181818',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#202020',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Parallel Support',
+    disclaimer: 'NOT ACTUALLY A PARALLEL SITE — internal demo only, not affiliated with, endorsed by, or a real Parallel Web Systems product.',
+  },
 };
 
 function getOncallSkin(slug) {
