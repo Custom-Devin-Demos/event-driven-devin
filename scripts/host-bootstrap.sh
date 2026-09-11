@@ -16,7 +16,10 @@
 #                 concurrently
 #
 # Everything privileged goes through `sudo -n`; when passwordless sudo is not
-# available the step is logged and skipped rather than failing the deploy.
+# available the swap/journald steps are logged and skipped. The guard cron is
+# the one mandatory result: the script exits non-zero unless the crontab ends
+# up with exactly one vertical-guard entry and no legacy guards, so the deploy
+# fails instead of leaving concurrent rebuilders in place.
 set -uo pipefail
 
 APP_DIR=${APP_DIR:-/home/ubuntu}
@@ -35,18 +38,31 @@ else
 fi
 
 # ── swap ────────────────────────────────────────────────────────────────────
+# Converge on $SWAP_FILE itself (present, >= $SWAP_SIZE, active), regardless
+# of any other swap device the host may have.
+swap_active() { swapon --show=NAME --noheadings 2>/dev/null | grep -qFx "$SWAP_FILE"; }
+make_swapfile() {
+  swap_active && $SUDO swapoff "$SWAP_FILE"
+  $SUDO rm -f "$SWAP_FILE"
+  $SUDO fallocate -l "$SWAP_SIZE" "$SWAP_FILE" \
+    && $SUDO chmod 600 "$SWAP_FILE" \
+    && $SUDO mkswap "$SWAP_FILE" >/dev/null
+}
 if [ -n "$SUDO" ]; then
-  if [ -z "$(swapon --show --noheadings 2>/dev/null)" ]; then
-    if [ ! -f "$SWAP_FILE" ]; then
-      log "creating $SWAP_SIZE swapfile at $SWAP_FILE"
-      $SUDO fallocate -l "$SWAP_SIZE" "$SWAP_FILE" \
-        && $SUDO chmod 600 "$SWAP_FILE" \
-        && $SUDO mkswap "$SWAP_FILE" >/dev/null \
-        || log "warning: swapfile creation failed"
-    fi
-    [ -f "$SWAP_FILE" ] && { $SUDO swapon "$SWAP_FILE" && log "swap enabled" || log "warning: swapon failed"; }
+  WANT_BYTES=$(numfmt --from=iec "$SWAP_SIZE")
+  HAVE_BYTES=$($SUDO stat -c %s "$SWAP_FILE" 2>/dev/null || echo 0)
+  if [ "$HAVE_BYTES" -lt "$WANT_BYTES" ]; then
+    log "creating $SWAP_SIZE swapfile at $SWAP_FILE (had ${HAVE_BYTES}B)"
+    make_swapfile || log "warning: swapfile creation failed"
   fi
-  if [ -f "$SWAP_FILE" ] && ! grep -qE "^$SWAP_FILE\s" /etc/fstab; then
+  if ! swap_active && [ -f "$SWAP_FILE" ]; then
+    if ! $SUDO swapon "$SWAP_FILE" 2>/dev/null; then
+      log "$SWAP_FILE is not a valid swapfile, recreating"
+      make_swapfile && $SUDO swapon "$SWAP_FILE" || log "warning: swapon failed"
+    fi
+    swap_active && log "swap enabled"
+  fi
+  if swap_active && ! grep -qE "^$SWAP_FILE\s" /etc/fstab; then
     echo "$SWAP_FILE none swap sw 0 0" | $SUDO tee -a /etc/fstab >/dev/null && log "swap added to fstab"
   fi
   if [ "$(cat /proc/sys/vm/swappiness)" != 10 ]; then
@@ -67,18 +83,27 @@ if [ -n "$SUDO" ]; then
   fi
 fi
 
-# ── guard cron ──────────────────────────────────────────────────────────────
-if [ -x "$GUARD_SCRIPT" ] || [ -f "$GUARD_SCRIPT" ]; then
-  chmod +x "$GUARD_SCRIPT" 2>/dev/null || true
-  CURRENT=$(crontab -l 2>/dev/null || true)
-  # Drop the legacy per-vertical guards (hcf/qbe/suncorp/insignia/hub24/cfs).
-  KEPT=$(printf '%s\n' "$CURRENT" | grep -vE '/[a-z0-9]+-guard\.sh( |$)' | grep -v "$GUARD_SCRIPT" || true)
-  NEW=$(printf '%s\n%s\n' "$KEPT" "$GUARD_CRON" | sed '/^$/d')
-  if [ "$NEW" != "$(printf '%s\n' "$CURRENT" | sed '/^$/d')" ]; then
-    printf '%s\n' "$NEW" | crontab - && log "crontab updated: single vertical-guard entry"
-  fi
-else
-  log "warning: $GUARD_SCRIPT missing, crontab left untouched"
+# ── guard cron (mandatory) ──────────────────────────────────────────────────
+[ -f "$GUARD_SCRIPT" ] || { log "error: $GUARD_SCRIPT missing"; exit 1; }
+chmod +x "$GUARD_SCRIPT" 2>/dev/null || true
+# Legacy per-vertical guards (hcf/qbe/suncorp/insignia/hub24/cfs): any
+# *-guard.sh cron line that is not our own vertical-guard.sh.
+legacy_lines() { grep -E '/[a-z0-9]+-guard\.sh( |$)' | grep -vF "$GUARD_SCRIPT" || true; }
+CURRENT=$(crontab -l 2>/dev/null || true)
+KEPT=$(printf '%s\n' "$CURRENT" | grep -vE '/[a-z0-9]+-guard\.sh( |$)' || true)
+NEW=$(printf '%s\n%s\n' "$KEPT" "$GUARD_CRON" | sed '/^$/d')
+if [ "$NEW" != "$(printf '%s\n' "$CURRENT" | sed '/^$/d')" ]; then
+  printf '%s\n' "$NEW" | crontab - || { log "error: crontab install failed"; exit 1; }
+  log "crontab updated: single vertical-guard entry"
+fi
+
+# Verify from cron's own view of the table, not from what we think we wrote.
+INSTALLED=$(crontab -l 2>/dev/null || true)
+LEGACY=$(printf '%s\n' "$INSTALLED" | legacy_lines | grep -c . || true)
+GUARDS=$(printf '%s\n' "$INSTALLED" | grep -cF "$GUARD_SCRIPT" || true)
+if [ "$LEGACY" != 0 ] || [ "$GUARDS" != 1 ]; then
+  log "error: crontab not converged (legacy guards=$LEGACY, vertical-guard entries=$GUARDS)"
+  exit 1
 fi
 
 exit 0
