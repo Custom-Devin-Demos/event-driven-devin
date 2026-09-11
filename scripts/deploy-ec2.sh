@@ -48,6 +48,7 @@ CRITICAL_PATHS=(/ /health /retail /api/verticals /oncall /publix /qbe /4f645972)
 TS=$(date +%s)
 LOG_PREFIX="[deploy $TS $SOURCE_LABEL]"
 log() { echo "$LOG_PREFIX $*"; }
+log_lines() { while IFS= read -r line; do log "${1:-}$line"; done; }
 die() { log "ERROR: $*" >&2; exit 1; }
 
 STAGING=$(cd "$STAGING" && pwd)
@@ -79,7 +80,7 @@ AVAIL_MB=$(df -Pm / | awk 'NR==2 {print $4}')
 [ "$AVAIL_MB" -ge "$MIN_FREE_MB" ] || die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
 
 mkdir -p "$RELEASES_DIR"
-cp -a "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
+cp "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
 cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
 # Back up exactly the top-level entries this deploy will touch.
@@ -129,7 +130,7 @@ report_live_only() {
 LIVE_ONLY=$( { report_live_only app/routes/verticals '*.js'; report_live_only app/public/verticals '*.html'; report_live_only config/customers '*.js'; } | grep -v '^app/routes/verticals/index.js$' || true)
 if [ -n "$LIVE_ONLY" ]; then
   log "preserving $(echo "$LIVE_ONLY" | wc -l) vertical file(s) that exist on the host but not in this release (other repo's demos, or sync pending):"
-  echo "$LIVE_ONLY" | sed "s/^/$LOG_PREFIX    /"
+  echo "$LIVE_ONLY" | log_lines '   '
 fi
 
 # ── 3. mirror the staging tree into place ───────────────────────────────────
@@ -150,7 +151,7 @@ mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
 # ── 3b. converge host-level setup (swap, journald, guard cron) ──────────────
-bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | sed "s/^/$LOG_PREFIX /" || fail "host bootstrap failed (guard cron not converged)"
+bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | log_lines || fail "host bootstrap failed (guard cron not converged)"
 
 # ── 4. build + swap checkout-api ────────────────────────────────────────────
 compose config -q || fail "docker compose config is invalid"
