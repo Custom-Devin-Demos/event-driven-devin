@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sample Workbench | QBench LIMS</title>
+  <link rel="icon" href="https://cdn.prod.website-files.com/6376996f89260e285fdf008b/63c2cbfa8fc67558348bf1c9_qbench-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --navy: #0d0c54;
+      --navy-deep: #032054;
+      --blue: #326ad4;
+      --blue-hover: #2757ad;
+      --blue-soft: #ecf1ff;
+      --coral: #ff6542;
+      --yellow: #ffdc24;
+      --ink: #0d0c54;
+      --body: #2b2d42;
+      --muted: #758696;
+      --border: #dfe3ea;
+      --bg: #f5f6fa;
+      --pass: #1c8f5a;
+      --fail: #c8321e;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      line-height: 22px;
+      color: var(--body);
+      background: var(--bg);
+    }
+
+    h1, h2, h3, h4, .brand, .kpi strong { font-family: 'Space Grotesk', 'Inter', sans-serif; color: var(--ink); }
+
+    a { color: var(--blue); }
+
+    /* ---- App shell ---- */
+    .shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+    .sidebar {
+      background: var(--navy);
+      color: #fff;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 20px; letter-spacing: -0.01em; }
+    .brand img { height: 30px; width: auto; background: #fff; border-radius: 6px; padding: 3px 6px; }
+    .nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    .nav li a {
+      display: flex; align-items: center; gap: 10px;
+      color: rgba(255,255,255,0.78); text-decoration: none;
+      padding: 9px 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    }
+    .nav li a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav li a.active { background: var(--blue); color: #fff; }
+    .nav .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+    .sidebar .tenant { margin-top: auto; font-size: 12px; color: rgba(255,255,255,0.6); line-height: 18px; }
+    .sidebar .tenant strong { display: block; color: #fff; font-size: 13px; }
+
+    .main { display: flex; flex-direction: column; min-width: 0; }
+
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .crumbs { font-size: 13px; color: var(--muted); }
+    .crumbs b { color: var(--ink); font-weight: 600; }
+    .topbar .user { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--body); }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--coral); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 12px; }
+
+    .content { padding: 26px 28px 48px; display: flex; flex-direction: column; gap: 22px; }
+
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+    .page-head h1 { margin: 0 0 4px; font-size: 26px; line-height: 32px; letter-spacing: -0.02em; }
+    .page-head p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .kpi { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+    .kpi span { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .kpi strong { display: block; font-size: 24px; line-height: 30px; margin-top: 4px; }
+    .kpi small { color: var(--pass); font-size: 12px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 380px; gap: 22px; align-items: start; }
+
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; }
+    .card-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-head h2 { margin: 0; font-size: 16px; }
+    .card-body { padding: 20px; }
+
+    .steps { display: flex; gap: 6px; font-size: 12px; color: var(--muted); }
+    .steps span { display: flex; align-items: center; gap: 6px; }
+    .steps span::before { content: ''; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); display: inline-block; }
+    .steps span.done::before { background: var(--pass); border-color: var(--pass); }
+    .steps span.current { color: var(--ink); font-weight: 600; }
+    .steps span.current::before { border-color: var(--blue); background: var(--blue-soft); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
+    td { padding: 12px; border-bottom: 1px solid #eef0f4; vertical-align: middle; }
+    tr.sample-row { cursor: pointer; }
+    tr.sample-row:hover td { background: #fafbff; }
+    tr.sample-row.selected td { background: var(--blue-soft); }
+    tr.sample-row input { accent-color: var(--blue); }
+    .mono { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 13px; }
+    .pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--blue-soft); color: var(--blue); letter-spacing: 0.02em; }
+    .pill--new { background: #fff1ec; color: #c74a2c; }
+    .pill--ok { background: #e6f6ee; color: var(--pass); }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .field label { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .field input, .field select, .field textarea {
+      font: inherit; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--body);
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--blue-soft); border-color: var(--blue); }
+    .field small { color: var(--muted); font-size: 12px; }
+    .summary { background: var(--bg); border-radius: 10px; padding: 14px 16px; font-size: 13px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-bottom: 18px; }
+    .summary span { color: var(--muted); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .summary b { font-weight: 600; color: var(--ink); }
+
+    .btn {
+      font: inherit; font-weight: 600; font-size: 15px; cursor: pointer;
+      border: 0; border-radius: 10px; padding: 12px 18px; width: 100%;
+      background: var(--blue); color: #fff; transition: background 0.15s;
+    }
+    .btn:hover { background: var(--blue-hover); }
+    .btn:disabled { opacity: 0.6; cursor: wait; }
+    .btn--ghost { background: transparent; color: var(--blue); border: 1px solid var(--border); width: auto; padding: 8px 14px; font-size: 13px; }
+
+    .result { display: none; margin-top: 18px; border-radius: 10px; padding: 16px 18px; border: 1px solid; }
+    .result.show { display: block; }
+    .result h4 { margin: 0 0 6px; font-size: 15px; }
+    .result p { margin: 0 0 8px; font-size: 14px; }
+    .result--error { border-color: #f3c7bf; background: #fff5f3; }
+    .result--error h4 { color: var(--fail); }
+    .result--error pre { margin: 8px 0 0; padding: 10px 12px; background: #fff; border: 1px solid #f3c7bf; border-radius: 8px; font-size: 12px; white-space: pre-wrap; word-break: break-word; color: var(--fail); }
+    .result--ok { border-color: #bfe6d0; background: #f2fbf6; }
+    .result--ok h4 { color: var(--pass); }
+    .result dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 10px 0 0; font-size: 13px; }
+    .result dt { color: var(--muted); }
+    .result dd { margin: 0; font-weight: 600; color: var(--ink); }
+    .result table { margin-top: 12px; }
+    .result td, .result th { padding: 7px 8px; }
+    .status-pass { color: var(--pass); font-weight: 600; }
+    .status-fail { color: var(--fail); font-weight: 600; }
+
+    .activity { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+    .activity li { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eef0f4; font-size: 13px; }
+    .activity li:last-child { border-bottom: 0; }
+    .activity time { color: var(--muted); white-space: nowrap; min-width: 64px; }
+
+    @media (max-width: 1040px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { flex-direction: row; align-items: center; padding: 14px 18px; }
+      .sidebar .nav, .sidebar .tenant { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="https://cdn.prod.website-files.com/6376996f89260e285fdf008b/63c2cbfa8fc67558348bf1c9_qbench-logo.png" alt="QBench">
+      </div>
+      <ul class="nav">
+        <li><a href="#"><span class="dot"></span>Dashboard</a></li>
+        <li><a href="#" class="active"><span class="dot"></span>Samples</a></li>
+        <li><a href="#"><span class="dot"></span>Batches</a></li>
+        <li><a href="#"><span class="dot"></span>Tests</a></li>
+        <li><a href="#"><span class="dot"></span>Reports</a></li>
+        <li><a href="#"><span class="dot"></span>Customers</a></li>
+        <li><a href="#"><span class="dot"></span>Inventory</a></li>
+        <li><a href="#"><span class="dot"></span>Settings</a></li>
+      </ul>
+      <div class="tenant">
+        <strong>Northstar Analytical Labs</strong>
+        ISO/IEC 17025 · Lic. C8-0000412
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="crumbs">Samples &nbsp;/&nbsp; Batch <b>B-2609-117</b> &nbsp;/&nbsp; <b>Sample Workbench</b></div>
+        <div class="user"><span>Maya Okafor · QA Reviewer</span><span class="avatar">MO</span></div>
+      </header>
+
+      <main class="content">
+        <div class="page-head">
+          <div>
+            <h1>Sample Workbench</h1>
+            <p>Review completed results and issue a Certificate of Analysis for release.</p>
+          </div>
+          <button class="btn btn--ghost" type="button">Export batch</button>
+        </div>
+
+        <section class="kpis">
+          <div class="kpi"><span>Samples in lab</span><strong>128</strong><small>+12 today</small></div>
+          <div class="kpi"><span>Awaiting review</span><strong>3</strong><small>this batch</small></div>
+          <div class="kpi"><span>CoAs issued (7d)</span><strong>214</strong><small>99.1% on time</small></div>
+          <div class="kpi"><span>Avg. TAT</span><strong>2.6d</strong><small>target 3.0d</small></div>
+        </section>
+
+        <div class="grid">
+          <section class="card">
+            <div class="card-head">
+              <h2>Completed results — ready for review</h2>
+              <div class="steps">
+                <span class="done">Intake</span>
+                <span class="done">Batched</span>
+                <span class="done">Analysis</span>
+                <span class="current">CoA</span>
+              </div>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <table>
+                <thead>
+                  <tr><th></th><th>Sample</th><th>Client</th><th>Matrix</th><th>Batch</th><th>Test panel</th><th>Received</th></tr>
+                </thead>
+                <tbody id="sample-rows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <aside>
+            <section class="card">
+              <div class="card-head"><h2>Issue Certificate of Analysis</h2></div>
+              <div class="card-body">
+                <div class="summary" id="sample-summary"></div>
+
+                <div class="field">
+                  <label for="reviewedBy">Reviewed by</label>
+                  <input id="reviewedBy" type="text" value="M. Okafor">
+                </div>
+                <div class="field">
+                  <label for="reportFormat">Report template</label>
+                  <select id="reportFormat">
+                    <option value="standard">Standard CoA (PDF)</option>
+                    <option value="client">Client-branded CoA</option>
+                    <option value="regulatory">Regulatory submission</option>
+                  </select>
+                  <small>Results are evaluated against the panel&rsquo;s registered specification limits.</small>
+                </div>
+
+                <button class="btn" id="generate-coa" type="button">Generate Certificate of Analysis</button>
+
+                <div class="result result--error" id="coa-error">
+                  <h4>Certificate could not be issued</h4>
+                  <p>The CoA engine failed while evaluating this sample. The sample has not been released. Our lab-informatics team has been notified.</p>
+                  <pre id="coa-error-tech"></pre>
+                </div>
+
+                <div class="result result--ok" id="coa-ok">
+                  <h4>Certificate issued</h4>
+                  <p id="coa-ok-lede"></p>
+                  <dl id="coa-ok-details"></dl>
+                  <table id="coa-ok-analytes"></table>
+                </div>
+              </div>
+            </section>
+
+            <section class="card" style="margin-top: 18px;">
+              <div class="card-head"><h2>Batch activity</h2></div>
+              <div class="card-body" style="padding: 6px 20px;">
+                <ul class="activity">
+                  <li><time>14:32</time><span>ICP-MS run <b>R-1187</b> completed · 4 analytes reported for S-260911-0042</span></li>
+                  <li><time>13:40</time><span>Potency results approved by <b>E. Marsh</b> for S-260911-0038</span></li>
+                  <li><time>09:15</time><span>Batch <b>B-2609-117</b> created · 3 samples assigned</span></li>
+                </ul>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side QBench identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    var samples = [];
+    var selectedId = 'S-260911-0042';
+
+    var rows = document.getElementById('sample-rows');
+    var summary = document.getElementById('sample-summary');
+    var errorBox = document.getElementById('coa-error');
+    var errorTech = document.getElementById('coa-error-tech');
+    var okBox = document.getElementById('coa-ok');
+    var okLede = document.getElementById('coa-ok-lede');
+    var okDetails = document.getElementById('coa-ok-details');
+    var okAnalytes = document.getElementById('coa-ok-analytes');
+
+    function fmtDate(iso) {
+      return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function renderRows() {
+      rows.innerHTML = '';
+      samples.forEach(function (s) {
+        var tr = document.createElement('tr');
+        tr.className = 'sample-row' + (s.sampleId === selectedId ? ' selected' : '');
+        tr.innerHTML = '<td><input type="radio" name="sample"' + (s.sampleId === selectedId ? ' checked' : '') + '></td>'
+          + '<td class="mono">' + s.sampleId + '</td>'
+          + '<td>' + s.client + '</td>'
+          + '<td>' + s.matrix + '</td>'
+          + '<td class="mono">' + s.batchId + '</td>'
+          + '<td><span class="pill' + (s.panelCode === 'heavy_metals' ? ' pill--new' : '') + '">' + s.panelLabel + '</span></td>'
+          + '<td>' + fmtDate(s.receivedAt) + '</td>';
+        tr.addEventListener('click', function () {
+          selectedId = s.sampleId;
+          errorBox.classList.remove('show');
+          okBox.classList.remove('show');
+          renderRows();
+          renderSummary();
+        });
+        rows.appendChild(tr);
+      });
+    }
+
+    function renderSummary() {
+      var s = samples.find(function (x) { return x.sampleId === selectedId; });
+      if (!s) return;
+      summary.innerHTML = '';
+      [
+        ['Sample', s.sampleId], ['Batch', s.batchId],
+        ['Client', s.client], ['Matrix', s.matrix],
+        ['Test panel', s.panelLabel], ['Method', s.method],
+        ['Analytes reported', String(s.results.length)], ['Received', fmtDate(s.receivedAt)],
+      ].forEach(function (row) {
+        var div = document.createElement('div');
+        div.innerHTML = '<span>' + row[0] + '</span><b>' + row[1] + '</b>';
+        summary.appendChild(div);
+      });
+    }
+
+    function showError(payload) {
+      okBox.classList.remove('show');
+      errorTech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'COA_GENERATION_FAILED')
+        + ' \u00b7 Reference ID: ' + (payload.requestId || 'unavailable');
+      errorBox.classList.add('show');
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(coa) {
+      errorBox.classList.remove('show');
+      okLede.textContent = coa.certificateId + ' issued for ' + coa.sampleId + ' (' + coa.panel + '). Disposition: '
+        + coa.disposition.toUpperCase() + '. Signed by ' + coa.signatory.name + ', ' + coa.signatory.title + '.';
+      okDetails.innerHTML = '';
+      [
+        ['Batch', coa.batchId],
+        ['Client', coa.client],
+        ['Method', coa.method],
+        ['Spec reference', coa.regulatoryRef],
+        ['Reviewed by', coa.reviewedBy],
+        ['Issued', new Date(coa.issuedAt).toLocaleString('en-US')],
+      ].forEach(function (row) {
+        var dt = document.createElement('dt');
+        dt.textContent = row[0];
+        var dd = document.createElement('dd');
+        dd.textContent = row[1];
+        okDetails.appendChild(dt);
+        okDetails.appendChild(dd);
+      });
+      okAnalytes.innerHTML = '<thead><tr><th>Analyte</th><th>Result</th><th>Limit</th><th>Status</th></tr></thead>';
+      var tbody = document.createElement('tbody');
+      coa.analytes.forEach(function (a) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + a.analyte + '</td><td class="mono">' + a.value + ' ' + a.unit + '</td>'
+          + '<td class="mono">' + (a.actionLimit === null ? '\u2014' : '\u2264 ' + a.actionLimit + ' ' + a.unit) + '</td>'
+          + '<td class="status-' + a.status + '">' + a.status.toUpperCase() + '</td>';
+        tbody.appendChild(tr);
+      });
+      okAnalytes.appendChild(tbody);
+      okBox.classList.add('show');
+      okBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function generateCoa(button) {
+      if (button._running) return;
+      button._running = true;
+      button.disabled = true;
+      var original = button.textContent;
+      button.textContent = 'Evaluating results\u2026';
+      errorBox.classList.remove('show');
+      okBox.classList.remove('show');
+
+      await identityReady;
+
+      fetch('/api/qbench/coa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sampleId: selectedId,
+          reviewedBy: document.getElementById('reviewedBy').value.trim(),
+          reportFormat: document.getElementById('reportFormat').value,
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    }
+
+    fetch('/api/qbench/samples')
+      .then(function (r) { return r.json(); })
+      .then(function (body) {
+        samples = body.samples || [];
+        renderRows();
+        renderSummary();
+      });
+
+    document.getElementById('generate-coa').addEventListener('click', function () { generateCoa(this); });
+  </script>
+</body>
+</html>
