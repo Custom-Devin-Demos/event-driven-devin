@@ -1,14 +1,24 @@
 # https://docs.devin.ai/onboard-devin/environment-yaml
 # Install project dependencies (runs during builds, surfaced to agent at session start).
 maintenance: |
+ # Install project dependencies (runs during builds, surfaced to agent at session start).
+maintenance: |
   npm install
 knowledge:
   - name: lint
     contents: |
-      npm run lint  # eslint over app/ loadgen/ scripts/ pipelines/ src/; 0 errors expected, 1 pre-existing warning (unused `_err` in scripts/warmup.js)
+      npm run lint  # eslint over app/ loadgen/ scripts/ pipelines/ src/; 0 errors expected, 1 pre-existing warning (unused `_err` in scripts/warmup.js)  # eslint over app/ loadgen/ scripts/ pipelines/ src/; 0 errors expected, 1 pre-existing warning (unused `_err` in scripts/warmup.js)
   - name: test
     contents: |
-      npm test  # jest tests/ (~376 tests); tests/incident-lab-datadog.test.js is timing-sensitive and can fail under full-suite load; it passes when run alone (npx jest tests/incident-lab-datadog.test.js)
+      npm test  # jest jest tests/ (~376 tests); tests/incident-lab-datadog.test.js is timing-sensitive and can fail under full-suite load; it passes when run alone (npx jest tests/incident-lab-datadog.test.js)
+  - name: start
+    contents: |
+      cp -n .env.example .env && npm start  # Express app on port 3000; curl localhost:3000/health -> 200 {"status":"ok","service":"checkout-api",...}
+      npm run dev                            # same, with nodemon reload
+  - name: notes
+    contents: |
+      Node 24 (nvm) is on the base image. .env.example ships placeholder Sentry/Datadog/Slack values, so the app starts without real telemetry credentials.
+      app/public/verticals/67f2a7ba-app/ is the checked-in `flutter build web` output of Custom-Devin-Demos/citi-banking-demo-app (served at /67f2a7ba/app); rebuild there, do not edit it by hand. (~376 tests); tests/incident-lab-datadog.test.js is timing-sensitive and can fail under full-suite load; it passes when run alone (npx jest tests/incident-lab-datadog.test.js)
   - name: start
     contents: |
       cp -n .env.example .env && npm start  # Express app on port 3000; curl localhost:3000/health -> 200 {"status":"ok","service":"checkout-api",...}
