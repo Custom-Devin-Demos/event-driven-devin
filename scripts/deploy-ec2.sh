@@ -100,14 +100,15 @@ log "backed up ${#EXISTING[@]} top-level entries to $BACKUP"
 ls -1t "$RELEASES_DIR"/*.tgz 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 ls -1t "$RELEASES_DIR"/env.* 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 
-# Mirror one top-level entry from $1 into $APP_DIR (used by the deploy and by
-# rollback so both honour the same additive-verticals contract).
+# Mirror one top-level entry from $1 into $APP_DIR. With $3=protect the
+# vertical registries are additive (a staging tree may lack the other repo's
+# demos); a backup is the complete live tree, so rollback mirrors it exactly.
 mirror_entry() {
-  local src=$1 e=$2 filters=()
+  local src=$1 e=$2 mode=${3:-exact} filters=()
   if [ -d "$src/$e" ]; then
-    if [ "$e" = app ]; then
+    if [ "$mode" = protect ] && [ "$e" = app ]; then
       for p in "${PROTECTED_APP[@]}"; do filters+=(--filter="P /$p/**"); done
-    elif [ "$e" = config ]; then
+    elif [ "$mode" = protect ] && [ "$e" = config ]; then
       for p in "${PROTECTED_CONFIG[@]}"; do filters+=(--filter="P /$p/**"); done
     fi
     rsync -a --delete --exclude=node_modules "${filters[@]}" "$src/$e/" "$APP_DIR/$e/"
@@ -118,8 +119,8 @@ mirror_entry() {
 
 # 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
 # but a restore step failed, so which release is running is indeterminate.
-# The backup is mirrored back (not overlaid) so files the failed release added
-# are removed too; entries it created from scratch are deleted outright.
+# The backup is mirrored back exactly (not overlaid) so files the failed
+# release added are removed too; entries it created from scratch are deleted.
 rollback() {
   log "ROLLING BACK to $BACKUP"
   local restored=1 tmp e
@@ -179,7 +180,7 @@ if [ -n "$LIVE_ONLY" ]; then
 fi
 
 # ── 3. mirror the staging tree into place ───────────────────────────────────
-for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e"; done
+for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e" protect; done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
