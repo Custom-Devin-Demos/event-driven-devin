@@ -150,7 +150,7 @@ mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
 # ── 3b. converge host-level setup (swap, journald, guard cron) ──────────────
-bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | sed "s/^/$LOG_PREFIX /" || log "warning: host bootstrap failed"
+bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | sed "s/^/$LOG_PREFIX /" || fail "host bootstrap failed (guard cron not converged)"
 
 # ── 4. build + swap checkout-api ────────────────────────────────────────────
 compose config -q || fail "docker compose config is invalid"
