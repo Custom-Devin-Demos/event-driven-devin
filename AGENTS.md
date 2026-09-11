@@ -37,6 +37,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Ping Identity — PingOne Environment Provisioning** (unlisted — direct URL only) | `/pingidentity`, `/81deeb2e` | `app/public/verticals/81deeb2e.html` | `POST /api/81deeb2e/environments` | `app/services/verticals/81deeb2e.js` |
 | **Carvana — Checkout & Financing** (unlisted — direct URL only) | `/carvana`, `/fd7f4e04` | `app/public/verticals/fd7f4e04.html` | `POST /api/fd7f4e04/orders` | `app/services/verticals/fd7f4e04.js` |
 | **Aravia Therapeutics — Patient Access Portal** (fictional brand, unlisted — direct URL only) | `/patient-access`, `/fcf0f903` | `app/public/verticals/fcf0f903.html` | `POST /api/fcf0f903/enrollment`, `POST /api/fcf0f903/copay-estimate` | `app/services/verticals/fcf0f903.js` |
+| **Zuora — AI Usage-Based Pricing** (unlisted — direct URL only) | `/zuora`, `/ce4ebc10` | `app/public/verticals/ce4ebc10.html` | `POST /api/ce4ebc10/publish-pricing` | `app/services/verticals/ce4ebc10.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
