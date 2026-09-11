@@ -52,8 +52,10 @@ describe('QBench certificate of analysis', () => {
     expect(regulatory.reportFormat).toBe('regulatory');
     expect(regulatory.reportTemplate.regulatorySubmission).toBe(true);
 
-    await expect(generateCertificate({ sampleId: 'S-260911-0038', reviewedBy: 'M. Okafor', reportFormat: 'docx' }))
-      .rejects.toMatchObject({ name: 'ValidationError', statusCode: 400 });
+    for (const reportFormat of ['docx', 'constructor', '', null, ['standard']]) {
+      await expect(generateCertificate({ sampleId: 'S-260911-0038', reviewedBy: 'M. Okafor', reportFormat }))
+        .rejects.toMatchObject({ name: 'ValidationError', statusCode: 400 });
+    }
   });
 
   test('rejects unknown samples and missing reviewers with a ValidationError', async () => {

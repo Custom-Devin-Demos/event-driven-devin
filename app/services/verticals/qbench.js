@@ -167,8 +167,8 @@ async function generateCertificate(data) {
   if (!data.reviewedBy || !String(data.reviewedBy).trim()) {
     throw validationError('Reviewer is required to issue a certificate');
   }
-  const reportFormat = data.reportFormat || 'standard';
-  if (!REPORT_TEMPLATES[reportFormat]) {
+  const reportFormat = data.reportFormat === undefined ? 'standard' : data.reportFormat;
+  if (typeof reportFormat !== 'string' || !Object.prototype.hasOwnProperty.call(REPORT_TEMPLATES, reportFormat)) {
     throw validationError(`Unknown report template: ${reportFormat}`);
   }
 

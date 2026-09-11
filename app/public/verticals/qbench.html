@@ -375,7 +375,12 @@
       okLede.textContent = coa.certificateId + ' issued for ' + coa.sampleId + ' (' + coa.panel + '). Disposition: '
         + coa.disposition.toUpperCase() + '. Signed by ' + coa.signatory.name + ', ' + coa.signatory.title + '.';
       okDetails.innerHTML = '';
+      var template = coa.reportTemplate || {};
+      var templateLabel = template.label || coa.reportFormat || 'Standard CoA (PDF)';
+      if (template.includesClientBranding) templateLabel += ' \u00b7 branded for ' + coa.client;
+      if (template.regulatorySubmission) templateLabel += ' \u00b7 ' + coa.regulatoryRef;
       [
+        ['Report template', templateLabel],
         ['Batch', coa.batchId],
         ['Client', coa.client],
         ['Method', coa.method],
