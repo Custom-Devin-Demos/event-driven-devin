@@ -14,6 +14,8 @@
 #   - guard cron  a single scripts/vertical-guard.sh entry replaces the
 #                 per-vertical *-guard.sh copies that used to rebuild images
 #                 concurrently
+#   - ops-notify  python3 + boto3 so scripts/ops-notify.sh can publish
+#                 deploy/guard alerts to SNS (instance role)
 #
 # Everything privileged goes through `sudo -n`; when passwordless sudo is not
 # available the swap/journald steps are logged and skipped. The guard cron is
@@ -81,6 +83,23 @@ if [ -n "$SUDO" ]; then
     $SUDO mkdir -p /var/log/journal
     $SUDO systemctl restart systemd-journald && log "journald set to persistent (200M cap)"
   fi
+fi
+
+# ── ops-notify dependencies ─────────────────────────────────────────────────
+# Alerts are best-effort, so a gap here is a warning rather than a failed
+# deploy; install what we can and make the rest visible in the deploy log.
+have_boto3() { python3 -c 'import boto3' >/dev/null 2>&1; }
+if ! have_boto3; then
+  if [ -n "$SUDO" ]; then
+    log "installing python3-boto3 for scripts/ops-notify.sh"
+    $SUDO apt-get install -y -qq python3 python3-boto3 >/dev/null 2>&1 || true
+  fi
+  if have_boto3; then log "boto3 installed"; else log "warning: python3/boto3 missing; ops-notify.sh alerts will not be delivered"; fi
+fi
+# Resolve credentials the same way ops-notify.sh will (instance role or any
+# other boto3 provider); GetCallerIdentity needs no IAM permission.
+if have_boto3 && ! timeout 15 python3 -c 'import boto3; boto3.client("sts", region_name="us-east-2").get_caller_identity()' >/dev/null 2>&1; then
+  log "warning: no AWS credentials resolvable (instance IAM role missing?); ops-notify.sh alerts will not be delivered"
 fi
 
 # ── guard cron (mandatory) ──────────────────────────────────────────────────
