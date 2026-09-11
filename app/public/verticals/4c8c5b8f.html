@@ -219,25 +219,25 @@
           <span class="meta">Indicative NAV as of previous dealing day &middot; SGD</span>
         </div>
         <div id="fundList">
-          <div class="fund selected" data-fund="FUND-LIONBOS" data-nav="1.284" data-min="1000" data-name="Lion-Bank of Singapore Multi-Asset Fund" tabindex="0" role="button" aria-pressed="true">
+          <div class="fund selected" data-fund="FUND-LIONBOS" data-nav="1.284" data-min="1000" data-name="Lion-Bank of Singapore Multi-Asset Fund" data-funding="cash srs" tabindex="0" role="button" aria-pressed="true">
             <div class="name">Lion-Bank of Singapore Multi-Asset Fund <span class="code">LIONBOS-MA</span></div>
             <div class="desc">Diversified portfolio across global equities and fixed income, managed for steady income.</div>
             <div class="tags"><span class="tag risk-med">Medium risk</span><span class="tag">Cash &middot; SRS</span><span class="tag">Quarterly payout</span></div>
             <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$1.284</div><div class="chg up">+0.42%</div></div>
           </div>
-          <div class="fund" data-fund="FUND-MGOPT" data-nav="10.612" data-min="1000" data-name="M&amp;G (Lux) Optimal Income Fund" tabindex="0" role="button" aria-pressed="false">
+          <div class="fund" data-fund="FUND-MGOPT" data-nav="10.612" data-min="1000" data-name="M&amp;G (Lux) Optimal Income Fund" data-funding="cash srs" tabindex="0" role="button" aria-pressed="false">
             <div class="name">M&amp;G (Lux) Optimal Income Fund <span class="code">MGL-OPTINC</span></div>
             <div class="desc">Flexible bond fund investing across government, corporate and high-yield credit.</div>
             <div class="tags"><span class="tag risk-low">Low to medium risk</span><span class="tag">Cash &middot; SRS</span><span class="tag">Monthly payout</span></div>
             <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$10.612</div><div class="chg up">+0.18%</div></div>
           </div>
-          <div class="fund" data-fund="FUND-GOLD" data-nav="2.951" data-min="1000" data-name="Lion-OCBC Securities Singapore Gold Fund" tabindex="0" role="button" aria-pressed="false">
+          <div class="fund" data-fund="FUND-GOLD" data-nav="2.951" data-min="1000" data-name="Lion-OCBC Securities Singapore Gold Fund" data-funding="cash cpfis srs" tabindex="0" role="button" aria-pressed="false">
             <div class="name">Lion-OCBC Securities Singapore Gold Fund <span class="code">LOS-GOLD</span></div>
             <div class="desc">Singapore's first physical gold fund, backed by gold bars held in Singapore.</div>
             <div class="tags"><span class="tag risk-high">Higher risk</span><span class="tag">Cash &middot; CPFIS &middot; SRS</span><span class="tag">Accumulating</span></div>
             <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$2.951</div><div class="chg down">-0.63%</div></div>
           </div>
-          <div class="fund" data-fund="FUND-AMUNDI" data-nav="148.27" data-min="1000" data-name="Amundi Funds Global Multi-Asset Conservative" tabindex="0" role="button" aria-pressed="false">
+          <div class="fund" data-fund="FUND-AMUNDI" data-nav="148.27" data-min="1000" data-name="Amundi Funds Global Multi-Asset Conservative" data-funding="cash" tabindex="0" role="button" aria-pressed="false">
             <div class="name">Amundi Funds Global Multi-Asset Conservative <span class="code">AMU-GMAC</span></div>
             <div class="desc">Conservative global allocation with a focus on capital preservation.</div>
             <div class="tags"><span class="tag risk-low">Low risk</span><span class="tag">Cash</span><span class="tag">Accumulating</span></div>
@@ -263,14 +263,15 @@
           <div class="form-group">
             <label for="fromAccount">Fund from</label>
             <select id="fromAccount">
-              <option value="ACCT-1001">360 Account &mdash; 501-234567-001</option>
-              <option value="ACCT-1002">Bonus+ Savings Account &mdash; 601-887210-001</option>
-              <option value="ACCT-1003">SRS Account &mdash; 701-445019-001</option>
+              <option value="ACCT-1001" data-funding="cash">360 Account &mdash; 501-234567-001</option>
+              <option value="ACCT-1002" data-funding="cash">Bonus+ Savings Account &mdash; 601-887210-001</option>
+              <option value="ACCT-1004" data-funding="cpfis">CPF Investment Account &mdash; 801-330276-001</option>
+              <option value="ACCT-1003" data-funding="srs">SRS Account &mdash; 701-445019-001</option>
             </select>
           </div>
           <div class="form-group">
             <label for="amount">Bid amount</label>
-            <div class="amount-wrap"><input type="number" id="amount" value="5000" min="1000" step="100" placeholder="0"></div>
+            <div class="amount-wrap"><input type="number" id="amount" value="5000" min="1000" step="100" placeholder="0" required></div>
             <div class="hint">Minimum initial investment S$1,000. Subsequent bids from S$100.</div>
           </div>
           <div class="form-group">
@@ -283,8 +284,8 @@
           <div class="summary" aria-live="polite">
             <div class="row"><span>Indicative NAV</span><span id="sumNav">S$1.284</span></div>
             <div class="row"><span>Estimated units</span><span id="sumUnits">3,894.08</span></div>
-            <div class="row"><span>Sales charge</span><span>0.88%</span></div>
-            <div class="row total"><span>Bid total</span><span id="sumTotal">S$5,000.00</span></div>
+            <div class="row"><span>Sales charge</span><span id="sumFee">S$5.00</span></div>
+            <div class="row total"><span>Total to debit</span><span id="sumTotal">S$5,005.00</span></div>
           </div>
           <button type="submit" id="submitBtn">Place bid</button>
         </form>
@@ -376,6 +377,10 @@
   <script>
     const fundSelect = document.getElementById('toAccount');
     const amountInput = document.getElementById('amount');
+    const accountSelect = document.getElementById('fromAccount');
+    const tierSelect = document.getElementById('accountTier');
+    const accountOptions = Array.from(accountSelect.options);
+    const salesCharge = (amount, tier) => (tier === 'premium' || amount <= 0) ? 0 : Math.max(amount * 0.001, 2.5);
     const fundCards = Array.from(document.querySelectorAll('#fundList .fund'));
     const sgd = (n) => 'S$' + n.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -387,9 +392,14 @@
       const nav = parseFloat(card.dataset.nav);
       const amount = parseFloat(amountInput.value) || 0;
       fundCards.forEach((c) => { const on = c === card; c.classList.toggle('selected', on); c.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      const funding = card.dataset.funding.split(' ');
+      accountOptions.forEach((o) => { o.hidden = !funding.includes(o.dataset.funding); o.disabled = o.hidden; });
+      if (accountSelect.selectedOptions[0].disabled) accountSelect.value = accountOptions.find((o) => !o.disabled).value;
+      const fee = salesCharge(amount, tierSelect.value);
+      document.getElementById('sumFee').textContent = sgd(fee);
       document.getElementById('sumNav').textContent = 'S$' + nav.toLocaleString('en-SG', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
       document.getElementById('sumUnits').textContent = nav > 0 ? (amount / nav).toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
-      document.getElementById('sumTotal').textContent = sgd(amount);
+      document.getElementById('sumTotal').textContent = sgd(amount + fee);
     }
     fundCards.forEach((c) => {
       const pick = () => { fundSelect.value = c.dataset.fund; renderSummary(); };
@@ -398,6 +408,7 @@
     });
     fundSelect.addEventListener('change', renderSummary);
     amountInput.addEventListener('input', renderSummary);
+    tierSelect.addEventListener('change', renderSummary);
     document.getElementById('transferForm').addEventListener('reset', () => setTimeout(renderSummary, 0));
     renderSummary();
 
@@ -413,22 +424,30 @@
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       const fundName = selectedCard().dataset.name;
+      const bidAmount = parseFloat(amountInput.value);
+      const fields = [fundSelect, accountSelect, amountInput, tierSelect];
+      fields.forEach((f) => { f.disabled = true; });
+      fundCards.forEach((c) => { c.style.pointerEvents = 'none'; });
       btn.disabled = true; btn.textContent = 'Placing bid...';
       result.className = 'result-box';
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ fromAccount: accountSelect.value, toAccount: fundSelect.value, amount: bidAmount, accountTier: tierSelect.value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
           showResult(result, 'error', 'Your bid could not be placed', 'We were unable to place your bid right now. No amount has been debited. Please try again in a few minutes or call +65 6363 3333.');
         } else {
-          showResult(result, 'success', 'Bid placed', `Your bid of ${sgd(parseFloat(data.debitAmount))} for ${fundName} has been received (ref ${data.transferId}). Units will be allotted at the next dealing NAV.`);
+          showResult(result, 'success', 'Bid placed', `Your bid of ${sgd(bidAmount)} for ${fundName} has been received (ref ${data.transferId}). ${sgd(parseFloat(data.debitAmount))} including sales charge will be debited. Units will be allotted at the next dealing NAV.`);
         }
       } catch (err) {
         showResult(result, 'error', 'Connection problem', 'We could not reach Fund360. Please check your connection and try again.');
-      } finally { btn.disabled = false; btn.textContent = 'Place bid'; }
+      } finally {
+        fields.forEach((f) => { f.disabled = false; });
+        fundCards.forEach((c) => { c.style.pointerEvents = ''; });
+        btn.disabled = false; btn.textContent = 'Place bid';
+      }
     });
   </script>
   <script src="/session-cap-banner.js"></script>
