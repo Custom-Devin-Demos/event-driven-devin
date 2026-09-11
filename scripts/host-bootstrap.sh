@@ -42,7 +42,7 @@ fi
 # of any other swap device the host may have.
 swap_active() { swapon --show=NAME --noheadings 2>/dev/null | grep -qFx "$SWAP_FILE"; }
 make_swapfile() {
-  swap_active && $SUDO swapoff "$SWAP_FILE"
+  if swap_active && ! $SUDO swapoff "$SWAP_FILE"; then return 1; fi
   $SUDO rm -f "$SWAP_FILE"
   $SUDO fallocate -l "$SWAP_SIZE" "$SWAP_FILE" \
     && $SUDO chmod 600 "$SWAP_FILE" \
