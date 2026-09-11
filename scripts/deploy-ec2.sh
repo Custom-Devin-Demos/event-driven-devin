@@ -100,12 +100,41 @@ log "backed up ${#EXISTING[@]} top-level entries to $BACKUP"
 ls -1t "$RELEASES_DIR"/*.tgz 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 ls -1t "$RELEASES_DIR"/env.* 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 
+# Mirror one top-level entry from $1 into $APP_DIR (used by the deploy and by
+# rollback so both honour the same additive-verticals contract).
+mirror_entry() {
+  local src=$1 e=$2 filters=()
+  if [ -d "$src/$e" ]; then
+    if [ "$e" = app ]; then
+      for p in "${PROTECTED_APP[@]}"; do filters+=(--filter="P /$p/**"); done
+    elif [ "$e" = config ]; then
+      for p in "${PROTECTED_CONFIG[@]}"; do filters+=(--filter="P /$p/**"); done
+    fi
+    rsync -a --delete --exclude=node_modules "${filters[@]}" "$src/$e/" "$APP_DIR/$e/"
+  else
+    cp -a "$src/$e" "$APP_DIR/$e"
+  fi
+}
+
 # 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
 # but a restore step failed, so which release is running is indeterminate.
+# The backup is mirrored back (not overlaid) so files the failed release added
+# are removed too; entries it created from scratch are deleted outright.
 rollback() {
   log "ROLLING BACK to $BACKUP"
-  local restored=1
-  tar xzf "$BACKUP" -C "$APP_DIR" || { log "rollback: archive restore failed"; restored=0; }
+  local restored=1 tmp e
+  tmp=$(mktemp -d "$RELEASES_DIR/rollback.XXXXXX")
+  if tar xzf "$BACKUP" -C "$tmp"; then
+    for e in "${EXISTING[@]}"; do
+      mirror_entry "$tmp" "$e" || { log "rollback: restore of $e failed"; restored=0; }
+    done
+    for e in "${TOUCHED[@]}"; do
+      [[ " ${EXISTING[*]} " == *" $e "* ]] || rm -rf "$APP_DIR/$e" || { log "rollback: could not remove $e"; restored=0; }
+    done
+  else
+    log "rollback: archive extract failed"; restored=0
+  fi
+  rm -rf "$tmp"
   cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env" || { log "rollback: .env restore failed"; restored=0; }
   compose build -q checkout-api || { log "rollback: image rebuild failed"; restored=0; }
   compose up -d --no-deps checkout-api || { log "rollback: container replace failed"; restored=0; }
@@ -150,19 +179,7 @@ if [ -n "$LIVE_ONLY" ]; then
 fi
 
 # ── 3. mirror the staging tree into place ───────────────────────────────────
-for e in "${TOUCHED[@]}"; do
-  if [ -d "$STAGING/$e" ]; then
-    FILTERS=()
-    if [ "$e" = app ]; then
-      for p in "${PROTECTED_APP[@]}"; do FILTERS+=(--filter="P /$p/**"); done
-    elif [ "$e" = config ]; then
-      for p in "${PROTECTED_CONFIG[@]}"; do FILTERS+=(--filter="P /$p/**"); done
-    fi
-    rsync -a --delete --exclude=node_modules "${FILTERS[@]}" "$STAGING/$e/" "$APP_DIR/$e/"
-  else
-    cp -a "$STAGING/$e" "$APP_DIR/$e"
-  fi
-done
+for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e"; done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
