@@ -156,6 +156,16 @@ Identity is dynamic: the Flutter client reads `devinEmail` / `devinUserId` / `de
 
 Refresh the hosted build the same way as GE: `flutter build web --release --base-href /67f2a7ba/app/`, copy `build/web/` into `app/public/verticals/67f2a7ba-app/`, drop `canvaskit/`. Generated Flutter bundles under `app/public/verticals/*-app/` are excluded from `npm run lint`.
 
+### Nordstrom shopping scenario (5b7227b4, Flutter, external repo)
+
+The Nordstrom app vertical (slug `5b7227b4`, aliases `/nordstromapp`, `/nordstrom-app`; unlisted on the hub) is separate from the Nordstrom HTML vertical (`663500bd`, `/nordstrom`), which keeps its Node-side defect. `/5b7227b4/app` serves a Flutter web build from `app/public/verticals/5b7227b4-app/` (SPA fallback in `app/routes/verticals/5b7227b4.js`). The same codebase — `Custom-Devin-Demos/nordstrom-shopping-demo-app` — renders as the nordstrom.com desktop site on wide web and as the Nordstrom app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the product catalog carries a `New Markdown` price status, but the Nordy Club earning-rules registry never registers it, so adding a New Markdown item to the bag null-asserts while pricing rewards and the product screen shows its error message plus the incident toast. The client then `POST`s to `/api/5b7227b4/mobile/error` with `source: nordstrom-shop/<platform>` and `service: customer-5b7227b4-mobile`, plus `platform`, `screen`, `action`, `product`, `priceStatus` tags. `reportAppFailure` in `app/services/verticals/5b7227b4.js` raises the Slack alert and Devin session directly (Sentry capture + `add_to_bag.failure` metric); successful adds sync on `POST /api/5b7227b4/bag` (`add_to_bag.success`, no alert).
+
+Identity is dynamic, exactly as for Citi Mobile: the Flutter client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service passes them through untouched, resolves an email to a Nordstrom org member with `DEVIN_SERVICE_KEY_5B7227B4` when no user id was sent, and `DEVIN_USER_ID_5B7227B4` / `DEVIN_ORG_ID_5B7227B4` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-5b7227b4-mobile` to the Nordstrom `APP_REMEDIATION_DIRECTIVE` (fix the registry, tolerate unknown statuses, add a completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/5b7227b4-mobile-error.test.js`.
+
+Refresh the hosted build the same way as Citi: `flutter build web --release --base-href /5b7227b4/app/`, copy `build/web/` into `app/public/verticals/5b7227b4-app/`, drop `canvaskit/`.
+
 ### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
 
 The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
