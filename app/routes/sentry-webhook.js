@@ -5,6 +5,7 @@ const { verifySentrySignature } = require('../middleware/verify-session-secret')
 const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7');
 const { APP_REMEDIATION_DIRECTIVE } = require('../services/verticals/3aa9fa04');
 const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require('../services/verticals/67f2a7ba');
+const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
 
 const router = express.Router();
 
@@ -267,6 +268,23 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-67f2a7ba-mobile',
       service: 'customer-67f2a7ba-mobile',
       scenario: 'pay-citi-card',
+    },
+  },
+  // Nordstrom shopping Flutter app (github.com/Custom-Devin-Demos/
+  // nordstrom-shopping-demo-app): nordstrom.com on desktop web, the Nordstrom
+  // app on Android/iOS. Reports arrive via /api/5b7227b4/mobile/error;
+  // remediation lands in the Flutter repo and is verified on all three surfaces.
+  '5b7227b4': {
+    customer: '5b7227b4',
+    verticalLabel: 'Nordstrom',
+    service: 'customer-5b7227b4-mobile',
+    project: 'nordstrom-shop',
+    release: 'nordstrom-shop@1.0.0',
+    promptAppendix: NORDSTROM_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-5b7227b4-mobile',
+      service: 'customer-5b7227b4-mobile',
+      scenario: 'add-to-bag-rewards',
     },
   },
 };
