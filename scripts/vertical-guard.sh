@@ -27,14 +27,9 @@ PATHS=(${GUARD_PATHS:-/health /hcf /qbe /suncorp /insignia /hub24 /cfs})
 
 log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >> "$LOG_FILE"; }
 compose() { docker compose "$@" 2> >(grep -v 'obsolete\|Bake' >&2 || true); }
-env_value() { grep -E "^$1=" "$APP_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2- || true; }
 notify() {
-  local token channel
-  token=$(env_value SLACK_BOT_TOKEN); channel=$(env_value SLACK_CHANNEL_ID)
-  [ -n "$token" ] && [ -n "$channel" ] || return 0
-  curl -s -o /dev/null --max-time 10 -X POST https://slack.com/api/chat.postMessage \
-    -H "Authorization: Bearer $token" -H 'content-type: application/json' \
-    -d "$(jq -cn --arg c "$channel" --arg t "$1" '{channel:$c,text:$t}')" || true
+  [ -f "$APP_DIR/scripts/ops-notify.sh" ] || return 0
+  bash "$APP_DIR/scripts/ops-notify.sh" "$1" "${2:-}" || true
 }
 http_status() { curl -sS --max-time 15 -o /dev/null -w '%{http_code}' "$BASE_URL$1" 2>/dev/null || printf '000'; }
 
@@ -77,7 +72,10 @@ for p in "${PATHS[@]}"; do
 done
 if [ ${#MISSING[@]} -gt 0 ]; then
   log "vertical files missing on host (needs a deploy, not a restart): ${MISSING[*]}"
-  notify ":warning: devindemos.com guard: vertical files missing on host: ${MISSING[*]} — redeploy needed"
+  notify "[devindemos] guard: vertical files missing on host" \
+    "Missing: ${MISSING[*]}
+
+A redeploy is needed; the guard does not repair files. Log: $LOG_FILE"
 fi
 
 last=$(cat "$STAMP_FILE" 2>/dev/null || printf '0')
@@ -101,5 +99,8 @@ if check; then
   exit 0
 fi
 log "still unhealthy after restart: ${FAILED[*]}"
-notify ":rotating_light: devindemos.com guard: still unhealthy after restart: ${FAILED[*]}"
+notify "[devindemos] guard: still unhealthy after restart" \
+  "Non-200 after compose restart: ${FAILED[*]}
+
+Host: $(hostname). Log: $LOG_FILE"
 exit 1
