@@ -35,6 +35,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Databricks Compute / Spark UI** (unlisted — direct URL only) | `/databricks`, `/0b6164d6` | `app/public/verticals/0b6164d6.html` | `POST /api/0b6164d6/cluster-ui` | `app/services/verticals/0b6164d6.js` |
 | **Morgan Stanley Wealth Management** (unlisted — direct URL only) | `/morganstanley`, `/c7d11cb8` | `app/public/verticals/c7d11cb8.html` | `POST /api/c7d11cb8/rebalance` | `app/services/verticals/c7d11cb8.js` |
 | **Ping Identity — PingOne Environment Provisioning** (unlisted — direct URL only) | `/pingidentity`, `/81deeb2e` | `app/public/verticals/81deeb2e.html` | `POST /api/81deeb2e/environments` | `app/services/verticals/81deeb2e.js` |
+| **Carvana — Checkout & Financing** (unlisted — direct URL only) | `/carvana`, `/fd7f4e04` | `app/public/verticals/fd7f4e04.html` | `POST /api/fd7f4e04/orders` | `app/services/verticals/fd7f4e04.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
