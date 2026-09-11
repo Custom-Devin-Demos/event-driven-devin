@@ -96,9 +96,10 @@ if ! have_boto3; then
   fi
   if have_boto3; then log "boto3 installed"; else log "warning: python3/boto3 missing; ops-notify.sh alerts will not be delivered"; fi
 fi
-IMDS_TOKEN=$(curl -sf --max-time 2 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token 2>/dev/null || true)
-if [ -n "$IMDS_TOKEN" ] && ! curl -sf --max-time 2 -o /dev/null -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/; then
-  log "warning: no instance IAM role attached; ops-notify.sh alerts will not be delivered"
+# Resolve credentials the same way ops-notify.sh will (instance role or any
+# other boto3 provider); GetCallerIdentity needs no IAM permission.
+if have_boto3 && ! timeout 15 python3 -c 'import boto3; boto3.client("sts", region_name="us-east-2").get_caller_identity()' >/dev/null 2>&1; then
+  log "warning: no AWS credentials resolvable (instance IAM role missing?); ops-notify.sh alerts will not be delivered"
 fi
 
 # ── guard cron (mandatory) ──────────────────────────────────────────────────

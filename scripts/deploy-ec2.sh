@@ -100,26 +100,34 @@ log "backed up ${#EXISTING[@]} top-level entries to $BACKUP"
 ls -1t "$RELEASES_DIR"/*.tgz 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 ls -1t "$RELEASES_DIR"/env.* 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 
+# 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
+# but a restore step failed, so which release is running is indeterminate.
 rollback() {
   log "ROLLING BACK to $BACKUP"
-  tar xzf "$BACKUP" -C "$APP_DIR"
-  cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env"
-  compose build -q checkout-api || true
-  compose up -d --no-deps checkout-api || true
+  local restored=1
+  tar xzf "$BACKUP" -C "$APP_DIR" || { log "rollback: archive restore failed"; restored=0; }
+  cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env" || { log "rollback: .env restore failed"; restored=0; }
+  compose build -q checkout-api || { log "rollback: image rebuild failed"; restored=0; }
+  compose up -d --no-deps checkout-api || { log "rollback: container replace failed"; restored=0; }
   for _ in $(seq 1 40); do
-    [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ] && { log "rollback healthy"; return 0; }
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ]; then
+      [ $restored = 1 ] && { log "rollback healthy"; return 0; }
+      log "rollback: /health is 200 but a restore step failed — running release is indeterminate"
+      return 2
+    fi
     sleep 2
   done
   log "rollback did NOT come back healthy — manual attention required"
   return 1
 }
 fail() {
-  local outcome
-  if rollback; then
-    outcome="Rolled back to release $TS; /health is 200."
-  else
-    outcome="ROLLBACK DID NOT COME BACK HEALTHY — manual attention required on the host."
-  fi
+  local rc=0 outcome
+  rollback || rc=$?
+  case $rc in
+    0) outcome="Rolled back to release $TS; /health is 200." ;;
+    2) outcome="ROLLBACK INDETERMINATE: /health is 200 but a restore step failed (see run log) — verify which release is running." ;;
+    *) outcome="ROLLBACK DID NOT COME BACK HEALTHY — manual attention required on the host." ;;
+  esac
   notify "[devindemos] deploy from $SOURCE_LABEL FAILED" \
     "Deploy from $SOURCE_LABEL failed: $1
 
