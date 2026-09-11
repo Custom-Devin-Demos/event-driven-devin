@@ -22,6 +22,9 @@
 #   - verified        /health, every vertical page, every alias and a fixed
 #                     list of critical paths must return 200 before loadgen
 #                     and the rest of the stack are reconciled
+#   - host-converged  scripts/host-bootstrap.sh runs every deploy (swap,
+#                     persistent journald, the single vertical-guard cron)
+#   - memory-aware    images are built one at a time; the box has ~1.9G RAM
 set -euo pipefail
 
 STAGING=${1:?usage: deploy-ec2.sh <staging-dir> [source-label]}
@@ -146,9 +149,16 @@ done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
+# ── 3b. converge host-level setup (swap, journald, guard cron) ──────────────
+bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | sed "s/^/$LOG_PREFIX /" || log "warning: host bootstrap failed"
+
 # ── 4. build + swap checkout-api ────────────────────────────────────────────
 compose config -q || fail "docker compose config is invalid"
-compose build checkout-api loadgen >/dev/null || fail "image build failed"
+AVAIL_MEM_MB=$(awk '/^(MemAvailable|SwapFree):/ {s += $2} END {print int(s / 1024)}' /proc/meminfo)
+log "building with ${AVAIL_MEM_MB}MB available (RAM + swap)"
+# One image at a time: parallel builds are what OOM-hung the host.
+compose build checkout-api >/dev/null || fail "checkout-api image build failed"
+compose build loadgen >/dev/null || fail "loadgen image build failed"
 compose up -d --no-deps checkout-api >/dev/null || fail "checkout-api failed to start"
 
 STATUS=000
