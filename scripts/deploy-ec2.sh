@@ -57,16 +57,14 @@ cd "$APP_DIR"
 
 compose() { docker compose "$@" 2> >(grep -v 'obsolete\|Bake' >&2 || true); }
 
-# Slack is best-effort: only if the host .env carries a bot token + channel.
-env_value() { grep -E "^$1=" "$APP_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2- || true; }
+# Ops notifications go to the SNS email topic via scripts/ops-notify.sh
+# (best-effort, instance role). Prefer the staging copy so a fix to the
+# notifier itself is used by the deploy that ships it.
 notify() {
-  local text="$1"
-  local token channel
-  token=$(env_value SLACK_BOT_TOKEN); channel=$(env_value SLACK_CHANNEL_ID)
-  [ -n "$token" ] && [ -n "$channel" ] || return 0
-  curl -s -o /dev/null -X POST https://slack.com/api/chat.postMessage \
-    -H "Authorization: Bearer $token" -H 'content-type: application/json' \
-    -d "$(jq -cn --arg c "$channel" --arg t "$text" '{channel:$c,text:$t}')" || true
+  local notifier="$STAGING/scripts/ops-notify.sh"
+  [ -f "$notifier" ] || notifier="$APP_DIR/scripts/ops-notify.sh"
+  [ -f "$notifier" ] || return 0
+  bash "$notifier" "$1" "${2:-}" || true
 }
 
 # ── 0. lock ─────────────────────────────────────────────────────────────────
@@ -116,7 +114,12 @@ rollback() {
   return 1
 }
 fail() {
-  notify ":rotating_light: devindemos.com deploy from *$SOURCE_LABEL* failed: $1 — rolled back to release $TS"
+  notify "[devindemos] deploy from $SOURCE_LABEL FAILED" \
+    "Deploy from $SOURCE_LABEL failed: $1
+
+Rolled back to release $TS.
+Host: $(hostname) ($APP_DIR)
+Run log: see the GitHub Actions 'Deploy to EC2' run for this commit."
   rollback || true
   die "$1"
 }
