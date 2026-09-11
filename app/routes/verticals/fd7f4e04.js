@@ -29,18 +29,28 @@ router.get('/api/fd7f4e04/inventory', (_req, res) => {
 });
 
 function nonNegativeInteger(value, fallback) {
-  const n = value === undefined || value === '' ? fallback : Number(value);
+  if (value === undefined || value === '') return fallback;
+  const n = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
   return Number.isSafeInteger(n) && n >= 0 ? n : null;
 }
 
+function stringField(value, fallback) {
+  if (value === undefined || value === null || value === '') return fallback;
+  return typeof value === 'string' ? value : null;
+}
+
+function has(map, key) {
+  return typeof key === 'string' && Object.hasOwn(map, key);
+}
+
 router.post('/api/fd7f4e04/orders', async (req, res) => {
-  const buyerName = (req.body.buyerName || '').trim();
-  const zipCode = String(req.body.zipCode || '').trim();
-  const vehicleId = req.body.vehicleId || 'cvna-2286413';
+  const buyerName = typeof req.body.buyerName === 'string' ? req.body.buyerName.trim() : '';
+  const zipCode = typeof req.body.zipCode === 'string' || typeof req.body.zipCode === 'number' ? String(req.body.zipCode).trim() : '';
+  const vehicleId = stringField(req.body.vehicleId, 'cvna-2286413');
   const termMonths = Number(req.body.termMonths);
-  const creditTier = req.body.creditTier || 'excellent';
-  const deliveryMethod = req.body.deliveryMethod || 'home_delivery';
-  const protectionPlan = req.body.protectionPlan || 'none';
+  const creditTier = stringField(req.body.creditTier, 'excellent');
+  const deliveryMethod = stringField(req.body.deliveryMethod, 'home_delivery');
+  const protectionPlan = stringField(req.body.protectionPlan, 'none');
   const downPayment = nonNegativeInteger(req.body.downPayment, 0);
   const tradeInValue = nonNegativeInteger(req.body.tradeInValue, 0);
 
@@ -50,20 +60,20 @@ router.post('/api/fd7f4e04/orders', async (req, res) => {
   if (!/^\d{5}$/.test(zipCode)) {
     return res.status(400).json({ success: false, error: 'zipCode must be a 5-digit US ZIP code', code: 'VALIDATION_ERROR' });
   }
-  const vehicle = INVENTORY[vehicleId];
-  if (!vehicle) {
+  if (!has(INVENTORY, vehicleId)) {
     return res.status(400).json({ success: false, error: `Vehicle not in inventory: ${vehicleId}`, code: 'VALIDATION_ERROR' });
   }
+  const vehicle = INVENTORY[vehicleId];
   if (!FINANCING_TERMS.includes(termMonths)) {
     return res.status(400).json({ success: false, error: `termMonths must be one of: ${FINANCING_TERMS.join(', ')}`, code: 'VALIDATION_ERROR' });
   }
-  if (!CREDIT_TIERS[creditTier]) {
+  if (!has(CREDIT_TIERS, creditTier)) {
     return res.status(400).json({ success: false, error: `Unknown credit tier: ${creditTier}`, code: 'VALIDATION_ERROR' });
   }
-  if (!DELIVERY_OPTIONS[deliveryMethod]) {
+  if (!has(DELIVERY_OPTIONS, deliveryMethod)) {
     return res.status(400).json({ success: false, error: `Unknown delivery method: ${deliveryMethod}`, code: 'VALIDATION_ERROR' });
   }
-  if (!PROTECTION_PLANS[protectionPlan]) {
+  if (!has(PROTECTION_PLANS, protectionPlan)) {
     return res.status(400).json({ success: false, error: `Unknown protection plan: ${protectionPlan}`, code: 'VALIDATION_ERROR' });
   }
   if (downPayment === null || tradeInValue === null) {
