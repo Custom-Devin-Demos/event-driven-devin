@@ -14,6 +14,8 @@
 #   - guard cron  a single scripts/vertical-guard.sh entry replaces the
 #                 per-vertical *-guard.sh copies that used to rebuild images
 #                 concurrently
+#   - ops-notify  python3 + boto3 so scripts/ops-notify.sh can publish
+#                 deploy/guard alerts to SNS (instance role)
 #
 # Everything privileged goes through `sudo -n`; when passwordless sudo is not
 # available the swap/journald steps are logged and skipped. The guard cron is
@@ -81,6 +83,22 @@ if [ -n "$SUDO" ]; then
     $SUDO mkdir -p /var/log/journal
     $SUDO systemctl restart systemd-journald && log "journald set to persistent (200M cap)"
   fi
+fi
+
+# ── ops-notify dependencies ─────────────────────────────────────────────────
+# Alerts are best-effort, so a gap here is a warning rather than a failed
+# deploy; install what we can and make the rest visible in the deploy log.
+have_boto3() { python3 -c 'import boto3' >/dev/null 2>&1; }
+if ! have_boto3; then
+  if [ -n "$SUDO" ]; then
+    log "installing python3-boto3 for scripts/ops-notify.sh"
+    $SUDO apt-get install -y -qq python3 python3-boto3 >/dev/null 2>&1 || true
+  fi
+  if have_boto3; then log "boto3 installed"; else log "warning: python3/boto3 missing; ops-notify.sh alerts will not be delivered"; fi
+fi
+IMDS_TOKEN=$(curl -sf --max-time 2 -X PUT -H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token 2>/dev/null || true)
+if [ -n "$IMDS_TOKEN" ] && ! curl -sf --max-time 2 -o /dev/null -H "X-aws-ec2-metadata-token: $IMDS_TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/; then
+  log "warning: no instance IAM role attached; ops-notify.sh alerts will not be delivered"
 fi
 
 # ── guard cron (mandatory) ──────────────────────────────────────────────────

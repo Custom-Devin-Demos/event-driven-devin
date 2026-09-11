@@ -114,13 +114,18 @@ rollback() {
   return 1
 }
 fail() {
+  local outcome
+  if rollback; then
+    outcome="Rolled back to release $TS; /health is 200."
+  else
+    outcome="ROLLBACK DID NOT COME BACK HEALTHY — manual attention required on the host."
+  fi
   notify "[devindemos] deploy from $SOURCE_LABEL FAILED" \
     "Deploy from $SOURCE_LABEL failed: $1
 
-Rolled back to release $TS.
+$outcome
 Host: $(hostname) ($APP_DIR)
 Run log: see the GitHub Actions 'Deploy to EC2' run for this commit."
-  rollback || true
   die "$1"
 }
 
