@@ -28,6 +28,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Suncorp Bank Payments** (unlisted — direct URL only) | `/suncorp` | `app/public/verticals/suncorp.html` | `POST /api/suncorp/payment` | `app/services/verticals/suncorp.js` |
 | **Insignia Financial Super Allocation** (unlisted — direct URL only) | `/insignia` | `app/public/verticals/insignia.html` | `POST /api/insignia/allocation` | `app/services/verticals/insignia.js` |
 | **HUB24 Adviser Fee Arrangement** (unlisted — direct URL only) | `/hub24` | `app/public/verticals/hub24.html` | `POST /api/hub24/fee-arrangement` | `app/services/verticals/hub24.js` |
+| **CFS Lump Sum Withdrawal** (unlisted — direct URL only) | `/cfs` | `app/public/verticals/cfs.html` | `POST /api/cfs/withdrawal` | `app/services/verticals/cfs.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank** (unlisted — direct URL only) | `/cba` | `app/public/verticals/cba.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Macquarie Online Banking** (unlisted — direct URL only) | `/macbank` | `app/public/verticals/macbank.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
