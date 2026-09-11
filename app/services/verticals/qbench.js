@@ -92,6 +92,12 @@ const SPEC_LIMITS = {
   // heavy_metals ships with the ICP-MS onboarding; spec limit registration pending
 };
 
+const REPORT_TEMPLATES = {
+  standard: { label: 'Standard CoA (PDF)', includesClientBranding: false, regulatorySubmission: false },
+  client: { label: 'Client-branded CoA', includesClientBranding: true, regulatorySubmission: false },
+  regulatory: { label: 'Regulatory submission', includesClientBranding: false, regulatorySubmission: true },
+};
+
 const SIGNATORIES = [
   { id: 'LD-01', name: 'Dr. Elena Marsh', title: 'Laboratory Director', panels: ['potency', 'heavy_metals'] },
   { id: 'LD-02', name: 'Dr. Owen Castellanos', title: 'Microbiology Lead', panels: ['microbial'] },
@@ -161,6 +167,10 @@ async function generateCertificate(data) {
   if (!data.reviewedBy || !String(data.reviewedBy).trim()) {
     throw validationError('Reviewer is required to issue a certificate');
   }
+  const reportFormat = data.reportFormat || 'standard';
+  if (!REPORT_TEMPLATES[reportFormat]) {
+    throw validationError(`Unknown report template: ${reportFormat}`);
+  }
 
   logger.info('Generating QBench certificate of analysis', {
     certificateId,
@@ -200,6 +210,8 @@ async function generateCertificate(data) {
       disposition: evaluation.disposition,
       analytes: evaluation.analytes,
       reviewedBy: data.reviewedBy,
+      reportFormat,
+      reportTemplate: REPORT_TEMPLATES[reportFormat],
       signatory: {
         id: signatory.id,
         name: signatory.name,
@@ -304,5 +316,6 @@ module.exports = {
   TEST_PANELS,
   SPEC_LIMITS,
   SIGNATORIES,
+  REPORT_TEMPLATES,
   REMEDIATION_DIRECTIVE,
 };

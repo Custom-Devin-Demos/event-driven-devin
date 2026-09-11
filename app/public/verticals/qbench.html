@@ -312,6 +312,12 @@
     var okDetails = document.getElementById('coa-ok-details');
     var okAnalytes = document.getElementById('coa-ok-analytes');
 
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
+
     function fmtDate(iso) {
       return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     }
@@ -322,11 +328,11 @@
         var tr = document.createElement('tr');
         tr.className = 'sample-row' + (s.sampleId === selectedId ? ' selected' : '');
         tr.innerHTML = '<td><input type="radio" name="sample"' + (s.sampleId === selectedId ? ' checked' : '') + '></td>'
-          + '<td class="mono">' + s.sampleId + '</td>'
-          + '<td>' + s.client + '</td>'
-          + '<td>' + s.matrix + '</td>'
-          + '<td class="mono">' + s.batchId + '</td>'
-          + '<td><span class="pill' + (s.panelCode === 'heavy_metals' ? ' pill--new' : '') + '">' + s.panelLabel + '</span></td>'
+          + '<td class="mono">' + esc(s.sampleId) + '</td>'
+          + '<td>' + esc(s.client) + '</td>'
+          + '<td>' + esc(s.matrix) + '</td>'
+          + '<td class="mono">' + esc(s.batchId) + '</td>'
+          + '<td><span class="pill' + (s.panelCode === 'heavy_metals' ? ' pill--new' : '') + '">' + esc(s.panelLabel) + '</span></td>'
           + '<td>' + fmtDate(s.receivedAt) + '</td>';
         tr.addEventListener('click', function () {
           selectedId = s.sampleId;
@@ -350,7 +356,7 @@
         ['Analytes reported', String(s.results.length)], ['Received', fmtDate(s.receivedAt)],
       ].forEach(function (row) {
         var div = document.createElement('div');
-        div.innerHTML = '<span>' + row[0] + '</span><b>' + row[1] + '</b>';
+        div.innerHTML = '<span>' + esc(row[0]) + '</span><b>' + esc(row[1]) + '</b>';
         summary.appendChild(div);
       });
     }
@@ -388,9 +394,10 @@
       var tbody = document.createElement('tbody');
       coa.analytes.forEach(function (a) {
         var tr = document.createElement('tr');
-        tr.innerHTML = '<td>' + a.analyte + '</td><td class="mono">' + a.value + ' ' + a.unit + '</td>'
-          + '<td class="mono">' + (a.actionLimit === null ? '\u2014' : '\u2264 ' + a.actionLimit + ' ' + a.unit) + '</td>'
-          + '<td class="status-' + a.status + '">' + a.status.toUpperCase() + '</td>';
+        var statusClass = a.status === 'pass' ? 'status-pass' : 'status-fail';
+        tr.innerHTML = '<td>' + esc(a.analyte) + '</td><td class="mono">' + esc(a.value) + ' ' + esc(a.unit) + '</td>'
+          + '<td class="mono">' + (a.actionLimit === null ? '\u2014' : '\u2264 ' + esc(a.actionLimit) + ' ' + esc(a.unit)) + '</td>'
+          + '<td class="' + statusClass + '">' + esc(String(a.status).toUpperCase()) + '</td>';
         tbody.appendChild(tr);
       });
       okAnalytes.appendChild(tbody);

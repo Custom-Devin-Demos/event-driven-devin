@@ -34,6 +34,7 @@ router.post('/api/qbench/coa', async (req, res) => {
     const certificate = await generateCertificate({
       sampleId: valueOrDefault('sampleId', 'S-260911-0042'),
       reviewedBy: valueOrDefault('reviewedBy', 'M. Okafor'),
+      reportFormat: valueOrDefault('reportFormat', 'standard'),
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
