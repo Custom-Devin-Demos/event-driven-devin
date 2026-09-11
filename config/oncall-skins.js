@@ -1268,6 +1268,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Eaze Support',
     disclaimer: 'NOT ACTUALLY A EAZE SITE — internal demo only, not affiliated with, endorsed by, or a real Eaze product.',
   },
+  '4c8c5b8f': {
+    slug: '4c8c5b8f',
+    company: 'OCBC',
+    brandMark: 'O',
+    vertical: 'banking',
+    page: {
+      file: '4c8c5b8f.html',
+      title: 'Fund360 — Place a fund bid | OCBC',
+    },
+    theme: {
+      '--accent': '#E30613',
+      '--ink': '#363B40',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#2D3D45',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'OCBC Support',
+    disclaimer: 'NOT ACTUALLY AN OCBC SITE — internal demo only, not affiliated with, endorsed by, or a real OCBC product.',
+  },
 };
 
 function getOncallSkin(slug) {

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fund360 — Place a fund bid | OCBC</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Outfit:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --oc-red: #E30613;
+      --oc-red-dark: #C20510;
+      --oc-ink: #363B40;
+      --oc-slate: #3D525D;
+      --oc-muted: #567180;
+      --oc-deep: #2D3D45;
+      --oc-link: #005EFD;
+      --oc-page: #F5F7F6;
+      --oc-line: #E3E8EA;
+      --oc-white: #ffffff;
+      --oc-green: #1E8E3E;
+      --sans: 'OpenSans', 'Open Sans', Helvetica, Arial, sans-serif;
+      --display: 'Geomanist', 'Outfit', Helvetica, Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); color: var(--oc-ink); background: var(--oc-page); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1170px; margin: 0 auto; padding: 0 20px; }
+
+    /* Utility bar */
+    .util { background: var(--oc-white); border-bottom: 1px solid var(--oc-line); font-size: 14px; color: var(--oc-muted); }
+    .util .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 44px; gap: 16px; }
+    .util .left { display: flex; align-items: center; gap: 18px; }
+    .util .left strong { color: var(--oc-ink); font-weight: 700; }
+    .util .right { display: flex; align-items: center; gap: 18px; }
+    .util a { display: inline-flex; align-items: center; min-height: 44px; }
+    .util .right a.login { color: var(--oc-red); font-weight: 700; }
+
+    /* Header */
+    header.site { background: var(--oc-white); border-bottom: 1px solid var(--oc-line); }
+    header.site .wrap { display: flex; align-items: center; gap: 28px; min-height: 76px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; flex: none; }
+    .logo .mark { width: 34px; height: 34px; border-radius: 50%; background: var(--oc-red); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 20px; line-height: 1; }
+    .logo .word { font-weight: 700; font-size: 26px; letter-spacing: 0.02em; color: var(--oc-red); }
+    .logo .word small { display: block; font-size: 10px; letter-spacing: 0.18em; color: var(--oc-muted); font-weight: 600; line-height: 1; margin-top: 2px; }
+    nav.main { display: flex; align-items: center; gap: 4px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+    nav.main::-webkit-scrollbar { display: none; }
+    nav.main a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; font-size: 15px; white-space: nowrap; position: relative; }
+    nav.main a.active { font-weight: 700; }
+    nav.main a.active::after { content: ''; position: absolute; left: 14px; right: 14px; bottom: -16px; height: 3px; background: var(--oc-red); }
+    .hdr-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border-radius: 5px; font-weight: 700; font-size: 16px; cursor: pointer; border: 1px solid transparent; white-space: nowrap; }
+    .btn-red { background: var(--oc-red); color: #fff; }
+    .btn-red:hover { background: var(--oc-red-dark); }
+    .btn-outline { background: #fff; color: var(--oc-ink); border-color: var(--oc-slate); }
+
+    /* Breadcrumb */
+    .crumbs { font-size: 13px; color: var(--oc-muted); padding: 6px 0 0; display: flex; gap: 8px; flex-wrap: wrap; }
+    .crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+    .crumbs span::before { content: '›'; margin-right: 8px; }
+
+    /* Hero */
+    .hero { padding: 22px 0 32px; }
+    .hero .kicker { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; color: var(--oc-ink); }
+    .hero .kicker::before { content: ''; display: inline-block; width: 26px; height: 3px; background: var(--oc-red); vertical-align: middle; margin-right: 10px; }
+    .hero h1 { font-family: var(--display); font-weight: 300; font-size: 40px; line-height: 1.25; color: var(--oc-ink); margin-top: 12px; max-width: 760px; }
+    .hero p { margin-top: 10px; font-size: 16px; color: var(--oc-slate); max-width: 680px; }
+
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 28px; align-items: start; padding-bottom: 56px; }
+    .panel { background: var(--oc-white); border: 1px solid var(--oc-line); border-radius: 6px; }
+    .panel-head { padding: 22px 26px 14px; border-bottom: 1px solid var(--oc-line); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .panel-head h2 { font-size: 20px; font-weight: 700; }
+    .panel-head .meta { font-size: 13px; color: var(--oc-muted); }
+
+    /* Fund list */
+    .fund { display: grid; grid-template-columns: 1fr auto; gap: 8px 18px; padding: 16px 26px; border-bottom: 1px solid var(--oc-line); cursor: pointer; position: relative; }
+    .fund:last-of-type { border-bottom: 0; }
+    .fund:hover { background: #FAFBFB; }
+    .fund.selected { box-shadow: inset 4px 0 0 var(--oc-red); background: #FFF7F7; }
+    .fund .name { font-weight: 700; font-size: 16px; }
+    .fund .name .code { font-weight: 400; color: var(--oc-muted); font-size: 13px; margin-left: 8px; }
+    .fund .desc { grid-column: 1; font-size: 14px; color: var(--oc-slate); }
+    .fund .tags { grid-column: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .tag { font-size: 12px; padding: 2px 8px; border-radius: 3px; background: #EEF2F4; color: var(--oc-slate); }
+    .tag.risk-low { background: #E7F4EA; color: #1E6B33; }
+    .tag.risk-med { background: #FFF3E0; color: #9A5B00; }
+    .tag.risk-high { background: #FDE8E9; color: #A3050F; }
+    .fund .nav { grid-column: 2; grid-row: 1 / span 3; text-align: right; }
+    .fund .nav .px { font-size: 20px; font-weight: 700; white-space: nowrap; }
+    .fund .nav .lbl { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--oc-muted); }
+    .fund .nav .chg { font-size: 13px; font-weight: 600; margin-top: 2px; }
+    .chg.up { color: var(--oc-green); }
+    .chg.down { color: var(--oc-red); }
+    .panel-foot { padding: 14px 26px 18px; font-size: 13px; color: var(--oc-muted); border-top: 1px solid var(--oc-line); }
+
+    /* Bid form */
+    .bid { padding: 24px 26px 26px; }
+    .bid h2 { font-size: 20px; font-weight: 700; }
+    .bid .sub { margin: 6px 0 18px; font-size: 14px; color: var(--oc-slate); }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--oc-ink); }
+    select, input[type="number"] { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid #B9C4CA; border-radius: 5px; background: #fff; color: var(--oc-ink); font-family: var(--sans); font-size: 16px; outline: none; -webkit-appearance: none; appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23363B40' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    select:focus, input:focus { border-color: var(--oc-red); box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.15); }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: 'S$'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 700; font-size: 15px; color: var(--oc-slate); }
+    .amount-wrap input { padding-left: 44px; font-weight: 700; }
+    .hint { font-size: 12px; color: var(--oc-muted); margin-top: 6px; }
+    .summary { background: var(--oc-page); border: 1px solid var(--oc-line); border-radius: 5px; padding: 14px 16px; margin: 4px 0 18px; font-size: 14px; }
+    .summary .row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
+    .summary .row span:last-child { font-weight: 700; text-align: right; }
+    .summary .row.total { border-top: 1px solid var(--oc-line); margin-top: 6px; padding-top: 10px; font-size: 15px; }
+    #submitBtn { width: 100%; min-height: 52px; border-radius: 5px; background: var(--oc-red); color: #fff; border: 0; font-family: var(--sans); font-weight: 700; font-size: 18px; cursor: pointer; }
+    #submitBtn:hover { background: var(--oc-red-dark); }
+    #submitBtn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .legal { margin-top: 14px; font-size: 12px; color: var(--oc-muted); line-height: 1.55; }
+    .legal a { color: var(--oc-link); display: inline-block; padding: 14px 0; margin: -14px 0; }
+    .result-box { margin-top: 16px; padding: 14px 16px; border-radius: 5px; font-size: 14px; display: none; border: 1px solid var(--oc-line); }
+    .result-box.error { display: block; background: #FDE8E9; border-color: #E8A0A4; color: #7A0810; }
+    .result-box.success { display: block; background: #E7F4EA; border-color: #A9D8B5; color: #1E5A2E; }
+    .result-box .error-title { font-weight: 700; margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 13px; word-break: break-word; }
+
+    /* Info strip */
+    .info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-bottom: 56px; }
+    .info .item { background: var(--oc-white); border: 1px solid var(--oc-line); border-radius: 6px; padding: 24px; }
+    .info .item .glyph { width: 40px; height: 40px; border-radius: 50%; background: #FDE8E9; color: var(--oc-red); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+    .info .item .glyph svg { width: 20px; height: 20px; }
+    .info h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .info p { font-size: 14px; color: var(--oc-slate); }
+    .info a { color: var(--oc-link); font-weight: 600; display: inline-flex; align-items: center; min-height: 44px; }
+
+    /* Dark band */
+    .band { background: var(--oc-deep); color: #fff; padding: 48px 0; }
+    .band .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .band .kicker { font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; color: #C9D3D8; }
+    .band .kicker::before { content: ''; display: inline-block; width: 26px; height: 3px; background: var(--oc-red); vertical-align: middle; margin-right: 10px; }
+    .band h2 { font-family: var(--display); font-weight: 300; font-size: 30px; margin-top: 8px; }
+    .band p { color: #C9D3D8; font-size: 14px; margin-top: 6px; }
+
+    /* Footer */
+    footer { background: var(--oc-white); border-top: 1px solid var(--oc-line); padding: 40px 0 28px; font-size: 14px; color: var(--oc-slate); }
+    .foot-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 28px; }
+    .foot-grid h4 { font-size: 13px; font-weight: 700; color: var(--oc-ink); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+    footer ul { list-style: none; }
+    footer li a { display: inline-flex; align-items: center; min-height: 44px; }
+    .foot-brand p { margin-top: 10px; font-size: 13px; }
+    .foot-brand p strong { color: var(--oc-ink); }
+    .foot-legal { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--oc-line); font-size: 12px; color: var(--oc-muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .foot-legal a { display: inline-flex; align-items: center; min-height: 44px; }
+
+    @media (max-width: 940px) {
+      .layout { grid-template-columns: 1fr; }
+      .info { grid-template-columns: 1fr; }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      nav.main a.active::after { display: none; }
+    }
+    @media (max-width: 640px) {
+      .util .left span, .util .right .hide-m { display: none; }
+      header.site .wrap { min-height: 64px; gap: 14px; }
+      nav.main { display: none; }
+      .logo .word { font-size: 22px; }
+      .hero h1 { font-size: 30px; }
+      .panel-head, .fund, .bid, .panel-foot { padding-left: 16px; padding-right: 16px; }
+      .fund { grid-template-columns: 1fr; }
+      .fund .nav { grid-column: 1; grid-row: auto; text-align: left; display: flex; gap: 12px; align-items: baseline; }
+      .band h2 { font-size: 24px; }
+      .foot-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="wrap">
+      <div class="left"><span>You are in</span> <strong>Personal Banking</strong> <a class="hide-m" href="#">Premier Banking</a> <a class="hide-m" href="#">Business Banking</a></div>
+      <div class="right"><a class="hide-m" href="#">Security</a> <a class="hide-m" href="#">Branches &amp; ATMs</a> <a class="hide-m" href="#">Get help</a> <a class="login" href="#">Login</a></div>
+    </div>
+  </div>
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="OCBC">
+        <span class="mark" aria-hidden="true">O</span>
+        <span class="word">OCBC<small>FUND360</small></span>
+      </a>
+      <nav class="main" aria-label="Primary">
+        <a href="#">Accounts</a>
+        <a href="#">Cards</a>
+        <a href="#">Loans</a>
+        <a href="#">Insurance</a>
+        <a href="#" class="active">Investments</a>
+        <a href="#">Advisory</a>
+        <a href="#">More</a>
+      </nav>
+      <div class="hdr-actions">
+        <a class="btn btn-red" href="#">Login to online banking</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="crumbs"><a href="#">Personal Banking</a><span><a href="#">Investments</a></span><span><a href="#">Unit Trusts</a></span><span>Fund360</span></div>
+  </div>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="kicker">Fund360</div>
+      <h1>Place a bid on the fund you want, at the price you want to pay</h1>
+      <p>Choose a fund, set your bid amount and funding account, and Fund360 places the order at the next dealing cut-off. Invest with cash, CPFIS or SRS from as little as S$1,000.</p>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <div class="layout">
+      <section class="panel" aria-label="Fund options">
+        <div class="panel-head">
+          <h2>Fund options</h2>
+          <span class="meta">Indicative NAV as of previous dealing day &middot; SGD</span>
+        </div>
+        <div id="fundList">
+          <div class="fund selected" data-fund="FUND-LIONBOS" data-nav="1.284" data-min="1000" data-name="Lion-Bank of Singapore Multi-Asset Fund" tabindex="0" role="button" aria-pressed="true">
+            <div class="name">Lion-Bank of Singapore Multi-Asset Fund <span class="code">LIONBOS-MA</span></div>
+            <div class="desc">Diversified portfolio across global equities and fixed income, managed for steady income.</div>
+            <div class="tags"><span class="tag risk-med">Medium risk</span><span class="tag">Cash &middot; SRS</span><span class="tag">Quarterly payout</span></div>
+            <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$1.284</div><div class="chg up">+0.42%</div></div>
+          </div>
+          <div class="fund" data-fund="FUND-MGOPT" data-nav="10.612" data-min="1000" data-name="M&amp;G (Lux) Optimal Income Fund" tabindex="0" role="button" aria-pressed="false">
+            <div class="name">M&amp;G (Lux) Optimal Income Fund <span class="code">MGL-OPTINC</span></div>
+            <div class="desc">Flexible bond fund investing across government, corporate and high-yield credit.</div>
+            <div class="tags"><span class="tag risk-low">Low to medium risk</span><span class="tag">Cash &middot; SRS</span><span class="tag">Monthly payout</span></div>
+            <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$10.612</div><div class="chg up">+0.18%</div></div>
+          </div>
+          <div class="fund" data-fund="FUND-GOLD" data-nav="2.951" data-min="1000" data-name="Lion-OCBC Securities Singapore Gold Fund" tabindex="0" role="button" aria-pressed="false">
+            <div class="name">Lion-OCBC Securities Singapore Gold Fund <span class="code">LOS-GOLD</span></div>
+            <div class="desc">Singapore's first physical gold fund, backed by gold bars held in Singapore.</div>
+            <div class="tags"><span class="tag risk-high">Higher risk</span><span class="tag">Cash &middot; CPFIS &middot; SRS</span><span class="tag">Accumulating</span></div>
+            <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$2.951</div><div class="chg down">-0.63%</div></div>
+          </div>
+          <div class="fund" data-fund="FUND-AMUNDI" data-nav="148.27" data-min="1000" data-name="Amundi Funds Global Multi-Asset Conservative" tabindex="0" role="button" aria-pressed="false">
+            <div class="name">Amundi Funds Global Multi-Asset Conservative <span class="code">AMU-GMAC</span></div>
+            <div class="desc">Conservative global allocation with a focus on capital preservation.</div>
+            <div class="tags"><span class="tag risk-low">Low risk</span><span class="tag">Cash</span><span class="tag">Accumulating</span></div>
+            <div class="nav"><div class="lbl">NAV / unit</div><div class="px">S$148.27</div><div class="chg up">+0.09%</div></div>
+          </div>
+        </div>
+        <div class="panel-foot">Prices shown are indicative. Your bid is filled at the fund's NAV on the dealing day after cut-off; units allotted may differ from the estimate.</div>
+      </section>
+
+      <section class="panel bid" aria-label="Place a bid">
+        <h2>Place a bid</h2>
+        <div class="sub">Bids received before 3:00pm on a business day are placed the same day.</div>
+        <form id="transferForm">
+          <div class="form-group">
+            <label for="toAccount">Fund</label>
+            <select id="toAccount">
+              <option value="FUND-LIONBOS" selected>Lion-Bank of Singapore Multi-Asset Fund</option>
+              <option value="FUND-MGOPT">M&amp;G (Lux) Optimal Income Fund</option>
+              <option value="FUND-GOLD">Lion-OCBC Securities Singapore Gold Fund</option>
+              <option value="FUND-AMUNDI">Amundi Funds Global Multi-Asset Conservative</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fromAccount">Fund from</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">360 Account &mdash; 501-234567-001</option>
+              <option value="ACCT-1002">Bonus+ Savings Account &mdash; 601-887210-001</option>
+              <option value="ACCT-1003">SRS Account &mdash; 701-445019-001</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Bid amount</label>
+            <div class="amount-wrap"><input type="number" id="amount" value="5000" min="1000" step="100" placeholder="0"></div>
+            <div class="hint">Minimum initial investment S$1,000. Subsequent bids from S$100.</div>
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Customer segment</label>
+            <select id="accountTier">
+              <option value="standard">Personal Banking</option>
+              <option value="premium">Premier Banking</option>
+            </select>
+          </div>
+          <div class="summary" aria-live="polite">
+            <div class="row"><span>Indicative NAV</span><span id="sumNav">S$1.284</span></div>
+            <div class="row"><span>Estimated units</span><span id="sumUnits">3,894.08</span></div>
+            <div class="row"><span>Sales charge</span><span>0.88%</span></div>
+            <div class="row total"><span>Bid total</span><span id="sumTotal">S$5,000.00</span></div>
+          </div>
+          <button type="submit" id="submitBtn">Place bid</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <p class="legal">Unit trusts are not deposits and are subject to investment risk, including the possible loss of the principal amount invested. Please read the <a href="#">Prospectus</a> and <a href="#">Product Highlights Sheet</a> before placing a bid.</p>
+      </section>
+    </div>
+
+    <section class="info" aria-label="Why invest with Fund360">
+      <div class="item">
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h16M6 15V9m4 6V5m4 10v-4m4 4V7"/></svg></div>
+        <h3>Curated fund ideas</h3>
+        <p>Fund options are selected by our investment experts across markets and asset classes.</p>
+      </div>
+      <div class="item">
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div>
+        <h3>Pay with cash, CPFIS or SRS</h3>
+        <p>Fund your bid straight from your OCBC account, CPF Investment Account or SRS Account.</p>
+      </div>
+      <div class="item">
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>Same-day placement</h3>
+        <p>Bids before the 3:00pm cut-off are placed the same business day. <a href="#">See dealing calendar</a></p>
+      </div>
+    </section>
+  </main>
+
+  <section class="band">
+    <div class="wrap">
+      <div>
+        <div class="kicker">Ready to invest</div>
+        <h2>Start investing in unit trusts today</h2>
+        <p>Through OCBC Digital or the OCBC app, or visit a branch to speak with an advisor.</p>
+      </div>
+      <a class="btn btn-red" href="#">Invest online</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <a class="logo" href="#" aria-label="OCBC"><span class="mark" aria-hidden="true">O</span><span class="word">OCBC</span></a>
+          <p><strong>Personal Banking</strong><br>You are in Singapore</p>
+        </div>
+        <div>
+          <h4>Useful links</h4>
+          <ul>
+            <li><a href="#">OCBC Online Banking</a></li>
+            <li><a href="#">ATM and Branch locator</a></li>
+            <li><a href="#">Help and Support</a></li>
+            <li><a href="#">Important Documents</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Banking</h4>
+          <ul>
+            <li><a href="#">Premier Banking</a></li>
+            <li><a href="#">Business Banking</a></li>
+            <li><a href="#">OCBC Group</a></li>
+            <li><a href="#">Report Vulnerability</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Get in touch with us</h4>
+          <ul>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">+65 6363 3333</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot-legal">
+        <span>&copy; Copyright 2004 &ndash; 2026 OCBC. All Rights Reserved. Co. Reg. No.: 193200032W</span>
+        <span><a href="#">Conditions of Access</a> &nbsp;&middot;&nbsp; <a href="#">Policies</a> &nbsp;&middot;&nbsp; <a href="#">Notices</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const fundSelect = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const fundCards = Array.from(document.querySelectorAll('#fundList .fund'));
+    const sgd = (n) => 'S$' + n.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function selectedCard() {
+      return fundCards.find((c) => c.dataset.fund === fundSelect.value) || fundCards[0];
+    }
+    function renderSummary() {
+      const card = selectedCard();
+      const nav = parseFloat(card.dataset.nav);
+      const amount = parseFloat(amountInput.value) || 0;
+      fundCards.forEach((c) => { const on = c === card; c.classList.toggle('selected', on); c.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      document.getElementById('sumNav').textContent = 'S$' + nav.toLocaleString('en-SG', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+      document.getElementById('sumUnits').textContent = nav > 0 ? (amount / nav).toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+      document.getElementById('sumTotal').textContent = sgd(amount);
+    }
+    fundCards.forEach((c) => {
+      const pick = () => { fundSelect.value = c.dataset.fund; renderSummary(); };
+      c.addEventListener('click', pick);
+      c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+    });
+    fundSelect.addEventListener('change', renderSummary);
+    amountInput.addEventListener('input', renderSummary);
+    document.getElementById('transferForm').addEventListener('reset', () => setTimeout(renderSummary, 0));
+    renderSummary();
+
+    function showResult(result, state, title, detail) {
+      result.className = 'result-box ' + state;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const fundName = selectedCard().dataset.name;
+      btn.disabled = true; btn.textContent = 'Placing bid...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult(result, 'error', 'Your bid could not be placed', 'We were unable to place your bid right now. No amount has been debited. Please try again in a few minutes or call +65 6363 3333.');
+        } else {
+          showResult(result, 'success', 'Bid placed', `Your bid of ${sgd(parseFloat(data.debitAmount))} for ${fundName} has been received (ref ${data.transferId}). Units will be allotted at the next dealing NAV.`);
+        }
+      } catch (err) {
+        showResult(result, 'error', 'Connection problem', 'We could not reach Fund360. Please check your connection and try again.');
+      } finally { btn.disabled = false; btn.textContent = 'Place bid'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
