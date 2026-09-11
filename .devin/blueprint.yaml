@@ -1,14 +1,13 @@
-# https://docs.devin.ai/onboard-devin/environment-yaml
+# Install project dependencies (runs during builds, surfaced to agent at session start).
 maintenance: |
   npm install
-  (cd standing-service/template && npm install)
 knowledge:
   - name: lint
     contents: |
       npm run lint
   - name: test
     contents: |
-      npm test  # tests/automations-demo.test.js has 1 pre-existing failure on main
+      npm test  # tests/incident-lab-datadog.test.js is timing-sensitive and can fail under full-suite load; it passes when run alone (npx jest tests/incident-lab-datadog.test.js)
   - name: start
     contents: |
       cp -n .env.example .env && npm start  # Express app on port 3000; curl localhost:3000/health
