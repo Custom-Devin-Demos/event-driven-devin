@@ -78,6 +78,7 @@
     .fund { display: grid; grid-template-columns: 1fr auto; gap: 8px 18px; padding: 16px 26px; border-bottom: 1px solid var(--oc-line); cursor: pointer; position: relative; }
     .fund:last-of-type { border-bottom: 0; }
     .fund:hover { background: #FAFBFB; }
+    .fund[aria-disabled="true"] { cursor: not-allowed; opacity: 0.7; }
     .fund.selected { box-shadow: inset 4px 0 0 var(--oc-red); background: #FFF7F7; }
     .fund .name { font-weight: 700; font-size: 16px; }
     .fund .name .code { font-weight: 400; color: var(--oc-muted); font-size: 13px; margin-left: 8px; }
@@ -380,6 +381,7 @@
     const accountSelect = document.getElementById('fromAccount');
     const tierSelect = document.getElementById('accountTier');
     const accountOptions = Array.from(accountSelect.options);
+    let submitting = false;
     const salesCharge = (amount, tier) => (tier === 'premium' || amount <= 0) ? 0 : Math.max(amount * 0.001, 2.5);
     const fundCards = Array.from(document.querySelectorAll('#fundList .fund'));
     const sgd = (n) => 'S$' + n.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -402,7 +404,7 @@
       document.getElementById('sumTotal').textContent = sgd(amount + fee);
     }
     fundCards.forEach((c) => {
-      const pick = () => { fundSelect.value = c.dataset.fund; renderSummary(); };
+      const pick = () => { if (submitting) return; fundSelect.value = c.dataset.fund; renderSummary(); };
       c.addEventListener('click', pick);
       c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
     });
@@ -426,8 +428,9 @@
       const fundName = selectedCard().dataset.name;
       const bidAmount = parseFloat(amountInput.value);
       const fields = [fundSelect, accountSelect, amountInput, tierSelect];
+      submitting = true;
       fields.forEach((f) => { f.disabled = true; });
-      fundCards.forEach((c) => { c.style.pointerEvents = 'none'; });
+      fundCards.forEach((c) => { c.setAttribute('aria-disabled', 'true'); });
       btn.disabled = true; btn.textContent = 'Placing bid...';
       result.className = 'result-box';
       try {
@@ -445,7 +448,8 @@
         showResult(result, 'error', 'Connection problem', 'We could not reach Fund360. Please check your connection and try again.');
       } finally {
         fields.forEach((f) => { f.disabled = false; });
-        fundCards.forEach((c) => { c.style.pointerEvents = ''; });
+        submitting = false;
+        fundCards.forEach((c) => { c.removeAttribute('aria-disabled'); });
         btn.disabled = false; btn.textContent = 'Place bid';
       }
     });
