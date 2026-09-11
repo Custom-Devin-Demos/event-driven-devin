@@ -185,6 +185,30 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CYERA SITE — internal demo only, not affiliated with, endorsed by, or a real Cyera product.',
   },
+  'cbb43fd1': {
+    slug: 'cbb43fd1',
+    company: 'Celonis',
+    brandMark: 'C',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cbb43fd1.html',
+      title: 'Celonis — Team Administration',
+    },
+    accent: '#5CFE50',
+    accentDark: '#3fd634',
+    theme: {
+      '--accent': '#3fd634',
+      '--ink': '#111111',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Celonis Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CELONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Celonis product.',
+  },
   '71dff37b': {
     slug: '71dff37b',
     company: 'Point72',
