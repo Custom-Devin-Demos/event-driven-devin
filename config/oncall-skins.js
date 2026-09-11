@@ -1311,6 +1311,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Parallel Support',
     disclaimer: 'NOT ACTUALLY A PARALLEL SITE — internal demo only, not affiliated with, endorsed by, or a real Parallel Web Systems product.',
   },
+  'b96d078d': {
+    slug: 'b96d078d',
+    company: 'Bloomberg Law',
+    brandMark: 'BL',
+    vertical: 'hightech',
+    page: { file: 'b96d078d.html', title: 'Add users | Firm Administration – Bloomberg Law' },
+    theme: {
+      '--accent': '#0073FF',
+      '--ink': '#232323',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Bloomberg Law Help Desk',
+    disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
+  },
 };
 
 function getOncallSkin(slug) {
