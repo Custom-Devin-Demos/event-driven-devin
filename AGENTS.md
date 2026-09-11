@@ -36,6 +36,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Morgan Stanley Wealth Management** (unlisted — direct URL only) | `/morganstanley`, `/c7d11cb8` | `app/public/verticals/c7d11cb8.html` | `POST /api/c7d11cb8/rebalance` | `app/services/verticals/c7d11cb8.js` |
 | **Ping Identity — PingOne Environment Provisioning** (unlisted — direct URL only) | `/pingidentity`, `/81deeb2e` | `app/public/verticals/81deeb2e.html` | `POST /api/81deeb2e/environments` | `app/services/verticals/81deeb2e.js` |
 | **Carvana — Checkout & Financing** (unlisted — direct URL only) | `/carvana`, `/fd7f4e04` | `app/public/verticals/fd7f4e04.html` | `POST /api/fd7f4e04/orders` | `app/services/verticals/fd7f4e04.js` |
+| **Aravia Therapeutics — Patient Access Portal** (fictional brand, unlisted — direct URL only) | `/patient-access`, `/fcf0f903` | `app/public/verticals/fcf0f903.html` | `POST /api/fcf0f903/enrollment`, `POST /api/fcf0f903/copay-estimate` | `app/services/verticals/fcf0f903.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
@@ -167,6 +168,21 @@ The defect is deliberately left in place so Devin performs the field-migration f
 
 - **`scripts/6f43e66c-limits-audit.js` is the prevention control** (`npm run audit:zelle`) — it probes both real service paths for every funding account and exits non-zero for unresolved or downgraded profiles. It is not wired into CI, which is why this shipped.
 - `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius, ServiceNow incident blast radius, and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'`.
+
+### Aravia Patient Access field-migration scenario (fcf0f903, /patient-access)
+
+The Aravia Therapeutics Patient Access vertical (`/fcf0f903`, `/patient-access`) is a customer-neutral life-sciences skin — a fictional specialty-pharma brand, no real company assets — that mirrors the Zelle shape: one field-migration gap with two consumers, in the domain of copay-assistance enrollment for a specialty therapy.
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `submitEnrollment()` | Reads the pre-FY26 `patient.coverageTier` field, resolves no benefit and throws while dereferencing it (`assertAssistanceCoverage`) | HTTP 500 `TypeError` → Sentry → Slack → Devin session → ServiceNow |
+| `estimateCopay()` | Reads the pre-FY26 field and falls back to `commercial-standard`, so Specialty Commercial ($10) and Foundation Assistance ($0) patients are quoted the $150 Standard copay and told they are not assistance-eligible | HTTP 200 with no Sentry/Devin alert; `copay_estimate.quoted` carries `tier:Standard` on patients whose verified tier is not Standard |
+
+The silent half is the point: the crash is what pages you; the quiet quote is what harms patients. The defect is deliberately left in place so Devin performs the field-migration fix live. The FY26 benefits refresh moved the verified tier to `patient.coverage.tier` in `app/services/verticals/fcf0f903-patients.js`, but both consumers in `app/services/verticals/fcf0f903.js` still read the old location; only the enrollment path crashes. To run the demo pre-fixed, point both resolvers at `patient.coverage.tier` (ideally through one shared resolver that throws when a tier cannot be resolved).
+
+- **`scripts/fcf0f903-copay-audit.js` is the prevention control** (`npm run audit:copay`) — it resolves the benefit for every patient record through both real service paths and exits non-zero for unresolved or silently downgraded tiers. It is not wired into `npm test`/CI, which is why this shipped; wiring it in is the demo's prevention workstream.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius (incl. the silent estimate consumer), ServiceNow incident blast radius in assignment group "Patient Access Platform Engineering", and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'` in `config/customers/fcf0f903.js`.
+- Regression coverage for both paths lives in `tests/fcf0f903-enrollment.test.js` and `tests/fcf0f903-copay-estimate.test.js`; the estimate tests pin the current Standard fallback and must be updated when the defect is fixed.
 
 ### Incident Lab (evolving-incident demo)
 

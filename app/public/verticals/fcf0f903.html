@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Aravia Therapeutics — Patient Access Portal | Copay Assistance Enrollment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --a-teal: #0f6e78;
+      --a-teal-deep: #0a5058;
+      --a-teal-soft: #e3f2f3;
+      --a-plum: #4b2a63;
+      --a-ink: #16222b;
+      --a-slate: #4d5a66;
+      --a-line: #d9e1e6;
+      --a-mist: #f4f7f8;
+      --a-amber: #b9760f;
+      --a-green: #2c7a4b;
+      --a-red: #b3261e;
+      --radius: 14px;
+      --shadow: 0 10px 30px rgba(22, 34, 43, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-size: 16px; line-height: 1.55; color: var(--a-ink); background: #fff;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3 { font-family: "Source Serif 4", Georgia, serif; font-weight: 600; margin: 0; }
+    a { color: var(--a-teal); }
+    img { display: block; max-width: 100%; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+    /* ---------- Header ---------- */
+    .topbar { background: var(--a-plum); color: #fff; font-size: 13px; }
+    .topbar .container { display: flex; justify-content: space-between; align-items: center; height: 36px; }
+    .topbar a { color: #fff; text-decoration: none; margin-left: 22px; opacity: .9; }
+    .topbar a:hover { opacity: 1; text-decoration: underline; }
+    .site-header { border-bottom: 1px solid var(--a-line); background: #fff; position: sticky; top: 0; z-index: 40; }
+    .site-header .container { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--a-ink); }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--a-teal) 0%, var(--a-plum) 100%);
+      display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 20px; font-family: "Source Serif 4", Georgia, serif;
+    }
+    .brand-text { line-height: 1.1; }
+    .brand-text strong { display: block; font-family: "Source Serif 4", Georgia, serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+    .brand-text span { display: block; font-size: 12px; color: var(--a-slate); letter-spacing: .08em; text-transform: uppercase; }
+    .main-nav { display: flex; gap: 30px; }
+    .main-nav a { color: var(--a-ink); text-decoration: none; font-size: 15px; font-weight: 500; padding: 26px 0; border-bottom: 3px solid transparent; }
+    .main-nav a.active { border-bottom-color: var(--a-teal); color: var(--a-teal); }
+    .header-cta {
+      display: inline-flex; align-items: center; height: 42px; padding: 0 20px; border-radius: 999px;
+      background: var(--a-teal); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px;
+    }
+    .header-cta:hover { background: var(--a-teal-deep); }
+
+    /* ---------- Hero ---------- */
+    .hero { background: var(--a-mist); }
+    .hero .container { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; padding-top: 64px; padding-bottom: 64px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--a-teal); margin-bottom: 18px; }
+    .eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--a-teal); }
+    .hero h1 { font-size: 46px; line-height: 1.12; letter-spacing: -0.015em; margin-bottom: 18px; }
+    .hero h1 em { font-style: normal; color: var(--a-teal); }
+    .hero p.lede { font-size: 18px; color: var(--a-slate); margin: 0 0 28px; max-width: 540px; }
+    .hero-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 24px; border-radius: 999px; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; text-decoration: none; border: 1.5px solid transparent; transition: background .15s, color .15s; }
+    .btn-primary { background: var(--a-teal); color: #fff; }
+    .btn-primary:hover { background: var(--a-teal-deep); }
+    .btn-outline { background: #fff; color: var(--a-teal); border-color: var(--a-teal); }
+    .btn-outline:hover { background: var(--a-teal-soft); }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .hero-figure { position: relative; }
+    .hero-figure img { width: 100%; height: 440px; object-fit: cover; object-position: center center; border-radius: 24px; box-shadow: var(--shadow); }
+    .hero-badge { position: absolute; left: -22px; bottom: 28px; background: #fff; border-radius: 14px; padding: 14px 18px; box-shadow: var(--shadow); display: flex; gap: 12px; align-items: center; }
+    .hero-badge .num { font-family: "Source Serif 4", Georgia, serif; font-size: 28px; font-weight: 600; color: var(--a-teal); line-height: 1; }
+    .hero-badge .lbl { font-size: 13px; color: var(--a-slate); line-height: 1.3; }
+
+    /* ---------- Trust strip ---------- */
+    .trust { border-bottom: 1px solid var(--a-line); }
+    .trust .container { display: flex; justify-content: space-between; gap: 24px; padding: 22px 32px; }
+    .trust div { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--a-slate); }
+    .trust svg { width: 20px; height: 20px; color: var(--a-teal); flex: none; }
+
+    /* ---------- Enrollment workspace ---------- */
+    .workspace { padding: 64px 0; }
+    .workspace .container { display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--a-line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card-head { padding: 26px 30px 0; }
+    .card-head h2 { font-size: 28px; letter-spacing: -0.01em; margin-bottom: 6px; }
+    .card-head p { margin: 0; color: var(--a-slate); font-size: 15px; }
+    .steps { display: flex; gap: 8px; margin: 22px 30px 0; }
+    .step { flex: 1; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--a-slate); padding-top: 10px; border-top: 3px solid var(--a-line); }
+    .step.done { border-top-color: var(--a-teal); color: var(--a-teal); }
+    .step.current { border-top-color: var(--a-plum); color: var(--a-plum); }
+    form.enroll { padding: 26px 30px 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 22px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { font-size: 13px; font-weight: 600; color: var(--a-ink); }
+    .field select, .field input[type="number"] {
+      height: 48px; padding: 0 14px; font: inherit; font-size: 15px; color: var(--a-ink);
+      border: 1.5px solid #b9c4cc; border-radius: 10px; background: #fff; width: 100%;
+    }
+    .field select:focus, .field input:focus { outline: 2px solid var(--a-teal); outline-offset: 1px; border-color: var(--a-teal); }
+    .field .hint { font-size: 12.5px; color: var(--a-slate); }
+    .consent { grid-column: 1 / -1; display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; background: var(--a-mist); border-radius: 10px; font-size: 13.5px; color: var(--a-slate); }
+    .consent input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--a-teal); flex: none; }
+    .actions { grid-column: 1 / -1; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+    .actions .fine { font-size: 12.5px; color: var(--a-slate); width: 100%; }
+
+    /* Patient context */
+    .context-card { padding: 24px 26px; }
+    .context-card h3 { font-size: 20px; margin-bottom: 14px; }
+    .kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px 14px; font-size: 14px; }
+    .kv dt { color: var(--a-slate); margin: 0; }
+    .kv dd { margin: 0; font-weight: 500; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--a-teal-soft); color: var(--a-teal-deep); }
+
+    /* Estimate panel */
+    .estimate { padding: 24px 26px; margin-top: 20px; background: linear-gradient(160deg, #fff 0%, var(--a-teal-soft) 100%); }
+    .estimate h3 { font-size: 20px; margin-bottom: 4px; }
+    .estimate p.sub { margin: 0 0 18px; font-size: 14px; color: var(--a-slate); }
+    .estimate-empty { border: 1.5px dashed #b9c4cc; border-radius: 10px; padding: 22px; text-align: center; color: var(--a-slate); font-size: 14px; }
+    .quote { display: none; }
+    .quote.show { display: block; }
+    .quote .big { font-family: "Source Serif 4", Georgia, serif; font-size: 44px; font-weight: 600; color: var(--a-teal-deep); line-height: 1; }
+    .quote .big small { font-family: Inter, sans-serif; font-size: 14px; font-weight: 500; color: var(--a-slate); margin-left: 6px; }
+    .quote .rows { margin-top: 16px; border-top: 1px solid var(--a-line); }
+    .quote .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--a-line); font-size: 14px; }
+    .quote .row span:last-child { font-weight: 600; }
+    .quote .tier-note { margin-top: 12px; font-size: 13px; color: var(--a-slate); }
+    .quote .tier-note.warn { color: var(--a-amber); }
+
+    /* Result box */
+    .result-box { display: none; grid-column: 1 / -1; margin-top: 4px; padding: 16px 18px; border-radius: 10px; font-size: 15px; line-height: 1.45; }
+    .result-box.error { display: block; background: #fdf1f0; border: 1px solid var(--a-red); border-left-width: 6px; }
+    .result-box.success { display: block; background: #eef8f1; border: 1px solid var(--a-green); border-left-width: 6px; }
+    .result-title { font-weight: 700; margin-bottom: 4px; }
+    .result-detail { color: var(--a-slate); }
+    .result-ref { margin-top: 6px; font-size: 13px; color: var(--a-slate); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* ---------- How it works ---------- */
+    .how { background: var(--a-mist); padding: 72px 0; }
+    .how h2 { font-size: 34px; text-align: center; letter-spacing: -0.01em; margin-bottom: 10px; }
+    .how p.center { text-align: center; color: var(--a-slate); margin: 0 auto 44px; max-width: 620px; }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .how-card { background: #fff; border-radius: var(--radius); padding: 28px; border: 1px solid var(--a-line); }
+    .how-card .n { width: 36px; height: 36px; border-radius: 50%; background: var(--a-plum); color: #fff; display: grid; place-items: center; font-weight: 700; margin-bottom: 16px; }
+    .how-card h3 { font-size: 20px; margin-bottom: 8px; }
+    .how-card p { margin: 0; color: var(--a-slate); font-size: 15px; }
+
+    /* ---------- Feature split ---------- */
+    .split { padding: 72px 0; }
+    .split .container { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .split img { width: 100%; height: 380px; object-fit: cover; object-position: center center; border-radius: 24px; box-shadow: var(--shadow); }
+    .split h2 { font-size: 34px; letter-spacing: -0.01em; margin-bottom: 14px; }
+    .split p { color: var(--a-slate); margin: 0 0 14px; }
+    .split ul { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .split li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; }
+    .split li svg { width: 20px; height: 20px; color: var(--a-teal); flex: none; margin-top: 2px; }
+
+    /* ---------- Footer ---------- */
+    .footer { background: var(--a-ink); color: #c7d0d7; padding: 48px 0 28px; font-size: 13.5px; }
+    .footer .container { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+    .footer h4 { color: #fff; font-size: 14px; margin: 0 0 12px; }
+    .footer a { color: #c7d0d7; text-decoration: none; display: block; margin-bottom: 8px; }
+    .footer a:hover { color: #fff; text-decoration: underline; }
+    .footer .legal { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,.12); padding-top: 22px; margin-top: 12px; font-size: 12.5px; line-height: 1.6; color: #97a4ae; }
+
+    @media (max-width: 960px) {
+      .main-nav, .topbar { display: none; }
+      .hero .container, .workspace .container, .split .container { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 36px; }
+      .hero-figure img { height: 300px; }
+      .hero-badge { left: 12px; }
+      .how-grid { grid-template-columns: 1fr; }
+      form.enroll { grid-template-columns: 1fr; }
+      .trust .container { flex-direction: column; }
+      .footer .container { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <span>Aravia Patient Access Hub &middot; Mon–Fri 8am–8pm ET &middot; 1-800-555-0142</span>
+      <span><a href="#">For healthcare professionals</a><a href="#">Prescribing information</a><a href="#">En español</a></span>
+    </div>
+  </div>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="#">
+        <span class="brand-mark">A</span>
+        <span class="brand-text"><strong>Aravia Therapeutics</strong><span>Patient Access Portal</span></span>
+      </a>
+      <nav class="main-nav">
+        <a href="#">Our therapies</a>
+        <a href="#" class="active">Copay assistance</a>
+        <a href="#">Benefits verification</a>
+        <a href="#">Specialty pharmacy</a>
+        <a href="#">Resources</a>
+      </nav>
+      <a class="header-cta" href="#">Sign in</a>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero">
+      <div class="container">
+        <div>
+          <div class="eyebrow">Aravia Copay Savings Program</div>
+          <h1>Start therapy without <em>waiting on the cost</em> question.</h1>
+          <p class="lede">Verify your coverage, see what you can expect to pay per fill and enroll in copay assistance in one visit — most eligible commercially insured patients pay as little as $0–$10 a month.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#enroll">Enroll in copay assistance</a>
+            <a class="btn btn-outline" href="#how">How the program works</a>
+          </div>
+        </div>
+        <div class="hero-figure">
+          <img src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1400&q=80"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1400&q=80';"
+               alt="A clinician reviewing an enrollment form with a patient">
+          <div class="hero-badge">
+            <div class="num">$0–$10</div>
+            <div class="lbl">per 30-day fill for<br>eligible patients</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust">
+      <div class="container">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>HIPAA-compliant enrollment</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Benefits verified in under 48 hours</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Dedicated access coordinator</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6.2"/><path d="M16 3h5v5"/><path d="M21 3l-9 9"/></svg>Ships from network specialty pharmacies</div>
+      </div>
+    </section>
+
+    <section class="workspace" id="enroll">
+      <div class="container">
+        <div class="card">
+          <div class="card-head">
+            <h2>Copay-assistance enrollment</h2>
+            <p>Select the patient record from benefits investigation and the prescribed therapy. We’ll confirm the program tier and generate the enrollment.</p>
+          </div>
+          <div class="steps">
+            <div class="step done">1 · Benefits verified</div>
+            <div class="step done">2 · Prescriber confirmed</div>
+            <div class="step current">3 · Copay assistance</div>
+            <div class="step">4 · Pharmacy dispatch</div>
+          </div>
+          <form id="enrollForm" class="enroll" autocomplete="off">
+            <div class="field full">
+              <label for="patientId">Patient record</label>
+              <select id="patientId" name="patientId" required></select>
+              <span class="hint" id="patientHint"></span>
+            </div>
+            <div class="field">
+              <label for="therapyId">Prescribed therapy</label>
+              <select id="therapyId" name="therapyId" required></select>
+              <span class="hint" id="therapyHint"></span>
+            </div>
+            <div class="field">
+              <label for="fills">Fills to estimate</label>
+              <input id="fills" name="fills" type="number" min="1" max="12" step="1" value="3">
+              <span class="hint">30-day fills used for the copay estimate only.</span>
+            </div>
+            <label class="consent">
+              <input type="checkbox" id="consent" checked>
+              <span>I authorize Aravia Therapeutics and its patient-access partners to use the information above to verify my benefits and enroll me in the Aravia Copay Savings Program or Aravia Cares Foundation, as applicable. <a href="#">Program terms</a>.</span>
+            </label>
+            <div class="actions">
+              <button type="button" id="estimateBtn" class="btn btn-outline">Estimate my copay</button>
+              <button type="submit" id="enrollBtn" class="btn btn-primary">Submit enrollment</button>
+              <span class="fine">Copay assistance is not insurance and is not available to patients enrolled in Medicare, Medicaid or other government programs.</span>
+            </div>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+
+        <aside>
+          <div class="card context-card">
+            <h3>Patient &amp; therapy context</h3>
+            <dl class="kv">
+              <dt>Patient</dt><dd id="ctxName">—</dd>
+              <dt>Date of birth</dt><dd id="ctxDob">—</dd>
+              <dt>Prescriber</dt><dd id="ctxPrescriber">—</dd>
+              <dt>Plan on file</dt><dd id="ctxPlan">—</dd>
+              <dt>Therapy</dt><dd id="ctxTherapy">—</dd>
+              <dt>Indication</dt><dd id="ctxIndication">—</dd>
+              <dt>List price</dt><dd id="ctxPrice">—</dd>
+              <dt>Status</dt><dd><span class="pill">Benefits verified</span></dd>
+            </dl>
+          </div>
+          <div class="card estimate">
+            <h3>Copay estimate</h3>
+            <p class="sub">Your expected out-of-pocket cost under the program tier on file.</p>
+            <div class="estimate-empty" id="estimateEmpty">Choose a patient and therapy, then select <strong>Estimate my copay</strong>.</div>
+            <div class="quote" id="quote">
+              <div class="big"><span id="qCopay">$0</span><small>per 30-day fill</small></div>
+              <div class="rows">
+                <div class="row"><span>Program tier</span><span id="qTier">—</span></div>
+                <div class="row"><span>Assistance eligible</span><span id="qEligible">—</span></div>
+                <div class="row"><span>List price per fill</span><span id="qList">—</span></div>
+                <div class="row"><span id="qFillsLabel">You pay (3 fills)</span><span id="qPatientPays">—</span></div>
+                <div class="row"><span>Program pays</span><span id="qProgramPays">—</span></div>
+              </div>
+              <div class="tier-note" id="qNote"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="container">
+        <h2>How the Aravia Copay Savings Program works</h2>
+        <p class="center">One enrollment covers benefits verification, copay assistance and coordination with your specialty pharmacy — so therapy starts on the date your prescriber intended.</p>
+        <div class="how-grid">
+          <div class="how-card">
+            <div class="n">1</div>
+            <h3>Verify benefits</h3>
+            <p>Your access coordinator confirms coverage with your plan and PBM and places your record in the program tier it qualifies for.</p>
+          </div>
+          <div class="how-card">
+            <div class="n">2</div>
+            <h3>Enroll in assistance</h3>
+            <p>Commercially insured patients enroll in the Copay Savings Program; uninsured and underinsured patients are referred to the Aravia Cares Foundation.</p>
+          </div>
+          <div class="how-card">
+            <div class="n">3</div>
+            <h3>Fill with confidence</h3>
+            <p>Your specialty pharmacy applies the benefit at the counter. Annual caps and reverification dates are tracked for you.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="split">
+      <div class="container">
+        <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=1200&q=80"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=1200&q=80';"
+             alt="Specialty medication blister packs">
+        <div>
+          <h2>Specialty therapies, supported end to end</h2>
+          <p>Veltrixa®, Nuvexa® and Corvalis® are dispensed through a limited network of specialty pharmacies. The Patient Access Hub coordinates prior authorization, appeals and shipment so nothing falls between your prescriber, your plan and your pharmacy.</p>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Prior authorization and appeals handled by your coordinator</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Bridge supply while coverage decisions are pending</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Nurse support line for administration and side-effect questions</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="split" style="padding-top:0">
+      <div class="container">
+        <div>
+          <h2>Science first. Access always.</h2>
+          <p>Aravia Therapeutics develops targeted therapies in oncology, immunology and rare disease. Every launch ships with a patient-access program on day one, because a therapy a patient cannot afford is a therapy that does not work.</p>
+          <p>The Aravia Cares Foundation has provided more than 40,000 patient-years of therapy at no cost since 2018.</p>
+        </div>
+        <img src="https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=1200&q=80"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1200&q=80';"
+             alt="A researcher working at a laboratory bench">
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div>
+        <h4>Aravia Therapeutics</h4>
+        <p style="margin:0 0 10px">Patient Access Hub<br>1-800-555-0142 &middot; access@aravia.example</p>
+        <p style="margin:0">Mon–Fri 8am–8pm ET</p>
+      </div>
+      <div>
+        <h4>Patients</h4>
+        <a href="#">Copay assistance</a><a href="#">Aravia Cares Foundation</a><a href="#">Specialty pharmacy network</a><a href="#">Nurse support</a>
+      </div>
+      <div>
+        <h4>Providers</h4>
+        <a href="#">Start form &amp; enrollment</a><a href="#">Prior authorization</a><a href="#">Prescribing information</a><a href="#">Medical information</a>
+      </div>
+      <div>
+        <h4>Company</h4>
+        <a href="#">About Aravia</a><a href="#">Pipeline</a><a href="#">Privacy notice</a><a href="#">Terms of use</a>
+      </div>
+      <div class="legal">
+        Aravia Therapeutics, Veltrixa, Nuvexa, Corvalis and the Aravia Cares Foundation are fictional names used for demonstration purposes only and do not refer to any real company, product or program. Copay assistance program terms, eligibility and annual maximums are subject to change. Not valid for prescriptions reimbursed in whole or in part by Medicare, Medicaid, TRICARE or any other federal or state program. &copy; <span id="fullyear"></span> Aravia Therapeutics. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    // Falls back to the server-side identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    var DEVIN_USER_ID_FALLBACK = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
+
+    document.getElementById('fullyear').textContent = new Date().getFullYear();
+
+    var patientSelect = document.getElementById('patientId');
+    var therapySelect = document.getElementById('therapyId');
+    var fillsInput = document.getElementById('fills');
+    var context = { patients: [], therapies: [] };
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function identity() {
+      return {
+        devinUserId: localStorage.getItem('devinUserId') || DEVIN_USER_ID_FALLBACK,
+        devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+    }
+
+    function showResult(kind, title, detail, ref) {
+      var box = document.getElementById('result');
+      box.className = 'result-box ' + kind;
+      box.textContent = '';
+      [['result-title', title], ['result-detail', detail], ['result-ref', ref]].forEach(function (pair) {
+        if (!pair[1]) return;
+        var el = document.createElement('div');
+        el.className = pair[0];
+        el.textContent = pair[1];
+        box.appendChild(el);
+      });
+    }
+
+    function selected() {
+      return {
+        patient: context.patients.filter(function (p) { return p.id === patientSelect.value; })[0],
+        therapy: context.therapies.filter(function (t) { return t.id === therapySelect.value; })[0],
+      };
+    }
+
+    function renderContext() {
+      var s = selected();
+      document.getElementById('patientHint').textContent = s.patient ? 'Plan on file: ' + s.patient.plan : '';
+      document.getElementById('therapyHint').textContent = s.therapy ? s.therapy.indication + ' \u00b7 list price ' + money(s.therapy.listPrice) + ' per fill' : '';
+      document.getElementById('ctxName').textContent = s.patient ? s.patient.name : '\u2014';
+      document.getElementById('ctxDob').textContent = s.patient ? s.patient.dateOfBirth : '\u2014';
+      document.getElementById('ctxPrescriber').textContent = s.patient ? s.patient.prescriber : '\u2014';
+      document.getElementById('ctxPlan').textContent = s.patient ? s.patient.plan : '\u2014';
+      document.getElementById('ctxTherapy').textContent = s.therapy ? s.therapy.name : '\u2014';
+      document.getElementById('ctxIndication').textContent = s.therapy ? s.therapy.indication : '\u2014';
+      document.getElementById('ctxPrice').textContent = s.therapy ? money(s.therapy.listPrice) + ' / fill' : '\u2014';
+      document.getElementById('estimateEmpty').style.display = '';
+      document.getElementById('quote').classList.remove('show');
+    }
+
+    function renderQuote(q) {
+      document.getElementById('estimateEmpty').style.display = 'none';
+      document.getElementById('quote').classList.add('show');
+      document.getElementById('qCopay').textContent = money(q.patientCopay);
+      document.getElementById('qTier').textContent = q.tier;
+      document.getElementById('qEligible').textContent = q.assistanceEligible ? 'Yes' : 'No';
+      document.getElementById('qList').textContent = money(q.listPrice);
+      document.getElementById('qFillsLabel').textContent = 'You pay (' + q.fills + ' fill' + (q.fills === 1 ? '' : 's') + ')';
+      document.getElementById('qPatientPays').textContent = money(q.patientPays);
+      document.getElementById('qProgramPays').textContent = money(q.programPays);
+      var note = document.getElementById('qNote');
+      note.className = 'tier-note' + (q.assistanceEligible ? '' : ' warn');
+      note.textContent = q.assistanceEligible
+        ? 'Quoted under the ' + q.tier + ' tier on file for ' + q.plan + '.'
+        : 'This therapy is not assistance-eligible under the ' + q.tier + ' tier on file for ' + q.plan + '. Talk to your access coordinator about the Aravia Cares Foundation.';
+    }
+
+    async function loadContext() {
+      var res = await fetch('/api/fcf0f903/context');
+      context = await res.json();
+      patientSelect.textContent = '';
+      context.patients.forEach(function (p) {
+        patientSelect.appendChild(new Option(p.name + ' \u2014 ' + p.plan, p.id));
+      });
+      therapySelect.textContent = '';
+      context.therapies.forEach(function (t) {
+        therapySelect.appendChild(new Option(t.name, t.id));
+      });
+      renderContext();
+    }
+
+    patientSelect.addEventListener('change', renderContext);
+    therapySelect.addEventListener('change', renderContext);
+
+    document.getElementById('estimateBtn').addEventListener('click', async function () {
+      var button = this;
+      var s = selected();
+      button.disabled = true;
+      button.textContent = 'Estimating\u2026';
+      document.getElementById('result').className = 'result-box';
+      try {
+        var res = await fetch('/api/fcf0f903/copay-estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({
+            patientId: patientSelect.value,
+            therapyId: therapySelect.value,
+            fills: parseInt(fillsInput.value, 10) || 1,
+          }, identity())),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showResult('error', 'We couldn\u2019t estimate this copay',
+            data.error || 'Estimate could not be completed',
+            (data.errorClass || 'Error') + (data.code ? ' [' + data.code + ']' : ''));
+        } else {
+          renderQuote(data);
+        }
+      } catch (err) {
+        showResult('error', 'We couldn\u2019t estimate this copay', err.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Estimate my copay';
+        void s;
+      }
+    });
+
+    document.getElementById('enrollForm').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var button = document.getElementById('enrollBtn');
+      var s = selected();
+      button.disabled = true;
+      button.textContent = 'Submitting\u2026';
+      document.getElementById('result').className = 'result-box';
+      try {
+        var res = await fetch('/api/fcf0f903/enrollment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({
+            patientId: patientSelect.value,
+            therapyId: therapySelect.value,
+            consent: document.getElementById('consent').checked,
+          }, identity())),
+        });
+        var data = await res.json();
+        if (!res.ok) {
+          showResult('error', 'We couldn\u2019t complete this enrollment',
+            (s.patient ? s.patient.name + '\u2019s' : 'This') + ' copay-assistance enrollment for '
+              + (s.therapy ? s.therapy.name : 'this therapy') + ' was not created. No benefit has been applied. Your access coordinator has been notified.',
+            (data.errorClass || 'Error') + ': ' + (data.error || 'Enrollment could not be completed')
+              + (data.requestId ? ' \u00b7 Ref ' + data.requestId : ''));
+        } else {
+          showResult('success', data.patient + ' is enrolled \u2014 ' + data.tier + ' tier, ' + money(data.patientCopay) + ' per fill',
+            data.therapy + ' \u00b7 up to ' + money(data.annualBenefit) + ' in annual program benefit under ' + data.plan + '.',
+            'Enrollment ' + data.enrollmentId);
+        }
+      } catch (err) {
+        showResult('error', 'We couldn\u2019t complete this enrollment', err.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Submit enrollment';
+      }
+    });
+
+    loadContext();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
