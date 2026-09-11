@@ -100,27 +100,70 @@ log "backed up ${#EXISTING[@]} top-level entries to $BACKUP"
 ls -1t "$RELEASES_DIR"/*.tgz 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 ls -1t "$RELEASES_DIR"/env.* 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 
+# Mirror one top-level entry from $1 into $APP_DIR. With $3=protect the
+# vertical registries are additive (a staging tree may lack the other repo's
+# demos); a backup is the complete live tree, so rollback mirrors it exactly.
+mirror_entry() {
+  local src=$1 e=$2 mode=${3:-exact} filters=()
+  if [ -d "$src/$e" ]; then
+    if [ "$mode" = protect ] && [ "$e" = app ]; then
+      for p in "${PROTECTED_APP[@]}"; do filters+=(--filter="P /$p/**"); done
+    elif [ "$mode" = protect ] && [ "$e" = config ]; then
+      for p in "${PROTECTED_CONFIG[@]}"; do filters+=(--filter="P /$p/**"); done
+    fi
+    rsync -a --delete --exclude=node_modules "${filters[@]}" "$src/$e/" "$APP_DIR/$e/"
+  else
+    cp -a "$src/$e" "$APP_DIR/$e"
+  fi
+}
+
+# 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
+# but a restore step failed, so which release is running is indeterminate.
+# The backup is mirrored back exactly (not overlaid) so files the failed
+# release added are removed too; entries it created from scratch are deleted.
 rollback() {
   log "ROLLING BACK to $BACKUP"
-  tar xzf "$BACKUP" -C "$APP_DIR"
-  cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env"
-  compose build -q checkout-api || true
-  compose up -d --no-deps checkout-api || true
+  local restored=1 tmp e
+  tmp=$(mktemp -d "$RELEASES_DIR/rollback.XXXXXX")
+  if tar xzf "$BACKUP" -C "$tmp"; then
+    for e in "${EXISTING[@]}"; do
+      mirror_entry "$tmp" "$e" || { log "rollback: restore of $e failed"; restored=0; }
+    done
+    for e in "${TOUCHED[@]}"; do
+      [[ " ${EXISTING[*]} " == *" $e "* ]] || rm -rf "$APP_DIR/$e" || { log "rollback: could not remove $e"; restored=0; }
+    done
+  else
+    log "rollback: archive extract failed"; restored=0
+  fi
+  rm -rf "$tmp"
+  cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env" || { log "rollback: .env restore failed"; restored=0; }
+  compose build -q checkout-api || { log "rollback: image rebuild failed"; restored=0; }
+  compose up -d --no-deps checkout-api || { log "rollback: container replace failed"; restored=0; }
   for _ in $(seq 1 40); do
-    [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ] && { log "rollback healthy"; return 0; }
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ]; then
+      [ $restored = 1 ] && { log "rollback healthy"; return 0; }
+      log "rollback: /health is 200 but a restore step failed — running release is indeterminate"
+      return 2
+    fi
     sleep 2
   done
   log "rollback did NOT come back healthy — manual attention required"
   return 1
 }
 fail() {
+  local rc=0 outcome
+  rollback || rc=$?
+  case $rc in
+    0) outcome="Rolled back to release $TS; /health is 200." ;;
+    2) outcome="ROLLBACK INDETERMINATE: /health is 200 but a restore step failed (see run log) — verify which release is running." ;;
+    *) outcome="ROLLBACK DID NOT COME BACK HEALTHY — manual attention required on the host." ;;
+  esac
   notify "[devindemos] deploy from $SOURCE_LABEL FAILED" \
     "Deploy from $SOURCE_LABEL failed: $1
 
-Rolled back to release $TS.
+$outcome
 Host: $(hostname) ($APP_DIR)
 Run log: see the GitHub Actions 'Deploy to EC2' run for this commit."
-  rollback || true
   die "$1"
 }
 
@@ -137,19 +180,7 @@ if [ -n "$LIVE_ONLY" ]; then
 fi
 
 # ── 3. mirror the staging tree into place ───────────────────────────────────
-for e in "${TOUCHED[@]}"; do
-  if [ -d "$STAGING/$e" ]; then
-    FILTERS=()
-    if [ "$e" = app ]; then
-      for p in "${PROTECTED_APP[@]}"; do FILTERS+=(--filter="P /$p/**"); done
-    elif [ "$e" = config ]; then
-      for p in "${PROTECTED_CONFIG[@]}"; do FILTERS+=(--filter="P /$p/**"); done
-    fi
-    rsync -a --delete --exclude=node_modules "${FILTERS[@]}" "$STAGING/$e/" "$APP_DIR/$e/"
-  else
-    cp -a "$STAGING/$e" "$APP_DIR/$e"
-  fi
-done
+for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e" protect; done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
