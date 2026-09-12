@@ -43,6 +43,25 @@
  */
 
 const ONCALL_SKINS = {
+  '5eae08bb': {
+    slug: '5eae08bb',
+    company: 'Tyk',
+    brandMark: 'T',
+    vertical: 'hightech',
+    page: {
+      file: '5eae08bb.html',
+      title: 'Tyk Cloud — Team access',
+    },
+    theme: {
+      '--accent': '#8438FA',
+      '--ink': '#140527',
+      '--surface': '#FEF9FF',
+      '--chrome-bg': '#08051C',
+      '--chrome-text': '#FEF9FF',
+    },
+    supportCenter: 'Tyk Support',
+    disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
+  },
   'cb414550': {
     slug: 'cb414550',
     company: 'Arcadia',
