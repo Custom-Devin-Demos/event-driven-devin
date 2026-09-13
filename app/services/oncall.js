@@ -149,6 +149,26 @@ const ALERT_SCENARIOS = {
     symptom: 'Plan upgrades slowed sharply after the plan-catalog refresh added the legacy/regional plans. Latency scales with catalog size.',
     impact: 'Subscribers wait ~8 seconds on every plan change; upgrade completion rate is dropping.',
   },
+  marketplace: {
+    vertical: 'marketplace',
+    page: '63dbb52f.html',
+    apiPath: '/api/marketplace/cart',
+    oncallApiPath: '/api/oncall/marketplace/cart',
+    owner: 'Nina Brandt (marketplace-checkout-oncall)',
+    brand: 'Marktplatz Storefront (Product Detail)',
+    service: 'cart-api',
+    endpoint: 'POST /api/oncall/marketplace/cart',
+    monitor: '5xx rate — POST /api/oncall/marketplace/cart',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/marketplace/cart,http.status_code:504}',
+    metricValue: '504 on ~100% of add-to-cart requests',
+    threshold: '> 5% error rate',
+    baseline: '<0.4% (7-day)',
+    release: 'marketplace-storefront@1.0.4',
+    symptom: 'Add-to-cart requests hang ~8s and then fail with 504 Gateway Timeout. Stock reservation latency against the seller inventory partner is elevated.',
+    impact: 'Shoppers cannot add marketplace offers to the basket; every add sits on a spinner and then errors.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
@@ -243,6 +263,20 @@ const BUG_CATALOG = {
       label: 'Family plan upgrade crawling',
       sev: 'High',
       text: "My whole family is on the Plus plan and I upgraded us to Ultra last night. Every line I upgraded sat on the confirm screen for close to ten seconds — I honestly thought it was frozen. It did go through eventually, but something is clearly wrong.",
+    },
+  ],
+  marketplace: [
+    {
+      id: 'marketplace-cart-timeout',
+      label: 'Add to cart fails with a timeout',
+      sev: 'High',
+      text: 'Shoppers cannot put marketplace items in the basket. You press add to cart, the button spins for about eight seconds and then an error comes back saying it could not be reserved. Same product, same seller, every attempt.',
+    },
+    {
+      id: 'marketplace-campaign-conversion',
+      label: 'Campaign traffic converting at zero',
+      sev: 'Critical',
+      text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
     },
   ],
   industrials: [

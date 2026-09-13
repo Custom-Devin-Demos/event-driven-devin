@@ -40,9 +40,58 @@
  * ticket in #oncall-bugs (via /api/oncall/bug) instead of posting the
  * monitor-style alert card to #oncall-alerts. templateId must exist in
  * BUG_CATALOG. Two skins can share one page file to offer both flavors.
+ *
+ * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
+ * collapsed dot; rerouting and alert posting are unaffected.
  */
 
 const ONCALL_SKINS = {
+  '63dbb52f': {
+    slug: '63dbb52f',
+    company: 'Kaufland',
+    brandMark: 'K',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    page: {
+      file: '63dbb52f.html',
+      title: 'Philips Airfryer Serie 2000, 4,2l, RapidAir, Digital, schwarz (NA221/00) | Kaufland.de',
+    },
+    accent: '#E10915',
+    accentDark: '#C00811',
+    theme: {
+      '--accent': '#E10915',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#E10915',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Kaufland Kundenservice',
+    supportCenterSub: 'Online-Marktplatz Support',
+    disclaimer: 'NOT ACTUALLY A KAUFLAND SITE — internal demo only, not affiliated with, endorsed by, or a real Kaufland product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'marketplace',
+          label: 'Kaufland Online-Marktplatz \u2014 Warenkorb',
+          persona: { name: 'Lena Hoffmann', email: 'lena.hoffmann@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'marketplace-cart-timeout',
+              label: 'Add to cart fails with a timeout',
+              sev: 'High',
+              text: 'Shoppers cannot put marketplace items in the basket. You press "In den Warenkorb", the button spins for about eight seconds and then an error comes back saying the item could not be reserved. Same product, same seller, every attempt.',
+            },
+            {
+              id: 'marketplace-campaign-conversion',
+              label: 'Campaign traffic converting at zero',
+              sev: 'Critical',
+              text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   '5eae08bb': {
     slug: '5eae08bb',
     company: 'Tyk',

@@ -290,7 +290,7 @@ router.get('/oncall/c/:slug', (req, res, next) => {
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger)}\n${buildSkinBrandShim(skin)}\n</body>`)
+      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger, skin.hideRibbon)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
 });
@@ -358,11 +358,11 @@ router.get('/oncall/report', (_req, res) => {
  * human-style support ticket posted to #oncall-bugs via /api/oncall/bug;
  * the degradation rerouting is identical either way.
  */
-function buildOncallShim(scenario, skinSlug, skinTrigger) {
+function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
   const bugTrigger = skinTrigger && skinTrigger.kind === 'bug' ? skinTrigger : null;
   return `
   <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
-  <div id="oncall-ribbon" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+  <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
     <div style="font-weight:700;color:#f0f6fc;margin-bottom:4px;">Devin On-Call demo</div>
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
       <input type="checkbox" id="oncall-unique" checked style="accent-color:#58a6ff;appearance:auto;-webkit-appearance:checkbox;flex:none;width:13px;min-width:13px;height:13px;min-height:13px;margin:0;padding:0;border:0;border-radius:0;background:none;">
@@ -391,6 +391,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
       // doesn't sit over the customer page; clicking the dot re-expands it.
       var ribbonEl = document.getElementById('oncall-ribbon');
       var dotEl = document.getElementById('oncall-dot');
+      var ribbonHidden = ${JSON.stringify(Boolean(hideRibbon))};
       var ribbonCollapsed = false;
       var collapseTimer = null;
       function scheduleCollapse() {
@@ -401,10 +402,12 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
         collapseTimer = null;
         ribbonCollapsed = true;
         ribbonEl.style.display = 'none';
+        if (ribbonHidden) return;
         dotEl.style.display = 'block';
       }
       function expandRibbon() {
         ribbonCollapsed = false;
+        if (ribbonHidden) return;
         dotEl.title = 'Devin On-Call demo';
         dotEl.style.display = 'none';
         ribbonEl.style.display = 'block';
@@ -533,14 +536,16 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
  * GET /api/oncall/scenarios — available alert scenarios + canned bug reports
  */
 router.get('/api/oncall/scenarios', (_req, res) => {
-  const scenarios = Object.entries(ALERT_SCENARIOS).map(([id, s]) => ({
-    id,
-    brand: s.brand,
-    endpoint: s.endpoint,
-    monitor: s.monitor,
-    symptom: s.symptom,
-    retryWindow: Boolean(s.retryWindow),
-  }));
+  const scenarios = Object.entries(ALERT_SCENARIOS)
+    .filter(([, s]) => !s.unlisted)
+    .map(([id, s]) => ({
+      id,
+      brand: s.brand,
+      endpoint: s.endpoint,
+      monitor: s.monitor,
+      symptom: s.symptom,
+      retryWindow: Boolean(s.retryWindow),
+    }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
   const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({
     product,
