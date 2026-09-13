@@ -1433,7 +1433,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#000000',
       '--chrome-text': '#FFFFFF',
     },
-    devinSession: { auto: true, orgId: 'org_69IXJFLrljx8zSAw' },
+    devinSession: { auto: true },
     supportCenter: 'Nordstrom Customer Care',
     supportCenterSub: 'Online Orders & Shopping Bag',
     disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',

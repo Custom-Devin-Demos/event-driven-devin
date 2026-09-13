@@ -467,30 +467,40 @@ async function triggerSkinDevinSession(scenario, skin, { token, channel, threadT
     return null;
   }
 
+  // Reserve before the async call so concurrent alerts cannot all pass the cap check.
+  const release = reserveSession();
+  let session = null;
   try {
-    const session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
-      orgId: config.orgId || process.env.DEVIN_ORG_ID,
-      apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      userId: config.userId,
+    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
+      orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+      apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
+      userId: process.env.DEVIN_ONCALL_USER_ID,
       title: `[On-Call] ${scenario.monitor}`,
     });
-    if (!session) return null;
+  } catch (error) {
+    logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
+  }
 
-    reserveSession();
-    logger.info('On-Call skin Devin session created', {
-      skin: skin.slug,
-      scenario: scenario.vertical,
-      sessionId: session.sessionId,
-    });
+  if (!session) {
+    release();
+    return null;
+  }
 
+  logger.info('On-Call skin Devin session created', {
+    skin: skin.slug,
+    scenario: scenario.vertical,
+    sessionId: session.sessionId,
+  });
+
+  try {
     await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
       mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
     ]);
-    return session;
   } catch (error) {
-    logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
-    return null;
+    logger.error('On-Call skin session link reply failed', { skin: skin.slug, error: error.message });
   }
+
+  return session;
 }
 
 /**
