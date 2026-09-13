@@ -6,6 +6,7 @@ const { processClaim } = require('../services/oncall-verticals/insurance');
 const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
+const { addToCart } = require('../services/oncall-verticals/marketplace');
 const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
 const router = express.Router();
@@ -222,6 +223,32 @@ router.post('/api/oncall/industrials/quote', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'QUOTE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/marketplace/cart — add a marketplace offer to the cart
+ */
+router.post('/api/oncall/marketplace/cart', async (req, res) => {
+  try {
+    const result = await addToCart({
+      offerId: req.body.offerId || 'OFF-NA221-PHG',
+      sellerId: req.body.sellerId || 'SELLER-PHILIPS-HHG',
+      listingId: req.body.listingId || '408492471',
+      quantity: req.body.quantity || 1,
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    res.json(result);
+  } catch (error) {
+    const isTimeout = error.code === 'RESERVATION_TIMEOUT';
+    res.status(isTimeout ? 504 : 500).json({
+      success: false,
+      error: isTimeout
+        ? 'Zeitüberschreitung beim Reservieren des Artikels. Bitte versuche es in einigen Minuten erneut.'
+        : error.message,
+      errorClass: error.name,
+      code: error.code || 'CART_ADD_FAILED',
       requestId: req.requestId,
     });
   }
