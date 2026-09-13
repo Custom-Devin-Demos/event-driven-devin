@@ -52,6 +52,7 @@
     .nav-links { display:flex; align-items:center; gap:24px; list-style:none; }
     .nav-links a { color:var(--ink); font-size:13px; font-weight:500; letter-spacing:.02em; text-decoration:none; text-transform:none; transition:opacity .2s; }
     .nav-links a:hover { opacity:.6; }
+    .nav-links a.active { text-decoration:underline; text-underline-offset:6px; }
     .nav-cta { display:inline-flex; align-items:center; gap:6px; border-radius:6px; background:var(--ink); color:#fff; padding:8px 20px; font-size:12px; font-weight:500; letter-spacing:.02em; text-decoration:none; white-space:nowrap; transition:opacity .2s; }
     .nav-cta:hover { opacity:.85; }
     .hero { margin-top:72px; background:var(--chrome-bg); color:var(--chrome-text); display:flex; flex-direction:column; }
@@ -95,8 +96,11 @@
     .card-brand { font:500 20px/1.15 var(--serif); color:var(--ink); margin-bottom:8px; }
     .card-desc { font-size:15px; color:var(--muted); line-height:1.6; display:block; overflow:visible; }
     .card-mark { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; color:#fff; font:600 18px/1 var(--sans); }
-    #branded-section { display:none; }
-    #branded-section.has-skins { display:block; }
+    .mode-banner { display:none; align-items:center; justify-content:center; gap:10px; padding:12px 40px; background:var(--ink); color:#fff; font-size:13px; letter-spacing:.02em; text-align:center; }
+    body.branded .mode-banner { display:flex; margin-top:72px; }
+    body.branded .hero { margin-top:0; }
+    .mode-banner strong { font-weight:600; }
+    .mode-banner a { color:#fff; text-decoration:underline; text-underline-offset:3px; }
     .fire-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border:1px solid var(--ink); border-radius:6px; background:transparent; color:var(--ink); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:all .2s; }
     .fire-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
     .fire-btn.sev { border-color:var(--ink); background:var(--ink); color:#fff; }
@@ -163,15 +167,22 @@
       <ul class="nav-links">
         <li><a href="https://devin.ai" target="_blank" rel="noopener">devin</a></li>
         <li><a href="https://cognition.ai" target="_blank" rel="noopener">cognition</a></li>
+        <li><a href="/oncall/branded" id="nav-branded">branded</a></li>
       </ul>
     </div>
-    <a class="nav-cta" href="/">&larr; all demos</a>
+    <a class="nav-cta" id="nav-cta" href="/">&larr; all demos</a>
   </nav>
+
+  <!-- BRANDED MODE BANNER (only on /oncall/branded) -->
+  <div class="mode-banner" id="mode-banner">
+    <strong>Branded demos</strong>
+    <span>This is for storing branded customer demos. Same on-call mechanics as <a href="/oncall">On-call operations</a>, behind each customer's own storefront.</span>
+  </div>
 
   <!-- HERO -->
   <section class="hero">
     <div class="hero-content">
-      <div class="hero-badge">DEVIN ON-CALL</div>
+      <div class="hero-badge" id="hero-badge">DEVIN ON-CALL</div>
       <h1>On-call operations</h1>
       <p class="hero-sub">Trigger an incident. The running service degrades, alerting fires, and Devin picks up the alert and investigates.</p>
     </div>
@@ -198,25 +209,14 @@
     <div class="section">
       <div class="section-header">
         <span class="section-title">Alert Responder</span>
-        <span class="badge">#oncall-alerts</span>
+        <span class="badge" id="alert-badge">#oncall-alerts</span>
       </div>
-      <h2>Production degradations</h2>
-      <p class="section-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR. <span id="retry-note"></span></p>
+      <h2 id="alert-heading">Production degradations</h2>
+      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR. <span id="retry-note"></span></p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
-    <!-- 2. BRANDED DEMOS (skins that opted in via listed: true) -->
-    <div class="section" id="branded-section">
-      <div class="section-header">
-        <span class="section-title">Branded demos</span>
-        <span class="badge">/oncall/c/&lt;slug&gt;</span>
-      </div>
-      <h2>Customer-branded pages</h2>
-      <p class="section-desc">The same on-call mechanics behind a customer's own storefront. Each card opens a natively branded page with its primary action rerouted to the degraded endpoint; the demo ribbon is hidden so the page reads as the customer's site.</p>
-      <div class="grid" id="branded-grid"></div>
-    </div>
-
-    <!-- 3. BEYOND ALERTS -->
+    <!-- 2. BEYOND ALERTS -->
     <div class="section">
       <div class="section-header">
         <span class="section-title">Beyond Alerts</span>
@@ -300,16 +300,37 @@
       marketplace: { icon: ICONS.marketplace, vertical: 'Marketplace', desc: 'Online marketplace product page. Add-to-cart hangs ~8s, then fails with a 504.' },
     };
 
-    // Customer skins are direct-URL only (/oncall/c/<slug>) unless they opt in
-    // with listed: true, in which case /api/oncall/skins surfaces them here.
+    // /oncall is the stock hub; /oncall/branded serves this same page in
+    // branded mode, where the grid lists customer skins that opted in with
+    // listed: true (/api/oncall/skins) instead of the stock scenarios.
+    var BRANDED = location.pathname.replace(/\/+$/, '') === '/oncall/branded';
+
+    function applyBrandedChrome() {
+      document.body.classList.add('branded');
+      document.title = 'Devin On-Call: Branded demos | Event-Driven Devin';
+      document.getElementById('nav-branded').classList.add('active');
+      document.getElementById('hero-badge').textContent = 'DEVIN ON-CALL \u00b7 BRANDED';
+      var cta = document.getElementById('nav-cta');
+      cta.href = '/oncall';
+      cta.innerHTML = '&larr; on-call operations';
+      document.getElementById('alert-badge').textContent = '/oncall/c/<slug>';
+      document.getElementById('alert-heading').textContent = 'Customer-branded pages';
+      document.getElementById('alert-desc').textContent =
+        'Each card opens a natively branded customer page with its primary action rerouted to the ' +
+        'degraded on-call endpoint; the demo ribbon is hidden so the page reads as the customer\u2019s ' +
+        'site. The alert lands in the alerts channel exactly as it does for the stock scenarios.';
+    }
+
     async function initBrandedDemos() {
-      const section = document.getElementById('branded-section');
-      const grid = document.getElementById('branded-grid');
+      const grid = document.getElementById('alert-grid');
       let skins = [];
       try {
         ({ skins } = await fetch('/api/oncall/skins').then((r) => r.json()));
       } catch (e) { return; }
-      if (!skins.length) return;
+      if (!skins.length) {
+        document.getElementById('alert-desc').textContent = 'No customer skin has opted into this page yet (set listed: true in config/oncall-skins.js).';
+        return;
+      }
       grid.classList.add(`cols-${columnCount(skins.length)}`);
       skins.forEach((skin) => {
         const meta = VERTICAL_META[skin.vertical] || { vertical: skin.vertical, desc: '' };
@@ -328,7 +349,6 @@
           '</div>';
         grid.appendChild(link);
       });
-      section.classList.add('has-skins');
     }
 
     function show(el, ok, msg) {
@@ -544,8 +564,12 @@
       tick();
     })();
 
-    init();
-    initBrandedDemos();
+    if (BRANDED) {
+      applyBrandedChrome();
+      initBrandedDemos();
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>

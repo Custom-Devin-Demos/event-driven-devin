@@ -45,8 +45,9 @@
  * collapsed dot; rerouting and alert posting are unaffected.
  *
  * Skins are direct-URL only by default. A skin may set listed: true to appear
- * as a card in the hub's "Branded demos" section (GET /api/oncall/skins);
- * the hub is on screen during customer demos, so opt in deliberately.
+ * as a card on the branded hub at /oncall/branded (GET /api/oncall/skins);
+ * the stock /oncall hub never lists customers. That page is reachable from
+ * the hub nav, so opt in deliberately.
  */
 
 const ONCALL_SKINS = {

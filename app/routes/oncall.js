@@ -333,10 +333,14 @@ router.get('/oncall/c/:slug/incident', (req, res, next) => {
 });
 
 /**
- * GET /oncall — On-Call demo control page
+ * GET /oncall — On-Call demo control page.
+ * GET /oncall/branded — the same page in branded mode: the grid lists the
+ * customer skins from /api/oncall/skins instead of the stock scenarios.
+ * Registered before /oncall/:vertical so "branded" is never treated as a vertical.
  */
-router.get('/oncall', (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'oncall.html'));
+const ONCALL_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall.html');
+router.get(['/oncall', '/oncall/branded'], (_req, res) => {
+  res.sendFile(ONCALL_HUB_PAGE);
 });
 
 /**
@@ -561,8 +565,8 @@ router.get('/api/oncall/scenarios', (_req, res) => {
 });
 
 /**
- * GET /api/oncall/skins — customer skins that opted into the hub's
- * "Branded demos" section (skin.listed). Everything else stays direct-URL only.
+ * GET /api/oncall/skins — customer skins that opted into the branded hub
+ * (/oncall/branded) via skin.listed. Everything else stays direct-URL only.
  */
 router.get('/api/oncall/skins', (_req, res) => {
   res.json({ skins: listOncallSkins() });
