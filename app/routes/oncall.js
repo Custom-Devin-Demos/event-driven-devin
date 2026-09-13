@@ -21,7 +21,7 @@ const {
   setOncallConfigOverride,
   getOncallConfigView,
 } = require('../services/oncall');
-const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
+const { getOncallSkin, listOncallSkins, ONCALL_SKINS } = require('../../config/oncall-skins');
 
 const router = express.Router();
 
@@ -558,6 +558,14 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     })),
   }));
   res.json({ scenarios, bugReports, bugCatalog });
+});
+
+/**
+ * GET /api/oncall/skins — customer skins that opted into the hub's
+ * "Branded demos" section (skin.listed). Everything else stays direct-URL only.
+ */
+router.get('/api/oncall/skins', (_req, res) => {
+  res.json({ skins: listOncallSkins() });
 });
 
 /**

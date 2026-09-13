@@ -94,6 +94,9 @@
     .card-vertical { margin-bottom:8px; }
     .card-brand { font:500 20px/1.15 var(--serif); color:var(--ink); margin-bottom:8px; }
     .card-desc { font-size:15px; color:var(--muted); line-height:1.6; display:block; overflow:visible; }
+    .card-mark { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; color:#fff; font:600 18px/1 var(--sans); }
+    #branded-section { display:none; }
+    #branded-section.has-skins { display:block; }
     .fire-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border:1px solid var(--ink); border-radius:6px; background:transparent; color:var(--ink); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; white-space:nowrap; transition:all .2s; }
     .fire-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
     .fire-btn.sev { border-color:var(--ink); background:var(--ink); color:#fff; }
@@ -202,7 +205,18 @@
       <div class="grid" id="alert-grid"></div>
     </div>
 
-    <!-- 2. BEYOND ALERTS -->
+    <!-- 2. BRANDED DEMOS (skins that opted in via listed: true) -->
+    <div class="section" id="branded-section">
+      <div class="section-header">
+        <span class="section-title">Branded demos</span>
+        <span class="badge">/oncall/c/&lt;slug&gt;</span>
+      </div>
+      <h2>Customer-branded pages</h2>
+      <p class="section-desc">The same on-call mechanics behind a customer's own storefront. Each card opens a natively branded page with its primary action rerouted to the degraded endpoint; the demo ribbon is hidden so the page reads as the customer's site.</p>
+      <div class="grid" id="branded-grid"></div>
+    </div>
+
+    <!-- 3. BEYOND ALERTS -->
     <div class="section">
       <div class="section-header">
         <span class="section-title">Beyond Alerts</span>
@@ -271,7 +285,8 @@
       voice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
       telco: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"><path d="M7 4.5 9.5 3l2 4-2 1.5a14 14 0 0 0 6 6L17 13l4 2-1.5 2.5c-.7 1.2-2.2 1.7-3.5 1.2A18 18 0 0 1 5.3 8c-.5-1.3 0-2.8 1.7-3.5Z"/></svg>',
       industrials: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l6 3V7l6 3V5l4 2v13"/><path d="M3 20h18M7 16v4M12 16v4M17 16v4"/></svg>',
-      inference: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5"/></svg>'
+      inference: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M12 3v18M4 7.5l8 4.5 8-4.5"/></svg>',
+      marketplace: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 8H6"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>'
     };
 
     var VERTICAL_META = {
@@ -282,11 +297,39 @@
       inference: { icon: ICONS.inference, vertical: 'Inference', desc: 'Model serving console. Time to first token climbs with each completion; memory climbs.' },
       telco: { icon: ICONS.telco, vertical: 'Telco', desc: 'Self-service portal. Plan upgrades slowed after the catalog refresh.' },
       industrials: { icon: ICONS.industrials, vertical: 'Industrials', desc: 'Instant quote service. F3 requests take ~14s before completing; other factories stay near 310ms.' },
+      marketplace: { icon: ICONS.marketplace, vertical: 'Marketplace', desc: 'Online marketplace product page. Add-to-cart hangs ~8s, then fails with a 504.' },
     };
 
-
-    // Custom-demo skins never touch this hub: /oncall/c/<slug> serves the
-    // skin's chosen vertical page directly (see app/routes/oncall.js).
+    // Customer skins are direct-URL only (/oncall/c/<slug>) unless they opt in
+    // with listed: true, in which case /api/oncall/skins surfaces them here.
+    async function initBrandedDemos() {
+      const section = document.getElementById('branded-section');
+      const grid = document.getElementById('branded-grid');
+      let skins = [];
+      try {
+        ({ skins } = await fetch('/api/oncall/skins').then((r) => r.json()));
+      } catch (e) { return; }
+      if (!skins.length) return;
+      grid.classList.add(`cols-${columnCount(skins.length)}`);
+      skins.forEach((skin) => {
+        const meta = VERTICAL_META[skin.vertical] || { vertical: skin.vertical, desc: '' };
+        const link = document.createElement('a');
+        link.className = 'card';
+        link.href = skin.href;
+        link.innerHTML =
+          '<div class="card-top">' +
+            '<div class="card-mark" style="background:' + escapeHtml(skin.accent || '#1A1A1A') + '">' + escapeHtml(skin.brandMark || '') + '</div>' +
+            '<div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></div>' +
+          '</div>' +
+          '<div class="card-body">' +
+            '<div class="card-vertical">' + escapeHtml(meta.vertical) + '</div>' +
+            '<div class="card-brand">' + escapeHtml(skin.company) + '</div>' +
+            '<div class="card-desc">' + escapeHtml(meta.desc) + '</div>' +
+          '</div>';
+        grid.appendChild(link);
+      });
+      section.classList.add('has-skins');
+    }
 
     function show(el, ok, msg) {
       el.className = 'status ' + (ok ? 'ok' : 'err');
@@ -502,6 +545,7 @@
     })();
 
     init();
+    initBrandedDemos();
   </script>
 </body>
 </html>

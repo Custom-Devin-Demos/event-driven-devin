@@ -43,6 +43,10 @@
  *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
+ *
+ * Skins are direct-URL only by default. A skin may set listed: true to appear
+ * as a card in the hub's "Branded demos" section (GET /api/oncall/skins);
+ * the hub is on screen during customer demos, so opt in deliberately.
  */
 
 const ONCALL_SKINS = {
@@ -52,6 +56,7 @@ const ONCALL_SKINS = {
     brandMark: 'K',
     vertical: 'marketplace',
     hideRibbon: true,
+    listed: true,
     page: {
       file: '63dbb52f.html',
       title: 'Philips Airfryer Serie 2000, 4,2l, RapidAir, Digital, schwarz (NA221/00) | Kaufland.de',
@@ -1403,4 +1408,17 @@ function getOncallSkin(slug) {
   return Object.prototype.hasOwnProperty.call(ONCALL_SKINS, key) ? ONCALL_SKINS[key] : null;
 }
 
-module.exports = { ONCALL_SKINS, getOncallSkin };
+function listOncallSkins() {
+  return Object.values(ONCALL_SKINS)
+    .filter((skin) => skin.listed === true)
+    .map((skin) => ({
+      slug: skin.slug,
+      company: skin.company,
+      brandMark: skin.brandMark,
+      vertical: skin.vertical,
+      accent: skin.accent,
+      href: `/oncall/c/${skin.slug}`,
+    }));
+}
+
+module.exports = { ONCALL_SKINS, getOncallSkin, listOncallSkins };
