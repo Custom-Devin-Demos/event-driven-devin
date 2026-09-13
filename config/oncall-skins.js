@@ -44,6 +44,10 @@
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
+ * A native page whose primary action has no legacy /api/<vertical> endpoint
+ * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
+ * URL is served with the shim instead of as a bare page whose action 404s.
+ *
  * Skins are direct-URL only by default. A skin may set listed: true to appear
  * as a card on the branded hub at /oncall/branded (GET /api/oncall/skins);
  * the stock /oncall hub never lists customers. That page is reachable from
@@ -57,6 +61,7 @@ const ONCALL_SKINS = {
     brandMark: 'K',
     vertical: 'marketplace',
     hideRibbon: true,
+    oncallOnly: true,
     listed: true,
     page: {
       file: '63dbb52f.html',

@@ -280,9 +280,7 @@ function buildSkinBrandShim(skin) {
  * URL a DE shares for a custom demo; the /oncall hub itself is never skinned.
  * Registered before /oncall/:vertical so "c" is never treated as a vertical.
  */
-router.get('/oncall/c/:slug', (req, res, next) => {
-  const skin = getOncallSkin(req.params.slug);
-  if (!skin) return next();
+function serveSkinPage(skin, res, next) {
   const scenario = ALERT_SCENARIOS[skin.vertical];
   if (!scenario) return next();
   const pageFile = (skin.page && skin.page.file) || scenario.page;
@@ -293,7 +291,24 @@ router.get('/oncall/c/:slug', (req, res, next) => {
       html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger, skin.hideRibbon)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
+}
+
+router.get('/oncall/c/:slug', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  serveSkinPage(skin, res, next);
 });
+
+/**
+ * A native skin page whose primary action only exists as an on-call endpoint
+ * (skin.oncallOnly) has no working unshimmed variant, so its direct
+ * /<page-slug> URL (which the vertical page registry would otherwise serve
+ * bare) is served shimmed, identical to /oncall/c/:slug.
+ */
+for (const skin of Object.values(ONCALL_SKINS)) {
+  if (!skin.oncallOnly || !skin.page || !skin.page.file) continue;
+  router.get(`/${path.basename(skin.page.file, '.html')}`, (_req, res, next) => serveSkinPage(skin, res, next));
+}
 
 /**
  * GET /oncall/c/:slug/report — customer-skinned support portal.

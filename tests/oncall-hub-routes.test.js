@@ -41,6 +41,17 @@ describe('on-call hub routes', () => {
     expect(res.headers.get('content-type')).toMatch(/text\/html/);
   });
 
+  test('an oncallOnly native page is served shimmed at its direct slug too', async () => {
+    const [direct, skinned] = await Promise.all([
+      fetch(`${baseUrl}/63dbb52f`),
+      fetch(`${baseUrl}/oncall/c/63dbb52f`),
+    ]);
+    expect(direct.status).toBe(200);
+    const directHtml = await direct.text();
+    expect(directHtml).toEqual(await skinned.text());
+    expect(directHtml).toContain('/api/oncall/marketplace/cart');
+  });
+
   test('/api/oncall/skins feeds the branded hub with the listed skins only', async () => {
     const res = await fetch(`${baseUrl}/api/oncall/skins`);
     expect(res.status).toBe(200);
