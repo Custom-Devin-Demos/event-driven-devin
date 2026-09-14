@@ -241,11 +241,11 @@ avature_git() {
   fi
 }
 avature_sync() {
-  if [ -d "$AV_SRC/.git" ]; then
-    avature_git -C "$AV_SRC" fetch --depth 1 origin "$AV_REF" && git -C "$AV_SRC" checkout -q --detach FETCH_HEAD
-  else
-    rm -rf "$AV_SRC" && avature_git clone -q --depth 1 --branch "$AV_REF" "$AV_REPO" "$AV_SRC"
+  if [ ! -d "$AV_SRC/.git" ]; then
+    rm -rf "$AV_SRC" && mkdir -p "$AV_SRC" && git -C "$AV_SRC" init -q && git -C "$AV_SRC" remote add origin "$AV_REPO"
   fi
+  # fetch + detach works for branches, tags and reachable SHAs alike
+  avature_git -C "$AV_SRC" fetch -q --depth 1 origin "$AV_REF" && git -C "$AV_SRC" checkout -q --detach FETCH_HEAD
 }
 if avature_sync 2>/dev/null && compose --profile avature build --pull avature >/dev/null 2>&1 \
    && compose --profile avature up -d --no-deps avature >/dev/null 2>&1; then
