@@ -141,8 +141,11 @@ function isSyntheticProbeEvent(alertData) {
  * Verticals that alert directly tag their Sentry events so the webhook
  * fallback does not raise a second alert or Devin session.
  */
+// Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
+const INSTANT_PATH_SLUGS = ['a7fb8819'];
+
 function isInstantPathEvent(alertData) {
-  return (alertData.tags || []).some((tag) => {
+  const hasInstantTag = (alertData.tags || []).some((tag) => {
     if (Array.isArray(tag)) return tag[0] === 'alert_path' && tag[1] === 'instant';
     if (tag && typeof tag === 'object') {
       return (tag.key === 'alert_path' && tag.value === 'instant')
@@ -150,6 +153,11 @@ function isInstantPathEvent(alertData) {
     }
     return false;
   });
+
+  return hasInstantTag || (
+    typeof alertData.culprit === 'string'
+    && INSTANT_PATH_SLUGS.some((slug) => alertData.culprit.toLowerCase().includes(slug))
+  );
 }
 
 /**

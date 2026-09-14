@@ -16,6 +16,21 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent({ tags: [['alert_path', 'webhook']] })).toBe(false);
   });
 
+  test('recognizes a tagless Rippling issue webhook by its culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'withholdingRate')",
+      culprit: 'computeWithholding(app.services.verticals.a7fb8819)',
+      tags: [],
+    })).toBe(true);
+  });
+
+  test('does not recognize a tagless issue webhook from another vertical', () => {
+    expect(isInstantPathEvent({
+      culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
+      tags: [],
+    })).toBe(false);
+  });
+
   test('maps Zelle service tags to the Bank of America customer identity', () => {
     const alertData = applyCustomerIdentity({
       issueTitle: 'LimitExceededError: Amount exceeds daily limit',
