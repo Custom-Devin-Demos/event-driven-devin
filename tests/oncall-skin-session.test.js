@@ -114,6 +114,20 @@ describe('on-call alerts that auto-create a Devin session', () => {
     }
   });
 
+  test('a provider-prefixed requester user id owns the session', async () => {
+    const skin = getOncallSkin(AUTO_SKIN_SLUG);
+
+    await postOncallAlert(skin.vertical, {
+      skin,
+      devinUserId: 'email|69efcc3741b62dd9be352f7c',
+      devinOrgId: 'org_69IXJFLrljx8zSAw',
+    });
+
+    const [, options] = createDevinSession.mock.calls[0];
+    expect(options.userId).toBe('email|69efcc3741b62dd9be352f7c');
+    expect(options.orgId).toBe('org_69IXJFLrljx8zSAw');
+  });
+
   test('a malformed requester identity is ignored', async () => {
     const skin = getOncallSkin(AUTO_SKIN_SLUG);
 
