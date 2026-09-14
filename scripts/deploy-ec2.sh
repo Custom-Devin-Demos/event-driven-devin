@@ -291,10 +291,12 @@ compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
 # `nginx -t` is a deploy failure: it must not stay on disk where the next
 # restart would load it, so fail() -> rollback() restores it and recreates
 # nginx from the restored template.
-NGINX_LIVE=$(compose exec -T nginx nginx -T 2>/dev/null | md5sum | cut -d' ' -f1 || true)
-NGINX_FRESH=$(compose run --rm --no-deps -T -e NGINX_ENTRYPOINT_QUIET_LOGS=1 nginx nginx -T 2>/dev/null | md5sum | cut -d' ' -f1 || true)
+NGINX_LIVE=$(compose exec -T nginx nginx -T 2>/dev/null || true)
+NGINX_FRESH=$(compose run --rm --no-deps -T -e NGINX_ENTRYPOINT_QUIET_LOGS=1 nginx nginx -T 2>/dev/null) ||
+  fail "nginx.conf does not render/validate in a fresh nginx container"
+[ -n "$NGINX_FRESH" ] || fail "fresh nginx -T produced no config dump"
 if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ] ||
-   [ "$NGINX_LIVE" != "$NGINX_FRESH" ]; then
+   [ -z "$NGINX_LIVE" ] || [ "$NGINX_LIVE" != "$NGINX_FRESH" ]; then
   NGINX_TOUCHED=1
   compose run --rm --no-deps -T nginx nginx -t >/dev/null 2>&1 || fail "new nginx.conf fails 'nginx -t'"
   compose up -d --no-deps --force-recreate nginx >/dev/null || fail "nginx recreate failed"
