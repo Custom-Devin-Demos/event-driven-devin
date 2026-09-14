@@ -138,6 +138,21 @@ function isSyntheticProbeEvent(alertData) {
 }
 
 /**
+ * Verticals that alert directly tag their Sentry events so the webhook
+ * fallback does not raise a second alert or Devin session.
+ */
+function isInstantPathEvent(alertData) {
+  return (alertData.tags || []).some((tag) => {
+    if (Array.isArray(tag)) return tag[0] === 'alert_path' && tag[1] === 'instant';
+    if (tag && typeof tag === 'object') {
+      return (tag.key === 'alert_path' && tag.value === 'instant')
+        || ('alert_path' in tag && tag.alert_path === 'instant');
+    }
+    return false;
+  });
+}
+
+/**
  * Errors raised on the on-call demo slice (`/api/oncall/...` routes) belong to
  * the on-call incident flow — the responders are driven by the alert cards
  * posted to the on-call channels, never by the legacy Slack-alert/Devin
@@ -359,6 +374,13 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
       return res.json({ received: true, skipped: true, reason: 'synthetic_probe' });
     }
 
+    if (isInstantPathEvent(alertData)) {
+      logger.info('Sentry webhook skipped — already alerted by instant path', {
+        issueTitle: alertData.issueTitle,
+      });
+      return res.json({ received: true, skipped: true, reason: 'instant_path' });
+    }
+
     if (isOncallSliceEvent(alertData)) {
       logger.info('Sentry webhook skipped — on-call slice event', {
         issueTitle: alertData.issueTitle,
@@ -403,3 +425,4 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
 
 module.exports = router;
 module.exports.applyCustomerIdentity = applyCustomerIdentity;
+module.exports.isInstantPathEvent = isInstantPathEvent;

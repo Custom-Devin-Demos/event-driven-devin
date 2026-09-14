@@ -78,7 +78,10 @@ describe('Rippling payroll submission service (a7fb8819)', () => {
     expect(createLinearIssue).toHaveBeenCalledTimes(1);
     expect(createLinearIssue.mock.calls[0][0].assigneeId).toBe('4d616028-0c12-4ad9-b117-0661170e857e');
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
-    expect(Sentry.captureException.mock.calls[0][1].tags).toMatchObject({ state: 'CO' });
+    expect(Sentry.captureException.mock.calls[0][1].tags).toMatchObject({
+      state: 'CO',
+      alert_path: 'instant',
+    });
   });
 
   test('links the Devin session and directs the ticket lifecycle when Linear creates an issue', async () => {
