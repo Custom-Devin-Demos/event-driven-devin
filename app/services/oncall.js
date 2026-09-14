@@ -474,6 +474,21 @@ function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
 }
 
 /**
+ * Pick the account the session is created under. A Devin user id only exists
+ * inside one org, so each source is taken whole: mixing a skin's org with the
+ * environment's user yields a pair the API rejects. A source that names an org
+ * but no user runs as that org's service user.
+ */
+function resolveSessionIdentity(requester, config) {
+  if (requester.complete) return { orgId: requester.orgId, userId: requester.userId };
+  if (config.orgId) return { orgId: config.orgId, userId: config.userId || null };
+  return {
+    orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+    userId: process.env.DEVIN_ONCALL_USER_ID || null,
+  };
+}
+
+/**
  * Create the auto-triage Devin session for a skin that opted in, and reply
  * with its link in the alert thread. Never throws: a failed session must not
  * fail the alert that triggered it.
@@ -497,13 +512,8 @@ async function triggerSkinDevinSession(
   let session = null;
   try {
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
-      orgId: requester.complete
-        ? requester.orgId
-        : config.orgId || process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+      ...resolveSessionIdentity(requester, config),
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      userId: requester.complete
-        ? requester.userId
-        : config.userId || process.env.DEVIN_ONCALL_USER_ID,
       title: `[On-Call] ${scenario.monitor}`,
     });
   } catch (error) {

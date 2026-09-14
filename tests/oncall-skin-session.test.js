@@ -124,7 +124,7 @@ describe('on-call alerts that auto-create a Devin session', () => {
     });
 
     const [, options] = createDevinSession.mock.calls[0];
-    expect(options.userId).toBeUndefined();
+    expect(options.userId).toBeNull();
     expect(options.orgId).toBeUndefined();
   });
 
@@ -143,6 +143,27 @@ describe('on-call alerts that auto-create a Devin session', () => {
       expect(options.orgId).toBe('org_requester');
       expect(options.userId).toBeNull();
     } finally {
+      delete process.env.DEVIN_ONCALL_USER_ID;
+    }
+  });
+
+  test('a skin org without a user never borrows the environment user', async () => {
+    process.env.DEVIN_ONCALL_ORG_ID = 'org_env';
+    process.env.DEVIN_ONCALL_USER_ID = 'user_env';
+
+    try {
+      const skin = {
+        ...getOncallSkin(AUTO_SKIN_SLUG),
+        devinSession: { auto: true, orgId: 'org_skin' },
+      };
+
+      await postOncallAlert(skin.vertical, { skin });
+
+      const [, options] = createDevinSession.mock.calls[0];
+      expect(options.orgId).toBe('org_skin');
+      expect(options.userId).toBeNull();
+    } finally {
+      delete process.env.DEVIN_ONCALL_ORG_ID;
       delete process.env.DEVIN_ONCALL_USER_ID;
     }
   });
