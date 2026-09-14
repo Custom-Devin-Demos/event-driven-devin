@@ -122,6 +122,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Tyk Support',
     disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
   },
+  '66cee815': {
+    slug: '66cee815',
+    company: 'JFrog',
+    brandMark: 'J',
+    vertical: 'hightech',
+    page: {
+      file: '66cee815.html',
+      title: 'JFrog Platform — Project access',
+    },
+    theme: {
+      '--accent': '#36A13B',
+      '--ink': '#2F2F2F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#080C25',
+      '--chrome-text': '#E4E9EA',
+    },
+    supportCenter: 'JFrog Support',
+    disclaimer: 'NOT ACTUALLY A JFROG SITE — internal demo only, not affiliated with, endorsed by, or a real JFrog product.',
+  },
   'cb414550': {
     slug: 'cb414550',
     company: 'Arcadia',
