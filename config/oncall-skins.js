@@ -1413,6 +1413,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#202020',
       '--chrome-text': '#FFFFFF',
     },
+    devinSession: { auto: true },
     supportCenter: 'Parallel Support',
     disclaimer: 'NOT ACTUALLY A PARALLEL SITE — internal demo only, not affiliated with, endorsed by, or a real Parallel Web Systems product.',
   },
