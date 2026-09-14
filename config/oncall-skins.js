@@ -1463,6 +1463,22 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Administrator & Instructor Support',
     disclaimer: 'NOT ACTUALLY A TURNITIN SITE — internal demo only, not affiliated with, endorsed by, or a real Turnitin product.',
   },
+  '42d69b95': {
+    slug: '42d69b95',
+    company: 'Rippling',
+    brandMark: 'R',
+    vertical: 'hightech',
+    page: { file: '42d69b95.html', title: 'Assign apps | App Management – Rippling IT' },
+    theme: {
+      '--accent': '#FFA81D',
+      '--ink': '#1C1C1C',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#4A0039',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Rippling Help Center',
+    disclaimer: 'NOT ACTUALLY A RIPPLING SITE — internal demo only, not affiliated with, endorsed by, or a real Rippling People Center Inc. product.',
+  },
 };
 
 function getOncallSkin(slug) {
