@@ -472,9 +472,9 @@ async function triggerSkinDevinSession(scenario, skin, { token, channel, threadT
   let session = null;
   try {
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
-      orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
-      apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
-      userId: process.env.DEVIN_ONCALL_USER_ID,
+      orgId: config.orgId || process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+      apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
+      userId: config.userId || process.env.DEVIN_ONCALL_USER_ID,
       title: `[On-Call] ${scenario.monitor}`,
     });
   } catch (error) {
