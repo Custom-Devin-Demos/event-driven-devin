@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { OWNER_DISCLAIMER, postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { createDevinSession } = require('./devin-api');
+const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -11,9 +13,12 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  * On-Call demo service.
  *
  * Posts alert cards, human-style bug reports, and incident bursts to the
- * dedicated On-Call Slack channels. Alert-only by design: nothing here
- * triggers a Devin session — the On-Call responders listening to the
- * channels pick the messages up on their own.
+ * dedicated On-Call Slack channels. Alert-only by default: the On-Call
+ * responders listening to the channels pick the messages up on their own.
+ * A skin may opt its own branded page into auto-triage with
+ * devinSession: { auto: true }, which creates one Devin session per alert
+ * that skin raises and replies with its link in the alert thread. Alerts
+ * raised without such a skin never create a session.
  *
  * Channels/token are configurable via env:
  *   SLACK_ONCALL_ALERTS_CHANNEL_ID — alert + incident channel (#oncall-alerts)
@@ -426,6 +431,79 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
 }
 
 /**
+ * Investigation prompt for a skin's auto-triage session. Built only from the
+ * scenario's monitor-shaped facts — the same signal a human responder gets —
+ * so no code locations, and no request-derived text, reach the session.
+ */
+function buildOncallSessionPrompt(scenario, skin, runRef) {
+  return [
+    `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
+    '',
+    `*Monitor:* ${scenario.monitor} — Triggered`,
+    `*Query:* \`${scenario.metricQuery}\``,
+    `*Endpoint:* ${scenario.endpoint}`,
+    `*Metric value:* ${scenario.metricValue} (threshold ${scenario.threshold}, baseline ${scenario.baseline})`,
+    `*Release:* ${scenario.release}`,
+    `*Symptom:* ${scenario.symptom}`,
+    `*Impact:* ${scenario.impact}`,
+    runRef ? `*Incident Ref:* ${runRef}` : null,
+    '',
+    `Reproduce the symptom at ${DEMO_BASE_URL()}/oncall/c/${skin.slug} and diagnose it from the repository and its telemetry: ${REPO_URL}`,
+  ].filter((l) => l !== null).join('\n');
+}
+
+/**
+ * Create the auto-triage Devin session for a skin that opted in, and reply
+ * with its link in the alert thread. Never throws: a failed session must not
+ * fail the alert that triggered it.
+ */
+async function triggerSkinDevinSession(scenario, skin, { token, channel, threadTs, runRef }) {
+  const config = skin.devinSession;
+  if (!config || !config.auto) return null;
+
+  const cap = canCreateSession();
+  if (!cap.allowed) {
+    logger.warn('On-Call skin session creation throttled', { skin: skin.slug, ...cap });
+    return null;
+  }
+
+  // Reserve before the async call so concurrent alerts cannot all pass the cap check.
+  const release = reserveSession();
+  let session = null;
+  try {
+    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
+      orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+      apiKey: process.env.DEVIN_ONCALL_SERVICE_KEY,
+      userId: process.env.DEVIN_ONCALL_USER_ID,
+      title: `[On-Call] ${scenario.monitor}`,
+    });
+  } catch (error) {
+    logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
+  }
+
+  if (!session) {
+    release();
+    return null;
+  }
+
+  logger.info('On-Call skin Devin session created', {
+    skin: skin.slug,
+    scenario: scenario.vertical,
+    sessionId: session.sessionId,
+  });
+
+  try {
+    await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
+      mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
+    ]);
+  } catch (error) {
+    logger.error('On-Call skin session link reply failed', { skin: skin.slug, error: error.message });
+  }
+
+  return session;
+}
+
+/**
  * Post an alert card for the given scenario to the On-Call alerts channel.
  */
 async function postOncallAlert(scenarioId, options = {}) {
@@ -473,7 +551,10 @@ async function postOncallAlert(scenarioId, options = {}) {
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
-  return { ok: true, ts, channel: alertsChannel };
+  const session = skin
+    ? await triggerSkinDevinSession(scenario, skin, { token, channel: alertsChannel, threadTs: ts, runRef })
+    : null;
+  return { ok: true, ts, channel: alertsChannel, ...(session ? { sessionUrl: session.url } : {}) };
 }
 
 /**

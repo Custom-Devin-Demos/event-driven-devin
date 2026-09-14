@@ -41,6 +41,13 @@
  * monitor-style alert card to #oncall-alerts. templateId must exist in
  * BUG_CATALOG. Two skins can share one page file to offer both flavors.
  *
+ * A skin may set devinSession: { auto: true, orgId, userId, apiKey } to have
+ * its own alerts create a Devin investigation session immediately and reply
+ * with the session link in the alert thread. Alerts raised from the generic
+ * hub, or from skins without this key, stay alert-only. orgId defaults to
+ * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
+ * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
@@ -1424,6 +1431,31 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Bloomberg Law Help Desk',
     disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
+  },
+  '4b663efb': {
+    slug: '4b663efb',
+    company: 'Nordstrom',
+    brandMark: 'N',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '4b663efb.html',
+      title: 'On Cloudsurfer 2 Running Shoe | Nordstrom',
+    },
+    accent: '#191A1B',
+    accentDark: '#000000',
+    theme: {
+      '--accent': '#191A1B',
+      '--ink': '#191A1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Nordstrom Customer Care',
+    supportCenterSub: 'Online Orders & Shopping Bag',
+    disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',
   },
   '5d7c46c1': {
     slug: '5d7c46c1',
