@@ -190,7 +190,7 @@
       <ul class="checks">
         <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Draw from $500 up to your available credit</span></li>
         <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Each draw locks its own fixed rate for the remainder of your term</span></li>
-        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Interest accrues only on what you draw. Any transfer fee is shown before funds move.</span></li>
+        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Interest accrues only on what you draw. Your transfer fee is shown before you confirm.</span></li>
       </ul>
     </div>
     <div class="hero-visual" aria-hidden="true">
@@ -252,7 +252,9 @@
           <div class="summary" aria-live="polite">
             <div class="row"><span>Draw amount</span><span id="sumAmount">$15,000.00</span></div>
             <div class="row"><span>Funding</span><span>ACH, 1&ndash;3 business days</span></div>
-            <div class="row"><span>Available after this draw</span><span id="sumRemaining">$97,400.00</span></div>
+            <div class="row"><span>Transfer fee</span><span id="sumFee">$15.00</span></div>
+            <div class="row"><span>Total debit to your line</span><span id="sumDebit">$15,015.00</span></div>
+            <div class="row"><span>Available after this draw</span><span id="sumRemaining">$97,385.00</span></div>
             <div class="row total"><span>Est. monthly payment on this draw</span><span id="sumPayment">$179.42</span></div>
           </div>
           <button type="submit" id="submitBtn">Request draw</button>
@@ -273,7 +275,7 @@
         <div class="step">
           <div class="num">2</div>
           <h3>Pick where it goes</h3>
-          <p>Send funds to any linked bank account by ACH. Any transfer fee for your account tier is shown on your confirmation.</p>
+          <p>Send funds to any linked bank account by ACH. Your account tier's transfer fee is shown before you confirm.</p>
         </div>
         <div class="step">
           <div class="num">3</div>
@@ -352,10 +354,16 @@
   <script>
     const LINE = { limit: 170000, balance: 57600, apr: 0.0785, termMonths: 360 };
     const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const FEES = { standard: { rate: 0.001, flat: 2.50 }, premium: { rate: 0, flat: 0 } };
     const amountEl = document.getElementById('amount');
+    const tierEl = document.getElementById('accountTier');
     const form = document.getElementById('transferForm');
     const available = LINE.limit - LINE.balance;
     amountEl.max = String(available);
+    function transferFee(amt) {
+      const t = FEES[tierEl.value] || FEES.standard;
+      return amt > 0 ? Math.max(t.rate * amt, t.flat) : 0;
+    }
     function renderLine() {
       document.getElementById('availableCredit').textContent = money(available);
       document.getElementById('usedMeter').style.width = Math.round((LINE.balance / LINE.limit) * 100) + '%';
@@ -364,11 +372,15 @@
       const amt = Math.max(0, parseFloat(amountEl.value) || 0);
       const r = LINE.apr / 12;
       const payment = amt > 0 ? (amt * r) / (1 - Math.pow(1 + r, -LINE.termMonths)) : 0;
+      const fee = transferFee(amt);
       document.getElementById('sumAmount').textContent = money(amt);
-      document.getElementById('sumRemaining').textContent = money(available - amt);
+      document.getElementById('sumFee').textContent = money(fee);
+      document.getElementById('sumDebit').textContent = money(amt + fee);
+      document.getElementById('sumRemaining').textContent = money(available - amt - fee);
       document.getElementById('sumPayment').textContent = money(payment);
     }
     amountEl.addEventListener('input', renderSummary);
+    tierEl.addEventListener('change', renderSummary);
     form.addEventListener('reset', function () { setTimeout(renderSummary, 0); });
     renderLine();
     renderSummary();
@@ -385,8 +397,8 @@
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
       const amount = parseFloat(document.getElementById('amount').value);
-      if (!Number.isFinite(amount) || amount < 500 || amount > available) {
-        showResult(result, 'error', 'Check your draw amount', 'Enter an amount between $500.00 and ' + money(available) + '.');
+      if (!Number.isFinite(amount) || amount < 500 || amount + transferFee(amount) > available) {
+        showResult(result, 'error', 'Check your draw amount', 'Enter an amount of at least $500.00 that, including the transfer fee, stays within your ' + money(available) + ' available credit.');
         return;
       }
       const controls = form.querySelectorAll('select, input');
@@ -404,7 +416,7 @@
         } else {
           const arriving = money(data.receipt && data.receipt.amount != null ? data.receipt.amount : amount);
           const fee = parseFloat(data.fee) || 0;
-          const feeText = fee > 0 ? ' Transfer fee ' + money(fee) + '; total debit to your line ' + money(data.debitAmount) + '.' : ' No transfer fee.';
+          const feeText = fee > 0 ? ' Transfer fee ' + money(fee) + '; total debit to your line ' + money(data.debitAmount) + '.' : '';
           showResult(result, 'success', 'Draw requested', arriving + ' will arrive by ACH in 1\u20133 business days.' + feeText + ' Reference ' + data.transferId + '. Your new draw rate is locked at 7.85% APR.');
         }
       } catch (err) {
