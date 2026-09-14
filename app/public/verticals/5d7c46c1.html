@@ -255,7 +255,7 @@
             <div class="row"><span>Transfer fee</span><span id="sumFee">$15.00</span></div>
             <div class="row"><span>Total debit to your line</span><span id="sumDebit">$15,015.00</span></div>
             <div class="row"><span>Available after this draw</span><span id="sumRemaining">$97,385.00</span></div>
-            <div class="row total"><span>Est. monthly payment on this draw</span><span id="sumPayment">$179.42</span></div>
+            <div class="row total"><span>Est. monthly payment on this draw</span><span id="sumPayment">$108.61</span></div>
           </div>
           <button type="submit" id="submitBtn">Request draw</button>
         </form>
@@ -371,8 +371,9 @@
     function renderSummary() {
       const amt = Math.max(0, parseFloat(amountEl.value) || 0);
       const r = LINE.apr / 12;
-      const payment = amt > 0 ? (amt * r) / (1 - Math.pow(1 + r, -LINE.termMonths)) : 0;
       const fee = transferFee(amt);
+      const principal = amt + fee;
+      const payment = principal > 0 ? (principal * r) / (1 - Math.pow(1 + r, -LINE.termMonths)) : 0;
       document.getElementById('sumAmount').textContent = money(amt);
       document.getElementById('sumFee').textContent = money(fee);
       document.getElementById('sumDebit').textContent = money(amt + fee);
