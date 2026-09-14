@@ -1,6 +1,36 @@
-const { applyCustomerIdentity } = require('../app/routes/sentry-webhook');
+const {
+  applyCustomerIdentity,
+  isInstantPathEvent,
+} = require('../app/routes/sentry-webhook');
 
 describe('Sentry customer identity mapping', () => {
+  test.each([
+    { tags: [['alert_path', 'instant']] },
+    { tags: [{ key: 'alert_path', value: 'instant' }] },
+    { tags: [{ alert_path: 'instant' }] },
+  ])('recognizes instant-path tag shape %p', (alertData) => {
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
+  test('does not recognize a different alert path', () => {
+    expect(isInstantPathEvent({ tags: [['alert_path', 'webhook']] })).toBe(false);
+  });
+
+  test('recognizes a tagless Rippling issue webhook by its culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'withholdingRate')",
+      culprit: 'computeWithholding(app.services.verticals.a7fb8819)',
+      tags: [],
+    })).toBe(true);
+  });
+
+  test('does not recognize a tagless issue webhook from another vertical', () => {
+    expect(isInstantPathEvent({
+      culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
+      tags: [],
+    })).toBe(false);
+  });
+
   test('maps Zelle service tags to the Bank of America customer identity', () => {
     const alertData = applyCustomerIdentity({
       issueTitle: 'LimitExceededError: Amount exceeds daily limit',

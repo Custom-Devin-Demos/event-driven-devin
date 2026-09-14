@@ -402,7 +402,7 @@ Vertical Error (any of 10 verticals)
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
 
-Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session.
+Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session. Verticals may tag their Sentry events `alert_path: instant` to have the webhook fallback skip them (Rippling does).
 
 **Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var or per-customer config):
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
