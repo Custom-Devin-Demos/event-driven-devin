@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request a draw | Figure HELOC</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --fg-primary: #5B56F5;
+      --fg-primary-dark: #4640d8;
+      --fg-primary-deep: #292a73;
+      --fg-lilac: #D8D6FD;
+      --fg-ink: #1A1B22;
+      --fg-ink-soft: #4b4c55;
+      --fg-muted: #6f7079;
+      --fg-line: #e3e3e6;
+      --fg-paper: #F2F2F2;
+      --fg-white: #ffffff;
+      --sans: 'Instrument Sans', Arial, ui-sans-serif, system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); color: var(--fg-ink); background: var(--fg-paper); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3 { font-weight: 400; }
+
+    /* Header */
+    header.fg-header { background: var(--fg-paper); }
+    .fg-nav { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 24px; padding: 20px 40px 0; min-height: 88px; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; font-size: 22px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-ink); flex: none; }
+    .nav-links { display: flex; gap: 32px; margin-left: 24px; }
+    .nav-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 18px; font-weight: 400; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 32px; }
+    .nav-right .login { display: inline-flex; align-items: center; min-height: 44px; font-size: 18px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 0 26px; border-radius: 9999px; font-weight: 500; font-size: 18px; line-height: 28px; cursor: pointer; white-space: nowrap; border: 1px solid transparent; }
+    .pill-dark { background: var(--fg-ink); color: var(--fg-white); border-color: var(--fg-ink); }
+    .pill-dark:hover { background: #33343d; }
+    .pill-primary { background: var(--fg-primary); color: var(--fg-white); border-color: var(--fg-primary); }
+    .pill-primary:hover { background: var(--fg-primary-dark); }
+    .pill-white { background: var(--fg-white); color: var(--fg-primary); border-color: var(--fg-white); }
+
+    /* Notice band */
+    .notice { max-width: 1360px; margin: 8px auto 0; padding: 0 40px; }
+    .notice-inner { background: var(--fg-primary-deep); color: var(--fg-white); border-radius: 16px; padding: 22px 40px; text-align: center; font-size: 16px; line-height: 28px; }
+    .notice-inner a { display: inline-block; text-decoration: underline; padding: 11px 0; margin: -11px 0; }
+
+    /* Hero */
+    .hero { max-width: 1200px; margin: 0 auto; padding: 56px 40px 32px; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: center; }
+    .eyebrow { font-size: 16px; color: var(--fg-ink); margin-bottom: 16px; }
+    .hero h1 { font-size: 60px; line-height: 1; letter-spacing: -1.5px; }
+    .hero .lede { margin-top: 20px; font-size: 18px; color: var(--fg-ink-soft); max-width: 560px; }
+    .checks { list-style: none; margin-top: 24px; display: grid; gap: 12px; }
+    .checks li { display: flex; gap: 14px; align-items: flex-start; font-size: 16px; line-height: 24px; }
+    .checks svg { width: 20px; height: 20px; flex: none; margin-top: 2px; }
+    .hero-visual { position: relative; border-radius: 20px; overflow: hidden; min-height: 320px; background: linear-gradient(135deg, #1b1c4f 0%, #4a45d9 45%, #a79ff5 80%, #f5c2c4 100%); display: flex; align-items: flex-end; justify-content: center; }
+    .hero-visual img { display: block; width: 62%; max-width: 360px; margin-top: 28px; }
+    .hero-visual .badge { position: absolute; background: var(--fg-lilac); color: var(--fg-ink); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; text-transform: uppercase; padding: 12px 18px; border-radius: 12px; display: flex; align-items: center; gap: 10px; }
+    .hero-visual .badge svg { width: 20px; height: 20px; }
+    .badge.b1 { top: 24px; right: 24px; }
+    .badge.b2 { left: 24px; bottom: 24px; }
+    .hero-visual .fallback { color: var(--fg-white); font-size: 28px; padding: 60px 20px; text-align: center; letter-spacing: -0.5px; }
+
+    /* Main */
+    main { max-width: 1200px; margin: 0 auto; padding: 24px 40px 72px; }
+    .draw { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 28px; align-items: start; }
+    .card { background: var(--fg-white); border-radius: 20px; padding: 32px; }
+    .card h2 { font-size: 30px; line-height: 1.2; letter-spacing: -0.5px; }
+    .card .sub { margin: 8px 0 24px; color: var(--fg-ink-soft); font-size: 16px; }
+    .line-card { background: linear-gradient(160deg, var(--fg-primary) 0%, #3c38b8 100%); color: var(--fg-white); }
+    .line-card h2 { color: var(--fg-white); }
+    .line-card .label { font-size: 14px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.06em; }
+    .line-card .big { font-size: 44px; line-height: 1.05; letter-spacing: -1px; margin: 6px 0 22px; }
+    .line-card .meter { height: 8px; border-radius: 9999px; background: rgba(255,255,255,0.28); overflow: hidden; }
+    .line-card .meter span { display: block; height: 100%; width: 34%; background: var(--fg-white); border-radius: 9999px; }
+    .line-card .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; margin-top: 22px; }
+    .line-card .grid .k { font-size: 13px; opacity: 0.85; }
+    .line-card .grid .v { font-size: 20px; font-weight: 500; margin-top: 2px; }
+    .line-card .v small { font-size: 13px; font-weight: 400; opacity: 0.85; }
+    .line-card .act { margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.3); font-size: 14px; }
+    .line-card .act .row { display: flex; justify-content: space-between; padding: 6px 0; }
+
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--fg-ink); margin-bottom: 6px; }
+    select, input[type="number"] { width: 100%; min-height: 52px; padding: 0 18px; border: 1px solid var(--fg-ink); border-radius: 9999px; background: var(--fg-white); color: var(--fg-ink); font-family: var(--sans); font-size: 16px; outline: none; -webkit-appearance: none; appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%231A1B22' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 20px center; padding-right: 48px; }
+    select:focus, input:focus { box-shadow: 0 0 0 4px var(--fg-lilac); }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: '$'; position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--fg-ink); }
+    .amount-wrap input { padding-left: 32px; }
+    .hint { font-size: 13px; color: var(--fg-muted); margin-top: 6px; }
+    .summary { background: var(--fg-paper); border-radius: 16px; padding: 16px 20px; margin: 4px 0 20px; font-size: 14px; }
+    .summary .row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; }
+    .summary .row.total { border-top: 1px solid var(--fg-line); margin-top: 6px; padding-top: 10px; font-weight: 600; font-size: 15px; }
+    #submitBtn { width: 100%; min-height: 56px; border-radius: 9999px; background: var(--fg-primary); color: var(--fg-white); border: 1px solid var(--fg-primary); font-family: var(--sans); font-weight: 500; font-size: 18px; cursor: pointer; }
+    #submitBtn:hover { background: var(--fg-primary-dark); }
+    #submitBtn:disabled { opacity: 0.65; cursor: not-allowed; }
+    .legal { margin-top: 14px; font-size: 12px; color: var(--fg-muted); line-height: 1.5; }
+    .legal a { text-decoration: underline; display: inline-block; padding: 14px 0; margin: -14px 0; }
+    .result-box { margin-top: 16px; padding: 16px 20px; border-radius: 16px; font-size: 15px; display: none; }
+    .result-box.error { display: block; background: #fdf1f1; border: 1px solid #d9534f; color: #8e1b1b; }
+    .result-box.success { display: block; background: #eeedff; border: 1px solid var(--fg-primary); color: var(--fg-ink); }
+    .result-box .error-title { font-weight: 600; margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 14px; word-break: break-word; }
+
+    /* Steps */
+    .steps { margin-top: 64px; }
+    .steps h2 { font-size: 36px; line-height: 1.25; letter-spacing: -0.5px; text-align: center; margin-bottom: 32px; }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .step { background: var(--fg-white); border-radius: 20px; padding: 28px; }
+    .step .num { width: 40px; height: 40px; border-radius: 9999px; background: var(--fg-lilac); color: var(--fg-ink); display: flex; align-items: center; justify-content: center; font-weight: 600; margin-bottom: 18px; }
+    .step h3 { font-size: 22px; font-weight: 500; line-height: 1.3; margin-bottom: 8px; }
+    .step p { font-size: 15px; color: var(--fg-ink-soft); }
+
+    /* Join band */
+    .join { max-width: 1200px; margin: 0 auto 72px; padding: 0 40px; }
+    .join-inner { background: linear-gradient(135deg, #e9e6ff 0%, var(--fg-lilac) 60%, #f6e7f0 100%); border-radius: 24px; text-align: center; padding: 64px 24px; }
+    .join h2 { font-size: 44px; line-height: 1.1; letter-spacing: -1px; }
+    .join h2 strong { font-weight: 500; }
+    .join .pill { margin-top: 28px; }
+
+    /* Footer */
+    footer { background: var(--fg-white); }
+    .foot-inner { max-width: 1200px; margin: 0 auto; padding: 64px 40px 40px; display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr; gap: 32px; }
+    .foot-brand .wordmark { font-size: 20px; }
+    .foot-brand p { margin-top: 16px; font-size: 14px; color: var(--fg-ink-soft); max-width: 260px; }
+    footer h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+    footer ul { list-style: none; }
+    footer li a { display: inline-flex; align-items: center; min-height: 44px; font-size: 15px; color: var(--fg-ink-soft); }
+    footer li a:hover { color: var(--fg-ink); }
+    .foot-legal { max-width: 1200px; margin: 0 auto; padding: 24px 40px 48px; border-top: 1px solid var(--fg-line); font-size: 12px; color: var(--fg-muted); line-height: 1.6; }
+
+    @media (max-width: 1024px) {
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .draw { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .foot-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .fg-nav { padding: 12px 16px 0; min-height: 68px; gap: 12px; }
+      .nav-right { gap: 12px; }
+      .nav-right .login { display: none; }
+      .nav-right .pill { min-height: 44px; padding: 0 18px; font-size: 15px; }
+      .notice { padding: 0 16px; }
+      .notice-inner { padding: 16px 20px; font-size: 14px; line-height: 22px; border-radius: 12px; }
+      .hero { padding: 36px 16px 20px; gap: 24px; }
+      .hero h1 { font-size: 40px; letter-spacing: -1px; }
+      .hero-visual { min-height: 260px; }
+      .hero-visual .badge { font-size: 12px; padding: 10px 12px; }
+      main { padding: 16px 16px 48px; }
+      .card { padding: 22px 18px; border-radius: 16px; }
+      .card h2 { font-size: 26px; }
+      .line-card .big { font-size: 36px; }
+      .steps h2 { font-size: 28px; }
+      .join { padding: 0 16px; margin-bottom: 48px; }
+      .join-inner { padding: 44px 18px; }
+      .join h2 { font-size: 32px; }
+      .foot-inner { grid-template-columns: 1fr; padding: 44px 16px 24px; }
+      .foot-legal { padding: 20px 16px 36px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="fg-header">
+    <nav class="fg-nav" aria-label="Primary">
+      <a class="wordmark" href="#" aria-label="Figure">Figure</a>
+      <div class="nav-links">
+        <a href="#">Lending</a>
+        <a href="#">Markets</a>
+        <a href="#">Partnerships</a>
+        <a href="#">About</a>
+      </div>
+      <div class="nav-right">
+        <a class="login" href="#">Login</a>
+        <a class="pill pill-dark" href="#">Find my HELOC rate</a>
+      </div>
+    </nav>
+  </header>
+  <div class="notice">
+    <div class="notice-inner">Your HELOC is open. Draw what you need, repay, and redraw up to 100% of your line during the draw period. <a href="#">See how redraws work.</a></div>
+  </div>
+
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Home Equity Line of Credit (HELOC)</div>
+      <h1>Request a draw</h1>
+      <p class="lede">Move funds from your Figure HELOC to a linked bank account. Standard ACH transfers arrive in 1&ndash;3 business days; same-day wires arrive today when requested before 2 pm ET.</p>
+      <ul class="checks">
+        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Draw from $500 up to your available credit</span></li>
+        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Each draw locks its own fixed rate for the remainder of your term</span></li>
+        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>No fee to draw. Interest accrues only on what you use.</span></li>
+      </ul>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <img src="https://www.datocms-assets.com/33246/1767819732-heloc-phone.png" alt="" loading="lazy" onerror="this.outerHTML='<div class=&quot;fallback&quot;>Repay &amp; redraw, all online</div>'">
+      <div class="badge b1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A4 4 0 0 1 17 17z"/></svg>100% online</div>
+      <div class="badge b2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Repay &amp; redraw</div>
+    </div>
+  </section>
+
+  <main>
+    <div class="draw">
+      <section class="card line-card" aria-label="Your line of credit">
+        <div class="label">Available to draw</div>
+        <div class="big" id="availableCredit">$112,400.00</div>
+        <div class="meter"><span id="usedMeter"></span></div>
+        <div class="grid">
+          <div><div class="k">Credit limit</div><div class="v">$170,000.00</div></div>
+          <div><div class="k">Outstanding balance</div><div class="v">$57,600.00</div></div>
+          <div><div class="k">Today's draw rate</div><div class="v">7.85% <small>APR, fixed per draw</small></div></div>
+          <div><div class="k">Draw period ends</div><div class="v">Mar 2031</div></div>
+        </div>
+        <div class="act">
+          <div class="row"><span>Draw &middot; Jun 3, 2026</span><span>$25,000.00</span></div>
+          <div class="row"><span>Payment &middot; Aug 1, 2026</span><span>&minus;$612.40</span></div>
+          <div class="row"><span>Payment &middot; Sep 1, 2026</span><span>&minus;$612.40</span></div>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Request a draw">
+        <h2>Draw details</h2>
+        <div class="sub">Tell us how much you need and where to send it. You'll see the funding date before you confirm.</div>
+        <form id="transferForm">
+          <div class="form-group">
+            <label for="fromAccount">Draw from</label>
+            <select id="fromAccount">
+              <option value="ACCT-1002">Figure HELOC &mdash; line ending 7731</option>
+              <option value="ACCT-1001">Figure HELOC &mdash; line ending 2208 (investment property)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="toAccount">Send to</label>
+            <select id="toAccount">
+              <option value="ACCT-1003">Chase Total Checking &mdash; ****4471</option>
+              <option value="ACCT-1004">Ally Savings &mdash; ****0928</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Draw amount</label>
+            <div class="amount-wrap"><input type="number" id="amount" value="15000" min="500" step="100" placeholder="0"></div>
+            <div class="hint">Minimum $500. Interest on this draw is fixed at today's draw rate.</div>
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Funding speed</label>
+            <select id="accountTier">
+              <option value="standard">Standard ACH &mdash; 1&ndash;3 business days, no fee</option>
+              <option value="premium">Same-day wire &mdash; arrives today, $25 fee</option>
+            </select>
+          </div>
+          <div class="summary" aria-live="polite">
+            <div class="row"><span>Draw amount</span><span id="sumAmount">$15,000.00</span></div>
+            <div class="row"><span>Funding</span><span id="sumSpeed">Standard ACH</span></div>
+            <div class="row"><span>Available after this draw</span><span id="sumRemaining">$97,400.00</span></div>
+            <div class="row total"><span>Est. monthly payment on this draw</span><span id="sumPayment">$179.42</span></div>
+          </div>
+          <button type="submit" id="submitBtn">Request draw</button>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <p class="legal">Draws are subject to the terms of your HELOC agreement and available credit at the time of funding. Estimated payment assumes a 30-year term at today's draw rate; your actual payment is shown on your statement. <a href="#">Servicing fee schedule</a> &middot; <a href="#">Terms and Policies</a></p>
+      </section>
+    </div>
+
+    <section class="steps">
+      <h2>How a draw works with Figure</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="num">1</div>
+          <h3>Choose an amount</h3>
+          <p>Draw any amount from $500 up to your available credit. Each draw is a fixed-rate installment on your line.</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h3>Pick where it goes</h3>
+          <p>Send funds to any linked bank account. Standard ACH is free; same-day wires are available for a flat fee.</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h3>Repay and redraw</h3>
+          <p>As you pay down your balance, that credit becomes available again for the rest of your draw period.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="join">
+    <div class="join-inner">
+      <h2>Join our <strong>382K+</strong><br>happy customers</h2>
+      <a class="pill pill-primary" href="#">Find my HELOC rate</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-brand">
+        <span class="wordmark">Figure</span>
+        <p>Finance, without the friction. Faster approvals, lower costs, and transparent access.</p>
+      </div>
+      <div>
+        <h4>Lending</h4>
+        <ul>
+          <li><a href="#">HELOC</a></li>
+          <li><a href="#">DSCR Loan</a></li>
+          <li><a href="#">Cash-Out Refinance</a></li>
+          <li><a href="#">Crypto-Backed Loan</a></li>
+          <li><a href="#">HELOC Calculator</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Markets</h4>
+        <ul>
+          <li><a href="#">Democratized Prime</a></li>
+          <li><a href="#">OPEN</a></li>
+          <li><a href="#">YLDS</a></li>
+          <li><a href="#">Provenance</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Partnerships</h4>
+        <ul>
+          <li><a href="#">Lenders, Brokers, &amp; Servicers</a></li>
+          <li><a href="#">Banks &amp; Credit Unions</a></li>
+          <li><a href="#">Figure Connect</a></li>
+          <li><a href="#">Partner Success Center</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>About</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">FAQs</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Terms and Policies</a></li>
+          <li><a href="#">Privacy Center</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-legal">&copy;2026 Figure Lending LLC. Figure Lending LLC dba Figure. 5200 77 Center Drive, Suite 400, Charlotte, NC 28217. (888) 819-6388. NMLS ID 1717824. Equal Housing Opportunity. Rates, balances, and account details shown are illustrative.</div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const LINE = { limit: 170000, balance: 57600, apr: 0.0785, termMonths: 360 };
+    const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const amountEl = document.getElementById('amount');
+    const speedEl = document.getElementById('accountTier');
+    function renderLine() {
+      const available = LINE.limit - LINE.balance;
+      document.getElementById('availableCredit').textContent = money(available);
+      document.getElementById('usedMeter').style.width = Math.round((LINE.balance / LINE.limit) * 100) + '%';
+    }
+    function renderSummary() {
+      const amt = Math.max(0, parseFloat(amountEl.value) || 0);
+      const r = LINE.apr / 12;
+      const payment = amt > 0 ? (amt * r) / (1 - Math.pow(1 + r, -LINE.termMonths)) : 0;
+      document.getElementById('sumAmount').textContent = money(amt);
+      document.getElementById('sumSpeed').textContent = speedEl.value === 'premium' ? 'Same-day wire' : 'Standard ACH';
+      document.getElementById('sumRemaining').textContent = money(LINE.limit - LINE.balance - amt);
+      document.getElementById('sumPayment').textContent = money(payment);
+    }
+    amountEl.addEventListener('input', renderSummary);
+    speedEl.addEventListener('change', renderSummary);
+    document.getElementById('transferForm').addEventListener('reset', function () { setTimeout(renderSummary, 0); });
+    renderLine();
+    renderSummary();
+
+    function showResult(result, state, title, detail) {
+      result.className = 'result-box ' + state;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting your draw...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult(result, 'error', 'We could not submit your draw', 'Your line was not charged. Please try again in a few minutes or contact Figure Support at (888) 819-6388.');
+        } else {
+          const speed = document.getElementById('accountTier').value === 'premium' ? 'by wire today' : 'by ACH in 1\u20133 business days';
+          showResult(result, 'success', 'Draw requested', money(data.debitAmount) + ' will arrive ' + speed + '. Reference ' + data.transferId + '. Your new draw rate is locked at 7.85% APR.');
+        }
+      } catch (err) {
+        showResult(result, 'error', 'Connection interrupted', 'We could not reach Figure. Check your connection and try again.');
+      } finally { btn.disabled = false; btn.textContent = 'Request draw'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

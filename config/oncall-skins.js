@@ -1425,6 +1425,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Bloomberg Law Help Desk',
     disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
   },
+  '5d7c46c1': {
+    slug: '5d7c46c1',
+    company: 'Figure',
+    brandMark: 'F',
+    vertical: 'banking',
+    page: { file: '5d7c46c1.html', title: 'Request a draw | Figure HELOC' },
+    theme: {
+      '--accent': '#5B56F5',
+      '--ink': '#1A1B22',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1A1B22',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Figure Support',
+    disclaimer: 'NOT ACTUALLY A FIGURE SITE — internal demo only, not affiliated with, endorsed by, or a real Figure Lending LLC product.',
+  },
 };
 
 function getOncallSkin(slug) {
