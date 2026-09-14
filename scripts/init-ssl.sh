@@ -150,8 +150,10 @@ rm -f "$INIT_CONF"
 
 # ── Step 4: Restart with full SSL config ─────────────────────────────────────
 echo "Step 4/4: Restarting with full SSL configuration..."
-docker compose down
+docker compose --profile '*' down
 docker compose up -d --build
+# avature is profile-gated (optional, separate repo); bring it back if it was built
+docker compose --profile avature up -d --no-deps --no-build avature 2>/dev/null || true
 
 echo ""
 echo "=== SSL Setup Complete! ==="

@@ -434,9 +434,6 @@ services:
         condition: service_healthy
       migration-tower:
         condition: service_started
-      avature:
-        condition: service_started
-        required: false
     restart: unless-stopped
     deploy:
       resources:
@@ -495,13 +492,16 @@ services:
       - "4001"
 
   # ─── Avature Talent Suite (recruiting-platform demo, separate repo) ───
-  # Built straight from COG-GTM/avature-talent-demo (private, so the host's
-  # GITHUB_PAT rides in the git URL). Served by nginx under /avature/; the
-  # 5xx-to-Devin-session trigger and Slack alert reuse the same host .env
-  # credentials as checkout-api.
+  # Built from ./avature-src, a checkout of COG-GTM/avature-talent-demo that
+  # scripts/deploy-ec2.sh step 5b refreshes with GITHUB_PAT (never stored in
+  # compose metadata). Profile-gated so plain `compose up/down/--build` runs
+  # (init-ssl.sh, manual restarts) ignore it; nginx resolves the upstream
+  # lazily, so only /avature/ is affected when it is absent. The 5xx-to-Devin
+  # trigger and Slack alert reuse the same host .env credentials as checkout-api.
   avature:
+    profiles: ["avature"]
     build:
-      context: https://${GITHUB_PAT:-x-access-token}@github.com/COG-GTM/avature-talent-demo.git#${AVATURE_REF:-main}
+      context: ./avature-src
     ports:
       - "127.0.0.1:3300:3000"
     environment:

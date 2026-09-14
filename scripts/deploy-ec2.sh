@@ -223,12 +223,33 @@ if [ ${#FAILED[@]} -gt 0 ]; then
 fi
 log "smoke ok ($TOTAL paths 200)"
 
-# ── 5b. avature (separate repo, built from its git URL) ─────────────────────
-# Serialized after checkout-api for the same memory reason. Failures here must
-# not roll back the main stack: nginx resolves the avature upstream lazily, so
-# only /avature/ breaks.
-if compose build --pull avature >/dev/null 2>&1; then
-  compose up -d --no-deps avature >/dev/null || log "warning: avature failed to start"
+# ── 5b. avature (separate private repo, profile-gated service) ──────────────
+# Best effort and serialized after checkout-api for the same memory reason.
+# Failures here never roll back the main stack: nginx resolves the avature
+# upstream lazily, so only /avature/ breaks. The token travels in a one-shot
+# git header, not in the remote URL or compose metadata.
+env_value() { sed -n "s/^[[:space:]]*$1=//p" "$APP_DIR/.env" 2>/dev/null | tail -1 | tr -d "\"' "; }
+AV_SRC="$APP_DIR/avature-src"
+AV_REPO=${AVATURE_REPO:-https://github.com/COG-GTM/avature-talent-demo.git}
+AV_REF=${AVATURE_REF:-$(env_value AVATURE_REF)}; AV_REF=${AV_REF:-main}
+GITHUB_PAT=${GITHUB_PAT:-$(env_value GITHUB_PAT)}
+avature_git() {
+  if [ -n "${GITHUB_PAT:-}" ]; then
+    git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_PAT" | base64 -w0)" "$@"
+  else
+    git "$@"
+  fi
+}
+avature_sync() {
+  if [ -d "$AV_SRC/.git" ]; then
+    avature_git -C "$AV_SRC" fetch --depth 1 origin "$AV_REF" && git -C "$AV_SRC" checkout -q --detach FETCH_HEAD
+  else
+    rm -rf "$AV_SRC" && avature_git clone -q --depth 1 --branch "$AV_REF" "$AV_REPO" "$AV_SRC"
+  fi
+}
+if avature_sync 2>/dev/null && compose --profile avature build --pull avature >/dev/null 2>&1 \
+   && compose --profile avature up -d --no-deps avature >/dev/null 2>&1; then
+  log "avature: built $(git -C "$AV_SRC" rev-parse --short HEAD) from $AV_REF"
   AV_STATUS=000
   for _ in $(seq 1 20); do
     AV_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${AVATURE_HEALTH_URL:-http://localhost:3300/health}" || true)
@@ -237,7 +258,7 @@ if compose build --pull avature >/dev/null 2>&1; then
   done
   if [ "$AV_STATUS" = 200 ]; then log "avature health 200"; else log "warning: avature health returned $AV_STATUS"; fi
 else
-  log "warning: avature image build failed (GITHUB_PAT missing or repo unreachable?) — /avature/ left as-is"
+  log "warning: avature sync/build/start failed (GITHUB_PAT missing or repo unreachable?) — /avature/ left as-is"
 fi
 
 # ── 6. reconcile the rest of the stack ──────────────────────────────────────
