@@ -295,6 +295,7 @@ async function submitPayRun(data) {
         service: 'customer-a7fb8819-payroll',
         payRunId,
         state: state || 'unknown',
+        alert_path: 'instant',
       },
       extra: {
         payRunId,
