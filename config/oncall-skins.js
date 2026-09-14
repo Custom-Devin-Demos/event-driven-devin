@@ -1457,6 +1457,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Rippling Help Center',
     disclaimer: 'NOT ACTUALLY A RIPPLING SITE — internal demo only, not affiliated with, endorsed by, or a real Rippling People Center Inc. product.',
   },
+  '347abdf0': {
+    slug: '347abdf0',
+    company: 'Hebbia',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: { file: '347abdf0.html', title: 'Add seats | Matrix workspaces – Hebbia' },
+    theme: {
+      '--accent': '#465BFF',
+      '--ink': '#0E0B0B',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0E0B0B',
+      '--chrome-text': '#F4F1EB',
+    },
+    supportCenter: 'Hebbia Support',
+    disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
+  },
 };
 
 function getOncallSkin(slug) {

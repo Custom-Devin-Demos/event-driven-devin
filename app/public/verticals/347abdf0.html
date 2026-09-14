@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add seats | Matrix workspaces – Hebbia</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --chrome: #0E0B0B;
+      --cream: #F4F1EB;
+      --nav-cream: #EEECDD;
+      --accent: #465BFF;
+      --ink: #0E0B0B;
+      --surface: #ffffff;
+      --hairline: #E5E5E5;
+      --muted: #696969;
+      --chip: #F4F4F4;
+      --green: #18794E;
+      --green-bg: #EAF6EF;
+      --amber: #916400;
+      --amber-bg: #FFF6DD;
+      --sans: 'Selecta', 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      --display: 'Iowan Old Style', 'Palatino Linotype', serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-width: 0; }
+    body {
+      margin: 0;
+      min-width: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .site-header {
+      background: var(--chrome);
+      color: var(--cream);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      max-width: 1440px;
+      min-height: 64px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--cream);
+      text-decoration: none;
+      flex: 0 0 auto;
+    }
+    .wordmark svg { width: 19px; height: 22px; }
+    .wordmark span {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      line-height: 1;
+    }
+    .primary-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      min-width: 0;
+    }
+    .primary-nav a {
+      color: var(--nav-cream);
+      font-size: 14px;
+      line-height: 20px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+    .sign-in {
+      color: var(--nav-cream);
+      font-size: 14px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .demo-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 9px 16px;
+      border: 0;
+      border-radius: 4px;
+      background: #F5F5F5;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .menu-toggle {
+      display: none;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 8px;
+      border: 0;
+      background: transparent;
+      color: var(--cream);
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+    }
+    .hero {
+      background: var(--chrome);
+      color: var(--cream);
+    }
+    .hero-inner {
+      max-width: 1440px;
+      min-height: 200px;
+      margin: 0 auto;
+      padding: 30px 48px 34px;
+    }
+    .eyebrow {
+      margin: 0 0 11px;
+      color: rgba(244, 241, 235, 0.7);
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      line-height: 18px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 780px;
+      margin: 0;
+      font-family: 'Instrument Serif', var(--display);
+      font-size: 56px;
+      font-weight: 400;
+      letter-spacing: -0.5px;
+      line-height: 1.05;
+    }
+    .hero p {
+      max-width: 790px;
+      margin: 12px 0 0;
+      color: rgba(244, 241, 235, 0.88);
+      font-size: 18px;
+      line-height: 27px;
+    }
+    .content {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 36px 48px 48px;
+    }
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 24px;
+      align-items: start;
+    }
+    .card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .card-header h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.35px;
+      line-height: 28px;
+    }
+    .card-body { padding: 24px; }
+    .pill-tabs { display: flex; gap: 8px; }
+    .pill-tabs span {
+      padding: 5px 11px;
+      border: 1px solid var(--hairline);
+      border-radius: 999px;
+      background: var(--chip);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      white-space: nowrap;
+    }
+    .pill-tabs span.on {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--cream);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .stat {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--hairline);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+    .stat-value {
+      margin-top: 6px;
+      font-size: 25px;
+      font-weight: 500;
+      letter-spacing: -0.55px;
+      line-height: 30px;
+    }
+    .activity-heading {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 24px;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      min-width: 660px;
+      border-collapse: collapse;
+    }
+    th {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--hairline);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-align: left;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--hairline);
+      font-size: 14px;
+      line-height: 20px;
+      white-space: nowrap;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 18px;
+    }
+    .status.active {
+      border-color: #C9E8D7;
+      background: var(--green-bg);
+      color: var(--green);
+    }
+    .status.pending {
+      border-color: #F0D995;
+      background: var(--amber-bg);
+      color: var(--amber);
+    }
+    .form-intro {
+      margin: 0 0 20px;
+      color: #4D4D4D;
+      font-size: 14px;
+      line-height: 21px;
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 18px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      min-height: 48px;
+      padding: 11px 14px;
+      border: 1px solid #BDBDBD;
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 24px;
+    }
+    .form-group select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230E0B0B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-position: right 14px center;
+      background-repeat: no-repeat;
+      padding-right: 40px;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: 2px solid rgba(70, 91, 255, 0.3);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+    .hint {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .summary {
+      min-height: 24px;
+      margin: 4px 0 16px;
+      color: #4D4D4D;
+      font-size: 13px;
+      line-height: 20px;
+    }
+    .form-actions { display: flex; gap: 10px; }
+    .primary-button,
+    .clear-button {
+      min-height: 48px;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.16px;
+      line-height: 22px;
+    }
+    .primary-button {
+      flex: 1;
+      border: 0;
+      background: var(--accent);
+      color: #ffffff;
+    }
+    .primary-button:disabled { cursor: not-allowed; opacity: 0.65; }
+    .clear-button {
+      border: 1px solid var(--ink);
+      background: var(--surface);
+      color: var(--ink);
+    }
+    .result {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 21px;
+    }
+    .result.success {
+      display: block;
+      background: var(--green-bg);
+      color: #14563A;
+    }
+    .result.failure {
+      display: block;
+      background: #FFF0EF;
+      color: #7E1B14;
+    }
+    .result-title { font-weight: 600; }
+    .result-detail { margin-top: 3px; }
+    .help-strip {
+      margin-top: 24px;
+      padding: 18px 24px;
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      color: #3F3F3F;
+      font-size: 14px;
+      line-height: 22px;
+    }
+    .help-strip strong { color: var(--ink); font-weight: 600; }
+    .site-footer {
+      background: var(--chrome);
+      color: rgba(244, 241, 235, 0.76);
+      padding: 42px 48px 28px;
+    }
+    .footer-inner { max-width: 1440px; margin: 0 auto; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 24px;
+      padding-bottom: 34px;
+    }
+    .footer-column h3 {
+      margin: 0 0 12px;
+      color: var(--cream);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      line-height: 16px;
+    }
+    .footer-column a {
+      display: block;
+      margin-top: 7px;
+      color: rgba(244, 241, 235, 0.76);
+      font-size: 13px;
+      line-height: 20px;
+      text-decoration: none;
+    }
+    .copyright {
+      padding-top: 18px;
+      border-top: 1px solid rgba(244, 241, 235, 0.2);
+      color: rgba(244, 241, 235, 0.6);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      line-height: 18px;
+      text-transform: uppercase;
+    }
+    @media (max-width: 1100px) {
+      .header-inner, .hero-inner, .content, .site-footer { padding-left: 28px; padding-right: 28px; }
+      .primary-nav { gap: 16px; }
+      .content-grid { grid-template-columns: minmax(0, 1fr) 380px; }
+    }
+    @media (max-width: 900px) {
+      .primary-nav, .header-actions .sign-in, .header-actions .demo-button { display: none; }
+      .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .header-inner.menu-open .primary-nav {
+        display: flex;
+        position: absolute;
+        top: 64px;
+        right: 16px;
+        left: 16px;
+        z-index: 3;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 8px 0;
+        border: 1px solid #2E2A2A;
+        border-radius: 4px;
+        background: var(--chrome);
+      }
+      .header-inner.menu-open .primary-nav a { padding: 12px 16px; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .footer-column a { display: flex; align-items: center; min-height: 44px; margin-top: 0; }
+      .header-inner { min-height: 64px; padding: 0 16px; }
+      .hero-inner { min-height: 0; padding: 28px 16px 32px; }
+      .hero h1 { font-size: 36px; line-height: 1.05; }
+      .hero p { font-size: 16px; line-height: 24px; }
+      .content { padding: 20px 16px 32px; }
+      .card-header { flex-direction: column; align-items: flex-start; padding: 18px; }
+      .card-body { padding: 18px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stat { padding: 13px; }
+      .stat-value { font-size: 21px; }
+      .form-actions { flex-direction: column; }
+      .primary-button, .clear-button { width: 100%; }
+      .help-strip { padding: 16px 18px; }
+      .site-footer { padding: 32px 16px 24px; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="wordmark" aria-label="Hebbia">
+        <svg viewBox="0 0 19 22" aria-hidden="true" fill="currentColor">
+          <rect x="1" y="1" width="4" height="20" rx="1"></rect>
+          <rect x="8" y="1" width="4" height="20" rx="1"></rect>
+          <rect x="15" y="1" width="3" height="20" rx="1"></rect>
+        </svg>
+        <span>Hebbia</span>
+      </a>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="#">Max</a>
+        <a href="#">Product</a>
+        <a href="#">Solutions</a>
+        <a href="#">Security</a>
+        <a href="#">Company</a>
+        <a href="#">Pricing</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#" class="sign-in">Sign in</a>
+        <a href="#" class="demo-button">Request a demo</a>
+        <button type="button" class="menu-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Workspace administration</p>
+      <h1>Add seats to a Matrix workspace</h1>
+      <p>Provision Matrix access for a deal team. Seats are active as soon as provisioning completes, and every finding stays traceable to its source.</p>
+    </div>
+  </section>
+
+  <main class="content">
+    <div class="content-grid">
+      <section class="card">
+        <div class="card-header">
+          <h2>Workspaces</h2>
+          <div class="pill-tabs"><span class="on">All workspaces</span><span>Pending</span><span>Archived</span></div>
+        </div>
+        <div class="card-body">
+          <div class="stats">
+            <div class="stat"><div class="stat-label">Active workspaces</div><div class="stat-value">24</div></div>
+            <div class="stat"><div class="stat-label">Seats provisioned</div><div class="stat-value">1,860</div></div>
+            <div class="stat"><div class="stat-label">Pending provisions</div><div class="stat-value">9</div></div>
+            <div class="stat"><div class="stat-label">Documents indexed</div><div class="stat-value">4.2M</div></div>
+          </div>
+          <h3 class="activity-heading">Recent seat provisions</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Workspace</th><th>Team</th><th>Seats</th><th>Region</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Project Meridian — diligence</td><td>Deal team</td><td>32</td><td>US East</td><td><span class="status active">Active</span></td></tr>
+                <tr><td>Sponsor coverage — TMT</td><td>Investment banking</td><td>18</td><td>US West</td><td><span class="status active">Active</span></td></tr>
+                <tr><td>Credit research</td><td>Research</td><td>12</td><td>EU West</td><td><span class="status pending">Provisioning</span></td></tr>
+                <tr><td>Legal — fund formation</td><td>Legal</td><td>8</td><td>AP South</td><td><span class="status active">Active</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card form-card">
+        <div class="card-header"><h2>Add seats</h2></div>
+        <div class="card-body">
+          <p class="form-intro">Add Matrix seats to a workspace. Members receive access under the permission set you select.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">Workspace</label>
+              <select id="product">
+                <option value="Project Meridian — diligence">Project Meridian — diligence</option>
+                <option value="Sponsor coverage — TMT">Sponsor coverage — TMT</option>
+                <option value="Credit research">Credit research</option>
+                <option value="Legal — fund formation">Legal — fund formation</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="seats">Seats to add</label>
+              <input type="number" id="seats" value="25" min="1" required>
+              <p class="hint">Each seat includes Max and Matrix.</p>
+            </div>
+            <div class="form-group">
+              <label for="planTier">Permission set</label>
+              <select id="planTier">
+                <option value="enterprise">Firm-wide</option>
+                <option value="business">Team</option>
+                <option value="starter">Individual</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="region">Data region</label>
+              <select id="region">
+                <option value="us-east">US East</option>
+                <option value="us-west">US West</option>
+                <option value="eu-west">EU West</option>
+                <option value="ap-south">AP South</option>
+              </select>
+            </div>
+            <div id="summary" class="summary" aria-live="polite"></div>
+            <div class="form-actions">
+              <button type="submit" class="primary-button" id="submitBtn">Add seats</button>
+              <button type="reset" class="clear-button">Clear</button>
+            </div>
+          </form>
+          <div id="result" class="result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="help-strip"><strong>Need help?</strong> Hebbia Support · Your account team · Security &amp; compliance</div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-column">
+          <h3>PRODUCT</h3>
+          <a href="#">Overview</a>
+          <a href="#">Max</a>
+          <a href="#">Matrix</a>
+          <a href="#">Security</a>
+        </div>
+        <div class="footer-column">
+          <h3>SOLUTIONS</h3>
+          <a href="#">Investing</a>
+          <a href="#">Banking</a>
+          <a href="#">Legal</a>
+          <a href="#">Corporate</a>
+        </div>
+        <div class="footer-column">
+          <h3>COMPANY</h3>
+          <a href="#">About</a>
+          <a href="#">Careers</a>
+          <a href="#">Blog</a>
+          <a href="#">Forum</a>
+        </div>
+        <div class="footer-column">
+          <h3>POLICIES</h3>
+          <a href="#">Privacy</a>
+          <a href="#">Data Processing</a>
+          <a href="#">Fair Use</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+      <div class="copyright">COPYRIGHT © 2026 HEBBIA. ALL RIGHTS RESERVED.</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('provisionForm');
+    const product = document.getElementById('product');
+    const seats = document.getElementById('seats');
+    const planTier = document.getElementById('planTier');
+    const region = document.getElementById('region');
+    const summary = document.getElementById('summary');
+
+    const updateSummary = () => {
+      const workspace = product.value;
+      const permission = planTier.options[planTier.selectedIndex].text;
+      const regionLabel = region.options[region.selectedIndex].text;
+      summary.textContent = `${seats.value} seats · ${workspace} · ${permission} · ${regionLabel}`;
+    };
+
+    [product, seats, planTier, region].forEach((field) => {
+      field.addEventListener('input', updateSummary);
+      field.addEventListener('change', updateSummary);
+    });
+    form.addEventListener('reset', () => {
+      const result = document.getElementById('result');
+      result.className = 'result';
+      result.textContent = '';
+      window.setTimeout(updateSummary, 0);
+    });
+    updateSummary();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true;
+      btn.textContent = 'Adding seats…';
+      result.className = 'result';
+      const render = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div');
+        t.className = 'result-title';
+        t.textContent = title;
+        const d = document.createElement('div');
+        d.className = 'result-detail';
+        d.textContent = detail;
+        result.appendChild(t);
+        result.appendChild(d);
+      };
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: product.value, planName: planTier.value, seats: parseInt(seats.value), billingCycle: 'annual', region: region.value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result failure';
+          render("We couldn't add these seats right now", 'Please try again in a few minutes or contact Hebbia Support.');
+        } else {
+          result.className = 'result success';
+          render('Seats added', `${data.seatsAdded} seats provisioned in ${data.product}. Members can open the workspace now.`);
+        }
+      } catch (err) {
+        result.className = 'result failure';
+        render("We couldn't add these seats right now", 'Please try again in a few minutes or contact Hebbia Support.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Add seats';
+      }
+    });
+  </script>
+  <script>
+    const headerInner = document.querySelector('.header-inner');
+    const menuToggle = document.querySelector('.menu-toggle');
+    menuToggle.addEventListener('click', () => {
+      const isOpen = headerInner.classList.toggle('menu-open');
+      menuToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
