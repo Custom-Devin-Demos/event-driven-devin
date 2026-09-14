@@ -491,6 +491,34 @@ services:
     expose:
       - "4001"
 
+  # ─── Avature Talent Suite (recruiting-platform demo, separate repo) ───
+  # Built from ./avature-src, a checkout of COG-GTM/avature-talent-demo that
+  # scripts/deploy-ec2.sh step 5b refreshes with GITHUB_PAT (never stored in
+  # compose metadata). Profile-gated so plain `compose up/down/--build` runs
+  # (init-ssl.sh, manual restarts) ignore it; nginx resolves the upstream
+  # lazily, so only /avature/ is affected when it is absent. The 5xx-to-Devin
+  # trigger and Slack alert reuse the same host .env credentials as checkout-api.
+  avature:
+    profiles: ["avature"]
+    build:
+      context: ./avature-src
+    ports:
+      - "127.0.0.1:3300:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DEVIN_SERVICE_KEY=${DEVIN_SERVICE_KEY:-}
+      - DEVIN_ORG_ID=${DEVIN_ORG_ID:-}
+      - DEVIN_USER_ID=${DEVIN_USER_ID:-}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN:-}
+      - SLACK_CHANNEL_ID=${SLACK_CHANNEL_ID:-}
+      - INCIDENT_COOLDOWN_MS=${AVATURE_INCIDENT_COOLDOWN_MS:-600000}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
   # ─── Migration Control Tower (Ab Initio -> dbt parity demo) ───
   migration-tower:
     build:
