@@ -456,14 +456,20 @@ function buildOncallSessionPrompt(scenario, skin, runRef) {
  * Identity of the person who triggered the run, as the demo header resolved it
  * (org name + email → Devin ids) and the page forwarded it. Sessions are then
  * created under that account instead of the service user's. Ids are shape-
- * checked because they arrive from the browser.
+ * checked because they arrive from the browser, and org and user are taken as
+ * one identity: a user id only belongs to the org it was resolved against, so
+ * a requester org with no user runs as that org's service user rather than
+ * borrowing a user id from the skin or the environment.
  */
 const DEVIN_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
 function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
+  const orgId = DEVIN_ID_RE.test(devinOrgId || '') ? devinOrgId : null;
+  if (!orgId) return { orgId: null, userId: null, complete: false };
   return {
-    orgId: DEVIN_ID_RE.test(devinOrgId || '') ? devinOrgId : null,
+    orgId,
     userId: DEVIN_ID_RE.test(devinUserId || '') ? devinUserId : null,
+    complete: true,
   };
 }
 
@@ -491,10 +497,13 @@ async function triggerSkinDevinSession(
   let session = null;
   try {
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
-      orgId: requester.orgId || config.orgId
-        || process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+      orgId: requester.complete
+        ? requester.orgId
+        : config.orgId || process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      userId: requester.userId || config.userId || process.env.DEVIN_ONCALL_USER_ID,
+      userId: requester.complete
+        ? requester.userId
+        : config.userId || process.env.DEVIN_ONCALL_USER_ID,
       title: `[On-Call] ${scenario.monitor}`,
     });
   } catch (error) {

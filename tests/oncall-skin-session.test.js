@@ -120,11 +120,44 @@ describe('on-call alerts that auto-create a Devin session', () => {
     await postOncallAlert(skin.vertical, {
       skin,
       devinUserId: 'user <!channel>',
-      devinOrgId: '',
+      devinOrgId: 'org <!here>',
     });
 
     const [, options] = createDevinSession.mock.calls[0];
     expect(options.userId).toBeUndefined();
+    expect(options.orgId).toBeUndefined();
+  });
+
+  test('a requester org without a user never borrows another source\'s user', async () => {
+    process.env.DEVIN_ONCALL_USER_ID = 'user_env';
+
+    try {
+      const skin = {
+        ...getOncallSkin(AUTO_SKIN_SLUG),
+        devinSession: { auto: true, userId: 'user_skin' },
+      };
+
+      await postOncallAlert(skin.vertical, { skin, devinOrgId: 'org_requester' });
+
+      const [, options] = createDevinSession.mock.calls[0];
+      expect(options.orgId).toBe('org_requester');
+      expect(options.userId).toBeNull();
+    } finally {
+      delete process.env.DEVIN_ONCALL_USER_ID;
+    }
+  });
+
+  test('a requester user without an org falls back to the configured identity', async () => {
+    const skin = {
+      ...getOncallSkin(AUTO_SKIN_SLUG),
+      devinSession: { auto: true, orgId: 'org_skin', userId: 'user_skin' },
+    };
+
+    await postOncallAlert(skin.vertical, { skin, devinUserId: 'user_requester' });
+
+    const [, options] = createDevinSession.mock.calls[0];
+    expect(options.orgId).toBe('org_skin');
+    expect(options.userId).toBe('user_skin');
   });
 
   test('a generic alert with no skin stays alert-only', async () => {
