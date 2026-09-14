@@ -220,9 +220,33 @@
     nav.main .wrap { overflow-x: auto; }
   }
   @media (max-width: 700px) {
+    html, body { overflow-x: hidden; }
+    .wrap { padding: 0 14px; }
+    .pencil { font-size: 12px; padding: 8px 12px; }
     .store { display: none; }
-    .cats, .grid, .two-up { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .head-row { gap: 12px; padding: 10px 0; grid-template-columns: auto minmax(0, 1fr); }
+    .search-store, .search { min-width: 0; }
+    .search input { min-width: 0; width: 100%; }
+    .head-icons { min-width: 0; }
+    .logo .word { font-size: 18px; }
+    .logo .word small { display: none; }
+    .search { max-width: none; height: 40px; }
+    .head-icons { gap: 16px; justify-content: space-between; }
+    .head-icons .ic .lbl, .cart-btn .lbl { font-size: 11px; }
+    .head-icons .ic .lbl b { font-size: 12px; }
+    nav.main .wrap { gap: 18px; }
+    nav.main .dept { padding-right: 18px; }
+    nav.main a { white-space: nowrap; }
+    .cats, .grid, .two-up, .ways, .offers, .features { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .hero .cta { position: static; transform: none; display: flex; justify-content: center; padding: 14px; }
+    .foot-top { grid-template-columns: 1fr; }
+    .foot-bot .banners { flex-wrap: wrap; }
+    .drawer { width: 100%; }
+    .drawer header, .drawer .body, .drawer footer { padding-left: 16px; padding-right: 16px; }
+    .toast { min-width: 0; width: calc(100% - 24px); max-width: none; bottom: auto; top: 12px; transform: translate(-50%, -20px); }
+    .toast.show { transform: translate(-50%, 0); }
+    nav.main .wrap { scrollbar-width: none; }
+    nav.main .wrap::-webkit-scrollbar { display: none; }
   }
 </style>
 </head>
@@ -349,7 +373,7 @@
         </div>
         <div class="offer">
           <img src="https://media-triangle.canadiantire.ca/promo-content/2024/01/6429-ct-money-cap-offer-tile-image-tires-en.png?im=whresize&wid=256&hei=115" alt="" loading="lazy">
-          <div class="body"><b>30x CT Money on tires</b><p>Triangle credit card exclusive during the Big Truck Tire Sale. Code BTTS30X.</p><button type="button" data-activate>Activate</button></div>
+          <div class="body"><b>30x CT Money on tires</b><p>Triangle credit card exclusive during the Big Truck Tire Sale. Code BTTS30X.</p><button type="button" data-activate="BTTS30X">Activate</button></div>
         </div>
         <div class="offer">
           <img src="https://media-www.canadiantire.ca/banners/category-content/2022/triangle-multiplier-offer-pool/4026-mastercraft-apptile.png?im=whresize&wid=256&hei=115" alt="" loading="lazy">
@@ -473,8 +497,8 @@
   var HST = 0.13;
   var EARN = { 'triangle-mastercard': 0.04, 'triangle-world-elite': 0.04, 'triangle-rewards': 0.004 };
   var BONUS = {
-    BTTS30X: { label: 'Big Truck Tire Sale — 30x CT Money on tires activated', multiplier: 30, tireOnly: true },
-    KITCHEN10X: { label: '10x CT Money on kitchen activated', multiplier: 10, categories: ['cookware'] }
+    BTTS30X: { label: 'Big Truck Tire Sale — 30x CT Money on tires activated', multiplier: 30, tireOnly: true, tenders: ['triangle-mastercard', 'triangle-world-elite'] },
+    KITCHEN10X: { label: '10x CT Money on kitchen activated', multiplier: 10, categories: ['cookware'], tenders: ['triangle-rewards', 'triangle-mastercard', 'triangle-world-elite'] }
   };
 
   var PRODUCTS = [
@@ -489,6 +513,7 @@
   var cart = [];
   var fulfilment = 'ship-to-home';
   var promo = 'BTTS30X';
+  var checkoutInFlight = false;
 
   var grid = document.getElementById('product-grid');
   var drawer = document.getElementById('drawer');
@@ -532,18 +557,23 @@
     var line = null;
     for (var i = 0; i < cart.length; i++) if (cart[i].sku === sku) line = cart[i];
     if (line) line.qty += qty; else cart.push({ sku: sku, qty: qty });
+    clearStatus();
     renderCart();
     showToast('Added to cart', p.brand + ' ' + p.name + ' × ' + qty, false);
   }
 
   function setQty(sku, qty) {
     cart = cart.map(function (l) { return l.sku === sku ? { sku: sku, qty: qty } : l; }).filter(function (l) { return l.qty > 0; });
+    clearStatus();
     renderCart();
   }
+
+  function clearStatus() { errorBox.classList.remove('show'); okBox.classList.remove('show'); }
 
   function estimateCtMoney(subtotalByLine) {
     var rate = EARN[tenderSel.value] || 0.004;
     var bonus = BONUS[promo];
+    if (bonus && bonus.tenders.indexOf(tenderSel.value) < 0) bonus = null;
     var total = 0;
     subtotalByLine.forEach(function (l) {
       var mult = 1;
@@ -586,7 +616,7 @@
     document.getElementById('t-tax').textContent = money(tax);
     document.getElementById('t-total').textContent = money(sub + ship + tax);
     document.getElementById('t-ctm').textContent = money(estimateCtMoney(lines));
-    checkoutBtn.disabled = !cart.length;
+    checkoutBtn.disabled = !cart.length || checkoutInFlight;
   }
 
   function openDrawer() { drawer.classList.add('open'); veil.classList.add('show'); drawer.setAttribute('aria-hidden', 'false'); }
@@ -603,17 +633,26 @@
     toastTimer = setTimeout(hideToast, isErr ? 9000 : 5000);
   }
 
+  function renderPromoHint() {
+    var b = BONUS[promo];
+    var excluded = b && b.tenders.indexOf(tenderSel.value) < 0;
+    promoHint.textContent = !promo ? 'No bonus offer applied'
+      : !b ? 'Offer code not recognized — base CT Money applies'
+        : excluded ? b.label.replace(' activated', '') + ' — Triangle credit card exclusive, base CT Money applies with this tender'
+          : b.label;
+    promoHint.style.color = b && !excluded ? '#009e49' : '#6b6b6b';
+  }
+
   function applyPromo() {
     promo = promoInput.value.trim().toUpperCase();
-    var b = BONUS[promo];
-    promoHint.textContent = b ? b.label : (promo ? 'Offer code not recognized — base CT Money applies' : 'No bonus offer applied');
-    promoHint.style.color = b ? '#009e49' : '#6b6b6b';
+    renderPromoHint();
     renderCart();
   }
 
   function checkout() {
-    if (!cart.length) return;
-    errorBox.classList.remove('show'); okBox.classList.remove('show');
+    if (!cart.length || checkoutInFlight) return;
+    checkoutInFlight = true;
+    clearStatus();
     checkoutBtn.disabled = true;
     checkoutBtn.textContent = 'Placing your order…';
 
@@ -659,6 +698,7 @@
         showToast('Checkout failed', err.message, true);
       })
       .then(function () {
+        checkoutInFlight = false;
         checkoutBtn.textContent = 'Proceed to Checkout';
         checkoutBtn.disabled = !cart.length;
       });
@@ -685,7 +725,7 @@
     Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); });
     renderCart();
   });
-  tenderSel.addEventListener('change', renderCart);
+  tenderSel.addEventListener('change', function () { renderPromoHint(); renderCart(); });
   document.getElementById('promo-apply').addEventListener('click', applyPromo);
   promoInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); applyPromo(); } });
   document.getElementById('hero-shop').addEventListener('click', function () {
@@ -693,7 +733,12 @@
     openDrawer();
   });
   Array.prototype.forEach.call(document.querySelectorAll('[data-activate]'), function (b) {
-    b.addEventListener('click', function () { b.textContent = 'Activated ✓'; b.disabled = true; showToast('Offer activated', 'It will apply automatically at checkout.', false); });
+    b.addEventListener('click', function () {
+      var code = b.getAttribute('data-activate');
+      b.textContent = 'Activated ✓'; b.disabled = true;
+      if (code) { promoInput.value = code; applyPromo(); showToast('Offer activated', 'Code ' + code + ' applied to your cart.', false); }
+      else showToast('Offer activated', 'Show your Triangle Rewards card in store to redeem.', false);
+    });
   });
   document.getElementById('cart-open').addEventListener('click', openDrawer);
   document.getElementById('cart-close').addEventListener('click', closeDrawer);

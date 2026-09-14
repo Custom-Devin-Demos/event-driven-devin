@@ -20,7 +20,13 @@ const { createSessionAndAlert } = require('../devin-session');
 
 const SERVICE = 'customer-10397dc6-checkout';
 const ROUTE = '/api/10397dc6/checkout';
-const HST_RATE = 0.13;
+const MAX_LINE_QTY = 99;
+
+/** Sales tax by destination province. */
+const PROVINCIAL_TAX = {
+  ON: { label: 'HST (13%)', rate: 0.13 },
+  BC: { label: 'GST (5%) + PST (7%)', rate: 0.12 },
+};
 
 const CATALOG = [
   {
@@ -160,19 +166,34 @@ function resolveTender(code) {
   return TENDERS[code] || TENDERS['triangle-rewards'];
 }
 
+function validationError(message, code) {
+  const err = new Error(message);
+  err.code = code;
+  err.status = 400;
+  return err;
+}
+
 function buildCartLines(items) {
-  return (items || []).map((item) => {
-    const product = findProduct(item.sku);
-    const qty = Math.max(1, Number(item.qty) || 1);
-    const price = product ? product.price : Number(item.price) || 0;
+  if (!Array.isArray(items)) {
+    throw validationError('Cart items must be an array', 'INVALID_CART');
+  }
+  return items.map((item) => {
+    const product = findProduct(item && item.sku);
+    if (!product) {
+      throw validationError(`Unknown SKU: ${item && item.sku}`, 'UNKNOWN_SKU');
+    }
+    const qty = Number(item.qty);
+    if (!Number.isSafeInteger(qty) || qty < 1 || qty > MAX_LINE_QTY) {
+      throw validationError(`Invalid quantity for SKU ${product.sku}`, 'INVALID_QUANTITY');
+    }
     return {
-      sku: item.sku,
-      name: product ? product.name : item.name || 'Item',
-      brand: product ? product.brand : item.brand || 'Canadian Tire',
-      category: product ? product.category : item.category || 'general',
-      price,
+      sku: product.sku,
+      name: product.name,
+      brand: product.brand,
+      category: product.category,
+      price: product.price,
       qty,
-      lineTotal: round2(price * qty),
+      lineTotal: round2(product.price * qty),
     };
   });
 }
@@ -201,7 +222,7 @@ function computeCtMoney(line, tender, promoCode) {
   const isTire = line.category.endsWith('-tires');
 
   // Tire events advertise the multiplier on every tire line.
-  if (event && event.scope === 'tires' && isTire) {
+  if (event && event.scope === 'tires' && isTire && event.tenders.includes(tender.code)) {
     return round2(base * bonus.multiplier);
   }
   return round2(bonus ? base * bonus.multiplier : base);
@@ -221,7 +242,9 @@ function buildOrderSummary({
     return product && product.wasPrice ? sum + (product.wasPrice - product.price) * line.qty : sum;
   }, 0));
   const fulfilmentFee = computeFulfilmentFee(fulfilment, subtotal);
-  const tax = round2((subtotal + fulfilmentFee) * HST_RATE);
+  const province = fulfilment.code === 'pickup-in-store' ? store.province : 'ON';
+  const taxRule = PROVINCIAL_TAX[province] || PROVINCIAL_TAX.ON;
+  const tax = round2((subtotal + fulfilmentFee) * taxRule.rate);
   const total = round2(subtotal + fulfilmentFee + tax);
   const ctMoney = round2(lines.reduce((sum, line) => sum + computeCtMoney(line, tender, promoCode), 0));
 
@@ -237,7 +260,7 @@ function buildOrderSummary({
       eta: fulfilment.eta,
       store: fulfilment.code === 'pickup-in-store' ? store.name : null,
     },
-    tax: { label: 'HST (13%)', amount: tax },
+    tax: { label: taxRule.label, province, amount: tax },
     total,
     rewards: {
       tender: tender.label,
@@ -253,7 +276,10 @@ function buildOrderSummary({
 async function placeOrder(data) {
   const startTime = Date.now();
   const orderId = uuidv4();
-  const lines = buildCartLines(data.items);
+  const lines = buildCartLines(data.items || []);
+  if (lines.length === 0) {
+    throw validationError('Cart is empty', 'EMPTY_CART');
+  }
   const tender = resolveTender(data.tender);
   const fulfilment = resolveFulfilment(data.fulfilment);
   const store = resolveStore(data.storeId);
@@ -272,12 +298,6 @@ async function placeOrder(data) {
 
   try {
     await new Promise((resolve) => setTimeout(resolve, 90 + Math.random() * 140));
-
-    if (lines.length === 0) {
-      const err = new Error('Cart is empty');
-      err.code = 'EMPTY_CART';
-      throw err;
-    }
 
     const summary = buildOrderSummary({
       orderId, lines, tender, fulfilment, store, promoCode,

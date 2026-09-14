@@ -32,10 +32,8 @@ router.get('/api/10397dc6/catalog', (_req, res) => {
 router.post('/api/10397dc6/checkout', async (req, res) => {
   try {
     const order = await placeOrder({
-      items: req.body.items && req.body.items.length
-        ? req.body.items
-        : [{ sku: '0078551', qty: 4 }],
-      promoCode: req.body.promoCode || 'BTTS30X',
+      items: req.body.items,
+      promoCode: req.body.promoCode ?? 'BTTS30X',
       tender: req.body.tender || 'triangle-mastercard',
       fulfilment: req.body.fulfilment || 'ship-to-home',
       storeId: req.body.storeId || 'ON-0128',
@@ -47,7 +45,7 @@ router.post('/api/10397dc6/checkout', async (req, res) => {
     });
     res.json(order);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,

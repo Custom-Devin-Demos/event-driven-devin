@@ -41,6 +41,21 @@ describe('Canadian Tire order totals', () => {
     expect(order.orderNumber).toBe('CT-0123ABCD');
   });
 
+  test('BC pickup uses GST + PST instead of Ontario HST', () => {
+    const bc = summary([{ sku: '0396176', qty: 1 }], { fulfilment: FULFILMENT_METHODS['pickup-in-store'], store: STORES['BC-0311'] });
+    expect(bc.tax).toEqual({ label: 'GST (5%) + PST (7%)', province: 'BC', amount: 1.2 });
+    expect(bc.total).toBe(11.19);
+  });
+
+  test('rejects unknown SKUs and non-integer or out-of-range quantities', () => {
+    expect(() => buildCartLines([{ sku: 'nope', qty: 1 }])).toThrow(expect.objectContaining({ code: 'UNKNOWN_SKU', status: 400 }));
+    expect(() => buildCartLines([{ sku: '0072021', qty: 1.5 }])).toThrow(expect.objectContaining({ code: 'INVALID_QUANTITY' }));
+    expect(() => buildCartLines([{ sku: '0072021', qty: 0 }])).toThrow(expect.objectContaining({ code: 'INVALID_QUANTITY' }));
+    expect(() => buildCartLines([{ sku: '0072021', qty: 100 }])).toThrow(expect.objectContaining({ code: 'INVALID_QUANTITY' }));
+    expect(() => buildCartLines([{ sku: '0072021', qty: 1, price: 0.01 }])).not.toThrow();
+    expect(buildCartLines([{ sku: '0072021', qty: 1, price: 0.01 }])[0].price).toBe(164.99);
+  });
+
   test('charges the ship-to-home fee under the free threshold and never for pickup', () => {
     expect(summary([{ sku: '0396176', qty: 2 }]).fulfilment.fee).toBe(9.99);
     const pickup = summary([{ sku: '0396176', qty: 2 }], { fulfilment: FULFILMENT_METHODS['pickup-in-store'] });
@@ -66,6 +81,11 @@ describe('CT Money earn', () => {
     const [tire] = buildCartLines([{ sku: '0072021', qty: 4 }]);
     expect(resolveBonusEvent('BTTS30X', tire, mastercard)).toBe(BONUS_EVENTS.BTTS30X);
     expect(computeCtMoney(tire, mastercard, 'BTTS30X')).toBe(791.95);
+  });
+
+  test('tire bonus is a credit-card exclusive: Rewards card earns base only', () => {
+    const [tire] = buildCartLines([{ sku: '0072021', qty: 4 }]);
+    expect(computeCtMoney(tire, rewardsCard, 'BTTS30X')).toBe(2.64);
   });
 
   test('the tire event has no entry for winter tires', () => {
@@ -101,7 +121,8 @@ describe('placeOrder', () => {
     });
   });
 
-  test('rejects an empty cart with a coded error', async () => {
-    await expect(placeOrder({ items: [] })).rejects.toMatchObject({ code: 'EMPTY_CART' });
+  test('rejects an empty cart with a coded error and does not alert', async () => {
+    await expect(placeOrder({ items: [] })).rejects.toMatchObject({ code: 'EMPTY_CART', status: 400 });
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 });
