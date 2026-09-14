@@ -162,13 +162,13 @@
         </div>
         <div class="summary">
           <div class="summary-card"><div class="label">Total gross</div><div class="value" id="total-gross">$42,800.00</div></div>
-          <div class="summary-card"><div class="label">Total employee taxes</div><div class="value">$2,173.10</div></div>
-          <div class="summary-card"><div class="label">Employer taxes</div><div class="value">$3,418.00</div></div>
+          <div class="summary-card"><div class="label">Total employee taxes</div><div class="value" id="total-employee-taxes">$2,173.10</div></div>
+          <div class="summary-card"><div class="label">Employer taxes</div><div class="value" id="total-employer-taxes">$3,424.00</div></div>
           <div class="summary-card"><div class="label">Net pay</div><div class="value" id="total-net">$40,626.90</div></div>
           <div class="summary-card pay-date"><div class="label">Pay date</div><div class="value">Sep 19, 2026</div></div>
         </div>
         <section class="panel">
-          <div class="panel-head"><h2>Employees (6)</h2><span>Sep 1 – Sep 15, 2026 · Semi-monthly</span></div>
+          <div class="panel-head"><h2>Employees (<span id="employee-count">6</span>)</h2><span>Sep 1 – Sep 15, 2026 · Semi-monthly</span></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>Name / title</th><th>Department</th><th>Work state</th><th>Pay type</th><th>Hours</th><th style="text-align:right">Gross pay</th><th>Include</th></tr></thead>
@@ -188,12 +188,12 @@
   </div>
   <script>
     const fallbackEmployees = [
-      { id: 'EMP-1001', name: 'Ava Chen', title: 'Senior Product Manager', department: 'Product', workState: 'CA', payType: 'salary', grossPay: 8500, newHire: false },
-      { id: 'EMP-1002', name: 'Marcus Rivera', title: 'Payroll Specialist', department: 'People Operations', workState: 'NY', payType: 'salary', grossPay: 6200, newHire: false },
-      { id: 'EMP-1003', name: 'Jordan Brooks', title: 'Warehouse Lead', department: 'Operations', workState: 'TX', payType: 'hourly', grossPay: 4100, hoursWorked: 80, newHire: false },
-      { id: 'EMP-1004', name: 'Elena Petrov', title: 'Customer Success Manager', department: 'Customer Success', workState: 'WA', payType: 'salary', grossPay: 7000, newHire: false },
-      { id: 'EMP-1005', name: 'Samuel Ortiz', title: 'Sales Director', department: 'Sales', workState: 'CA', payType: 'salary', grossPay: 9200, newHire: false },
-      { id: 'EMP-1006', name: 'Priya Natarajan', title: 'Staff Software Engineer', department: 'Engineering', workState: 'CO', payType: 'salary', grossPay: 7800, newHire: true },
+      { id: 'EMP-1001', name: 'Ava Chen', title: 'Senior Product Manager', department: 'Product', workState: 'CA', payType: 'salary', grossPay: 8500, stateWithholding: 790.5, netPay: 7709.5, employerTaxes: 680, newHire: false },
+      { id: 'EMP-1002', name: 'Marcus Rivera', title: 'Payroll Specialist', department: 'People Operations', workState: 'NY', payType: 'salary', grossPay: 6200, stateWithholding: 527, netPay: 5673, employerTaxes: 496, newHire: false },
+      { id: 'EMP-1003', name: 'Jordan Brooks', title: 'Warehouse Lead', department: 'Operations', workState: 'TX', payType: 'hourly', grossPay: 4100, hoursWorked: 80, stateWithholding: 0, netPay: 4100, employerTaxes: 328, newHire: false },
+      { id: 'EMP-1004', name: 'Elena Petrov', title: 'Customer Success Manager', department: 'Customer Success', workState: 'WA', payType: 'salary', grossPay: 7000, stateWithholding: 0, netPay: 7000, employerTaxes: 560, newHire: false },
+      { id: 'EMP-1005', name: 'Samuel Ortiz', title: 'Sales Director', department: 'Sales', workState: 'CA', payType: 'salary', grossPay: 9200, stateWithholding: 855.6, netPay: 8344.4, employerTaxes: 736, newHire: false },
+      { id: 'EMP-1006', name: 'Priya Natarajan', title: 'Staff Software Engineer', department: 'Engineering', workState: 'CO', payType: 'salary', grossPay: 7800, stateWithholding: 0, netPay: 7800, employerTaxes: 624, newHire: true },
     ];
     const result = document.getElementById('result');
     const resultTitle = document.getElementById('result-title');
@@ -203,16 +203,81 @@
     const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
     const money = (value) => '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     function renderEmployees() {
-      document.getElementById('employee-rows').innerHTML = employees.map((employee) => `
-        <tr>
-          <td><div class="person"><span class="person-avatar">${initials(employee.name)}</span><div><div class="person-name">${employee.name}${employee.newHire ? '<span class="new-hire">New hire</span>' : ''}</div><div class="person-title">${employee.title}</div></div></div></td>
-          <td>${employee.department}</td>
-          <td><span class="state-pill">${employee.workState}</span></td>
-          <td>${employee.payType === 'hourly' ? 'Hourly' : 'Salary'}</td>
-          <td>${employee.hoursWorked || '—'}</td>
-          <td class="numeric">${money(employee.grossPay)}</td>
-          <td class="remove-cell"><label><input type="checkbox" data-employee-id="${employee.id}" checked> Include</label></td>
-        </tr>`).join('');
+      const rows = document.getElementById('employee-rows');
+      rows.replaceChildren();
+      employees.forEach((employee) => {
+        const row = document.createElement('tr');
+        const personCell = document.createElement('td');
+        const person = document.createElement('div');
+        person.className = 'person';
+        const personAvatar = document.createElement('span');
+        personAvatar.className = 'person-avatar';
+        personAvatar.textContent = initials(employee.name);
+        const personDetails = document.createElement('div');
+        const personName = document.createElement('div');
+        personName.className = 'person-name';
+        personName.textContent = employee.name;
+        if (employee.newHire) {
+          const newHire = document.createElement('span');
+          newHire.className = 'new-hire';
+          newHire.textContent = 'New hire';
+          personName.appendChild(newHire);
+        }
+        const personTitle = document.createElement('div');
+        personTitle.className = 'person-title';
+        personTitle.textContent = employee.title;
+        personDetails.append(personName, personTitle);
+        person.append(personAvatar, personDetails);
+        personCell.appendChild(person);
+
+        const department = document.createElement('td');
+        department.textContent = employee.department;
+        const stateCell = document.createElement('td');
+        const state = document.createElement('span');
+        state.className = 'state-pill';
+        state.textContent = employee.workState;
+        stateCell.appendChild(state);
+        const payType = document.createElement('td');
+        payType.textContent = employee.payType === 'hourly' ? 'Hourly' : 'Salary';
+        const hours = document.createElement('td');
+        hours.textContent = employee.hoursWorked || '—';
+        const gross = document.createElement('td');
+        gross.className = 'numeric';
+        gross.textContent = money(employee.grossPay);
+        const includeCell = document.createElement('td');
+        includeCell.className = 'remove-cell';
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.dataset.employeeId = employee.id;
+        checkbox.checked = true;
+        checkbox.addEventListener('change', updateSummary);
+        label.append(checkbox, document.createTextNode(' Include'));
+        includeCell.appendChild(label);
+        row.append(personCell, department, stateCell, payType, hours, gross, includeCell);
+        rows.appendChild(row);
+      });
+      updateSummary();
+    }
+    function updateSummary() {
+      const checkedIds = new Set([...document.querySelectorAll('[data-employee-id]:checked')].map((input) => input.dataset.employeeId));
+      const selectedEmployees = employees.filter((employee) => checkedIds.has(employee.id));
+      const totals = selectedEmployees.reduce((sum, employee) => ({
+        grossPay: sum.grossPay + Number(employee.grossPay || 0),
+        stateWithholding: sum.stateWithholding + Number(employee.stateWithholding || 0),
+        employerTaxes: sum.employerTaxes + Number(employee.employerTaxes || 0),
+        netPay: sum.netPay + Number(employee.netPay || 0),
+      }), {
+        grossPay: 0,
+        stateWithholding: 0,
+        employerTaxes: 0,
+        netPay: 0,
+      });
+      document.getElementById('employee-count').textContent = selectedEmployees.length;
+      document.getElementById('total-gross').textContent = money(totals.grossPay);
+      document.getElementById('total-employee-taxes').textContent = money(totals.stateWithholding);
+      document.getElementById('total-employer-taxes').textContent = money(totals.employerTaxes);
+      document.getElementById('total-net').textContent = money(totals.netPay);
     }
     function showResult(kind, title, tech) {
       result.className = 'result show ' + kind;

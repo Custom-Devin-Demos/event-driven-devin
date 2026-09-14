@@ -268,7 +268,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 
 | Customer | URL | CTA Button | Expected Error |
 |----------|-----|------------|----------------|
-| Rippling — Payroll (a7fb8819) | `/rippling`, `/a7fb8819` | "Submit payroll" (leave Priya Natarajan included) | `Cannot read properties of undefined (reading 'withholdingRate')`; remove Priya from the pay run → success |
+| Rippling — Payroll (a7fb8819) | `/rippling`, `/a7fb8819` | "Submit payroll" (leave Priya Natarajan included) | `Cannot read properties of undefined (reading 'withholdingRate')`; failure renders as a persistent inline red result panel under the submit bar (not an auto-dismissing toast); uncheck Priya Natarajan (CO) and submit to show a green success panel |
 | Marriott (beb4d43e) | `/beb4d43e` | "Book Now" | `Cannot read properties of undefined (reading 'available')` |
 | SEB (4feeb7bb) | `/4feeb7bb` | "Aktuella bolåneräntor" | `Cannot read properties of undefined (reading 'riskPremium')` |
 | JPMC (89c1f355) | `/89c1f355` | "Join our team →" | `Cannot read properties of undefined (reading 'totalHeadcount')` |

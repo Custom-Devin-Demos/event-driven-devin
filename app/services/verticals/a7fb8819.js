@@ -132,6 +132,22 @@ function computeWithholding(employee) {
   };
 }
 
+function getPayRunEmployees() {
+  return EMPLOYEES.map((employee) => {
+    const policy = resolveWithholdingPolicy(employee);
+    const stateWithholding = policy
+      ? Math.round(employee.grossPay * policy.withholdingRate * 100) / 100
+      : 0;
+
+    return {
+      ...employee,
+      stateWithholding,
+      netPay: Math.round((employee.grossPay - stateWithholding) * 100) / 100,
+      employerTaxes: Math.round(employee.grossPay * 0.08 * 100) / 100,
+    };
+  });
+}
+
 const REMEDIATION_DIRECTIVE = [
   '!payroll_tax_triage',
   '',
@@ -167,7 +183,7 @@ function buildRemediationDirective(issue) {
 async function submitPayRun(data) {
   const startTime = Date.now();
   const payRunId = data.payRunId;
-  const employeeIds = data.employeeIds === undefined ? EMPLOYEES.map((employee) => employee.id) : data.employeeIds;
+  let employeeIds;
 
   if (payRunId !== PAY_RUN.id) {
     const validationError = new Error(`Unknown pay run: ${payRunId || '(none)'}`);
@@ -177,10 +193,31 @@ async function submitPayRun(data) {
     throw validationError;
   }
 
-  if (Array.isArray(employeeIds) && employeeIds.length === 0) {
+  if (data.employeeIds === undefined) {
+    employeeIds = EMPLOYEES.map((employee) => employee.id);
+  } else if (!Array.isArray(data.employeeIds)) {
+    const validationError = new Error('employeeIds must be an array of employee IDs');
+    validationError.name = 'ValidationError';
+    validationError.code = 'INVALID_EMPLOYEE_SELECTION';
+    validationError.statusCode = 400;
+    throw validationError;
+  } else {
+    employeeIds = [...new Set(data.employeeIds)];
+  }
+
+  if (employeeIds.length === 0) {
     const validationError = new Error('Pay run must include at least one employee');
     validationError.name = 'ValidationError';
     validationError.code = 'EMPTY_PAY_RUN';
+    validationError.statusCode = 400;
+    throw validationError;
+  }
+
+  const unknownEmployeeIds = employeeIds.filter((employeeId) => !EMPLOYEES.some((employee) => employee.id === employeeId));
+  if (unknownEmployeeIds.length > 0) {
+    const validationError = new Error(`Unknown employee ID(s): ${unknownEmployeeIds.join(', ')}`);
+    validationError.name = 'ValidationError';
+    validationError.code = 'UNKNOWN_EMPLOYEE';
     validationError.statusCode = 400;
     throw validationError;
   }
@@ -385,6 +422,7 @@ module.exports = {
   submitPayRun,
   PAY_RUN,
   EMPLOYEES,
+  getPayRunEmployees,
   STATE_WITHHOLDING_POLICIES,
   REMEDIATION_DIRECTIVE,
   buildRemediationDirective,

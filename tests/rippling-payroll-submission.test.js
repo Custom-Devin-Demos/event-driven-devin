@@ -219,6 +219,36 @@ describe('Rippling payroll submission service (a7fb8819)', () => {
     expect(declareDatadogIncident).not.toHaveBeenCalled();
   });
 
+  test.each([null, { employeeId: 'EMP-1001' }])('rejects non-array employeeIds (%p) without alerting', async (employeeIds) => {
+    await expect(submitPayRun({
+      payRunId: PAY_RUN.id,
+      employeeIds,
+    })).rejects.toMatchObject({
+      name: 'ValidationError',
+      statusCode: 400,
+      code: 'INVALID_EMPLOYEE_SELECTION',
+      message: 'employeeIds must be an array of employee IDs',
+    });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(declareDatadogIncident).not.toHaveBeenCalled();
+  });
+
+  test('rejects unknown employee IDs without alerting', async () => {
+    await expect(submitPayRun({
+      payRunId: PAY_RUN.id,
+      employeeIds: ['EMP-9999'],
+    })).rejects.toMatchObject({
+      name: 'ValidationError',
+      statusCode: 400,
+      code: 'UNKNOWN_EMPLOYEE',
+      message: 'Unknown employee ID(s): EMP-9999',
+    });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(declareDatadogIncident).not.toHaveBeenCalled();
+  });
+
   test('defines withholding policies for the supported states and leaves Colorado missing', () => {
     expect(STATE_WITHHOLDING_POLICIES).toHaveProperty('CA');
     expect(STATE_WITHHOLDING_POLICIES).toHaveProperty('NY');

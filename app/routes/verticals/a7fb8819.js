@@ -1,10 +1,10 @@
 const express = require('express');
-const { submitPayRun, PAY_RUN, EMPLOYEES } = require('../../services/verticals/a7fb8819');
+const { submitPayRun, PAY_RUN, getPayRunEmployees } = require('../../services/verticals/a7fb8819');
 
 const router = express.Router();
 
 router.get('/api/a7fb8819/pay-run', (_req, res) => {
-  res.json({ payRun: PAY_RUN, employees: EMPLOYEES });
+  res.json({ payRun: PAY_RUN, employees: getPayRunEmployees() });
 });
 
 router.post('/api/a7fb8819/submit-pay-run', async (req, res) => {
