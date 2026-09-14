@@ -200,6 +200,7 @@
     const resultTech = document.getElementById('result-tech');
     const submitButton = document.getElementById('submit-payroll');
     let employees = fallbackEmployees;
+    let submitting = false;
     const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
     const money = (value) => '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     function renderEmployees() {
@@ -253,6 +254,7 @@
         checkbox.type = 'checkbox';
         checkbox.dataset.employeeId = employee.id;
         checkbox.checked = !hadRows || previouslyChecked.has(employee.id);
+        checkbox.disabled = submitting;
         checkbox.addEventListener('change', updateSummary);
         label.append(checkbox, document.createTextNode(' Include'));
         includeCell.appendChild(label);
@@ -290,6 +292,7 @@
     async function submitPayroll() {
       const employeeCheckboxes = [...document.querySelectorAll('[data-employee-id]')];
       const checkedIds = employeeCheckboxes.filter((input) => input.checked).map((input) => input.dataset.employeeId);
+      submitting = true;
       submitButton.disabled = true;
       employeeCheckboxes.forEach((input) => {
         input.disabled = true;
@@ -316,8 +319,9 @@
       } catch (error) {
         showResult('error', "We couldn't submit this pay run.", 'NetworkError: ' + error.message + '\nPAY_RUN_SUBMISSION_FAILED · Reference ID: unavailable');
       } finally {
+        submitting = false;
         submitButton.disabled = false;
-        employeeCheckboxes.forEach((input) => {
+        document.querySelectorAll('[data-employee-id]').forEach((input) => {
           input.disabled = false;
         });
       }
