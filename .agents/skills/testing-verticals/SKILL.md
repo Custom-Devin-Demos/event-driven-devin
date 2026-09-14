@@ -268,6 +268,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 
 | Customer | URL | CTA Button | Expected Error |
 |----------|-----|------------|----------------|
+| Rippling — Payroll (a7fb8819) | `/rippling`, `/a7fb8819` | "Submit payroll" (leave Priya Natarajan included) | `Cannot read properties of undefined (reading 'withholdingRate')`; failure renders as a persistent inline red result panel under the submit bar (not an auto-dismissing toast); uncheck Priya Natarajan (CO) and submit to show a green success panel |
 | Marriott (beb4d43e) | `/beb4d43e` | "Book Now" | `Cannot read properties of undefined (reading 'available')` |
 | SEB (4feeb7bb) | `/4feeb7bb` | "Aktuella bolåneräntor" | `Cannot read properties of undefined (reading 'riskPremium')` |
 | JPMC (89c1f355) | `/89c1f355` | "Join our team →" | `Cannot read properties of undefined (reading 'totalHeadcount')` |
@@ -348,6 +349,9 @@ curl -s -X POST http://localhost:3000/api/qbe/claim -H 'Content-Type: applicatio
 # Validation 400s (no alert): amount > balance, amount <= 0, missing payeeName/payeeBsb/payeeAccount/payId/billerCode.
 # GET /api/nab/accounts lists the three accounts.
 curl -s -X POST http://localhost:3000/api/nab/payment -H 'Content-Type: application/json' -d '{"fromAccount":"082-001 40817266","paymentMethod":"pay_anyone","payeeName":"Harper Electrical Services","payeeBsb":"083-004","payeeAccount":"55910238","amount":1250,"description":"Invoice 2261","channel":"web"}'
+
+# Custom — Rippling Payroll (a7fb8819) — full pay run includes Priya Natarajan in Colorado and triggers the planted withholding-policy gap
+curl -s -X POST http://localhost:3000/api/a7fb8819/submit-pay-run -H 'Content-Type: application/json' -d '{"payRunId":"PR-2026-09-15"}'
 
 # Custom — Capital One Travel (b014618f) — venture-x triggers TypeError; venture/savorone succeed
 curl -s -X POST http://localhost:3000/api/b014618f/redeem-miles -H 'Content-Type: application/json' -d '{"cardProduct":"venture-x","bookingType":"hotel","tripTotalUsd":1284.50,"milesApplied":90000,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'

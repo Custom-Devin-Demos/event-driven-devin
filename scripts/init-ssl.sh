@@ -57,13 +57,20 @@ echo ""
 
 # ── Check if certs already exist ─────────────────────────────────────────────
 CERT_DIR="./certbot/conf/live/${DOMAIN_NAME}"
+# Profile-gated optional services (built by scripts/deploy-ec2.sh, e.g. avature)
+# are skipped by plain `compose up`; bring back whatever image already exists.
+restart_optional_services() {
+  docker compose --profile avature up -d --no-deps --no-build avature 2>/dev/null || true
+}
+
 if sudo test -d "$CERT_DIR" && sudo test -f "$CERT_DIR/fullchain.pem"; then
   echo "Certificates already exist at ${CERT_DIR}."
   echo "To force renewal, run: docker compose run --rm certbot renew --force-renewal"
   echo ""
   echo "Starting full stack with SSL..."
-  docker compose down 2>/dev/null || true
+  docker compose --profile '*' down 2>/dev/null || true
   docker compose up -d --build
+  restart_optional_services
   echo "Done! Site available at https://${DOMAIN_NAME}"
   exit 0
 fi
@@ -150,8 +157,9 @@ rm -f "$INIT_CONF"
 
 # ── Step 4: Restart with full SSL config ─────────────────────────────────────
 echo "Step 4/4: Restarting with full SSL configuration..."
-docker compose down
+docker compose --profile '*' down
 docker compose up -d --build
+restart_optional_services
 
 echo ""
 echo "=== SSL Setup Complete! ==="
