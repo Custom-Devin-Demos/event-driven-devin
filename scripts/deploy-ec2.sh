@@ -117,6 +117,17 @@ mirror_entry() {
   fi
 }
 
+NGINX_TOUCHED=0
+nginx_serving() {
+  local code
+  for _ in $(seq 1 10); do
+    code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "${NGINX_URL:-http://localhost:80/}" || true)
+    case $code in 200|301|302) return 0 ;; esac
+    sleep 2
+  done
+  return 1
+}
+
 # 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
 # but a restore step failed, so which release is running is indeterminate.
 # The backup is mirrored back exactly (not overlaid) so files the failed
@@ -139,6 +150,10 @@ rollback() {
   cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env" || { log "rollback: .env restore failed"; restored=0; }
   compose build -q checkout-api || { log "rollback: image rebuild failed"; restored=0; }
   compose up -d --no-deps checkout-api || { log "rollback: container replace failed"; restored=0; }
+  if [ "$NGINX_TOUCHED" = 1 ]; then
+    compose up -d --no-deps --force-recreate nginx || { log "rollback: nginx recreate failed"; restored=0; }
+    nginx_serving || { log "rollback: nginx not serving on restored config"; restored=0; }
+  fi
   for _ in $(seq 1 40); do
     if [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ]; then
       [ $restored = 1 ] && { log "rollback healthy"; return 0; }
@@ -269,28 +284,17 @@ fi
 compose up -d --no-deps loadgen >/dev/null || log "warning: loadgen restart failed"
 compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
 # nginx renders its bind-mounted template only at container start, so a
-# changed nginx.conf needs a recreate (brief blip) to take effect.
-nginx_serving() {
-  local code
-  for _ in $(seq 1 10); do
-    code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "${NGINX_URL:-http://localhost:80/}" || true)
-    case $code in 200|301|302) return 0 ;; esac
-    sleep 2
-  done
-  return 1
-}
+# changed nginx.conf needs a recreate (brief blip) to take effect. A template
+# that fails `nginx -t` (rendered by the image's own entrypoint hooks, same
+# env/mounts as the service) is a deploy failure: it must not stay on disk
+# where the next restart would load it, so fail() -> rollback() restores it
+# and recreates nginx from the restored template.
 if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ]; then
-  # Same image/env/mounts as the service: the entrypoint renders the template, then `nginx -t` checks it.
-  if ! compose run --rm --no-deps -T nginx nginx -t >/dev/null 2>&1; then
-    log "warning: new nginx.conf fails 'nginx -t' — keeping the running nginx (old config)"
-  elif compose up -d --no-deps --force-recreate nginx >/dev/null && nginx_serving; then
-    log "nginx recreated (nginx.conf changed)"
-  else
-    log "warning: nginx not serving after recreate — restoring previous nginx.conf"
-    tar xzf "$BACKUP" -C "$APP_DIR" nginx/nginx.conf 2>/dev/null || log "warning: could not restore nginx.conf from $BACKUP"
-    compose up -d --no-deps --force-recreate nginx >/dev/null || true
-    nginx_serving && log "nginx restored on previous config" || fail "nginx down after recreate and restore"
-  fi
+  NGINX_TOUCHED=1
+  compose run --rm --no-deps -T nginx nginx -t >/dev/null 2>&1 || fail "new nginx.conf fails 'nginx -t'"
+  compose up -d --no-deps --force-recreate nginx >/dev/null || fail "nginx recreate failed"
+  nginx_serving || fail "nginx not serving after recreate"
+  log "nginx recreated (nginx.conf changed)"
 fi
 docker image prune -f >/dev/null || true
 
