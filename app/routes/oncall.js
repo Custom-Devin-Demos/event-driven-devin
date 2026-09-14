@@ -463,7 +463,13 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
           var triggerUrl = bugTrigger ? '/api/oncall/bug' : '/api/oncall/trigger/' + vertical;
           var triggerBody = bugTrigger
             ? { scenario: vertical, templateId: bugTrigger.templateId, reporter: bugTrigger.persona, severity: bugTrigger.severity, productArea: bugTrigger.productArea, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' }
-            : { unique: unique, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' };
+            : {
+                unique: unique,
+                skin: skinSlug,
+                devinEmail: localStorage.getItem('devinEmail') || '',
+                devinUserId: localStorage.getItem('devinUserId') || '',
+                devinOrgId: localStorage.getItem('devinOrgId') || '',
+              };
           var postedMsg = bugTrigger ? 'Support ticket filed to #oncall-bugs' : 'Alert posted to #oncall-alerts';
           var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
           var failedMsg = bugTrigger ? 'Ticket post failed' : 'Alert post failed';
@@ -529,7 +535,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
   next();
 }, oncallCap('trigger'), async (req, res) => {
   try {
-    const { unique, devinEmail, skin } = req.body || {};
+    const { unique, devinEmail, devinUserId, devinOrgId, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
     if (skinConfig && !skinMatches) {
@@ -542,6 +548,8 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
     const result = await postOncallAlert(req.params.vertical, {
       unique: unique !== false,
       devinEmail,
+      devinUserId,
+      devinOrgId,
       skin: skinMatches ? skinConfig : null,
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);

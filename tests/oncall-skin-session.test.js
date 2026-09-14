@@ -37,8 +37,7 @@ describe('on-call alerts that auto-create a Devin session', () => {
     expect(result.ok).toBe(true);
     expect(createDevinSession).toHaveBeenCalledTimes(1);
 
-    const [prompt, options] = createDevinSession.mock.calls[0];
-    expect(options.orgId).toBe(skin.devinSession.orgId);
+    const [prompt] = createDevinSession.mock.calls[0];
     expect(prompt).toContain('POST /api/oncall/marketplace/cart');
     expect(prompt).toContain(`/oncall/c/${skin.slug}`);
     expect(prompt).not.toMatch(/\.js:|at Object\.|app\/services/);
@@ -51,6 +50,81 @@ describe('on-call alerts that auto-create a Devin session', () => {
       expect.any(Array),
     );
     expect(result.sessionUrl).toBe('https://app.devin.ai/sessions/session-abc');
+  });
+
+  test('a skin identity overrides the environment defaults', async () => {
+    const skin = {
+      ...getOncallSkin(AUTO_SKIN_SLUG),
+      devinSession: {
+        auto: true,
+        orgId: 'org_skin',
+        userId: 'user_skin',
+        apiKey: 'key_skin',
+      },
+    };
+
+    await postOncallAlert(skin.vertical, { skin });
+
+    const [, options] = createDevinSession.mock.calls[0];
+    expect(options.orgId).toBe('org_skin');
+    expect(options.userId).toBe('user_skin');
+    expect(options.apiKey).toBe('key_skin');
+  });
+
+  test('a skin without an identity falls back to the on-call environment', async () => {
+    process.env.DEVIN_ONCALL_ORG_ID = 'org_env';
+    process.env.DEVIN_ONCALL_USER_ID = 'user_env';
+    process.env.DEVIN_ONCALL_SERVICE_KEY = 'key_env';
+
+    try {
+      const skin = getOncallSkin(AUTO_SKIN_SLUG);
+      await postOncallAlert(skin.vertical, { skin });
+
+      const [, options] = createDevinSession.mock.calls[0];
+      expect(options.orgId).toBe('org_env');
+      expect(options.userId).toBe('user_env');
+      expect(options.apiKey).toBe('key_env');
+    } finally {
+      delete process.env.DEVIN_ONCALL_ORG_ID;
+      delete process.env.DEVIN_ONCALL_USER_ID;
+      delete process.env.DEVIN_ONCALL_SERVICE_KEY;
+    }
+  });
+
+  test('the triggering user owns the session, ahead of the skin and the env', async () => {
+    process.env.DEVIN_ONCALL_USER_ID = 'user_env';
+
+    try {
+      const skin = {
+        ...getOncallSkin(AUTO_SKIN_SLUG),
+        devinSession: { auto: true, orgId: 'org_skin', userId: 'user_skin' },
+      };
+
+      await postOncallAlert(skin.vertical, {
+        skin,
+        devinUserId: 'user_requester',
+        devinOrgId: 'org_requester',
+      });
+
+      const [, options] = createDevinSession.mock.calls[0];
+      expect(options.userId).toBe('user_requester');
+      expect(options.orgId).toBe('org_requester');
+    } finally {
+      delete process.env.DEVIN_ONCALL_USER_ID;
+    }
+  });
+
+  test('a malformed requester identity is ignored', async () => {
+    const skin = getOncallSkin(AUTO_SKIN_SLUG);
+
+    await postOncallAlert(skin.vertical, {
+      skin,
+      devinUserId: 'user <!channel>',
+      devinOrgId: '',
+    });
+
+    const [, options] = createDevinSession.mock.calls[0];
+    expect(options.userId).toBeUndefined();
   });
 
   test('a generic alert with no skin stays alert-only', async () => {
