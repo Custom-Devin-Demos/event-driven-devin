@@ -283,18 +283,27 @@ fi
 # ── 6. reconcile the rest of the stack ──────────────────────────────────────
 compose up -d --no-deps loadgen >/dev/null || log "warning: loadgen restart failed"
 compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
-# nginx renders its bind-mounted template only at container start, so a
-# changed nginx.conf needs a recreate (brief blip) to take effect. A template
-# that fails `nginx -t` (rendered by the image's own entrypoint hooks, same
-# env/mounts as the service) is a deploy failure: it must not stay on disk
-# where the next restart would load it, so fail() -> rollback() restores it
-# and recreates nginx from the restored template.
-if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ]; then
-  NGINX_TOUCHED=1
+# nginx renders its bind-mounted template only at container start, so the
+# running container can be serving a stale config regardless of whether this
+# deploy changed nginx.conf. Compare what the live container is serving
+# (`nginx -T` in it) with what a fresh container would render from the template
+# on disk; any difference means a recreate (brief blip). A template that fails
+# `nginx -t` is a deploy failure: it must not stay on disk where the next
+# restart would load it, so fail() -> rollback() restores it and recreates
+# nginx from the restored template.
+# NGINX_TOUCHED=1 from here on: any fail() below may leave nginx stopped or on
+# a bad template, so rollback must recreate it and re-probe ingress.
+NGINX_TOUCHED=1
+NGINX_LIVE=$(compose exec -T nginx nginx -T 2>/dev/null || true)
+NGINX_FRESH=$(compose run --rm --no-deps -T -e NGINX_ENTRYPOINT_QUIET_LOGS=1 nginx nginx -T 2>/dev/null) ||
+  fail "nginx.conf does not render/validate in a fresh nginx container"
+[ -n "$NGINX_FRESH" ] || fail "fresh nginx -T produced no config dump"
+if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ] ||
+   [ -z "$NGINX_LIVE" ] || [ "$NGINX_LIVE" != "$NGINX_FRESH" ]; then
   compose run --rm --no-deps -T nginx nginx -t >/dev/null 2>&1 || fail "new nginx.conf fails 'nginx -t'"
   compose up -d --no-deps --force-recreate nginx >/dev/null || fail "nginx recreate failed"
   nginx_serving || fail "nginx not serving after recreate"
-  log "nginx recreated (nginx.conf changed)"
+  log "nginx recreated (running config differed from nginx.conf)"
 fi
 docker image prune -f >/dev/null || true
 
