@@ -453,11 +453,30 @@ function buildOncallSessionPrompt(scenario, skin, runRef) {
 }
 
 /**
+ * Identity of the person who triggered the run, as the demo header resolved it
+ * (org name + email → Devin ids) and the page forwarded it. Sessions are then
+ * created under that account instead of the service user's. Ids are shape-
+ * checked because they arrive from the browser.
+ */
+const DEVIN_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
+function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
+  return {
+    orgId: DEVIN_ID_RE.test(devinOrgId || '') ? devinOrgId : null,
+    userId: DEVIN_ID_RE.test(devinUserId || '') ? devinUserId : null,
+  };
+}
+
+/**
  * Create the auto-triage Devin session for a skin that opted in, and reply
  * with its link in the alert thread. Never throws: a failed session must not
  * fail the alert that triggered it.
  */
-async function triggerSkinDevinSession(scenario, skin, { token, channel, threadTs, runRef }) {
+async function triggerSkinDevinSession(
+  scenario,
+  skin,
+  { token, channel, threadTs, runRef, requester },
+) {
   const config = skin.devinSession;
   if (!config || !config.auto) return null;
 
@@ -472,9 +491,10 @@ async function triggerSkinDevinSession(scenario, skin, { token, channel, threadT
   let session = null;
   try {
     session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
-      orgId: config.orgId || process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+      orgId: requester.orgId || config.orgId
+        || process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
       apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
-      userId: config.userId || process.env.DEVIN_ONCALL_USER_ID,
+      userId: requester.userId || config.userId || process.env.DEVIN_ONCALL_USER_ID,
       title: `[On-Call] ${scenario.monitor}`,
     });
   } catch (error) {
@@ -552,7 +572,13 @@ async function postOncallAlert(scenarioId, options = {}) {
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
   const session = skin
-    ? await triggerSkinDevinSession(scenario, skin, { token, channel: alertsChannel, threadTs: ts, runRef })
+    ? await triggerSkinDevinSession(scenario, skin, {
+      token,
+      channel: alertsChannel,
+      threadTs: ts,
+      runRef,
+      requester: resolveRequesterIdentity(options),
+    })
     : null;
   return { ok: true, ts, channel: alertsChannel, ...(session ? { sessionUrl: session.url } : {}) };
 }

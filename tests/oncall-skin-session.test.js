@@ -91,6 +91,42 @@ describe('on-call alerts that auto-create a Devin session', () => {
     }
   });
 
+  test('the triggering user owns the session, ahead of the skin and the env', async () => {
+    process.env.DEVIN_ONCALL_USER_ID = 'user_env';
+
+    try {
+      const skin = {
+        ...getOncallSkin(AUTO_SKIN_SLUG),
+        devinSession: { auto: true, orgId: 'org_skin', userId: 'user_skin' },
+      };
+
+      await postOncallAlert(skin.vertical, {
+        skin,
+        devinUserId: 'user_requester',
+        devinOrgId: 'org_requester',
+      });
+
+      const [, options] = createDevinSession.mock.calls[0];
+      expect(options.userId).toBe('user_requester');
+      expect(options.orgId).toBe('org_requester');
+    } finally {
+      delete process.env.DEVIN_ONCALL_USER_ID;
+    }
+  });
+
+  test('a malformed requester identity is ignored', async () => {
+    const skin = getOncallSkin(AUTO_SKIN_SLUG);
+
+    await postOncallAlert(skin.vertical, {
+      skin,
+      devinUserId: 'user <!channel>',
+      devinOrgId: '',
+    });
+
+    const [, options] = createDevinSession.mock.calls[0];
+    expect(options.userId).toBeUndefined();
+  });
+
   test('a generic alert with no skin stays alert-only', async () => {
     const result = await postOncallAlert('marketplace');
 
