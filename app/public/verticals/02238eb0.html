@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Transfer money | Harborline FCU Digital Banking</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <style>
+      :root {
+        --accent: #123a6b;
+        --accent-dark: #0c2a4f;
+        --ink: #1b2230;
+        --surface: #ffffff;
+        --chrome-bg: #0b1f3a;
+        --chrome-text: #ffffff;
+        --muted: #5b6573;
+        --line: #d9dee6;
+        --wash: #f3f6fa;
+        --gold: #c9a24a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--surface);
+        font: 16px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .utility {
+        background: var(--chrome-bg);
+        color: var(--chrome-text);
+        font-size: 13px;
+        padding: 0 5vw;
+        display: flex;
+        justify-content: flex-end;
+        gap: 22px;
+      }
+      .utility a {
+        color: inherit;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        opacity: 0.85;
+      }
+      header {
+        height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 5vw;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 19px;
+        letter-spacing: -0.01em;
+      }
+      .brand .mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+      }
+      .brand small {
+        display: block;
+        font-weight: 500;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .nav {
+        display: flex;
+        gap: 6px;
+      }
+      .nav a {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        border-radius: 6px;
+        color: var(--ink);
+        font-weight: 500;
+        font-size: 15px;
+      }
+      .nav a.active {
+        background: var(--accent);
+        color: #fff;
+      }
+      .hero {
+        background: var(--wash);
+        padding: 34px 5vw 26px;
+        border-bottom: 1px solid var(--line);
+      }
+      .hero h1 {
+        margin: 0 0 4px;
+        font-size: clamp(26px, 3.4vw, 34px);
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 30px 5vw 48px;
+      }
+      .accounts {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+      .acct {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px;
+        background: var(--surface);
+        border-top: 4px solid var(--accent);
+      }
+      .acct .type {
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .acct .bal {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 6px 0 2px;
+      }
+      .acct .num {
+        font-size: 13px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 3fr 2fr;
+        gap: 24px;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 24px;
+        background: var(--surface);
+      }
+      .panel h2 {
+        margin: 0 0 18px;
+        font-size: 20px;
+        color: var(--accent);
+      }
+      .field {
+        margin-bottom: 16px;
+      }
+      .field label {
+        display: block;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+      .field select,
+      .field input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid #9aa4b2;
+        border-radius: 6px;
+        padding: 0 12px;
+        font: inherit;
+        color: var(--ink);
+        background: #fff;
+      }
+      .field select:focus,
+      .field input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(18, 58, 107, 0.12);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .btn {
+        width: 100%;
+        min-height: 50px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: var(--accent-dark);
+      }
+      #submitBtn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .result-box {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 6px;
+        font-size: 15px;
+        display: none;
+      }
+      .result-box.success {
+        display: block;
+        background: #e8f5ee;
+        color: #1b5e3a;
+        border: 1px solid #b9e3c9;
+      }
+      .result-box.error {
+        display: block;
+        background: #fdf0f0;
+        color: #8f2a2a;
+        border: 1px solid #f1c3c3;
+      }
+      .summary p {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+      #liveSummary {
+        padding: 14px;
+        background: var(--wash);
+        border-left: 4px solid var(--gold);
+        border-radius: 4px;
+        font-weight: 600;
+      }
+      .activity {
+        margin-top: 22px;
+      }
+      .activity h3 {
+        margin: 0 0 10px;
+        font-size: 15px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .activity table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .activity td {
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .activity td:last-child {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .note {
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 26px 5vw;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      footer a {
+        color: inherit;
+        margin-right: 18px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      @media (max-width: 760px) {
+        .utility a:nth-child(-n + 2),
+        .nav a:nth-child(-n + 3) {
+          display: none;
+        }
+        .accounts,
+        .layout,
+        .row {
+          grid-template-columns: 1fr;
+        }
+        .wrap {
+          padding: 22px 16px 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="utility">
+      <a href="#">Rates</a><a href="#">Branches &amp; ATMs</a><a href="#">Security Center</a><a href="#">Sign out</a>
+    </div>
+    <header>
+      <a class="brand" href="#">
+        <span class="mark">H</span>
+        <span>Harborline FCU<small>Digital Banking</small></span>
+      </a>
+      <nav class="nav">
+        <a href="#">Accounts</a><a href="#">Bill Pay</a><a href="#">Cards</a><a href="#" class="active">Transfers</a><a href="#">Messages</a>
+      </nav>
+    </header>
+    <section class="hero">
+      <h1>Transfer money</h1>
+      <p>Move money between your Harborline accounts or to a linked external account.</p>
+    </section>
+    <main class="wrap">
+      <div class="accounts">
+        <div class="acct">
+          <div class="type">Everyday Checking</div>
+          <div class="bal">$6,482.19</div>
+          <div class="num">ACCT-1001 &middot; ••••4417</div>
+        </div>
+        <div class="acct">
+          <div class="type">Share Savings</div>
+          <div class="bal">$21,940.00</div>
+          <div class="num">ACCT-1002 &middot; ••••8830</div>
+        </div>
+        <div class="acct">
+          <div class="type">Linked External</div>
+          <div class="bal">Verified</div>
+          <div class="num">ACCT-EXT-001 &middot; Cascade Bank ••••2096</div>
+        </div>
+      </div>
+      <div class="layout">
+        <section class="panel">
+          <h2>Transfer details</h2>
+          <form id="transferForm">
+            <div class="row">
+              <div class="field">
+                <label for="fromAccount">From</label>
+                <select id="fromAccount">
+                  <option value="ACCT-1001">Everyday Checking ••••4417</option>
+                  <option value="ACCT-1002">Share Savings ••••8830</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="toAccount">To</label>
+                <select id="toAccount">
+                  <option value="ACCT-1002">Share Savings ••••8830</option>
+                  <option value="ACCT-1001">Everyday Checking ••••4417</option>
+                  <option value="ACCT-EXT-001">Cascade Bank ••••2096 (external)</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="amount">Amount ($)</label>
+                <input id="amount" type="number" min="1" step="0.01" value="250.00" required />
+              </div>
+              <div class="field">
+                <label for="accountTier">Membership</label>
+                <select id="accountTier">
+                  <option value="premium">Harbor Plus</option>
+                  <option value="standard">Member</option>
+                  <option value="basic">Basic</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn" id="submitBtn" type="submit">Transfer now</button>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+          <p class="note">Transfers between Harborline accounts post immediately. External transfers arrive in 1&ndash;3 business days.</p>
+        </section>
+        <aside class="panel summary">
+          <h2>Review</h2>
+          <p>Confirm the destination and amount before you submit.</p>
+          <div id="liveSummary">Transfer $250.00 to Share Savings ••••8830</div>
+          <div class="activity">
+            <h3>Recent transfers</h3>
+            <table>
+              <tr><td>Sep 12 &middot; Checking &rarr; Savings</td><td>$400.00</td></tr>
+              <tr><td>Sep 05 &middot; Checking &rarr; Cascade Bank</td><td>$1,200.00</td></tr>
+              <tr><td>Aug 29 &middot; Savings &rarr; Checking</td><td>$150.00</td></tr>
+            </table>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <footer>
+      <a href="#">Privacy</a><a href="#">Accessibility</a><a href="#">Fee schedule</a><a href="#">Contact us</a>
+      <div>Federally insured by NCUA. Equal Housing Lender.</div>
+    </footer>
+    <script>
+      /* Ensure locked-mode config is in localStorage for direct navigation */
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        }).catch(function () {});
+      })();
+      const form = document.getElementById('transferForm');
+      const to = document.getElementById('toAccount');
+      const amt = document.getElementById('amount');
+      const live = document.getElementById('liveSummary');
+      function money(v) {
+        const n = parseFloat(v);
+        return isNaN(n) ? '0.00' : n.toFixed(2);
+      }
+      function sync() {
+        live.textContent = 'Transfer $' + money(amt.value) + ' to ' + to.options[to.selectedIndex].textContent.trim();
+      }
+      [to, amt].forEach(function (el) { el.addEventListener('input', sync); });
+      sync();
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const label = btn.textContent;
+        const submittedAmount = money(amt.value);
+        const submittedTo = to.options[to.selectedIndex].textContent.trim();
+        btn.disabled = true;
+        btn.textContent = 'Submitting transfer\u2026';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: document.getElementById('fromAccount').value,
+              toAccount: to.value,
+              amount: parseFloat(amt.value),
+              accountTier: document.getElementById('accountTier').value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          let data = {};
+          try { data = await res.json(); } catch (_) {}
+          if (!res.ok) {
+            result.className = 'result-box error';
+            result.textContent = "We couldn't complete this transfer right now. No money has moved from your account.";
+          } else {
+            result.className = 'result-box success';
+            result.textContent = 'Transfer complete: $' + submittedAmount + ' to ' + submittedTo + '. Confirmation ' + ((data.receipt && data.receipt.receiptId) || data.transactionId || '') + '.';
+          }
+        } catch (_) {
+          result.className = 'result-box error';
+          result.textContent = "We couldn't complete this transfer right now. No money has moved from your account.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = label;
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
