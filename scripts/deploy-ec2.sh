@@ -291,8 +291,8 @@ compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
 # `nginx -t` is a deploy failure: it must not stay on disk where the next
 # restart would load it, so fail() -> rollback() restores it and recreates
 # nginx from the restored template.
-NGINX_LIVE=$(compose exec -T nginx nginx -T 2>/dev/null | md5sum | cut -d' ' -f1)
-NGINX_FRESH=$(compose run --rm --no-deps -T nginx nginx -T 2>/dev/null | md5sum | cut -d' ' -f1)
+NGINX_LIVE=$(compose exec -T nginx nginx -T 2>/dev/null | md5sum | cut -d' ' -f1 || true)
+NGINX_FRESH=$(compose run --rm --no-deps -T -e NGINX_ENTRYPOINT_QUIET_LOGS=1 nginx nginx -T 2>/dev/null | md5sum | cut -d' ' -f1 || true)
 if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ] ||
    [ "$NGINX_LIVE" != "$NGINX_FRESH" ]; then
   NGINX_TOUCHED=1
