@@ -1441,6 +1441,28 @@ const ONCALL_SKINS = {
     supportCenter: 'Figure Support',
     disclaimer: 'NOT ACTUALLY A FIGURE SITE — internal demo only, not affiliated with, endorsed by, or a real Figure Lending LLC product.',
   },
+  '871f5f7f': {
+    slug: '871f5f7f',
+    company: 'Turnitin',
+    brandMark: 'T',
+    vertical: 'hightech',
+    page: {
+      file: '871f5f7f.html',
+      title: 'License management | Turnitin',
+    },
+    accent: '#0DFFAD',
+    accentDark: '#04E69A',
+    theme: {
+      '--accent': '#0096FF',
+      '--ink': '#003C46',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#003C46',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Turnitin Support',
+    supportCenterSub: 'Administrator & Instructor Support',
+    disclaimer: 'NOT ACTUALLY A TURNITIN SITE — internal demo only, not affiliated with, endorsed by, or a real Turnitin product.',
+  },
 };
 
 function getOncallSkin(slug) {
