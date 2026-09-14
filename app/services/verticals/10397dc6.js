@@ -21,11 +21,29 @@ const { createSessionAndAlert } = require('../devin-session');
 const SERVICE = 'customer-10397dc6-checkout';
 const ROUTE = '/api/10397dc6/checkout';
 const MAX_LINE_QTY = 99;
+const MAX_CART_LINES = 25;
 
 /** Sales tax by destination province. */
 const PROVINCIAL_TAX = {
-  ON: { label: 'HST (13%)', rate: 0.13 },
+  AB: { label: 'GST (5%)', rate: 0.05 },
   BC: { label: 'GST (5%) + PST (7%)', rate: 0.12 },
+  MB: { label: 'GST (5%) + RST (7%)', rate: 0.12 },
+  NB: { label: 'HST (15%)', rate: 0.15 },
+  NL: { label: 'HST (15%)', rate: 0.15 },
+  NS: { label: 'HST (14%)', rate: 0.14 },
+  NT: { label: 'GST (5%)', rate: 0.05 },
+  NU: { label: 'GST (5%)', rate: 0.05 },
+  ON: { label: 'HST (13%)', rate: 0.13 },
+  PE: { label: 'HST (15%)', rate: 0.15 },
+  QC: { label: 'GST (5%) + QST (9.975%)', rate: 0.14975 },
+  SK: { label: 'GST (5%) + PST (6%)', rate: 0.11 },
+  YT: { label: 'GST (5%)', rate: 0.05 },
+};
+
+/** Province by the first letter of a Canadian postal code (forward sortation area). */
+const POSTAL_PROVINCE = {
+  A: 'NL', B: 'NS', C: 'PE', E: 'NB', G: 'QC', H: 'QC', J: 'QC', K: 'ON', L: 'ON',
+  M: 'ON', N: 'ON', P: 'ON', R: 'MB', S: 'SK', T: 'AB', V: 'BC', X: 'NT', Y: 'YT',
 };
 
 const CATALOG = [
@@ -154,18 +172,6 @@ function findProduct(sku) {
   return CATALOG.find((product) => product.sku === sku) || null;
 }
 
-function resolveStore(storeId) {
-  return STORES[storeId] || STORES['ON-0128'];
-}
-
-function resolveFulfilment(code) {
-  return FULFILMENT_METHODS[code] || FULFILMENT_METHODS['ship-to-home'];
-}
-
-function resolveTender(code) {
-  return TENDERS[code] || TENDERS['triangle-rewards'];
-}
-
 function validationError(message, code) {
   const err = new Error(message);
   err.code = code;
@@ -173,9 +179,39 @@ function validationError(message, code) {
   return err;
 }
 
+function resolveOption(table, code, fallbackCode, errorCode) {
+  if (code === undefined || code === null || code === '') return table[fallbackCode];
+  const option = table[code];
+  if (!option) throw validationError(`Unsupported ${errorCode.toLowerCase().replace('_', ' ')}: ${code}`, errorCode);
+  return option;
+}
+
+function resolveStore(storeId) {
+  return resolveOption(STORES, storeId, 'ON-0128', 'UNKNOWN_STORE');
+}
+
+function resolveFulfilment(code) {
+  return resolveOption(FULFILMENT_METHODS, code, 'ship-to-home', 'UNKNOWN_FULFILMENT');
+}
+
+function resolveTender(code) {
+  return resolveOption(TENDERS, code, 'triangle-rewards', 'UNKNOWN_TENDER');
+}
+
+function resolveShippingProvince(postalCode) {
+  if (postalCode === undefined || postalCode === null || postalCode === '') return 'ON';
+  const normalized = String(postalCode || '').replace(/\s+/g, '').toUpperCase();
+  const province = /^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(normalized) ? POSTAL_PROVINCE[normalized[0]] : undefined;
+  if (!province) throw validationError(`Invalid Canadian postal code: ${postalCode}`, 'INVALID_POSTAL_CODE');
+  return province;
+}
+
 function buildCartLines(items) {
   if (!Array.isArray(items)) {
     throw validationError('Cart items must be an array', 'INVALID_CART');
+  }
+  if (items.length > MAX_CART_LINES) {
+    throw validationError(`Cart may contain at most ${MAX_CART_LINES} lines`, 'CART_TOO_LARGE');
   }
   return items.map((item) => {
     const product = findProduct(item && item.sku);
@@ -234,7 +270,7 @@ function computeFulfilmentFee(fulfilment, subtotal) {
 }
 
 function buildOrderSummary({
-  orderId, lines, tender, fulfilment, store, promoCode,
+  orderId, lines, tender, fulfilment, store, promoCode, shippingProvince = 'ON',
 }) {
   const subtotal = round2(lines.reduce((sum, line) => sum + line.lineTotal, 0));
   const savings = round2(lines.reduce((sum, line) => {
@@ -242,8 +278,8 @@ function buildOrderSummary({
     return product && product.wasPrice ? sum + (product.wasPrice - product.price) * line.qty : sum;
   }, 0));
   const fulfilmentFee = computeFulfilmentFee(fulfilment, subtotal);
-  const province = fulfilment.code === 'pickup-in-store' ? store.province : 'ON';
-  const taxRule = PROVINCIAL_TAX[province] || PROVINCIAL_TAX.ON;
+  const province = fulfilment.code === 'pickup-in-store' ? store.province : shippingProvince;
+  const taxRule = PROVINCIAL_TAX[province];
   const tax = round2((subtotal + fulfilmentFee) * taxRule.rate);
   const total = round2(subtotal + fulfilmentFee + tax);
   const ctMoney = round2(lines.reduce((sum, line) => sum + computeCtMoney(line, tender, promoCode), 0));
@@ -283,6 +319,7 @@ async function placeOrder(data) {
   const tender = resolveTender(data.tender);
   const fulfilment = resolveFulfilment(data.fulfilment);
   const store = resolveStore(data.storeId);
+  const shippingProvince = fulfilment.code === 'ship-to-home' ? resolveShippingProvince(data.postalCode) : store.province;
   const promoCode = (data.promoCode || '').trim().toUpperCase() || null;
 
   logger.info('Placing Canadian Tire order', {
@@ -300,7 +337,7 @@ async function placeOrder(data) {
     await new Promise((resolve) => setTimeout(resolve, 90 + Math.random() * 140));
 
     const summary = buildOrderSummary({
-      orderId, lines, tender, fulfilment, store, promoCode,
+      orderId, lines, tender, fulfilment, store, promoCode, shippingProvince,
     });
 
     const duration = Date.now() - startTime;

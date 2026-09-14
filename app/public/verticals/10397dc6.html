@@ -514,6 +514,7 @@
   var fulfilment = 'ship-to-home';
   var promo = 'BTTS30X';
   var checkoutInFlight = false;
+  var MAX_LINE_QTY = 99;
 
   var grid = document.getElementById('product-grid');
   var drawer = document.getElementById('drawer');
@@ -552,17 +553,26 @@
     }).join('');
   }
 
+  function cartLocked() {
+    if (!checkoutInFlight) return false;
+    showToast('Please wait', 'Your order is being placed — the cart is locked until it completes.', false);
+    return true;
+  }
+
   function addToCart(sku, qty) {
-    var p = find(sku); if (!p) return;
+    var p = find(sku); if (!p || cartLocked()) return;
     var line = null;
     for (var i = 0; i < cart.length; i++) if (cart[i].sku === sku) line = cart[i];
-    if (line) line.qty += qty; else cart.push({ sku: sku, qty: qty });
+    var next = Math.min(MAX_LINE_QTY, (line ? line.qty : 0) + qty);
+    if (line) line.qty = next; else cart.push({ sku: sku, qty: next });
     clearStatus();
     renderCart();
     showToast('Added to cart', p.brand + ' ' + p.name + ' × ' + qty, false);
   }
 
   function setQty(sku, qty) {
+    if (cartLocked()) return;
+    qty = Math.min(MAX_LINE_QTY, qty);
     cart = cart.map(function (l) { return l.sku === sku ? { sku: sku, qty: qty } : l; }).filter(function (l) { return l.qty > 0; });
     clearStatus();
     renderCart();
@@ -597,7 +607,7 @@
           '<img src="' + p.img + '" alt="" onerror="this.style.visibility=\'hidden\'">' +
           '<div><div class="nm">' + p.brand + ' ' + p.name + '</div>' +
           '<div class="meta">#' + p.sku + ' · ' + money(p.price) + ' ' + p.unit + (isTire(p) ? ' · Installation available' : '') + '</div>' +
-          '<div class="qty"><button type="button" data-dec="' + l.sku + '" aria-label="Decrease">−</button><span>' + l.qty + '</span><button type="button" data-inc="' + l.sku + '" aria-label="Increase">+</button></div>' +
+          '<div class="qty"><button type="button" data-dec="' + l.sku + '" aria-label="Decrease">−</button><span>' + l.qty + '</span><button type="button" data-inc="' + l.sku + '" aria-label="Increase"' + (l.qty >= MAX_LINE_QTY ? ' disabled title="Limit ' + MAX_LINE_QTY + ' per item"' : '') + '>+</button>' + (l.qty >= MAX_LINE_QTY ? '<small style="color:#6b6b6b">Limit ' + MAX_LINE_QTY + '</small>' : '') + '</div>' +
           '<button type="button" class="rm" data-rm="' + l.sku + '">Remove</button></div>' +
           '<div class="amt">' + money(p.price * l.qty) + '</div>' +
         '</div>';
@@ -683,9 +693,16 @@
           showToast('Checkout failed', msg, true);
           return;
         }
-        okBox.innerHTML = '<b>Order ' + r.data.orderNumber + ' confirmed.</b> ' + r.data.fulfilment.method +
-          (r.data.fulfilment.store ? ' at ' + r.data.fulfilment.store : '') + ' · ' + r.data.fulfilment.eta +
-          '. You earned <b>' + money(r.data.rewards.ctMoneyEarned) + ' CT Money</b>.';
+        okBox.textContent = '';
+        var head = document.createElement('b');
+        head.textContent = 'Order ' + r.data.orderNumber + ' confirmed.';
+        var earned = document.createElement('b');
+        earned.textContent = money(Number(r.data.rewards.ctMoneyEarned)) + ' CT Money';
+        okBox.appendChild(head);
+        okBox.appendChild(document.createTextNode(' ' + r.data.fulfilment.method +
+          (r.data.fulfilment.store ? ' at ' + r.data.fulfilment.store : '') + ' · ' + r.data.fulfilment.eta + '. You earned '));
+        okBox.appendChild(earned);
+        okBox.appendChild(document.createTextNode('.'));
         okBox.classList.add('show');
         showToast('Order placed', r.data.orderNumber + ' · ' + money(r.data.total) + ' CAD', false);
         cart = [];

@@ -30,18 +30,19 @@ router.get('/api/10397dc6/catalog', (_req, res) => {
  * POST /api/10397dc6/checkout — place the Triangle Rewards order
  */
 router.post('/api/10397dc6/checkout', async (req, res) => {
+  const body = req.body || {};
   try {
     const order = await placeOrder({
-      items: req.body.items,
-      promoCode: req.body.promoCode ?? 'BTTS30X',
-      tender: req.body.tender || 'triangle-mastercard',
-      fulfilment: req.body.fulfilment || 'ship-to-home',
-      storeId: req.body.storeId || 'ON-0128',
-      postalCode: req.body.postalCode || 'M4M 3G3',
-      channel: req.body.channel || 'web',
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      items: body.items,
+      promoCode: body.promoCode ?? 'BTTS30X',
+      tender: body.tender || 'triangle-mastercard',
+      fulfilment: body.fulfilment || 'ship-to-home',
+      storeId: body.storeId || 'ON-0128',
+      postalCode: body.postalCode || 'M4M 3G3',
+      channel: body.channel || 'web',
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     res.json(order);
   } catch (error) {

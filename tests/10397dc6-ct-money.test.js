@@ -47,6 +47,30 @@ describe('Canadian Tire order totals', () => {
     expect(bc.total).toBe(11.19);
   });
 
+  test('ship-to-home tax follows the destination postal code', async () => {
+    const bc = await placeOrder({ items: [{ sku: '0396176', qty: 1 }], promoCode: null, tender: 'triangle-rewards', postalCode: 'V8T 2C5' });
+    expect(bc.tax).toEqual({ label: 'GST (5%) + PST (7%)', province: 'BC', amount: 2.4 });
+    const qc = await placeOrder({ items: [{ sku: '0396176', qty: 1 }], promoCode: null, tender: 'triangle-rewards', postalCode: 'h2x1y4' });
+    expect(qc.tax.province).toBe('QC');
+    await expect(placeOrder({ items: [{ sku: '0396176', qty: 1 }], postalCode: '90210' }))
+      .rejects.toMatchObject({ code: 'INVALID_POSTAL_CODE', status: 400 });
+  });
+
+  test('rejects unknown store, fulfilment and tender codes but defaults when absent', async () => {
+    const items = [{ sku: '0396176', qty: 1 }];
+    await expect(placeOrder({ items, tender: 'triangle-platinum' })).rejects.toMatchObject({ code: 'UNKNOWN_TENDER', status: 400 });
+    await expect(placeOrder({ items, fulfilment: 'drone' })).rejects.toMatchObject({ code: 'UNKNOWN_FULFILMENT', status: 400 });
+    await expect(placeOrder({ items, fulfilment: 'pickup-in-store', storeId: 'BC-9999' })).rejects.toMatchObject({ code: 'UNKNOWN_STORE', status: 400 });
+    const order = await placeOrder({ items });
+    expect(order.rewards.tender).toBe('Triangle Rewards card');
+    expect(order.fulfilment.method).toBe('Ship to Home');
+  });
+
+  test('rejects oversized carts', () => {
+    const items = Array.from({ length: 26 }, () => ({ sku: '0396176', qty: 1 }));
+    expect(() => buildCartLines(items)).toThrow(expect.objectContaining({ code: 'CART_TOO_LARGE', status: 400 }));
+  });
+
   test('rejects unknown SKUs and non-integer or out-of-range quantities', () => {
     expect(() => buildCartLines([{ sku: 'nope', qty: 1 }])).toThrow(expect.objectContaining({ code: 'UNKNOWN_SKU', status: 400 }));
     expect(() => buildCartLines([{ sku: '0072021', qty: 1.5 }])).toThrow(expect.objectContaining({ code: 'INVALID_QUANTITY' }));
