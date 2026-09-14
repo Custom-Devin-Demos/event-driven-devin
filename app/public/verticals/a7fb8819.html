@@ -204,6 +204,8 @@
     const money = (value) => '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     function renderEmployees() {
       const rows = document.getElementById('employee-rows');
+      const previouslyChecked = new Set([...document.querySelectorAll('[data-employee-id]:checked')].map((input) => input.dataset.employeeId));
+      const hadRows = rows.children.length > 0;
       rows.replaceChildren();
       employees.forEach((employee) => {
         const row = document.createElement('tr');
@@ -250,7 +252,7 @@
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.dataset.employeeId = employee.id;
-        checkbox.checked = true;
+        checkbox.checked = !hadRows || previouslyChecked.has(employee.id);
         checkbox.addEventListener('change', updateSummary);
         label.append(checkbox, document.createTextNode(' Include'));
         includeCell.appendChild(label);
@@ -286,8 +288,12 @@
       result.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     async function submitPayroll() {
-      const checkedIds = [...document.querySelectorAll('[data-employee-id]:checked')].map((input) => input.dataset.employeeId);
+      const employeeCheckboxes = [...document.querySelectorAll('[data-employee-id]')];
+      const checkedIds = employeeCheckboxes.filter((input) => input.checked).map((input) => input.dataset.employeeId);
       submitButton.disabled = true;
+      employeeCheckboxes.forEach((input) => {
+        input.disabled = true;
+      });
       result.className = 'result';
       try {
         const response = await fetch('/api/a7fb8819/submit-pay-run', {
@@ -311,6 +317,9 @@
         showResult('error', "We couldn't submit this pay run.", 'NetworkError: ' + error.message + '\nPAY_RUN_SUBMISSION_FAILED · Reference ID: unavailable');
       } finally {
         submitButton.disabled = false;
+        employeeCheckboxes.forEach((input) => {
+          input.disabled = false;
+        });
       }
     }
     submitButton.addEventListener('click', submitPayroll);
