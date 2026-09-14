@@ -121,8 +121,8 @@ NGINX_TOUCHED=0
 nginx_serving() {
   local code
   for _ in $(seq 1 10); do
-    code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 5 "${NGINX_URL:-http://localhost:80/}" || true)
-    case $code in 200|301|302) return 0 ;; esac
+    code=$(curl -skL -o /dev/null -w '%{http_code}' --max-time 5 "${NGINX_URL:-https://localhost/health}" || true)
+    [ "$code" = 200 ] && return 0
     sleep 2
   done
   return 1
