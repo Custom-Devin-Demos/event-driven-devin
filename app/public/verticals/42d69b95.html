@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assign apps | App Management – Rippling IT</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --plum: #4A0039;
+      --plum-deep: #2E0024;
+      --magenta: #7A005D;
+      --pink: #EAB8F2;
+      --gold: #FFA81D;
+      --gold-hover: #F29B0E;
+      --paper: #F2EEEB;
+      --white: #ffffff;
+      --ink: #1C1C1C;
+      --ink-70: rgba(0, 0, 0, 0.7);
+      --ink-50: rgba(0, 0, 0, 0.5);
+      --hairline: #E3DDD9;
+      --link: #6B2A9E;
+      --green: #1B7F4B;
+      --green-bg: #EAF6EF;
+      --red: #B3261E;
+      --red-bg: #FCEDEC;
+      --sans: 'Basel Grotesk', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-width: 0; }
+    body {
+      margin: 0;
+      min-width: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.25px;
+      line-height: 22px;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select { font: inherit; letter-spacing: inherit; }
+
+    .announce {
+      background: var(--pink);
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 20px;
+      text-align: center;
+      padding: 12px 48px;
+    }
+    .announce a { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; margin-left: 10px; white-space: nowrap; }
+
+    .site-header { background: var(--plum); color: var(--white); }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      max-width: 1440px;
+      min-height: 80px;
+      margin: 0 auto;
+      padding: 0 52px;
+    }
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--white);
+      text-decoration: none;
+      flex: 0 0 auto;
+    }
+    .wordmark svg { width: 30px; height: 18px; }
+    .wordmark span {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .primary-nav { display: flex; align-items: center; gap: 28px; min-width: 0; }
+    .primary-nav a {
+      color: var(--white);
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      opacity: 0.92;
+    }
+    .primary-nav a.active { opacity: 1; box-shadow: inset 0 -2px 0 var(--gold); padding-bottom: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 22px; margin-left: auto; flex: 0 0 auto; }
+    .header-actions .user {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--white); font-size: 15px; font-weight: 500; text-decoration: none; white-space: nowrap;
+    }
+    .header-actions .user .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--pink); color: var(--plum);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; letter-spacing: 0;
+    }
+    .gold-button, .ghost-button {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px; padding: 8px 24px;
+      border-radius: 4px; cursor: pointer;
+      font-size: 15px; font-weight: 500; letter-spacing: 0.25px; line-height: 15px;
+      text-decoration: none; white-space: nowrap;
+    }
+    .gold-button { background: var(--gold); color: var(--ink); border: 0; }
+    .gold-button:hover { background: var(--gold-hover); }
+    .ghost-button { background: transparent; color: var(--white); border: 2px solid var(--gold); }
+    .menu-toggle { display: none; background: none; border: 0; color: var(--white); font-size: 24px; line-height: 1; padding: 8px; cursor: pointer; min-height: 44px; min-width: 44px; }
+
+    .hero { background: var(--plum); color: var(--white); position: relative; overflow: hidden; }
+    .hero::after {
+      content: '';
+      position: absolute; right: -120px; top: -160px;
+      width: 620px; height: 620px; border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, var(--magenta) 0%, rgba(122,0,93,0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 1440px; margin: 0 auto; padding: 44px 52px 56px; }
+    .eyebrow { font-size: 15px; font-weight: 500; color: rgba(255,255,255,0.8); margin: 0 0 14px; }
+    .hero h1 {
+      margin: 0;
+      font-size: 48px; font-weight: 500; letter-spacing: -1.5px; line-height: 52px;
+      max-width: 720px;
+    }
+    .hero p { margin: 18px 0 0; max-width: 620px; font-size: 18px; line-height: 27px; color: rgba(255,255,255,0.86); font-weight: 400; letter-spacing: 0; }
+
+    .content { max-width: 1440px; margin: 0 auto; padding: 36px 52px 48px; }
+    .content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; }
+    .card { min-width: 0; background: var(--white); border: 1px solid var(--hairline); border-radius: 8px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--hairline); }
+    .card-header h2 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.5px; line-height: 28px; }
+    .card-body { padding: 24px; }
+    .pill-tabs { display: flex; gap: 8px; }
+    .pill-tabs span { font-size: 13px; font-weight: 500; color: var(--ink-70); background: var(--paper); padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+    .pill-tabs span.on { background: var(--plum); color: var(--white); }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+    .stat { min-width: 0; padding: 16px; border: 1px solid var(--hairline); border-radius: 6px; background: var(--white); }
+    .stat-label { font-size: 13px; font-weight: 500; color: var(--ink-70); line-height: 18px; }
+    .stat-value { margin-top: 6px; font-size: 26px; font-weight: 500; letter-spacing: -0.5px; line-height: 30px; }
+
+    .activity-heading { margin: 0 0 12px; font-size: 16px; font-weight: 600; letter-spacing: 0; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; min-width: 620px; border-collapse: collapse; }
+    th { padding: 10px 12px; border-bottom: 1px solid var(--hairline); color: var(--ink-70); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-align: left; }
+    td { padding: 13px 12px; border-bottom: 1px solid var(--hairline); font-size: 14px; font-weight: 500; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    td .who { display: flex; align-items: center; gap: 10px; }
+    td .who .dot { width: 30px; height: 30px; border-radius: 50%; background: var(--pink); color: var(--plum); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; letter-spacing: 0; flex: none; }
+    td .who small { display: block; font-size: 12px; color: var(--ink-50); font-weight: 400; line-height: 16px; }
+    td .apps { color: var(--link); font-weight: 600; }
+    .status { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0; }
+    .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status.active { color: var(--green); background: var(--green-bg); }
+    .status.pending { color: #8a5a18; background: #FFF4DF; }
+
+    .form-intro { margin: 0 0 20px; color: var(--ink-70); font-size: 14px; font-weight: 400; letter-spacing: 0; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 600; letter-spacing: 0; }
+    .form-group input, .form-group select {
+      width: 100%; min-height: 48px; padding: 11px 14px;
+      border: 1px solid #CFC7C2; border-radius: 4px;
+      background: var(--white); color: var(--ink); font-size: 15px; font-weight: 400; letter-spacing: 0;
+    }
+    .form-group select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%231C1C1C' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .form-group input:focus, .form-group select:focus { outline: 2px solid rgba(74, 0, 57, 0.35); outline-offset: 1px; border-color: var(--plum); }
+    .hint { margin: 6px 0 0; font-size: 12px; color: var(--ink-50); font-weight: 400; letter-spacing: 0; }
+    .summary { min-height: 22px; margin: 4px 0 16px; color: var(--ink-70); font-size: 13px; font-weight: 500; letter-spacing: 0; }
+    .form-actions { display: flex; gap: 10px; }
+    .primary-button, .clear-button {
+      min-height: 48px; padding: 12px 24px; border-radius: 4px; cursor: pointer;
+      font-size: 15px; font-weight: 500; letter-spacing: 0.25px; line-height: 15px;
+    }
+    .primary-button { flex: 1; border: 0; background: var(--gold); color: var(--ink); }
+    .primary-button:hover { background: var(--gold-hover); }
+    .primary-button:disabled { cursor: not-allowed; opacity: 0.65; }
+    .clear-button { border: 2px solid var(--plum); background: var(--white); color: var(--plum); }
+    .result { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 6px; font-size: 14px; letter-spacing: 0; }
+    .result.success { display: block; background: var(--green-bg); color: #14563A; }
+    .result.error { display: block; background: var(--red-bg); color: #7E1B14; }
+    .result .result-title { font-weight: 600; }
+    .result .result-detail { margin-top: 3px; font-weight: 400; }
+
+    .help-strip { margin-top: 24px; padding: 18px 24px; background: var(--white); border: 1px solid var(--hairline); border-radius: 8px; font-size: 14px; font-weight: 400; letter-spacing: 0; }
+    .help-strip strong { font-weight: 600; }
+
+    .site-footer { background: var(--plum-deep); color: rgba(255,255,255,0.72); font-size: 13px; font-weight: 400; letter-spacing: 0; padding: 32px 52px; }
+    .footer-inner { max-width: 1440px; margin: 0 auto; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 14px; }
+    .footer-links a { text-decoration: none; }
+    .footer-links a:hover { color: var(--white); text-decoration: underline; }
+
+    @media (max-width: 1100px) {
+      .header-inner, .hero-inner, .content, .site-footer { padding-left: 28px; padding-right: 28px; }
+      .primary-nav { gap: 18px; }
+      .content-grid { grid-template-columns: minmax(0, 1fr) 380px; }
+    }
+    @media (max-width: 900px) {
+      .primary-nav, .header-actions .user, .header-actions .gold-button { display: none; }
+      .menu-toggle { display: inline-flex; align-items: center; justify-content: center; }
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .announce { padding: 10px 16px; font-size: 13px; }
+      .announce a { display: block; margin: 4px 0 0; }
+      .header-inner { min-height: 68px; padding: 0 16px; gap: 16px; }
+      .hero-inner { padding: 32px 16px 36px; }
+      .hero h1 { font-size: 34px; line-height: 38px; letter-spacing: -1px; }
+      .hero p { font-size: 16px; line-height: 24px; }
+      .content { padding: 20px 16px 32px; }
+      .card-header { flex-direction: column; align-items: flex-start; padding: 18px; }
+      .card-body { padding: 18px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stat-value { font-size: 22px; }
+      .form-actions { flex-direction: column; }
+      .primary-button, .clear-button { width: 100%; }
+      .help-strip { padding: 16px 18px; }
+      .site-footer { padding: 24px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="announce">Introducing Helpdesk: the IT support agent that solves your employees' IT issues on demand.<a href="#">See how it works</a></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="wordmark" aria-label="Rippling">
+        <svg viewBox="0 0 30 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M3 2c4 3 4 7 0 10v4"/><path d="M13 2c4 3 4 7 0 10v4"/><path d="M23 2c4 3 4 7 0 10v4"/></svg>
+        <span>Rippling</span>
+      </a>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="#">People</a>
+        <a href="#">Devices</a>
+        <a href="#" class="active">App Management</a>
+        <a href="#">Identity</a>
+        <a href="#">Policies</a>
+        <a href="#">Reports</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#" class="user"><span class="avatar">AK</span>Anika Kapoor</a>
+        <a href="#" class="gold-button">Add employee</a>
+        <button type="button" class="menu-toggle" aria-label="Open navigation">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">IT management · App Management</p>
+      <h1>Assign apps to your people in one system</h1>
+      <p>Provision app access for new hires and role changes. Rippling creates the accounts, applies your access policy, and keeps every seat in sync with the employee record.</p>
+    </div>
+  </section>
+
+  <main class="content">
+    <div class="content-grid">
+      <section class="card">
+        <div class="card-header">
+          <h2>Managed apps</h2>
+          <div class="pill-tabs"><span class="on">All apps</span><span>Pending</span><span>Offboarded</span></div>
+        </div>
+        <div class="card-body">
+          <div class="stats">
+            <div class="stat"><div class="stat-label">Managed apps</div><div class="stat-value">48</div></div>
+            <div class="stat"><div class="stat-label">Seats assigned</div><div class="stat-value">3,214</div></div>
+            <div class="stat"><div class="stat-label">Pending provisions</div><div class="stat-value">17</div></div>
+            <div class="stat"><div class="stat-label">Next hire start</div><div class="stat-value">Mon, Sep 21</div></div>
+          </div>
+          <h3 class="activity-heading">Recent app assignments</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Employee</th><th>Work location</th><th>Devices</th><th>Third-party apps</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><div class="who"><span class="dot">KM</span><div>Kofi Mensah<small>Software Engineer</small></div></div></td><td>San Francisco</td><td>2 devices</td><td class="apps">32 apps</td><td><span class="status active">Active</span></td></tr>
+                <tr><td><div class="who"><span class="dot">LM</span><div>Laura Martinez<small>Data Scientist</small></div></div></td><td>Chicago</td><td>1 device</td><td class="apps">24 apps</td><td><span class="status active">Active</span></td></tr>
+                <tr><td><div class="who"><span class="dot">LF</span><div>Leon Fischer<small>Software Engineer</small></div></div></td><td>San Francisco</td><td>0 devices</td><td class="apps">—</td><td><span class="status pending">Provisioning</span></td></tr>
+                <tr><td><div class="who"><span class="dot">MK</span><div>Mariam Kone<small>Sales Representative</small></div></div></td><td>New York</td><td>1 device</td><td class="apps">25 apps</td><td><span class="status active">Active</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card form-card">
+        <div class="card-header"><h2>Assign apps</h2></div>
+        <div class="card-body">
+          <p class="form-intro">Provision seats for a group of employees. Accounts are created in the app and access follows the policy you select.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">App</label>
+              <select id="product">
+                <option value="Google Workspace">Google Workspace</option>
+                <option value="Slack">Slack</option>
+                <option value="Zoom">Zoom</option>
+                <option value="GitHub">GitHub</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="seats">Employees to provision</label>
+              <input type="number" id="seats" value="25" min="1" required>
+              <p class="hint">Applies to everyone in the selected onboarding group.</p>
+            </div>
+            <div class="form-group">
+              <label for="planTier">Access policy</label>
+              <select id="planTier">
+                <option value="enterprise">Company-wide</option>
+                <option value="business">Department</option>
+                <option value="starter">Individual</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="region">Work location</label>
+              <select id="region">
+                <option value="us-east">New York</option>
+                <option value="us-west">San Francisco</option>
+                <option value="eu-west">London</option>
+                <option value="ap-south">Bengaluru</option>
+              </select>
+            </div>
+            <div id="summary" class="summary" aria-live="polite"></div>
+            <div class="form-actions">
+              <button type="submit" class="primary-button" id="submitBtn">Assign apps</button>
+              <button type="reset" class="clear-button">Clear</button>
+            </div>
+          </form>
+          <div id="result" class="result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="help-strip"><strong>Need help?</strong> Rippling Help Center · Open a Helpdesk ticket · Your account manager</div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="#">Rippling Overview</a>
+        <a href="#">Workflow Studio</a>
+        <a href="#">Analytics</a>
+        <a href="#">Policies</a>
+        <a href="#">Permissions</a>
+        <a href="#">Integrations</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+      <div>© 2026 Rippling People Center Inc.</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('provisionForm');
+    const product = document.getElementById('product');
+    const seats = document.getElementById('seats');
+    const planTier = document.getElementById('planTier');
+    const region = document.getElementById('region');
+    const summary = document.getElementById('summary');
+
+    const updateSummary = () => {
+      const policyLabel = planTier.options[planTier.selectedIndex].text;
+      const locationLabel = region.options[region.selectedIndex].text;
+      summary.textContent = `${seats.value} employees · ${product.value} · ${policyLabel} · ${locationLabel}`;
+    };
+
+    [product, seats, planTier, region].forEach((field) => {
+      field.addEventListener('input', updateSummary);
+      field.addEventListener('change', updateSummary);
+    });
+    form.addEventListener('reset', () => {
+      const result = document.getElementById('result');
+      result.className = 'result';
+      result.textContent = '';
+      window.setTimeout(updateSummary, 0);
+    });
+    updateSummary();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Assigning…';
+      result.className = 'result';
+      const render = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'result-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'result-detail'; d.textContent = detail;
+        result.appendChild(t); result.appendChild(d);
+      };
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orgName: product.value, planName: planTier.value, seats: parseInt(seats.value), billingCycle: 'annual', region: region.value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result error';
+          render("We couldn't assign these apps right now", 'Please try again in a few minutes or open a Helpdesk ticket.');
+        } else {
+          result.className = 'result success';
+          render('Apps assigned', `${data.seatsAdded} seats provisioned in ${data.product}. Employees will see the app in their Rippling dashboard.`);
+        }
+      } catch (err) {
+        result.className = 'result error';
+        render("We couldn't assign these apps right now", 'Please try again in a few minutes or open a Helpdesk ticket.');
+      } finally { btn.disabled = false; btn.textContent = 'Assign apps'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
