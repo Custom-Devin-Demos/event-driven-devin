@@ -186,11 +186,11 @@
     <div>
       <div class="eyebrow">Home Equity Line of Credit (HELOC)</div>
       <h1>Request a draw</h1>
-      <p class="lede">Move funds from your Figure HELOC to a linked bank account. Standard ACH transfers arrive in 1&ndash;3 business days; same-day wires arrive today when requested before 2 pm ET.</p>
+      <p class="lede">Move funds from your Figure HELOC to a linked bank account. Draws are sent by ACH and arrive in 1&ndash;3 business days.</p>
       <ul class="checks">
         <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Draw from $500 up to your available credit</span></li>
         <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Each draw locks its own fixed rate for the remainder of your term</span></li>
-        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>No fee to draw. Interest accrues only on what you use.</span></li>
+        <li><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg><span>Interest accrues only on what you draw. Any transfer fee is shown before funds move.</span></li>
       </ul>
     </div>
     <div class="hero-visual" aria-hidden="true">
@@ -239,19 +239,19 @@
           </div>
           <div class="form-group">
             <label for="amount">Draw amount</label>
-            <div class="amount-wrap"><input type="number" id="amount" value="15000" min="500" step="100" placeholder="0"></div>
-            <div class="hint">Minimum $500. Interest on this draw is fixed at today's draw rate.</div>
+            <div class="amount-wrap"><input type="number" id="amount" value="15000" min="500" max="112400" step="100" placeholder="0" required></div>
+            <div class="hint">Minimum $500, up to your available credit. Interest on this draw is fixed at today's draw rate.</div>
           </div>
           <div class="form-group">
-            <label for="accountTier">Funding speed</label>
+            <label for="accountTier">Account tier</label>
             <select id="accountTier">
-              <option value="standard">Standard ACH &mdash; 1&ndash;3 business days, no fee</option>
-              <option value="premium">Same-day wire &mdash; arrives today, $25 fee</option>
+              <option value="standard">Standard account</option>
+              <option value="premium">Premium account &mdash; pre-cleared</option>
             </select>
           </div>
           <div class="summary" aria-live="polite">
             <div class="row"><span>Draw amount</span><span id="sumAmount">$15,000.00</span></div>
-            <div class="row"><span>Funding</span><span id="sumSpeed">Standard ACH</span></div>
+            <div class="row"><span>Funding</span><span>ACH, 1&ndash;3 business days</span></div>
             <div class="row"><span>Available after this draw</span><span id="sumRemaining">$97,400.00</span></div>
             <div class="row total"><span>Est. monthly payment on this draw</span><span id="sumPayment">$179.42</span></div>
           </div>
@@ -273,7 +273,7 @@
         <div class="step">
           <div class="num">2</div>
           <h3>Pick where it goes</h3>
-          <p>Send funds to any linked bank account. Standard ACH is free; same-day wires are available for a flat fee.</p>
+          <p>Send funds to any linked bank account by ACH. Any transfer fee for your account tier is shown on your confirmation.</p>
         </div>
         <div class="step">
           <div class="num">3</div>
@@ -353,9 +353,10 @@
     const LINE = { limit: 170000, balance: 57600, apr: 0.0785, termMonths: 360 };
     const money = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const amountEl = document.getElementById('amount');
-    const speedEl = document.getElementById('accountTier');
+    const form = document.getElementById('transferForm');
+    const available = LINE.limit - LINE.balance;
+    amountEl.max = String(available);
     function renderLine() {
-      const available = LINE.limit - LINE.balance;
       document.getElementById('availableCredit').textContent = money(available);
       document.getElementById('usedMeter').style.width = Math.round((LINE.balance / LINE.limit) * 100) + '%';
     }
@@ -364,13 +365,11 @@
       const r = LINE.apr / 12;
       const payment = amt > 0 ? (amt * r) / (1 - Math.pow(1 + r, -LINE.termMonths)) : 0;
       document.getElementById('sumAmount').textContent = money(amt);
-      document.getElementById('sumSpeed').textContent = speedEl.value === 'premium' ? 'Same-day wire' : 'Standard ACH';
-      document.getElementById('sumRemaining').textContent = money(LINE.limit - LINE.balance - amt);
+      document.getElementById('sumRemaining').textContent = money(available - amt);
       document.getElementById('sumPayment').textContent = money(payment);
     }
     amountEl.addEventListener('input', renderSummary);
-    speedEl.addEventListener('change', renderSummary);
-    document.getElementById('transferForm').addEventListener('reset', function () { setTimeout(renderSummary, 0); });
+    form.addEventListener('reset', function () { setTimeout(renderSummary, 0); });
     renderLine();
     renderSummary();
 
@@ -381,27 +380,39 @@
       const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
       result.append(t, d);
     }
-    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (!Number.isFinite(amount) || amount < 500 || amount > available) {
+        showResult(result, 'error', 'Check your draw amount', 'Enter an amount between $500.00 and ' + money(available) + '.');
+        return;
+      }
+      const controls = form.querySelectorAll('select, input');
+      controls.forEach((el) => { el.disabled = true; });
       btn.disabled = true; btn.textContent = 'Submitting your draw...';
       result.className = 'result-box';
       try {
         const res = await fetch('/api/banking/transfer', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: amount, accountTier: document.getElementById('accountTier').value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
         });
         const data = await res.json();
         if (!res.ok) {
           showResult(result, 'error', 'We could not submit your draw', 'Your line was not charged. Please try again in a few minutes or contact Figure Support at (888) 819-6388.');
         } else {
-          const speed = document.getElementById('accountTier').value === 'premium' ? 'by wire today' : 'by ACH in 1\u20133 business days';
-          showResult(result, 'success', 'Draw requested', money(data.debitAmount) + ' will arrive ' + speed + '. Reference ' + data.transferId + '. Your new draw rate is locked at 7.85% APR.');
+          const arriving = money(data.receipt && data.receipt.amount != null ? data.receipt.amount : amount);
+          const fee = parseFloat(data.fee) || 0;
+          const feeText = fee > 0 ? ' Transfer fee ' + money(fee) + '; total debit to your line ' + money(data.debitAmount) + '.' : ' No transfer fee.';
+          showResult(result, 'success', 'Draw requested', arriving + ' will arrive by ACH in 1\u20133 business days.' + feeText + ' Reference ' + data.transferId + '. Your new draw rate is locked at 7.85% APR.');
         }
       } catch (err) {
         showResult(result, 'error', 'Connection interrupted', 'We could not reach Figure. Check your connection and try again.');
-      } finally { btn.disabled = false; btn.textContent = 'Request draw'; }
+      } finally {
+        controls.forEach((el) => { el.disabled = false; });
+        btn.disabled = false; btn.textContent = 'Request draw';
+      }
     });
   </script>
   <script src="/session-cap-banner.js"></script>
