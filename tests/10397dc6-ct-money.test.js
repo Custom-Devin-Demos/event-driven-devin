@@ -52,8 +52,20 @@ describe('Canadian Tire order totals', () => {
     expect(bc.tax).toEqual({ label: 'GST (5%) + PST (7%)', province: 'BC', amount: 2.4 });
     const qc = await placeOrder({ items: [{ sku: '0396176', qty: 1 }], promoCode: null, tender: 'triangle-rewards', postalCode: 'h2x1y4' });
     expect(qc.tax.province).toBe('QC');
-    await expect(placeOrder({ items: [{ sku: '0396176', qty: 1 }], postalCode: '90210' }))
-      .rejects.toMatchObject({ code: 'INVALID_POSTAL_CODE', status: 400 });
+    const nu = await placeOrder({ items: [{ sku: '0396176', qty: 1 }], promoCode: null, tender: 'triangle-rewards', postalCode: 'X0A 0H0' });
+    expect(nu.tax.province).toBe('NU');
+    const nt = await placeOrder({ items: [{ sku: '0396176', qty: 1 }], promoCode: null, tender: 'triangle-rewards', postalCode: 'X1A 2N3' });
+    expect(nt.tax.province).toBe('NT');
+    for (const bad of ['90210', 'D1A 1A1', 'M4D 3G3', 'M4M 3O3']) {
+      await expect(placeOrder({ items: [{ sku: '0396176', qty: 1 }], postalCode: bad }))
+        .rejects.toMatchObject({ code: 'INVALID_POSTAL_CODE', status: 400 });
+    }
+  });
+
+  test('prototype property names are not accepted as option codes', async () => {
+    const items = [{ sku: '0396176', qty: 1 }];
+    await expect(placeOrder({ items, tender: 'constructor' })).rejects.toMatchObject({ code: 'UNKNOWN_TENDER', status: 400 });
+    await expect(placeOrder({ items, fulfilment: 'toString' })).rejects.toMatchObject({ code: 'UNKNOWN_FULFILMENT', status: 400 });
   });
 
   test('rejects unknown store, fulfilment and tender codes but defaults when absent', async () => {

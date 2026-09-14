@@ -45,6 +45,8 @@ const POSTAL_PROVINCE = {
   A: 'NL', B: 'NS', C: 'PE', E: 'NB', G: 'QC', H: 'QC', J: 'QC', K: 'ON', L: 'ON',
   M: 'ON', N: 'ON', P: 'ON', R: 'MB', S: 'SK', T: 'AB', V: 'BC', X: 'NT', Y: 'YT',
 };
+const NUNAVUT_FSAS = ['X0A', 'X0B', 'X0C'];
+const POSTAL_CODE_RE = /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\d[ABCEGHJ-NPRSTV-Z]\d$/;
 
 const CATALOG = [
   {
@@ -181,7 +183,7 @@ function validationError(message, code) {
 
 function resolveOption(table, code, fallbackCode, errorCode) {
   if (code === undefined || code === null || code === '') return table[fallbackCode];
-  const option = table[code];
+  const option = Object.prototype.hasOwnProperty.call(table, code) ? table[code] : undefined;
   if (!option) throw validationError(`Unsupported ${errorCode.toLowerCase().replace('_', ' ')}: ${code}`, errorCode);
   return option;
 }
@@ -201,7 +203,10 @@ function resolveTender(code) {
 function resolveShippingProvince(postalCode) {
   if (postalCode === undefined || postalCode === null || postalCode === '') return 'ON';
   const normalized = String(postalCode || '').replace(/\s+/g, '').toUpperCase();
-  const province = /^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(normalized) ? POSTAL_PROVINCE[normalized[0]] : undefined;
+  if (!POSTAL_CODE_RE.test(normalized)) {
+    throw validationError(`Invalid Canadian postal code: ${postalCode}`, 'INVALID_POSTAL_CODE');
+  }
+  const province = NUNAVUT_FSAS.includes(normalized.slice(0, 3)) ? 'NU' : POSTAL_PROVINCE[normalized[0]];
   if (!province) throw validationError(`Invalid Canadian postal code: ${postalCode}`, 'INVALID_POSTAL_CODE');
   return province;
 }

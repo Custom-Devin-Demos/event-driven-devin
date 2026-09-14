@@ -654,15 +654,24 @@
   }
 
   function applyPromo() {
+    if (cartLocked()) return;
     promo = promoInput.value.trim().toUpperCase();
     renderPromoHint();
     renderCart();
+  }
+
+  function setOptionsLocked(locked) {
+    tenderSel.disabled = locked;
+    promoInput.disabled = locked;
+    document.getElementById('promo-apply').disabled = locked;
+    Array.prototype.forEach.call(document.querySelectorAll('#fulfilment button, [data-add]'), function (b) { b.disabled = locked; });
   }
 
   function checkout() {
     if (!cart.length || checkoutInFlight) return;
     checkoutInFlight = true;
     clearStatus();
+    setOptionsLocked(true);
     checkoutBtn.disabled = true;
     checkoutBtn.textContent = 'Placing your order…';
 
@@ -716,6 +725,7 @@
       })
       .then(function () {
         checkoutInFlight = false;
+        setOptionsLocked(false);
         checkoutBtn.textContent = 'Proceed to Checkout';
         checkoutBtn.disabled = !cart.length;
       });
@@ -737,7 +747,7 @@
     else setQty(sku, 0);
   });
   document.getElementById('fulfilment').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-fulfilment]'); if (!b) return;
+    var b = e.target.closest('[data-fulfilment]'); if (!b || cartLocked()) return;
     fulfilment = b.getAttribute('data-fulfilment');
     Array.prototype.forEach.call(this.querySelectorAll('button'), function (x) { x.classList.toggle('on', x === b); });
     renderCart();
@@ -752,6 +762,7 @@
   Array.prototype.forEach.call(document.querySelectorAll('[data-activate]'), function (b) {
     b.addEventListener('click', function () {
       var code = b.getAttribute('data-activate');
+      if (code && cartLocked()) return;
       b.textContent = 'Activated ✓'; b.disabled = true;
       if (code) { promoInput.value = code; applyPromo(); showToast('Offer activated', 'Code ' + code + ' applied to your cart.', false); }
       else showToast('Offer activated', 'Show your Triangle Rewards card in store to redeem.', false);
