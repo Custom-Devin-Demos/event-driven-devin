@@ -461,14 +461,16 @@ function buildOncallSessionPrompt(scenario, skin, runRef) {
  * a requester org with no user runs as that org's service user rather than
  * borrowing a user id from the skin or the environment.
  */
-const DEVIN_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+const DEVIN_ORG_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+// User ids carry their identity provider as a prefix, e.g. `email|<hex>`.
+const DEVIN_USER_ID_RE = /^[A-Za-z0-9_|.@+-]{1,128}$/;
 
 function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
-  const orgId = DEVIN_ID_RE.test(devinOrgId || '') ? devinOrgId : null;
+  const orgId = DEVIN_ORG_ID_RE.test(devinOrgId || '') ? devinOrgId : null;
   if (!orgId) return { orgId: null, userId: null, complete: false };
   return {
     orgId,
-    userId: DEVIN_ID_RE.test(devinUserId || '') ? devinUserId : null,
+    userId: DEVIN_USER_ID_RE.test(devinUserId || '') ? devinUserId : null,
     complete: true,
   };
 }
