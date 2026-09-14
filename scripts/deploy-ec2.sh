@@ -223,6 +223,23 @@ if [ ${#FAILED[@]} -gt 0 ]; then
 fi
 log "smoke ok ($TOTAL paths 200)"
 
+# ── 5b. avature (separate repo, built from its git URL) ─────────────────────
+# Serialized after checkout-api for the same memory reason. Failures here must
+# not roll back the main stack: nginx resolves the avature upstream lazily, so
+# only /avature/ breaks.
+if compose build --pull avature >/dev/null 2>&1; then
+  compose up -d --no-deps avature >/dev/null || log "warning: avature failed to start"
+  AV_STATUS=000
+  for _ in $(seq 1 20); do
+    AV_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${AVATURE_HEALTH_URL:-http://localhost:3300/health}" || true)
+    [ "$AV_STATUS" = 200 ] && break
+    sleep 2
+  done
+  if [ "$AV_STATUS" = 200 ]; then log "avature health 200"; else log "warning: avature health returned $AV_STATUS"; fi
+else
+  log "warning: avature image build failed (GITHUB_PAT missing or repo unreachable?) — /avature/ left as-is"
+fi
+
 # ── 6. reconcile the rest of the stack ──────────────────────────────────────
 compose up -d --no-deps loadgen >/dev/null || log "warning: loadgen restart failed"
 compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"

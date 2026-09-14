@@ -434,6 +434,9 @@ services:
         condition: service_healthy
       migration-tower:
         condition: service_started
+      avature:
+        condition: service_started
+        required: false
     restart: unless-stopped
     deploy:
       resources:
@@ -490,6 +493,31 @@ services:
           memory: 128M
     expose:
       - "4001"
+
+  # ─── Avature Talent Suite (recruiting-platform demo, separate repo) ───
+  # Built straight from COG-GTM/avature-talent-demo (private, so the host's
+  # GITHUB_PAT rides in the git URL). Served by nginx under /avature/; the
+  # 5xx-to-Devin-session trigger and Slack alert reuse the same host .env
+  # credentials as checkout-api.
+  avature:
+    build:
+      context: https://${GITHUB_PAT:-x-access-token}@github.com/COG-GTM/avature-talent-demo.git#${AVATURE_REF:-main}
+    ports:
+      - "127.0.0.1:3300:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DEVIN_SERVICE_KEY=${DEVIN_SERVICE_KEY:-}
+      - DEVIN_ORG_ID=${DEVIN_ORG_ID:-}
+      - DEVIN_USER_ID=${DEVIN_USER_ID:-}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN:-}
+      - SLACK_CHANNEL_ID=${SLACK_CHANNEL_ID:-}
+      - INCIDENT_COOLDOWN_MS=${AVATURE_INCIDENT_COOLDOWN_MS:-600000}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 192M
 
   # ─── Migration Control Tower (Ab Initio -> dbt parity demo) ───
   migration-tower:
