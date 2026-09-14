@@ -117,6 +117,17 @@ mirror_entry() {
   fi
 }
 
+NGINX_TOUCHED=0
+nginx_serving() {
+  local code
+  for _ in $(seq 1 10); do
+    code=$(curl -skL -o /dev/null -w '%{http_code}' --max-time 5 "${NGINX_URL:-https://localhost/health}" || true)
+    [ "$code" = 200 ] && return 0
+    sleep 2
+  done
+  return 1
+}
+
 # 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
 # but a restore step failed, so which release is running is indeterminate.
 # The backup is mirrored back exactly (not overlaid) so files the failed
@@ -139,6 +150,10 @@ rollback() {
   cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env" || { log "rollback: .env restore failed"; restored=0; }
   compose build -q checkout-api || { log "rollback: image rebuild failed"; restored=0; }
   compose up -d --no-deps checkout-api || { log "rollback: container replace failed"; restored=0; }
+  if [ "$NGINX_TOUCHED" = 1 ]; then
+    compose up -d --no-deps --force-recreate nginx || { log "rollback: nginx recreate failed"; restored=0; }
+    nginx_serving || { log "rollback: nginx not serving on restored config"; restored=0; }
+  fi
   for _ in $(seq 1 40); do
     if [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ]; then
       [ $restored = 1 ] && { log "rollback healthy"; return 0; }
@@ -180,6 +195,7 @@ if [ -n "$LIVE_ONLY" ]; then
 fi
 
 # ── 3. mirror the staging tree into place ───────────────────────────────────
+NGINX_CONF_BEFORE=$(md5sum "$APP_DIR/nginx/nginx.conf" 2>/dev/null | cut -d' ' -f1)
 for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e" protect; done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
@@ -247,8 +263,9 @@ avature_sync() {
   # fetch + detach works for branches, tags and reachable SHAs alike
   avature_git -C "$AV_SRC" fetch -q --depth 1 origin "$AV_REF" && git -C "$AV_SRC" checkout -q --detach FETCH_HEAD
 }
-if avature_sync 2>/dev/null && compose --profile avature build --pull avature >/dev/null 2>&1 \
-   && compose --profile avature up -d --no-deps avature >/dev/null 2>&1; then
+AV_ERR=$(mktemp); trap 'rm -f "$AV_ERR"' EXIT
+if avature_sync 2>"$AV_ERR" && compose --profile avature build --pull avature >/dev/null 2>>"$AV_ERR" \
+   && compose --profile avature up -d --no-deps avature >/dev/null 2>>"$AV_ERR"; then
   log "avature: built $(git -C "$AV_SRC" rev-parse --short HEAD) from $AV_REF"
   AV_STATUS=000
   for _ in $(seq 1 20); do
@@ -259,11 +276,26 @@ if avature_sync 2>/dev/null && compose --profile avature build --pull avature >/
   if [ "$AV_STATUS" = 200 ]; then log "avature health 200"; else log "warning: avature health returned $AV_STATUS"; fi
 else
   log "warning: avature sync/build/start failed (GITHUB_PAT missing or repo unreachable?) — /avature/ left as-is"
+  [ -n "${GITHUB_PAT:-}" ] || log "   GITHUB_PAT is not set in $APP_DIR/.env"
+  tail -5 "$AV_ERR" | log_lines '   '
 fi
 
 # ── 6. reconcile the rest of the stack ──────────────────────────────────────
 compose up -d --no-deps loadgen >/dev/null || log "warning: loadgen restart failed"
 compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
+# nginx renders its bind-mounted template only at container start, so a
+# changed nginx.conf needs a recreate (brief blip) to take effect. A template
+# that fails `nginx -t` (rendered by the image's own entrypoint hooks, same
+# env/mounts as the service) is a deploy failure: it must not stay on disk
+# where the next restart would load it, so fail() -> rollback() restores it
+# and recreates nginx from the restored template.
+if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ]; then
+  NGINX_TOUCHED=1
+  compose run --rm --no-deps -T nginx nginx -t >/dev/null 2>&1 || fail "new nginx.conf fails 'nginx -t'"
+  compose up -d --no-deps --force-recreate nginx >/dev/null || fail "nginx recreate failed"
+  nginx_serving || fail "nginx not serving after recreate"
+  log "nginx recreated (nginx.conf changed)"
+fi
 docker image prune -f >/dev/null || true
 
 printf 'ts=%s\nsource=%s\nbackup=%s\n' "$TS" "$SOURCE_LABEL" "$BACKUP" > "$RELEASES_DIR/CURRENT"
