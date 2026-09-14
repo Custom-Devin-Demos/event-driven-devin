@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Run payroll | Rippling</title>
+  <style>
+    :root {
+      --yellow: #fdb71c;
+      --ink: #100f0d;
+      --muted: #6f6c67;
+      --line: #e7e4df;
+      --surface: #f7f6f3;
+      --white: #fff;
+      --success: #18794e;
+      --danger: #b42318;
+      --danger-bg: #fff1f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font-family: Basel, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; width: 244px; padding: 24px 16px;
+      background: var(--white); border-right: 1px solid var(--line); z-index: 2;
+    }
+    .wordmark { display: flex; align-items: center; gap: 9px; padding: 2px 13px 30px; font-size: 22px; font-weight: 700; letter-spacing: -1px; }
+    .wordmark-mark { width: 23px; height: 23px; display: inline-grid; place-items: center; border-radius: 7px; background: var(--yellow); color: var(--ink); font-weight: 800; font-size: 15px; }
+    .nav-section { margin: 8px 0 10px; padding: 0 13px; color: #aaa59e; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .nav { display: grid; gap: 4px; }
+    .nav a { display: flex; align-items: center; gap: 12px; padding: 11px 13px; border-radius: 8px; color: #55514d; text-decoration: none; }
+    .nav a:hover { background: #faf8f4; }
+    .nav a.active { background: #fff3cf; color: var(--ink); font-weight: 650; }
+    .nav svg { width: 17px; height: 17px; color: #77716a; }
+    .main { width: calc(100% - 244px); margin-left: 244px; }
+    .topbar {
+      height: 72px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 38px; background: var(--white); border-bottom: 1px solid var(--line);
+    }
+    .company { display: flex; align-items: center; gap: 12px; font-weight: 650; }
+    .company-logo, .avatar { display: grid; place-items: center; border-radius: 50%; font-weight: 700; }
+    .company-logo { width: 32px; height: 32px; border-radius: 9px; background: #132b36; color: #d9f4ec; font-size: 12px; }
+    .top-actions { display: flex; align-items: center; gap: 22px; color: #625e59; }
+    .top-actions svg { width: 19px; height: 19px; }
+    .avatar { width: 33px; height: 33px; background: #d5e2d7; color: #274932; font-size: 12px; }
+    .content { max-width: 1410px; margin: 0 auto; padding: 35px 42px 50px; }
+    .breadcrumb { color: #77716a; font-size: 13px; margin-bottom: 25px; }
+    .breadcrumb strong { color: var(--ink); font-weight: 600; }
+    .heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 28px; }
+    h1 { margin: 0 0 9px; font-size: 31px; line-height: 1.12; letter-spacing: -.8px; font-weight: 650; }
+    .subtitle { margin: 0; color: var(--muted); }
+    .run-state { display: flex; align-items: center; gap: 8px; color: #6c675f; font-size: 13px; }
+    .run-state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); }
+    .stepper { display: flex; align-items: center; margin-bottom: 28px; }
+    .step { display: flex; align-items: center; gap: 9px; color: #97918a; font-size: 13px; font-weight: 600; }
+    .step.current { color: var(--ink); }
+    .step-icon { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #bbb5ae; border-radius: 50%; font-size: 12px; }
+    .step.done .step-icon { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .step.current .step-icon { background: var(--yellow); border-color: var(--yellow); color: var(--ink); }
+    .step-line { width: 64px; height: 1px; margin: 0 14px; background: #ccc7c0; }
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 27px; }
+    .summary-card { min-height: 103px; padding: 18px 20px; background: var(--white); border: 1px solid var(--line); border-radius: 10px; }
+    .summary-card .label { color: #77716a; font-size: 12px; margin-bottom: 12px; }
+    .summary-card .value { font-size: 22px; font-weight: 650; letter-spacing: -.4px; }
+    .summary-card.pay-date .value { font-size: 16px; padding-top: 4px; }
+    .panel { background: var(--white); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 25px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { margin: 0; font-size: 17px; font-weight: 650; }
+    .panel-head span { color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 930px; }
+    th { padding: 13px 20px; background: #fcfbf9; color: #827c75; text-align: left; font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .06em; }
+    td { padding: 17px 20px; border-top: 1px solid var(--line); color: #423f3a; vertical-align: middle; }
+    td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+    .person { display: flex; align-items: center; gap: 11px; min-width: 210px; }
+    .person-avatar { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 9px; background: #e9e2d7; color: #655344; font-size: 11px; font-weight: 700; }
+    .person-name { color: var(--ink); font-weight: 620; }
+    .person-title { margin-top: 3px; color: #8c867f; font-size: 12px; }
+    .state-pill { display: inline-flex; padding: 5px 8px; border-radius: 5px; background: #f2f0ec; color: #5d5954; font-size: 12px; font-weight: 650; }
+    .new-hire { display: inline-flex; margin-left: 7px; padding: 4px 7px; border-radius: 4px; background: #fff0c6; color: #875c00; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+    .remove-cell { white-space: nowrap; color: #77716a; font-size: 12px; }
+    .remove-cell input { width: 15px; height: 15px; margin: 0 7px 0 0; accent-color: var(--ink); vertical-align: -3px; }
+    .action-area { margin-top: 24px; }
+    .result { display: none; margin-bottom: 15px; padding: 17px 20px; border-radius: 9px; }
+    .result.show { display: block; }
+    .result.error { background: var(--danger-bg); border: 1px solid #f2b8b5; color: var(--danger); }
+    .result.success { background: #effaf3; border: 1px solid #aad8bc; color: var(--success); }
+    .result-title { margin-bottom: 6px; font-size: 15px; font-weight: 700; }
+    .result-tech { color: #76201b; font-family: "SF Mono", Menlo, monospace; font-size: 12px; white-space: pre-wrap; }
+    .result.success .result-tech { color: #17643f; }
+    .action-bar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; background: var(--white); border: 1px solid var(--line); border-radius: 10px; }
+    .action-note { color: var(--muted); font-size: 12px; }
+    .submit { min-width: 172px; padding: 13px 22px; border: 0; border-radius: 7px; background: var(--yellow); color: var(--ink); font-weight: 700; }
+    .submit:hover { background: #f8c83c; }
+    .submit:disabled { opacity: .6; cursor: wait; }
+    @media (max-width: 1060px) {
+      .sidebar { width: 205px; }
+      .main { width: calc(100% - 205px); margin-left: 205px; }
+      .summary { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 720px) {
+      .sidebar { position: static; width: 64px; padding: 20px 8px; }
+      .wordmark { padding: 2px 12px 30px; }
+      .wordmark span, .nav-section, .nav a span { display: none; }
+      .nav a { justify-content: center; padding: 12px 6px; }
+      .main { width: calc(100% - 64px); margin-left: 0; }
+      .topbar { padding: 0 18px; }
+      .content { padding: 25px 17px 35px; }
+      .summary { grid-template-columns: repeat(2, 1fr); }
+      .heading { display: block; }
+      .run-state { margin-top: 15px; }
+      .step-line { width: 18px; margin: 0 7px; }
+      .action-bar { align-items: stretch; flex-direction: column; }
+      .submit { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="wordmark"><span class="wordmark-mark">R</span><span>rippling</span></div>
+      <div class="nav-section">Workspace</div>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 12 8-7 8 7"/><path d="M6 10v9h12v-9M10 19v-5h4v5"/></svg><span>Home</span></a>
+        <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h5"/></svg><span>Payroll</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0 0-6M16 14.5a5.4 5.4 0 0 1 4.5 5.5"/></svg><span>People</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span>Time &amp; Attendance</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16v11H4zM8 8V5h8v3M8 13h8"/></svg><span>Benefits</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M9 6h6M9 18h6"/></svg><span>Devices</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="8"/></svg><span>Apps</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-6"/></svg><span>Reports</span></a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div class="company"><span class="company-logo">NR</span><span>Northwind Robotics</span></div>
+        <div class="top-actions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+          <span class="avatar">JE</span>
+        </div>
+      </header>
+      <section class="content">
+        <div class="breadcrumb">Payroll <span>›</span> Run payroll <span>›</span> <strong>PR-2026-09-15</strong></div>
+        <div class="heading">
+          <div><h1>Review &amp; submit</h1><p class="subtitle">Check your pay run details before submitting payroll.</p></div>
+          <div class="run-state"><span class="dot"></span> Ready to submit</div>
+        </div>
+        <div class="stepper" aria-label="Payroll steps">
+          <div class="step done"><span class="step-icon">✓</span><span>Hours &amp; earnings</span></div>
+          <span class="step-line"></span>
+          <div class="step done"><span class="step-icon">✓</span><span>Review</span></div>
+          <span class="step-line"></span>
+          <div class="step current"><span class="step-icon">3</span><span>Submit</span></div>
+        </div>
+        <div class="summary">
+          <div class="summary-card"><div class="label">Total gross</div><div class="value" id="total-gross">$42,800.00</div></div>
+          <div class="summary-card"><div class="label">Total employee taxes</div><div class="value">$2,173.10</div></div>
+          <div class="summary-card"><div class="label">Employer taxes</div><div class="value">$3,418.00</div></div>
+          <div class="summary-card"><div class="label">Net pay</div><div class="value" id="total-net">$40,626.90</div></div>
+          <div class="summary-card pay-date"><div class="label">Pay date</div><div class="value">Sep 19, 2026</div></div>
+        </div>
+        <section class="panel">
+          <div class="panel-head"><h2>Employees (6)</h2><span>Sep 1 – Sep 15, 2026 · Semi-monthly</span></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name / title</th><th>Department</th><th>Work state</th><th>Pay type</th><th>Hours</th><th style="text-align:right">Gross pay</th><th>Include</th></tr></thead>
+              <tbody id="employee-rows"></tbody>
+            </table>
+          </div>
+        </section>
+        <div class="action-area">
+          <div id="result" class="result" role="alert"><div id="result-title" class="result-title"></div><div id="result-tech" class="result-tech"></div></div>
+          <div class="action-bar">
+            <div class="action-note">By submitting, you confirm this pay run is accurate and ready for processing.</div>
+            <button class="submit" id="submit-payroll">Submit payroll</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const fallbackEmployees = [
+      { id: 'EMP-1001', name: 'Ava Chen', title: 'Senior Product Manager', department: 'Product', workState: 'CA', payType: 'salary', grossPay: 8500, newHire: false },
+      { id: 'EMP-1002', name: 'Marcus Rivera', title: 'Payroll Specialist', department: 'People Operations', workState: 'NY', payType: 'salary', grossPay: 6200, newHire: false },
+      { id: 'EMP-1003', name: 'Jordan Brooks', title: 'Warehouse Lead', department: 'Operations', workState: 'TX', payType: 'hourly', grossPay: 4100, hoursWorked: 80, newHire: false },
+      { id: 'EMP-1004', name: 'Elena Petrov', title: 'Customer Success Manager', department: 'Customer Success', workState: 'WA', payType: 'salary', grossPay: 7000, newHire: false },
+      { id: 'EMP-1005', name: 'Samuel Ortiz', title: 'Sales Director', department: 'Sales', workState: 'CA', payType: 'salary', grossPay: 9200, newHire: false },
+      { id: 'EMP-1006', name: 'Priya Natarajan', title: 'Staff Software Engineer', department: 'Engineering', workState: 'CO', payType: 'salary', grossPay: 7800, newHire: true },
+    ];
+    const result = document.getElementById('result');
+    const resultTitle = document.getElementById('result-title');
+    const resultTech = document.getElementById('result-tech');
+    const submitButton = document.getElementById('submit-payroll');
+    let employees = fallbackEmployees;
+    const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
+    const money = (value) => '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    function renderEmployees() {
+      document.getElementById('employee-rows').innerHTML = employees.map((employee) => `
+        <tr>
+          <td><div class="person"><span class="person-avatar">${initials(employee.name)}</span><div><div class="person-name">${employee.name}${employee.newHire ? '<span class="new-hire">New hire</span>' : ''}</div><div class="person-title">${employee.title}</div></div></div></td>
+          <td>${employee.department}</td>
+          <td><span class="state-pill">${employee.workState}</span></td>
+          <td>${employee.payType === 'hourly' ? 'Hourly' : 'Salary'}</td>
+          <td>${employee.hoursWorked || '—'}</td>
+          <td class="numeric">${money(employee.grossPay)}</td>
+          <td class="remove-cell"><label><input type="checkbox" data-employee-id="${employee.id}" checked> Include</label></td>
+        </tr>`).join('');
+    }
+    function showResult(kind, title, tech) {
+      result.className = 'result show ' + kind;
+      resultTitle.textContent = title;
+      resultTech.textContent = tech;
+      result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    async function submitPayroll() {
+      const checkedIds = [...document.querySelectorAll('[data-employee-id]:checked')].map((input) => input.dataset.employeeId);
+      submitButton.disabled = true;
+      result.className = 'result';
+      try {
+        const response = await fetch('/api/a7fb8819/submit-pay-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            payRunId: 'PR-2026-09-15',
+            employeeIds: checkedIds,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          showResult('error', "We couldn't submit this pay run.", (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'PAY_RUN_SUBMISSION_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
+        } else {
+          showResult('success', 'Payroll submitted successfully.', 'Confirmation: ' + payload.confirmation + '\nPay date: ' + payload.payDate);
+        }
+      } catch (error) {
+        showResult('error', "We couldn't submit this pay run.", 'NetworkError: ' + error.message + '\nPAY_RUN_SUBMISSION_FAILED · Reference ID: unavailable');
+      } finally {
+        submitButton.disabled = false;
+      }
+    }
+    submitButton.addEventListener('click', submitPayroll);
+    renderEmployees();
+    fetch('/api/a7fb8819/pay-run').then((response) => response.json()).then((payload) => { if (payload.employees) { employees = payload.employees; renderEmployees(); } }).catch(() => {});
+  </script>
+</body>
+</html>
