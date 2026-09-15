@@ -1579,6 +1579,22 @@ const ONCALL_SKINS = {
     supportCenter: 'PostNL Klantenservice',
     disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
   },
+  '3640b94c': {
+    slug: '3640b94c',
+    company: 'IRAS',
+    brandMark: 'I',
+    vertical: 'banking',
+    page: { file: '3640b94c.html', title: 'Pay Taxes | myTax Portal – IRAS' },
+    theme: {
+      '--accent': '#2770A0',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#003F7A',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'IRAS Contact Centre',
+    disclaimer: 'NOT ACTUALLY AN IRAS SITE — internal demo only, not affiliated with, endorsed by, or a real IRAS / Government of Singapore product.',
+  },
 };
 
 function getOncallSkin(slug) {
