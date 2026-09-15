@@ -11,7 +11,7 @@ const logger = require('../../telemetry/logger');
 const datadog = require('../../telemetry/datadog');
 const { render, STATE_WORDS, formatTimestamp, DEFAULT_TIMEZONE } = require('./templates');
 const { gateway } = require('./delivery');
-const { optedInContacts } = require('./preferences');
+const { optedInContacts, getPreferences } = require('./preferences');
 
 const PORTAL_URL = '/lumen';
 const PREFS_URL = '/lumen#notifications';
@@ -147,9 +147,15 @@ function historyLines(incident, { newestFirst = false, limit, timeZone = DEFAULT
     .join('\n');
 }
 
-function addHistory(incident, at, text, { state, backfilled } = {}) {
+function addHistory(incident, at, text, { state, backfilled, late } = {}) {
   const suffix = backfilled ? ' (backfilled)' : '';
-  incident.history.push({ at, state: state || null, text: `${text}${suffix}`, backfilled: Boolean(backfilled) });
+  incident.history.push({
+    at,
+    state: state || null,
+    text: `${text}${suffix}`,
+    backfilled: Boolean(backfilled),
+    late: Boolean(late),
+  });
 }
 
 function baseVars(incident, circuit, account, timeZone = DEFAULT_TIMEZONE) {
@@ -258,8 +264,9 @@ function createIncident(event) {
     transitions: [],
     intermittent: false,
     everNotified: false,
-    pendingEtaUpdate: false,
+    pendingEta: new Map(),
     lastEtaNotifiedAt: new Map(),
+    lastEventAt: new Date(event.timestamp).getTime(),
     closed: event.state === 'restored',
   };
   addHistory(incident, event.timestamp, `Incident opened ${event.timestamp}`, { state: incident.state });
@@ -283,11 +290,55 @@ function recordTransition(incident, event) {
 }
 
 /**
+ * Send a single E4 ETA update to one contact. De-dup variant is the ETA value
+ * itself, so a re-sent identical estimate still de-dups but a new value sends.
+ */
+function sendEtaUpdate(incident, circuit, contact, { eta, previousEta, now, eventAt }) {
+  const key = dedupKey(incident.incidentId, contact.id, 'email', 'eta_update', `${eta}`);
+  if (dedupKeys.has(key)) return 0;
+  dedupKeys.add(key);
+  incident.lastEtaNotifiedAt.set(contact.id, now);
+  incident.pendingEta.delete(contact.id);
+  const tz = contactTz(contact);
+  const vars = {
+    ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+    eta: formatTimestamp(eta, tz),
+    eta_updated_at: formatTimestamp(incident.etaUpdatedAt, tz),
+    previous_eta: previousEta ? formatTimestamp(previousEta, tz) : 'none',
+    update_history: historyLines(incident, { newestFirst: true, limit: 3, timeZone: tz }),
+  };
+  const message = render('E4', vars);
+  const result = gateway.enqueue({
+    channel: 'email',
+    recipient: contact.email,
+    contactId: contact.id,
+    incidentId: incident.incidentId,
+    type: 'eta_update',
+    message,
+  });
+  if (!notificationLog.has(incident.incidentId)) notificationLog.set(incident.incidentId, []);
+  notificationLog.get(incident.incidentId).push({
+    incidentId: incident.incidentId,
+    contactId: contact.id,
+    channel: 'email',
+    type: 'eta_update',
+    state: result.state,
+    reason: result.reason || null,
+    sentAt: result.queuedAt,
+  });
+  incident.everNotified = true;
+  datadog.incrementMetric('outage.notifications.queued', { channel: 'email', type: 'eta_update' });
+  datadog.recordTiming('outage.time_to_notify_ms', Math.max(0, now - eventAt), { type: 'eta_update' });
+  return 1;
+}
+
+/**
  * ETA rules (AC-5): an eta field on the event is compared with the incident's
  * current ETA. A change writes a history entry and triggers at most one E4 per
- * contact per incident per 30-minute window; a later change inside the window
- * is held (pendingEtaUpdate) and cancelled by a restored event. eta: null after
- * a known ETA is a withdrawal with its own history entry.
+ * contact per incident per rolling 30-minute window; a later change inside the
+ * window is held in incident.pendingEta (coalesced to the latest value) and
+ * cancelled by a restored event. eta: null after a known ETA is a withdrawal
+ * with its own history entry.
  */
 function applyEta(incident, circuit, event, { now, backfilled, suppressed }) {
   if (!Object.hasOwn(event, 'eta')) return 0;
@@ -309,53 +360,96 @@ function applyEta(incident, circuit, event, { now, backfilled, suppressed }) {
   if (backfilled || incident.closed || incident.intermittent) return 0;
 
   const contacts = optedInContacts(incident.accountId, 'email');
-  const bucket = Math.floor(now / ETA_WINDOW_MS);
   for (const contact of contacts) {
     const last = incident.lastEtaNotifiedAt.get(contact.id);
     if (last !== undefined && now - last < ETA_WINDOW_MS) {
-      incident.pendingEtaUpdate = true;
+      incident.pendingEta.set(contact.id, { eta: next, previousEta: previous, updatedAt: event.timestamp });
       suppressed.push({ contactId: contact.id, channel: 'email', type: 'eta_update', reason: 'eta-window' });
       datadog.incrementMetric('outage.notifications.suppressed', { reason: 'eta-window', channel: 'email' });
       continue;
     }
-    incident.lastEtaNotifiedAt.set(contact.id, now);
-    incident.pendingEtaUpdate = false;
-    const key = dedupKey(incident.incidentId, contact.id, 'email', 'eta_update', `${bucket}:${next}`);
-    if (dedupKeys.has(key)) continue;
-    dedupKeys.add(key);
-    const tz = contactTz(contact);
-    const vars = {
-      ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
-      eta: formatTimestamp(next, tz),
-      eta_updated_at: formatTimestamp(incident.etaUpdatedAt, tz),
-      previous_eta: previous ? formatTimestamp(previous, tz) : 'none',
-      update_history: historyLines(incident, { newestFirst: true, limit: 3, timeZone: tz }),
-    };
-    const message = render('E4', vars);
-    const result = gateway.enqueue({
-      channel: 'email',
-      recipient: contact.email,
-      contactId: contact.id,
-      incidentId: incident.incidentId,
-      type: 'eta_update',
-      message,
+    queued += sendEtaUpdate(incident, circuit, contact, {
+      eta: next,
+      previousEta: previous,
+      now,
+      eventAt: new Date(event.timestamp).getTime(),
     });
-    if (!notificationLog.has(incident.incidentId)) notificationLog.set(incident.incidentId, []);
-    notificationLog.get(incident.incidentId).push({
-      incidentId: incident.incidentId,
-      contactId: contact.id,
-      channel: 'email',
-      type: 'eta_update',
-      state: result.state,
-      reason: result.reason || null,
-      sentAt: result.queuedAt,
-    });
-    queued += 1;
-    incident.everNotified = true;
-    datadog.incrementMetric('outage.notifications.queued', { channel: 'email', type: 'eta_update' });
-    datadog.recordTiming('outage.time_to_notify_ms', Math.max(0, now - new Date(event.timestamp).getTime()), { type: 'eta_update' });
   }
   return queued;
+}
+
+function findContact(accountId, contactId) {
+  const prefs = getPreferences(accountId);
+  return prefs ? prefs.contacts.find((c) => c.id === contactId) || null : null;
+}
+
+/**
+ * Leave intermittent mode once the circuit has been stable for the flap
+ * window. A stable restore closes the incident with a single E5; a stable
+ * down simply resumes normal alerting (D4).
+ */
+function settleIntermittent(incident, circuit, now, suppressed = []) {
+  const last = incident.transitions[incident.transitions.length - 1];
+  incident.intermittent = false;
+  const at = new Date(now).toISOString();
+  if (last && last.state === 'restored') {
+    incident.state = 'restored';
+    incident.reportedState = 'restored';
+    incident.closed = true;
+    incident.restoredAt = last.at;
+    addHistory(incident, at, 'Circuit stable for 15 minutes; incident resolved', { state: 'restored' });
+    return notify(incident, circuit, 'E5', 'restored', (_contact, tz) => ({
+      ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+      restored_at: formatTimestamp(last.at, tz),
+      duration: fmtDuration(incident.startedAt, last.at),
+    }), {
+      now,
+      eventAt: new Date(last.at).getTime(),
+      variant: 'intermittent-exit',
+      suppressed,
+    });
+  }
+  incident.state = incident.reportedState;
+  addHistory(incident, at, 'Circuit stable for 15 minutes; resuming normal alerts');
+  return 0;
+}
+
+/** True while the last flap transition is still inside the window. */
+function isFlapping(incident, now) {
+  const last = incident.transitions[incident.transitions.length - 1];
+  return !last || now - new Date(last.at).getTime() <= FLAP_WINDOW_MS;
+}
+
+/**
+ * Periodic housekeeping: flush held ETA updates whose rolling 30-minute
+ * window has expired, and settle intermittent incidents that have been stable
+ * for the flap window. Called at the top of applyEvent, from the portal GET
+ * handler, and on a one-minute interval in the route module.
+ */
+function sweep(now = Date.now()) {
+  ensure();
+  for (const incident of incidents.values()) {
+    const circuit = resolveCircuit(incident.circuitId);
+    if (!circuit) continue;
+    for (const [contactId, pending] of [...incident.pendingEta.entries()]) {
+      const last = incident.lastEtaNotifiedAt.get(contactId);
+      if (last !== undefined && now - last < ETA_WINDOW_MS) continue;
+      const contact = findContact(incident.accountId, contactId);
+      if (!contact || contact.channels.email !== true) {
+        incident.pendingEta.delete(contactId);
+        continue;
+      }
+      sendEtaUpdate(incident, circuit, contact, {
+        eta: pending.eta,
+        previousEta: pending.previousEta,
+        now,
+        eventAt: new Date(pending.updatedAt).getTime(),
+      });
+    }
+    if (incident.intermittent && !isFlapping(incident, now)) {
+      settleIntermittent(incident, circuit, now);
+    }
+  }
 }
 
 function enterIntermittent(incident, circuit, event, { now, suppressed }) {
@@ -380,6 +474,7 @@ function enterIntermittent(incident, circuit, event, { now, suppressed }) {
  */
 function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
   ensure();
+  sweep(now);
   const suppressed = [];
   const circuit = resolveCircuit(event.circuitId);
   const eventAt = new Date(event.timestamp).getTime();
@@ -399,13 +494,32 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
   const isNew = !incident;
   if (!incident) incident = createIncident(event);
 
+  // Out-of-order delivery: record it, optionally apply a newer ETA, but never
+  // mutate incident state for a stale event.
+  if (!isNew && !backfilled && eventAt < incident.lastEventAt) {
+    addHistory(
+      incident,
+      event.timestamp,
+      `Late event: reported ${event.state} at ${event.timestamp} (received out of order)`,
+      { state: event.state, late: true },
+    );
+    if (!incident.etaUpdatedAt || event.timestamp > incident.etaUpdatedAt) {
+      applyEta(incident, circuit, event, { now, backfilled: true, suppressed });
+    }
+    return {
+      outcome: 'out-of-order',
+      incidentId: incident.incidentId,
+      notificationsQueued: 0,
+      suppressed,
+    };
+  }
+  incident.lastEventAt = Math.max(incident.lastEventAt, eventAt);
+
   let queued = 0;
 
   // Flapping: resume normal rules after 15 minutes of stable state (D4).
-  if (incident.intermittent && eventAt - new Date(incident.transitions[incident.transitions.length - 1].at).getTime() > FLAP_WINDOW_MS) {
-    incident.intermittent = false;
-    incident.state = incident.reportedState;
-    addHistory(incident, event.timestamp, 'Circuit stable for 15 minutes; resuming normal alerts');
+  if (incident.intermittent && !isFlapping(incident, eventAt)) {
+    queued += settleIntermittent(incident, circuit, now, suppressed);
   }
 
   // Record the transition before state handling so flap counting sees it.
@@ -471,12 +585,25 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
   }
 
   if (incident.closed && event.state !== 'restored') {
-    // Re-report on a closed incident (same id): keep the portal truthful.
+    // Reopened outage on the same incident id: re-alert with a reopen variant
+    // so the type-level de-dup does not swallow it.
     incident.closed = false;
     incident.state = event.state;
     incident.reportedState = event.state;
     incident.restoredAt = null;
-    addHistory(incident, event.timestamp, `Circuit reported ${event.state} again after restore`, { state: event.state, backfilled });
+    addHistory(incident, event.timestamp, `Incident reopened: reported ${event.state}`, { state: event.state, backfilled });
+    if (!backfilled) {
+      const type = event.state === 'down' ? 'down' : 'degraded';
+      const templateId = event.state === 'down' ? 'E1' : 'E2';
+      queued += notify(incident, circuit, templateId, type,
+        (_contact, tz) => baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+        {
+          now,
+          eventAt,
+          variant: `reopen:${incident.history.length}`,
+          suppressed,
+        });
+    }
     queued += applyEta(incident, circuit, event, { now, backfilled, suppressed });
     return {
       outcome: backfilled ? 'backfilled' : 'processed',
@@ -493,7 +620,7 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
     incident.state = 'restored';
     incident.restoredAt = event.timestamp;
     incident.closed = true;
-    incident.pendingEtaUpdate = false; // restored cancels any pending ETA update (AC-5)
+    incident.pendingEta.clear(); // restored cancels any pending ETA update (AC-5)
     addHistory(incident, event.timestamp, `Restored at ${event.timestamp}`, { state: 'restored', backfilled });
     if (!backfilled) {
       queued += notify(incident, circuit, 'E5', 'restored', (_contact, tz) => ({
@@ -591,4 +718,5 @@ module.exports = {
   applyEvent,
   resetStore,
   formatCopyText,
+  sweep,
 };

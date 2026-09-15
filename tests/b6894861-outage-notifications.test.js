@@ -29,6 +29,7 @@ const {
   resetProcessedEvents,
   gateway,
   formatTimestamp,
+  sweep,
 } = service;
 
 const CIRCUIT = 'ckt-nwl-001';
@@ -415,6 +416,82 @@ describe('integration', () => {
     expect(after.body.banner).toBeNull();
     expect(after.body.openCount).toBe(0);
     expect(after.body.circuits.every((c) => c.state === 'healthy')).toBe(true);
+  });
+});
+
+describe('Review fixes', () => {
+  test('AC-5 held ETA update flushes via sweep once the rolling window expires', () => {
+    const t0 = Date.now();
+    const inc = 'inc-eta-flush';
+    const etaA = new Date(t0 + 3600e3).toISOString();
+    const etaB = new Date(t0 + 2 * 3600e3).toISOString();
+    processEvent(event({ incidentId: inc }), { now: t0 });
+    processEvent(event({ incidentId: inc, eta: etaA }, t0 + 60000), { now: t0 + 60000 });
+    expect(gateway.queue.filter((q) => q.type === 'eta_update')).toHaveLength(1);
+    processEvent(event({ incidentId: inc, eta: etaB }, t0 + 5 * 60000), { now: t0 + 5 * 60000 });
+    // Held inside the rolling 30-minute window — still only the first E4.
+    expect(gateway.queue.filter((q) => q.type === 'eta_update')).toHaveLength(1);
+    sweep(t0 + 31 * 60000);
+    const etaMails = gateway.queue.filter((q) => q.type === 'eta_update');
+    expect(etaMails).toHaveLength(2);
+    expect(etaMails[1].message.text).toContain(`New estimate: ${formatTimestamp(etaB)}`);
+    expect(etaMails[1].message.text).toContain(`Previous estimate: ${formatTimestamp(etaA)}`);
+    sweep(t0 + 32 * 60000);
+    expect(gateway.queue.filter((q) => q.type === 'eta_update')).toHaveLength(2);
+  });
+
+  test('AC-3 out-of-order event records a late history entry without reopening', () => {
+    const t0 = Date.now();
+    const inc = 'inc-late';
+    processEvent(event({ incidentId: inc }), { now: t0 });
+    processEvent(event({ incidentId: inc, state: 'restored' }, t0 + 10 * 60000), { now: t0 + 10 * 60000 });
+    const queuedBefore = gateway.queue.filter((q) => q.state === 'queued').length;
+    const result = processEvent(
+      event({ incidentId: inc, state: 'down' }, t0 + 5 * 60000),
+      { now: t0 + 10 * 60000 },
+    );
+    expect(result.outcome).toBe('out-of-order');
+    expect(result.notificationsQueued).toBe(0);
+    expect(gateway.queue.filter((q) => q.state === 'queued')).toHaveLength(queuedBefore);
+    const incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc);
+    expect(incident.closed).toBe(true);
+    expect(incident.state).toBe('restored');
+    expect(incident.history.some((h) => h.late && h.text.startsWith('Late event: reported down'))).toBe(true);
+  });
+
+  test('AC-3 reopened outage on the same incident re-alerts', () => {
+    const t0 = Date.now();
+    const inc = 'inc-reopen';
+    processEvent(event({ incidentId: inc }), { now: t0 });
+    processEvent(event({ incidentId: inc, state: 'restored' }, t0 + 10 * 60000), { now: t0 + 10 * 60000 });
+    processEvent(event({ incidentId: inc, state: 'down' }, t0 + 20 * 60000), { now: t0 + 20 * 60000 });
+    const downs = gateway.queue.filter((q) => q.type === 'down' && q.contactId === OPTED_IN);
+    expect(downs).toHaveLength(2);
+    const incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc);
+    expect(incident.closed).toBe(false);
+    expect(incident.state).toBe('down');
+    expect(incident.history.some((h) => h.text === 'Incident reopened: reported down')).toBe(true);
+  });
+
+  test('AC-4 intermittent incident resolves via sweep after a stable restore', () => {
+    const t0 = Date.now();
+    const inc = 'inc-flap-settle';
+    ['down', 'restored', 'down', 'restored'].forEach((s, i) => {
+      processEvent(event({ incidentId: inc, state: s }, t0 + i * 60000), { now: t0 + i * 60000 });
+    });
+    let incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc);
+    expect(incident.intermittent).toBe(true);
+    expect(gateway.queue.filter((q) => q.type === 'intermittent')).toHaveLength(1);
+    sweep(t0 + 20 * 60000);
+    incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc);
+    expect(incident.intermittent).toBe(false);
+    expect(incident.closed).toBe(true);
+    expect(incident.state).toBe('restored');
+    expect(incident.history.some((h) => h.text === 'Circuit stable for 15 minutes; incident resolved')).toBe(true);
+    const restoredMails = gateway.queue.filter((q) => q.type === 'restored');
+    expect(restoredMails.length).toBeGreaterThanOrEqual(1);
+    sweep(t0 + 21 * 60000);
+    expect(gateway.queue.filter((q) => q.type === 'restored')).toHaveLength(restoredMails.length);
   });
 });
 

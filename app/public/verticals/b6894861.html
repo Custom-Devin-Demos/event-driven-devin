@@ -191,8 +191,9 @@
   'use strict';
   var SUPPORT_PHONE = '1-877-453-8353';
   var API = '/api/b6894861';
-  var state = { accountId: null, data: null, drawerIncident: null, newestFirst: false, lastFocused: null };
+  var state = { accountId: null, data: null, contacts: {}, drawerIncident: null, newestFirst: false, lastFocused: null };
   var dismissed = {}; // session-scoped per incident
+  var refreshSeq = 0; // stale-response guard for account switching
 
   var STATE_META = {
     down: { word: 'Down', glyph: '⯃', cls: 'down' },
@@ -244,9 +245,11 @@
   /* ---------- main data ---------- */
   function refresh() {
     if (!state.accountId) return Promise.resolve();
+    var seq = ++refreshSeq;
     $('circuitsSection').setAttribute('aria-busy', 'true');
     return fetchJSON(API + '/accounts/' + encodeURIComponent(state.accountId) + '/circuit-incidents')
       .then(function (r) {
+        if (seq !== refreshSeq) return; // a newer refresh superseded this one
         $('circuitsSection').setAttribute('aria-busy', 'false');
         if (r.status !== 200) {
           $('circuitError').hidden = false;
@@ -266,6 +269,12 @@
     renderBanner(d);
     renderCircuits(d);
     loadPrefs();
+  }
+
+  function contactLabel(n) {
+    var c = state.contacts[n.contactId];
+    if (!c) return n.contactId;
+    return n.channel === 'email' ? c.name + ' — ' + c.email : c.name;
   }
 
   function renderBanner(d) {
@@ -394,6 +403,7 @@
 
   /* ---------- notifications sent ---------- */
   function loadSent(incident) {
+    closeDrawer();
     fetchJSON(API + '/accounts/' + state.accountId + '/incidents/' + incident.incidentId + '/notifications')
       .then(function (r) {
         var wrap = $('sentWrap');
@@ -401,7 +411,7 @@
         $('sentTitle').textContent = 'Incident ' + incident.incidentId;
         var tb = $('sentTable').querySelector('tbody');
         tb.innerHTML = (r.body.notifications || []).map(function (n) {
-          return '<tr><td>' + esc(n.sentAt) + '</td><td>' + esc(n.channel) + '</td><td>' + esc(n.contactId) + '</td>' +
+          return '<tr><td>' + esc(n.sentAt) + '</td><td>' + esc(n.channel) + '</td><td>' + esc(contactLabel(n)) + '</td>' +
             '<td>' + esc(n.type) + '</td><td>' + esc(n.state) + (n.reason ? ' (' + esc(n.reason) + ')' : '') + '</td></tr>';
         }).join('') || '<tr><td colspan="5">No notifications recorded.</td></tr>';
         wrap.scrollIntoView();
@@ -412,6 +422,8 @@
   function loadPrefs() {
     fetchJSON(API + '/accounts/' + state.accountId + '/preferences').then(function (r) {
       if (r.status !== 200) return;
+      state.contacts = {};
+      r.body.contacts.forEach(function (c) { state.contacts[c.id] = c; });
       var tb = $('prefsTable').querySelector('tbody');
       tb.innerHTML = '';
       var anyOn = false;
@@ -445,6 +457,7 @@
             if (resp.ok) {
               note.hidden = false;
               setTimeout(function () { note.hidden = true; }, 4000);
+              loadPrefs(); // refresh the Last changed column immediately
             } else {
               input.checked = !input.checked;
             }
@@ -519,6 +532,8 @@
   $('accountSelect').addEventListener('change', function () {
     state.accountId = this.value;
     state.simIncident = null;
+    $('sentWrap').hidden = true; // don't leak the previous account's table
+    $('sentTable').querySelector('tbody').innerHTML = '';
     refresh();
   });
 

@@ -23,6 +23,7 @@ const {
   resetQueue,
   resetPreferences,
   resetProcessedEvents,
+  sweep,
 } = require('../../services/outage-notifications');
 
 const router = express.Router();
@@ -148,6 +149,7 @@ function circuitIncidentsHandler(req, res) {
   if (!ACCOUNTS[accountId]) {
     return res.status(404).json({ error: 'Unknown account' });
   }
+  sweep();
   return res.json(circuitIncidentsPayload(accountId));
 }
 
@@ -226,5 +228,11 @@ router.post('/api/b6894861/demo/reset', (_req, res) => {
   datadog.incrementMetric('outage.events.processed', { outcome: 'demo-reset' });
   res.json({ ok: true });
 });
+
+// Housekeeping: flush held ETA updates and settle intermittent circuits even
+// when no events or portal polls arrive. Unref'd so it never holds the process.
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(() => sweep(), 60_000).unref();
+}
 
 module.exports = router;
