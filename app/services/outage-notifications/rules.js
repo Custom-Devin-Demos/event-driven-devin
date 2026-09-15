@@ -280,6 +280,8 @@ function createIncident(event) {
     pendingEta: new Map(),
     lastEtaNotifiedAt: new Map(),
     lastEventAt: new Date(event.timestamp).getTime(),
+    segment: 0,
+    segmentStartedAt: event.timestamp,
     closed: event.state === 'restored',
   };
   addHistory(incident, event.timestamp, `Incident opened ${event.timestamp}`, { state: incident.state });
@@ -303,11 +305,12 @@ function recordTransition(incident, event) {
 }
 
 /**
- * Send a single E4 ETA update to one contact. De-dup variant is the ETA value
- * itself, so a re-sent identical estimate still de-dups but a new value sends.
+ * Send a single E4 ETA update to one contact. De-dup variant is the incident
+ * segment plus the ETA value, so a re-sent identical estimate still de-dups
+ * but a new value (or the same value after a reopen) sends.
  */
 function sendEtaUpdate(incident, circuit, contact, { eta, previousEta, now, eventAt }) {
-  const key = dedupKey(incident.incidentId, contact.id, 'email', 'eta_update', `${eta}`);
+  const key = dedupKey(incident.incidentId, contact.id, 'email', 'eta_update', `${incident.segment}:${eta}`);
   if (dedupKeys.has(key)) return 0;
   dedupKeys.add(key);
   incident.lastEtaNotifiedAt.set(contact.id, now);
@@ -517,7 +520,8 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
       `Late event: reported ${event.state} at ${event.timestamp} (received out of order)`,
       { state: event.state, late: true },
     );
-    if (!incident.etaUpdatedAt || event.timestamp > incident.etaUpdatedAt) {
+    if (event.timestamp >= incident.segmentStartedAt
+      && (!incident.etaUpdatedAt || event.timestamp > incident.etaUpdatedAt)) {
       applyEta(incident, circuit, event, { now, backfilled: true, suppressed });
     }
     return {
@@ -614,6 +618,8 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
     incident.state = event.state;
     incident.reportedState = event.state;
     incident.restoredAt = null;
+    incident.segment += 1;
+    incident.segmentStartedAt = event.timestamp;
     incident.eta = event.eta || null;
     incident.etaUpdatedAt = event.eta ? event.timestamp : null;
     incident.pendingEta.clear();

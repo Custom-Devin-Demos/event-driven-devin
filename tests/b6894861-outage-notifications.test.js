@@ -528,6 +528,42 @@ describe('Review fixes', () => {
     expect(reopen2.message.text).toContain('ETA not yet available');
   });
 
+  test('AC-5 ETA de-dup is scoped to the reopen segment', () => {
+    const t0 = Date.now();
+    const inc = 'inc-segment-eta';
+    const etaX = new Date(t0 + 3600e3).toISOString();
+    const etaY = new Date(t0 + 2 * 3600e3).toISOString();
+    processEvent(event({ incidentId: inc }), { now: t0 });
+    processEvent(event({ incidentId: inc, eta: etaX }, t0 + 60000), { now: t0 + 60000 });
+    expect(gateway.queue.filter((q) => q.type === 'eta_update')).toHaveLength(1);
+    processEvent(event({ incidentId: inc, state: 'restored' }, t0 + 10 * 60000), { now: t0 + 10 * 60000 });
+    processEvent(event({ incidentId: inc, state: 'down', eta: etaY }, t0 + 20 * 60000), { now: t0 + 20 * 60000 });
+    // Reopening cleared the 30-min window, so the same ETA value sends again
+    // in the new segment.
+    processEvent(event({ incidentId: inc, eta: etaX }, t0 + 25 * 60000), { now: t0 + 25 * 60000 });
+    const etaUpdates = getNotificationLog(inc).filter((n) => n.type === 'eta_update');
+    expect(etaUpdates).toHaveLength(2);
+    const second = gateway.queue.filter((q) => q.type === 'eta_update')[1];
+    expect(second.message.text).toContain(`New estimate: ${formatTimestamp(etaX)}`);
+  });
+
+  test('AC-3 a late event from a previous segment cannot move the ETA', () => {
+    const t0 = Date.now();
+    const inc = 'inc-segment-late';
+    const t1 = t0 + 10 * 60000;
+    const t2 = t0 + 20 * 60000;
+    processEvent(event({ incidentId: inc }), { now: t0 });
+    processEvent(event({ incidentId: inc, state: 'restored' }, t1), { now: t1 });
+    processEvent(event({ incidentId: inc, state: 'down' }, t2), { now: t2 });
+    expect(getIncident(inc).eta).toBeNull();
+    const result = processEvent(
+      event({ incidentId: inc, state: 'degraded', eta: new Date(t0 + 3 * 3600e3).toISOString() }, t0 + 5 * 60000),
+      { now: t2 },
+    );
+    expect(result.outcome).toBe('out-of-order');
+    expect(getIncident(inc).eta).toBeNull();
+  });
+
   test('AC-4 intermittent incident resolves via sweep after a stable restore', () => {
     const t0 = Date.now();
     const inc = 'inc-flap-settle';
