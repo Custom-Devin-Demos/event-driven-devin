@@ -61,7 +61,6 @@ const APP_REPORT = {
     problem: 'no_power',
     contactPhone: '5615550142',
     updateChannel: 'text',
-    hasResetBreakers: true,
     note: '',
     nested: { deep: true },
   },
@@ -152,7 +151,6 @@ describe('FPL My Account app failure report (b425648c)', () => {
       problem: 'no_power',
       contactPhone: '5615550142',
       updateChannel: 'text',
-      hasResetBreakers: true,
       note: '',
     });
 
@@ -340,6 +338,30 @@ describe('FPL My Account app failure report (b425648c)', () => {
       const deep = await fetch(`http://127.0.0.1:${port}/b425648c/app/outages/report`);
       expect(deep.status).toBe(200);
       expect(deep.headers.get('content-type')).toContain('text/html');
+    });
+
+    test('hosted web build assets revalidate on every load', async () => {
+      const { port } = server.address();
+      for (const asset of ['/b425648c/app/', '/b425648c/app/main.dart.js', '/b425648c/app/outages/report']) {
+        const res = await fetch(`http://127.0.0.1:${port}${asset}`);
+        expect(res.status).toBe(200);
+        expect(res.headers.get('cache-control')).toBe('no-cache');
+      }
+    });
+
+    test('entry scripts carry a per-build version so a deploy busts the CDN and browser caches', async () => {
+      const { port } = server.address();
+      const index = await (await fetch(`http://127.0.0.1:${port}/b425648c/app/`)).text();
+      const [, version] = index.match(/src="flutter_bootstrap\.js\?v=([0-9a-f]{12})"/);
+      expect(version).toBeDefined();
+
+      const bootstrap = await fetch(`http://127.0.0.1:${port}/b425648c/app/flutter_bootstrap.js?v=${version}`);
+      expect(bootstrap.status).toBe(200);
+      expect(bootstrap.headers.get('content-type')).toContain('javascript');
+      expect(await bootstrap.text()).toContain(`"mainJsPath":"main.dart.js?v=${version}"`);
+
+      const main = await fetch(`http://127.0.0.1:${port}/b425648c/app/main.dart.js?v=${version}`);
+      expect(main.status).toBe(200);
     });
   });
 });
