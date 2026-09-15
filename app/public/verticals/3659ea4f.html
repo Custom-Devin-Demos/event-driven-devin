@@ -274,6 +274,11 @@
         const result = document.getElementById('result');
         const status = document.getElementById('requestStatus');
         const started = performance.now();
+        const submitted = {
+          site: site.value,
+          siteLabel: site.options[site.selectedIndex].textContent,
+          seats: Number(seats.value),
+        };
         button.disabled = true;
         button.textContent = 'Provisioning…';
         form.setAttribute('aria-busy', 'true');
@@ -288,9 +293,9 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              orgName: site.value,
+              orgName: submitted.site,
               planName: tier.value,
-              seats: Number(seats.value),
+              seats: submitted.seats,
               billingCycle: 'annual',
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
@@ -299,10 +304,10 @@
           });
           const data = await response.json();
           if (!response.ok || !data.success) throw new Error();
-          const granted = Number(data.seatsAdded) || Number(seats.value);
+          const granted = Number(data.seatsAdded) || submitted.seats;
           result.className = 'result-box success';
           result.innerHTML = '<strong>Access granted</strong>';
-          result.appendChild(document.createTextNode(`${granted} operator ${granted === 1 ? 'seat' : 'seats'} added to ${site.options[site.selectedIndex].textContent}. Operators can sign in to the site's C&C now.`));
+          result.appendChild(document.createTextNode(`${granted} operator ${granted === 1 ? 'seat' : 'seats'} added to ${submitted.siteLabel}. Operators can sign in to the site's C&C now.`));
         } catch (error) {
           result.className = 'result-box error';
           result.innerHTML = '<strong>Request not completed</strong>';
