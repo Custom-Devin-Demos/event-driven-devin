@@ -472,6 +472,9 @@ We were also told the four other companies in the batch are being held because o
           showTicketResult('success', n + (n === 1 ? ' ticket filed' : ' tickets filed') + ' with engineering.', 'Posted to the on-call bugs channel as ' + payload.supportCenter + '.\nEach ticket gets its own triage thread — watch Slack.');
         } else if (payload.skipped) {
           showTicketResult('info', 'Ticket prepared, but Slack is not configured on this environment.', n + (n === 1 ? ' ticket' : ' tickets') + ' would have posted to the on-call bugs channel.\nSet SLACK_ONCALL_BUGS_CHANNEL_ID and the bot token to deliver.');
+        } else if (payload.code === 'PARTIAL_DELIVERY') {
+          const landed = (payload.tickets || []).length;
+          showTicketResult('error', landed + ' of ' + n + ' tickets filed before Slack failed.', payload.error + '\nDo not resubmit the whole report — file the remaining symptom(s) separately.');
         } else {
           showTicketResult('error', 'Could not file the ticket.', (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'SUPPORT_TICKET_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
         }

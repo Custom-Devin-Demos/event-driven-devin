@@ -13,6 +13,25 @@ const SUPPORT_PAGE_URL = () =>
   `${(process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '')}/gusto`;
 const SUPPORT_SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
 const MAX_TICKETS_PER_REPORT = 6;
+const MAX_TICKET_CHARS = 2500;
+const MAX_SUBJECT_CHARS = 200;
+const MAX_REPORTER_CHARS = 120;
+const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+
+// Slack mrkdwn treats <...> as mentions/links; escaping the control characters
+// keeps customer-supplied text inert (no @channel, no spoofed links).
+function escapeMrkdwn(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function cleanText(value, maxChars) {
+  if (typeof value !== 'string') return '';
+  const printable = Array.from(value).filter((ch) => {
+    const code = ch.charCodeAt(0);
+    return code === 9 || code === 10 || code === 13 || (code >= 32 && code !== 127);
+  }).join('');
+  return escapeMrkdwn(printable.trim()).slice(0, maxChars);
+}
 
 const BATCH = {
   id: 'PB-2026-09-15-A',
@@ -343,24 +362,35 @@ async function submitSupportTicket(data) {
     return err;
   };
 
-  const text = typeof data.text === 'string' ? data.text.trim() : '';
+  const text = cleanText(data.text, Infinity);
   if (!text) {
     throw validationError('A support ticket needs a description of the problem', 'EMPTY_TICKET');
   }
-  const subject = typeof data.subject === 'string' ? data.subject.trim() : '';
+  const subject = cleanText(data.subject, MAX_SUBJECT_CHARS);
   const severity = SUPPORT_SEVERITIES.includes(data.severity) ? data.severity : 'High';
-  const productArea = typeof data.productArea === 'string' && data.productArea.trim()
-    ? data.productArea.trim()
-    : 'Payroll · ACH release';
-  const reporter = data.reporter && typeof data.reporter === 'object'
-    ? { name: data.reporter.name || undefined, email: data.reporter.email || undefined }
-    : undefined;
+  const productArea = cleanText(data.productArea, MAX_SUBJECT_CHARS) || 'Payroll · ACH release';
+  let reporter;
+  if (data.reporter && typeof data.reporter === 'object') {
+    const name = cleanText(data.reporter.name, MAX_REPORTER_CHARS);
+    const rawEmail = typeof data.reporter.email === 'string' ? data.reporter.email.trim() : '';
+    if (rawEmail && !EMAIL_PATTERN.test(rawEmail)) {
+      throw validationError('Reporter email is not a valid address', 'INVALID_REPORTER_EMAIL');
+    }
+    reporter = { name: name || undefined, email: rawEmail ? rawEmail.slice(0, MAX_REPORTER_CHARS) : undefined };
+  }
 
   const symptoms = data.split ? splitSymptoms(text) : [text];
   if (symptoms.length > MAX_TICKETS_PER_REPORT) {
     throw validationError(
       `A report splits into at most ${MAX_TICKETS_PER_REPORT} tickets; this one has ${symptoms.length}`,
       'TOO_MANY_SYMPTOMS'
+    );
+  }
+  const tooLong = symptoms.find((symptom) => symptom.length + subject.length > MAX_TICKET_CHARS);
+  if (tooLong) {
+    throw validationError(
+      `Each ticket is limited to ${MAX_TICKET_CHARS} characters; split the report into shorter symptoms`,
+      'TICKET_TOO_LONG'
     );
   }
 
@@ -372,25 +402,37 @@ async function submitSupportTicket(data) {
     else if (symptoms.length > 1) parts.push(`[${index + 1}/${symptoms.length}]`);
     parts.push(symptoms[index]);
     // Sequential so the tickets land in the channel in report order.
-    const posted = await postOncallBugReport({
-      text: parts.join('\n\n'),
-      reporter,
-      severity,
-      productArea,
-      devinEmail: data.devinEmail,
-      supportCenter: SUPPORT_CENTER,
-      submittedFrom,
-    });
+    let posted;
+    try {
+      posted = await postOncallBugReport({
+        text: parts.join('\n\n'),
+        reporter,
+        severity,
+        productArea,
+        devinEmail: data.devinEmail,
+        supportCenter: SUPPORT_CENTER,
+        submittedFrom,
+      });
+    } catch (error) {
+      // Slack posts are not atomic: report what already landed so the client
+      // can retry only the remainder instead of re-filing every ticket.
+      const err = new Error(`Ticket ${index + 1} of ${symptoms.length} failed to post: ${error.message}`);
+      err.name = 'PartialDeliveryError';
+      err.code = 'PARTIAL_DELIVERY';
+      err.statusCode = 502;
+      err.tickets = tickets;
+      err.ticketCount = symptoms.length;
+      incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome: 'failed' });
+      logger.error('Gusto support ticket post failed', { index, total: symptoms.length, error: error.message });
+      throw err;
+    }
+    const outcome = posted.ok ? 'delivered' : posted.skipped ? 'skipped' : 'rejected';
+    incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome, split: String(symptoms.length > 1) });
     tickets.push({ ok: Boolean(posted.ok), skipped: Boolean(posted.skipped), ts: posted.ts || null, symptom: symptoms[index] });
   }
 
   const skipped = tickets.length > 0 && tickets.every((ticket) => ticket.skipped);
-  incrementMetric('gusto_payroll.support_ticket_filed', tickets.length, [
-    `service:${SERVICE}`,
-    `split:${symptoms.length > 1}`,
-    `delivered:${!skipped}`,
-  ]);
-  logger.info('Gusto support ticket filed', {
+  logger.info(skipped ? 'Gusto support ticket prepared but Slack not configured' : 'Gusto support ticket filed', {
     tickets: tickets.length,
     split: Boolean(data.split),
     skipped,

@@ -93,6 +93,52 @@ describe('Gusto support ticket (f8555891)', () => {
     expect(postOncallBugReport).not.toHaveBeenCalled();
   });
 
+  test('neutralizes Slack mentions and links in customer-supplied text', async () => {
+    await submitSupportTicket({
+      subject: '<!channel> urgent',
+      text: 'Click <https://evil.example|here> & tell <@U123>',
+      reporter: { name: '<!here> Mallory', email: 'mallory@example.com' },
+    });
+    const call = postOncallBugReport.mock.calls[0][0];
+    expect(call.text).not.toMatch(/<[!@]/);
+    expect(call.text).toContain('&lt;!channel&gt; urgent');
+    expect(call.text).toContain('&lt;https://evil.example|here&gt; &amp; tell &lt;@U123&gt;');
+    expect(call.reporter.name).toBe('&lt;!here&gt; Mallory');
+  });
+
+  test('rejects a malformed reporter email', async () => {
+    await expect(submitSupportTicket({ text: 'x', reporter: { email: '<@U123>' } }))
+      .rejects.toMatchObject({ code: 'INVALID_REPORTER_EMAIL', statusCode: 400 });
+  });
+
+  test('rejects a ticket that would exceed the Slack section limit', async () => {
+    await expect(submitSupportTicket({ text: 'a'.repeat(2600) }))
+      .rejects.toMatchObject({ code: 'TICKET_TOO_LONG', statusCode: 400 });
+    expect(postOncallBugReport).not.toHaveBeenCalled();
+  });
+
+  test('reports partial delivery when a later ticket post fails', async () => {
+    postOncallBugReport
+      .mockResolvedValueOnce({ ok: true, ts: '1.1' })
+      .mockRejectedValueOnce(new Error('slack timeout'));
+
+    await expect(submitSupportTicket({ text: REPORT, split: true })).rejects.toMatchObject({
+      code: 'PARTIAL_DELIVERY',
+      statusCode: 502,
+      ticketCount: 3,
+      tickets: [expect.objectContaining({ ts: '1.1' })],
+    });
+    expect(postOncallBugReport).toHaveBeenCalledTimes(2);
+  });
+
+  test('emits one outcome-tagged metric per ticket', async () => {
+    const { incrementMetric } = require('../app/telemetry/datadog');
+    await submitSupportTicket({ text: REPORT, split: true });
+    const calls = incrementMetric.mock.calls.filter(([name]) => name === 'gusto_payroll.support_ticket');
+    expect(calls).toHaveLength(3);
+    expect(calls[0][1]).toEqual({ service: 'customer-f8555891-payroll', outcome: 'delivered', split: 'true' });
+  });
+
   test('falls back to defaults for unknown severity and missing product area', async () => {
     await submitSupportTicket({ text: 'One problem', severity: 'SEV-9' });
     expect(postOncallBugReport.mock.calls[0][0]).toMatchObject({ severity: 'High', productArea: 'Payroll · ACH release' });

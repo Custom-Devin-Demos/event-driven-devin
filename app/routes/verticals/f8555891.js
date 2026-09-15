@@ -29,7 +29,42 @@ router.post('/api/f8555891/release-batch', async (req, res) => {
   }
 });
 
-router.post('/api/f8555891/support-ticket', async (req, res) => {
+// Each report fans out to up to six Slack posts, so cap reports per client
+// per hour (same shape as the on-call bug route's hourly cap).
+const TICKET_CAP_PER_HOUR = 10;
+const TICKET_CAP_WINDOW_MS = 60 * 60 * 1000;
+const ticketWindows = new Map();
+
+function clientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.trim()) {
+    return forwarded.split(',').pop().trim();
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function ticketCap(req, res, next) {
+  const now = Date.now();
+  const cutoff = now - TICKET_CAP_WINDOW_MS;
+  const key = clientIp(req);
+  const window = (ticketWindows.get(key) || []).filter((ts) => ts > cutoff);
+  if (window.length >= TICKET_CAP_PER_HOUR) {
+    res.set('Retry-After', String(Math.max(Math.ceil((window[0] + TICKET_CAP_WINDOW_MS - now) / 1000), 1)));
+    return res.status(429).json({
+      ok: false,
+      error: `Hourly limit reached for support tickets (${TICKET_CAP_PER_HOUR}/hour). Try again later.`,
+      code: 'RATE_LIMITED',
+    });
+  }
+  window.push(now);
+  ticketWindows.set(key, window);
+  for (const [otherKey, otherWindow] of ticketWindows) {
+    if (otherKey !== key && otherWindow.every((ts) => ts <= cutoff)) ticketWindows.delete(otherKey);
+  }
+  return next();
+}
+
+router.post('/api/f8555891/support-ticket', ticketCap, async (req, res) => {
   try {
     const body = req.body || {};
     const result = await submitSupportTicket({
@@ -49,6 +84,7 @@ router.post('/api/f8555891/support-ticket', async (req, res) => {
       errorClass: error.name,
       code: error.code || 'SUPPORT_TICKET_FAILED',
       requestId: req.requestId,
+      ...(error.tickets ? { tickets: error.tickets, ticketCount: error.ticketCount } : {}),
     });
   }
 });
