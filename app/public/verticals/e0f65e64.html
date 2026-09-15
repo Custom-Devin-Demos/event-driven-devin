@@ -545,8 +545,9 @@
       var day = String(d.getDate()).padStart(2, '0');
       return d.getFullYear() + '-' + m + '-' + day;
     }
-    dateInput.value = today();
-    dateInput.max = today();
+    var loadedDate = today();
+    dateInput.value = loadedDate;
+    dateInput.max = loadedDate;
 
     function parseAmount(raw) {
       var s = String(raw).trim().replace(/^\$/, '').replace(/,/g, '');
@@ -576,6 +577,8 @@
 
     function openModal() {
       requestToken += 1;
+      dateInput.max = today();
+      if (dateInput.value === loadedDate) { loadedDate = today(); dateInput.value = loadedDate; }
       overlay.classList.add('open');
       paneDetails.style.display = '';
       paneReview.style.display = 'none';
