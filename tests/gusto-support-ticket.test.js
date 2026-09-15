@@ -106,6 +106,12 @@ describe('Gusto support ticket (f8555891)', () => {
     expect(call.reporter.name).toBe('&lt;!here&gt; Mallory');
   });
 
+  test('rejects an over-long reporter email instead of truncating it', async () => {
+    const email = `jordan@${'a'.repeat(250)}.example`;
+    await expect(submitSupportTicket({ text: 'x', reporter: { email } }))
+      .rejects.toMatchObject({ code: 'INVALID_REPORTER_EMAIL', statusCode: 400 });
+  });
+
   test('rejects a malformed reporter email', async () => {
     await expect(submitSupportTicket({ text: 'x', reporter: { email: '<@U123>' } }))
       .rejects.toMatchObject({ code: 'INVALID_REPORTER_EMAIL', statusCode: 400 });

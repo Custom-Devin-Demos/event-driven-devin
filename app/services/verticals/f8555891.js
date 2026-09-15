@@ -2,9 +2,8 @@ const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
-const { createSessionAndAlert } = require('../devin-session');
 const { declareDatadogIncident } = require('../datadog-incidents');
-const { postOncallBugReport } = require('../oncall');
+const { postOncallAlert, postOncallBugReport } = require('../oncall');
 
 const SERVICE = 'customer-f8555891-payroll';
 const ROUTE = '/api/f8555891/release-batch';
@@ -16,6 +15,7 @@ const MAX_TICKETS_PER_REPORT = 6;
 const MAX_TICKET_CHARS = 2500;
 const MAX_SUBJECT_CHARS = 200;
 const MAX_REPORTER_CHARS = 120;
+const MAX_EMAIL_CHARS = 254;
 const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 
 // Slack mrkdwn treats <...> as mentions/links; escaping the control characters
@@ -142,24 +142,6 @@ function getBatchCompanies() {
     };
   });
 }
-
-const REMEDIATION_DIRECTIVE = [
-  '!payroll_tax_triage',
-  '',
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
-  '',
-  'The failing code path is the Gusto Payroll Operations on-call console, "Release ACH debits" for a payroll batch:',
-  '- Service: `app/services/verticals/f8555891.js`',
-  '- Route: `app/routes/verticals/f8555891.js`',
-  '- Page: `app/public/verticals/f8555891.html` (served at `/gusto`)',
-  '',
-  'Before changing code, pull the runtime evidence through your MCP integrations:',
-  `- Sentry MCP: find the latest \`TypeError\` issue for service \`${SERVICE}\` and read its stack trace and tags (\`batchId\`, \`companyId\`, \`state\`, \`route\`).`,
-  '- Datadog MCP: query the `gusto_payroll.batch_release_failure` metric by `state` tag and the open SEV-2 incident titled "Payroll batch release failing for Minnesota employers"; confirm that companies with MN employees fail while other states debit successfully.',
-  'Fix the root cause (the state payroll-program registry — register MN with its paid-leave and UI programs, not the crash site), add regression coverage in `tests/gusto-payroll-batch-release.test.js`, and resolve the Datadog incident in the PR description.',
-  '',
-  'Open a pull request against `main` with the fix.',
-].join('\n');
 
 async function releaseBatch(data) {
   const startTime = Date.now();
@@ -291,40 +273,10 @@ async function releaseBatch(data) {
       severity: 'SEV-2',
     }).catch((err) => logger.warn('Failed to declare Datadog incident for Gusto payroll', { error: err.message, batchId }));
 
-    createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
-      issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
-      culprit: 'app/services/verticals/f8555891.js — computeCompanyDebit',
-      errorType: error.name || 'Error',
-      errorValue: error.message,
-      devinUserId: data.devinUserId,
+    postOncallAlert('f8555891', {
+      runRef: batchId,
       devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
-      service: SERVICE,
-      verticalLabel: 'Gusto Payroll Batch Release',
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: 'f8555891',
-      tags: [
-        { key: 'route', value: ROUTE },
-        { key: 'service', value: SERVICE },
-        { key: 'batchId', value: batchId },
-        { key: 'state', value: state || 'unknown' },
-      ],
-      extra: {
-        batchId,
-        ...(failingCompany ? { companyId: failingCompany.id } : {}),
-      },
-      level: 'error',
-      platform: 'node',
-      firstSeen: '',
-      lastSeen: new Date().toISOString(),
-      count: '',
-      shortId: '',
-      project: 'event-driven-devin',
-      release: process.env.SENTRY_RELEASE || `${SERVICE}@1.0.0`,
-      environment: process.env.DD_ENV || 'prod',
-      triggeredRule: '',
-    }).catch((err) => logger.warn('Gusto payroll incident follow-up failed', { error: err.message, batchId }));
+    }).catch((err) => logger.warn('Gusto payroll on-call alert failed', { error: err.message, batchId }));
 
     throw error;
   }
@@ -373,10 +325,10 @@ async function submitSupportTicket(data) {
   if (data.reporter && typeof data.reporter === 'object') {
     const name = cleanText(data.reporter.name, MAX_REPORTER_CHARS);
     const rawEmail = typeof data.reporter.email === 'string' ? data.reporter.email.trim() : '';
-    if (rawEmail && !EMAIL_PATTERN.test(rawEmail)) {
+    if (rawEmail && (rawEmail.length > MAX_EMAIL_CHARS || !EMAIL_PATTERN.test(rawEmail))) {
       throw validationError('Reporter email is not a valid address', 'INVALID_REPORTER_EMAIL');
     }
-    reporter = { name: name || undefined, email: rawEmail ? rawEmail.slice(0, MAX_REPORTER_CHARS) : undefined };
+    reporter = { name: name || undefined, email: rawEmail || undefined };
   }
 
   const symptoms = data.split ? splitSymptoms(text) : [text];
@@ -422,7 +374,7 @@ async function submitSupportTicket(data) {
       err.statusCode = 502;
       err.tickets = tickets;
       err.ticketCount = symptoms.length;
-      incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome: 'failed' });
+      incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome: 'failed', split: String(symptoms.length > 1) });
       logger.error('Gusto support ticket post failed', { index, total: symptoms.length, error: error.message });
       throw err;
     }
@@ -458,5 +410,4 @@ module.exports = {
   COMPANIES,
   getBatchCompanies,
   STATE_PAYROLL_PROGRAMS,
-  REMEDIATION_DIRECTIVE,
 };
