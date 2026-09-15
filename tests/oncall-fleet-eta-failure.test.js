@@ -298,15 +298,15 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     expect((await request(server, 'GET', `${PATH}/${reference}`)).status).toBe(404);
-    expect((await request(server, 'GET', `${PATH}/${reference}?token=${'f'.repeat(32)}`)).status).toBe(404);
+    expect((await request(server, 'GET', `${PATH}/${reference}`, undefined, { 'x-status-token': 'f'.repeat(32) })).status).toBe(404);
+    // The token travels in a header only: a query string would land in access logs.
+    expect((await request(server, 'GET', `${PATH}/${reference}?token=${statusToken}`)).status).toBe(404);
 
-    const status = await request(server, 'GET', `${PATH}/${reference}?token=${statusToken}`);
+    const status = await request(server, 'GET', `${PATH}/${reference}`, undefined, { 'x-status-token': statusToken });
     expect(status.status).toBe(200);
     expect(status.body).toMatchObject({ reference, alertPosted: true });
     expect(status.body).not.toHaveProperty('statusToken');
-
-    const viaHeader = await request(server, 'GET', `${PATH}/${reference}`, undefined, { 'X-Status-Token': statusToken });
-    expect(viaHeader.status).toBe(200);
+    expect(status.body).not.toHaveProperty('devinEmail');
   });
 
   test('POST rejects foreign sources and malformed facts', async () => {
@@ -335,5 +335,44 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
   test('GET rejects unknown or malformed references', async () => {
     expect((await request(server, 'GET', `${PATH}/FLT-000000`)).status).toBe(404);
     expect((await request(server, 'GET', `${PATH}/..%2Fetc`)).status).toBe(404);
+  });
+
+  test('an arrival before departure is titled as preceding, not equalling, dispatch time', async () => {
+    const earlier = reportEtaFailure(normalizeReport({ ...REPORT, arrival: '2026-09-14T23:10:00Z' }));
+    await earlier.outcome;
+    const [, , earlierText] = postMessage.mock.calls[0];
+    expect(earlierText).toContain('Live Share ETA precedes dispatch time');
+    expect(earlierText).toContain('(-10 min)');
+    expect(createDevinSession.mock.calls[0][1].title).toContain('precedes dispatch time');
+    expect(Sentry.captureMessage.mock.calls[0][0]).toContain('precedes dispatch time');
+
+    jest.clearAllMocks();
+    const equal = reportEtaFailure(normalizeReport(REPORT));
+    await equal.outcome;
+    expect(postMessage.mock.calls[0][2]).toContain('Live Share ETA equals dispatch time');
+    expect(postMessage.mock.calls[0][2]).toContain('(0 min)');
+  });
+
+  test('the status map evicts finished reports before an unfinished one when over capacity', async () => {
+    let releaseSlack;
+    postMessage.mockImplementationOnce(() => new Promise((resolve) => { releaseSlack = resolve; }));
+    const pending = reportEtaFailure(normalizeReport(REPORT));
+    expect(getEtaFailureStatus(pending.reference, pending.statusToken)).toMatchObject({ done: false });
+
+    const finished = [];
+    for (let i = 0; i < 205; i += 1) {
+      const entry = reportEtaFailure(normalizeReport(REPORT));
+      await entry.outcome;
+      finished.push(entry);
+    }
+
+    expect(getEtaFailureStatus(pending.reference, pending.statusToken)).toMatchObject({ done: false });
+    expect(getEtaFailureStatus(finished[0].reference, finished[0].statusToken)).toBeNull();
+    const last = finished[finished.length - 1];
+    expect(getEtaFailureStatus(last.reference, last.statusToken)).toMatchObject({ done: true });
+
+    releaseSlack('1700000000.000300');
+    await pending.outcome;
+    expect(getEtaFailureStatus(pending.reference, pending.statusToken)).toMatchObject({ done: true });
   });
 });

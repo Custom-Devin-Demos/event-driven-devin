@@ -33,11 +33,12 @@ const FLEET = {
   repo: 'https://github.com/COG-GTM/ios-demos',
   repoName: 'COG-GTM/ios-demos',
   appDir: 'apps/26a3d261',
-  monitor: 'Live Share ETA equals dispatch time',
+  monitor: 'Live Share ETA not after dispatch time',
   check: 'live_share.eta_after_departure',
   owner: 'Priya Natarajan (fleet-mobile-oncall)',
-  symptom: 'Tapping "Share live ETA" on an asset produces an arrival equal to the current fleet time (0 min out) '
-    + 'while the same route\'s stop list shows a later destination ETA. The app refuses to publish the share and reports the failure.',
+  symptom: 'Tapping "Share live ETA" on an asset produces a destination arrival that is not after the current fleet time '
+    + '(observed: equal to it, 0 min out) while the same route\'s stop list shows a later destination ETA. '
+    + 'The app refuses to publish the share and reports the failure.',
   impact: 'Dispatchers cannot send customers a live ETA; any link that did go out shows the wrong arrival and expires early.',
 };
 
@@ -65,6 +66,11 @@ function pruneReports() {
   const cutoff = Date.now() - REPORT_TTL_MS;
   for (const [reference, entry] of reports) {
     if (entry.receivedAt < cutoff) reports.delete(reference);
+  }
+  if (reports.size <= REPORT_MAX) return;
+  for (const [reference, entry] of reports) {
+    if (reports.size <= REPORT_MAX) return;
+    if (entry.done) reports.delete(reference);
   }
   while (reports.size > REPORT_MAX) {
     reports.delete(reports.keys().next().value);
@@ -220,8 +226,14 @@ function fieldPairs(pairs) {
   return blocks;
 }
 
+function monitorName(report) {
+  return report.minutesOut < 0
+    ? 'Live Share ETA precedes dispatch time'
+    : 'Live Share ETA equals dispatch time';
+}
+
 function monitorTitle(report) {
-  return `${FLEET.monitor} — ${FLEET.service} (${report.platformLabel})`;
+  return `${monitorName(report)} — ${FLEET.service} (${report.platformLabel})`;
 }
 
 function routeLine(report) {
@@ -351,7 +363,7 @@ async function triggerDevinSession(report, reference, { token, channel, threadTs
   try {
     session = await createDevinSession(buildSessionPrompt(report, reference), {
       ...resolveSessionIdentity(),
-      title: `[On-Call] ${reference} ${FLEET.monitor} (${FLEET.service})`,
+      title: `[On-Call] ${reference} ${monitorName(report)} (${FLEET.service})`,
       platform: SESSION_PLATFORM(),
       repos: [FLEET.repoName],
     });
@@ -425,7 +437,7 @@ function reportEtaFailure(report) {
   });
   // Tagged with the on-call route, so the Sentry webhook's on-call-slice
   // filter never raises a second alert or session for this event.
-  Sentry.captureMessage(`${FLEET.monitor} (${FLEET.service}/${report.platform})`, {
+  Sentry.captureMessage(`${monitorName(report)} (${FLEET.service}/${report.platform})`, {
     level: 'error',
     tags,
     extra: {
