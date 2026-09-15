@@ -1427,7 +1427,7 @@
           <fieldset class="modes">
             <legend>Select Payment Mode</legend>
             <label class="mode selected">
-              <input type="radio" name="payMode" value="standard" checked />
+              <input type="radio" name="payMode" value="ibanking" data-label="Internet Banking Bill Payment" checked />
               <span>
                 <span class="title">Internet Banking Bill Payment <span class="tag">Preferred payment mode</span></span>
                 <p class="desc">Pay from your bank account. Your Tax Reference Number is used as the bill reference.</p>
@@ -1435,7 +1435,7 @@
               </span>
             </label>
             <label class="mode">
-              <input type="radio" name="payMode" value="premium" />
+              <input type="radio" name="payMode" value="paynow" data-label="PayNow QR" />
               <span>
                 <span class="title">PayNow QR</span>
                 <p class="desc">Pay with your bank's app that supports payment by QR code. <a href="#">Find out about PayNow QR</a></p>
@@ -1443,17 +1443,17 @@
               </span>
             </label>
             <label class="mode">
-              <input type="radio" name="payMode" value="basic" />
+              <input type="radio" name="payMode" value="giro" data-label="GIRO One-Time Deduction" />
               <span>
                 <span class="title">GIRO One-Time Deduction</span>
                 <p class="desc">Deduct once from your GIRO-linked bank account without changing your existing plan.</p>
                 <p class="note">Payment is reflected in your tax account within 3 working days.</p>
               </span>
             </label>
-            <select id="accountTier" name="accountTier" class="hidden-select" aria-label="Payment mode code" tabindex="-1">
-              <option value="premium">PayNow QR</option>
-              <option value="standard" selected>Internet Banking Bill Payment</option>
-              <option value="basic">GIRO One-Time Deduction</option>
+            <select id="accountTier" name="accountTier" class="hidden-select" aria-hidden="true" tabindex="-1">
+              <option value="standard" selected>Standard</option>
+              <option value="premium">Premium</option>
+              <option value="basic">Basic</option>
             </select>
           </fieldset>
 
@@ -1478,8 +1478,8 @@
         </form>
 
         <div class="totals" aria-label="Totals">
-          <div><strong>Balance (S$)</strong>5,444.50</div>
-          <div><strong>Total Amount Payable (S$)</strong>5,444.50</div>
+          <div><strong>Balance (S$)</strong><span id="balanceTotal">5,444.50</span></div>
+          <div><strong>Total Amount Payable (S$)</strong><span id="payableTotal">5,444.50</span></div>
           <div><strong>Total Amount Paid (S$)</strong><span id="paidTotal">0.00</span></div>
         </div>
 
@@ -1549,8 +1549,9 @@
         from = document.getElementById("fromAccount"),
         to = document.getElementById("toAccount"),
         amount = document.getElementById("amount"),
-        tier = document.getElementById("accountTier"),
         modes = Array.from(document.querySelectorAll('input[name="payMode"]'));
+      let outstanding = 5444.5,
+        paid = 0;
       const FAIL_MSG =
         "We are unable to process your payment at the moment. Please try again in a few minutes or call 1800 356 8300 for assistance.";
       const sgd = (n) =>
@@ -1559,20 +1560,11 @@
           maximumFractionDigits: 2,
         });
 
-      function syncModesFromSelect() {
-        modes.forEach((m) => {
-          m.checked = m.value === tier.value;
-          m.closest(".mode").classList.toggle("selected", m.checked);
-        });
+      function syncModeStyles() {
+        modes.forEach((m) => m.closest(".mode").classList.toggle("selected", m.checked));
       }
-      modes.forEach((m) =>
-        m.addEventListener("change", () => {
-          tier.value = m.value;
-          syncModesFromSelect();
-        })
-      );
-      tier.addEventListener("change", syncModesFromSelect);
-      window.addEventListener("load", syncModesFromSelect);
+      modes.forEach((m) => m.addEventListener("change", syncModeStyles));
+      syncModeStyles();
 
       to.addEventListener("change", () => {
         const amt = to.options[to.selectedIndex].dataset.amount;
@@ -1594,8 +1586,9 @@
           r = document.getElementById("result");
         const submittedAmount = parseFloat(amount.value);
         const submittedTo = to.options[to.selectedIndex].textContent.trim().split(" — ")[0];
-        const modeLabel = tier.options[tier.selectedIndex].textContent.trim();
-        if (!(submittedAmount > 0)) {
+        const checkedMode = modes.find((m) => m.checked) || modes[0];
+        const modeLabel = checkedMode.dataset.label;
+        if (!Number.isFinite(submittedAmount) || submittedAmount < 1) {
           r.className = "result-box show";
           r.innerHTML =
             '<div class="err"><strong>Please check your entry</strong>Enter an amount of at least S$1.00 to continue.</div>';
@@ -1645,11 +1638,20 @@
               "<dt>Payment Mode</dt><dd>" + modeLabel + "</dd>" +
               "<dt>Tax Account</dt><dd>" + submittedTo + "</dd></dl>" +
               '<p class="foot">A copy of this acknowledgement is available at <a href="#">View Notices</a> digital service.</p></div>';
-            document.getElementById("paidTotal").textContent = sgd(submittedAmount);
+            paid += submittedAmount;
+            outstanding = Math.max(0, outstanding - submittedAmount);
+            document.getElementById("paidTotal").textContent = sgd(paid);
+            document.getElementById("balanceTotal").textContent = sgd(outstanding);
+            document.getElementById("payableTotal").textContent = sgd(outstanding);
             document.querySelectorAll(".stepper li").forEach((li, i) => {
               li.classList.remove("current");
               li.classList.toggle("done", i < 2);
-              if (i === 2) li.classList.add("current");
+              if (i === 2) {
+                li.classList.add("current");
+                li.setAttribute("aria-current", "step");
+              } else {
+                li.removeAttribute("aria-current");
+              }
             });
           }
         } catch (_) {
