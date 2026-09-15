@@ -4,9 +4,15 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const { declareDatadogIncident } = require('../datadog-incidents');
+const { postOncallBugReport } = require('../oncall');
 
 const SERVICE = 'customer-f8555891-payroll';
 const ROUTE = '/api/f8555891/release-batch';
+const SUPPORT_CENTER = 'Gusto Support';
+const SUPPORT_PAGE_URL = () =>
+  `${(process.env.ONCALL_DEMO_BASE_URL || `https://${process.env.DOMAIN_NAME || 'devindemos.com'}`).replace(/\/$/, '')}/gusto`;
+const SUPPORT_SEVERITIES = ['Low', 'Medium', 'High', 'Critical'];
+const MAX_TICKETS_PER_REPORT = 6;
 
 const BATCH = {
   id: 'PB-2026-09-15-A',
@@ -305,8 +311,107 @@ async function releaseBatch(data) {
   }
 }
 
+/**
+ * Split a free-form customer report into one symptom per paragraph or list
+ * item so each can be filed as its own ticket. Falls back to the whole text
+ * when no separators are present.
+ */
+function splitSymptoms(text) {
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const source = paragraphs.length > 1 ? paragraphs : text.split('\n');
+  const symptoms = source
+    .map((part) => part.replace(/^\s*(?:[-*\u2022]|\d+[.)])\s+/, '').trim())
+    .filter(Boolean);
+  return symptoms.length > 0 ? symptoms : [text.trim()];
+}
+
+/**
+ * File a customer-reported problem from the on-call console as a human-style
+ * support ticket in the on-call bugs channel. With `split`, each symptom in
+ * the report becomes its own ticket so the channel's triage responder opens
+ * one investigation thread per problem.
+ */
+async function submitSupportTicket(data) {
+  const validationError = (message, code) => {
+    const err = new Error(message);
+    err.name = 'ValidationError';
+    err.code = code;
+    err.statusCode = 400;
+    return err;
+  };
+
+  const text = typeof data.text === 'string' ? data.text.trim() : '';
+  if (!text) {
+    throw validationError('A support ticket needs a description of the problem', 'EMPTY_TICKET');
+  }
+  const subject = typeof data.subject === 'string' ? data.subject.trim() : '';
+  const severity = SUPPORT_SEVERITIES.includes(data.severity) ? data.severity : 'High';
+  const productArea = typeof data.productArea === 'string' && data.productArea.trim()
+    ? data.productArea.trim()
+    : 'Payroll · ACH release';
+  const reporter = data.reporter && typeof data.reporter === 'object'
+    ? { name: data.reporter.name || undefined, email: data.reporter.email || undefined }
+    : undefined;
+
+  const symptoms = data.split ? splitSymptoms(text) : [text];
+  if (symptoms.length > MAX_TICKETS_PER_REPORT) {
+    throw validationError(
+      `A report splits into at most ${MAX_TICKETS_PER_REPORT} tickets; this one has ${symptoms.length}`,
+      'TOO_MANY_SYMPTOMS'
+    );
+  }
+
+  const submittedFrom = SUPPORT_PAGE_URL();
+  const tickets = [];
+  for (let index = 0; index < symptoms.length; index += 1) {
+    const parts = [];
+    if (subject) parts.push(symptoms.length > 1 ? `[${index + 1}/${symptoms.length}] ${subject}` : subject);
+    else if (symptoms.length > 1) parts.push(`[${index + 1}/${symptoms.length}]`);
+    parts.push(symptoms[index]);
+    // Sequential so the tickets land in the channel in report order.
+    const posted = await postOncallBugReport({
+      text: parts.join('\n\n'),
+      reporter,
+      severity,
+      productArea,
+      devinEmail: data.devinEmail,
+      supportCenter: SUPPORT_CENTER,
+      submittedFrom,
+    });
+    tickets.push({ ok: Boolean(posted.ok), skipped: Boolean(posted.skipped), ts: posted.ts || null, symptom: symptoms[index] });
+  }
+
+  const skipped = tickets.length > 0 && tickets.every((ticket) => ticket.skipped);
+  incrementMetric('gusto_payroll.support_ticket_filed', tickets.length, [
+    `service:${SERVICE}`,
+    `split:${symptoms.length > 1}`,
+    `delivered:${!skipped}`,
+  ]);
+  logger.info('Gusto support ticket filed', {
+    tickets: tickets.length,
+    split: Boolean(data.split),
+    skipped,
+    severity,
+    productArea,
+  });
+
+  return {
+    ok: !skipped,
+    skipped,
+    ...(skipped ? { error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' } : {}),
+    supportCenter: SUPPORT_CENTER,
+    ticketCount: tickets.length,
+    tickets,
+  };
+}
+
 module.exports = {
   releaseBatch,
+  submitSupportTicket,
+  splitSymptoms,
   BATCH,
   COMPANIES,
   getBatchCompanies,

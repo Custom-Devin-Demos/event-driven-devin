@@ -105,6 +105,25 @@
     .bar span.warn { background: #e08a00; }
     .queue .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
     .stack { display: grid; gap: 16px; }
+    .ticket { margin-top: 16px; }
+    .ticket-body { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr); gap: 0; }
+    .ticket-fields { padding: 18px 20px; border-right: 1px solid var(--line); display: grid; gap: 14px; }
+    .ticket-side { padding: 18px 20px; display: grid; gap: 14px; align-content: start; background: #fcfaf7; }
+    .field label, .field .label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+    .field input, .field select, .field textarea { width: 100%; padding: 9px 11px; border: 1px solid #d9d3ca; border-radius: 7px; background: var(--white); color: var(--ink); font: inherit; font-size: 13px; }
+    .field textarea { min-height: 180px; resize: vertical; line-height: 1.5; }
+    .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid rgba(240,90,60,.35); border-color: var(--coral); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .toggle { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); cursor: pointer; }
+    .toggle input { margin-top: 2px; width: 15px; height: 15px; accent-color: var(--coral); flex: none; }
+    .toggle .t { font-weight: 650; font-size: 13px; }
+    .toggle .d { margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .ticket-side .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .ticket-side .hint code { font-family: "SF Mono", Menlo, monospace; font-size: 11px; background: #f2eee7; padding: 1px 5px; border-radius: 4px; }
+    .cta.secondary { background: var(--ink); }
+    .cta.secondary:hover { background: #000; }
+    .result.info { background: var(--info-bg); border: 1px solid #b7cdea; color: var(--info); }
+    .result.info .result-tech { color: #1b4477; }
     @media (max-width: 1280px) {
       .kpis { grid-template-columns: repeat(3, 1fr); }
       .grid { grid-template-columns: 1fr; }
@@ -115,6 +134,8 @@
       .kpis { grid-template-columns: repeat(2, 1fr); }
       .topbar { flex-direction: column; align-items: flex-start; }
       .action-bar { flex-direction: column; align-items: stretch; }
+      .ticket-body, .field-row { grid-template-columns: 1fr; }
+      .ticket-fields { border-right: 0; border-bottom: 1px solid var(--line); }
     }
   </style>
 </head>
@@ -220,6 +241,62 @@
         </section>
       </div>
     </div>
+
+    <section class="panel ticket" id="ticket-panel">
+      <div class="panel-head">
+        <h2>Customer report → engineering</h2>
+        <span class="meta">Files a support ticket in the on-call bugs channel</span>
+      </div>
+      <form class="ticket-body" id="ticket-form" novalidate>
+        <div class="ticket-fields">
+          <div class="field-row">
+            <div class="field"><label for="ticket-reporter-name">Reported by</label><input id="ticket-reporter-name" type="text" value="Jordan Whitaker" autocomplete="off"></div>
+            <div class="field"><label for="ticket-reporter-email">Email</label><input id="ticket-reporter-email" type="email" value="jordan@northstardental.example" autocomplete="off"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="ticket-area">Product area</label>
+              <select id="ticket-area">
+                <option>Payroll · ACH release</option>
+                <option>Payroll · Employer taxes &amp; contributions</option>
+                <option>Tax filings &amp; payments</option>
+                <option>Employee pay &amp; paystubs</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="ticket-severity">Severity</label>
+              <select id="ticket-severity">
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+                <option selected>Critical</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label for="ticket-subject">Subject</label><input id="ticket-subject" type="text" value="Sep 17 payroll for Northstar Dental Group (MN) blocked ahead of ACH cutoff"></div>
+          <div class="field">
+            <label for="ticket-text">What the customer reported</label>
+            <textarea id="ticket-text">Our Sep 17 payroll (batch PB-2026-09-15-A, company CO-51177) will not release. Every time your team tries to release the ACH debits it fails with an internal error, and our 19 employees will not be paid Thursday if the 17:30 PT cutoff is missed. Nothing changed on our side except that we added our first Minnesota employees this month.
+
+The batch preview also looks wrong for us: the employer contribution line for Minnesota (MN Paid Leave / UI) shows $0.00 and our total debit equals gross pay exactly. Even if the release goes through, we do not trust the amount that will be debited.
+
+We were also told the four other companies in the batch are being held because of us. One company having a problem should not stop everyone else's payroll from going out.</textarea>
+          </div>
+        </div>
+        <div class="ticket-side">
+          <label class="toggle" for="ticket-split">
+            <input id="ticket-split" type="checkbox" checked>
+            <div><div class="t">File one ticket per symptom</div><div class="d">Each paragraph becomes its own ticket, so the triage responder opens a separate investigation thread for each problem.</div></div>
+          </label>
+          <div class="hint">Tickets post as <strong>Gusto Support</strong> with the reporter, product area, and severity above, stamped as submitted from this console. Preview: <span id="ticket-preview">3 tickets</span>.</div>
+          <button class="cta secondary" id="ticket-submit" type="submit">Escalate to engineering</button>
+          <div id="ticket-result" class="result" role="status" style="margin:0;">
+            <div class="result-title" id="ticket-result-title"></div>
+            <div class="result-tech" id="ticket-result-tech"></div>
+          </div>
+        </div>
+      </form>
+    </section>
   </main>
 
   <script>
@@ -344,6 +421,71 @@
         document.querySelectorAll('[data-company-id]').forEach((input) => { input.disabled = false; });
       }
     }
+
+    const ticketForm = document.getElementById('ticket-form');
+    const ticketText = document.getElementById('ticket-text');
+    const ticketSplit = document.getElementById('ticket-split');
+    const ticketSubmit = document.getElementById('ticket-submit');
+    const ticketResult = document.getElementById('ticket-result');
+
+    function countSymptoms(text) {
+      const paragraphs = text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+      const source = paragraphs.length > 1 ? paragraphs : text.split('\n');
+      return Math.max(1, source.map((part) => part.trim()).filter(Boolean).length);
+    }
+
+    function updateTicketPreview() {
+      const count = ticketSplit.checked ? countSymptoms(ticketText.value) : 1;
+      document.getElementById('ticket-preview').textContent = count + (count === 1 ? ' ticket' : ' tickets');
+    }
+
+    function showTicketResult(kind, title, tech) {
+      ticketResult.className = 'result show ' + kind;
+      document.getElementById('ticket-result-title').textContent = title;
+      document.getElementById('ticket-result-tech').textContent = tech;
+    }
+
+    async function submitTicket(event) {
+      event.preventDefault();
+      ticketSubmit.disabled = true;
+      ticketResult.className = 'result';
+      try {
+        const response = await fetch('/api/f8555891/support-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject: document.getElementById('ticket-subject').value,
+            text: ticketText.value,
+            reporter: {
+              name: document.getElementById('ticket-reporter-name').value,
+              email: document.getElementById('ticket-reporter-email').value,
+            },
+            productArea: document.getElementById('ticket-area').value,
+            severity: document.getElementById('ticket-severity').value,
+            split: ticketSplit.checked,
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const payload = await response.json();
+        const n = payload.ticketCount || 0;
+        if (payload.ok) {
+          showTicketResult('success', n + (n === 1 ? ' ticket filed' : ' tickets filed') + ' with engineering.', 'Posted to the on-call bugs channel as ' + payload.supportCenter + '.\nEach ticket gets its own triage thread — watch Slack.');
+        } else if (payload.skipped) {
+          showTicketResult('info', 'Ticket prepared, but Slack is not configured on this environment.', n + (n === 1 ? ' ticket' : ' tickets') + ' would have posted to the on-call bugs channel.\nSet SLACK_ONCALL_BUGS_CHANNEL_ID and the bot token to deliver.');
+        } else {
+          showTicketResult('error', 'Could not file the ticket.', (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'SUPPORT_TICKET_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
+        }
+      } catch (error) {
+        showTicketResult('error', 'Could not file the ticket.', 'NetworkError: ' + error.message);
+      } finally {
+        ticketSubmit.disabled = false;
+      }
+    }
+
+    ticketForm.addEventListener('submit', submitTicket);
+    ticketText.addEventListener('input', updateTicketPreview);
+    ticketSplit.addEventListener('change', updateTicketPreview);
+    updateTicketPreview();
 
     releaseButton.addEventListener('click', releaseBatch);
     renderCompanies();

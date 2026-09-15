@@ -1,5 +1,5 @@
 const express = require('express');
-const { releaseBatch, BATCH, getBatchCompanies } = require('../../services/verticals/f8555891');
+const { releaseBatch, submitSupportTicket, BATCH, getBatchCompanies } = require('../../services/verticals/f8555891');
 
 const router = express.Router();
 
@@ -24,6 +24,30 @@ router.post('/api/f8555891/release-batch', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'BATCH_RELEASE_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+router.post('/api/f8555891/support-ticket', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const result = await submitSupportTicket({
+      subject: body.subject,
+      text: body.text,
+      reporter: body.reporter,
+      severity: body.severity,
+      productArea: body.productArea,
+      split: Boolean(body.split),
+      devinEmail: body.devinEmail,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      ok: false,
+      error: error.message,
+      errorClass: error.name,
+      code: error.code || 'SUPPORT_TICKET_FAILED',
       requestId: req.requestId,
     });
   }

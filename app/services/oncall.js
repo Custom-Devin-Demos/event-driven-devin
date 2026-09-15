@@ -610,7 +610,7 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
   const template = findBugTemplate(templateId);
@@ -646,7 +646,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
   // The page a skinned ticket came from is stamped on the ticket itself, the way
   // a support tool records the originating URL — no separate demo-page message.
-  const submittedFrom = skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null;
+  const submittedFrom = submittedFromUrl || (skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null);
   let message = [
     body,
     triggeredBy ? `Triggered by: ${triggeredBy}` : null,
