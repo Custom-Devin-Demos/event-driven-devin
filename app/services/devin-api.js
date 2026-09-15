@@ -83,6 +83,8 @@ function resolveServiceAuth(options = {}) {
  * @param {string} [options.orgId] - Override the default org ID (for multi-org support)
  * @param {string} [options.userId] - Devin user ID to create the session as
  * @param {string} [options.title] - Optional custom title for the session
+ * @param {string} [options.platform] - VM platform label (e.g. 'macos'); org default when omitted
+ * @param {string[]} [options.repos] - Repositories ('owner/repo') to scope the session to
  * @returns {Object|null} - { sessionId, url } or null if failed/not configured
  */
 async function createDevinSession(prompt, options = {}) {
@@ -107,6 +109,12 @@ async function createDevinSession(prompt, options = {}) {
     }
     if (options.title) {
       body.title = options.title;
+    }
+    if (options.platform) {
+      body.platform = options.platform;
+    }
+    if (Array.isArray(options.repos) && options.repos.length) {
+      body.repos = options.repos;
     }
 
     const response = await axios.post(

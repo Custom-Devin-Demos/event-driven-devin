@@ -22,6 +22,12 @@ const {
   getOncallConfigView,
 } = require('../services/oncall');
 const { getOncallSkin, listOncallSkins, ONCALL_SKINS } = require('../../config/oncall-skins');
+const {
+  FLEET,
+  isFleetReport,
+  reportEtaFailure,
+  getEtaFailureStatus,
+} = require('../services/oncall-verticals/fleet');
 
 const router = express.Router();
 
@@ -560,6 +566,53 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
     logger.error('On-Call trigger failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
+});
+
+const FLEET_FAILURE_PATH = `/api/oncall/${FLEET.slug}/eta-failure`;
+
+/**
+ * POST /api/oncall/26a3d261/eta-failure — invariant failure reported by the
+ * native Fleet app when "Share live ETA" computes an arrival that is not
+ * after departure. Acknowledged at once with a reference; the alert card and
+ * the (macOS) Devin session follow asynchronously.
+ */
+router.post(FLEET_FAILURE_PATH, (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  if (!isFleetReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected a fleet-mobile/<ios|macos> source with service ${FLEET.service}`,
+    });
+  }
+  next();
+}, oncallCap('trigger'), (req, res) => {
+  const result = reportEtaFailure(req.body);
+  if (!result) {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected assetId plus ISO-8601 departure and arrival',
+    });
+  }
+  result.outcome.catch((error) => {
+    logger.error('Fleet ETA failure pipeline failed', { reference: result.reference, error: error.message });
+  });
+  return res.status(202).json({
+    received: true,
+    reference: result.reference,
+    service: FLEET.service,
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
+  });
+});
+
+/**
+ * GET /api/oncall/26a3d261/eta-failure/:reference — outcome of a report, so
+ * the app can show the alert/session link on its failure card.
+ */
+router.get(`${FLEET_FAILURE_PATH}/:reference`, (req, res) => {
+  const status = getEtaFailureStatus(req.params.reference);
+  if (!status) return res.status(404).json({ error: 'Unknown reference' });
+  return res.json(status);
 });
 
 /**
