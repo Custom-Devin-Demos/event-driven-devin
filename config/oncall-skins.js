@@ -1579,6 +1579,22 @@ const ONCALL_SKINS = {
     supportCenter: 'PostNL Klantenservice',
     disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
   },
+  '3659ea4f': {
+    slug: '3659ea4f',
+    company: 'Kela',
+    brandMark: 'K',
+    vertical: 'hightech',
+    page: { file: '3659ea4f.html', title: 'Operator access | Kela Perimeter Command & Control' },
+    theme: {
+      '--accent': '#00E6FF',
+      '--ink': '#181825',
+      '--surface': '#F1F0EE',
+      '--chrome-bg': '#181825',
+      '--chrome-text': '#F1F0EE',
+    },
+    supportCenter: 'Kela Support',
+    disclaimer: 'NOT ACTUALLY A KELA SITE — internal demo only, not affiliated with, endorsed by, or a real Kela product.',
+  },
 };
 
 function getOncallSkin(slug) {
