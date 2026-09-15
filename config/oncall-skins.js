@@ -172,6 +172,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ARCADIA SITE — internal demo only, not affiliated with, endorsed by, or a real Arcadia product.',
   },
+  '11c8bdaf': {
+    slug: '11c8bdaf',
+    company: 'Fujitsu',
+    brandMark: 'F',
+    vertical: 'hightech',
+    page: {
+      file: '11c8bdaf.html',
+      title: 'Fujitsu Kozuchi — Workspace access | Fujitsu Global',
+    },
+    theme: {
+      '--accent': '#EA0000',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#3C3C3C',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Fujitsu Support',
+    disclaimer: 'NOT ACTUALLY A FUJITSU SITE — internal demo only, not affiliated with, endorsed by, or a real Fujitsu product.',
+  },
   '8cc190d2': {
     slug: '8cc190d2',
     company: 'Brex',
