@@ -498,6 +498,8 @@
     var toast = document.getElementById('toast');
     var toastTimer = null;
     var selectedMethod = DEFAULT_METHOD;
+    var reviewedAmount = null;
+    var requestToken = 0;
 
     var hour = new Date().getHours();
     document.getElementById('greeting-time').textContent = hour < 12 ? 'Good morning,' : (hour < 17 ? 'Good afternoon,' : 'Good evening,');
@@ -544,6 +546,13 @@
       return d.getFullYear() + '-' + m + '-' + day;
     }
     dateInput.value = today();
+    dateInput.max = today();
+
+    function parseAmount(raw) {
+      var s = String(raw).trim().replace(/^\$/, '').replace(/,/g, '');
+      if (!/^\d+(\.\d{1,2})?$/.test(s)) return NaN;
+      return Number(s);
+    }
 
     function methodLabel(code) {
       for (var i = 0; i < PAYMENT_METHODS.length; i++) if (PAYMENT_METHODS[i].code === code) return PAYMENT_METHODS[i].label;
@@ -566,6 +575,7 @@
     }
 
     function openModal() {
+      requestToken += 1;
       overlay.classList.add('open');
       paneDetails.style.display = '';
       paneReview.style.display = 'none';
@@ -576,7 +586,7 @@
       closeLink.style.display = 'none';
       setStep(1);
     }
-    function closeModal() { overlay.classList.remove('open'); }
+    function closeModal() { requestToken += 1; overlay.classList.remove('open'); }
 
     document.getElementById('notify-link').addEventListener('click', function (e) { e.preventDefault(); openModal(); });
     Array.prototype.forEach.call(document.querySelectorAll('.js-notify'), function (a) {
@@ -588,9 +598,11 @@
     overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
 
     document.getElementById('btn-review').addEventListener('click', function () {
-      var amount = parseFloat(String(amountInput.value).replace(/[^0-9.]/g, ''));
-      if (!(amount > 0)) { amountInput.focus(); showToast('Amount required', 'Enter the amount of the payment you made.'); return; }
+      var amount = parseAmount(amountInput.value);
+      if (!(amount > 0)) { amountInput.focus(); showToast('Amount required', 'Enter the amount as dollars and cents, e.g. 186.42.'); return; }
       if (!dateInput.value) { dateInput.focus(); showToast('Date required', 'Enter the date you made the payment.'); return; }
+      if (dateInput.value > today()) { dateInput.focus(); showToast('Date in the future', 'Enter the date the payment was made, not a future date.'); return; }
+      reviewedAmount = amount;
       document.getElementById('rv-amount').textContent = money(amount);
       document.getElementById('rv-date').textContent = longDate(dateInput.value);
       document.getElementById('rv-method').textContent = methodLabel(selectedMethod);
@@ -648,7 +660,8 @@
     }
 
     submitBtn.addEventListener('click', function () {
-      var amount = parseFloat(String(amountInput.value).replace(/[^0-9.]/g, ''));
+      var amount = reviewedAmount;
+      var token = requestToken;
       submitBtn.disabled = true;
       submitBtn.classList.add('busy');
       result.className = 'result';
@@ -671,10 +684,12 @@
       })
         .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
         .then(function (res) {
+          if (token !== requestToken) return;
           if (res.ok && res.body.success) showSuccess(res.body);
           else showError(res.body || {});
         })
         .catch(function (err) {
+          if (token !== requestToken) return;
           showError({ errorClass: 'NetworkError', error: err.message, code: 'NETWORK_ERROR' });
         })
         .finally(function () {

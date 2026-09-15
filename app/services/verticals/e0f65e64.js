@@ -78,6 +78,13 @@ function validationError(message) {
   return error;
 }
 
+function isValidPaymentDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) return false;
+  return value <= new Date().toISOString().slice(0, 10);
+}
+
 function addBusinessDays(fromDate, days) {
   const date = new Date(fromDate);
   let remaining = days;
@@ -127,14 +134,14 @@ async function notifyPayment(data) {
   if (!account) {
     throw validationError(`Unknown account number: ${data.accountNumber || '(none)'}`);
   }
-  if (!(data.amount > 0)) {
-    throw validationError('Payment amount must be greater than zero');
+  if (!Number.isFinite(data.amount) || data.amount <= 0) {
+    throw validationError('Payment amount must be a finite number greater than zero');
   }
   if (!PAYMENT_METHODS[data.paymentMethod]) {
     throw validationError('Unsupported payment method');
   }
-  if (!data.paymentDate || Number.isNaN(new Date(data.paymentDate).getTime())) {
-    throw validationError('Payment date is required');
+  if (!isValidPaymentDate(data.paymentDate)) {
+    throw validationError('Payment date must be a valid YYYY-MM-DD date that is not in the future');
   }
 
   logger.info('Submitting Bell payment notification', {
