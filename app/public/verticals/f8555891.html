@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payroll Ops On-Call — Gusto</title>
+  <style>
+    :root {
+      --coral: #f45d48;
+      --coral-dark: #d94b37;
+      --ink: #1c1c1c;
+      --muted: #6b665f;
+      --line: #e7e1d8;
+      --paper: #fbf8f3;
+      --white: #ffffff;
+      --success: #1e7a4a;
+      --success-bg: #ecf7f0;
+      --warn: #8a5a00;
+      --warn-bg: #fff3d6;
+      --danger: #b3261e;
+      --danger-bg: #fdecea;
+      --info: #24589a;
+      --info-bg: #e8f0fb;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Inter", "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.45; }
+    a { color: inherit; text-decoration: none; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 232px; padding: 22px 16px; background: var(--white); border-right: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 20px; }
+    .wordmark { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: var(--coral); }
+    .brand small { padding: 3px 7px; border-radius: 4px; background: #f2eee7; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .nav-group { margin: 14px 0 6px; padding: 0 10px; color: #9b958d; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .nav a { display: flex; align-items: center; justify-content: space-between; padding: 9px 10px; border-radius: 7px; color: #4a4640; font-weight: 550; }
+    .nav a.active { background: #fff0ec; color: var(--coral-dark); font-weight: 700; }
+    .nav .count { padding: 1px 7px; border-radius: 10px; background: var(--danger-bg); color: var(--danger); font-size: 11px; font-weight: 700; }
+    .oncall-card { position: absolute; left: 16px; right: 16px; bottom: 20px; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    .oncall-card .who { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; }
+    .oncall-card .name { font-weight: 700; }
+    .oncall-card .role { color: var(--muted); font-size: 12px; }
+    .oncall-card .shift { margin-top: 10px; display: flex; align-items: center; gap: 7px; color: var(--success); font-size: 12px; font-weight: 650; }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px rgba(30,122,74,.18); }
+    .main { width: calc(100% - 232px); margin-left: 232px; padding: 26px 32px 48px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+    .topbar h1 { margin: 0; font-size: 24px; font-weight: 750; letter-spacing: -.4px; }
+    .topbar .sub { margin-top: 3px; color: var(--muted); font-size: 13px; }
+    .status-pills { display: flex; gap: 8px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 650; }
+    .pill.ok { background: var(--success-bg); color: var(--success); }
+    .pill.warn { background: var(--warn-bg); color: var(--warn); }
+    .pill.info { background: var(--info-bg); color: var(--info); }
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    .kpi { padding: 16px 18px; background: var(--white); border: 1px solid var(--line); border-radius: 10px; }
+    .kpi .label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .kpi .value { font-size: 24px; font-weight: 700; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+    .kpi .delta { margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .kpi .delta.bad { color: var(--danger); font-weight: 650; }
+    .kpi .delta.good { color: var(--success); font-weight: 650; }
+    .grid { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+    .panel { background: var(--white); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+    .panel-head .meta { color: var(--muted); font-size: 12px; }
+    .batch-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid var(--line); }
+    .batch-meta div { padding: 12px 20px; border-right: 1px solid var(--line); }
+    .batch-meta div:last-child { border-right: 0; }
+    .batch-meta .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+    .batch-meta .v { font-weight: 650; font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th { padding: 10px 14px; background: #fcfaf7; color: #8a847c; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    td { padding: 13px 14px; border-top: 1px solid var(--line); vertical-align: middle; }
+    td.numeric, th.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+    .company { font-weight: 650; min-width: 200px; }
+    .company small { display: block; margin-top: 2px; color: var(--muted); font-weight: 400; font-size: 12px; }
+    .tag { display: inline-flex; margin: 1px 4px 1px 0; padding: 3px 7px; border-radius: 4px; background: #f2eee7; color: #524d46; font-size: 11px; font-weight: 700; }
+    .tag.new { background: var(--warn-bg); color: var(--warn); }
+    .state-ready { color: var(--success); font-weight: 650; font-size: 12px; }
+    td input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--coral); }
+    .action-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-top: 1px solid var(--line); background: #fcfaf7; }
+    .action-note { color: var(--muted); font-size: 12px; }
+    .action-note strong { color: var(--ink); }
+    .cta { min-height: 44px; padding: 12px 22px; border: 0; border-radius: 8px; background: var(--coral); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .cta:hover { background: var(--coral-dark); }
+    .cta:disabled { opacity: .6; cursor: wait; }
+    .result { display: none; margin: 16px 20px 0; padding: 14px 16px; border-radius: 8px; }
+    .result.show { display: block; }
+    .result.error { background: var(--danger-bg); border: 1px solid #f2b8b5; color: var(--danger); }
+    .result.success { background: var(--success-bg); border: 1px solid #aad8bc; color: var(--success); }
+    .result-title { margin-bottom: 5px; font-size: 14px; font-weight: 700; }
+    .result-tech { font-family: "SF Mono", Menlo, monospace; font-size: 12px; white-space: pre-wrap; color: #76201b; }
+    .result.success .result-tech { color: #17643f; }
+    .feed { list-style: none; margin: 0; padding: 0; }
+    .feed li { display: grid; grid-template-columns: 8px 1fr auto; gap: 12px; padding: 13px 20px; border-top: 1px solid var(--line); align-items: start; }
+    .feed li:first-child { border-top: 0; }
+    .sev { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; }
+    .sev.p1 { background: var(--danger); } .sev.p2 { background: #e08a00; } .sev.p3 { background: #c9c3ba; }
+    .feed .title { font-weight: 650; }
+    .feed .desc { margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .feed .when { color: #9b958d; font-size: 11px; white-space: nowrap; }
+    .queues { padding: 6px 20px 14px; }
+    .queue { display: grid; grid-template-columns: 150px 1fr 56px; gap: 12px; align-items: center; padding: 7px 0; font-size: 12px; }
+    .queue .name { font-family: "SF Mono", Menlo, monospace; color: #4a4640; }
+    .bar { height: 6px; border-radius: 3px; background: #efebe4; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--success); }
+    .bar span.warn { background: #e08a00; }
+    .queue .n { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+    .stack { display: grid; gap: 16px; }
+    @media (max-width: 1280px) {
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .sidebar { display: none; }
+      .main { width: 100%; margin-left: 0; padding: 18px 14px 40px; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .batch-meta { grid-template-columns: repeat(2, 1fr); }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="wordmark">gusto</span><small>Internal</small></div>
+    <nav class="nav">
+      <div class="nav-group">Payroll Ops</div>
+      <a class="active" href="#">On-call overview</a>
+      <a href="#">Payroll batches <span class="count">1</span></a>
+      <a href="#">ACH origination</a>
+      <a href="#">Tax filings &amp; payments</a>
+      <div class="nav-group">Reliability</div>
+      <a href="#">Incidents</a>
+      <a href="#">Monitors</a>
+      <a href="#">Runbooks</a>
+    </nav>
+    <div class="oncall-card">
+      <div class="who">
+        <span class="avatar">RC</span>
+        <div><div class="name">Riley Chen</div><div class="role">Primary · Payroll Platform</div></div>
+      </div>
+      <div class="shift"><span class="pulse"></span> On call · shift ends 18:00 PT</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Payroll Platform · On-call overview</h1>
+        <div class="sub">Tue Sep 15, 2026 · 13:42 PT · Pay date Thu Sep 17 for 2,140 companies</div>
+      </div>
+      <div class="status-pills">
+        <span class="pill ok">Payroll API · healthy</span>
+        <span class="pill ok">Tax engine · healthy</span>
+        <span class="pill warn">ACH cutoff in 3h 48m</span>
+      </div>
+    </div>
+
+    <section class="kpis">
+      <div class="kpi"><div class="label">Batches releasing today</div><div class="value">14 / 15</div><div class="delta">1 awaiting on-call release</div></div>
+      <div class="kpi"><div class="label">ACH debit volume</div><div class="value">$318.4M</div><div class="delta good">On pace vs. last cycle</div></div>
+      <div class="kpi"><div class="label">Payroll error rate (24h)</div><div class="value">0.03%</div><div class="delta good">Within SLO (0.10%)</div></div>
+      <div class="kpi"><div class="label">Tax filings due this week</div><div class="value">6,812</div><div class="delta">MN Paid Leave: first quarterly filing</div></div>
+      <div class="kpi"><div class="label">Open incidents</div><div class="value">0</div><div class="delta">Last SEV-2 · 11 days ago</div></div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Batch awaiting release</h2>
+          <span class="meta">Held for on-call review · new-state onboarding in batch</span>
+        </div>
+        <div class="batch-meta">
+          <div><div class="k">Batch</div><div class="v" id="batch-id">PB-2026-09-15-A</div></div>
+          <div><div class="k">Debit window</div><div class="v" id="batch-window">Sep 15 · 14:00 PT</div></div>
+          <div><div class="k">ACH cutoff</div><div class="v" id="batch-cutoff">Sep 15 · 17:30 PT</div></div>
+          <div><div class="k">Processor</div><div class="v" id="batch-processor">ach-origination-east</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Work states</th>
+                <th class="numeric">Employees</th>
+                <th class="numeric">Gross pay</th>
+                <th class="numeric">Total debit</th>
+                <th>Status</th>
+                <th>Include</th>
+              </tr>
+            </thead>
+            <tbody id="company-rows"></tbody>
+          </table>
+        </div>
+        <div id="result" class="result" role="status">
+          <div class="result-title" id="result-title"></div>
+          <div class="result-tech" id="result-tech"></div>
+        </div>
+        <div class="action-bar">
+          <div class="action-note">Releasing <strong id="company-count">0</strong> companies · <strong id="employee-count">0</strong> employees · total debit <strong id="total-debit">$0.00</strong></div>
+          <button class="cta" id="release-batch" type="button">Release ACH debits</button>
+        </div>
+      </section>
+
+      <div class="stack">
+        <section class="panel">
+          <div class="panel-head"><h2>Alerts · last 24h</h2><span class="meta">#payroll-oncall</span></div>
+          <ul class="feed">
+            <li><span class="sev p3"></span><div><div class="title">ACH return rate elevated (R01)</div><div class="desc">Auto-resolved · 0.4% → 0.1% after retry</div></div><span class="when">09:12</span></li>
+            <li><span class="sev p3"></span><div><div class="title">Tax engine p95 latency &gt; 800ms</div><div class="desc">Resolved · cache warm after deploy</div></div><span class="when">07:58</span></li>
+            <li><span class="sev p2"></span><div><div class="title">Sidekiq queue lag · payroll_calculations</div><div class="desc">Resolved · scaled workers 12 → 20</div></div><span class="when">Yesterday</span></li>
+          </ul>
+        </section>
+        <section class="panel">
+          <div class="panel-head"><h2>Sidekiq queues</h2><span class="meta">depth · workers healthy</span></div>
+          <div class="queues">
+            <div class="queue"><span class="name">payroll_calculations</span><div class="bar"><span style="width:22%"></span></div><span class="n">1,204</span></div>
+            <div class="queue"><span class="name">ach_origination</span><div class="bar"><span style="width:8%"></span></div><span class="n">318</span></div>
+            <div class="queue"><span class="name">tax_filings</span><div class="bar"><span class="warn" style="width:61%"></span></div><span class="n">6,812</span></div>
+            <div class="queue"><span class="name">notifications</span><div class="bar"><span style="width:14%"></span></div><span class="n">2,090</span></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const fallbackCompanies = [
+      { id: 'CO-48211', name: 'Harbor Light Coffee Roasters', industry: 'Food & Beverage', plan: 'Plus', employees: 42, workStates: ['CA'], grossPay: 148200, totalDebit: 153238.8 },
+      { id: 'CO-50934', name: 'Redwood Ridge Veterinary', industry: 'Healthcare', plan: 'Premium', employees: 27, workStates: ['CA', 'WA'], grossPay: 96400, totalDebit: 99388.4 },
+      { id: 'CO-51177', name: 'Northstar Dental Group', industry: 'Healthcare', plan: 'Plus', employees: 19, workStates: ['MN'], grossPay: 71300, totalDebit: 71300, newState: true },
+      { id: 'CO-47102', name: 'Brightline Architecture Studio', industry: 'Professional Services', plan: 'Simple', employees: 11, workStates: ['NY'], grossPay: 58900, totalDebit: 61314.9 },
+      { id: 'CO-52260', name: 'Mesa Verde Landscaping', industry: 'Field Services', plan: 'Simple', employees: 34, workStates: ['TX'], grossPay: 64800, totalDebit: 66549.6 },
+    ];
+    const result = document.getElementById('result');
+    const resultTitle = document.getElementById('result-title');
+    const resultTech = document.getElementById('result-tech');
+    const releaseButton = document.getElementById('release-batch');
+    let companies = fallbackCompanies;
+    let releasing = false;
+    const money = (value) => '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function renderCompanies() {
+      const rows = document.getElementById('company-rows');
+      const previouslyChecked = new Set([...document.querySelectorAll('[data-company-id]:checked')].map((input) => input.dataset.companyId));
+      const hadRows = rows.children.length > 0;
+      rows.replaceChildren();
+      companies.forEach((company) => {
+        const row = document.createElement('tr');
+        const companyCell = document.createElement('td');
+        const name = document.createElement('div');
+        name.className = 'company';
+        name.textContent = company.name;
+        const sub = document.createElement('small');
+        sub.textContent = company.id + ' · ' + company.industry + ' · ' + company.plan;
+        name.appendChild(sub);
+        companyCell.appendChild(name);
+
+        const statesCell = document.createElement('td');
+        company.workStates.forEach((state) => {
+          const tag = document.createElement('span');
+          tag.className = 'tag';
+          tag.textContent = state;
+          statesCell.appendChild(tag);
+        });
+        if (company.newState) {
+          const tag = document.createElement('span');
+          tag.className = 'tag new';
+          tag.textContent = 'New state';
+          statesCell.appendChild(tag);
+        }
+
+        const employees = document.createElement('td');
+        employees.className = 'numeric';
+        employees.textContent = company.employees;
+        const gross = document.createElement('td');
+        gross.className = 'numeric';
+        gross.textContent = money(company.grossPay);
+        const debit = document.createElement('td');
+        debit.className = 'numeric';
+        debit.textContent = money(company.totalDebit);
+        const status = document.createElement('td');
+        status.innerHTML = '<span class="state-ready">Ready</span>';
+
+        const includeCell = document.createElement('td');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.dataset.companyId = company.id;
+        checkbox.checked = !hadRows || previouslyChecked.has(company.id);
+        checkbox.disabled = releasing;
+        checkbox.setAttribute('aria-label', 'Include ' + company.name);
+        checkbox.addEventListener('change', updateSummary);
+        includeCell.appendChild(checkbox);
+
+        row.append(companyCell, statesCell, employees, gross, debit, status, includeCell);
+        rows.appendChild(row);
+      });
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const checkedIds = new Set([...document.querySelectorAll('[data-company-id]:checked')].map((input) => input.dataset.companyId));
+      const selected = companies.filter((company) => checkedIds.has(company.id));
+      document.getElementById('company-count').textContent = selected.length;
+      document.getElementById('employee-count').textContent = selected.reduce((sum, company) => sum + company.employees, 0);
+      document.getElementById('total-debit').textContent = money(selected.reduce((sum, company) => sum + Number(company.totalDebit || 0), 0));
+    }
+
+    function showResult(kind, title, tech) {
+      result.className = 'result show ' + kind;
+      resultTitle.textContent = title;
+      resultTech.textContent = tech;
+      result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function releaseBatch() {
+      const checkboxes = [...document.querySelectorAll('[data-company-id]')];
+      const checkedIds = checkboxes.filter((input) => input.checked).map((input) => input.dataset.companyId);
+      releasing = true;
+      releaseButton.disabled = true;
+      checkboxes.forEach((input) => { input.disabled = true; });
+      result.className = 'result';
+      try {
+        const response = await fetch('/api/f8555891/release-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            batchId: 'PB-2026-09-15-A',
+            companyIds: checkedIds,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          showResult('error', 'Batch release failed — ACH debits were not originated.', (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'BATCH_RELEASE_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
+        } else {
+          showResult('success', 'Batch released. ACH debits originated.', 'ACH file: ' + payload.achFileId + '\nPay date: ' + payload.payDate + ' · ' + payload.companyCount + ' companies · ' + money(payload.totalDebit));
+        }
+      } catch (error) {
+        showResult('error', 'Batch release failed — ACH debits were not originated.', 'NetworkError: ' + error.message + '\nBATCH_RELEASE_FAILED · Reference ID: unavailable');
+      } finally {
+        releasing = false;
+        releaseButton.disabled = false;
+        document.querySelectorAll('[data-company-id]').forEach((input) => { input.disabled = false; });
+      }
+    }
+
+    releaseButton.addEventListener('click', releaseBatch);
+    renderCompanies();
+    fetch('/api/f8555891/batch').then((response) => response.json()).then((payload) => {
+      if (payload.companies) { companies = payload.companies; renderCompanies(); }
+    }).catch(() => {});
+  </script>
+</body>
+</html>
