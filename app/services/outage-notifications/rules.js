@@ -608,11 +608,19 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
 
   if (incident.closed && event.state !== 'restored') {
     // Reopened outage on the same incident id: re-alert with a reopen variant
-    // so the type-level de-dup does not swallow it.
+    // so the type-level de-dup does not swallow it; the ETA resets for the new
+    // outage segment so the reopen alert never shows a stale estimate.
     incident.closed = false;
     incident.state = event.state;
     incident.reportedState = event.state;
     incident.restoredAt = null;
+    incident.eta = event.eta || null;
+    incident.etaUpdatedAt = event.eta ? event.timestamp : null;
+    incident.pendingEta.clear();
+    incident.lastEtaNotifiedAt.clear();
+    if (event.eta) {
+      addHistory(incident, event.timestamp, `ETA updated to ${event.eta} (was none)`, { backfilled });
+    }
     addHistory(incident, event.timestamp, `Incident reopened: reported ${event.state}`, { state: event.state, backfilled });
     if (!backfilled) {
       const type = event.state === 'down' ? 'down' : 'degraded';
@@ -626,7 +634,6 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
           suppressed,
         });
     }
-    queued += applyEta(incident, circuit, event, { now, backfilled, suppressed });
     return {
       outcome: backfilled ? 'backfilled' : 'processed',
       incidentId: incident.incidentId,

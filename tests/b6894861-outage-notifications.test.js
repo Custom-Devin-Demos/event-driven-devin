@@ -19,6 +19,7 @@ const {
   ValidationError,
   render,
   getAccountIncidents,
+  getIncident,
   getNotificationLog,
   getPreferences,
   setChannel,
@@ -496,6 +497,35 @@ describe('Review fixes', () => {
     expect(incident.closed).toBe(false);
     expect(incident.state).toBe('down');
     expect(incident.history.some((h) => h.text === 'Incident reopened: reported down')).toBe(true);
+  });
+
+  test('AC-3 reopen resets the stale ETA: reopen alert carries only the new estimate', () => {
+    const t0 = Date.now();
+    const inc = 'inc-reopen-eta';
+    const etaA = new Date(t0 + 3600e3).toISOString(); // ~14:00 segment
+    const etaB = new Date(t0 + 4 * 3600e3).toISOString(); // ~17:00 segment
+    processEvent(event({ incidentId: inc, eta: etaA }), { now: t0 });
+    processEvent(event({ incidentId: inc, state: 'restored' }, t0 + 10 * 60000), { now: t0 + 10 * 60000 });
+    const queuedBefore = gateway.queue.filter((q) => q.state === 'queued').length;
+    processEvent(event({ incidentId: inc, state: 'down', eta: etaB }, t0 + 20 * 60000), { now: t0 + 20 * 60000 });
+
+    const fresh = gateway.queue.filter((q) => q.state === 'queued').slice(queuedBefore);
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0].type).toBe('down');
+    expect(fresh[0].message.subject).toContain('[Down]');
+    expect(fresh[0].message.text).toContain(formatTimestamp(etaB));
+    expect(fresh[0].message.text).not.toContain(formatTimestamp(etaA));
+    expect(getNotificationLog(inc).filter((n) => n.type === 'eta_update')).toHaveLength(0);
+    expect(getIncident(inc).eta).toBe(etaB);
+
+    // Reopen without an eta clears the estimate entirely.
+    processEvent(event({ incidentId: inc, state: 'restored' }, t0 + 30 * 60000), { now: t0 + 30 * 60000 });
+    const queuedBefore2 = gateway.queue.filter((q) => q.state === 'queued').length;
+    processEvent(event({ incidentId: inc, state: 'down' }, t0 + 40 * 60000), { now: t0 + 40 * 60000 });
+    expect(getIncident(inc).eta).toBeNull();
+    const reopen2 = gateway.queue.filter((q) => q.state === 'queued').slice(queuedBefore2)
+      .find((q) => q.type === 'down');
+    expect(reopen2.message.text).toContain('ETA not yet available');
   });
 
   test('AC-4 intermittent incident resolves via sweep after a stable restore', () => {
