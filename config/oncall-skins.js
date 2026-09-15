@@ -1563,6 +1563,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Rabobank Klantenservice',
     disclaimer: 'NOT ACTUALLY A RABOBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Rabobank product.',
   },
+  '85b32278': {
+    slug: '85b32278',
+    company: 'PostNL',
+    brandMark: 'P',
+    vertical: 'insurance',
+    page: { file: '85b32278.html', title: 'Schade melden | PostNL' },
+    theme: {
+      '--accent': '#6161FF',
+      '--ink': '#1F1E2F',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#001A73',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'PostNL Klantenservice',
+    disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
+  },
 };
 
 function getOncallSkin(slug) {
