@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen Network Status</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --navy: #0C1B33;
+    --blue: #0075C9;
+    --ink: #1A1A1A;
+    --border: #D7DCE3;
+    --down-band: #FBE9E7; --down-text: #7A1C10;
+    --deg-band: #FFF4E0;  --deg-text: #6B4300;
+    --ok-band: #E6F4EA;   --ok-text: #12522A;
+    --closed-band: #EDEDED; --closed-text: #3D3D3D;
+  }
+  body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: var(--ink); background: #F5F7FA; font-size: 16px; line-height: 24px; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  button { min-height: 44px; font: inherit; cursor: pointer; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  header.site { background: var(--navy); color: #fff; padding: 0 24px; display: flex; align-items: center; gap: 24px; min-height: 64px; flex-wrap: wrap; }
+  .wordmark { font-weight: 700; letter-spacing: 3px; font-size: 20px; }
+  .wordmark span { color: var(--blue); }
+  header.site .spacer { flex: 1; }
+  #accountSelect { font: inherit; min-height: 44px; padding: 0 8px; }
+  #openIndicator { background: rgba(255,255,255,.12); border-radius: 16px; padding: 6px 14px; font-size: 14px; }
+  label.hdr { font-size: 14px; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 24px; }
+  section { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+  section h2 { margin-top: 0; font-size: 18px; }
+
+  /* ---------- banner ---------- */
+  #banner { border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; display: none; }
+  #banner.show { display: flex; align-items: center; gap: 16px; }
+  #banner .text { flex: 1; }
+  #banner.single-down, #banner.intermittent { background: var(--down-band); color: var(--down-text); border: 1px solid #E7B7AE; }
+  #banner.single-degraded, #banner.multiple { background: var(--deg-band); color: var(--deg-text); border: 1px solid #EBD6A8; }
+  #banner.restored { background: var(--ok-band); color: var(--ok-text); border: 1px solid #BFE0C9; }
+  #banner button { border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 4px; padding: 8px 16px; }
+
+  /* ---------- circuit list ---------- */
+  .chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 12px; padding: 2px 10px; font-size: 13px; font-weight: 700; }
+  .chip.down { background: var(--down-band); color: var(--down-text); }
+  .chip.degraded, .chip.intermittent { background: var(--deg-band); color: var(--deg-text); }
+  .chip.restored { background: var(--ok-band); color: var(--ok-text); }
+  .chip.healthy { background: var(--ok-band); color: var(--ok-text); }
+  .chip.closed { background: var(--closed-band); color: var(--closed-text); }
+  ul.circuits { list-style: none; margin: 0; padding: 0; }
+  ul.circuits li { display: flex; align-items: center; gap: 16px; padding: 12px 8px; border-bottom: 1px solid var(--border); }
+  ul.circuits li .meta { flex: 1; }
+  ul.circuits li .sites { color: #5A6472; font-size: 14px; }
+  .empty { color: #5A6472; background: #F0F2F5; border-radius: 8px; padding: 20px; }
+  .skeleton { background: #E4E8EE; border-radius: 4px; height: 24px; margin: 8px 0; animation: none; }
+  .alert-inline { background: var(--deg-band); color: var(--deg-text); border: 1px solid #EBD6A8; border-radius: 8px; padding: 16px; }
+
+  /* ---------- drawer ---------- */
+  #drawerWrap { position: fixed; inset: 0; display: none; z-index: 20; }
+  #drawerWrap.open { display: block; }
+  #drawerWrap .scrim { position: absolute; inset: 0; background: rgba(12,27,51,.45); }
+  #drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(480px, 100%); background: #fff; box-shadow: -4px 0 16px rgba(0,0,0,.2); padding: 24px; overflow-y: auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    #drawer { animation: slide-in .18s ease-out; }
+    @keyframes slide-in { from { transform: translateX(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  }
+  #drawer dl { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; margin: 16px 0; }
+  #drawer dt { font-weight: 700; }
+  #drawer dd { margin: 0; }
+  #drawer ol { padding-left: 20px; }
+  #drawer ol li { margin-bottom: 10px; }
+  #drawer .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+  .btn-primary { background: var(--blue); color: #fff; border: none; border-radius: 4px; padding: 10px 20px; font-weight: 700; }
+  .btn-secondary { background: #fff; color: var(--blue); border: 1px solid var(--blue); border-radius: 4px; padding: 10px 20px; }
+
+  /* ---------- preferences ---------- */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  th { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: #5A6472; }
+  .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
+  .switch input { opacity: 0; width: 48px; height: 26px; margin: 0; cursor: pointer; }
+  .switch .track { position: absolute; inset: 0; background: #B9C2CD; border-radius: 13px; pointer-events: none; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; }
+  .switch input:checked + .track { background: var(--blue); }
+  .switch input:checked + .track::after { left: 25px; }
+  .switch input:focus-visible + .track { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .switch input:disabled { cursor: not-allowed; }
+  .switch input:disabled + .track { opacity: .5; }
+  .tag { font-size: 12px; background: var(--deg-band); color: var(--deg-text); border-radius: 10px; padding: 2px 8px; margin-left: 6px; }
+  .saved-note { color: var(--ok-text); font-size: 14px; margin-left: 8px; }
+
+  /* ---------- simulator ---------- */
+  details.sim { background: #fff; border: 1px dashed #9AA6B5; }
+  details.sim summary { font-weight: 700; cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .sim-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .sim-buttons button { background: var(--navy); color: #fff; border: none; border-radius: 4px; padding: 8px 14px; }
+  #simLog { font-family: monospace; font-size: 13px; background: #0C1B33; color: #B7E4C7; border-radius: 6px; padding: 12px; margin-top: 12px; max-height: 200px; overflow: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wordmark">LUMEN<span>&nbsp;·&nbsp;</span>NETWORK STATUS</div>
+  <div class="spacer"></div>
+  <span id="openIndicator" role="status">0 open incidents</span>
+  <label class="hdr" for="accountSelect">Account</label>
+  <select id="accountSelect"></select>
+</header>
+
+<div id="banner" role="status">
+  <div class="text" id="bannerText"></div>
+  <button type="button" id="bannerAction">View details</button>
+  <button type="button" id="bannerDismiss" aria-label="Dismiss this incident banner">Dismiss</button>
+</div>
+
+<main>
+  <h1>Circuit status</h1>
+
+  <section aria-labelledby="circuitsHeading" id="circuitsSection" aria-busy="true">
+    <h2 id="circuitsHeading">Loading circuit status</h2>
+    <div id="circuitError" class="alert-inline" hidden></div>
+    <ul class="circuits" id="circuitList"></ul>
+    <p id="circuitEmpty" class="empty" hidden>No monitored circuits on this account. Circuit monitoring is set up by your Lumen account team.</p>
+    <p id="lastChecked" style="color:#5A6472;font-size:14px;"></p>
+  </section>
+
+  <section aria-labelledby="prefsHeading" id="notifications">
+    <h2 id="prefsHeading">Notification preferences</h2>
+    <p id="prefsEmpty" class="empty" hidden>Nobody on this account receives outage notifications yet. Turn on email for at least one network contact so you hear about outages before you need to call.</p>
+    <table id="prefsTable">
+      <thead>
+        <tr><th>Contact</th><th>Email</th><th>SMS</th><th>Webhook</th><th>Circuits</th><th>Last changed</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p style="font-size:14px;color:#5A6472;">Quiet hours pause text messages only. Email and portal updates always send.</p>
+  </section>
+
+  <section aria-labelledby="sentHeading">
+    <h2 id="sentHeading">Notifications sent</h2>
+    <p style="font-size:14px;color:#5A6472;">Support-agent view: open an incident drawer and choose “View notifications sent”.</p>
+    <div id="sentWrap" hidden>
+      <h3 id="sentTitle"></h3>
+      <table id="sentTable">
+        <thead><tr><th>Sent at</th><th>Channel</th><th>Recipient</th><th>Type</th><th>Delivery state</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="sim" id="simPanel">
+    <summary>NOC event simulator</summary>
+    <div class="sim-buttons">
+      <button type="button" data-sim="down">Circuit down</button>
+      <button type="button" data-sim="degraded">Degraded</button>
+      <button type="button" data-sim="eta">Set ETA (+2h)</button>
+      <button type="button" data-sim="restored">Restored</button>
+      <button type="button" data-sim="dup">Duplicate down</button>
+      <button type="button" data-sim="flap">Flap ×4</button>
+      <button type="button" data-sim="maint">Maintenance event</button>
+      <button type="button" data-sim="backfill">Backfilled (75 min old)</button>
+      <button type="button" data-sim="unknown">Unknown circuit</button>
+      <button type="button" data-sim="reset">Reset demo</button>
+    </div>
+    <div id="simLog" aria-live="polite"></div>
+  </details>
+</main>
+
+<div id="drawerWrap">
+  <div class="scrim" id="drawerScrim"></div>
+  <div id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <button type="button" id="drawerClose" class="btn-secondary" style="float:right;">Close</button>
+    <h2 id="drawerTitle"></h2>
+    <p id="drawerSub" style="color:#5A6472;"></p>
+    <div id="drawerChip"></div>
+    <dl id="drawerFacts"></dl>
+    <h3>Update history <button type="button" id="histToggle" class="btn-secondary" style="min-height:36px;padding:4px 12px;font-size:14px;">Newest first</button></h3>
+    <ol id="drawerTimeline"></ol>
+    <div class="actions">
+      <a class="btn-primary" href="#notifications" id="drawerPrefs" style="display:inline-flex;align-items:center;text-decoration:none;">Manage my notifications</a>
+      <button type="button" class="btn-secondary" id="drawerNotifs">View notifications sent</button>
+    </div>
+    <p id="drawerSupport" style="margin-top:16px;"></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var SUPPORT_PHONE = '1-877-453-8353';
+  var API = '/api/b6894861';
+  var state = { accountId: null, data: null, contacts: {}, drawerIncident: null, newestFirst: false, lastFocused: null };
+  var dismissed = {}; // session-scoped per incident
+  var refreshSeq = 0; // stale-response guard for account switching
+
+  var STATE_META = {
+    down: { word: 'Down', glyph: '⯃', cls: 'down' },
+    degraded: { word: 'Degraded', glyph: '▲', cls: 'degraded' },
+    restored: { word: 'Restored', glyph: '✓', cls: 'restored' },
+    intermittent: { word: 'Intermittent', glyph: '〜', cls: 'intermittent' },
+    healthy: { word: 'Healthy', glyph: '✓', cls: 'healthy' },
+    closed: { word: 'Closed - no outage', glyph: '—', cls: 'closed' }
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function chip(st) {
+    var m = STATE_META[st] || STATE_META.closed;
+    return '<span class="chip ' + m.cls + '"><span aria-hidden="true">' + m.glyph + '</span>' +
+      '<span class="visually-hidden">Status: </span>' + esc(m.word) + '</span>';
+  }
+  function simLog(msg) {
+    var el = $('simLog');
+    el.textContent = new Date().toISOString() + '  ' + msg + '\n' + el.textContent;
+  }
+
+  function fetchJSON(url, opts) {
+    return fetch(url, opts).then(function (r) {
+      return r.json().then(function (body) { return { status: r.status, body: body }; });
+    });
+  }
+
+  /* ---------- accounts ---------- */
+  function loadAccounts() {
+    return fetchJSON(API + '/accounts').then(function (r) {
+      var sel = $('accountSelect');
+      sel.innerHTML = '';
+      r.body.accounts.forEach(function (a) {
+        var o = document.createElement('option');
+        o.value = a.accountId;
+        o.textContent = a.accountName + ' (' + a.accountId + ')';
+        sel.appendChild(o);
+      });
+      if (!state.accountId && r.body.accounts.length) state.accountId = r.body.accounts[0].accountId;
+      sel.value = state.accountId;
+    });
+  }
+
+  /* ---------- main data ---------- */
+  function refresh() {
+    if (!state.accountId) return Promise.resolve();
+    var seq = ++refreshSeq;
+    $('circuitsSection').setAttribute('aria-busy', 'true');
+    return fetchJSON(API + '/accounts/' + encodeURIComponent(state.accountId) + '/circuit-incidents')
+      .then(function (r) {
+        if (seq !== refreshSeq) return; // a newer refresh superseded this one
+        $('circuitsSection').setAttribute('aria-busy', 'false');
+        if (r.status !== 200) {
+          showCircuitError();
+          return;
+        }
+        $('circuitError').hidden = true;
+        state.data = r.body;
+        renderAll();
+      })
+      .catch(function () {
+        if (seq !== refreshSeq) return;
+        $('circuitsSection').setAttribute('aria-busy', 'false');
+        showCircuitError();
+      });
+  }
+
+  function showCircuitError() {
+    $('circuitError').hidden = false;
+    $('circuitError').innerHTML = 'We cannot load circuit status right now. Notifications are unaffected. Try again or call ' + esc(SUPPORT_PHONE) + '. <button type="button" id="retryBtn">Retry</button>';
+    $('retryBtn').addEventListener('click', refresh);
+  }
+
+  function renderAll() {
+    var d = state.data;
+    $('openIndicator').textContent = d.openCount + ' open incident' + (d.openCount === 1 ? '' : 's');
+    renderBanner(d);
+    renderCircuits(d);
+    loadPrefs();
+  }
+
+  function contactLabel(n) {
+    var c = state.contacts[n.contactId];
+    if (!c) return n.contactId;
+    return n.channel === 'email' ? c.name + ' — ' + c.email : c.name;
+  }
+
+  function renderBanner(d) {
+    var b = d.banner;
+    var el = $('banner');
+    if (!b || dismissed[b.incidentId + '|' + b.text]) { el.className = ''; el.style.display = 'none'; return; }
+    el.style.display = 'flex';
+    el.className = 'show ' + (b.variant === 'single' ? 'single-' + (state.incidentState || 'down') : b.variant);
+    // resolve single-incident state class
+    if (b.variant === 'single') {
+      var inc = d.incidents.find(function (i) { return i.incidentId === b.incidentId; });
+      el.className = 'show single-' + (inc ? inc.state : 'down');
+      el.setAttribute('role', inc && inc.state === 'down' ? 'alert' : 'status');
+    } else {
+      el.setAttribute('role', 'status');
+    }
+    $('bannerText').textContent = b.text;
+    $('bannerAction').textContent = b.variant === 'restored' ? 'View history' : (b.variant === 'multiple' ? 'View all' : 'View details');
+    $('bannerAction').onclick = function () {
+      var inc = d.incidents.find(function (i) { return i.incidentId === b.incidentId; }) || d.incidents[0];
+      if (inc) openDrawer(inc);
+    };
+    $('bannerDismiss').onclick = function () {
+      dismissed[b.incidentId + '|' + b.text] = true;
+      el.className = ''; el.style.display = 'none';
+    };
+  }
+
+  function renderCircuits(d) {
+    var list = $('circuitList');
+    list.innerHTML = '';
+    if (!d.circuits.length) {
+      $('circuitsHeading').textContent = 'Monitored circuits';
+      $('circuitEmpty').hidden = false;
+      $('lastChecked').textContent = '';
+      return;
+    }
+    $('circuitEmpty').hidden = true;
+    var affected = d.circuits.filter(function (c) { return c.state !== 'healthy'; });
+    var healthy = d.circuits.filter(function (c) { return c.state === 'healthy'; });
+    $('circuitsHeading').textContent = affected.length === 0
+      ? 'All ' + d.circuits.length + ' monitored circuits are healthy'
+      : 'Monitored circuits (' + affected.length + ' affected)';
+    affected.concat(healthy).forEach(function (c) {
+      var li = document.createElement('li');
+      li.innerHTML = chip(c.state) +
+        '<div class="meta"><strong>' + esc(c.circuitName) + '</strong> <span style="color:#5A6472">' + esc(c.circuitId) + '</span>' +
+        '<div class="sites">' + esc(c.siteA) + ' → ' + esc(c.siteZ) + '</div></div>';
+      var inc = c.currentIncidentId
+        ? d.incidents.find(function (i) { return i.incidentId === c.currentIncidentId; })
+        : null;
+      if (inc) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn-secondary';
+        btn.textContent = 'Details';
+        btn.addEventListener('click', function () { openDrawer(inc); });
+        li.appendChild(btn);
+      }
+      list.appendChild(li);
+    });
+    $('lastChecked').textContent = 'Last checked ' + new Date().toISOString();
+  }
+
+  /* ---------- drawer ---------- */
+  function openDrawer(incident) {
+    state.drawerIncident = incident;
+    state.lastFocused = document.activeElement;
+    var circuits = (state.data && state.data.circuits) || [];
+    var c = circuits.find(function (x) { return x.circuitId === incident.circuitId; }) || {};
+    var sites = (c.siteA && c.siteZ) ? c.siteA + ' → ' + c.siteZ : '';
+    $('drawerTitle').textContent = (incident.circuitName || incident.circuitId);
+    $('drawerSub').textContent = incident.circuitId + (sites ? ' · ' + sites : '');
+    $('drawerChip').innerHTML = chip(incident.state);
+    var facts = $('drawerFacts');
+    var lastEntry = incident.history.length ? incident.history[incident.history.length - 1] : null;
+    var etaRow = incident.state === 'restored'
+      ? '<dt>Restored at</dt><dd><time datetime="' + esc(incident.restoredAt || '') + '">' + esc(incident.restoredAtLabel || incident.restoredAt || '') + '</time></dd>'
+      : '<dt>Current ETA</dt><dd>' + esc(incident.etaLabel || 'ETA not yet available') + '</dd>';
+    facts.innerHTML =
+      '<dt>Started</dt><dd><time datetime="' + esc(incident.startedAt) + '">' + esc(incident.startedAtLabel || incident.startedAt) + '</time></dd>' +
+      etaRow +
+      '<dt>Last update</dt><dd><time datetime="' + esc(lastEntry ? lastEntry.at : incident.startedAt) + '">' + esc(lastEntry ? (lastEntry.atLabel || lastEntry.at) : (incident.startedAtLabel || incident.startedAt)) + '</time></dd>' +
+      (sites ? '<dt>Sites</dt><dd>' + esc(sites) + '</dd>' : '') +
+      '<dt>Incident id</dt><dd>' + esc(incident.incidentId) + ' <button type="button" class="btn-secondary" id="copyInc" style="min-height:36px;padding:4px 12px;font-size:14px;">Copy</button></dd>';
+    renderTimeline(incident);
+    $('drawerSupport').textContent = 'Call support ' + SUPPORT_PHONE + ', reference ' + incident.incidentId;
+    $('drawerWrap').className = 'open';
+    $('drawerClose').focus();
+    $('copyInc').addEventListener('click', function () {
+      if (navigator.clipboard) navigator.clipboard.writeText(incident.incidentId);
+    });
+    $('drawerNotifs').onclick = function () { loadSent(incident); };
+  }
+
+  function renderTimeline(incident) {
+    var entries = state.newestFirst ? incident.history.slice().reverse() : incident.history;
+    var ol = $('drawerTimeline');
+    ol.innerHTML = entries.map(function (h) {
+      var chipHtml = h.state ? ' ' + chip(h.state) : '';
+      return '<li><time datetime="' + esc(h.at) + '">' + esc(h.atLabel || h.at) + '</time>' + chipHtml + ' — ' + esc(h.textLabel || h.text) + '</li>';
+    }).join('') || '<li>Incident opened ' + esc(incident.startedAtLabel || incident.startedAt) + '</li>';
+    $('histToggle').textContent = state.newestFirst ? 'Oldest first' : 'Newest first';
+  }
+
+  function closeDrawer() {
+    $('drawerWrap').className = '';
+    if (state.lastFocused) state.lastFocused.focus();
+  }
+
+  $('drawerClose').addEventListener('click', closeDrawer);
+  $('drawerScrim').addEventListener('click', closeDrawer);
+  $('histToggle').addEventListener('click', function () {
+    state.newestFirst = !state.newestFirst;
+    if (state.drawerIncident) renderTimeline(state.drawerIncident);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && $('drawerWrap').className === 'open') closeDrawer();
+    // simple focus trap
+    if (e.key === 'Tab' && $('drawerWrap').className === 'open') {
+      var focusables = $('drawer').querySelectorAll('button, a[href], [tabindex]');
+      if (!focusables.length) return;
+      var first = focusables[0], last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+      else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+    }
+  });
+
+  /* ---------- notifications sent ---------- */
+  function loadSent(incident) {
+    closeDrawer();
+    fetchJSON(API + '/accounts/' + state.accountId + '/incidents/' + incident.incidentId + '/notifications')
+      .then(function (r) {
+        var wrap = $('sentWrap');
+        wrap.hidden = false;
+        $('sentTitle').textContent = 'Incident ' + incident.incidentId;
+        var tb = $('sentTable').querySelector('tbody');
+        tb.innerHTML = (r.body.notifications || []).map(function (n) {
+          return '<tr><td>' + esc(n.sentAt) + '</td><td>' + esc(n.channel) + '</td><td>' + esc(contactLabel(n)) + '</td>' +
+            '<td>' + esc(n.type) + '</td><td>' + esc(n.state) + (n.reason ? ' (' + esc(n.reason) + ')' : '') + '</td></tr>';
+        }).join('') || '<tr><td colspan="5">No notifications recorded.</td></tr>';
+        wrap.scrollIntoView();
+      });
+  }
+
+  /* ---------- preferences ---------- */
+  var prefsSeq = 0; // stale-response guard for account switching
+  function loadPrefs() {
+    var seq = ++prefsSeq;
+    var accountId = state.accountId;
+    fetchJSON(API + '/accounts/' + accountId + '/preferences').then(function (r) {
+      if (seq !== prefsSeq) return; // a newer load superseded this one
+      if (r.status !== 200) return;
+      state.contacts = {};
+      r.body.contacts.forEach(function (c) { state.contacts[c.id] = c; });
+      var tb = $('prefsTable').querySelector('tbody');
+      tb.innerHTML = '';
+      var anyOn = false;
+      r.body.contacts.forEach(function (c) {
+        if (c.channels.email || c.channels.sms || c.channels.webhook) anyOn = true;
+        var tr = document.createElement('tr');
+        var last = c.lastChangedAt ? esc(c.lastChangedAt.slice(0, 10)) + ' by ' + esc(c.lastChangedBy || 'unknown') : '—';
+        tr.innerHTML =
+          '<td><strong>' + esc(c.name) + '</strong><br><span style="color:#5A6472;font-size:14px;">' + esc(c.role) + ' · ' + esc(c.email) + '</span></td>' +
+          '<td>' + switchHtml(c.id, 'email', c.channels.email, false) + '</td>' +
+          '<td>' + switchHtml(c.id, 'sms', c.channels.sms, true) + '<span class="tag" title="Delivery starts in phase 2; your choice is saved now.">Coming soon</span></td>' +
+          '<td>' + switchHtml(c.id, 'webhook', c.channels.webhook, true) + '<span class="tag" title="Delivery starts in phase 2; your choice is saved now.">Coming soon</span></td>' +
+          '<td>All circuits</td>' +
+          '<td>' + last + '<span class="saved-note" id="saved-' + c.id + '" hidden>Saved. Takes effect for the next event.</span></td>';
+        tb.appendChild(tr);
+      });
+      $('prefsEmpty').hidden = anyOn;
+      tb.querySelectorAll('input[data-channel]').forEach(function (input) {
+        input.addEventListener('change', function () {
+          var note = $('saved-' + input.dataset.contact);
+          fetch(API + '/accounts/' + state.accountId + '/preferences', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contactId: input.dataset.contact,
+              channel: input.dataset.channel,
+              enabled: input.checked,
+              actor: 'portal-admin'
+            })
+          }).then(function (resp) {
+            if (resp.ok) {
+              note.hidden = false;
+              setTimeout(function () { note.hidden = true; }, 4000);
+              loadPrefs(); // refresh the Last changed column immediately
+            } else {
+              input.checked = !input.checked;
+            }
+          }).catch(function () { input.checked = !input.checked; });
+        });
+      });
+    });
+  }
+
+  function switchHtml(contactId, channel, on, disabled) {
+    return '<label class="switch"><input type="checkbox" data-contact="' + esc(contactId) + '" data-channel="' + channel + '"' +
+      (on ? ' checked' : '') + (disabled ? ' disabled' : '') +
+      ' aria-label="' + channel + ' notifications"><span class="track"></span></label>';
+  }
+
+  /* ---------- simulator ---------- */
+  var simSeq = 0;
+  function postEvents(events) {
+    return fetchJSON(API + '/noc/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: events })
+    }).then(function (r) {
+      simLog('POST /noc/events -> ' + r.status + ' ' + JSON.stringify(r.body.results || r.body));
+      refresh();
+    });
+  }
+  function simEvent(over) {
+    simSeq += 1;
+    var ckt = (state.data && state.data.circuits[0]) || { circuitId: 'ckt-nwl-001' };
+    state.simIncident = state.simIncident || ('INC-DEMO-' + Date.now());
+    return Object.assign({
+      eventId: 'evt-' + Date.now() + '-' + simSeq,
+      incidentId: state.simIncident,
+      circuitId: ckt.circuitId,
+      state: 'down',
+      timestamp: new Date().toISOString()
+    }, over);
+  }
+
+  document.querySelectorAll('[data-sim]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var kind = btn.dataset.sim;
+      var evs = [];
+      if (kind === 'down') { evs = [simEvent({ state: 'down' })]; }
+      else if (kind === 'degraded') { evs = [simEvent({ state: 'degraded' })]; }
+      else if (kind === 'eta') { evs = [simEvent({ eta: new Date(Date.now() + 2 * 3600e3).toISOString() })]; }
+      else if (kind === 'restored') { evs = [simEvent({ state: 'restored' })]; }
+      else if (kind === 'dup') { var e = simEvent({ state: 'down' }); evs = [e, Object.assign({}, e)]; }
+      else if (kind === 'flap') {
+        evs = [];
+        for (var i = 0; i < 4; i++) evs.push(simEvent({ state: i % 2 ? 'restored' : 'down' }));
+      }
+      else if (kind === 'maint') { evs = [simEvent({ state: 'down', maintenance: true })]; }
+      else if (kind === 'backfill') {
+        state.simIncident = 'INC-BACKFILL-' + Date.now();
+        evs = [simEvent({ state: 'down', timestamp: new Date(Date.now() - 75 * 60e3).toISOString() })];
+      }
+      else if (kind === 'unknown') { evs = [simEvent({ circuitId: 'ckt-unknown-999' })]; }
+      else if (kind === 'reset') {
+        fetch(API + '/demo/reset', { method: 'POST' }).then(function () {
+          state.simIncident = null;
+          simLog('demo reset');
+          refresh();
+        });
+        return;
+      }
+      postEvents(evs);
+    });
+  });
+
+  $('accountSelect').addEventListener('change', function () {
+    state.accountId = this.value;
+    state.simIncident = null;
+    $('sentWrap').hidden = true; // don't leak the previous account's table
+    $('sentTable').querySelector('tbody').innerHTML = '';
+    refresh();
+  });
+
+  loadAccounts().then(refresh);
+})();
+</script>
+</body>
+</html>
