@@ -21,8 +21,17 @@ const REPORT_PATH = '/api/b425648c/outage/report';
 // and /nextera) links here.
 const APP_WEB_DIR = path.join(__dirname, '..', '..', 'public', 'verticals', 'b425648c-app');
 
-router.use(APP_WEB_PATH, express.static(APP_WEB_DIR, { index: 'index.html' }));
+// Flutter web output is not content-hashed (main.dart.js keeps its name across
+// builds), so every asset must revalidate with the origin on each load; the
+// edge would otherwise pin a 4h browser TTL on .js and keep serving the
+// previous build after a deploy.
+const NO_CACHE = 'no-cache';
+router.use(APP_WEB_PATH, express.static(APP_WEB_DIR, {
+  index: 'index.html',
+  setHeaders: (res) => res.set('Cache-Control', NO_CACHE),
+}));
 router.get(`${APP_WEB_PATH}/{*splat}`, (_req, res) => {
+  res.set('Cache-Control', NO_CACHE);
   res.sendFile(path.join(APP_WEB_DIR, 'index.html'));
 });
 
