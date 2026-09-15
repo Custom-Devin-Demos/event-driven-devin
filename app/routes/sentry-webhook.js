@@ -6,6 +6,7 @@ const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7
 const { APP_REMEDIATION_DIRECTIVE } = require('../services/verticals/3aa9fa04');
 const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require('../services/verticals/67f2a7ba');
 const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
+const { APP_REMEDIATION_DIRECTIVE: FPL_REMEDIATION_DIRECTIVE } = require('../services/verticals/b425648c');
 
 const router = express.Router();
 
@@ -308,6 +309,23 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-5b7227b4-mobile',
       service: 'customer-5b7227b4-mobile',
       scenario: 'add-to-bag-rewards',
+    },
+  },
+  // FPL My Account Flutter app (github.com/Custom-Devin-Demos/
+  // fpl-my-account-demo-app): fpl.com My Account on desktop web, the FPL
+  // Mobile App on Android/iOS. Reports arrive via /api/b425648c/mobile/error;
+  // remediation lands in the Flutter repo and is verified on all three surfaces.
+  'b425648c': {
+    customer: 'b425648c',
+    verticalLabel: 'FPL',
+    service: 'customer-b425648c-mobile',
+    project: 'fpl-my-account',
+    release: 'fpl-my-account@1.0.0',
+    promptAppendix: FPL_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-b425648c-mobile',
+      service: 'customer-b425648c-mobile',
+      scenario: 'outage-report-restoration',
     },
   },
 };
