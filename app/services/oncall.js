@@ -23,6 +23,8 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  * Channels/token are configurable via env:
  *   SLACK_ONCALL_ALERTS_CHANNEL_ID — alert + incident channel (#oncall-alerts)
  *   SLACK_ONCALL_BUGS_CHANNEL_ID   — bug report channel (#oncall-bugs)
+ *   SLACK_ONCALL_ALERTS_CHANNEL_NAME / SLACK_ONCALL_BUGS_CHANNEL_NAME — labels the
+ *     on-call ribbon shows after posting (default #oncall-alerts / #oncall-bugs)
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  */
 

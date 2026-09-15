@@ -494,6 +494,11 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as on-call on every alert. Unset (default) means the persona is rendered as plain text and nobody is pinged | No |
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
+| `SLACK_ONCALL_ALERTS_CHANNEL_ID` | Channel ID for on-call (`/oncall`) alert + incident posts | For on-call alerts |
+| `SLACK_ONCALL_BUGS_CHANNEL_ID` | Channel ID for on-call bug-report posts | For on-call bug reports |
+| `SLACK_ONCALL_ALERTS_CHANNEL_NAME` | Display label the on-call page ribbon shows after an alert posts ("Alert posted to …"). Label only — routing is decided by `SLACK_ONCALL_ALERTS_CHANNEL_ID` (default `#oncall-alerts`) | No |
+| `SLACK_ONCALL_BUGS_CHANNEL_NAME` | Display label the on-call ribbon shows after a bug report posts. Label only — routing is decided by `SLACK_ONCALL_BUGS_CHANNEL_ID` (default `#oncall-bugs`) | No |
+| `SLACK_ONCALL_BOT_TOKEN` | Bot token for on-call posts (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
 | `DEVIN_API_KEY` | Devin API key | For api mode |
 | `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID | For slack mode |

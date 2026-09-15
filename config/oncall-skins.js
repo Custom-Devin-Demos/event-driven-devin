@@ -1106,6 +1106,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Stellantis Financial Services Customer Care',
     disclaimer: 'NOT ACTUALLY A STELLANTIS SITE — internal demo only, not affiliated with, endorsed by, or a real Stellantis product.',
   },
+  '02238eb0': {
+    slug: '02238eb0',
+    company: 'Harborline FCU',
+    brandMark: 'H',
+    vertical: 'banking',
+    page: { file: '02238eb0.html', title: 'Transfer money | Harborline FCU Digital Banking' },
+    theme: {
+      '--accent': '#123a6b',
+      '--ink': '#1b2230',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0b1f3a',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Harborline FCU Member Services',
+    supportCenterSub: 'Digital Banking Support',
+    disclaimer: 'Harborline FCU is a fictional credit union — internal demo only, not affiliated with any real financial institution.',
+  },
   'ae0823ea': {
     slug: 'ae0823ea',
     company: 'Raymond James',

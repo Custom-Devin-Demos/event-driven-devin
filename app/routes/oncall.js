@@ -377,6 +377,9 @@ router.get('/oncall/report', (_req, res) => {
  * human-style support ticket posted to #oncall-bugs via /api/oncall/bug;
  * the degradation rerouting is identical either way.
  */
+const ALERTS_CHANNEL_LABEL = process.env.SLACK_ONCALL_ALERTS_CHANNEL_NAME || '#oncall-alerts';
+const BUGS_CHANNEL_LABEL = process.env.SLACK_ONCALL_BUGS_CHANNEL_NAME || '#oncall-bugs';
+
 function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
   const bugTrigger = skinTrigger && skinTrigger.kind === 'bug' ? skinTrigger : null;
   return `
@@ -470,7 +473,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
                 devinUserId: localStorage.getItem('devinUserId') || '',
                 devinOrgId: localStorage.getItem('devinOrgId') || '',
               };
-          var postedMsg = bugTrigger ? 'Support ticket filed to #oncall-bugs' : 'Alert posted to #oncall-alerts';
+          var postedMsg = bugTrigger ? 'Support ticket filed to ' + ${JSON.stringify(BUGS_CHANNEL_LABEL)} : 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
           var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
           var failedMsg = bugTrigger ? 'Ticket post failed' : 'Alert post failed';
           origFetch(triggerUrl, {
