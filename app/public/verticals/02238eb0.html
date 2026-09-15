@@ -417,6 +417,7 @@
         }).catch(function () {});
       })();
       const form = document.getElementById('transferForm');
+      const from = document.getElementById('fromAccount');
       const to = document.getElementById('toAccount');
       const amt = document.getElementById('amount');
       const live = document.getElementById('liveSummary');
@@ -424,10 +425,17 @@
         const n = parseFloat(v);
         return isNaN(n) ? '0.00' : n.toFixed(2);
       }
+      function excludeSource() {
+        Array.prototype.forEach.call(to.options, function (opt) { opt.disabled = opt.value === from.value; });
+        if (to.value === from.value) {
+          to.value = Array.prototype.find.call(to.options, function (opt) { return !opt.disabled; }).value;
+        }
+      }
       function sync() {
+        excludeSource();
         live.textContent = 'Transfer $' + money(amt.value) + ' to ' + to.options[to.selectedIndex].textContent.trim();
       }
-      [to, amt].forEach(function (el) { el.addEventListener('input', sync); });
+      [from, to, amt].forEach(function (el) { el.addEventListener('input', sync); });
       sync();
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
