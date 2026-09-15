@@ -25,6 +25,7 @@ const { getOncallSkin, listOncallSkins, ONCALL_SKINS } = require('../../config/o
 const {
   FLEET,
   isFleetReport,
+  normalizeReport: normalizeFleetReport,
   reportEtaFailure,
   getEtaFailureStatus,
 } = require('../services/oncall-verticals/fleet');
@@ -584,18 +585,20 @@ router.post(FLEET_FAILURE_PATH, (req, res, next) => {
       error: `Expected a fleet-mobile/<ios|macos> source with service ${FLEET.service}`,
     });
   }
-  next();
-}, oncallCap('trigger'), (req, res) => {
-  const result = reportEtaFailure(req.body);
-  if (!result) {
+  const report = normalizeFleetReport(body);
+  if (!report) {
     return res.status(400).json({
       received: false,
-      error: 'Expected assetId plus ISO-8601 departure and arrival',
+      error: 'Expected assetId plus ISO-8601 departure and arrival, with arrival not after departure',
     });
   }
-  result.outcome.catch((error) => {
-    logger.error('Fleet ETA failure pipeline failed', { reference: result.reference, error: error.message });
-  });
+  req.fleetReport = report;
+  next();
+}, oncallCap('trigger'), (req, res) => {
+  const result = reportEtaFailure(req.fleetReport);
+  if (!result) {
+    return res.status(400).json({ received: false, error: 'Invalid report' });
+  }
   return res.status(202).json({
     received: true,
     reference: result.reference,

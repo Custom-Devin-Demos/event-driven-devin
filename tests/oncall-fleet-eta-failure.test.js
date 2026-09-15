@@ -18,7 +18,7 @@ jest.mock('../app/services/devin-api', () => ({
 
 const express = require('express');
 const http = require('http');
-const { postMessage, postThreadReply } = require('../app/services/slack');
+const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
 
 process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
@@ -111,14 +111,24 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     expect(report.devinEmail).toBe('presenter@example.com');
   });
 
-  test('normalizeReport rejects reports without asset or parseable times', () => {
+  test('normalizeReport rejects reports without asset or strict ISO-8601 times', () => {
     expect(normalizeReport({ ...REPORT, assetId: 'A-1' })).toBeNull();
     expect(normalizeReport({ ...REPORT, departure: 'yesterday' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: 'Sep 14 2026 16:20 PDT' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: '2026-09-14' })).toBeNull();
     expect(normalizeReport({ ...REPORT, arrival: undefined })).toBeNull();
+    expect(normalizeReport(null)).toBeNull();
+    expect(normalizeReport({ ...REPORT, arrival: '2026-09-14T16:20:00.000-07:00' })).not.toBeNull();
+  });
+
+  test('normalizeReport rejects a healthy ETA (arrival after departure) but keeps equal or earlier arrivals', () => {
+    expect(normalizeReport({ ...REPORT, arrival: '2026-09-15T00:30:00Z' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, arrival: '2026-09-14T23:20:00Z' })).toMatchObject({ minutesOut: 0 });
+    expect(normalizeReport({ ...REPORT, arrival: '2026-09-14T23:10:00Z' })).toMatchObject({ minutesOut: -10 });
   });
 
   test('a report posts one alert, creates one macOS session on ios-demos and links it in the thread', async () => {
-    const { reference, outcome } = reportEtaFailure(REPORT);
+    const { reference, outcome } = reportEtaFailure(normalizeReport(REPORT));
     expect(reference).toMatch(/^FLT-[0-9a-f]{6}$/);
 
     const entry = await outcome;
@@ -166,17 +176,34 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
       alertPosted: true,
       sessionUrl: 'https://app.devin.ai/sessions/session-fleet',
       done: true,
+      error: null,
     });
   });
 
-  test('a failed Slack post still creates the session', async () => {
+  test('a failed Slack post still creates the session and records the error', async () => {
     postMessage.mockRejectedValueOnce(new Error('slack down'));
-    const { reference, outcome } = reportEtaFailure(REPORT);
+    const { reference, outcome } = reportEtaFailure(normalizeReport(REPORT));
     await outcome;
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     expect(postThreadReply).not.toHaveBeenCalled();
-    expect(getEtaFailureStatus(reference)).toMatchObject({ alertPosted: false, sessionUrl: expect.any(String) });
+    expect(getEtaFailureStatus(reference)).toMatchObject({
+      alertPosted: false, sessionUrl: expect.any(String), done: true, error: 'alert failed',
+    });
+  });
+
+  test('an unexpected pipeline failure still settles the status as done', async () => {
+    lookupSlackUserByEmail.mockImplementationOnce(() => { throw new TypeError('boom'); });
+    postMessage.mockImplementationOnce(() => { throw new TypeError('boom'); });
+    createDevinSession.mockImplementationOnce(() => { throw new TypeError('boom'); });
+    const { reference, outcome } = reportEtaFailure(normalizeReport(REPORT));
+    await outcome;
+    expect(getEtaFailureStatus(reference)).toMatchObject({ done: true, error: expect.any(String), sessionUrl: null });
+  });
+
+  test('reportEtaFailure ignores anything but a normalized report', () => {
+    expect(reportEtaFailure(null)).toBeNull();
+    expect(reportEtaFailure(REPORT)).toBeNull();
   });
 
   test('POST acknowledges with 202 and a reference; GET exposes the outcome', async () => {
@@ -206,6 +233,19 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     const malformed = await request(server, 'POST', PATH, { ...REPORT, departure: 'soon' });
     expect(malformed.status).toBe(400);
     expect(malformed.body.received).toBe(false);
+
+    const healthy = await request(server, 'POST', PATH, { ...REPORT, arrival: '2026-09-15T00:30:00Z' });
+    expect(healthy.status).toBe(400);
+    expect(createDevinSession).not.toHaveBeenCalled();
+  });
+
+  test('malformed POSTs do not consume the hourly trigger cap', async () => {
+    for (let i = 0; i < 60; i += 1) {
+      const bad = await request(server, 'POST', PATH, { ...REPORT, departure: 'soon' });
+      expect(bad.status).toBe(400);
+    }
+    const good = await request(server, 'POST', PATH, REPORT);
+    expect(good.status).toBe(202);
   });
 
   test('GET rejects unknown or malformed references', async () => {

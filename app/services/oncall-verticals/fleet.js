@@ -50,6 +50,7 @@ const RELEASE_RE = /^[A-Za-z0-9][A-Za-z0-9@._+-]{0,63}$/;
 const ID_RE = /^[0-9]{1,12}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{1,40}$/;
 const EMAIL_RE = /^[^\s@<>|]{1,64}@[^\s@<>|]{1,255}$/;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/;
 
 // Recent reports, so the app can poll for the alert/session outcome and
 // show "Devin is investigating" on the failure card.
@@ -81,7 +82,7 @@ function clip(value, max) {
 }
 
 function parseDate(value) {
-  if (typeof value !== 'string' || value.length > 40) return null;
+  if (typeof value !== 'string' || !ISO_DATE_RE.test(value)) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -100,14 +101,17 @@ function isFleetReport(body) {
 /**
  * Reduce a client report to the bounded facts the alert and prompt use.
  * Returns null when the required facts (asset, departure, arrival) are
- * missing or malformed.
+ * missing or malformed, or when the arrival is after departure — that is a
+ * healthy ETA, not the failed invariant this endpoint exists for.
  */
 function normalizeReport(body) {
+  if (!body || typeof body !== 'object') return null;
   const platform = platformOf(body);
   const departure = parseDate(body.departure);
   const arrival = parseDate(body.arrival);
   const assetId = typeof body.assetId === 'string' && ID_RE.test(body.assetId) ? body.assetId : null;
   if (!platform || !departure || !arrival || !assetId) return null;
+  if (arrival.getTime() > departure.getTime()) return null;
 
   const release = typeof body.release === 'string' && RELEASE_RE.test(body.release)
     ? body.release
@@ -335,13 +339,13 @@ async function triggerDevinSession(report, reference, { token, channel, threadTs
 }
 
 /**
- * Handle a failure report from the app: record it, post the alert card,
- * create the Devin session and link it in the thread. Returns the reference
- * synchronously; the Slack/Devin work continues in `outcome`.
+ * Handle a normalized failure report from the app: record it, post the
+ * alert card, create the Devin session and link it in the thread. Returns
+ * the reference synchronously; the Slack/Devin work continues in `outcome`,
+ * which always settles the status entry (`done`, plus `error` on failure).
  */
-function reportEtaFailure(body) {
-  const report = normalizeReport(body);
-  if (!report) return null;
+function reportEtaFailure(report) {
+  if (!report || !report.platform || !report.assetId) return null;
 
   const reference = makeReference();
   const now = new Date();
@@ -352,6 +356,7 @@ function reportEtaFailure(body) {
     assetId: report.assetId,
     alert: null,
     session: null,
+    error: null,
     done: false,
   };
   pruneReports();
@@ -368,33 +373,45 @@ function reportEtaFailure(body) {
   });
 
   const outcome = (async () => {
-    const { token, alertsChannel } = resolveOncallEnv();
-    let alertTs = null;
-    if (!token || !alertsChannel) {
-      logger.warn('On-Call alerts channel not configured — Fleet alert not posted', { reference });
-    } else {
-      const triggeredBy = await resolveTriggeredBy(token, report.devinEmail);
-      try {
-        alertTs = await postMessage(
-          token,
-          alertsChannel,
-          buildAlertMessage(report, { reference, triggeredBy, now }),
-          buildAlertBlocks(report, { reference, triggeredBy, now }),
-        );
-        entry.alert = { channel: alertsChannel, ts: alertTs };
-        logger.info('Fleet On-Call alert posted', { reference, channel: alertsChannel, ts: alertTs });
-      } catch (error) {
-        logger.error('Fleet On-Call alert failed', { reference, error: error.message });
+    try {
+      const { token, alertsChannel } = resolveOncallEnv();
+      let alertTs = null;
+      if (!token || !alertsChannel) {
+        entry.error = 'alerts channel not configured';
+        logger.warn('On-Call alerts channel not configured — Fleet alert not posted', { reference });
+      } else {
+        const triggeredBy = await resolveTriggeredBy(token, report.devinEmail);
+        try {
+          alertTs = await postMessage(
+            token,
+            alertsChannel,
+            buildAlertMessage(report, { reference, triggeredBy, now }),
+            buildAlertBlocks(report, { reference, triggeredBy, now }),
+          );
+          entry.alert = { channel: alertsChannel, ts: alertTs };
+          logger.info('Fleet On-Call alert posted', { reference, channel: alertsChannel, ts: alertTs });
+        } catch (error) {
+          entry.error = 'alert failed';
+          logger.error('Fleet On-Call alert failed', { reference, error: error.message });
+        }
       }
-    }
 
-    const session = await triggerDevinSession(report, reference, {
-      token,
-      channel: alertsChannel,
-      threadTs: alertTs,
-    });
-    if (session) entry.session = { id: session.sessionId, url: session.url };
-    entry.done = true;
+      const session = await triggerDevinSession(report, reference, {
+        token,
+        channel: alertsChannel,
+        threadTs: alertTs,
+      });
+      if (session) {
+        entry.session = { id: session.sessionId, url: session.url };
+      } else if (!entry.error) {
+        entry.error = 'session not created';
+      }
+    } catch (error) {
+      entry.error = 'pipeline failed';
+      logger.error('Fleet ETA failure pipeline failed', { reference, error: error.message });
+    } finally {
+      entry.done = true;
+    }
     return entry;
   })();
 
@@ -413,6 +430,7 @@ function getEtaFailureStatus(reference) {
     alertPosted: Boolean(entry.alert),
     sessionUrl: entry.session ? entry.session.url : null,
     done: entry.done,
+    error: entry.error,
   };
 }
 
