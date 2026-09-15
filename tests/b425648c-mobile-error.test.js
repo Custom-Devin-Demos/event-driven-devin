@@ -339,5 +339,14 @@ describe('FPL My Account app failure report (b425648c)', () => {
       expect(deep.status).toBe(200);
       expect(deep.headers.get('content-type')).toContain('text/html');
     });
+
+    test('hosted web build assets revalidate on every load', async () => {
+      const { port } = server.address();
+      for (const asset of ['/b425648c/app/', '/b425648c/app/main.dart.js', '/b425648c/app/outages/report']) {
+        const res = await fetch(`http://127.0.0.1:${port}${asset}`);
+        expect(res.status).toBe(200);
+        expect(res.headers.get('cache-control')).toBe('no-cache');
+      }
+    });
   });
 });
