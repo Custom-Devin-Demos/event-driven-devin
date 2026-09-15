@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { OWNER_DISCLAIMER, postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { createDevinSession } = require('./devin-api');
+const { canCreateSession, reserveSession } = require('./session-rate-limiter');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -11,9 +13,12 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  * On-Call demo service.
  *
  * Posts alert cards, human-style bug reports, and incident bursts to the
- * dedicated On-Call Slack channels. Alert-only by design: nothing here
- * triggers a Devin session — the On-Call responders listening to the
- * channels pick the messages up on their own.
+ * dedicated On-Call Slack channels. Alert-only by default: the On-Call
+ * responders listening to the channels pick the messages up on their own.
+ * A skin may opt its own branded page into auto-triage with
+ * devinSession: { auto: true }, which creates one Devin session per alert
+ * that skin raises and replies with its link in the alert thread. Alerts
+ * raised without such a skin never create a session.
  *
  * Channels/token are configurable via env:
  *   SLACK_ONCALL_ALERTS_CHANNEL_ID — alert + incident channel (#oncall-alerts)
@@ -151,6 +156,26 @@ const ALERT_SCENARIOS = {
     symptom: 'Plan upgrades slowed sharply after the plan-catalog refresh added the legacy/regional plans. Latency scales with catalog size.',
     impact: 'Subscribers wait ~8 seconds on every plan change; upgrade completion rate is dropping.',
   },
+  marketplace: {
+    vertical: 'marketplace',
+    page: '63dbb52f.html',
+    apiPath: '/api/marketplace/cart',
+    oncallApiPath: '/api/oncall/marketplace/cart',
+    owner: 'Nina Brandt (marketplace-checkout-oncall)',
+    brand: 'Marktplatz Storefront (Product Detail)',
+    service: 'cart-api',
+    endpoint: 'POST /api/oncall/marketplace/cart',
+    monitor: '5xx rate — POST /api/oncall/marketplace/cart',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/marketplace/cart,http.status_code:504}',
+    metricValue: '504 on ~100% of add-to-cart requests',
+    threshold: '> 5% error rate',
+    baseline: '<0.4% (7-day)',
+    release: 'marketplace-storefront@1.0.4',
+    symptom: 'Add-to-cart requests hang ~8s and then fail with 504 Gateway Timeout. Stock reservation latency against the seller inventory partner is elevated.',
+    impact: 'Shoppers cannot add marketplace offers to the basket; every add sits on a spinner and then errors.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
@@ -245,6 +270,20 @@ const BUG_CATALOG = {
       label: 'Family plan upgrade crawling',
       sev: 'High',
       text: "My whole family is on the Plus plan and I upgraded us to Ultra last night. Every line I upgraded sat on the confirm screen for close to ten seconds — I honestly thought it was frozen. It did go through eventually, but something is clearly wrong.",
+    },
+  ],
+  marketplace: [
+    {
+      id: 'marketplace-cart-timeout',
+      label: 'Add to cart fails with a timeout',
+      sev: 'High',
+      text: 'Shoppers cannot put marketplace items in the basket. You press add to cart, the button spins for about eight seconds and then an error comes back saying it could not be reserved. Same product, same seller, every attempt.',
+    },
+    {
+      id: 'marketplace-campaign-conversion',
+      label: 'Campaign traffic converting at zero',
+      sev: 'Critical',
+      text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
     },
   ],
   industrials: [
@@ -394,6 +433,120 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
 }
 
 /**
+ * Investigation prompt for a skin's auto-triage session. Built only from the
+ * scenario's monitor-shaped facts — the same signal a human responder gets —
+ * so no code locations, and no request-derived text, reach the session.
+ */
+function buildOncallSessionPrompt(scenario, skin, runRef) {
+  return [
+    `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
+    '',
+    `*Monitor:* ${scenario.monitor} — Triggered`,
+    `*Query:* \`${scenario.metricQuery}\``,
+    `*Endpoint:* ${scenario.endpoint}`,
+    `*Metric value:* ${scenario.metricValue} (threshold ${scenario.threshold}, baseline ${scenario.baseline})`,
+    `*Release:* ${scenario.release}`,
+    `*Symptom:* ${scenario.symptom}`,
+    `*Impact:* ${scenario.impact}`,
+    runRef ? `*Incident Ref:* ${runRef}` : null,
+    '',
+    `Reproduce the symptom at ${DEMO_BASE_URL()}/oncall/c/${skin.slug} and diagnose it from the repository and its telemetry: ${REPO_URL}`,
+  ].filter((l) => l !== null).join('\n');
+}
+
+/**
+ * Identity of the person who triggered the run, as the demo header resolved it
+ * (org name + email → Devin ids) and the page forwarded it. Sessions are then
+ * created under that account instead of the service user's. Ids are shape-
+ * checked because they arrive from the browser, and org and user are taken as
+ * one identity: a user id only belongs to the org it was resolved against, so
+ * a requester org with no user runs as that org's service user rather than
+ * borrowing a user id from the skin or the environment.
+ */
+const DEVIN_ORG_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+// User ids carry their identity provider as a prefix, e.g. `email|<hex>`.
+const DEVIN_USER_ID_RE = /^[A-Za-z0-9_|.@+-]{1,128}$/;
+
+function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
+  const orgId = DEVIN_ORG_ID_RE.test(devinOrgId || '') ? devinOrgId : null;
+  if (!orgId) return { orgId: null, userId: null, complete: false };
+  return {
+    orgId,
+    userId: DEVIN_USER_ID_RE.test(devinUserId || '') ? devinUserId : null,
+    complete: true,
+  };
+}
+
+/**
+ * Pick the account the session is created under. A Devin user id only exists
+ * inside one org, so each source is taken whole: mixing a skin's org with the
+ * environment's user yields a pair the API rejects. A source that names an org
+ * but no user runs as that org's service user.
+ */
+function resolveSessionIdentity(requester, config) {
+  if (requester.complete) return { orgId: requester.orgId, userId: requester.userId };
+  if (config.orgId) return { orgId: config.orgId, userId: config.userId || null };
+  return {
+    orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+    userId: process.env.DEVIN_ONCALL_USER_ID || null,
+  };
+}
+
+/**
+ * Create the auto-triage Devin session for a skin that opted in, and reply
+ * with its link in the alert thread. Never throws: a failed session must not
+ * fail the alert that triggered it.
+ */
+async function triggerSkinDevinSession(
+  scenario,
+  skin,
+  { token, channel, threadTs, runRef, requester },
+) {
+  const config = skin.devinSession;
+  if (!config || !config.auto) return null;
+
+  const cap = canCreateSession();
+  if (!cap.allowed) {
+    logger.warn('On-Call skin session creation throttled', { skin: skin.slug, ...cap });
+    return null;
+  }
+
+  // Reserve before the async call so concurrent alerts cannot all pass the cap check.
+  const release = reserveSession();
+  let session = null;
+  try {
+    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
+      ...resolveSessionIdentity(requester, config),
+      apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
+      title: `[On-Call] ${scenario.monitor}`,
+    });
+  } catch (error) {
+    logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
+  }
+
+  if (!session) {
+    release();
+    return null;
+  }
+
+  logger.info('On-Call skin Devin session created', {
+    skin: skin.slug,
+    scenario: scenario.vertical,
+    sessionId: session.sessionId,
+  });
+
+  try {
+    await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
+      mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
+    ]);
+  } catch (error) {
+    logger.error('On-Call skin session link reply failed', { skin: skin.slug, error: error.message });
+  }
+
+  return session;
+}
+
+/**
  * Post an alert card for the given scenario to the On-Call alerts channel.
  */
 async function postOncallAlert(scenarioId, options = {}) {
@@ -441,7 +594,16 @@ async function postOncallAlert(scenarioId, options = {}) {
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
-  return { ok: true, ts, channel: alertsChannel };
+  const session = skin
+    ? await triggerSkinDevinSession(scenario, skin, {
+      token,
+      channel: alertsChannel,
+      threadTs: ts,
+      runRef,
+      requester: resolveRequesterIdentity(options),
+    })
+    : null;
+  return { ok: true, ts, channel: alertsChannel, ...(session ? { sessionUrl: session.url } : {}) };
 }
 
 /**

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Usage-Based Pricing | Zuora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --forest: #0f2b23;
+      --forest-deep: #0a211b;
+      --forest-panel: #173a30;
+      --forest-line: rgba(150, 220, 196, .16);
+      --teal: #5fd0ad;
+      --teal-bright: #7fe3c4;
+      --teal-ink: #154e40;
+      --card: #fbfcfa;
+      --card-muted: #f2f6f3;
+      --ink: #18332b;
+      --muted: #6e8179;
+      --line: #dfe8e3;
+      --mono: "IBM Plex Mono", "JetBrains Mono", monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body {
+      min-height: 100vh;
+      padding: 32px 18px 22px;
+      color: #f5fbf8;
+      background-color: var(--forest);
+      background-image:
+        linear-gradient(rgba(127, 227, 196, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(127, 227, 196, .035) 1px, transparent 1px);
+      background-size: 80px 80px;
+      font: 400 14px/1.45 Inter, Arial, sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 26px 32px 28px;
+      border: 1px solid rgba(127, 227, 196, .4);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(15, 43, 35, .98), rgba(14, 45, 36, .91));
+      box-shadow: 0 18px 70px rgba(3, 15, 11, .24);
+    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    .wordmark { color: var(--teal-bright); font: 600 18px/1 var(--mono); letter-spacing: .2em; }
+    .wordmark span { color: #d6eee6; font-weight: 400; letter-spacing: .04em; }
+    nav { display: flex; gap: 28px; color: rgba(226, 247, 238, .72); font: 500 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+    nav a { color: inherit; text-decoration: none; }
+    .askbar {
+      display: flex; align-items: center; gap: 18px;
+      min-height: 82px; padding: 14px 16px 14px 22px; margin-bottom: 48px;
+      border: 1px solid var(--forest-line); border-radius: 18px;
+      background: rgba(55, 103, 88, .22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+    }
+    .askcopy { min-width: 0; flex: 1; }
+    .asklabel { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; color: var(--teal-bright); font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .asklabel::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(95, 208, 173, .12), 0 0 14px var(--teal); }
+    .asktext { color: #edf8f3; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .send {
+      display: grid; width: 46px; height: 46px; flex: 0 0 46px; place-items: center;
+      border: 0; border-radius: 13px; color: #123d31; background: var(--teal-bright);
+      box-shadow: 0 8px 20px rgba(95, 208, 173, .18);
+    }
+    .send svg { width: 22px; height: 22px; }
+    .flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px; align-items: start; }
+    .step-card { position: relative; min-height: 302px; color: var(--ink); border-radius: 20px; background: var(--card); box-shadow: 0 16px 26px rgba(3, 17, 12, .12); }
+    .step-card:nth-child(4) { min-height: 302px; }
+    .step-number {
+      position: absolute; top: -16px; left: 18px; display: grid; place-items: center;
+      width: 36px; height: 36px; border-radius: 10px; color: #104739;
+      background: var(--teal); font: 600 15px/1 var(--mono); box-shadow: 0 4px 8px rgba(4, 28, 20, .18);
+    }
+    .step-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 27px 18px 18px; border-bottom: 1px solid #e7eeea; }
+    .step-head h2 { color: #254037; font: 600 13px/1.2 var(--mono); letter-spacing: .03em; text-transform: uppercase; }
+    .step-icon { display: grid; width: 31px; height: 31px; place-items: center; color: #617970; border-radius: 9px; background: #f1f6f3; }
+    .step-icon svg { width: 16px; height: 16px; }
+    .step-body { padding: 16px 18px 19px; }
+    .inner-box { padding: 14px 13px; border: 1px solid #e4ece8; border-radius: 15px; background: var(--card-muted); }
+    .segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px; border-radius: 10px; background: #fff; }
+    .model-btn { padding: 7px 3px; border: 0; border-radius: 7px; color: #60756d; background: transparent; font: 500 10px/1 var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+    .model-btn.active { color: #145544; background: var(--teal); }
+    .data-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; color: #71827b; font-size: 12px; }
+    .data-row strong { color: #38534a; font-size: 12px; font-weight: 700; }
+    .number-input { width: 104px; padding: 2px 0; border: 0; outline: 0; color: #38534a; background: transparent; text-align: right; font: 600 12px var(--mono); }
+    .progress { height: 7px; margin-top: 9px; overflow: hidden; border-radius: 99px; background: #e1e9e5; }
+    .progress span { display: block; width: 65%; height: 100%; border-radius: inherit; background: var(--teal); }
+    .caption { margin-top: 15px; color: #5e7169; font-size: 12px; line-height: 1.4; }
+    .connector { position: absolute; top: 167px; right: -34px; width: 34px; height: 2px; background: var(--teal); }
+    .connector::after { content: ""; position: absolute; top: -4px; right: 0; width: 8px; height: 8px; border-top: 2px solid var(--teal); border-right: 2px solid var(--teal); transform: rotate(45deg); }
+    .flow-item { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid #e6eeea; border-radius: 11px; background: #fff; }
+    .flow-item + .flow-item { margin-top: 10px; }
+    .flow-symbol { display: grid; width: 22px; height: 22px; flex: 0 0 22px; place-items: center; color: #4f9c88; border-radius: 6px; background: #e4f5ef; font-size: 12px; }
+    .flow-item label { flex: 1; color: #73837d; font-size: 11px; }
+    .flow-item output, .flow-item select, .flow-item input { min-width: 0; max-width: 124px; border: 0; outline: 0; color: #38534a; background: transparent; text-align: right; font: 600 11px var(--mono); }
+    .flow-item select { width: 124px; padding: 0; appearance: none; }
+    .flow-divider { height: 9px; margin-left: 19px; border-left: 2px dashed #81d8c0; }
+    .invoice-card { padding: 15px 13px 13px; border: 1px solid #e4ece8; border-radius: 15px; background: var(--card-muted); }
+    .invoice-top { display: flex; align-items: center; justify-content: space-between; color: #38534a; font: 600 12px var(--mono); }
+    .invoice-sub { display: flex; justify-content: space-between; margin-top: 10px; color: #71827b; font-size: 11px; }
+    .invoice-sub strong { color: #38534a; }
+    .chart { display: flex; align-items: end; gap: 6px; height: 44px; margin-top: 12px; padding: 0 2px; }
+    .chart i { flex: 1; min-height: 12px; border-radius: 4px 4px 1px 1px; background: #5fcbb0; }
+    .chart i:nth-child(1) { height: 37%; } .chart i:nth-child(2) { height: 50%; } .chart i:nth-child(3) { height: 42%; } .chart i:nth-child(4) { height: 70%; } .chart i:nth-child(5) { height: 88%; }
+    .reconciled { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 9px; color: #31836e; border: 1px solid #bde9dc; border-radius: 999px; background: #e1f7f0; font-size: 11px; font-weight: 600; }
+    .check-list { padding: 13px 13px 5px; border: 1px solid #e4ece8; border-radius: 15px; background: var(--card-muted); }
+    .check { display: flex; align-items: center; gap: 8px; color: #61756d; font-size: 11px; }
+    .check + .check { margin-top: 11px; }
+    .check::before { content: "✓"; display: grid; width: 18px; height: 18px; place-items: center; flex: 0 0 18px; color: #398873; border-radius: 5px; background: #d8f2ea; font-weight: 800; }
+    .publish { width: 100%; margin-top: 14px; padding: 11px 8px; border: 0; border-radius: 10px; color: #124d3e; background: #64d1b4; font: 600 11px var(--mono); letter-spacing: .03em; text-transform: uppercase; box-shadow: 0 7px 13px rgba(68, 178, 146, .17); }
+    .publish:hover, .send:hover { background: var(--teal-bright); }
+    .status-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 26px; }
+    .status-tile { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 10px 15px; color: rgba(229, 247, 239, .84); border: 1px solid var(--forest-line); border-radius: 14px; background: rgba(47, 92, 78, .28); font-size: 12px; font-weight: 600; }
+    .status-icon { display: grid; width: 25px; height: 25px; place-items: center; flex: 0 0 25px; color: var(--teal-bright); border-radius: 7px; background: rgba(95, 208, 173, .15); font-size: 15px; }
+    .status-tile .done { margin-left: auto; color: var(--teal-bright); font-size: 18px; }
+    .processing { display: none; align-items: center; gap: 10px; margin-top: 22px; color: rgba(224, 247, 237, .8); font-size: 13px; }
+    .processing.visible { display: flex; }
+    .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.25); border-top-color: var(--teal-bright); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { display: none; margin-top: 16px; padding: 18px 20px; border-radius: 14px; font-size: 13px; }
+    .result-box.error { display: block; color: #ffd9d5; border: 1px solid rgba(255, 126, 111, .6); background: rgba(122, 40, 38, .45); }
+    .result-box.success { display: block; color: #d8f7e9; border: 1px solid rgba(127, 227, 196, .55); background: rgba(31, 102, 79, .5); }
+    .result-box h3 { margin-bottom: 8px; font-size: 15px; }
+    .result-box code { color: inherit; border-radius: 5px; background: rgba(0,0,0,.2); font: 12px var(--mono); overflow-wrap: anywhere; }
+    .result-box ul { margin: 10px 0 0 18px; }
+    .result-box .meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .result-box .meta span { padding: 4px 8px; border-radius: 999px; background: rgba(0,0,0,.16); font: 10px var(--mono); }
+    @media (max-width: 1100px) {
+      body { padding: 18px 12px; }
+      .shell { padding: 24px 20px; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 24px; }
+      .connector { display: none; }
+    }
+    @media (max-width: 650px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 15px; }
+      nav { gap: 15px; }
+      .askbar { align-items: flex-start; padding: 16px; }
+      .asktext { white-space: normal; }
+      .flow, .status-row { grid-template-columns: 1fr; }
+      .shell { border-radius: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="wordmark">ZUORA <span>/ AI BILLING</span></div>
+      <nav aria-label="Placeholder navigation"><a href="#">Product</a><a href="#">Revenue</a><a href="#">Contracts</a><a href="#">Help</a></nav>
+    </header>
+
+    <section class="askbar" aria-label="Ask Zuora AI">
+      <div class="askcopy">
+        <div class="asklabel">Ask Zuora AI</div>
+        <div class="asktext">Help me set up usage-based pricing for our new AI feature — without breaking billing or rev rec.</div>
+      </div>
+      <button class="send" type="button" aria-label="Send prompt">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 3 10.5 13.5"/><path d="m21 3-7 18-3.5-7L3 10.5 21 3Z"/></svg>
+      </button>
+    </section>
+
+    <form id="pricingForm">
+      <section class="flow">
+        <article class="step-card">
+          <span class="step-number">1</span>
+          <div class="step-head">
+            <h2>Configure pricing model</h2>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg></span>
+          </div>
+          <div class="step-body">
+            <div class="inner-box">
+              <div class="segmented" role="group" aria-label="Pricing model">
+                <button class="model-btn" type="button" data-model="usage">Usage</button>
+                <button class="model-btn active" type="button" data-model="hybrid">Hybrid</button>
+                <button class="model-btn" type="button" data-model="flat">Flat</button>
+              </div>
+              <div class="data-row"><span>Rate</span><strong>$<input class="number-input" id="ratePerToken" type="number" min="0.000001" step="0.000001" value="0.002" aria-label="Rate per token"> / TOK</strong></div>
+              <div class="data-row"><span>Prepaid credits</span><strong>65%</strong></div>
+              <div class="progress" aria-label="65 percent prepaid credits"><span></span></div>
+              <div class="data-row"><span>Committed spend</span><strong>$<input class="number-input" id="committedSpend" type="number" min="0" step="1" value="50000" aria-label="Committed spend"></strong></div>
+            </div>
+            <p class="caption" id="modelCaption">Usage + prepaid credits + committed spend</p>
+          </div>
+          <span class="connector" aria-hidden="true"></span>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">2</span>
+          <div class="step-head">
+            <h2>Connect usage to billing</h2>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m8 12 3 3 5-6"/><path d="M5 5h14v14H5z"/><path d="M8 2v3M16 2v3"/></svg></span>
+          </div>
+          <div class="step-body">
+            <div class="inner-box">
+              <div class="flow-item"><span class="flow-symbol">ϟ</span><label for="usageTokens">Usage event</label><input id="usageTokens" type="number" min="0" step="1" value="1240000" aria-label="Usage tokens"><strong>TOK</strong></div>
+              <div class="flow-divider"></div>
+              <div class="flow-item"><span class="flow-symbol">♙</span><label for="accountId">Account</label><select id="accountId" aria-label="Account"><option value="acct-4471">Acme Corp #4471</option><option value="acct-8820">Northstar Labs #8820</option><option value="acct-1934">Pioneer Health #1934</option></select></div>
+              <div class="flow-divider"></div>
+              <div class="flow-item"><span class="flow-symbol">▣</span><label>Invoice line</label><output id="invoiceAmount">$2,480</output></div>
+            </div>
+            <p class="caption">Token consumption mapped to account + contract</p>
+          </div>
+          <span class="connector" aria-hidden="true"></span>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">3</span>
+          <div class="step-head">
+            <h2>Validate revenue impact</h2>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></span>
+          </div>
+          <div class="step-body">
+            <div class="invoice-card">
+              <div class="invoice-top"><span>INV-2048</span><strong id="invoiceTotal">$2,480.00</strong></div>
+              <div class="invoice-sub"><span>Usage · <span id="usageEcho">1.24M</span> tokens</span><strong id="usageTotal">$2,480</strong></div>
+              <div class="chart" aria-label="Five monthly revenue buckets"><i></i><i></i><i></i><i></i><i></i></div>
+              <span class="reconciled">✓ Revenue reconciled</span>
+            </div>
+            <p class="caption">Invoice + revenue treatment ready for review</p>
+          </div>
+          <span class="connector" aria-hidden="true"></span>
+        </article>
+
+        <article class="step-card">
+          <span class="step-number">4</span>
+          <div class="step-head">
+            <h2>Recommend next action</h2>
+            <span class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18h6M10 21h4"/><path d="M8 14.5a6 6 0 1 1 8 0c-1.1 1-1.5 1.7-1.5 3.5h-5c0-1.8-.4-2.5-1.5-3.5Z"/></svg></span>
+          </div>
+          <div class="step-body">
+            <div class="check-list">
+              <div class="check">Pricing model valid</div>
+              <div class="check">Billing rule mapped</div>
+              <div class="check">Revenue tie-out clean</div>
+              <button class="publish" id="submitBtn" type="submit">Approve &amp; Publish</button>
+            </div>
+            <p class="caption">Approve pricing, billing rule &amp; revenue</p>
+          </div>
+        </article>
+      </section>
+    </form>
+
+    <section class="status-row" aria-label="Readiness status">
+      <div class="status-tile"><span class="status-icon">♢</span>Permissions applied <span class="done">✓</span></div>
+      <div class="status-tile"><span class="status-icon">▤</span>Source data linked <span class="done">✓</span></div>
+      <div class="status-tile"><span class="status-icon">▣</span>Ready for review <span class="done">✓</span></div>
+      <div class="status-tile"><span class="status-icon">□</span>Audit trail recorded <span class="done">✓</span></div>
+    </section>
+
+    <div class="processing" id="processingIndicator"><span class="spinner"></span>Publishing pricing, billing, and revenue controls with Zuora AI&hellip;</div>
+    <div class="result-box" id="resultBox"></div>
+  </main>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var selectedModel = 'hybrid';
+    var modelCaptions = {
+      usage: 'Metered consumption billed as it occurs',
+      hybrid: 'Usage + prepaid credits + committed spend',
+      flat: 'Fixed fee recognized across the contract term'
+    };
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function money(n) {
+      return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function updateInvoice() {
+      var rate = parseFloat(document.getElementById('ratePerToken').value) || 0;
+      var tokens = parseInt(document.getElementById('usageTokens').value, 10) || 0;
+      var total = Math.round(rate * tokens * 100) / 100;
+      document.getElementById('invoiceAmount').textContent = money(total).replace('.00', '');
+      document.getElementById('invoiceTotal').textContent = money(total);
+      document.getElementById('usageTotal').textContent = money(total).replace('.00', '');
+      document.getElementById('usageEcho').textContent = (tokens / 1000000).toFixed(2).replace(/0$/, '') + 'M';
+    }
+    document.querySelectorAll('[data-model]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        selectedModel = button.getAttribute('data-model');
+        document.querySelectorAll('[data-model]').forEach(function (item) { item.classList.toggle('active', item === button); });
+        document.getElementById('modelCaption').textContent = modelCaptions[selectedModel];
+      });
+    });
+    document.getElementById('ratePerToken').addEventListener('input', updateInvoice);
+    document.getElementById('usageTokens').addEventListener('input', updateInvoice);
+    updateInvoice();
+
+    document.getElementById('pricingForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+      fetch('/api/ce4ebc10/publish-pricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pricingModel: selectedModel,
+          accountId: document.getElementById('accountId').value,
+          ratePerToken: parseFloat(document.getElementById('ratePerToken').value),
+          usageTokens: parseInt(document.getElementById('usageTokens').value, 10),
+          committedSpend: parseInt(document.getElementById('committedSpend').value, 10),
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        setTimeout(function () { resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Zuora AI could not publish this pricing model</h3>' +
+            '<p>Billing and revenue recognition were not changed.<br><br><code>' + esc(result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="meta"><span>Error: ' + esc(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + esc(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + esc(result.data.requestId || 'N/A') + '</span></div>';
+          return;
+        }
+        var d = result.data;
+        var schedule = d.revenue.schedule.map(function (bucket) { return 'Month ' + bucket.month + ': ' + money(bucket.amount); }).join(', ');
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML =
+          '<h3>Pricing model published</h3>' +
+          '<p><strong>' + esc(d.invoice.invoiceNumber) + '</strong> · ' + money(d.invoice.amount) + ' · ' + esc(d.invoice.accountName) + '</p>' +
+          '<ul><li>Treatment: <code>' + esc(d.revenue.treatment) + '</code></li>' +
+          '<li>Recognition: <code>' + esc(d.revenue.recognitionMethod) + '</code></li>' +
+          '<li>Schedule: ' + esc(schedule) + '</li></ul>';
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML = '<h3>Network Error</h3><p>Unable to reach Zuora AI.<br><br><code>' + esc(err.message) + '</code></p>';
+      });
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

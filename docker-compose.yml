@@ -1,5 +1,9 @@
 version: '3.8'
 
+# Per-service memory ceilings: the host is a 1.9G t3.small and an unbounded
+# container plus a docker build OOM-hung it (2026-09-11). Limits are ~2-5x the
+# observed steady-state usage so a leak is killed and restarted instead of
+# taking the box down.
 services:
   # ─── Acme Commerce API ───────────────────────────────
   checkout-api:
@@ -400,6 +404,10 @@ services:
     depends_on:
       - datadog-agent
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     # Allow in-flight requests to drain before the container is killed
     stop_grace_period: 15s
     healthcheck:
@@ -429,6 +437,10 @@ services:
       migration-tower:
         condition: service_started
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   # ─── Certbot (Let's Encrypt certificate renewal) ──────
   certbot:
@@ -442,6 +454,10 @@ services:
     depends_on:
       - nginx
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   # ─── Traffic Generator ───────────────────────────────
   loadgen:
@@ -455,6 +471,10 @@ services:
       checkout-api:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
 
   # ─── Legacy On-Prem Inventory System (Eli Lilly demo) ───
   # Simulates an on-prem mainframe/ERP inventory service targeted for cloud migration.
@@ -466,8 +486,40 @@ services:
     environment:
       - ONPREM_PORT=4001
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     expose:
       - "4001"
+
+  # ─── Avature Talent Suite (recruiting-platform demo, separate repo) ───
+  # Built from ./avature-src, a checkout of COG-GTM/avature-talent-demo that
+  # scripts/deploy-ec2.sh step 5b refreshes with GITHUB_PAT (never stored in
+  # compose metadata). Profile-gated so plain `compose up/down/--build` runs
+  # (init-ssl.sh, manual restarts) ignore it; nginx resolves the upstream
+  # lazily, so only /avature/ is affected when it is absent. The 5xx-to-Devin
+  # trigger and Slack alert reuse the same host .env credentials as checkout-api.
+  avature:
+    profiles: ["avature"]
+    build:
+      context: ./avature-src
+    ports:
+      - "127.0.0.1:3300:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DEVIN_SERVICE_KEY=${DEVIN_SERVICE_KEY:-}
+      - DEVIN_ORG_ID=${DEVIN_ORG_ID:-}
+      - DEVIN_USER_ID=${DEVIN_USER_ID:-}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN:-}
+      - SLACK_CHANNEL_ID=${SLACK_CHANNEL_ID:-}
+      - INCIDENT_COOLDOWN_MS=${AVATURE_INCIDENT_COOLDOWN_MS:-600000}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 192M
 
   # ─── Migration Control Tower (Ab Initio -> dbt parity demo) ───
   migration-tower:
@@ -495,6 +547,10 @@ services:
       - migration-repos:/repos
       - migration-data:/data
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
   # ─── Datadog Agent ──────────────────────────────────
   datadog-agent:
@@ -522,6 +578,10 @@ services:
       - /proc/:/host/proc/:ro
       - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384M
 
 volumes:
   migration-repos:

@@ -21,7 +21,7 @@ const {
   setOncallConfigOverride,
   getOncallConfigView,
 } = require('../services/oncall');
-const { getOncallSkin, ONCALL_SKINS } = require('../../config/oncall-skins');
+const { getOncallSkin, listOncallSkins, ONCALL_SKINS } = require('../../config/oncall-skins');
 
 const router = express.Router();
 
@@ -280,9 +280,7 @@ function buildSkinBrandShim(skin) {
  * URL a DE shares for a custom demo; the /oncall hub itself is never skinned.
  * Registered before /oncall/:vertical so "c" is never treated as a vertical.
  */
-router.get('/oncall/c/:slug', (req, res, next) => {
-  const skin = getOncallSkin(req.params.slug);
-  if (!skin) return next();
+function serveSkinPage(skin, res, next) {
   const scenario = ALERT_SCENARIOS[skin.vertical];
   if (!scenario) return next();
   const pageFile = (skin.page && skin.page.file) || scenario.page;
@@ -290,10 +288,27 @@ router.get('/oncall/c/:slug', (req, res, next) => {
   fs.readFile(pagePath, 'utf8', (err, html) => {
     if (err) return next(err);
     res.type('html').send(
-      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger)}\n${buildSkinBrandShim(skin)}\n</body>`)
+      html.replace('</body>', () => `${buildOncallShim(scenario, skin.slug, skin.trigger, skin.hideRibbon)}\n${buildSkinBrandShim(skin)}\n</body>`)
     );
   });
+}
+
+router.get('/oncall/c/:slug', (req, res, next) => {
+  const skin = getOncallSkin(req.params.slug);
+  if (!skin) return next();
+  serveSkinPage(skin, res, next);
 });
+
+/**
+ * A native skin page whose primary action only exists as an on-call endpoint
+ * (skin.oncallOnly) has no working unshimmed variant, so its direct
+ * /<page-slug> URL (which the vertical page registry would otherwise serve
+ * bare) is served shimmed, identical to /oncall/c/:slug.
+ */
+for (const skin of Object.values(ONCALL_SKINS)) {
+  if (!skin.oncallOnly || !skin.page || !skin.page.file) continue;
+  router.get(`/${path.basename(skin.page.file, '.html')}`, (_req, res, next) => serveSkinPage(skin, res, next));
+}
 
 /**
  * GET /oncall/c/:slug/report — customer-skinned support portal.
@@ -333,10 +348,14 @@ router.get('/oncall/c/:slug/incident', (req, res, next) => {
 });
 
 /**
- * GET /oncall — On-Call demo control page
+ * GET /oncall — On-Call demo control page.
+ * GET /oncall/branded — the same page in branded mode: the grid lists the
+ * customer skins from /api/oncall/skins instead of the stock scenarios.
+ * Registered before /oncall/:vertical so "branded" is never treated as a vertical.
  */
-router.get('/oncall', (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'oncall.html'));
+const ONCALL_HUB_PAGE = path.join(__dirname, '..', 'public', 'oncall.html');
+router.get(['/oncall', '/oncall/branded'], (_req, res) => {
+  res.sendFile(ONCALL_HUB_PAGE);
 });
 
 /**
@@ -361,11 +380,11 @@ router.get('/oncall/report', (_req, res) => {
 const ALERTS_CHANNEL_LABEL = process.env.SLACK_ONCALL_ALERTS_CHANNEL_NAME || '#oncall-alerts';
 const BUGS_CHANNEL_LABEL = process.env.SLACK_ONCALL_BUGS_CHANNEL_NAME || '#oncall-bugs';
 
-function buildOncallShim(scenario, skinSlug, skinTrigger) {
+function buildOncallShim(scenario, skinSlug, skinTrigger, hideRibbon) {
   const bugTrigger = skinTrigger && skinTrigger.kind === 'bug' ? skinTrigger : null;
   return `
   <div id="oncall-dot" title="Devin On-Call demo" style="display:none;position:fixed;bottom:16px;right:16px;z-index:9999;width:14px;height:14px;border-radius:50%;background:#3fb950;border:2px solid #0d1117;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer;"></div>
-  <div id="oncall-ribbon" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+  <div id="oncall-ribbon" style="${hideRibbon ? 'display:none;' : ''}position:fixed;bottom:16px;right:16px;z-index:9999;background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
     <div style="font-weight:700;color:#f0f6fc;margin-bottom:4px;">Devin On-Call demo</div>
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
       <input type="checkbox" id="oncall-unique" checked style="accent-color:#58a6ff;appearance:auto;-webkit-appearance:checkbox;flex:none;width:13px;min-width:13px;height:13px;min-height:13px;margin:0;padding:0;border:0;border-radius:0;background:none;">
@@ -394,6 +413,7 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
       // doesn't sit over the customer page; clicking the dot re-expands it.
       var ribbonEl = document.getElementById('oncall-ribbon');
       var dotEl = document.getElementById('oncall-dot');
+      var ribbonHidden = ${JSON.stringify(Boolean(hideRibbon))};
       var ribbonCollapsed = false;
       var collapseTimer = null;
       function scheduleCollapse() {
@@ -404,10 +424,12 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
         collapseTimer = null;
         ribbonCollapsed = true;
         ribbonEl.style.display = 'none';
+        if (ribbonHidden) return;
         dotEl.style.display = 'block';
       }
       function expandRibbon() {
         ribbonCollapsed = false;
+        if (ribbonHidden) return;
         dotEl.title = 'Devin On-Call demo';
         dotEl.style.display = 'none';
         ribbonEl.style.display = 'block';
@@ -444,7 +466,13 @@ function buildOncallShim(scenario, skinSlug, skinTrigger) {
           var triggerUrl = bugTrigger ? '/api/oncall/bug' : '/api/oncall/trigger/' + vertical;
           var triggerBody = bugTrigger
             ? { scenario: vertical, templateId: bugTrigger.templateId, reporter: bugTrigger.persona, severity: bugTrigger.severity, productArea: bugTrigger.productArea, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' }
-            : { unique: unique, skin: skinSlug, devinEmail: localStorage.getItem('devinEmail') || '' };
+            : {
+                unique: unique,
+                skin: skinSlug,
+                devinEmail: localStorage.getItem('devinEmail') || '',
+                devinUserId: localStorage.getItem('devinUserId') || '',
+                devinOrgId: localStorage.getItem('devinOrgId') || '',
+              };
           var postedMsg = bugTrigger ? 'Support ticket filed to ' + ${JSON.stringify(BUGS_CHANNEL_LABEL)} : 'Alert posted to ' + ${JSON.stringify(ALERTS_CHANNEL_LABEL)};
           var skippedMsg = bugTrigger ? 'Ticket skipped — no report reached Slack' : 'Alert post skipped — no alert reached Slack';
           var failedMsg = bugTrigger ? 'Ticket post failed' : 'Alert post failed';
@@ -510,7 +538,7 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
   next();
 }, oncallCap('trigger'), async (req, res) => {
   try {
-    const { unique, devinEmail, skin } = req.body || {};
+    const { unique, devinEmail, devinUserId, devinOrgId, skin } = req.body || {};
     const skinConfig = getOncallSkin(skin);
     const skinMatches = Boolean(skinConfig && skinConfig.vertical === req.params.vertical);
     if (skinConfig && !skinMatches) {
@@ -523,6 +551,8 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
     const result = await postOncallAlert(req.params.vertical, {
       unique: unique !== false,
       devinEmail,
+      devinUserId,
+      devinOrgId,
       skin: skinMatches ? skinConfig : null,
     });
     res.status(result.ok || result.skipped ? 200 : 400).json(result);
@@ -536,14 +566,16 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
  * GET /api/oncall/scenarios — available alert scenarios + canned bug reports
  */
 router.get('/api/oncall/scenarios', (_req, res) => {
-  const scenarios = Object.entries(ALERT_SCENARIOS).map(([id, s]) => ({
-    id,
-    brand: s.brand,
-    endpoint: s.endpoint,
-    monitor: s.monitor,
-    symptom: s.symptom,
-    retryWindow: Boolean(s.retryWindow),
-  }));
+  const scenarios = Object.entries(ALERT_SCENARIOS)
+    .filter(([, s]) => !s.unlisted)
+    .map(([id, s]) => ({
+      id,
+      brand: s.brand,
+      endpoint: s.endpoint,
+      monitor: s.monitor,
+      symptom: s.symptom,
+      retryWindow: Boolean(s.retryWindow),
+    }));
   const bugReports = Object.entries(BUG_REPORTS).map(([id, text]) => ({ id, text }));
   const bugCatalog = Object.entries(BUG_CATALOG).map(([product, entries]) => ({
     product,
@@ -556,6 +588,14 @@ router.get('/api/oncall/scenarios', (_req, res) => {
     })),
   }));
   res.json({ scenarios, bugReports, bugCatalog });
+});
+
+/**
+ * GET /api/oncall/skins — customer skins that opted into the branded hub
+ * (/oncall/branded) via skin.listed. Everything else stays direct-URL only.
+ */
+router.get('/api/oncall/skins', (_req, res) => {
+  res.json({ skins: listOncallSkins() });
 });
 
 /**

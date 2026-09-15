@@ -40,9 +40,138 @@
  * ticket in #oncall-bugs (via /api/oncall/bug) instead of posting the
  * monitor-style alert card to #oncall-alerts. templateId must exist in
  * BUG_CATALOG. Two skins can share one page file to offer both flavors.
+ *
+ * A skin may set devinSession: { auto: true, orgId, userId, apiKey } to have
+ * its own alerts create a Devin investigation session immediately and reply
+ * with the session link in the alert thread. Alerts raised from the generic
+ * hub, or from skins without this key, stay alert-only. orgId defaults to
+ * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
+ * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
+ *
+ * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
+ * collapsed dot; rerouting and alert posting are unaffected.
+ *
+ * A native page whose primary action has no legacy /api/<vertical> endpoint
+ * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
+ * URL is served with the shim instead of as a bare page whose action 404s.
+ *
+ * Skins are direct-URL only by default. A skin may set listed: true to appear
+ * as a card on the branded hub at /oncall/branded (GET /api/oncall/skins);
+ * the stock /oncall hub never lists customers. That page is reachable from
+ * the hub nav, so opt in deliberately.
  */
 
 const ONCALL_SKINS = {
+  '63dbb52f': {
+    slug: '63dbb52f',
+    company: 'Kaufland',
+    brandMark: 'K',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    listed: true,
+    page: {
+      file: '63dbb52f.html',
+      title: 'Philips Airfryer Serie 2000, 4,2l, RapidAir, Digital, schwarz (NA221/00) | Kaufland.de',
+    },
+    accent: '#E10915',
+    accentDark: '#C00811',
+    theme: {
+      '--accent': '#E10915',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#E10915',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Kaufland Kundenservice',
+    supportCenterSub: 'Online-Marktplatz Support',
+    disclaimer: 'NOT ACTUALLY A KAUFLAND SITE — internal demo only, not affiliated with, endorsed by, or a real Kaufland product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'marketplace',
+          label: 'Kaufland Online-Marktplatz \u2014 Warenkorb',
+          persona: { name: 'Lena Hoffmann', email: 'lena.hoffmann@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'marketplace-cart-timeout',
+              label: 'Add to cart fails with a timeout',
+              sev: 'High',
+              text: 'Shoppers cannot put marketplace items in the basket. You press "In den Warenkorb", the button spins for about eight seconds and then an error comes back saying the item could not be reserved. Same product, same seller, every attempt.',
+            },
+            {
+              id: 'marketplace-campaign-conversion',
+              label: 'Campaign traffic converting at zero',
+              sev: 'Critical',
+              text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  '5eae08bb': {
+    slug: '5eae08bb',
+    company: 'Tyk',
+    brandMark: 'T',
+    vertical: 'hightech',
+    page: {
+      file: '5eae08bb.html',
+      title: 'Tyk Cloud — Team access',
+    },
+    theme: {
+      '--accent': '#8438FA',
+      '--ink': '#140527',
+      '--surface': '#FEF9FF',
+      '--chrome-bg': '#08051C',
+      '--chrome-text': '#FEF9FF',
+    },
+    supportCenter: 'Tyk Support',
+    disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
+  },
+  '66cee815': {
+    slug: '66cee815',
+    company: 'JFrog',
+    brandMark: 'J',
+    vertical: 'hightech',
+    page: {
+      file: '66cee815.html',
+      title: 'JFrog Platform — Project access',
+    },
+    theme: {
+      '--accent': '#36A13B',
+      '--ink': '#2F2F2F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#080C25',
+      '--chrome-text': '#E4E9EA',
+    },
+    supportCenter: 'JFrog Support',
+    disclaimer: 'NOT ACTUALLY A JFROG SITE — internal demo only, not affiliated with, endorsed by, or a real JFrog product.',
+  },
+  'cb414550': {
+    slug: 'cb414550',
+    company: 'Arcadia',
+    brandMark: 'A',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cb414550.html',
+      title: 'Arcadia — Utility Bill Pay',
+    },
+    accent: '#0FFF87',
+    accentDark: '#0be27a',
+    theme: {
+      '--accent': '#104336',
+      '--ink': '#104336',
+      '--surface': '#F9F3E8',
+      '--chrome-bg': '#101F1E',
+      '--chrome-text': '#F9F3E8',
+    },
+    supportCenter: 'Arcadia Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN ARCADIA SITE — internal demo only, not affiliated with, endorsed by, or a real Arcadia product.',
+  },
   '8cc190d2': {
     slug: '8cc190d2',
     company: 'Brex',
@@ -160,6 +289,30 @@ const ONCALL_SKINS = {
     supportCenter: 'Cyera Support',
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CYERA SITE — internal demo only, not affiliated with, endorsed by, or a real Cyera product.',
+  },
+  'cbb43fd1': {
+    slug: 'cbb43fd1',
+    company: 'Celonis',
+    brandMark: 'C',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cbb43fd1.html',
+      title: 'Celonis — Team Administration',
+    },
+    accent: '#5CFE50',
+    accentDark: '#3fd634',
+    theme: {
+      '--accent': '#3fd634',
+      '--ink': '#111111',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Celonis Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CELONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Celonis product.',
   },
   '71dff37b': {
     slug: '71dff37b',
@@ -1147,6 +1300,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Digital AECOM Support',
     disclaimer: 'NOT ACTUALLY AN AECOM SITE — internal demo only, not affiliated with, endorsed by, or a real AECOM product.',
   },
+  '232108b7': {
+    slug: '232108b7',
+    company: 'Prudential',
+    brandMark: 'P',
+    vertical: 'insurance',
+    page: { file: '232108b7.html', title: 'Make a claim | Prudential' },
+    theme: {
+      '--accent': '#DA291C',
+      '--ink': '#1C1D1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1C1D1B',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Prudential Customer Service',
+    disclaimer: 'NOT ACTUALLY A PRUDENTIAL SITE — internal demo only, not affiliated with, endorsed by, or a real Prudential plc product.',
+  },
   '7abf90ac': {
     slug: '7abf90ac',
     company: 'Coursera',
@@ -1183,6 +1352,199 @@ const ONCALL_SKINS = {
     supportCenter: '1-800-Flowers.com Customer Service',
     disclaimer: 'NOT ACTUALLY A 1-800-FLOWERS.COM SITE — internal demo only, not affiliated with, endorsed by, or a real 1-800-Flowers.com product.',
   },
+  'd9d2f2fd': {
+    slug: 'd9d2f2fd',
+    company: 'Lloyds Bank',
+    brandMark: 'LLOYDS',
+    vertical: 'banking',
+    page: {
+      file: 'd9d2f2fd.html',
+      title: 'Pay & transfer | Internet Banking – Lloyds Bank',
+    },
+    theme: {
+      '--accent': '#11B67A',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#006A4D',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Lloyds Bank Help & Support',
+    disclaimer: 'NOT ACTUALLY A LLOYDS BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Lloyds Bank product.',
+  },
+  'f2089246': {
+    slug: 'f2089246',
+    company: 'Function Health',
+    brandMark: 'F',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'f2089246.html',
+      title: 'Function — Member Dashboard',
+    },
+    accent: '#B05A36',
+    accentDark: '#8f4729',
+    theme: {
+      '--accent': '#B05A36',
+      '--ink': '#2A2B2F',
+      '--surface': '#FEF9EF',
+      '--chrome-bg': '#2A2B2F',
+      '--chrome-text': '#FEF9EF',
+    },
+    supportCenter: 'Function Support',
+    supportCenterSub: 'Member Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A FUNCTION HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Function Health product.',
+  },
+  '1dd18f07': {
+    slug: '1dd18f07',
+    company: 'Eaze',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: {
+      file: '1dd18f07.html',
+      title: 'Checkout | Eaze',
+    },
+    theme: {
+      '--accent': '#FFE400',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Eaze Support',
+    disclaimer: 'NOT ACTUALLY A EAZE SITE — internal demo only, not affiliated with, endorsed by, or a real Eaze product.',
+  },
+  '97d17d45': {
+    slug: '97d17d45',
+    company: 'Parallel',
+    brandMark: 'P',
+    vertical: 'hightech',
+    page: {
+      file: '97d17d45.html',
+      title: 'Provision seats | Parallel Platform',
+    },
+    theme: {
+      '--accent': '#FB631B',
+      '--ink': '#181818',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#202020',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Parallel Support',
+    disclaimer: 'NOT ACTUALLY A PARALLEL SITE — internal demo only, not affiliated with, endorsed by, or a real Parallel Web Systems product.',
+  },
+  'b96d078d': {
+    slug: 'b96d078d',
+    company: 'Bloomberg Law',
+    brandMark: 'BL',
+    vertical: 'hightech',
+    page: { file: 'b96d078d.html', title: 'Add users | Firm Administration – Bloomberg Law' },
+    theme: {
+      '--accent': '#0073FF',
+      '--ink': '#232323',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Bloomberg Law Help Desk',
+    disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
+  },
+  '4b663efb': {
+    slug: '4b663efb',
+    company: 'Nordstrom',
+    brandMark: 'N',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '4b663efb.html',
+      title: 'On Cloudsurfer 2 Running Shoe | Nordstrom',
+    },
+    accent: '#191A1B',
+    accentDark: '#000000',
+    theme: {
+      '--accent': '#191A1B',
+      '--ink': '#191A1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Nordstrom Customer Care',
+    supportCenterSub: 'Online Orders & Shopping Bag',
+    disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',
+  },
+  '5d7c46c1': {
+    slug: '5d7c46c1',
+    company: 'Figure',
+    brandMark: 'F',
+    vertical: 'banking',
+    page: { file: '5d7c46c1.html', title: 'Request a draw | Figure HELOC' },
+    theme: {
+      '--accent': '#5B56F5',
+      '--ink': '#1A1B22',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1A1B22',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Figure Support',
+    disclaimer: 'NOT ACTUALLY A FIGURE SITE — internal demo only, not affiliated with, endorsed by, or a real Figure Lending LLC product.',
+  },
+  '871f5f7f': {
+    slug: '871f5f7f',
+    company: 'Turnitin',
+    brandMark: 'T',
+    vertical: 'hightech',
+    page: {
+      file: '871f5f7f.html',
+      title: 'License management | Turnitin',
+    },
+    accent: '#0DFFAD',
+    accentDark: '#04E69A',
+    theme: {
+      '--accent': '#0096FF',
+      '--ink': '#003C46',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#003C46',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Turnitin Support',
+    supportCenterSub: 'Administrator & Instructor Support',
+    disclaimer: 'NOT ACTUALLY A TURNITIN SITE — internal demo only, not affiliated with, endorsed by, or a real Turnitin product.',
+  },
+  '42d69b95': {
+    slug: '42d69b95',
+    company: 'Rippling',
+    brandMark: 'R',
+    vertical: 'hightech',
+    page: { file: '42d69b95.html', title: 'Assign apps | App Management – Rippling IT' },
+    theme: {
+      '--accent': '#FFA81D',
+      '--ink': '#1C1C1C',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#4A0039',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Rippling Help Center',
+    disclaimer: 'NOT ACTUALLY A RIPPLING SITE — internal demo only, not affiliated with, endorsed by, or a real Rippling People Center Inc. product.',
+  },
+  '347abdf0': {
+    slug: '347abdf0',
+    company: 'Hebbia',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: { file: '347abdf0.html', title: 'Add seats | Matrix workspaces – Hebbia' },
+    theme: {
+      '--accent': '#465BFF',
+      '--ink': '#0E0B0B',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0E0B0B',
+      '--chrome-text': '#F4F1EB',
+    },
+    supportCenter: 'Hebbia Support',
+    disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
+  },
 };
 
 function getOncallSkin(slug) {
@@ -1191,4 +1553,17 @@ function getOncallSkin(slug) {
   return Object.prototype.hasOwnProperty.call(ONCALL_SKINS, key) ? ONCALL_SKINS[key] : null;
 }
 
-module.exports = { ONCALL_SKINS, getOncallSkin };
+function listOncallSkins() {
+  return Object.values(ONCALL_SKINS)
+    .filter((skin) => skin.listed === true)
+    .map((skin) => ({
+      slug: skin.slug,
+      company: skin.company,
+      brandMark: skin.brandMark,
+      vertical: skin.vertical,
+      accent: skin.accent,
+      href: `/oncall/c/${skin.slug}`,
+    }));
+}
+
+module.exports = { ONCALL_SKINS, getOncallSkin, listOncallSkins };

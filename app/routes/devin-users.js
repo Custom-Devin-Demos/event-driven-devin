@@ -1,6 +1,8 @@
 const express = require('express');
 const logger = require('../telemetry/logger');
-const { listEnterpriseOrgs, listOrgUsers, listEnterpriseAdmins } = require('../services/devin-api');
+const {
+  listEnterpriseOrgs, listOrgUsers, listEnterpriseAdmins, listServiceKeys,
+} = require('../services/devin-api');
 
 const router = express.Router();
 
@@ -27,12 +29,59 @@ router.get('/api/config', (_req, res) => {
 /*  Accepts { orgName, email } and resolves them to Devin IDs         */
 /*  server-side. No org/user lists are exposed to the browser.        */
 /*  Results are cached for 5 minutes to reduce API calls.             */
+/*                                                                    */
+/*  Per-customer service keys can live in a different enterprise than */
+/*  the global key, so orgs are collected across every configured key */
+/*  and each org remembers which key can see it.                      */
 /* ------------------------------------------------------------------ */
+const CACHE_TTL_MS = 5 * 60 * 1000;
 let cachedOrgs = null;
 let orgsCacheExpiry = 0;
 const usersCacheByOrg = new Map();
-let cachedEnterpriseAdmins = null;
-let enterpriseAdminsCacheExpiry = 0;
+const enterpriseAdminsCacheByKey = new Map();
+
+async function getOrgs() {
+  const now = Date.now();
+  if (cachedOrgs && now < orgsCacheExpiry) return cachedOrgs;
+  const orgs = [];
+  const seen = new Set();
+  for (const { apiKey } of listServiceKeys()) {
+    for (const org of await listEnterpriseOrgs({ apiKey })) {
+      if (!seen.has(org.org_id)) {
+        seen.add(org.org_id);
+        orgs.push({ ...org, apiKey });
+      }
+    }
+  }
+  cachedOrgs = orgs;
+  orgsCacheExpiry = now + CACHE_TTL_MS;
+  return orgs;
+}
+
+/** Auth options for the service key that can see `orgId` (global key if unknown). */
+async function authForOrg(orgId) {
+  const org = (await getOrgs()).find((o) => o.org_id === orgId);
+  return org?.apiKey ? { apiKey: org.apiKey } : {};
+}
+
+async function getOrgUsers(orgId, auth) {
+  const now = Date.now();
+  const cached = usersCacheByOrg.get(orgId);
+  if (cached && now < cached.expiry) return cached.users;
+  const users = await listOrgUsers(orgId, auth);
+  usersCacheByOrg.set(orgId, { users, expiry: now + CACHE_TTL_MS });
+  return users;
+}
+
+async function getEnterpriseAdmins(auth) {
+  const key = auth.apiKey || '';
+  const now = Date.now();
+  const cached = enterpriseAdminsCacheByKey.get(key);
+  if (cached && now < cached.expiry) return cached.admins;
+  const admins = await listEnterpriseAdmins(auth);
+  enterpriseAdminsCacheByKey.set(key, { admins, expiry: now + CACHE_TTL_MS });
+  return admins;
+}
 
 router.post('/api/resolve-identity', async (req, res) => {
   const { orgName, orgId: providedOrgId, email } = req.body || {};
@@ -48,14 +97,8 @@ router.post('/api/resolve-identity', async (req, res) => {
     if (providedOrgId) {
       result.orgId = providedOrgId;
     } else if (orgName) {
-      const now = Date.now();
-      if (!cachedOrgs || now >= orgsCacheExpiry) {
-        cachedOrgs = await listEnterpriseOrgs();
-        orgsCacheExpiry = now + 5 * 60 * 1000;
-      }
-
       const normalizedInput = orgName.trim().toLowerCase();
-      const match = cachedOrgs.find(
+      const match = (await getOrgs()).find(
         (o) => (o.name || '').toLowerCase() === normalizedInput,
       );
 
@@ -72,17 +115,8 @@ router.post('/api/resolve-identity', async (req, res) => {
       return res.status(400).json({ error: 'Org name or org ID is required to look up a user by email', field: 'orgName' });
     }
     if (email && result.orgId) {
-      const cacheKey = result.orgId;
-      const now = Date.now();
-      let users;
-
-      const cached = usersCacheByOrg.get(cacheKey);
-      if (cached && now < cached.expiry) {
-        users = cached.users;
-      } else {
-        users = await listOrgUsers(result.orgId);
-        usersCacheByOrg.set(cacheKey, { users, expiry: now + 5 * 60 * 1000 });
-      }
+      const auth = await authForOrg(result.orgId);
+      const users = await getOrgUsers(result.orgId, auth);
 
       const normalizedEmail = email.trim().toLowerCase();
       const userMatch = users.find(
@@ -94,13 +128,8 @@ router.post('/api/resolve-identity', async (req, res) => {
       } else {
         // Fall back to enterprise admins — they have access to all orgs
         // even if they aren't explicit org members.
-        const now2 = Date.now();
-        if (!cachedEnterpriseAdmins || now2 >= enterpriseAdminsCacheExpiry) {
-          cachedEnterpriseAdmins = await listEnterpriseAdmins();
-          enterpriseAdminsCacheExpiry = now2 + 5 * 60 * 1000;
-        }
-
-        const adminMatch = cachedEnterpriseAdmins.find(
+        const admins = await getEnterpriseAdmins(auth);
+        const adminMatch = admins.find(
           (a) => (a.email || '').toLowerCase() === normalizedEmail,
         );
 

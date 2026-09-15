@@ -2,6 +2,10 @@ const express = require('express');
 const logger = require('../telemetry/logger');
 const { createSessionAndAlert } = require('../services/devin-session');
 const { verifySentrySignature } = require('../middleware/verify-session-secret');
+const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7');
+const { APP_REMEDIATION_DIRECTIVE } = require('../services/verticals/3aa9fa04');
+const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require('../services/verticals/67f2a7ba');
+const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
 
 const router = express.Router();
 
@@ -134,6 +138,29 @@ function isSyntheticProbeEvent(alertData) {
 }
 
 /**
+ * Verticals that alert directly tag their Sentry events so the webhook
+ * fallback does not raise a second alert or Devin session.
+ */
+// Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
+const INSTANT_PATH_SLUGS = ['a7fb8819'];
+
+function isInstantPathEvent(alertData) {
+  const hasInstantTag = (alertData.tags || []).some((tag) => {
+    if (Array.isArray(tag)) return tag[0] === 'alert_path' && tag[1] === 'instant';
+    if (tag && typeof tag === 'object') {
+      return (tag.key === 'alert_path' && tag.value === 'instant')
+        || ('alert_path' in tag && tag.alert_path === 'instant');
+    }
+    return false;
+  });
+
+  return hasInstantTag || (
+    typeof alertData.culprit === 'string'
+    && INSTANT_PATH_SLUGS.some((slug) => alertData.culprit.toLowerCase().includes(slug))
+  );
+}
+
+/**
  * Errors raised on the on-call demo slice (`/api/oncall/...` routes) belong to
  * the on-call incident flow — the responders are driven by the alert cards
  * posted to the on-call channels, never by the legacy Slack-alert/Devin
@@ -205,6 +232,84 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: 'claim-estimate',
     },
   },
+  '6f43e66c': {
+    customer: '6f43e66c',
+    verticalLabel: 'Consumer Zelle Send',
+    service: 'customer-6f43e66c-zelle-send',
+    project: 'event-driven-devin',
+    release: 'customer-6f43e66c-zelle-send@1.0.0',
+    tagOverrides: {
+      customer: '6f43e66c',
+      service: 'customer-6f43e66c-zelle-send',
+      route: '/api/6f43e66c/send',
+      scenario: 'zelle-send',
+    },
+  },
+  // Flutter customer portal (github.com/Custom-Devin-Demos/ge-customer-portal).
+  // Its events arrive from the app's own Sentry project, not from this host,
+  // and remediation lands in the Flutter repo — the directive names it.
+  '5b992ae7': {
+    customer: '5b992ae7',
+    verticalLabel: 'GE Aerospace Customer Portal',
+    service: 'customer-5b992ae7-portal',
+    project: 'ge-customer-portal',
+    release: 'ge-customer-portal@1.0.0',
+    promptAppendix: PORTAL_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-5b992ae7-portal',
+      service: 'customer-5b992ae7-portal',
+      scenario: 'technical-inquiry',
+    },
+  },
+  // Splash Sports Expo app (github.com/COG-GTM/splash-sports-mobile). Reports
+  // arrive via /api/3aa9fa04/app/error; remediation lands in the mobile repo.
+  '3aa9fa04': {
+    customer: '3aa9fa04',
+    verticalLabel: 'Splash Sports Mobile',
+    service: 'customer-3aa9fa04-mobile',
+    project: 'splash-sports-mobile',
+    release: 'splash-sports-mobile@1.0.0',
+    promptAppendix: APP_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-3aa9fa04-mobile',
+      service: 'customer-3aa9fa04-mobile',
+      scenario: 'nfl-primetime-entry',
+    },
+  },
+  // Citi consumer banking Flutter app (github.com/Custom-Devin-Demos/
+  // citi-banking-demo-app): Citi Online on desktop web, Citi Mobile on
+  // Android/iOS. Reports arrive via /api/67f2a7ba/mobile/error; remediation
+  // lands in the Flutter repo and is verified on all three surfaces.
+  '67f2a7ba': {
+    customer: '67f2a7ba',
+    verticalLabel: 'Citi Mobile',
+    service: 'customer-67f2a7ba-mobile',
+    project: 'citi-mobile',
+    release: 'citi-mobile@1.0.0',
+    promptAppendix: CITI_MOBILE_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-67f2a7ba-mobile',
+      service: 'customer-67f2a7ba-mobile',
+      scenario: 'pay-citi-card',
+    },
+  },
+  // Nordstrom shopping Flutter app (github.com/Custom-Devin-Demos/
+  // nordstrom-shopping-demo-app): nordstrom.com on desktop web, the Nordstrom
+  // app on Android/iOS. Reports arrive via /api/5b7227b4/mobile/error;
+  // remediation lands in the Flutter repo and is verified on all three surfaces.
+  '5b7227b4': {
+    customer: '5b7227b4',
+    verticalLabel: 'Nordstrom',
+    service: 'customer-5b7227b4-mobile',
+    project: 'nordstrom-shop',
+    release: 'nordstrom-shop@1.0.0',
+    promptAppendix: NORDSTROM_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-5b7227b4-mobile',
+      service: 'customer-5b7227b4-mobile',
+      scenario: 'add-to-bag-rewards',
+    },
+  },
 };
 
 function tagKey(tag) {
@@ -215,11 +320,13 @@ function tagKey(tag) {
 
 function applyCustomerIdentity(alertData) {
   const searchableText = alertSearchableText(alertData);
-  // Match only the structured `customer-<slug>-` form (emitted in the service
-  // tag, e.g. `customer-4f645972-claims`) so a bare or word-like slug can never
-  // rewrite the identity of an unrelated customer's alert.
+  // Match on the entry's full service identity (emitted in the service tag,
+  // e.g. `customer-4f645972-claims`) so a bare or word-like slug can never
+  // rewrite the identity of an unrelated customer's alert, and so two surfaces
+  // of the same customer (e.g. `customer-5b992ae7-inquiry` on this host vs
+  // `customer-5b992ae7-portal` in the Flutter app) never claim each other.
   const slug = Object.keys(CUSTOMER_ALERT_IDENTITY)
-    .find((id) => searchableText.includes(`customer-${id}-`));
+    .find((id) => searchableText.includes(CUSTOMER_ALERT_IDENTITY[id].service));
 
   if (!slug) return alertData;
 
@@ -275,6 +382,13 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
       return res.json({ received: true, skipped: true, reason: 'synthetic_probe' });
     }
 
+    if (isInstantPathEvent(alertData)) {
+      logger.info('Sentry webhook skipped — already alerted by instant path', {
+        issueTitle: alertData.issueTitle,
+      });
+      return res.json({ received: true, skipped: true, reason: 'instant_path' });
+    }
+
     if (isOncallSliceEvent(alertData)) {
       logger.info('Sentry webhook skipped — on-call slice event', {
         issueTitle: alertData.issueTitle,
@@ -318,3 +432,5 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
 });
 
 module.exports = router;
+module.exports.applyCustomerIdentity = applyCustomerIdentity;
+module.exports.isInstantPathEvent = isInstantPathEvent;

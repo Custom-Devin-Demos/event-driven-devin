@@ -72,7 +72,7 @@ for (const file of fs.readdirSync(CUSTOMERS_DIR).sort()) {
  * of per-customer config is running against a different Devin org).
  *
  * @param {string} [customerSlug] - Customer identifier (e.g. "wayfair")
- * @returns {Object} Resolved config with triggerMode, apiKey, playbookId, githubOrg, devinUserId, targetRepo
+ * @returns {Object} Resolved config with triggerMode, apiKey, playbookId, githubOrg, devinUserId, devinOrgId, targetRepo
  */
 function getCustomerConfig(customerSlug) {
   const slug = customerSlug || 'default';
@@ -105,9 +105,13 @@ function getCustomerConfig(customerSlug) {
     githubOrg,
     devinUserId: process.env[`DEVIN_USER_ID${suffix}`]
       || process.env.DEVIN_USER_ID || '',
+    // Org the per-customer service key belongs to; createDevinSession() falls back to DEVIN_ORG_ID.
+    devinOrgId: suffix ? (process.env[`DEVIN_ORG_ID${suffix}`] || '') : '',
     targetRepo: process.env[`SONAR_TARGET_REPO${suffix}`]
       || process.env.SONAR_TARGET_REPO || `${githubOrg}/etl-pipeline-demo`,
     sonarWorkflowCustomer: process.env[`SONAR_WORKFLOW_CUSTOMER${suffix}`] || slug,
+    itsm: entry.itsm || null,
+    itsmAssignmentGroup: entry.itsmAssignmentGroup || '',
   };
 
   if (slug !== 'default') {
@@ -118,8 +122,10 @@ function getCustomerConfig(customerSlug) {
       hasPlaybook: !!config.playbookId,
       githubOrg: config.githubOrg,
       hasDevinUserId: !!config.devinUserId,
+      hasDevinOrgId: !!config.devinOrgId,
       targetRepo: config.targetRepo,
       sonarWorkflowCustomer: config.sonarWorkflowCustomer,
+      itsm: config.itsm,
     });
   }
 

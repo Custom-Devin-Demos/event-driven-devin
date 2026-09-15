@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ongoing adviser fee arrangement | HUB24 Adviser Desktop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #293c8b;
+      --blue: #2b5da9;
+      --yellow: #ffbe37;
+      --ink: #1d1d1d;
+      --muted: #5f6878;
+      --line: #dfe3eb;
+      --soft: #f1f4f8;
+      --page: #fafafa;
+      --error: #a72929;
+      --error-bg: #fff0f0;
+      --success: #1c6b49;
+      --success-bg: #edf8f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: 'proxima-nova', 'Nunito Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 17px;
+      line-height: 25.5px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      width: min(1180px, calc(100% - 48px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      background: var(--navy);
+      color: #fff;
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .topbar__inner {
+      min-height: 34px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .topbar a { color: #fff; }
+
+    .site-header {
+      min-height: 97px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .site-header__inner {
+      min-height: 97px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .brand img {
+      display: block;
+      width: 135px;
+      height: auto;
+    }
+
+    .brand__fallback {
+      display: none;
+      color: var(--navy);
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+    }
+
+    .brand__divider {
+      width: 1px;
+      height: 34px;
+      background: var(--line);
+    }
+
+    .brand__portal {
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .adviser-identity {
+      text-align: right;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .adviser-identity strong {
+      display: block;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .platform-nav {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .platform-nav__inner {
+      display: flex;
+      align-items: stretch;
+      gap: 2px;
+      min-height: 53px;
+    }
+
+    .platform-nav a {
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      color: var(--navy);
+      font-size: 16px;
+      font-weight: 700;
+      border-bottom: 4px solid transparent;
+    }
+
+    .platform-nav a:hover { background: #f6f8fc; text-decoration: none; }
+    .platform-nav a.is-active {
+      color: var(--navy);
+      border-bottom-color: var(--yellow);
+    }
+
+    .platform-nav__spacer { flex: 1; }
+    .platform-nav__help { color: var(--blue) !important; font-weight: 600 !important; }
+
+    main { padding: 34px 0 64px; }
+
+    .breadcrumbs {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .breadcrumbs span { margin: 0 8px; color: #a8afbd; }
+
+    .page-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 28px;
+      margin-bottom: 30px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      color: var(--navy);
+    }
+
+    h1 {
+      font-size: 36px;
+      line-height: 40.5px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+    }
+
+    h2 {
+      font-size: 32px;
+      line-height: 36px;
+      font-weight: 600;
+    }
+
+    h3 {
+      font-size: 20px;
+      line-height: 27px;
+      font-weight: 800;
+    }
+
+    .page-heading p {
+      max-width: 670px;
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .heading-meta {
+      flex: 0 0 auto;
+      padding: 10px 16px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+      text-align: right;
+    }
+
+    .heading-meta strong {
+      display: block;
+      color: var(--navy);
+      font-weight: 800;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 315px;
+      align-items: start;
+      gap: 28px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: 0 2px 6px rgba(32, 48, 84, 0.04);
+      padding: 30px;
+    }
+
+    .card__intro {
+      margin: 6px 0 24px;
+      color: var(--muted);
+    }
+
+    .account-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin: 0 0 30px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+
+    .account-summary__item {
+      min-height: 83px;
+      padding: 13px 16px;
+      background: var(--soft);
+    }
+
+    .account-summary__item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .account-summary__item strong {
+      display: block;
+      color: var(--navy);
+      font-size: 16px;
+      line-height: 23px;
+      font-weight: 800;
+    }
+
+    .account-summary__item--wide { grid-column: span 2; }
+
+    .field { margin-bottom: 23px; }
+
+    label.field__label,
+    .fieldset legend {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 22px;
+      font-weight: 800;
+    }
+
+    .field__hint {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 400;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 13px;
+      border: 1px solid #9aa5b7;
+      border-radius: 3px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 16px;
+    }
+
+    select:focus,
+    input:focus {
+      outline: 3px solid rgba(43, 93, 169, 0.22);
+      border-color: var(--blue);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .fieldset {
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      margin: 0 0 23px;
+    }
+
+    .choice-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .choice {
+      flex: 1 1 180px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-height: 64px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .choice:has(input:checked) {
+      border-color: var(--navy);
+      box-shadow: inset 0 0 0 1px var(--navy);
+      background: #f5f7ff;
+    }
+
+    .choice input { margin-top: 4px; accent-color: var(--navy); }
+
+    .choice strong {
+      display: block;
+      color: var(--navy);
+      font-size: 16px;
+      line-height: 21px;
+    }
+
+    .choice small {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 15px 16px;
+      background: #fffaf0;
+      border: 1px solid #ead7a9;
+      border-radius: 3px;
+      color: #4f4634;
+      font-size: 15px;
+      line-height: 22px;
+    }
+
+    .consent input { margin-top: 5px; accent-color: var(--navy); }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 30px;
+    }
+
+    .button {
+      min-height: 48px;
+      padding: 11px 23px;
+      border: 1px solid var(--navy);
+      border-radius: 3px;
+      background: var(--navy);
+      color: #fff;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button:hover { background: #1e2e70; }
+    .button:disabled { opacity: 0.65; cursor: default; }
+
+    .button--secondary {
+      background: #fff;
+      color: var(--navy);
+    }
+
+    .button--secondary:hover { background: #f3f5fb; }
+
+    .side-rail { display: grid; gap: 18px; }
+
+    .side-card {
+      padding: 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .side-card--navy {
+      background: var(--navy);
+      color: #fff;
+      border-color: var(--navy);
+    }
+
+    .side-card--navy h3,
+    .side-card--navy a { color: #fff; }
+
+    .side-card p { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
+    .side-card--navy p { color: #e2e7ff; }
+
+    .side-card ul {
+      margin: 13px 0 0;
+      padding-left: 19px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 23px;
+    }
+
+    .side-card--navy ul { color: #e2e7ff; }
+    .side-card li + li { margin-top: 8px; }
+
+    .side-card__link {
+      display: block;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .side-card__link:first-of-type { margin-top: 12px; }
+
+    .panel {
+      display: none;
+      margin-top: 26px;
+      padding: 20px 22px;
+      border-radius: 3px;
+    }
+
+    .panel h3 { margin-bottom: 8px; }
+    .panel p { margin: 0 0 10px; }
+    .panel--error { background: var(--error-bg); border-left: 5px solid var(--error); }
+    .panel--error h3 { color: var(--error); }
+    .panel--success { background: var(--success-bg); border-left: 5px solid var(--success); }
+    .panel--success h3 { color: var(--success); }
+
+    .technical {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      overflow-x: auto;
+      background: #fff;
+      border: 1px solid #e7caca;
+      color: #572525;
+      font: 13px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+
+    .receipt {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+      background: #cce5d7;
+      border: 1px solid #cce5d7;
+    }
+
+    .receipt li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 12px;
+      background: #fff;
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .receipt li span { color: var(--muted); }
+    .receipt li strong { color: var(--ink); text-align: right; }
+
+    .site-footer {
+      padding: 42px 0 30px;
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .site-footer__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 35px;
+      padding-bottom: 27px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .footer-brand img {
+      display: block;
+      width: 120px;
+      height: auto;
+      margin-bottom: 14px;
+    }
+
+    .footer-brand__fallback {
+      display: none;
+      margin-bottom: 14px;
+      color: #fff;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .footer-brand p,
+    .site-footer address {
+      margin: 0;
+      color: #dfe5ff;
+      font-size: 14px;
+      line-height: 21px;
+      font-style: normal;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      justify-content: flex-end;
+      gap: 12px 24px;
+      max-width: 470px;
+    }
+
+    .footer-links a { color: #fff; font-size: 15px; font-weight: 700; }
+    .site-footer__legal { margin: 22px 0 0; color: #dfe5ff; font-size: 13px; line-height: 19px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .side-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 680px) {
+      .container { width: min(100% - 30px, 1180px); }
+      .topbar__inner { justify-content: flex-start; gap: 14px; overflow-x: auto; }
+      .site-header__inner { min-height: 0; padding: 20px 0; align-items: flex-start; flex-direction: column; }
+      .adviser-identity { text-align: left; }
+      .brand { gap: 13px; flex-wrap: wrap; }
+      .brand__divider { display: none; }
+      .platform-nav__inner { overflow-x: auto; }
+      .platform-nav a { padding: 0 14px; white-space: nowrap; }
+      main { padding-top: 24px; }
+      .page-heading { display: block; }
+      .heading-meta { margin-top: 18px; text-align: left; }
+      .card { padding: 22px 18px; }
+      .account-summary { grid-template-columns: 1fr 1fr; }
+      .account-summary__item--wide { grid-column: span 2; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .side-rail { grid-template-columns: 1fr; }
+      .receipt { grid-template-columns: 1fr; }
+      .site-footer__top { display: block; }
+      .footer-links { justify-content: flex-start; margin-top: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container topbar__inner">
+      <span>Adviser support 1300 854 885</span>
+      <a href="#">Help centre</a>
+      <a href="#">Contact HUB24</a>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <div class="brand">
+        <img src="https://www.hub24.com.au/wp-content/uploads/2021/10/hub24-logo-dark.svg"
+             alt="HUB24"
+             onerror="this.onerror=null;this.style.display='none';document.getElementById('header-brand-fallback').style.display='inline-block';">
+        <span class="brand__fallback" id="header-brand-fallback">HUB24</span>
+        <span class="brand__divider" aria-hidden="true"></span>
+        <span class="brand__portal">Adviser Desktop</span>
+      </div>
+      <div class="adviser-identity">
+        Adviser practice
+        <strong id="adviser-practice">Ardenmore Private Wealth</strong>
+        <span id="adviser-name">Rebecca Tran · AFSL 241 062</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="platform-nav" aria-label="Primary navigation">
+    <div class="container platform-nav__inner">
+      <a href="#">Dashboard</a>
+      <a href="#">Clients</a>
+      <a href="#">Portfolios</a>
+      <a href="#" class="is-active">Fees</a>
+      <a href="#">Reports</a>
+      <span class="platform-nav__spacer"></span>
+      <a href="#" class="platform-nav__help">Support</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="#">Dashboard</a><span>›</span><a href="#">Fees</a><span>›</span>Ongoing adviser fee arrangement
+      </div>
+
+      <div class="page-heading">
+        <div>
+          <h1>Ongoing adviser fee arrangement</h1>
+          <p>Submit an ongoing fee arrangement for a client account after confirming the client's consent and agreed fee terms.</p>
+        </div>
+        <div class="heading-meta">
+          <strong>Adviser Desktop</strong>
+          Consent workflow · FY26
+        </div>
+      </div>
+
+      <div class="layout">
+        <section class="card">
+          <h2>New fee arrangement</h2>
+          <p class="card__intro">Review the client account and enter the ongoing adviser fee to be applied to the portfolio.</p>
+
+          <div class="account-summary" aria-live="polite">
+            <div class="account-summary__item">
+              <span>Client</span>
+              <strong id="summary-client">Marcus Alderton</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>HUB24 account</span>
+              <strong id="summary-account">HUB24-8842167</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>Product</span>
+              <strong id="summary-product">HUB24 Super — Choice</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>Portfolio value</span>
+              <strong id="summary-value">$1,482,350.60</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>Adviser</span>
+              <strong id="summary-adviser">Rebecca Tran · Ardenmore Private Wealth</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>AFSL</span>
+              <strong id="summary-afsl">AFSL 241 062</strong>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="client-account">Client account</label>
+            <select id="client-account"></select>
+            <span class="field__hint">Select the HUB24 account for this fee consent record.</span>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend>Fee basis</legend>
+            <div class="choice-row">
+              <label class="choice">
+                <input type="radio" name="feeBasis" value="percentage" checked>
+                <span><strong>Percentage</strong><small>Annual fee as a percentage of portfolio value</small></span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="feeBasis" value="flat">
+                <span><strong>Flat annual fee</strong><small>Fixed AUD amount charged each year</small></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-row">
+            <div class="field">
+              <label class="field__label" for="fee-amount">Fee amount <span id="fee-unit">(% p.a.)</span></label>
+              <input id="fee-amount" type="number" inputmode="decimal" min="0.01" step="0.01" value="0.95">
+              <span class="field__hint" id="fee-hint">Enter the agreed ongoing adviser fee percentage.</span>
+            </div>
+            <div class="field">
+              <label class="field__label" for="frequency">Frequency</label>
+              <select id="frequency"></select>
+              <span class="field__hint">The fee run will follow the selected schedule.</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="start-date">Start date</label>
+            <input id="start-date" type="date" value="2026-09-14">
+          </div>
+
+          <label class="consent">
+            <input id="client-consent" type="checkbox" checked>
+            <span>I confirm that the client has provided consent for this ongoing adviser fee arrangement and that the agreed fee terms have been documented.</span>
+          </label>
+
+          <div class="actions">
+            <button class="button" id="submit-fee" type="button">Submit fee arrangement</button>
+            <button class="button button--secondary" type="button">Cancel</button>
+          </div>
+
+          <div class="panel panel--error" id="fee-error">
+            <h3>We couldn't submit this fee arrangement</h3>
+            <p>The client account has not been changed and no fee consent has been recorded. Review the details and try again.</p>
+            <pre class="technical" id="error-technical"></pre>
+          </div>
+
+          <div class="panel panel--success" id="fee-success">
+            <h3>Fee arrangement accepted</h3>
+            <p id="success-copy"></p>
+            <ul class="receipt" id="success-receipt"></ul>
+          </div>
+        </section>
+
+        <aside class="side-rail">
+          <div class="side-card side-card--navy">
+            <h3>Fee consent checklist</h3>
+            <ul>
+              <li>Confirm the client account and portfolio value.</li>
+              <li>Match the fee basis and frequency to the signed consent.</li>
+              <li>Retain the consent record with the client file.</li>
+            </ul>
+          </div>
+          <div class="side-card">
+            <h3>Adviser resources</h3>
+            <a class="side-card__link" href="#">Fee consent guide</a>
+            <a class="side-card__link" href="#">Client communications</a>
+            <a class="side-card__link" href="#">HUB24 fee schedule</a>
+          </div>
+          <div class="side-card">
+            <h3>Need assistance?</h3>
+            <p>Our adviser support team can help with consent workflows and account servicing.</p>
+            <p><strong>1300 854 885</strong><br>Monday–Friday, 8:30am–6pm AEST</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__top">
+        <div class="footer-brand">
+          <img src="https://www.hub24.com.au/wp-content/uploads/2021/10/hub24-logo-light.svg"
+               alt="HUB24"
+               onerror="this.onerror=null;this.style.display='none';document.getElementById('footer-brand-fallback').style.display='block';">
+          <span class="footer-brand__fallback" id="footer-brand-fallback">HUB24</span>
+          <p>Adviser Desktop · Secure practice administration</p>
+        </div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Security</a>
+          <a href="#">Terms of use</a>
+          <a href="#">Contact us</a>
+        </div>
+      </div>
+      <address class="site-footer__legal">HUB24 Limited ABN 87 124 891 685 · Australian Financial Services Licence 426090</address>
+      <p class="site-footer__legal">This adviser desktop is a demonstration interface. Fee arrangements remain subject to the applicable consent and product documentation.</p>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    var DEFAULT_ACCOUNT_ID = 'HUB24-8842167';
+    var accounts = [];
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function currentAccount() {
+      var accountId = document.getElementById('client-account').value;
+      return accounts.filter(function (account) {
+        return account.clientAccountId === accountId;
+      })[0];
+    }
+
+    function renderAccountSummary() {
+      var account = currentAccount();
+      if (!account) return;
+      document.getElementById('summary-client').textContent = account.clientName;
+      document.getElementById('summary-account').textContent = account.clientAccountId;
+      document.getElementById('summary-product').textContent = account.productLabel;
+      document.getElementById('summary-value').textContent = money(account.portfolioValue);
+      document.getElementById('summary-adviser').textContent = account.adviser || '—';
+      document.getElementById('summary-afsl').textContent = account.afsl || '—';
+      var adviserParts = (account.adviser || 'Adviser practice').split(' · ');
+      document.getElementById('adviser-practice').textContent = adviserParts[1] || adviserParts[0];
+      document.getElementById('adviser-name').textContent =
+        (adviserParts[0] || 'Adviser') + (account.afsl ? ' · ' + account.afsl : '');
+    }
+
+    function selectedBasis() {
+      var selected = document.querySelector('input[name="feeBasis"]:checked');
+      return selected ? selected.value : 'percentage';
+    }
+
+    function renderBasis() {
+      var flat = selectedBasis() === 'flat';
+      document.getElementById('fee-unit').textContent = flat ? '(AUD p.a.)' : '(% p.a.)';
+      document.getElementById('fee-hint').textContent = flat
+        ? 'Enter the agreed fixed annual adviser fee in Australian dollars.'
+        : 'Enter the agreed ongoing adviser fee percentage.';
+      var amount = document.getElementById('fee-amount');
+      amount.value = flat ? '6000' : '0.95';
+      amount.step = flat ? '1' : '0.01';
+    }
+
+    function hidePanels() {
+      document.getElementById('fee-error').style.display = 'none';
+      document.getElementById('fee-success').style.display = 'none';
+    }
+
+    function showError(payload) {
+      hidePanels();
+      document.getElementById('error-technical').textContent =
+        (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'FEE_ARRANGEMENT_FAILED')
+        + ' · Reference ID: ' + (payload.requestId || 'unavailable');
+      document.getElementById('fee-error').style.display = 'block';
+      document.getElementById('fee-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(payload) {
+      hidePanels();
+      document.getElementById('success-copy').textContent =
+        'The ongoing fee arrangement for ' + payload.clientName + ' has been accepted. '
+        + (payload.appliedAtText || '');
+      var rows = [
+        ['Fee arrangement reference', payload.feeArrangementReference],
+        ['Receipt number', payload.receiptNumber],
+        ['Annual fee', payload.feeBasis === 'flat'
+          ? money(payload.annualFeeAmount) : payload.effectiveFeePercent + '% p.a.'],
+        ['Per-period amount', money(payload.perPeriodFeeAmount)],
+        ['Consent expiry', payload.consentExpiryDate],
+        ['Fee run queue', payload.feeRunQueue],
+      ].filter(function (row) { return row[1] != null; });
+      document.getElementById('success-receipt').innerHTML = rows.map(function (row) {
+        return '<li><span>' + row[0] + '</span><strong>' + row[1] + '</strong></li>';
+      }).join('');
+      document.getElementById('fee-success').style.display = 'block';
+      document.getElementById('fee-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    fetch('/api/hub24/accounts')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        accounts = data.accounts || [];
+        var accountSelect = document.getElementById('client-account');
+        accountSelect.innerHTML = accounts.map(function (account) {
+          return '<option value="' + account.clientAccountId + '">'
+            + account.clientAccountId + ' — ' + account.clientName + ' · ' + account.productLabel
+            + '</option>';
+        }).join('');
+        accountSelect.value = DEFAULT_ACCOUNT_ID;
+        document.getElementById('frequency').innerHTML = (data.frequencyOptions || []).map(function (option) {
+          return '<option value="' + option.value + '">' + option.label + '</option>';
+        }).join('');
+        accountSelect.addEventListener('change', renderAccountSummary);
+        renderAccountSummary();
+      })
+      .catch(function () {});
+
+    document.querySelectorAll('input[name="feeBasis"]').forEach(function (input) {
+      input.addEventListener('change', renderBasis);
+    });
+
+    document.getElementById('submit-fee').addEventListener('click', async function () {
+      var button = this;
+      if (button._running) return;
+      button._running = true;
+      var original = button.textContent;
+      button.textContent = 'Submitting…';
+      button.disabled = true;
+      hidePanels();
+
+      await identityReady;
+
+      fetch('/api/hub24/fee-arrangement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientAccountId: document.getElementById('client-account').value,
+          feeBasis: selectedBasis(),
+          feeAmount: Number(document.getElementById('fee-amount').value),
+          frequency: document.getElementById('frequency').value,
+          startDate: document.getElementById('start-date').value,
+          clientConsent: document.getElementById('client-consent').checked,
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    });
+  </script>
+</body>
+</html>

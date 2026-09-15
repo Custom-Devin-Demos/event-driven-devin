@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Withdraw from your super | CFS Member Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #164a9a;
+      --red: #d81421;
+      --ink: #191919;
+      --text: #333;
+      --muted: #767676;
+      --line: #efefef;
+      --tint: #f1eff2;
+      --pale-blue: #e8edf4;
+      --page: #fff;
+      --error-bg: #fff1f1;
+      --success: #1d7048;
+      --success-bg: #edf8f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--text);
+      font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container {
+      width: min(1180px, calc(100% - 48px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      min-height: 130px;
+      border-bottom: 1px solid #222;
+      background: #fff;
+    }
+
+    .site-header__inner {
+      min-height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .wordmark {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 14px;
+      color: var(--ink);
+    }
+
+    .wordmark__cfs {
+      font-size: 48px;
+      line-height: 48px;
+      font-weight: 700;
+      letter-spacing: -4px;
+    }
+
+    .wordmark__name {
+      padding-left: 14px;
+      border-left: 1px solid #c6c6c6;
+      color: #444;
+      font-size: 14px;
+      line-height: 18px;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+
+    .member-identity {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+      text-align: right;
+    }
+
+    .member-identity strong {
+      display: block;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .logout {
+      padding-left: 24px;
+      border-left: 1px solid #d8d8d8;
+      color: var(--blue);
+      font-weight: 500;
+    }
+
+    .member-nav {
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .member-nav__inner {
+      display: flex;
+      align-items: stretch;
+      min-height: 58px;
+      gap: 4px;
+    }
+
+    .member-nav a {
+      display: flex;
+      align-items: center;
+      padding: 0 19px;
+      border-bottom: 4px solid transparent;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .member-nav a:hover {
+      background: #fafafa;
+      text-decoration: none;
+    }
+
+    .member-nav a.is-active {
+      border-bottom-color: var(--blue);
+      color: var(--blue);
+    }
+
+    main { padding: 42px 0 76px; }
+
+    .breadcrumbs {
+      margin-bottom: 23px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .breadcrumbs span { margin: 0 8px; color: #aaa; }
+
+    .page-heading { margin-bottom: 36px; }
+
+    h1, h2, h3 {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    h1 {
+      max-width: 760px;
+      font-family: Newsreader, Georgia, serif;
+      font-size: 48px;
+      line-height: 52px;
+    }
+
+    h2 {
+      font-size: 32px;
+      line-height: 40px;
+    }
+
+    h3 {
+      font-size: 22px;
+      line-height: 30px;
+    }
+
+    .page-heading p {
+      max-width: 690px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      align-items: start;
+      gap: 32px;
+    }
+
+    .card {
+      padding: 34px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .card__intro {
+      margin: 8px 0 28px;
+      color: var(--muted);
+    }
+
+    .account-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-bottom: 32px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .account-summary__item {
+      min-height: 85px;
+      padding: 14px 16px;
+      background: var(--tint);
+    }
+
+    .account-summary__item--wide { grid-column: span 2; }
+
+    .account-summary__item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .account-summary__item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 23px;
+      font-weight: 500;
+    }
+
+    .account-summary__item--balance strong {
+      color: var(--blue);
+      font-size: 20px;
+    }
+
+    .field { margin-bottom: 24px; }
+
+    label.field__label,
+    .fieldset legend {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .field__hint {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      min-height: 50px;
+      padding: 11px 14px;
+      border: 1px solid #a7a7a7;
+      border-radius: 2px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      font-size: 16px;
+    }
+
+    select:focus,
+    input:focus {
+      outline: 3px solid rgba(22, 74, 154, .18);
+      border-color: var(--blue);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .fieldset {
+      min-width: 0;
+      margin: 0 0 24px;
+      padding: 0;
+      border: 0;
+    }
+
+    .choice-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .choice {
+      flex: 1 1 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      min-height: 60px;
+      padding: 13px 15px;
+      border: 1px solid #c9c9c9;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .choice:has(input:checked) {
+      border-color: var(--blue);
+      box-shadow: inset 0 0 0 1px var(--blue);
+      background: #f7f9fc;
+    }
+
+    .choice input {
+      margin-top: 5px;
+      accent-color: var(--blue);
+    }
+
+    .choice strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .choice small {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .declaration {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: var(--pale-blue);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 22px;
+    }
+
+    .declaration input {
+      flex: 0 0 auto;
+      margin-top: 5px;
+      accent-color: var(--blue);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 31px;
+    }
+
+    .button {
+      min-height: 50px;
+      padding: 12px 25px;
+      border: 1px solid var(--blue);
+      border-radius: 360px;
+      background: var(--blue);
+      color: #fff;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .button:hover { background: #123d80; }
+    .button:disabled { opacity: .65; cursor: default; }
+
+    .button--secondary {
+      border-color: #000;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .button--secondary:hover { background: #f5f5f5; }
+
+    .side-rail { display: grid; gap: 18px; }
+
+    .side-card {
+      padding: 24px;
+      border: 1px solid var(--line);
+      background: var(--tint);
+    }
+
+    .side-card--blue {
+      border-color: var(--blue);
+      background: var(--pale-blue);
+    }
+
+    .side-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .side-card ul {
+      margin: 13px 0 0;
+      padding-left: 19px;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 23px;
+    }
+
+    .side-card li + li { margin-top: 8px; }
+
+    .side-card__link {
+      display: block;
+      padding: 12px 0;
+      border-top: 1px solid #d7d5d7;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .side-card__link:first-of-type { margin-top: 15px; }
+
+    .panel {
+      display: none;
+      margin-top: 27px;
+      padding: 21px 23px;
+    }
+
+    .panel h3 { margin-bottom: 8px; }
+    .panel p { margin: 0 0 10px; }
+    .panel--error { border-left: 5px solid var(--red); background: var(--error-bg); }
+    .panel--error h3 { color: var(--red); }
+    .panel--success { border-left: 5px solid var(--success); background: var(--success-bg); }
+    .panel--success h3 { color: var(--success); }
+
+    .technical {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border: 1px solid #e5caca;
+      background: #fff;
+      color: #572525;
+      font: 13px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+
+    .receipt {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      margin: 16px 0 0;
+      padding: 0;
+      border: 1px solid #cce5d7;
+      background: #cce5d7;
+      list-style: none;
+    }
+
+    .receipt li {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 10px 12px;
+      background: #fff;
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .receipt li span { color: var(--muted); }
+    .receipt li strong { color: var(--ink); text-align: right; }
+
+    .site-footer {
+      padding: 48px 0 31px;
+      background: #000;
+      color: #fff;
+    }
+
+    .site-footer__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 36px;
+      padding-bottom: 29px;
+      border-bottom: 1px solid rgba(255, 255, 255, .32);
+    }
+
+    .footer-wordmark .wordmark { color: #fff; }
+    .footer-wordmark .wordmark__name { color: #c7c7c7; border-color: #555; }
+
+    .footer-wordmark p {
+      margin: 17px 0 0;
+      color: #ccc;
+      font-size: 14px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      justify-content: flex-end;
+      gap: 12px 25px;
+      max-width: 470px;
+    }
+
+    .footer-links a { color: #fff; font-size: 15px; }
+    .site-footer__legal { margin: 22px 0 0; color: #ccc; font-size: 13px; line-height: 19px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .side-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .container { width: min(100% - 30px, 1180px); }
+      .site-header__inner { min-height: 0; padding: 24px 0; align-items: flex-start; flex-direction: column; }
+      .member-identity { align-items: flex-start; text-align: left; }
+      .member-nav__inner { overflow-x: auto; }
+      .member-nav a { padding: 0 14px; }
+      main { padding-top: 28px; }
+      h1 { font-size: 40px; line-height: 44px; }
+      .card { padding: 23px 18px; }
+      .account-summary { grid-template-columns: 1fr 1fr; }
+      .account-summary__item--wide { grid-column: span 2; }
+      .form-row, .choice-row { grid-template-columns: 1fr; flex-direction: column; gap: 0; }
+      .form-row .field + .field { margin-top: 0; }
+      .side-rail { grid-template-columns: 1fr; }
+      .receipt { grid-template-columns: 1fr; }
+      .site-footer__top { display: block; }
+      .footer-links { justify-content: flex-start; margin-top: 25px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <div class="wordmark" aria-label="Colonial First State">
+        <span class="wordmark__cfs">CFS</span>
+        <span class="wordmark__name">Colonial First State</span>
+      </div>
+      <div class="member-identity">
+        <div>
+          Member online
+          <strong id="member-identity-name">Hannah Delacroix</strong>
+          <span id="member-identity-account">Member number CFS-2044186</span>
+        </div>
+        <a class="logout" href="#">Log out</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="member-nav" aria-label="Member navigation">
+    <div class="container member-nav__inner">
+      <a href="#">Overview</a>
+      <a href="#">Investments</a>
+      <a href="#">Transactions</a>
+      <a href="#">Contributions</a>
+      <a href="#" class="is-active">Withdrawals</a>
+      <a href="#">Documents</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="#">Overview</a><span>›</span><a href="#">Withdrawals</a><span>›</span>Withdraw from your super
+      </div>
+
+      <div class="page-heading">
+        <h1>Withdraw from your super</h1>
+        <p>Request a lump sum withdrawal from your super account. Before you continue, make sure your payment details and withdrawal amount are correct.</p>
+      </div>
+
+      <div class="layout">
+        <section class="card">
+          <h2>Lump sum withdrawal</h2>
+          <p class="card__intro">Choose the account, amount and payment date for your withdrawal request.</p>
+
+          <div class="account-summary" aria-live="polite">
+            <div class="account-summary__item">
+              <span>Member</span>
+              <strong id="summary-member">Hannah Delacroix</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>Account</span>
+              <strong id="summary-account">CFS-2044186</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>Product</span>
+              <strong id="summary-product">FirstChoice Wholesale Pension</strong>
+            </div>
+            <div class="account-summary__item account-summary__item--wide">
+              <span>Fund and USI</span>
+              <strong id="summary-fund">Colonial First State FirstChoice Superannuation Trust · FSF0006AU</strong>
+            </div>
+            <div class="account-summary__item account-summary__item--balance">
+              <span>Current balance</span>
+              <strong id="summary-balance">$742,318.45</strong>
+            </div>
+            <div class="account-summary__item">
+              <span>Preservation</span>
+              <strong id="summary-preservation">Unrestricted non-preserved</strong>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="member-account">Super account</label>
+            <select id="member-account" aria-label="Super account"></select>
+            <span class="field__hint">Select the account you want to use for this withdrawal request.</span>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend>Withdrawal amount</legend>
+            <div class="choice-row">
+              <label class="choice">
+                <input type="radio" name="amountBasis" value="amount" checked>
+                <span><strong>Amount</strong><small>Enter a dollar amount to withdraw</small></span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="amountBasis" value="percentage">
+                <span><strong>Percentage</strong><small>Enter a percentage of your balance</small></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-row">
+            <div class="field">
+              <label class="field__label" for="withdrawal-amount">Withdrawal amount <span id="amount-unit">(AUD)</span></label>
+              <input id="withdrawal-amount" type="number" inputmode="decimal" min="0.01" step="0.01" value="45000">
+              <span class="field__hint" id="amount-hint">Enter the gross amount you would like to withdraw.</span>
+            </div>
+            <div class="field">
+              <label class="field__label" for="payment-date">Payment date</label>
+              <input id="payment-date" type="date" value="2026-09-18">
+              <span class="field__hint">This is the requested date for payment processing.</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="payment-destination">Payment destination</label>
+            <input id="payment-destination" type="text" value="Commonwealth Bank •••• 4471">
+            <span class="field__hint">Payments are made to the nominated bank account ending in 4471.</span>
+          </div>
+
+          <label class="declaration">
+            <input id="member-declaration" type="checkbox" checked>
+            <span>I declare that the information in this request is true and correct, and I understand that a lump sum withdrawal may affect my super balance and entitlements.</span>
+          </label>
+
+          <div class="actions">
+            <button class="button" id="submit-withdrawal" type="button">Submit withdrawal request</button>
+            <button class="button button--secondary" type="button">Cancel</button>
+          </div>
+
+          <div class="panel panel--error" id="withdrawal-error">
+            <h3>We couldn't submit your withdrawal request</h3>
+            <p>Your account has not been changed. Review the details and try again.</p>
+            <pre class="technical" id="error-technical"></pre>
+          </div>
+
+          <div class="panel panel--success" id="withdrawal-success">
+            <h3>Withdrawal request accepted</h3>
+            <p id="success-copy"></p>
+            <ul class="receipt" id="success-receipt"></ul>
+          </div>
+        </section>
+
+        <aside class="side-rail">
+          <div class="side-card side-card--blue">
+            <h3>What happens next</h3>
+            <ul>
+              <li>We review your request and confirm the withdrawal rules for your account.</li>
+              <li>Your payment is sent to the nominated bank account after processing.</li>
+              <li>You can track the request under Transactions.</li>
+            </ul>
+          </div>
+          <div class="side-card">
+            <h3>Processing times</h3>
+            <p>Most eligible lump sum withdrawals are processed within three to five business days after your requested payment date.</p>
+            <a class="side-card__link" href="#">Read about withdrawal processing</a>
+          </div>
+          <div class="side-card">
+            <h3>Need help?</h3>
+            <p>For help with your super account or withdrawal request, contact Colonial First State.</p>
+            <a class="side-card__link" href="#">Contact us</a>
+            <a class="side-card__link" href="#">Frequently asked questions</a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__top">
+        <div class="footer-wordmark">
+          <div class="wordmark" aria-label="Colonial First State">
+            <span class="wordmark__cfs">CFS</span>
+            <span class="wordmark__name">Colonial First State</span>
+          </div>
+          <p>Member online · Secure account servicing</p>
+        </div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Security</a>
+          <a href="#">Accessibility</a>
+          <a href="#">Contact us</a>
+        </div>
+      </div>
+      <p class="site-footer__legal">Colonial First State Investments Limited ABN 98 002 348 352 · AFS Licence 232468.</p>
+      <p class="site-footer__legal">This member online page is a demonstration interface. Withdrawal requests remain subject to the applicable product rules and member declarations.</p>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    var DEFAULT_ACCOUNT_ID = 'CFS-2044186';
+    var fallbackAccounts = [
+      {
+        memberAccountId: 'CFS-2044186',
+        memberName: 'Hannah Delacroix',
+        productLabel: 'FirstChoice Wholesale Pension',
+        balance: 742318.45,
+        preservation: 'Unrestricted non-preserved',
+        fund: 'Colonial First State FirstChoice Superannuation Trust',
+        usi: 'FSF0006AU',
+        paymentDestination: 'Commonwealth Bank •••• 4471',
+      },
+      {
+        memberAccountId: 'CFS-6721903',
+        memberName: 'Nathan Ellery',
+        productLabel: 'FirstChoice Employer Super',
+        balance: 218904.33,
+        preservation: 'Preserved',
+        fund: 'Colonial First State FirstChoice Superannuation Trust',
+        usi: 'FSF0006AU',
+        paymentDestination: 'Commonwealth Bank •••• 4471',
+      },
+      {
+        memberAccountId: 'CFS-9158740',
+        memberName: 'Marguerite Osei',
+        productLabel: 'CFS Edge Super',
+        balance: 1043277.10,
+        preservation: 'Unrestricted non-preserved',
+        fund: 'Colonial First State FirstChoice Superannuation Trust',
+        usi: 'FSF0006AU',
+        paymentDestination: 'Commonwealth Bank •••• 4471',
+      },
+    ];
+    var accounts = fallbackAccounts;
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function currentAccount() {
+      var accountId = document.getElementById('member-account').value;
+      return accounts.filter(function (account) {
+        return account.memberAccountId === accountId;
+      })[0];
+    }
+
+    function renderAccountSummary() {
+      var account = currentAccount();
+      if (!account) return;
+      document.getElementById('summary-member').textContent = account.memberName;
+      document.getElementById('summary-account').textContent = account.memberAccountId;
+      document.getElementById('summary-product').textContent = account.productLabel;
+      document.getElementById('summary-fund').textContent = account.fund + ' · ' + account.usi;
+      document.getElementById('summary-balance').textContent = money(account.balance);
+      document.getElementById('summary-preservation').textContent = account.preservation;
+      document.getElementById('member-identity-name').textContent = account.memberName;
+      document.getElementById('member-identity-account').textContent =
+        'Member number ' + account.memberAccountId;
+      document.getElementById('payment-destination').value =
+        account.paymentDestination || 'Commonwealth Bank •••• 4471';
+    }
+
+    function selectedBasis() {
+      var selected = document.querySelector('input[name="amountBasis"]:checked');
+      return selected ? selected.value : 'amount';
+    }
+
+    function renderBasis() {
+      var percentage = selectedBasis() === 'percentage';
+      document.getElementById('amount-unit').textContent = percentage ? '(%)' : '(AUD)';
+      document.getElementById('amount-hint').textContent = percentage
+        ? 'Enter the percentage of your current balance to withdraw.'
+        : 'Enter the gross amount you would like to withdraw.';
+      var amount = document.getElementById('withdrawal-amount');
+      amount.value = percentage ? '10' : '45000';
+      amount.step = percentage ? '0.01' : '0.01';
+    }
+
+    function populateAccounts() {
+      var accountSelect = document.getElementById('member-account');
+      accountSelect.innerHTML = accounts.map(function (account) {
+        return '<option value="' + account.memberAccountId + '">'
+          + account.memberAccountId + ' — ' + account.memberName + ' · ' + account.productLabel
+          + '</option>';
+      }).join('');
+      accountSelect.value = DEFAULT_ACCOUNT_ID;
+      accountSelect.addEventListener('change', renderAccountSummary);
+      renderAccountSummary();
+    }
+
+    function hidePanels() {
+      document.getElementById('withdrawal-error').style.display = 'none';
+      document.getElementById('withdrawal-success').style.display = 'none';
+    }
+
+    function showError(payload) {
+      hidePanels();
+      document.getElementById('error-technical').textContent =
+        (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'WITHDRAWAL_REQUEST_FAILED')
+        + ' · Reference ID: ' + (payload.requestId || 'unavailable');
+      document.getElementById('withdrawal-error').style.display = 'block';
+      document.getElementById('withdrawal-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(payload) {
+      hidePanels();
+      document.getElementById('success-copy').textContent =
+        'Your lump sum withdrawal for ' + payload.memberName + ' has been accepted. '
+        + (payload.appliedAtText || '');
+      var rows = [
+        ['Withdrawal reference', payload.withdrawalReference],
+        ['Receipt number', payload.receiptNumber],
+        ['Gross withdrawal', money(payload.grossWithdrawalAmount)],
+        ['Effective withdrawal', payload.effectiveWithdrawalPercent + '%'],
+        ['Residual balance', money(payload.residualBalance)],
+        ['Payment date', payload.paymentDate],
+        ['Estimated settlement', payload.estimatedSettlementDate],
+        ['Settlement queue', payload.settlementQueue],
+      ].filter(function (row) { return row[1] != null; });
+      document.getElementById('success-receipt').innerHTML = rows.map(function (row) {
+        return '<li><span>' + row[0] + '</span><strong>' + row[1] + '</strong></li>';
+      }).join('');
+      document.getElementById('withdrawal-success').style.display = 'block';
+      document.getElementById('withdrawal-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    fetch('/api/cfs/accounts')
+      .then(function (r) {
+        if (!r.ok) throw new Error('Account service unavailable');
+        return r.json();
+      })
+      .then(function (data) {
+        if (Array.isArray(data.accounts) && data.accounts.length) accounts = data.accounts;
+        populateAccounts();
+      })
+      .catch(function () {
+        populateAccounts();
+      });
+
+    document.querySelectorAll('input[name="amountBasis"]').forEach(function (input) {
+      input.addEventListener('change', renderBasis);
+    });
+
+    document.getElementById('submit-withdrawal').addEventListener('click', async function () {
+      var button = this;
+      if (button._running) return;
+      button._running = true;
+      var original = button.textContent;
+      button.textContent = 'Submitting…';
+      button.disabled = true;
+      hidePanels();
+
+      await identityReady;
+
+      fetch('/api/cfs/withdrawal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          memberAccountId: document.getElementById('member-account').value,
+          amountBasis: selectedBasis(),
+          withdrawalAmount: Number(document.getElementById('withdrawal-amount').value),
+          paymentDestination: document.getElementById('payment-destination').value,
+          paymentDate: document.getElementById('payment-date').value,
+          memberDeclaration: document.getElementById('member-declaration').checked,
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    });
+
+    populateAccounts();
+  </script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Eaze</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,400;125,700;125,800&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ez-yellow: #FFE400;
+      --ez-yellow-edge: #8C7D00;
+      --ez-black: #000000;
+      --ez-white: #ffffff;
+      --ez-gray: #999999;
+      --ez-gray-line: #8c8c8c;
+      --ez-link: #181AC0;
+      --ez-sativa: #a89400;
+      --ez-hybrid: #2fa878;
+      --ez-indica: #6b4fd6;
+      --sans: 'Neue Plak Extended Regular', 'Neue Plak Extended', 'Archivo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      --sans-bold: 'Neue Plak Extended Bold', 'Neue Plak Extended', 'Archivo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      --mono: 'Suisse Intl Mono Regular', 'Suisse Intl Mono', 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); font-stretch: 125%; color: var(--ez-black); background: var(--ez-white); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    h1, h2, h3, .b { font-family: var(--sans-bold); font-weight: 700; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Nav */
+    nav.ez-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 66px; padding: 0 16px; background: var(--ez-white); }
+    .nav-left { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+    .nav-right { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
+    .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: none; border: 0; cursor: pointer; color: var(--ez-black); }
+    .icon-btn svg { width: 22px; height: 22px; display: block; }
+    .addr { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; min-width: 44px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .addr svg { width: 14px; height: 18px; flex: none; }
+    .wordmark { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--sans-bold); font-weight: 800; font-size: 30px; letter-spacing: -0.03em; line-height: 1; color: var(--ez-black); flex: none; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 20px; border-radius: 8px; font-family: var(--sans-bold); font-weight: 700; font-size: 12px; cursor: pointer; white-space: nowrap; }
+    .btn-ghost { background: var(--ez-white); color: var(--ez-black); border: 1px solid var(--ez-gray-line); }
+    .btn-yellow { background: var(--ez-yellow); color: var(--ez-black); border: 1px solid var(--ez-yellow-edge); }
+    .btn-yellow:hover { filter: brightness(0.96); }
+
+    /* Category bar */
+    .cats { display: flex; align-items: center; gap: 8px; padding: 0 16px; border-top: 1px solid #f0f0f0; overflow-x: auto; scrollbar-width: none; }
+    .cats::-webkit-scrollbar { display: none; }
+    .cats a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; font-family: var(--sans-bold); font-weight: 700; font-size: 14px; text-transform: uppercase; white-space: nowrap; letter-spacing: 0; position: relative; }
+    .cats a.sale { color: #ff4d75; }
+    .cats a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: 6px; height: 12px; background: var(--ez-yellow); z-index: -1; }
+    .cats a.active { z-index: 0; }
+
+    /* Hero band */
+    .hero { background: var(--ez-black); color: var(--ez-white); text-align: center; padding: 44px 20px 40px; border-bottom: 6px solid var(--ez-yellow); }
+    .hero h1 { font-size: 40px; line-height: 1.15; letter-spacing: -0.01em; }
+    .hero p { margin-top: 10px; font-size: 14px; color: #d9d9d9; }
+    .hero p strong { color: var(--ez-white); font-family: var(--sans-bold); }
+
+    /* Layout */
+    main { max-width: 1180px; margin: 0 auto; padding: 40px 20px 56px; }
+    .checkout { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 36px; align-items: start; }
+    .card { position: relative; background: var(--ez-white); border: 2px solid var(--ez-black); border-radius: 8px; box-shadow: 8px 8px 0 -2px var(--ez-white), 8px 8px 0 0 var(--ez-black); }
+    .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 24px 24px 12px; }
+    .card-head h2 { font-size: 22px; line-height: 1.2; }
+    .card-head .count { font-family: var(--mono); font-size: 13px; color: var(--ez-black); }
+
+    /* Bag */
+    .bag-item { display: grid; grid-template-columns: 84px 1fr auto; gap: 16px; padding: 16px 24px; border-top: 1px solid #ececec; align-items: center; }
+    .thumb { width: 84px; aspect-ratio: 1 / 1; border-radius: 8px; background: #f6f6f6; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; transform: scale(1.3); display: block; }
+    .thumb .ph { font-family: var(--sans-bold); font-size: 22px; color: var(--ez-gray); }
+    .tags { display: flex; gap: 6px; margin-bottom: 6px; }
+    .tag { font-family: var(--mono); font-size: 11px; padding: 2px 6px; border: 1px solid #e3e3e3; border-radius: 3px; text-transform: uppercase; }
+    .tag.sativa { color: var(--ez-sativa); }
+    .tag.hybrid { color: var(--ez-hybrid); }
+    .tag.indica { color: var(--ez-indica); }
+    .item-name { font-family: var(--sans-bold); font-size: 15px; line-height: 1.25; }
+    .item-brand { font-size: 13px; margin-top: 3px; }
+    .item-potency { font-family: var(--mono); font-size: 12px; color: #6f6f6f; margin-top: 4px; }
+    .item-price { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .price-pill { display: inline-flex; align-items: center; gap: 14px; min-height: 36px; padding: 0 12px; border-radius: 6px; background: var(--ez-yellow); font-family: var(--mono); font-weight: 700; font-size: 15px; }
+    .qty { font-family: var(--mono); font-size: 12px; color: #6f6f6f; }
+    .totals { padding: 16px 24px 22px; border-top: 2px solid var(--ez-black); }
+    .totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .totals .row.total { font-family: var(--sans-bold); font-size: 17px; padding-top: 12px; margin-top: 6px; border-top: 1px solid #ececec; }
+    .totals .row.total span:last-child { font-family: var(--mono); font-weight: 700; }
+    .totals .row span.mono { font-family: var(--mono); }
+    .promo { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: #ff4d75; text-transform: uppercase; }
+
+    /* Form */
+    .form-card { padding: 24px; }
+    .form-card h2 { font-size: 22px; line-height: 1.2; }
+    .form-card .sub { margin: 8px 0 20px; font-size: 14px; color: #444; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-family: var(--sans-bold); font-size: 12px; text-transform: uppercase; margin-bottom: 8px; }
+    select, input[type="number"] { width: 100%; min-height: 52px; padding: 0 14px; border: 2px solid var(--ez-black); border-radius: 8px; background: var(--ez-white); color: var(--ez-black); font-family: var(--sans); font-stretch: 125%; font-size: 15px; outline: none; -webkit-appearance: none; appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    select:focus, input:focus { box-shadow: 0 0 0 3px var(--ez-yellow); }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: '$'; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 15px; }
+    .amount-wrap input { padding-left: 28px; font-family: var(--mono); font-weight: 700; }
+    .hint { font-size: 12px; color: #6f6f6f; margin-top: 6px; }
+    #submitBtn { width: 100%; min-height: 60px; margin-top: 8px; border-radius: 8px; background: var(--ez-yellow); color: var(--ez-black); border: 1px solid var(--ez-yellow-edge); font-family: var(--sans-bold); font-stretch: 125%; font-weight: 700; font-size: 14px; cursor: pointer; }
+    #submitBtn:hover { filter: brightness(0.96); }
+    #submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .legal { margin-top: 14px; font-size: 12px; color: #6f6f6f; line-height: 1.5; }
+    .legal a { color: var(--ez-link); display: inline-block; padding: 14px 0; margin: -14px 0; }
+    .result-box { margin-top: 16px; padding: 14px 16px; border-radius: 8px; font-size: 14px; display: none; border: 2px solid var(--ez-black); }
+    .result-box.error { display: block; background: #fff1f1; border-color: #c62828; color: #8e1b1b; }
+    .result-box.success { display: block; background: #fffbd6; border-color: var(--ez-black); color: var(--ez-black); }
+    .result-box .error-title { font-family: var(--sans-bold); margin-bottom: 4px; }
+    .result-box .error-detail { font-size: 13px; word-break: break-word; }
+
+    /* Feature trio */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 64px; padding: 0 8px 8px 0; }
+    .feature { text-align: center; padding: 36px 28px 26px; }
+    .feature .glyph { display: flex; justify-content: center; margin-bottom: 14px; }
+    .feature .glyph svg { width: 30px; height: 30px; }
+    .feature h3 { font-size: 26px; line-height: 1.05; margin-bottom: 10px; }
+    .feature p { font-size: 14px; }
+
+    /* Dark CTA band */
+    .band { background: var(--ez-black); color: var(--ez-white); text-align: center; padding: 56px 20px; }
+    .band h2 { font-size: 36px; line-height: 1.1; margin-bottom: 20px; }
+    .band .btn { min-height: 60px; padding: 0 60px; font-size: 14px; }
+
+    /* Footer */
+    footer { background: var(--ez-black); color: var(--ez-white); padding: 40px 20px 48px; border-top: 1px solid #222; }
+    .foot-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 28px; }
+    .foot-brand .wordmark { color: var(--ez-white); }
+    .foot-brand p { margin-top: 12px; font-size: 12px; color: #bdbdbd; line-height: 1.6; }
+    footer ul { list-style: none; }
+    footer li { font-size: 14px; }
+    footer li a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; }
+    .foot-legal { max-width: 1180px; margin: 28px auto 0; font-size: 11px; color: #9a9a9a; line-height: 1.6; border-top: 1px solid #222; padding-top: 18px; }
+
+    @media (max-width: 940px) {
+      .checkout { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr; gap: 28px; }
+      .foot-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      nav.ez-nav { padding: 0 8px; }
+      .nav-right .btn-ghost { display: none; }
+      .addr span { display: none; }
+      .hero { padding: 36px 16px 32px; }
+      .hero h1 { font-size: 32px; }
+      main { padding: 28px 16px 40px; }
+      .card { box-shadow: 6px 6px 0 -2px var(--ez-white), 6px 6px 0 0 var(--ez-black); }
+      .card-head, .form-card, .totals { padding-left: 16px; padding-right: 16px; }
+      .bag-item { grid-template-columns: 64px 1fr; padding: 14px 16px; }
+      .thumb { width: 64px; }
+      .item-price { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
+      .band h2 { font-size: 28px; }
+      .foot-inner { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="ez-nav">
+    <div class="nav-left">
+      <button class="icon-btn" type="button" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 8h16M4 16h10"/></svg>
+      </button>
+      <a class="addr" href="#">
+        <svg viewBox="0 0 14 18" fill="currentColor"><path d="M7 0a7 7 0 0 0-7 7c0 5 7 11 7 11s7-6 7-11a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 7 4.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        <span>1450 Valencia St, San Francisco, CA 94110</span>
+      </a>
+    </div>
+    <a class="wordmark" href="#" aria-label="Eaze">eaze</a>
+    <div class="nav-right">
+      <a class="btn btn-ghost" href="#">Log in</a>
+      <a class="btn btn-yellow" href="#">Shop</a>
+    </div>
+  </nav>
+  <div class="cats" aria-label="Categories">
+    <a href="#">Home</a>
+    <a href="#" class="sale">Sale</a>
+    <a href="#">Flower &amp; Prerolls</a>
+    <a href="#">Vapes</a>
+    <a href="#">Edibles</a>
+    <a href="#">Concentrates</a>
+    <a href="#">Wellness, Tinctures &amp; Capsules</a>
+    <a href="#">Accessories</a>
+    <a href="#">Brands</a>
+    <a href="#" class="active">Checkout</a>
+  </div>
+
+  <section class="hero">
+    <h1>Checkout</h1>
+    <p>Delivering to <strong>1450 Valencia St, San Francisco, CA 94110</strong> &middot; On-demand delivery available now</p>
+  </section>
+
+  <main>
+    <div class="checkout">
+      <section class="card bag" aria-label="Your bag">
+        <div class="card-head">
+          <h2>Your bag</h2>
+          <span class="count">3 ITEMS</span>
+        </div>
+        <div class="bag-item">
+          <div class="thumb"><img src="https://www.eaze.com/static/images/best-seller-flower-min.png" alt="Illemonati flower by Anarchy" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;ph&quot;>F</span>'"></div>
+          <div>
+            <div class="tags"><span class="tag sativa">Sativa</span><span class="tag">3.5g</span></div>
+            <div class="item-name">Illemonati - 3.5g</div>
+            <div class="item-brand">Anarchy</div>
+            <div class="item-potency">28% THC: 1% CBD</div>
+          </div>
+          <div class="item-price"><span class="price-pill">$45</span><span class="qty">QTY 1</span></div>
+        </div>
+        <div class="bag-item">
+          <div class="thumb"><img src="https://www.eaze.com/static/images/best-seller-vape-min.png" alt="Uplift Green Crack disposable vape by New Norm" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;ph&quot;>V</span>'"></div>
+          <div>
+            <div class="tags"><span class="tag sativa">Sativa</span><span class="tag">1g</span></div>
+            <div class="item-name">Uplift: Green Crack - 1g</div>
+            <div class="item-brand">New Norm</div>
+            <div class="item-potency">82% THC</div>
+          </div>
+          <div class="item-price"><span class="price-pill">$30</span><span class="qty">QTY 1</span></div>
+        </div>
+        <div class="bag-item">
+          <div class="thumb"><img src="https://www.eaze.com/static/images/best-seller-edible-min.png" alt="Sour Watermelon Rosin Gummies by PLUS" loading="lazy" onerror="this.parentNode.innerHTML='<span class=&quot;ph&quot;>E</span>'"></div>
+          <div>
+            <div class="tags"><span class="tag sativa">Sativa</span></div>
+            <div class="item-name">Sour Watermelon Rosin Gummies</div>
+            <div class="item-brand">PLUS</div>
+            <div class="item-potency">100mg THC</div>
+          </div>
+          <div class="item-price"><span class="price-pill">$20</span><span class="qty">QTY 1</span></div>
+        </div>
+        <div class="totals">
+          <div class="row"><span>Subtotal</span><span class="mono">$95.00</span></div>
+          <div class="row"><span>Taxes</span><span class="mono">$25.00</span></div>
+          <div class="row"><span>Delivery fee</span><span class="mono">Added at payment</span></div>
+          <div class="row total"><span>Order total</span><span>$120.00</span></div>
+          <div class="promo">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 1h5l5 5-5 5-5-5z"/><circle cx="3.5" cy="3.5" r=".8" fill="currentColor"/></svg>
+            Use code 30OFF
+          </div>
+        </div>
+      </section>
+
+      <section class="card form-card" aria-label="Place your order">
+        <h2>Place your order</h2>
+        <div class="sub">Confirm your delivery address and payment. Orders are hand-delivered by a licensed retailer's driver.</div>
+        <form id="transferForm">
+          <div class="form-group">
+            <label for="toAccount">Deliver to</label>
+            <select id="toAccount">
+              <option value="ADDR-HOME">Home &mdash; 1450 Valencia St, San Francisco, CA 94110</option>
+              <option value="ADDR-WORK">Work &mdash; 600 Montgomery St, San Francisco, CA 94111</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fromAccount">Pay with</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Debit card &mdash; Visa ****4471</option>
+              <option value="ACCT-1002">Debit card &mdash; Mastercard ****0928</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Order total</label>
+            <div class="amount-wrap"><input type="number" id="amount" value="120.00" min="1" step="0.01" placeholder="0.00"></div>
+            <div class="hint">Delivery fee is added when the card is charged.</div>
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Delivery option</label>
+            <select id="accountTier">
+              <option value="standard">On-demand &mdash; delivered in about an hour</option>
+              <option value="premium">Scheduled &mdash; pick a delivery window</option>
+            </select>
+          </div>
+          <button type="submit" id="submitBtn">Place order</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <p class="legal">You must be 21+ with a valid government-issued ID to receive your order. By placing this order you agree to the <a href="#">Terms of service</a> and <a href="#">Privacy policy</a>.</p>
+      </section>
+    </div>
+
+    <section class="features">
+      <div class="card feature">
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></svg></div>
+        <h3>On-demand delivery</h3>
+        <p>Shop on Eaze and get your weed delivered on demand, wherever you are.</p>
+      </div>
+      <div class="card feature">
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 20c0-4 2-5 2-8s-2-4-2-6M14 20c0-4 2-5 2-8s-2-4-2-6"/></svg></div>
+        <h3>Dank selection</h3>
+        <p>We calculated the best selection for any experience or price range.</p>
+      </div>
+      <div class="card feature">
+        <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14c.9 1.3 2.1 2 3.5 2s2.6-.7 3.5-2"/><circle cx="9" cy="9.5" r=".9" fill="currentColor"/><circle cx="15" cy="9.5" r=".9" fill="currentColor"/></svg></div>
+        <h3>Cannabis for a cause</h3>
+        <p>We always stock women and BIPOC owned brands, so you can spend on what matters.</p>
+      </div>
+    </section>
+  </main>
+
+  <section class="band">
+    <h2>Get your weed today</h2>
+    <a class="btn btn-yellow" href="#">Shop now</a>
+  </section>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-brand">
+        <span class="wordmark">eaze</span>
+        <p>Copyright &copy; 2024-2026 Eaze Inc.<br>All rights reserved.</p>
+      </div>
+      <ul>
+        <li><a href="#">Sign up</a></li>
+        <li><a href="#">Log in</a></li>
+        <li><a href="#">Support</a></li>
+        <li><a href="#">Contact us</a></li>
+      </ul>
+      <ul>
+        <li><a href="#">About us</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Press</a></li>
+        <li><a href="#">Careers</a></li>
+      </ul>
+      <ul>
+        <li><a href="#">Delivery locations</a></li>
+        <li><a href="#">Become a driver</a></li>
+        <li><a href="#">Licensed retailers</a></li>
+        <li><a href="#">Terms of service</a></li>
+        <li><a href="#">Privacy policy</a></li>
+      </ul>
+    </div>
+    <div class="foot-legal">Orders are fulfilled and delivered by independently licensed retailers. Product availability, pricing, taxes and delivery fees vary by delivery address. Prices shown are illustrative.</div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    function showResult(result, state, title, detail) {
+      result.className = 'result-box ' + state;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Placing order...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_jordan_lee', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showResult(result, 'error', 'Order could not be placed', `${data.errorClass}: ${data.error}`);
+        } else {
+          showResult(result, 'success', 'Order placed', `$${data.debitAmount} charged to your debit card (includes $${data.fee} delivery fee). Your driver is being assigned.`);
+        }
+      } catch (err) {
+        showResult(result, 'error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Place order'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

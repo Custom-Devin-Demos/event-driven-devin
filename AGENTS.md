@@ -27,11 +27,18 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **HCF Extras Claims** (unlisted — direct URL only) | `/hcf` | `app/public/verticals/hcf.html` | `POST /api/hcf/claim` | `app/services/verticals/hcf.js` |
 | **Suncorp Bank Payments** (unlisted — direct URL only) | `/suncorp` | `app/public/verticals/suncorp.html` | `POST /api/suncorp/payment` | `app/services/verticals/suncorp.js` |
 | **Insignia Financial Super Allocation** (unlisted — direct URL only) | `/insignia` | `app/public/verticals/insignia.html` | `POST /api/insignia/allocation` | `app/services/verticals/insignia.js` |
+| **HUB24 Adviser Fee Arrangement** (unlisted — direct URL only) | `/hub24` | `app/public/verticals/hub24.html` | `POST /api/hub24/fee-arrangement` | `app/services/verticals/hub24.js` |
+| **CFS Lump Sum Withdrawal** (unlisted — direct URL only) | `/cfs` | `app/public/verticals/cfs.html` | `POST /api/cfs/withdrawal` | `app/services/verticals/cfs.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank** (unlisted — direct URL only) | `/cba` | `app/public/verticals/cba.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Macquarie Online Banking** (unlisted — direct URL only) | `/macbank` | `app/public/verticals/macbank.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Databricks Compute / Spark UI** (unlisted — direct URL only) | `/databricks`, `/0b6164d6` | `app/public/verticals/0b6164d6.html` | `POST /api/0b6164d6/cluster-ui` | `app/services/verticals/0b6164d6.js` |
 | **Morgan Stanley Wealth Management** (unlisted — direct URL only) | `/morganstanley`, `/c7d11cb8` | `app/public/verticals/c7d11cb8.html` | `POST /api/c7d11cb8/rebalance` | `app/services/verticals/c7d11cb8.js` |
+| **Ping Identity — PingOne Environment Provisioning** (unlisted — direct URL only) | `/pingidentity`, `/81deeb2e` | `app/public/verticals/81deeb2e.html` | `POST /api/81deeb2e/environments` | `app/services/verticals/81deeb2e.js` |
+| **Carvana — Checkout & Financing** (unlisted — direct URL only) | `/carvana`, `/fd7f4e04` | `app/public/verticals/fd7f4e04.html` | `POST /api/fd7f4e04/orders` | `app/services/verticals/fd7f4e04.js` |
+| **Aravia Therapeutics — Patient Access Portal** (fictional brand, unlisted — direct URL only) | `/patient-access`, `/fcf0f903` | `app/public/verticals/fcf0f903.html` | `POST /api/fcf0f903/enrollment`, `POST /api/fcf0f903/copay-estimate` | `app/services/verticals/fcf0f903.js` |
+| **Zuora — AI Usage-Based Pricing** (unlisted — direct URL only) | `/zuora`, `/ce4ebc10` | `app/public/verticals/ce4ebc10.html` | `POST /api/ce4ebc10/publish-pricing` | `app/services/verticals/ce4ebc10.js` |
+| **Rippling — Payroll Run** (unlisted — direct URL only) | `/rippling`, `/a7fb8819` | `app/public/verticals/a7fb8819.html` | `POST /api/a7fb8819/submit-pay-run` | `app/services/verticals/a7fb8819.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
@@ -46,6 +53,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | High Tech | `POST /api/oncall/licenses/provision` | `app/services/oncall-verticals/hightech.js` |
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
+| Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 
 Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
@@ -129,6 +137,65 @@ Three things are deliberately separate:
 - **`npm run feed:check`** fails when the committed artifact does not match a fresh build of the spec, and `npm test` asserts the same thing byte-for-byte.
 
 `PARITY_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`. It sends the session to the audit first, then to the spec, the build's missing coverage gate, and the harness's fail-open exclusion logic. Regression coverage for both paths lives in `tests/spgi-feed-parity.test.js`.
+
+### GE Aerospace Customer Portal scenario (Flutter, external repo)
+
+The GE Aerospace vertical (slug `5b992ae7`) has two surfaces. The marketing page at `/5b992ae7` keeps its Node-side technical-inquiry TypeError. The **customer portal** at `/5b992ae7/app` is a Flutter web build served statically from `app/public/verticals/5b992ae7-app/` (SPA fallback in `app/routes/verticals/5b992ae7.js`); the same codebase ships natively for Linux, Windows, macOS/iOS and Android from `Custom-Devin-Demos/ge-customer-portal`, and that repo — not this one — is where the defect lives and where Devin remediates.
+
+The portal plants a routing/catalog mismatch: `SEGMENT_ROUTING` quotes `rise` for narrowbody operators but the engine catalog never registers it, so `buildEngineCoverage` null-asserts and every US/CA technical inquiry fails — on the hosted web build at `/5b992ae7/app` as well as natively, because the hosted artifact is built from the defective Flutter `main`. The Flutter client reports to Sentry as service `customer-5b992ae7-portal` (release `ge-customer-portal@<version>`) and, after rendering its error card, also `POST`s the failure to `/api/5b992ae7/portal/error`. That route (`reportPortalFailure` in the service) raises the Slack alert and Devin session directly under the portal identity — no Sentry webhook round-trip needed — carrying the client's `platform`, `operator`, `segment`, `screen` and `action` tags, and rejects bodies that do not carry `source: ge-customer-portal/<platform>` with `service: customer-5b992ae7-portal`. Because the Flutter client has no org/user picker, that path relies on `DEVIN_ORG_ID_5B992AE7` / `DEVIN_USER_ID_5B992AE7` being set alongside `DEVIN_SERVICE_KEY_5B992AE7` (`getCustomerConfig().devinOrgId`); without the org override the session call lands in the global `DEVIN_ORG_ID` org, which the per-customer key cannot access. `POST /api/5b992ae7/inquiry` recognises a `source: ge-customer-portal/<platform>` body as a registration-only call — it acknowledges the client-generated reference number instead of re-running the Node-side routing logic.
+
+Two identities share the slug and must not claim each other's alerts: `CUSTOMER_ALERT_IDENTITY` in `app/routes/sentry-webhook.js` matches on the full service name (`customer-5b992ae7-inquiry` vs `customer-5b992ae7-portal`), not the `customer-<slug>-` prefix. Both the webhook entry and `/portal/error` append `PORTAL_REMEDIATION_DIRECTIVE` (exported from `app/services/verticals/5b992ae7.js`) to the Devin prompt: reproduce on web first, fix the catalog data (register CFM RISE, make coverage tolerant), re-verify on web, open a PR against `main` in the Flutter repo, stop for human approval, then spawn separate Linux/Windows/macOS child sessions that build the same fix commit natively, submit the same narrowbody inquiry and post recordings plus the verified SHA to the PR, and finally refresh the hosted web build here. Regression coverage lives in `tests/sentry-webhook.test.js` and `tests/5b992ae7-portal-error.test.js`.
+
+To refresh the hosted web build: in the Flutter repo run `flutter build web --release --base-href /5b992ae7/app/`, copy `build/web/` into `app/public/verticals/5b992ae7-app/`, and delete the copied `canvaskit/` directory — the default build loads CanvasKit from Google's CDN, so the 37 MB local copy is dead weight in this repo.
+
+### Citi consumer banking scenario (67f2a7ba, Flutter, external repo)
+
+The Citi Mobile vertical (slug `67f2a7ba`, aliases `/citimobile`, `/citi-mobile`; unlisted on the hub) is separate from Citi Self Invest (`94f4c31f`, `/citi`), which keeps its Node-side suitability TypeError. `/67f2a7ba/app` serves a Flutter web build from `app/public/verticals/67f2a7ba-app/` (SPA fallback in `app/routes/verticals/67f2a7ba.js`). The same codebase — `Custom-Devin-Demos/citi-banking-demo-app` — renders as a Citi Online desktop site on wide web and as the Citi Mobile app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the card product catalog knows the Citi Strata Elite card, but the payment-posting rules registry never registers it, so scheduling a payment on that card (the default selection) null-asserts and the Pay Card screen shows its error card. The client then `POST`s to `/api/67f2a7ba/mobile/error` with `source: citi-mobile/<screen>` and `service: customer-67f2a7ba-mobile`, plus `platform`, `screen`, `action`, `product`/`cardProduct` tags. `reportAppFailure` in `app/services/verticals/67f2a7ba.js` raises the Slack alert and Devin session directly (Sentry capture + `mobile_payment.failure` metric); successful payments register on `POST /api/67f2a7ba/payments` (`mobile_payment.success`, no alert).
+
+Identity is dynamic: the Flutter client reads `devinEmail` / `devinUserId` / `devinOrgId` / `devinOrgName` that the hub stored in `localStorage` and forwards them on the report. The service passes them through untouched and never invents a fallback identity; `DEVIN_SERVICE_KEY_67F2A7BA` / `DEVIN_USER_ID_67F2A7BA` / `DEVIN_ORG_ID_67F2A7BA` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` in `app/routes/sentry-webhook.js` maps `customer-67f2a7ba-mobile` to `APP_REMEDIATION_DIRECTIVE`, which tells the session to reproduce on web, fix the registry (register the product, make consumers tolerate unknown codes, add a completeness test), verify the same fix commit on web, Android and iOS, and refresh the hosted build here. Regression coverage lives in `tests/67f2a7ba-mobile-error.test.js`.
+
+Refresh the hosted build the same way as GE: `flutter build web --release --base-href /67f2a7ba/app/`, copy `build/web/` into `app/public/verticals/67f2a7ba-app/`, drop `canvaskit/`. Generated Flutter bundles under `app/public/verticals/*-app/` are excluded from `npm run lint`.
+
+### Nordstrom shopping scenario (5b7227b4, Flutter, external repo)
+
+The Nordstrom app vertical (slug `5b7227b4`, aliases `/nordstromapp`, `/nordstrom-app`; unlisted on the hub) is separate from the Nordstrom HTML vertical (`663500bd`, `/nordstrom`), which keeps its Node-side defect. `/5b7227b4/app` serves a Flutter web build from `app/public/verticals/5b7227b4-app/` (SPA fallback in `app/routes/verticals/5b7227b4.js`). The same codebase — `Custom-Devin-Demos/nordstrom-shopping-demo-app` — renders as the nordstrom.com desktop site on wide web and as the Nordstrom app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the product catalog carries a `New Markdown` price status, but the Nordy Club earning-rules registry never registers it, so adding a New Markdown item to the bag null-asserts while pricing rewards and the product screen shows its error message plus the incident toast. The client then `POST`s to `/api/5b7227b4/mobile/error` with `source: nordstrom-shop/<platform>` and `service: customer-5b7227b4-mobile`, plus `platform`, `screen`, `action`, `product`, `priceStatus` tags. `reportAppFailure` in `app/services/verticals/5b7227b4.js` raises the Slack alert and Devin session directly (Sentry capture + `add_to_bag.failure` metric); successful adds sync on `POST /api/5b7227b4/bag` (`add_to_bag.success`, no alert).
+
+Identity is dynamic, exactly as for Citi Mobile: the Flutter client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service passes them through untouched, resolves an email to a Nordstrom org member with `DEVIN_SERVICE_KEY_5B7227B4` when no user id was sent, and `DEVIN_USER_ID_5B7227B4` / `DEVIN_ORG_ID_5B7227B4` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-5b7227b4-mobile` to the Nordstrom `APP_REMEDIATION_DIRECTIVE` (fix the registry, tolerate unknown statuses, add a completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/5b7227b4-mobile-error.test.js`.
+
+Refresh the hosted build the same way as Citi: `flutter build web --release --base-href /5b7227b4/app/`, copy `build/web/` into `app/public/verticals/5b7227b4-app/`, drop `canvaskit/`.
+
+### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
+
+The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `sendMoney()` | Reads the pre-FY26 `account.limitProfile` field and throws before a transfer completes | HTTP 500 `TypeError` → Sentry → Slack → Devin session |
+| `requestMoney()` | Reads the pre-FY26 field and falls back to Standard, so Gold/Platinum requests are declined below their enrolled tier's cap | HTTP 422 with no Sentry/Devin alert; `zelle_request.declined` carries `profile:Standard` |
+
+The defect is deliberately left in place so Devin performs the field-migration fix. The enrolled profile now lives at `account.limits.profile`, but both consumers still read the old location; only the send path crashes.
+
+- **`scripts/6f43e66c-limits-audit.js` is the prevention control** (`npm run audit:zelle`) — it probes both real service paths for every funding account and exits non-zero for unresolved or downgraded profiles. It is not wired into CI, which is why this shipped.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius, ServiceNow incident blast radius, and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'`.
+
+### Aravia Patient Access field-migration scenario (fcf0f903, /patient-access)
+
+The Aravia Therapeutics Patient Access vertical (`/fcf0f903`, `/patient-access`) is a customer-neutral life-sciences skin — a fictional specialty-pharma brand, no real company assets — that mirrors the Zelle shape: one field-migration gap with two consumers, in the domain of copay-assistance enrollment for a specialty therapy.
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `submitEnrollment()` | Reads the pre-FY26 `patient.coverageTier` field, resolves no benefit and throws while dereferencing it (`assertAssistanceCoverage`) | HTTP 500 `TypeError` → Sentry → Slack → Devin session → ServiceNow |
+| `estimateCopay()` | Reads the pre-FY26 field and falls back to `commercial-standard`, so Specialty Commercial ($10) and Foundation Assistance ($0) patients are quoted the $150 Standard copay and told they are not assistance-eligible | HTTP 200 with no Sentry/Devin alert; `copay_estimate.quoted` carries `tier:Standard` on patients whose verified tier is not Standard |
+
+The silent half is the point: the crash is what pages you; the quiet quote is what harms patients. The defect is deliberately left in place so Devin performs the field-migration fix live. The FY26 benefits refresh moved the verified tier to `patient.coverage.tier` in `app/services/verticals/fcf0f903-patients.js`, but both consumers in `app/services/verticals/fcf0f903.js` still read the old location; only the enrollment path crashes. To run the demo pre-fixed, point both resolvers at `patient.coverage.tier` (ideally through one shared resolver that throws when a tier cannot be resolved).
+
+- **`scripts/fcf0f903-copay-audit.js` is the prevention control** (`npm run audit:copay`) — it resolves the benefit for every patient record through both real service paths and exits non-zero for unresolved or silently downgraded tiers. It is not wired into `npm test`/CI, which is why this shipped; wiring it in is the demo's prevention workstream.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius (incl. the silent estimate consumer), ServiceNow incident blast radius in assignment group "Patient Access Platform Engineering", and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'` in `config/customers/fcf0f903.js`.
+- Regression coverage for both paths lives in `tests/fcf0f903-enrollment.test.js` and `tests/fcf0f903-copay-estimate.test.js`; the estimate tests pin the current Standard fallback and must be updated when the defect is fixed.
 
 ### Incident Lab (evolving-incident demo)
 
@@ -335,7 +402,7 @@ Vertical Error (any of 10 verticals)
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
 
-Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session.
+Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session. Verticals may tag their Sentry events `alert_path: instant` to have the webhook fallback skip them (Rippling does).
 
 **Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var or per-customer config):
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
@@ -496,7 +563,13 @@ bash "$S/scripts/deploy-ec2.sh" "$S" manual
 EOF
 ```
 
-`scripts/deploy-ec2.sh` (run on the host) does, in order: `flock /home/ubuntu/.deploy.lock`; free-space check; back up `.env` and every top-level entry it is about to touch to `/home/ubuntu/releases/<ts>.tgz` (last 5 kept); log any vertical files present on the host but absent from the release; `rsync --delete` each top-level entry of the release into place **except** that `app/routes/verticals`, `app/public/verticals`, `app/services/verticals` and `config/customers` are never deleted from (so a demo merged in only one repo keeps working until the sync PR lands) and `.env*`, `.ssh`, `certbot/`, `docker-compose.override.yml`, `archive/`, `releases/` are never touched; `docker compose build checkout-api loadgen` + `up -d --no-deps checkout-api`; wait for `/health`; GET every `app/public/verticals/*.html` slug, every alias and a fixed critical list (`/`, `/retail`, `/api/verticals`, `/oncall`, …) and require 200 from all; then restart loadgen and `docker compose up -d`. Any failure after the sync step restores the backup, rebuilds, and posts to Slack (`SLACK_BOT_TOKEN`/`SLACK_CHANNEL_ID` from the host `.env`). Exit code is non-zero on failure so the workflow run goes red.
+`scripts/deploy-ec2.sh` (run on the host) does, in order: `flock /home/ubuntu/.deploy.lock`; free-space check; back up `.env` and every top-level entry it is about to touch to `/home/ubuntu/releases/<ts>.tgz` (last 5 kept); log any vertical files present on the host but absent from the release; `rsync --delete` each top-level entry of the release into place **except** that `app/routes/verticals`, `app/public/verticals`, `app/services/verticals` and `config/customers` are never deleted from (so a demo merged in only one repo keeps working until the sync PR lands) and `.env*`, `.ssh`, `certbot/`, `docker-compose.override.yml`, `archive/`, `releases/` are never touched; `scripts/host-bootstrap.sh` (below); `docker compose build checkout-api`, then `build loadgen` (one at a time — parallel builds OOM-hung the 1.9G host), `up -d --no-deps checkout-api`; wait for `/health`; GET every `app/public/verticals/*.html` slug, every alias and a fixed critical list (`/`, `/retail`, `/api/verticals`, `/oncall`, …) and require 200 from all; then restart loadgen and `docker compose up -d`. Any failure after the sync step restores the backup, rebuilds, and emails via `scripts/ops-notify.sh` (SNS topic `devindemos-alerts`, published with the instance's IAM role — no secrets in `.env`; the app's Slack channel is customer-facing and is not used for host ops). Exit code is non-zero on failure so the workflow run goes red.
+
+**Host bootstrap.** `scripts/host-bootstrap.sh` is idempotent and runs on every deploy (and can be run by hand): it ensures a 2G `/swapfile` (fstab + `vm.swappiness=10`), persistent journald capped at 200M, `python3-boto3` for `scripts/ops-notify.sh` (warns if it or the instance IAM role is missing), and a single `*/5` cron entry for `scripts/vertical-guard.sh`, removing the legacy per-vertical `~/*-guard.sh` cron lines. Privileged steps use `sudo -n` and are skipped with a warning if passwordless sudo is unavailable.
+
+**Vertical guard.** `scripts/vertical-guard.sh` (cron, every 5 min) GETs `/health` plus the demo pages the old guards watched on `127.0.0.1:3000` (`GUARD_PATHS`, `GRACE_SECONDS`, `COOLDOWN_SECONDS` are process-environment knobs for manual runs — cron does not read `.env`). It **never builds an image**: it skips while `.deploy.lock` is held and for 15 min after the last deploy (`releases/CURRENT`), and on a non-200 it does `compose up -d --no-build` then `compose restart` for `checkout-api`, at most once per 10 min, emailing via `scripts/ops-notify.sh` if that does not recover. Missing vertical files are reported the same way, not "repaired" — a redeploy owns the tree. Logs to `/home/ubuntu/vertical-guard.log`.
+
+**Memory limits.** Every service in `docker-compose.yml` has a `deploy.resources.limits.memory` ceiling (2–5x steady state) so a leaking container is OOM-killed and restarted by Docker instead of taking the host down.
 
 **Repo sync.** `.github/workflows/sync-repos.yml` (identical in both repos) runs on every push to `main` and every 6h: it force-pushes this repo's `main` to `sync/from-<org>` in the sibling repo, opens (or reuses) a PR there, and merges it when GitHub reports it mergeable; it is a no-op when the sibling already has an identical tree, which is what stops the ping-pong. On conflict the PR is left open, Slack is pinged and — if `DEVIN_API_KEY` is set — a Devin session is started to resolve it (keep both sides for anything under the vertical directories). Needs the `SYNC_GH_TOKEN` Actions secret in each repo with Contents + Pull requests + Workflows write on the *other* repo.
 
@@ -519,6 +592,7 @@ EOF
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
 | `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
+| `npm run audit:zelle` | Probe send/request limit profiles (exits 1 on unresolved or downgraded rows) |
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |
@@ -594,6 +668,12 @@ Edit `buildAlertBlocks()` in `app/services/slack.js`. The function returns Slack
 
 ### Modifying the Devin investigation prompt
 Edit `buildPrompt()` in `app/services/devin-session.js`. The prompt uses GFM Markdown tables for structured data. Keep it detailed — this is the only context Devin gets when starting an investigation.
+
+### ServiceNow incident trigger (per-customer `itsm: 'servicenow'`)
+For an opted-in customer, a failure opens a P2 ServiceNow incident with `correlation_display=event-driven-devin`.
+The ServiceNow business rule receives the incident and calls the Devin Automation webhook.
+Devin investigates and opens a reviewable PR rather than deploying directly.
+Incident work notes remain the durable record of the investigation and PR outcome.
 
 ### Adding a new customer demo
 A new vertical touches only its own files; do **not** edit `app/routes/verticals/index.js`, `config/customers.js`, or `docker-compose.yml`. This is what lets both source repos (COG-GTM and Custom-Devin-Demos) deploy to the same host without unregistering each other's demos.

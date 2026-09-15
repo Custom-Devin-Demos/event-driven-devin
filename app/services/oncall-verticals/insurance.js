@@ -28,18 +28,28 @@ const ADJUDICATION_TIMEOUT_MS = 2500;
 const ADJUDICATION_ATTEMPTS = 3;
 
 /**
- * Call the external adjudication partner. The partner's response time runs
- * ~4s at p50 during business hours.
+ * Adjudication partner endpoints. v1 is the legacy synchronous endpoint the
+ * partner deprecated in favour of v2; it runs the full rules pass inline.
  */
-function callAdjudicationPartner(claim) {
+const PARTNER_ENDPOINTS = {
+  'v1/adjudicate-sync': { latencyMs: [3600, 4500], deprecated: true },
+  'v2/adjudicate': { latencyMs: [180, 320], deprecated: false },
+};
+
+const ADJUDICATION_ENDPOINT = 'v1/adjudicate-sync';
+
+function callAdjudicationPartner(claim, endpoint = ADJUDICATION_ENDPOINT) {
+  const profile = PARTNER_ENDPOINTS[endpoint];
+  const [minMs, maxMs] = profile.latencyMs;
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
         decision: 'approved',
         adjudicatorRef: `ADJ-${claim.claimId.slice(0, 8)}`,
         approvedAmount: claim.requestedPayout,
+        endpoint,
       });
-    }, 3600 + Math.random() * 900);
+    }, minMs + Math.random() * (maxMs - minMs));
   });
 }
 
@@ -77,6 +87,8 @@ async function adjudicateClaim(claim) {
           claimId: claim.claimId,
           error: error.message,
           service: 'insurance-api',
+          endpoint: ADJUDICATION_ENDPOINT,
+          deprecatedEndpoint: PARTNER_ENDPOINTS[ADJUDICATION_ENDPOINT].deprecated,
         },
       );
     }
@@ -139,6 +151,7 @@ async function processClaim(claimData, options = {}) {
     });
     recordTiming('claim.latency', duration, {
       route: '/api/oncall/insurance/claim',
+      endpoint: ADJUDICATION_ENDPOINT,
     });
 
     return {
@@ -161,6 +174,7 @@ async function processClaim(claimData, options = {}) {
     recordTiming('claim.latency', duration, {
       route: '/api/oncall/insurance/claim',
       error: 'true',
+      endpoint: ADJUDICATION_ENDPOINT,
     });
 
     logger.error('Claim processing failed', {
