@@ -22,6 +22,13 @@ const {
   getOncallConfigView,
 } = require('../services/oncall');
 const { getOncallSkin, listOncallSkins, ONCALL_SKINS } = require('../../config/oncall-skins');
+const {
+  FLEET,
+  isFleetReport,
+  normalizeReport: normalizeFleetReport,
+  reportEtaFailure,
+  getEtaFailureStatus,
+} = require('../services/oncall-verticals/fleet');
 
 const router = express.Router();
 
@@ -560,6 +567,60 @@ router.post('/api/oncall/trigger/:vertical', (req, res, next) => {
     logger.error('On-Call trigger failed', { error: error.message });
     res.status(500).json({ ok: false, error: error.message });
   }
+});
+
+const FLEET_FAILURE_PATH = `/api/oncall/${FLEET.slug}/eta-failure`;
+
+/**
+ * POST /api/oncall/26a3d261/eta-failure — invariant failure reported by the
+ * native Fleet app when "Share live ETA" computes an arrival that is not
+ * after departure. Acknowledged at once with a reference; the alert card and
+ * the (macOS) Devin session follow asynchronously.
+ */
+router.post(FLEET_FAILURE_PATH, (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  if (!isFleetReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected a fleet-mobile/<ios|macos> source with service ${FLEET.service}`,
+    });
+  }
+  const report = normalizeFleetReport(body);
+  if (!report) {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected assetId plus ISO-8601 departure and arrival, with arrival not after departure',
+    });
+  }
+  req.fleetReport = report;
+  next();
+}, oncallCap('trigger'), (req, res) => {
+  const result = reportEtaFailure(req.fleetReport);
+  if (!result) {
+    return res.status(400).json({ received: false, error: 'Invalid report' });
+  }
+  return res.status(202).json({
+    received: true,
+    reference: result.reference,
+    statusToken: result.statusToken,
+    service: FLEET.service,
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
+  });
+});
+
+/**
+ * GET /api/oncall/26a3d261/eta-failure/:reference — outcome of a report, so
+ * the app can show the alert/session link on its failure card. Requires the
+ * statusToken from the 202 response in the `X-Status-Token` header (never
+ * the query string, which would land in access logs):
+ * the reference itself is printed on the alert card and is not a secret.
+ */
+router.get(`${FLEET_FAILURE_PATH}/:reference`, (req, res) => {
+  const token = req.get('x-status-token');
+  const status = getEtaFailureStatus(req.params.reference, token);
+  if (!status) return res.status(404).json({ error: 'Unknown reference' });
+  return res.json(status);
 });
 
 /**
