@@ -1547,6 +1547,22 @@ const ONCALL_SKINS = {
     supportCenter: 'Hebbia Support',
     disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
   },
+  '7fcd58da': {
+    slug: '7fcd58da',
+    company: 'Rabobank',
+    brandMark: 'R',
+    vertical: 'banking',
+    page: { file: '7fcd58da.html', title: 'Overboeken | Rabo Online Bankieren – Rabobank' },
+    theme: {
+      '--accent': '#FA6400',
+      '--ink': '#202122',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000061',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Rabobank Klantenservice',
+    disclaimer: 'NOT ACTUALLY A RABOBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Rabobank product.',
+  },
 };
 
 function getOncallSkin(slug) {
