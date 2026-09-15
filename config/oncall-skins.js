@@ -129,6 +129,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Tyk Support',
     disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
   },
+  '0f76667b': {
+    slug: '0f76667b',
+    company: 'Abacum',
+    brandMark: 'A',
+    vertical: 'hightech',
+    page: {
+      file: '0f76667b.html',
+      title: 'Abacum — Workspace seats',
+    },
+    theme: {
+      '--accent': '#7700FE',
+      '--ink': '#0D0D0D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Abacum Support',
+    disclaimer: 'NOT ACTUALLY AN ABACUM SITE — internal demo only, not affiliated with, endorsed by, or a real Abacum product.',
+  },
   '66cee815': {
     slug: '66cee815',
     company: 'JFrog',
