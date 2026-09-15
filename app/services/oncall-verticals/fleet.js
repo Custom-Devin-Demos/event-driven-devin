@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 const logger = require('../../telemetry/logger');
+const { Sentry } = require('../../telemetry/sentry');
+const { incrementMetric } = require('../../telemetry/datadog');
 const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail } = require('../slack');
 const { createDevinSession } = require('../devin-api');
 const { canCreateSession, reserveSession } = require('../session-rate-limiter');
@@ -50,7 +52,8 @@ const RELEASE_RE = /^[A-Za-z0-9][A-Za-z0-9@._+-]{0,63}$/;
 const ID_RE = /^[0-9]{1,12}$/;
 const TOKEN_RE = /^[A-Za-z0-9_-]{1,40}$/;
 const EMAIL_RE = /^[^\s@<>|]{1,64}@[^\s@<>|]{1,255}$/;
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/;
+const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?(?:(Z)|([+-])(\d{2}):(\d{2}))$/;
+const STATUS_TOKEN_RE = /^[0-9a-f]{32}$/;
 
 // Recent reports, so the app can poll for the alert/session outcome and
 // show "Devin is investigating" on the failure card.
@@ -69,7 +72,20 @@ function pruneReports() {
 }
 
 function makeReference() {
-  return `FLT-${crypto.randomBytes(3).toString('hex')}`;
+  let reference;
+  do {
+    reference = `FLT-${crypto.randomBytes(3).toString('hex')}`;
+  } while (reports.has(reference));
+  return reference;
+}
+
+function makeStatusToken() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+function tokenMatches(expected, supplied) {
+  if (typeof supplied !== 'string' || !STATUS_TOKEN_RE.test(supplied)) return false;
+  return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(supplied, 'hex'));
 }
 
 function clip(value, max) {
@@ -81,10 +97,37 @@ function clip(value, max) {
     .slice(0, max);
 }
 
+// Strict ISO-8601: shape, real calendar fields (no Feb 30 normalisation)
+// and an explicit offset.
 function parseDate(value) {
-  if (typeof value !== 'string' || !ISO_DATE_RE.test(value)) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+  if (typeof value !== 'string') return null;
+  const match = ISO_DATE_RE.exec(value);
+  if (!match) return null;
+  const [, y, mo, d, h, mi, s = '0', ms = '0', zulu, sign, oh, om] = match;
+  const fields = [Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s), Number(ms.padEnd(3, '0'))];
+  const local = Date.UTC(...fields);
+  const probe = new Date(local);
+  const roundTrips = [
+    probe.getUTCFullYear(), probe.getUTCMonth(), probe.getUTCDate(),
+    probe.getUTCHours(), probe.getUTCMinutes(), probe.getUTCSeconds(),
+  ].every((part, i) => part === fields[i]);
+  if (!roundTrips) return null;
+  let offsetMinutes = 0;
+  if (!zulu) {
+    if (Number(oh) > 23 || Number(om) > 59) return null;
+    offsetMinutes = (sign === '-' ? -1 : 1) * (Number(oh) * 60 + Number(om));
+  }
+  return new Date(local - offsetMinutes * 60000);
+}
+
+function parseTimeZone(value) {
+  if (typeof value !== 'string' || value.length > 64 || !/^[A-Za-z0-9_+/-]+$/.test(value)) return 'UTC';
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: value });
+    return value;
+  } catch {
+    return 'UTC';
+  }
 }
 
 function platformOf(body) {
@@ -117,9 +160,7 @@ function normalizeReport(body) {
     ? body.release
     : `${FLEET.service}@unknown`;
   const orgId = typeof body.orgId === 'string' && ID_RE.test(body.orgId) ? body.orgId : null;
-  const timeZone = typeof body.timeZone === 'string' && /^[A-Za-z_]+(?:\/[A-Za-z_+-]+)*$/.test(body.timeZone)
-    ? body.timeZone
-    : 'UTC';
+  const timeZone = parseTimeZone(body.timeZone);
 
   return {
     platform,
@@ -347,10 +388,13 @@ async function triggerDevinSession(report, reference, { token, channel, threadTs
 function reportEtaFailure(report) {
   if (!report || !report.platform || !report.assetId) return null;
 
+  pruneReports();
   const reference = makeReference();
+  const statusToken = makeStatusToken();
   const now = new Date();
   const entry = {
     reference,
+    statusToken,
     receivedAt: now.getTime(),
     platform: report.platform,
     assetId: report.assetId,
@@ -359,9 +403,17 @@ function reportEtaFailure(report) {
     error: null,
     done: false,
   };
-  pruneReports();
   reports.set(reference, entry);
 
+  const tags = {
+    route: `/api/oncall/${FLEET.slug}/eta-failure`,
+    service: FLEET.service,
+    check: FLEET.check,
+    platform: report.platform,
+    screen: report.screen,
+    action: report.action,
+  };
+  incrementMetric('fleet_live_share.eta_failure', { route: tags.route, platform: report.platform, check: FLEET.check });
   logger.error('Fleet mobile ETA failure reported', {
     reference,
     platform: report.platform,
@@ -370,6 +422,20 @@ function reportEtaFailure(report) {
     departure: report.departure.toISOString(),
     arrival: report.arrival.toISOString(),
     minutesOut: report.minutesOut,
+  });
+  // Tagged with the on-call route, so the Sentry webhook's on-call-slice
+  // filter never raises a second alert or session for this event.
+  Sentry.captureMessage(`${FLEET.monitor} (${FLEET.service}/${report.platform})`, {
+    level: 'error',
+    tags,
+    extra: {
+      reference,
+      release: report.release,
+      assetId: report.assetId,
+      departure: report.departure.toISOString(),
+      arrival: report.arrival.toISOString(),
+      minutesOut: report.minutesOut,
+    },
   });
 
   const outcome = (async () => {
@@ -415,15 +481,19 @@ function reportEtaFailure(report) {
     return entry;
   })();
 
-  return { reference, outcome };
+  return { reference, statusToken, outcome };
 }
 
-/** Public view of a report's outcome, for the app's status poll. */
-function getEtaFailureStatus(reference) {
+/**
+ * Outcome of a report, for the app's status poll. The reference is short enough to read off an alert
+ * card, so it is not a secret: callers must also present the statusToken
+ * the 202 response handed to the reporting device.
+ */
+function getEtaFailureStatus(reference, statusToken) {
   if (typeof reference !== 'string' || !REFERENCE_RE.test(reference)) return null;
   pruneReports();
   const entry = reports.get(reference);
-  if (!entry) return null;
+  if (!entry || !tokenMatches(entry.statusToken, statusToken)) return null;
   return {
     reference: entry.reference,
     service: FLEET.service,

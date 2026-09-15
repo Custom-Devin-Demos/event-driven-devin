@@ -16,10 +16,23 @@ jest.mock('../app/services/devin-api', () => ({
   }),
 }));
 
+jest.mock('../app/telemetry/sentry', () => ({
+  Sentry: { captureMessage: jest.fn(), captureException: jest.fn() },
+}));
+
+jest.mock('../app/telemetry/datadog', () => ({
+  incrementMetric: jest.fn(),
+  recordMetric: jest.fn(),
+  recordTiming: jest.fn(),
+}));
+
+const crypto = require('crypto');
 const express = require('express');
 const http = require('http');
 const { postMessage, postThreadReply, lookupSlackUserByEmail } = require('../app/services/slack');
 const { createDevinSession } = require('../app/services/devin-api');
+const { Sentry } = require('../app/telemetry/sentry');
+const { incrementMetric } = require('../app/telemetry/datadog');
 
 process.env.SLACK_ONCALL_BOT_TOKEN = 'xoxb-test';
 process.env.SLACK_ONCALL_ALERTS_CHANNEL_ID = 'C0TEST';
@@ -51,11 +64,11 @@ const REPORT = {
   devinEmail: 'presenter@example.com',
 };
 
-function request(server, method, path, body) {
+function request(server, method, path, body, headers = {}) {
   const { port } = server.address();
   return new Promise((resolve, reject) => {
     const req = http.request(
-      { host: '127.0.0.1', port, path, method, headers: { 'content-type': 'application/json' } },
+      { host: '127.0.0.1', port, path, method, headers: { 'content-type': 'application/json', ...headers } },
       (res) => {
         let data = '';
         res.on('data', (chunk) => { data += chunk; });
@@ -121,6 +134,28 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     expect(normalizeReport({ ...REPORT, arrival: '2026-09-14T16:20:00.000-07:00' })).not.toBeNull();
   });
 
+  test('normalizeReport rejects impossible calendar dates instead of normalising them', () => {
+    expect(normalizeReport({ ...REPORT, departure: '2026-02-30T12:00:00Z', arrival: '2026-02-30T12:00:00Z' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: '2026-04-31T12:00:00Z', arrival: '2026-04-31T12:00:00Z' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: '2026-13-01T12:00:00Z', arrival: '2026-13-01T12:00:00Z' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: '2026-09-14T24:00:00Z', arrival: '2026-09-14T24:00:00Z' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: '2026-09-14T23:20:00+25:00', arrival: '2026-09-14T23:20:00+25:00' })).toBeNull();
+    expect(normalizeReport({ ...REPORT, departure: '2027-02-29T12:00:00Z', arrival: '2027-02-29T12:00:00Z' })).toBeNull();
+    const leap = normalizeReport({ ...REPORT, departure: '2028-02-29T12:00:00Z', arrival: '2028-02-29T12:00:00Z' });
+    expect(leap.departure.toISOString()).toBe('2028-02-29T12:00:00.000Z');
+    const offset = normalizeReport({ ...REPORT, departure: '2026-09-14T16:20:00-07:00', arrival: '2026-09-14T16:20:00-07:00' });
+    expect(offset.departure.toISOString()).toBe('2026-09-14T23:20:00.000Z');
+  });
+
+  test('normalizeReport keeps any runtime-supported IANA zone and falls back to UTC otherwise', () => {
+    expect(normalizeReport(REPORT).timeZone).toBe('America/Los_Angeles');
+    expect(normalizeReport({ ...REPORT, timeZone: 'Etc/GMT+8' }).timeZone).toBe('Etc/GMT+8');
+    expect(normalizeReport({ ...REPORT, timeZone: 'America/Argentina/Buenos_Aires' }).timeZone).toBe('America/Argentina/Buenos_Aires');
+    expect(normalizeReport({ ...REPORT, timeZone: 'Mars/Olympus_Mons' }).timeZone).toBe('UTC');
+    expect(normalizeReport({ ...REPORT, timeZone: '<!channel>' }).timeZone).toBe('UTC');
+    expect(normalizeReport({ ...REPORT, timeZone: 42 }).timeZone).toBe('UTC');
+  });
+
   test('normalizeReport rejects a healthy ETA (arrival after departure) but keeps equal or earlier arrivals', () => {
     expect(normalizeReport({ ...REPORT, arrival: '2026-09-15T00:30:00Z' })).toBeNull();
     expect(normalizeReport({ ...REPORT, arrival: '2026-09-14T23:20:00Z' })).toMatchObject({ minutesOut: 0 });
@@ -128,8 +163,9 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
   });
 
   test('a report posts one alert, creates one macOS session on ios-demos and links it in the thread', async () => {
-    const { reference, outcome } = reportEtaFailure(normalizeReport(REPORT));
+    const { reference, statusToken, outcome } = reportEtaFailure(normalizeReport(REPORT));
     expect(reference).toMatch(/^FLT-[0-9a-f]{6}$/);
+    expect(statusToken).toMatch(/^[0-9a-f]{32}$/);
 
     const entry = await outcome;
 
@@ -170,7 +206,7 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     );
 
     expect(entry.done).toBe(true);
-    expect(getEtaFailureStatus(reference)).toEqual({
+    expect(getEtaFailureStatus(reference, statusToken)).toEqual({
       reference,
       service: 'fleet-mobile',
       alertPosted: true,
@@ -182,12 +218,12 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
 
   test('a failed Slack post still creates the session and records the error', async () => {
     postMessage.mockRejectedValueOnce(new Error('slack down'));
-    const { reference, outcome } = reportEtaFailure(normalizeReport(REPORT));
+    const { reference, statusToken, outcome } = reportEtaFailure(normalizeReport(REPORT));
     await outcome;
 
     expect(createDevinSession).toHaveBeenCalledTimes(1);
     expect(postThreadReply).not.toHaveBeenCalled();
-    expect(getEtaFailureStatus(reference)).toMatchObject({
+    expect(getEtaFailureStatus(reference, statusToken)).toMatchObject({
       alertPosted: false, sessionUrl: expect.any(String), done: true, error: 'alert failed',
     });
   });
@@ -196,9 +232,49 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     lookupSlackUserByEmail.mockImplementationOnce(() => { throw new TypeError('boom'); });
     postMessage.mockImplementationOnce(() => { throw new TypeError('boom'); });
     createDevinSession.mockImplementationOnce(() => { throw new TypeError('boom'); });
+    const { reference, statusToken, outcome } = reportEtaFailure(normalizeReport(REPORT));
+    await outcome;
+    expect(getEtaFailureStatus(reference, statusToken)).toMatchObject({ done: true, error: expect.any(String), sessionUrl: null });
+  });
+
+  test('status requires the token handed to the reporting device; the reference alone is not enough', async () => {
+    const { reference, statusToken, outcome } = reportEtaFailure(normalizeReport(REPORT));
+    await outcome;
+    expect(getEtaFailureStatus(reference)).toBeNull();
+    expect(getEtaFailureStatus(reference, 'nope')).toBeNull();
+    expect(getEtaFailureStatus(reference, '0'.repeat(32))).toBeNull();
+    expect(getEtaFailureStatus(reference, statusToken)).toMatchObject({ reference });
+  });
+
+  test('a reference is never reused while a report with that reference is still held', async () => {
+    const randomBytes = jest.spyOn(crypto, 'randomBytes');
+    const first = reportEtaFailure(normalizeReport(REPORT));
+    await first.outcome;
+    const clash = Buffer.from(first.reference.slice(4), 'hex');
+    randomBytes
+      .mockImplementationOnce(() => clash)
+      .mockImplementationOnce(() => clash)
+      .mockImplementationOnce(() => Buffer.from('abcdef', 'hex'));
+    const second = reportEtaFailure(normalizeReport(REPORT));
+    await second.outcome;
+    randomBytes.mockRestore();
+    expect(second.reference).toBe('FLT-abcdef');
+    expect(getEtaFailureStatus(first.reference, first.statusToken)).toMatchObject({ reference: first.reference });
+    expect(getEtaFailureStatus(second.reference, second.statusToken)).toMatchObject({ reference: second.reference });
+  });
+
+  test('a report emits a Datadog metric and a Sentry event tagged with the on-call route', async () => {
     const { reference, outcome } = reportEtaFailure(normalizeReport(REPORT));
     await outcome;
-    expect(getEtaFailureStatus(reference)).toMatchObject({ done: true, error: expect.any(String), sessionUrl: null });
+    expect(incrementMetric).toHaveBeenCalledWith('fleet_live_share.eta_failure', expect.objectContaining({
+      route: '/api/oncall/26a3d261/eta-failure', platform: 'ios',
+    }));
+    expect(Sentry.captureMessage).toHaveBeenCalledTimes(1);
+    const [message, context] = Sentry.captureMessage.mock.calls[0];
+    expect(message).toContain('fleet-mobile/ios');
+    expect(context.tags).toMatchObject({ route: '/api/oncall/26a3d261/eta-failure', service: 'fleet-mobile' });
+    expect(context.extra).toMatchObject({ reference, assetId: '224221' });
+    expect(JSON.stringify(context)).not.toContain('presenter@example.com');
   });
 
   test('reportEtaFailure ignores anything but a normalized report', () => {
@@ -214,15 +290,23 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
       service: 'fleet-mobile',
       sessionRequested: true,
     });
-    const { reference } = response.body;
+    const { reference, statusToken } = response.body;
     expect(reference).toMatch(/^FLT-[0-9a-f]{6}$/);
+    expect(statusToken).toMatch(/^[0-9a-f]{32}$/);
 
     await new Promise((resolve) => setImmediate(resolve));
     await new Promise((resolve) => setImmediate(resolve));
 
-    const status = await request(server, 'GET', `${PATH}/${reference}`);
+    expect((await request(server, 'GET', `${PATH}/${reference}`)).status).toBe(404);
+    expect((await request(server, 'GET', `${PATH}/${reference}?token=${'f'.repeat(32)}`)).status).toBe(404);
+
+    const status = await request(server, 'GET', `${PATH}/${reference}?token=${statusToken}`);
     expect(status.status).toBe(200);
     expect(status.body).toMatchObject({ reference, alertPosted: true });
+    expect(status.body).not.toHaveProperty('statusToken');
+
+    const viaHeader = await request(server, 'GET', `${PATH}/${reference}`, undefined, { 'X-Status-Token': statusToken });
+    expect(viaHeader.status).toBe(200);
   });
 
   test('POST rejects foreign sources and malformed facts', async () => {

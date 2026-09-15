@@ -602,6 +602,7 @@ router.post(FLEET_FAILURE_PATH, (req, res, next) => {
   return res.status(202).json({
     received: true,
     reference: result.reference,
+    statusToken: result.statusToken,
     service: FLEET.service,
     sessionRequested: true,
     receivedAt: new Date().toISOString(),
@@ -610,10 +611,13 @@ router.post(FLEET_FAILURE_PATH, (req, res, next) => {
 
 /**
  * GET /api/oncall/26a3d261/eta-failure/:reference — outcome of a report, so
- * the app can show the alert/session link on its failure card.
+ * the app can show the alert/session link on its failure card. Requires the
+ * statusToken from the 202 response (`X-Status-Token` header or `?token=`):
+ * the reference itself is printed on the alert card and is not a secret.
  */
 router.get(`${FLEET_FAILURE_PATH}/:reference`, (req, res) => {
-  const status = getEtaFailureStatus(req.params.reference);
+  const token = req.get('x-status-token') || req.query.token;
+  const status = getEtaFailureStatus(req.params.reference, token);
   if (!status) return res.status(404).json({ error: 'Unknown reference' });
   return res.json(status);
 });
