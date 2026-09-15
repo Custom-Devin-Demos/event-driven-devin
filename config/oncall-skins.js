@@ -1477,6 +1477,54 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Online Orders & Shopping Bag',
     disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',
   },
+  '9cb2eced': {
+    slug: '9cb2eced',
+    company: 'Singapore Airlines',
+    brandMark: 'SQ',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '9cb2eced.html',
+      title: 'Singapore Airlines Official Website | Book International Flight Tickets',
+    },
+    accent: '#00266B',
+    accentDark: '#001D52',
+    theme: {
+      '--accent': '#00266B',
+      '--ink': '#222222',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00266B',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Singapore Airlines Support',
+    supportCenterSub: 'Flight Booking & KrisFlyer Support',
+    disclaimer: 'NOT ACTUALLY A SINGAPORE AIRLINES SITE — internal demo only, not affiliated with, endorsed by, or a real Singapore Airlines product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'marketplace',
+          label: 'Singapore Airlines \u2014 Book flight',
+          persona: { name: 'Priya Nair', email: 'priya.nair@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'marketplace-cart-timeout',
+              label: 'Flight search fails with a timeout',
+              sev: 'High',
+              text: 'Customers cannot search for flights. You press "Search" on Book trip, the button spins for about eight seconds and then an error comes back saying seat availability could not be checked. Same route, same dates, every attempt.',
+            },
+            {
+              id: 'marketplace-campaign-conversion',
+              label: 'Fare sale traffic converting at zero',
+              sev: 'Critical',
+              text: 'Escalating from revenue management: the Europe fare sale is live, traffic is fine and the homepage loads, but bookings have collapsed to almost nothing. Every search we try ourselves spins for ages and then errors out. We are burning media spend on a booking flow that cannot return a fare.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   '5d7c46c1': {
     slug: '5d7c46c1',
     company: 'Figure',
