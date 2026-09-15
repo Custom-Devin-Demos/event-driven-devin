@@ -1579,22 +1579,6 @@ const ONCALL_SKINS = {
     supportCenter: 'PostNL Klantenservice',
     disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
   },
-  '3640b94c': {
-    slug: '3640b94c',
-    company: 'Tax Revenue Portal',
-    brandMark: 'T',
-    vertical: 'banking',
-    page: { file: '3640b94c.html', title: 'Pay Taxes | Tax Revenue Portal' },
-    theme: {
-      '--accent': '#2770A0',
-      '--ink': '#000000',
-      '--surface': '#ffffff',
-      '--chrome-bg': '#003F7A',
-      '--chrome-text': '#ffffff',
-    },
-    supportCenter: 'Tax Revenue Portal support desk',
-    disclaimer: 'NOT A REAL TAX PORTAL — internal demo only, not affiliated with, endorsed by, or a real government or tax-agency product.',
-  },
 };
 
 function getOncallSkin(slug) {
