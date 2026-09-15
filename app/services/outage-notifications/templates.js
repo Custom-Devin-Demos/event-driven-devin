@@ -162,6 +162,34 @@ const TEMPLATES = {
   },
 };
 
+const DEFAULT_TIMEZONE = 'America/Los_Angeles';
+
+/**
+ * Format an ISO timestamp for customer copy: "14 Sep 2026, 09:42 PDT"
+ * (day, short month, year, comma, 24h HH:mm, short tz name — YD-3 §2).
+ */
+function formatTimestamp(iso, timeZone = DEFAULT_TIMEZONE) {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return String(iso);
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZoneName: 'short',
+    }).formatToParts(date);
+    const get = (type) => (parts.find((p) => p.type === type) || {}).value || '';
+    return `${get('day')} ${get('month')} ${get('year')}, ${get('hour')}:${get('minute')} ${get('timeZoneName')}`;
+  } catch {
+    return date.toISOString();
+  }
+}
+
 const SUBJECT_NAME_MAX = 40;
 
 function truncateName(name) {
@@ -288,6 +316,8 @@ module.exports = {
   STATE_COLORS,
   COMMON_FOOTER,
   NO_ETA_LINE,
+  DEFAULT_TIMEZONE,
+  formatTimestamp,
   truncateName,
   render,
 };

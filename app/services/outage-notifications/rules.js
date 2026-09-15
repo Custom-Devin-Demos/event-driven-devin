@@ -9,13 +9,15 @@
 
 const logger = require('../../telemetry/logger');
 const datadog = require('../../telemetry/datadog');
-const { render, STATE_WORDS } = require('./templates');
+const { render, STATE_WORDS, formatTimestamp, DEFAULT_TIMEZONE } = require('./templates');
 const { gateway } = require('./delivery');
 const { optedInContacts } = require('./preferences');
 
 const PORTAL_URL = '/lumen';
 const PREFS_URL = '/lumen#notifications';
 const SUPPORT_PHONE = '1-877-453-8353';
+
+const ISO_IN_TEXT = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
 
 const FLAP_WINDOW_MS = 15 * 60 * 1000;
 const FLAP_THRESHOLD = 3;
@@ -123,15 +125,26 @@ function fmtDuration(startedAt, endedAt) {
   const ms = Math.max(0, new Date(endedAt) - new Date(startedAt));
   const minutes = Math.floor(ms / 60000);
   const hours = Math.floor(minutes / 60);
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  return `${minutes}m`;
+  if (hours > 0) return `${hours} h ${minutes % 60} min`;
+  return `${minutes} min`;
 }
 
-function historyLines(incident, { newestFirst = false, limit } = {}) {
+/** Rewrite embedded ISO timestamps inside stored copy to a timezone label. */
+function formatCopyText(text, timeZone = DEFAULT_TIMEZONE) {
+  return String(text).replace(ISO_IN_TEXT, (m) => formatTimestamp(m, timeZone));
+}
+
+function contactTz(contact) {
+  return (contact && contact.timezone) || DEFAULT_TIMEZONE;
+}
+
+function historyLines(incident, { newestFirst = false, limit, timeZone = DEFAULT_TIMEZONE } = {}) {
   let entries = [...incident.history];
   if (newestFirst) entries.reverse();
   if (limit) entries = entries.slice(0, limit);
-  return entries.map((e) => `${e.at} - ${e.text}`).join('\n');
+  return entries
+    .map((e) => `${formatTimestamp(e.at, timeZone)} - ${formatCopyText(e.text, timeZone)}`)
+    .join('\n');
 }
 
 function addHistory(incident, at, text, { state, backfilled } = {}) {
@@ -139,7 +152,7 @@ function addHistory(incident, at, text, { state, backfilled } = {}) {
   incident.history.push({ at, state: state || null, text: `${text}${suffix}`, backfilled: Boolean(backfilled) });
 }
 
-function baseVars(incident, circuit, account) {
+function baseVars(incident, circuit, account, timeZone = DEFAULT_TIMEZONE) {
   return {
     circuit_id: circuit.circuitId,
     circuit_name: circuit.circuitName || circuit.circuitId,
@@ -149,9 +162,9 @@ function baseVars(incident, circuit, account) {
     incident_id: incident.incidentId,
     state: STATE_WORDS[incident.state] || incident.state,
     state_raw: incident.state,
-    started_at: incident.startedAt,
-    eta: incident.eta,
-    eta_updated_at: incident.etaUpdatedAt,
+    started_at: formatTimestamp(incident.startedAt, timeZone),
+    eta: incident.eta ? formatTimestamp(incident.eta, timeZone) : null,
+    eta_updated_at: incident.etaUpdatedAt ? formatTimestamp(incident.etaUpdatedAt, timeZone) : null,
     impact: incident.impact,
     portal_url: PORTAL_URL,
     prefs_url: PREFS_URL,
@@ -174,7 +187,7 @@ function dedupKey(incidentId, contactId, channel, type, variant) {
  * Returns { queued, suppressed } counts and appends to the suppressed list and
  * the incident notification log.
  */
-function notify(incident, circuit, templateId, type, vars, { now, eventAt, variant, suppressed }) {
+function notify(incident, circuit, templateId, type, varsFor, { now, eventAt, variant, suppressed }) {
   let queued = 0;
   const account = ACCOUNTS[incident.accountId];
   for (const channel of ['email', 'sms', 'webhook']) {
@@ -187,6 +200,7 @@ function notify(incident, circuit, templateId, type, vars, { now, eventAt, varia
         continue;
       }
       dedupKeys.add(key);
+      const vars = typeof varsFor === 'function' ? varsFor(contact, contactTz(contact)) : varsFor;
       const message = render(templateId, vars);
       const result = gateway.enqueue({
         channel,
@@ -294,13 +308,6 @@ function applyEta(incident, circuit, event, { now, backfilled, suppressed }) {
 
   if (backfilled || incident.closed || incident.intermittent) return 0;
 
-  const vars = {
-    ...baseVars(incident, circuit, ACCOUNTS[incident.accountId]),
-    eta: next,
-    eta_updated_at: incident.etaUpdatedAt,
-    previous_eta: previous || 'none',
-    update_history: historyLines(incident, { newestFirst: true, limit: 3 }),
-  };
   const contacts = optedInContacts(incident.accountId, 'email');
   const bucket = Math.floor(now / ETA_WINDOW_MS);
   for (const contact of contacts) {
@@ -316,6 +323,14 @@ function applyEta(incident, circuit, event, { now, backfilled, suppressed }) {
     const key = dedupKey(incident.incidentId, contact.id, 'email', 'eta_update', `${bucket}:${next}`);
     if (dedupKeys.has(key)) continue;
     dedupKeys.add(key);
+    const tz = contactTz(contact);
+    const vars = {
+      ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+      eta: formatTimestamp(next, tz),
+      eta_updated_at: formatTimestamp(incident.etaUpdatedAt, tz),
+      previous_eta: previous ? formatTimestamp(previous, tz) : 'none',
+      update_history: historyLines(incident, { newestFirst: true, limit: 3, timeZone: tz }),
+    };
     const message = render('E4', vars);
     const result = gateway.enqueue({
       channel: 'email',
@@ -347,12 +362,11 @@ function enterIntermittent(incident, circuit, event, { now, suppressed }) {
   incident.intermittent = true;
   incident.state = 'intermittent';
   addHistory(incident, event.timestamp, 'Circuit is flapping; individual down and restored alerts paused', { state: 'intermittent' });
-  const vars = {
-    ...baseVars(incident, circuit, ACCOUNTS[incident.accountId]),
+  return notify(incident, circuit, 'E6', 'intermittent', (_contact, tz) => ({
+    ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
     count: flapCount(incident, now),
-    update_history: historyLines(incident),
-  };
-  return notify(incident, circuit, 'E6', 'intermittent', vars, {
+    update_history: historyLines(incident, { timeZone: tz }),
+  }), {
     now,
     eventAt: new Date(event.timestamp).getTime(),
     suppressed,
@@ -437,11 +451,13 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
     const type = event.state === 'down' ? 'down' : 'degraded';
     const templateId = event.state === 'down' ? 'E1' : 'E2';
     if (!backfilled || !incident.everNotified) {
-      queued += notify(incident, circuit, templateId, type, baseVars(incident, circuit, ACCOUNTS[incident.accountId]), {
-        now,
-        eventAt,
-        suppressed,
-      });
+      queued += notify(incident, circuit, templateId, type,
+        (_contact, tz) => baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+        {
+          now,
+          eventAt,
+          suppressed,
+        });
     } else {
       suppressed.push({ type, reason: 'backfilled' });
     }
@@ -480,12 +496,11 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
     incident.pendingEtaUpdate = false; // restored cancels any pending ETA update (AC-5)
     addHistory(incident, event.timestamp, `Restored at ${event.timestamp}`, { state: 'restored', backfilled });
     if (!backfilled) {
-      const vars = {
-        ...baseVars(incident, circuit, ACCOUNTS[incident.accountId]),
-        restored_at: event.timestamp,
+      queued += notify(incident, circuit, 'E5', 'restored', (_contact, tz) => ({
+        ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+        restored_at: formatTimestamp(event.timestamp, tz),
         duration: fmtDuration(incident.startedAt, event.timestamp),
-      };
-      queued += notify(incident, circuit, 'E5', 'restored', vars, { now, eventAt, suppressed });
+      }), { now, eventAt, suppressed });
     }
     return {
       outcome: backfilled ? 'backfilled' : 'processed',
@@ -520,16 +535,15 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
       { state: event.state, backfilled },
     );
     if (!backfilled) {
-      const vars = {
-        ...baseVars(incident, circuit, ACCOUNTS[incident.accountId]),
-        changed_at: event.timestamp,
+      const seq = incident.history.length;
+      queued += notify(incident, circuit, 'E3', 'state_change', (_contact, tz) => ({
+        ...baseVars(incident, circuit, ACCOUNTS[incident.accountId], tz),
+        changed_at: formatTimestamp(event.timestamp, tz),
         previous_state: STATE_WORDS[prev],
         previous_state_raw: prev,
         state: STATE_WORDS[event.state],
         state_raw: event.state,
-      };
-      const seq = incident.history.length;
-      queued += notify(incident, circuit, 'E3', 'state_change', vars, {
+      }), {
         now,
         eventAt,
         variant: `${transition}:${seq}`,
@@ -576,4 +590,5 @@ module.exports = {
   listAccounts,
   applyEvent,
   resetStore,
+  formatCopyText,
 };

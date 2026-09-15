@@ -332,19 +332,22 @@
   function openDrawer(incident) {
     state.drawerIncident = incident;
     state.lastFocused = document.activeElement;
-    var c = { circuitId: incident.circuitId };
+    var circuits = (state.data && state.data.circuits) || [];
+    var c = circuits.find(function (x) { return x.circuitId === incident.circuitId; }) || {};
+    var sites = (c.siteA && c.siteZ) ? c.siteA + ' → ' + c.siteZ : '';
     $('drawerTitle').textContent = (incident.circuitName || incident.circuitId);
-    $('drawerSub').textContent = incident.circuitId;
+    $('drawerSub').textContent = incident.circuitId + (sites ? ' · ' + sites : '');
     $('drawerChip').innerHTML = chip(incident.state);
     var facts = $('drawerFacts');
+    var lastEntry = incident.history.length ? incident.history[incident.history.length - 1] : null;
     var etaRow = incident.state === 'restored'
-      ? '<dt>Restored at</dt><dd>' + esc(incident.restoredAt) + '</dd>'
+      ? '<dt>Restored at</dt><dd><time datetime="' + esc(incident.restoredAt || '') + '">' + esc(incident.restoredAtLabel || incident.restoredAt || '') + '</time></dd>'
       : '<dt>Current ETA</dt><dd>' + esc(incident.etaLabel || 'ETA not yet available') + '</dd>';
     facts.innerHTML =
-      '<dt>Started</dt><dd><time datetime="' + esc(incident.startedAt) + '">' + esc(incident.startedAt) + '</time></dd>' +
+      '<dt>Started</dt><dd><time datetime="' + esc(incident.startedAt) + '">' + esc(incident.startedAtLabel || incident.startedAt) + '</time></dd>' +
       etaRow +
-      '<dt>Last update</dt><dd>' + esc(incident.history.length ? incident.history[incident.history.length - 1].at : incident.startedAt) + '</dd>' +
-      '<dt>Sites</dt><dd>' + esc((c.siteA || '') + (c.siteA ? ' → ' : '') + (c.siteZ || '')) + '</dd>' +
+      '<dt>Last update</dt><dd><time datetime="' + esc(lastEntry ? lastEntry.at : incident.startedAt) + '">' + esc(lastEntry ? (lastEntry.atLabel || lastEntry.at) : (incident.startedAtLabel || incident.startedAt)) + '</time></dd>' +
+      (sites ? '<dt>Sites</dt><dd>' + esc(sites) + '</dd>' : '') +
       '<dt>Incident id</dt><dd>' + esc(incident.incidentId) + ' <button type="button" class="btn-secondary" id="copyInc" style="min-height:36px;padding:4px 12px;font-size:14px;">Copy</button></dd>';
     renderTimeline(incident);
     $('drawerSupport').textContent = 'Call support ' + SUPPORT_PHONE + ', reference ' + incident.incidentId;
@@ -361,8 +364,8 @@
     var ol = $('drawerTimeline');
     ol.innerHTML = entries.map(function (h) {
       var chipHtml = h.state ? ' ' + chip(h.state) : '';
-      return '<li><time datetime="' + esc(h.at) + '">' + esc(h.at) + '</time>' + chipHtml + ' — ' + esc(h.text) + '</li>';
-    }).join('') || '<li>Incident opened ' + esc(incident.startedAt) + '</li>';
+      return '<li><time datetime="' + esc(h.at) + '">' + esc(h.atLabel || h.at) + '</time>' + chipHtml + ' — ' + esc(h.textLabel || h.text) + '</li>';
+    }).join('') || '<li>Incident opened ' + esc(incident.startedAtLabel || incident.startedAt) + '</li>';
     $('histToggle').textContent = state.newestFirst ? 'Oldest first' : 'Newest first';
   }
 

@@ -5,6 +5,9 @@ const {
   ACCOUNTS,
   STATE_WORDS,
   truncateName,
+  formatTimestamp,
+  formatCopyText,
+  DEFAULT_TIMEZONE,
   ValidationError,
   normalizeEvent,
   processEvent,
@@ -32,8 +35,12 @@ function circuitState(circuitId, incidents) {
   return 'healthy';
 }
 
-function etaShort(incident) {
-  return incident.eta ? `Estimated restore ${incident.eta}` : 'ETA not yet available';
+function etaShort(incident, timeZone) {
+  return incident.eta ? `Estimated restore ${formatTimestamp(incident.eta, timeZone)}` : 'ETA not yet available';
+}
+
+function incidentLabel(iso, timeZone) {
+  return iso ? formatTimestamp(iso, timeZone) : null;
 }
 
 function buildBanner(incidents) {
@@ -43,7 +50,7 @@ function buildBanner(incidents) {
     const name = truncateName(resolveCircuitName(intermittent.circuitId));
     return {
       variant: 'intermittent',
-      text: `Intermittent: ${name} (${intermittent.circuitId}) has been unstable since ${intermittent.startedAt}. Individual alerts paused.`,
+      text: `Intermittent: ${name} (${intermittent.circuitId}) has been unstable since ${formatTimestamp(intermittent.startedAt, DEFAULT_TIMEZONE)}. Individual alerts paused.`,
       incidentId: intermittent.incidentId,
     };
   }
@@ -61,7 +68,7 @@ function buildBanner(incidents) {
     const name = truncateName(resolveCircuitName(incident.circuitId));
     return {
       variant: 'single',
-      text: `${STATE_WORDS[incident.state] || incident.state}: ${name} (${incident.circuitId}) since ${incident.startedAt}. ${etaShort(incident)}.`,
+      text: `${STATE_WORDS[incident.state] || incident.state}: ${name} (${incident.circuitId}) since ${formatTimestamp(incident.startedAt, DEFAULT_TIMEZONE)}. ${etaShort(incident, DEFAULT_TIMEZONE)}.`,
       incidentId: incident.incidentId,
     };
   }
@@ -76,7 +83,7 @@ function buildBanner(incidents) {
       : '';
     return {
       variant: 'restored',
-      text: `Restored: ${name} (${restored.circuitId}) back to normal at ${restored.restoredAt}. Duration ${duration}.`,
+      text: `Restored: ${name} (${restored.circuitId}) back to normal at ${formatTimestamp(restored.restoredAt, DEFAULT_TIMEZONE)}. Duration ${duration}.`,
       incidentId: restored.incidentId,
     };
   }
@@ -87,8 +94,8 @@ function formatDuration(startedAt, endedAt) {
   const ms = Math.max(0, new Date(endedAt) - new Date(startedAt));
   const minutes = Math.floor(ms / 60000);
   const hours = Math.floor(minutes / 60);
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  return `${minutes}m`;
+  if (hours > 0) return `${hours} h ${minutes % 60} min`;
+  return `${minutes} min`;
 }
 
 function resolveCircuitName(circuitId) {
@@ -117,12 +124,19 @@ function circuitIncidentsPayload(accountId) {
       circuitName: resolveCircuitName(i.circuitId),
       state: i.state,
       startedAt: i.startedAt,
+      startedAtLabel: incidentLabel(i.startedAt, DEFAULT_TIMEZONE),
       restoredAt: i.restoredAt,
+      restoredAtLabel: incidentLabel(i.restoredAt, DEFAULT_TIMEZONE),
       eta: i.eta,
-      etaLabel: i.eta || 'ETA not yet available',
+      etaLabel: i.eta ? formatTimestamp(i.eta, DEFAULT_TIMEZONE) : 'ETA not yet available',
       etaUpdatedAt: i.etaUpdatedAt,
+      etaUpdatedAtLabel: incidentLabel(i.etaUpdatedAt, DEFAULT_TIMEZONE),
       impact: i.impact,
-      history: i.history,
+      history: i.history.map((h) => ({
+        ...h,
+        atLabel: incidentLabel(h.at, DEFAULT_TIMEZONE),
+        textLabel: formatCopyText(h.text, DEFAULT_TIMEZONE),
+      })),
     })),
     openCount: openIncidents.length,
     banner: buildBanner(incidents),

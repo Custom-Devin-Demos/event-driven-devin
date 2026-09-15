@@ -28,6 +28,7 @@ const {
   resetPreferences,
   resetProcessedEvents,
   gateway,
+  formatTimestamp,
 } = service;
 
 const CIRCUIT = 'ckt-nwl-001';
@@ -104,7 +105,7 @@ describe('AC-3 restored closes the incident and notifies', () => {
     expect(restored).toBeDefined();
     expect(restored.incidentId).toBe('inc-a3');
     expect(restored.message.subject).toContain('[Restored]');
-    expect(restored.message.text).toContain('Outage duration: 30m');
+    expect(restored.message.text).toContain('Outage duration: 30 min');
     const incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === 'inc-a3');
     expect(incident.closed).toBe(true);
     expect(incident.state).toBe('restored');
@@ -283,6 +284,19 @@ describe('AC-13 plain-text fallback matches HTML copy', () => {
     expect(message.html).toContain('View live status');
     expect(message.html).toContain('role="presentation"');
   });
+
+  test('formatTimestamp renders contact-timezone copy', () => {
+    expect(formatTimestamp('2026-09-14T16:42:00.000Z', 'America/Los_Angeles'))
+      .toBe('14 Sep 2026, 09:42 PDT');
+    expect(formatTimestamp(null)).toBe('');
+  });
+
+  test('queued emails carry the contact-timezone timestamps', () => {
+    const ts = Date.UTC(2026, 8, 14, 16, 42, 0);
+    processEvent(event({ incidentId: 'inc-a13b' }, ts), { now: ts });
+    const q = gateway.queue[0];
+    expect(q.message.text).toContain('Detected 14 Sep 2026, 09:42 PDT.');
+  });
 });
 
 describe('AC-14 replayed events backfill portal state without fresh email', () => {
@@ -359,7 +373,11 @@ describe('integration', () => {
       const inc = res.body.incidents.find((i) => i.incidentId === 'inc-int-1');
       expect(inc.state).toBe('down');
       expect(inc.etaLabel).toBe('ETA not yet available');
+      expect(inc.startedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(inc.startedAtLabel).toMatch(/\d{4}, \d{2}:\d{2} [A-Z]{2,5}$/);
       expect(inc.history[0].text).toContain('Incident opened');
+      expect(inc.history[0].at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(inc.history[0].atLabel).toMatch(/\d{4}, \d{2}:\d{2} [A-Z]{2,5}$/);
       const circuit = res.body.circuits.find((c) => c.circuitId === CIRCUIT);
       expect(circuit.state).toBe('down');
     }
