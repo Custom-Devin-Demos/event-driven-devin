@@ -808,16 +808,6 @@
         font-style: normal;
       }
 
-      .hidden-select {
-        position: absolute !important;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        clip-path: inset(50%);
-        white-space: nowrap;
-      }
-
       /* buttons */
       .btn-row {
         display: flex;
@@ -930,6 +920,17 @@
         display: block;
         color: var(--red);
         margin-bottom: 4px;
+      }
+
+      .err .detail {
+        display: block;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #f3b9b9;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 13px;
+        color: #7a1f1f;
+        word-break: break-word;
       }
 
       /* totals */
@@ -1449,11 +1450,6 @@
                 <p class="note">Payment is reflected in your tax account within 3 working days.</p>
               </span>
             </label>
-            <select id="accountTier" name="accountTier" class="hidden-select" aria-hidden="true" tabindex="-1">
-              <option value="standard" selected>Standard</option>
-              <option value="premium">Premium</option>
-              <option value="basic">Basic</option>
-            </select>
           </fieldset>
 
           <div class="grid">
@@ -1558,6 +1554,23 @@
       let paid = 0;
       const FAIL_MSG =
         "We are unable to process your payment at the moment. Please try again in a few minutes or contact the demo support desk.";
+      function failBlock(detail) {
+        return (
+          '<div class="err" role="alert"><strong>Payment not completed</strong>' +
+          FAIL_MSG +
+          (detail ? '<span class="detail">' + escapeHtml(detail) + "</span>" : "") +
+          "</div>"
+        );
+      }
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c]);
+      }
       const sgd = (n) =>
         Number(n).toLocaleString("en-US", {
           minimumFractionDigits: 2,
@@ -1633,26 +1646,30 @@
         r.className = "result-box";
         r.textContent = "";
         try {
-          const res = await fetch("/api/banking/transfer", {
+          const res = await fetch("/api/3640b94c/payment", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              taxAccount: to.value,
               fromAccount: from.value,
-              toAccount: to.value,
-              amount: parseFloat(amount.value),
-              accountTier: document.getElementById("accountTier").value,
+              paymentMode: checkedMode.value,
+              amount: submittedAmount,
               devinUserId: localStorage.getItem("devinUserId") || "",
               devinOrgId: localStorage.getItem("devinOrgId") || "",
               devinEmail: localStorage.getItem("devinEmail") || "",
             }),
           });
+          let data = {};
           try {
-            await res.json();
+            data = await res.json();
           } catch (_) {}
           if (!res.ok) {
+            const detail =
+              (data.errorClass ? data.errorClass + ": " : "") +
+              (data.error || "HTTP " + res.status) +
+              (data.requestId ? " · Ref " + data.requestId : "");
             r.className = "result-box show";
-            r.innerHTML =
-              '<div class="err"><strong>Payment not completed</strong>' + FAIL_MSG + "</div>";
+            r.innerHTML = failBlock(detail);
           } else {
             const now = new Date();
             const when =
@@ -1685,10 +1702,9 @@
               }
             });
           }
-        } catch (_) {
+        } catch (networkErr) {
           r.className = "result-box show";
-          r.innerHTML =
-            '<div class="err"><strong>Payment not completed</strong>' + FAIL_MSG + "</div>";
+          r.innerHTML = failBlock("Network error: " + networkErr.message);
         } finally {
           b.disabled = false;
           b.textContent = label;
