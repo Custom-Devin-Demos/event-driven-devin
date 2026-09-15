@@ -168,6 +168,16 @@ Identity is dynamic, exactly as for Citi Mobile: the Flutter client forwards `de
 
 Refresh the hosted build the same way as Citi: `flutter build web --release --base-href /5b7227b4/app/`, copy `build/web/` into `app/public/verticals/5b7227b4-app/`, drop `canvaskit/`.
 
+### ComEd Report Outage scenario (d08b052d, Flutter, external repo)
+
+The ComEd (Exelon) vertical (slug `d08b052d`, aliases `/comed`, `/comed-app`, `/exelon`; unlisted on the hub) is a Flutter customer-account app, not an HTML page. `/d08b052d/app` serves a Flutter web build from `app/public/verticals/d08b052d-app/` (SPA fallback in `app/routes/verticals/d08b052d.js`). The same codebase — `Custom-Devin-Demos/exelon-utility-demo-app` — renders as the comed.com My Account desktop site on wide web and as the ComEd mobile app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the meter registry (`MeterType.all`) and the synthetic customer's Home premise carry a next-generation smart meter (`ami_gen2`), but the outage dispatch registry (`dispatchRules`, crew + ETR per meter type) never registers it, so Report Outage for that premise null-asserts while building the dispatch plan and the screen shows the "couldn't submit" card plus the incident toast. The Rental premise (`ami_smart`) reports fine. The client then `POST`s to `/api/d08b052d/mobile/error` with `source: comed-account/<platform>` and `service: customer-d08b052d-mobile`, plus `platform`, `screen`, `action`, `servicePoint`, `meterType`, `meterId`, `zip`, `outageType` tags. `reportAppFailure` in `app/services/verticals/d08b052d.js` raises the Slack alert and Devin session directly (Sentry capture + `report_outage.failure` metric); successful tickets sync on `POST /api/d08b052d/outages` (`report_outage.success`, no alert).
+
+Identity is dynamic, exactly as for Citi and Nordstrom: the client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service resolves an email to an Exelon org member with `DEVIN_SERVICE_KEY_D08B052D` when no user id was sent, and `DEVIN_USER_ID_D08B052D` / `DEVIN_ORG_ID_D08B052D` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-d08b052d-mobile` to the ComEd `APP_REMEDIATION_DIRECTIVE` (register the meter type, tolerate unknown registry entries, add a `MeterType.all` completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/d08b052d-mobile-error.test.js`.
+
+Refresh the hosted build the same way: `flutter build web --release --base-href /d08b052d/app/`, copy `build/web/` into `app/public/verticals/d08b052d-app/`, drop `canvaskit/`.
+
 ### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
 
 The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
