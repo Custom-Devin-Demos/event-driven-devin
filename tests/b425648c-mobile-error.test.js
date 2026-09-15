@@ -61,7 +61,6 @@ const APP_REPORT = {
     problem: 'no_power',
     contactPhone: '5615550142',
     updateChannel: 'text',
-    hasResetBreakers: true,
     note: '',
     nested: { deep: true },
   },
@@ -152,7 +151,6 @@ describe('FPL My Account app failure report (b425648c)', () => {
       problem: 'no_power',
       contactPhone: '5615550142',
       updateChannel: 'text',
-      hasResetBreakers: true,
       note: '',
     });
 

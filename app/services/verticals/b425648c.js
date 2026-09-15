@@ -12,11 +12,11 @@ const { getCustomerConfig } = require('../../../config/customers');
  * Florida Power & Light — a NextEra Energy company — customer experience as a
  * Flutter codebase that ships three ways: fpl.com My Account on desktop web
  * (hosted web build at /b425648c/app), and the FPL Mobile App on Android and
- * iOS. The client builds outage tickets on-device (validation, service-point
- * lookup, restoration estimate), reports failures to its own Sentry project,
- * and also POSTs them to /api/b425648c/mobile/error so the Slack alert + Devin
- * session are raised under the app identity without a Sentry webhook
- * round-trip.
+ * iOS. The client builds outage tickets on-device (service-point lookup,
+ * restoration estimate; the form itself has no field validation), reports
+ * failures to its own Sentry project, and also POSTs them to
+ * /api/b425648c/mobile/error so the Slack alert + Devin session are raised
+ * under the app identity without a Sentry webhook round-trip.
  */
 const CUSTOMER = 'b425648c';
 const APP_SERVICE = `customer-${CUSTOMER}-mobile`;
@@ -51,22 +51,22 @@ const APP_REMEDIATION_DIRECTIVE = [
   '',
   'Steps:',
   '1. Reproduce on web first: run the Flutter repo `main` in Chrome (`flutter run -d chrome`, or',
-  '   `flutter build web` served locally) at desktop width, switch the account picker to the Jupiter',
-  '   account (0123456798, a Storm Secure Underground service point), click Report an Outage, confirm',
-  '   the breakers checkbox and submit — confirm the "We couldn\'t submit your outage report" card and',
-  '   the incident toast. Note that `flutter test` is GREEN on the broken baseline: nothing asserts',
+  '   `flutter build web` served locally) at desktop width, click Report an Outage and submit the form',
+  '   as-is (every service point sits on a Storm Secure Underground circuit and the form has no field',
+  '   validation) — confirm the "We couldn\'t submit your outage report" card and the incident toast.',
+  '   Note that `flutter test` is GREEN on the broken baseline: nothing asserts',
   '   that every `CircuitType` a service point can carry has a restoration profile.',
   '2. Fix the data, not just the crash site: register the missing circuit type in',
   '   `restorationProfiles` with an accurate crew and restoration window, and make',
-  '   `estimateRestoration` tolerate an unregistered circuit (documented default or',
-  '   `OutageValidationException`) instead of null-asserting it.',
+  '   `estimateRestoration` tolerate an unregistered circuit (documented default or a typed',
+  '   exception the flow can show as a message) instead of null-asserting it.',
   '3. Add the prevention control: a `test/domain/restoration_test.dart` test asserting every',
   '   `CircuitType` value (and every service point\'s `circuitType`) has a `restorationProfiles` entry,',
   '   a `buildOutageTicket` test for a Storm Secure Underground service point, and coverage for the',
   '   tolerant path. `flutter analyze --fatal-infos` and `flutter test` must pass.',
   `   Do not change \`AppConfig.serviceName\` (\`${APP_SERVICE}\`), \`DevinIdentity\`, or the telemetry tag set.`,
   '4. Re-run the web reproduction on the fix commit and confirm the outage ticket with its estimated',
-  '   restoration window for the Jupiter account, on both the desktop layout and a phone-width viewport.',
+  '   restoration window for both accounts, on both the desktop layout and a phone-width viewport.',
   '5. Open a pull request against `main`, request Devin Review, and STOP for human approval.',
   '6. After approval, spawn SEPARATE child sessions for Android (Linux VM with an emulator) and iOS',
   '   (macOS VM with the Xcode simulator). Each checks out the same fix commit SHA, runs',
