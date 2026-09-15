@@ -1607,10 +1607,14 @@
         const submittedTo = to.options[to.selectedIndex].dataset.label;
         const checkedMode = modes.find((m) => m.checked) || modes[0];
         const modeLabel = checkedMode.dataset.label;
-        if (!Number.isFinite(submittedAmount) || submittedAmount < 1) {
+        if (
+          !Number.isFinite(submittedAmount) ||
+          submittedAmount < 1 ||
+          !/^\d+(?:\.\d{1,2})?$/.test(amount.value.trim())
+        ) {
           r.className = "result-box show";
           r.innerHTML =
-            '<div class="err"><strong>Please check your entry</strong>Enter an amount of at least $1.00 to continue.</div>';
+            '<div class="err"><strong>Please check your entry</strong>Enter at least $1.00 with no more than two decimal places.</div>';
           amount.focus();
           return;
         }
