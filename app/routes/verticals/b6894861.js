@@ -15,6 +15,7 @@ const {
   getAccountCircuits,
   getAccountIncidents,
   getIncident,
+  currentIncidentForCircuit,
   getNotificationLog,
   listAccounts,
   getPreferences,
@@ -29,12 +30,6 @@ const {
 const router = express.Router();
 
 const RESTORED_BANNER_WINDOW_MS = 24 * 60 * 60 * 1000;
-
-function circuitState(circuitId, incidents) {
-  const open = incidents.find((i) => i.circuitId === circuitId && !i.closed);
-  if (open) return open.state;
-  return 'healthy';
-}
 
 function etaShort(incident, timeZone) {
   return incident.eta ? `Estimated restore ${formatTimestamp(incident.eta, timeZone)}` : 'ETA not yet available';
@@ -112,13 +107,17 @@ function circuitIncidentsPayload(accountId) {
   return {
     accountId,
     accountName: account.accountName,
-    circuits: circuits.map((c) => ({
-      circuitId: c.circuitId,
-      circuitName: c.circuitName,
-      siteA: c.siteA,
-      siteZ: c.siteZ,
-      state: circuitState(c.circuitId, incidents),
-    })),
+    circuits: circuits.map((c) => {
+      const current = currentIncidentForCircuit(accountId, c.circuitId);
+      return {
+        circuitId: c.circuitId,
+        circuitName: c.circuitName,
+        siteA: c.siteA,
+        siteZ: c.siteZ,
+        state: current ? current.state : 'healthy',
+        currentIncidentId: current ? current.incidentId : null,
+      };
+    }),
     incidents: incidents.map((i) => ({
       incidentId: i.incidentId,
       circuitId: i.circuitId,

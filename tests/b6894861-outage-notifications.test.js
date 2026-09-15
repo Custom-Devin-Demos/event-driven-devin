@@ -22,6 +22,7 @@ const {
   getNotificationLog,
   getPreferences,
   setChannel,
+  currentIncidentForCircuit,
   optedInContacts,
   resetStore,
   resetQueue,
@@ -381,7 +382,31 @@ describe('integration', () => {
       expect(inc.history[0].atLabel).toMatch(/\d{4}, \d{2}:\d{2} [A-Z]{2,5}$/);
       const circuit = res.body.circuits.find((c) => c.circuitId === CIRCUIT);
       expect(circuit.state).toBe('down');
+      expect(circuit.currentIncidentId).toBe('inc-int-1');
     }
+  });
+
+  test('AC-14 strict timestamps: date-only is a 400, a +02:00 offset is accepted', async () => {
+    const bad = await req('POST', '/api/b6894861/noc/events', {
+      events: [event({ incidentId: 'inc-ts-bad', timestamp: '2026-09-15' })],
+    });
+    expect(bad.status).toBe(400);
+    expect(bad.body.code).toBe('VALIDATION_ERROR');
+
+    const good = await req('POST', '/api/b6894861/noc/events', {
+      events: [event({
+        incidentId: 'inc-ts-ok',
+        // Same instant as now, rendered with a +02:00 zone offset.
+        timestamp: new Date(Date.now() + 2 * 3600e3).toISOString().replace('Z', '+02:00'),
+      })],
+    });
+    expect(good.status).toBe(200);
+    expect(good.body.results[0].outcome).toBe('processed');
+
+    const badEta = await req('POST', '/api/b6894861/noc/events', {
+      events: [event({ incidentId: 'inc-eta-bad', eta: '2026-09-15 04:00' })],
+    });
+    expect(badEta.status).toBe(400);
   });
 
   test('validation failure is a 400 and partially applies nothing', async () => {
@@ -492,6 +517,67 @@ describe('Review fixes', () => {
     expect(restoredMails.length).toBeGreaterThanOrEqual(1);
     sweep(t0 + 21 * 60000);
     expect(gateway.queue.filter((q) => q.type === 'restored')).toHaveLength(restoredMails.length);
+  });
+
+  test('AC-5 a withdrawn ETA cancels the held update', () => {
+    const t0 = Date.now();
+    const inc = 'inc-eta-withdraw';
+    const etaA = new Date(t0 + 3600e3).toISOString();
+    const etaB = new Date(t0 + 2 * 3600e3).toISOString();
+    processEvent(event({ incidentId: inc }), { now: t0 });
+    processEvent(event({ incidentId: inc, eta: etaA }, t0 + 60000), { now: t0 + 60000 });
+    processEvent(event({ incidentId: inc, eta: etaB }, t0 + 5 * 60000), { now: t0 + 5 * 60000 });
+    expect(gateway.queue.filter((q) => q.type === 'eta_update')).toHaveLength(1);
+    processEvent(event({ incidentId: inc, eta: null }, t0 + 10 * 60000), { now: t0 + 10 * 60000 });
+    sweep(t0 + 31 * 60000);
+    const etaUpdates = getNotificationLog(inc).filter((n) => n.type === 'eta_update');
+    expect(etaUpdates).toHaveLength(1);
+    const incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc);
+    expect(incident.eta).toBeNull();
+    expect(incident.history.some((h) => h.text.startsWith('ETA withdrawn'))).toBe(true);
+  });
+
+  test('AC-9 impact updates on a repeat event feed later notifications', () => {
+    const t0 = Date.now();
+    const inc = 'inc-impact';
+    processEvent(event({ incidentId: inc, impact: 'Unknown' }), { now: t0 });
+    // Same state -> de-duped, but the impact correction still lands.
+    processEvent(event({ incidentId: inc, impact: 'All traffic blocked' }, t0 + 5 * 60000), { now: t0 + 5 * 60000 });
+    const incident = getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc);
+    expect(incident.impact).toBe('All traffic blocked');
+    expect(incident.history.some((h) => h.text === 'Impact updated: All traffic blocked')).toBe(true);
+    processEvent(event({ incidentId: inc, state: 'restored' }, t0 + 10 * 60000), { now: t0 + 10 * 60000 });
+    const restored = gateway.queue.find((q) => q.type === 'restored');
+    expect(restored.message.text).toContain('All traffic blocked');
+    // An absent impact field preserves the current value.
+    processEvent(event({ incidentId: inc, state: 'down' }, t0 + 20 * 60000), { now: t0 + 20 * 60000 });
+    expect(getAccountIncidents(ACCOUNT).find((i) => i.incidentId === inc).impact).toBe('All traffic blocked');
+  });
+
+  test('AC-13 email links are absolute when PUBLIC_BASE_URL is set', () => {
+    process.env.PUBLIC_BASE_URL = 'https://status.example.com';
+    try {
+      jest.isolateModules(() => {
+        const isoRules = require('../app/services/outage-notifications/rules');
+        const isoDelivery = require('../app/services/outage-notifications/delivery');
+        isoRules.applyEvent(event({ incidentId: 'inc-abs-links' }));
+        const mail = isoDelivery.gateway.queue.find((q) => q.type === 'down');
+        expect(mail.message.text).toContain('https://status.example.com/lumen');
+        expect(mail.message.html).toContain('https://status.example.com/lumen');
+      });
+    } finally {
+      delete process.env.PUBLIC_BASE_URL;
+    }
+  });
+
+  test('currentIncidentForCircuit returns the latest open incident on a circuit', () => {
+    const t0 = Date.now();
+    processEvent(event({ incidentId: 'inc-multi-old', state: 'degraded' }, t0), { now: t0 });
+    processEvent(event({ incidentId: 'inc-multi-new', state: 'down' }, t0 + 60000), { now: t0 + 60000 });
+    const current = currentIncidentForCircuit(ACCOUNT, CIRCUIT);
+    expect(current.incidentId).toBe('inc-multi-new');
+    expect(current.state).toBe('down');
+    expect(currentIncidentForCircuit(ACCOUNT, 'ckt-nwl-002')).toBeNull();
   });
 });
 

@@ -23,8 +23,10 @@ class ValidationError extends Error {
   }
 }
 
+const STRICT_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/;
+
 function isIsoDate(value) {
-  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
+  return typeof value === 'string' && STRICT_ISO.test(value) && Number.isFinite(new Date(value).getTime());
 }
 
 /**

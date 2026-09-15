@@ -13,8 +13,9 @@ const { render, STATE_WORDS, formatTimestamp, DEFAULT_TIMEZONE } = require('./te
 const { gateway } = require('./delivery');
 const { optedInContacts, getPreferences } = require('./preferences');
 
-const PORTAL_URL = '/lumen';
-const PREFS_URL = '/lumen#notifications';
+const PORTAL_BASE_URL = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+const PORTAL_URL = `${PORTAL_BASE_URL}/lumen`;
+const PREFS_URL = `${PORTAL_BASE_URL}/lumen#notifications`;
 const SUPPORT_PHONE = '1-877-453-8353';
 
 const ISO_IN_TEXT = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
@@ -113,6 +114,18 @@ function getAccountIncidents(accountId) {
 function getIncident(incidentId) {
   ensure();
   return incidents.get(incidentId) || null;
+}
+
+/**
+ * Latest open incident on a circuit by startedAt, or null. Used for the
+ * circuit row state and the portal's Details target.
+ */
+function currentIncidentForCircuit(accountId, circuitId) {
+  ensure();
+  const open = [...incidents.values()]
+    .filter((i) => i.accountId === accountId && i.circuitId === circuitId && !i.closed)
+    .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+  return open[0] || null;
 }
 
 function getNotificationLog(incidentId) {
@@ -350,6 +363,7 @@ function applyEta(incident, circuit, event, { now, backfilled, suppressed }) {
   if (next === null) {
     incident.eta = null;
     incident.etaUpdatedAt = event.timestamp;
+    incident.pendingEta.clear(); // a withdrawn ETA cancels any held update
     addHistory(incident, event.timestamp, 'ETA withdrawn, we will update when we have a new estimate', { backfilled });
     return 0;
   }
@@ -514,6 +528,14 @@ function applyEvent(event, { now = Date.now(), backfilled = false } = {}) {
     };
   }
   incident.lastEventAt = Math.max(incident.lastEventAt, eventAt);
+
+  // Impact corrections ride along on any in-order event: an absent field keeps
+  // the current value, an explicit null clears it. Applied before any notify
+  // call so rendered copy always carries the latest assessment.
+  if (!isNew && !backfilled && Object.hasOwn(event, 'impact') && event.impact !== incident.impact) {
+    incident.impact = event.impact;
+    addHistory(incident, event.timestamp, `Impact updated: ${event.impact === null ? 'none' : event.impact}`);
+  }
 
   let queued = 0;
 
@@ -713,6 +735,7 @@ module.exports = {
   getAccountCircuits,
   getAccountIncidents,
   getIncident,
+  currentIncidentForCircuit,
   getNotificationLog,
   listAccounts,
   applyEvent,

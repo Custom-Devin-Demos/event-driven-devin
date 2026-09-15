@@ -252,15 +252,24 @@
         if (seq !== refreshSeq) return; // a newer refresh superseded this one
         $('circuitsSection').setAttribute('aria-busy', 'false');
         if (r.status !== 200) {
-          $('circuitError').hidden = false;
-          $('circuitError').innerHTML = 'We cannot load circuit status right now. Notifications are unaffected. Try again or call ' + esc(SUPPORT_PHONE) + '. <button type="button" id="retryBtn">Retry</button>';
-          $('retryBtn').addEventListener('click', refresh);
+          showCircuitError();
           return;
         }
         $('circuitError').hidden = true;
         state.data = r.body;
         renderAll();
+      })
+      .catch(function () {
+        if (seq !== refreshSeq) return;
+        $('circuitsSection').setAttribute('aria-busy', 'false');
+        showCircuitError();
       });
+  }
+
+  function showCircuitError() {
+    $('circuitError').hidden = false;
+    $('circuitError').innerHTML = 'We cannot load circuit status right now. Notifications are unaffected. Try again or call ' + esc(SUPPORT_PHONE) + '. <button type="button" id="retryBtn">Retry</button>';
+    $('retryBtn').addEventListener('click', refresh);
   }
 
   function renderAll() {
@@ -323,7 +332,9 @@
       li.innerHTML = chip(c.state) +
         '<div class="meta"><strong>' + esc(c.circuitName) + '</strong> <span style="color:#5A6472">' + esc(c.circuitId) + '</span>' +
         '<div class="sites">' + esc(c.siteA) + ' → ' + esc(c.siteZ) + '</div></div>';
-      var inc = d.incidents.filter(function (i) { return i.circuitId === c.circuitId; }).pop();
+      var inc = c.currentIncidentId
+        ? d.incidents.find(function (i) { return i.incidentId === c.currentIncidentId; })
+        : null;
       if (inc) {
         var btn = document.createElement('button');
         btn.type = 'button';
@@ -419,8 +430,12 @@
   }
 
   /* ---------- preferences ---------- */
+  var prefsSeq = 0; // stale-response guard for account switching
   function loadPrefs() {
-    fetchJSON(API + '/accounts/' + state.accountId + '/preferences').then(function (r) {
+    var seq = ++prefsSeq;
+    var accountId = state.accountId;
+    fetchJSON(API + '/accounts/' + accountId + '/preferences').then(function (r) {
+      if (seq !== prefsSeq) return; // a newer load superseded this one
       if (r.status !== 200) return;
       state.contacts = {};
       r.body.contacts.forEach(function (c) { state.contacts[c.id] = c; });
