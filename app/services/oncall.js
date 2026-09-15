@@ -196,7 +196,7 @@ const ALERT_SCENARIOS = {
   },
   f8555891: {
     vertical: 'f8555891',
-    page: 'verticals/f8555891.html',
+    page: 'f8555891.html',
     apiPath: '/api/f8555891/release-batch',
     oncallApiPath: '/api/f8555891/release-batch',
     owner: 'Priya Natarajan (payroll-platform-oncall)',
