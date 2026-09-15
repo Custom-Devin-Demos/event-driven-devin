@@ -213,7 +213,7 @@ async function submitProposal(data) {
     }
 
     const rent = computeRent(listing, data.termMonths);
-    const guarantee = computeGuarantee(listing.rent, data.guarantee);
+    const guarantee = computeGuarantee(rent.monthlyRent, data.guarantee);
     const summary = buildProposalSummary(
       proposalId,
       listing,

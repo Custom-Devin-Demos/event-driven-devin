@@ -463,6 +463,12 @@
   var okBox = document.getElementById('proposal-ok');
   var okBody = document.getElementById('proposal-ok-body');
 
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
+
   function brl(value) {
     return 'R$ ' + Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
@@ -476,11 +482,11 @@
       var card = document.createElement('article');
       card.className = 'listing' + (listing.id === selectedId ? ' selected' : '');
       card.innerHTML =
-        '<img src="' + art.src + '" alt="' + listing.title + '" onerror="this.onerror=null;this.src=\'' + art.fallback + '\'" />' +
+        '<img src="' + art.src + '" alt="' + escapeHtml(listing.title) + '" onerror="this.onerror=null;this.src=\'' + art.fallback + '\'" />' +
         '<div class="listing-body">' +
         (index === 0 ? '<span class="badge">Destaque</span>' : '') +
-        '<div class="addr">' + listing.street + '</div>' +
-        '<div class="meta">' + listing.neighborhood + ', ' + listing.city + ' · ' + listing.area + ' m² · ' +
+        '<div class="addr">' + escapeHtml(listing.street) + '</div>' +
+        '<div class="meta">' + escapeHtml(listing.neighborhood) + ', ' + escapeHtml(listing.city) + ' · ' + listing.area + ' m² · ' +
         listing.bedrooms + ' quarto' + (listing.bedrooms > 1 ? 's' : '') + ' · ' + listing.parkingSpots + ' vaga' + (listing.parkingSpots > 1 ? 's' : '') + '</div>' +
         '<div class="price">' + brl(listing.rent) + '<span> /mês + ' + brl(listing.condoFee + listing.iptu) + ' encargos</span></div>' +
         '</div>';
@@ -499,7 +505,7 @@
     if (!listing) { summary.innerHTML = ''; return; }
 
     summary.innerHTML =
-      '<div class="summary-line"><span>' + listing.street + ' · ' + listing.neighborhood + '</span><span>' + listing.area + ' m²</span></div>' +
+      '<div class="summary-line"><span>' + escapeHtml(listing.street) + ' · ' + escapeHtml(listing.neighborhood) + '</span><span>' + listing.area + ' m²</span></div>' +
       '<div class="summary-line"><span>Aluguel</span><span>' + brl(listing.rent) + '</span></div>' +
       '<div class="summary-line"><span>Condomínio</span><span>' + brl(listing.condoFee) + '</span></div>' +
       '<div class="summary-line"><span>IPTU</span><span>' + brl(listing.iptu) + '</span></div>' +
@@ -526,6 +532,14 @@
 
   function submitProposal(button) {
     if (button._running) return;
+    if (!selectedId) {
+      showProposalError({
+        errorClass: 'ValidationError',
+        error: 'Selecione um imóvel para enviar sua proposta.',
+        code: 'LISTING_NOT_SELECTED',
+      });
+      return;
+    }
     button._running = true;
     var original = button.textContent;
     button.textContent = 'Enviando proposta\u2026';
@@ -589,6 +603,13 @@
       selectedId = listings.length ? listings[0].id : null;
       renderListings();
       renderSummary();
+    })
+    .catch(function (err) {
+      showProposalError({
+        errorClass: 'NetworkError',
+        error: 'Não foi possível carregar os imóveis. ' + err.message,
+        code: 'LISTINGS_UNAVAILABLE',
+      });
     });
 </script>
 </body>
