@@ -2,8 +2,9 @@
 
 const { setImmediate } = require('timers');
 
-jest.mock('../app/services/devin-session', () => ({
-  createSessionAndAlert: jest.fn().mockResolvedValue(null),
+jest.mock('../app/services/oncall', () => ({
+  postOncallAlert: jest.fn().mockResolvedValue({ ok: true, ts: '1700000000.000100' }),
+  postOncallBugReport: jest.fn().mockResolvedValue({ ok: true, ts: '1700000000.000200' }),
 }));
 
 jest.mock('../app/services/datadog-incidents', () => ({
@@ -14,7 +15,7 @@ jest.mock('../app/telemetry/sentry', () => ({
   Sentry: { captureException: jest.fn() },
 }));
 
-const { createSessionAndAlert } = require('../app/services/devin-session');
+const { postOncallAlert } = require('../app/services/oncall');
 const { declareDatadogIncident } = require('../app/services/datadog-incidents');
 const { Sentry } = require('../app/telemetry/sentry');
 const {
@@ -43,19 +44,15 @@ describe('Gusto payroll batch release service (f8555891)', () => {
     expect(result.status).toBe('released');
     expect(result.companyCount).toBe(4);
     expect(result.achFileId).toMatch(/^ACH-[0-9A-F]{8}$/);
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postOncallAlert).not.toHaveBeenCalled();
   });
 
   test('alerts when the full batch cannot resolve Minnesota payroll programs', async () => {
     await expect(releaseBatch({ batchId: BATCH.id })).rejects.toThrow(TypeError);
     await flushAsyncWork();
 
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    expect(createSessionAndAlert.mock.calls[0][0]).toMatchObject({
-      customer: 'f8555891',
-      service: 'customer-f8555891-payroll',
-      extra: { batchId: BATCH.id, companyId: 'CO-51177' },
-    });
+    expect(postOncallAlert).toHaveBeenCalledTimes(1);
+    expect(postOncallAlert).toHaveBeenCalledWith('f8555891', expect.objectContaining({ runRef: BATCH.id }));
     expect(declareDatadogIncident).toHaveBeenCalledTimes(1);
     expect(declareDatadogIncident.mock.calls[0][0]).toMatchObject({
       title: 'Payroll batch release failing for Minnesota employers',
@@ -67,7 +64,7 @@ describe('Gusto payroll batch release service (f8555891)', () => {
 
   test('rejects an unknown batch without alerting', async () => {
     await expect(releaseBatch({ batchId: 'PB-0000' })).rejects.toMatchObject({ code: 'UNKNOWN_BATCH', statusCode: 400 });
-    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(postOncallAlert).not.toHaveBeenCalled();
   });
 
   test('dashboard listing tolerates the unregistered state', () => {
