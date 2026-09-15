@@ -347,6 +347,11 @@ describe('Fleet mobile ETA failure report (26a3d261)', () => {
     expect(Sentry.captureMessage.mock.calls[0][0]).toContain('precedes dispatch time');
 
     jest.clearAllMocks();
+    const subMinute = reportEtaFailure(normalizeReport({ ...REPORT, arrival: '2026-09-14T23:19:40Z' }));
+    await subMinute.outcome;
+    expect(postMessage.mock.calls[0][2]).toContain('Live Share ETA precedes dispatch time');
+
+    jest.clearAllMocks();
     const equal = reportEtaFailure(normalizeReport(REPORT));
     await equal.outcome;
     expect(postMessage.mock.calls[0][2]).toContain('Live Share ETA equals dispatch time');

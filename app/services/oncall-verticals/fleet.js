@@ -227,7 +227,7 @@ function fieldPairs(pairs) {
 }
 
 function monitorName(report) {
-  return report.minutesOut < 0
+  return report.arrival.getTime() < report.departure.getTime()
     ? 'Live Share ETA precedes dispatch time'
     : 'Live Share ETA equals dispatch time';
 }
