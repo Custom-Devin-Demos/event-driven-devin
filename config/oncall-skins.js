@@ -1581,10 +1581,10 @@ const ONCALL_SKINS = {
   },
   '3640b94c': {
     slug: '3640b94c',
-    company: 'IRAS',
-    brandMark: 'I',
+    company: 'Meridia Revenue Portal',
+    brandMark: 'M',
     vertical: 'banking',
-    page: { file: '3640b94c.html', title: 'Pay Taxes | myTax Portal – IRAS' },
+    page: { file: '3640b94c.html', title: 'Pay Taxes | Meridia Revenue Portal (Demo)' },
     theme: {
       '--accent': '#2770A0',
       '--ink': '#000000',
@@ -1592,8 +1592,8 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#003F7A',
       '--chrome-text': '#ffffff',
     },
-    supportCenter: 'IRAS Contact Centre',
-    disclaimer: 'NOT ACTUALLY AN IRAS SITE — internal demo only, not affiliated with, endorsed by, or a real IRAS / Government of Singapore product.',
+    supportCenter: 'Meridia Revenue Portal demo support desk',
+    disclaimer: 'FICTIONAL DEMO SITE — Meridia is a made-up tax office. Internal demo only; not affiliated with, endorsed by, or a real government or tax-agency product.',
   },
 };
 
