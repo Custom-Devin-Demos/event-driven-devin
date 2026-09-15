@@ -32,7 +32,7 @@ const {
 } = require('../app/services/verticals/5b7227b4');
 const router = require('../app/routes/verticals/5b7227b4');
 const { getCustomerConfig } = require('../config/customers');
-const { applyCustomerIdentity } = require('../app/routes/sentry-webhook');
+const { applyCustomerIdentity, isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 const ORG_ID = 'org-b92933e8dd00477eb9e0b1222b9ab4f9';
 
@@ -215,6 +215,19 @@ describe('Nordstrom app failure report (5b7227b4)', () => {
       { key: 'scenario', value: 'add-to-bag-rewards' },
       ['platform', 'android'],
     ]));
+  });
+
+  test('Sentry webhook skips Nordstrom events already alerted by the instant path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: 'TypeError: Null check operator used on a null value',
+      culprit: 'POST /api/5b7227b4/mobile/error',
+      tags: [],
+    })).toBe(true);
+    expect(isInstantPathEvent({
+      issueTitle: 'TypeError: Null check operator used on a null value',
+      culprit: 'buildBagSummary',
+      tags: [['service', 'customer-5b7227b4-mobile'], ['alert_path', 'instant']],
+    })).toBe(true);
   });
 
   describe('HTTP routes', () => {
