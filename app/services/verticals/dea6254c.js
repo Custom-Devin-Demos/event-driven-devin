@@ -182,10 +182,26 @@ function buildStatementPeriod() {
 }
 
 /**
- * Look up the NAV strike for a fund on the statement date.
+ * Look up the NAV strike for a fund as of the statement date. Funds that
+ * strike NAV less often than monthly (e.g. quarterly) carry the most recent
+ * strike on or before the statement date.
  */
 function resolveValuationPoint(fund, asOf) {
-  return fund.navHistory.find((point) => point.asOf === asOf);
+  const history = Array.isArray(fund.navHistory) ? fund.navHistory : [];
+  return history
+    .filter((point) => point && typeof point.navPerUnit === 'number' && point.asOf <= asOf)
+    .reduce((latest, point) => (!latest || point.asOf > latest.asOf ? point : latest), null);
+}
+
+function requireValuationPoint(fund, asOf) {
+  const point = resolveValuationPoint(fund, asOf);
+  if (!point) {
+    throw new ValidationError(
+      `Fund ${fund.code} has no NAV strike on or before ${asOf}`,
+      'NAV_NOT_AVAILABLE',
+    );
+  }
+  return point;
 }
 
 function resolveShareClassTerms(fund, shareClass) {
@@ -203,12 +219,12 @@ function resolveShareClassTerms(fund, shareClass) {
 function valueHolding(holding, period) {
   const fund = resolveFund(holding.fundCode);
   const terms = resolveShareClassTerms(fund, holding.shareClass);
-  const current = resolveValuationPoint(fund, period.asOf);
+  const current = requireValuationPoint(fund, period.asOf);
   const prior = resolveValuationPoint(fund, period.priorAsOf);
 
   const marketValue = roundMoney(holding.units * current.navPerUnit);
   const costBasis = roundMoney(holding.units * holding.costBasisPerUnit);
-  const periodReturnPct = prior
+  const periodReturnPct = prior && prior.asOf !== current.asOf
     ? roundMoney(((current.navPerUnit / prior.navPerUnit) - 1) * 10000) / 100
     : null;
 
@@ -384,6 +400,9 @@ async function openPortalSession(data) {
 
 module.exports = {
   openPortalSession,
+  valueHolding,
+  resolveValuationPoint,
+  buildStatementPeriod,
   FUNDS,
   INVESTORS,
   REPORTING_CALENDAR,
