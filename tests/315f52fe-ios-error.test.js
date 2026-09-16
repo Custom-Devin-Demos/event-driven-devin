@@ -2,15 +2,6 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
 }));
 
-jest.mock('../app/services/devin-api', () => ({
-  listOrgUsers: jest.fn(() => Promise.resolve([
-    { user_id: 'nvidia-member-1', email: 'Player@Nvidia.example' },
-  ])),
-  listEnterpriseAdmins: jest.fn(() => Promise.resolve([
-    { user_id: 'ent-admin-1', email: 'admin@enterprise.example' },
-  ])),
-}));
-
 jest.mock('../app/telemetry/sentry', () => ({
   Sentry: {
     captureException: jest.fn(),
@@ -31,12 +22,12 @@ jest.mock('../app/telemetry/datadog', () => ({
 const express = require('express');
 const http = require('http');
 const { createSessionAndAlert } = require('../app/services/devin-session');
-const { listOrgUsers, listEnterpriseAdmins } = require('../app/services/devin-api');
 const { Sentry } = require('../app/telemetry/sentry');
 const { incrementMetric } = require('../app/telemetry/datadog');
 const {
   reportAppFailure,
   isAppReport,
+  OWNER,
   APP_REMEDIATION_DIRECTIVE,
 } = require('../app/services/verticals/315f52fe');
 const router = require('../app/routes/verticals/315f52fe');
@@ -106,8 +97,6 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
     createSessionAndAlert.mockClear();
     Sentry.captureException.mockClear();
     incrementMetric.mockClear();
-    listOrgUsers.mockClear();
-    listEnterpriseAdmins.mockClear();
   });
 
   test('customer config targets Custom-Devin-Demos via the API trigger with friendly aliases', () => {
@@ -128,7 +117,7 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
     expect(isAppReport(null)).toBe(false);
   });
 
-  test('reportAppFailure raises the alert under the app identity with the signed-in user', () => {
+  test('reportAppFailure raises the alert under the app identity, owned by Shawn', () => {
     const { reference } = reportAppFailure(APP_REPORT);
 
     expect(reference).toMatch(/^[0-9a-f-]{36}$/);
@@ -145,9 +134,10 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
       errorType: 'StreamProfileError.unregisteredRig',
       errorValue: APP_REPORT.errorMessage,
       culprit: 'Core/Sources/GeForceNowCore/StreamProfiles.swift \u2014 StreamProfileRegistry.profile(for:device:)',
-      devinUserId: 'user-abc',
+      devinUserId: OWNER.devinUserId,
       devinOrgId: ORG_ID,
-      devinEmail: 'player@nvidia.example',
+      devinEmail: 'shawn@cognition.ai',
+      slackMemberId: 'U08RSEMUV3L',
       promptAppendix: APP_REMEDIATION_DIRECTIVE,
     });
     expect(alertData.tags).toEqual(expect.arrayContaining([
@@ -213,50 +203,46 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
     expect(alertData.tags).toEqual(expect.arrayContaining([{ key: 'game', value: 'g'.repeat(64) }]));
   });
 
-  test('does not default the Devin identity when the client sends none', () => {
+  test('the sign-in identity the app sends never redirects ownership away from Shawn', () => {
+    const stranger = {
+      ...APP_REPORT,
+      devinUserId: 'user-abc',
+      devinOrgId: 'org-somebody-else',
+      devinEmail: 'nobody@nvidia.example',
+    };
+    reportAppFailure(stranger);
+    const alertData = createSessionAndAlert.mock.calls[0][0];
+    expect(alertData.devinUserId).toBe(OWNER.devinUserId);
+    expect(alertData.devinOrgId).toBe(ORG_ID);
+    expect(alertData.devinEmail).toBe(OWNER.email);
+    expect(alertData.slackMemberId).toBe(OWNER.slackMemberId);
+    expect(alertData.extra.reporterEmail).toBe('nobody@nvidia.example');
+  });
+
+  test('a report carrying no identity is still owned by Shawn', () => {
     const anonymous = { ...APP_REPORT };
     delete anonymous.devinUserId;
     delete anonymous.devinOrgId;
     delete anonymous.devinEmail;
     reportAppFailure(anonymous);
     const alertData = createSessionAndAlert.mock.calls[0][0];
-    expect(alertData.devinUserId).toBeUndefined();
-    expect(alertData.devinOrgId).toBeUndefined();
-    expect(alertData.devinEmail).toBeUndefined();
-    expect(listOrgUsers).not.toHaveBeenCalled();
-  });
-
-  test('resolves the sign-in email to an NVIDIA org member when the client has no user id', async () => {
-    const byEmail = { ...APP_REPORT, devinUserId: null, devinEmail: 'player@nvidia.example' };
-    const { sessionPromise } = reportAppFailure(byEmail);
-    await sessionPromise;
-    expect(listOrgUsers).toHaveBeenCalledWith(ORG_ID, {});
-    expect(listEnterpriseAdmins).not.toHaveBeenCalled();
-    const alertData = createSessionAndAlert.mock.calls[0][0];
-    expect(alertData.devinUserId).toBe('nvidia-member-1');
+    expect(alertData.devinUserId).toBe(OWNER.devinUserId);
     expect(alertData.devinOrgId).toBe(ORG_ID);
+    expect(alertData.slackMemberId).toBe('U08RSEMUV3L');
+    expect(alertData.extra.reporterEmail).toBe('');
   });
 
-  test('looks members up with the NVIDIA service key when one is configured', async () => {
-    process.env.DEVIN_SERVICE_KEY_315F52FE = 'cog_nvidia_test_key';
-    try {
-      await reportAppFailure({ ...APP_REPORT, devinUserId: null, devinEmail: 'admin@enterprise.example' }).sessionPromise;
-    } finally {
-      delete process.env.DEVIN_SERVICE_KEY_315F52FE;
-    }
-    const auth = { apiKey: 'cog_nvidia_test_key' };
-    expect(listOrgUsers).toHaveBeenCalledWith(ORG_ID, auth);
-    expect(listEnterpriseAdmins).toHaveBeenCalledWith(auth);
+  test('one accepted report raises exactly one alert', async () => {
+    const { sessionPromise } = reportAppFailure(APP_REPORT);
+    await sessionPromise;
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
   });
 
-  test('falls back to enterprise admins, then to the customer config, for unknown emails', async () => {
-    await reportAppFailure({ ...APP_REPORT, devinUserId: null, devinEmail: 'admin@enterprise.example' }).sessionPromise;
-    expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('ent-admin-1');
-
-    await reportAppFailure({ ...APP_REPORT, devinUserId: null, devinEmail: 'nobody@nvidia.example' }).sessionPromise;
-    expect(createSessionAndAlert.mock.calls[1][0].devinUserId).toBeUndefined();
-    expect(createSessionAndAlert.mock.calls[1][0].devinEmail).toBe('nobody@nvidia.example');
-    expect(createSessionAndAlert.mock.calls[1][0].devinOrgId).toBe(ORG_ID);
+  test('the directive tells the remediation session to reproduce with reporting off', () => {
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('GFN_DISABLE_FAILURE_REPORTS=1');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('exactly one');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('/api/315f52fe/ios/error');
   });
 
   test('the directive names the Swift repo, the iOS-only surface, and stops before merge', () => {

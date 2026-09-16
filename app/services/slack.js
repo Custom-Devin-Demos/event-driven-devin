@@ -3,27 +3,30 @@ const logger = require('../telemetry/logger');
 
 const SLACK_API_BASE = 'https://slack.com/api';
 
-// Fictional on-call persona shown on demo alerts. Alerts fire on every demo
-// run, so the card must not ping a real teammate: the mention is only rendered
-// when DEMO_ONCALL_SLACK_MEMBER_ID names an account (a demo bot, or the
-// presenter's own) that opted into the notifications.
-const DEMO_ONCALL_PERSONA = () => process.env.DEMO_ONCALL_PERSONA || 'Riley Chen (platform-oncall)';
-const DEMO_ONCALL_MEMBER_ID = () => process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
-
 // Slack member IDs are alphanumeric; anything else would inject mrkdwn
 // (e.g. <!channel>) into every alert card.
 const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 
-// Appended wherever a demo on-call owner is rendered. Without the second half,
-// responders that correctly skip the fictional persona fall back to git blame
-// or CODEOWNERS and @-mention whoever last touched the file.
+// On-Call owner rendered on alert cards when a vertical names nobody: Russell,
+// the default owner of every custom demo. Overridable per deployment with
+// DEMO_ONCALL_SLACK_MEMBER_ID. The card always @-mentions a real, named
+// member — never an invented persona, which the audience reads as a teammate.
+const DEFAULT_ONCALL_SLACK_MEMBER_ID = 'U08S7AVJ478';
+const DEMO_ONCALL_MEMBER_ID = () => {
+  const configured = process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
+  return MEMBER_ID_RE.test(configured) ? configured : DEFAULT_ONCALL_SLACK_MEMBER_ID;
+};
+
+// Appended wherever an on-call demo (/oncall) scenario renders its fictional
+// owner. Without the second half, responders that correctly skip the persona
+// fall back to git blame or CODEOWNERS and @-mention whoever last touched the
+// file.
 const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, and do not '
   + '@-mention anyone else in their place (no git blame, commit author, or CODEOWNERS fallback)';
 
 function onCallText(slackMemberId) {
-  const memberId = slackMemberId || DEMO_ONCALL_MEMBER_ID();
-  if (memberId && MEMBER_ID_RE.test(memberId)) return `<@${memberId}>`;
-  return `${DEMO_ONCALL_PERSONA()} — ${OWNER_DISCLAIMER}`;
+  const memberId = MEMBER_ID_RE.test(slackMemberId || '') ? slackMemberId : DEMO_ONCALL_MEMBER_ID();
+  return `<@${memberId}>`;
 }
 
 /**
@@ -685,7 +688,10 @@ async function deleteMessage(token, channel, ts) {
 }
 
 module.exports = {
+  DEFAULT_ONCALL_SLACK_MEMBER_ID,
   OWNER_DISCLAIMER,
+  buildAlertBlocks,
+  onCallText,
   postMessage,
   findChannelByNameFragment,
   joinChannel,
