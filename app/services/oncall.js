@@ -23,6 +23,8 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  * Channels/token are configurable via env:
  *   SLACK_ONCALL_ALERTS_CHANNEL_ID — alert + incident channel (#oncall-alerts)
  *   SLACK_ONCALL_BUGS_CHANNEL_ID   — bug report channel (#oncall-bugs)
+ *   SLACK_ONCALL_ALERTS_CHANNEL_NAME / SLACK_ONCALL_BUGS_CHANNEL_NAME — labels the
+ *     on-call ribbon shows after posting (default #oncall-alerts / #oncall-bugs)
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  */
 
@@ -191,6 +193,27 @@ const ALERT_SCENARIOS = {
     release: 'titan-mfg@1.0.1',
     symptom: 'Requests routed through the F3 edge site hang ~14s before completing. F2/F4 are normal and error rate is normal.',
     impact: 'Factory teams wait through a long instant-quote spinner for F3 work while other sites return normally.',
+  },
+  f8555891: {
+    vertical: 'f8555891',
+    page: 'f8555891.html',
+    apiPath: '/api/f8555891/release-batch',
+    oncallApiPath: '/api/f8555891/release-batch',
+    owner: 'Priya Natarajan (payroll-platform-oncall)',
+    brand: 'Gusto (Payroll Operations)',
+    service: 'customer-f8555891-payroll',
+    endpoint: 'POST /api/f8555891/release-batch',
+    monitor: 'Error rate — payroll batch ACH release',
+    metricQuery: 'sum:gusto_payroll.batch_release_failure{service:customer-f8555891-payroll} by {state}.as_count()',
+    metricValue: '100% of release attempts failing (HTTP 500 BATCH_RELEASE_FAILED)',
+    threshold: '> 0 failures / 5m',
+    baseline: '0 failures (30-day)',
+    release: 'gusto-payroll-platform@2026.09.15',
+    symptom: 'Releasing ACH debits for batch PB-2026-09-15-A fails on every attempt. Failures carry state:MN; the same batch releases cleanly when the one MN company (CO-51177) is excluded.',
+    impact: 'Sep 17 pay date for 5 companies / 133 employees is blocked ahead of the 17:30 PT ACH cutoff. MN is a newly onboarded work state.',
+    // Gusto-branded console at /gusto, not the generic on-call hub.
+    demoPage: '/gusto',
+    unlisted: true,
   },
 };
 
@@ -404,6 +427,16 @@ function contextBlock(service, triggeredBy, submittedFrom) {
  * responder treats it as a fresh occurrence; when false, the message matches
  * the canonical signature to demonstrate duplicate grouping.
  */
+function demoPagePath(scenario, skin) {
+  if (skin) return `/oncall/c/${skin.slug}`;
+  return scenario.demoPage || null;
+}
+
+function demoPageLine(scenario, skin) {
+  const path = demoPagePath(scenario, skin);
+  return path ? `*Demo page:* ${DEMO_BASE_URL()}${path} — reproduce the symptom on this branded page` : null;
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
 
   const brand = skin ? skin.company : scenario.brand;
@@ -411,7 +444,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `:rotating_light: *[Triggered] ${scenario.monitor}*`,
     '',
     `*Service:* ${scenario.service} (${brand})`,
-    skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page` : null,
+    demoPageLine(scenario, skin),
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
@@ -559,7 +592,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  const runRef = options.unique !== false ? makeRunRef() : null;
+  const runRef = options.runRef || (options.unique !== false ? makeRunRef() : null);
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
@@ -584,7 +617,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     mrkdwnSection(`*Monitor query:*\n\`\`\`${scenario.metricQuery}\`\`\``),
     mrkdwnSection(
       `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
-      (skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
+      (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     datadogActions(),
@@ -608,7 +641,7 @@ async function postOncallAlert(scenarioId, options = {}) {
  * Post a human-style bug report to the On-Call bugs channel.
  * Accepts either a canned scenario id or free-form text.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
   const template = findBugTemplate(templateId);
@@ -644,7 +677,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
   // The page a skinned ticket came from is stamped on the ticket itself, the way
   // a support tool records the originating URL — no separate demo-page message.
-  const submittedFrom = skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null;
+  const submittedFrom = submittedFromUrl || (skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null);
   let message = [
     body,
     triggeredBy ? `Triggered by: ${triggeredBy}` : null,

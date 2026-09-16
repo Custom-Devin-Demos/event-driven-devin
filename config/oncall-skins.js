@@ -129,6 +129,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Tyk Support',
     disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
   },
+  '0f76667b': {
+    slug: '0f76667b',
+    company: 'Abacum',
+    brandMark: 'A',
+    vertical: 'hightech',
+    page: {
+      file: '0f76667b.html',
+      title: 'Abacum — Workspace seats',
+    },
+    theme: {
+      '--accent': '#7700FE',
+      '--ink': '#0D0D0D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Abacum Support',
+    disclaimer: 'NOT ACTUALLY AN ABACUM SITE — internal demo only, not affiliated with, endorsed by, or a real Abacum product.',
+  },
   '66cee815': {
     slug: '66cee815',
     company: 'JFrog',
@@ -679,6 +698,55 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MERCOR SITE — internal demo only, not affiliated with, endorsed by, or a real Mercor product.',
   },
+  'e51b6dc0': {
+    slug: 'e51b6dc0',
+    company: 'Crisil',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: 'e51b6dc0.html',
+      title: 'Crisil Integral IQ \u2014 Credit Risk Run',
+    },
+    accent: '#E8622A',
+    accentDark: '#C94F1D',
+    theme: {
+      '--accent': '#E8622A',
+      '--ink': '#14213D',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#06183A',
+      '--chrome-text': '#EAF1FB',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Crisil Client Support',
+    supportCenterSub: 'Analytics Platform Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CRISIL SITE — internal demo only, not affiliated with, endorsed by, or a real Crisil product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'banking',
+          label: 'Crisil Integral IQ \u2014 Credit Risk Runs',
+          persona: { name: 'Ananya Rao', email: 'ananya.rao@northmeridiancap.in', sev: 'High' },
+          templates: [
+            {
+              id: 'banking-transfer-slow',
+              label: 'Scoring runs extremely slow',
+              sev: 'High',
+              text: 'Our credit team is telling us Integral IQ scoring runs take forever now. You submit a run and the button sits there for a good ten seconds before results come back. Any portfolio on the standard run tier, every time. It does complete, it is just painfully slow, and it started today.',
+            },
+            {
+              id: 'banking-payroll-cutoff',
+              label: 'Overnight risk batch missing the reporting cutoff',
+              sev: 'Critical',
+              text: 'Escalating from risk ops: our overnight batch submits scoring runs one after another and each one now takes ~10 seconds, so the batch will miss the regulatory reporting cutoff. Nothing errors — it is just slow, and it was fine on Friday. Please treat as urgent.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   'a198d45f': {
     slug: 'a198d45f',
     company: 'MediCodio',
@@ -1105,6 +1173,23 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Stellantis Financial Services Customer Care',
     disclaimer: 'NOT ACTUALLY A STELLANTIS SITE — internal demo only, not affiliated with, endorsed by, or a real Stellantis product.',
+  },
+  '02238eb0': {
+    slug: '02238eb0',
+    company: 'Harborline FCU',
+    brandMark: 'H',
+    vertical: 'banking',
+    page: { file: '02238eb0.html', title: 'Transfer money | Harborline FCU Digital Banking' },
+    theme: {
+      '--accent': '#123a6b',
+      '--ink': '#1b2230',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0b1f3a',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Harborline FCU Member Services',
+    supportCenterSub: 'Digital Banking Support',
+    disclaimer: 'Harborline FCU is a fictional credit union — internal demo only, not affiliated with any real financial institution.',
   },
   'ae0823ea': {
     slug: 'ae0823ea',
@@ -1594,6 +1679,30 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Kela Support',
     disclaimer: 'NOT ACTUALLY A KELA SITE — internal demo only, not affiliated with, endorsed by, or a real Kela product.',
+  },
+  '0e315106': {
+    slug: '0e315106',
+    company: 'Rootly',
+    brandMark: 'R',
+    vertical: 'hightech',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '0e315106.html',
+      title: 'Provision responder seats | Rootly',
+    },
+    accent: '#7748F6',
+    theme: {
+      '--accent': '#7748F6',
+      '--ink': '#1E1A33',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1E1A33',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Rootly Support',
+    supportCenterSub: 'Workspace & On-Call Administration',
+    disclaimer: 'NOT ACTUALLY A ROOTLY SITE — internal demo only, not affiliated with, endorsed by, or a real Rootly Inc. product.',
   },
 };
 

@@ -188,7 +188,7 @@ function reportAppFailure(report) {
   if (stackTrace) error.stack = `${errorType}: ${errorMessage}\n${stackTrace}`;
 
   Sentry.captureException(error, {
-    tags,
+    tags: { ...tags, alert_path: 'instant' },
     extra: { reference, release, environment, bag, sentryEventId: report.sentryEventId },
   });
 

@@ -24,6 +24,14 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test('recognizes a tagless Gusto issue webhook by its culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'employerRate')",
+      culprit: 'computeCompanyDebit(app.services.verticals.f8555891)',
+      tags: [],
+    })).toBe(true);
+  });
+
   test('does not recognize a tagless issue webhook from another vertical', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
