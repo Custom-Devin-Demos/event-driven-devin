@@ -181,11 +181,13 @@ function buildStatementPeriod() {
   };
 }
 
-/**
- * Look up the NAV strike for a fund on the statement date.
- */
+/** Latest NAV strike on or before the requested date. */
 function resolveValuationPoint(fund, asOf) {
-  return fund.navHistory.find((point) => point.asOf === asOf);
+  return fund.navHistory
+    .filter((point) => point.asOf <= asOf)
+    .reduce((latest, point) => (
+      !latest || point.asOf > latest.asOf ? point : latest
+    ), undefined);
 }
 
 function resolveShareClassTerms(fund, shareClass) {
@@ -204,7 +206,16 @@ function valueHolding(holding, period) {
   const fund = resolveFund(holding.fundCode);
   const terms = resolveShareClassTerms(fund, holding.shareClass);
   const current = resolveValuationPoint(fund, period.asOf);
-  const prior = resolveValuationPoint(fund, period.priorAsOf);
+  if (!current) {
+    throw new ValidationError(
+      `No NAV strike available for ${fund.code} on or before ${period.asOf}`,
+      'NAV_NOT_AVAILABLE',
+    );
+  }
+  let prior = resolveValuationPoint(fund, period.priorAsOf);
+  if (prior && prior.asOf === current.asOf) {
+    prior = null;
+  }
 
   const marketValue = roundMoney(holding.units * current.navPerUnit);
   const costBasis = roundMoney(holding.units * holding.costBasisPerUnit);
