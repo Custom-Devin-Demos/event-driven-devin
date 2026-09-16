@@ -698,6 +698,54 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MERCOR SITE — internal demo only, not affiliated with, endorsed by, or a real Mercor product.',
   },
+  'e51b6dc0': {
+    slug: 'e51b6dc0',
+    company: 'Crisil',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: 'e51b6dc0.html',
+      title: 'Crisil Integral IQ \u2014 Credit Risk Run',
+    },
+    accent: '#E8622A',
+    accentDark: '#C94F1D',
+    theme: {
+      '--accent': '#E8622A',
+      '--ink': '#14213D',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#06183A',
+      '--chrome-text': '#EAF1FB',
+    },
+    supportCenter: 'Crisil Client Support',
+    supportCenterSub: 'Analytics Platform Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CRISIL SITE — internal demo only, not affiliated with, endorsed by, or a real Crisil product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'banking',
+          label: 'Crisil Integral IQ \u2014 Credit Risk Runs',
+          persona: { name: 'Ananya Rao', email: 'ananya.rao@northmeridiancap.in', sev: 'High' },
+          templates: [
+            {
+              id: 'banking-transfer-slow',
+              label: 'Scoring runs extremely slow',
+              sev: 'High',
+              text: 'Our credit team is telling us Integral IQ scoring runs take forever now. You submit a run and the button sits there for a good ten seconds before results come back. Any portfolio, any run tier, every time. It does complete, it is just painfully slow, and it started today.',
+            },
+            {
+              id: 'banking-payroll-cutoff',
+              label: 'Overnight risk batch missing the reporting cutoff',
+              sev: 'Critical',
+              text: 'Escalating from risk ops: our overnight batch submits scoring runs one after another and each one now takes ~10 seconds, so the batch will miss the regulatory reporting cutoff. Nothing errors — it is just slow, and it was fine on Friday. Please treat as urgent.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   'a198d45f': {
     slug: 'a198d45f',
     company: 'MediCodio',

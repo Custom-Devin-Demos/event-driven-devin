@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crisil Integral IQ — Credit Risk Run</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0B2A5B;
+      --navy-deep: #06183A;
+      --navy-soft: #123c7d;
+      --accent: #E8622A;
+      --accent-dark: #C94F1D;
+      --ink: #14213D;
+      --muted: #5A6880;
+      --muted-2: #43506B;
+      --line: #E2E7F0;
+      --wash: #F4F6FA;
+      --white: #ffffff;
+      --green: #147A54;
+      --amber: #A76400;
+      --red: #C0392B;
+      --sans: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--wash); color: var(--ink); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    .util { background: var(--navy-deep); color: #C9D6EC; font-size: 12.5px; }
+    .util-inner { max-width: 1180px; margin: 0 auto; padding: 7px 24px; display: flex; gap: 20px; justify-content: flex-end; flex-wrap: wrap; }
+
+    nav.top { background: var(--white); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; align-items: center; gap: 36px; min-height: 70px; padding: 10px 24px; max-width: 1180px; margin: 0 auto; }
+    .wordmark { display: flex; align-items: baseline; gap: 2px; font-size: 27px; font-weight: 700; letter-spacing: -0.6px; color: var(--navy); }
+    .wordmark .dot { width: 7px; height: 7px; border-radius: 999px; background: var(--accent); display: inline-block; }
+    .wordmark small { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .nav-links { display: flex; align-items: center; gap: 24px; font-size: 14.5px; color: var(--muted-2); list-style: none; }
+    .nav-links a.active { color: var(--navy); font-weight: 600; box-shadow: inset 0 -2px 0 var(--accent); padding-bottom: 3px; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--muted-2); }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: #D9E3F3; color: var(--navy); font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 900px) { .nav-inner { gap: 12px; } .nav-links, .util { display: none; } }
+
+    .hero { background: linear-gradient(115deg, var(--navy-deep), var(--navy-soft)); color: #EAF1FB; }
+    .hero-inner { max-width: 1180px; margin: 0 auto; padding: 30px 24px 34px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #F6A582; }
+    .hero h1 { font-size: clamp(25px, 4vw, 33px); font-weight: 700; letter-spacing: -0.5px; margin-top: 8px; }
+    .hero p { margin-top: 8px; font-size: 15px; color: #BFD0E8; max-width: 640px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 22px; border-radius: 4px; font-family: var(--sans); font-size: 15px; font-weight: 600; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: #fff; color: var(--navy); border-color: #C8D3E5; }
+    .btn-outline:hover { background: var(--wash); }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 26px 24px 64px; }
+
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    @media (max-width: 980px) { .cards { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+    .card { background: #fff; border: 1px solid var(--line); border-top: 3px solid var(--navy); border-radius: 4px; padding: 14px 16px 16px; }
+    .card .label { font-size: 13px; color: var(--muted); }
+    .card .value { font-size: 25px; font-weight: 700; letter-spacing: -0.6px; margin-top: 4px; color: var(--navy); }
+    .card .meta { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+    .card .meta.up { color: var(--green); }
+    .card .meta.warn { color: var(--amber); }
+
+    .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; margin-bottom: 22px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 20px; }
+    .panel h2 { font-size: 18px; font-weight: 700; color: var(--navy); }
+    .panel .sub { color: var(--muted); font-size: 13.5px; margin: 5px 0 18px; }
+
+    .chart { display: flex; align-items: flex-end; gap: 14px; height: 172px; padding-top: 8px; border-bottom: 1px solid var(--line); }
+    .chart .bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%; }
+    .chart .fill { border-radius: 2px 2px 0 0; background: var(--navy); }
+    .chart .fill.hi { background: var(--accent); }
+    .chart .amt { font-size: 11px; color: var(--muted); text-align: center; }
+    .x-axis { display: flex; gap: 14px; margin-top: 8px; }
+    .x-axis span { flex: 1; text-align: center; font-size: 11.5px; color: var(--muted); }
+    .legend { display: flex; gap: 18px; margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+    .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--muted-2); margin-bottom: 6px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+    select, input[type="number"] { width: 100%; height: 46px; padding: 0 34px 0 12px; border: 1px solid #C8D3E5; border-radius: 4px; background: #fff; color: var(--ink); font-family: var(--sans); font-size: 15px; appearance: none; text-overflow: ellipsis; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235A6880' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    input[type="number"] { padding-right: 12px; }
+    select:focus, input:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(11,42,91,0.12); }
+    #submitBtn { width: 100%; margin-top: 6px; }
+    .result-box { margin-top: 14px; padding: 12px 14px; border-radius: 4px; font-size: 14px; display: none; }
+    .result-box.success { display: block; background: rgba(20,122,84,0.06); border: 1px solid rgba(20,122,84,0.3); color: var(--green); }
+    .result-box.error { display: block; background: rgba(192,57,43,0.05); border: 1px solid rgba(192,57,43,0.3); color: var(--red); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 13px; opacity: 0.92; word-break: break-word; }
+
+    .kv { list-style: none; font-size: 13.5px; color: var(--muted-2); }
+    .kv li { padding: 9px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+    .kv li:last-child { border-bottom: none; }
+    .kv b { font-weight: 600; color: var(--ink); }
+
+    .table-wrap { background: #fff; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+    .table-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; }
+    .table-head h2 { font-size: 18px; font-weight: 700; color: var(--navy); }
+    .table-head span { font-size: 13px; color: var(--muted); }
+    table.runs { width: 100%; border-collapse: collapse; }
+    table.runs th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 20px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--wash); }
+    table.runs td { padding: 13px 20px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+    table.runs td.num, table.runs th.num { text-align: right; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; }
+    .pill i { width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+    .pill.done { background: rgba(20,122,84,0.09); color: var(--green); }
+    .pill.queued { background: #EDF1F7; color: var(--muted-2); }
+    .pill.running { background: rgba(11,42,91,0.08); color: var(--navy); }
+    .pill.failed { background: rgba(192,57,43,0.08); color: var(--red); }
+    .table-foot { padding: 14px 20px; }
+    @media (max-width: 720px) { table.runs th:nth-child(3), table.runs td:nth-child(3) { display: none; } table.runs th, table.runs td { padding-left: 14px; padding-right: 14px; } }
+
+    footer { border-top: 3px solid var(--accent); background: var(--navy-deep); color: #B9C8E0; margin-top: 8px; }
+    .foot-inner { max-width: 1180px; margin: 0 auto; padding: 26px 24px 34px; display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; font-size: 13.5px; }
+    .foot-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="util-inner">
+      <a href="#">Ratings</a><a href="#">Research</a><a href="#">Analytics</a><a href="#">Risk Solutions</a><a href="#">Client Portal</a>
+    </div>
+  </div>
+
+  <nav class="top">
+    <div class="nav-inner">
+      <a class="wordmark" href="#" aria-label="Crisil">
+        <span>Crisil</span><span class="dot" aria-hidden="true"></span>
+        <small style="margin-left:10px">Integral IQ</small>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">Dashboard</a></li>
+        <li><a href="#">Portfolios</a></li>
+        <li><a href="#" class="active">Credit Risk Runs</a></li>
+        <li><a href="#">Models</a></li>
+        <li><a href="#">Reports</a></li>
+      </ul>
+      <div class="nav-right">
+        <a href="#">Support</a>
+        <span class="avatar">AR</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Crisil Integral IQ &middot; Lending &amp; Credit Risk Analytics</div>
+      <h1>Credit Risk Runs</h1>
+      <p>Submit a scoring run against an obligor portfolio. Each run screens exposures against the 90-day surveillance window before results are published to the risk workspace.</p>
+    </div>
+  </div>
+
+  <main>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Exposure under surveillance</div>
+        <div class="value">&#8377;18,420 Cr</div>
+        <div class="meta up">+&#8377;1,960 Cr this quarter</div>
+      </div>
+      <div class="card">
+        <div class="label">Obligors scored (MTD)</div>
+        <div class="value">4,318</div>
+        <div class="meta">Across 12 sectors</div>
+      </div>
+      <div class="card">
+        <div class="label">Runs awaiting review</div>
+        <div class="value">7</div>
+        <div class="meta warn">2 breach early-warning thresholds</div>
+      </div>
+      <div class="card">
+        <div class="label">Model version</div>
+        <div class="value">IQ&#8209;CR 4.2</div>
+        <div class="meta">Recalibrated Mar 2026</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Portfolio risk distribution</h2>
+        <div class="sub">Weighted probability of default by rating bucket &middot; wholesale lending book</div>
+        <div class="chart">
+          <div class="bar"><div class="amt">AAA</div><div class="fill" style="height:34%"></div></div>
+          <div class="bar"><div class="amt">AA</div><div class="fill" style="height:56%"></div></div>
+          <div class="bar"><div class="amt">A</div><div class="fill" style="height:72%"></div></div>
+          <div class="bar"><div class="amt">BBB</div><div class="fill hi" style="height:88%"></div></div>
+          <div class="bar"><div class="amt">BB</div><div class="fill" style="height:48%"></div></div>
+          <div class="bar"><div class="amt">B &amp; below</div><div class="fill hi" style="height:26%"></div></div>
+        </div>
+        <div class="x-axis">
+          <span>1.2%</span><span>2.4%</span><span>3.9%</span><span>6.1%</span><span>9.7%</span><span>14.3%</span>
+        </div>
+        <div class="legend">
+          <span><i style="background:#0B2A5B"></i>Within appetite</span>
+          <span><i style="background:#E8622A"></i>Watchlist concentration</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Submit a scoring run</h2>
+        <div class="sub">Score a portfolio slice and publish to a risk workspace.</div>
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fromAccount">Source portfolio</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">Wholesale lending &mdash; PF-1001</option>
+                <option value="ACCT-1002">MSME originations &mdash; PF-1002</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="toAccount">Publish to</label>
+              <select id="toAccount">
+                <option value="ACCT-EXT-001">Risk workspace &mdash; Mumbai credit desk</option>
+                <option value="ACCT-EXT-002">Regulatory reporting extract</option>
+                <option value="ACCT-1002">MSME originations &mdash; PF-1002</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="amount">Exposure in scope (&#8377; lakh)</label>
+            <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Run tier</label>
+            <select id="accountTier">
+              <option value="standard">Standard &mdash; full model suite</option>
+              <option value="premium">Priority &mdash; pre-cleared obligors</option>
+              <option value="basic">Extended &mdash; deep surveillance</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Run credit scoring</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <ul class="kv" style="margin-top:18px">
+          <li><span>Surveillance window</span><b>90 days</b></li>
+          <li><span>Data vintage</span><b>T&#8209;1 close of business</b></li>
+          <li><span>Approvals</span><b>Model risk sign-off on file</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <h2>Recent runs</h2>
+        <span>Last 7 days</span>
+      </div>
+      <table class="runs">
+        <thead>
+          <tr><th>Submitted</th><th>Portfolio</th><th>Run tier</th><th class="num">Exposure (&#8377; lakh)</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mar 15</td><td>Wholesale lending &mdash; PF-1001</td><td>Standard</td><td class="num">2,400.00</td><td><span class="pill done"><i></i>Published</span></td></tr>
+          <tr><td>Mar 14</td><td>MSME originations &mdash; PF-1002</td><td>Standard</td><td class="num">1,960.00</td><td><span class="pill queued"><i></i>Queued</span></td></tr>
+          <tr><td>Mar 12</td><td>Wholesale lending &mdash; PF-1001</td><td>Extended</td><td class="num">1,200.00</td><td><span class="pill running"><i></i>Running</span></td></tr>
+          <tr><td>Mar 11</td><td>Structured finance &mdash; PF-1004</td><td>Priority</td><td class="num">3,150.00</td><td><span class="pill done"><i></i>Published</span></td></tr>
+          <tr><td>Mar 08</td><td>MSME originations &mdash; PF-1002</td><td>Standard</td><td class="num">640.00</td><td><span class="pill done"><i></i>Published</span></td></tr>
+          <tr><td>Mar 04</td><td>Wholesale lending &mdash; PF-1001</td><td>Extended</td><td class="num">800.00</td><td><span class="pill failed"><i></i>Failed</span></td></tr>
+        </tbody>
+      </table>
+      <div class="table-foot">
+        <button type="button" class="btn btn-outline">Show more runs</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-links">
+        <a href="#">Methodologies</a>
+        <a href="#">Model documentation</a>
+        <a href="#">Data sources</a>
+        <a href="#">Client support</a>
+      </div>
+      <div>Mumbai, India &middot; &copy; 2026 Crisil Limited</div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Running...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Run failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Run complete</div><div class="error-detail">Scored &#8377;${data.debitAmount} lakh in scope (includes &#8377;${data.fee} screening charge)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Run credit scoring';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
