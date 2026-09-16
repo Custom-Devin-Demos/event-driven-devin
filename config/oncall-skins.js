@@ -1739,6 +1739,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Revolut Support',
     disclaimer: 'NOT ACTUALLY A REVOLUT SITE — internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
   },
+  '20d592fb': {
+    slug: '20d592fb',
+    company: 'Evercore',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: { file: '20d592fb.html', title: 'Sales & Trading - Evercore' },
+    theme: {
+      '--accent': '#1D4289',
+      '--ink': '#151B1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002037',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Evercore ISI Client Service',
+    supportCenterSub: 'Sales & Trading Desk Support',
+    disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
+  },
 };
 
 function getOncallSkin(slug) {
