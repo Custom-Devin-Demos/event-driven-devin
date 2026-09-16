@@ -536,9 +536,9 @@
 
     <script>
       /* Ensure locked-mode config is in localStorage for direct navigation */
-      (function () {
-        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
-        fetch('/api/config')
+      window.identityReady = (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return Promise.resolve();
+        return fetch('/api/config')
           .then(function (r) {
             return r.json();
           })
@@ -557,7 +557,18 @@
         btn.disabled = true;
         btn.textContent = 'Provisioning...';
         result.className = 'result-box';
+        const setResult = (title, detail) => {
+          result.textContent = '';
+          const t = document.createElement('div');
+          t.className = 't';
+          t.textContent = title;
+          const d = document.createElement('div');
+          d.className = 'd';
+          d.textContent = detail;
+          result.append(t, d);
+        };
         try {
+          await window.identityReady;
           const res = await fetch('/api/licenses/provision', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -574,14 +585,14 @@
           const data = await res.json();
           if (!res.ok) {
             result.className = 'result-box error';
-            result.innerHTML = `<div class="t">Provisioning failed</div><div class="d">${data.errorClass}: ${data.error}</div>`;
+            setResult('Provisioning failed', `${data.errorClass}: ${data.error}`);
           } else {
             result.className = 'result-box success';
-            result.innerHTML = `<div class="t">Seats provisioned</div><div class="d">${data.seatsAdded} seats added to ${data.product} &mdash; $${data.annualCost}/yr</div>`;
+            setResult('Seats provisioned', `${data.seatsAdded} seats added to ${data.product} — $${data.annualCost}/yr`);
           }
         } catch (err) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="t">Network error</div><div class="d">${err.message}</div>`;
+          setResult('Network error', err.message);
         } finally {
           btn.disabled = false;
           btn.textContent = 'Provision seats';
