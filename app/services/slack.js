@@ -7,14 +7,14 @@ const SLACK_API_BASE = 'https://slack.com/api';
 // (e.g. <!channel>) into every alert card.
 const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 
-// On-Call owner rendered on alert cards when a vertical names nobody: Russell,
-// the default owner of every custom demo. Overridable per deployment with
-// DEMO_ONCALL_SLACK_MEMBER_ID. The card always @-mentions a real, named
-// member — never an invented persona, which the audience reads as a teammate.
-const DEFAULT_ONCALL_SLACK_MEMBER_ID = 'U08S7AVJ478';
+// On-Call owner rendered on alert cards when a vertical names nobody and no
+// hub email resolves. Opt-in per deployment with DEMO_ONCALL_SLACK_MEMBER_ID;
+// with nothing configured the field reads "Unassigned" and @-mentions nobody.
+// Never an invented persona, which the audience reads as a teammate.
+const ONCALL_UNASSIGNED_TEXT = '_Unassigned_';
 const DEMO_ONCALL_MEMBER_ID = () => {
   const configured = process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
-  return MEMBER_ID_RE.test(configured) ? configured : DEFAULT_ONCALL_SLACK_MEMBER_ID;
+  return MEMBER_ID_RE.test(configured) ? configured : '';
 };
 
 // Appended wherever an on-call demo (/oncall) scenario renders its fictional
@@ -26,7 +26,7 @@ const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, 
 
 function onCallText(slackMemberId) {
   const memberId = MEMBER_ID_RE.test(slackMemberId || '') ? slackMemberId : DEMO_ONCALL_MEMBER_ID();
-  return `<@${memberId}>`;
+  return memberId ? `<@${memberId}>` : ONCALL_UNASSIGNED_TEXT;
 }
 
 /**
@@ -252,6 +252,45 @@ function buildAlertText(alertData) {
 }
 
 /**
+ * Resolve the On-Call member for an alert onto alertData.slackMemberId:
+ * explicit slackMemberId, else devinEmail looked up in the alerts workspace
+ * (SLACK_BOT_TOKEN), else slackMemberIdFallback, else DEMO_ONCALL_SLACK_MEMBER_ID.
+ * Idempotent and shared between the primary alert and the triage mirror so
+ * both cards name the same owner.
+ */
+const pendingOnCallLookups = new WeakMap();
+
+async function resolveOnCallMember(alertData) {
+  if (alertData.slackMemberId) return alertData.slackMemberId;
+
+  if (alertData.devinEmail) {
+    let lookup = pendingOnCallLookups.get(alertData);
+    if (!lookup) {
+      lookup = lookupSlackUserByEmail(process.env.SLACK_BOT_TOKEN, alertData.devinEmail);
+      pendingOnCallLookups.set(alertData, lookup);
+    }
+    const memberId = await lookup;
+    if (!alertData.slackMemberId) {
+      if (memberId) {
+        alertData.slackMemberId = memberId;
+        logger.info('Resolved demo user Slack ID from email', {
+          email: alertData.devinEmail,
+          slackMemberId: memberId,
+        });
+      }
+    }
+  }
+
+  if (!alertData.slackMemberId && alertData.slackMemberIdFallback) {
+    alertData.slackMemberId = alertData.slackMemberIdFallback;
+  }
+  if (!alertData.slackMemberId && DEMO_ONCALL_MEMBER_ID()) {
+    alertData.slackMemberId = DEMO_ONCALL_MEMBER_ID();
+  }
+  return alertData.slackMemberId || '';
+}
+
+/**
  * Post the initial alert to Slack and return the thread timestamp.
  * If alertData.devinEmail is set, resolves the email to a Slack member ID
  * and @mentions the user in the alert so they get a notification.
@@ -266,24 +305,7 @@ async function postAlertToSlack(alertData) {
   }
 
   try {
-    // Resolve the demo user's email to a Slack member ID for @mentioning
-    if (alertData.devinEmail && !alertData.slackMemberId) {
-      const memberId = await lookupSlackUserByEmail(token, alertData.devinEmail);
-      if (memberId) {
-        alertData.slackMemberId = memberId;
-        logger.info('Resolved demo user Slack ID from email', {
-          email: alertData.devinEmail,
-          slackMemberId: memberId,
-        });
-      }
-    }
-
-    if (!alertData.slackMemberId && alertData.slackMemberIdFallback) {
-      alertData.slackMemberId = alertData.slackMemberIdFallback;
-    }
-    if (!alertData.slackMemberId) {
-      alertData.slackMemberId = DEMO_ONCALL_MEMBER_ID();
-    }
+    await resolveOnCallMember(alertData);
 
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData);
@@ -327,6 +349,7 @@ async function postBugReportToTriage(alertData) {
   }
 
   try {
+    await resolveOnCallMember(alertData);
     const text = buildAlertText(alertData);
     const blocks = buildAlertBlocks(alertData, { includeDevinOnCall: false });
     const ts = await postMessage(token, channel, text, blocks);
@@ -688,10 +711,11 @@ async function deleteMessage(token, channel, ts) {
 }
 
 module.exports = {
-  DEFAULT_ONCALL_SLACK_MEMBER_ID,
+  ONCALL_UNASSIGNED_TEXT,
   OWNER_DISCLAIMER,
   buildAlertBlocks,
   onCallText,
+  resolveOnCallMember,
   postMessage,
   findChannelByNameFragment,
   joinChannel,
