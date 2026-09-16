@@ -78,7 +78,7 @@ describe('Gusto support ticket (f8555891)', () => {
     expect(parent.ticketId).toBe(result.ticketId);
     expect(parent.threadTs).toBeUndefined();
     expect(parent.text).toContain('*Payroll blocked*');
-    expect(parent.text).toContain('3 sub-tickets filed in this thread:');
+    expect(parent.text).toContain('3 sub-tickets for this report');
     expect(parent.text).toContain(`*${result.ticketId}.1* — Our Sep 17 payroll`);
     expect(parent.text).toContain(`*${result.ticketId}.3* — One company`);
     expect(parent.text).toContain('swarm this ticket');

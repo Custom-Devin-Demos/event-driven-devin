@@ -386,7 +386,7 @@ async function submitSupportTicket(data) {
         text: [
           subject ? `*${subject}*` : `*Customer report with ${symptoms.length} symptoms*`,
           '',
-          `${symptoms.length} sub-tickets filed in this thread:`,
+          `${symptoms.length} sub-tickets for this report (filed as replies in this thread):`,
           ...summary,
           '',
           PARENT_TRIAGE_HINT,

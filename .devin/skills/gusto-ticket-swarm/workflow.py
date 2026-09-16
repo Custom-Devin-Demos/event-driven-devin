@@ -169,7 +169,8 @@ async def consolidate_stage(findings):
 
 
 async def fix_stage(group):
-    branch = f"devin/swarm-{SPEC['ticket_id'].lower()}-{group['key']}"
+    run_suffix = str(SPEC.get("parent_ts", "")).replace(".", "")[-6:] or "local"
+    branch = f"devin/swarm-{SPEC['ticket_id'].lower()}-{run_suffix}-{group['key']}"
     group_json = json.dumps(group, sort_keys=True, indent=2)
     return await agent(
         f"Repository: {REPO}. You are the fixer for root-cause group `{group['key']}` of support ticket "
@@ -246,7 +247,7 @@ async def main():
 
     fixes = await parallel([make_fix_thunk(g) for g in groups])
     log("FIX_JSON=" + json.dumps(fixes, sort_keys=True))
-    ok = [f for f in fixes if f["pr_url"] and f["tests_passed"] and f["lint_passed"]]
+    ok = [f for f in fixes if f["pr_url"] and f["tests_passed"] and f["lint_passed"] and f["browser_verified"]]
     log(f"Done. {len(ok)}/{len(fixes)} fix PR(s) ready for human review; post the summary to the parent ticket.")
 
 
