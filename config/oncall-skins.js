@@ -1704,6 +1704,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace & On-Call Administration',
     disclaimer: 'NOT ACTUALLY A ROOTLY SITE — internal demo only, not affiliated with, endorsed by, or a real Rootly Inc. product.',
   },
+  '5626e47f': {
+    slug: '5626e47f',
+    company: 'Solocal',
+    brandMark: 'S',
+    vertical: 'telco',
+    page: {
+      file: '5626e47f.html',
+      title: 'Solocal Manager — Mon offre pagesjaunes',
+    },
+    theme: {
+      '--accent': '#0A68F1',
+      '--ink': '#0B1B2B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0B1B2B',
+      '--chrome-text': '#F7F9FC',
+    },
+    supportCenter: 'Solocal Support',
+    disclaimer: 'NOT ACTUALLY A SOLOCAL SITE — internal demo only, not affiliated with, endorsed by, or a real Solocal product.',
+  },
   '3555266e': {
     slug: '3555266e',
     company: 'Revolut',
