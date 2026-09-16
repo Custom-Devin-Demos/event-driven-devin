@@ -719,6 +719,7 @@ const ONCALL_SKINS = {
       '--chrome-bg': '#06183A',
       '--chrome-text': '#EAF1FB',
     },
+    devinSession: { auto: true },
     supportCenter: 'Crisil Client Support',
     supportCenterSub: 'Analytics Platform Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CRISIL SITE — internal demo only, not affiliated with, endorsed by, or a real Crisil product.',
