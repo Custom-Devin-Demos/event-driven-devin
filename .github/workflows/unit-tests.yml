@@ -1,0 +1,28 @@
+name: Unit tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Jest (suites affected by this PR)
+        run: npx jest --ci --changedSince=origin/${{ github.base_ref }} --passWithNoTests
