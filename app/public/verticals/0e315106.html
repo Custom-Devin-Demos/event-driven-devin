@@ -538,7 +538,7 @@
       /* Ensure locked-mode config is in localStorage for direct navigation */
       window.identityReady = (function () {
         if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return Promise.resolve();
-        return fetch('/api/config')
+        var loaded = fetch('/api/config')
           .then(function (r) {
             return r.json();
           })
@@ -547,6 +547,10 @@
             if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
           })
           .catch(function () {});
+        var timeout = new Promise(function (resolve) {
+          setTimeout(resolve, 3000);
+        });
+        return Promise.race([loaded, timeout]);
       })();
     </script>
     <script>
