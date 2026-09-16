@@ -1,7 +1,11 @@
+jest.mock('axios');
+const axios = require('axios');
 const {
   ONCALL_UNASSIGNED_TEXT,
   buildAlertBlocks,
   onCallText,
+  resolveOnCallMember,
+  postBugReportToTriage,
 } = require('../app/services/slack');
 
 const RUSSELL = 'U08S7AVJ478';
@@ -76,5 +80,59 @@ describe('alert card On-Call owner', () => {
     process.env.DEMO_ONCALL_SLACK_MEMBER_ID = SHAWN;
     expect(onCallText(undefined)).toBe(`<@${SHAWN}>`);
     expect(onCallText(RUSSELL)).toBe(`<@${RUSSELL}>`);
+  });
+
+  describe('resolveOnCallMember', () => {
+    const savedBot = process.env.SLACK_BOT_TOKEN;
+    const savedTriage = process.env.SLACK_TRIAGE_BOT_TOKEN;
+
+    beforeEach(() => {
+      delete process.env.DEMO_ONCALL_SLACK_MEMBER_ID;
+      process.env.SLACK_BOT_TOKEN = 'xoxb-test';
+      delete process.env.SLACK_TRIAGE_BOT_TOKEN;
+      axios.get.mockReset();
+      axios.post.mockReset();
+    });
+
+    afterEach(() => {
+      if (savedBot === undefined) delete process.env.SLACK_BOT_TOKEN;
+      else process.env.SLACK_BOT_TOKEN = savedBot;
+      if (savedTriage === undefined) delete process.env.SLACK_TRIAGE_BOT_TOKEN;
+      else process.env.SLACK_TRIAGE_BOT_TOKEN = savedTriage;
+    });
+
+    test('leaves the owner unset when no email, fallback, or env member is given', async () => {
+      const alert = { ...ALERT };
+      expect(await resolveOnCallMember(alert)).toBe('');
+      expect(alert.slackMemberId).toBeUndefined();
+      expect(axios.get).not.toHaveBeenCalled();
+    });
+
+    test('resolves the hub email once and shares it across concurrent callers', async () => {
+      axios.get.mockResolvedValue({ data: { ok: true, user: { id: SHAWN } } });
+      const alert = { ...ALERT, devinEmail: 'shawn@example.com' };
+      const [a, b] = await Promise.all([resolveOnCallMember(alert), resolveOnCallMember(alert)]);
+      expect(a).toBe(SHAWN);
+      expect(b).toBe(SHAWN);
+      expect(alert.slackMemberId).toBe(SHAWN);
+      expect(axios.get).toHaveBeenCalledTimes(1);
+    });
+
+    test('falls back to Unassigned when the email is not in the workspace', async () => {
+      axios.get.mockResolvedValue({ data: { ok: false, error: 'users_not_found' } });
+      const alert = { ...ALERT, devinEmail: 'nobody@example.com' };
+      expect(await resolveOnCallMember(alert)).toBe('');
+      expect(cardText(alert)).toContain(ONCALL_UNASSIGNED_TEXT);
+    });
+
+    test('triage mirror names the hub owner, not Unassigned', async () => {
+      axios.get.mockResolvedValue({ data: { ok: true, user: { id: SHAWN } } });
+      axios.post.mockResolvedValue({ data: { ok: true, ts: '1.0' } });
+      const alert = { ...ALERT, devinEmail: 'shawn@example.com' };
+      await postBugReportToTriage(alert);
+      const body = JSON.stringify(axios.post.mock.calls[0][1]);
+      expect(body).toContain(`<@${SHAWN}>`);
+      expect(body).not.toContain(ONCALL_UNASSIGNED_TEXT);
+    });
   });
 });
