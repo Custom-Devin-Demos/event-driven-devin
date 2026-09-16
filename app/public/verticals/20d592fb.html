@@ -424,6 +424,15 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
+      const fromSelect = document.getElementById('fromAccount');
+      const fromLabel = fromSelect.options[fromSelect.selectedIndex].textContent;
+      const show = (cls, title, detail) => {
+        result.className = 'result-box ' + cls;
+        result.replaceChildren();
+        const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
       btn.disabled = true; btn.textContent = 'Booking...';
       result.className = 'result-box';
       try {
@@ -433,15 +442,12 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Allocation not booked</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          show('error', 'Allocation not booked', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Allocation booked</div><div class="error-detail">Debited $${data.debitAmount} from the average price account (includes $${data.fee} clearing fee). Confirm issued to custodian.</div>`;
+          show('success', 'Allocation booked', `Debited $${data.debitAmount} from ${fromLabel} (includes $${data.fee} clearing fee). Confirm issued to custodian.`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        show('error', 'Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Book allocation'; }
     });
   </script>
