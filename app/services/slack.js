@@ -7,14 +7,14 @@ const SLACK_API_BASE = 'https://slack.com/api';
 // (e.g. <!channel>) into every alert card.
 const MEMBER_ID_RE = /^[A-Z0-9]{1,32}$/i;
 
-// On-Call owner rendered on alert cards when a vertical names nobody: Russell,
-// the default owner of every custom demo. Overridable per deployment with
-// DEMO_ONCALL_SLACK_MEMBER_ID. The card always @-mentions a real, named
-// member — never an invented persona, which the audience reads as a teammate.
-const DEFAULT_ONCALL_SLACK_MEMBER_ID = 'U08S7AVJ478';
+// On-Call owner rendered on alert cards when a vertical names nobody and no
+// hub email resolves. Opt-in per deployment with DEMO_ONCALL_SLACK_MEMBER_ID;
+// with nothing configured the field reads "Unassigned" and @-mentions nobody.
+// Never an invented persona, which the audience reads as a teammate.
+const ONCALL_UNASSIGNED_TEXT = '_Unassigned_';
 const DEMO_ONCALL_MEMBER_ID = () => {
   const configured = process.env.DEMO_ONCALL_SLACK_MEMBER_ID || '';
-  return MEMBER_ID_RE.test(configured) ? configured : DEFAULT_ONCALL_SLACK_MEMBER_ID;
+  return MEMBER_ID_RE.test(configured) ? configured : '';
 };
 
 // Appended wherever an on-call demo (/oncall) scenario renders its fictional
@@ -26,7 +26,7 @@ const OWNER_DISCLAIMER = 'demo persona — do not resolve to a real Slack user, 
 
 function onCallText(slackMemberId) {
   const memberId = MEMBER_ID_RE.test(slackMemberId || '') ? slackMemberId : DEMO_ONCALL_MEMBER_ID();
-  return `<@${memberId}>`;
+  return memberId ? `<@${memberId}>` : ONCALL_UNASSIGNED_TEXT;
 }
 
 /**
@@ -281,7 +281,7 @@ async function postAlertToSlack(alertData) {
     if (!alertData.slackMemberId && alertData.slackMemberIdFallback) {
       alertData.slackMemberId = alertData.slackMemberIdFallback;
     }
-    if (!alertData.slackMemberId) {
+    if (!alertData.slackMemberId && DEMO_ONCALL_MEMBER_ID()) {
       alertData.slackMemberId = DEMO_ONCALL_MEMBER_ID();
     }
 
@@ -688,7 +688,7 @@ async function deleteMessage(token, channel, ts) {
 }
 
 module.exports = {
-  DEFAULT_ONCALL_SLACK_MEMBER_ID,
+  ONCALL_UNASSIGNED_TEXT,
   OWNER_DISCLAIMER,
   buildAlertBlocks,
   onCallText,
