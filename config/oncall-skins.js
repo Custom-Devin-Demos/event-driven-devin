@@ -1615,6 +1615,30 @@ const ONCALL_SKINS = {
     supportCenter: 'PostNL Klantenservice',
     disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
   },
+  '0e315106': {
+    slug: '0e315106',
+    company: 'Rootly',
+    brandMark: 'R',
+    vertical: 'hightech',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '0e315106.html',
+      title: 'Provision responder seats | Rootly',
+    },
+    accent: '#7748F6',
+    theme: {
+      '--accent': '#7748F6',
+      '--ink': '#1E1A33',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1E1A33',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Rootly Support',
+    supportCenterSub: 'Workspace & On-Call Administration',
+    disclaimer: 'NOT ACTUALLY A ROOTLY SITE — internal demo only, not affiliated with, endorsed by, or a real Rootly Inc. product.',
+  },
 };
 
 function getOncallSkin(slug) {
