@@ -1739,6 +1739,28 @@ const ONCALL_SKINS = {
     supportCenter: 'Revolut Support',
     disclaimer: 'NOT ACTUALLY A REVOLUT SITE — internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
   },
+  '8bc7a017': {
+    slug: '8bc7a017',
+    company: 'Evercore',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: {
+      file: '8bc7a017.html',
+      title: 'Evercore — Client Portal | Move Money',
+    },
+    accent: '#1D4289',
+    accentDark: '#16336A',
+    theme: {
+      '--accent': '#1D4289',
+      '--ink': '#212121',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002037',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Evercore Client Service',
+    supportCenterSub: 'Wealth Management & Trust Company',
+    disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
+  },
 };
 
 function getOncallSkin(slug) {

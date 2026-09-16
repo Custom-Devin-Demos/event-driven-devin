@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evercore — Client Portal | Move Money</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500;600&family=Oswald:wght@300;400&family=Cinzel:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #1D4289;
+      --blue-hover: #16336A;
+      --navy: #002037;
+      --sky: #70C6F5;
+      --ink: #212121;
+      --muted: #5F6B76;
+      --line: #DBDDE0;
+      --wash: #F4F6F8;
+      --white: #FFFFFF;
+      --green: #1F7A4D;
+      --red: #B42318;
+      --font: "IBM Plex Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --numeral: "Giorgio Sans", "Oswald", "Arial Narrow", sans-serif;
+      --mark: "Trajan Pro", "Cinzel", Georgia, serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font); color: var(--ink); background: var(--white); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+
+    .wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+    /* Header */
+    .site-header { background: var(--white); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+    .site-header .wrap { height: 100px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .lockup { display: flex; align-items: center; gap: 16px; min-height: 44px; }
+    .wordmark { font-family: var(--mark); font-weight: 500; font-size: 27px; letter-spacing: 0.06em; color: var(--blue); line-height: 1; white-space: nowrap; }
+    .wordmark span { font-size: 36px; vertical-align: -3px; }
+    .lockup-rule { width: 1px; height: 44px; background: var(--blue); opacity: 0.6; }
+    .lockup-sub { font-size: 15px; line-height: 1.35; color: var(--blue); font-weight: 400; }
+    .lockup-sub strong { display: block; font-weight: 500; border-bottom: 1px solid var(--blue); padding-bottom: 2px; margin-bottom: 2px; }
+    .nav { display: flex; align-items: center; gap: 32px; }
+    .nav a { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); padding: 12px 0; min-height: 44px; display: inline-flex; align-items: center; border-bottom: 2px solid transparent; }
+    .nav a.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .nav a:hover { color: var(--blue); }
+    .session { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); padding: 10px 14px; border: 1px solid var(--line); min-height: 44px; }
+    .session .avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; letter-spacing: 0.04em; }
+    .session b { color: var(--ink); font-weight: 500; }
+
+    /* Hero */
+    .hero { position: relative; background: var(--navy); color: #fff; overflow: hidden; isolation: isolate; }
+    .hero-media { position: absolute; inset: 0; z-index: -2; background: var(--navy); }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.9; }
+    .hero-tint { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(0,32,55,0.92) 0%, rgba(29,66,137,0.72) 55%, rgba(29,66,137,0.45) 100%); mix-blend-mode: multiply; }
+    .hero .wrap { padding-top: 96px; padding-bottom: 96px; }
+    .eyebrow { font-size: 14px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); margin-bottom: 24px; }
+    .hero h1 { font-size: 64px; font-weight: 300; line-height: 1.15; letter-spacing: -0.01em; max-width: 820px; }
+    .hero p { margin-top: 28px; font-size: 22px; font-weight: 300; line-height: 1.45; max-width: 680px; color: rgba(255,255,255,0.88); }
+    .hero-actions { margin-top: 40px; display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn-outline { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 28px; border: 1px solid #fff; color: #fff; font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+    .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+    /* Stats band */
+    .stats { background: var(--navy) url("https://www.evercore.com/wp-content/themes/evercore-investment/dist/images/background-navigation.jpg") center / cover no-repeat; color: #fff; }
+    .stats .wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding-top: 56px; padding-bottom: 56px; }
+    .stat { border-left: 1px solid rgba(255,255,255,0.25); padding-left: 24px; }
+    .stat .num { font-family: var(--numeral); font-weight: 300; font-size: 64px; line-height: 1; letter-spacing: 0.01em; }
+    .stat .label { margin-top: 10px; font-size: 14px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.75); }
+
+    /* Main */
+    .main .wrap { padding-top: 72px; padding-bottom: 88px; display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 56px; align-items: start; }
+    .section-label { font-size: 14px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 20px; }
+    h2 { font-size: 34px; font-weight: 300; color: var(--blue); line-height: 1.2; margin-bottom: 12px; }
+    .lede { font-size: 17px; color: var(--muted); font-weight: 300; max-width: 560px; }
+
+    .accounts { margin-top: 36px; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+    .account { background: #fff; padding: 24px 28px; display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center; }
+    .account .type { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+    .account .name { font-size: 19px; font-weight: 400; color: var(--ink); margin-top: 4px; }
+    .account .id { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .account .bal { font-family: var(--numeral); font-weight: 300; font-size: 34px; color: var(--blue); text-align: right; line-height: 1; }
+    .account .asof { grid-column: 2; font-size: 12px; color: var(--muted); text-align: right; }
+
+    .activity { margin-top: 56px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th { text-align: left; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; padding: 0 12px 14px 0; border-bottom: 1px solid var(--blue); }
+    td { padding: 16px 12px 16px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    td.amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    th.amt { text-align: right; padding-right: 0; }
+    th:last-child, td:last-child { padding-left: 24px; padding-right: 0; }
+    td.amt.out { color: var(--ink); }
+    td.amt.in { color: var(--green); }
+    .status { display: inline-block; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .status::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 8px; vertical-align: 1px; }
+    .status.pending::before { background: #C9A227; }
+
+    /* Move money card */
+    .card { background: var(--wash); border-top: 4px solid var(--blue); padding: 36px 36px 32px; position: sticky; top: 124px; }
+    .card h3 { font-size: 26px; font-weight: 300; color: var(--blue); margin-bottom: 6px; }
+    .card .sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .field select, .field input { width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid #B9C0C8; background: #fff; color: var(--ink); font-size: 16px; border-radius: 0; appearance: none; -webkit-appearance: none; }
+    .field select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%231D4289' stroke-width='1.5'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(29,66,137,0.18); }
+    .amount-wrap { position: relative; }
+    .amount-wrap::before { content: "$"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; }
+    .amount-wrap input { padding-left: 28px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .btn-primary { width: 100%; min-height: 52px; border: 0; background: var(--blue); color: #fff; font-size: 13px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; margin-top: 8px; }
+    .btn-primary:hover { background: var(--blue-hover); }
+    .btn-primary:disabled { background: #7F93BE; cursor: wait; }
+    .result-box { display: none; margin-top: 20px; padding: 16px 18px; border-left: 3px solid var(--line); background: #fff; font-size: 14px; }
+    .result-box.success { display: block; border-left-color: var(--green); }
+    .result-box.error { display: block; border-left-color: var(--red); }
+    .result-box .title { font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+    .result-box .detail { color: var(--muted); }
+    .fine { margin-top: 24px; font-size: 12px; line-height: 1.55; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+
+    /* Footer */
+    .site-footer { background: var(--navy); color: rgba(255,255,255,0.8); }
+    .site-footer .wrap { padding-top: 64px; padding-bottom: 40px; }
+    .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; }
+    .foot-mark { font-family: var(--mark); font-weight: 500; font-size: 24px; letter-spacing: 0.06em; color: #fff; }
+    .foot-mark span { font-size: 32px; vertical-align: -3px; }
+    .foot-tag { margin-top: 14px; font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.7); max-width: 360px; }
+    .foot-col h4 { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sky); font-weight: 500; margin-bottom: 16px; }
+    .foot-col a { display: block; font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.85); padding: 6px 0; }
+    .foot-legal { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.55); }
+    .foot-legal p + p { margin-top: 12px; }
+
+    @media (max-width: 1024px) {
+      .main .wrap { grid-template-columns: 1fr; }
+      .card { position: static; }
+      .hero h1 { font-size: 48px; }
+    }
+    @media (max-width: 720px) {
+      .wrap { padding: 0 20px; }
+      .site-header .wrap { height: auto; min-height: 72px; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+      .nav { display: none; }
+      .lockup-sub { font-size: 12px; }
+      .wordmark { font-size: 22px; }
+      .wordmark span { font-size: 29px; }
+      .session { padding: 8px 10px; }
+      .session .who { display: none; }
+      .hero .wrap { padding-top: 56px; padding-bottom: 56px; }
+      .hero h1 { font-size: 36px; }
+      .hero p { font-size: 17px; }
+      .stats .wrap { grid-template-columns: 1fr; gap: 28px; padding-top: 40px; padding-bottom: 40px; }
+      .stat .num { font-size: 48px; }
+      .main .wrap { padding-top: 48px; padding-bottom: 56px; gap: 40px; }
+      h2 { font-size: 28px; }
+      .account { grid-template-columns: 1fr; padding: 20px; }
+      .account .bal, .account .asof { text-align: left; grid-column: 1; }
+      .account .bal { font-size: 30px; margin-top: 8px; }
+      table { font-size: 14px; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+      .card { padding: 28px 20px; }
+      .row { grid-template-columns: 1fr; }
+      .foot-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+      .foot-grid > :first-child { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="lockup" href="#" aria-label="Evercore Wealth Management and Trust Company">
+        <div class="wordmark"><span>E</span>VERCORE</div>
+        <div class="lockup-rule"></div>
+        <div class="lockup-sub"><strong>Wealth Management</strong>Trust Company</div>
+      </a>
+      <nav class="nav" aria-label="Client portal">
+        <a href="#">Accounts</a>
+        <a href="#" class="active">Move Money</a>
+        <a href="#">Documents</a>
+        <a href="#">Insights</a>
+      </nav>
+      <div class="session">
+        <div class="avatar">AC</div>
+        <div class="who"><b>Alice Chen</b> · Client since 2014</div>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-media" aria-hidden="true">
+      <img src="https://evercorewealthandtrust.com/wp-content/uploads/2025/08/ewm-homepage-2-scaled.webp" alt="" loading="eager" onerror="this.remove()">
+    </div>
+    <div class="hero-tint" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="eyebrow">Move Money</div>
+      <h1>Transfers between your Evercore accounts and outside institutions.</h1>
+      <p>Move funds between custody, managed investment, and linked external accounts. Your Wealth &amp; Fiduciary Advisor is notified of every request.</p>
+      <div class="hero-actions">
+        <a class="btn-outline" href="#move-money">Start a transfer</a>
+        <a class="btn-outline" href="#activity">Recent activity</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="About Evercore">
+    <div class="wrap">
+      <div class="stat"><div class="num">1995</div><div class="label">Year founded</div></div>
+      <div class="stat"><div class="num">16</div><div class="label">Countries with Evercore offices</div></div>
+      <div class="stat"><div class="num">~2,600</div><div class="label">Employees worldwide</div></div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="wrap">
+      <div>
+        <div class="section-label">Your accounts</div>
+        <h2>Custody and managed accounts</h2>
+        <p class="lede">Balances shown are as of the most recent close. Trust and custody accounts are held at Evercore Trust Company, N.A.</p>
+
+        <div class="accounts">
+          <div class="account">
+            <div>
+              <div class="type">Custody account</div>
+              <div class="name">Chen Family Trust</div>
+              <div class="id">ACCT-1001 · Evercore Trust Company, N.A.</div>
+            </div>
+            <div class="bal">$2,485,000.00</div>
+            <div class="asof">Cash available</div>
+          </div>
+          <div class="account">
+            <div>
+              <div class="type">Managed investment account</div>
+              <div class="name">Core Equity &amp; Fixed Income</div>
+              <div class="id">ACCT-1002 · Evercore Wealth Management, LLC</div>
+            </div>
+            <div class="bal">$14,230,000.00</div>
+            <div class="asof">Market value</div>
+          </div>
+        </div>
+
+        <div class="activity" id="activity">
+          <div class="section-label">Recent activity</div>
+          <table>
+            <thead><tr><th>Date</th><th>Description</th><th>Account</th><th class="amt">Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Mar 15</td><td>Quarterly distribution to beneficiaries</td><td>ACCT-1001</td><td class="amt out">−$125,000.00</td><td><span class="status">Settled</span></td></tr>
+              <tr><td>Mar 14</td><td>Dividend income — Core Equity</td><td>ACCT-1002</td><td class="amt in">+$41,862.15</td><td><span class="status">Settled</span></td></tr>
+              <tr><td>Mar 12</td><td>Wire to outside bank ····4921</td><td>ACCT-1001</td><td class="amt out">−$50,000.00</td><td><span class="status">Settled</span></td></tr>
+              <tr><td>Mar 10</td><td>Estimated tax payment — Q1</td><td>ACCT-1001</td><td class="amt out">−$86,400.00</td><td><span class="status">Settled</span></td></tr>
+              <tr><td>Mar 08</td><td>Rebalance proceeds to custody</td><td>ACCT-1002</td><td class="amt in">+$200,000.00</td><td><span class="status pending">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="card" id="move-money">
+        <h3>Move money</h3>
+        <div class="sub">Requests received before 4:00 p.m. ET are processed the same business day.</div>
+        <form id="transferForm">
+          <div class="row">
+            <div class="field">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount">
+                <option value="ACCT-1001">Chen Family Trust — ACCT-1001</option>
+                <option value="ACCT-1002">Core Equity &amp; Fixed Income — ACCT-1002</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="toAccount">To</label>
+              <select id="toAccount">
+                <option value="ACCT-1002">Core Equity &amp; Fixed Income — ACCT-1002</option>
+                <option value="ACCT-1001">Chen Family Trust — ACCT-1001</option>
+                <option value="ACCT-EXT-001">Outside bank ····4921</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-wrap"><input type="number" id="amount" value="250000" min="1" step="0.01" placeholder="0.00"></div>
+            <div class="hint">Available to move from ACCT-1001: $2,485,000.00</div>
+          </div>
+          <div class="field">
+            <label for="accountTier">Processing</label>
+            <select id="accountTier">
+              <option value="premium">Advisor pre-approved — no review</option>
+              <option value="standard">Standard — compliance review</option>
+              <option value="basic">Scheduled — next business day</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" id="submitBtn">Submit transfer</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="fine">Transfers are subject to compliance review and may require verbal confirmation with your advisor for amounts over $250,000. Trust and custody services are provided by Evercore Trust Company, N.A.</div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <div class="foot-mark"><span>E</span>VERCORE</div>
+          <div class="foot-tag">Independent Thinking® — insights from Evercore Wealth Management on planning, investing, and fiduciary topics.</div>
+        </div>
+        <div class="foot-col">
+          <h4>Client portal</h4>
+          <a href="#">Accounts</a><a href="#">Move Money</a><a href="#">Documents</a><a href="#">Statements</a>
+        </div>
+        <div class="foot-col">
+          <h4>Insights</h4>
+          <a href="#">Independent Thinking</a><a href="#">In the News</a><a href="#">Video</a>
+        </div>
+        <div class="foot-col">
+          <h4>Locations</h4>
+          <a href="#">New York</a><a href="#">Minneapolis</a><a href="#">Palm Beach</a><a href="#">San Francisco</a><a href="#">Tampa</a><a href="#">Delaware</a>
+        </div>
+      </div>
+      <div class="foot-legal">
+        <p>Investment and wealth management services are provided by Evercore Wealth Management, LLC, an investment adviser registered with the U.S. Securities and Exchange Commission. Trust and custody services are provided by Evercore Trust Company, N.A., a national trust bank regulated by the Office of the Comptroller of the Currency.</p>
+        <p>© 2026 Evercore Wealth Management, LLC. All rights reserved. · Privacy Notice · Accessibility Statement</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting…';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_alice_chen',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="title">Transfer not submitted</div><div class="detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          const usd = (v) => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          result.innerHTML = `<div class="title">Transfer submitted</div><div class="detail">$${usd(data.debitAmount)} debited from ${document.getElementById('fromAccount').value}. Processing fee $${usd(data.fee)}. Your advisor has been notified.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="title">Connection error</div><div class="detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Submit transfer'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
