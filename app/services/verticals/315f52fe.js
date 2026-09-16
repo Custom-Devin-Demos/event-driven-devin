@@ -3,8 +3,6 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
-const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
-const { getCustomerConfig } = require('../../../config/customers');
 
 /**
  * NVIDIA GeForce NOW for iOS (github.com/Custom-Devin-Demos/nvidia-geforce-now-demo-app).
@@ -26,6 +24,19 @@ const APP_REPO = 'github.com/Custom-Devin-Demos/nvidia-geforce-now-demo-app';
 const ERROR_PATH = `/api/${CUSTOMER}/ios/error`;
 const SCENARIO = 'play-ultimate-rig-profile';
 const CULPRIT = 'Core/Sources/GeForceNowCore/StreamProfiles.swift \u2014 StreamProfileRegistry.profile(for:device:)';
+
+/**
+ * Owner of every alert and Devin session this vertical raises. This demo was
+ * built for Shawn, so the card @-mentions him and the session is created as
+ * him. The email typed at the app's sign-in is synthetic and never redirects
+ * ownership: it is kept on the card as context only.
+ */
+const OWNER = Object.freeze({
+  email: 'shawn@cognition.ai',
+  slackMemberId: 'U08RSEMUV3L',
+  devinUserId: 'google-oauth2|101186599233686760148',
+  devinOrgId: 'org-a26acd61afbe4ff3b0c531026e2cbce5',
+});
 
 /**
  * Scenario directive appended to the Devin investigation prompt. The alert
@@ -52,6 +63,10 @@ const APP_REMEDIATION_DIRECTIVE = [
   '   `StreamProfileError.unregisteredRig`. Switching to Performance under Membership makes the same',
   '   tap succeed. Note that `swift test` in `Core/` is GREEN on the broken baseline: nothing asserts',
   '   that every rig class a tier maps to has a stream profile.',
+  '   Run every reproduction with failure reporting OFF (`scripts/verify-ios.sh` does this by default;',
+  '   set `GFN_DISABLE_FAILURE_REPORTS=1` in the app\'s environment when launching it any other way).',
+  `   A report posted to ${ERROR_PATH} opens another Slack alert and another Devin session; exactly one`,
+  '   alert exists per real failure, and the one that started this session is it.',
   '2. Fix the data, not just the crash site: register accurate RTX 5080 (Blackwell) profiles for every',
   '   `DeviceClass` in `StreamProfileRegistry.profiles`, and make `SessionRequestBuilder.build` degrade',
   '   gracefully for an unregistered rig (documented fallback profile or typed error) instead of',
@@ -100,32 +115,6 @@ function isAppReport(body) {
 }
 
 /**
- * Resolve the reporting user inside the NVIDIA org from the email typed at
- * sign-in, when the client could not supply a user id itself. Returns '' when
- * nobody matches so the caller falls back to the customer config. The lookup
- * authenticates with the NVIDIA service key: the default enterprise key is
- * not a member of the NVIDIA org and the members endpoint rejects it.
- */
-async function resolveUserIdByEmail(email, orgId) {
-  const normalized = String(email || '').trim().toLowerCase();
-  if (!normalized || !orgId) return '';
-  try {
-    const { apiKey } = getCustomerConfig(CUSTOMER);
-    const auth = apiKey ? { apiKey } : {};
-    const members = await listOrgUsers(orgId, auth);
-    const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
-    if (member) return member.user_id;
-    const admins = await listEnterpriseAdmins(auth);
-    const admin = admins.find((u) => (u.email || '').toLowerCase() === normalized);
-    if (admin) return admin.user_id;
-    logger.warn('GeForce NOW app reporter email not found in org', { orgId });
-  } catch (err) {
-    logger.warn('GeForce NOW app reporter lookup failed', { error: err.message, orgId });
-  }
-  return '';
-}
-
-/**
  * Bridge a `FailureReport` posted by the GeForce NOW iOS client into the Slack
  * alert + Devin session flow under the app identity. The client has already
  * rendered its "couldn't start your session" card; this is telemetry only.
@@ -147,6 +136,7 @@ function reportAppFailure(report) {
   const release = clip(report.release || APP_RELEASE, 64);
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
   const launch = sanitizeLaunch(report.launch);
+  const reporterEmail = clip(report.devinEmail, 128);
 
   const tags = {
     route: ERROR_PATH,
@@ -209,15 +199,16 @@ function reportAppFailure(report) {
     });
   });
 
-  const raiseAlert = (devinUserId) => createSessionAndAlert({
+  const sessionPromise = createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
     culprit: CULPRIT,
     errorType,
     errorValue: errorMessage,
-    devinUserId,
-    devinEmail: report.devinEmail,
-    devinOrgId: report.devinOrgId,
+    devinUserId: OWNER.devinUserId,
+    devinEmail: OWNER.email,
+    devinOrgId: OWNER.devinOrgId,
+    slackMemberId: OWNER.slackMemberId,
     service: APP_SERVICE,
     verticalLabel: 'NVIDIA',
     promptAppendix: APP_REMEDIATION_DIRECTIVE,
@@ -230,6 +221,7 @@ function reportAppFailure(report) {
       appVersion,
       sentryEventId: report.sentryEventId || null,
       launch,
+      reporterEmail,
     },
     level: 'error',
     platform,
@@ -241,14 +233,7 @@ function reportAppFailure(report) {
     release,
     environment,
     triggeredRule: '',
-  });
-
-  const needsLookup = !report.devinUserId && report.devinEmail && report.devinOrgId;
-  const sessionPromise = (needsLookup
-    ? resolveUserIdByEmail(report.devinEmail, report.devinOrgId)
-      .then((userId) => raiseAlert(userId || undefined))
-    : raiseAlert(report.devinUserId)
-  ).catch((err) => {
+  }).catch((err) => {
     logger.error('Failed to create Devin session for GeForce NOW app failure report', {
       error: err.message,
       reference,
@@ -260,6 +245,7 @@ function reportAppFailure(report) {
 
 module.exports = {
   CUSTOMER,
+  OWNER,
   APP_SERVICE,
   APP_PROJECT,
   APP_RELEASE,
