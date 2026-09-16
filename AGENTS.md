@@ -40,7 +40,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Aravia Therapeutics — Patient Access Portal** (fictional brand, unlisted — direct URL only) | `/patient-access`, `/fcf0f903` | `app/public/verticals/fcf0f903.html` | `POST /api/fcf0f903/enrollment`, `POST /api/fcf0f903/copay-estimate` | `app/services/verticals/fcf0f903.js` |
 | **Zuora — AI Usage-Based Pricing** (unlisted — direct URL only) | `/zuora`, `/ce4ebc10` | `app/public/verticals/ce4ebc10.html` | `POST /api/ce4ebc10/publish-pricing` | `app/services/verticals/ce4ebc10.js` |
 | **Rippling — Payroll Run** (unlisted — direct URL only) | `/rippling`, `/a7fb8819` | `app/public/verticals/a7fb8819.html` | `POST /api/a7fb8819/submit-pay-run` | `app/services/verticals/a7fb8819.js` |
-| **Gusto — Payroll Ops On-Call Console** (unlisted — direct URL only) | `/gusto`, `/f8555891` | `app/public/verticals/f8555891.html` | `POST /api/f8555891/release-batch` (failure → monitor card in the on-call alerts channel, no app-created Devin session), `POST /api/f8555891/support-ticket` (customer report → on-call bugs channel, optionally one ticket per symptom) | `app/services/verticals/f8555891.js` |
+| **Gusto — Payroll Ops On-Call Console** (unlisted — direct URL only) | `/gusto`, `/f8555891` | `app/public/verticals/f8555891.html` | `POST /api/f8555891/release-batch` (failure → monitor card in the on-call alerts channel, no app-created Devin session), `POST /api/f8555891/support-ticket` (customer report → on-call bugs channel; with `split`, one parent ticket `GUS-####` plus threaded sub-tickets `GUS-####.N`) | `app/services/verticals/f8555891.js` |
 | **Tax Revenue Portal — Pay Taxes** (generic demo brand, unlisted — direct URL only) | `/tax-portal`, `/3640b94c` | `app/public/verticals/3640b94c.html` | `POST /api/3640b94c/payment` | `app/services/verticals/3640b94c.js` |
 | **FPL My Account — NextEra Energy** (Flutter app, unlisted — direct URL only) | `/fpl`, `/nextera`, `/b425648c` (landing), `/b425648c/app` (app) | `app/public/verticals/b425648c.html`, `app/public/verticals/b425648c-app/` | `POST /api/b425648c/mobile/error`, `POST /api/b425648c/outage/report` | `app/services/verticals/b425648c.js` |
 
@@ -82,6 +82,12 @@ Two things are deliberately separate:
 - **`scripts/welcome-season-sweep.js` is the prevention control** — it validates every Jan-1 plan config and submits synthetic claims, exiting non-zero before cards mail. It owns its own `validateRxRouting()` because the service intentionally has none yet.
 
 `FANOUT_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`, instructing the triage session to split remediation across four parallel child sessions. See `docs/DEMO-WELCOME-SEASON.md` for the run sheet and `docs/WIKI-PAYER-WELCOME-SEASON.md` for the full reference.
+
+### Gusto ticket-swarm scenario
+
+The Gusto vertical (`/gusto`, slug `f8555891`) is the multi-agent demo. The planted defect is a payroll batch that fails because Minnesota has no entry in `STATE_PAYROLL_PROGRAMS`; the release failure posts a monitor card to the on-call alerts channel and deliberately creates no Devin session. The agents enter through the **support side**: a multi-symptom customer report filed with `split` becomes one parent ticket (`GUS-1041`) in the on-call bugs channel with each symptom threaded under it as a numbered sub-ticket (`GUS-1041.1`, `.2`, …). `postOncallBugReport` accepts `threadTs` / `ticketId` / `parentTicketId` for this; single-symptom reports stay flat.
+
+The parent card tells the responder to @Devin `swarm this ticket`. That session follows `.devin/skills/gusto-ticket-swarm/SKILL.md`, which runs `.devin/skills/gusto-ticket-swarm/workflow.py`: one read-only investigator child per sub-ticket in parallel → one consolidator that dedupes findings into root-cause groups → one fixer per group that opens a single PR (tests, lint, browser recording; never merges). The prompts live in that `workflow.py` so a customer can edit agent behaviour live. **Leave the MN defect in place** and do not merge swarm PRs — the failure is the demo. See `docs/DEMO-GUSTO-ONCALL.md` for the run sheet.
 
 ### Kroger feature-encoding scenario
 

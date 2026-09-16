@@ -61,14 +61,39 @@ describe('Gusto support ticket (f8555891)', () => {
     expect(call.productArea).toBe('Payroll · ACH release');
   });
 
-  test('split files one ticket per symptom, numbered and in report order', async () => {
+  test('split files a parent ticket and one threaded sub-ticket per symptom, in report order', async () => {
+    postOncallBugReport
+      .mockResolvedValueOnce({ ok: true, ts: '1700000000.000001' })
+      .mockResolvedValue({ ok: true, ts: '1700000000.000100' });
     const result = await submitSupportTicket({ subject: 'Payroll blocked', text: REPORT, split: true });
 
+    expect(result.ticketId).toMatch(/^GUS-\d{4}$/);
+    expect(result.parentTicket).toEqual({ id: result.ticketId, ok: true, skipped: false, ts: '1700000000.000001' });
     expect(result.ticketCount).toBe(3);
+    expect(result.tickets.map((ticket) => ticket.id)).toEqual([1, 2, 3].map((n) => `${result.ticketId}.${n}`));
     expect(result.tickets.map((ticket) => ticket.ts)).toEqual(Array(3).fill('1700000000.000100'));
-    expect(postOncallBugReport).toHaveBeenCalledTimes(3);
-    expect(postOncallBugReport.mock.calls[0][0].text).toMatch(/^\[1\/3\] Payroll blocked\n\nOur Sep 17 payroll/);
-    expect(postOncallBugReport.mock.calls[2][0].text).toMatch(/^\[3\/3\] Payroll blocked\n\nOne company/);
+
+    expect(postOncallBugReport).toHaveBeenCalledTimes(4);
+    const [parent, first, , third] = postOncallBugReport.mock.calls.map(([call]) => call);
+    expect(parent.ticketId).toBe(result.ticketId);
+    expect(parent.threadTs).toBeUndefined();
+    expect(parent.text).toContain('*Payroll blocked*');
+    expect(parent.text).toContain('3 sub-tickets for this report');
+    expect(parent.text).toContain(`*${result.ticketId}.1* — Our Sep 17 payroll`);
+    expect(parent.text).toContain(`*${result.ticketId}.3* — One company`);
+    expect(parent.text).toContain('swarm this ticket');
+    expect(first).toMatchObject({ ticketId: `${result.ticketId}.1`, threadTs: '1700000000.000001', parentTicketId: result.ticketId });
+    expect(first.text).toMatch(/^\[1\/3\] Payroll blocked\n\nOur Sep 17 payroll/);
+    expect(third.text).toMatch(/^\[3\/3\] Payroll blocked\n\nOne company/);
+  });
+
+  test('a single-symptom report is filed flat, with no parent ticket', async () => {
+    const result = await submitSupportTicket({ text: 'Just one problem here.', split: true });
+
+    expect(postOncallBugReport).toHaveBeenCalledTimes(1);
+    expect(result.parentTicket).toBeUndefined();
+    expect(result.tickets[0].id).toBe(result.ticketId);
+    expect(postOncallBugReport.mock.calls[0][0].threadTs).toBeUndefined();
   });
 
   test('reports skipped when the bugs channel is not configured', async () => {
@@ -123,8 +148,9 @@ describe('Gusto support ticket (f8555891)', () => {
     expect(postOncallBugReport).not.toHaveBeenCalled();
   });
 
-  test('reports partial delivery when a later ticket post fails', async () => {
+  test('reports partial delivery when a later sub-ticket post fails', async () => {
     postOncallBugReport
+      .mockResolvedValueOnce({ ok: true, ts: '1.0' })
       .mockResolvedValueOnce({ ok: true, ts: '1.1' })
       .mockRejectedValueOnce(new Error('slack timeout'));
 
@@ -132,9 +158,10 @@ describe('Gusto support ticket (f8555891)', () => {
       code: 'PARTIAL_DELIVERY',
       statusCode: 502,
       ticketCount: 3,
+      parentTicket: expect.objectContaining({ ts: '1.0' }),
       tickets: [expect.objectContaining({ ts: '1.1' })],
     });
-    expect(postOncallBugReport).toHaveBeenCalledTimes(2);
+    expect(postOncallBugReport).toHaveBeenCalledTimes(3);
   });
 
   test('emits one outcome-tagged metric per ticket', async () => {

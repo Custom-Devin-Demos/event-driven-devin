@@ -17,6 +17,13 @@ const MAX_SUBJECT_CHARS = 200;
 const MAX_REPORTER_CHARS = 120;
 const MAX_EMAIL_CHARS = 254;
 const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+const TICKET_PREFIX = 'GUS';
+const PARENT_TRIAGE_HINT =
+  'Triage: mention @Devin in this thread with `swarm this ticket` to open one child session per sub-ticket and consolidate the findings here.';
+
+function makeTicketId() {
+  return `${TICKET_PREFIX}-${1000 + crypto.randomInt(9000)}`;
+}
 
 // Slack mrkdwn treats <...> as mentions/links; escaping the control characters
 // keeps customer-supplied text inert (no @channel, no spoofed links).
@@ -301,9 +308,10 @@ function splitSymptoms(text) {
 
 /**
  * File a customer-reported problem from the on-call console as a human-style
- * support ticket in the on-call bugs channel. With `split`, each symptom in
- * the report becomes its own ticket so the channel's triage responder opens
- * one investigation thread per problem.
+ * support ticket in the on-call bugs channel. With `split`, the report is
+ * filed as a parent ticket whose symptoms become numbered sub-tickets in its
+ * thread (`GUS-1041` -> `GUS-1041.1`, `.2`, ...), so a triage responder can
+ * fan one investigation out per sub-ticket and consolidate on the parent.
  */
 async function submitSupportTicket(data) {
   const validationError = (message, code) => {
@@ -347,44 +355,75 @@ async function submitSupportTicket(data) {
   }
 
   const submittedFrom = SUPPORT_PAGE_URL();
+  const ticketId = makeTicketId();
+  const hierarchical = symptoms.length > 1;
+  const common = { reporter, severity, productArea, devinEmail: data.devinEmail, supportCenter: SUPPORT_CENTER, submittedFrom };
   const tickets = [];
-  for (let index = 0; index < symptoms.length; index += 1) {
-    const parts = [];
-    if (subject) parts.push(symptoms.length > 1 ? `[${index + 1}/${symptoms.length}] ${subject}` : subject);
-    else if (symptoms.length > 1) parts.push(`[${index + 1}/${symptoms.length}]`);
-    parts.push(symptoms[index]);
-    // Sequential so the tickets land in the channel in report order.
+  let parent = null;
+
+  const partialDelivery = (index, error) => {
+    // Slack posts are not atomic: report what already landed so the client
+    // can retry only the remainder instead of re-filing every ticket.
+    const err = new Error(`Ticket ${index + 1} of ${symptoms.length} failed to post: ${error.message}`);
+    err.name = 'PartialDeliveryError';
+    err.code = 'PARTIAL_DELIVERY';
+    err.statusCode = 502;
+    err.tickets = tickets;
+    err.ticketCount = symptoms.length;
+    if (parent) err.parentTicket = parent;
+    incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome: 'failed', split: String(hierarchical) });
+    logger.error('Gusto support ticket post failed', { index, total: symptoms.length, ticketId, error: error.message });
+    return err;
+  };
+
+  if (hierarchical) {
+    const summary = symptoms.map((symptom, index) => `• *${ticketId}.${index + 1}* — ${symptom.split('\n')[0].slice(0, 140)}`);
     let posted;
     try {
       posted = await postOncallBugReport({
-        text: parts.join('\n\n'),
-        reporter,
-        severity,
-        productArea,
-        devinEmail: data.devinEmail,
-        supportCenter: SUPPORT_CENTER,
-        submittedFrom,
+        ...common,
+        ticketId,
+        text: [
+          subject ? `*${subject}*` : `*Customer report with ${symptoms.length} symptoms*`,
+          '',
+          `${symptoms.length} sub-tickets for this report (filed as replies in this thread):`,
+          ...summary,
+          '',
+          PARENT_TRIAGE_HINT,
+        ].join('\n'),
       });
     } catch (error) {
-      // Slack posts are not atomic: report what already landed so the client
-      // can retry only the remainder instead of re-filing every ticket.
-      const err = new Error(`Ticket ${index + 1} of ${symptoms.length} failed to post: ${error.message}`);
-      err.name = 'PartialDeliveryError';
-      err.code = 'PARTIAL_DELIVERY';
-      err.statusCode = 502;
-      err.tickets = tickets;
-      err.ticketCount = symptoms.length;
-      incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome: 'failed', split: String(symptoms.length > 1) });
-      logger.error('Gusto support ticket post failed', { index, total: symptoms.length, error: error.message });
-      throw err;
+      throw partialDelivery(0, error);
+    }
+    parent = { id: ticketId, ok: Boolean(posted.ok), skipped: Boolean(posted.skipped), ts: posted.ts || null };
+  }
+
+  for (let index = 0; index < symptoms.length; index += 1) {
+    const subId = hierarchical ? `${ticketId}.${index + 1}` : ticketId;
+    const parts = [];
+    if (subject) parts.push(hierarchical ? `[${index + 1}/${symptoms.length}] ${subject}` : subject);
+    else if (hierarchical) parts.push(`[${index + 1}/${symptoms.length}]`);
+    parts.push(symptoms[index]);
+    // Sequential so the tickets land in the thread in report order.
+    let posted;
+    try {
+      posted = await postOncallBugReport({
+        ...common,
+        text: parts.join('\n\n'),
+        ticketId: subId,
+        ...(hierarchical && parent.ts ? { threadTs: parent.ts, parentTicketId: ticketId } : {}),
+      });
+    } catch (error) {
+      throw partialDelivery(index, error);
     }
     const outcome = posted.ok ? 'delivered' : posted.skipped ? 'skipped' : 'rejected';
-    incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome, split: String(symptoms.length > 1) });
-    tickets.push({ ok: Boolean(posted.ok), skipped: Boolean(posted.skipped), ts: posted.ts || null, symptom: symptoms[index] });
+    incrementMetric('gusto_payroll.support_ticket', { service: SERVICE, outcome, split: String(hierarchical) });
+    tickets.push({ id: subId, ok: Boolean(posted.ok), skipped: Boolean(posted.skipped), ts: posted.ts || null, symptom: symptoms[index] });
   }
 
   const skipped = tickets.length > 0 && tickets.every((ticket) => ticket.skipped);
   logger.info(skipped ? 'Gusto support ticket prepared but Slack not configured' : 'Gusto support ticket filed', {
+    ticketId,
     tickets: tickets.length,
     split: Boolean(data.split),
     skipped,
@@ -397,6 +436,8 @@ async function submitSupportTicket(data) {
     skipped,
     ...(skipped ? { error: 'SLACK_ONCALL_BUGS_CHANNEL_ID or bot token not configured' } : {}),
     supportCenter: SUPPORT_CENTER,
+    ticketId,
+    ...(parent ? { parentTicket: parent } : {}),
     ticketCount: tickets.length,
     tickets,
   };
