@@ -371,6 +371,20 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
       expect(createSessionAndAlert).not.toHaveBeenCalled();
     });
 
+    test('throttles accepted reports with 429 once the per-route window is full', async () => {
+      const { reserveReportSlot } = require('../app/routes/verticals/315f52fe');
+      const now = Date.now();
+      while (reserveReportSlot(now)) { /* fill the window */ }
+
+      const { status, body } = await postJson(server, '/api/315f52fe/ios/error', APP_REPORT);
+      expect(status).toBe(429);
+      expect(body).toMatchObject({ received: false, status: 'throttled' });
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+
+      // Slots free up once the window has slid past the burst.
+      expect(reserveReportSlot(now + 11 * 60 * 1000)).toBe(true);
+    });
+
     test('answers the CORS preflight for a harness posting from another origin', async () => {
       const { port } = server.address();
       const res = await fetch(`http://127.0.0.1:${port}/api/315f52fe/ios/error`, {

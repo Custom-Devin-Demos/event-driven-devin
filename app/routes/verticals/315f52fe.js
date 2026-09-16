@@ -28,6 +28,23 @@ function allowCrossOrigin(req, res, next) {
 
 router.options(ERROR_PATH, allowCrossOrigin);
 
+// The app cannot hold a secret (it ships in a public repo), so the route stays
+// open like the other direct-report verticals; abuse is bounded by this
+// per-route sliding window on top of the global Devin session cap.
+const parsedMax = parseInt(process.env.REPORT_CAP_315F52FE_MAX, 10);
+const REPORT_MAX = Number.isNaN(parsedMax) ? 10 : parsedMax;
+const parsedWindow = parseInt(process.env.REPORT_CAP_315F52FE_WINDOW_MINUTES, 10);
+const REPORT_WINDOW_MS = (Number.isNaN(parsedWindow) ? 10 : parsedWindow) * 60 * 1000;
+const acceptedAt = [];
+
+function reserveReportSlot(now = Date.now()) {
+  const cutoff = now - REPORT_WINDOW_MS;
+  while (acceptedAt.length > 0 && acceptedAt[0] < cutoff) acceptedAt.shift();
+  if (acceptedAt.length >= REPORT_MAX) return false;
+  acceptedAt.push(now);
+  return true;
+}
+
 /**
  * POST /api/315f52fe/ios/error — `FailureReport` posted by the GeForce NOW
  * iOS app after Play threw. Raises the Slack alert and Devin session under
@@ -45,6 +62,15 @@ router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
     });
   }
 
+  if (!reserveReportSlot()) {
+    res.set('Retry-After', String(Math.ceil(REPORT_WINDOW_MS / 1000)));
+    return res.status(429).json({
+      received: false,
+      status: 'throttled',
+      error: `Report cap reached for ${APP_SERVICE}; retry later`,
+    });
+  }
+
   const { reference } = reportAppFailure(body);
 
   return res.status(202).json({
@@ -58,3 +84,4 @@ router.post(ERROR_PATH, allowCrossOrigin, (req, res) => {
 });
 
 module.exports = router;
+module.exports.reserveReportSlot = reserveReportSlot;
