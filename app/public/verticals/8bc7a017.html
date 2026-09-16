@@ -261,8 +261,8 @@
             <div class="field">
               <label for="fromAccount">From</label>
               <select id="fromAccount">
-                <option value="ACCT-1001">Chen Family Trust — ACCT-1001</option>
-                <option value="ACCT-1002">Core Equity &amp; Fixed Income — ACCT-1002</option>
+                <option value="ACCT-1001" data-available="2485000">Chen Family Trust — ACCT-1001</option>
+                <option value="ACCT-1002" data-available="14230000">Core Equity &amp; Fixed Income — ACCT-1002</option>
               </select>
             </div>
             <div class="field">
@@ -276,8 +276,8 @@
           </div>
           <div class="field">
             <label for="amount">Amount</label>
-            <div class="amount-wrap"><input type="number" id="amount" value="250000" min="1" step="0.01" placeholder="0.00"></div>
-            <div class="hint">Available to move from ACCT-1001: $2,485,000.00</div>
+            <div class="amount-wrap"><input type="number" id="amount" value="250000" min="1" step="0.01" placeholder="0.00" required></div>
+            <div class="hint" id="availableHint">Available to move from ACCT-1001: $2,485,000.00</div>
           </div>
           <div class="field">
             <label for="accountTier">Processing</label>
@@ -333,6 +333,22 @@
     })();
   </script>
   <script>
+    const usd = (v) => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const showResult = (result, state, title, detail) => {
+      result.className = 'result-box ' + state;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'detail'; d.textContent = detail;
+      result.append(t, d);
+    };
+    const fromAccount = document.getElementById('fromAccount');
+    const updateAvailable = () => {
+      const opt = fromAccount.selectedOptions[0];
+      document.getElementById('availableHint').textContent = `Available to move from ${opt.value}: $${usd(opt.dataset.available)}`;
+    };
+    fromAccount.addEventListener('change', updateAvailable);
+    updateAvailable();
+
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -356,16 +372,12 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="title">Transfer not submitted</div><div class="detail">${data.errorClass}: ${data.error}</div>`;
+          showResult(result, 'error', 'Transfer not submitted', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          const usd = (v) => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          result.innerHTML = `<div class="title">Transfer submitted</div><div class="detail">$${usd(data.debitAmount)} debited from ${document.getElementById('fromAccount').value}. Processing fee $${usd(data.fee)}. Your advisor has been notified.</div>`;
+          showResult(result, 'success', 'Transfer submitted', `$${usd(data.debitAmount)} debited from ${fromAccount.value}. Processing fee $${usd(data.fee)}. Your advisor has been notified.`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="title">Connection error</div><div class="detail">${err.message}</div>`;
+        showResult(result, 'error', 'Connection error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Submit transfer'; }
     });
   </script>
