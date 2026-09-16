@@ -733,7 +733,7 @@ const ONCALL_SKINS = {
               id: 'banking-transfer-slow',
               label: 'Scoring runs extremely slow',
               sev: 'High',
-              text: 'Our credit team is telling us Integral IQ scoring runs take forever now. You submit a run and the button sits there for a good ten seconds before results come back. Any portfolio, any run tier, every time. It does complete, it is just painfully slow, and it started today.',
+              text: 'Our credit team is telling us Integral IQ scoring runs take forever now. You submit a run and the button sits there for a good ten seconds before results come back. Any portfolio on the standard run tier, every time. It does complete, it is just painfully slow, and it started today.',
             },
             {
               id: 'banking-payroll-cutoff',
