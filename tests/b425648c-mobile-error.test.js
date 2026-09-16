@@ -258,6 +258,7 @@ describe('FPL My Account app failure report (b425648c)', () => {
     });
 
     afterAll((done) => {
+      server.closeAllConnections();
       server.close(done);
     });
 

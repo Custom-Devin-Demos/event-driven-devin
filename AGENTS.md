@@ -68,7 +68,7 @@ Customer skins receive the alerts surface by default. Optional `bugPortal` and `
 
 **On-call (`/oncall`) cards never route to a real person.** Their *Owner* field is a scenario persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on an on-call card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
 
-**Customer-vertical alert cards (`postAlertToSlack`) always name a real owner and never a made-up one.** The *On-Call* field is `onCallText()`: the `slackMemberId` the vertical passed to `createSessionAndAlert`, else the member resolved from `devinEmail`, else `slackMemberIdFallback`, else Russell (`DEFAULT_ONCALL_SLACK_MEMBER_ID`, overridable with `DEMO_ONCALL_SLACK_MEMBER_ID`). Every custom demo vertical passes `slackMemberId` explicitly — Russell unless the person who commissioned the demo named someone else — and the Devin session is created as that same person (`devinUserId`), so Slack and Devin agree on who owns the incident. A fictional name in that field reads to the audience as a real teammate, which is why the persona fallback was removed from this path; do not reintroduce one.
+**Customer-vertical alert cards (`postAlertToSlack`) name a real owner or nobody — never a made-up one.** The *On-Call* field is `onCallText()`: the `slackMemberId` the vertical passed to `createSessionAndAlert`, else the member resolved from `devinEmail`, else `slackMemberIdFallback`, else the opt-in `DEMO_ONCALL_SLACK_MEMBER_ID`, else `_Unassigned_` (`ONCALL_UNASSIGNED_TEXT`) with no @-mention. Every custom demo vertical passes `slackMemberId` explicitly — Russell unless the person who commissioned the demo named someone else — and the Devin session is created as that same person (`devinUserId`), so Slack and Devin agree on who owns the incident. A fictional name in that field reads to the audience as a real teammate, which is why the persona fallback was removed from this path; do not reintroduce one.
 
 ### Payer welcome-season scenario
 
@@ -508,7 +508,7 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
-| `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as *On-Call* on customer-vertical alert cards whose vertical names no owner (default Russell, `U08S7AVJ478`). Must be a real member; a made-up name is never rendered | No |
+| `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as *On-Call* on customer-vertical alert cards whose vertical names no owner and whose run supplied no hub email. Unset, the field reads `_Unassigned_` and nobody is mentioned. Must be a real member; a made-up name is never rendered | No |
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
 | `SLACK_ONCALL_ALERTS_CHANNEL_ID` | Channel ID for on-call (`/oncall`) alert + incident posts | For on-call alerts |
