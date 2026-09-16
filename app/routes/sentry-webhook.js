@@ -8,6 +8,7 @@ const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require
 const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
 const { APP_REMEDIATION_DIRECTIVE: COMED_REMEDIATION_DIRECTIVE } = require('../services/verticals/d08b052d');
 const { APP_REMEDIATION_DIRECTIVE: FPL_REMEDIATION_DIRECTIVE } = require('../services/verticals/b425648c');
+const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
 
 const router = express.Router();
 
@@ -144,7 +145,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe'];
 
 function isInstantPathEvent(alertData) {
   const hasInstantTag = (alertData.tags || []).some((tag) => {
@@ -344,6 +345,23 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-b425648c-mobile',
       service: 'customer-b425648c-mobile',
       scenario: 'outage-report-restoration',
+    },
+  },
+  // NVIDIA GeForce NOW native SwiftUI app (github.com/Custom-Devin-Demos/
+  // nvidia-geforce-now-demo-app), iOS only. Reports arrive via
+  // /api/315f52fe/ios/error; remediation lands in the Swift repo and is
+  // verified on the iOS simulator from a macOS session.
+  '315f52fe': {
+    customer: '315f52fe',
+    verticalLabel: 'NVIDIA',
+    service: 'customer-315f52fe-ios',
+    project: 'geforce-now-ios',
+    release: 'geforce-now-ios@1.0.0',
+    promptAppendix: NVIDIA_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-315f52fe-ios',
+      service: 'customer-315f52fe-ios',
+      scenario: 'play-ultimate-rig-profile',
     },
   },
 };
