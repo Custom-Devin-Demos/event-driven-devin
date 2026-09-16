@@ -1688,6 +1688,22 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace & On-Call Administration',
     disclaimer: 'NOT ACTUALLY A ROOTLY SITE — internal demo only, not affiliated with, endorsed by, or a real Rootly Inc. product.',
   },
+  '3555266e': {
+    slug: '3555266e',
+    company: 'Revolut',
+    brandMark: 'R',
+    vertical: 'banking',
+    page: { file: '3555266e.html', title: 'International Transfers | Revolut US' },
+    theme: {
+      '--accent': '#1F1F1F',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#191C1F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Revolut Support',
+    disclaimer: 'NOT ACTUALLY A REVOLUT SITE — internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
+  },
 };
 
 function getOncallSkin(slug) {
