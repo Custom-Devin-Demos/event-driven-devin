@@ -195,11 +195,18 @@ function reportAppFailure(report) {
   error.name = errorType;
   if (stackTrace) error.stack = `${errorType}: ${errorMessage}\n${stackTrace}`;
 
-  Sentry.captureException(error, {
-    tags: { ...tags, alert_path: 'instant' },
-    extra: {
-      reference, release, environment, osVersion, appVersion, launch, sentryEventId: report.sentryEventId,
-    },
+  // The Swift frames above carry no Node module path, so Sentry derives the
+  // issue culprit from the transaction; naming it after the route keeps the
+  // customer slug in `issue.culprit` for tagless issue webhooks
+  // (isInstantPathEvent in app/routes/sentry-webhook.js).
+  Sentry.withScope((scope) => {
+    scope.setTransactionName(`POST ${ERROR_PATH}`);
+    Sentry.captureException(error, {
+      tags: { ...tags, alert_path: 'instant' },
+      extra: {
+        reference, release, environment, osVersion, appVersion, launch, sentryEventId: report.sentryEventId,
+      },
+    });
   });
 
   const raiseAlert = (devinUserId) => createSessionAndAlert({

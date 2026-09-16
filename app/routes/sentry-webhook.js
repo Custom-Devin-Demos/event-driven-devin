@@ -488,3 +488,4 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
 module.exports = router;
 module.exports.applyCustomerIdentity = applyCustomerIdentity;
 module.exports.isInstantPathEvent = isInstantPathEvent;
+module.exports.extractAlertData = extractAlertData;

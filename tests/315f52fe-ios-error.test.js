@@ -12,7 +12,14 @@ jest.mock('../app/services/devin-api', () => ({
 }));
 
 jest.mock('../app/telemetry/sentry', () => ({
-  Sentry: { captureException: jest.fn() },
+  Sentry: {
+    captureException: jest.fn(),
+    withScope: jest.fn((callback) => {
+      const scope = { setTransactionName: jest.fn() };
+      callback(scope);
+      return scope;
+    }),
+  },
   initSentry: jest.fn(),
 }));
 
@@ -34,7 +41,7 @@ const {
 } = require('../app/services/verticals/315f52fe');
 const router = require('../app/routes/verticals/315f52fe');
 const { getCustomerConfig } = require('../config/customers');
-const { applyCustomerIdentity, isInstantPathEvent } = require('../app/routes/sentry-webhook');
+const { applyCustomerIdentity, extractAlertData, isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const verticals = require('../app/routes/verticals');
 
 const ORG_ID = 'org-a26acd61afbe4ff3b0c531026e2cbce5';
@@ -178,6 +185,11 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
       alert_path: 'instant',
       rig_class: 'rtx5080',
     });
+    // Swift frames give Sentry no module path, so the transaction is what
+    // ends up in the issue culprit; it must carry the slug for tagless webhooks.
+    expect(Sentry.withScope).toHaveBeenCalledTimes(1);
+    const scope = Sentry.withScope.mock.results[0].value;
+    expect(scope.setTransactionName).toHaveBeenCalledWith('POST /api/315f52fe/ios/error');
 
     expect(incrementMetric).toHaveBeenCalledWith('play.launch.failure', expect.objectContaining({
       route: '/api/315f52fe/ios/error',
@@ -294,6 +306,26 @@ describe('NVIDIA GeForce NOW iOS failure report (315f52fe)', () => {
       culprit: 'StreamProfileRegistry.profile(for:device:)',
       tags: [['service', 'customer-315f52fe-ios'], ['alert_path', 'instant']],
     })).toBe(true);
+  });
+
+  test('tagless issue webhook for the captured Swift error is recognized via the transaction culprit', () => {
+    const alertData = extractAlertData({
+      action: 'created',
+      data: {
+        issue: {
+          id: '4242',
+          title: 'StreamProfileError.unregisteredRig: No stream profile registered for rig class rtx5080 (GeForce RTX 5080 SuperPOD) on iPhone',
+          culprit: 'POST /api/315f52fe/ios/error',
+          metadata: {
+            type: 'StreamProfileError.unregisteredRig',
+            value: 'No stream profile registered for rig class rtx5080 (GeForce RTX 5080 SuperPOD) on iPhone',
+          },
+          permalink: 'https://sentry-org.sentry.io/issues/4242/',
+        },
+      },
+    });
+    expect(alertData.tags).toEqual([]);
+    expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
   describe('HTTP routes', () => {
