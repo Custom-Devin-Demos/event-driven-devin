@@ -286,7 +286,7 @@ We were also told the four other companies in the batch are being held because o
         <div class="ticket-side">
           <label class="toggle" for="ticket-split">
             <input id="ticket-split" type="checkbox" checked>
-            <div><div class="t">File one ticket per symptom</div><div class="d">Each paragraph becomes its own ticket, so the triage responder opens a separate investigation thread for each problem.</div></div>
+            <div><div class="t">File as parent ticket with sub-tickets</div><div class="d">One parent ticket for the report, with each paragraph filed as a numbered sub-ticket in its thread (GUS-1041 &rarr; GUS-1041.1, .2, .3) so triage can fan one investigation out per symptom.</div></div>
           </label>
           <div class="hint">Tickets post as <strong>Gusto Support</strong> with the reporter, product area, and severity above, stamped as submitted from this console. Preview: <span id="ticket-preview">3 tickets</span>.</div>
           <button class="cta secondary" id="ticket-submit" type="submit">Escalate to engineering</button>
@@ -436,7 +436,7 @@ We were also told the four other companies in the batch are being held because o
 
     function updateTicketPreview() {
       const count = ticketSplit.checked ? countSymptoms(ticketText.value) : 1;
-      document.getElementById('ticket-preview').textContent = count + (count === 1 ? ' ticket' : ' tickets');
+      document.getElementById('ticket-preview').textContent = count === 1 ? '1 ticket' : '1 parent ticket + ' + count + ' sub-tickets';
     }
 
     function showTicketResult(kind, title, tech) {
@@ -468,13 +468,16 @@ We were also told the four other companies in the batch are being held because o
         });
         const payload = await response.json();
         const n = payload.ticketCount || 0;
+        const filed = payload.parentTicket
+          ? 'Parent ticket ' + payload.ticketId + ' filed with ' + n + ' sub-tickets'
+          : 'Ticket ' + (payload.ticketId || '') + ' filed';
         if (payload.ok) {
-          showTicketResult('success', n + (n === 1 ? ' ticket filed' : ' tickets filed') + ' with engineering.', 'Posted to the on-call bugs channel as ' + payload.supportCenter + '.\nEach ticket gets its own triage thread — watch Slack.');
+          showTicketResult('success', filed + ' with engineering.', 'Posted to the on-call bugs channel as ' + payload.supportCenter + '.\n' + (payload.parentTicket ? 'Sub-tickets are threaded under the parent — mention @Devin there with "swarm this ticket" to open one child session per sub-ticket.' : 'The ticket gets its own triage thread — watch Slack.'));
         } else if (payload.skipped) {
-          showTicketResult('info', 'Ticket prepared, but Slack is not configured on this environment.', n + (n === 1 ? ' ticket' : ' tickets') + ' would have posted to the on-call bugs channel.\nSet SLACK_ONCALL_BUGS_CHANNEL_ID and the bot token to deliver.');
+          showTicketResult('info', 'Ticket prepared, but Slack is not configured on this environment.', (payload.parentTicket ? '1 parent ticket + ' + n + ' sub-tickets' : '1 ticket') + ' would have posted to the on-call bugs channel.\nSet SLACK_ONCALL_BUGS_CHANNEL_ID and the bot token to deliver.');
         } else if (payload.code === 'PARTIAL_DELIVERY') {
           const landed = (payload.tickets || []).length;
-          showTicketResult('error', landed + ' of ' + n + ' tickets filed before Slack failed.', payload.error + '\nDo not resubmit the whole report — file the remaining symptom(s) separately.');
+          showTicketResult('error', landed + ' of ' + n + ' sub-tickets filed before Slack failed.', payload.error + '\nDo not resubmit the whole report — file the remaining symptom(s) separately.');
         } else {
           showTicketResult('error', 'Could not file the ticket.', (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'SUPPORT_TICKET_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
         }

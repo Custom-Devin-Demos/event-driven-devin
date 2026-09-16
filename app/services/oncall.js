@@ -639,9 +639,11 @@ async function postOncallAlert(scenarioId, options = {}) {
 
 /**
  * Post a human-style bug report to the On-Call bugs channel.
- * Accepts either a canned scenario id or free-form text.
+ * Accepts either a canned scenario id or free-form text. With `threadTs` the
+ * ticket is filed as a sub-ticket in that parent ticket's thread; `ticketId`
+ * is shown in the header the way a support tool labels a case.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl, threadTs, ticketId, parentTicketId }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
   const template = findBugTemplate(templateId);
@@ -690,8 +692,13 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
       : null;
     const centerName = supportCenter || 'Acme Support Center';
     const centerSlug = centerName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const label = ticketId ? ` ${ticketId}` : '';
+    const heading = threadTs
+      ? `:page_facing_up: Sub-ticket${label} — ${centerName}`
+      : `:inbox_tray: New support ticket${label} — ${centerName}`;
     message = [
-      `:inbox_tray: New support ticket — ${centerName}`,
+      heading,
+      parentTicketId ? `Parent ticket: ${parentTicketId}` : null,
       reportedBy ? `Reported by: ${reportedBy}` : null,
       productArea ? `Product area: ${productArea}` : null,
       severity ? `Severity: ${severity}` : null,
@@ -701,8 +708,9 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
       submittedFrom ? `Submitted from: ${submittedFrom}` : null,
     ].filter((l) => l !== null).join('\n');
     blocks = [
-      headerBlock(`:inbox_tray: New support ticket — ${centerName}`),
+      headerBlock(heading),
       ...fieldPairs([
+        parentTicketId ? ['Parent ticket', parentTicketId] : null,
         reportedBy ? ['Reported by', reportedBy] : null,
         productArea ? ['Product area', productArea] : null,
         severity ? ['Severity', severity] : null,
@@ -714,7 +722,9 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
 
   let ts;
   try {
-    ts = await postMessage(token, bugsChannel, message, blocks);
+    ts = threadTs
+      ? await postThreadReply(token, bugsChannel, threadTs, message, blocks)
+      : await postMessage(token, bugsChannel, message, blocks);
   } catch (error) {
     // Keep observable state consistent with what was announced: if the ticket
     // never posted, don't leave the app silently degraded for the full window.
@@ -727,6 +737,8 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     activated,
     channel: bugsChannel,
     ts,
+    threadTs: threadTs || null,
+    ticketId: ticketId || null,
   });
   return {
     ok: true,
