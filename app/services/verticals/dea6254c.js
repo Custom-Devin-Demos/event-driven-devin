@@ -182,10 +182,25 @@ function buildStatementPeriod() {
 }
 
 /**
- * Look up the NAV strike for a fund on the statement date.
+ * Look up the NAV strike for a fund as of the statement date. Funds that
+ * publish NAV less frequently than the reporting calendar (e.g. quarterly)
+ * are carried at their most recent strike on or before the statement date.
  */
 function resolveValuationPoint(fund, asOf) {
-  return fund.navHistory.find((point) => point.asOf === asOf);
+  return fund.navHistory
+    .filter((point) => point.asOf <= asOf)
+    .sort((a, b) => (a.asOf < b.asOf ? 1 : -1))[0];
+}
+
+function requireValuationPoint(fund, asOf) {
+  const point = resolveValuationPoint(fund, asOf);
+  if (!point) {
+    throw new ValidationError(
+      `Fund ${fund.code} has no NAV strike on or before ${asOf}`,
+      'NAV_NOT_AVAILABLE',
+    );
+  }
+  return point;
 }
 
 function resolveShareClassTerms(fund, shareClass) {
@@ -203,7 +218,7 @@ function resolveShareClassTerms(fund, shareClass) {
 function valueHolding(holding, period) {
   const fund = resolveFund(holding.fundCode);
   const terms = resolveShareClassTerms(fund, holding.shareClass);
-  const current = resolveValuationPoint(fund, period.asOf);
+  const current = requireValuationPoint(fund, period.asOf);
   const prior = resolveValuationPoint(fund, period.priorAsOf);
 
   const marketValue = roundMoney(holding.units * current.navPerUnit);
@@ -384,6 +399,9 @@ async function openPortalSession(data) {
 
 module.exports = {
   openPortalSession,
+  valueHolding,
+  resolveValuationPoint,
+  buildStatementPeriod,
   FUNDS,
   INVESTORS,
   REPORTING_CALENDAR,
