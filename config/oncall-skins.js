@@ -1778,6 +1778,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Sales & Trading Desk Support',
     disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
   },
+  'e7f54d10': {
+    slug: 'e7f54d10',
+    company: 'InstaLILY',
+    brandMark: 'IL',
+    vertical: 'hightech',
+    page: {
+      file: 'e7f54d10.html',
+      title: 'InstaControl™ — Agent seats | InstaLILY',
+    },
+    theme: {
+      '--accent': '#2E6B45',
+      '--ink': '#0A0A0A',
+      '--surface': '#F2F3EC',
+      '--chrome-bg': '#0A0A0A',
+      '--chrome-text': '#F2F3EC',
+    },
+    supportCenter: 'InstaLILY Support',
+    disclaimer: 'NOT ACTUALLY AN INSTALILY SITE — internal demo only, not affiliated with, endorsed by, or a real InstaLILY product.',
+  },
 };
 
 function getOncallSkin(slug) {

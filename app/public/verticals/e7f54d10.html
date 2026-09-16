@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstaControl™ — Agent seats | InstaLILY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --ink-2: #565656;
+      --paper: #f2f3ec;
+      --paper-2: #e9eae0;
+      --white: #ffffff;
+      --chrome: #0a0a0a;
+      --chrome-2: #161616;
+      --chrome-line: #2a2a2a;
+      --green: #2e6b45;
+      --green-deep: #193a29;
+      --sage: #8fb29c;
+      --mint: #3bd27a;
+      --line: #d9dbd0;
+      --sans: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
+      --mono: 'IBM Plex Mono', 'dmMono', ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+    }
+    .eyebrow .leaf { width: 12px; height: 12px; border-radius: 3px 8px 3px 8px; background: var(--green); flex: none; }
+    .wrap { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+
+    /* ---------- header ---------- */
+    header.site {
+      background: var(--chrome); color: var(--paper);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .site-bar { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--paper); }
+    .logo svg { width: 30px; height: 30px; flex: none; }
+    .logo .wordmark { font-family: var(--mono); font-size: 13px; letter-spacing: 0.2em; line-height: 1.05; text-transform: uppercase; }
+    nav.pill {
+      display: flex; gap: 4px; background: var(--chrome-2); border: 1px solid var(--chrome-line);
+      border-radius: 999px; padding: 4px;
+    }
+    nav.pill a {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      padding: 10px 14px; border-radius: 999px; color: #d9dbd0; min-height: 40px; display: inline-flex; align-items: center;
+    }
+    nav.pill a.on, nav.pill a:hover { background: #2a2a2a; color: var(--white); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      min-height: 44px; padding: 0 18px; border-radius: 6px; border: 1px solid transparent; cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .btn-ghost { background: var(--paper); color: var(--ink); }
+    .btn-ghost:hover { background: var(--white); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: var(--green-deep); }
+    .btn-primary:disabled { background: var(--sage); cursor: progress; }
+
+    /* ---------- hero ---------- */
+    .hero { background: var(--chrome); color: var(--paper); padding: 56px 0 72px; }
+    .hero .eyebrow { color: var(--paper); }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; margin-top: 36px; }
+    .hero h1 { font-size: clamp(36px, 4.4vw, 56px); font-weight: 400; line-height: 1.08; letter-spacing: -0.02em; }
+    .hero p.lede { margin-top: 28px; font-size: 17px; color: #c9cbc0; max-width: 46ch; }
+    .trace { display: grid; gap: 14px; font-family: var(--mono); font-size: 12px; }
+    .trace .card { background: #1c1c1c; border: 1px solid #2f2f2f; border-radius: 8px; overflow: hidden; }
+    .trace .card h4 { font-weight: 500; font-size: 12px; padding: 10px 14px; background: #262626; color: #f2f3ec; letter-spacing: 0.02em; }
+    .trace .card ul { list-style: none; }
+    .trace .card li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 14px; border-top: 1px solid #2f2f2f; color: #bfc2b6; }
+    .trace .card li b { font-weight: 400; color: var(--mint); }
+    .trace .card li .tag { border: 1px solid var(--sage); color: var(--sage); border-radius: 999px; padding: 1px 8px; font-size: 10px; letter-spacing: 0.1em; }
+    .trace .card li .tag.allow { background: var(--green); border-color: var(--green); color: var(--white); }
+
+    /* ---------- section ---------- */
+    section.block { padding: 80px 0; }
+    section.block h2 { font-size: clamp(30px, 3.4vw, 42px); font-weight: 400; line-height: 1.1; letter-spacing: -0.02em; margin-top: 28px; max-width: 18ch; }
+    section.block p.sub { margin-top: 20px; color: var(--ink-2); font-size: 16px; max-width: 58ch; }
+    .layers { display: grid; gap: 14px; margin-top: 36px; }
+    .layer {
+      border: 1px solid var(--line); border-radius: 8px; padding: 18px 22px; background: var(--white);
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    }
+    .layer.top { border-color: var(--green); }
+    .layer .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
+    .layer .n { font-size: 18px; margin-top: 4px; }
+    .layer .d { color: var(--ink-2); font-size: 14px; margin-top: 4px; }
+    .layer .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; border: 1px solid var(--green); color: var(--green); border-radius: 999px; padding: 6px 12px; }
+
+    /* ---------- provision panel ---------- */
+    .panel-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: start; }
+    .provision {
+      background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 32px;
+      box-shadow: 0 1px 0 rgba(10, 10, 10, 0.04);
+    }
+    .provision h3 { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; }
+    .provision p.note { color: var(--ink-2); font-size: 14px; margin-top: 6px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-2); }
+    select, input[type="number"] {
+      font-family: var(--sans); font-size: 15px; color: var(--ink);
+      background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+      min-height: 46px; padding: 0 14px; width: 100%; appearance: none; -webkit-appearance: none;
+    }
+    select { background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px; background-size: 5px 5px; background-repeat: no-repeat; }
+    select:focus, input:focus { outline: 2px solid var(--green); outline-offset: 1px; }
+    select:disabled { color: var(--ink-2); }
+    .field-hint { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+    .btn-provision { width: 100%; margin-top: 26px; min-height: 48px; }
+    .request-status { font-family: var(--mono); font-size: 12px; color: var(--ink-2); margin-top: 14px; text-align: center; }
+    .result-box { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 6px; font-size: 14px; line-height: 1.5; border: 1px solid var(--line); }
+    .result-box.success { display: block; background: #e8f1ea; border-color: var(--sage); color: var(--green-deep); }
+    .result-box.error { display: block; background: #f7ebe8; border-color: #d8a49a; color: #6b2a1f; }
+    .result-box .error-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+
+    .plane { display: grid; gap: 14px; margin-top: 36px; }
+    .plane .row { display: flex; justify-content: space-between; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); font-size: 15px; }
+    .plane .row:last-child { border-bottom: 1px solid var(--line); }
+    .plane .row .k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
+    .plane .row .v { text-align: right; }
+
+    /* ---------- footer ---------- */
+    footer.site { background: var(--chrome); color: #c9cbc0; padding: 64px 0 40px; margin-top: 40px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 32px; }
+    .foot-grid h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #8b8d84; margin-bottom: 14px; }
+    .foot-grid ul { list-style: none; display: grid; gap: 10px; font-size: 14px; }
+    .foot-grid a:hover { color: var(--white); }
+    .foot-legal { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--chrome-line); font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: #8b8d84; }
+
+    @media (max-width: 900px) {
+      nav.pill { display: none; }
+      .hero-grid, .panel-grid { grid-template-columns: 1fr; gap: 36px; }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .wrap { width: calc(100% - 32px); }
+      .site-bar { height: 64px; }
+      .logo .wordmark { display: none; }
+      .hero { padding: 40px 0 48px; }
+      section.block { padding: 56px 0; }
+      .form-row { grid-template-columns: 1fr; }
+      .provision { padding: 22px; }
+      .plane .row { flex-direction: column; gap: 4px; }
+      .plane .row .v { text-align: left; }
+      .foot-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site" id="top">
+    <div class="wrap site-bar">
+      <a class="logo" href="#top" aria-label="InstaLILY home">
+        <svg viewBox="0 0 30 30" aria-hidden="true" fill="none" stroke="#f2f3ec" stroke-width="2.4" stroke-linecap="square">
+          <rect x="3" y="3" width="24" height="24" rx="4"/>
+          <path d="M9 9v12M15 9v12h6"/>
+        </svg>
+        <span class="wordmark">Insta<br>Lily</span>
+      </a>
+      <nav class="pill" aria-label="Primary">
+        <a href="#top" class="on">Products</a>
+        <a href="#top">Solutions</a>
+        <a href="#top">Case Studies</a>
+        <a href="#top">Media</a>
+        <a href="#top">About</a>
+      </nav>
+      <a class="btn btn-ghost" href="#provision">Book a demo &nearr;</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow"><span class="leaf"></span>InstaControl™ · Agent control plane</span>
+      <div class="hero-grid">
+        <div>
+          <h1>Accuracy gets an agent approved. Evidence gets it deployed.</h1>
+          <p class="lede">Who authorized this, what did it touch, what did it cost, and can you prove it six months from now. InstaControl™ answers all four, for every action, before it runs and after.</p>
+        </div>
+        <div class="trace" aria-label="One agent action passing through InstaControl">
+          <div class="card">
+            <h4>Agent</h4>
+            <ul>
+              <li><span>Run</span><b>quote.reprice.v3</b></li>
+              <li><span>Purpose</span><span>repricing</span></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>InstaControl™</h4>
+            <ul>
+              <li><span>Access</span><span>role + purpose <span class="tag">bound</span></span></li>
+              <li><span>Policy</span><span><b>margin_floor.v4</b> <span class="tag allow">allow</span></span></li>
+              <li><span>Approval</span><span>24% over 20% <span class="tag">held</span></span></li>
+              <li><span>Cost</span><b>$0.11 · 18.4k tok</b></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h4>Your Postgres</h4>
+            <ul>
+              <li><span>Trace</span><b>6 links · 0 gaps</b></li>
+              <li><span>Outcome</span><b>margin 31 → 38%</b></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="wrap">
+      <span class="eyebrow"><span class="leaf"></span>Where it sits</span>
+      <h2>Three layers. You control the top one.</h2>
+      <p class="sub">Knowledge underneath, execution in the middle, your controls on top. The same three layers whether the work is quoting, dispatch, or field service.</p>
+      <div class="layers">
+        <div class="layer top">
+          <div><div class="k">Control and audit</div><div class="n">InstaControl™</div><div class="d">Who may act, what it costs, what it did.</div></div>
+          <span class="tag">You control this</span>
+        </div>
+        <div class="layer">
+          <div><div class="k">Execution</div><div class="n">InstaWorkers™</div><div class="d">The agents and workflows that do the work.</div></div>
+        </div>
+        <div class="layer">
+          <div><div class="k">Knowledge and memory</div><div class="n">InstaBrain™</div><div class="d">What the business knows, kept current.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="provision" style="background: var(--paper-2);">
+    <div class="wrap panel-grid">
+      <div>
+        <span class="eyebrow"><span class="leaf"></span>Deployment</span>
+        <h2>Add agent seats to a workflow.</h2>
+        <p class="sub">Seats are bound to a workflow, a plan, and a data region. Every seat added is written to your Postgres as an approval record before the first action runs.</p>
+        <div class="plane">
+          <div class="row"><span class="k">Policy</span><span class="v">Runtime middleware, not prompts</span></div>
+          <div class="row"><span class="k">Approval</span><span class="v">Route and timeout per capability</span></div>
+          <div class="row"><span class="k">Trace</span><span class="v">Hash-chained steps, your database</span></div>
+          <div class="row"><span class="k">Deployment</span><span class="v">Single-tenant cloud, on-prem, air-gapped</span></div>
+        </div>
+      </div>
+      <div class="provision">
+        <h3>Provision agent seats</h3>
+        <p class="note">New seats inherit the workflow's policy set and approval routes.</p>
+        <form id="provisionForm">
+          <div class="form-group">
+            <label for="product">Workflow</label>
+            <select id="product">
+              <option value="instaquote">InstaQuote — Quote-to-Order</option>
+              <option value="instaprospect">InstaProspect — Lead Gen</option>
+              <option value="instacoach">InstaCoach — Field Coaching</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="seats">Agent seats</label>
+              <input id="seats" type="number" min="1" max="250" step="1" value="12" required aria-describedby="seats-hint">
+              <span class="field-hint" id="seats-hint">1–250 seats per request</span>
+            </div>
+            <div class="form-group">
+              <label for="planTier">Plan</label>
+              <select id="planTier">
+                <option value="business">Business</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="region">Data region</label>
+            <select id="region" aria-describedby="region-hint" disabled>
+              <option value="eu-west">EU West · single-tenant</option>
+            </select>
+            <span class="field-hint" id="region-hint">Region is fixed by the workflow's tenancy.</span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-provision" id="submitBtn">Provision seats &rarr;</button>
+          <p class="request-status" id="requestStatus" role="status">Example workflow. No real account changes.</p>
+        </form>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo" href="#top" aria-label="InstaLILY home">
+            <svg viewBox="0 0 30 30" aria-hidden="true" fill="none" stroke="#f2f3ec" stroke-width="2.4" stroke-linecap="square">
+              <rect x="3" y="3" width="24" height="24" rx="4"/>
+              <path d="M9 9v12M15 9v12h6"/>
+            </svg>
+            <span class="wordmark">Insta<br>Lily</span>
+          </a>
+          <p style="margin-top:18px;font-size:14px;max-width:32ch;">Lily is the first AI Forward Deployed Engineer. New York · San Francisco · London.</p>
+        </div>
+        <div><h4>Products</h4><ul><li><a href="#top">Platform</a></li><li><a href="#top">Lily</a></li><li><a href="#top">InstaBrain™</a></li><li><a href="#top">InstaControl / Agent Control</a></li><li><a href="#top">InstaQuote / Quote-to-Order</a></li></ul></div>
+        <div><h4>Solutions</h4><ul><li><a href="#top">Industrial Distribution &amp; MRO</a></li><li><a href="#top">Manufacturing &amp; OEM</a></li><li><a href="#top">Field Service</a></li><li><a href="#top">Supply Chain &amp; Logistics</a></li></ul></div>
+        <div><h4>Media</h4><ul><li><a href="#top">News</a></li><li><a href="#top">AI Dispatch</a></li><li><a href="#top">Events</a></li></ul></div>
+        <div><h4>About</h4><ul><li><a href="#top">Team</a></li><li><a href="#top">Careers</a></li><li><a href="#top">Security</a></li></ul></div>
+      </div>
+      <div class="foot-legal"><span>&copy; 2026 InstaLILY, Inc. All rights reserved.</span><a href="#top">Terms of Service</a><a href="#top">Privacy Policy</a></div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const started = performance.now();
+      button.disabled = true;
+      button.textContent = 'Provisioning…';
+      form.setAttribute('aria-busy', 'true');
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Request in progress…';
+      const timer = setInterval(() => {
+        status.textContent = `Request in progress · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      try {
+        const response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: document.getElementById('planTier').value,
+            seats: Number(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        result.className = 'result-box success';
+        result.textContent = `${data.seatsAdded} agent seats provisioned. Policy set and approval routes applied.`;
+      } catch (error) {
+        result.className = 'result-box error';
+        result.textContent = `Seats could not be provisioned. ${error.message}`;
+      } finally {
+        clearInterval(timer);
+        status.textContent = `Request finished in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        form.removeAttribute('aria-busy');
+        button.disabled = false;
+        button.textContent = 'Provision seats →';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
