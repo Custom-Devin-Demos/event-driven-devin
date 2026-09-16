@@ -713,7 +713,7 @@
             <select id="accountTier" name="accountTier">
               <option value="standard" selected>Standard</option>
               <option value="premium">Premium</option>
-              <option value="basic">Metal</option>
+              <option value="basic">Plus</option>
             </select>
           </span>
         </div>
@@ -881,10 +881,23 @@
 
       const RATES = { USD: 1, EUR: 0.92, GBP: 0.79, PLN: 3.98, MXN: 17.15, INR: 83.4 };
       const SYMBOL = { USD: "$", EUR: "€", GBP: "£", PLN: "zł", MXN: "MX$", INR: "₹" };
+      const FEES = {
+        premium: { rate: 0, min: 0 },
+        standard: { rate: 0.001, min: 2.5 },
+        basic: { rate: 0.002, min: 4.99 },
+      };
       const FLAG_BASE = "https://assets.revolut.com/assets/flags/";
 
       function selected(sel) {
         return sel.options[sel.selectedIndex];
+      }
+      function parseAmount() {
+        if (!amount.checkValidity()) return NaN;
+        return Math.round(parseFloat(amount.value) * 100) / 100;
+      }
+      function feeFor(plan, amt) {
+        const s = FEES[plan] || FEES.standard;
+        return Math.max(s.rate * amt, s.min);
       }
       function money(ccy, n) {
         const num = n.toLocaleString("en-US", {
@@ -904,7 +917,7 @@
           toOpt = selected(to),
           fromCcy = fromOpt.dataset.ccy,
           toCcy = toOpt.dataset.ccy,
-          amt = parseFloat(amount.value);
+          amt = parseAmount();
         setFlag(fromFlag, fromOpt.dataset.flag, fromCcy);
         setFlag(toFlag, toOpt.dataset.flag, toCcy);
         fromBalance.textContent = money(fromCcy, parseFloat(fromOpt.dataset.balance));
@@ -918,7 +931,7 @@
           feeLine.className = "v";
           return;
         }
-        const fee = tier.value === "standard" ? Math.max(0.6, amt * 0.005) : 0;
+        const fee = feeFor(tier.value, amt);
         recipientGets.textContent = money(toCcy, amt * rate);
         feeLine.textContent = fee ? money(fromCcy, fee) : "No fee";
         feeLine.className = fee ? "v" : "v free";
@@ -936,19 +949,19 @@
         e.preventDefault();
         const b = document.getElementById("submitBtn"),
           r = document.getElementById("result");
-        const amt = parseFloat(amount.value);
+        const amt = parseAmount();
         const fromOpt = selected(from),
           toOpt = selected(to);
-        if (!(amt > 0)) {
+        if (!(amt >= 1)) {
           r.className = "result-box error";
-          r.textContent = "Enter an amount to send.";
+          r.textContent = "Enter an amount of at least 1.00, with no more than two decimals.";
           amount.focus();
           return;
         }
-        if (amt > parseFloat(fromOpt.dataset.balance)) {
+        if (amt + feeFor(tier.value, amt) > parseFloat(fromOpt.dataset.balance)) {
           r.className = "result-box error";
           r.textContent =
-            "That's more than the available balance in this account. Lower the amount or top up first.";
+            "The amount plus the transfer fee is more than the available balance in this account. Lower the amount or top up first.";
           amount.focus();
           return;
         }
@@ -966,7 +979,7 @@
             body: JSON.stringify({
               fromAccount: from.value,
               toAccount: to.value,
-              amount: parseFloat(amount.value),
+              amount: amt,
               accountTier: tier.value,
               devinUserId: localStorage.getItem("devinUserId") || "",
               devinOrgId: localStorage.getItem("devinOrgId") || "",
