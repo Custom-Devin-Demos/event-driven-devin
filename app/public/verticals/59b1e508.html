@@ -540,19 +540,64 @@
       opacity: .42;
       text-decoration: none;
     }
+    .lookup-alert {
+      width: 823px;
+      max-width: 100%;
+      margin: 18px 0 0 100px;
+      padding: 16px 20px 16px 56px;
+      position: relative;
+      border: 1px solid rgb(214, 66, 66);
+      border-left: 6px solid rgb(214, 66, 66);
+      border-radius: 4px;
+      background: rgb(253, 240, 240);
+      color: rgb(37, 37, 37);
+      font-size: 16px;
+      line-height: 24px;
+    }
+    .lookup-alert::before {
+      content: '!';
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgb(214, 66, 66);
+      color: #fff;
+      font-weight: 700;
+      line-height: 24px;
+      text-align: center;
+    }
+    .lookup-alert strong {
+      display: block;
+      color: rgb(169, 34, 34);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .lookup-alert code {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: rgba(214, 66, 66, .12);
+      color: rgb(169, 34, 34);
+      font: 600 13px/20px Menlo, Consolas, monospace;
+    }
     .toast {
       position: fixed;
       right: 30px;
       bottom: 94px;
       z-index: 1200;
-      width: 330px;
-      padding: 12px 16px;
+      width: 360px;
+      padding: 14px 18px;
       transform: translateY(18px);
+      border-left: 5px solid rgb(214, 66, 66);
       border-radius: 6px;
-      background: rgba(0, 0, 0, .85);
+      background: rgba(0, 0, 0, .9);
       color: #fff;
-      font-size: 14px;
-      line-height: 20px;
+      font-size: 15px;
+      line-height: 22px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
       opacity: 0;
       pointer-events: none;
       transition: transform .25s ease, opacity .25s ease;
@@ -561,9 +606,11 @@
     .toast-label {
       display: block;
       margin-bottom: 3px;
-      color: #ddd;
-      font-size: 12px;
-      font-weight: 600;
+      color: rgb(255, 138, 138);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
     }
     @media (max-width: 1080px) {
       .nav-inner { padding: 0 30px; }
@@ -876,7 +923,23 @@
         toast.appendChild(document.createTextNode(String(errorClass) + ': ' + String(error)));
         toast.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 5500);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 8000);
+      }
+
+      function showLookupAlert(errorClass, error) {
+        var alert = document.createElement('div');
+        alert.className = 'lookup-alert';
+        alert.setAttribute('role', 'alert');
+        var title = document.createElement('strong');
+        title.textContent = 'Schedule lookup failed';
+        alert.appendChild(title);
+        alert.appendChild(document.createTextNode("We couldn't retrieve the schedule for that address. Please try again in a few minutes."));
+        alert.appendChild(document.createElement('br'));
+        var detail = document.createElement('code');
+        detail.textContent = String(errorClass) + ': ' + String(error);
+        alert.appendChild(detail);
+        loadingRegion.innerHTML = '';
+        loadingRegion.appendChild(alert);
       }
 
       function escapeHtml(value) {
@@ -950,7 +1013,8 @@
             viewButton.disabled = false;
             viewButton.textContent = 'VIEW MY SCHEDULE';
             if (!result.ok) {
-              errorMessage.textContent = "We couldn't retrieve the schedule for that address. Please try again.";
+              errorMessage.textContent = "We couldn't retrieve the schedule for that address.";
+              showLookupAlert(result.body.errorClass || 'Error', result.body.error || 'Unknown error');
               showToast(result.body.errorClass || 'Error', result.body.error || 'Unknown error');
               return;
             }
@@ -960,7 +1024,8 @@
             findButton.disabled = false;
             viewButton.disabled = false;
             viewButton.textContent = 'VIEW MY SCHEDULE';
-            errorMessage.textContent = "We couldn't retrieve the schedule for that address. Please try again.";
+            errorMessage.textContent = "We couldn't retrieve the schedule for that address.";
+            showLookupAlert(error.name || 'Error', error.message || 'Unknown error');
             showToast(error.name || 'Error', error.message || 'Unknown error');
           });
         }, 2000);
