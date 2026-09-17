@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balances and holdings | Vanguard</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #96151D;
+      --red-dark: #7A1017;
+      --blush: #FFEDED;
+      --blush-deep: #FBDCDC;
+      --ink: #1A1A1A;
+      --ink-2: #232323;
+      --muted: #666666;
+      --line: #DDDDDD;
+      --line-soft: #EDEDED;
+      --wash: #F7F5F4;
+      --white: #FFFFFF;
+      --black: #040505;
+      --green: #1B6B41;
+      --amber: #8A5A00;
+      --sans: 'Montserrat', 'FF Mark', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      --serif: Georgia, 'Times New Roman', serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--white); color: var(--ink); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    header.masthead { background: var(--white); border-bottom: 1px solid var(--line-soft); }
+    .mast-inner { max-width: 1280px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px; }
+    .wordmark { font-family: var(--serif); font-weight: 700; font-size: 27px; letter-spacing: -0.4px; color: var(--red); }
+    .mast-divider { width: 1px; height: 26px; background: var(--line); }
+    .mast-label { font-size: 14px; color: var(--muted); }
+    .mast-right { margin-left: auto; display: flex; align-items: center; gap: 26px; font-size: 12.5px; color: var(--ink); }
+    .mast-right a { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .mast-right svg { display: block; }
+
+    nav.primary { background: var(--white); border-bottom: 1px solid var(--line-soft); }
+    .nav-inner { max-width: 1280px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 30px; min-height: 58px; }
+    .nav-links { display: flex; align-items: center; gap: 30px; list-style: none; font-size: 15px; font-weight: 500; }
+    .nav-links a { padding: 17px 0; display: inline-block; }
+    .nav-links a.active { font-weight: 700; box-shadow: inset 0 -3px 0 var(--red); }
+    .pill { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--black); border-radius: 999px; padding: 9px 20px; font-size: 14.5px; font-weight: 600; background: var(--white); }
+    @media (max-width: 900px) { .nav-links { display: none; } .mast-right a span { display: none; } .mast-right { gap: 18px; } .pill { margin-left: auto; } }
+
+    .crumbs { max-width: 1280px; margin: 0 auto; padding: 14px 24px; font-size: 13.5px; color: var(--muted); }
+    .crumbs a { text-decoration: underline; }
+
+    .hero { background: var(--blush); }
+    .hero-inner { max-width: 1280px; margin: 0 auto; padding: 30px 24px 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .hero h1 { font-size: clamp(28px, 4.4vw, 42px); font-weight: 700; letter-spacing: -0.8px; line-height: 1.12; }
+    .hero p { margin-top: 8px; font-size: 14.5px; color: var(--ink-2); }
+    .hero .total { text-align: right; }
+    .hero .total .label { font-size: 13px; color: var(--ink-2); }
+    .hero .total .value { font-size: clamp(26px, 4vw, 34px); font-weight: 700; letter-spacing: -0.8px; }
+    .hero .total .delta { font-size: 13.5px; color: var(--green); font-weight: 600; }
+    @media (max-width: 640px) { .hero .total { text-align: left; } }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 26px 24px 60px; }
+
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    @media (max-width: 980px) { .cards { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px 18px; }
+    .card .label { font-size: 13px; color: var(--muted); }
+    .card .value { font-size: 24px; font-weight: 700; letter-spacing: -0.6px; margin-top: 5px; }
+    .card .meta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+    .card .meta.up { color: var(--green); }
+    .card .meta.warn { color: var(--amber); }
+
+    .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; align-items: start; margin-bottom: 24px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+    .panel h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+    .panel .sub { color: var(--muted); font-size: 13.5px; margin: 6px 0 18px; }
+
+    table.holdings { width: 100%; border-collapse: collapse; }
+    table.holdings th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 9px 0; border-bottom: 1px solid var(--line); }
+    table.holdings td { padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+    table.holdings tr:last-child td { border-bottom: none; }
+    table.holdings td.num, table.holdings th.num { text-align: right; white-space: nowrap; }
+    .ticker { font-weight: 700; }
+    .fundname { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .up { color: var(--green); }
+    .down { color: var(--red); }
+    @media (max-width: 720px) { table.holdings th:nth-child(2), table.holdings td:nth-child(2) { display: none; } }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+    select, input[type="number"] { width: 100%; height: 48px; padding: 0 36px 0 13px; border: 1px solid #8C8C8C; border-radius: 6px; background: var(--white); color: var(--ink); font-family: var(--sans); font-size: 15px; appearance: none; text-overflow: ellipsis; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23232323' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; }
+    input[type="number"] { padding-right: 13px; }
+    select:focus, input:focus { outline: none; border-color: var(--red); box-shadow: 0 0 0 3px rgba(150,21,29,0.14); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 26px; border-radius: 999px; font-family: var(--sans); font-size: 15px; font-weight: 600; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: var(--red); color: #fff; }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: var(--white); color: var(--ink); border-color: var(--black); }
+    .btn-outline:hover { background: var(--wash); }
+    #submitBtn { width: 100%; margin-top: 4px; }
+    .result-box { margin-top: 14px; padding: 13px 15px; border-radius: 6px; font-size: 14px; display: none; }
+    .result-box.success { display: block; background: rgba(27,107,65,0.06); border: 1px solid rgba(27,107,65,0.32); color: var(--green); }
+    .result-box.error { display: block; background: rgba(150,21,29,0.05); border: 1px solid rgba(150,21,29,0.32); color: var(--red); }
+    .result-box .error-title { font-weight: 700; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 13px; opacity: 0.92; word-break: break-word; }
+    .kv { list-style: none; font-size: 13.5px; color: var(--ink-2); margin-top: 18px; }
+    .kv li { padding: 9px 0; border-bottom: 1px solid var(--line-soft); display: flex; justify-content: space-between; gap: 12px; }
+    .kv li:last-child { border-bottom: none; }
+    .kv b { font-weight: 600; }
+
+    .table-wrap { background: var(--white); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .table-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; }
+    .table-head h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+    .table-head span { font-size: 13px; color: var(--muted); }
+    table.activity { width: 100%; border-collapse: collapse; }
+    table.activity th { text-align: left; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 22px; background: var(--wash); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    table.activity td { padding: 13px 22px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+    table.activity td.num, table.activity th.num { text-align: right; white-space: nowrap; }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 999px; font-size: 12px; white-space: nowrap; }
+    .status i { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+    .status.done { background: rgba(27,107,65,0.09); color: var(--green); }
+    .status.pending { background: #EFEDEC; color: var(--muted); }
+    .status.progress { background: rgba(150,21,29,0.08); color: var(--red); }
+    .table-foot { padding: 16px 22px; }
+    @media (max-width: 720px) { table.activity th:nth-child(3), table.activity td:nth-child(3) { display: none; } table.activity th, table.activity td { padding-left: 14px; padding-right: 14px; } }
+    @media (max-width: 560px) { table.activity th:nth-child(2), table.activity td:nth-child(2) { display: none; } }
+
+    footer { background: var(--wash); border-top: 4px solid var(--red); margin-top: 10px; }
+    .foot-inner { max-width: 1280px; margin: 0 auto; padding: 28px 24px 36px; }
+    .foot-links { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13.5px; }
+    .foot-links a { text-decoration: underline; }
+    .foot-legal { margin-top: 16px; font-size: 12px; color: var(--muted); max-width: 900px; }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="mast-inner">
+      <a class="wordmark" href="#" aria-label="Vanguard">Vanguard</a>
+      <span class="mast-divider" aria-hidden="true"></span>
+      <span class="mast-label">Personal investors</span>
+      <div class="mast-right">
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 2.5h10v15l-5-4-5 4v-15z" stroke="#1A1A1A" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          <span>My saves</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="5.6" stroke="#1A1A1A" stroke-width="1.4"/><path d="M13.2 13.2 17.5 17.5" stroke="#1A1A1A" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <span>Search</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.6" stroke="#1A1A1A" stroke-width="1.4"/><path d="M8 7.8a2 2 0 1 1 2.6 1.9c-.5.2-.6.6-.6 1v.6" stroke="#1A1A1A" stroke-width="1.4" stroke-linecap="round"/><circle cx="10" cy="14" r="0.9" fill="#1A1A1A"/></svg>
+          <span>Support</span>
+        </a>
+        <a href="#">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M12 3.5H16v13h-4" stroke="#1A1A1A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13.5 5.5 10 9 6.5M5.5 10H13" stroke="#1A1A1A" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Log out</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="primary">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="#" class="active">My accounts</a></li>
+        <li><a href="#">Transact</a></li>
+        <li><a href="#">Research &amp; news</a></li>
+        <li><a href="#">Planning</a></li>
+        <li><a href="#">Profile &amp; settings</a></li>
+      </ul>
+      <a href="#" class="pill">+ Open an account</a>
+    </div>
+  </nav>
+
+  <div class="crumbs"><a href="#">Home</a> &nbsp;/&nbsp; Balances and holdings</div>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>Balances and holdings</h1>
+        <p>Brokerage Account 8841-2270 &middot; Traditional IRA 6120-4417 &middot; As of today, 4:15 p.m., Eastern time</p>
+      </div>
+      <div class="total">
+        <div class="label">Total balance</div>
+        <div class="value">$1,210,266.58</div>
+        <div class="delta">+$4,812.65 (+0.40%) today</div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Brokerage Account</div>
+        <div class="value">$742,176.14</div>
+        <div class="meta up">+$3,204.18 today</div>
+      </div>
+      <div class="card">
+        <div class="label">Traditional IRA</div>
+        <div class="value">$468,090.44</div>
+        <div class="meta up">+$1,608.47 today</div>
+      </div>
+      <div class="card">
+        <div class="label">Settlement fund available</div>
+        <div class="value">$38,721.08</div>
+        <div class="meta">Vanguard Federal Money Market</div>
+      </div>
+      <div class="card">
+        <div class="label">Transfers in progress</div>
+        <div class="value">2</div>
+        <div class="meta warn">1 awaiting settlement</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Holdings</h2>
+        <div class="sub">Brokerage Account 8841-2270 &middot; priced at market close</div>
+        <table class="holdings">
+          <thead>
+            <tr><th>Investment</th><th class="num">Shares</th><th class="num">Price</th><th class="num">Balance</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="ticker">VTSAX</span><span class="fundname">Total Stock Market Index Adm</span></td>
+              <td class="num">1,842.117</td>
+              <td class="num">$142.18</td>
+              <td class="num">$261,912.20</td>
+            </tr>
+            <tr>
+              <td><span class="ticker">VFIAX</span><span class="fundname">500 Index Fund Admiral Shares</span></td>
+              <td class="num">386.402</td>
+              <td class="num">$521.64</td>
+              <td class="num">$201,562.74</td>
+            </tr>
+            <tr>
+              <td><span class="ticker">VTI</span><span class="fundname">Total Stock Market ETF</span></td>
+              <td class="num">640.000</td>
+              <td class="num">$278.41</td>
+              <td class="num">$178,182.40</td>
+            </tr>
+            <tr>
+              <td><span class="ticker">VBTLX</span><span class="fundname">Total Bond Market Index Adm</span></td>
+              <td class="num">6,410.552</td>
+              <td class="num">$9.64</td>
+              <td class="num">$61,797.72</td>
+            </tr>
+            <tr>
+              <td><span class="ticker">VMFXX</span><span class="fundname">Federal Money Market (settlement)</span></td>
+              <td class="num">38,721.080</td>
+              <td class="num">$1.00</td>
+              <td class="num">$38,721.08</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Transact &mdash; move money</h2>
+        <div class="sub">Transfer between your Vanguard accounts or out to a linked bank.</div>
+        <form id="transferForm">
+          <div class="form-group">
+            <label for="fromAccount">From</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Brokerage settlement fund &mdash; 8841-2270</option>
+              <option value="ACCT-1002">Cash Plus Account &mdash; 5530-1189</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="toAccount">To</label>
+            <select id="toAccount">
+              <option value="ACCT-EXT-001">Linked bank &mdash; Checking &bull;&bull;&bull;&bull;4417</option>
+              <option value="ACCT-EXT-002">Traditional IRA &mdash; 6120-4417</option>
+              <option value="ACCT-1002">Cash Plus Account &mdash; 5530-1189</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Amount (USD)</label>
+            <input type="number" id="amount" value="500" min="1" max="250000" step="0.01" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Service level</label>
+            <select id="accountTier">
+              <option value="standard">Standard &mdash; next business day</option>
+              <option value="premium">Flagship &mdash; pre-cleared relationship</option>
+              <option value="basic">Extended review &mdash; large withdrawal</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Submit transfer</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <ul class="kv">
+          <li><span>Cutoff for same-day</span><b>4:00 p.m., Eastern time</b></li>
+          <li><span>Settlement</span><b>T+1 for linked banks</b></li>
+          <li><span>Transfer limit</span><b>$250,000 per day</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <h2>Recent transactions</h2>
+        <span>Last 30 days</span>
+      </div>
+      <table class="activity">
+        <thead>
+          <tr><th>Date</th><th>Description</th><th>Account</th><th class="num">Amount</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mar 15</td><td>Transfer to linked bank &bull;&bull;&bull;&bull;4417</td><td>Brokerage 8841-2270</td><td class="num">&minus;$2,400.00</td><td><span class="status done"><i></i>Completed</span></td></tr>
+          <tr><td>Mar 14</td><td>Dividend &mdash; VFIAX</td><td>Brokerage 8841-2270</td><td class="num">$1,960.42</td><td><span class="status done"><i></i>Completed</span></td></tr>
+          <tr><td>Mar 13</td><td>Transfer to Traditional IRA</td><td>Brokerage 8841-2270</td><td class="num">&minus;$7,000.00</td><td><span class="status progress"><i></i>In progress</span></td></tr>
+          <tr><td>Mar 11</td><td>Buy &mdash; VTI, 12 shares</td><td>Brokerage 8841-2270</td><td class="num">&minus;$3,340.92</td><td><span class="status done"><i></i>Completed</span></td></tr>
+          <tr><td>Mar 08</td><td>Transfer from Cash Plus Account</td><td>Cash Plus 5530-1189</td><td class="num">$640.00</td><td><span class="status pending"><i></i>Pending</span></td></tr>
+          <tr><td>Mar 04</td><td>Dividend &mdash; VBTLX</td><td>Brokerage 8841-2270</td><td class="num">$212.18</td><td><span class="status done"><i></i>Completed</span></td></tr>
+        </tbody>
+      </table>
+      <div class="table-foot">
+        <button type="button" class="btn btn-outline">View all transactions</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-links">
+        <a href="#">Privacy Center</a>
+        <a href="#">Security Center</a>
+        <a href="#">Accessibility</a>
+        <a href="#">Mutual fund prospectuses</a>
+        <a href="#">Contact us</a>
+      </div>
+      <div class="foot-legal">
+        All investing is subject to risk, including the possible loss of the money you invest. Vanguard Marketing Corporation, Distributor of the Vanguard Funds. &copy; 2026 The Vanguard Group, Inc. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function syncDestinations() {
+      const from = document.getElementById('fromAccount');
+      const to = document.getElementById('toAccount');
+      const apply = () => {
+        for (const option of to.options) option.disabled = option.value === from.value;
+        if (to.selectedOptions[0].disabled) {
+          to.value = [...to.options].find((option) => !option.disabled).value;
+        }
+      };
+      from.addEventListener('change', apply);
+      apply();
+    })();
+
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const renderResult = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div');
+        t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div');
+        d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          renderResult('Transfer failed', `${data.errorClass}: ${data.error}`);
+        } else {
+          result.className = 'result-box success';
+          const receipt = data.receipt || {};
+          const debited = data.debitAmount || receipt.totalDebit;
+          const fee = data.fee || receipt.fee;
+          renderResult('Transfer submitted', `$${debited} debited (includes $${fee} processing fee)`);
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        renderResult('Network error', err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'Submit transfer';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
