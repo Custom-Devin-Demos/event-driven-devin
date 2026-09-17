@@ -29,6 +29,10 @@ const ACTIVITY_CATEGORIES = {
 const ADVANCE_BOOKING_DISCOUNT = 0.2;
 const FULFILLMENT_OPTIONS = ['pickup', 'delivery'];
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const BOOKING_TIME_ZONE = 'America/Denver';
+const BOOKING_DAY_FORMAT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: BOOKING_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+});
 
 /**
  * Scenario directive appended to the Devin investigation prompt.
@@ -107,10 +111,12 @@ function validateRequest(data) {
   return { resort, activity, fulfillment, pickupDate, returnDate, rentalDays };
 }
 
+function bookingToday(now = new Date()) {
+  return parseDate(BOOKING_DAY_FORMAT.format(now));
+}
+
 function daysUntil(date) {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  return Math.round((date - today) / MS_PER_DAY);
+  return Math.round((date - bookingToday()) / MS_PER_DAY);
 }
 
 function quoteOffer(offer, trip) {
@@ -151,6 +157,7 @@ function buildAvailability(offers, trip) {
     packages,
     inStockCount: inStock.length,
     lowestTotal: inStock.length ? inStock[0].total : null,
+    currency: inStock.length ? inStock[0].currency : null,
   };
 }
 

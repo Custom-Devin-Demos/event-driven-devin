@@ -367,6 +367,7 @@
     flex: none;
   }
   .radio input:checked + .radio__dot { background: var(--orange-soft); }
+  .radio--disabled { opacity: .45; cursor: not-allowed; }
   .radio input:checked + .radio__dot::after {
     content: '';
     position: absolute;
@@ -1198,12 +1199,12 @@
   };
   probe.src = hero.style.backgroundImage.slice(5, -2);
 
-  // Devin identity (seeded from /api/config like the other verticals)
-  fetch('/api/config').then(function (r) { return r.ok ? r.json() : {}; }).then(function (cfg) {
-    if (cfg.devinUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.devinUserId);
-    if (cfg.devinOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.devinOrgId);
-    if (cfg.devinEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.devinEmail);
-  }).catch(function () {});
+  if (!localStorage.getItem('devinOrgId') || !localStorage.getItem('devinUserId')) {
+    fetch('/api/config').then(function (r) { return r.ok ? r.json() : {}; }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  }
 
   var activity = 'snow';
   document.querySelectorAll('.widget__tab').forEach(function (tab) {
@@ -1219,14 +1220,27 @@
   });
 
   var resortSelect = document.getElementById('resort');
+  var form = document.getElementById('bookingForm');
+  var deliveryRadio = form.querySelector('input[name="fulfillment"][value="delivery"]');
+  var pickupRadio = form.querySelector('input[name="fulfillment"][value="pickup"]');
+  var deliveryByResort = {};
+  function syncFulfillment() {
+    var offered = !resortSelect.value || deliveryByResort[resortSelect.value] !== false;
+    deliveryRadio.disabled = !offered;
+    deliveryRadio.parentElement.classList.toggle('radio--disabled', !offered);
+    if (!offered && deliveryRadio.checked) pickupRadio.checked = true;
+  }
+  resortSelect.addEventListener('change', syncFulfillment);
   fetch('/api/35c30158/resorts').then(function (r) { return r.json(); }).then(function (data) {
     (data.resorts || []).forEach(function (resort) {
+      deliveryByResort[resort.id] = resort.deliveryOffered !== false;
       var opt = document.createElement('option');
       opt.value = resort.id;
       opt.textContent = resort.name;
       resortSelect.appendChild(opt);
     });
     resortSelect.value = 'vail';
+    syncFulfillment();
   }).catch(function () {});
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -1258,8 +1272,12 @@
     toastTimer = setTimeout(function () { toast.classList.remove('is-visible'); }, 6000);
   }
 
-  var form = document.getElementById('bookingForm');
   var rentNow = document.getElementById('rentNow');
+  function money(amount, currency) {
+    var value = Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    return currency && currency !== 'USD' ? '$' + value + ' ' + currency : '$' + value;
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var resort = resortSelect.value;
@@ -1293,7 +1311,7 @@
         if (a.inStockCount > 0) {
           showToast(
             a.inStockCount + ' package' + (a.inStockCount === 1 ? '' : 's') + ' available at ' + a.resort.name,
-            'From $' + a.lowestTotal + ' for ' + days + '. Reserve online to lock in your rate.',
+            'From ' + money(a.lowestTotal, a.currency) + ' for ' + days + '. Reserve online to lock in your rate.',
             '',
             true
           );
@@ -1305,6 +1323,8 @@
             true
           );
         }
+      } else if (result.status === 400 && result.data && result.data.errorClass === 'ValidationError') {
+        showToast('Check your rental details', result.data.error);
       } else {
         showToast(
           "We couldn't check availability",

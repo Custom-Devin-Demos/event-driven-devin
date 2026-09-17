@@ -12,10 +12,12 @@ const { Sentry } = require('../app/telemetry/sentry');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const bookingDay = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit',
+});
 
 function isoDaysFromNow(days) {
-  const date = new Date();
-  date.setUTCHours(0, 0, 0, 0);
+  const date = new Date(`${bookingDay.format(new Date())}T00:00:00Z`);
   return new Date(date.getTime() + days * MS_PER_DAY).toISOString().slice(0, 10);
 }
 
@@ -80,9 +82,21 @@ describe('request validation', () => {
     );
   });
 
-  test('accepts a same-day pickup', async () => {
+  test('accepts a same-day pickup on the booking calendar (America/Denver), not UTC', async () => {
     const availability = await checkAvailability(request({ pickupDate: isoDaysFromNow(0), returnDate: isoDaysFromNow(0) }));
     expect(availability.rentalDays).toBe(1);
+
+    // 20:00 in Denver on Sep 16 is already Sep 17 UTC; Sep 16 must still be "today".
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate', 'setTimeout'] });
+    jest.setSystemTime(Date.UTC(2026, 8, 17, 2, 0, 0));
+    try {
+      const evening = await checkAvailability(request({ pickupDate: '2026-09-16', returnDate: '2026-09-16' }));
+      expect(evening.rentalDays).toBe(1);
+      const twoDaysOut = await checkAvailability(request({ pickupDate: '2026-09-18', returnDate: '2026-09-18' }));
+      expect(twoDaysOut.packages[0].advanceDiscount).toBeGreaterThan(0);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test('rejects a return date before pickup and rentals longer than 14 days', async () => {
@@ -161,6 +175,7 @@ describe('inventory contracts', () => {
     expect(availability.resort.id).toBe(resort);
     expect(availability.inStockCount).toBeGreaterThan(0);
     expect(availability.lowestTotal).toBeGreaterThan(0);
+    expect(availability.currency).toBe(resort === 'whistler-blackcomb' ? 'CAD' : 'USD');
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 });
