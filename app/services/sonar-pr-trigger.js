@@ -160,13 +160,8 @@ async function createVulnerablePR(options = {}) {
   const timestamp = Math.floor(Date.now() / 1000);
   const branchName = `${prefix}-${timestamp}`;
 
-  // The scan customer decides which service key devin-scan.yml authenticates
-  // with; an org resolved for this app's key does not pair with the workflow's
-  // own default key, so leave the org to the target repo's DEVIN_ORG_ID secret.
   const scanCustomer = config.sonarWorkflowCustomer || customerSlug;
-  const workflowOrgId = scanCustomer === 'default'
-    ? ''
-    : (options.devinOrgId || config.devinOrgId || '');
+  const workflowOrgId = options.devinOrgId || config.devinOrgId || process.env.DEVIN_ORG_ID || '';
 
   logger.info('Creating vulnerable PR in target repo', { branch: branchName, targetRepo, customer: customerSlug });
 

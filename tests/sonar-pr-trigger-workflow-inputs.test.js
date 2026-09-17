@@ -38,24 +38,29 @@ describe('devin-scan workflow dispatch inputs', () => {
     axios.create.mockReset();
   });
 
+  afterEach(() => {
+    delete process.env.DEVIN_ORG_ID;
+  });
+
   afterAll(() => {
     delete process.env.GITHUB_PAT;
   });
 
-  test('a default-key scan leaves the org to the target repo secret', async () => {
+  test('ce9afcfc scans with the default service key and the reported org', async () => {
     const client = mockGithub();
 
     await createVulnerablePR({ customer: 'ce9afcfc', devinOrgId: 'org-from-page' });
 
-    expect(dispatchInputs(client)).toMatchObject({ customer: 'default', org_id: '' });
+    expect(dispatchInputs(client)).toMatchObject({ customer: 'default', org_id: 'org-from-page' });
   });
 
-  test('a customer-key scan keeps the org the report supplied', async () => {
+  test('falls back to the global org when the report carries none', async () => {
+    process.env.DEVIN_ORG_ID = 'org-global';
     const client = mockGithub();
 
-    await createVulnerablePR({ customer: '5b992ae7', devinOrgId: 'org-from-page' });
+    await createVulnerablePR({ customer: 'ce9afcfc' });
 
-    expect(dispatchInputs(client)).toMatchObject({ customer: '5b992ae7', org_id: 'org-from-page' });
+    expect(dispatchInputs(client).org_id).toBe('org-global');
   });
 
   test('ce9afcfc scans the repo the default automations scan', async () => {
