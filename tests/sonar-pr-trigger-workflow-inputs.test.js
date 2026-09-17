@@ -63,6 +63,15 @@ describe('devin-scan workflow dispatch inputs', () => {
     expect(dispatchInputs(client).org_id).toBe('org-global');
   });
 
+  test('a named scan customer never borrows the global org', async () => {
+    process.env.DEVIN_ORG_ID = 'org-global';
+    const client = mockGithub();
+
+    await createVulnerablePR({ customer: '5b992ae7' });
+
+    expect(dispatchInputs(client)).toMatchObject({ customer: '5b992ae7', org_id: '' });
+  });
+
   test('ce9afcfc scans the repo the default automations scan', async () => {
     mockGithub();
 
