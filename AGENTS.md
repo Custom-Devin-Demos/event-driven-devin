@@ -641,6 +641,9 @@ EOF
 | `npm start` | Start the Express app |
 | `npm run dev` | Start with nodemon (auto-reload) |
 | `npm run lint` | Run ESLint |
+| `npm run pipeline:a693dab5` | Run the Fleet Health Console pipeline headlessly |
+| `npm run test:a693dab5` | Run the Fleet Health Console pipeline tests |
+| `npm run test:a693dab5:contract` | Run the schema contract demo suite (excluded from `npm test` via `.demo-test.js`) |
 | `npm run loadgen` | Run traffic generator standalone |
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |

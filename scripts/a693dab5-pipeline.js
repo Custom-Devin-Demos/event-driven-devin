@@ -99,11 +99,11 @@ async function main() {
     const failed = runs.length - succeeded;
     console.log(`${runs.length} operators, ${succeeded} succeeded, ${failed} failed`);
   }
-  process.exit(runs.some((run) => run.status === 'failed') ? 1 : 0);
+  process.exitCode = runs.some((run) => run.status === 'failed') ? 1 : 0;
 }
 
 main().catch((error) => {
   service.stopScheduler();
   console.error(error.message);
-  process.exit(2);
+  process.exitCode = 2;
 });
