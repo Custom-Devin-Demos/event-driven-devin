@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Schedules and Track My Truck</title>
+  <link rel="icon" href="/verticals/assets/59b1e508/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --59b1e508-navy: rgb(0, 55, 99);
+      --59b1e508-blue: rgb(0, 74, 124);
+      --59b1e508-link: rgb(72, 159, 223);
+      --59b1e508-ink: rgb(37, 37, 37);
+      --59b1e508-border: rgb(57, 94, 133);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; }
+    body {
+      margin: 0;
+      color: var(--59b1e508-ink);
+      background: #fff;
+      font: 400 16px/24px "Open Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    img { max-width: 100%; }
+    button, input { font: inherit; }
+    .maintenance {
+      height: 60px;
+      padding: 8px 0;
+      background: #f4f4f4;
+      color: var(--59b1e508-ink);
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .maintenance-inner {
+      position: relative;
+      width: 1080px;
+      max-width: calc(100% - 30px);
+      margin: 0 auto;
+      padding-right: 36px;
+    }
+    .maintenance-inner p { margin: 0; }
+    .maintenance-close {
+      position: absolute;
+      top: 10px;
+      right: 0;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: #111;
+      font-size: 24px;
+      line-height: 24px;
+      cursor: pointer;
+    }
+    .utility {
+      height: 55px;
+      padding: 8px 0;
+      background: var(--59b1e508-navy);
+    }
+    .utility-inner {
+      width: 1080px;
+      max-width: calc(100% - 30px);
+      height: 39px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .utility-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .utility-link {
+      min-height: 35px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      color: #fff;
+      font-size: 12px;
+      line-height: 18px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .utility-link img {
+      width: 16px;
+      height: 17px;
+      object-fit: contain;
+    }
+    .nav {
+      height: 81px;
+      background: var(--59b1e508-blue);
+    }
+    .nav-inner {
+      width: 1200px;
+      max-width: 100%;
+      height: 81px;
+      margin: 0 auto;
+      padding: 0 60px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo {
+      width: 164px;
+      height: 53px;
+      margin-right: 20px;
+      flex: none;
+      object-fit: contain;
+    }
+    .nav-list {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      list-style: none;
+    }
+    .nav-list li {
+      margin: 28px 0;
+      padding: 0 8px;
+    }
+    .nav-list a {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #fff;
+      font-size: 16px;
+      line-height: 24px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .nav-list a img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+    }
+    .nav-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: none;
+    }
+    .nav-search {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    .login {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 2px;
+      color: #fff;
+      font-size: 16px;
+      line-height: 24px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .login img {
+      width: 17px;
+      height: 17px;
+      filter: brightness(0) invert(1);
+    }
+    .breadcrumbs {
+      width: 1024px;
+      max-width: calc(100% - 30px);
+      height: 44px;
+      margin: 0 auto;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 13px;
+      line-height: 20px;
+    }
+    .breadcrumbs a, .breadcrumbs .separator { color: rgb(16, 118, 171); }
+    .breadcrumbs a { text-decoration: none; }
+    .breadcrumbs .separator { margin: 0 3px; }
+    .breadcrumbs .current { color: var(--59b1e508-ink); }
+    main { min-height: 1585px; }
+    .local-content {
+      width: 1024px;
+      max-width: calc(100% - 30px);
+      margin: 0 auto 32px;
+      padding: 0 15px;
+    }
+    h1 {
+      margin: 30px 0;
+      color: var(--59b1e508-ink);
+      font-size: 50px;
+      font-weight: 700;
+      line-height: 62.5px;
+    }
+    .sub-title {
+      width: 853px;
+      max-width: 100%;
+      margin-left: 85.33px;
+      padding: 0 15px;
+      color: var(--59b1e508-ink);
+    }
+    .sub-title h2 {
+      margin: 20px 0;
+      font-size: 24px;
+      font-weight: 500;
+      line-height: 24px;
+    }
+    .sub-title p {
+      margin: 0 0 18px;
+      font-size: 18px;
+      font-weight: 300;
+      line-height: 18px;
+    }
+    .sub-title a {
+      color: var(--59b1e508-link);
+      text-decoration: underline;
+    }
+    .sub-title strong { font-weight: 700; }
+    .address-form {
+      width: 853px;
+      max-width: 100%;
+      margin-left: 85.33px;
+      padding: 0 15px;
+    }
+    .form-row {
+      display: flex;
+      align-items: flex-start;
+      margin: 0 -15px;
+    }
+    .address-column {
+      position: relative;
+      width: 512px;
+      padding: 0 15px;
+    }
+    .input-group {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: 44px;
+    }
+    .input-group input {
+      width: calc(100% - 48px);
+      height: 44px;
+      padding: 6px 12px 6px 10px;
+      border: 1px solid var(--59b1e508-border);
+      border-right: 0;
+      border-radius: 4px 0 0 4px;
+      outline: 0;
+      background: #fff;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+      color: var(--59b1e508-ink);
+      font-size: 18px;
+      line-height: 24px;
+    }
+    .input-group input::placeholder { color: rgb(153, 153, 153); opacity: 1; }
+    .input-group input:focus { border-color: var(--59b1e508-border); }
+    .find-address {
+      width: 48px;
+      height: 44px;
+      padding: 10px;
+      border: 1px solid rgb(119, 119, 119);
+      border-left: 0;
+      border-radius: 0 4px 4px 0;
+      background: #fff;
+      color: var(--59b1e508-ink);
+      cursor: pointer;
+    }
+    .find-address svg { width: 16px; height: 16px; display: block; }
+    .error-message {
+      min-height: 20px;
+      margin-top: 2px;
+      color: rgb(169, 68, 66);
+      font-size: 14px;
+      line-height: 20px;
+      text-align: left;
+    }
+    .submit-column {
+      width: 341px;
+      padding: 0 15px;
+    }
+    .view-schedule {
+      display: block;
+      width: 100%;
+      height: 44px;
+      padding: 10px 20px;
+      border: 3px solid var(--59b1e508-blue);
+      border-radius: 23px;
+      background: var(--59b1e508-blue);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+    }
+    button:disabled { cursor: wait; opacity: .72; }
+    .typeahead {
+      position: absolute;
+      top: 46px;
+      left: 15px;
+      z-index: 1000;
+      width: 358px;
+      margin: 2px 0 0;
+      padding: 5px 0;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, .15);
+      border-radius: 4px;
+      background: #fff;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, .176);
+      list-style: none;
+    }
+    .typeahead li { margin: 0; padding: 0; }
+    .typeahead a {
+      display: block;
+      padding: 3px 20px;
+      color: rgb(51, 51, 51);
+      font-size: 16px;
+      line-height: 22.86px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .typeahead a:hover, .typeahead a:focus { background: #f5f5f5; outline: 0; }
+    .loading {
+      padding: 38px 0 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--59b1e508-ink);
+      font-size: 16px;
+      line-height: 24px;
+      text-align: center;
+    }
+    .loading img {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 10px;
+      animation: spin-59b1e508 1.4s linear infinite;
+    }
+    @keyframes spin-59b1e508 { to { transform: rotate(360deg); } }
+    .cards {
+      margin: 50px -15px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .card {
+      width: 25%;
+      padding: 0 15px;
+    }
+    .card img {
+      width: 200px;
+      height: 200px;
+      display: block;
+      object-fit: cover;
+    }
+    .card h3 {
+      margin: 10px 0;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 24px;
+    }
+    .card h3 a {
+      color: var(--59b1e508-link);
+      font-size: 18px;
+      line-height: 24px;
+      text-decoration: none;
+    }
+    .result {
+      width: 853px;
+      max-width: 100%;
+      margin: 35px auto;
+      padding: 24px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .result h2 { margin: 0 0 16px; font-size: 24px; line-height: 30px; }
+    .result ul { margin: 0; padding-left: 20px; }
+    .footer {
+      padding: 4px 0 122px;
+      background: var(--59b1e508-blue);
+      color: #fff;
+    }
+    .footer-inner {
+      width: 1080px;
+      max-width: calc(100% - 30px);
+      margin: 0 auto;
+    }
+    .footer-primary {
+      min-height: 590px;
+      padding-top: 76px;
+      display: flex;
+      gap: 22px;
+    }
+    .footer-column {
+      width: 163px;
+      min-height: 368px;
+      padding: 0 15px;
+      border-right: 1px solid rgba(0, 25, 55, .7);
+    }
+    .footer-column h3, .footer-aside h3 {
+      margin: 0 0 16px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 21px;
+    }
+    .footer-column a {
+      display: block;
+      margin-bottom: 7px;
+      color: #fff;
+      font-size: 14px;
+      line-height: 21px;
+      text-decoration: none;
+    }
+    .footer-aside {
+      flex: 1;
+      min-width: 280px;
+      padding: 0 15px;
+    }
+    .subscribe-form {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 66px;
+    }
+    .subscribe-form input {
+      width: 145px;
+      height: 44px;
+      padding: 10px 0;
+      border: 0;
+      border-bottom: 1px solid #fff;
+      outline: 0;
+      background: transparent;
+      color: #fff;
+      font-size: 14px;
+    }
+    .subscribe-form input::placeholder { color: #fff; opacity: 1; }
+    .subscribe-form button {
+      height: 44px;
+      padding: 10px 24px;
+      border: 0;
+      border-radius: 40px;
+      background: rgb(77, 77, 79);
+      color: rgb(217, 217, 214);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .app-heading { margin-bottom: 12px; }
+    .app-links {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 65px;
+    }
+    .app-links img {
+      width: 126px;
+      height: 45px;
+      object-fit: contain;
+    }
+    .social-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .social-links img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    .sub-footer {
+      height: 81px;
+      padding: 30px 0;
+      background: var(--59b1e508-navy);
+      color: #fff;
+    }
+    .sub-footer-inner {
+      width: 1080px;
+      max-width: calc(100% - 30px);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .legal-links {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 14px;
+      line-height: 21px;
+    }
+    .legal-links a { padding: 0 8px; text-decoration: none; }
+    .legal-links a + a { border-left: 1px solid #fff; }
+    .copyright { font-size: 14px; line-height: 21px; white-space: nowrap; }
+    .chat {
+      position: fixed;
+      right: 30px;
+      bottom: 25px;
+      z-index: 1100;
+      width: 56px;
+      height: 56px;
+      padding: 14px;
+      border: 0;
+      border-radius: 50%;
+      background: rgb(46, 46, 46);
+      cursor: pointer;
+    }
+    .chat svg { width: 28px; height: 28px; fill: #fff; }
+    .all-demos {
+      position: fixed;
+      bottom: 8px;
+      left: 10px;
+      z-index: 1101;
+      color: #fff;
+      font-size: 11px;
+      line-height: 16px;
+      opacity: .42;
+      text-decoration: none;
+    }
+    .toast {
+      position: fixed;
+      right: 30px;
+      bottom: 94px;
+      z-index: 1200;
+      width: 330px;
+      padding: 12px 16px;
+      transform: translateY(18px);
+      border-radius: 6px;
+      background: rgba(0, 0, 0, .85);
+      color: #fff;
+      font-size: 14px;
+      line-height: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-label {
+      display: block;
+      margin-bottom: 3px;
+      color: #ddd;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    @media (max-width: 1080px) {
+      .nav-inner { padding: 0 30px; }
+      .nav-list { gap: 0; }
+      .nav-list li { padding: 0 4px; }
+      .logo { margin-right: 4px; }
+      .footer-primary { flex-wrap: wrap; }
+      .footer-aside { width: 100%; }
+    }
+    @media (max-width: 800px) {
+      .nav { height: auto; }
+      .nav-inner { height: auto; min-height: 81px; flex-wrap: wrap; padding: 12px 20px; }
+      .nav-list { order: 3; width: 100%; overflow-x: auto; }
+      .nav-list li { margin: 8px 0; }
+      .nav-actions { margin-left: auto; }
+      h1 { font-size: 38px; line-height: 46px; }
+      .sub-title, .address-form { margin-left: 0; }
+      .form-row { flex-direction: column; gap: 8px; }
+      .address-column, .submit-column { width: 100%; }
+      .typeahead { width: calc(100% - 30px); }
+      .cards { margin-top: 35px; }
+      .card { width: 50%; margin-bottom: 25px; }
+      .footer-primary { padding-top: 45px; }
+      .footer-column { width: 50%; min-height: 290px; }
+      .sub-footer { height: auto; padding: 20px 0; }
+      .sub-footer-inner { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 480px) {
+      .utility { height: auto; }
+      .utility-inner { height: auto; justify-content: flex-start; overflow-x: auto; }
+      .utility-links { min-width: max-content; }
+      .maintenance { height: auto; min-height: 60px; }
+      h1 { font-size: 32px; line-height: 40px; }
+      .card { width: 100%; }
+      .card img { width: 200px; }
+      .footer-column { width: 100%; min-height: auto; margin-bottom: 25px; }
+      .footer-primary { display: block; }
+      .subscribe-form { flex-wrap: wrap; margin-bottom: 40px; }
+      .toast { right: 15px; bottom: 90px; width: calc(100% - 30px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="maintenance">
+    <div class="maintenance-inner">
+      <p>Upcoming system maintenance is scheduled for the evening of September 17th to September 20th. Online account functionality will be limited during this time.<br>Thank you for your patience.</p>
+      <button class="maintenance-close" type="button" aria-label="Close">&times;</button>
+    </div>
+  </div>
+  <div class="utility">
+    <div class="utility-inner">
+      <div class="utility-links">
+        <a class="utility-link" href="https://www.republicservices.com/pay-bill">
+          <img src="https://www.republicservices.com/assets/rs-icon-money.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <span>Pay Bill</span>
+        </a>
+        <a class="utility-link" href="https://www.republicservices.com/schedule">
+          <img src="https://www.republicservices.com/assets/rs-icon-calendar.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <span>See Schedule</span>
+        </a>
+        <a class="utility-link" href="https://www.republicservices.com/contact-us">
+          <img src="https://www.republicservices.com/assets/rs-icon-question.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <span>Customer Support</span>
+        </a>
+        <a class="utility-link" href="https://www.republicservices.com/service-alerts">
+          <img src="https://www.republicservices.com/assets/rs-icon-exclamation.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <span>Service Alerts</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="nav-inner">
+      <img class="logo" src="https://www.republicservices.com/assets/republic-services-logo-white-text.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+      <ul class="nav-list">
+        <li><a href="https://www.republicservices.com/residential">Residential <img src="https://www.republicservices.com/assets/chevron-down.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a></li>
+        <li><a href="https://www.republicservices.com/business">Business <img src="https://www.republicservices.com/assets/chevron-down.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a></li>
+        <li><a href="https://www.republicservices.com/environmental-solutions">Environmental Solutions <img src="https://www.republicservices.com/assets/chevron-down.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a></li>
+        <li><a href="https://www.republicservices.com/sustainability">Sustainability <img src="https://www.republicservices.com/assets/chevron-down.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a></li>
+        <li><a href="https://www.republicservices.com/about">About <img src="https://www.republicservices.com/assets/chevron-down.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="https://www.republicservices.com/search" aria-label="Search">
+          <img class="nav-search" src="https://www.republicservices.com/assets/icon-set/navigation-search.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+        </a>
+        <a class="login" href="https://www.republicservices.com/account/login">
+          <img src="https://www.republicservices.com/assets/icon-set/user-outline.svg" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <span>Log In</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+  <div class="breadcrumbs">
+    <a href="https://www.republicservices.com/">Home</a>
+    <span class="separator">›</span>
+    <span class="current">Schedule</span>
+  </div>
+  <main>
+    <section class="local-content">
+      <h1>View Schedules and Track My Truck</h1>
+      <div class="sub-title">
+        <h2>
+          <p>Enter your service address to view your collection schedule, any upcoming holiday updates and access Track My Truck. On your service days, Track My Truck gives you instant access to real-time route progress.</p>
+          <p><a href="https://www.republicservices.com/account/login">Log in</a> or create an account to report a missed pickup, request cart repair, and more.</p>
+          <p><strong>To learn more about bulk pickup (if not shown on the calendar below),</strong> please visit our <a href="https://www.republicservices.com/residents/recycling-and-solid-waste/bulk-waste">residential bulk pickup page.</a></p>
+        </h2>
+      </div>
+      <form class="address-form" id="schedule-form">
+        <div class="form-row">
+          <div class="address-column">
+            <div class="input-group">
+              <input id="typeahead-input" type="text" placeholder="Enter your address" maxlength="120" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list">
+              <button class="find-address" aria-label="Find Address" type="submit">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path fill="currentColor" fill-rule="evenodd" d="M7.333 2.667a4.667 4.667 0 1 0 0 9.333 4.667 4.667 0 0 0 0-9.333ZM1.333 7.333a6 6 0 1 1 12 0 6 6 0 0 1-12 0Z"></path>
+                  <path fill="currentColor" fill-rule="evenodd" d="M10.629 10.629a.667.667 0 0 1 .943 0l2.9 2.9a.667.667 0 0 1-.943.942l-2.9-2.9a.667.667 0 0 1 0-.942Z"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="error-message" role="alert"></div>
+            <ul class="typeahead" id="typeahead-list" hidden></ul>
+          </div>
+          <div class="submit-column">
+            <button class="view-schedule" id="view-schedule" type="submit">VIEW MY SCHEDULE</button>
+          </div>
+        </div>
+      </form>
+      <div id="loading-region"></div>
+      <div id="result-region"></div>
+      <div class="cards">
+        <article class="card">
+          <img src="https://www.republicservices.com/cms/sites/default/files/2021-11/schedule_young-man-recycling-min.webp" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <h3><a href="https://www.republicservices.com/recycling">Do you know the recycling basics?</a></h3>
+        </article>
+        <article class="card">
+          <img src="https://www.republicservices.com/cms/sites/default/files/2021-11/schedule_Resi_Outdoor_Family.webp" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <h3><a href="https://www.republicservices.com/dumpster-rental">Are you looking for a dumpster for your home?</a></h3>
+        </article>
+        <article class="card">
+          <img src="https://www.republicservices.com/cms/sites/default/files/2021-11/schedule_construction-industry-waste-services-min.webp" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <h3><a href="https://www.republicservices.com/business">Are you looking for a dumpster for your business?</a></h3>
+        </article>
+        <article class="card">
+          <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=430&h=430&fit=crop&q=80" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <h3><a href="https://www.republicservices.com/bulk-waste">Do you need residential bulk trash &amp; junk removal?</a></h3>
+        </article>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="footer-inner footer-primary">
+      <div class="footer-column">
+        <h3>Company</h3>
+        <a href="#">About</a><a href="#">Awards</a><a href="#">Careers</a><a href="#">Suppliers &amp; Procurement</a><a href="#">Media</a><a href="#">Investors</a><a href="#">Ethics &amp; Compliance</a>
+      </div>
+      <div class="footer-column">
+        <h3>Resources</h3>
+        <a href="#">Insights &amp; Articles</a><a href="#">Sustainability</a><a href="#">RecyclingSimplified.com</a><a href="#">Find a Facility</a><a href="#">Business Development</a>
+      </div>
+      <div class="footer-column">
+        <h3>Customer Support</h3>
+        <a href="#">Pay My Bill</a><a href="#">See Schedule</a><a href="#">Manage My Account</a><a href="#">Contact Us</a><a href="#">FAQs</a><a href="#">Service Alerts</a><a href="#">Pricing Information &amp; Disclosures</a><a href="#">Environmental Service Terms &amp; Conditions</a><a href="#">Residential Service Terms</a>
+      </div>
+      <div class="footer-column">
+        <h3>Products &amp; Services</h3>
+        <a href="#">Residential Services</a><a href="#">Business Services</a><a href="#">Environmental Solutions</a>
+      </div>
+      <div class="footer-aside">
+        <h3>Subscribe</h3>
+        <form class="subscribe-form">
+          <input type="email" placeholder="Enter email address" aria-label="Email address">
+          <button type="submit">Submit</button>
+        </form>
+        <h3 class="app-heading">Pay your bills on the go</h3>
+        <div class="app-links">
+          <img src="https://www.republicservices.com/sites/default/files/styles/mobile_app_icon/public/google-play-hover.png.webp" alt="" onerror="this.onerror=null;this.style.display='none';">
+          <img src="https://www.republicservices.com/sites/default/files/styles/mobile_app_icon/public/app-store-hover.png.webp" alt="" onerror="this.onerror=null;this.style.display='none';">
+        </div>
+        <h3>Connect</h3>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook"><img src="https://www.republicservices.com/assets/icons/facebook.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a>
+          <a href="#" aria-label="Instagram"><img src="https://www.republicservices.com/assets/icons/instagram.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a>
+          <a href="#" aria-label="LinkedIn"><img src="https://www.republicservices.com/assets/icons/linkedin.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a>
+          <a href="#" aria-label="Twitter"><img src="https://www.republicservices.com/assets/icons/twitter.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a>
+          <a href="#" aria-label="YouTube"><img src="https://www.republicservices.com/assets/icons/youtube.svg" alt="" onerror="this.onerror=null;this.style.display='none';"></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <div class="sub-footer">
+    <div class="sub-footer-inner">
+      <div class="legal-links">
+        <a href="#">Privacy Policy</a><a href="#">Terms &amp; Conditions</a><a href="#">Accessibility</a><a href="#">Do Not Sell or Share My Personal Information</a>
+      </div>
+      <div class="copyright">© 2026 Republic Services</div>
+    </div>
+  </div>
+  <button class="chat" type="button" aria-label="Open chat">
+    <svg focusable="false" aria-hidden="true" viewBox="0 0 100 100">
+      <path d="M50 0c27.614 0 50 20.52 50 45.833S77.614 91.667 50 91.667c-8.458 0-16.425-1.925-23.409-5.323-13.33 6.973-21.083 9.839-23.258 8.595-2.064-1.18.114-8.436 6.534-21.767C3.667 65.54 0 56.08 0 45.833 0 20.52 22.386 0 50 0zm4.583 61.667H22.917a2.917 2.917 0 000 5.833h31.666a2.917 2.917 0 000-5.833zm12.5-15.834H22.917a2.917 2.917 0 000 5.834h44.166a2.917 2.917 0 000-5.834zM79.583 30H22.917a2.917 2.917 0 000 5.833h56.666a2.917 2.917 0 000-5.833z"></path>
+    </svg>
+  </button>
+  <a class="all-demos" href="/">&larr; All Demos</a>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (function () {
+      var form = document.getElementById('schedule-form');
+      var input = document.getElementById('typeahead-input');
+      var findButton = document.querySelector('.find-address');
+      var viewButton = document.getElementById('view-schedule');
+      var list = document.getElementById('typeahead-list');
+      var errorMessage = document.querySelector('.error-message');
+      var loadingRegion = document.getElementById('loading-region');
+      var resultRegion = document.getElementById('result-region');
+      var toast = document.getElementById('toast');
+      var serviceAreas = [];
+      var toastTimer;
+
+      function bootstrapIdentity() {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (response) { return response.json(); }).then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+          if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+        }).catch(function () {});
+      }
+
+      function loadServiceAreas() {
+        fetch('/api/59b1e508/service-areas').then(function (response) { return response.json(); }).then(function (body) {
+          serviceAreas = body.serviceAreas || [];
+        }).catch(function () {});
+      }
+
+      function addressForArea(area) {
+        var streets = {
+          '70815': '1120 Heather Dr',
+          '95247': '1120 Heather Dr',
+          '60137': '1120 Heather Ln',
+          '48104': '1120 Heather Way',
+          '48843': '1120 Heather Heath Dr'
+        };
+        return (streets[area.zip] || '1120 Heather Dr') + ', ' + area.city + ', ' + area.state + ', ' + area.zip;
+      }
+
+      function renderSuggestion(text, query) {
+        var link = document.createElement('a');
+        var tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        text.split(' ').forEach(function (word, index, words) {
+          if (index) link.appendChild(document.createTextNode(' '));
+          var lower = word.toLowerCase();
+          var token = tokens.find(function (entry) { return lower.indexOf(entry) === 0; });
+          if (token) {
+            var strong = document.createElement('strong');
+            strong.textContent = word.slice(0, token.length);
+            link.appendChild(strong);
+            link.appendChild(document.createTextNode(word.slice(token.length)));
+          } else {
+            link.appendChild(document.createTextNode(word));
+          }
+        });
+        return link;
+      }
+
+      function showSuggestions() {
+        var query = input.value.trim();
+        list.innerHTML = '';
+        if (query.length < 3) {
+          list.hidden = true;
+          input.setAttribute('aria-expanded', 'false');
+          return;
+        }
+        var tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+        var suggestions = serviceAreas.map(addressForArea).filter(function (text) {
+          var words = text.toLowerCase().replace(/,/g, '').split(/\s+/);
+          return tokens.every(function (token) {
+            return words.some(function (word) { return word.indexOf(token) === 0; });
+          });
+        });
+        suggestions.forEach(function (text) {
+          var item = document.createElement('li');
+          var link = renderSuggestion(text, query);
+          link.href = '#';
+          link.addEventListener('click', function (event) {
+            event.preventDefault();
+            input.value = text;
+            list.hidden = true;
+            input.setAttribute('aria-expanded', 'false');
+          });
+          item.appendChild(link);
+          list.appendChild(item);
+        });
+        list.hidden = suggestions.length === 0;
+        input.setAttribute('aria-expanded', suggestions.length > 0 ? 'true' : 'false');
+      }
+
+      function showToast(errorClass, error) {
+        toast.innerHTML = '<span class="toast-label">Schedule lookup failed</span>' + errorClass + ': ' + error;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 5500);
+      }
+
+      function renderSchedule(body, address) {
+        var schedule = body.schedule || {};
+        var items = (schedule.pickups || []).map(function (pickup) {
+          return '<li>' + pickup.date + ' — ' + pickup.type + (pickup.shifted ? ' (holiday shift)' : '') + '</li>';
+        }).join('');
+        resultRegion.innerHTML = '<section class="result"><h2>Pickup Schedule for ' + address.replace(/</g, '&lt;') + '</h2><ul>' + items + '</ul></section>';
+      }
+
+      function submitSchedule(event) {
+        event.preventDefault();
+        var address = input.value.trim();
+        errorMessage.textContent = '';
+        resultRegion.innerHTML = '';
+        if (!address) {
+          errorMessage.textContent = 'Please enter your address.';
+          return;
+        }
+        list.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
+        findButton.disabled = true;
+        viewButton.disabled = true;
+        viewButton.textContent = 'SEARCHING…';
+        loadingRegion.innerHTML = '<div class="loading"><img src="/verticals/assets/59b1e508/star.svg" alt="" onerror="this.onerror=null;this.style.display=\'none\';"><div>Finding your collection schedule…</div></div>';
+        setTimeout(function () {
+          fetch('/api/59b1e508/schedule-lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              address: address,
+              sourcePage: location.href,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          }).then(function (response) {
+            return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+          }).then(function (result) {
+            loadingRegion.innerHTML = '';
+            findButton.disabled = false;
+            viewButton.disabled = false;
+            viewButton.textContent = 'VIEW MY SCHEDULE';
+            if (!result.ok) {
+              errorMessage.textContent = "We couldn't retrieve the schedule for that address. Please try again.";
+              showToast(result.body.errorClass || 'Error', result.body.error || 'Unknown error');
+              return;
+            }
+            renderSchedule(result.body, address);
+          }).catch(function (error) {
+            loadingRegion.innerHTML = '';
+            findButton.disabled = false;
+            viewButton.disabled = false;
+            viewButton.textContent = 'VIEW MY SCHEDULE';
+            errorMessage.textContent = "We couldn't retrieve the schedule for that address. Please try again.";
+            showToast(error.name || 'Error', error.message || 'Unknown error');
+          });
+        }, 2000);
+      }
+
+      document.querySelector('.maintenance-close').addEventListener('click', function () {
+        document.querySelector('.maintenance').style.display = 'none';
+      });
+      input.addEventListener('input', showSuggestions);
+      input.addEventListener('focus', showSuggestions);
+      form.addEventListener('submit', submitSchedule);
+      bootstrapIdentity();
+      loadServiceAreas();
+    }());
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
