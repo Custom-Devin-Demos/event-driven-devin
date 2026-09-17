@@ -51,16 +51,9 @@ const NPP_ADDRESSING_PROFILES = {
     oskoEligible: true,
     confirmationRequired: false,
   },
-  abn: {
-    label: 'ABN PayID',
-    directoryService: 'NPP Addressing Service',
-    resolutionTimeoutMs: 3000,
-    oskoEligible: true,
-    confirmationRequired: true,
-  },
+  // abn — business PayIDs shipped with the 2026 NetBank payee refresh;
+  // addressing profile registration pending
 };
-
-const PAYMENTS_OPERATIONS_QUEUE = 'payments-operations';
 
 const OSKO_ENABLED_BSBS = ['062-000', '062-001', '063-000', '083-004', '013-006'];
 
@@ -70,13 +63,16 @@ const SETTLEMENT_RAILS = {
   bpay: { name: 'BPAY', clearingWindowMinutes: 720, cutOffAest: '18:00' },
 };
 
-const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || '';
+const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || 'U0BU46F4WCU';
+const CBA_DEVIN_USER_ID = process.env.DEVIN_USER_ID_CBA || 'user-5e154bb05983499ba384fbeadd3f4478';
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved directoryService';
 
 const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the CommBank NetBank payment failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues (for example POST /api/banking/transfer, POST /api/nab/payment and POST /api/storefront/checkout throw their own TypeErrors and generate constant background traffic). Ignore every issue that is not from POST /api/cba/payment, do not investigate or modify any other vertical, and do not widen the Sentry or Datadog search beyond this route. The failing surface is the CommBank NetBank "Pay anyone" page at app/public/verticals/cba.html (page route GET /cba), whose "Pay now" action posts to POST /api/cba/payment in app/routes/verticals/cba.js. The payment pipeline lives in app/services/verticals/cba.js: submitPayment -> settlePayment -> resolveAddressingProfile. Start at resolveAddressingProfile: it looks up NPP_ADDRESSING_PROFILES by the PayID type carried on the payee, and business (ABN) PayIDs shipped with the 2026 NetBank payee refresh without a registered addressing profile, so the lookup returns undefined and settlePayment dereferences it while resolving the PayID against the NPP addressing service. Register the missing PayID type's addressing profile and make an unknown PayID type fail as a handled payments error routed to the payments operations queue instead of a TypeError. Do not change the page's look and feel, and do not touch the other verticals' intentional bugs. Verify by starting the server (node app/server.js) and POSTing an ABN PayID payment from account 062-000 10345678 to /api/cba/payment, which must return a successful payment receipt, and confirm npm run lint passes.
 
-Verification evidence is mandatory and must be visual, not curl-only: with the server running, open the /cba page in a real browser, submit the pre-filled ABN PayID payment from the Smart Access account, and record your screen for the whole submission so the recording shows the form, the click, and the successful payment receipt that replaces the previous TypeError panel. Attach a screenshot of that successful receipt and an animated webp of the recording to the pull request under a "Fix Verification" heading, and post the same evidence as a comment on the PR. Do not report the fix as complete, and do not leave the PR description saying verification is pending, until that browser evidence is attached.`;
+Reproduce before you diagnose. Your first action after reading the alert, before reading any source file and before proposing a cause, is to start the server (node app/server.js), open /cba?repro=1 in a real browser and submit the pre-filled ABN PayID payment from the Smart Access account with your screen recording, so the recording shows the form, the click and the red failure panel. Always use ?repro=1 for your own submissions: the payment fails identically but raises no Sentry event, Slack alert or Devin session, so your reproduction does not alert anyone or spawn another session. Only once you have reproduced the failure yourself do you start investigating. If it does not reproduce, stop and report that instead of fixing anything.
+
+Verification evidence is mandatory and must be visual, not curl-only: after the fix, repeat exactly the same /cba?repro=1 browser submission with a second screen recording, showing the successful payment receipt where the failure panel used to be. Attach both — an animated webp of the reproduction recording under a "Reproduction" heading and an animated webp of the post-fix recording plus a screenshot of the successful receipt under a "Fix Verification" heading — to the pull request, and post the same evidence as a comment on the PR. Do not report the fix as complete, and do not leave the PR description saying verification is pending, until both recordings are attached.`;
 
 function validationError(message) {
   const error = new Error(message);
@@ -86,21 +82,8 @@ function validationError(message) {
   return error;
 }
 
-function addressingError(payIdType) {
-  const error = new Error(`No NPP addressing profile is registered for PayID type: ${payIdType || '(none)'}`);
-  error.name = 'PaymentOperationsError';
-  error.code = 'ADDRESSING_PROFILE_UNREGISTERED';
-  error.statusCode = 422;
-  error.queue = PAYMENTS_OPERATIONS_QUEUE;
-  return error;
-}
-
 function resolveAddressingProfile(payee) {
-  const profile = NPP_ADDRESSING_PROFILES[payee.payIdType];
-  if (!profile) {
-    throw addressingError(payee.payIdType);
-  }
-  return profile;
+  return NPP_ADDRESSING_PROFILES[payee.payIdType];
 }
 
 function selectSettlementRail(payment, payee) {
@@ -241,35 +224,6 @@ async function submitPayment(data) {
       throw error;
     }
 
-    if (error.name === 'PaymentOperationsError') {
-      incrementMetric('cba_payment.operations_referral', {
-        route: '/api/cba/payment',
-        errorCode: error.code,
-        productCode: account.productCode,
-        paymentMethod: data.paymentMethod,
-        queue: error.queue,
-      });
-      recordTiming('cba_payment.latency', Date.now() - startTime, {
-        route: '/api/cba/payment',
-        error: 'true',
-      });
-      logger.warn('NetBank payment referred to the payments operations queue', {
-        requestId,
-        receiptNumber,
-        fromAccount: data.fromAccount,
-        paymentMethod: data.paymentMethod,
-        payIdType: data.payIdType,
-        amount: data.amount,
-        error: error.message,
-        errorCode: error.code,
-        queue: error.queue,
-        service: 'customer-cba-payment',
-        route: '/api/cba/payment',
-      });
-      error.requestId = requestId;
-      throw error;
-    }
-
     const duration = Date.now() - startTime;
 
     incrementMetric('cba_payment.failure', {
@@ -295,6 +249,16 @@ async function submitPayment(data) {
       durationMs: duration,
       service: 'customer-cba-payment',
     });
+
+    if (data.synthetic) {
+      logger.info('Reproduction run — payment failed without raising Sentry, Slack or a Devin session', {
+        requestId,
+        receiptNumber,
+        route: '/api/cba/payment',
+      });
+      error.requestId = requestId;
+      throw error;
+    }
 
     Sentry.captureException(error, {
       tags: {
@@ -332,7 +296,7 @@ async function submitPayment(data) {
       customer: 'cba',
       slackMemberId: data.devinEmail ? '' : CBA_SLACK_MEMBER_ID,
       slackMemberIdFallback: CBA_SLACK_MEMBER_ID,
-      devinUserId: data.devinUserId,
+      devinUserId: data.devinUserId || CBA_DEVIN_USER_ID,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
@@ -383,7 +347,6 @@ async function submitPayment(data) {
 
 module.exports = {
   submitPayment,
-  PAYMENTS_OPERATIONS_QUEUE,
   settlePayment,
   resolveAddressingProfile,
   selectSettlementRail,

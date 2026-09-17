@@ -35,8 +35,17 @@ which is what makes it read as a real bank incident to a CBA audience.
    `cba_payment.failure` / `cba_payment.latency`, an alert card posts to Slack,
    and a Devin session is created from the alert with `REMEDIATION_DIRECTIVE`
    appended — scoped to this route only.
-5. Devin registers the missing addressing profile, turns an unknown PayID type
-   into a handled payments error, verifies in the browser and opens a PR.
+5. Devin reproduces the failure in a browser first — recording the click and
+   the red panel — then registers the missing addressing profile, turns an
+   unknown PayID type into a handled payments error, records the same
+   submission succeeding, and opens a PR carrying both recordings.
+
+`/cba?repro=1` (which sends `x-synthetic`) fails identically but raises no
+Sentry event, Slack alert or Devin session — that is how the remediation
+session reproduces on camera without alerting anyone or spawning itself again.
+It only works off production (`NODE_ENV !== 'production'`), i.e. on the
+session's own `node app/server.js`. On devindemos.com the flag is inert, so a
+real failure can never be silenced by a header.
 
 Happy paths for contrast (no alert fires):
 
@@ -53,6 +62,25 @@ curl -s -X POST localhost:3000/api/cba/payment -H 'Content-Type: application/jso
 curl -s -X POST localhost:3000/api/cba/payment -H 'Content-Type: application/json' \
   -d '{"payIdType":"email","payId":"accounts@sunriseplumbing.com.au"}'
 ```
+
+## Where to watch it
+
+- The page: the red failure panel is the only on-screen signal.
+- Slack: the alert card in the demo alerts channel. *On-Call* resolves to the
+  `devinEmail` the page sent, else `CBA_SLACK_MEMBER_ID`, which defaults to
+  Mark Porter.
+- Devin: a new session appears within seconds, created as `DEVIN_USER_ID_CBA`
+  (defaults to Mark) so it lands in his session list, and works to a PR.
+
+Setting your org and email in the identity box on the hub (`/`) overrides both
+for your browser, so the card mentions you and the session is created as you.
+
+## Do not merge Devin's fix PR
+
+The ABN PayID gap is the demo. Merging the fix PR that a demo run produces
+disarms `/cba` for everyone on the next deploy — close those PRs instead, or
+restore the defect by deleting the `abn` entry from `NPP_ADDRESSING_PROFILES`
+and the `resolveAddressingProfile()` guard.
 
 ## Pre-fixing the demo
 
