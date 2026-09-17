@@ -40,6 +40,11 @@ which is what makes it read as a real bank incident to a CBA audience.
    unknown PayID type into a handled payments error, records the same
    submission succeeding, and opens a PR carrying both recordings.
 
+`/cba?repro=1` (or an `x-synthetic` header on the API) fails identically but
+raises no Sentry event, Slack alert or Devin session — that is how the
+remediation session reproduces without alerting anyone or spawning itself
+again. Never use it when presenting: the plain URL is the demo.
+
 Happy paths for contrast (no alert fires):
 
 - PayID type **Email address** or **Mobile number** → Osko receipt in seconds.

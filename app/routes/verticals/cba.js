@@ -42,6 +42,7 @@ router.post('/api/cba/payment', async (req, res) => {
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
+      synthetic: Boolean(req.headers['x-synthetic']),
     });
     res.json(payment);
   } catch (error) {
