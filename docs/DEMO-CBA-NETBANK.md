@@ -54,6 +54,25 @@ curl -s -X POST localhost:3000/api/cba/payment -H 'Content-Type: application/jso
   -d '{"payIdType":"email","payId":"accounts@sunriseplumbing.com.au"}'
 ```
 
+## Where to watch it
+
+- The page: the red failure panel is the only on-screen signal.
+- Slack: the alert card in the demo alerts channel. *On-Call* resolves to the
+  `devinEmail` the page sent, else `CBA_SLACK_MEMBER_ID`, which defaults to
+  Mark Porter.
+- Devin: a new session appears within seconds, created as `DEVIN_USER_ID_CBA`
+  (defaults to Mark) so it lands in his session list, and works to a PR.
+
+Setting your org and email in the identity box on the hub (`/`) overrides both
+for your browser, so the card mentions you and the session is created as you.
+
+## Do not merge Devin's fix PR
+
+The ABN PayID gap is the demo. Merging the fix PR that a demo run produces
+disarms `/cba` for everyone on the next deploy — close those PRs instead, or
+restore the defect by deleting the `abn` entry from `NPP_ADDRESSING_PROFILES`
+and the `resolveAddressingProfile()` guard.
+
 ## Pre-fixing the demo
 
 Add an `abn` entry to `NPP_ADDRESSING_PROFILES` in
