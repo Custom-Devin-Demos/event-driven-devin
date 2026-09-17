@@ -43,6 +43,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Gusto — Payroll Ops On-Call Console** (unlisted — direct URL only) | `/gusto`, `/f8555891` | `app/public/verticals/f8555891.html` | `POST /api/f8555891/release-batch` (failure → monitor card in the on-call alerts channel, no app-created Devin session), `POST /api/f8555891/support-ticket` (customer report → on-call bugs channel; with `split`, one parent ticket `GUS-####` plus threaded sub-tickets `GUS-####.N`) | `app/services/verticals/f8555891.js` |
 | **Tax Revenue Portal — Pay Taxes** (generic demo brand, unlisted — direct URL only) | `/tax-portal`, `/3640b94c` | `app/public/verticals/3640b94c.html` | `POST /api/3640b94c/payment` | `app/services/verticals/3640b94c.js` |
 | **FPL My Account — NextEra Energy** (Flutter app, unlisted — direct URL only) | `/fpl`, `/nextera`, `/b425648c` (landing), `/b425648c/app` (app) | `app/public/verticals/b425648c.html`, `app/public/verticals/b425648c-app/` | `POST /api/b425648c/mobile/error`, `POST /api/b425648c/outage/report` | `app/services/verticals/b425648c.js` |
+| **State Street — Client Banking Portal** (unlisted — direct URL only) | `/statestreet`, `/4da81799` | `app/public/verticals/4da81799.html` | `POST /api/4da81799/transfer` | `app/services/verticals/4da81799.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
