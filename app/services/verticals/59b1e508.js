@@ -127,8 +127,14 @@ async function lookupServiceSchedule(input) {
       tags: { route: ROUTE, service: SERVICE },
       extra: { requestId, address: input.address, zip },
     });
+    const promptAppendix = [
+      'SEV1: every customer schedule lookup on the public site is failing; treat as a production outage.',
+      input.sourcePage
+        ? `The user-facing page that triggered this error is ${input.sourcePage} — after fixing, verify the fix end-to-end on the same page.`
+        : '',
+    ].filter(Boolean).join(' ');
     createSessionAndAlert({
-      issueTitle: `${error.name}: ${error.message}`,
+      issueTitle: `Collection schedule lookup unavailable — ${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
       culprit: 'app/services/verticals/59b1e508.js — lookupServiceSchedule',
       errorType: error.name || 'Error',
@@ -138,16 +144,22 @@ async function lookupServiceSchedule(input) {
       devinOrgId: input.devinOrgId,
       service: SERVICE,
       verticalLabel: 'Waste Collection Schedule Lookup',
-      slackMemberId: process.env.DEMO_ONCALL_SLACK_MEMBER_ID || 'U08S7AVJ478',
+      slackMemberId: 'U0BDHHQUM24',
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },
+        { key: 'customer_impact', value: 'schedule-lookup-unavailable' },
+        { key: 'severity', value: 'sev1' },
       ],
-      extra: { requestId, address: input.address, zip },
-      promptAppendix: input.sourcePage
-        ? `The user-facing page that triggered this error is ${input.sourcePage} — after fixing, verify the fix end-to-end on the same page.`
-        : undefined,
-      level: 'error',
+      extra: {
+        requestId,
+        address: input.address,
+        zip,
+        customerImpact: 'All residential and commercial collection-schedule searches on the public schedule page are failing (HTTP 500)',
+        errorRate: '100%',
+      },
+      promptAppendix,
+      level: 'fatal',
       platform: 'node',
       firstSeen: '',
       lastSeen: new Date().toISOString(),
