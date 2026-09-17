@@ -63,6 +63,17 @@ router.post('/api/cba/payment', async (req, res) => {
       });
     }
 
+    if (error.name === 'PaymentOperationsError') {
+      return res.status(error.statusCode || 422).json({
+        success: false,
+        error: error.message,
+        errorClass: error.name,
+        code: error.code || 'PAYMENT_REFERRED_TO_OPERATIONS',
+        queue: error.queue,
+        requestId: error.requestId || req.requestId,
+      });
+    }
+
     return res.status(500).json({
       success: false,
       error: error.message,
