@@ -9,6 +9,10 @@ jest.mock('../app/telemetry/datadog', () => ({
   recordTiming: jest.fn(),
 }));
 
+jest.mock('../app/telemetry/sentry', () => ({
+  Sentry: { captureException: jest.fn() },
+}));
+
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({})),
 }));
@@ -16,6 +20,7 @@ jest.mock('../app/services/devin-session', () => ({
 const express = require('express');
 const http = require('http');
 const service = require('../app/services/verticals/a693dab5');
+const { Sentry } = require('../app/telemetry/sentry');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const route = require('../app/routes/verticals/a693dab5');
 
@@ -54,6 +59,7 @@ function testApp() {
 beforeEach(() => {
   service.resetStore(Date.now());
   createSessionAndAlert.mockClear();
+  Sentry.captureException.mockClear();
 });
 
 afterAll(() => service.stopScheduler());
@@ -143,5 +149,33 @@ describe('a693dab5 fleet health pipeline', () => {
     await service.runPipeline('MPX', { trigger: 'manual' });
     expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
     expect(createSessionAndAlert.mock.calls[0][0]).not.toHaveProperty('customer');
+  });
+
+  test('bounds retained runs and preserves MPX last publish metadata', async () => {
+    for (let index = 0; index < 600; index += 1) {
+      await service.runPipeline('MPX', { trigger: 'scheduled' });
+    }
+    expect(service.RUNS.length).toBeLessThanOrEqual(500);
+    expect(service.listRuns({ operatorCode: 'MPX', limit: 1 })[0].status).toBe('failed');
+    expect(service.getFleet().operators.find((operator) => operator.code === 'MPX').lastPublishedAt).not.toBeNull();
+  });
+
+  test('reports derived status in fleet and engine read models', () => {
+    const engine = service.getEngine('598-2041');
+    expect(engine.engine.status).toBe('CAUTION');
+    expect(service.getEngine('598-5101').engine.status).toBe('STALE');
+  });
+
+  test('marks instant Sentry captures and retries alerts when delivery returns null', async () => {
+    createSessionAndAlert
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({});
+    await service.runPipeline('MPX', { trigger: 'scheduled' });
+    await service.runPipeline('MPX', { trigger: 'scheduled' });
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(2);
+    expect(Sentry.captureException).toHaveBeenCalled();
+    expect(Sentry.captureException.mock.calls[0][1].tags).toEqual(expect.objectContaining({
+      alert_path: 'instant',
+    }));
   });
 });

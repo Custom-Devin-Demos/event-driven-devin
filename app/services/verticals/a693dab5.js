@@ -14,6 +14,7 @@ const ENGINES = {};
 const EXCEEDANCES = [];
 const SNAPSHOTS = {};
 const RUNS = [];
+const MAX_RUNS = 500;
 const consecutiveFailures = {};
 const lastAlerts = {};
 const lastSuccessfulPublishes = {};
@@ -121,7 +122,7 @@ function addSeedRun({
   const durationMs = status === 'succeeded'
     ? 640 + Math.floor(random() * 811)
     : 1500 + Math.floor(random() * 901);
-  RUNS.push({
+  const run = {
     runId,
     operatorCode: schema.code,
     operatorName: schema.name,
@@ -134,7 +135,10 @@ function addSeedRun({
     rowsIn,
     rowsOut,
     error,
-  });
+  };
+  RUNS.push(run);
+  RUNS.length = Math.min(RUNS.length, MAX_RUNS);
+  return run;
 }
 
 function seedSnapshots(schema, engine, now, random) {
@@ -187,11 +191,11 @@ function seedStore(now = Date.now()) {
     });
 
     if (schema.code !== 'MPX') {
+      let latestSeededRun = null;
       for (let index = 0; index < 8; index += 1) {
         const startedAt = now - ((7 - index) * 3 * 60 * 60 * 1000 + 5 * 60 * 1000);
-        addSeedRun({
+        latestSeededRun = addSeedRun({
           schema,
-          now,
           trigger: 'scheduled',
           status: 'succeeded',
           stageReached: 'publish',
@@ -202,11 +206,12 @@ function seedStore(now = Date.now()) {
           random,
         });
       }
-      lastSuccessfulPublishes[schema.code] = now - 5 * 60 * 1000;
+      lastSuccessfulPublishes[schema.code] = latestSeededRun
+        ? new Date(latestSeededRun.finishedAt).getTime()
+        : null;
     } else {
-      addSeedRun({
+      const seededSuccess = addSeedRun({
         schema,
-        now,
         trigger: 'scheduled',
         status: 'succeeded',
         stageReached: 'publish',
@@ -216,9 +221,9 @@ function seedStore(now = Date.now()) {
         error: null,
         random,
       });
+      lastSuccessfulPublishes[schema.code] = new Date(seededSuccess.finishedAt).getTime();
       [9, 6, 3].forEach((hoursAgo) => addSeedRun({
         schema,
-        now,
         trigger: 'scheduled',
         status: 'failed',
         stageReached: 'normalize',
@@ -496,7 +501,7 @@ async function sendAlert({ error, schema, run, stage, requestId, rowsIn, meta })
       consecutiveFailures: consecutiveFailures[schema.code],
       staleEngines: stale,
       lastSuccessfulPublishAt,
-      promptContext: `Operator ${schema.name}'s fleet of ${ENGINE_SEEDS[schema.code].length} engines has had no published health data for ~${staleHours}h; the last 3 scheduled normalize stages failed. Missed data means a missed early warning.`,
+      promptContext: `Operator ${schema.name}'s fleet of ${ENGINE_SEEDS[schema.code].length} engines has had no published health data for ~${staleHours}h; ${consecutiveFailures[schema.code] || 0} consecutive run(s) failed at the ${stage} stage. Missed data means a missed early warning.`,
     },
     level: 'error',
     platform: 'node',
@@ -510,13 +515,14 @@ async function sendAlert({ error, schema, run, stage, requestId, rowsIn, meta })
     triggeredRule: '',
     promptAppendix: 'When you fix this, add regression tests covering every operator schema manifest (unit declarations and column mappings) so a future export-format change cannot pass CI untested, and record a browser video of the console showing the operator fleet leaving STALE.',
   };
-  await createSessionAndAlert(alertData).catch((alertError) => {
+  return createSessionAndAlert(alertData).catch((alertError) => {
     logger.error('Fleet health alert attempt failed', {
       service: SERVICE,
       operatorCode: schema.code,
       runId: run.runId,
       error: alertError.message,
     });
+    return null;
   });
 }
 
@@ -571,16 +577,24 @@ async function runPipeline(operatorCode, meta = {}) {
     run.rowsIn = rowsIn;
     run.error = { name: error.name, message: error.message, stage };
     RUNS.unshift(run);
+    RUNS.length = Math.min(RUNS.length, MAX_RUNS);
     consecutiveFailures[operatorCode] = (consecutiveFailures[operatorCode] || 0) + 1;
     incrementMetric('a693dab5.pipeline.run', { operator: operatorCode, status: 'failed' });
     recordTiming('a693dab5.pipeline.duration', run.durationMs, { operator: operatorCode, status: 'failed' });
-    Sentry.captureException(error, { tags: { service: SERVICE, operator: operatorCode, stage } });
+    Sentry.captureException(error, {
+      tags: {
+        service: SERVICE,
+        operator: operatorCode,
+        stage,
+        alert_path: 'instant',
+      },
+    });
     const shouldAlert = run.trigger === 'manual'
       || (consecutiveFailures[operatorCode] >= 3
         && (!lastAlerts[operatorCode] || Date.now() - lastAlerts[operatorCode] > ALERT_COOLDOWN_MS));
     if (shouldAlert) {
-      lastAlerts[operatorCode] = Date.now();
-      await sendAlert({ error, schema, run, stage, requestId, rowsIn, meta });
+      const delivered = await sendAlert({ error, schema, run, stage, requestId, rowsIn, meta });
+      if (delivered) lastAlerts[operatorCode] = Date.now();
     }
     return run;
   }
@@ -603,23 +617,31 @@ function listRuns({ limit = 50, operatorCode } = {}) {
     .slice(0, count);
 }
 
+function deriveStatus(engine, openExceedances, now) {
+  const stale = now - new Date(engine.lastDataReceivedAt).getTime() > STALE_AFTER_MS;
+  const levels = { WARNING: 3, CAUTION: 2, ADVISORY: 1 };
+  const worst = openExceedances
+    .slice()
+    .sort((a, b) => levels[b.level] - levels[a.level])[0];
+  return {
+    stale,
+    status: stale ? 'STALE' : (worst ? worst.level : 'HEALTHY'),
+  };
+}
+
 function getFleet(now = Date.now()) {
   const engines = Object.values(ENGINES).map((engine) => {
     const open = EXCEEDANCES.filter((entry) => entry.esn === engine.esn && entry.status === 'open');
-    const stale = now - new Date(engine.lastDataReceivedAt).getTime() > STALE_AFTER_MS;
-    const levels = { WARNING: 3, CAUTION: 2, ADVISORY: 1 };
-    const worst = open.sort((a, b) => levels[b.level] - levels[a.level])[0];
+    const derived = deriveStatus(engine, open, now);
     return {
       ...engine,
       operatorName: OPERATOR_SCHEMAS[engine.operatorCode].name,
       openExceedances: open.length,
-      stale,
-      status: stale ? 'STALE' : (worst ? worst.level : 'HEALTHY'),
+      ...derived,
     };
   });
   const operators = Object.values(OPERATOR_SCHEMAS).map((schema) => {
     const operatorEngines = engines.filter((engine) => engine.operatorCode === schema.code);
-    const latest = listRuns({ operatorCode: schema.code, limit: 50 }).find((run) => run.status === 'succeeded');
     return {
       code: schema.code,
       name: schema.name,
@@ -627,7 +649,9 @@ function getFleet(now = Date.now()) {
       engineCount: operatorEngines.length,
       staleCount: operatorEngines.filter((engine) => engine.stale).length,
       consecutiveFailures: consecutiveFailures[schema.code] || 0,
-      lastPublishedAt: latest ? latest.finishedAt : null,
+      lastPublishedAt: lastSuccessfulPublishes[schema.code]
+        ? new Date(lastSuccessfulPublishes[schema.code]).toISOString()
+        : null,
       schemaVersion: schema.schemaVersion,
       fileFormat: schema.fileFormat,
     };
@@ -668,12 +692,14 @@ function getFleet(now = Date.now()) {
 function getEngine(esn) {
   const engine = ENGINES[esn];
   if (!engine) return null;
+  const openExceedances = EXCEEDANCES.filter((entry) => entry.esn === esn && entry.status === 'open');
+  const derived = deriveStatus(engine, openExceedances, Date.now());
   return {
     engine: {
       ...engine,
       operatorName: OPERATOR_SCHEMAS[engine.operatorCode].name,
-      openExceedances: EXCEEDANCES.filter((entry) => entry.esn === esn && entry.status === 'open').length,
-      stale: Date.now() - new Date(engine.lastDataReceivedAt).getTime() > STALE_AFTER_MS,
+      openExceedances: openExceedances.length,
+      ...derived,
     },
     thresholds: THRESHOLDS[engine.family],
     snapshots: (SNAPSHOTS[esn] || []).slice().reverse(),
