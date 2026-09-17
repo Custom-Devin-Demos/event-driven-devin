@@ -2,6 +2,7 @@ jest.mock('axios', () => ({ create: jest.fn() }));
 
 const axios = require('axios');
 const { createVulnerablePR } = require('../app/services/sonar-pr-trigger');
+const { getCustomerConfig } = require('../config/customers');
 
 function mockGithub() {
   const post = jest.fn().mockImplementation((url) => {
@@ -34,36 +35,34 @@ function dispatchInputs(client) {
 describe('devin-scan workflow dispatch inputs', () => {
   beforeEach(() => {
     process.env.GITHUB_PAT = 'gh-token';
-    process.env.DEVIN_ORG_ID = 'org-default';
     axios.create.mockReset();
   });
 
   afterAll(() => {
     delete process.env.GITHUB_PAT;
-    delete process.env.DEVIN_ORG_ID;
   });
 
-  test('falls back to the global org when the report carries none', async () => {
-    const client = mockGithub();
-
-    await createVulnerablePR({ customer: 'ce9afcfc' });
-
-    expect(dispatchInputs(client).org_id).toBe('org-default');
-  });
-
-  test('keeps the org the report supplied', async () => {
+  test('a default-key scan leaves the org to the target repo secret', async () => {
     const client = mockGithub();
 
     await createVulnerablePR({ customer: 'ce9afcfc', devinOrgId: 'org-from-page' });
 
-    expect(dispatchInputs(client).org_id).toBe('org-from-page');
+    expect(dispatchInputs(client)).toMatchObject({ customer: 'default', org_id: '' });
   });
 
-  test('ce9afcfc scans with the default service key', async () => {
+  test('a customer-key scan keeps the org the report supplied', async () => {
     const client = mockGithub();
+
+    await createVulnerablePR({ customer: '5b992ae7', devinOrgId: 'org-from-page' });
+
+    expect(dispatchInputs(client)).toMatchObject({ customer: '5b992ae7', org_id: 'org-from-page' });
+  });
+
+  test('ce9afcfc scans the repo the default automations scan', async () => {
+    mockGithub();
 
     await createVulnerablePR({ customer: 'ce9afcfc' });
 
-    expect(dispatchInputs(client).customer).toBe('default');
+    expect(getCustomerConfig('ce9afcfc').targetRepo).toBe('COG-GTM/etl-pipeline-demo');
   });
 });
