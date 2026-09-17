@@ -122,6 +122,7 @@ describe('customer config discovery', () => {
       'aliases',
       'itsm',
       'itsmAssignmentGroup',
+      'sonarWorkflowCustomer',
     ]);
     const problems = [];
     for (const [slug, entry] of Object.entries(CUSTOMERS)) {
