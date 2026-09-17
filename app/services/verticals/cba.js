@@ -249,6 +249,10 @@ async function submitPayment(data) {
     }
 
     if (error.name === 'PaymentAddressingError') {
+      recordTiming('cba_payment.latency', Date.now() - startTime, {
+        route: '/api/cba/payment',
+        error: 'true',
+      });
       incrementMetric('cba_payment.addressing_unsupported', {
         route: '/api/cba/payment',
         payIdType: data.payIdType || 'none',
