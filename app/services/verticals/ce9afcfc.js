@@ -271,6 +271,7 @@ async function renderInviteScreen(data) {
         route: '/api/ce9afcfc/invite-screen',
         service: 'ce9afcfc-api',
         theme: event.theme,
+        alert_path: 'instant',
       },
       extra: {
         requestId,
