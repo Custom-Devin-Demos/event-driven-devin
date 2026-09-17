@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fleet Health Console · a693dab5</title>
+  <link rel="icon" href="/verticals/assets/a693dab5/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-navy: #052a4d;
+      --v-navy-deep: #031a30;
+      --v-navy-line: #123a66;
+      --v-blue: #0a6ed1;
+      --v-blue-soft: #e8f1fb;
+      --v-ink: #14213a;
+      --v-ink-2: #3a4a63;
+      --v-muted: #6b7a90;
+      --v-line: #dde3ec;
+      --v-bg: #f3f5f8;
+      --v-card: #ffffff;
+      --v-ok: #1f8a4c;
+      --v-ok-bg: #e6f4ec;
+      --v-advisory: #2f6fc2;
+      --v-advisory-bg: #e6eefb;
+      --v-caution: #c47a00;
+      --v-caution-bg: #fdf1dc;
+      --v-warning: #c62828;
+      --v-warning-bg: #fbe5e5;
+      --v-stale: #6b7280;
+      --v-stale-bg: #e5e7eb;
+      --v-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --v-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--v-sans); color: var(--v-ink); background: var(--v-bg); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ---- Header ---- */
+    .hdr { background: var(--v-navy); color: #fff; height: 64px; display: flex; align-items: center; padding: 0 28px; gap: 28px; border-bottom: 1px solid var(--v-navy-line); position: sticky; top: 0; z-index: 20; }
+    .hdr .logo { display: flex; align-items: center; height: 34px; }
+    .hdr .logo img { height: 34px; width: auto; display: block; }
+    .hdr .divider { width: 1px; height: 28px; background: rgba(255,255,255,.25); }
+    .hdr .app { display: flex; flex-direction: column; line-height: 1.15; }
+    .hdr .app strong { font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+    .hdr .app span { font-size: 11.5px; color: rgba(255,255,255,.7); text-transform: uppercase; letter-spacing: .08em; }
+    .hdr nav { display: flex; gap: 4px; margin-left: 8px; }
+    .hdr nav button { background: transparent; border: 0; color: rgba(255,255,255,.78); font-size: 13.5px; font-weight: 500; padding: 9px 14px; border-radius: 6px; }
+    .hdr nav button:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .hdr nav button.active { color: #fff; background: rgba(255,255,255,.14); }
+    .hdr .right { margin-left: auto; display: flex; align-items: center; gap: 18px; font-size: 12.5px; color: rgba(255,255,255,.8); }
+    .hdr .env { font-family: var(--v-mono); font-size: 11px; padding: 3px 8px; border: 1px solid rgba(255,255,255,.3); border-radius: 4px; letter-spacing: .04em; }
+    .hdr .user { display: flex; align-items: center; gap: 9px; }
+    .hdr .avatar { width: 28px; height: 28px; border-radius: 50%; background: #1d64b8; display: grid; place-items: center; font-size: 11px; font-weight: 600; }
+    .hdr .user small { display: block; color: rgba(255,255,255,.6); font-size: 11px; }
+    .hdr .commercial { font-weight: 500; letter-spacing: .02em; }
+
+    /* ---- Subbar ---- */
+    .subbar { background: #fff; border-bottom: 1px solid var(--v-line); padding: 10px 28px; display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--v-ink-2); }
+    .subbar .crumb { color: var(--v-muted); }
+    .subbar .crumb b { color: var(--v-ink); font-weight: 600; }
+    .subbar .back { margin-left: auto; font-size: 12px; color: var(--v-muted); text-decoration: none; }
+    .subbar .back:hover { color: var(--v-blue); }
+    .live { display: inline-flex; align-items: center; gap: 6px; font-family: var(--v-mono); font-size: 11px; color: var(--v-muted); }
+    .live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--v-ok); box-shadow: 0 0 0 3px rgba(31,138,76,.18); }
+
+    main { max-width: 1440px; margin: 0 auto; padding: 22px 28px 60px; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .page-head h1 { font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+    .page-head p { color: var(--v-muted); margin-top: 3px; font-size: 13px; }
+    .actions { display: flex; gap: 10px; align-items: center; }
+    .btn { border: 1px solid var(--v-line); background: #fff; color: var(--v-ink); border-radius: 6px; padding: 9px 14px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+    .btn:hover { border-color: #b9c4d4; }
+    .btn.primary { background: var(--v-blue); border-color: var(--v-blue); color: #fff; }
+    .btn.primary:hover { background: #0960b8; }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn .spin { width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+    .btn.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    select.ctl { border: 1px solid var(--v-line); background: #fff; border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: inherit; color: var(--v-ink); }
+
+    /* ---- KPI tiles ---- */
+    .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 18px; }
+    .kpi { background: var(--v-card); border: 1px solid var(--v-line); border-radius: 8px; padding: 14px 16px; }
+    .kpi .lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--v-muted); font-weight: 600; }
+    .kpi .val { font-size: 26px; font-weight: 600; margin-top: 6px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .kpi .sub { font-size: 12px; color: var(--v-muted); margin-top: 2px; }
+    .kpi.warn .val { color: var(--v-warning); }
+    .kpi.stale .val { color: var(--v-stale); }
+
+    /* ---- Cards / tables ---- */
+    .card { background: var(--v-card); border: 1px solid var(--v-line); border-radius: 8px; overflow: hidden; }
+    .card + .card { margin-top: 18px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--v-line); }
+    .card-head h2 { font-size: 14px; font-weight: 600; }
+    .card-head .meta { font-size: 12px; color: var(--v-muted); font-family: var(--v-mono); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--v-muted); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--v-line); background: #fafbfd; white-space: nowrap; }
+    td { padding: 10px 14px; border-bottom: 1px solid #edf0f4; vertical-align: middle; font-size: 13px; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr.clickable { cursor: pointer; }
+    tbody tr.clickable:hover td { background: #f7f9fc; }
+    tbody tr.dim td { color: var(--v-muted); }
+    .mono { font-family: var(--v-mono); font-size: 12.5px; }
+    .num { font-variant-numeric: tabular-nums; text-align: right; }
+    th.num { text-align: right; }
+    .stack small { display: block; color: var(--v-muted); font-size: 11.5px; margin-top: 1px; }
+
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+    .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .chip.HEALTHY { color: var(--v-ok); background: var(--v-ok-bg); }
+    .chip.ADVISORY { color: var(--v-advisory); background: var(--v-advisory-bg); }
+    .chip.CAUTION { color: var(--v-caution); background: var(--v-caution-bg); }
+    .chip.WARNING { color: var(--v-warning); background: var(--v-warning-bg); }
+    .chip.STALE { color: var(--v-stale); background: var(--v-stale-bg); }
+    .chip.succeeded { color: var(--v-ok); background: var(--v-ok-bg); }
+    .chip.failed { color: var(--v-warning); background: var(--v-warning-bg); }
+    .chip.running { color: var(--v-blue); background: var(--v-blue-soft); }
+    .chip.open { color: var(--v-warning); background: var(--v-warning-bg); }
+    .chip.closed { color: var(--v-muted); background: var(--v-stale-bg); }
+
+    .spark { display: block; }
+    .spark path { fill: none; stroke: var(--v-blue); stroke-width: 1.6; }
+    .spark.stale path { stroke: #9aa3b2; stroke-dasharray: 3 2; }
+    .spark circle { fill: var(--v-blue); }
+    .spark.stale circle { fill: #9aa3b2; }
+
+    .stages { display: inline-flex; gap: 3px; }
+    .stages i { display: block; width: 18px; height: 6px; border-radius: 2px; background: #dfe5ee; }
+    .stages i.done { background: var(--v-ok); }
+    .stages i.fail { background: var(--v-warning); }
+    .err-text { font-family: var(--v-mono); font-size: 12px; color: var(--v-warning); background: var(--v-warning-bg); border-left: 3px solid var(--v-warning); padding: 8px 10px; margin: 6px 0 2px; border-radius: 0 4px 4px 0; white-space: pre-wrap; }
+    tr.pinned td { background: #fbfcfe; }
+    .pin { font-size: 10.5px; color: var(--v-blue); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-left: 6px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+    .op-list { list-style: none; }
+    .op-list li { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #edf0f4; align-items: center; }
+    .op-list li:last-child { border-bottom: 0; }
+    .op-list .name { font-weight: 600; font-size: 13px; }
+    .op-list .name small { display: block; font-weight: 400; color: var(--v-muted); font-size: 11.5px; font-family: var(--v-mono); margin-top: 1px; }
+    .op-list .stat { text-align: right; font-size: 12px; color: var(--v-muted); }
+    .op-list .stat b { display: block; color: var(--v-ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .op-list li.stale .name { color: var(--v-stale); }
+    .op-list li.stale .stat b { color: var(--v-warning); }
+
+    .banner { display: none; align-items: flex-start; gap: 12px; background: #fff7ed; border: 1px solid #fbd38d; border-left: 4px solid var(--v-caution); border-radius: 6px; padding: 12px 16px; margin-bottom: 18px; font-size: 13px; }
+    .banner.show { display: flex; }
+    .banner .ic { width: 20px; height: 20px; border-radius: 50%; background: var(--v-caution); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; flex: none; margin-top: 1px; }
+    .banner b { font-weight: 600; }
+    .banner p { color: var(--v-ink-2); margin-top: 2px; }
+    .banner a { color: var(--v-blue); font-weight: 500; text-decoration: none; cursor: pointer; }
+
+    /* ---- Engine detail ---- */
+    .detail-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .detail-head .esn { font-family: var(--v-mono); font-size: 24px; font-weight: 500; letter-spacing: -.01em; }
+    .detail-head .desc { color: var(--v-muted); font-size: 13px; }
+    .detail-head .linkback { border: 0; background: transparent; color: var(--v-blue); font-size: 13px; padding: 0; margin-right: 6px; }
+    .facts { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 18px; }
+    .fact { background: var(--v-card); border: 1px solid var(--v-line); border-radius: 8px; padding: 12px 14px; }
+    .fact .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--v-muted); font-weight: 600; }
+    .fact .val { font-size: 18px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .fact .val small { font-size: 12px; color: var(--v-muted); font-weight: 400; margin-left: 3px; }
+    .chart-wrap { padding: 14px 16px 8px; }
+    .chart { width: 100%; height: 200px; display: block; }
+    .chart .grid line { stroke: #eef1f5; }
+    .chart .axis text { fill: var(--v-muted); font-size: 10.5px; font-family: var(--v-mono); }
+    .chart .line { fill: none; stroke: var(--v-blue); stroke-width: 2; }
+    .chart .line.n2 { stroke: #7c3aed; }
+    .chart .area { fill: rgba(10,110,209,.08); }
+    .chart .thr { stroke-width: 1; stroke-dasharray: 4 3; }
+    .chart .thr.advisory { stroke: var(--v-advisory); }
+    .chart .thr.caution { stroke: var(--v-caution); }
+    .chart .thr.warning { stroke: var(--v-warning); }
+    .chart .thr-lbl { font-size: 10px; font-family: var(--v-mono); }
+    .legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--v-muted); padding: 0 16px 12px; }
+    .legend i { display: inline-block; width: 10px; height: 3px; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+    .empty { padding: 26px 16px; text-align: center; color: var(--v-muted); font-size: 13px; }
+
+    /* ---- Toast ---- */
+    .toasts { position: fixed; right: 22px; bottom: 22px; display: flex; flex-direction: column; gap: 10px; z-index: 50; }
+    .toast { min-width: 340px; max-width: 460px; background: rgba(8,20,36,.94); color: #fff; border-radius: 8px; padding: 12px 14px 12px 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); transform: translateX(120%); opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+    .toast.in { transform: translateX(0); opacity: 1; }
+    .toast .bar { width: 4px; align-self: stretch; border-radius: 2px; background: var(--v-ok); flex: none; }
+    .toast.error .bar { background: #ef4444; }
+    .toast b { display: block; font-weight: 600; margin-bottom: 2px; }
+    .toast .msg { color: rgba(255,255,255,.82); }
+    .toast .msg code { font-family: var(--v-mono); font-size: 12px; color: #fecaca; }
+
+    footer { max-width: 1440px; margin: 0 auto; padding: 0 28px 28px; color: var(--v-muted); font-size: 11.5px; display: flex; justify-content: space-between; }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .facts { grid-template-columns: repeat(3, 1fr); }
+      .hdr .commercial, .hdr .env { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <a class="logo" href="#" aria-label="GE Aerospace">
+      <img src="/verticals/assets/a693dab5/logo.svg" alt="GE Aerospace" onerror="this.onerror=null;this.style.display='none';this.parentNode.insertAdjacentHTML('beforeend','<span style=&quot;font-weight:700;font-size:18px;letter-spacing:.02em&quot;>GE Aerospace</span>');">
+    </a>
+    <span class="divider"></span>
+    <div class="app">
+      <strong>Fleet Health Console</strong>
+      <span>Fleet Monitoring Center · Commercial Engines</span>
+    </div>
+    <nav>
+      <button data-view="fleet" class="active">Fleet Health</button>
+      <button data-view="runs">Pipeline Runs</button>
+    </nav>
+    <div class="right">
+      <span class="commercial">Commercial</span>
+      <span class="env">PROD · us-east-1</span>
+      <div class="user">
+        <span class="avatar">RM</span>
+        <div><span>R. Mehta</span><small>Fleet Support Engineer · Day shift</small></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="subbar">
+    <span class="crumb">Fleet Services / Diagnostics / <b id="crumb">Fleet Health</b></span>
+    <span class="live"><span class="dot" id="live-dot"></span><span id="live-text">pipeline_runs · last sync —</span></span>
+    <a class="back" href="/">← All Demos</a>
+  </div>
+
+  <main>
+    <!-- ================= FLEET VIEW ================= -->
+    <section id="view-fleet" class="view active">
+      <div class="page-head">
+        <div>
+          <h1>Fleet Health</h1>
+          <p>Engine health metrics published by the nightly engine-health pipeline. Operators, engines and open exceedances as of the last successful publish.</p>
+        </div>
+        <div class="actions">
+          <select class="ctl" id="fleet-operator-filter"><option value="">All operators</option></select>
+          <button class="btn primary" id="run-now-fleet"><span class="spin"></span>Run pipeline now</button>
+        </div>
+      </div>
+
+      <div class="banner" id="stale-banner">
+        <span class="ic">!</span>
+        <div>
+          <b id="stale-banner-title">Operator fleet is stale</b>
+          <p id="stale-banner-text"></p>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-head">
+            <h2>Engines</h2>
+            <span class="meta" id="engines-meta"></span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Engine (ESN)</th>
+                <th>Operator</th>
+                <th>Aircraft</th>
+                <th>Family</th>
+                <th>EGT margin trend</th>
+                <th class="num">EGT margin</th>
+                <th class="num">Open exc.</th>
+                <th>Last data received</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="engine-rows"></tbody>
+          </table>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-head"><h2>Operators</h2><span class="meta">data feed status</span></div>
+            <ul class="op-list" id="operator-list"></ul>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Open exceedances</h2><span class="meta" id="exc-meta"></span></div>
+            <table>
+              <thead><tr><th>Engine</th><th>Metric</th><th>Level</th></tr></thead>
+              <tbody id="exceedance-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RUNS VIEW ================= -->
+    <section id="view-runs" class="view">
+      <div class="page-head">
+        <div>
+          <h1>Pipeline Runs</h1>
+          <p>Every scheduled or manual execution of the engine-health pipeline. Stages: ingest → normalize → compute_health → evaluate_exceedances → publish.</p>
+        </div>
+        <div class="actions">
+          <select class="ctl" id="runs-operator"><option value="all">All operators</option></select>
+          <button class="btn primary" id="run-now"><span class="spin"></span>Run pipeline now</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>pipeline_runs</h2>
+          <span class="meta" id="runs-meta"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Started</th>
+              <th>Run</th>
+              <th>Operator</th>
+              <th>Trigger</th>
+              <th>Stages</th>
+              <th>Stage reached</th>
+              <th class="num">Rows in</th>
+              <th class="num">Rows out</th>
+              <th class="num">Duration</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="run-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= ENGINE DETAIL ================= -->
+    <section id="view-engine" class="view">
+      <div class="detail-head">
+        <button class="linkback" id="detail-back">← Fleet Health</button>
+        <span class="esn" id="d-esn"></span>
+        <span class="chip" id="d-status"></span>
+        <span class="desc" id="d-desc"></span>
+      </div>
+      <div class="facts" id="d-facts"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><h2>EGT margin trend</h2><span class="meta">°C · per published run</span></div>
+          <div class="chart-wrap"><svg class="chart" id="chart-egt" viewBox="0 0 640 200" preserveAspectRatio="none"></svg></div>
+          <div class="legend"><span><i style="background:var(--v-blue)"></i>EGT margin</span><span><i style="background:var(--v-advisory)"></i>Advisory</span><span><i style="background:var(--v-caution)"></i>Caution</span><span><i style="background:var(--v-warning)"></i>Warning</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Vibration</h2><span class="meta">ips · per flight leg</span></div>
+          <div class="chart-wrap"><svg class="chart" id="chart-vib" viewBox="0 0 640 200" preserveAspectRatio="none"></svg></div>
+          <div class="legend"><span><i style="background:var(--v-blue)"></i>N1</span><span><i style="background:#7c3aed"></i>N2</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-head"><h2>Exceedance history</h2><span class="meta" id="d-exc-meta"></span></div>
+        <table>
+          <thead><tr><th>ID</th><th>Detected</th><th>Metric</th><th>Level</th><th class="num">Value</th><th class="num">Threshold</th><th>Status</th></tr></thead>
+          <tbody id="d-exc-rows"></tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="card-head"><h2>Recent flight snapshots</h2><span class="meta">normalized · canonical schema</span></div>
+        <table>
+          <thead><tr><th>Flight date</th><th>Leg</th><th class="num">EGT margin °C</th><th class="num">N1 vib</th><th class="num">N2 vib</th><th class="num">Oil press kPa</th><th class="num">Oil qt/hr</th><th class="num">Alt ft</th></tr></thead>
+          <tbody id="d-snap-rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Fleet Health Console · engine-health pipeline v4.12 · internal use only</span>
+    <span id="foot-sync"></span>
+  </footer>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+    (function () {
+      var API = '/api/a693dab5';
+      var STAGES = ['ingest', 'normalize', 'compute_health', 'evaluate_exceedances', 'publish'];
+      var state = { fleet: null, runs: [], view: 'fleet', engine: null, filter: '' };
+
+      function bootstrapIdentity() {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+          if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+        }).catch(function () {});
+      }
+
+      function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+      function fmt(n, d) { return n == null || isNaN(n) ? '—' : Number(n).toFixed(d == null ? 1 : d); }
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function fmtTime(iso) {
+        if (!iso) return '—';
+        var d = new Date(iso);
+        return pad(d.getUTCDate()) + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()] + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + 'Z';
+      }
+      function ago(iso) {
+        if (!iso) return '—';
+        var ms = Date.now() - new Date(iso).getTime();
+        if (ms < 60e3) return 'just now';
+        var m = Math.round(ms / 60e3);
+        if (m < 60) return m + ' min ago';
+        var h = Math.floor(m / 60);
+        if (h < 48) return h + 'h ' + pad(m % 60) + 'm ago';
+        return Math.round(h / 24) + 'd ago';
+      }
+      function fmtDur(ms) { return ms == null ? '—' : ms < 1000 ? ms + ' ms' : (ms / 1000).toFixed(1) + ' s'; }
+
+      function sparkline(values, stale) {
+        var w = 96, h = 26, p = 2;
+        if (!values || values.length < 2) return '<svg class="spark" width="' + w + '" height="' + h + '"></svg>';
+        var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+        if (max - min < 1) { max += 1; min -= 1; }
+        var pts = values.map(function (v, i) {
+          var x = p + (i / (values.length - 1)) * (w - 2 * p);
+          var y = p + (1 - (v - min) / (max - min)) * (h - 2 * p);
+          return [x, y];
+        });
+        var d = pts.map(function (pt, i) { return (i ? 'L' : 'M') + pt[0].toFixed(1) + ' ' + pt[1].toFixed(1); }).join(' ');
+        var last = pts[pts.length - 1];
+        return '<svg class="spark' + (stale ? ' stale' : '') + '" width="' + w + '" height="' + h + '"><path d="' + d + '"/><circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.2"/></svg>';
+      }
+
+      function chip(label) { return '<span class="chip ' + esc(label) + '">' + esc(label) + '</span>'; }
+
+      function stageBar(run) {
+        var reachedIdx = STAGES.indexOf(run.stageReached);
+        return '<span class="stages" title="' + esc(run.stageReached) + '">' + STAGES.map(function (s, i) {
+          var cls = '';
+          if (run.status === 'succeeded') cls = 'done';
+          else if (i < reachedIdx) cls = 'done';
+          else if (i === reachedIdx) cls = 'fail';
+          return '<i class="' + cls + '"></i>';
+        }).join('') + '</span>';
+      }
+
+      /* ---------- Toasts ---------- */
+      function toast(kind, title, msg) {
+        var el = document.createElement('div');
+        el.className = 'toast ' + kind;
+        el.innerHTML = '<span class="bar"></span><div><b>' + esc(title) + '</b><div class="msg">' + msg + '</div></div>';
+        document.getElementById('toasts').appendChild(el);
+        requestAnimationFrame(function () { el.classList.add('in'); });
+        setTimeout(function () { el.classList.remove('in'); setTimeout(function () { el.remove(); }, 400); }, kind === 'error' ? 9000 : 5000);
+      }
+
+      /* ---------- Data ---------- */
+      function loadFleet() {
+        return fetch(API + '/fleet').then(function (r) { return r.json(); }).then(function (body) {
+          state.fleet = body;
+          renderFleet();
+          document.getElementById('live-text').textContent = 'pipeline_runs · last sync ' + fmtTime(body.generatedAt);
+          document.getElementById('foot-sync').textContent = 'Last sync ' + fmtTime(body.generatedAt) + ' · stale after ' + Math.round((body.staleAfterMs || 864e5) / 36e5) + 'h';
+        });
+      }
+      function loadRuns() {
+        return fetch(API + '/runs?limit=60').then(function (r) { return r.json(); }).then(function (body) {
+          state.runs = body.runs || [];
+          renderRuns();
+        });
+      }
+
+      /* ---------- Fleet view ---------- */
+      function renderFleet() {
+        var f = state.fleet; if (!f) return;
+        var engines = f.engines || [], ops = f.operators || [], s = f.summary || {};
+        var staleOps = ops.filter(function (o) { return o.staleCount > 0; });
+
+        var banner = document.getElementById('stale-banner');
+        if (staleOps.length) {
+          var o = staleOps[0];
+          document.getElementById('stale-banner-title').textContent = o.name + ' (' + o.code + ') — ' + o.staleCount + ' of ' + o.engineCount + ' engines STALE';
+          document.getElementById('stale-banner-text').innerHTML = 'No engine-health data published for this operator since <b>' + esc(fmtTime(o.lastPublishedAt)) + '</b> (' + esc(ago(o.lastPublishedAt)) + '). ' +
+            (o.consecutiveFailures ? 'The last <b>' + o.consecutiveFailures + '</b> scheduled runs failed. ' : '') +
+            '<a data-goto="runs">View pipeline runs →</a>';
+          banner.classList.add('show');
+        } else {
+          banner.classList.remove('show');
+        }
+
+        var exc = s.openExceedances || {};
+        var excTotal = (exc.ADVISORY || 0) + (exc.CAUTION || 0) + (exc.WARNING || 0);
+        document.getElementById('kpis').innerHTML =
+          '<div class="kpi"><div class="lbl">Engines monitored</div><div class="val">' + (s.engineCount || engines.length) + '</div><div class="sub">' + ops.length + ' operators · ' + uniq(engines.map(function (e) { return e.family; })).length + ' engine families</div></div>' +
+          '<div class="kpi' + ((s.staleCount || 0) ? ' stale' : '') + '"><div class="lbl">Stale engines</div><div class="val">' + (s.staleCount || 0) + '</div><div class="sub">no snapshot in ' + Math.round((f.staleAfterMs || 864e5) / 36e5) + 'h</div></div>' +
+          '<div class="kpi' + ((exc.WARNING || 0) ? ' warn' : '') + '"><div class="lbl">Open exceedances</div><div class="val">' + excTotal + '</div><div class="sub">' + (exc.WARNING || 0) + ' warning · ' + (exc.CAUTION || 0) + ' caution · ' + (exc.ADVISORY || 0) + ' advisory</div></div>' +
+          '<div class="kpi' + ((s.failedRunsLast24h || 0) ? ' warn' : '') + '"><div class="lbl">Failed runs · 24h</div><div class="val">' + (s.failedRunsLast24h || 0) + '</div><div class="sub">pipeline_runs.status = failed</div></div>' +
+          '<div class="kpi"><div class="lbl">Last run</div><div class="val" style="font-size:20px">' + esc(ago(s.lastRunAt)) + '</div><div class="sub">' + esc(fmtTime(s.lastRunAt)) + '</div></div>';
+
+        var sel = document.getElementById('fleet-operator-filter');
+        if (sel.options.length <= 1) {
+          ops.forEach(function (o) { var opt = document.createElement('option'); opt.value = o.code; opt.textContent = o.name + ' (' + o.code + ')'; sel.appendChild(opt); });
+          var rsel = document.getElementById('runs-operator');
+          ops.forEach(function (o) { var opt = document.createElement('option'); opt.value = o.code; opt.textContent = o.name + ' (' + o.code + ')'; rsel.appendChild(opt); });
+        }
+
+        var order = { WARNING: 0, CAUTION: 1, ADVISORY: 2, STALE: 3, HEALTHY: 4 };
+        var rows = engines.filter(function (e) { return !state.filter || e.operatorCode === state.filter; })
+          .sort(function (a, b) { return (order[a.status] - order[b.status]) || a.esn.localeCompare(b.esn); });
+        document.getElementById('engines-meta').textContent = rows.length + ' engines';
+        document.getElementById('engine-rows').innerHTML = rows.map(function (e) {
+          return '<tr class="clickable' + (e.stale ? ' dim' : '') + '" data-esn="' + esc(e.esn) + '">' +
+            '<td class="stack"><span class="mono">' + esc(e.esn) + '</span><small>pos ' + esc(e.position) + '</small></td>' +
+            '<td class="stack"><span class="mono">' + esc(e.operatorCode) + '</span><small>' + esc(e.operatorName) + '</small></td>' +
+            '<td class="stack"><span class="mono">' + esc(e.aircraftReg) + '</span><small>' + esc(e.aircraftType) + '</small></td>' +
+            '<td>' + esc(e.family) + '</td>' +
+            '<td>' + sparkline(e.egtMarginHistory, e.stale) + '</td>' +
+            '<td class="num mono">' + fmt(e.egtMarginC) + ' °C</td>' +
+            '<td class="num">' + (e.openExceedances || 0) + '</td>' +
+            '<td class="stack">' + esc(ago(e.lastDataReceivedAt)) + '<small>' + esc(fmtTime(e.lastDataReceivedAt)) + '</small></td>' +
+            '<td>' + chip(e.status) + '</td></tr>';
+        }).join('') || '<tr><td colspan="9" class="empty">No engines match this filter.</td></tr>';
+
+        document.getElementById('operator-list').innerHTML = ops.map(function (o) {
+          var stale = o.staleCount > 0;
+          return '<li class="' + (stale ? 'stale' : '') + '"><div class="name">' + esc(o.name) + '<small>' + esc(o.code) + ' · ' + esc(o.engineFamily) + ' · ' + esc(o.fileFormat) + ' v' + esc(o.schemaVersion) + '</small></div>' +
+            '<div class="stat">' + (stale ? '<b>' + o.staleCount + '/' + o.engineCount + ' stale</b>' : '<b>' + o.engineCount + ' engines</b>') + 'published ' + esc(ago(o.lastPublishedAt)) + '</div></li>';
+        }).join('');
+
+        var openExc = [];
+        engines.forEach(function (e) { (e.openExceedanceList || []).forEach(function (x) { openExc.push(x); }); });
+        if (!openExc.length && f.openExceedances) openExc = f.openExceedances;
+        document.getElementById('exc-meta').textContent = openExc.length + ' open';
+        document.getElementById('exceedance-rows').innerHTML = openExc.slice(0, 8).map(function (x) {
+          return '<tr class="clickable" data-esn="' + esc(x.esn) + '"><td class="mono">' + esc(x.esn) + '</td><td class="stack">' + esc(x.metric) + '<small>' + esc(fmt(x.value, 2)) + ' vs ' + esc(fmt(x.threshold, 2)) + '</small></td><td>' + chip(x.level) + '</td></tr>';
+        }).join('') || '<tr><td colspan="3" class="empty">No open exceedances.</td></tr>';
+      }
+      function uniq(a) { return a.filter(function (v, i) { return a.indexOf(v) === i; }); }
+
+      /* ---------- Runs view ---------- */
+      function renderRuns() {
+        var runs = state.runs;
+        document.getElementById('runs-meta').textContent = runs.length + ' runs · newest first';
+        document.getElementById('run-rows').innerHTML = runs.map(function (r, i) {
+          var err = r.error ? '<div class="err-text">' + esc(r.error.name) + ': ' + esc(r.error.message) + (r.error.stage ? '\n    at stage ' + esc(r.error.stage) + ' · run ' + esc(r.runId) : '') + '</div>' : '';
+          return '<tr class="' + (i === 0 ? 'pinned' : '') + '">' +
+            '<td class="stack">' + esc(fmtTime(r.startedAt)) + (i === 0 ? '<span class="pin">latest</span>' : '') + '<small>' + esc(ago(r.startedAt)) + '</small></td>' +
+            '<td class="mono">' + esc(r.runId) + '</td>' +
+            '<td class="stack">' + esc(r.operatorName) + '<small>' + esc(r.operatorCode) + '</small></td>' +
+            '<td>' + esc(r.trigger) + '</td>' +
+            '<td>' + stageBar(r) + '</td>' +
+            '<td class="mono">' + esc(r.stageReached) + '</td>' +
+            '<td class="num mono">' + (r.rowsIn == null ? '—' : r.rowsIn) + '</td>' +
+            '<td class="num mono">' + (r.rowsOut == null ? '—' : r.rowsOut) + '</td>' +
+            '<td class="num mono">' + esc(fmtDur(r.durationMs)) + '</td>' +
+            '<td>' + chip(r.status) + '</td></tr>' +
+            (err ? '<tr><td colspan="10" style="padding-top:0">' + err + '</td></tr>' : '');
+        }).join('') || '<tr><td colspan="10" class="empty">No runs recorded.</td></tr>';
+      }
+
+      /* ---------- Engine detail ---------- */
+      function openEngine(esn) {
+        fetch(API + '/engines/' + encodeURIComponent(esn)).then(function (r) { if (!r.ok) throw new Error('Engine not found'); return r.json(); }).then(function (body) {
+          state.engine = body;
+          renderEngine();
+          showView('engine');
+        }).catch(function (e) { toast('error', 'Could not load engine', esc(e.message)); });
+      }
+
+      function renderEngine() {
+        var d = state.engine, e = d.engine;
+        document.getElementById('d-esn').textContent = 'ESN ' + e.esn;
+        document.getElementById('d-status').className = 'chip ' + e.status;
+        document.getElementById('d-status').textContent = e.status;
+        document.getElementById('d-desc').textContent = e.family + ' · ' + e.operatorName + ' (' + e.operatorCode + ') · ' + e.aircraftReg + ' ' + e.aircraftType + ' · position ' + e.position;
+        document.getElementById('d-facts').innerHTML =
+          '<div class="fact"><div class="lbl">EGT margin</div><div class="val">' + fmt(e.egtMarginC) + '<small>°C</small></div></div>' +
+          '<div class="fact"><div class="lbl">N1 vibration</div><div class="val">' + fmt(e.vibrationN1, 2) + '<small>ips</small></div></div>' +
+          '<div class="fact"><div class="lbl">Oil consumption</div><div class="val">' + fmt(e.oilConsumptionQtHr, 2) + '<small>qt/hr</small></div></div>' +
+          '<div class="fact"><div class="lbl">Open exceedances</div><div class="val">' + (e.openExceedances || 0) + '</div></div>' +
+          '<div class="fact"><div class="lbl">Last data received</div><div class="val" style="font-size:14px">' + esc(fmtTime(e.lastDataReceivedAt)) + '<small>' + esc(ago(e.lastDataReceivedAt)) + '</small></div></div>' +
+          '<div class="fact"><div class="lbl">Snapshots stored</div><div class="val">' + (d.snapshots || []).length + '</div></div>';
+
+        drawEgtChart(e.egtMarginHistory || [], d.thresholds && d.thresholds.egtMarginC);
+        drawVibChart(d.snapshots || []);
+
+        var exc = d.exceedances || [];
+        document.getElementById('d-exc-meta').textContent = exc.filter(function (x) { return x.status === 'open'; }).length + ' open · ' + exc.length + ' total';
+        document.getElementById('d-exc-rows').innerHTML = exc.map(function (x) {
+          return '<tr><td class="mono">' + esc(x.id) + '</td><td>' + esc(fmtTime(x.detectedAt)) + '</td><td>' + esc(x.metric) + '</td><td>' + chip(x.level) + '</td><td class="num mono">' + fmt(x.value, 2) + '</td><td class="num mono">' + fmt(x.threshold, 2) + '</td><td>' + chip(x.status) + '</td></tr>';
+        }).join('') || '<tr><td colspan="7" class="empty">No exceedances recorded for this engine.</td></tr>';
+
+        document.getElementById('d-snap-rows').innerHTML = (d.snapshots || []).slice(0, 12).map(function (s) {
+          return '<tr><td>' + esc(fmtTime(s.flightDate)) + '</td><td class="mono">' + esc(s.legId) + '</td><td class="num mono">' + fmt(s.egtMarginC) + '</td><td class="num mono">' + fmt(s.vibrationN1, 2) + '</td><td class="num mono">' + fmt(s.vibrationN2, 2) + '</td><td class="num mono">' + fmt(s.oilPressureKpa, 0) + '</td><td class="num mono">' + fmt(s.oilConsumptionQtHr, 2) + '</td><td class="num mono">' + (s.altitudeFt == null ? '—' : Number(s.altitudeFt).toLocaleString()) + '</td></tr>';
+        }).join('') || '<tr><td colspan="8" class="empty">No snapshots stored.</td></tr>';
+      }
+
+      function scale(values, h, pad, extra) {
+        var all = values.slice().concat(extra || []);
+        var min = Math.min.apply(null, all), max = Math.max.apply(null, all);
+        if (!isFinite(min)) { min = 0; max = 1; }
+        var span = (max - min) || 1; min -= span * 0.15; max += span * 0.15;
+        return function (v) { return pad + (1 - (v - min) / (max - min)) * (h - 2 * pad); };
+      }
+      function linePath(vals, x, y) { return vals.map(function (v, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' '); }
+
+      function drawEgtChart(hist, thr) {
+        var W = 640, H = 200, P = 26, svg = document.getElementById('chart-egt');
+        if (hist.length < 2) { svg.innerHTML = '<text x="320" y="100" text-anchor="middle" fill="#6b7a90" font-size="12">Not enough published runs</text>'; return; }
+        var thrVals = thr ? [thr.advisory, thr.caution, thr.warning] : [];
+        var y = scale(hist, H, P, thrVals);
+        var x = function (i) { return P + (i / (hist.length - 1)) * (W - 2 * P); };
+        var grid = '';
+        for (var g = 0; g < 4; g++) { var gy = P + g * (H - 2 * P) / 3; grid += '<line x1="' + P + '" x2="' + (W - P) + '" y1="' + gy + '" y2="' + gy + '"/>'; }
+        var area = linePath(hist, x, y) + ' L' + x(hist.length - 1).toFixed(1) + ' ' + (H - P) + ' L' + x(0) + ' ' + (H - P) + ' Z';
+        var thrs = '';
+        if (thr) ['advisory', 'caution', 'warning'].forEach(function (k) {
+          var ty = y(thr[k]);
+          thrs += '<line class="thr ' + k + '" x1="' + P + '" x2="' + (W - P) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/><text class="thr-lbl" x="' + (W - P + 2) + '" y="' + (ty + 3).toFixed(1) + '" fill="var(--v-' + k + ')">' + thr[k] + '</text>';
+        });
+        var labels = '<text x="' + P + '" y="' + (H - 6) + '">-' + (hist.length - 1) + ' runs</text><text x="' + (W - P) + '" y="' + (H - 6) + '" text-anchor="end">latest</text>' +
+          '<text x="4" y="' + (y(hist[hist.length - 1]) + 3).toFixed(1) + '">' + fmt(hist[hist.length - 1]) + '</text>';
+        svg.innerHTML = '<g class="grid">' + grid + '</g><path class="area" d="' + area + '"/>' + thrs + '<path class="line" d="' + linePath(hist, x, y) + '"/><g class="axis">' + labels + '</g>';
+      }
+
+      function drawVibChart(snaps) {
+        var W = 640, H = 200, P = 26, svg = document.getElementById('chart-vib');
+        var rows = snaps.slice(0, 16).reverse();
+        if (rows.length < 2) { svg.innerHTML = '<text x="320" y="100" text-anchor="middle" fill="#6b7a90" font-size="12">No snapshots</text>'; return; }
+        var n1 = rows.map(function (s) { return Number(s.vibrationN1) || 0; }), n2 = rows.map(function (s) { return Number(s.vibrationN2) || 0; });
+        var y = scale(n1.concat(n2), H, P);
+        var x = function (i) { return P + (i / (rows.length - 1)) * (W - 2 * P); };
+        var grid = '';
+        for (var g = 0; g < 4; g++) { var gy = P + g * (H - 2 * P) / 3; grid += '<line x1="' + P + '" x2="' + (W - P) + '" y1="' + gy + '" y2="' + gy + '"/>'; }
+        svg.innerHTML = '<g class="grid">' + grid + '</g><path class="line" d="' + linePath(n1, x, y) + '"/><path class="line n2" d="' + linePath(n2, x, y) + '"/>' +
+          '<g class="axis"><text x="' + P + '" y="' + (H - 6) + '">' + esc(rows[0].legId) + '</text><text x="' + (W - P) + '" y="' + (H - 6) + '" text-anchor="end">' + esc(rows[rows.length - 1].legId) + '</text></g>';
+      }
+
+      /* ---------- Run pipeline ---------- */
+      function runPipeline(operatorCode, btn) {
+        var buttons = [document.getElementById('run-now'), document.getElementById('run-now-fleet')];
+        buttons.forEach(function (b) { b.disabled = true; b.classList.add('busy'); });
+        var dot = document.getElementById('live-dot'); dot.style.background = '#0a6ed1';
+        return fetch(API + '/runs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            operatorCode: operatorCode || 'all',
+            sourcePage: 'fleet-health-console',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); }).then(function (res) {
+          if (!res.ok) throw new Error(res.body.error || 'Pipeline request failed');
+          var runs = res.body.runs || [];
+          var failed = runs.filter(function (r) { return r.status === 'failed'; });
+          var ok = runs.length - failed.length;
+          if (failed.length) {
+            failed.forEach(function (r) {
+              toast('error', 'Pipeline run failed · ' + r.operatorName + ' (' + r.operatorCode + ')',
+                'Stage <code>' + esc(r.stageReached) + '</code> · ' + esc(r.runId) + '<br><code>' + esc(r.error ? r.error.name + ': ' + r.error.message : 'unknown error') + '</code><br><span style="color:rgba(255,255,255,.6)">Alert posted to fleet-monitoring on-call · incident opened</span>');
+            });
+            if (ok) toast('success', ok + ' operator run' + (ok > 1 ? 's' : '') + ' published', 'Fleet metrics refreshed for healthy operators.');
+          } else {
+            toast('success', runs.length + ' run' + (runs.length > 1 ? 's' : '') + ' published', 'All stages completed. Fleet metrics refreshed.');
+          }
+          return Promise.all([loadFleet(), loadRuns()]);
+        }).catch(function (e) {
+          toast('error', 'Pipeline request failed', esc(e.message));
+        }).then(function () {
+          buttons.forEach(function (b) { b.disabled = false; b.classList.remove('busy'); });
+          dot.style.background = '';
+        });
+      }
+
+      /* ---------- Views ---------- */
+      function showView(name) {
+        state.view = name;
+        document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + name); });
+        document.querySelectorAll('.hdr nav button').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-view') === name || (name === 'engine' && b.getAttribute('data-view') === 'fleet')); });
+        document.getElementById('crumb').textContent = name === 'runs' ? 'Pipeline Runs' : name === 'engine' ? 'Fleet Health / ESN ' + (state.engine ? state.engine.engine.esn : '') : 'Fleet Health';
+        window.scrollTo(0, 0);
+      }
+
+      document.querySelectorAll('.hdr nav button').forEach(function (b) { b.addEventListener('click', function () { showView(b.getAttribute('data-view')); }); });
+      document.getElementById('detail-back').addEventListener('click', function () { showView('fleet'); });
+      document.getElementById('stale-banner').addEventListener('click', function (ev) { if (ev.target.getAttribute('data-goto')) showView('runs'); });
+      document.getElementById('fleet-operator-filter').addEventListener('change', function (ev) { state.filter = ev.target.value; renderFleet(); });
+      document.getElementById('run-now').addEventListener('click', function () { runPipeline(document.getElementById('runs-operator').value, this); });
+      document.getElementById('run-now-fleet').addEventListener('click', function () { runPipeline('all', this); });
+      document.addEventListener('click', function (ev) {
+        var tr = ev.target.closest('tr[data-esn]');
+        if (tr) openEngine(tr.getAttribute('data-esn'));
+      });
+
+      bootstrapIdentity();
+      Promise.all([loadFleet(), loadRuns()]).catch(function (e) { toast('error', 'Console failed to load', esc(e.message)); });
+      setInterval(function () { if (!document.hidden) { loadFleet(); loadRuns(); } }, 60000);
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
