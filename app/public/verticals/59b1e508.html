@@ -801,6 +801,7 @@
       function loadServiceAreas() {
         fetch('/api/59b1e508/service-areas').then(function (response) { return response.json(); }).then(function (body) {
           serviceAreas = body.serviceAreas || [];
+          showSuggestions();
         }).catch(function () {});
       }
 
@@ -867,18 +868,47 @@
       }
 
       function showToast(errorClass, error) {
-        toast.innerHTML = '<span class="toast-label">Schedule lookup failed</span>' + errorClass + ': ' + error;
+        toast.textContent = '';
+        var label = document.createElement('span');
+        label.className = 'toast-label';
+        label.textContent = 'Schedule lookup failed';
+        toast.appendChild(label);
+        toast.appendChild(document.createTextNode(String(errorClass) + ': ' + String(error)));
         toast.classList.add('show');
         clearTimeout(toastTimer);
         toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 5500);
       }
 
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+          return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[character];
+        });
+      }
+
       function renderSchedule(body, address) {
         var schedule = body.schedule || {};
+        var serviceArea = body.serviceArea || {};
         var items = (schedule.pickups || []).map(function (pickup) {
-          return '<li>' + pickup.date + ' — ' + pickup.type + (pickup.shifted ? ' (holiday shift)' : '') + '</li>';
+          return '<li>' + escapeHtml(pickup.date) + ' — ' + escapeHtml(pickup.type)
+            + ' (' + escapeHtml(pickup.day) + ')'
+            + (pickup.shifted ? ' (holiday shift)' : '') + '</li>';
         }).join('');
-        resultRegion.innerHTML = '<section class="result"><h2>Pickup Schedule for ' + address.replace(/</g, '&lt;') + '</h2><ul>' + items + '</ul></section>';
+        var holiday = schedule.holiday || {};
+        var holidayText = holiday.name
+          ? '<p>Upcoming holiday: ' + escapeHtml(holiday.name)
+            + ' (' + escapeHtml(holiday.date) + ', shifts ' + escapeHtml(holiday.shift) + ')</p>'
+          : '';
+        var divisionText = serviceArea.division
+          ? '<p>Service area: ' + escapeHtml(serviceArea.division) + '</p>'
+          : '';
+        resultRegion.innerHTML = '<section class="result"><h2>Pickup Schedule for '
+          + escapeHtml(address) + '</h2>' + divisionText + holidayText + '<ul>' + items + '</ul></section>';
       }
 
       function submitSchedule(event) {
