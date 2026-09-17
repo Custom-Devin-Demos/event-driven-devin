@@ -70,7 +70,8 @@ const SETTLEMENT_RAILS = {
   bpay: { name: 'BPAY', clearingWindowMinutes: 720, cutOffAest: '18:00' },
 };
 
-const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || '';
+const CBA_SLACK_MEMBER_ID = process.env.CBA_SLACK_MEMBER_ID || 'U0BU46F4WCU';
+const CBA_DEVIN_USER_ID = process.env.DEVIN_USER_ID_CBA || 'user-5e154bb05983499ba384fbeadd3f4478';
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved directoryService';
 
@@ -332,7 +333,7 @@ async function submitPayment(data) {
       customer: 'cba',
       slackMemberId: data.devinEmail ? '' : CBA_SLACK_MEMBER_ID,
       slackMemberIdFallback: CBA_SLACK_MEMBER_ID,
-      devinUserId: data.devinUserId,
+      devinUserId: data.devinUserId || CBA_DEVIN_USER_ID,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
