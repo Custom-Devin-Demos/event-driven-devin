@@ -4,6 +4,21 @@ const { submitPayment, ACCOUNTS } = require('../../services/verticals/cba');
 
 const router = express.Router();
 
+// Reproduction mode lets a remediation session fail the payment on camera without
+// re-raising the incident it was created from. It is never available in production
+// unless an operator sets CBA_REPRO_TOKEN and the caller presents it, so the header
+// alone cannot silence a real CommBank failure.
+function isReproductionRequest(req) {
+  const header = req.headers['x-synthetic'];
+  if (!header) {
+    return false;
+  }
+  if (process.env.CBA_REPRO_TOKEN) {
+    return header === process.env.CBA_REPRO_TOKEN;
+  }
+  return process.env.NODE_ENV !== 'production';
+}
+
 router.get('/cba', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'cba.html'));
 });
@@ -42,7 +57,7 @@ router.post('/api/cba/payment', async (req, res) => {
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
-      synthetic: Boolean(req.headers['x-synthetic']),
+      synthetic: isReproductionRequest(req),
     });
     res.json(payment);
   } catch (error) {
