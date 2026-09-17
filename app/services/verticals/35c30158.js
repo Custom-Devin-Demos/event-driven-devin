@@ -27,6 +27,7 @@ const ACTIVITY_CATEGORIES = {
 };
 
 const ADVANCE_BOOKING_DISCOUNT = 0.2;
+const FULFILLMENT_OPTIONS = ['pickup', 'delivery'];
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /**
@@ -62,9 +63,10 @@ function validationError(message, code) {
 }
 
 function parseDate(value) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const date = new Date(`${value}T00:00:00Z`);
-  return Number.isNaN(date.getTime()) ? null : date;
+  const match = typeof value === 'string' && /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.toISOString().slice(0, 10) === value ? date : null;
 }
 
 function validateRequest(data) {
@@ -73,8 +75,14 @@ function validateRequest(data) {
     throw validationError('Select a location to check availability.', 'RESORT_REQUIRED');
   }
 
-  const activity = data.activity === 'bike' ? 'bike' : 'snow';
-  const fulfillment = data.fulfillment === 'delivery' ? 'delivery' : 'pickup';
+  const activity = data.activity === undefined ? 'snow' : data.activity;
+  if (!ACTIVITY_CATEGORIES[activity]) {
+    throw validationError('Choose ski & snowboard or bike rentals.', 'ACTIVITY_INVALID');
+  }
+  const fulfillment = data.fulfillment === undefined ? 'pickup' : data.fulfillment;
+  if (!FULFILLMENT_OPTIONS.includes(fulfillment)) {
+    throw validationError('Choose pickup or delivery.', 'FULFILLMENT_INVALID');
+  }
   if (fulfillment === 'delivery' && !resort.deliveryOffered) {
     throw validationError(`Rental delivery is not offered at ${resort.name}.`, 'DELIVERY_UNAVAILABLE');
   }
@@ -83,6 +91,9 @@ function validateRequest(data) {
   const returnDate = parseDate(data.returnDate);
   if (!pickupDate || !returnDate) {
     throw validationError('Enter a pickup and return date.', 'DATES_REQUIRED');
+  }
+  if (daysUntil(pickupDate) < 0) {
+    throw validationError('Pickup date cannot be in the past.', 'PICKUP_DATE_IN_PAST');
   }
   if (returnDate < pickupDate) {
     throw validationError('Return date must be on or after the pickup date.', 'DATE_RANGE_INVALID');
@@ -129,6 +140,7 @@ function buildAvailability(offers, trip) {
     .map((offer) => quoteOffer(offer, trip))
     .sort((a, b) => a.total - b.total);
 
+  const inStock = packages.filter((pkg) => pkg.inStock);
   return {
     resort: { id: trip.resort.id, name: trip.resort.name, region: trip.resort.region },
     activity: trip.activity,
@@ -137,8 +149,8 @@ function buildAvailability(offers, trip) {
     returnDate: trip.returnDate.toISOString().slice(0, 10),
     rentalDays: trip.rentalDays,
     packages,
-    inStockCount: packages.filter((pkg) => pkg.inStock).length,
-    lowestTotal: packages.length ? packages[0].total : null,
+    inStockCount: inStock.length,
+    lowestTotal: inStock.length ? inStock[0].total : null,
   };
 }
 

@@ -847,6 +847,52 @@
     .cards__track { flex-wrap: wrap; }
     .footer__cols { flex-wrap: wrap; }
   }
+
+  @media (max-width: 991px) {
+    .widget__form { flex-direction: column; height: auto; gap: 8px; padding-bottom: 8px; }
+    .widget__col { width: 100%; padding: 0 20px; }
+    .widget__col + .widget__col { border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+    .widget__select, .btn-rent { width: 100%; }
+    .dates { width: 100%; }
+    .date { width: 50%; }
+    .widget__action { padding: 8px 0; }
+    .feature__media { width: 100%; padding: 30px 15px 0; }
+    .feature__media img { width: 100%; height: auto; }
+    .feature__body { padding: 30px 15px; }
+    .locations { flex-direction: column; height: auto; }
+    .locations__side { width: 100%; }
+    .locations__select { width: 100%; }
+    .locations__map { min-height: 320px; }
+    .footer__panel { width: 50%; margin-bottom: 20px; }
+    .toast { left: 16px; right: 16px; width: auto; }
+  }
+
+  @media (max-width: 767px) {
+    .alert__inner { font-size: 12px; letter-spacing: .5px; padding-right: 36px; white-space: nowrap; overflow: hidden; }
+    .alert__inner strong { overflow: hidden; text-overflow: ellipsis; }
+    .alert__inner span { display: none; }
+    .nav__links { display: none; }
+    .nav__utility_text { display: none; }
+    .hero { height: auto; margin-bottom: 30px; }
+    .hero__image { height: 220px; }
+    .hero__panel { top: 220px; bottom: 0; height: auto; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 92%); }
+    .hero__content { position: relative; top: 0; padding: 250px 0 60px; }
+    .hero h1 { font-size: 30px; line-height: 32px; letter-spacing: 1px; }
+    .feature { margin-top: 30px; }
+    .feature h2 { font-size: 24px; line-height: 26px; }
+    .widget { margin-top: 30px; }
+    .season { margin-top: 40px; }
+    .season__tab, .pkg__tab { width: 50%; }
+    .cards { padding: 0 15px; }
+    .cards__title { font-size: 26px; line-height: 28px; }
+    .cards__divider::before, .cards__divider::after { width: 60px; }
+    .card { width: 100%; }
+    .card__body { height: auto; }
+    .contact { padding: 0 15px; }
+    .contact__row { flex-wrap: wrap; }
+    .footer__panel { width: 100%; }
+    .footer__legal { flex-wrap: wrap; }
+  }
 </style>
 </head>
 <body>
@@ -1243,12 +1289,22 @@
     }).then(function (result) {
       if (result.ok && result.data.success) {
         var a = result.data.availability;
-        showToast(
-          a.inStockCount + ' packages available at ' + a.resort.name,
-          'From $' + a.lowestTotal + ' for ' + a.rentalDays + ' day' + (a.rentalDays === 1 ? '' : 's') + '. Reserve online to lock in your rate.',
-          '',
-          true
-        );
+        var days = a.rentalDays + ' day' + (a.rentalDays === 1 ? '' : 's');
+        if (a.inStockCount > 0) {
+          showToast(
+            a.inStockCount + ' package' + (a.inStockCount === 1 ? '' : 's') + ' available at ' + a.resort.name,
+            'From $' + a.lowestTotal + ' for ' + days + '. Reserve online to lock in your rate.',
+            '',
+            true
+          );
+        } else {
+          showToast(
+            'No ' + (activity === 'bike' ? 'bike' : 'ski or snowboard') + ' rentals available at ' + a.resort.name,
+            'Nothing is available for those dates. Try different dates or a nearby location.',
+            '',
+            true
+          );
+        }
       } else {
         showToast(
           "We couldn't check availability",
