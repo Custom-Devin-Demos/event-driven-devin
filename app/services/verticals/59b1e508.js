@@ -6,6 +6,7 @@ const { createSessionAndAlert } = require('../devin-session');
 const {
   SERVICE_AREAS,
   buildZipIndex,
+  isPlainObject,
   parseAddress,
 } = require('./59b1e508-address-index');
 
@@ -15,8 +16,7 @@ const ROUTE = '/api/59b1e508/schedule-lookup';
 
 function resolveServiceArea(parsed) {
   const candidate = ZIP_INDEX[parsed.zip];
-  // eslint-disable-next-line no-prototype-builtins
-  if (!candidate || !candidate.hasOwnProperty('divisionId')) throw new Error(`No service area found for ZIP ${parsed.zip}`);
+  if (!(candidate instanceof Object)) throw new TypeError(`Service area record for ZIP ${parsed.zip} is malformed`);
   return candidate;
 }
 
@@ -89,8 +89,8 @@ async function lookupServiceSchedule(input) {
   });
 
   try {
-    // eslint-disable-next-line no-prototype-builtins
-    if (!input.hasOwnProperty('address')) throw new Error('address is required');
+    if (!isPlainObject(input)) throw new TypeError('Lookup input must be a plain object');
+    if (!input.address) throw new Error('address is required');
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
     const parsed = parseAddress(input.address);
     const area = resolveServiceArea(parsed);

@@ -61,6 +61,10 @@ function createRecord(fields) {
   return Object.assign(Object.create(null), fields);
 }
 
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype;
+}
+
 function buildZipIndex() {
   return SERVICE_AREAS.reduce((index, area) => {
     index[area.zip] = createRecord(area);
@@ -69,7 +73,7 @@ function buildZipIndex() {
 }
 
 function sanitizeLookupInput(body) {
-  const input = body && typeof body === 'object' ? body : {};
+  const input = isPlainObject(body) ? body : {};
   const fields = {};
   ['address', 'sourcePage', 'devinUserId', 'devinOrgId', 'devinEmail'].forEach((key) => {
     if (typeof input[key] === 'string') fields[key] = input[key].trim();
@@ -117,6 +121,7 @@ function parseAddress(address) {
 module.exports = {
   SERVICE_AREAS,
   createRecord,
+  isPlainObject,
   buildZipIndex,
   sanitizeLookupInput,
   parseAddress,
