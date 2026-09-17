@@ -101,7 +101,9 @@ function addressingError(payIdType) {
 }
 
 function resolveAddressingProfile(payee) {
-  const profile = NPP_ADDRESSING_PROFILES[payee.payIdType];
+  const profile = Object.prototype.hasOwnProperty.call(NPP_ADDRESSING_PROFILES, payee.payIdType)
+    ? NPP_ADDRESSING_PROFILES[payee.payIdType]
+    : undefined;
   if (!profile) {
     throw addressingError(payee.payIdType);
   }

@@ -77,6 +77,14 @@ describe('CommBank NetBank payment (cba)', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
+  test('an inherited Object.prototype key is not treated as a registered PayID type', async () => {
+    await expect(submitPayment({ ...ABN_PAYMENT, payIdType: 'toString' })).rejects.toMatchObject({
+      name: 'PaymentAddressingError',
+      code: 'PAYID_ADDRESSING_UNSUPPORTED',
+      statusCode: 422,
+    });
+  });
+
   test('email and mobile PayID payments still settle', async () => {
     const email = await submitPayment({
       ...ABN_PAYMENT,
