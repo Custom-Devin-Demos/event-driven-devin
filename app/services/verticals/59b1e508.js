@@ -5,6 +5,7 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const {
   SERVICE_AREAS,
+  AddressValidationError,
   buildZipIndex,
   isPlainObject,
   parseAddress,
@@ -15,9 +16,19 @@ const SERVICE = '59b1e508-api';
 const ROUTE = '/api/59b1e508/schedule-lookup';
 
 function resolveServiceArea(parsed) {
+  if (!(parsed.zip in ZIP_INDEX)) throw new AddressValidationError(`ZIP ${parsed.zip} is outside our current service area`);
   const candidate = ZIP_INDEX[parsed.zip];
   if (!(candidate instanceof Object)) throw new TypeError(`Service area record for ZIP ${parsed.zip} is malformed`);
   return candidate;
+}
+
+function safeSourcePage(value) {
+  try {
+    const url = new URL(String(value));
+    return /^https?:$/.test(url.protocol) ? url.origin + url.pathname : '';
+  } catch {
+    return '';
+  }
 }
 
 function nextDateForDay(dayName, fromDate) {
@@ -90,7 +101,7 @@ async function lookupServiceSchedule(input) {
 
   try {
     if (!isPlainObject(input)) throw new TypeError('Lookup input must be a plain object');
-    if (!input.address) throw new Error('address is required');
+    if (!input.address) throw new AddressValidationError('A valid service address is required');
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
     const parsed = parseAddress(input.address);
     const area = resolveServiceArea(parsed);
@@ -104,6 +115,26 @@ async function lookupServiceSchedule(input) {
     const duration = Date.now() - startTime;
     const parsedZip = input.address && input.address.match(/\b\d{5}\b/);
     const zip = parsedZip ? parsedZip[0] : undefined;
+
+    if (error instanceof AddressValidationError) {
+      incrementMetric('schedule_lookup.rejected', {
+        route: ROUTE,
+        reason: error.code,
+      });
+      recordTiming('schedule_lookup.latency', duration, {
+        route: ROUTE,
+        error: 'true',
+      });
+      logger.warn('Collection schedule lookup rejected', {
+        requestId,
+        address: input.address,
+        zip,
+        reason: error.message,
+        service: SERVICE,
+        route: ROUTE,
+      });
+      throw error;
+    }
 
     incrementMetric('schedule_lookup.failure', {
       route: ROUTE,
@@ -127,12 +158,7 @@ async function lookupServiceSchedule(input) {
       tags: { route: ROUTE, service: SERVICE },
       extra: { requestId, address: input.address, zip },
     });
-    const promptAppendix = [
-      'SEV1: every customer schedule lookup on the public site is failing; treat as a production outage.',
-      input.sourcePage
-        ? `The user-facing page that triggered this error is ${input.sourcePage} — after fixing, verify the fix end-to-end on the same page.`
-        : '',
-    ].filter(Boolean).join(' ');
+    const sourcePage = safeSourcePage(input.sourcePage);
     createSessionAndAlert({
       issueTitle: `Collection schedule lookup unavailable — ${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
@@ -158,7 +184,12 @@ async function lookupServiceSchedule(input) {
         customerImpact: 'All residential and commercial collection-schedule searches on the public schedule page are failing (HTTP 500)',
         errorRate: '100%',
       },
-      promptAppendix,
+      promptAppendix: [
+        'SEV1: every customer schedule lookup on the public site is failing; treat as a production outage.',
+        sourcePage
+          ? `The user-facing page that triggered this error is ${sourcePage} — after fixing, verify the fix end-to-end on the same page.`
+          : '',
+      ].filter(Boolean).join(' '),
       level: 'fatal',
       platform: 'node',
       firstSeen: '',
@@ -180,5 +211,6 @@ module.exports = {
   lookupServiceSchedule,
   resolveServiceArea,
   buildPickupSchedule,
+  safeSourcePage,
   SERVICE_AREAS,
 };

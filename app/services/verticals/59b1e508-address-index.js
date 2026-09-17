@@ -65,6 +65,15 @@ function isPlainObject(value) {
   return value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype;
 }
 
+class AddressValidationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'AddressValidationError';
+    this.statusCode = 400;
+    this.code = 'INVALID_ADDRESS';
+  }
+}
+
 function buildZipIndex() {
   return SERVICE_AREAS.reduce((index, area) => {
     index[area.zip] = createRecord(area);
@@ -84,7 +93,7 @@ function sanitizeLookupInput(body) {
 
 function parseAddress(address) {
   if (typeof address !== 'string' || !address.trim()) {
-    throw new Error('A valid service address is required');
+    throw new AddressValidationError('A valid service address is required');
   }
 
   const normalized = address.trim().replace(/\s+/g, ' ');
@@ -115,10 +124,11 @@ function parseAddress(address) {
     }
   }
 
-  throw new Error('Enter a complete service address');
+  throw new AddressValidationError('Enter a complete service address');
 }
 
 module.exports = {
+  AddressValidationError,
   SERVICE_AREAS,
   createRecord,
   isPlainObject,
