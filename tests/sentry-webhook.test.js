@@ -32,6 +32,14 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test('recognizes a tagless athletic retail issue webhook by its culprit module path', () => {
+    expect(isInstantPathEvent({
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'pointsMultiplier')",
+      culprit: 'applyMemberBenefits(app.services.verticals.5275ac3e)',
+      tags: [],
+    })).toBe(true);
+  });
+
   test('does not recognize a tagless issue webhook from another vertical', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
