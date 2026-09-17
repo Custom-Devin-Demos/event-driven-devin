@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partiful — RSVP</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --ink: #0a0a0c;
+    --surface: #121216;
+    --raised: #1c1c22;
+    --line: #303038;
+    --text: #f6f5f4;
+    --muted: #9a98a2;
+    --tangerine: #ff8a3d;
+    --punch: #ff567a;
+    --violet: #7c5cff;
+    --mint: #3dd694;
+    --paper: #e4e2fa;
+    --paper-ink: #0c0c10;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #241a3f 0%, #0a0a0c 60%), #0a0a0c;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 16px 48px;
+  }
+
+  .page-head { text-align: center; margin-bottom: 20px; max-width: 560px; }
+  .page-head .mark {
+    font-size: 24px; font-weight: 800; letter-spacing: -.02em;
+    background: linear-gradient(90deg, var(--tangerine), var(--punch), var(--violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .page-head p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+
+  /* Phone */
+  .phone {
+    position: relative; width: 390px; height: 800px; flex: none;
+    border-radius: 54px; border: 10px solid #1b1b1f; background: var(--ink);
+    box-shadow: 0 40px 100px rgba(0,0,0,.75), 0 0 0 2px #000 inset;
+    overflow: hidden;
+  }
+  .phone .notch {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 32px; background: #000; border-radius: 20px; z-index: 40;
+  }
+  .status-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px 0; font-size: 13px; font-weight: 600; color: #fff; pointer-events: none;
+  }
+  .screen {
+    position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+    padding: 54px 0 0; background: var(--ink);
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  [hidden] { display: none !important; }
+  .home-bar {
+    position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.35); z-index: 45;
+  }
+
+  /* Feed */
+  #feed { background: linear-gradient(180deg, #6c56d6 0%, #3a286e 22%, var(--ink) 46%); }
+  .feed-inner { padding: 8px 16px 96px; }
+  .feed-top { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 16px; }
+  .wordmark { font-size: 21px; font-weight: 800; letter-spacing: -.02em; color: #fff; }
+  .icon-btn {
+    position: relative; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,.14); border: none; color: #fff; font-size: 15px;
+    display: inline-flex; align-items: center; justify-content: center; margin-left: 8px; cursor: pointer;
+  }
+  .icon-btn .badge {
+    position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px;
+    background: #ff3b42; color: #fff; font-size: 10px; font-weight: 700; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chips { display: flex; gap: 10px; margin-bottom: 20px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.14);
+    font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;
+  }
+  .chip .count {
+    background: #ff3b42; border-radius: 8px; font-size: 10px; padding: 1px 5px; font-weight: 700;
+  }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
+  .section-head h2 { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+  .pill {
+    border: 1px solid rgba(255,255,255,.28); color: #fff; background: transparent;
+    font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 26px; }
+  .card { cursor: pointer; }
+  .thumb {
+    position: relative; width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+    background: var(--raised); display: flex; align-items: center; justify-content: center; font-size: 44px;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .when {
+    position: absolute; top: 8px; left: 8px; background: #fff; color: var(--paper-ink);
+    font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+  }
+  .card .venue { font-size: 14px; margin-top: 8px; color: var(--text); }
+  .poster { position: relative; width: 100%; height: 190px; border-radius: 12px; overflow: hidden; background: var(--raised); }
+  .poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .poster .star {
+    position: absolute; right: 8px; bottom: 8px; width: 32px; height: 32px; border-radius: 50%;
+    background: #fff; color: var(--paper-ink); display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .trend-title { font-size: 14px; font-weight: 700; margin-top: 8px; line-height: 1.3; }
+  .trend-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .tabbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 74px; z-index: 35;
+    background: var(--ink); border-top: 1px solid #17171b;
+    display: flex; align-items: flex-start; padding-top: 12px;
+  }
+  .tabbar span { flex: 1; text-align: center; font-size: 21px; opacity: .9; }
+  .tabbar span.active { position: relative; }
+  .tabbar span.active::after {
+    content: ''; position: absolute; left: 50%; transform: translateX(-50%); bottom: -7px;
+    width: 4px; height: 4px; border-radius: 50%; background: var(--punch);
+  }
+
+  /* Event page */
+  .invite { background: linear-gradient(180deg, var(--paper) 0%, rgba(255,138,61,.35) 100%); padding: 8px 0 0; }
+  .invite.violet { background: linear-gradient(180deg, var(--paper) 0%, rgba(124,92,255,.35) 100%); }
+  .invite-top { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .round-dark {
+    width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,255,255,.6); color: var(--paper-ink); font-size: 15px;
+    display: inline-flex; align-items: center; justify-content: center; margin-left: 8px;
+  }
+  .host-pill {
+    margin: 16px auto 0; width: max-content; max-width: 90%;
+    background: rgba(255,255,255,.55); border-radius: 999px; padding: 8px 14px;
+    display: flex; align-items: center; gap: 8px; color: var(--paper-ink); font-size: 14px;
+  }
+  .host-pill .av {
+    width: 22px; height: 22px; border-radius: 50%; background: rgba(255,86,122,.25); color: var(--punch);
+    font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  }
+  .invite h1 {
+    text-align: center; color: var(--paper-ink); font-size: 32px; font-weight: 800;
+    letter-spacing: -.02em; padding: 16px 20px 0; line-height: 1.1;
+  }
+  .hero { position: relative; width: 100%; height: 400px; margin-top: 16px; background: var(--raised); }
+  .hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rsvp-row {
+    position: absolute; left: 0; right: 0; bottom: 18px;
+    display: flex; justify-content: center; gap: 10px;
+  }
+  .bubble {
+    width: 92px; height: 92px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #ece8fc 0%, #b0a0f8 55%, #e8e4fa 100%);
+    color: var(--paper-ink); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; font-size: 13px; font-weight: 700; box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    transition: transform .12s ease;
+  }
+  .bubble .emoji { font-size: 24px; }
+  .bubble.selected { outline: 3px solid var(--mint); transform: scale(1.04); }
+  .details { padding: 22px 20px 100px; background: var(--ink); }
+  .countdown-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .countdown {
+    background: var(--tangerine); color: var(--ink); font-size: 12px; font-weight: 800;
+    padding: 5px 10px; border-radius: 999px;
+  }
+  .hosted { color: var(--muted); font-size: 14px; }
+  .party-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px; margin-bottom: 18px;
+  }
+  .row { display: flex; gap: 12px; padding: 7px 0; }
+  .row + .row { border-top: 1px solid var(--line); margin-top: 7px; padding-top: 14px; }
+  .row .ic { width: 22px; color: var(--tangerine); font-size: 15px; }
+  .row .t { font-size: 14px; font-weight: 600; }
+  .row .d { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .label { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .note { font-size: 14px; margin-top: 8px; line-height: 1.45; }
+  .guest { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+  .guest .av {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--raised); color: var(--text);
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .guest .nm { font-size: 14px; flex: 1; }
+  .guest .st { font-size: 12px; font-weight: 700; }
+  .btn-outline {
+    display: block; width: 100%; padding: 14px; border-radius: 14px; cursor: pointer;
+    background: transparent; border: 1px solid var(--violet); color: var(--violet);
+    font-size: 15px; font-weight: 700;
+  }
+
+  /* Blank page (the defect) */
+  #blank { display: flex; flex-direction: column; justify-content: flex-end; background: var(--ink); }
+  #blank .footer { text-align: center; padding: 0 20px 34px; }
+  #blank .footer .l1 { font-size: 13px; color: var(--muted); }
+  #blank .footer .l2 { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: rgba(154,152,162,.7); margin-top: 6px; }
+  #blank .footer .l3 { font-size: 11px; font-weight: 700; color: var(--mint); margin-top: 6px; }
+  #blank .footer a { color: var(--mint); text-decoration: none; }
+  #blank .back {
+    position: absolute; top: 60px; left: 16px; z-index: 20;
+    width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.35); font-size: 15px;
+  }
+
+  .footnote { color: var(--muted); font-size: 12px; margin-top: 18px; text-align: center; max-width: 520px; line-height: 1.6; }
+  .footnote a { color: var(--violet); }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <div class="mark">Partiful</div>
+  <p>Guest view of the invite. Open a party to see its RSVP page.</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>9:41</span><span>&#9679;&#9679;&#9679;&#9679; &#9899;</span></div>
+
+  <!-- Feed -->
+  <div class="screen" id="feed">
+    <div class="feed-inner">
+      <div class="feed-top">
+        <div class="wordmark">Partiful</div>
+        <div>
+          <button class="icon-btn" title="Messages">&#128172;<span class="badge">2</span></button>
+          <button class="icon-btn" title="Notifications">&#128276;<span class="badge">2</span></button>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip">&#128140; Invites <span class="count">2</span></div>
+        <div class="chip">&#8987; Past Events</div>
+        <div class="chip">&#127757; Explore</div>
+      </div>
+
+      <div class="section-head"><h2>Next Up</h2><button class="pill">View all</button></div>
+      <div class="grid" id="next-up"></div>
+
+      <div class="section-head"><h2>Trending in San Francisco</h2><button class="pill">View all</button></div>
+      <div class="grid" id="trending"></div>
+    </div>
+    <div class="tabbar">
+      <span class="active">&#127968;</span><span>&#128197;</span><span>&#10133;</span><span>&#127757;</span><span>&#128100;</span>
+    </div>
+  </div>
+
+  <!-- Event page -->
+  <div class="screen" id="event" hidden></div>
+
+  <!-- Blank page: the planted defect -->
+  <div class="screen" id="blank" hidden>
+    <button class="back" onclick="showFeed()">&#8249;</button>
+    <div class="footer" id="blank-footer"></div>
+  </div>
+
+  <div class="home-bar"></div>
+</div>
+
+<p class="footnote">
+  Same app as the native SwiftUI build in
+  <a href="https://github.com/COG-GTM/ios-demos" target="_blank" rel="noreferrer">COG-GTM/ios-demos</a>
+  (<code>apps/205bc15f</code>), rendered here so it can be demoed in a browser.
+</p>
+
+<script>
+var EVENTS = {
+  'rooftop-golden-hour': {
+    id: 'rooftop-golden-hour', title: 'Golden Hour on the Roof', emoji: '\uD83C\uDF07',
+    host: 'Sean D.', cohosts: ['Maya R.'], theme: 'Photo',
+    when: 'Sat, Mar 14', time: '6:30 PM', pill: 'Sat at 6:30pm', countdown: 'Tomorrow',
+    venue: 'The Douglass', address: '1500 Mission St, San Francisco',
+    cover: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=1200&q=80',
+    accent: 'tangerine', capacity: 40,
+    note: 'Bring a layer, the wind picks up after sunset. Cocktails on the north side.',
+    guests: [
+      { name: 'Maya Rodriguez', status: 'Going', plusOnes: 1 },
+      { name: 'Andre Willis', status: 'Going', plusOnes: 0 },
+      { name: 'Priya Natarajan', status: 'Going', plusOnes: 0 },
+      { name: 'Dan Cho', status: 'Maybe', plusOnes: 0 },
+      { name: 'Lena Fischer', status: 'Maybe', plusOnes: 0 },
+      { name: 'Tomas Alvarez', status: "Can't go", plusOnes: 0 },
+      { name: 'Jess Okafor', status: 'Invited', plusOnes: 0 }
+    ]
+  },
+  'pasta-night-mine': {
+    id: 'pasta-night-mine', title: 'Pasta Night @ Mine', emoji: '\uD83C\uDF5D',
+    host: 'Sean D.', cohosts: [], theme: 'Marquee',
+    when: 'Sun, Mar 15', time: '7:00 PM', pill: 'Sun at 7pm', countdown: 'In 2 days',
+    venue: 'My place', address: 'Text me for the address',
+    cover: null, accent: 'tangerine', capacity: 12,
+    note: 'Fresh pasta, too much of it. Bring wine or a friend, ideally both.',
+    guests: [
+      { name: 'Andre Willis', status: 'Going', plusOnes: 1 },
+      { name: 'Dan Cho', status: 'Going', plusOnes: 0 },
+      { name: 'Ruth Levine', status: 'Going', plusOnes: 0 },
+      { name: 'Priya Natarajan', status: 'Maybe', plusOnes: 0 },
+      { name: 'Jess Okafor', status: 'Invited', plusOnes: 0 },
+      { name: 'Marcus Bell', status: 'Invited', plusOnes: 0 }
+    ]
+  },
+  'board-game-night': {
+    id: 'board-game-night', title: 'Board Game Night', emoji: '\uD83C\uDFB2',
+    host: 'Ruth L.', cohosts: [], theme: 'Confetti',
+    when: 'Fri, Mar 20', time: '7:30 PM', pill: 'Fri at 7:30pm', countdown: 'In 7 days',
+    venue: "Ruth's living room", address: '2210 Fillmore St, San Francisco',
+    cover: null, accent: 'violet', capacity: null,
+    note: 'Catan, Codenames, and the long one nobody finishes.',
+    guests: [
+      { name: 'Sean Dreifuss', status: 'Going', plusOnes: 0 },
+      { name: 'Lena Fischer', status: 'Going', plusOnes: 0 },
+      { name: 'Tomas Alvarez', status: 'Maybe', plusOnes: 0 },
+      { name: 'Maya Rodriguez', status: 'Invited', plusOnes: 0 }
+    ]
+  },
+  'launch-drinks': {
+    id: 'launch-drinks', title: 'Launch Drinks', emoji: '\uD83D\uDE80',
+    host: 'Andre W.', cohosts: ['Sean D.'], theme: 'Photo',
+    when: 'Fri, Mar 27', time: '5:30 PM', pill: 'Fri at 5:30pm', countdown: 'In 14 days',
+    venue: 'Bar Part Time', address: '496 14th St, San Francisco',
+    cover: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1200&q=80',
+    accent: 'violet', capacity: 60,
+    note: 'We shipped it. Come celebrate before the on-call rotation starts.',
+    guests: [
+      { name: 'Sean Dreifuss', status: 'Going', plusOnes: 0 },
+      { name: 'Priya Natarajan', status: 'Going', plusOnes: 1 },
+      { name: 'Dan Cho', status: 'Maybe', plusOnes: 0 },
+      { name: 'Ruth Levine', status: 'Invited', plusOnes: 0 }
+    ]
+  }
+};
+
+var NEXT_UP = ['rooftop-golden-hour', 'pasta-night-mine'];
+var INVITES = ['board-game-night', 'launch-drinks'];
+var TRENDING = [
+  { title: 'Night Market + Movie on the Lawn', when: 'Next Wed at 6pm', interested: 367,
+    poster: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80' },
+  { title: 'Bus Show x Silent Disco', when: 'Fri at 7pm', interested: 14,
+    poster: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80' }
+];
+
+var RELEASE = 'partiful-rsvp@1.1.0';
+var REPORT_PATH = '/api/oncall/205bc15f/rsvp-page-failure';
+var reported = {};
+var activeBlank = null;
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function initials(name) {
+  return name.split(' ').map(function (p) { return p.charAt(0); }).join('');
+}
+
+function goingCount(event) {
+  return event.guests.filter(function (g) { return g.status === 'Going'; })
+    .reduce(function (sum, g) { return sum + 1 + g.plusOnes; }, 0);
+}
+
+function statusColor(status) {
+  if (status === 'Going') return 'var(--mint)';
+  if (status === 'Maybe') return 'var(--tangerine)';
+  if (status === "Can't go") return 'var(--punch)';
+  return 'var(--muted)';
+}
+
+function thumbMarkup(event) {
+  return event.cover
+    ? '<img src="' + event.cover + '" alt="' + esc(event.title) + '">'
+    : '<span>' + event.emoji + '</span>';
+}
+
+function renderFeed() {
+  document.getElementById('next-up').innerHTML = NEXT_UP.map(function (id) {
+    var e = EVENTS[id];
+    return '<div class="card" onclick="openEvent(\'' + id + '\')">'
+      + '<div class="thumb">' + thumbMarkup(e) + '<span class="when">' + esc(e.pill) + '</span></div>'
+      + '<div class="venue">' + esc(e.venue) + '</div></div>';
+  }).join('');
+
+  document.getElementById('trending').innerHTML = INVITES.map(function (id) {
+    var e = EVENTS[id];
+    return '<div class="card" onclick="openEvent(\'' + id + '\')">'
+      + '<div class="thumb">' + thumbMarkup(e) + '<span class="when">' + esc(e.pill) + '</span></div>'
+      + '<div class="venue">' + esc(e.title) + '</div></div>';
+  }).join('') + TRENDING.map(function (t) {
+    return '<div class="card">'
+      + '<div class="poster"><img src="' + t.poster + '" alt="' + esc(t.title) + '"><span class="star">&#9733;</span></div>'
+      + '<div class="trend-title">' + esc(t.title) + '</div>'
+      + '<div class="trend-meta">' + esc(t.when) + ' &middot; San Francisco</div>'
+      + '<div class="trend-meta">&#9733; ' + t.interested + ' Interested</div></div>';
+  }).join('');
+}
+
+function showFeed() {
+  document.getElementById('event').hidden = true;
+  document.getElementById('blank').hidden = true;
+  document.getElementById('feed').hidden = false;
+  activeBlank = null;
+}
+
+/**
+ * The RSVP page is built around the cover photo the host picks in the
+ * composer. A text-only theme has none, so the page cannot be built and
+ * nothing renders — the same gap the native app has.
+ */
+function buildPage(event) {
+  if (!event.cover) throw { reason: 'missing_cover_photo', eventId: event.id };
+  return {
+    hero: event.cover,
+    accent: event.accent,
+    dayLine: event.when,
+    timeLine: event.time,
+    countdown: event.countdown,
+    spotsLeft: event.capacity === null ? null : Math.max(0, event.capacity - goingCount(event))
+  };
+}
+
+function openEvent(id) {
+  var event = EVENTS[id];
+  var page;
+  try {
+    page = buildPage(event);
+  } catch (failure) {
+    showBlank(event, failure);
+    return;
+  }
+  renderEvent(event, page);
+}
+
+function renderEvent(event, page) {
+  var order = { 'Going': 0, 'Maybe': 1, "Can't go": 2, 'Invited': 3 };
+  var guests = event.guests.slice().sort(function (a, b) { return order[a.status] - order[b.status]; });
+  var maybeCount = event.guests.filter(function (g) { return g.status === 'Maybe'; }).length;
+
+  document.getElementById('event').innerHTML =
+      '<div class="invite ' + (page.accent === 'violet' ? 'violet' : '') + '">'
+    +   '<div class="invite-top"><button class="round-dark" onclick="showFeed()">&#8249;</button>'
+    +     '<span><button class="round-dark" title="Share">&#10150;</button>'
+    +     '<button class="round-dark">&hellip;</button></span></div>'
+    +   '<div class="host-pill"><span class="av">' + esc(initials(event.host)) + '</span>'
+    +     '<span><b>' + esc(event.host) + '</b> invited you &nbsp;&#128140;</span></div>'
+    +   '<h1>' + esc(event.title) + '</h1>'
+    +   '<div class="hero"><img src="' + page.hero + '" alt="' + esc(event.title) + '">'
+    +     '<div class="rsvp-row">'
+    +       '<button class="bubble" onclick="pickRsvp(this)"><span class="emoji">&#128077;</span>Going</button>'
+    +       '<button class="bubble" onclick="pickRsvp(this)"><span class="emoji">&#129300;</span>Maybe</button>'
+    +       '<button class="bubble" onclick="pickRsvp(this)"><span class="emoji">&#128546;</span>Can\'t Go</button>'
+    +     '</div></div>'
+    + '</div>'
+    + '<div class="details">'
+    +   '<div class="countdown-row"><span class="countdown">' + esc(page.countdown) + '</span>'
+    +     '<span class="hosted">Hosted by ' + esc([event.host].concat(event.cohosts).join(' & ')) + '</span></div>'
+    +   '<div class="party-card">'
+    +     '<div class="row"><span class="ic">&#128197;</span><div><div class="t">' + esc(page.dayLine)
+    +       '</div><div class="d">' + esc(page.timeLine) + '</div></div></div>'
+    +     '<div class="row"><span class="ic">&#128205;</span><div><div class="t">' + esc(event.venue)
+    +       '</div><div class="d">' + esc(event.address) + '</div></div></div>'
+    +     (page.spotsLeft === null ? '' :
+        '<div class="row"><span class="ic">&#128101;</span><div><div class="t">' + page.spotsLeft
+    +       ' spots left</div><div class="d">Cap ' + event.capacity + '</div></div></div>')
+    +   '</div>'
+    +   '<div class="party-card"><div class="label">Note from the host</div>'
+    +     '<div class="note">' + esc(event.note) + '</div></div>'
+    +   '<div class="party-card">'
+    +     '<div style="display:flex;align-items:center;justify-content:space-between">'
+    +       '<span class="label">Guest list</span>'
+    +       '<span class="trend-meta">' + goingCount(event) + ' going &middot; ' + maybeCount + ' maybe</span></div>'
+    +     guests.map(function (g) {
+            return '<div class="guest"><span class="av">' + esc(initials(g.name)) + '</span>'
+              + '<span class="nm">' + esc(g.name) + (g.plusOnes ? ' +' + g.plusOnes : '') + '</span>'
+              + '<span class="st" style="color:' + statusColor(g.status) + '">' + esc(g.status) + '</span></div>';
+          }).join('')
+    +   '</div>'
+    +   '<button class="btn-outline" onclick="copyLink(\'' + event.id + '\')">&#128279; Copy invite link</button>'
+    + '</div>';
+
+  document.getElementById('feed').hidden = true;
+  document.getElementById('blank').hidden = true;
+  document.getElementById('event').hidden = false;
+  document.getElementById('event').scrollTop = 0;
+  activeBlank = null;
+}
+
+function pickRsvp(button) {
+  var row = button.parentNode.querySelectorAll('.bubble');
+  for (var i = 0; i < row.length; i += 1) row[i].classList.remove('selected');
+  button.classList.add('selected');
+}
+
+function copyLink(id) {
+  if (navigator.clipboard) navigator.clipboard.writeText('https://partiful.com/e/' + id);
+}
+
+/** Nothing renders. The footer only appears once the backend acknowledges. */
+function showBlank(event, failure) {
+  document.getElementById('feed').hidden = true;
+  document.getElementById('event').hidden = true;
+  document.getElementById('blank').hidden = false;
+  document.getElementById('blank-footer').innerHTML = '';
+  activeBlank = event.id;
+  reportFailure(event, failure);
+}
+
+function footer(eventId, reference, sessionUrl) {
+  if (activeBlank !== eventId) return;
+  document.getElementById('blank-footer').innerHTML =
+      '<div class="l1">This page didn\'t load.</div>'
+    + '<div class="l2">Ref ' + esc(reference) + '</div>'
+    + (sessionUrl
+        ? '<div class="l3"><a href="' + esc(sessionUrl) + '" target="_blank" rel="noreferrer">Devin is investigating</a></div>'
+        : '');
+}
+
+function reportFailure(event, failure) {
+  var known = reported[event.id];
+  if (known) {
+    if (known.reference) footer(event.id, known.reference, known.sessionUrl);
+    return;
+  }
+  reported[event.id] = { reference: null, sessionUrl: null };
+  fetch(REPORT_PATH, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      source: 'partiful-rsvp/web',
+      service: 'partiful-rsvp',
+      release: RELEASE,
+      eventId: event.id,
+      eventTitle: event.title,
+      host: event.host,
+      theme: event.theme,
+      screen: 'event',
+      action: 'open_rsvp_page',
+      reason: failure.reason,
+      invitedCount: event.guests.length,
+      goingCount: goingCount(event),
+      shareLink: 'https://partiful.com/e/' + event.id,
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    })
+  }).then(function (response) {
+    if (response.status !== 202) throw new Error('report rejected');
+    return response.json();
+  }).then(function (ack) {
+    reported[event.id] = { reference: ack.reference, sessionUrl: null };
+    footer(event.id, ack.reference, null);
+    pollStatus(event.id, ack.reference, ack.statusToken, 0);
+  }).catch(function () {
+    delete reported[event.id];
+  });
+}
+
+function pollStatus(eventId, reference, statusToken, attempt) {
+  if (attempt >= 20) return;
+  setTimeout(function () {
+    fetch(REPORT_PATH + '/' + reference, { headers: { 'X-Status-Token': statusToken } })
+      .then(function (response) { return response.ok ? response.json() : null; })
+      .then(function (status) {
+        if (status && status.sessionUrl) {
+          reported[eventId].sessionUrl = status.sessionUrl;
+          footer(eventId, reference, status.sessionUrl);
+        }
+        if (!status || !status.done) pollStatus(eventId, reference, statusToken, attempt + 1);
+      })
+      .catch(function () { pollStatus(eventId, reference, statusToken, attempt + 1); });
+  }, 3000);
+}
+
+renderFeed();
+</script>
+</body>
+</html>

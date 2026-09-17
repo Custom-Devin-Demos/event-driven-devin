@@ -29,6 +29,13 @@ const {
   reportEtaFailure,
   getEtaFailureStatus,
 } = require('../services/oncall-verticals/fleet');
+const {
+  PARTIFUL,
+  isPartifulReport,
+  normalizeReport: normalizePartifulReport,
+  reportRsvpPageFailure,
+  getRsvpPageFailureStatus,
+} = require('../services/oncall-verticals/partiful');
 
 const router = express.Router();
 
@@ -619,6 +626,61 @@ router.post(FLEET_FAILURE_PATH, (req, res, next) => {
 router.get(`${FLEET_FAILURE_PATH}/:reference`, (req, res) => {
   const token = req.get('x-status-token');
   const status = getEtaFailureStatus(req.params.reference, token);
+  if (!status) return res.status(404).json({ error: 'Unknown reference' });
+  return res.json(status);
+});
+
+const PARTIFUL_FAILURE_PATH = `/api/oncall/${PARTIFUL.slug}/rsvp-page-failure`;
+
+/**
+ * POST /api/oncall/205bc15f/rsvp-page-failure — blank RSVP page reported by
+ * the native Partiful app when it cannot build the event page a guest
+ * opened. Acknowledged at once with a reference; the alert card and the
+ * (macOS) Devin session follow asynchronously.
+ */
+router.post(PARTIFUL_FAILURE_PATH, (req, res, next) => {
+  const body = req.body && typeof req.body === 'object' ? req.body : {};
+  if (!isPartifulReport(body)) {
+    return res.status(400).json({
+      received: false,
+      error: `Expected a partiful-rsvp/<ios|macos|web> source with service ${PARTIFUL.service}`,
+    });
+  }
+  const report = normalizePartifulReport(body);
+  if (!report) {
+    return res.status(400).json({
+      received: false,
+      error: 'Expected an eventId slug plus a known reason code',
+    });
+  }
+  req.partifulReport = report;
+  next();
+}, oncallCap('trigger'), (req, res) => {
+  const result = reportRsvpPageFailure(req.partifulReport);
+  if (!result) {
+    return res.status(400).json({ received: false, error: 'Invalid report' });
+  }
+  return res.status(202).json({
+    received: true,
+    reference: result.reference,
+    statusToken: result.statusToken,
+    service: PARTIFUL.service,
+    sessionRequested: true,
+    receivedAt: new Date().toISOString(),
+  });
+});
+
+/**
+ * GET /api/oncall/205bc15f/rsvp-page-failure/:reference — outcome of a
+ * report, so the app can show "Devin is investigating" under the blank
+ * page. Requires the statusToken from the 202 response in the
+ * `X-Status-Token` header (never the query string, which would land in
+ * access logs): the reference itself is printed on the alert card and is
+ * not a secret.
+ */
+router.get(`${PARTIFUL_FAILURE_PATH}/:reference`, (req, res) => {
+  const token = req.get('x-status-token');
+  const status = getRsvpPageFailureStatus(req.params.reference, token);
   if (!status) return res.status(404).json({ error: 'Unknown reference' });
   return res.json(status);
 });
