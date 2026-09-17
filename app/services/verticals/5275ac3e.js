@@ -238,7 +238,7 @@ async function reserveDrop(data) {
       devinOrgId: data.devinOrgId,
       slackMemberId: SLACK_MEMBER_ID,
       service: SERVICE,
-      verticalLabel: 'Launch Reservation',
+      verticalLabel: 'Nike Launch Reservation',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '5275ac3e',
       tags: [
