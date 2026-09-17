@@ -347,6 +347,19 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: 'outage-report-restoration',
     },
   },
+  '59b1e508': {
+    verticalLabel: 'Waste Collection Schedule Lookup',
+    service: '59b1e508-api',
+    project: 'event-driven-devin',
+    release: '59b1e508@1.0.0',
+    level: 'fatal',
+    slackMemberId: 'U0BDHHQUM24',
+    tagOverrides: {
+      service: '59b1e508-api',
+      scenario: 'schedule-lookup',
+      severity: 'sev1',
+    },
+  },
   // NVIDIA GeForce NOW native SwiftUI app (github.com/Custom-Devin-Demos/
   // nvidia-geforce-now-demo-app), iOS only. Reports arrive via
   // /api/315f52fe/ios/error; remediation lands in the Swift repo and is
