@@ -160,6 +160,8 @@ async function createVulnerablePR(options = {}) {
   const timestamp = Math.floor(Date.now() / 1000);
   const branchName = `${prefix}-${timestamp}`;
 
+  const workflowOrgId = options.devinOrgId || config.devinOrgId || process.env.DEVIN_ORG_ID || '';
+
   logger.info('Creating vulnerable PR in target repo', { branch: branchName, targetRepo, customer: customerSlug });
 
   // 1. Get main branch HEAD SHA
@@ -243,7 +245,7 @@ async function createVulnerablePR(options = {}) {
             pr_branch: branchName,
             customer: config.sonarWorkflowCustomer || customerSlug,
             user_id: options.devinUserId || '',
-            org_id: options.devinOrgId || '',
+            org_id: workflowOrgId,
           },
       },
     );
@@ -252,7 +254,7 @@ async function createVulnerablePR(options = {}) {
       branch: branchName,
       customer: config.sonarWorkflowCustomer || customerSlug,
       devinUserId: options.devinUserId || 'none',
-      devinOrgId: options.devinOrgId || 'none',
+      devinOrgId: workflowOrgId || 'none',
     });
   } catch (dispatchErr) {
     logger.error('Failed to dispatch devin-scan workflow', {
