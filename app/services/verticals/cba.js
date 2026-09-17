@@ -56,7 +56,7 @@ const NPP_ADDRESSING_PROFILES = {
     directoryService: 'NPP Addressing Service',
     resolutionTimeoutMs: 3000,
     oskoEligible: true,
-    confirmationRequired: true,
+    confirmationRequired: false,
   },
 };
 
