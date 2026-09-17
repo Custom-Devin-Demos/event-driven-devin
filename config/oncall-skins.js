@@ -1845,6 +1845,22 @@ const ONCALL_SKINS = {
     supportCenter: 'InstaLILY Support',
     disclaimer: 'NOT ACTUALLY AN INSTALILY SITE — internal demo only, not affiliated with, endorsed by, or a real InstaLILY product.',
   },
+  'f6ea705e': {
+    slug: 'f6ea705e',
+    company: 'Adonis',
+    brandMark: 'a',
+    vertical: 'insurance',
+    page: { file: 'f6ea705e.html', title: 'Submit claim to payer | Adonis' },
+    theme: {
+      '--accent': '#074141',
+      '--ink': '#0D0D12',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#042F3A',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Adonis Support',
+    disclaimer: 'NOT ACTUALLY AN ADONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Adonis product.',
+  },
 };
 
 function getOncallSkin(slug) {
