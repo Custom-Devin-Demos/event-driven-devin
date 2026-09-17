@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ce9afcfc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --v-ink: #0a0a0c;
+    --v-surface: #121216;
+    --v-raised: #1c1c22;
+    --v-line: #303038;
+    --v-text: #f6f5f4;
+    --v-muted: #9a98a2;
+    --v-tangerine: #ff8a3d;
+    --v-punch: #ff567a;
+    --v-violet: #7c5cff;
+    --v-mint: #3dd694;
+    --v-paper: #e4e2fa;
+    --v-paper-ink: #0c0c10;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #241a3f 0%, #0a0a0c 60%), #0a0a0c;
+    color: var(--v-text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  .display { font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, Helvetica, sans-serif; }
+
+  .top-link {
+    align-self: flex-start; color: rgba(246,245,244,.45); font-size: 12px;
+    text-decoration: none; margin-bottom: 10px;
+  }
+  .top-link:hover { color: rgba(246,245,244,.8); }
+
+  .page-head { text-align: center; margin-bottom: 18px; max-width: 560px; }
+  .page-head .mark {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 26px; font-weight: 700; letter-spacing: -.02em;
+    background: linear-gradient(90deg, var(--v-tangerine), var(--v-punch), var(--v-violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .page-head p { color: var(--v-muted); font-size: 13px; line-height: 1.5; margin-top: 6px; }
+
+  /* Phone */
+  .phone {
+    position: relative; width: 390px; height: 800px; flex: none;
+    border-radius: 54px; border: 10px solid #1b1b1f; background: var(--v-ink);
+    box-shadow: 0 40px 100px rgba(0,0,0,.75), 0 0 0 2px #000 inset;
+    overflow: hidden;
+  }
+  .phone .notch {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 32px; background: #000; border-radius: 20px; z-index: 40;
+  }
+  .status-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px 0; font-size: 13px; font-weight: 600; color: #fff; pointer-events: none;
+  }
+  .screen {
+    position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+    padding: 54px 0 0; background: var(--v-ink); scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  [hidden] { display: none !important; }
+  .home-bar {
+    position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.35); z-index: 45;
+  }
+
+  /* Feed */
+  #feed { background: linear-gradient(180deg, #6c56d6 0%, #3a286e 22%, var(--v-ink) 46%); }
+  .feed-inner { padding: 8px 16px 96px; }
+  .feed-top { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 16px; }
+  .wordmark { font-family: "Space Grotesk", sans-serif; font-size: 22px; font-weight: 700; letter-spacing: -.02em; color: #fff; }
+  .icon-btn {
+    position: relative; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,.14); border: none; color: #fff; font-size: 15px;
+    display: inline-flex; align-items: center; justify-content: center; margin-left: 8px; cursor: pointer;
+  }
+  .icon-btn .badge {
+    position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px;
+    background: #ff3b42; color: #fff; font-size: 10px; font-weight: 700; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chips { display: flex; gap: 10px; margin-bottom: 20px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.14);
+    font-size: 13px; font-weight: 600; color: #fff; cursor: pointer;
+  }
+  .chip .count { background: #ff3b42; border-radius: 8px; font-size: 10px; padding: 1px 5px; font-weight: 700; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
+  .section-head h2 { font-family: "Space Grotesk", sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -.01em; }
+  .pill-btn {
+    border: 1px solid rgba(255,255,255,.28); color: #fff; background: transparent;
+    font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 26px; }
+  .card { cursor: pointer; }
+  .thumb {
+    position: relative; width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+    background: var(--v-raised); display: flex; align-items: center; justify-content: center; font-size: 44px;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
+  .thumb .when {
+    position: absolute; top: 8px; left: 8px; background: #fff; color: var(--v-paper-ink);
+    font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 999px;
+  }
+  .card .venue { font-size: 14px; margin-top: 8px; color: var(--v-text); }
+  .poster { position: relative; width: 100%; height: 190px; border-radius: 12px; overflow: hidden; background: var(--v-raised); }
+  .poster img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
+  .poster .star {
+    position: absolute; right: 8px; bottom: 8px; width: 32px; height: 32px; border-radius: 50%;
+    background: #fff; color: var(--v-paper-ink); display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .trend-title { font-size: 14px; font-weight: 700; margin-top: 8px; line-height: 1.3; }
+  .trend-meta { font-size: 12px; color: var(--v-muted); margin-top: 3px; }
+
+  .tabbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 74px; z-index: 35;
+    background: var(--v-ink); border-top: 1px solid #17171b;
+    display: flex; align-items: flex-start; padding-top: 12px;
+  }
+  .tabbar span { flex: 1; text-align: center; font-size: 21px; opacity: .9; }
+  .tabbar span.active::after {
+    content: ''; position: absolute; left: 50%; transform: translateX(-50%); bottom: -7px;
+    width: 4px; height: 4px; border-radius: 50%; background: var(--v-punch);
+  }
+  .tabbar span.active { position: relative; }
+
+  /* Invite screen */
+  .invite { background: linear-gradient(180deg, var(--v-paper) 0%, rgba(255,138,61,.35) 100%); padding: 8px 0 0; }
+  .invite.violet { background: linear-gradient(180deg, var(--v-paper) 0%, rgba(124,92,255,.35) 100%); }
+  .invite-top { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .round-dark {
+    width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,255,255,.6); color: var(--v-paper-ink); font-size: 15px;
+    display: inline-flex; align-items: center; justify-content: center; margin-left: 8px;
+  }
+  .host-pill {
+    margin: 16px auto 0; width: max-content; max-width: 90%;
+    background: rgba(255,255,255,.55); border-radius: 999px; padding: 8px 14px;
+    display: flex; align-items: center; gap: 8px; color: var(--v-paper-ink); font-size: 14px;
+  }
+  .host-pill .av {
+    width: 22px; height: 22px; border-radius: 50%; background: rgba(255,86,122,.25); color: var(--v-punch);
+    font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  }
+  .invite h1 {
+    font-family: "Space Grotesk", sans-serif;
+    text-align: center; color: var(--v-paper-ink); font-size: 32px; font-weight: 700;
+    letter-spacing: -.02em; padding: 16px 20px 0; line-height: 1.1;
+  }
+  .hero { position: relative; width: 100%; height: 400px; margin-top: 16px; background: var(--v-raised); }
+  .hero img { width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
+  .rsvp-row { position: absolute; left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; gap: 10px; }
+  .bubble {
+    width: 92px; height: 92px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #ece8fc 0%, #b0a0f8 55%, #e8e4fa 100%);
+    color: var(--v-paper-ink); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; font-size: 13px; font-weight: 700; box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    transition: transform .12s ease;
+  }
+  .bubble .emoji { font-size: 24px; }
+  .bubble.selected { outline: 3px solid var(--v-mint); transform: scale(1.04); }
+  .details { padding: 22px 20px 100px; background: var(--v-ink); }
+  .countdown-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .countdown {
+    background: var(--v-tangerine); color: var(--v-ink); font-size: 12px; font-weight: 800;
+    padding: 5px 10px; border-radius: 999px;
+  }
+  .hosted { color: var(--v-muted); font-size: 14px; }
+  .party-card {
+    background: var(--v-surface); border: 1px solid var(--v-line); border-radius: 16px;
+    padding: 16px; margin-bottom: 18px;
+  }
+  .row { display: flex; gap: 12px; padding: 7px 0; }
+  .row + .row { border-top: 1px solid var(--v-line); margin-top: 7px; padding-top: 14px; }
+  .row .ic { width: 22px; color: var(--v-tangerine); font-size: 15px; }
+  .row .t { font-size: 14px; font-weight: 600; }
+  .row .d { font-size: 12px; color: var(--v-muted); margin-top: 2px; }
+  .label { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--v-muted); }
+  .note { font-size: 14px; margin-top: 8px; line-height: 1.45; }
+  .guest { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+  .guest .av {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--v-raised); color: var(--v-text);
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .guest .nm { font-size: 14px; flex: 1; }
+  .guest .st { font-size: 12px; font-weight: 700; }
+  .btn-outline {
+    display: block; width: 100%; padding: 14px; border-radius: 14px; cursor: pointer;
+    background: transparent; border: 1px solid var(--v-violet); color: var(--v-violet);
+    font-size: 15px; font-weight: 700;
+  }
+
+  /* Blank screen */
+  #blank { display: flex; flex-direction: column; justify-content: flex-end; background: var(--v-ink); }
+  #blank .back {
+    position: absolute; top: 60px; left: 16px; z-index: 20;
+    width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(255,255,255,.08); color: rgba(255,255,255,.35); font-size: 15px;
+  }
+  #blank .foot { text-align: center; padding: 0 20px 34px; }
+  #blank .foot .l1 { font-size: 13px; color: var(--v-muted); }
+  #blank .foot .l2 { font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: rgba(154,152,162,.7); margin-top: 6px; }
+  .spinner {
+    width: 26px; height: 26px; margin: auto; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.18); border-top-color: rgba(255,255,255,.65);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast {
+    position: fixed; right: 24px; bottom: 24px; z-index: 100; max-width: 380px;
+    background: rgba(0,0,0,.85); color: #fff; border-radius: 12px; padding: 14px 16px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.5); font-size: 13px; line-height: 1.45;
+    transform: translateY(24px); opacity: 0; pointer-events: none;
+    transition: transform .28s ease, opacity .28s ease;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast .tt { font-weight: 700; margin-bottom: 4px; }
+  .toast .td { color: rgba(255,255,255,.78); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<a class="top-link" href="/">&#8592; All Demos</a>
+
+<div class="page-head">
+  <div class="mark">Partiful</div>
+  <p>The Partiful app, running against the live invite service. Tap a party to open its invite.</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="status-bar"><span>9:41</span><span>&#9679;&#9679;&#9679;&#9679; &#9899;</span></div>
+
+  <div class="screen" id="feed">
+    <div class="feed-inner">
+      <div class="feed-top">
+        <div class="wordmark">Partiful</div>
+        <div>
+          <button class="icon-btn" title="Messages">&#128172;<span class="badge">2</span></button>
+          <button class="icon-btn" title="Notifications">&#128276;<span class="badge">3</span></button>
+        </div>
+      </div>
+      <div class="chips">
+        <div class="chip">&#128140; Invites <span class="count">2</span></div>
+        <div class="chip">&#8987; Past Events</div>
+        <div class="chip">&#127757; Explore</div>
+      </div>
+
+      <div class="section-head"><h2>Next Up</h2><button class="pill-btn">View all</button></div>
+      <div class="grid" id="next-up"></div>
+
+      <div class="section-head"><h2>Trending in San Francisco</h2><button class="pill-btn">View all</button></div>
+      <div class="grid" id="trending"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="invite" hidden></div>
+
+  <div class="screen" id="blank" hidden>
+    <button class="back" onclick="showFeed()">&#8249;</button>
+    <div class="foot" id="blank-foot"></div>
+  </div>
+
+  <div class="screen" id="loading" hidden>
+    <div style="height:100%;display:flex;align-items:center;justify-content:center"><div class="spinner"></div></div>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <span class="active">&#127968;</span><span>&#128197;</span><span>&#10133;</span><span>&#127757;</span><span>&#128100;</span>
+  </div>
+
+  <div class="home-bar"></div>
+</div>
+
+<div class="toast" id="toast"><div class="tt" id="toast-title"></div><div class="td" id="toast-detail"></div></div>
+
+<script>
+(function () {
+  if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+  fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+    if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+    if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+  }).catch(function () {});
+})();
+</script>
+<script>
+var FEED = { nextUp: [], invites: [] };
+var TRENDING = [
+  { title: 'Night Market + Movie on the Lawn', when: 'Next Wed at 6pm', interested: 367,
+    poster: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80' },
+  { title: 'Bus Show x Silent Disco', when: 'Fri at 7pm', interested: 14,
+    poster: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80' }
+];
+var FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80';
+var toastTimer = null;
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function initials(name) {
+  return name.split(' ').map(function (p) { return p.charAt(0); }).join('');
+}
+
+function statusColor(status) {
+  if (status === 'Going') return 'var(--v-mint)';
+  if (status === 'Maybe') return 'var(--v-tangerine)';
+  if (status === "Can't go") return 'var(--v-punch)';
+  return 'var(--v-muted)';
+}
+
+function imgTag(src, alt, extra) {
+  return '<img src="' + esc(src) + '" alt="' + esc(alt) + '"' + (extra || '')
+    + ' onerror="this.onerror=null;this.src=\'' + FALLBACK_IMAGE + '\';">';
+}
+
+function thumbMarkup(event) {
+  return event.thumbnail
+    ? imgTag(event.thumbnail, event.title, '')
+    : '<span>' + event.emoji + '</span>';
+}
+
+function cardMarkup(event, caption) {
+  return '<div class="card" onclick="openInvite(\'' + event.id + '\')">'
+    + '<div class="thumb">' + thumbMarkup(event) + '<span class="when">' + esc(event.pill) + '</span></div>'
+    + '<div class="venue">' + esc(caption) + '</div></div>';
+}
+
+function renderFeed() {
+  document.getElementById('next-up').innerHTML = FEED.nextUp.map(function (e) {
+    return cardMarkup(e, e.venue);
+  }).join('');
+
+  document.getElementById('trending').innerHTML = FEED.invites.map(function (e) {
+    return cardMarkup(e, e.title);
+  }).join('') + TRENDING.map(function (t) {
+    return '<div class="card">'
+      + '<div class="poster">' + imgTag(t.poster, t.title, '') + '<span class="star">&#9733;</span></div>'
+      + '<div class="trend-title">' + esc(t.title) + '</div>'
+      + '<div class="trend-meta">' + esc(t.when) + ' &middot; San Francisco</div>'
+      + '<div class="trend-meta">&#9733; ' + t.interested + ' Interested</div></div>';
+  }).join('');
+}
+
+function loadFeed() {
+  fetch('/api/ce9afcfc/events')
+    .then(function (r) { return r.json(); })
+    .then(function (payload) {
+      FEED.nextUp = payload.events.slice(0, 2);
+      FEED.invites = payload.events.slice(2);
+      renderFeed();
+    })
+    .catch(function () {});
+}
+
+function setScreen(id) {
+  ['feed', 'invite', 'blank', 'loading'].forEach(function (name) {
+    document.getElementById(name).hidden = name !== id;
+  });
+  document.getElementById('tabbar').hidden = id !== 'feed';
+}
+
+function showFeed() {
+  setScreen('feed');
+}
+
+function showToast(title, detail) {
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-detail').textContent = detail;
+  var toast = document.getElementById('toast');
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+}
+
+function openInvite(eventId) {
+  setScreen('loading');
+  fetch('/api/ce9afcfc/invite-screen', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventId: eventId,
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    })
+  }).then(function (response) {
+    return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+  }).then(function (result) {
+    if (!result.ok) {
+      showBlank(result.body);
+      return;
+    }
+    renderInvite(result.body.screen);
+  }).catch(function (err) {
+    showBlank({ errorClass: 'NetworkError', error: err.message, code: 'REQUEST_FAILED' });
+  });
+}
+
+function renderInvite(screen) {
+  document.getElementById('invite').innerHTML =
+      '<div class="invite ' + (screen.accent === 'violet' ? 'violet' : '') + '">'
+    +   '<div class="invite-top"><button class="round-dark" onclick="showFeed()">&#8249;</button>'
+    +     '<span><button class="round-dark" title="Share">&#10150;</button>'
+    +     '<button class="round-dark">&hellip;</button></span></div>'
+    +   '<div class="host-pill"><span class="av">' + esc(initials(screen.host)) + '</span>'
+    +     '<span><b>' + esc(screen.host) + '</b> invited you &nbsp;&#128140;</span></div>'
+    +   '<h1>' + esc(screen.title) + '</h1>'
+    +   '<div class="hero" style="height:' + screen.heroHeight + 'px">' + imgTag(screen.hero, screen.title, '')
+    +     '<div class="rsvp-row">'
+    +       '<button class="bubble" onclick="pickRsvp(this)"><span class="emoji">&#128077;</span>Going</button>'
+    +       '<button class="bubble" onclick="pickRsvp(this)"><span class="emoji">&#129300;</span>Maybe</button>'
+    +       '<button class="bubble" onclick="pickRsvp(this)"><span class="emoji">&#128546;</span>Can\'t Go</button>'
+    +     '</div></div>'
+    + '</div>'
+    + '<div class="details">'
+    +   '<div class="countdown-row"><span class="countdown">' + esc(screen.countdown) + '</span>'
+    +     '<span class="hosted">Hosted by ' + esc([screen.host].concat(screen.cohosts).join(' & ')) + '</span></div>'
+    +   '<div class="party-card">'
+    +     '<div class="row"><span class="ic">&#128197;</span><div><div class="t">' + esc(screen.dayLine)
+    +       '</div><div class="d">' + esc(screen.timeLine) + '</div></div></div>'
+    +     '<div class="row"><span class="ic">&#128205;</span><div><div class="t">' + esc(screen.venue)
+    +       '</div><div class="d">' + esc(screen.address) + '</div></div></div>'
+    +     (screen.spotsLeft === null ? '' :
+        '<div class="row"><span class="ic">&#128101;</span><div><div class="t">' + screen.spotsLeft
+    +       ' spots left</div><div class="d">Cap ' + screen.capacity + '</div></div></div>')
+    +   '</div>'
+    +   '<div class="party-card"><div class="label">Note from the host</div>'
+    +     '<div class="note">' + esc(screen.note) + '</div></div>'
+    +   '<div class="party-card">'
+    +     '<div style="display:flex;align-items:center;justify-content:space-between">'
+    +       '<span class="label">Guest list</span>'
+    +       '<span class="trend-meta">' + screen.goingCount + ' going &middot; ' + screen.maybeCount + ' maybe</span></div>'
+    +     screen.guests.map(function (g) {
+            return '<div class="guest"><span class="av">' + esc(initials(g.name)) + '</span>'
+              + '<span class="nm">' + esc(g.name) + (g.plusOnes ? ' +' + g.plusOnes : '') + '</span>'
+              + '<span class="st" style="color:' + statusColor(g.status) + '">' + esc(g.status) + '</span></div>';
+          }).join('')
+    +   '</div>'
+    +   '<button class="btn-outline" onclick="copyLink(\'' + screen.shareLink + '\')">&#128279; Copy invite link</button>'
+    + '</div>';
+
+  setScreen('invite');
+  document.getElementById('invite').scrollTop = 0;
+}
+
+function pickRsvp(button) {
+  var row = button.parentNode.querySelectorAll('.bubble');
+  for (var i = 0; i < row.length; i += 1) row[i].classList.remove('selected');
+  button.classList.add('selected');
+}
+
+function copyLink(link) {
+  if (navigator.clipboard) navigator.clipboard.writeText(link);
+}
+
+function showBlank(failure) {
+  setScreen('blank');
+  document.getElementById('blank-foot').innerHTML =
+      '<div class="l1">This invite didn\'t load.</div>'
+    + '<div class="l2">' + esc(failure.code || 'ERROR') + '</div>';
+  showToast(failure.errorClass || 'Error', failure.error || 'The invite screen could not be rendered.');
+}
+
+loadFeed();
+</script>
+</body>
+</html>
