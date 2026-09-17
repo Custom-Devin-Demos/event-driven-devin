@@ -276,7 +276,9 @@ async function submitTransfer(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, fromAccount: fromAccountId },
+      tags: {
+        route: ROUTE, service: SERVICE, fromAccount: fromAccountId, alert_path: 'instant',
+      },
       extra: { requestId, toAccount: toAccountId, amount },
     });
 
