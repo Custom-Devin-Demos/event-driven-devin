@@ -218,7 +218,11 @@ for _ in $(seq 1 40); do
   [ "$STATUS" = 200 ] && break
   sleep 2
 done
-[ "$STATUS" = 200 ] || fail "health check returned $STATUS after 80s"
+if [ "$STATUS" != 200 ]; then
+  log "checkout-api never answered /health; last container output:"
+  compose logs --no-color --no-log-prefix --tail=40 checkout-api 2>&1 | log_lines '   ' || true
+  fail "health check returned $STATUS after 80s"
+fi
 log "health 200"
 
 # ── 5. smoke every vertical page, alias and critical path ───────────────────
