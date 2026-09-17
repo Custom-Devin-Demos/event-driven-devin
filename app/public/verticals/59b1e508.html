@@ -801,7 +801,7 @@
       function loadServiceAreas() {
         fetch('/api/59b1e508/service-areas').then(function (response) { return response.json(); }).then(function (body) {
           serviceAreas = body.serviceAreas || [];
-          showSuggestions();
+          if (!viewButton.disabled) showSuggestions();
         }).catch(function () {});
       }
 
@@ -900,7 +900,12 @@
             + (pickup.shifted ? ' (holiday shift)' : '') + '</li>';
         }).join('');
         var holiday = schedule.holiday || {};
+        var holidayDate = new Date(holiday.date);
+        var startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
         var holidayText = holiday.name
+          && !Number.isNaN(holidayDate.getTime())
+          && holidayDate.getTime() >= startOfToday.getTime()
           ? '<p>Upcoming holiday: ' + escapeHtml(holiday.name)
             + ' (' + escapeHtml(holiday.date) + ', shifts ' + escapeHtml(holiday.shift) + ')</p>'
           : '';
