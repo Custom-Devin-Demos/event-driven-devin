@@ -304,6 +304,28 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  'df1b99c6': {
+    slug: 'df1b99c6',
+    company: 'Bilt Rewards',
+    brandMark: 'B',
+    vertical: 'banking',
+    page: {
+      file: 'df1b99c6.html',
+      title: 'Bilt — Pay rent, earn points',
+    },
+    accent: '#97c6ea',
+    accentDark: '#6fa9d6',
+    theme: {
+      '--accent': '#6fa9d6',
+      '--ink': '#010a13',
+      '--surface': '#fbfbfb',
+      '--chrome-bg': '#010a13',
+      '--chrome-text': '#fafafa',
+    },
+    supportCenter: 'Bilt Support',
+    supportCenterSub: 'Member Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A BILT REWARDS SITE — internal demo only, not affiliated with, endorsed by, or a real Bilt Rewards product.',
+  },
   '70d04b0f': {
     slug: '70d04b0f',
     company: 'Cyera',
