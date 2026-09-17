@@ -16,6 +16,7 @@ const SNAPSHOTS = {};
 const RUNS = [];
 const MAX_RUNS = 500;
 const MAX_RUNS_PAGE = 200;
+const failureTimestamps = [];
 const consecutiveFailures = {};
 const lastAlerts = {};
 const lastSuccessfulPublishes = {};
@@ -103,6 +104,7 @@ function clearStore() {
   Object.keys(SNAPSHOTS).forEach((key) => delete SNAPSHOTS[key]);
   EXCEEDANCES.splice(0, EXCEEDANCES.length);
   RUNS.splice(0, RUNS.length);
+  failureTimestamps.splice(0, failureTimestamps.length);
   Object.keys(consecutiveFailures).forEach((key) => delete consecutiveFailures[key]);
   Object.keys(lastAlerts).forEach((key) => delete lastAlerts[key]);
   Object.keys(lastSuccessfulPublishes).forEach((key) => delete lastSuccessfulPublishes[key]);
@@ -112,6 +114,7 @@ function recordRun(run, { prepend = false } = {}) {
   if (prepend) RUNS.unshift(run);
   else RUNS.push(run);
   RUNS.length = Math.min(RUNS.length, MAX_RUNS);
+  if (run.status === 'failed') failureTimestamps.push(Date.parse(run.finishedAt));
   return run;
 }
 
@@ -703,7 +706,9 @@ function getFleet(now = Date.now()) {
     openLevels[entry.level] += 1;
   });
   const dayAgo = now - 24 * 60 * 60 * 1000;
-  const recentRuns = RUNS.filter((run) => new Date(run.startedAt).getTime() >= dayAgo);
+  for (let index = failureTimestamps.length - 1; index >= 0; index -= 1) {
+    if (failureTimestamps[index] < dayAgo) failureTimestamps.splice(index, 1);
+  }
   const openExceedances = EXCEEDANCES
     .filter((entry) => entry.status === 'open')
     .map((entry) => ({
@@ -725,7 +730,7 @@ function getFleet(now = Date.now()) {
       engineCount: engines.length,
       staleCount: engines.filter((engine) => engine.stale).length,
       openExceedances: openLevels,
-      failedRunsLast24h: recentRuns.filter((run) => run.status === 'failed').length,
+      failedRunsLast24h: failureTimestamps.filter((timestamp) => timestamp <= now).length,
       lastRunAt: RUNS.length ? listRuns({ limit: 1 })[0].startedAt : null,
     },
   };

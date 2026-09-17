@@ -165,6 +165,7 @@ describe('a693dab5 fleet health pipeline', () => {
       await service.runPipeline('SWA', { trigger: 'scheduled' });
     }
     expect(service.RUNS.length).toBeLessThanOrEqual(500);
+    expect(service.getFleet().summary.failedRunsLast24h).toBe(3);
     expect(service.listRuns({ limit: 99999 }).length).toBeLessThanOrEqual(200);
     const defaultRuns = service.listRuns();
     expect(service.listRuns({ limit: -5 })).toHaveLength(defaultRuns.length);
