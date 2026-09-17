@@ -160,6 +160,17 @@ describe('a693dab5 fleet health pipeline', () => {
     expect(service.getFleet().operators.find((operator) => operator.code === 'MPX').lastPublishedAt).not.toBeNull();
   });
 
+  test('bounds retained runs after successful publishes and clamps list limits', async () => {
+    for (let index = 0; index < 600; index += 1) {
+      await service.runPipeline('SWA', { trigger: 'scheduled' });
+    }
+    expect(service.RUNS.length).toBeLessThanOrEqual(500);
+    expect(service.listRuns({ limit: 99999 }).length).toBeLessThanOrEqual(200);
+    const defaultRuns = service.listRuns();
+    expect(service.listRuns({ limit: -5 })).toHaveLength(defaultRuns.length);
+    expect(service.listRuns({ limit: 'abc' })).toHaveLength(defaultRuns.length);
+  });
+
   test('reports derived status in fleet and engine read models', () => {
     const engine = service.getEngine('598-2041');
     expect(engine.engine.status).toBe('CAUTION');
@@ -177,5 +188,18 @@ describe('a693dab5 fleet health pipeline', () => {
     expect(Sentry.captureException.mock.calls[0][1].tags).toEqual(expect.objectContaining({
       alert_path: 'instant',
     }));
+  });
+
+  test('alerts once for stale feeds and respects cooldown', async () => {
+    createSessionAndAlert.mockResolvedValue({ triggered: true });
+    await service.checkStaleness(Date.now());
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0]).toEqual(expect.objectContaining({
+      errorType: 'TypeError',
+      extra: expect.objectContaining({ operatorCode: 'MPX' }),
+    }));
+    await service.checkStaleness(Date.now());
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0].extra.operatorCode).not.toBe('SWA');
   });
 });

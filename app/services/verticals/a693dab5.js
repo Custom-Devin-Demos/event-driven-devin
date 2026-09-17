@@ -15,6 +15,7 @@ const EXCEEDANCES = [];
 const SNAPSHOTS = {};
 const RUNS = [];
 const MAX_RUNS = 500;
+const MAX_RUNS_PAGE = 200;
 const consecutiveFailures = {};
 const lastAlerts = {};
 const lastSuccessfulPublishes = {};
@@ -107,6 +108,13 @@ function clearStore() {
   Object.keys(lastSuccessfulPublishes).forEach((key) => delete lastSuccessfulPublishes[key]);
 }
 
+function recordRun(run, { prepend = false } = {}) {
+  if (prepend) RUNS.unshift(run);
+  else RUNS.push(run);
+  RUNS.length = Math.min(RUNS.length, MAX_RUNS);
+  return run;
+}
+
 function addSeedRun({
   schema,
   trigger,
@@ -136,9 +144,7 @@ function addSeedRun({
     rowsOut,
     error,
   };
-  RUNS.push(run);
-  RUNS.length = Math.min(RUNS.length, MAX_RUNS);
-  return run;
+  return recordRun(run);
 }
 
 function seedSnapshots(schema, engine, now, random) {
@@ -455,8 +461,7 @@ function publish(schema, normalizedRows, engineMetrics, exceedances, run) {
   run.stageReached = 'publish';
   run.status = 'succeeded';
   run.rowsOut = normalizedRows.length;
-  RUNS.unshift(run);
-  return run;
+  return recordRun(run, { prepend: true });
 }
 
 function staleEngines(operatorCode, now) {
@@ -576,8 +581,7 @@ async function runPipeline(operatorCode, meta = {}) {
     run.stageReached = stage;
     run.rowsIn = rowsIn;
     run.error = { name: error.name, message: error.message, stage };
-    RUNS.unshift(run);
-    RUNS.length = Math.min(RUNS.length, MAX_RUNS);
+    recordRun(run, { prepend: true });
     consecutiveFailures[operatorCode] = (consecutiveFailures[operatorCode] || 0) + 1;
     incrementMetric('a693dab5.pipeline.run', { operator: operatorCode, status: 'failed' });
     recordTiming('a693dab5.pipeline.duration', run.durationMs, { operator: operatorCode, status: 'failed' });
@@ -609,12 +613,50 @@ async function runAllOperators(meta = {}) {
 }
 
 function listRuns({ limit = 50, operatorCode } = {}) {
-  const count = Number(limit) || 50;
+  const parsedLimit = Number(limit);
+  const count = Math.min(Math.max(parsedLimit > 0 ? parsedLimit : 50, 1), MAX_RUNS_PAGE);
   return RUNS
     .filter((run) => !operatorCode || run.operatorCode === operatorCode)
     .slice()
     .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt))
     .slice(0, count);
+}
+
+async function checkStaleness(now = Date.now()) {
+  for (const schema of Object.values(OPERATOR_SCHEMAS)) {
+    const lastPublishedAt = lastSuccessfulPublishes[schema.code];
+    const stale = !lastPublishedAt || now - lastPublishedAt > STALE_AFTER_MS;
+    const cooldownElapsed = !lastAlerts[schema.code]
+      || now - lastAlerts[schema.code] > ALERT_COOLDOWN_MS;
+    if (!stale || !cooldownElapsed) continue;
+
+    const failedRun = listRuns({ operatorCode: schema.code, limit: MAX_RUNS_PAGE })
+      .find((run) => run.status === 'failed');
+    const error = failedRun && failedRun.error
+      ? { name: failedRun.error.name, message: failedRun.error.message }
+      : {
+        name: 'StaleFeedError',
+        message: `No engine-health rows published for ${schema.code} in ${Math.round((now - (lastPublishedAt || now)) / 3600000)}h`,
+      };
+    const run = failedRun || {
+      runId: `stale-${schema.code.toLowerCase()}-${now}`,
+      operatorCode: schema.code,
+      rowsIn: 0,
+    };
+    const stage = failedRun && failedRun.error && failedRun.error.stage
+      ? failedRun.error.stage
+      : 'publish';
+    const delivered = await sendAlert({
+      error,
+      schema,
+      run,
+      stage,
+      requestId: uuidv4(),
+      rowsIn: run.rowsIn || 0,
+      meta: {},
+    });
+    if (delivered) lastAlerts[schema.code] = now;
+  }
 }
 
 function deriveStatus(engine, openExceedances, now) {
@@ -714,9 +756,11 @@ function getEngine(esn) {
 function startScheduler(intervalMs = Number(process.env.A693DAB5_RUN_INTERVAL_MS) || 180000) {
   stopScheduler();
   schedulerHandle = setInterval(() => {
-    runAllOperators({ trigger: 'scheduled' }).catch((error) => {
-      logger.error('Fleet health scheduler failed', { service: SERVICE, error: error.message });
-    });
+    runAllOperators({ trigger: 'scheduled' })
+      .then(() => checkStaleness())
+      .catch((error) => {
+        logger.error('Fleet health scheduler failed', { service: SERVICE, error: error.message });
+      });
   }, intervalMs);
   schedulerHandle.unref();
   return schedulerHandle;
@@ -738,6 +782,7 @@ module.exports = {
   resetStore: seedStore,
   startScheduler,
   stopScheduler,
+  checkStaleness,
   evaluateExceedances,
   getOperatorSchema,
   STAGES,
