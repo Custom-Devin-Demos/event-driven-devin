@@ -350,6 +350,7 @@ var TRENDING = [
 var RELEASE = 'partiful-rsvp@1.1.0';
 var REPORT_PATH = '/api/oncall/205bc15f/rsvp-page-failure';
 var reported = {};
+var activeBlank = null;
 
 function esc(value) {
   return String(value).replace(/[&<>"']/g, function (c) {
@@ -405,6 +406,7 @@ function showFeed() {
   document.getElementById('event').hidden = true;
   document.getElementById('blank').hidden = true;
   document.getElementById('feed').hidden = false;
+  activeBlank = null;
 }
 
 /**
@@ -487,6 +489,7 @@ function renderEvent(event, page) {
   document.getElementById('blank').hidden = true;
   document.getElementById('event').hidden = false;
   document.getElementById('event').scrollTop = 0;
+  activeBlank = null;
 }
 
 function pickRsvp(button) {
@@ -505,10 +508,12 @@ function showBlank(event, failure) {
   document.getElementById('event').hidden = true;
   document.getElementById('blank').hidden = false;
   document.getElementById('blank-footer').innerHTML = '';
+  activeBlank = event.id;
   reportFailure(event, failure);
 }
 
-function footer(reference, sessionUrl) {
+function footer(eventId, reference, sessionUrl) {
+  if (activeBlank !== eventId) return;
   document.getElementById('blank-footer').innerHTML =
       '<div class="l1">This page didn\'t load.</div>'
     + '<div class="l2">Ref ' + esc(reference) + '</div>'
@@ -518,10 +523,12 @@ function footer(reference, sessionUrl) {
 }
 
 function reportFailure(event, failure) {
-  if (reported[event.id]) {
-    footer(reported[event.id].reference, reported[event.id].sessionUrl);
+  var known = reported[event.id];
+  if (known) {
+    if (known.reference) footer(event.id, known.reference, known.sessionUrl);
     return;
   }
+  reported[event.id] = { reference: null, sessionUrl: null };
   fetch(REPORT_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -546,9 +553,11 @@ function reportFailure(event, failure) {
     return response.json();
   }).then(function (ack) {
     reported[event.id] = { reference: ack.reference, sessionUrl: null };
-    footer(ack.reference, null);
+    footer(event.id, ack.reference, null);
     pollStatus(event.id, ack.reference, ack.statusToken, 0);
-  }).catch(function () { /* the page stays blank, exactly as the app does */ });
+  }).catch(function () {
+    delete reported[event.id];
+  });
 }
 
 function pollStatus(eventId, reference, statusToken, attempt) {
@@ -559,7 +568,7 @@ function pollStatus(eventId, reference, statusToken, attempt) {
       .then(function (status) {
         if (status && status.sessionUrl) {
           reported[eventId].sessionUrl = status.sessionUrl;
-          if (!document.getElementById('blank').hidden) footer(reference, status.sessionUrl);
+          footer(eventId, reference, status.sessionUrl);
         }
         if (!status || !status.done) pollStatus(eventId, reference, statusToken, attempt + 1);
       })
