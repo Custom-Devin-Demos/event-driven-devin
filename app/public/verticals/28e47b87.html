@@ -185,8 +185,8 @@
       </div>
       <div class="total">
         <div class="label">Total balance</div>
-        <div class="value">$1,248,930.14</div>
-        <div class="delta">+$4,812.65 (+0.39%) today</div>
+        <div class="value">$1,210,266.58</div>
+        <div class="delta">+$4,812.65 (+0.40%) today</div>
       </div>
     </div>
   </div>
@@ -195,7 +195,7 @@
     <div class="cards">
       <div class="card">
         <div class="label">Brokerage Account</div>
-        <div class="value">$742,118.62</div>
+        <div class="value">$742,176.14</div>
         <div class="meta up">+$3,204.18 today</div>
       </div>
       <div class="card">
@@ -228,13 +228,13 @@
               <td><span class="ticker">VTSAX</span><span class="fundname">Total Stock Market Index Adm</span></td>
               <td class="num">1,842.117</td>
               <td class="num">$142.18</td>
-              <td class="num">$261,871.13</td>
+              <td class="num">$261,912.20</td>
             </tr>
             <tr>
               <td><span class="ticker">VFIAX</span><span class="fundname">500 Index Fund Admiral Shares</span></td>
               <td class="num">386.402</td>
               <td class="num">$521.64</td>
-              <td class="num">$201,552.06</td>
+              <td class="num">$201,562.74</td>
             </tr>
             <tr>
               <td><span class="ticker">VTI</span><span class="fundname">Total Stock Market ETF</span></td>
@@ -279,7 +279,7 @@
           </div>
           <div class="form-group">
             <label for="amount">Amount (USD)</label>
-            <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="0.00" required>
+            <input type="number" id="amount" value="500" min="1" max="250000" step="0.01" placeholder="0.00" required>
           </div>
           <div class="form-group">
             <label for="accountTier">Service level</label>
@@ -350,10 +350,31 @@
     })();
   </script>
   <script>
+    (function syncDestinations() {
+      const from = document.getElementById('fromAccount');
+      const to = document.getElementById('toAccount');
+      const apply = () => {
+        for (const option of to.options) option.disabled = option.value === from.value;
+        if (to.selectedOptions[0].disabled) {
+          to.value = [...to.options].find((option) => !option.disabled).value;
+        }
+      };
+      from.addEventListener('change', apply);
+      apply();
+    })();
+
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
+      const renderResult = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div');
+        t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div');
+        d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
       btn.disabled = true; btn.textContent = 'Submitting...';
       result.className = 'result-box';
       try {
@@ -364,14 +385,17 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Transfer failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          renderResult('Transfer failed', `${data.errorClass}: ${data.error}`);
         } else {
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Transfer submitted</div><div class="error-detail">$${data.debitAmount} debited (includes $${data.fee} processing fee)</div>`;
+          const receipt = data.receipt || {};
+          const debited = data.debitAmount || receipt.totalDebit;
+          const fee = data.fee || receipt.fee;
+          renderResult('Transfer submitted', `$${debited} debited (includes $${fee} processing fee)`);
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        renderResult('Network error', err.message);
       } finally {
         btn.disabled = false; btn.textContent = 'Submit transfer';
       }
