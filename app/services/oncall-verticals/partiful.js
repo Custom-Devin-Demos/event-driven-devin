@@ -29,7 +29,7 @@ const PARTIFUL = {
   service: 'partiful-rsvp',
   brand: 'Partiful (mobile)',
   sourcePrefix: 'partiful-rsvp/',
-  platforms: new Set(['ios', 'macos']),
+  platforms: new Set(['ios', 'macos', 'web']),
   repo: 'https://github.com/COG-GTM/ios-demos',
   repoName: 'COG-GTM/ios-demos',
   appDir: 'apps/205bc15f',
@@ -39,7 +39,7 @@ const PARTIFUL = {
     + 'They cannot respond and the host sees no replies coming in.',
 };
 
-const PLATFORM_LABELS = { ios: 'iOS', macos: 'macOS' };
+const PLATFORM_LABELS = { ios: 'iOS', macos: 'macOS', web: 'Web (phone preview)' };
 
 // Reason codes the app can report, with the human symptom each one means.
 // Anything else is rejected: the prompt must never carry a client string

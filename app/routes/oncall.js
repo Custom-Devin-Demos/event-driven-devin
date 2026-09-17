@@ -643,7 +643,7 @@ router.post(PARTIFUL_FAILURE_PATH, (req, res, next) => {
   if (!isPartifulReport(body)) {
     return res.status(400).json({
       received: false,
-      error: `Expected a partiful-rsvp/<ios|macos> source with service ${PARTIFUL.service}`,
+      error: `Expected a partiful-rsvp/<ios|macos|web> source with service ${PARTIFUL.service}`,
     });
   }
   const report = normalizePartifulReport(body);

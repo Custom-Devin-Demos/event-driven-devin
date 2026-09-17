@@ -96,10 +96,11 @@ describe('Partiful RSVP page failure report (205bc15f)', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  test('only partiful-rsvp/<ios|macos> sources with the partiful service are reports', () => {
+  test('only partiful-rsvp/<ios|macos|web> sources with the partiful service are reports', () => {
     expect(isPartifulReport(REPORT)).toBe(true);
     expect(isPartifulReport({ ...REPORT, source: 'partiful-rsvp/macos' })).toBe(true);
-    expect(isPartifulReport({ ...REPORT, source: 'partiful-rsvp/web' })).toBe(false);
+    expect(isPartifulReport({ ...REPORT, source: 'partiful-rsvp/web' })).toBe(true);
+    expect(isPartifulReport({ ...REPORT, source: 'partiful-rsvp/android' })).toBe(false);
     expect(isPartifulReport({ ...REPORT, service: 'fleet-mobile' })).toBe(false);
     expect(isPartifulReport(null)).toBe(false);
   });
