@@ -1906,6 +1906,31 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Personal Investor Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A VANGUARD SITE — internal demo only, not affiliated with, endorsed by, or a real Vanguard product.',
   },
+  '848b5205': {
+    slug: '848b5205',
+    company: 'ZKB',
+    brandMark: 'Z',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '848b5205.html',
+      title: 'Zahlungen | ZKB eBanking',
+    },
+    accent: '#003CB4',
+    accentDark: '#002F8E',
+    theme: {
+      '--accent': '#003CB4',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#080F5E',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'ZKB Kundenservice',
+    supportCenterSub: 'eBanking Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A ZKB SITE — internal demo only, not affiliated with, endorsed by, or a real ZKB product.',
+  },
 };
 
 function getOncallSkin(slug) {
