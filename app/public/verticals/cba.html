@@ -353,6 +353,10 @@
     // Falls back to the server-side CommBank identity when nothing is saved on the hub.
     var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
 
+    // /cba?repro=1 fails identically but raises no Sentry event, Slack alert or
+    // Devin session, so a remediation session can reproduce without re-alerting.
+    var REPRO_MODE = new URLSearchParams(window.location.search).has('repro');
+
     var ACCOUNTS = {
       '062-000 10345678': { holderName: 'Alice Chen', productLabel: 'Smart Access', balance: 24850.00, dailyLimit: 20000 },
       '062-000 10345691': { holderName: 'Alice Chen', productLabel: 'NetBank Saver', balance: 142300.00, dailyLimit: 5000 },
@@ -440,7 +444,9 @@
 
       fetch('/api/cba/payment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: REPRO_MODE
+          ? { 'Content-Type': 'application/json', 'x-synthetic': '1' }
+          : { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fromAccount: fromSelect.value,
           paymentMethod: paymentMethod,
