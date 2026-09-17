@@ -53,12 +53,13 @@ router.post('/api/cba/payment', async (req, res) => {
     });
     res.json(payment);
   } catch (error) {
-    if (error.statusCode === 400 || error.name === 'ValidationError') {
-      return res.status(400).json({
+    if (error.name === 'ValidationError' || (error.statusCode >= 400 && error.statusCode < 500)) {
+      return res.status(error.statusCode || 400).json({
         success: false,
         error: error.message,
         errorClass: error.name,
         code: error.code || 'INVALID_PAYMENT',
+        operationsQueue: error.operationsQueue,
         requestId: error.requestId || req.requestId,
       });
     }
