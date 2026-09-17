@@ -172,6 +172,14 @@ describe('a693dab5 fleet health pipeline', () => {
     expect(service.listRuns({ limit: 'abc' })).toHaveLength(defaultRuns.length);
   });
 
+  test('keeps fleet failure counts read-only as time advances', () => {
+    const now = Date.now();
+    service.resetStore(now);
+    expect(service.getFleet(now).summary.failedRunsLast24h).toBe(3);
+    expect(service.getFleet(now + 25 * 60 * 60 * 1000).summary.failedRunsLast24h).toBe(0);
+    expect(service.getFleet(now).summary.failedRunsLast24h).toBe(3);
+  });
+
   test('reports derived status in fleet and engine read models', () => {
     const engine = service.getEngine('598-2041');
     expect(engine.engine.status).toBe('CAUTION');

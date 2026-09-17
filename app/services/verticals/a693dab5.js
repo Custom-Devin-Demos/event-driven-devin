@@ -110,11 +110,19 @@ function clearStore() {
   Object.keys(lastSuccessfulPublishes).forEach((key) => delete lastSuccessfulPublishes[key]);
 }
 
+function pruneFailureTimestamps(now) {
+  const cutoff = now - 24 * 60 * 60 * 1000;
+  while (failureTimestamps.length && failureTimestamps[0] < cutoff) failureTimestamps.shift();
+}
+
 function recordRun(run, { prepend = false } = {}) {
   if (prepend) RUNS.unshift(run);
   else RUNS.push(run);
   RUNS.length = Math.min(RUNS.length, MAX_RUNS);
-  if (run.status === 'failed') failureTimestamps.push(Date.parse(run.finishedAt));
+  if (run.status === 'failed') {
+    failureTimestamps.push(Date.parse(run.finishedAt));
+    pruneFailureTimestamps(Date.now());
+  }
   return run;
 }
 
@@ -706,9 +714,6 @@ function getFleet(now = Date.now()) {
     openLevels[entry.level] += 1;
   });
   const dayAgo = now - 24 * 60 * 60 * 1000;
-  for (let index = failureTimestamps.length - 1; index >= 0; index -= 1) {
-    if (failureTimestamps[index] < dayAgo) failureTimestamps.splice(index, 1);
-  }
   const openExceedances = EXCEEDANCES
     .filter((entry) => entry.status === 'open')
     .map((entry) => ({
@@ -730,7 +735,8 @@ function getFleet(now = Date.now()) {
       engineCount: engines.length,
       staleCount: engines.filter((engine) => engine.stale).length,
       openExceedances: openLevels,
-      failedRunsLast24h: failureTimestamps.filter((timestamp) => timestamp <= now).length,
+      failedRunsLast24h: failureTimestamps
+        .filter((timestamp) => timestamp >= dayAgo && timestamp <= now).length,
       lastRunAt: RUNS.length ? listRuns({ limit: 1 })[0].startedAt : null,
     },
   };
