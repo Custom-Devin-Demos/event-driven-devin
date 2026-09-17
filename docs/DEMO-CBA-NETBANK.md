@@ -44,9 +44,8 @@ which is what makes it read as a real bank incident to a CBA audience.
 Sentry event, Slack alert or Devin session — that is how the remediation
 session reproduces on camera without alerting anyone or spawning itself again.
 It only works off production (`NODE_ENV !== 'production'`), i.e. on the
-session's own `node app/server.js`, unless an operator sets `CBA_REPRO_TOKEN`
-and the caller presents it as the header value. On devindemos.com the flag is
-inert, so a real failure can never be silenced by a header.
+session's own `node app/server.js`. On devindemos.com the flag is inert, so a
+real failure can never be silenced by a header.
 
 Happy paths for contrast (no alert fires):
 
