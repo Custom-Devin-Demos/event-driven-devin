@@ -1861,6 +1861,32 @@ const ONCALL_SKINS = {
     supportCenter: 'Adonis Support',
     disclaimer: 'NOT ACTUALLY AN ADONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Adonis product.',
   },
+  '28e47b87': {
+    slug: '28e47b87',
+    company: 'Vanguard',
+    brandMark: 'V',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '28e47b87.html',
+      title: 'Balances and holdings | Vanguard',
+    },
+    accent: '#96151D',
+    accentDark: '#7A1017',
+    theme: {
+      '--accent': '#96151D',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#96151D',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Vanguard Client Services',
+    supportCenterSub: 'Personal Investor Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A VANGUARD SITE — internal demo only, not affiliated with, endorsed by, or a real Vanguard product.',
+  },
 };
 
 function getOncallSkin(slug) {
