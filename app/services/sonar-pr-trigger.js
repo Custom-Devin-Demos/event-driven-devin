@@ -160,12 +160,7 @@ async function createVulnerablePR(options = {}) {
   const timestamp = Math.floor(Date.now() / 1000);
   const branchName = `${prefix}-${timestamp}`;
 
-  const scanCustomer = config.sonarWorkflowCustomer || customerSlug;
-  // The global org pairs with the workflow's default key only; a named scan
-  // customer uses its own key, so leave its org to the workflow's secret.
-  const workflowOrgId = options.devinOrgId || config.devinOrgId
-    || (scanCustomer === 'default' ? process.env.DEVIN_ORG_ID : '')
-    || '';
+  const workflowOrgId = options.devinOrgId || config.devinOrgId || process.env.DEVIN_ORG_ID || '';
 
   logger.info('Creating vulnerable PR in target repo', { branch: branchName, targetRepo, customer: customerSlug });
 
@@ -248,7 +243,7 @@ async function createVulnerablePR(options = {}) {
           inputs: {
             pr_number: String(result.prNumber),
             pr_branch: branchName,
-            customer: scanCustomer,
+            customer: config.sonarWorkflowCustomer || customerSlug,
             user_id: options.devinUserId || '',
             org_id: workflowOrgId,
           },
@@ -257,7 +252,7 @@ async function createVulnerablePR(options = {}) {
     logger.info('Dispatched devin-scan workflow via workflow_dispatch', {
       prNumber: result.prNumber,
       branch: branchName,
-      customer: scanCustomer,
+      customer: config.sonarWorkflowCustomer || customerSlug,
       devinUserId: options.devinUserId || 'none',
       devinOrgId: workflowOrgId || 'none',
     });
