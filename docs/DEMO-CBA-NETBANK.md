@@ -35,8 +35,10 @@ which is what makes it read as a real bank incident to a CBA audience.
    `cba_payment.failure` / `cba_payment.latency`, an alert card posts to Slack,
    and a Devin session is created from the alert with `REMEDIATION_DIRECTIVE`
    appended — scoped to this route only.
-5. Devin registers the missing addressing profile, turns an unknown PayID type
-   into a handled payments error, verifies in the browser and opens a PR.
+5. Devin reproduces the failure in a browser first — recording the click and
+   the red panel — then registers the missing addressing profile, turns an
+   unknown PayID type into a handled payments error, records the same
+   submission succeeding, and opens a PR carrying both recordings.
 
 Happy paths for contrast (no alert fires):
 
