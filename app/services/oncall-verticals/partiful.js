@@ -381,7 +381,6 @@ async function triggerDevinSession(report, reference, { token, channel, threadTs
 function reportRsvpPageFailure(report) {
   if (!report || !report.platform || !report.eventId || !report.reason) return null;
 
-  pruneReports();
   const reference = makeReference();
   const statusToken = makeStatusToken();
   const now = new Date();
@@ -397,6 +396,7 @@ function reportRsvpPageFailure(report) {
     done: false,
   };
   reports.set(reference, entry);
+  pruneReports();
 
   const tags = {
     route: `/api/oncall/${PARTIFUL.slug}/rsvp-page-failure`,
