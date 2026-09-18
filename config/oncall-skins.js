@@ -1995,6 +1995,22 @@ const ONCALL_SKINS = {
     supportCenterSub: 'eBanking Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ZKB SITE — internal demo only, not affiliated with, endorsed by, or a real ZKB product.',
   },
+  'a75ccde9': {
+    slug: 'a75ccde9',
+    company: 'FOX One',
+    brandMark: 'F',
+    vertical: 'telco',
+    page: { file: 'a75ccde9.html', title: 'Change Your Plan | FOX One' },
+    theme: {
+      '--accent': '#000000',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'FOX One Help',
+    disclaimer: 'NOT ACTUALLY A FOX ONE SITE — internal demo only, not affiliated with, endorsed by, or a real FOX / Fox Media LLC product.',
+  },
 };
 
 function getOncallSkin(slug) {
