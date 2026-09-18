@@ -271,23 +271,23 @@
 
         <div class="buybox">
           <div class="eyebrow">Sold by CapitaLand Mall Services</div>
-          <h1>eCapitaVoucher &mdash; S$50</h1>
+          <h1 id="productTitle">eCapitaVoucher &mdash; S$50</h1>
           <div class="sub">Digital shopping voucher accepted at participating CapitaLand malls in Singapore.</div>
 
           <div class="price-row">
-            <div class="price">S$50.00</div>
+            <div class="price" id="priceValue">S$50.00</div>
             <div class="price-note">No service fee &middot; Delivered to your CapitaStar wallet</div>
           </div>
 
           <div class="stars-strip">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#2d87e0" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
-            <div>Earn <b>500 STAR$&reg;</b> on this purchase when you check out with your CapitaStar account.</div>
+            <div>Earn <b id="starsValue">500 STAR$&reg;</b> on this purchase when you check out with your CapitaStar account.</div>
           </div>
 
           <div class="denoms" role="group" aria-label="Voucher denomination">
-            <button class="denom active" type="button">S$50</button>
-            <button class="denom" type="button">S$100</button>
-            <button class="denom" type="button">S$200</button>
+            <button class="denom active" type="button" data-value="50">S$50</button>
+            <button class="denom" type="button" data-value="100">S$100</button>
+            <button class="denom" type="button" data-value="200">S$200</button>
           </div>
 
           <div class="facts">
@@ -432,10 +432,16 @@
         });
       });
 
+      var selectedDenom = 50;
       document.querySelectorAll('.denom').forEach(function (denom) {
         denom.addEventListener('click', function () {
           document.querySelectorAll('.denom').forEach(function (d) { d.classList.remove('active'); });
           denom.classList.add('active');
+          selectedDenom = parseInt(denom.getAttribute('data-value'), 10) || 50;
+          document.getElementById('productTitle').textContent = 'eCapitaVoucher \u2014 S$' + selectedDenom;
+          document.getElementById('priceValue').textContent = 'S$' + selectedDenom + '.00';
+          document.getElementById('starsValue').textContent = selectedDenom * 10 + ' STAR$\u00AE';
+          document.title = 'eCapitaVoucher S$' + selectedDenom + ' | CapitaStar eStore | CapitaLand Malls';
         });
       });
 
