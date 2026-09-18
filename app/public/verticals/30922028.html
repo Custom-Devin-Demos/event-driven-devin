@@ -341,14 +341,26 @@
     function money(n) {
       return 'S$' + n.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+    var PROCESSING_FEES = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+    function processingFee(amt) {
+      var t = PROCESSING_FEES[tierSel.value] || PROCESSING_FEES.standard;
+      return Math.round(Math.max(t.rate * amt, t.flat) * 100) / 100;
+    }
+    function payLabel() {
+      var amt = parseAmount();
+      return Number.isFinite(amt) && amt > 0 ? 'Pay ' + money(amt + processingFee(amt)) : 'Pay now';
+    }
     function updateSummary() {
       var amt = parseAmount();
+      var ok = Number.isFinite(amt) && amt > 0;
       var item = selected(toSel).textContent.replace(/\s*\(S\$[\d,.]+\)\s*$/, '');
-      var price = Number.isFinite(amt) && amt > 0 ? money(amt) : '—';
+      var price = ok ? money(amt) : '—';
+      var fee = ok ? processingFee(amt) : 0;
       summaryRows.innerHTML = '<tr><td>' + item + '</td><td>1</td><td>' + price + '</td><td>' + price + '</td></tr>' +
         '<tr><td colspan="3">Sub-total</td><td>' + price + '</td></tr>' +
-        '<tr class="summary-total"><td colspan="3">Total amount</td><td>' + price + '</td></tr>';
-      submitBtn.textContent = Number.isFinite(amt) && amt > 0 ? 'Pay ' + money(amt) : 'Pay now';
+        '<tr><td colspan="3">Payment processing fee</td><td>' + (ok ? money(fee) : '—') + '</td></tr>' +
+        '<tr class="summary-total"><td colspan="3">Total amount</td><td>' + (ok ? money(amt + fee) : '—') + '</td></tr>';
+      submitBtn.textContent = payLabel();
     }
     function setMethod(method) {
       fromSel.value = method;
@@ -398,11 +410,6 @@
         feeLine.textContent = 'Includes payment processing fee of ' + money(fee) + '.';
         result.appendChild(feeLine);
       }
-      if (receiptEmail.value.trim()) {
-        var email = document.createElement('p');
-        email.textContent = 'A receipt has been sent to your email.';
-        result.appendChild(email);
-      }
       var another = document.createElement('button');
       another.type = 'button';
       another.className = 'another-payment';
@@ -421,6 +428,7 @@
     fromSel.addEventListener('change', function () { setMethod(fromSel.value); });
     toSel.addEventListener('change', function () { fillAmountFromItem(); updateSummary(); });
     amountInput.addEventListener('input', updateSummary);
+    tierSel.addEventListener('change', updateSummary);
     form.addEventListener('reset', function () {
       setTimeout(function () {
         setMethod('card');
@@ -467,7 +475,7 @@
         renderFailure();
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = Number.isFinite(parseAmount()) ? 'Pay ' + money(parseAmount()) : 'Pay now';
+        submitBtn.textContent = payLabel();
       }
     });
   </script>
