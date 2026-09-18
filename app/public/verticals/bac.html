@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BAC Credomatic &mdash; Banca en L&iacute;nea</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bac-red: #E4002B; --bac-red-dark: #A6192E; --bac-blue: #1075BB; --bac-blue-dark: #0B5C95;
+      --ink: #1B1B1B; --muted: #5F6B76; --line: #DDE3E9; --surface: #FFFFFF; --canvas: #F4F6F8;
+      --danger: #C4111B; --danger-bg: #FDF1F2; --danger-border: #F3C3C7;
+      --success: #0B7A45; --success-bg: #EFF9F3; --success-border: #BCE5CE;
+      --sans: 'Open Sans', -apple-system, Segoe UI, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow-sm: 0 1px 2px rgba(16,32,48,0.06);
+      --shadow-md: 0 8px 24px rgba(16,32,48,0.10);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--canvas); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    a { color: var(--bac-blue); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.45s ease-out both; }
+    .d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.1s; } .d3 { animation-delay: 0.15s; } .d4 { animation-delay: 0.2s; }
+
+    .util-bar { background: var(--canvas); border-bottom: 1px solid var(--line); font-size: 0.72rem; color: var(--muted); padding: 0.35rem clamp(1rem, 4vw, 3rem); display: flex; justify-content: flex-end; gap: 1.25rem; }
+    .util-bar a { color: var(--muted); text-decoration: none; }
+    .util-bar a:hover { color: var(--bac-blue); }
+
+    header { background: var(--surface); border-bottom: 1px solid var(--line); padding: 0 clamp(1rem, 4vw, 3rem); min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 0.7rem; }
+    .brand svg { width: 34px; height: 34px; display: block; }
+    .brand .wordmark { font-size: 1.6rem; font-weight: 700; color: var(--bac-red); letter-spacing: -0.02em; }
+    .brand .divider { width: 1px; height: 26px; background: var(--line); }
+    .brand .context { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+    nav { display: flex; align-items: center; gap: 0.15rem; flex-wrap: wrap; }
+    nav a { color: var(--ink); text-decoration: none; font-size: 0.82rem; font-weight: 600; padding: 0.45rem 0.8rem; border-radius: 4px; }
+    nav a:hover { color: var(--bac-blue); background: rgba(16,117,187,0.06); }
+    nav a.active { color: var(--bac-blue); box-shadow: inset 0 -3px 0 var(--bac-red); border-radius: 0; }
+    .btn-outline { border: 1px solid var(--bac-blue); color: var(--bac-blue); background: transparent; border-radius: 22px; padding: 0.4rem 1.1rem; font-size: 0.8rem; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+    .btn-outline:hover { background: rgba(16,117,187,0.08); }
+
+    .hero { background: linear-gradient(90deg, #12324B 0%, #1B5A86 55%, var(--bac-blue) 100%); color: #fff; padding: 2.1rem clamp(1rem, 4vw, 3rem) 3.6rem; }
+    .hero .inner { max-width: 1120px; margin: 0 auto; }
+    .hero h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+    .hero p { font-size: 0.88rem; opacity: 0.86; }
+
+    .page { max-width: 1120px; margin: -2.4rem auto 0; padding: 0 clamp(1rem, 4vw, 3rem) 3rem; }
+    .back-link { display: inline-block; margin: 1.25rem 0 0; font-size: 0.78rem; font-weight: 600; color: var(--bac-blue); text-decoration: none; }
+
+    .accounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 860px) { .accounts { grid-template-columns: 1fr; } }
+    .account-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.25rem 1.35rem; box-shadow: var(--shadow-sm); border-top: 4px solid var(--bac-red); }
+    .account-card .label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .account-card .balance { font-size: 1.75rem; font-weight: 700; color: #12324B; margin: 0.3rem 0 0.1rem; }
+    .account-card .meta { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+
+    .section-title { font-size: 1.05rem; font-weight: 700; color: #12324B; margin: 2rem 0 0.75rem; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #F7F9FB; }
+    th { text-align: left; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0.7rem 1.15rem; border-bottom: 1px solid var(--line); }
+    td { padding: 0.8rem 1.15rem; border-bottom: 1px solid #EEF2F5; font-size: 0.86rem; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(16,117,187,0.04); }
+    .credit { color: var(--success); font-weight: 600; }
+    .debit { color: var(--ink); }
+
+    .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+    .form-card { padding: 1.5rem; }
+    .form-card h2 { font-size: 1.05rem; font-weight: 700; color: #12324B; margin-bottom: 1.1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.76rem; font-weight: 600; color: var(--muted); margin-bottom: 0.3rem; }
+    .form-group select, .form-group input { width: 100%; padding: 0.62rem 0.8rem; background: var(--surface); border: 1px solid #C9D2DA; border-radius: 4px; color: var(--ink); font-family: var(--sans); font-size: 0.88rem; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--bac-blue); box-shadow: 0 0 0 3px rgba(16,117,187,0.12); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+    @media (max-width: 620px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-primary { width: 100%; padding: 0.8rem; background: var(--bac-blue); color: #fff; border: none; border-radius: 24px; font-size: 0.9rem; font-weight: 700; font-family: var(--sans); cursor: pointer; }
+    .btn-primary:hover { background: var(--bac-blue-dark); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+    .result-box { margin-top: 1rem; padding: 0.8rem 1.05rem; border-radius: 6px; font-size: 0.84rem; display: none; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result-box .title { font-weight: 700; margin-bottom: 0.15rem; }
+    .result-box .detail { font-family: var(--mono); font-size: 0.74rem; opacity: 0.9; word-break: break-word; }
+    .note { margin-top: 1.1rem; padding: 0.7rem 0.95rem; background: #F7F9FB; border-left: 3px solid var(--bac-red); font-size: 0.76rem; color: var(--muted); }
+
+    .side-card { padding: 1.35rem 1.5rem; }
+    .side-card h3 { font-size: 0.95rem; font-weight: 700; color: #12324B; margin-bottom: 0.2rem; }
+    .side-card p.sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.9rem; }
+    .identity-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; margin-bottom: 0.9rem; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+    .dot.ok { background: var(--success); }
+    .dot.warn { background: var(--bac-red); }
+    .identity-status code { font-family: var(--mono); font-size: 0.76rem; }
+    .btn-secondary { width: 100%; padding: 0.62rem; background: transparent; color: var(--bac-blue); border: 1px solid var(--bac-blue); border-radius: 24px; font-size: 0.82rem; font-weight: 700; font-family: var(--sans); cursor: pointer; }
+    .btn-secondary:hover { background: rgba(16,117,187,0.08); }
+    .identity-msg { font-size: 0.76rem; margin-top: 0.6rem; }
+    .identity-msg.err { color: var(--danger); }
+    .identity-msg.ok { color: var(--success); }
+
+    footer { background: var(--bac-red-dark); color: rgba(255,255,255,0.85); margin-top: 2.5rem; padding: 1.6rem clamp(1rem, 4vw, 3rem); font-size: 0.76rem; }
+    footer .inner { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    footer a { color: #fff; text-decoration: none; margin-right: 1.1rem; }
+  </style>
+</head>
+<body>
+  <div class="util-bar"><a href="#">Sucursales y cajeros</a><a href="#">Seguridad</a><a href="#">Ayuda</a></div>
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <polygon fill="#E4002B" points="3,11 17,4 17,36 3,29"></polygon>
+        <polygon fill="#E4002B" points="20,5 37,12 37,23 20,16"></polygon>
+        <polygon fill="#E4002B" points="20,20 37,27 37,36 20,29"></polygon>
+      </svg>
+      <span class="wordmark">BAC</span>
+      <span class="divider"></span>
+      <span class="context">Banca en L&iacute;nea</span>
+    </div>
+    <nav>
+      <a href="#" class="active">Cuentas</a>
+      <a href="#">Transferencias</a>
+      <a href="#">Pagos</a>
+      <a href="#">Tarjetas</a>
+      <a href="#">Cr&eacute;ditos</a>
+      <button type="button" class="btn-outline">Cerrar sesi&oacute;n</button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="inner">
+      <h1>Buenos d&iacute;as, Mariana Solano</h1>
+      <p>Cliente Preferente &middot; &Uacute;ltimo ingreso: hoy a las 08:14</p>
+    </div>
+  </section>
+
+  <div class="page">
+    <div class="accounts">
+      <div class="account-card fade-in d1">
+        <div class="label">Cuenta de Ahorros</div>
+        <div class="balance">$18,420.35</div>
+        <div class="meta">CR-901-4417 &middot; Ahorro Preferente</div>
+      </div>
+      <div class="account-card fade-in d2">
+        <div class="label">Cuenta Corriente</div>
+        <div class="balance">$6,240.80</div>
+        <div class="meta">CR-901-2205 &middot; Corriente Cl&aacute;sica</div>
+      </div>
+      <div class="account-card fade-in d3">
+        <div class="label">Cuenta Planilla</div>
+        <div class="balance">$3,105.12</div>
+        <div class="meta">CR-901-8830 &middot; Planilla Oro</div>
+      </div>
+    </div>
+
+    <div class="section-title">Movimientos recientes</div>
+    <div class="card fade-in d3">
+      <table>
+        <thead><tr><th>Fecha</th><th>Descripci&oacute;n</th><th>Monto</th><th>Saldo</th></tr></thead>
+        <tbody>
+          <tr><td>15 mar</td><td>Acreditaci&oacute;n de planilla</td><td class="credit">+$2,480.00</td><td>$18,420.35</td></tr>
+          <tr><td>14 mar</td><td>Compa&ntilde;&iacute;a Nacional de Fuerza y Luz</td><td class="debit">-$63.40</td><td>$15,940.35</td></tr>
+          <tr><td>13 mar</td><td>Automercado San Pedro</td><td class="debit">-$112.85</td><td>$16,003.75</td></tr>
+          <tr><td>12 mar</td><td>Transferencia a Cuenta Corriente</td><td class="debit">-$400.00</td><td>$16,116.60</td></tr>
+          <tr><td>11 mar</td><td>Pago tarjeta Credomatic</td><td class="debit">-$289.99</td><td>$16,516.60</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Transferencia entre cuentas</div>
+    <div class="grid">
+      <div class="card form-card fade-in d4">
+        <h2>Nueva transferencia</h2>
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fromAccount">Cuenta origen</label>
+              <select id="fromAccount">
+                <option value="CR-901-4417">Ahorros &mdash; CR-901-4417</option>
+                <option value="CR-901-2205">Corriente &mdash; CR-901-2205</option>
+                <option value="CR-901-8830">Planilla &mdash; CR-901-8830</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="toAccount">Cuenta destino</label>
+              <select id="toAccount">
+                <option value="CR-901-2205">Corriente &mdash; CR-901-2205</option>
+                <option value="CR-901-4417">Ahorros &mdash; CR-901-4417</option>
+                <option value="CR-EXT-7781">Otro banco &mdash; SINPE ****7781</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="amount">Monto (USD)</label>
+              <input type="number" id="amount" value="500" min="1" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="accountTier">Tipo de cuenta</label>
+              <select id="accountTier">
+                <option value="premium">Preferente (sin comisi&oacute;n)</option>
+                <option value="oro">Oro ($1.50 por transferencia)</option>
+                <option value="clasica">Cl&aacute;sica ($3.25 por transferencia)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="description">Descripci&oacute;n</label>
+            <input type="text" id="description" value="Traslado de fondos">
+          </div>
+          <button type="submit" class="btn-primary" id="submitBtn">Transferir</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="note">Sus transferencias viajan cifradas. BAC Credomatic nunca le solicitar&aacute; su clave din&aacute;mica por tel&eacute;fono o correo.</div>
+      </div>
+
+      <div class="card side-card fade-in d4">
+        <h3>Identidad de la demo</h3>
+        <p class="sub">El correo <strong>@devindemos.com</strong> define a qui&eacute;n se menciona como persona de guardia en Slack y con qu&eacute; usuario se crea la sesi&oacute;n de Devin.</p>
+        <div class="identity-status"><span class="dot" id="identityDot"></span><span id="identityText">Cargando&hellip;</span><code id="identityEmailOut"></code></div>
+        <div class="form-group">
+          <label for="identityEmail">Correo</label>
+          <input type="email" id="identityEmail" placeholder="nombre@devindemos.com" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="identityOrg">Organizaci&oacute;n en Devin</label>
+          <input type="text" id="identityOrg" placeholder="Nombre de la organizaci&oacute;n" autocomplete="off">
+        </div>
+        <button type="button" class="btn-secondary" id="identityBtn">Conectar identidad</button>
+        <div id="identityMsg" class="identity-msg"></div>
+      </div>
+    </div>
+
+    <a href="/" class="back-link">&larr; Todos los demos</a>
+  </div>
+
+  <footer>
+    <div class="inner">
+      <div><a href="#">Contacto</a><a href="#">Privacidad</a><a href="#">T&eacute;rminos</a></div>
+      <div>&copy; 2026 BAC Credomatic. Demostraci&oacute;n interna.</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var ENDPOINT = '/api/bac/transferencia';
+
+      var dot = document.getElementById('identityDot');
+      var statusText = document.getElementById('identityText');
+      var statusEmail = document.getElementById('identityEmailOut');
+      var emailInput = document.getElementById('identityEmail');
+      var orgInput = document.getElementById('identityOrg');
+      var identityBtn = document.getElementById('identityBtn');
+      var identityMsg = document.getElementById('identityMsg');
+      var config = {};
+      var identityPending = Promise.resolve();
+
+      function stored(key) { return localStorage.getItem(key) || ''; }
+
+      function setResult(box, title, detail) {
+        box.textContent = '';
+        var titleEl = document.createElement('div');
+        titleEl.className = 'title';
+        titleEl.textContent = title;
+        var detailEl = document.createElement('div');
+        detailEl.className = 'detail';
+        detailEl.textContent = detail;
+        box.appendChild(titleEl);
+        box.appendChild(detailEl);
+      }
+
+      function renderIdentity() {
+        var email = stored('devinEmail');
+        var userId = stored('devinUserId');
+        statusEmail.textContent = email;
+        if (email && userId) {
+          dot.className = 'dot ok';
+          statusText.textContent = 'Guardia y sesión:';
+        } else if (email) {
+          dot.className = 'dot warn';
+          statusText.textContent = 'Correo guardado sin usuario de Devin:';
+        } else {
+          dot.className = 'dot warn';
+          statusText.textContent = 'Sin identidad configurada';
+        }
+      }
+
+      fetch('/api/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          config = cfg || {};
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          if (cfg.lockOrg) {
+            orgInput.value = cfg.defaultOrgName || stored('devinOrgName') || '';
+            orgInput.disabled = true;
+            orgInput.title = 'Organización fijada por la configuración del servidor';
+          } else if (!orgInput.value) {
+            orgInput.value = stored('devinOrgName') || cfg.defaultOrgName || '';
+          }
+          renderIdentity();
+        })
+        .catch(function () { renderIdentity(); });
+
+      emailInput.value = stored('devinEmail');
+      orgInput.value = stored('devinOrgName');
+      renderIdentity();
+
+      identityBtn.addEventListener('click', function () {
+        var email = emailInput.value.trim();
+        var orgName = orgInput.value.trim();
+        identityMsg.className = 'identity-msg';
+        identityMsg.textContent = '';
+
+        if (!email) {
+          identityMsg.className = 'identity-msg err';
+          identityMsg.textContent = 'Ingrese el correo de la persona de guardia.';
+          return;
+        }
+
+        var payload = { email: email };
+        if (config.lockOrg && config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        else if (orgName) payload.orgName = orgName;
+        else if (config.defaultOrgId) payload.orgId = config.defaultOrgId;
+
+        identityBtn.disabled = true;
+        identityBtn.textContent = 'Conectando\u2026';
+
+        identityPending = fetch('/api/resolve-identity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+          .then(function (response) {
+            return response.json().then(function (data) { return { ok: response.ok, data: data }; });
+          })
+          .then(function (res) {
+            if (!res.ok) {
+              identityMsg.className = 'identity-msg err';
+              identityMsg.textContent = res.data.error || 'No fue posible resolver la identidad.';
+              return;
+            }
+            if (config.lockUser && res.data.userId && res.data.userId !== stored('devinUserId')) {
+              identityMsg.className = 'identity-msg err';
+              identityMsg.textContent = 'Este despliegue est\u00e1 fijado a otro usuario de Devin; use el correo de esa persona.';
+              return;
+            }
+            localStorage.setItem('devinEmail', email);
+            if (orgName && !config.lockOrg) localStorage.setItem('devinOrgName', orgName);
+            if (res.data.orgId && !config.lockOrg) localStorage.setItem('devinOrgId', res.data.orgId);
+            if (res.data.userId && !config.lockUser) localStorage.setItem('devinUserId', res.data.userId);
+            identityMsg.className = 'identity-msg ok';
+            identityMsg.textContent = 'Identidad conectada.';
+            renderIdentity();
+          })
+          .catch(function (err) {
+            identityMsg.className = 'identity-msg err';
+            identityMsg.textContent = err.message;
+          })
+          .finally(function () {
+            identityBtn.disabled = false;
+            identityBtn.textContent = 'Conectar identidad';
+          });
+      });
+
+      document.getElementById('transferForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var btn = document.getElementById('submitBtn');
+        var result = document.getElementById('result');
+        btn.disabled = true;
+        btn.textContent = 'Procesando\u2026';
+        result.className = 'result-box';
+
+        identityPending
+          .then(function () {
+            return fetch(ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fromAccount: document.getElementById('fromAccount').value,
+                toAccount: document.getElementById('toAccount').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                accountTier: document.getElementById('accountTier').value,
+                description: document.getElementById('description').value,
+                devinUserId: stored('devinUserId'),
+                devinOrgId: stored('devinOrgId'),
+                devinEmail: stored('devinEmail')
+              })
+            });
+          })
+          .then(function (response) {
+            return response.json().then(function (data) { return { ok: response.ok, data: data }; });
+          })
+          .then(function (res) {
+            if (!res.ok) {
+              result.className = 'result-box error';
+              setResult(result, 'No se pudo completar la transferencia', (res.data.errorClass || 'Error') + ': ' + (res.data.error || ''));
+              return;
+            }
+            result.className = 'result-box success';
+            setResult(result, 'Transferencia aplicada', 'Comprobante ' + res.data.receipt.receiptId
+              + ' \u00b7 débito total $' + res.data.receipt.totalDebit);
+          })
+          .catch(function (err) {
+            result.className = 'result-box error';
+            setResult(result, 'Error de red', err.message);
+          })
+          .finally(function () {
+            btn.disabled = false;
+            btn.textContent = 'Transferir';
+          });
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
