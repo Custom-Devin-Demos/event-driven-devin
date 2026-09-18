@@ -12,6 +12,13 @@ const APP_PROJECT = 'event-driven-devin';
 const APP_RELEASE = 'a75ccde9-web@1.0.0';
 const APP_SOURCE_PREFIX = 'plan-page-web/';
 const SCENARIO = 'plan-change-annual-pricing';
+const ALERT_COOLDOWN_MS = Number(process.env.A75CCDE9_ALERT_COOLDOWN_MS) || 60 * 60 * 1000;
+
+let lastAlertAt = 0;
+
+function resetAlertCooldown() {
+  lastAlertAt = 0;
+}
 
 const OWNER = {
   slackMemberId: '',
@@ -28,7 +35,8 @@ const APP_REMEDIATION_DIRECTIVE = [
   '',
   'Steps:',
   '1. Start a screen recording with `recording_start` before you touch any code — the recording is',
-  'a required deliverable, not optional. Then reproduce at the live URL: on the plan page click the',
+  'a required deliverable, not optional. Then reproduce on your LOCAL server (never on the live',
+  'URL — every Annual click there raises a new production alert): on the plan page click the',
   '"Annual" billing toggle with the default plan selected. Pricing fails to switch and a notice',
   'appears; screenshot the failure and annotate the recording with what failed.',
   '2. Fix the data/render mismatch, not just the crash site. Every offered plan must have complete',
@@ -161,6 +169,17 @@ function reportAppFailure(report) {
     triggeredRule: '',
   });
 
+  const now = Date.now();
+  if (now - lastAlertAt < ALERT_COOLDOWN_MS) {
+    logger.warn('Plan pricing alert suppressed by cooldown', {
+      reference,
+      cooldownMs: ALERT_COOLDOWN_MS,
+      msSinceLastAlert: now - lastAlertAt,
+    });
+    return { reference, sessionPromise: Promise.resolve({ triggered: false, suppressed: true }) };
+  }
+  lastAlertAt = now;
+
   const needsLookup = !report.devinUserId && devinEmail && report.devinOrgId;
   const sessionPromise = (needsLookup
     ? resolveUserIdByEmail(devinEmail, report.devinOrgId)
@@ -188,5 +207,6 @@ module.exports = {
   isAppReport,
   isAppSource,
   reportAppFailure,
+  resetAlertCooldown,
   resolveUserIdByEmail,
 };

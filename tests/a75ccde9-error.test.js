@@ -32,6 +32,7 @@ const { Sentry } = require('../app/telemetry/sentry');
 const {
   APP_REMEDIATION_DIRECTIVE,
   reportAppFailure,
+  resetAlertCooldown,
 } = require('../app/services/verticals/a75ccde9');
 const router = require('../app/routes/verticals/a75ccde9');
 const { applyCustomerIdentity, isInstantPathEvent } = require('../app/routes/sentry-webhook');
@@ -72,6 +73,7 @@ function postJson(server, path, body) {
 
 describe('browser pricing failure report (a75ccde9)', () => {
   beforeEach(() => {
+    resetAlertCooldown();
     createSessionAndAlert.mockClear();
     Sentry.captureException.mockClear();
     Sentry.withScope.mockClear();
@@ -92,6 +94,21 @@ describe('browser pricing failure report (a75ccde9)', () => {
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     expect(Sentry.withScope.mock.results[0].value.setTransactionName)
       .toHaveBeenCalledWith('POST /api/a75ccde9/error');
+  });
+
+  test('suppresses repeat alerts inside the cooldown window but still captures to Sentry', () => {
+    reportAppFailure(APP_REPORT);
+    const second = reportAppFailure(APP_REPORT);
+
+    expect(second.reference).toMatch(/^[0-9a-f-]{36}$/);
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(2);
+    return expect(second.sessionPromise).resolves.toMatchObject({ triggered: false, suppressed: true });
+  });
+
+  test('tells the remediation session to reproduce locally, not on the live URL', () => {
+    expect(APP_REMEDIATION_DIRECTIVE).toMatch(/reproduce on your LOCAL server/);
+    expect(APP_REMEDIATION_DIRECTIVE).not.toMatch(/reproduce at the live URL/);
   });
 
   test('maps the customer identity and instant path', () => {
