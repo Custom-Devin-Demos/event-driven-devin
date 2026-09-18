@@ -46,6 +46,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **BNY NEXEN — Digital Asset Custody** (Vite/React app, unlisted — direct URL only) | `/bny`, `/nexen`, `/9bfabd45` (all redirect), `/9bfabd45/app` (app) | `app/public/verticals/9bfabd45-app/` | `POST /api/9bfabd45/error` | `app/services/verticals/9bfabd45.js` |
 | **State Street — Client Banking Portal** (unlisted — direct URL only) | `/statestreet`, `/4da81799` | `app/public/verticals/4da81799.html` | `POST /api/4da81799/transfer` | `app/services/verticals/4da81799.js` |
 | **BAC Credomatic — Banca en Línea** (unlisted — direct URL only) | `/bac`, `/baccredomatic` | `app/public/verticals/bac.html` | `POST /api/bac/transferencia` | `app/services/verticals/bac.js` |
+| **PNC Online Banking — Virtual Wallet Transfer** (unlisted — direct URL only; on-call + Devin session resolve from the page's devindemos.com email, no hard-coded `slackMemberId`) | `/pnc` | `app/public/verticals/pnc.html` | `GET /api/pnc/accounts`, `POST /api/pnc/transfer` | `app/services/verticals/pnc.js` |
 | **Fleet Health Console — Engine Health Pipeline** (unlisted — direct URL only) | `/fleet-health`, `/a693dab5` | `app/public/verticals/a693dab5.html` | `GET /api/a693dab5/fleet`, `GET /api/a693dab5/runs`, `POST /api/a693dab5/runs` | `app/services/verticals/a693dab5.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
