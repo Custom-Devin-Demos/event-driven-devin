@@ -388,7 +388,8 @@
     }
     #submitBtn:hover { opacity: .78; transform: translateY(-1px); }
     #submitBtn:disabled { cursor: wait; opacity: .6; transform: none; }
-    form.pending .plan-card, form.pending select { pointer-events: none; opacity: .7; }
+    form.pending .plan-card { opacity: .7; }
+    .select-card:disabled { cursor: wait; }
     .site-footer {
       padding: 64px 24px 30px;
       color: var(--white);
@@ -658,6 +659,9 @@
       const submitBtn = document.getElementById('submitBtn');
       const slowStatus = document.getElementById('slowStatus');
       const cards = Array.from(document.querySelectorAll('.plan-card'));
+      const planControls = cards.map(function (card) {
+        return card.querySelector('.select-card');
+      }).concat([newPlan, currentPlan]);
       const prices = {
         'PLUS-24': '$24.99 / month',
         'ULTRA-36': '$39.99 / month',
@@ -710,6 +714,9 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Processing…';
         form.classList.add('pending');
+        planControls.forEach(function (control) {
+          control.disabled = true;
+        });
         result.className = 'result-box';
         result.replaceChildren();
         slowStatus.hidden = true;
@@ -748,6 +755,9 @@
           window.clearTimeout(slowTimer);
           slowStatus.hidden = true;
           form.classList.remove('pending');
+          planControls.forEach(function (control) {
+            control.disabled = false;
+          });
           submitBtn.disabled = false;
           submitBtn.textContent = 'Continue';
         }
