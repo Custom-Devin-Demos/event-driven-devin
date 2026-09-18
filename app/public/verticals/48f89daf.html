@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobs / Pending - Simpro Premium</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 13px; color: #333; background: #f0f2f5; display: flex; flex-direction: column; }
+    a { color: #0b5cad; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* Top bar */
+    .topbar { height: 44px; background: #0b5cad; color: #fff; display: flex; align-items: center; padding: 0 12px; flex-shrink: 0; }
+    .wordmark { width: 176px; font-weight: 800; font-size: 19px; letter-spacing: 1.5px; text-transform: uppercase; line-height: 1; }
+    .wordmark small { display: block; font-size: 8px; letter-spacing: 3px; font-weight: 400; margin-top: 3px; opacity: 0.85; }
+    .company { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; margin-left: 16px; }
+    .company .grid { display: inline-grid; grid-template-columns: repeat(2, 5px); gap: 2px; }
+    .company .grid i { width: 5px; height: 5px; background: rgba(255,255,255,0.85); border-radius: 1px; }
+    .ctx-tab { margin-left: 28px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3); border-radius: 3px; padding: 3px 10px; font-size: 11px; display: flex; align-items: center; gap: 8px; }
+    .ctx-tab span.x { opacity: 0.7; }
+    .topbar .spacer { flex: 1; }
+    .search { display: flex; align-items: center; background: #fff; border-radius: 3px; height: 26px; width: 300px; }
+    .search input { flex: 1; border: none; outline: none; padding: 0 10px; font-size: 12px; color: #333; background: transparent; }
+    .search .ico { width: 26px; text-align: center; color: #0b5cad; font-size: 13px; }
+    .topbar .icons { display: flex; gap: 14px; margin-left: 16px; font-size: 14px; opacity: 0.9; }
+    .topbar .icons span { position: relative; }
+    .topbar .icons .badge { position: absolute; top: -6px; right: -8px; background: #e53935; font-size: 9px; border-radius: 8px; padding: 0 4px; line-height: 13px; }
+    .user { margin-left: 18px; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; background: #f5a623; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+
+    /* Layout */
+    .shell { display: flex; flex: 1; min-height: 0; }
+    .sidenav { width: 176px; background: #fff; border-right: 1px solid #e1e4e8; padding-top: 10px; flex-shrink: 0; display: flex; flex-direction: column; }
+    .sidenav a { display: flex; align-items: center; gap: 12px; padding: 9px 20px; color: #333; font-size: 13px; }
+    .sidenav a .ic { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; }
+    .sidenav a .ic svg { width: 15px; height: 15px; stroke: #0b5cad; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .sidenav a:hover { background: #f4f7fb; }
+    .sidenav a.active { background: #e8f0fa; color: #0b5cad; font-weight: 600; box-shadow: inset 3px 0 0 #0b5cad; }
+    .sidenav hr { border: none; border-top: 1px solid #e1e4e8; margin: 8px 20px; }
+    .sidenav .hide { margin-top: auto; padding: 12px 20px; font-size: 11px; color: #888; }
+
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .crumbs { padding: 10px 24px 6px; font-size: 12px; color: #666; }
+    .crumbs b { color: #333; font-weight: 600; }
+    .stage-tabs { display: flex; padding: 0 24px; border-bottom: 1px solid #dfe3e8; background: #fff; }
+    .stage-tabs a { padding: 10px 18px; font-size: 12px; color: #0b5cad; border: 1px solid transparent; border-bottom: none; position: relative; top: 1px; }
+    .stage-tabs a.active { background: #f0f2f5; color: #333; font-weight: 600; border-color: #dfe3e8; border-radius: 3px 3px 0 0; }
+    .stage-tabs a .n { display: inline-block; margin-left: 6px; background: #e1e6ec; color: #555; border-radius: 9px; padding: 0 6px; font-size: 10px; line-height: 15px; }
+
+    .content { padding: 16px 24px 32px; flex: 1; }
+    .card { background: #fff; border: 1px solid #dfe3e8; border-radius: 4px; padding: 16px 18px; }
+    .card-head { display: flex; align-items: center; margin-bottom: 12px; }
+    .card-head h1 { font-size: 17px; font-weight: 600; color: #222; }
+    .card-head .sub { margin-left: 14px; color: #777; font-size: 12px; }
+    .card-head .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .tsearch { display: flex; align-items: center; border: 1px solid #cfd5dc; border-radius: 3px; height: 30px; width: 280px; }
+    .tsearch input { flex: 1; border: none; outline: none; padding: 0 10px; font-size: 12px; }
+    .tsearch .ico { padding: 0 8px; color: #999; }
+    .icon-btn { width: 30px; height: 30px; border: 1px solid #cfd5dc; background: #f7f8fa; border-radius: 3px; color: #555; font-size: 13px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th { text-align: left; font-weight: 600; color: #555; padding: 8px 10px; border-bottom: 2px solid #dfe3e8; white-space: nowrap; font-size: 11.5px; }
+    thead th .car { color: #999; margin-left: 4px; font-size: 9px; }
+    tbody td { padding: 11px 10px; border-bottom: 1px solid #e9ecef; vertical-align: middle; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #f7f9fc; }
+    tbody tr.selected { background: #e8f0fa; }
+    tbody tr.dispatched { background: #f2f9f2; }
+    tbody td.jobno { font-weight: 600; color: #0b5cad; }
+    .dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
+    .muted { color: #999; }
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600; background: #eef1f5; color: #555; }
+    .tag.urgent { background: #fdecea; color: #c62828; }
+    .tag.ok { background: #e6f4ea; color: #1e7e34; }
+    .opt-btn { border: 1px solid #b9c2cc; background: #fff; border-radius: 3px; padding: 3px 9px; font-size: 11px; color: #333; }
+    .opt-btn + .opt-btn { margin-left: 4px; }
+    .chk { width: 14px; height: 14px; }
+
+    .bulk { margin-top: 20px; padding-top: 14px; border-top: 1px dashed #dfe3e8; }
+    .bulk .sel-row { display: flex; align-items: center; gap: 16px; font-size: 12px; margin-bottom: 10px; }
+    .bulk .sel-row label { display: flex; align-items: center; gap: 6px; }
+    .with-sel { display: inline-block; background: #c9d1da; color: #333; font-size: 11px; padding: 3px 10px; border-radius: 2px; margin-bottom: 14px; }
+    .bulk-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+    .bulk-grid label { display: block; font-size: 11.5px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .bulk-grid select, .bulk-grid input { width: 100%; height: 28px; border: 1px solid #cfd5dc; border-radius: 3px; padding: 0 8px; font-size: 12px; background: #fff; color: #333; }
+    .actions { margin-top: 18px; display: flex; align-items: center; gap: 10px; }
+    .btn { border: none; border-radius: 3px; padding: 8px 18px; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+    .btn-primary { background: #0b5cad; color: #fff; }
+    .btn-primary:hover { background: #094b8d; }
+    .btn-primary:disabled { background: #9cb8d6; cursor: not-allowed; }
+    .btn-ghost { background: #fff; color: #0b5cad; border: 1px solid #0b5cad; }
+    .btn-green { background: #43a047; color: #fff; }
+    .sel-hint { font-size: 12px; color: #666; }
+    .sel-hint b { color: #0b5cad; }
+
+    .footer { text-align: center; font-size: 10.5px; color: #999; padding: 12px; }
+
+    /* Modal */
+    .backdrop { position: fixed; inset: 0; background: rgba(20,30,45,0.55); display: none; align-items: center; justify-content: center; z-index: 900; }
+    .backdrop.open { display: flex; }
+    .modal { background: #fff; width: 620px; max-width: 94vw; border-radius: 4px; box-shadow: 0 12px 40px rgba(0,0,0,0.3); overflow: hidden; }
+    .modal-head { background: #0b5cad; color: #fff; padding: 12px 18px; display: flex; align-items: center; }
+    .modal-head h2 { font-size: 14px; font-weight: 600; }
+    .modal-head .close { margin-left: auto; background: none; border: none; color: #fff; font-size: 20px; opacity: 0.8; line-height: 1; }
+    .steps { display: flex; border-bottom: 1px solid #e1e4e8; }
+    .steps div { flex: 1; text-align: center; padding: 9px 0; font-size: 11px; color: #999; border-bottom: 3px solid transparent; }
+    .steps div.on { color: #0b5cad; font-weight: 600; border-bottom-color: #0b5cad; }
+    .steps div.done { color: #43a047; }
+    .modal-body { padding: 18px; }
+    .job-summary { background: #f4f7fb; border: 1px solid #dfe6ee; border-radius: 3px; padding: 10px 14px; font-size: 12px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+    .job-summary span { color: #777; }
+    .job-summary b { color: #222; font-weight: 600; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 11.5px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .field select { width: 100%; height: 32px; border: 1px solid #cfd5dc; border-radius: 3px; padding: 0 8px; font-size: 12.5px; background: #fff; color: #333; }
+    .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .slot { border: 1px solid #cfd5dc; border-radius: 3px; padding: 9px 10px; font-size: 12px; cursor: pointer; background: #fff; text-align: left; }
+    .slot small { display: block; color: #777; font-size: 10.5px; margin-top: 2px; }
+    .slot.on { border-color: #0b5cad; background: #e8f0fa; color: #0b5cad; font-weight: 600; }
+    .prio { display: flex; gap: 8px; }
+    .prio button { flex: 1; border: 1px solid #cfd5dc; background: #fff; border-radius: 3px; padding: 7px 0; font-size: 12px; }
+    .prio button.on { border-color: #0b5cad; background: #0b5cad; color: #fff; font-weight: 600; }
+    .review { font-size: 12.5px; }
+    .review .row { display: flex; padding: 8px 0; border-bottom: 1px solid #eef1f5; }
+    .review .row span { width: 160px; color: #777; }
+    .review .row b { font-weight: 600; color: #222; }
+    .notice { margin-top: 14px; font-size: 11.5px; color: #666; background: #fff8e1; border: 1px solid #ffe0a3; padding: 8px 10px; border-radius: 3px; }
+    .result { text-align: center; padding: 8px 0 4px; }
+    .result .tick { width: 54px; height: 54px; border-radius: 50%; background: #43a047; color: #fff; font-size: 30px; line-height: 54px; margin: 0 auto 12px; }
+    .result h3 { font-size: 16px; font-weight: 600; color: #222; margin-bottom: 4px; }
+    .result .ref { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; color: #0b5cad; font-weight: 700; letter-spacing: 1px; margin: 6px 0 14px; }
+    .result .grid { text-align: left; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font-size: 12px; background: #f4f7fb; padding: 12px 14px; border-radius: 3px; }
+    .result .grid span { color: #777; display: block; font-size: 10.5px; }
+    .modal-foot { padding: 12px 18px; border-top: 1px solid #e1e4e8; display: flex; gap: 8px; justify-content: flex-end; background: #fafbfc; }
+    .modal-foot .back { margin-right: auto; }
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: rgba(0,0,0,0.88); color: #fff; padding: 16px 24px; border-radius: 10px; font-size: 14px; z-index: 10000; max-width: 420px; opacity: 0; transform: translateY(20px); transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+    .toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast-title { font-weight: 600; margin-bottom: 4px; }
+    .toast-detail { font-size: 13px; opacity: 0.8; }
+    .toast-close { position: absolute; top: 8px; right: 12px; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; opacity: 0.6; }
+    .toast-close:hover { opacity: 1; }
+    .toast-success { background: rgba(0,120,60,0.9); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wordmark">Simpro<small>Premium</small></div>
+    <div class="company"><span class="grid"><i></i><i></i><i></i><i></i></span> Trades Business</div>
+    <div class="ctx-tab">&#128295; Jobs &rsaquo; Pending <span class="x">&times;</span></div>
+    <div class="spacer"></div>
+    <div class="search"><input type="text" placeholder="Search" aria-label="Search"><span class="ico">&#9906;</span></div>
+    <div class="icons"><span>&#9733;</span><span>&#9993;<span class="badge">3</span></span><span>&#9742;</span></div>
+    <div class="user"><span class="avatar">SR</span> Service Manager</div>
+  </div>
+
+  <div class="shell">
+    <nav class="sidenav">
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Dashboard</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>People</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 12l6 6L20 6"/></svg></span>Leads</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M9 12h6M9 16h6"/></svg></span>Quotes</a>
+      <a href="#" class="active"><span class="ic"><svg viewBox="0 0 24 24"><path d="M14 7l3 3-8 8H6v-3z"/><path d="M15 4l5 5"/></svg></span>Jobs</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>Schedule</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21V9l8-6 8 6v12z"/><path d="M10 21v-6h4v6"/></svg></span>Customers</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 22s7-6 7-12a7 7 0 0 0-14 0c0 6 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Sites</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></span>Invoices</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Materials</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></span>Tasks</a>
+      <hr>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Documents</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></span>Utilities</a>
+      <a href="#"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Reports</a>
+      <div class="hide">&lsaquo; Hide Labels</div>
+    </nav>
+
+    <div class="main">
+      <div class="crumbs"><a href="#">Jobs</a> / <b>Pending</b></div>
+      <div class="stage-tabs">
+        <a href="#" class="active">Pending <span class="n" id="pendingCount">0</span></a>
+        <a href="#">Progress</a>
+        <a href="#">Complete</a>
+        <a href="#">Invoiced</a>
+        <a href="#">Archived</a>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <div class="card-head">
+            <h1>Pending Jobs (<span id="pendingCount2">0</span>)</h1>
+            <span class="sub">Brisbane &mdash; Trades Business &middot; Fri 18 Sep 2026</span>
+            <div class="right">
+              <div class="tsearch"><input type="text" placeholder="Search jobs" aria-label="Search jobs"><span class="ico">&#9906;</span></div>
+              <button class="icon-btn" title="Export">&#8681;</button>
+            </div>
+          </div>
+
+          <table id="jobsTable">
+            <thead>
+              <tr>
+                <th style="width:28px"></th>
+                <th>Job No.<span class="car">&#9660;</span></th>
+                <th>Status<span class="car">&#9660;</span></th>
+                <th>Customer<span class="car">&#9660;</span></th>
+                <th>Site<span class="car">&#9660;</span></th>
+                <th>Order No.<span class="car">&#9660;</span></th>
+                <th>Due Date<span class="car">&#9660;</span></th>
+                <th>Stage<span class="car">&#9660;</span></th>
+                <th>Technician<span class="car">&#9660;</span></th>
+                <th>Job Type<span class="car">&#9660;</span></th>
+                <th style="width:120px"></th>
+              </tr>
+            </thead>
+            <tbody id="jobsBody"></tbody>
+          </table>
+
+          <div class="bulk">
+            <div class="sel-row">
+              <label><input type="checkbox" class="chk" id="selectAll"> Select All</label>
+              <a href="#">Map Jobs</a>
+            </div>
+            <div class="with-sel">With selected</div>
+            <div class="bulk-grid">
+              <div><label>Assign Salesperson</label><select><option>Not Selected</option></select></div>
+              <div><label>Assign Project Manager</label><select><option>Not Selected</option></select></div>
+              <div><label>Assign Technicians</label><select><option>0 Selected</option></select></div>
+              <div><label>Update Status</label><select><option>Not Selected</option></select></div>
+              <div><label>Add Tag</label><select><option>0 Selected</option></select></div>
+              <div><label>Change Stage</label><select><option>Not Selected</option></select></div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary" id="dispatchBtn" disabled>Dispatch Job</button>
+              <button class="btn btn-ghost" id="updateBtn">Update</button>
+              <span class="sel-hint" id="selHint">Select a pending job to dispatch a technician.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer">Simpro &mdash; Copyright &copy; 2003-2026, All Rights Reserved.</div>
+    </div>
+  </div>
+
+  <!-- Dispatch modal -->
+  <div class="backdrop" id="backdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head"><h2 id="modalTitle">Dispatch Job</h2><button class="close" id="modalClose" aria-label="Close">&times;</button></div>
+      <div class="steps"><div id="st1" class="on">1. Technician &amp; time</div><div id="st2">2. Confirm</div><div id="st3">3. Dispatched</div></div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <button class="toast-close" onclick="document.getElementById('toast').classList.remove('visible')">&times;</button>
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var STATUS_COLORS = { pending: '#f0871f', progress: '#7ed321', complete: '#2fc4f0', invoiced: '#9b59b6', overdue: '#e53935' };
+    var state = { jobs: [], technicians: [], timeSlots: {}, selected: null, step: 1, technicianId: '', timeSlot: 'morning', priority: 'standard', busy: false, dispatched: {} };
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+    function showToast(title, detail, success) {
+      var toast = document.getElementById('toast');
+      toast.className = 'toast' + (success ? ' toast-success' : '');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastDetail').textContent = detail;
+      toast.classList.add('visible');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+    }
+
+    function renderJobs() {
+      var body = document.getElementById('jobsBody');
+      var pending = state.jobs.filter(function (j) { return j.status === 'pending' && !state.dispatched[j.jobNo]; });
+      document.getElementById('pendingCount').textContent = pending.length;
+      document.getElementById('pendingCount2').textContent = pending.length;
+      body.innerHTML = state.jobs.map(function (j) {
+        var d = state.dispatched[j.jobNo];
+        var color = STATUS_COLORS[j.status] || (j.statusColor || '#999');
+        var isSel = state.selected === j.jobNo;
+        var tech = d ? d.technician : (j.technician || '');
+        var stage = d ? 'Dispatched' : j.stage;
+        return '<tr data-job="' + esc(j.jobNo) + '" class="' + (isSel ? 'selected' : '') + (d ? ' dispatched' : '') + '">' +
+          '<td><input type="checkbox" class="chk" ' + (isSel ? 'checked' : '') + ' data-job="' + esc(j.jobNo) + '"></td>' +
+          '<td class="jobno">' + esc(j.jobNo) + '</td>' +
+          '<td><span class="dot" style="background:' + (d ? STATUS_COLORS.progress : color) + '"></span></td>' +
+          '<td>' + esc(j.customer) + '</td>' +
+          '<td>' + esc(j.site) + '</td>' +
+          '<td>' + (j.orderNo ? esc(j.orderNo) : '<span class="muted">&mdash;</span>') + '</td>' +
+          '<td>' + esc(j.dueDate) + '</td>' +
+          '<td><span class="tag ' + (d ? 'ok' : (/urgent|overdue/i.test(stage) ? 'urgent' : '')) + '">' + esc(stage) + '</span></td>' +
+          '<td>' + (tech ? esc(tech) : '<span class="muted">Unassigned</span>') + '</td>' +
+          '<td>' + esc(j.jobType) + '</td>' +
+          '<td style="text-align:right"><button class="opt-btn" data-opt="' + esc(j.jobNo) + '">Options &#9662;</button><button class="opt-btn">&hellip;</button></td>' +
+          '</tr>';
+      }).join('');
+      var btn = document.getElementById('dispatchBtn');
+      var hint = document.getElementById('selHint');
+      var sel = state.jobs.filter(function (j) { return j.jobNo === state.selected; })[0];
+      if (sel && sel.status === 'pending' && !state.dispatched[sel.jobNo]) {
+        btn.disabled = false;
+        hint.innerHTML = 'Job <b>' + esc(sel.jobNo) + '</b> &mdash; ' + esc(sel.customer) + ' selected.';
+      } else if (sel) {
+        btn.disabled = true;
+        hint.textContent = 'Job ' + sel.jobNo + ' is not pending and cannot be dispatched.';
+      } else {
+        btn.disabled = true;
+        hint.textContent = 'Select a pending job to dispatch a technician.';
+      }
+    }
+
+    document.getElementById('jobsBody').addEventListener('click', function (e) {
+      var row = e.target.closest('tr');
+      if (!row) return;
+      var jobNo = row.getAttribute('data-job');
+      if (e.target.matches('button')) { e.preventDefault(); }
+      state.selected = state.selected === jobNo && e.target.matches('input') ? null : jobNo;
+      renderJobs();
+      if (e.target.matches('[data-opt]')) openModal();
+    });
+    document.getElementById('selectAll').addEventListener('change', function () { this.checked = false; });
+    document.getElementById('updateBtn').addEventListener('click', function (e) { e.preventDefault(); showToast('Nothing to update', 'Select jobs and choose a bulk action.', false); });
+
+    /* ---- Modal ---- */
+    function selectedJob() { return state.jobs.filter(function (j) { return j.jobNo === state.selected; })[0]; }
+    function openModal() {
+      var job = selectedJob();
+      if (!job || job.status !== 'pending' || state.dispatched[job.jobNo]) return;
+      state.step = 1; state.technicianId = state.technicians[0] ? state.technicians[0].id : ''; state.timeSlot = 'morning'; state.priority = 'standard';
+      document.getElementById('backdrop').classList.add('open');
+      renderModal();
+    }
+    function closeModal() { if (state.busy) return; document.getElementById('backdrop').classList.remove('open'); }
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('dispatchBtn').addEventListener('click', openModal);
+
+    function jobSummary(job) {
+      return '<div class="job-summary">' +
+        '<div><span>Job No.</span> <b>' + esc(job.jobNo) + '</b></div><div><span>Customer</span> <b>' + esc(job.customer) + '</b></div>' +
+        '<div><span>Site</span> <b>' + esc(job.site) + '</b></div><div><span>Due</span> <b>' + esc(job.dueDate) + '</b></div>' +
+        '<div><span>Job Type</span> <b>' + esc(job.jobType) + '</b></div><div><span>Order No.</span> <b>' + esc(job.orderNo || '\u2014') + '</b></div></div>';
+    }
+    function techById(id) { return state.technicians.filter(function (t) { return t.id === id; })[0]; }
+
+    function renderModal() {
+      var job = selectedJob();
+      var body = document.getElementById('modalBody');
+      var foot = document.getElementById('modalFoot');
+      [1, 2, 3].forEach(function (n) {
+        var el = document.getElementById('st' + n);
+        el.className = n === state.step ? 'on' : (n < state.step ? 'done' : '');
+      });
+      if (state.step === 1) {
+        body.innerHTML = jobSummary(job) +
+          '<div class="field"><label>Technician</label><select id="techSel">' + state.technicians.map(function (t) {
+            return '<option value="' + esc(t.id) + '"' + (t.id === state.technicianId ? ' selected' : '') + '>' + esc(t.name) + ' \u2014 ' + esc(t.trade) + ' (' + esc(t.region) + ')</option>';
+          }).join('') + '</select></div>' +
+          '<div class="field"><label>Time slot</label><div class="slots">' + Object.keys(state.timeSlots).map(function (k) {
+            var s = state.timeSlots[k];
+            var label = s.label.split(' (');
+            return '<button type="button" class="slot' + (k === state.timeSlot ? ' on' : '') + '" data-slot="' + esc(k) + '">' + esc(label[0]) + '<small>' + esc(label[1] ? label[1].replace(')', '') : '') + '</small></button>';
+          }).join('') + '</div></div>' +
+          '<div class="field"><label>Priority</label><div class="prio">' + ['standard', 'urgent', 'emergency'].map(function (p) {
+            return '<button type="button" class="' + (p === state.priority ? 'on' : '') + '" data-prio="' + p + '">' + p.charAt(0).toUpperCase() + p.slice(1) + '</button>';
+          }).join('') + '</div></div>';
+        foot.innerHTML = '<button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-primary" id="nextBtn">Review dispatch &rsaquo;</button>';
+        document.getElementById('techSel').addEventListener('change', function () { state.technicianId = this.value; });
+        body.querySelectorAll('[data-slot]').forEach(function (b) { b.addEventListener('click', function () { state.timeSlot = b.getAttribute('data-slot'); renderModal(); }); });
+        body.querySelectorAll('[data-prio]').forEach(function (b) { b.addEventListener('click', function () { state.priority = b.getAttribute('data-prio'); renderModal(); }); });
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+        document.getElementById('nextBtn').addEventListener('click', function () { state.step = 2; renderModal(); });
+      } else if (state.step === 2) {
+        var t = techById(state.technicianId) || {};
+        var slot = state.timeSlots[state.timeSlot] || {};
+        body.innerHTML = '<div class="review">' +
+          '<div class="row"><span>Job</span><b>' + esc(job.jobNo) + ' \u2014 ' + esc(job.customer) + '</b></div>' +
+          '<div class="row"><span>Site</span><b>' + esc(job.site) + '</b></div>' +
+          '<div class="row"><span>Technician</span><b>' + esc(t.name) + ' (' + esc(t.trade) + ', ' + esc(t.vehicle) + ')</b></div>' +
+          '<div class="row"><span>Time slot</span><b>' + esc(slot.label) + '</b></div>' +
+          '<div class="row"><span>Priority</span><b>' + esc(state.priority.charAt(0).toUpperCase() + state.priority.slice(1)) + '</b></div>' +
+          '</div><div class="notice">Confirming will lock the technician\u2019s schedule block, move the job to <b>Progress</b> and send a push notification to Simpro Mobile.</div>';
+        foot.innerHTML = '<button class="btn btn-ghost back" id="backBtn">&lsaquo; Back</button><button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-green" id="confirmBtn">Confirm dispatch</button>';
+        document.getElementById('backBtn').addEventListener('click', function () { state.step = 1; renderModal(); });
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+        document.getElementById('confirmBtn').addEventListener('click', submitDispatch);
+      } else {
+        var r = state.dispatched[job.jobNo];
+        body.innerHTML = '<div class="result"><div class="tick">&#10003;</div><h3>Job dispatched</h3><div class="muted">Dispatch reference</div><div class="ref">' + esc(r.dispatchRef) + '</div>' +
+          '<div class="grid">' +
+          '<div><span>Technician</span>' + esc(r.technician) + '</div><div><span>Notified via</span>' + esc(r.notifiedVia) + '</div>' +
+          '<div><span>Scheduled window</span>' + esc(r.scheduledWindow) + '</div><div><span>Priority / SLA</span>' + esc(r.priority) + ' \u2014 ' + esc(r.slaHours) + ' h</div>' +
+          '<div><span>ETA to site</span>' + esc(r.etaMinutes) + ' min</div><div><span>Job</span>' + esc(r.jobNo) + '</div>' +
+          '</div></div>';
+        foot.innerHTML = '<button class="btn btn-primary" id="doneBtn">Done</button>';
+        document.getElementById('doneBtn').addEventListener('click', closeModal);
+      }
+    }
+
+    function submitDispatch() {
+      if (state.busy) return;
+      var job = selectedJob();
+      var btn = document.getElementById('confirmBtn');
+      state.busy = true;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Dispatching\u2026';
+      fetch('/api/48f89daf/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobNo: job.jobNo,
+          technicianId: state.technicianId,
+          timeSlot: state.timeSlot,
+          priority: state.priority,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.error || data.errorClass) {
+            showToast((data.errorClass || 'Error') + ': ' + (data.error || 'Unknown error'), 'Dispatch failed \u2014 incident logged', false);
+            state.step = 2;
+            renderModal();
+            return;
+          }
+          state.dispatched[job.jobNo] = data;
+          state.step = 3;
+          renderModal();
+          renderJobs();
+          showToast('Job ' + job.jobNo + ' dispatched', data.dispatchRef + ' \u2014 ' + data.technician + ' notified', true);
+        })
+        .catch(function (err) { showToast('Network Error', err.message, false); state.step = 2; renderModal(); })
+        .finally(function () { state.busy = false; });
+    }
+
+    fetch('/api/48f89daf/jobs')
+      .then(function (r) { return r.json(); })
+      .then(function (d) { state.jobs = d.jobs || []; state.technicians = d.technicians || []; state.timeSlots = d.timeSlots || {}; renderJobs(); })
+      .catch(function (err) { showToast('Could not load jobs', err.message, false); });
+  </script>
+</body>
+</html>
