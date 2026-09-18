@@ -196,7 +196,7 @@ function reportAppFailure(report) {
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
-    culprit: 'frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+    culprit: `${CUSTOMER}/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction`,
     errorType,
     errorValue: errorMessage,
     devinUserId,

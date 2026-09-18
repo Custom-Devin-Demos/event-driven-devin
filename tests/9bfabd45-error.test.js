@@ -33,7 +33,7 @@ const {
 } = require('../app/services/verticals/9bfabd45');
 const router = require('../app/routes/verticals/9bfabd45');
 const { getCustomerConfig } = require('../config/customers');
-const { applyCustomerIdentity } = require('../app/routes/sentry-webhook');
+const { applyCustomerIdentity, isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 const ORG_ID = 'org_69IXJFLrljx8zSAw';
 
@@ -107,7 +107,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
       release: 'nexen-custody@1.0.0',
       platform: 'web',
       errorType: 'TypeError',
-      culprit: 'frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+      culprit: '9bfabd45/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
       devinUserId: 'user-abc',
       devinOrgId: ORG_ID,
       devinEmail: 'hub.user@example.com',
@@ -180,6 +180,17 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
       project: 'nexen-custody',
       promptAppendix: APP_REMEDIATION_DIRECTIVE,
     });
+  });
+
+  test('Sentry webhook skips the events the instant path already alerted on, tagged or tagless', () => {
+    expect(isInstantPathEvent({
+      culprit: '9bfabd45/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+      tags: [['service', 'customer-9bfabd45-web'], ['alert_path', 'instant']],
+    })).toBe(true);
+    expect(isInstantPathEvent({
+      culprit: '9bfabd45/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+      tags: [],
+    })).toBe(true);
   });
 
   describe('POST /api/9bfabd45/error', () => {
