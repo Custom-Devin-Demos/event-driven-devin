@@ -341,6 +341,11 @@
               identityMsg.textContent = res.data.error || 'No fue posible resolver la identidad.';
               return;
             }
+            if (config.lockUser && res.data.userId && res.data.userId !== stored('devinUserId')) {
+              identityMsg.className = 'identity-msg err';
+              identityMsg.textContent = 'Este despliegue est\u00e1 fijado a otro usuario de Devin; use el correo de esa persona.';
+              return;
+            }
             localStorage.setItem('devinEmail', email);
             if (orgName && !config.lockOrg) localStorage.setItem('devinOrgName', orgName);
             if (res.data.orgId && !config.lockOrg) localStorage.setItem('devinOrgId', res.data.orgId);
