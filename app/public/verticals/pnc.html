@@ -228,8 +228,8 @@
       }
 
       function resolveIdentity(email) {
-        if (!email) return;
-        loadConfig().then(function (cfg) {
+        if (!email) return Promise.resolve();
+        window.pncIdentityReady = loadConfig().then(function (cfg) {
           var orgId = storedOrgId() || cfg.defaultOrgId || '';
           var orgName = cfg.defaultOrgName || '';
           if (!orgId && !orgName) { setStatus('Signed in as ' + email); return; }
@@ -248,10 +248,12 @@
             })
             .catch(function (err) { setStatus('Could not resolve this email: ' + err.message); });
         });
+        return window.pncIdentityReady;
       }
 
       emailInput.value = localStorage.getItem('devinEmail') || '';
-      if (emailInput.value) setStatus('On-call and Devin session will use ' + emailInput.value);
+      if (emailInput.value && localStorage.getItem('devinUserId')) setStatus('On-call and Devin session will use ' + emailInput.value);
+      else if (emailInput.value) resolveIdentity(emailInput.value);
       else loadConfig();
 
       emailInput.addEventListener('change', function () {
@@ -310,18 +312,22 @@
         btn.textContent = 'Processing\u2026';
         result.className = 'result';
 
-        fetch('/api/pnc/transfer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fromAccount: fromSelect.value,
-            toAccount: toSelect.value,
-            amount: parseFloat(document.getElementById('amount').value),
-            accountTier: tierSelect.value,
-            devinUserId: localStorage.getItem('devinUserId') || '',
-            devinOrgId: localStorage.getItem('devinOrgId') || '',
-            devinEmail: localStorage.getItem('devinEmail') || ''
-          })
+        /* Wait for any in-flight email resolution so Slack's on-call mention and
+           the Devin session owner come from the same identity. */
+        Promise.resolve(window.pncIdentityReady).catch(function () {}).then(function () {
+          return fetch('/api/pnc/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromSelect.value,
+              toAccount: toSelect.value,
+              amount: parseFloat(document.getElementById('amount').value),
+              accountTier: tierSelect.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
         })
           .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, payload: p }; }); })
           .then(function (res) {
