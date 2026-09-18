@@ -31,7 +31,7 @@
   <div class="bg"></div><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="orb orb-c"></div>
 
   <header class="nav"><div class="wrap nav-inner">
-    <a class="logo" href="#"><span class="mark">${esc(B.monogram)}</span>${esc(B.name)}</a>
+    <a class="logo" href="#"><span class="mark">${esc(B.monogram)}</span><span class="logo-name">${esc(B.name)}</span></a>
     <nav class="nav-links">${B.nav.map((n) => `<a href="#">${esc(n)}</a>`).join('')}</nav>
     <div class="nav-cta"><a class="btn btn-ghost" href="#">${esc(B.signIn || 'Sign in')}</a><a class="btn btn-primary" href="#">${esc(B.cta)}</a></div>
   </div></header>
