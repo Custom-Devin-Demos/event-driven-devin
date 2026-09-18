@@ -290,9 +290,15 @@
         .then(function (r) { return r.json(); })
         .then(function (cfg) {
           config = cfg || {};
-          if (cfg.lockOrg && cfg.defaultOrgId && !stored('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-          if (cfg.lockUser && cfg.defaultUserId && !stored('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
-          if (!orgInput.value) orgInput.value = stored('devinOrgName') || cfg.defaultOrgName || '';
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          if (cfg.lockOrg) {
+            orgInput.value = cfg.defaultOrgName || stored('devinOrgName') || '';
+            orgInput.disabled = true;
+            orgInput.title = 'Organización fijada por la configuración del servidor';
+          } else if (!orgInput.value) {
+            orgInput.value = stored('devinOrgName') || cfg.defaultOrgName || '';
+          }
           renderIdentity();
         })
         .catch(function () { renderIdentity(); });
@@ -314,7 +320,8 @@
         }
 
         var payload = { email: email };
-        if (orgName) payload.orgName = orgName;
+        if (config.lockOrg && config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        else if (orgName) payload.orgName = orgName;
         else if (config.defaultOrgId) payload.orgId = config.defaultOrgId;
 
         identityBtn.disabled = true;
@@ -335,9 +342,9 @@
               return;
             }
             localStorage.setItem('devinEmail', email);
-            if (orgName) localStorage.setItem('devinOrgName', orgName);
-            if (res.data.orgId) localStorage.setItem('devinOrgId', res.data.orgId);
-            if (res.data.userId) localStorage.setItem('devinUserId', res.data.userId);
+            if (orgName && !config.lockOrg) localStorage.setItem('devinOrgName', orgName);
+            if (res.data.orgId && !config.lockOrg) localStorage.setItem('devinOrgId', res.data.orgId);
+            if (res.data.userId && !config.lockUser) localStorage.setItem('devinUserId', res.data.userId);
             identityMsg.className = 'identity-msg ok';
             identityMsg.textContent = 'Identidad conectada.';
             renderIdentity();
