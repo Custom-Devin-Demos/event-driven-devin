@@ -255,6 +255,7 @@
       var identityBtn = document.getElementById('identityBtn');
       var identityMsg = document.getElementById('identityMsg');
       var config = {};
+      var identityPending = Promise.resolve();
 
       function stored(key) { return localStorage.getItem(key) || ''; }
 
@@ -327,7 +328,7 @@
         identityBtn.disabled = true;
         identityBtn.textContent = 'Conectando\u2026';
 
-        fetch('/api/resolve-identity', {
+        identityPending = fetch('/api/resolve-identity', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -372,20 +373,23 @@
         btn.textContent = 'Procesando\u2026';
         result.className = 'result-box';
 
-        fetch(ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fromAccount: document.getElementById('fromAccount').value,
-            toAccount: document.getElementById('toAccount').value,
-            amount: parseFloat(document.getElementById('amount').value),
-            accountTier: document.getElementById('accountTier').value,
-            description: document.getElementById('description').value,
-            devinUserId: stored('devinUserId'),
-            devinOrgId: stored('devinOrgId'),
-            devinEmail: stored('devinEmail')
+        identityPending
+          .then(function () {
+            return fetch(ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fromAccount: document.getElementById('fromAccount').value,
+                toAccount: document.getElementById('toAccount').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                accountTier: document.getElementById('accountTier').value,
+                description: document.getElementById('description').value,
+                devinUserId: stored('devinUserId'),
+                devinOrgId: stored('devinOrgId'),
+                devinEmail: stored('devinEmail')
+              })
+            });
           })
-        })
           .then(function (response) {
             return response.json().then(function (data) { return { ok: response.ok, data: data }; });
           })
