@@ -211,6 +211,7 @@
     (function () {
       var emailInput = document.getElementById('devinEmail');
       var statusEl = document.getElementById('identityStatus');
+      var resolutionToken = 0;
 
       function setStatus(text) { statusEl.textContent = text; }
 
@@ -229,7 +230,10 @@
 
       function resolveIdentity(email) {
         if (!email) return Promise.resolve();
+        resolutionToken += 1;
+        var token = resolutionToken;
         window.pncIdentityReady = loadConfig().then(function (cfg) {
+          if (token !== resolutionToken) return;
           var orgId = storedOrgId() || cfg.defaultOrgId || '';
           var orgName = cfg.defaultOrgName || '';
           if (!orgId && !orgName) { setStatus('Signed in as ' + email); return; }
@@ -241,12 +245,15 @@
           })
             .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, payload: p }; }); })
             .then(function (res) {
+              if (token !== resolutionToken) return;
               if (!res.ok) { setStatus(res.payload.error || 'Could not resolve this email'); return; }
               if (res.payload.orgId) localStorage.setItem('devinOrgId', res.payload.orgId);
               if (res.payload.userId) localStorage.setItem('devinUserId', res.payload.userId);
               setStatus('On-call and Devin session will use ' + email);
             })
-            .catch(function (err) { setStatus('Could not resolve this email: ' + err.message); });
+            .catch(function (err) {
+              if (token === resolutionToken) setStatus('Could not resolve this email: ' + err.message);
+            });
         });
         return window.pncIdentityReady;
       }
