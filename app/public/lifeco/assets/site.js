@@ -39,7 +39,7 @@
   <section class="hero"><div class="wrap hero-grid">
     <div>
       <span class="eyebrow"><i class="dot"></i>${esc(B.eyebrow)}</span>
-      <h1>${B.headline.replace(/\*(.+?)\*/g, '<span class="grad">$1</span>')}</h1>
+      <h1>${esc(B.headline).replace(/&lt;br&gt;/g, '<br>').replace(/\*(.+?)\*/g, '<span class="grad">$1</span>')}</h1>
       <p class="lede">${esc(B.lede)}</p>
       <div class="hero-actions"><a class="btn btn-primary btn-lg" href="#">${esc(B.cta)}</a><a class="btn btn-ghost btn-lg" href="#">${esc(B.cta2)}</a></div>
       <div class="hero-proof">${B.proof.map((p) => `<div><b>${esc(p[0])}</b><span>${esc(p[1])}</span></div>`).join('')}</div>
@@ -127,11 +127,20 @@
       t.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
       t.style.setProperty('--my', (ev.clientY - r.top) + 'px');
     });
-    const hv = document.querySelector('.hero-visual');
-    if (hv) {
-      const r = hv.getBoundingClientRect();
-      const dx = (ev.clientX - (r.left + r.width / 2)) / r.width, dy = (ev.clientY - (r.top + r.height / 2)) / r.height;
-      document.querySelectorAll('[data-tilt]').forEach((c) => { c.style.transform = `rotateY(${dx * 10}deg) rotateX(${-dy * 10}deg)`; c.style.animation = 'none'; });
-    }
   });
+
+  const hv = document.querySelector('.hero-visual');
+  const tilts = document.querySelectorAll('[data-tilt]');
+  const clamp = (v) => Math.max(-0.5, Math.min(0.5, v));
+  if (hv) {
+    hv.addEventListener('pointermove', (ev) => {
+      const r = hv.getBoundingClientRect();
+      const dx = clamp((ev.clientX - (r.left + r.width / 2)) / r.width);
+      const dy = clamp((ev.clientY - (r.top + r.height / 2)) / r.height);
+      tilts.forEach((c) => { c.style.transform = `rotateY(${dx * 10}deg) rotateX(${-dy * 10}deg)`; c.style.animation = 'none'; });
+    });
+    hv.addEventListener('pointerleave', () => {
+      tilts.forEach((c) => { c.style.transform = ''; c.style.animation = ''; });
+    });
+  }
 })();
