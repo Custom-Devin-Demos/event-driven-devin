@@ -51,6 +51,10 @@ The app hosts 10 verticals, each accessible at its own URL:
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
+## Group home page showcase (/lifeco)
+
+A static showcase recreating the home pages of the Power Corporation group of companies for demos. Eight slugs under `/lifeco` — `pcc` (Power Corporation), `lifeco` (Great-West Lifeco), `canada-life`, `irish-life`, `empower`, `igm-financial`, `ig-wealth`, `mackenzie` — plus a hub at `/lifeco`. Every page is the same HTML shell in `app/public/lifeco/brands/<slug>.html` driven by a `window.BRAND` config and rendered by `app/public/lifeco/assets/site.js` (shared CSS in `site.css`); routes live in `app/routes/lifeco.js`. Purely static — no APIs, no bugs, no alerts — and not listed on the hub.
+
 ### On-call vertical slice (Flows 1–2)
 
 Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves the same branded pages in on-call mode with their primary action rerouted (via an injected fetch shim in `app/routes/oncall.js`) to a parallel set of endpoints backed by copied services carrying performance-degradation bugs instead of TypeErrors:

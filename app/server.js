@@ -29,6 +29,7 @@ const oncallVerticalRoutes = require('./routes/oncall-verticals');
 const internalJobsRoutes = require('./routes/internal-jobs');
 const cibcCardApplyRoutes = require('./routes/cibc-card-apply');
 const incidentLabRoutes = require('./routes/incident-lab');
+const lifecoRoutes = require('./routes/lifeco');
 const incidentLabEngine = require('./services/incident-lab/engine');
 const { runWithLegacyAlertsSuppressed } = require('./services/oncall-suppression');
 const path = require('path');
@@ -38,6 +39,7 @@ const PORT = process.env.PORT || 3000;
 
 // Serve static assets (CSS, JS, images) but NOT index.html at root
 // The hub landing page is served by the verticals router at /
+app.use(lifecoRoutes);
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // Middleware: parse JSON (capture raw body for webhook signature verification)
