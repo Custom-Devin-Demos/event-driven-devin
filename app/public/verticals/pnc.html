@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PNC Online Banking &mdash; Transfers</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --slate: #2D3943; --slate-dark: #333F48; --slate-mid: #424C55;
+      --blue: #0069AA; --blue-dark: #004C97; --orange: #F7841F;
+      --gray-text: #484848; --gray-line: #E1E5EA; --gray-bg: #F4F4F4; --hero-bg: #EDEDEE;
+      --white: #FFFFFF;
+      --danger: #C0392B; --danger-bg: #FDF3F2; --danger-border: #F0C6C1;
+      --success: #1B7F4B; --success-bg: #F0F8F3; --success-border: #BFE3CE;
+      --sans: 'Hanken Grotesk', Arial, Helvetica, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--white); color: var(--gray-text); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue-dark); }
+
+    /* ---------- Masthead ---------- */
+    .masthead { background: var(--slate); display: flex; align-items: stretch; height: 72px; padding-right: 1.5rem; }
+    .brand { display: flex; align-items: center; gap: 0.6rem; padding: 0 2rem; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; }
+    .brand-mark svg { display: block; }
+    .brand-name { color: #fff; font-size: 1.7rem; font-weight: 600; letter-spacing: 0.02em; }
+    .primary-nav { display: flex; align-items: stretch; }
+    .primary-nav a { display: flex; align-items: center; padding: 0 1.5rem; color: #fff; text-decoration: none; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    .primary-nav a.active { background: var(--slate-mid); border-top: 4px solid var(--orange); }
+    .primary-nav a:hover { background: var(--slate-mid); }
+    .masthead-utility { margin-left: auto; display: flex; align-items: center; gap: 1.35rem; }
+    .masthead-utility a { color: #fff; text-decoration: none; font-size: 0.8rem; }
+    .masthead-utility a:hover { text-decoration: underline; }
+
+    .subnav { background: var(--slate-dark); display: flex; align-items: center; gap: 2rem; padding: 0 2rem; height: 68px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .subnav a { color: #fff; text-decoration: none; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    .subnav a:hover { text-decoration: underline; }
+    .subnav .spacer { margin-left: auto; }
+    .subnav a.sign-on { background: #fff; color: var(--slate); padding: 0.6rem 1.4rem; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; }
+
+    /* ---------- Hero ---------- */
+    .hero { background: var(--hero-bg); position: relative; overflow: hidden; padding: 3rem 2rem; }
+    .hero::after { content: ''; position: absolute; right: -80px; top: -60px; width: 320px; height: 320px; border-radius: 50%; background: var(--orange); opacity: 0.9; }
+    .hero-inner { max-width: 1180px; margin: 0 auto; position: relative; z-index: 1; }
+    .hero h1 { font-size: 2.35rem; font-weight: 500; color: var(--slate); line-height: 1.15; letter-spacing: -0.01em; }
+    .hero .rule { width: 124px; height: 4px; background: var(--orange); margin: 1.1rem 0; }
+    .hero p { font-size: 1.05rem; color: var(--gray-text); max-width: 34rem; }
+
+    /* ---------- Layout ---------- */
+    .page { max-width: 1180px; margin: 0 auto; padding: 2.5rem 2rem 3rem; }
+    .section-title { font-size: 1.5rem; font-weight: 500; color: var(--slate); margin-bottom: 0.6rem; }
+    .section-rule { width: 96px; height: 3px; background: var(--orange); margin-bottom: 1.5rem; }
+
+    .accounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2.75rem; }
+    @media (max-width: 860px) { .accounts { grid-template-columns: 1fr; } }
+    .account-card { background: var(--white); border: 1px solid var(--gray-line); border-top: 4px solid var(--blue); padding: 1.4rem 1.5rem; }
+    .account-card .label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue-dark); margin-bottom: 0.5rem; }
+    .account-card .balance { font-size: 1.85rem; font-weight: 500; color: var(--slate); }
+    .account-card .number { font-family: var(--mono); font-size: 0.78rem; color: #767676; margin-top: 0.25rem; }
+
+    .activity { border: 1px solid var(--gray-line); margin-bottom: 2.75rem; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--gray-bg); }
+    th { text-align: left; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5C6670; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--gray-line); }
+    td { padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--gray-line); font-size: 0.9rem; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #FAFBFC; }
+    .credit { color: var(--success); font-weight: 600; }
+
+    .transfer-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 2rem; align-items: start; }
+    @media (max-width: 860px) { .transfer-layout { grid-template-columns: 1fr; } }
+    .card { background: var(--white); border: 1px solid var(--gray-line); padding: 1.75rem; }
+    .form-group { margin-bottom: 1.15rem; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--slate); margin-bottom: 0.35rem; }
+    select, input { width: 100%; padding: 0.7rem 0.8rem; border: 1px solid #9BA5AE; border-radius: 0; background: var(--white); color: var(--gray-text); font-family: var(--sans); font-size: 0.92rem; }
+    select:focus, input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0,105,170,0.18); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 620px) { .form-row { grid-template-columns: 1fr; } }
+    .btn { background: var(--blue); color: #fff; border: none; border-radius: 0; padding: 0.8rem 2.2rem; font-family: var(--sans); font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+    .btn:hover { background: var(--blue-dark); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .result { display: none; margin-top: 1.25rem; padding: 0.9rem 1.15rem; font-size: 0.88rem; border-left: 4px solid transparent; }
+    .result.error { display: block; background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+    .result.success { display: block; background: var(--success-bg); border-color: var(--success); color: var(--success); }
+    .result .title { font-weight: 700; margin-bottom: 0.2rem; }
+    .result .detail { font-family: var(--mono); font-size: 0.76rem; word-break: break-word; }
+
+    .aside { background: var(--gray-bg); border-left: 4px solid var(--orange); padding: 1.25rem 1.35rem; font-size: 0.85rem; }
+    .aside h3 { font-size: 0.95rem; font-weight: 600; color: var(--slate); margin-bottom: 0.5rem; }
+    .identity { margin-top: 1.25rem; }
+    .identity label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--slate); margin-bottom: 0.3rem; }
+    .identity .status { margin-top: 0.4rem; font-size: 0.74rem; color: #5C6670; min-height: 1rem; }
+
+    footer { background: var(--slate); color: rgba(255,255,255,0.75); margin-top: 3rem; padding: 2rem; font-size: 0.78rem; }
+    footer .footer-inner { max-width: 1180px; margin: 0 auto; display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+    footer a { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="masthead">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M14 9 L5 3.5 L7.5 9 L5 14.5 Z" fill="#fff"></path></svg>
+      </span>
+      <span class="brand-name">PNC</span>
+    </div>
+    <nav class="primary-nav">
+      <a href="#" class="active">Personal</a>
+      <a href="#">Small Business</a>
+      <a href="#">Corporate &amp; Institutional</a>
+      <a href="#">About</a>
+    </nav>
+    <div class="masthead-utility">
+      <a href="#">Espa&ntilde;ol</a><a href="#">Customer Service</a><a href="#">Locations</a><a href="#">Security</a>
+    </div>
+  </div>
+  <div class="subnav">
+    <a href="#">Products &amp; Services</a>
+    <a href="#">Learning</a>
+    <a href="#">Support</a>
+    <a href="#">Offers</a>
+    <span class="spacer"></span>
+    <a href="#">Search</a>
+    <a href="#" class="sign-on">Sign On</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Move money between<br>your accounts.</h1>
+      <div class="rule"></div>
+      <p>Welcome back, Alice Chen &middot; Virtual Wallet&reg; customer since 2019</p>
+    </div>
+  </section>
+
+  <main class="page">
+    <h2 class="section-title">Account Summary</h2>
+    <div class="section-rule"></div>
+    <div class="accounts" id="accounts"></div>
+
+    <h2 class="section-title">Recent Activity</h2>
+    <div class="section-rule"></div>
+    <div class="activity">
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead>
+        <tbody id="activity"></tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title">Transfer Money</h2>
+    <div class="section-rule"></div>
+    <div class="transfer-layout">
+      <div class="card">
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fromAccount">From</label>
+              <select id="fromAccount"></select>
+            </div>
+            <div class="form-group">
+              <label for="toAccount">To</label>
+              <select id="toAccount"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="amount">Amount (USD)</label>
+              <input type="number" id="amount" value="500" min="1" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="accountTier">Account Tier</label>
+              <select id="accountTier">
+                <option value="performance">Performance Select (no transfer fee)</option>
+                <option value="standard">Standard ($2.50 per transfer)</option>
+                <option value="select">Select ($4.99 per transfer)</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn" id="submitBtn">Make Transfer</button>
+        </form>
+        <div id="result" class="result"></div>
+      </div>
+      <aside class="aside">
+        <h3>Transfers are secure</h3>
+        <p>Transfers between your PNC accounts post the same business day. Deposits are FDIC insured up to $250,000 per depositor.</p>
+        <div class="identity">
+          <label for="devinEmail">Demo identity (devindemos.com sign-in email)</label>
+          <input type="email" id="devinEmail" placeholder="you@company.com" autocomplete="email">
+          <div class="status" id="identityStatus"></div>
+        </div>
+      </aside>
+    </div>
+
+    <p style="margin-top:2rem;font-size:0.76rem;color:#767676;">
+      For demonstration purposes only. Not affiliated with, endorsed by, or an actual service of The PNC Financial Services Group, Inc.
+    </p>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>&copy; 2026 Demo environment</span>
+      <a href="/">&larr; All Demos</a>
+    </div>
+  </footer>
+
+  <script>
+    /* Identity: the Slack on-call member and the Devin session are both resolved
+       from the demo user's devindemos.com sign-in email. */
+    (function () {
+      var emailInput = document.getElementById('devinEmail');
+      var statusEl = document.getElementById('identityStatus');
+      var resolutionToken = 0;
+
+      function setStatus(text) { statusEl.textContent = text; }
+
+      function storedOrgId() { return localStorage.getItem('devinOrgId') || ''; }
+
+      function loadConfig() {
+        return fetch('/api/config')
+          .then(function (r) { return r.json(); })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId && !storedOrgId()) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+            return cfg;
+          })
+          .catch(function () { return {}; });
+      }
+
+      function resolveIdentity(email) {
+        resolutionToken += 1;
+        var token = resolutionToken;
+        if (!email) {
+          window.pncIdentityReady = Promise.resolve();
+          return window.pncIdentityReady;
+        }
+        window.pncIdentityReady = loadConfig().then(function (cfg) {
+          if (token !== resolutionToken) return;
+          var orgId = storedOrgId() || cfg.defaultOrgId || '';
+          var orgName = cfg.defaultOrgName || '';
+          if (!orgId && !orgName) { setStatus('Signed in as ' + email); return; }
+          setStatus('Resolving ' + email + '\u2026');
+          return fetch('/api/resolve-identity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orgId: orgId, orgName: orgId ? '' : orgName, email: email })
+          })
+            .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, payload: p }; }); })
+            .then(function (res) {
+              if (token !== resolutionToken) return;
+              if (!res.ok) { setStatus(res.payload.error || 'Could not resolve this email'); return; }
+              if (res.payload.orgId) localStorage.setItem('devinOrgId', res.payload.orgId);
+              if (res.payload.userId) localStorage.setItem('devinUserId', res.payload.userId);
+              setStatus('On-call and Devin session will use ' + email);
+            })
+            .catch(function (err) {
+              if (token === resolutionToken) setStatus('Could not resolve this email: ' + err.message);
+            });
+        });
+        return window.pncIdentityReady;
+      }
+
+      emailInput.value = localStorage.getItem('devinEmail') || '';
+      if (emailInput.value && localStorage.getItem('devinUserId')) setStatus('On-call and Devin session will use ' + emailInput.value);
+      else if (emailInput.value) resolveIdentity(emailInput.value);
+      else loadConfig();
+
+      emailInput.addEventListener('change', function () {
+        var email = emailInput.value.trim();
+        localStorage.setItem('devinEmail', email);
+        localStorage.removeItem('devinUserId');
+        resolveIdentity(email);
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var accountsEl = document.getElementById('accounts');
+      var activityEl = document.getElementById('activity');
+      var fromSelect = document.getElementById('fromAccount');
+      var toSelect = document.getElementById('toAccount');
+      var tierSelect = document.getElementById('accountTier');
+      var accounts = [];
+
+      function money(value) {
+        return '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+
+      function render(data) {
+        accounts = data.accounts || [];
+        accountsEl.innerHTML = accounts.map(function (a) {
+          return '<div class="account-card">'
+            + '<div class="label">' + a.name + '</div>'
+            + '<div class="balance">' + money(a.balance) + '</div>'
+            + '<div class="number">' + a.id + '</div>'
+            + '</div>';
+        }).join('');
+
+        activityEl.innerHTML = (data.transactions || []).map(function (t) {
+          var cls = t.amount > 0 ? ' class="credit"' : '';
+          var sign = t.amount > 0 ? '+' : '-';
+          return '<tr><td>' + t.date + '</td><td>' + t.description + '</td>'
+            + '<td' + cls + '>' + sign + money(Math.abs(t.amount)) + '</td></tr>';
+        }).join('');
+
+        var options = accounts.map(function (a) {
+          return '<option value="' + a.id + '">' + a.name + ' \u2014 ' + a.id + '</option>';
+        }).join('');
+        fromSelect.innerHTML = options;
+        toSelect.innerHTML = options;
+        if (accounts.length > 1) toSelect.selectedIndex = 1;
+      }
+
+      fetch('/api/pnc/accounts').then(function (r) { return r.json(); }).then(render).catch(function () {});
+
+      document.getElementById('transferForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('submitBtn');
+        var result = document.getElementById('result');
+        btn.disabled = true;
+        btn.textContent = 'Processing\u2026';
+        result.className = 'result';
+
+        /* Wait for any in-flight email resolution so Slack's on-call mention and
+           the Devin session owner come from the same identity. */
+        Promise.resolve(window.pncIdentityReady).catch(function () {}).then(function () {
+          return fetch('/api/pnc/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromSelect.value,
+              toAccount: toSelect.value,
+              amount: parseFloat(document.getElementById('amount').value),
+              accountTier: tierSelect.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+        })
+          .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, payload: p }; }); })
+          .then(function (res) {
+            var payload = res.payload || {};
+            if (!res.ok) {
+              result.className = 'result error';
+              result.innerHTML = '<div class="title">Transfer could not be completed</div>'
+                + '<div class="detail">' + payload.errorClass + ': ' + payload.error + '</div>';
+            } else {
+              result.className = 'result success';
+              result.innerHTML = '<div class="title">Transfer complete</div>'
+                + '<div class="detail">Debited $' + payload.receipt.totalDebit + ' (includes $' + payload.receipt.fee + ' fee)</div>';
+            }
+          })
+          .catch(function (err) {
+            result.className = 'result error';
+            result.innerHTML = '<div class="title">Network error</div><div class="detail">' + err.message + '</div>';
+          })
+          .then(function () {
+            btn.disabled = false;
+            btn.textContent = 'Make Transfer';
+          });
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
