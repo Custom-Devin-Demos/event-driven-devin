@@ -194,7 +194,7 @@ async function processTransfer(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: ROUTE, service: SERVICE, accountTier, page: PAGE,
+        route: ROUTE, service: SERVICE, accountTier, page: PAGE, alert_path: 'instant',
       },
       extra: {
         transferId,

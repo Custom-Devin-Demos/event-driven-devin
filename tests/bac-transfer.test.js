@@ -15,6 +15,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
 const { processTransfer } = require('../app/services/verticals/bac');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 describe('BAC Credomatic Banca en Linea transfer (bac)', () => {
   beforeEach(() => {
@@ -57,5 +58,25 @@ describe('BAC Credomatic Banca en Linea transfer (bac)', () => {
     expect(alert.devinOrgId).toBe('org_demo');
     // No hard-coded owner: the email lookup owns the On-Call field.
     expect(alert.slackMemberId).toBeUndefined();
+  });
+
+  test('the Sentry webhook treats BAC events as already alerted', () => {
+    // Event-shaped payload: carries the instant tag.
+    expect(isInstantPathEvent({
+      tags: [['alert_path', 'instant'], ['service', 'bac-banca-en-linea']],
+      culprit: '',
+    })).toBe(true);
+
+    // Issue-shaped payload: no tags, matched on the module path.
+    expect(isInstantPathEvent({
+      tags: [],
+      culprit: 'app/services/verticals/bac.js — processTransfer',
+    })).toBe(true);
+
+    // A callback frame must not be mistaken for the bac module.
+    expect(isInstantPathEvent({
+      tags: [],
+      culprit: 'app/services/other.js — handleCallback',
+    })).toBe(false);
   });
 });

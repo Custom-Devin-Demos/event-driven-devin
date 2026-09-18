@@ -219,7 +219,7 @@
       <div class="card side-card fade-in d4">
         <h3>Identidad de la demo</h3>
         <p class="sub">El correo <strong>@devindemos.com</strong> define a qui&eacute;n se menciona como persona de guardia en Slack y con qu&eacute; usuario se crea la sesi&oacute;n de Devin.</p>
-        <div class="identity-status"><span class="dot" id="identityDot"></span><span id="identityText">Cargando&hellip;</span></div>
+        <div class="identity-status"><span class="dot" id="identityDot"></span><span id="identityText">Cargando&hellip;</span><code id="identityEmailOut"></code></div>
         <div class="form-group">
           <label for="identityEmail">Correo</label>
           <input type="email" id="identityEmail" placeholder="nombre@devindemos.com" autocomplete="off">
@@ -249,6 +249,7 @@
 
       var dot = document.getElementById('identityDot');
       var statusText = document.getElementById('identityText');
+      var statusEmail = document.getElementById('identityEmailOut');
       var emailInput = document.getElementById('identityEmail');
       var orgInput = document.getElementById('identityOrg');
       var identityBtn = document.getElementById('identityBtn');
@@ -257,15 +258,28 @@
 
       function stored(key) { return localStorage.getItem(key) || ''; }
 
+      function setResult(box, title, detail) {
+        box.textContent = '';
+        var titleEl = document.createElement('div');
+        titleEl.className = 'title';
+        titleEl.textContent = title;
+        var detailEl = document.createElement('div');
+        detailEl.className = 'detail';
+        detailEl.textContent = detail;
+        box.appendChild(titleEl);
+        box.appendChild(detailEl);
+      }
+
       function renderIdentity() {
         var email = stored('devinEmail');
         var userId = stored('devinUserId');
+        statusEmail.textContent = email;
         if (email && userId) {
           dot.className = 'dot ok';
-          statusText.innerHTML = 'Guardia y sesi&oacute;n: <code>' + email + '</code>';
+          statusText.textContent = 'Guardia y sesión:';
         } else if (email) {
           dot.className = 'dot warn';
-          statusText.innerHTML = 'Correo guardado sin usuario de Devin: <code>' + email + '</code>';
+          statusText.textContent = 'Correo guardado sin usuario de Devin:';
         } else {
           dot.className = 'dot warn';
           statusText.textContent = 'Sin identidad configurada';
@@ -366,18 +380,16 @@
           .then(function (res) {
             if (!res.ok) {
               result.className = 'result-box error';
-              result.innerHTML = '<div class="title">No se pudo completar la transferencia</div>'
-                + '<div class="detail">' + (res.data.errorClass || 'Error') + ': ' + (res.data.error || '') + '</div>';
+              setResult(result, 'No se pudo completar la transferencia', (res.data.errorClass || 'Error') + ': ' + (res.data.error || ''));
               return;
             }
             result.className = 'result-box success';
-            result.innerHTML = '<div class="title">Transferencia aplicada</div>'
-              + '<div class="detail">Comprobante ' + res.data.receipt.receiptId
-              + ' &middot; d&eacute;bito total $' + res.data.receipt.totalDebit + '</div>';
+            setResult(result, 'Transferencia aplicada', 'Comprobante ' + res.data.receipt.receiptId
+              + ' \u00b7 débito total $' + res.data.receipt.totalDebit);
           })
           .catch(function (err) {
             result.className = 'result-box error';
-            result.innerHTML = '<div class="title">Error de red</div><div class="detail">' + err.message + '</div>';
+            setResult(result, 'Error de red', err.message);
           })
           .finally(function () {
             btn.disabled = false;
