@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pay | PaySG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #1E51D4;
+      --ink: #333A4A;
+      --surface: #FFFFFF;
+      --chrome-bg: #151D31;
+      --chrome-text: #FFFFFF;
+      --heading: #242B3E;
+      --muted: #565C6D;
+      --border: #ECEEF2;
+      --page: #F7F7F9;
+      --accent-dark: #173EA8;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Inter, "Trebuchet MS", -apple-system, Arial, system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--ink, #333A4A);
+      background: var(--page, #F7F7F9);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, select, input { border-radius: 4px; }
+    .gov-strip { background: #F0F0F0; color: var(--ink, #333A4A); font-size: 12px; }
+    .gov-strip-inner {
+      max-width: 1120px; min-height: 32px; margin: 0 auto; padding: 0 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .gov-emblem { width: 12px; height: 12px; flex: none; background: #D22630; }
+    .gov-strip a { text-decoration: underline; }
+    .site-header { background: var(--surface, #FFFFFF); border-bottom: 1px solid var(--border, #ECEEF2); }
+    .header-inner {
+      max-width: 1120px; height: 72px; margin: 0 auto; padding: 0 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--heading, #242B3E); text-decoration: none; }
+    .brand svg { width: 28px; height: 28px; flex: none; }
+    .wordmark { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+    .wordmark .pay { color: var(--accent, #1E51D4); }
+    .wordmark .sg { color: var(--heading, #242B3E); }
+    .site-nav { display: flex; align-items: center; gap: 22px; margin-left: auto; }
+    .site-nav a { color: var(--ink, #333A4A); font-size: 14px; text-decoration: none; }
+    .btn-primary, .sign-in {
+      min-height: 44px; border: 0; padding: 9px 15px; border-radius: 4px;
+      color: var(--chrome-text, #FFFFFF); background: var(--accent, #1E51D4);
+      cursor: pointer; font-weight: 600; text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .btn-primary:hover, .sign-in:hover { background: var(--accent-dark, #173EA8); }
+    .main { max-width: 720px; margin: 0 auto; padding: 40px 16px 72px; }
+    .eyebrow { margin: 0 0 10px; color: var(--muted, #565C6D); font-size: 14px; }
+    h1, h2 { color: var(--heading, #242B3E); font-weight: 700; }
+    h1 { margin: 0 0 12px; font-size: 28px; line-height: 1.1; }
+    .intro { margin: 0 0 28px; color: var(--muted, #565C6D); font-size: 18px; line-height: 28px; }
+    .card {
+      margin-bottom: 20px; padding: 24px; background: var(--surface, #FFFFFF);
+      border: 1px solid var(--border, #ECEEF2); border-radius: 8px;
+    }
+    .card h2 { margin: 0 0 20px; font-size: 20px; line-height: 28px; }
+    .summary-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .summary-table th, .summary-table td { padding: 11px 8px; border-bottom: 1px solid var(--border, #ECEEF2); text-align: left; vertical-align: top; }
+    .summary-table th { color: var(--muted, #565C6D); font-size: 13px; font-weight: 600; }
+    .summary-table td { color: var(--ink, #333A4A); }
+    .summary-table th:first-child, .summary-table td:first-child { width: 50%; padding-left: 0; }
+    .summary-table th:nth-child(2), .summary-table td:nth-child(2) { width: 11%; }
+    .summary-table th:nth-child(3), .summary-table td:nth-child(3) { width: 19%; }
+    .summary-table th:last-child, .summary-table td:last-child { width: 20%; padding-right: 0; text-align: right; }
+    .summary-table .summary-total td { border-bottom: 0; color: var(--heading, #242B3E); font-weight: 700; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 7px; color: var(--heading, #242B3E); font-size: 14px; font-weight: 600; }
+    .control { position: relative; }
+    .control input, .control select {
+      width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #D5D9E2;
+      color: var(--ink, #333A4A); background: var(--surface, #FFFFFF);
+    }
+    .control select { appearance: none; padding-right: 36px; }
+    .control .chevron {
+      position: absolute; right: 14px; top: 50%; width: 8px; height: 8px;
+      border-right: 1px solid var(--muted, #565C6D); border-bottom: 1px solid var(--muted, #565C6D);
+      transform: translateY(-65%) rotate(45deg); pointer-events: none;
+    }
+    .control input:focus, .control select:focus, .method-tab:focus, .btn-primary:focus {
+      outline: 2px solid rgba(30, 81, 212, .28); outline-offset: 1px;
+    }
+    .amount-control input { padding-left: 34px; }
+    .amount-prefix { position: absolute; top: 50%; left: 12px; color: var(--muted, #565C6D); transform: translateY(-50%); }
+    .method-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+    .method-tab {
+      min-height: 44px; padding: 8px 6px; border: 1px solid #D5D9E2; border-radius: 4px;
+      color: var(--ink, #333A4A); background: var(--surface, #FFFFFF); cursor: pointer; font-size: 13px;
+    }
+    .method-tab.active { border-color: var(--accent, #1E51D4); color: var(--accent, #1E51D4); font-weight: 600; }
+    .compact-select { width: 100%; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .payment-message {
+      margin: 0 0 20px; padding: 14px 16px; border: 1px solid var(--border, #ECEEF2);
+      color: var(--muted, #565C6D); background: #FAFAFB; border-radius: 4px;
+    }
+    .pay-action { width: 100%; min-height: 48px; }
+    .secure-note { margin: 10px 0 0; color: var(--muted, #565C6D); font-size: 12px; line-height: 18px; text-align: center; }
+    .result-box { margin-top: 16px; font-size: 14px; line-height: 22px; }
+    .result-box:empty { display: none; }
+    .result-box.pending, .result-box.neutral, .result-box.success {
+      padding: 16px; border-radius: 4px;
+    }
+    .result-box.pending, .result-box.neutral { border: 1px solid var(--border, #ECEEF2); color: var(--muted, #565C6D); background: #FAFAFB; }
+    .result-box.success { border: 1px solid #B7DEC1; color: #1F6335; background: #EFF9F1; }
+    .result-box h3 { margin: 0 0 6px; color: inherit; font-size: 16px; }
+    .result-box p { margin: 2px 0; }
+    .another-payment { margin-top: 12px; min-height: 44px; padding: 8px 14px; border: 1px solid currentColor; border-radius: 4px; color: inherit; background: transparent; cursor: pointer; }
+    .cta-band { padding: 64px 16px; color: #FFFFFF; background: #242B3E; text-align: center; }
+    .cta-band h2 { margin: 0 0 8px; color: #FFFFFF; font-size: 28px; line-height: 34px; }
+    .cta-band p { margin: 0 0 24px; color: #C9CDD6; }
+    .cta-band .btn-primary { background: var(--accent, #1E51D4); }
+    .site-footer { padding: 48px 24px; color: #FFFFFF; background: var(--chrome-bg, #151D31); }
+    .footer-inner { max-width: 1120px; margin: 0 auto; }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .footer-brand { font-size: 20px; font-weight: 700; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 22px; }
+    .footer-links a { color: #C9CDD6; font-size: 14px; text-decoration: none; }
+    .footer-divider { height: 1px; margin: 28px 0 22px; background: rgba(255,255,255,.15); }
+    .built-by { color: #C9CDD6; font-size: 11px; }
+    .built-by strong { margin-left: 6px; color: #FFFFFF; font-size: 12px; letter-spacing: .08em; }
+    .copyright { color: #C9CDD6; font-size: 12px; }
+    @media (max-width: 640px) {
+      .site-nav a { display: none; }
+      .header-inner { gap: 12px; }
+      .main { padding-top: 32px; }
+      .card { padding: 20px 16px; }
+      .summary-table { font-size: 14px; }
+      .summary-table th, .summary-table td { padding-right: 5px; padding-left: 5px; }
+      .summary-table th:first-child, .summary-table td:first-child { width: 44%; padding-left: 0; }
+      .summary-table th:nth-child(2), .summary-table td:nth-child(2) { width: 11%; }
+      .summary-table th:nth-child(3), .summary-table td:nth-child(3) { width: 21%; }
+      .summary-table th:last-child, .summary-table td:last-child { width: 24%; padding-right: 0; }
+      .method-tabs { grid-template-columns: repeat(2, 1fr); }
+      .detail-grid { grid-template-columns: 1fr; gap: 0; }
+      .footer-row { align-items: flex-start; flex-direction: column; gap: 16px; }
+      .footer-links { gap: 12px 18px; }
+    }
+    @media (min-width: 1024px) { .site-footer { padding-right: 88px; padding-left: 88px; } }
+  </style>
+</head>
+<body>
+  <div class="gov-strip">
+    <div class="gov-strip-inner">
+      <span class="gov-emblem" aria-hidden="true"></span>
+      <span>A Singapore Government Agency Website</span>
+      <a href="#">How to identify</a>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#" aria-label="PaySG home">
+        <svg viewBox="0 0 28 28" aria-hidden="true">
+          <rect width="28" height="28" rx="6" fill="var(--accent, #1E51D4)"/>
+          <text x="14" y="20" text-anchor="middle" fill="#FFFFFF" font-size="17" font-weight="700" font-family="Arial, sans-serif">P</text>
+        </svg>
+        <span class="wordmark"><span class="pay">PAY</span><span class="sg">SG</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="#">Guide</a>
+        <a href="#">Get started</a>
+        <a href="#">Contact us</a>
+      </nav>
+      <a class="sign-in" href="#">Sign in</a>
+    </div>
+  </header>
+
+  <main class="main">
+    <p class="eyebrow">Ministry of Manpower · Work pass services</p>
+    <h1>Pay work pass application fee</h1>
+    <p class="intro">Review your payment summary and complete payment. You will receive a receipt by email.</p>
+
+    <section class="card" aria-labelledby="summaryHeading">
+      <h2 id="summaryHeading">Summary</h2>
+      <table class="summary-table">
+        <thead>
+          <tr><th scope="col">Description</th><th scope="col">Qty</th><th scope="col">Price</th><th scope="col">Amount (SGD)</th></tr>
+        </thead>
+        <tbody id="summaryRows"></tbody>
+      </table>
+    </section>
+
+    <section class="card" aria-labelledby="paymentHeading">
+      <h2 id="paymentHeading">Complete payment</h2>
+      <form id="transferForm" novalidate>
+        <div class="field">
+          <label for="toAccount">Payment for</label>
+          <div class="control">
+            <select id="toAccount" name="toAccount">
+              <option value="mom-workpass" data-amount="105.00">Work pass application fee — Ministry of Manpower (S$105.00)</option>
+              <option value="hsa-licence" data-amount="250.00">Product licence renewal — Health Sciences Authority (S$250.00)</option>
+              <option value="lta-roadtax" data-amount="742.00">Road tax renewal — Land Transport Authority (S$742.00)</option>
+            </select>
+            <span class="chevron" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fromAccount">Payment method</label>
+          <div class="method-tabs" role="tablist" aria-label="Payment methods">
+            <button class="method-tab active" type="button" data-method="card" role="tab" aria-selected="true">Card</button>
+            <button class="method-tab" type="button" data-method="paynow" role="tab" aria-selected="false">PayNow</button>
+            <button class="method-tab" type="button" data-method="grabpay" role="tab" aria-selected="false">GrabPay</button>
+            <button class="method-tab" type="button" data-method="wechatpay" role="tab" aria-selected="false">WeChat Pay</button>
+          </div>
+          <div class="control compact-select">
+            <select id="fromAccount" name="fromAccount">
+              <option value="card" selected>Credit / debit card</option>
+              <option value="paynow">PayNow</option>
+              <option value="grabpay">GrabPay</option>
+              <option value="wechatpay">WeChat Pay</option>
+            </select>
+            <span class="chevron" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="amount">Amount (SGD)</label>
+          <div class="control amount-control">
+            <span class="amount-prefix" aria-hidden="true">S$</span>
+            <input type="number" id="amount" name="amount" min="1" step="0.01" inputmode="decimal" value="105.00">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="accountTier">Paying as</label>
+          <div class="control">
+            <select id="accountTier" name="accountTier">
+              <option value="standard" selected>Individual (Singpass)</option>
+              <option value="basic">Guest checkout</option>
+              <option value="premium">Business (Corppass)</option>
+            </select>
+            <span class="chevron" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div id="methodDetails">
+          <div id="cardDetails" class="detail-grid">
+            <div class="field">
+              <label for="cardNumber">Card number</label>
+              <div class="control"><input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" autocomplete="off"></div>
+            </div>
+            <div class="field">
+              <label for="cardExpiry">Expiry (MM / YY)</label>
+              <div class="control"><input type="text" id="cardExpiry" placeholder="MM / YY" autocomplete="off"></div>
+            </div>
+            <div class="field">
+              <label for="cardCvc">CVC</label>
+              <div class="control"><input type="text" id="cardCvc" placeholder="CVC" autocomplete="off"></div>
+            </div>
+            <div class="field">
+              <label for="cardName">Name on card</label>
+              <div class="control"><input type="text" id="cardName" placeholder="Name on card" autocomplete="off"></div>
+            </div>
+          </div>
+          <div id="methodMessage" class="payment-message" hidden></div>
+        </div>
+
+        <div class="field">
+          <label for="receiptEmail">Email for receipt</label>
+          <div class="control"><input type="email" id="receiptEmail" placeholder="name@example.com" autocomplete="email"></div>
+        </div>
+
+        <button type="submit" class="btn-primary pay-action" id="submitBtn">Pay S$105.00</button>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <p class="secure-note">Payments are processed securely. Fees are set by the collecting agency.</p>
+      </form>
+    </section>
+  </main>
+
+  <section class="cta-band">
+    <h2>Unlock efficient payment solutions for your agency</h2>
+    <p>Let's collaborate to simplify your payment processes.</p>
+    <a class="btn-primary" href="#">Contact us</a>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-row">
+        <span class="footer-brand">PaySG</span>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="#">Privacy</a>
+          <a href="#">Terms of Use</a>
+          <a href="#">Report Vulnerability</a>
+        </nav>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-row">
+        <span class="built-by">Built by<strong>OPEN GOVERNMENT PRODUCTS</strong></span>
+        <span class="copyright">© 2026 Open Government Products</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config')
+        .then(function (r) { return r.json(); })
+        .then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        })
+        .catch(function () {});
+    })();
+
+    var form = document.getElementById('transferForm'),
+      fromSel = document.getElementById('fromAccount'),
+      toSel = document.getElementById('toAccount'),
+      amountInput = document.getElementById('amount'),
+      tierSel = document.getElementById('accountTier'),
+      submitBtn = document.getElementById('submitBtn'),
+      result = document.getElementById('result'),
+      summaryRows = document.getElementById('summaryRows'),
+      cardDetails = document.getElementById('cardDetails'),
+      methodMessage = document.getElementById('methodMessage'),
+      receiptEmail = document.getElementById('receiptEmail'),
+      methodTabs = document.querySelectorAll('.method-tab');
+
+    function selected(sel) { return sel.options[sel.selectedIndex]; }
+    function parseAmount() {
+      if (!amountInput.checkValidity() || amountInput.value === '') return NaN;
+      return Math.round(parseFloat(amountInput.value) * 100) / 100;
+    }
+    function money(n) {
+      return 'S$' + n.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    var PROCESSING_FEES = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+    function processingFee(amt) {
+      var t = PROCESSING_FEES[tierSel.value] || PROCESSING_FEES.standard;
+      return Math.round(Math.max(t.rate * amt, t.flat) * 100) / 100;
+    }
+    function payLabel() {
+      var amt = parseAmount();
+      return Number.isFinite(amt) && amt > 0 ? 'Pay ' + money(amt + processingFee(amt)) : 'Pay now';
+    }
+    function updateSummary() {
+      var amt = parseAmount();
+      var ok = Number.isFinite(amt) && amt > 0;
+      var item = selected(toSel).textContent.replace(/\s*\(S\$[\d,.]+\)\s*$/, '');
+      var price = ok ? money(amt) : '—';
+      var fee = ok ? processingFee(amt) : 0;
+      summaryRows.innerHTML = '<tr><td>' + item + '</td><td>1</td><td>' + price + '</td><td>' + price + '</td></tr>' +
+        '<tr><td colspan="3">Sub-total</td><td>' + price + '</td></tr>' +
+        '<tr><td colspan="3">Payment processing fee</td><td>' + (ok ? money(fee) : '—') + '</td></tr>' +
+        '<tr class="summary-total"><td colspan="3">Total amount</td><td>' + (ok ? money(amt + fee) : '—') + '</td></tr>';
+      submitBtn.textContent = payLabel();
+    }
+    function setMethod(method) {
+      fromSel.value = method;
+      methodTabs.forEach(function (tab) {
+        var active = tab.dataset.method === method;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      var isCard = method === 'card';
+      cardDetails.hidden = !isCard;
+      methodMessage.hidden = isCard;
+      if (!isCard) {
+        var labels = { paynow: 'A PayNow QR code will be shown after you continue.', grabpay: 'You will be redirected to GrabPay to complete payment.', wechatpay: 'You will be redirected to WeChat Pay to complete payment.' };
+        methodMessage.textContent = labels[method];
+      }
+    }
+    function fillAmountFromItem() {
+      amountInput.value = selected(toSel).dataset.amount;
+    }
+    function resetForm() {
+      form.reset();
+      toSel.value = 'mom-workpass';
+      fromSel.value = 'card';
+      amountInput.value = '105.00';
+      tierSel.value = 'standard';
+      receiptEmail.value = '';
+      result.className = 'result-box';
+      result.textContent = '';
+      setMethod('card');
+      updateSummary();
+    }
+    function renderSuccess(data) {
+      result.className = 'result-box success';
+      result.textContent = '';
+      var heading = document.createElement('h3');
+      heading.textContent = 'Payment successful';
+      result.appendChild(heading);
+      var receipt = document.createElement('p');
+      receipt.textContent = 'Receipt number: ' + (data.transferId || '—');
+      result.appendChild(receipt);
+      var paid = document.createElement('p');
+      paid.textContent = 'Amount charged: ' + money(parseFloat(data.debitAmount));
+      result.appendChild(paid);
+      var fee = parseFloat(data.fee);
+      if (fee > 0) {
+        var feeLine = document.createElement('p');
+        feeLine.textContent = 'Includes payment processing fee of ' + money(fee) + '.';
+        result.appendChild(feeLine);
+      }
+      var another = document.createElement('button');
+      another.type = 'button';
+      another.className = 'another-payment';
+      another.textContent = 'Make another payment';
+      another.addEventListener('click', resetForm);
+      result.appendChild(another);
+    }
+    function renderFailure() {
+      result.className = 'result-box neutral';
+      result.textContent = 'We could not complete your payment. Please try again in a few minutes. If the problem persists, contact PaySG Support.';
+    }
+
+    methodTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () { setMethod(tab.dataset.method); });
+    });
+    fromSel.addEventListener('change', function () { setMethod(fromSel.value); });
+    toSel.addEventListener('change', function () { fillAmountFromItem(); updateSummary(); });
+    amountInput.addEventListener('input', updateSummary);
+    tierSel.addEventListener('change', updateSummary);
+    form.addEventListener('reset', function () {
+      setTimeout(function () {
+        setMethod('card');
+        fillAmountFromItem();
+        result.className = 'result-box';
+        result.textContent = '';
+        updateSummary();
+      }, 0);
+    });
+    setMethod('card');
+    updateSummary();
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var amt = parseAmount();
+      if (!(amt >= 1)) {
+        renderFailure();
+        amountInput.focus();
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing payment…';
+      result.className = 'result-box pending';
+      result.textContent = 'Processing your payment. Please keep this page open.';
+      try {
+        var res = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromSel.value,
+            toAccount: toSel.value,
+            amount: parseFloat(amountInput.value),
+            accountTier: tierSel.value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        var data = null;
+        try { data = await res.json(); } catch (_) {}
+        if (res.ok && data && data.success) renderSuccess(data);
+        else renderFailure();
+      } catch (_) {
+        renderFailure();
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = payLabel();
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
