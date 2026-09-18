@@ -249,7 +249,7 @@
   <div class="backdrop" id="backdrop">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-head"><h2 id="modalTitle">Dispatch Job</h2><button class="close" id="modalClose" aria-label="Close">&times;</button></div>
-      <div class="steps"><div id="st1" class="on">1. Technician &amp; time</div><div id="st2">2. Confirm</div><div id="st3">3. Dispatched</div></div>
+      <div class="steps"><div id="st1" class="on">1. Assign technician</div><div id="st2">2. Dispatched</div></div>
       <div class="modal-body" id="modalBody"></div>
       <div class="modal-foot" id="modalFoot"></div>
     </div>
@@ -363,7 +363,7 @@
       var job = selectedJob();
       var body = document.getElementById('modalBody');
       var foot = document.getElementById('modalFoot');
-      [1, 2, 3].forEach(function (n) {
+      [1, 2].forEach(function (n) {
         var el = document.getElementById('st' + n);
         el.className = n === state.step ? 'on' : (n < state.step ? 'done' : '');
       });
@@ -379,25 +379,12 @@
           }).join('') + '</div></div>' +
           '<div class="field"><label>Priority</label><div class="prio">' + ['standard', 'urgent', 'emergency'].map(function (p) {
             return '<button type="button" class="' + (p === state.priority ? 'on' : '') + '" data-prio="' + p + '">' + p.charAt(0).toUpperCase() + p.slice(1) + '</button>';
-          }).join('') + '</div></div>';
-        foot.innerHTML = '<button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-primary" id="nextBtn">Review dispatch &rsaquo;</button>';
+          }).join('') + '</div></div>' +
+          '<div class="notice">Confirming will lock the technician\u2019s schedule block, move the job to <b>Progress</b> and send a push notification to Simpro Mobile.</div>';
+        foot.innerHTML = '<button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-green" id="confirmBtn">Confirm dispatch</button>';
         document.getElementById('techSel').addEventListener('change', function () { state.technicianId = this.value; });
         body.querySelectorAll('[data-slot]').forEach(function (b) { b.addEventListener('click', function () { state.timeSlot = b.getAttribute('data-slot'); renderModal(); }); });
         body.querySelectorAll('[data-prio]').forEach(function (b) { b.addEventListener('click', function () { state.priority = b.getAttribute('data-prio'); renderModal(); }); });
-        document.getElementById('cancelBtn').addEventListener('click', closeModal);
-        document.getElementById('nextBtn').addEventListener('click', function () { state.step = 2; renderModal(); });
-      } else if (state.step === 2) {
-        var t = techById(state.technicianId) || {};
-        var slot = state.timeSlots[state.timeSlot] || {};
-        body.innerHTML = '<div class="review">' +
-          '<div class="row"><span>Job</span><b>' + esc(job.jobNo) + ' \u2014 ' + esc(job.customer) + '</b></div>' +
-          '<div class="row"><span>Site</span><b>' + esc(job.site) + '</b></div>' +
-          '<div class="row"><span>Technician</span><b>' + esc(t.name) + ' (' + esc(t.trade) + ', ' + esc(t.vehicle) + ')</b></div>' +
-          '<div class="row"><span>Time slot</span><b>' + esc(slot.label) + '</b></div>' +
-          '<div class="row"><span>Priority</span><b>' + esc(state.priority.charAt(0).toUpperCase() + state.priority.slice(1)) + '</b></div>' +
-          '</div><div class="notice">Confirming will lock the technician\u2019s schedule block, move the job to <b>Progress</b> and send a push notification to Simpro Mobile.</div>';
-        foot.innerHTML = '<button class="btn btn-ghost back" id="backBtn">&lsaquo; Back</button><button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-green" id="confirmBtn">Confirm dispatch</button>';
-        document.getElementById('backBtn').addEventListener('click', function () { state.step = 1; renderModal(); });
         document.getElementById('cancelBtn').addEventListener('click', closeModal);
         document.getElementById('confirmBtn').addEventListener('click', submitDispatch);
       } else {
@@ -437,17 +424,16 @@
         .then(function (data) {
           if (data.error || data.errorClass) {
             showToast((data.errorClass || 'Error') + ': ' + (data.error || 'Unknown error'), 'Dispatch failed \u2014 incident logged', false);
-            state.step = 2;
             renderModal();
             return;
           }
           state.dispatched[job.jobNo] = data;
-          state.step = 3;
+          state.step = 2;
           renderModal();
           renderJobs();
           showToast('Job ' + job.jobNo + ' dispatched', data.dispatchRef + ' \u2014 ' + data.technician + ' notified', true);
         })
-        .catch(function (err) { showToast('Network Error', err.message, false); state.step = 2; renderModal(); })
+        .catch(function (err) { showToast('Network Error', err.message, false); renderModal(); })
         .finally(function () { state.busy = false; });
     }
 
