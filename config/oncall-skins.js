@@ -2000,6 +2000,7 @@ const ONCALL_SKINS = {
     company: 'FOX One',
     brandMark: 'F',
     vertical: 'telco',
+    devinSession: { auto: true },
     page: { file: 'a75ccde9.html', title: 'Change Your Plan | FOX One' },
     theme: {
       '--accent': '#000000',
