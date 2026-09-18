@@ -112,7 +112,7 @@
       const start = performance.now(), dur = 1600;
       const step = (t) => {
         const k = Math.min(1, (t - start) / dur), ease = 1 - Math.pow(1 - k, 3);
-        e.target.textContent = m[1] + (num * ease).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + m[3];
+        e.target.textContent = m[1] + (num * ease).toLocaleString(undefined, { useGrouping: m[2].includes(','), minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + m[3];
         if (k < 1) requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
