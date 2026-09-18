@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payouts | Adyen Customer Area</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #00D16A;
+      --green-dark: #00A855;
+      --green-tint: #E6FAEF;
+      --navy: #001222;
+      --navy-2: #0D1E2E;
+      --ink: #0D1E2E;
+      --ink-2: #1A2B3B;
+      --muted: #636F7A;
+      --muted-2: #848D96;
+      --line: #D1D5D8;
+      --line-soft: #ECEDEF;
+      --wash: #F4F5F6;
+      --sand: #F6F5F4;
+      --white: #FFFFFF;
+      --blue: #006BD7;
+      --red: #C72727;
+      --orange: #9B5700;
+      --sans: 'Inter', 'Adyen', Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', 'AdyenMono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--wash); color: var(--ink); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+
+    header.topbar { background: var(--navy); color: var(--white); }
+    .top-inner { max-width: 1320px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 22px; min-height: 60px; }
+    .brand { display: flex; align-items: center; gap: 12px; padding-right: 22px; border-right: 1px solid rgba(255,255,255,0.14); }
+    .wordmark { font-size: 22px; font-weight: 700; letter-spacing: -0.6px; color: var(--green); line-height: 1; }
+    .wordmark .mark { display: inline-flex; width: 26px; height: 26px; border-radius: 6px; background: var(--green); color: var(--navy); align-items: center; justify-content: center; font-size: 15px; font-weight: 700; margin-right: 9px; vertical-align: -5px; letter-spacing: 0; }
+    .company { display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.86); }
+    .company .env { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; background: rgba(0,209,106,0.16); color: var(--green); }
+    .top-right { margin-left: auto; display: flex; align-items: center; gap: 22px; font-size: 14px; }
+    .top-right a { display: inline-flex; align-items: center; gap: 7px; color: rgba(255,255,255,0.86); }
+    .avatar { width: 32px; height: 32px; border-radius: 999px; background: #2F3E4D; display: inline-flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; color: #fff; }
+    @media (max-width: 860px) { .top-right a span, .company { display: none; } .brand { border-right: none; padding-right: 0; } }
+
+    nav.primary { background: var(--white); border-bottom: 1px solid var(--line); }
+    .nav-inner { max-width: 1320px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; min-height: 50px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; font-size: 14.5px; color: var(--muted); font-weight: 500; }
+    .nav-links a { padding: 14px 0; display: inline-block; }
+    .nav-links a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--green); }
+    @media (max-width: 900px) { .nav-inner { overflow-x: auto; } .nav-links { gap: 20px; white-space: nowrap; } }
+
+    .crumbs { max-width: 1320px; margin: 0 auto; padding: 16px 24px 0; font-size: 13px; color: var(--muted); }
+    .crumbs a:hover { text-decoration: underline; }
+
+    .hero { max-width: 1320px; margin: 0 auto; padding: 14px 24px 22px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .hero h1 { font-size: clamp(26px, 3.6vw, 34px); font-weight: 600; letter-spacing: -0.7px; line-height: 1.15; color: var(--ink); }
+    .hero p { margin-top: 6px; font-size: 14px; color: var(--muted); }
+    .hero p code { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); background: var(--line-soft); padding: 1px 6px; border-radius: 4px; }
+    .hero .total { text-align: right; }
+    .hero .total .label { font-size: 12.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--mono); }
+    .hero .total .value { font-size: clamp(24px, 3.4vw, 32px); font-weight: 600; letter-spacing: -0.7px; color: var(--ink); }
+    .hero .total .delta { font-size: 13px; color: var(--muted); }
+    @media (max-width: 640px) { .hero .total { text-align: left; } }
+
+    main { max-width: 1320px; margin: 0 auto; padding: 0 24px 60px; }
+
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media (max-width: 980px) { .cards { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+    .card { background: var(--white); border: 1px solid var(--line-soft); border-radius: 8px; padding: 16px 18px 18px; }
+    .card .label { font-size: 13px; color: var(--muted); }
+    .card .value { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; margin-top: 5px; color: var(--ink); }
+    .card .meta { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+    .card .meta.up { color: var(--green-dark); }
+    .card .meta.warn { color: var(--orange); }
+
+    .grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; align-items: start; margin-bottom: 20px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: var(--white); border: 1px solid var(--line-soft); border-radius: 8px; padding: 22px; }
+    .panel h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; color: var(--ink); }
+    .panel .sub { color: var(--muted); font-size: 13.5px; margin: 6px 0 18px; }
+
+    table.transfers { width: 100%; border-collapse: collapse; }
+    table.transfers th { text-align: left; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 9px 0; border-bottom: 1px solid var(--line); }
+    table.transfers td { padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+    table.transfers tr:last-child td { border-bottom: none; }
+    table.transfers td.num, table.transfers th.num { text-align: right; white-space: nowrap; }
+    .party { font-weight: 500; }
+    .detail { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+    .up { color: var(--green-dark); }
+    @media (max-width: 720px) { table.transfers th:nth-child(2), table.transfers td:nth-child(2) { display: none; } }
+
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); margin-bottom: 6px; }
+    select, input[type="number"] { width: 100%; height: 48px; padding: 0 36px 0 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); color: var(--ink); font-family: var(--sans); font-size: 15px; appearance: none; text-overflow: ellipsis; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230D1E2E' stroke-width='1.6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; }
+    input[type="number"] { padding-right: 13px; }
+    select:focus, input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,209,106,0.22); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 24px; border-radius: 8px; font-family: var(--sans); font-size: 15px; font-weight: 600; border: 1px solid transparent; cursor: pointer; }
+    .btn-primary { background: var(--green); color: var(--navy); border-color: var(--green); }
+    .btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-outline { background: var(--white); color: var(--ink); border-color: var(--line); }
+    .btn-outline:hover { background: var(--wash); }
+    #submitBtn { width: 100%; margin-top: 4px; }
+    .summary { margin-top: 16px; background: var(--sand); border-radius: 8px; padding: 12px 14px; font-size: 13.5px; color: var(--ink-2); }
+    .summary b { color: var(--ink); font-weight: 600; }
+    .result-box { margin-top: 14px; padding: 13px 15px; border-radius: 8px; font-size: 14px; display: none; }
+    .result-box.success { display: block; background: var(--green-tint); border: 1px solid rgba(0,168,85,0.4); color: #0B6B3A; }
+    .result-box.error { display: block; background: #FEEAEA; border: 1px solid rgba(199,39,39,0.35); color: var(--red); }
+    .result-box .error-title { font-weight: 600; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 13px; opacity: 0.92; word-break: break-word; }
+    .kv { list-style: none; font-size: 13.5px; color: var(--ink-2); margin-top: 18px; }
+    .kv li { padding: 9px 0; border-bottom: 1px solid var(--line-soft); display: flex; justify-content: space-between; gap: 12px; }
+    .kv li:last-child { border-bottom: none; }
+    .kv b { font-weight: 500; }
+
+    .table-wrap { background: var(--white); border: 1px solid var(--line-soft); border-radius: 8px; overflow: hidden; }
+    .table-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; }
+    .table-head h2 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; color: var(--ink); }
+    .table-head span { font-size: 13px; color: var(--muted); }
+    table.activity { width: 100%; border-collapse: collapse; }
+    table.activity th { text-align: left; font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 22px; background: var(--wash); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
+    table.activity td { padding: 13px 22px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; }
+    table.activity td.num, table.activity th.num { text-align: right; white-space: nowrap; }
+    table.activity td.ref { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 11px; border-radius: 999px; font-size: 12px; white-space: nowrap; font-weight: 500; }
+    .status i { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+    .status.done { background: var(--green-tint); color: #0B6B3A; }
+    .status.pending { background: var(--line-soft); color: var(--muted); }
+    .status.progress { background: #E5F0FB; color: var(--blue); }
+    .table-foot { padding: 16px 22px; }
+    @media (max-width: 720px) { table.activity th:nth-child(3), table.activity td:nth-child(3) { display: none; } table.activity th, table.activity td { padding-left: 14px; padding-right: 14px; } }
+    @media (max-width: 560px) { table.activity th:nth-child(2), table.activity td:nth-child(2) { display: none; } }
+
+    footer { background: var(--navy); color: var(--white); margin-top: 10px; }
+    .foot-inner { max-width: 1320px; margin: 0 auto; padding: 30px 24px 38px; }
+    .foot-links { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13.5px; color: rgba(255,255,255,0.86); }
+    .foot-links a:hover { color: var(--green); }
+    .foot-legal { margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.62); max-width: 900px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="top-inner">
+      <div class="brand">
+        <a href="#" class="wordmark" aria-label="Adyen Customer Area"><span class="mark" aria-hidden="true">A</span>adyen</a>
+      </div>
+      <div class="company">
+        <span>Northwind Retail B.V.</span>
+        <span class="env">Live</span>
+      </div>
+      <div class="top-right">
+        <a href="#">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="5.6" stroke="#fff" stroke-width="1.5"/><path d="M13.2 13.2 17.5 17.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Search</span>
+        </a>
+        <a href="#">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.6" stroke="#fff" stroke-width="1.5"/><path d="M8 7.8a2 2 0 1 1 2.6 1.9c-.5.2-.6.6-.6 1v.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="14" r="0.9" fill="#fff"/></svg>
+          <span>Help</span>
+        </a>
+        <a href="#" aria-label="Account"><span class="avatar">MV</span></a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="primary">
+    <div class="nav-inner">
+      <ul class="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Transactions</a></li>
+        <li><a href="#">Balances</a></li>
+        <li><a href="#" class="active">Payouts</a></li>
+        <li><a href="#">Reports</a></li>
+        <li><a href="#">Developers</a></li>
+        <li><a href="#">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="crumbs"><a href="#">Balances</a> &nbsp;/&nbsp; Payouts</div>
+
+  <div class="hero">
+    <div>
+      <h1>Payouts</h1>
+      <p>Balance account <code>BA3227C223222B5CTBLR8W7</code> &middot; EUR &middot; Updated today, 16:15 CEST</p>
+    </div>
+    <div class="total">
+      <div class="label">Available balance</div>
+      <div class="value">&euro;184,216.40</div>
+      <div class="delta">&euro;12,480.00 pending settlement</div>
+    </div>
+  </div>
+
+  <main>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Available</div>
+        <div class="value">&euro;184,216.40</div>
+        <div class="meta up">+&euro;41,290.15 settled today</div>
+      </div>
+      <div class="card">
+        <div class="label">Pending</div>
+        <div class="value">&euro;12,480.00</div>
+        <div class="meta">Settles in 1 business day</div>
+      </div>
+      <div class="card">
+        <div class="label">Reserved</div>
+        <div class="value">&euro;9,500.00</div>
+        <div class="meta">Rolling reserve, 5%</div>
+      </div>
+      <div class="card">
+        <div class="label">Scheduled payouts</div>
+        <div class="value">2</div>
+        <div class="meta warn">1 awaiting approval</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>Recent transfers</h2>
+        <div class="sub">Balance account BA3227C223222B5CTBLR8W7 &middot; last 14 days</div>
+        <table class="transfers">
+          <thead>
+            <tr><th>Transfer</th><th>Value date</th><th class="num">Amount</th><th class="num">Balance</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="party">Sales day payout</span><span class="detail">TRA4C4B7SG9NWXJ6F</span></td>
+              <td>15 Mar</td>
+              <td class="num">&minus;38,420.00</td>
+              <td class="num">184,216.40</td>
+            </tr>
+            <tr>
+              <td><span class="party">Settlement batch 4821</span><span class="detail">Cards &middot; iDEAL &middot; Apple Pay</span></td>
+              <td>15 Mar</td>
+              <td class="num up">+41,290.15</td>
+              <td class="num">222,636.40</td>
+            </tr>
+            <tr>
+              <td><span class="party">Refund batch</span><span class="detail">146 refunds &middot; Cards</span></td>
+              <td>14 Mar</td>
+              <td class="num">&minus;3,118.60</td>
+              <td class="num">181,346.25</td>
+            </tr>
+            <tr>
+              <td><span class="party">Payout to ING Bank</span><span class="detail">TRA7X2Q9MZ3KDL5V8</span></td>
+              <td>12 Mar</td>
+              <td class="num">&minus;25,000.00</td>
+              <td class="num">184,464.85</td>
+            </tr>
+            <tr>
+              <td><span class="party">Settlement batch 4818</span><span class="detail">Cards &middot; Klarna &middot; PayPal</span></td>
+              <td>12 Mar</td>
+              <td class="num up">+36,872.30</td>
+              <td class="num">209,464.85</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>New payout</h2>
+        <div class="sub">Send funds from a balance account to a verified transfer instrument.</div>
+        <form id="transferForm">
+          <div class="form-group">
+            <label for="fromAccount">Balance account</label>
+            <select id="fromAccount">
+              <option value="ACCT-1001">Main balance account &mdash; BA3227C223222B5CTBLR8W7 &middot; EUR</option>
+              <option value="ACCT-1002">Marketplace balance account &mdash; BA32272223222B5CTDQPM6W &middot; EUR</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="toAccount">Transfer instrument</label>
+            <select id="toAccount">
+              <option value="ACCT-EXT-001">ING Bank &mdash; NL91 INGB &bull;&bull;&bull;&bull; 4321</option>
+              <option value="ACCT-EXT-002">Deutsche Bank &mdash; DE89 3704 &bull;&bull;&bull;&bull; 7789</option>
+              <option value="ACCT-1002">Marketplace balance account &mdash; BA32272223222B5CTDQPM6W</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Amount (EUR)</label>
+            <input type="number" id="amount" value="25000" min="1" max="1000000" step="0.01" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label for="accountTier">Priority</label>
+            <select id="accountTier">
+              <option value="standard">Regular &mdash; next business day</option>
+              <option value="premium">Instant &mdash; SEPA Instant, arrives in seconds</option>
+              <option value="basic">Scheduled &mdash; include in sales day payout</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Send payout</button>
+        </form>
+        <div id="paymentSummary" class="summary" role="note"></div>
+        <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        <ul class="kv">
+          <li><span>Cut-off for same-day</span><b>16:00 CEST</b></li>
+          <li><span>Regular payout arrives</span><b>Next business day</b></li>
+          <li><span>Payout limit per transfer</span><b>&euro;1,000,000</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head">
+        <h2>Payout history</h2>
+        <span>Last 30 days</span>
+      </div>
+      <table class="activity">
+        <thead>
+          <tr><th>Date</th><th>Transfer instrument</th><th>Reference</th><th class="num">Amount</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>15 Mar</td><td>ING Bank &bull;&bull;&bull;&bull; 4321</td><td class="ref">TRA4C4B7SG9NWXJ6F</td><td class="num">&euro;38,420.00</td><td><span class="status done"><i></i>Booked</span></td></tr>
+          <tr><td>14 Mar</td><td>Deutsche Bank &bull;&bull;&bull;&bull; 7789</td><td class="ref">TRAK2M8PQ4Z7WNB3L</td><td class="num">&euro;15,000.00</td><td><span class="status done"><i></i>Booked</span></td></tr>
+          <tr><td>13 Mar</td><td>ING Bank &bull;&bull;&bull;&bull; 4321</td><td class="ref">TRA9H3VD6RY2XSC7T</td><td class="num">&euro;8,250.00</td><td><span class="status progress"><i></i>Pending</span></td></tr>
+          <tr><td>12 Mar</td><td>ING Bank &bull;&bull;&bull;&bull; 4321</td><td class="ref">TRA7X2Q9MZ3KDL5V8</td><td class="num">&euro;25,000.00</td><td><span class="status done"><i></i>Booked</span></td></tr>
+          <tr><td>08 Mar</td><td>Marketplace balance account</td><td class="ref">TRAF6N1B8WQ5JYK2R</td><td class="num">&euro;12,000.00</td><td><span class="status pending"><i></i>Scheduled</span></td></tr>
+          <tr><td>04 Mar</td><td>Deutsche Bank &bull;&bull;&bull;&bull; 7789</td><td class="ref">TRAW3C5T9LX4PHD6M</td><td class="num">&euro;20,000.00</td><td><span class="status done"><i></i>Booked</span></td></tr>
+        </tbody>
+      </table>
+      <div class="table-foot">
+        <button type="button" class="btn btn-outline">View all payouts</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-links">
+        <a href="#">Documentation</a>
+        <a href="#">API Explorer</a>
+        <a href="#">Status</a>
+        <a href="#">Support</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+      <div class="foot-legal">
+        Adyen N.V., Simon Carmiggeltstraat 6-50, 1011 DJ Amsterdam. Payouts submitted after the cut-off are processed on the next business day. &copy; 2026 Adyen.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const tierSelect = document.getElementById('accountTier');
+    const summary = document.getElementById('paymentSummary');
+
+    const formatAmount = (value) => {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return '—';
+      return number.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+    const labelOf = (select) => select.selectedOptions[0].textContent.split('—')[0].trim();
+
+    const renderSummary = () => {
+      summary.textContent = '';
+      const line = document.createElement('div');
+      line.append(
+        document.createTextNode('From '),
+        Object.assign(document.createElement('b'), { textContent: labelOf(fromAccount) }),
+        document.createTextNode(' to '),
+        Object.assign(document.createElement('b'), { textContent: labelOf(toAccount) }),
+      );
+      const value = document.createElement('div');
+      value.append(
+        Object.assign(document.createElement('b'), { textContent: '€' + formatAmount(amountInput.value) }),
+        document.createTextNode(' · ' + labelOf(tierSelect)),
+      );
+      summary.append(line, value);
+    };
+
+    const syncDestinations = () => {
+      for (const option of toAccount.options) option.disabled = option.value === fromAccount.value;
+      if (toAccount.selectedOptions[0].disabled) {
+        toAccount.value = [...toAccount.options].find((option) => !option.disabled).value;
+      }
+    };
+
+    for (const el of [fromAccount, toAccount, amountInput, tierSelect]) {
+      el.addEventListener('change', () => { syncDestinations(); renderSummary(); });
+      el.addEventListener('input', renderSummary);
+    }
+    syncDestinations();
+    renderSummary();
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const renderResult = (title, detail) => {
+        result.textContent = '';
+        const t = document.createElement('div');
+        t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div');
+        d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      btn.disabled = true; btn.textContent = 'Sending payout...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: fromAccount.value, toAccount: toAccount.value, amount: parseFloat(amountInput.value), accountTier: tierSelect.value, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          renderResult('Payout not sent', 'The payout could not be completed. Please try again later.');
+        } else {
+          result.className = 'result-box success';
+          const receipt = data.receipt || {};
+          const debited = data.debitAmount || receipt.totalDebit;
+          const fee = data.fee || receipt.fee;
+          renderResult('Payout booked', '€' + formatAmount(debited) + ' debited from the balance account, including a €' + formatAmount(fee) + ' transfer fee.');
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        renderResult('Connection interrupted', 'The payout could not be submitted. Please try again later.');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Send payout';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

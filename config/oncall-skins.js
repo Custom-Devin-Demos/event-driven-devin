@@ -1931,6 +1931,31 @@ const ONCALL_SKINS = {
     supportCenterSub: 'eBanking Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ZKB SITE — internal demo only, not affiliated with, endorsed by, or a real ZKB product.',
   },
+  '763a0ead': {
+    slug: '763a0ead',
+    company: 'Adyen',
+    brandMark: 'A',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '763a0ead.html',
+      title: 'Payouts | Adyen Customer Area',
+    },
+    accent: '#00D16A',
+    accentDark: '#00A855',
+    theme: {
+      '--accent': '#00D16A',
+      '--ink': '#0D1E2E',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#001222',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Adyen Support',
+    supportCenterSub: 'Customer Area Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN ADYEN SITE — internal demo only, not affiliated with, endorsed by, or a real Adyen product.',
+  },
 };
 
 function getOncallSkin(slug) {
