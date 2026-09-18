@@ -12,7 +12,14 @@ jest.mock('../app/services/devin-api', () => ({
 }));
 
 jest.mock('../app/telemetry/sentry', () => ({
-  Sentry: { captureException: jest.fn() },
+  Sentry: {
+    captureException: jest.fn(),
+    withScope: jest.fn((callback) => {
+      const scope = { setTransactionName: jest.fn() };
+      callback(scope);
+      return scope;
+    }),
+  },
   initSentry: jest.fn(),
 }));
 
@@ -81,6 +88,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
   beforeEach(() => {
     createSessionAndAlert.mockClear();
     Sentry.captureException.mockClear();
+    Sentry.withScope.mockClear();
     listOrgUsers.mockClear();
     listEnterpriseAdmins.mockClear();
   });
@@ -128,6 +136,16 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
     const [captured, context] = Sentry.captureException.mock.calls[0];
     expect(captured.name).toBe('TypeError');
     expect(context.tags.alert_path).toBe('instant');
+    // Browser frames give Sentry no module path, so the transaction is what ends
+    // up in the issue culprit; it must carry the slug for tagless webhooks.
+    const scope = Sentry.withScope.mock.results[0].value;
+    expect(scope.setTransactionName).toHaveBeenCalledWith('POST /api/9bfabd45/error');
+  });
+
+  test('caps how many report entries reach Sentry and Slack', () => {
+    const report = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`k${i}`, i]));
+    reportAppFailure({ ...APP_REPORT, report });
+    expect(Object.keys(createSessionAndAlert.mock.calls[0][0].extra.report)).toHaveLength(24);
   });
 
   test('falls back to the demo owner email when the client sends no identity', () => {
@@ -188,7 +206,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
       tags: [['service', 'customer-9bfabd45-web'], ['alert_path', 'instant']],
     })).toBe(true);
     expect(isInstantPathEvent({
-      culprit: '9bfabd45/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+      culprit: 'POST /api/9bfabd45/error',
       tags: [],
     })).toBe(true);
   });
