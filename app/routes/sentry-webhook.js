@@ -8,6 +8,7 @@ const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require
 const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
 const { APP_REMEDIATION_DIRECTIVE: COMED_REMEDIATION_DIRECTIVE } = require('../services/verticals/d08b052d');
 const { APP_REMEDIATION_DIRECTIVE: FPL_REMEDIATION_DIRECTIVE } = require('../services/verticals/b425648c');
+const { APP_REMEDIATION_DIRECTIVE: NEXEN_REMEDIATION_DIRECTIVE } = require('../services/verticals/9bfabd45');
 const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
 
 const router = express.Router();
@@ -145,7 +146,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45'];
 
 function isInstantPathEvent(alertData) {
   const hasInstantTag = (alertData.tags || []).some((tag) => {
@@ -345,6 +346,22 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-b425648c-mobile',
       service: 'customer-b425648c-mobile',
       scenario: 'outage-report-restoration',
+    },
+  },
+  // BNY NEXEN custody platform (github.com/COG-GTM/bny): a Vite/React SPA
+  // hosted at /9bfabd45/app. Reports arrive via /api/9bfabd45/error;
+  // remediation lands in the NEXEN repo (frontend and its Java mirror).
+  '9bfabd45': {
+    customer: '9bfabd45',
+    verticalLabel: 'BNY NEXEN',
+    service: 'customer-9bfabd45-web',
+    project: 'nexen-custody',
+    release: 'nexen-custody@1.0.0',
+    promptAppendix: NEXEN_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-9bfabd45-web',
+      service: 'customer-9bfabd45-web',
+      scenario: 'digital-asset-custody-deposit',
     },
   },
   '59b1e508': {
