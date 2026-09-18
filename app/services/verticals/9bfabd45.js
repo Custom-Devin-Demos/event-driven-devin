@@ -22,7 +22,7 @@ const APP_RELEASE = 'nexen-custody@1.0.0';
 const APP_SOURCE_PREFIX = 'nexen-custody/';
 const APP_REPO = 'github.com/COG-GTM/bny';
 const APP_WEB_PATH = '/9bfabd45/app';
-const SCENARIO = 'collateral-overview-aggregate';
+const SCENARIO = 'collateral-overview-chart';
 
 /** Hannah Huh owns this demo: the Slack card and the Devin session are hers. */
 const OWNER = {
@@ -42,14 +42,13 @@ const APP_REMEDIATION_DIRECTIVE = [
   'frontend (`frontend/`) over a Spring Boot 3 / Java 21 API (`backend/`) that mirrors the same',
   'domain model. Read `README.md` in that repo first.',
   '',
-  'The failing code path is the Collateral Overview dashboard, the landing screen:',
-  '- Client list: `frontend/src/api/fixtures.ts` (`clients`) and its Java mirror',
-  '  `backend/src/main/resources/data.sql` (`client`, `legal_entity`, `collateral_allocation`)',
-  '- Collateral aggregates: `collateralByClient` in `frontend/src/api/fixtures.ts`',
-  '- Crash site: `summariseCollateral` in `frontend/src/domain/collateral.ts`',
-  '- Entry: `frontend/src/pages/DashboardsPage.tsx` (Client selector on Collateral Overview),',
-  '  served by `getCollateralOverview` in `frontend/src/api/mockClient.ts`',
-  '- Backend counterpart: `ClientService#collateralOverview`',
+  'The failing code path is Chart View on the Collateral Overview dashboard, the landing screen:',
+  '- Entry: `frontend/src/pages/DashboardsPage.tsx` (Table View / Chart View toggle)',
+  '- Chart series: `frontend/src/domain/allocation.ts`',
+  '- Allocation data behind it: `collateralByClient` in `frontend/src/api/fixtures.ts`, served by',
+  '  `getCollateralOverview` in `frontend/src/api/mockClient.ts`',
+  '- Backend counterpart: `ClientService#collateralOverview` and its seed rows in',
+  '  `backend/src/main/resources/data.sql` (`collateral_allocation`)',
   '',
   `The alert came from the hosted build at \`https://devindemos.com${APP_WEB_PATH}\` (served from`,
   `\`app/public/verticals/${CUSTOMER}-app/\` in \`COG-GTM/event-driven-devin\`), running the frontend's`,
@@ -57,20 +56,17 @@ const APP_REMEDIATION_DIRECTIVE = [
   '',
   'Steps:',
   '1. Reproduce first: `cd frontend && npm install && npm run dev`, open Collateral Overview and',
-  '   select MERIDIAN CAPITAL PARTNERS in the Client selector — the dashboard fails to load.',
-  '   Note the test suites are GREEN on the broken baseline: nothing asserts that every client in',
-  '   `clients` has a collateral aggregate behind it.',
-  '2. Fix the data, not just the crash site: give the onboarded client its collateral aggregate and',
-  '   legal-entity rows in both mirrors (`frontend/src/api/fixtures.ts` and',
-  '   `backend/src/main/resources/data.sql`), and make `summariseCollateral` reject an unknown',
-  '   client explicitly (typed error surfaced to the UI) instead of dereferencing undefined.',
-  '3. Add the prevention control: a frontend test asserting every entry in `clients` has a',
-  '   `collateralByClient` aggregate, a backend test for the same invariant over the seeded',
-  '   clients, and coverage for the unknown-client path.',
+  '   click Chart View — the panel fails to load, for every client in the selector.',
+  '   Note the test suites are GREEN on the broken baseline: nothing exercises the chart series.',
+  '2. Fix the mismatch, not just the crash site: make the chart series agree with the allocation',
+  '   data it reads, and make the transform reject a band it cannot resolve explicitly (typed',
+  '   error surfaced to the UI) instead of dereferencing undefined.',
+  '3. Add the prevention control: a frontend test building the chart series for every seeded',
+  '   client plus the unresolved-band path, and a backend test over the seeded allocations.',
   '   `npx tsc -b`, `npx oxlint`, `npm run build` and `./gradlew test` must pass.',
   `   Do not change the incident reporting identity in \`frontend/src/lib/incident.ts\` (\`${APP_SERVICE}\`).`,
-  '4. Re-run the reproduction on the fix commit and confirm every client in the selector renders',
-  '   KPIs, the legal-entity table and both allocation donuts.',
+  '4. Re-run the reproduction on the fix commit and confirm Table View and Chart View both render',
+  '   for every client in the selector, alongside the KPIs and both allocation donuts.',
   '5. Open a pull request against `main`, request Devin Review, and STOP for human approval.',
   `6. After approval, refresh the hosted build: \`npm run build\` with base \`${APP_WEB_PATH}/\` on the`,
   `   fix commit, copy \`frontend/dist/\` into \`app/public/verticals/${CUSTOMER}-app/\` in`,
@@ -142,12 +138,12 @@ function reportAppFailure(report) {
   const reference = uuidv4();
   const platform = clip(report.platform || 'web', 32);
   const screen = clip(report.screen || 'collateral_overview', 64);
-  const action = clip(report.action || 'load_collateral_overview', 64);
+  const action = clip(report.action || 'load_allocation_chart', 64);
   const accountNumber = clip(report.accountNumber || 'unknown', 64);
   const clientName = clip(report.clientName || 'unknown', 128);
   const market = clip(report.market || 'unknown', 8);
   const errorType = clip(report.errorType || 'Error', 128);
-  const errorMessage = clip(report.errorMessage || 'Collateral overview failed to load', 512);
+  const errorMessage = clip(report.errorMessage || 'Collateral allocation chart failed to load', 512);
   const stackTrace = clip(report.stackTrace, 4000);
   const release = clip(report.release || APP_RELEASE, 64);
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
@@ -206,7 +202,7 @@ function reportAppFailure(report) {
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
-    culprit: `${CUSTOMER}/frontend/src/domain/collateral.ts \u2014 summariseCollateral`,
+    culprit: `${CUSTOMER}/frontend/src/domain/allocation.ts \u2014 buildAllocationBars`,
     errorType,
     errorValue: errorMessage,
     devinUserId,
