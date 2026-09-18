@@ -191,7 +191,7 @@
             <div class="form-group"><label>Pay from</label><select id="fromAccount"><option value="ACCT-1001">Bilt Cash &mdash; ACCT-1001</option><option value="ACCT-1002">Chase ****4921 &mdash; ACCT-1002</option></select></div>
             <div class="form-group"><label>Pay to</label><select id="toAccount"><option value="ACCT-EXT-001">Two Hudson Yards &mdash; Rent</option><option value="ACCT-1002">Chase ****4921 &mdash; ACCT-1002</option><option value="ACCT-1001">Bilt Cash &mdash; ACCT-1001</option></select></div>
           </div>
-          <div class="form-group"><label>Amount</label><input type="number" id="amount" value="3000" min="1" step="0.01" placeholder="$0.00"></div>
+          <div class="form-group"><label>Amount</label><input type="number" id="amount" value="3000" min="1" step="0.01" placeholder="$0.00" required></div>
           <div class="form-group"><label>Member status</label><select id="accountTier"><option value="standard">Blue</option><option value="premium">Platinum</option><option value="basic">Silver</option></select></div>
           <div class="points-preview"><span>Points on this payment</span><b id="pointsPreview">+3,000 pts</b></div>
           <button type="submit" class="btn-pay" id="submitBtn">Pay $3,000.00</button>
@@ -254,12 +254,21 @@
       if (!btnEl.disabled) btnEl.textContent = 'Pay ' + fmtMoney(n);
     }
     amountEl.addEventListener('input', syncAmount);
+    function showResult(kind, title, detail) {
+      const result = document.getElementById('result');
+      result.className = 'result-box ' + kind;
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
 
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = btnEl;
       const result = document.getElementById('result');
       const amount = parseFloat(amountEl.value);
+      if (!(amount > 0)) { showResult('error', 'Enter an amount', 'Rent payments must be greater than $0.00.'); return; }
       btn.disabled = true; btn.textContent = 'Submitting payment...';
       result.className = 'result-box';
       try {
@@ -269,15 +278,12 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Payment failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult('error', 'Payment failed', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Rent payment submitted</div><div class="error-detail">Debited $${data.debitAmount} (includes $${data.fee} fee) &middot; ${fmtPts(amount)} post when the payment settles</div>`;
+          showResult('success', 'Rent payment submitted', `Debited $${data.debitAmount} (includes $${data.fee} fee) \u00b7 ${fmtPts(amount)} post when the payment settles`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        showResult('error', 'Network error', err.message);
       } finally { btn.disabled = false; syncAmount(); }
     });
   </script>
