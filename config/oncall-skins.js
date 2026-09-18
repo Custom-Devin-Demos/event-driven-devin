@@ -849,6 +849,25 @@ const ONCALL_SKINS = {
     supportCenter: '우리은행 고객센터',
     disclaimer: 'NOT ACTUALLY A WOORI BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Woori Bank product.',
   },
+  '63840dfd': {
+    slug: '63840dfd',
+    company: 'Chapter',
+    brandMark: 'C',
+    vertical: 'telco',
+    page: {
+      file: '63840dfd.html',
+      title: 'Change Your Medicare Plan with a Licensed Advisor | Chapter',
+    },
+    theme: {
+      '--accent': '#FD2F4C',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#180D43',
+      '--chrome-text': '#FDF5EE',
+    },
+    supportCenter: 'Chapter Support',
+    disclaimer: 'NOT ACTUALLY A CHAPTER SITE — internal demo only, not affiliated with, endorsed by, or a real Chapter product.',
+  },
   'd5f6d175': {
     slug: 'd5f6d175',
     company: 'Shinsegae',
