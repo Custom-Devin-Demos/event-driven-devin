@@ -8,7 +8,10 @@ const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require
 const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
 const { APP_REMEDIATION_DIRECTIVE: COMED_REMEDIATION_DIRECTIVE } = require('../services/verticals/d08b052d');
 const { APP_REMEDIATION_DIRECTIVE: FPL_REMEDIATION_DIRECTIVE } = require('../services/verticals/b425648c');
-const { APP_REMEDIATION_DIRECTIVE: NEXEN_REMEDIATION_DIRECTIVE } = require('../services/verticals/9bfabd45');
+const {
+  APP_REMEDIATION_DIRECTIVE: NEXEN_REMEDIATION_DIRECTIVE,
+  SCENARIO: NEXEN_SCENARIO,
+} = require('../services/verticals/9bfabd45');
 const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
 
 const router = express.Router();
@@ -361,7 +364,7 @@ const CUSTOMER_ALERT_IDENTITY = {
     tagOverrides: {
       customer: 'customer-9bfabd45-web',
       service: 'customer-9bfabd45-web',
-      scenario: 'digital-asset-custody-deposit',
+      scenario: NEXEN_SCENARIO,
     },
   },
   '59b1e508': {
