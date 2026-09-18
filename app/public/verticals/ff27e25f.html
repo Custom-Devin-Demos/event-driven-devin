@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capital Allocation Console | Millennium</title>
+  <link rel="icon" href="/verticals/assets/ff27e25f/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prata&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1434cb;
+      --navy: #071945;
+      --pale: #eaf3f8;
+      --mint: #20caa6;
+      --ink: #0b1230;
+      --slate: #4b5677;
+      --line: #d5dfe8;
+      --line-soft: #e6edf3;
+      --bg: #f7fafc;
+      --red: #b3261e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: nimbus-sans, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    .serif { font-family: "Prata", Georgia, serif; font-weight: 400; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+    /* Header */
+    header.site {
+      background: #fff;
+      height: 84px;
+      border-bottom: 1px solid var(--line-soft);
+      position: sticky; top: 0; z-index: 20;
+    }
+    header.site .wrap { height: 100%; display: flex; align-items: center; gap: 40px; }
+    header.site .logo img { height: 22px; width: auto; display: block; }
+    header.site nav { display: flex; align-items: center; gap: 32px; }
+    header.site nav a { font-size: 15px; color: var(--navy); letter-spacing: 0.01em; position: relative; }
+    header.site nav a.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -8px; height: 2px; background: var(--primary);
+    }
+    header.site .right { margin-left: auto; display: flex; align-items: center; gap: 20px; }
+    header.site .right .user { font-size: 14px; color: var(--slate); }
+    header.site .right .user b { color: var(--navy); font-weight: 600; display: block; font-size: 14px; }
+    header.site .right .login {
+      display: inline-flex; align-items: center; gap: 10px;
+      border: 1.5px solid var(--primary); color: var(--primary); border-radius: 999px;
+      padding: 10px 18px; font-size: 14px; font-weight: 600; background: #fff;
+    }
+    header.site .right .login:hover { background: var(--primary); color: #fff; }
+    header.site .right .login svg { width: 16px; height: 16px; }
+
+    /* Hero */
+    .hero { background: var(--navy); color: #fff; padding: 56px 0 120px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; right: -120px; top: -160px; width: 560px; height: 560px; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(20,52,203,0.55), rgba(20,52,203,0));
+    }
+    .hero .wrap { position: relative; }
+    .crumbs { font-size: 13px; color: rgba(255,255,255,0.6); display: flex; gap: 10px; margin-bottom: 22px; }
+    .crumbs span:not(:last-child)::after { content: '/'; margin-left: 10px; color: rgba(255,255,255,0.35); }
+    .hero h1 { font-size: 44px; line-height: 1.1; letter-spacing: -0.01em; max-width: 720px; }
+    .hero p.lede { margin-top: 16px; font-size: 17px; max-width: 640px; color: rgba(255,255,255,0.78); }
+    .stats { display: flex; gap: 48px; margin-top: 36px; flex-wrap: wrap; }
+    .stats div { border-left: 2px solid var(--mint); padding-left: 16px; }
+    .stats b { display: block; font-size: 26px; line-height: 1.1; font-family: "Prata", Georgia, serif; font-weight: 400; }
+    .stats span { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.65); }
+
+    /* Layout */
+    main { margin-top: -72px; padding-bottom: 80px; position: relative; z-index: 2; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 28px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line-soft); border-radius: 6px; box-shadow: 0 10px 30px rgba(7,25,69,0.08); }
+    .card .head { padding: 22px 28px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .card .head h2 { font-size: 22px; color: var(--navy); }
+    .card .head .step { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); }
+    .card .body { padding: 28px; }
+
+    fieldset { border: 0; margin: 0 0 30px; }
+    fieldset:last-of-type { margin-bottom: 0; }
+    legend { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--primary); font-weight: 600; margin-bottom: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .row.three { grid-template-columns: 1fr 1fr 1fr; }
+    label.field { display: block; font-size: 14px; color: var(--navy); font-weight: 600; }
+    label.field small { display: block; font-weight: 400; color: var(--slate); font-size: 12.5px; margin-top: 2px; }
+    input[type=text], input[type=number], select {
+      margin-top: 8px; width: 100%; height: 46px; padding: 0 14px; font: inherit; font-size: 15px; color: var(--ink);
+      border: 1px solid var(--line); border-radius: 4px; background: #fff; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(20,52,203,0.15); }
+    .suffix { position: relative; }
+    .suffix span { position: absolute; right: 14px; bottom: 12px; font-size: 13px; color: var(--slate); pointer-events: none; }
+
+    .pods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+    .pod { position: relative; }
+    .pod input { position: absolute; opacity: 0; inset: 0; }
+    .pod .box {
+      border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; cursor: pointer; background: #fff; height: 100%;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .pod input:checked + .box { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); background: #f5f8ff; }
+    .pod .box b { display: block; font-size: 14.5px; color: var(--navy); }
+    .pod .box small { display: block; font-size: 12.5px; color: var(--slate); margin-top: 3px; }
+    .pod .box .tag {
+      display: inline-block; margin-top: 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--navy); background: var(--pale); border-radius: 999px; padding: 3px 9px;
+    }
+    .pod .box .tag.new { background: rgba(32,202,166,0.18); color: #0a6f58; }
+
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+    .opt { position: relative; }
+    .opt input { position: absolute; opacity: 0; inset: 0; }
+    .opt .box { border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; cursor: pointer; font-size: 14px; color: var(--navy); }
+    .opt .box small { display: block; color: var(--slate); font-size: 12.5px; margin-top: 2px; }
+    .opt input:checked + .box { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); background: #f5f8ff; }
+
+    .range { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+    .range input[type=range] { flex: 1; accent-color: var(--primary); }
+    .range output { min-width: 64px; text-align: right; font-weight: 600; color: var(--navy); font-size: 18px; font-family: "Prata", Georgia, serif; }
+
+    .actions { display: flex; align-items: center; gap: 18px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
+    button.primary {
+      background: var(--primary); color: #fff; border: 0; border-radius: 999px; padding: 15px 30px; font: inherit; font-size: 15px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 12px; letter-spacing: 0.01em;
+    }
+    button.primary:hover { background: #0f2aa8; }
+    button.primary:disabled { opacity: .6; cursor: default; }
+    button.primary svg { width: 18px; height: 18px; }
+    .actions .note { font-size: 13px; color: var(--slate); }
+    .processing { display: none; align-items: center; gap: 10px; font-size: 14px; color: var(--slate); }
+    .processing.visible { display: inline-flex; }
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--primary); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Summary */
+    aside .card { position: sticky; top: 108px; }
+    .sum-head { background: var(--navy); color: #fff; padding: 20px 24px; border-radius: 6px 6px 0 0; }
+    .sum-head small { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+    .sum-head h3 { font-size: 20px; margin-top: 4px; }
+    .sum-head p { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+    .sum-body { padding: 20px 24px; }
+    .kv { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
+    .kv:last-child { border-bottom: 0; }
+    .kv span { color: var(--slate); }
+    .kv b { color: var(--navy); font-weight: 600; text-align: right; }
+    .kv.big { padding: 14px 0; }
+    .kv.big b { font-family: "Prata", Georgia, serif; font-weight: 400; font-size: 26px; color: var(--primary); }
+    .sum-section { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate); margin: 16px 0 4px; }
+    .gauge { height: 6px; background: var(--pale); border-radius: 999px; overflow: hidden; margin: 8px 0 4px; }
+    .gauge i { display: block; height: 100%; background: var(--mint); border-radius: 999px; transition: width .2s; }
+    .gauge i.over { background: var(--red); }
+    .gauge-label { font-size: 12px; color: var(--slate); display: flex; justify-content: space-between; }
+    .trust { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-soft); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 12px; color: var(--slate); text-align: center; }
+    .trust b { display: block; color: var(--navy); font-size: 15px; font-family: "Prata", Georgia, serif; font-weight: 400; }
+
+    /* Result */
+    .result-box { display: none; margin-top: 24px; border-radius: 6px; padding: 22px 24px; border: 1px solid transparent; }
+    .result-box.success { display: block; background: #eefbf7; border-color: rgba(32,202,166,0.5); }
+    .result-box.error { display: block; background: #fdf1f0; border-color: rgba(179,38,30,0.35); }
+    .result-box h3 { font-size: 19px; color: var(--navy); }
+    .result-box.error h3 { color: var(--red); }
+    .result-box p { margin-top: 8px; font-size: 14.5px; color: var(--ink); }
+    .result-box code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: rgba(7,25,69,0.06); padding: 2px 6px; border-radius: 3px; word-break: break-word; }
+    .result-box ul { margin-top: 10px; padding-left: 18px; font-size: 14.5px; }
+    .result-box ul li { margin: 4px 0; }
+    .result-box .chain { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .result-box .chain span { font-size: 12.5px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--navy); }
+    .error-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 12.5px; color: var(--slate); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* Footer */
+    footer.site { background: var(--navy); color: rgba(255,255,255,0.75); padding: 56px 0 28px; }
+    footer.site .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+    footer.site img { height: 26px; width: auto; filter: brightness(0) invert(1); opacity: .95; }
+    footer.site p { font-size: 13.5px; margin-top: 16px; max-width: 340px; }
+    footer.site h4 { color: #fff; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+    footer.site ul { list-style: none; font-size: 14px; }
+    footer.site ul li { margin: 7px 0; }
+    footer.site .legal { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 44px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 12.5px; color: rgba(255,255,255,0.5); }
+    footer.site .legal .links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; }
+      aside .card { position: static; }
+      header.site nav { display: none; }
+      footer.site .cols { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 18px; }
+      header.site { height: 68px; }
+      header.site .right .user { display: none; }
+      header.site .right .login { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+      header.site .logo img { height: 18px; }
+      .hero { padding: 36px 0 96px; }
+      .hero h1 { font-size: 32px; }
+      .stats { gap: 22px; }
+      .row, .row.three, .pods, .opts { grid-template-columns: 1fr; }
+      .card .body, .card .head { padding-left: 18px; padding-right: 18px; }
+      footer.site .cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Millennium">
+        <img src="/verticals/assets/ff27e25f/logo-mlp.png" alt="Millennium">
+      </a>
+      <nav>
+        <a href="#">Approach</a>
+        <a href="#">People</a>
+        <a href="#">Technology</a>
+        <a href="#" class="active">Capital Allocation</a>
+        <a href="#">Global Presence</a>
+      </nav>
+      <div class="right">
+        <div class="user"><b>Portfolio Management</b>Platform Console &middot; New York</div>
+        <a class="login" href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Investor Login
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="crumbs"><span>Platform</span><span>Portfolio Management</span><span>Capital Allocation</span></div>
+      <h1 class="serif">Capital Allocation Request</h1>
+      <p class="lede">Request new or incremental capital for an investment team. Exposure, VaR and drawdown limits are sized against the platform risk framework before the request reaches Risk.</p>
+      <div class="stats">
+        <div><b>$97BN+</b><span>AUM</span></div>
+        <div><b>360+</b><span>Investment Teams</span></div>
+        <div><b>140+</b><span>Employee Locations</span></div>
+        <div><b>35+</b><span>Years of Evolution</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <form class="wrap grid" id="allocationForm" onsubmit="submitAllocation(event)" novalidate>
+      <section class="card">
+        <div class="head">
+          <h2 class="serif">New allocation</h2>
+          <span class="step">Step 1 of 2 &middot; Request</span>
+        </div>
+        <div class="body">
+          <fieldset>
+            <legend>Requester</legend>
+            <div class="row">
+              <label class="field">Requested by
+                <input type="text" id="requesterName" value="Elena Marchetti" autocomplete="off">
+              </label>
+              <label class="field">Role
+                <input type="text" value="Business Manager, Portfolio Management" disabled>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Investment team</legend>
+            <div class="pods" id="pods">
+              <label class="pod">
+                <input type="radio" name="podId" value="mlp-pod-4127" checked onchange="syncSummary()">
+                <div class="box"><b>Systematic Credit &mdash; IG &amp; HY</b><small>New York &middot; PM A. Okafor &middot; $0mm allocated</small><span class="tag new">Onboarded 2026-Q3</span></div>
+              </label>
+              <label class="pod">
+                <input type="radio" name="podId" value="mlp-pod-2210" onchange="syncSummary()">
+                <div class="box"><b>Fundamental Equity L/S &mdash; Healthcare</b><small>New York &middot; PM R. Feldman &middot; $640mm allocated</small><span class="tag">Since 2019</span></div>
+              </label>
+              <label class="pod">
+                <input type="radio" name="podId" value="mlp-pod-3384" onchange="syncSummary()">
+                <div class="box"><b>Quantitative Equity &mdash; Stat Arb</b><small>London &middot; PM P. S&oslash;rensen &middot; $1,120mm allocated</small><span class="tag">Since 2016</span></div>
+              </label>
+              <label class="pod">
+                <input type="radio" name="podId" value="mlp-pod-1902" onchange="syncSummary()">
+                <div class="box"><b>Rates &amp; Macro Relative Value</b><small>Singapore &middot; PM W. Tan &middot; $480mm allocated</small><span class="tag">Since 2021</span></div>
+              </label>
+              <label class="pod">
+                <input type="radio" name="podId" value="mlp-pod-2876" onchange="syncSummary()">
+                <div class="box"><b>Commodities &mdash; Energy</b><small>Houston &middot; PM D. Reyes &middot; $310mm allocated</small><span class="tag">Since 2022</span></div>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Capital &amp; leverage</legend>
+            <div class="row">
+              <label class="field suffix">Requested allocation<small>Whole USD millions, 25&ndash;2,500</small>
+                <input type="number" id="allocationMm" value="250" min="25" max="2500" step="1" oninput="syncSummary()">
+                <span>USD mm</span>
+              </label>
+              <label class="field">Capital source
+                <select id="capitalSource" onchange="syncSummary()">
+                  <option value="platform">New platform allocation</option>
+                  <option value="reallocation">Reallocation from existing book</option>
+                </select>
+              </label>
+            </div>
+            <label class="field" style="margin-top:18px">Target gross leverage<small>Gross exposure as a multiple of allocated capital</small></label>
+            <div class="range">
+              <input type="range" id="targetLeverage" min="1" max="15" step="0.5" value="4" oninput="syncSummary()">
+              <output id="leverageOut">4.0x</output>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Risk framework &amp; timing</legend>
+            <div class="opts">
+              <label class="opt">
+                <input type="radio" name="riskFramework" value="standard" checked onchange="syncSummary()">
+                <div class="box">Standard drawdown framework<small>Reduce 50% at &minus;5.0%, stop at &minus;7.5%</small></div>
+              </label>
+              <label class="opt">
+                <input type="radio" name="riskFramework" value="enhanced" onchange="syncSummary()">
+                <div class="box">Enhanced (new pods, first 12 months)<small>Reduce 50% at &minus;3.5%, stop at &minus;5.0%</small></div>
+              </label>
+            </div>
+            <div class="opts" style="margin-top:12px">
+              <label class="opt">
+                <input type="radio" name="effectiveDate" value="next_business_day" checked onchange="syncSummary()">
+                <div class="box">Effective next business day</div>
+              </label>
+              <label class="opt">
+                <input type="radio" name="effectiveDate" value="month_start" onchange="syncSummary()">
+                <div class="box">Effective start of next month</div>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="submit" class="primary" id="submitBtn">
+              Submit Allocation Request
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <span class="processing" id="processingIndicator"><span class="spinner"></span> Sizing limits against the platform risk framework&hellip;</span>
+            <span class="note">Routed to Pod Risk Manager and Strategy Head on submission.</span>
+          </div>
+          <div class="result-box" id="resultBox" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <div class="sum-head">
+            <small>Request summary</small>
+            <h3 class="serif" id="sumPod">&nbsp;</h3>
+            <p id="sumPodMeta">&nbsp;</p>
+          </div>
+          <div class="sum-body">
+            <div class="kv big"><span>Requested capital</span><b id="sumAlloc">&nbsp;</b></div>
+            <div class="kv"><span>Current allocation</span><b id="sumCurrent">&nbsp;</b></div>
+            <div class="kv"><span>Proposed allocation</span><b id="sumProposed">&nbsp;</b></div>
+            <div class="kv"><span>Capital source</span><b id="sumSource">&nbsp;</b></div>
+
+            <div class="sum-section">Exposure</div>
+            <div class="kv"><span>Target gross exposure</span><b id="sumGross">&nbsp;</b></div>
+            <div class="kv"><span>Strategy gross limit</span><b id="sumGrossLimit">&nbsp;</b></div>
+            <div class="gauge"><i id="gaugeBar"></i></div>
+            <div class="gauge-label"><span id="gaugeText">&nbsp;</span><span id="gaugeMax">&nbsp;</span></div>
+
+            <div class="sum-section">Risk budget</div>
+            <div class="kv"><span>Daily VaR (99%)</span><b id="sumVar">&nbsp;</b></div>
+            <div class="kv"><span>Net exposure limit</span><b id="sumNet">&nbsp;</b></div>
+            <div class="kv"><span>De-risk trigger</span><b id="sumReduce">&nbsp;</b></div>
+            <div class="kv"><span>Stop level</span><b id="sumStop">&nbsp;</b></div>
+
+            <div class="trust">
+              <div><b>T+1</b>limit posting</div>
+              <div><b>Daily</b>risk oversight</div>
+              <div><b>24/7</b>global coverage</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <img src="/verticals/assets/ff27e25f/logo-mlp.png" alt="Millennium">
+          <p>Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.</p>
+        </div>
+        <div><h4>Approach</h4><ul><li>Investment Approach</li><li>Risk Management</li><li>Core Infrastructure</li></ul></div>
+        <div><h4>People</h4><ul><li>Leadership</li><li>Investment Professionals</li><li>Life at Millennium</li><li>Students</li></ul></div>
+        <div><h4>Firm</h4><ul><li>Technology</li><li>Global Presence</li><li>Careers</li><li>Investor Login</li></ul></div>
+      </div>
+      <div class="legal">
+        <span>&copy; 2026 Millennium Management LLC. All rights reserved.</span>
+        <div class="links"><span>Terms of Use</span><span>Privacy Policy</span><span>Disclosures</span><span>Accessibility</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var PODS = {
+      'mlp-pod-4127': { name: 'Systematic Credit \u2014 IG & HY', strategy: 'systematic_credit', office: 'New York', pm: 'A. Okafor', current: 0 },
+      'mlp-pod-2210': { name: 'Fundamental Equity L/S \u2014 Healthcare', strategy: 'fundamental_equity_ls', office: 'New York', pm: 'R. Feldman', current: 640 },
+      'mlp-pod-3384': { name: 'Quantitative Equity \u2014 Stat Arb', strategy: 'quant_equity', office: 'London', pm: 'P. S\u00f8rensen', current: 1120 },
+      'mlp-pod-1902': { name: 'Rates & Macro Relative Value', strategy: 'rates_macro_rv', office: 'Singapore', pm: 'W. Tan', current: 480 },
+      'mlp-pod-2876': { name: 'Commodities \u2014 Energy', strategy: 'commodities', office: 'Houston', pm: 'D. Reyes', current: 310 }
+    };
+    var STRATEGY_LABEL = {
+      fundamental_equity_ls: 'Fundamental Equity Long/Short',
+      quant_equity: 'Quantitative Equity',
+      rates_macro_rv: 'Rates & Macro Relative Value',
+      commodities: 'Commodities',
+      systematic_credit: 'Systematic Credit'
+    };
+    var LIMITS = {
+      fundamental_equity_ls: { gross: 5.0, netPct: 25, varBps: 45 },
+      quant_equity: { gross: 8.0, netPct: 5, varBps: 30 },
+      rates_macro_rv: { gross: 12.0, netPct: 40, varBps: 55 },
+      commodities: { gross: 4.0, netPct: 35, varBps: 60 },
+      systematic_credit: { gross: 6.0, netPct: 30, varBps: 40 }
+    };
+    var DRAWDOWN = { standard: { reduceBps: 500, stopBps: 750 }, enhanced: { reduceBps: 350, stopBps: 500 } };
+    var SOURCE_LABEL = { platform: 'New platform allocation', reallocation: 'Reallocation from existing book' };
+
+    function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+    function mm(n) { return '$' + fmt(n) + 'mm'; }
+    function mm2(n) { return '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'mm'; }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function checked(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+
+    function syncSummary() {
+      var pod = PODS[checked('podId')];
+      var lim = LIMITS[pod.strategy];
+      var alloc = parseInt(document.getElementById('allocationMm').value, 10) || 0;
+      var lev = parseFloat(document.getElementById('targetLeverage').value) || 0;
+      var dd = DRAWDOWN[checked('riskFramework')];
+      var gross = alloc * lev;
+      var grossLimit = alloc * lim.gross;
+      var pct = grossLimit ? Math.min(gross / grossLimit * 100, 100) : 0;
+
+      document.getElementById('leverageOut').textContent = lev.toFixed(1) + 'x';
+      document.getElementById('sumPod').textContent = pod.name;
+      document.getElementById('sumPodMeta').textContent = STRATEGY_LABEL[pod.strategy] + ' \u00b7 ' + pod.office + ' \u00b7 PM ' + pod.pm;
+      document.getElementById('sumAlloc').textContent = mm(alloc);
+      document.getElementById('sumCurrent').textContent = mm(pod.current);
+      document.getElementById('sumProposed').textContent = mm(pod.current + alloc);
+      document.getElementById('sumSource').textContent = SOURCE_LABEL[document.getElementById('capitalSource').value];
+      document.getElementById('sumGross').textContent = mm(gross) + ' (' + lev.toFixed(1) + 'x)';
+      document.getElementById('sumGrossLimit').textContent = mm(grossLimit) + ' (' + lim.gross.toFixed(1) + 'x)';
+      var bar = document.getElementById('gaugeBar');
+      bar.style.width = pct + '%';
+      bar.className = lev > lim.gross ? 'over' : '';
+      document.getElementById('gaugeText').textContent = lev > lim.gross ? 'Exceeds strategy limit \u2014 Risk Committee review' : Math.round(pct) + '% of gross limit';
+      document.getElementById('gaugeMax').textContent = 'Max ' + lim.gross.toFixed(1) + 'x';
+      document.getElementById('sumVar').textContent = mm2(alloc * lim.varBps / 10000) + ' (' + lim.varBps + ' bps)';
+      document.getElementById('sumNet').textContent = mm(alloc * lim.netPct / 100) + ' (' + lim.netPct + '%)';
+      document.getElementById('sumReduce').textContent = '\u2212' + mm2(alloc * dd.reduceBps / 10000) + ' (\u2212' + (dd.reduceBps / 100).toFixed(1) + '%)';
+      document.getElementById('sumStop').textContent = '\u2212' + mm2(alloc * dd.stopBps / 10000) + ' (\u2212' + (dd.stopBps / 100).toFixed(1) + '%)';
+    }
+    syncSummary();
+
+    function submitAllocation(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+
+      fetch('/api/ff27e25f/allocations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requesterName: document.getElementById('requesterName').value,
+          podId: checked('podId'),
+          allocationMm: parseInt(document.getElementById('allocationMm').value, 10),
+          targetLeverage: parseFloat(document.getElementById('targetLeverage').value),
+          capitalSource: document.getElementById('capitalSource').value,
+          riskFramework: checked('riskFramework'),
+          effectiveDate: checked('effectiveDate'),
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        setTimeout(function () { resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Allocation request could not be submitted</h3>' +
+            '<p>The platform risk framework could not size limits for this request. Nothing has been routed to Risk.<br><br><code>' + esc(result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + esc(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + esc(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + esc(result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+          return;
+        }
+        var d = result.data;
+        var chain = d.approvals.map(function (a) { return '<span>' + esc(a) + '</span>'; }).join('');
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML =
+          '<h3>Request submitted for risk review</h3>' +
+          '<p><strong>' + esc(d.pod.name) + '</strong> &middot; ' + mm(d.allocation.requestedMm) + ' at ' + esc(d.allocation.targetLeverage) + 'x gross. Request <code>' + esc(d.requestId) + '</code></p>' +
+          '<ul>' +
+          '<li>Gross exposure ' + mm(d.risk.grossExposureMm) + ' against a ' + mm(d.risk.grossLimitMm) + ' strategy limit (' + esc(d.risk.grossLeverageMax) + 'x)</li>' +
+          '<li>Daily VaR budget ' + mm2(d.risk.dailyVar99Mm) + ' &middot; net exposure limit ' + mm(d.risk.netExposureLimitMm) + '</li>' +
+          '<li>' + esc(d.risk.drawdown.framework) + ': reduce ' + esc(d.risk.drawdown.reduceToPct) + '% at &minus;' + mm2(d.risk.drawdown.reduceAtMm) + ', stop at &minus;' + mm2(d.risk.drawdown.stopAtMm) + '</li>' +
+          '<li>Effective ' + esc(d.allocation.effectiveDate) + ' &middot; ' + esc(d.allocation.capitalSource) + '</li>' +
+          '</ul>' +
+          '<div class="chain">' + chain + '</div>' +
+          '<p style="margin-top:10px">' + esc(d.nextStep) + '</p>';
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the allocation service.<br><br><code>' + esc(err.message) + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
