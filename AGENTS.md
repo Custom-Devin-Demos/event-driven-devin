@@ -264,6 +264,19 @@ The silent half is the point: the crash is what pages you; the quiet quote is wh
 - `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius (incl. the silent estimate consumer), ServiceNow incident blast radius in assignment group "Patient Access Platform Engineering", and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'` in `config/customers/fcf0f903.js`.
 - Regression coverage for both paths lives in `tests/fcf0f903-enrollment.test.js` and `tests/fcf0f903-copay-estimate.test.js`; the estimate tests pin the current Standard fallback and must be updated when the defect is fixed.
 
+### FOX One web scenario (a75ccde9, /oncall/c/a75ccde9)
+
+The FOX One on-call skin carries two **frontend** defects aimed at a web team. Both raise the alert from the browser and both require the auto-created session to record its browser work.
+
+| Flow | Trigger | Defect | Signal |
+|------|---------|--------|--------|
+| Plan pricing | Click the **Annual** billing toggle | `PLAN_PRICING['PLUS-24']` has no `annual` entry, so `renderPlanPricing` dereferences undefined | Client `TypeError` → `POST /api/a75ccde9/error` → `plan_change.pricing_failure` → Sentry → Slack → Devin session |
+| Promo banner quality | Nightly audit, or `POST /api/a75ccde9/quality-audit` | The `.promo-banner` markup/CSS ships contrast, accessible-name, keyboard, target-size and CLS/LCP defects | `web_quality.violations` → Sentry → Slack → Devin session |
+
+- **`scripts/a75ccde9-frontend-quality-audit.js` is the prevention control** (`npm run audit:fox`) — it reads the shipped markup and CSS and exits non-zero per violated rule, with the measured value, the required value and the WCAG criterion. It is not wired into CI, which is why the banner shipped. `--alert` raises the Slack alert and opens the session.
+- Both defects are deliberately left in place. `APP_REMEDIATION_DIRECTIVE` and `AUDIT_REMEDIATION_DIRECTIVE` require `recording_start` **before** any code change, annotated before/after passes, and — for the audit flow — a before/after scoreboard of the Lighthouse accessibility score, CLS, LCP and axe violation count. Neither session merges.
+- Run sheet: `docs/DEMO-FOX-WEB.md`. Coverage: `tests/a75ccde9-error.test.js`, `tests/a75ccde9-quality.test.js`.
+
 ### Incident Lab (evolving-incident demo)
 
 The Incident Lab (`/oncall/incident-lab`, unlisted) runs a long-form incident where the data develops over time and Devin investigates an external subject repo (the n8n fork at `ananthv26-cog-demo-repos/n8n`) rather than this app. Scenarios are JSON documents in `config/incident-lab/`; the run engine is `app/services/incident-lab/engine.js` with three sinks:
@@ -662,6 +675,7 @@ EOF
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
 | `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
 | `npm run audit:zelle` | Probe send/request limit profiles (exits 1 on unresolved or downgraded rows) |
+| `npm run audit:fox` | Audit the FOX One plan page for a11y and Core Web Vitals defects (`--json`, `--alert`) |
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |
