@@ -12,6 +12,10 @@ const {
   APP_REMEDIATION_DIRECTIVE: NEXEN_REMEDIATION_DIRECTIVE,
   SCENARIO: NEXEN_SCENARIO,
 } = require('../services/verticals/9bfabd45');
+const {
+  APP_REMEDIATION_DIRECTIVE: PLAN_PRICING_REMEDIATION_DIRECTIVE,
+  SCENARIO: PLAN_PRICING_SCENARIO,
+} = require('../services/verticals/a75ccde9');
 const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
 
 const router = express.Router();
@@ -149,7 +153,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'a75ccde9'];
 
 function isInstantPathEvent(alertData) {
   const hasInstantTag = (alertData.tags || []).some((tag) => {
@@ -365,6 +369,19 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-9bfabd45-web',
       service: 'customer-9bfabd45-web',
       scenario: NEXEN_SCENARIO,
+    },
+  },
+  'a75ccde9': {
+    customer: 'a75ccde9',
+    verticalLabel: 'FOX One',
+    service: 'customer-a75ccde9-web',
+    project: 'event-driven-devin',
+    release: 'a75ccde9-web@1.0.0',
+    promptAppendix: PLAN_PRICING_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'a75ccde9',
+      service: 'customer-a75ccde9-web',
+      scenario: PLAN_PRICING_SCENARIO,
     },
   },
   '59b1e508': {

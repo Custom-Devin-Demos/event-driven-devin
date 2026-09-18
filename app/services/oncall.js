@@ -469,7 +469,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
  * so no code locations, and no request-derived text, reach the session.
  */
 function buildOncallSessionPrompt(scenario, skin, runRef) {
-  return [
+  const lines = [
     `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
     '',
     `*Monitor:* ${scenario.monitor} — Triggered`,
@@ -482,7 +482,18 @@ function buildOncallSessionPrompt(scenario, skin, runRef) {
     runRef ? `*Incident Ref:* ${runRef}` : null,
     '',
     `Reproduce the symptom at ${DEMO_BASE_URL()}/oncall/c/${skin.slug} and diagnose it from the repository and its telemetry: ${REPO_URL}`,
-  ].filter((l) => l !== null).join('\n');
+  ].filter((l) => l !== null);
+
+  if (
+    skin.devinSession
+    && typeof skin.devinSession.promptAppendix === 'string'
+    && skin.devinSession.promptAppendix.trim()
+  ) {
+    lines.push('');
+    lines.push(skin.devinSession.promptAppendix);
+  }
+
+  return lines.join('\n');
 }
 
 /**
@@ -1986,6 +1997,7 @@ module.exports = {
   getSev1State,
   isActiveSev1ProbeRef,
   isSev1DebugTimingsUnlocked,
+  buildOncallSessionPrompt,
   setOncallConfigOverride,
   getOncallConfigView,
 };

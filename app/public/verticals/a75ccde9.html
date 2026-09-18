@@ -143,6 +143,28 @@
       gap: 4px;
       background: #101010;
     }
+    .billing-toggle button {
+      flex: 1;
+      min-height: 32px;
+      padding: 0;
+      border: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      color: var(--white);
+      background: transparent;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .billing-toggle button[aria-pressed="true"] {
+      color: var(--black);
+      background: var(--white);
+    }
+    .billing-toggle button:focus-visible {
+      outline-offset: 1px;
+    }
     .billing-toggle span {
       flex: 1;
       min-height: 32px;
@@ -153,7 +175,12 @@
       font-size: 14px;
       font-weight: 500;
     }
-    .billing-toggle .selected { color: var(--black); background: var(--white); }
+    .billing-notice {
+      max-width: 420px;
+      margin-top: 12px;
+      color: #FFB4B4;
+      font-size: 13px;
+    }
     .hero-art {
       width: auto;
       height: auto;
@@ -511,8 +538,10 @@
           <h1>Change Your Plan</h1>
           <p>Save more by billing annually</p>
           <div class="billing-toggle" aria-label="Billing frequency">
-            <span class="selected">Monthly</span><span>Annual</span>
+            <button type="button" data-billing="monthly" aria-pressed="true">Monthly</button>
+            <button type="button" data-billing="annual" aria-pressed="false">Annual</button>
           </div>
+          <div id="billingNotice" class="billing-notice" role="status" aria-live="polite" hidden></div>
         </div>
         <img class="hero-art" src="https://images.api.fox.com/dtc/pmt/assets/hero_card_offer_1789512562582.png?width=800&amp;height=*&amp;fit=bounds&amp;format=avif" alt="FOX One" width="391" height="530" loading="eager" fetchpriority="high" onerror="this.remove()">
       </div>
@@ -652,6 +681,7 @@
   </script>
   <script>
     (function () {
+      const nativeFetch = window.fetch.bind(window);
       const form = document.getElementById('upgradeForm');
       const currentPlan = document.getElementById('currentPlan');
       const newPlan = document.getElementById('newPlan');
@@ -661,15 +691,35 @@
       const result = document.getElementById('result');
       const submitBtn = document.getElementById('submitBtn');
       const slowStatus = document.getElementById('slowStatus');
+      const billingNotice = document.getElementById('billingNotice');
+      const billingButtons = Array.from(document.querySelectorAll('[data-billing]'));
       const cards = Array.from(document.querySelectorAll('.plan-card'));
       const planControls = cards.map(function (card) {
         return card.querySelector('.select-card');
       }).concat([newPlan, currentPlan]);
-      const prices = {
-        'PLUS-24': '$24.99 / month',
-        'ULTRA-36': '$39.99 / month',
-        'FAMILY-PLUS-12': '$99 / year',
+      const initialCardPricing = cards.map(function (card) {
+        return {
+          card,
+          amount: card.querySelector('.price strong').textContent,
+          period: card.querySelector('.price span').textContent,
+          note: card.querySelector('.annual-note').innerHTML,
+        };
+      });
+      const PLAN_PRICING = {
+        'PLUS-24': {
+          monthly: { amount: 24.99, label: '$24.99 / month' },
+        // annual pricing pending
+        },
+        'ULTRA-36': {
+          monthly: { amount: 39.99, label: '$39.99 / month' },
+          annual: { amount: 399.99, period: '/ year', label: '$399.99 / year' },
+        },
+        'FAMILY-PLUS-12': {
+          monthly: { amount: null, label: '$99 / year' },
+          annual: { amount: 99, period: '/ year', label: '$99 / year' },
+        },
       };
+      let billing = 'monthly';
 
       function currentLabel() {
         const option = currentPlan.selectedOptions[0];
@@ -685,6 +735,40 @@
         currentPlanSummary.textContent = currentLabel();
       }
 
+      function renderPlanPricing(selectedBilling) {
+        const selectedCode = newPlan.value;
+        const selectedPricing = PLAN_PRICING[selectedCode][selectedBilling];
+        const selectedAmount = selectedPricing.amount;
+        if (selectedBilling === 'monthly') {
+          initialCardPricing.forEach(function (initial) {
+            initial.card.querySelector('.price strong').textContent = initial.amount;
+            initial.card.querySelector('.price span').textContent = initial.period;
+            initial.card.querySelector('.annual-note').innerHTML = initial.note;
+          });
+          summaryText.textContent = (selectedCode === 'FAMILY-PLUS-12' ? 'Annual access to ' : 'Monthly access to ') + newLabel();
+          summaryPrice.textContent = selectedPricing.label;
+          return selectedAmount;
+        }
+        cards.forEach(function (card) {
+          const code = card.dataset.plan;
+          const pricing = PLAN_PRICING[code][selectedBilling];
+          if (!pricing) return;
+          const price = card.querySelector('.price');
+          price.querySelector('strong').textContent = `$${pricing.amount.toFixed(2).replace(/\.00$/, '')}`;
+          price.querySelector('span').textContent = pricing.period;
+          const note = card.querySelector('.annual-note');
+          if (typeof PLAN_PRICING[code].monthly.amount === 'number') {
+            const savings = PLAN_PRICING[code].monthly.amount * 12 - pricing.amount;
+            note.textContent = `Save $${savings.toFixed(2).replace(/\.00$/, '')}/yr`;
+          } else {
+            note.textContent = 'Billed annually';
+          }
+        });
+        summaryText.textContent = (selectedBilling === 'annual' || selectedCode === 'FAMILY-PLUS-12' ? 'Annual access to ' : 'Monthly access to ') + newLabel();
+        summaryPrice.textContent = selectedPricing.label;
+        return selectedAmount;
+      }
+
       function renderNewPlan() {
         const code = newPlan.value;
         cards.forEach(function (card) {
@@ -692,8 +776,38 @@
           card.classList.toggle('selected', selected);
           card.querySelector('.select-card').textContent = selected ? 'Selected' : 'Select';
         });
-        summaryText.textContent = (code === 'FAMILY-PLUS-12' ? 'Annual access to ' : 'Monthly access to ') + newLabel();
-        summaryPrice.textContent = prices[code] || '';
+        renderPlanPricing(billing);
+      }
+
+      function setBillingButtons(selectedBilling) {
+        billingButtons.forEach(function (button) {
+          button.setAttribute('aria-pressed', String(button.dataset.billing === selectedBilling));
+        });
+      }
+
+      function reportPricingFailure(error, planCode) {
+        nativeFetch('/api/a75ccde9/error', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify({
+            source: 'plan-page-web/browser',
+            service: 'customer-a75ccde9-web',
+            platform: 'web',
+            screen: 'plan_change',
+            action: 'toggle_annual_billing',
+            planCode,
+            billing: 'annual',
+            errorType: error.name,
+            errorMessage: error.message,
+            stackTrace: error.stack,
+            release: 'a75ccde9-web@1.0.0',
+            environment: location.hostname === 'devindemos.com' ? 'prod' : 'dev',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        }).catch(function () {});
       }
 
       cards.forEach(function (card) {
@@ -704,6 +818,26 @@
       });
       currentPlan.addEventListener('change', renderCurrentPlan);
       newPlan.addEventListener('change', renderNewPlan);
+      billingButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const nextBilling = button.dataset.billing;
+          if (nextBilling === billing) return;
+          try {
+            renderPlanPricing(nextBilling);
+            billing = nextBilling;
+            setBillingButtons(billing);
+            billingNotice.hidden = true;
+            billingNotice.textContent = '';
+          } catch (error) {
+            billing = 'monthly';
+            setBillingButtons(billing);
+            renderPlanPricing(billing);
+            billingNotice.textContent = "Annual pricing isn't available right now. Monthly pricing is shown.";
+            billingNotice.hidden = false;
+            reportPricingFailure(error, newPlan.value);
+          }
+        });
+      });
       form.addEventListener('reset', function () {
         window.setTimeout(function () {
           renderCurrentPlan();
