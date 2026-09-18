@@ -2026,6 +2026,7 @@ const ONCALL_SKINS = {
     company: 'British Airways',
     brandMark: 'BA',
     vertical: 'banking',
+    oncallOnly: true,
     page: { file: '3983a181.html', title: 'Payment | British Airways' },
     theme: {
       '--accent': '#3468AD',
