@@ -211,35 +211,18 @@
           <form id="upgradeForm">
             <div class="form-group">
               <label for="currentPlan">Current plan</label>
-              <select id="currentPlan">
-                <option value="BASIC-12">Medicare Advantage HMO &mdash; Basic ($29.99/mo)</option>
-                <option value="PLUS-24">Medicare Advantage PPO &mdash; Plus ($49.99/mo)</option>
-                <option value="ULTRA-36">Medicare Supplement Plan G &mdash; Ultra ($79.99/mo)</option>
-                <option value="FAMILY-PLUS-12">Medicare Advantage PPO + Part D &mdash; Family Plus ($99.99/mo)</option>
+              <select id="currentPlan" aria-readonly="true">
+                <option value="BASIC-12" data-premium="29.99">Medicare Advantage HMO &mdash; Basic ($29.99/mo)</option>
               </select>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="newPlan">Recommended plan</label>
-                <select id="newPlan">
-                  <option value="PLUS-24">Medicare Advantage PPO &mdash; Plus</option>
-                  <option value="ULTRA-36">Medicare Supplement Plan G &mdash; Ultra</option>
-                  <option value="UNLIMITED-24">Medicare Supplement Plan G + Part D &mdash; Unlimited</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="addon">Add a benefit</label>
-                <select id="addon">
-                  <option value="none">No additional benefits</option>
-                  <option value="international">Stand-alone Part D drug plan</option>
-                  <option value="hotspot">Dental, vision &amp; hearing</option>
-                  <option value="insurance">OTC benefit card</option>
-                </select>
-              </div>
+              <div class="hint">Your coverage on file. Contact your advisor if this is not correct.</div>
             </div>
             <div class="form-group">
-              <label for="promoCode">Advisor reference code</label>
-              <input type="text" id="promoCode" placeholder="From your advisor call (optional)" autocomplete="off">
+              <label for="newPlan">Recommended plan</label>
+              <select id="newPlan">
+                <option value="PLUS-24" data-premium="49.99">Medicare Advantage PPO &mdash; Plus ($49.99/mo)</option>
+                <option value="ULTRA-36" data-premium="79.99">Medicare Supplement Plan G &mdash; Ultra ($79.99/mo)</option>
+                <option value="UNLIMITED-24" data-premium="119.99">Medicare Supplement Plan G + Part D &mdash; Unlimited ($119.99/mo)</option>
+              </select>
               <div class="hint">Your requested change takes effect on the first of the month after the carrier confirms.</div>
             </div>
             <button type="submit" class="pill pill-red btn-submit" id="submitBtn">Submit Plan Change Request</button>
@@ -299,6 +282,13 @@
     })();
   </script>
   <script>
+    function show(title, detail) {
+      const result = document.getElementById('result');
+      result.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      result.append(t, d);
+    }
     document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -313,14 +303,18 @@
         const data = await res.json();
         if (!res.ok) {
           result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Request Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          show('Request Failed', `${data.errorClass}: ${data.error}`);
         } else {
+          const current = Number(document.querySelector('#currentPlan option:checked').dataset.premium);
+          const target = Number(data.monthlyTotal);
+          const delta = Number.isFinite(target) ? target - current : NaN;
+          const change = !Number.isFinite(delta) ? '' : delta < 0 ? ` (saves $${Math.abs(delta).toFixed(2)}/mo)` : delta > 0 ? ` (an increase of $${delta.toFixed(2)}/mo)` : ' (no change)';
           result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Plan Change Request Submitted</div><div class="error-detail">New plan: ${data.plan} &mdash; Monthly premium: $${data.monthlyTotal} (save $${data.discount}/mo). Your advisor will confirm enrollment with the carrier.</div>`;
+          show('Plan Change Request Submitted', `New plan: ${data.plan} — Monthly premium: $${data.monthlyTotal}${change}. Your advisor will confirm enrollment with the carrier.`);
         }
       } catch (err) {
         result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+        show('Network Error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Submit Plan Change Request'; }
     });
   </script>
