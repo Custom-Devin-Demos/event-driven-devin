@@ -51,16 +51,9 @@ const NPP_ADDRESSING_PROFILES = {
     oskoEligible: true,
     confirmationRequired: false,
   },
-  abn: {
-    label: 'ABN PayID',
-    directoryService: 'NPP Addressing Service',
-    resolutionTimeoutMs: 5000,
-    oskoEligible: true,
-    confirmationRequired: true,
-  },
+  // abn — business PayIDs shipped with the 2026 NetBank payee refresh;
+  // addressing profile registration pending
 };
-
-const PAYMENT_OPERATIONS_QUEUE = 'payments-npp-addressing';
 
 const OSKO_ENABLED_BSBS = ['062-000', '062-001', '063-000', '083-004', '013-006'];
 
@@ -89,25 +82,8 @@ function validationError(message) {
   return error;
 }
 
-function addressingError(payIdType) {
-  const error = new Error(
-    `No NPP addressing profile is registered for PayID type "${payIdType || '(none)'}"`,
-  );
-  error.name = 'PaymentAddressingError';
-  error.code = 'PAYID_ADDRESSING_UNSUPPORTED';
-  error.statusCode = 422;
-  error.operationsQueue = PAYMENT_OPERATIONS_QUEUE;
-  return error;
-}
-
 function resolveAddressingProfile(payee) {
-  const profile = Object.prototype.hasOwnProperty.call(NPP_ADDRESSING_PROFILES, payee.payIdType)
-    ? NPP_ADDRESSING_PROFILES[payee.payIdType]
-    : undefined;
-  if (!profile) {
-    throw addressingError(payee.payIdType);
-  }
-  return profile;
+  return NPP_ADDRESSING_PROFILES[payee.payIdType];
 }
 
 function selectSettlementRail(payment, payee) {
@@ -248,29 +224,6 @@ async function submitPayment(data) {
       throw error;
     }
 
-    if (error.name === 'PaymentAddressingError') {
-      recordTiming('cba_payment.latency', Date.now() - startTime, {
-        route: '/api/cba/payment',
-        error: 'true',
-      });
-      incrementMetric('cba_payment.addressing_unsupported', {
-        route: '/api/cba/payment',
-        payIdType: data.payIdType || 'none',
-        queue: error.operationsQueue,
-      });
-      logger.warn('PayID could not be addressed — routing to the payments operations queue', {
-        requestId,
-        receiptNumber,
-        payIdType: data.payIdType,
-        queue: error.operationsQueue,
-        code: error.code,
-        service: 'customer-cba-payment',
-        route: '/api/cba/payment',
-      });
-      error.requestId = requestId;
-      throw error;
-    }
-
     const duration = Date.now() - startTime;
 
     incrementMetric('cba_payment.failure', {
@@ -400,7 +353,6 @@ module.exports = {
   estimateArrival,
   ACCOUNTS,
   NPP_ADDRESSING_PROFILES,
-  PAYMENT_OPERATIONS_QUEUE,
   SETTLEMENT_RAILS,
   OSKO_ENABLED_BSBS,
   REMEDIATION_DIRECTIVE,
