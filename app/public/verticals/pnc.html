@@ -229,9 +229,12 @@
       }
 
       function resolveIdentity(email) {
-        if (!email) return Promise.resolve();
         resolutionToken += 1;
         var token = resolutionToken;
+        if (!email) {
+          window.pncIdentityReady = Promise.resolve();
+          return window.pncIdentityReady;
+        }
         window.pncIdentityReady = loadConfig().then(function (cfg) {
           if (token !== resolutionToken) return;
           var orgId = storedOrgId() || cfg.defaultOrgId || '';
