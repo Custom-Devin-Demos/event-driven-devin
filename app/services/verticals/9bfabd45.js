@@ -11,9 +11,9 @@ const { getCustomerConfig } = require('../../../config/customers');
  *
  * The customer surface is a Vite/React SPA served here as a static build at
  * /9bfabd45/app; the Spring Boot API in the same repo is not deployed. The
- * client builds digital asset deposit instructions in the browser and POSTs
- * failures to /api/9bfabd45/error so the Slack alert + Devin session are raised
- * under the app identity without a Sentry webhook round-trip.
+ * client aggregates the collateral book in the browser and POSTs failures to
+ * /api/9bfabd45/error so the Slack alert + Devin session are raised under the
+ * app identity without a Sentry webhook round-trip.
  */
 const CUSTOMER = '9bfabd45';
 const APP_SERVICE = `customer-${CUSTOMER}-web`;
@@ -22,7 +22,7 @@ const APP_RELEASE = 'nexen-custody@1.0.0';
 const APP_SOURCE_PREFIX = 'nexen-custody/';
 const APP_REPO = 'github.com/COG-GTM/bny';
 const APP_WEB_PATH = '/9bfabd45/app';
-const SCENARIO = 'digital-asset-custody-deposit';
+const SCENARIO = 'collateral-overview-aggregate';
 
 /** Hannah Huh owns this demo: the Slack card and the Devin session are hers. */
 const OWNER = {
@@ -42,35 +42,35 @@ const APP_REMEDIATION_DIRECTIVE = [
   'frontend (`frontend/`) over a Spring Boot 3 / Java 21 API (`backend/`) that mirrors the same',
   'domain model. Read `README.md` in that repo first.',
   '',
-  'The failing code path is the Digital Asset Custody deposit instruction:',
-  '- Custody rule registry: `frontend/src/domain/digitalAssetCustody.ts` (`LAUNCHED_MARKETS`,',
-  '  the safekeeping arrangement registered per market) and its Java mirror',
-  '  `backend/.../repository/CustodyFixtures.java` (`DIGITAL_ASSET_CUSTODY_RULES`)',
-  '- Fixtures: `frontend/src/api/fixtures.ts` (accounts and their digital asset holdings)',
-  '- Crash site: `buildDepositInstruction` in `frontend/src/domain/digitalAssetCustody.ts`,',
-  '  mirrored by `backend/.../service/DigitalAssetCustodyService.java#instructDeposit`',
-  '- Entry: `frontend/src/pages/AccountsPage.tsx` ("Instruct digital asset deposit")',
+  'The failing code path is the Collateral Overview dashboard, the landing screen:',
+  '- Client list: `frontend/src/api/fixtures.ts` (`clients`) and its Java mirror',
+  '  `backend/src/main/resources/data.sql` (`client`, `legal_entity`, `collateral_allocation`)',
+  '- Collateral aggregates: `collateralByClient` in `frontend/src/api/fixtures.ts`',
+  '- Crash site: `summariseCollateral` in `frontend/src/domain/collateral.ts`',
+  '- Entry: `frontend/src/pages/DashboardsPage.tsx` (Client selector on Collateral Overview),',
+  '  served by `getCollateralOverview` in `frontend/src/api/mockClient.ts`',
+  '- Backend counterpart: `ClientService#collateralOverview`',
   '',
   `The alert came from the hosted build at \`https://devindemos.com${APP_WEB_PATH}\` (served from`,
   `\`app/public/verticals/${CUSTOMER}-app/\` in \`COG-GTM/event-driven-devin\`), running the frontend's`,
   'mock client — no backend is deployed.',
   '',
   'Steps:',
-  '1. Reproduce first: `cd frontend && npm install && npm run dev`, open the Accounts screen,',
-  '   select the Frankfurt (DE) or Paris (FR) account and click "Instruct digital asset deposit" —',
-  '   confirm the "deposit instruction unavailable" notice. Note the test suites are GREEN on the',
-  '   broken baseline: nothing asserts that every market holding digital assets has a custody rule.',
-  '2. Fix the data, not just the crash site: register the missing markets in the custody rule',
-  '   registry (both the TypeScript and Java mirrors) with accurate safekeeping details, and make',
-  '   `buildDepositInstruction` / `instructDeposit` reject an unregistered market explicitly',
-  '   (typed error surfaced to the UI) instead of dereferencing undefined.',
-  '3. Add the prevention control: a frontend test asserting every market with digital asset',
-  '   holdings has a `digitalAssetCustodyRules` entry, a backend test for the same invariant over',
-  '   `DIGITAL_ASSET_CUSTODY_RULES`, and coverage for the unregistered-market path.',
+  '1. Reproduce first: `cd frontend && npm install && npm run dev`, open Collateral Overview and',
+  '   select MERIDIAN CAPITAL PARTNERS in the Client selector — the dashboard fails to load.',
+  '   Note the test suites are GREEN on the broken baseline: nothing asserts that every client in',
+  '   `clients` has a collateral aggregate behind it.',
+  '2. Fix the data, not just the crash site: give the onboarded client its collateral aggregate and',
+  '   legal-entity rows in both mirrors (`frontend/src/api/fixtures.ts` and',
+  '   `backend/src/main/resources/data.sql`), and make `summariseCollateral` reject an unknown',
+  '   client explicitly (typed error surfaced to the UI) instead of dereferencing undefined.',
+  '3. Add the prevention control: a frontend test asserting every entry in `clients` has a',
+  '   `collateralByClient` aggregate, a backend test for the same invariant over the seeded',
+  '   clients, and coverage for the unknown-client path.',
   '   `npx tsc -b`, `npx oxlint`, `npm run build` and `./gradlew test` must pass.',
   `   Do not change the incident reporting identity in \`frontend/src/lib/incident.ts\` (\`${APP_SERVICE}\`).`,
-  '4. Re-run the reproduction on the fix commit and confirm the DE and FR accounts now render a',
-  '   deposit instruction with the safekeeping entity, settlement network and cut-off.',
+  '4. Re-run the reproduction on the fix commit and confirm every client in the selector renders',
+  '   KPIs, the legal-entity table and both allocation donuts.',
   '5. Open a pull request against `main`, request Devin Review, and STOP for human approval.',
   `6. After approval, refresh the hosted build: \`npm run build\` with base \`${APP_WEB_PATH}/\` on the`,
   `   fix commit, copy \`frontend/dist/\` into \`app/public/verticals/${CUSTOMER}-app/\` in`,
@@ -141,13 +141,13 @@ async function resolveUserIdByEmail(email, orgId) {
 function reportAppFailure(report) {
   const reference = uuidv4();
   const platform = clip(report.platform || 'web', 32);
-  const screen = clip(report.screen || 'custody_holdings', 64);
-  const action = clip(report.action || 'instruct_digital_asset_deposit', 64);
+  const screen = clip(report.screen || 'collateral_overview', 64);
+  const action = clip(report.action || 'load_collateral_overview', 64);
   const accountNumber = clip(report.accountNumber || 'unknown', 64);
   const clientName = clip(report.clientName || 'unknown', 128);
   const market = clip(report.market || 'unknown', 8);
   const errorType = clip(report.errorType || 'Error', 128);
-  const errorMessage = clip(report.errorMessage || 'Digital asset deposit instruction failed', 512);
+  const errorMessage = clip(report.errorMessage || 'Collateral overview failed to load', 512);
   const stackTrace = clip(report.stackTrace, 4000);
   const release = clip(report.release || APP_RELEASE, 64);
   const environment = clip(report.environment || process.env.DD_ENV || 'prod', 32);
@@ -167,7 +167,7 @@ function reportAppFailure(report) {
     scenario: SCENARIO,
   };
 
-  incrementMetric('digital_asset_deposit.failure', {
+  incrementMetric('collateral_overview.failure', {
     route: '/api/9bfabd45/error',
     errorClass: errorType,
     platform,
@@ -206,7 +206,7 @@ function reportAppFailure(report) {
   const raiseAlert = (devinUserId) => createSessionAndAlert({
     issueTitle: `${errorType}: ${errorMessage}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${APP_PROJECT}&query=is%3Aunresolved`,
-    culprit: `${CUSTOMER}/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction`,
+    culprit: `${CUSTOMER}/frontend/src/domain/collateral.ts \u2014 summariseCollateral`,
     errorType,
     errorValue: errorMessage,
     devinUserId,

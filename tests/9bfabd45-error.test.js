@@ -51,19 +51,18 @@ const APP_REPORT = {
   environment: 'prod',
   platform: 'web',
   errorType: 'TypeError',
-  errorMessage: "Cannot read properties of undefined (reading 'safekeepingEntity')",
-  stackTrace: 'buildDepositInstruction (src/domain/digitalAssetCustody.ts:48)',
-  screen: 'custody_holdings',
-  action: 'instruct_digital_asset_deposit',
-  accountNumber: '8842933',
-  clientName: 'Meridian Asset Management',
-  market: 'DE',
+  errorMessage: "Cannot read properties of undefined (reading 'entities')",
+  stackTrace: 'summariseCollateral (src/domain/collateral.ts:14)',
+  screen: 'collateral_overview',
+  action: 'load_collateral_overview',
+  accountNumber: '',
+  clientName: 'MERIDIAN CAPITAL PARTNERS',
+  market: '',
   devinUserId: 'user-abc',
   devinOrgId: ORG_ID,
   devinEmail: 'hub.user@example.com',
   report: {
-    assetClass: 'digital_asset',
-    baseCurrency: 'EUR',
+    clientId: 'meridian-capital',
     nested: { deep: true },
   },
 };
@@ -115,7 +114,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
       release: 'nexen-custody@1.0.0',
       platform: 'web',
       errorType: 'TypeError',
-      culprit: '9bfabd45/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+      culprit: '9bfabd45/frontend/src/domain/collateral.ts \u2014 summariseCollateral',
       devinUserId: 'user-abc',
       devinOrgId: ORG_ID,
       devinEmail: 'hub.user@example.com',
@@ -124,13 +123,12 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
     });
     expect(alertData.tags).toEqual(expect.arrayContaining([
       { key: 'service', value: 'customer-9bfabd45-web' },
-      { key: 'screen', value: 'custody_holdings' },
-      { key: 'action', value: 'instruct_digital_asset_deposit' },
-      { key: 'account_number', value: '8842933' },
-      { key: 'market', value: 'DE' },
-      { key: 'scenario', value: 'digital-asset-custody-deposit' },
+      { key: 'screen', value: 'collateral_overview' },
+      { key: 'action', value: 'load_collateral_overview' },
+      { key: 'client_name', value: 'MERIDIAN CAPITAL PARTNERS' },
+      { key: 'scenario', value: 'collateral-overview-aggregate' },
     ]));
-    expect(alertData.extra.report).toEqual({ assetClass: 'digital_asset', baseCurrency: 'EUR' });
+    expect(alertData.extra.report).toEqual({ clientId: 'meridian-capital' });
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [captured, context] = Sentry.captureException.mock.calls[0];
@@ -176,18 +174,18 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
     expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('ent-admin-1');
   });
 
-  test('the directive names the NEXEN repo, the registry fix and stops before merge', () => {
+  test('the directive names the NEXEN repo, the collateral fix and stops before merge', () => {
     expect(APP_REMEDIATION_DIRECTIVE).toContain('github.com/COG-GTM/bny');
-    expect(APP_REMEDIATION_DIRECTIVE).toContain('frontend/src/domain/digitalAssetCustody.ts');
-    expect(APP_REMEDIATION_DIRECTIVE).toContain('DIGITAL_ASSET_CUSTODY_RULES');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('frontend/src/domain/collateral.ts');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('backend/src/main/resources/data.sql');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('app/public/verticals/9bfabd45-app/');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('STOP for human approval');
   });
 
   test('Sentry webhook maps the app service tag to the NEXEN identity', () => {
     const alertData = applyCustomerIdentity({
-      issueTitle: "TypeError: Cannot read properties of undefined (reading 'safekeepingEntity')",
-      culprit: 'buildDepositInstruction',
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'entities')",
+      culprit: 'summariseCollateral',
       tags: [['service', 'customer-9bfabd45-web'], ['platform', 'web']],
     });
 
@@ -202,7 +200,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
 
   test('Sentry webhook skips the events the instant path already alerted on, tagged or tagless', () => {
     expect(isInstantPathEvent({
-      culprit: '9bfabd45/frontend/src/domain/digitalAssetCustody.ts \u2014 buildDepositInstruction',
+      culprit: '9bfabd45/frontend/src/domain/collateral.ts \u2014 summariseCollateral',
       tags: [['service', 'customer-9bfabd45-web'], ['alert_path', 'instant']],
     })).toBe(true);
     expect(isInstantPathEvent({
