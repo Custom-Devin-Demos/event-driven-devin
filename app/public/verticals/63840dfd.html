@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Change Your Medicare Plan with a Licensed Advisor | Chapter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #FD2F4C;
+      --red-dark: #E8233F;
+      --orange: #FD731E;
+      --amber: #FDA100;
+      --yellow: #FECA18;
+      --cream: #FDF5EE;
+      --sand: #F6E9D7;
+      --ink: #000000;
+      --grey: #393939;
+      --grey-2: #E3E3E3;
+      --white: #FFFFFF;
+      --sans: mdSystem, "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --serif: caslonIonic, "Libre Caslon Text", Georgia, "Times New Roman", serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--sans); font-size: 16px; line-height: 24px; color: var(--ink); background: var(--white); }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: 100%; max-width: 1328px; margin: 0 auto; padding: 0 48px; }
+
+    /* Header */
+    .header { background: var(--white); position: sticky; top: 0; z-index: 50; }
+    .header .wrap { display: flex; align-items: center; justify-content: space-between; height: 82px; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo svg { width: 44px; height: 44px; display: block; }
+    .logo span { font-family: var(--serif); font-size: 32px; line-height: 1; letter-spacing: -0.01em; color: var(--ink); }
+    .header-actions { display: flex; gap: 16px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; font-weight: 700; font-size: 16px; line-height: 20px; padding: 10px 30px; border-radius: 100px; min-height: 44px; border: 0; cursor: pointer; font-family: var(--sans); transition: background-color .15s; }
+    .pill-grey { background: var(--grey-2); color: var(--ink); }
+    .pill-red { background: var(--red); color: var(--white); }
+    .pill-red:hover { background: var(--red-dark); }
+    .pill-orange { background: var(--orange); color: var(--ink); }
+    .pill-white { background: var(--white); color: var(--ink); }
+
+    .subnav { background: var(--cream); }
+    .subnav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .subnav nav { display: flex; gap: 90px; font-weight: 700; }
+    .subnav p { font-size: 16px; line-height: 20px; letter-spacing: 0.16px; }
+    .subnav p b { font-weight: 700; }
+
+    /* Hero */
+    .hero { position: relative; min-height: 460px; display: flex; align-items: center; background: #3a2b2a; color: var(--white); overflow: hidden; }
+    .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 30%; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,.8) 0%, rgba(0,0,0,.4) 50%, rgba(0,0,0,0) 100%); }
+    .hero .wrap { position: relative; z-index: 1; padding-top: 72px; padding-bottom: 72px; }
+    .hero h1 { font-family: var(--serif); font-weight: 400; font-size: 60px; line-height: 60px; max-width: 560px; }
+    .hero h1 b { font-family: var(--sans); font-weight: 700; }
+    .hero p { margin-top: 20px; max-width: 520px; font-size: 18px; line-height: 26px; color: rgba(255,255,255,.92); }
+    .hero .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+
+    /* Main */
+    .main { background: var(--cream); padding: 64px 0 80px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 32px; align-items: start; }
+    .card { background: var(--sand); border-radius: 8px; padding: 32px; }
+    .card-white { background: var(--white); border-radius: 8px; padding: 32px; }
+    .eyebrow { font-weight: 700; font-size: 14px; line-height: 20px; letter-spacing: .04em; text-transform: uppercase; color: var(--grey); }
+    .card h2 { font-family: var(--serif); font-weight: 400; font-size: 34px; line-height: 40px; margin: 8px 0 20px; }
+    .card h2 b { font-family: var(--sans); font-weight: 700; }
+    .plan-summary { display: grid; gap: 14px; }
+    .plan-row { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(0,0,0,.08); }
+    .plan-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .plan-row .k { color: var(--grey); }
+    .plan-row .v { font-weight: 700; text-align: right; }
+    .advisor { display: flex; gap: 16px; align-items: center; margin-top: 28px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,.08); }
+    .advisor .avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; color: var(--ink); flex: none; }
+    .advisor .name { font-weight: 700; }
+    .advisor .role { color: var(--grey); font-size: 15px; line-height: 22px; }
+
+    .form-title { font-weight: 700; font-size: 22px; line-height: 30px; margin-bottom: 6px; }
+    .form-sub { color: var(--grey); margin-bottom: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { display: block; font-weight: 700; font-size: 15px; line-height: 20px; margin-bottom: 8px; }
+    select, input[type="text"] { width: 100%; min-height: 48px; padding: 12px 14px; font-family: var(--sans); font-size: 16px; line-height: 20px; color: var(--ink); background: var(--white); border: 1px solid #C9C9C9; border-radius: 8px; appearance: none; -webkit-appearance: none; }
+    select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path d='M3 6l5 5 5-5' fill='none' stroke='%23000' stroke-width='2'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+    select:focus, input:focus { outline: 2px solid var(--red); outline-offset: 1px; border-color: var(--red); }
+    .hint { font-size: 14px; line-height: 20px; color: var(--grey); margin-top: 6px; }
+    .btn-submit { width: 100%; margin-top: 8px; }
+    .btn-submit:disabled { opacity: .7; cursor: default; }
+    .fine { font-size: 13px; line-height: 19px; color: var(--grey); margin-top: 14px; }
+    .result-box { display: none; margin-top: 18px; padding: 16px 18px; border-radius: 8px; font-size: 15px; line-height: 22px; }
+    .result-box.success { display: block; background: #E8F5E9; border: 1px solid #A5D6A7; color: #1B5E20; }
+    .result-box.error { display: block; background: #FDECEE; border: 1px solid #F5A3AF; color: #8E1428; }
+    .error-title { font-weight: 700; margin-bottom: 2px; }
+
+    /* Trust strip */
+    .trust { background: var(--white); padding: 56px 0; }
+    .trust h3 { font-weight: 700; font-size: 22px; line-height: 30px; max-width: 460px; }
+    .trust-row { display: flex; gap: 20px; margin-top: 24px; flex-wrap: wrap; }
+    .trust-item { display: inline-flex; align-items: center; gap: 12px; padding: 10px 20px; border: 1px solid var(--grey-2); border-radius: 8px; font-size: 14px; line-height: 20px; }
+    .trust-item b { display: block; }
+
+    /* Footer */
+    .footer { background: var(--yellow); padding: 56px 0 40px; overflow: hidden; position: relative; }
+    .footer .wrap { position: relative; }
+    .footer .dots { position: absolute; left: 48px; top: -8px; width: 160px; height: 160px; opacity: .95; }
+    .footer-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 24px; padding-top: 120px; }
+    .footer nav { display: flex; flex-direction: column; gap: 10px; font-weight: 700; font-size: 15px; }
+    .footer .copy { font-weight: 400; }
+    .badge { background: var(--amber); border-radius: 6px; padding: 12px 16px; font-weight: 700; font-size: 13px; line-height: 18px; text-align: center; }
+    .footer .legal { margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(0,0,0,.15); font-size: 12px; line-height: 18px; color: var(--grey); max-width: 960px; }
+    .footer .legal b { display: block; color: var(--ink); font-size: 14px; margin-bottom: 8px; }
+
+    @media (max-width: 900px) {
+      .wrap { padding: 0 20px; }
+      .header .wrap { height: 68px; }
+      .logo svg { width: 36px; height: 36px; }
+      .logo span { font-size: 26px; }
+      .header-actions .pill-grey { display: none; }
+      .subnav nav { gap: 20px; font-size: 15px; }
+      .subnav p { display: none; }
+      .hero { min-height: 420px; }
+      .hero h1 { font-size: 44px; line-height: 44px; }
+      .hero p { font-size: 16px; line-height: 24px; }
+      .main { padding: 40px 0 56px; }
+      .grid { grid-template-columns: 1fr; gap: 20px; }
+      .card, .card-white { padding: 24px; }
+      .card h2 { font-size: 28px; line-height: 32px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .footer-grid { grid-template-columns: 1fr 1fr; padding-top: 110px; }
+      .footer .dots { left: 20px; width: 120px; height: 120px; }
+    }
+    @media (max-width: 480px) {
+      .subnav nav { gap: 14px; font-size: 14px; }
+      .hero .cta-row .pill { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Chapter">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <circle cx="22" cy="6" r="5" fill="#FD2F4C"/>
+          <circle cx="33.3" cy="10.7" r="5" fill="#FD463D"/>
+          <circle cx="38" cy="22" r="5" fill="#FD5D2E"/>
+          <circle cx="33.3" cy="33.3" r="5" fill="#FD731E"/>
+          <circle cx="22" cy="38" r="5" fill="#FD8A0F"/>
+          <circle cx="10.7" cy="33.3" r="5" fill="#FDA100"/>
+          <circle cx="6" cy="22" r="5" fill="#FD8A0F"/>
+          <circle cx="10.7" cy="10.7" r="5" fill="#FD5D2E"/>
+        </svg>
+        <span>Chapter</span>
+      </a>
+      <div class="header-actions">
+        <a class="pill pill-grey" href="#">(855) 900-CHAP</a>
+        <a class="pill pill-red" href="#">Get Started</a>
+      </div>
+    </div>
+  </header>
+  <div class="subnav">
+    <div class="wrap">
+      <nav>
+        <a href="#">About</a>
+        <a href="#">Resources</a>
+        <a href="#">Partnerships</a>
+        <a href="#">OTC App</a>
+      </nav>
+      <p><b>M-F:</b> 9am-9pm ET and <b>Sa:</b> 9am-9pm ET</p>
+    </div>
+  </div>
+
+  <section class="hero">
+    <img src="https://askchapter.org/hero/hero-1.webp" alt="" onerror="this.style.display='none'">
+    <div class="wrap">
+      <h1>Change Your <b>Medicare Plan</b> with a <b>Chapter Advisor</b></h1>
+      <p>Your advisor has compared plans from every carrier in your area. Review the recommendation below and submit your plan change request.</p>
+      <div class="cta-row">
+        <a class="pill pill-white" href="#change">Review Recommendation</a>
+        <a class="pill pill-orange" href="#">Speak with a Medicare Advisor</a>
+      </div>
+    </div>
+  </section>
+
+  <main class="main" id="change">
+    <div class="wrap">
+      <div class="grid">
+        <div class="card">
+          <div class="eyebrow">Your current coverage</div>
+          <h2>Where you are <b>today</b></h2>
+          <div class="plan-summary">
+            <div class="plan-row"><span class="k">Member</span><span class="v">Alice Chen</span></div>
+            <div class="plan-row"><span class="k">Medicare number</span><span class="v">•••• •••• 3001</span></div>
+            <div class="plan-row"><span class="k">Current plan</span><span class="v">Medicare Advantage HMO &mdash; Basic</span></div>
+            <div class="plan-row"><span class="k">Monthly premium</span><span class="v">$29.99</span></div>
+            <div class="plan-row"><span class="k">Enrollment period</span><span class="v">Annual Enrollment (Oct 15 &ndash; Dec 7)</span></div>
+            <div class="plan-row"><span class="k">Coverage effective</span><span class="v">January 1</span></div>
+          </div>
+          <div class="advisor">
+            <div class="avatar">MR</div>
+            <div>
+              <div class="name">Maria Reyes</div>
+              <div class="role">Licensed Chapter Medicare Advisor &middot; Reviewed 50 carriers, 15,778 products</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-white">
+          <div class="form-title">Plan Change Request</div>
+          <div class="form-sub">Confirm the plan you are moving to. Your advisor will handle the enrollment paperwork with the carrier.</div>
+          <form id="upgradeForm">
+            <div class="form-group">
+              <label for="currentPlan">Current plan</label>
+              <select id="currentPlan">
+                <option value="BASIC-12">Medicare Advantage HMO &mdash; Basic ($29.99/mo)</option>
+                <option value="PLUS-24">Medicare Advantage PPO &mdash; Plus ($49.99/mo)</option>
+                <option value="ULTRA-36">Medicare Supplement Plan G &mdash; Ultra ($79.99/mo)</option>
+                <option value="FAMILY-PLUS-12">Medicare Advantage PPO + Part D &mdash; Family Plus ($99.99/mo)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="newPlan">Recommended plan</label>
+                <select id="newPlan">
+                  <option value="PLUS-24">Medicare Advantage PPO &mdash; Plus</option>
+                  <option value="ULTRA-36">Medicare Supplement Plan G &mdash; Ultra</option>
+                  <option value="UNLIMITED-24">Medicare Supplement Plan G + Part D &mdash; Unlimited</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="addon">Add a benefit</label>
+                <select id="addon">
+                  <option value="none">No additional benefits</option>
+                  <option value="international">Stand-alone Part D drug plan</option>
+                  <option value="hotspot">Dental, vision &amp; hearing</option>
+                  <option value="insurance">OTC benefit card</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="promoCode">Advisor reference code</label>
+              <input type="text" id="promoCode" placeholder="From your advisor call (optional)" autocomplete="off">
+              <div class="hint">Your requested change takes effect on the first of the month after the carrier confirms.</div>
+            </div>
+            <button type="submit" class="pill pill-red btn-submit" id="submitBtn">Submit Plan Change Request</button>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="fine">Chapter Advisory, LLC is a licensed health insurance agency. Enrollment depends on the plan's contract renewal. We do not offer every plan available in your area.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <section class="trust">
+    <div class="wrap">
+      <h3>We've earned the trust of the 500,000+ Medicare enrollees we've supported</h3>
+      <div class="trust-row">
+        <div class="trust-item"><span>&#9733;&#9733;&#9733;&#9733;&#9733;</span><span><b>Rated 5 Stars</b>on Reviews.io by Verified Users</span></div>
+        <div class="trust-item"><span><b>A+ Rating</b>from the Better Business Bureau</span></div>
+        <div class="trust-item"><span><b>HIPAA Compliant</b>Your information stays private</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <svg class="dots" viewBox="0 0 160 160" aria-hidden="true">
+        <circle cx="80" cy="18" r="16" fill="#FD731E"/>
+        <circle cx="124" cy="36" r="16" fill="#FD8A0F"/>
+        <circle cx="142" cy="80" r="16" fill="#FDA100"/>
+        <circle cx="124" cy="124" r="16" fill="#FD8A0F"/>
+        <circle cx="80" cy="142" r="16" fill="#FD731E"/>
+        <circle cx="36" cy="124" r="16" fill="#FD5D2E"/>
+        <circle cx="18" cy="80" r="16" fill="#FD463D"/>
+        <circle cx="36" cy="36" r="16" fill="#FD5D2E"/>
+      </svg>
+      <div class="footer-grid">
+        <nav><span class="copy">2026 &copy; Chapter</span></nav>
+        <nav><a href="#">About Us</a><a href="#">Resources</a><a href="#">Partnerships</a><a href="#">Free OTC App</a></nav>
+        <nav><a href="#">Careers</a><a href="#">Terms of Service</a><a href="#">Privacy Policy</a><a href="#">Licensing</a></nav>
+        <nav><a href="#">Reviews</a><a href="#">Facebook</a><a href="#">LinkedIn</a></nav>
+        <div><div class="badge">Accredited<br>Business</div><div class="badge" style="margin-top:12px">HIPAA<br>Compliant</div></div>
+      </div>
+      <div class="legal">
+        <b>Legal Disclaimer</b>
+        Chapter and its affiliates are not connected with or endorsed by any government entity or the federal Medicare program. Chapter Advisory, LLC represents Medicare Advantage HMO, PPO, and PFFS organizations and stand alone prescription drug plans that have a Medicare contract. Enrollment depends on the plan's contract renewal. Please contact Medicare.gov or 1-800-Medicare to get information on all of your options.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('upgradeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Submitting to carrier...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/telco/upgrade', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId: 'CUST-3001', currentPlanCode: document.getElementById('currentPlan').value, targetPlanCode: document.getElementById('newPlan').value, billingDay: 15, devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Request Failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Plan Change Request Submitted</div><div class="error-detail">New plan: ${data.plan} &mdash; Monthly premium: $${data.monthlyTotal} (save $${data.discount}/mo). Your advisor will confirm enrollment with the carrier.</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network Error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Submit Plan Change Request'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
