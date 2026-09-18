@@ -2021,6 +2021,22 @@ const ONCALL_SKINS = {
     supportCenter: 'FOX One Help',
     disclaimer: 'NOT ACTUALLY A FOX ONE SITE — internal demo only, not affiliated with, endorsed by, or a real FOX / Fox Media LLC product.',
   },
+  '3983a181': {
+    slug: '3983a181',
+    company: 'British Airways',
+    brandMark: 'BA',
+    vertical: 'banking',
+    page: { file: '3983a181.html', title: 'Payment | British Airways' },
+    theme: {
+      '--accent': '#3468AD',
+      '--ink': '#021B41',
+      '--surface': '#F9F9FA',
+      '--chrome-bg': '#01122C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'British Airways Help Centre',
+    disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
+  },
 };
 
 function getOncallSkin(slug) {
