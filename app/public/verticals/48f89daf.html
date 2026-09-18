@@ -126,9 +126,9 @@
     .review .row { display: flex; padding: 8px 0; border-bottom: 1px solid #eef1f5; }
     .review .row span { width: 160px; color: #777; }
     .review .row b { font-weight: 600; color: #222; }
-    .modal-error { margin-bottom: 14px; padding: 10px 12px; border-radius: 3px; background: #fdecea; border: 1px solid #f5c2c0; border-left: 4px solid #d32f2f; color: #b71c1c; font-size: 12px; }
-    .modal-error b { display: block; font-weight: 600; margin-bottom: 2px; }
-    .modal-error code { font-family: Menlo, Consolas, monospace; font-size: 11.5px; color: #8e0000; }
+    .modal-error { margin-right: auto; align-self: center; padding: 6px 10px; border-radius: 3px; background: #fdecea; border: 1px solid #f5c2c0; border-left: 4px solid #d32f2f; color: #b71c1c; font-size: 11.5px; line-height: 1.35; }
+    .modal-error b { display: block; font-weight: 600; }
+    .modal-error code { font-family: Menlo, Consolas, monospace; font-size: 11px; color: #8e0000; }
     .notice { margin-top: 14px; font-size: 11.5px; color: #666; background: #fff8e1; border: 1px solid #ffe0a3; padding: 8px 10px; border-radius: 3px; }
     .result { text-align: center; padding: 8px 0 4px; }
     .result .tick { width: 54px; height: 54px; border-radius: 50%; background: #43a047; color: #fff; font-size: 30px; line-height: 54px; margin: 0 auto 12px; }
@@ -138,6 +138,7 @@
     .result .grid span { color: #777; display: block; font-size: 10.5px; }
     .modal-foot { padding: 12px 18px; border-top: 1px solid #e1e4e8; display: flex; gap: 8px; justify-content: flex-end; background: #fafbfc; }
     .modal-foot .back { margin-right: auto; }
+    .modal-foot .btn { white-space: nowrap; flex-shrink: 0; }
     .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: -2px; margin-right: 6px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -371,8 +372,7 @@
         el.className = n === state.step ? 'on' : (n < state.step ? 'done' : '');
       });
       if (state.step === 1) {
-        body.innerHTML = (state.error ? '<div class="modal-error" role="alert"><b>Dispatch failed \u2014 incident logged</b><code>' + esc(state.error) + '</code></div>' : '') +
-          jobSummary(job) +
+        body.innerHTML = jobSummary(job) +
           '<div class="field"><label>Technician</label><select id="techSel">' + state.technicians.map(function (t) {
             return '<option value="' + esc(t.id) + '"' + (t.id === state.technicianId ? ' selected' : '') + '>' + esc(t.name) + ' \u2014 ' + esc(t.trade) + ' (' + esc(t.region) + ')</option>';
           }).join('') + '</select></div>' +
@@ -385,7 +385,8 @@
             return '<button type="button" class="' + (p === state.priority ? 'on' : '') + '" data-prio="' + p + '">' + p.charAt(0).toUpperCase() + p.slice(1) + '</button>';
           }).join('') + '</div></div>' +
           '<div class="notice">Confirming will lock the technician\u2019s schedule block, move the job to <b>Progress</b> and send a push notification to Simpro Mobile.</div>';
-        foot.innerHTML = '<button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-green" id="confirmBtn">Confirm dispatch</button>';
+        foot.innerHTML = (state.error ? '<div class="modal-error" role="alert"><b>Dispatch failed \u2014 incident logged</b><code>' + esc(state.error) + '</code></div>' : '') +
+          '<button class="btn btn-ghost" id="cancelBtn">Cancel</button><button class="btn btn-green" id="confirmBtn">Confirm dispatch</button>';
         document.getElementById('techSel').addEventListener('change', function () { state.technicianId = this.value; });
         body.querySelectorAll('[data-slot]').forEach(function (b) { b.addEventListener('click', function () { state.timeSlot = b.getAttribute('data-slot'); renderModal(); }); });
         body.querySelectorAll('[data-prio]').forEach(function (b) { b.addEventListener('click', function () { state.priority = b.getAttribute('data-prio'); renderModal(); }); });
