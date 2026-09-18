@@ -51,18 +51,19 @@ const APP_REPORT = {
   environment: 'prod',
   platform: 'web',
   errorType: 'TypeError',
-  errorMessage: "Cannot read properties of undefined (reading 'entities')",
-  stackTrace: 'summariseCollateral (src/domain/collateral.ts:14)',
+  errorMessage: "Cannot read properties of undefined (reading 'label')",
+  stackTrace: 'buildAllocationBars (src/domain/allocation.ts:31)',
   screen: 'collateral_overview',
-  action: 'load_collateral_overview',
+  action: 'load_allocation_chart',
   accountNumber: '',
-  clientName: 'MERIDIAN CAPITAL PARTNERS',
+  clientName: '',
   market: '',
   devinUserId: 'user-abc',
   devinOrgId: ORG_ID,
   devinEmail: 'hub.user@example.com',
   report: {
-    clientId: 'meridian-capital',
+    clientId: 'abc-global',
+    view: 'chart',
     nested: { deep: true },
   },
 };
@@ -114,7 +115,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
       release: 'nexen-custody@1.0.0',
       platform: 'web',
       errorType: 'TypeError',
-      culprit: '9bfabd45/frontend/src/domain/collateral.ts \u2014 summariseCollateral',
+      culprit: '9bfabd45/frontend/src/domain/allocation.ts \u2014 buildAllocationBars',
       devinUserId: 'user-abc',
       devinOrgId: ORG_ID,
       devinEmail: 'hub.user@example.com',
@@ -124,11 +125,10 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
     expect(alertData.tags).toEqual(expect.arrayContaining([
       { key: 'service', value: 'customer-9bfabd45-web' },
       { key: 'screen', value: 'collateral_overview' },
-      { key: 'action', value: 'load_collateral_overview' },
-      { key: 'client_name', value: 'MERIDIAN CAPITAL PARTNERS' },
-      { key: 'scenario', value: 'collateral-overview-aggregate' },
+      { key: 'action', value: 'load_allocation_chart' },
+      { key: 'scenario', value: 'collateral-overview-chart' },
     ]));
-    expect(alertData.extra.report).toEqual({ clientId: 'meridian-capital' });
+    expect(alertData.extra.report).toEqual({ clientId: 'abc-global', view: 'chart' });
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     const [captured, context] = Sentry.captureException.mock.calls[0];
@@ -174,9 +174,9 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
     expect(createSessionAndAlert.mock.calls[0][0].devinUserId).toBe('ent-admin-1');
   });
 
-  test('the directive names the NEXEN repo, the collateral fix and stops before merge', () => {
+  test('the directive names the NEXEN repo, the chart fix and stops before merge', () => {
     expect(APP_REMEDIATION_DIRECTIVE).toContain('github.com/COG-GTM/bny');
-    expect(APP_REMEDIATION_DIRECTIVE).toContain('frontend/src/domain/collateral.ts');
+    expect(APP_REMEDIATION_DIRECTIVE).toContain('frontend/src/domain/allocation.ts');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('backend/src/main/resources/data.sql');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('app/public/verticals/9bfabd45-app/');
     expect(APP_REMEDIATION_DIRECTIVE).toContain('STOP for human approval');
@@ -184,8 +184,8 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
 
   test('Sentry webhook maps the app service tag to the NEXEN identity', () => {
     const alertData = applyCustomerIdentity({
-      issueTitle: "TypeError: Cannot read properties of undefined (reading 'entities')",
-      culprit: 'summariseCollateral',
+      issueTitle: "TypeError: Cannot read properties of undefined (reading 'label')",
+      culprit: 'buildAllocationBars',
       tags: [['service', 'customer-9bfabd45-web'], ['platform', 'web']],
     });
 
@@ -200,7 +200,7 @@ describe('BNY NEXEN failure report (9bfabd45)', () => {
 
   test('Sentry webhook skips the events the instant path already alerted on, tagged or tagless', () => {
     expect(isInstantPathEvent({
-      culprit: '9bfabd45/frontend/src/domain/collateral.ts \u2014 summariseCollateral',
+      culprit: '9bfabd45/frontend/src/domain/allocation.ts \u2014 buildAllocationBars',
       tags: [['service', 'customer-9bfabd45-web'], ['alert_path', 'instant']],
     })).toBe(true);
     expect(isInstantPathEvent({
