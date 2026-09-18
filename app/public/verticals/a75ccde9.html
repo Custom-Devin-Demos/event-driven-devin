@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>Change Your Plan | FOX One</title>
+  <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
   <style>
     :root {
       --black: #000000;
@@ -340,6 +342,7 @@
       color: #8E2020;
       background: #FFF0F0;
       border: 1px solid #E5A8A8;
+      border-left: 4px solid #B42318;
     }
     .result-title { font-weight: 700; }
     .result-detail { margin-top: 5px; }
@@ -481,7 +484,7 @@
 <body>
   <header class="site-header">
     <div class="header-inner">
-      <a class="wordmark" href="#top" aria-label="FOX One">
+      <a class="wordmark" href="#top">
         <span class="wordmark-fox">FOX</span><span class="wordmark-one">ONE</span>
       </a>
       <nav class="nav-links" aria-label="Primary navigation">
@@ -511,7 +514,7 @@
             <span class="selected">Monthly</span><span>Annual</span>
           </div>
         </div>
-        <img class="hero-art" src="https://images.api.fox.com/dtc/pmt/assets/hero_card_offer_1789512562582.png?width=800&amp;height=*&amp;fit=bounds&amp;format=avif" alt="FOX One" onerror="this.remove()">
+        <img class="hero-art" src="https://images.api.fox.com/dtc/pmt/assets/hero_card_offer_1789512562582.png?width=800&amp;height=*&amp;fit=bounds&amp;format=avif" alt="FOX One" width="391" height="530" loading="eager" fetchpriority="high" onerror="this.remove()">
       </div>
     </section>
     <section class="plans-section" id="plans">
@@ -724,10 +727,15 @@
           slowStatus.textContent = 'Updating your plan. This is taking longer than usual.';
           slowStatus.hidden = false;
         }, 3000);
+        const controller = new AbortController();
+        const timeoutTimer = window.setTimeout(function () {
+          controller.abort();
+        }, 6000);
         try {
           const response = await fetch('/api/telco/upgrade', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
               accountId: 'CUST-3001',
               currentPlanCode: currentPlan.value,
@@ -749,10 +757,17 @@
           result.className = 'result-box success';
           result.replaceChildren(title, detail);
         } catch (error) {
+          const title = document.createElement('div');
+          title.className = 'result-title';
+          title.textContent = "We couldn't update your plan";
+          const detail = document.createElement('div');
+          detail.className = 'result-detail';
+          detail.textContent = "Your plan change didn't go through and you haven't been charged. Please try again in a few minutes.";
           result.className = 'result-box error';
-          result.textContent = "We couldn't update your plan right now. Please try again in a few minutes.";
+          result.replaceChildren(title, detail);
         } finally {
           window.clearTimeout(slowTimer);
+          window.clearTimeout(timeoutTimer);
           slowStatus.hidden = true;
           form.classList.remove('pending');
           planControls.forEach(function (control) {
