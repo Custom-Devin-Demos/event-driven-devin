@@ -575,7 +575,7 @@
                 <li>More of the FOX personalities you trust</li>
               </ul>
               <div class="price"><strong>$24.99</strong><span>/ month</span></div>
-              <div class="annual-note" data-monthly-note="$28.98 Save 13%"><s>$28.98</s>Save 13%</div>
+              <div class="annual-note"><s>$28.98</s>Save 13%</div>
               <button type="button" class="select-card">Selected</button>
             </article>
             <article class="plan-card" data-plan="ULTRA-36">
@@ -587,7 +587,7 @@
                 <li>Live scores, highlights and real-time reminders</li>
               </ul>
               <div class="price"><strong>$39.99</strong><span>/ month</span></div>
-              <div class="annual-note" data-monthly-note="$51.98 Save 23%"><s>$51.98</s>Save 23%</div>
+              <div class="annual-note"><s>$51.98</s>Save 23%</div>
               <button type="button" class="select-card">Select</button>
             </article>
             <article class="plan-card" data-plan="FAMILY-PLUS-12">
@@ -599,7 +599,7 @@
                 <li>Real-time breaking news, alerts and scores</li>
               </ul>
               <div class="price"><strong>$99</strong><span>/ year</span></div>
-              <div class="annual-note" data-monthly-note="Just $8.25/month when billed annually · Save 50%">Just $8.25/month when billed annually · Save 50%</div>
+              <div class="annual-note">Just $8.25/month when billed annually · Save 50%</div>
               <button type="button" class="select-card">Select</button>
             </article>
           </div>
@@ -697,6 +697,14 @@
       const planControls = cards.map(function (card) {
         return card.querySelector('.select-card');
       }).concat([newPlan, currentPlan]);
+      const initialCardPricing = cards.map(function (card) {
+        return {
+          card,
+          amount: card.querySelector('.price strong').textContent,
+          period: card.querySelector('.price span').textContent,
+          note: card.querySelector('.annual-note').innerHTML,
+        };
+      });
       const PLAN_PRICING = {
         'PLUS-24': {
           monthly: { amount: 24.99, label: '$24.99 / month' },
@@ -704,11 +712,11 @@
         },
         'ULTRA-36': {
           monthly: { amount: 39.99, label: '$39.99 / month' },
-          annual: { amount: 399.99, label: '$399.99 / year' },
+          annual: { amount: 399.99, period: '/ year', label: '$399.99 / year' },
         },
         'FAMILY-PLUS-12': {
-          monthly: { amount: 12.99, label: '$12.99 / month' },
-          annual: { amount: 99, label: '$99 / year' },
+          monthly: { amount: null, label: '$99 / year' },
+          annual: { amount: 99, period: '/ year', label: '$99 / year' },
         },
       };
       let billing = 'monthly';
@@ -731,22 +739,32 @@
         const selectedCode = newPlan.value;
         const selectedPricing = PLAN_PRICING[selectedCode][selectedBilling];
         const selectedAmount = selectedPricing.amount;
+        if (selectedBilling === 'monthly') {
+          initialCardPricing.forEach(function (initial) {
+            initial.card.querySelector('.price strong').textContent = initial.amount;
+            initial.card.querySelector('.price span').textContent = initial.period;
+            initial.card.querySelector('.annual-note').innerHTML = initial.note;
+          });
+          summaryText.textContent = (selectedCode === 'FAMILY-PLUS-12' ? 'Annual access to ' : 'Monthly access to ') + newLabel();
+          summaryPrice.textContent = selectedPricing.label;
+          return selectedAmount;
+        }
         cards.forEach(function (card) {
           const code = card.dataset.plan;
           const pricing = PLAN_PRICING[code][selectedBilling];
           if (!pricing) return;
           const price = card.querySelector('.price');
           price.querySelector('strong').textContent = `$${pricing.amount.toFixed(2).replace(/\.00$/, '')}`;
-          price.querySelector('span').textContent = pricing.label.replace(/^\$[\d.]+\s*/, '');
+          price.querySelector('span').textContent = pricing.period;
           const note = card.querySelector('.annual-note');
-          if (selectedBilling === 'annual') {
+          if (typeof PLAN_PRICING[code].monthly.amount === 'number') {
             const savings = PLAN_PRICING[code].monthly.amount * 12 - pricing.amount;
             note.textContent = `Save $${savings.toFixed(2).replace(/\.00$/, '')}/yr`;
           } else {
-            note.textContent = note.dataset.monthlyNote;
+            note.textContent = 'Billed annually';
           }
         });
-        summaryText.textContent = (selectedCode === 'FAMILY-PLUS-12' ? 'Annual access to ' : 'Monthly access to ') + newLabel();
+        summaryText.textContent = (selectedBilling === 'annual' || selectedCode === 'FAMILY-PLUS-12' ? 'Annual access to ' : 'Monthly access to ') + newLabel();
         summaryPrice.textContent = selectedPricing.label;
         return selectedAmount;
       }

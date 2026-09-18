@@ -168,10 +168,11 @@ describe('a75ccde9 page pricing data', () => {
 
   test('keeps monthly pricing complete while the default annual data is pending', () => {
     expect(Object.keys(pricing)).toEqual(['PLUS-24', 'ULTRA-36', 'FAMILY-PLUS-12']);
-    expect(Object.values(pricing).every(({ monthly }) => monthly && monthly.amount && monthly.label)).toBe(true);
+    expect(Object.values(pricing).every(({ monthly }) => monthly && monthly.label)).toBe(true);
+    expect(pricing['FAMILY-PLUS-12'].monthly.amount).toBeNull();
     expect(pricing['PLUS-24'].annual).toBeUndefined();
-    expect(pricing['ULTRA-36'].annual).toEqual(expect.objectContaining({ amount: expect.any(Number) }));
-    expect(pricing['FAMILY-PLUS-12'].annual).toEqual(expect.objectContaining({ amount: expect.any(Number) }));
+    expect(pricing['ULTRA-36'].annual).toEqual(expect.objectContaining({ amount: expect.any(Number), period: '/ year' }));
+    expect(pricing['FAMILY-PLUS-12'].annual).toEqual(expect.objectContaining({ amount: expect.any(Number), period: '/ year' }));
   });
 
   test.skip('future remediation requires annual pricing for every offered plan', () => {
