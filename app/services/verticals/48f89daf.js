@@ -142,16 +142,13 @@ const PRIORITY_SLA_HOURS = {
 const PRIORITIES = Object.keys(PRIORITY_SLA_HOURS);
 
 /**
- * Shift roster keyed by time slot, mapping each dispatch window to the crew
- * shift covering it and the granularity of schedule slots.
- *
- * NOTE: the afternoon shift was added to the dispatch board in the FY26
- * scheduling refresh; its roster entry was expected to be registered
- * alongside it.
+ * Shift roster keyed by crew shift code, mapping each shift to the dispatch
+ * window it covers and the granularity of schedule slots.
  */
 const SHIFT_ROSTER = {
-  morning: { shift: 'AM', slotMinutes: 30 },
-  midday: { shift: 'MID', slotMinutes: 30 },
+  AM: { timeSlot: 'morning', slotMinutes: 30 },
+  MID: { timeSlot: 'midday', slotMinutes: 30 },
+  PM: { timeSlot: 'afternoon', slotMinutes: 30 },
 };
 
 /**
@@ -194,7 +191,7 @@ function buildTechnicianSchedule(technician, timeSlotId) {
   const schedule = {
     technicianId: technician.id,
     timeSlotId,
-    shift: roster ? roster.shift : undefined,
+    shift: roster ? timeSlotId : undefined,
   };
 
   if (roster) {
