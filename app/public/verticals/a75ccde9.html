@@ -388,6 +388,7 @@
     }
     #submitBtn:hover { opacity: .78; transform: translateY(-1px); }
     #submitBtn:disabled { cursor: wait; opacity: .6; transform: none; }
+    form.pending .plan-card, form.pending select { pointer-events: none; opacity: .7; }
     .site-footer {
       padding: 64px 24px 30px;
       color: var(--white);
@@ -704,8 +705,11 @@
       });
       form.addEventListener('submit', async function (event) {
         event.preventDefault();
+        const submittedCode = newPlan.value;
+        const submittedLabel = newLabel();
         submitBtn.disabled = true;
         submitBtn.textContent = 'Processing…';
+        form.classList.add('pending');
         result.className = 'result-box';
         result.replaceChildren();
         slowStatus.hidden = true;
@@ -720,7 +724,7 @@
             body: JSON.stringify({
               accountId: 'CUST-3001',
               currentPlanCode: currentPlan.value,
-              targetPlanCode: newPlan.value,
+              targetPlanCode: submittedCode,
               billingDay: 15,
               devinUserId: localStorage.getItem('devinUserId') || '',
               devinOrgId: localStorage.getItem('devinOrgId') || '',
@@ -734,7 +738,7 @@
           title.textContent = 'Your plan has been updated';
           const detail = document.createElement('div');
           detail.className = 'result-detail';
-          detail.textContent = newLabel() + " starts on your next billing date. You'll get an email confirmation.";
+          detail.textContent = submittedLabel + " starts on your next billing date. You'll get an email confirmation.";
           result.className = 'result-box success';
           result.replaceChildren(title, detail);
         } catch (error) {
@@ -743,6 +747,7 @@
         } finally {
           window.clearTimeout(slowTimer);
           slowStatus.hidden = true;
+          form.classList.remove('pending');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Continue';
         }
