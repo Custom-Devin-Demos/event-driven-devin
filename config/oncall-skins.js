@@ -1606,7 +1606,7 @@ const ONCALL_SKINS = {
     oncallOnly: true,
     page: {
       file: '4b663efb.html',
-      title: 'On Cloudsurfer 2 Running Shoe | Nordstrom',
+      title: 'On Cloudsurfer 2 Running Shoe (Women) | Nordstrom',
     },
     accent: '#191A1B',
     accentDark: '#000000',
