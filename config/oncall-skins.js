@@ -2063,6 +2063,23 @@ const ONCALL_SKINS = {
     supportCenter: 'British Airways Help Centre',
     disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
   },
+  '30922028': {
+    slug: '30922028',
+    company: 'GovTech Singapore',
+    brandMark: 'P',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '30922028.html', title: 'Pay | PaySG' },
+    theme: {
+      '--accent': '#1E51D4',
+      '--ink': '#333A4A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#151D31',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'PaySG Support',
+    disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE — internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
+  },
 };
 
 function getOncallSkin(slug) {
