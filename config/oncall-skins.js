@@ -2004,9 +2004,9 @@ const ONCALL_SKINS = {
       auto: true,
       promptAppendix: [
         'Proof requirements for this incident (customer-facing web page):',
-        '1. Before changing code, reproduce the failure in the browser at the live page above: click "Continue" on the plan change and capture a screenshot of the failed state.',
+        '1. Start a screen recording with recording_start before you change any code — the recording is a required deliverable. Then reproduce the failure in the browser at the live page above: click the "Annual" billing toggle and capture a screenshot of the failed state.',
         '2. After the fix, run the app locally on your branch, repeat the same action on http://localhost:<port>/oncall/c/a75ccde9 and capture a screenshot of the successful state.',
-        '3. Record a screen recording that shows the before (live failure) and after (local fix) back to back. Attach the recording and both screenshots to the PR description and post the PR link here.',
+        '3. Keep recording across both passes so the before (live failure) and after (local fix) play back to back, annotate each pass with annotate_recording, then recording_stop. Attach the recording and both screenshots to the PR description and post the PR link here.',
         '4. Do not merge; stop for human approval after Devin Review runs.',
       ].join('\n'),
     },
