@@ -49,6 +49,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **BAC Credomatic — Banca en Línea** (unlisted — direct URL only) | `/bac`, `/baccredomatic` | `app/public/verticals/bac.html` | `POST /api/bac/transferencia` | `app/services/verticals/bac.js` |
 | **PNC Online Banking — Virtual Wallet Transfer** (unlisted — direct URL only; on-call + Devin session resolve from the page's devindemos.com email, no hard-coded `slackMemberId`) | `/pnc` | `app/public/verticals/pnc.html` | `GET /api/pnc/accounts`, `POST /api/pnc/transfer` | `app/services/verticals/pnc.js` |
 | **Fleet Health Console — Engine Health Pipeline** (unlisted — direct URL only) | `/fleet-health`, `/a693dab5` | `app/public/verticals/a693dab5.html` | `GET /api/a693dab5/fleet`, `GET /api/a693dab5/runs`, `POST /api/a693dab5/runs` | `app/services/verticals/a693dab5.js` |
+| **Midstream Pipeline Operations — Daily Movements** (unlisted — direct URL only) | `/b4c3a7fc` | `app/public/verticals/b4c3a7fc.html` | `GET /api/b4c3a7fc/overview`, `POST /api/b4c3a7fc/movements/publish` | `app/services/verticals/b4c3a7fc.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
