@@ -261,8 +261,10 @@
         var data = state.overview;
         var nominated = data.nominations.reduce(function (sum, n) { return sum + n.nominatedBbl; }, 0);
         var ticketed = data.tickets.reduce(function (sum, t) { return sum + t.netBbl; }, 0);
-        var latest = (data.runs || []).find(function (r) { return r.status === 'published'; });
-        var failed = (data.runs || []).filter(function (r) { return r.status === 'failed'; }).length;
+        var runs = data.runs || [];
+        var latestIdx = runs.findIndex(function (r) { return r.status === 'published'; });
+        var latest = latestIdx === -1 ? null : runs[latestIdx];
+        var failed = (latestIdx === -1 ? runs : runs.slice(0, latestIdx)).filter(function (r) { return r.status === 'failed'; }).length;
         var open = failed + (latest ? latest.segmentsInvestigate : 0);
         document.getElementById('gauge-date').textContent = data.gaugeDate;
         document.getElementById('kpi-segments').textContent = data.segments.filter(function (s) { return s.status === 'flowing'; }).length;
