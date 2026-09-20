@@ -5,6 +5,8 @@ const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 const { readTankGauges } = require('./b4c3a7fc-gauges');
 
+const GAUGE_DATE = '2026-09-13';
+
 const SEGMENTS = [
   {
     id: 'SEG-PAS-COL',
@@ -120,6 +122,8 @@ function reconcileSegment(segment, tickets, inventory) {
   return {
     segmentId: segment.id,
     segmentName: segment.name,
+    openingBbl: inventory.openingBbl,
+    closingBbl: inventory.closingBbl,
     receiptsBbl,
     deliveriesBbl,
     bookChangeBbl,
@@ -154,7 +158,7 @@ async function publishDailyMovements(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
   const runId = `MOV-${requestId.slice(0, 8).toUpperCase()}`;
-  const gaugeDate = data.gaugeDate || new Date().toISOString().slice(0, 10);
+  const gaugeDate = data.gaugeDate || GAUGE_DATE;
 
   logger.info('Publishing daily movements', {
     requestId,
@@ -207,6 +211,7 @@ async function publishDailyMovements(data) {
       tags: {
         route: '/api/b4c3a7fc/movements/publish',
         service: 'b4c3a7fc-api',
+        alert_path: 'instant',
       },
       extra: { requestId, runId, gaugeDate },
     });
@@ -259,7 +264,7 @@ function getOverview() {
     nominations: NOMINATIONS,
     tickets: BATCH_TICKETS.map((ticket) => ({ ...ticket, netBbl: netVolume(ticket) })),
     runs: RUNS,
-    gaugeDate: new Date().toISOString().slice(0, 10),
+    gaugeDate: GAUGE_DATE,
   };
 }
 

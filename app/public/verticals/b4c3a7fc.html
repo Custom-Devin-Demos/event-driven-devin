@@ -261,7 +261,8 @@
         var data = state.overview;
         var nominated = data.nominations.reduce(function (sum, n) { return sum + n.nominatedBbl; }, 0);
         var ticketed = data.tickets.reduce(function (sum, t) { return sum + t.netBbl; }, 0);
-        var open = (data.runs || []).filter(function (r) { return r.status === 'failed' || (r.segments || []).some(function (s) { return s.status === 'investigate'; }); }).length;
+        var latest = (data.runs || []).find(function (r) { return r.status === 'published'; });
+        var open = latest ? latest.segmentsInvestigate : 0;
         document.getElementById('gauge-date').textContent = data.gaugeDate;
         document.getElementById('kpi-segments').textContent = data.segments.filter(function (s) { return s.status === 'flowing'; }).length;
         document.getElementById('kpi-nominated').textContent = fmt(nominated);
