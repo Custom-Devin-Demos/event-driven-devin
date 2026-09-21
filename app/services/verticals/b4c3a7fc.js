@@ -254,6 +254,14 @@ async function runLineBalanceCycle(data) {
   }
 }
 
+function resetLineBalance() {
+  const cleared = CYCLES.length;
+  CYCLES.length = 0;
+  logger.info('Line-balance detection re-armed', { clearedCycles: cleared, service: 'b4c3a7fc-api' });
+  incrementMetric('linebalance.rearm', { route: '/api/b4c3a7fc/line-balance/reset' });
+  return { success: true, clearedCycles: cleared, detection: detectionStatus() };
+}
+
 function getOverview() {
   return {
     segments: SEGMENTS,
@@ -265,4 +273,4 @@ function getOverview() {
   };
 }
 
-module.exports = { runLineBalanceCycle, getOverview, SEGMENTS, METER_READINGS };
+module.exports = { runLineBalanceCycle, resetLineBalance, getOverview, SEGMENTS, METER_READINGS };
