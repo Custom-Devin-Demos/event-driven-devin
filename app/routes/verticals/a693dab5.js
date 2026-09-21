@@ -44,6 +44,6 @@ router.post('/api/a693dab5/runs', async (req, res) => {
   }
 });
 
-if (process.env.NODE_ENV !== 'test') startScheduler();
+if (process.env.NODE_ENV !== 'test' && process.env.A693DAB5_SCHEDULER_ENABLED === 'true') startScheduler();
 
 module.exports = router;
