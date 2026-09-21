@@ -1,5 +1,5 @@
 const express = require('express');
-const { runLineBalanceCycle, getOverview } = require('../../services/verticals/b4c3a7fc');
+const { runLineBalanceCycle, resetLineBalance, getOverview } = require('../../services/verticals/b4c3a7fc');
 
 const router = express.Router();
 
@@ -19,6 +19,10 @@ router.post('/api/b4c3a7fc/line-balance/run', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message, errorType: error.name });
   }
+});
+
+router.post('/api/b4c3a7fc/line-balance/reset', (_req, res) => {
+  res.json(resetLineBalance());
 });
 
 module.exports = router;

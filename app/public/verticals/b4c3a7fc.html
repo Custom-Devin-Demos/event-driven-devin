@@ -61,6 +61,9 @@
     @keyframes blink { to { opacity: .25; } }
     .status-strip .detail { color: inherit; opacity: .85; }
     .status-strip .next { margin-left: auto; font: 11px var(--v-mono); opacity: .9; }
+    .status-strip .rearm { display: none; background: none; border: 1px solid currentColor; color: inherit; border-radius: 4px; padding: 3px 8px; font: 11px var(--v-mono); cursor: pointer; opacity: .8; }
+    .status-strip .rearm:hover { opacity: 1; }
+    .status-strip.degraded .rearm { display: inline-block; }
     main { max-width: 1480px; margin: 0 auto; padding: 24px 28px 54px; }
     .view { display: none; }
     .view.active { display: block; }
@@ -179,6 +182,7 @@
     <strong id="status-label">Leak detection · standby</strong>
     <span class="detail" id="status-detail">Waiting for first line-balance cycle.</span>
     <span class="next" id="status-next">next cycle —</span>
+    <button class="rearm" id="rearm-btn" title="Clear cycle history and return detection to standby">Re-arm</button>
   </div>
   <main>
     <section id="view-overview" class="view active">
@@ -383,6 +387,15 @@
           renderCountdown();
         });
       }
+      function rearm() {
+        return fetch(API + '/line-balance/reset', { method: 'POST' }).then(function (r) {
+          if (!r.ok) throw new Error('Re-arm request failed');
+          state.suspended = false;
+          state.secondsToNext = null;
+          toast('success', 'Detection re-armed', 'Cycle history cleared · returning to standby');
+          return loadOverview();
+        }).catch(function (error) { toast('error', 'Re-arm failed', esc(error.message)); });
+      }
       function tick() {
         if (state.running || state.suspended || state.secondsToNext == null) return;
         state.secondsToNext -= 1;
@@ -397,6 +410,7 @@
       }
       document.querySelectorAll('nav button').forEach(function (button) { button.addEventListener('click', function () { showView(button.getAttribute('data-view')); }); });
       document.querySelectorAll('.run-btn').forEach(function (button) { button.addEventListener('click', function () { runCycle('manual'); }); });
+      document.getElementById('rearm-btn').addEventListener('click', rearm);
       bootstrapIdentity();
       loadOverview().catch(function (error) { toast('error', 'Console failed to load', esc(error.message)); });
       setInterval(tick, 1000);
