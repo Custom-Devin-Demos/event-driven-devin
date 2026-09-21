@@ -2080,6 +2080,28 @@ const ONCALL_SKINS = {
     supportCenter: 'PaySG Support',
     disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE — internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
   },
+  '696c04ec': {
+    slug: '696c04ec',
+    company: 'Careem',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      file: '696c04ec.html',
+      title: 'Send money abroad | Careem Pay',
+    },
+    accent: '#00EB79',
+    accentDark: '#00C965',
+    theme: {
+      '--accent': '#00EB79',
+      '--ink': '#1F2937',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#001942',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Careem Pay Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CAREEM SITE — internal demo only, not affiliated with, endorsed by, or a real Careem product.',
+  },
 };
 
 function getOncallSkin(slug) {
