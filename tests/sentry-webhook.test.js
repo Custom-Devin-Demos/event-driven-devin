@@ -47,6 +47,13 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test('recognizes a tagless critical fault sweep issue webhook by its culprit module path', () => {
+    expect(isInstantPathEvent({
+      culprit: 'app/services/verticals/0eda990f.js — runFaultSweep',
+      tags: [],
+    })).toBe(true);
+  });
+
   test('does not recognize a tagless issue webhook from another vertical', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
