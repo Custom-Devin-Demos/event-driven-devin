@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Midstream Operations Console · b4c3a7fc</title>
+  <title>Pipeline Control · Line Balance · b4c3a7fc</title>
   <link rel="icon" href="/verticals/assets/b4c3a7fc/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +22,8 @@
       --v-ok-bg: #e9f6ef;
       --v-warn: #b45309;
       --v-warn-bg: #fff4e5;
+      --v-bad: #b3261e;
+      --v-bad-bg: #fdecea;
       --v-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     * { box-sizing: border-box; }
@@ -49,6 +51,16 @@
     .live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--v-ok); box-shadow: 0 0 0 3px rgba(22,124,74,.15); }
     .back { margin-left: auto; color: var(--v-muted); text-decoration: none; }
     .back:hover { color: var(--v-blue); }
+    .status-strip { display: flex; align-items: center; gap: 14px; padding: 11px 28px; border-bottom: 1px solid var(--v-line); font-size: 12px; }
+    .status-strip.monitoring { background: var(--v-ok-bg); color: var(--v-ok); }
+    .status-strip.standby { background: #eef3f9; color: var(--v-blue); }
+    .status-strip.degraded { background: var(--v-bad-bg); color: var(--v-bad); }
+    .status-strip strong { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
+    .status-strip strong::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+    .status-strip.degraded strong::before { animation: blink 1.1s steps(2) infinite; }
+    @keyframes blink { to { opacity: .25; } }
+    .status-strip .detail { color: inherit; opacity: .85; }
+    .status-strip .next { margin-left: auto; font: 11px var(--v-mono); opacity: .9; }
     main { max-width: 1480px; margin: 0 auto; padding: 24px 28px 54px; }
     .view { display: none; }
     .view.active { display: block; }
@@ -70,7 +82,9 @@
     .kpi .label { color: var(--v-muted); font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
     .kpi .value { margin-top: 7px; font-size: 25px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
     .kpi .sub { margin-top: 3px; color: var(--v-muted); font-size: 11px; }
-    .kpi.alert .value { color: var(--v-warn); }
+    .kpi .value.ok { color: var(--v-ok); }
+    .kpi .value.warn { color: var(--v-warn); }
+    .kpi .value.bad { color: var(--v-bad); }
     .card { overflow: hidden; }
     .card + .card { margin-top: 18px; }
     .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--v-line); }
@@ -88,11 +102,12 @@
     .stack small { display: block; color: var(--v-muted); font-size: 11px; margin-top: 3px; }
     .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
     .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-    .pill.flowing, .pill.published, .pill.confirmed, .pill.within-tolerance { color: var(--v-ok); background: var(--v-ok-bg); }
-    .pill.partial, .pill.investigate, .pill.failed { color: var(--v-warn); background: var(--v-warn-bg); }
-    .grid-2 { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; }
+    .pill.flowing, .pill.complete, .pill.normal, .pill.inlet { color: var(--v-ok); background: var(--v-ok-bg); }
+    .pill.partial, .pill.watch, .pill.outlet { color: var(--v-warn); background: var(--v-warn-bg); }
+    .pill.failed, .pill.alarm, .pill.blind { color: var(--v-bad); background: var(--v-bad-bg); }
+    .pill.outlet { color: var(--v-blue); background: #eef3f9; }
     .empty { padding: 26px 16px; color: var(--v-muted); text-align: center; }
-    .error-text { max-width: 480px; color: var(--v-warn); font: 11px var(--v-mono); white-space: normal; overflow-wrap: anywhere; }
+    .error-text { max-width: 480px; color: var(--v-bad); font: 11px var(--v-mono); white-space: normal; overflow-wrap: anywhere; }
     .muted { color: var(--v-muted); }
     footer { max-width: 1480px; margin: 0 auto; padding: 0 28px 26px; color: var(--v-muted); display: flex; justify-content: space-between; font-size: 11px; }
     .toasts { position: fixed; right: 22px; bottom: 22px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
@@ -105,12 +120,11 @@
     .toast code { color: #fecaca; font: 11px var(--v-mono); }
     @media (max-width: 1100px) {
       .hdr { padding: 0 18px; gap: 11px; }
-      .subbar, main { padding-left: 18px; padding-right: 18px; }
+      .subbar, main, .status-strip { padding-left: 18px; padding-right: 18px; }
       .hdr nav { margin-left: 0; }
       .hdr nav button { padding: 0 8px; }
       .right .user div, .right .env { display: none; }
       .kpis { grid-template-columns: repeat(2, 1fr); }
-      .grid-2 { grid-template-columns: 1fr; }
     }
     @media (max-width: 700px) {
       .hdr { min-height: 60px; }
@@ -122,6 +136,8 @@
       .page-head { align-items: flex-start; flex-direction: column; }
       .kpis { grid-template-columns: 1fr 1fr; }
       .subbar { gap: 9px; }
+      .status-strip { flex-wrap: wrap; }
+      .status-strip .next { margin-left: 0; }
       .crumb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .toasts { right: 12px; left: 12px; bottom: 12px; }
       .toast { min-width: 0; }
@@ -135,68 +151,69 @@
     </a>
     <span class="divider"></span>
     <div class="app">
-      <strong>Midstream Operations</strong>
-      <span>PIPELINE CONTROL · DAILY MOVEMENTS</span>
+      <strong>Pipeline Control</strong>
+      <span>LINE BALANCE · LEAK DETECTION</span>
     </div>
     <nav>
       <button class="active" data-view="overview">Overview</button>
-      <button data-view="nominations">Nominations</button>
-      <button data-view="tickets">Batch Tickets</button>
-      <button data-view="movements">Movements</button>
+      <button data-view="meters">Meters &amp; Tanks</button>
+      <button data-view="cycles">Cycle History</button>
     </nav>
     <div class="right">
-      <span class="env">PROD · GOM-WEST</span>
+      <span class="env">PROD · CONTROL ROOM · GOM-WEST</span>
       <div class="user">
         <span class="avatar">RC</span>
-        <div><span>R. Cole</span><small>Scheduler</small></div>
+        <div><span>R. Cole</span><small>Pipeline Controller</small></div>
       </div>
     </div>
   </header>
   <div class="subbar">
-    <span class="crumb">Midstream › Pipeline Control › <b id="crumb">Daily Movements</b></span>
+    <span class="crumb">Pipeline Control › CPM › <b id="crumb">Line Balance</b></span>
     <span class="live"><span class="dot"></span>SCADA feed · live</span>
     <a class="back" href="/">← All Demos</a>
+  </div>
+  <div class="status-strip standby" id="status-strip">
+    <strong id="status-label">Leak detection · standby</strong>
+    <span class="detail" id="status-detail">Waiting for first line-balance cycle.</span>
+    <span class="next" id="status-next">next cycle —</span>
   </div>
   <main>
     <section id="view-overview" class="view active">
       <div class="page-head">
-        <div><h1>Daily Movements — <span id="gauge-date">—</span></h1><p>Book-to-physical reconciliation across active pipeline segments.</p></div>
-        <button class="btn primary publish-btn"><span class="spin"></span>Publish daily movements</button>
+        <div><h1>Line Balance — <span id="window-label">—</span></h1><p>Metered in − metered out − tank change, per segment, every <span id="window-minutes">5</span> minutes.</p></div>
+        <button class="btn primary run-btn"><span class="spin"></span>Run line-balance cycle</button>
       </div>
       <div class="kpis">
-        <div class="kpi"><div class="label">Segments flowing</div><div class="value" id="kpi-segments">—</div><div class="sub">active in GOM-West control area</div></div>
-        <div class="kpi"><div class="label">Nominated bbl</div><div class="value" id="kpi-nominated">—</div><div class="sub">current cycle schedule</div></div>
-        <div class="kpi"><div class="label">Ticketed net bbl</div><div class="value" id="kpi-ticketed">—</div><div class="sub">meter-factor adjusted</div></div>
-        <div class="kpi alert"><div class="label">Open variances</div><div class="value" id="kpi-variances">—</div><div class="sub">failed runs or unresolved segments</div></div>
+        <div class="kpi"><div class="label">Segments monitored</div><div class="value" id="kpi-segments">—</div><div class="sub">GOM-West control area</div></div>
+        <div class="kpi"><div class="label">Detection status</div><div class="value" id="kpi-detection">—</div><div class="sub" id="kpi-detection-sub">no cycle completed</div></div>
+        <div class="kpi"><div class="label">Largest imbalance</div><div class="value" id="kpi-imbalance">—</div><div class="sub" id="kpi-imbalance-sub">latest complete cycle</div></div>
+        <div class="kpi"><div class="label">Active alarms</div><div class="value" id="kpi-alarms">—</div><div class="sub" id="kpi-alarms-sub">watch + alarm + blind segments</div></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2>Pipeline segments</h2><span class="meta" id="segments-meta">—</span></div>
-        <div class="table-scroll"><table><thead><tr><th>Segment</th><th>Origin → destination</th><th>Diameter</th><th>Product</th><th class="num">Max rate</th><th class="num">Tanks</th><th>Status</th></tr></thead><tbody id="segment-rows"></tbody></table></div>
+        <div class="card-head"><h2>Segment balance</h2><span class="meta" id="segments-meta">—</span></div>
+        <div class="table-scroll"><table><thead><tr><th>Segment</th><th>Origin → destination</th><th>Product</th><th class="num">In bbl</th><th class="num">Out bbl</th><th class="num">Tank Δ bbl</th><th class="num">Imbalance bbl</th><th class="num">Imbalance %</th><th>Detection</th></tr></thead><tbody id="segment-rows"></tbody></table></div>
       </div>
       <div class="card">
-        <div class="card-head"><h2>Recent movement runs</h2><span class="meta" id="runs-meta">newest first</span></div>
-        <div class="table-scroll"><table><thead><tr><th>Run ID</th><th>Gauge date</th><th>Status</th><th>Summary</th><th>Time</th></tr></thead><tbody id="run-rows"></tbody></table></div>
+        <div class="card-head"><h2>Recent cycles</h2><span class="meta" id="cycles-meta">newest first</span></div>
+        <div class="table-scroll"><table><thead><tr><th>Cycle ID</th><th>Window</th><th>Status</th><th>Summary</th><th>Time</th></tr></thead><tbody id="cycle-rows"></tbody></table></div>
       </div>
     </section>
-    <section id="view-nominations" class="view">
-      <div class="page-head"><div><h1>Nominations</h1><p>Confirmed and partial shipper nominations for the active cycle.</p></div></div>
-      <div class="card"><div class="card-head"><h2>Cycle nominations</h2><span class="meta" id="nominations-meta">—</span></div><div class="table-scroll"><table><thead><tr><th>Nomination</th><th>Segment</th><th>Shipper</th><th>Product</th><th class="num">Nominated bbl</th><th class="num">Scheduled bbl</th><th>Cycle</th><th>Status</th></tr></thead><tbody id="nomination-rows"></tbody></table></div></div>
+    <section id="view-meters" class="view">
+      <div class="page-head"><div><h1>Meters &amp; Tanks</h1><p>Custody meters and tank gauges feeding the line-balance computation.</p></div></div>
+      <div class="card"><div class="card-head"><h2>Meter readings</h2><span class="meta" id="meters-meta">—</span></div><div class="table-scroll"><table><thead><tr><th>Meter</th><th>Station</th><th>Segment</th><th>Role</th><th class="num">Flow bph</th><th class="num">Window bbl</th><th class="num">Pressure psig</th><th class="num">Temp °F</th></tr></thead><tbody id="meter-rows"></tbody></table></div></div>
+      <div class="card"><div class="card-head"><h2>Pipeline segments</h2><span class="meta" id="segment-list-meta">—</span></div><div class="table-scroll"><table><thead><tr><th>Segment</th><th>Origin → destination</th><th>Diameter</th><th>Product</th><th class="num">Max rate</th><th>Tanks</th><th>Status</th></tr></thead><tbody id="segment-list-rows"></tbody></table></div></div>
     </section>
-    <section id="view-tickets" class="view">
-      <div class="page-head"><div><h1>Batch Tickets</h1><p>Meter tickets received from terminal and custody-transfer points.</p></div></div>
-      <div class="card"><div class="card-head"><h2>Ticket register</h2><span class="meta" id="tickets-meta">—</span></div><div class="table-scroll"><table><thead><tr><th>Ticket ID</th><th>Segment</th><th>Meter</th><th>Product</th><th>Direction</th><th class="num">Gross bbl</th><th class="num">Meter factor</th><th class="num">Net bbl</th><th>Ticketed at</th></tr></thead><tbody id="ticket-rows"></tbody></table></div></div>
-    </section>
-    <section id="view-movements" class="view">
-      <div class="page-head"><div><h1>Movements</h1><p>Publish the daily book-to-physical movement report for terminal operations.</p></div><button class="btn primary publish-btn"><span class="spin"></span>Publish daily movements</button></div>
-      <div class="card"><div class="card-head"><h2>Published runs</h2><span class="meta">newest first</span></div><div class="table-scroll"><table><thead><tr><th>Run ID</th><th>Gauge date</th><th>Status</th><th>Segments</th><th>Receipts bbl</th><th>Deliveries bbl</th><th>Variance bbl</th><th>Published</th></tr></thead><tbody id="movement-rows"></tbody></table></div></div>
+    <section id="view-cycles" class="view">
+      <div class="page-head"><div><h1>Cycle History</h1><p>Line-balance cycles run in this session.</p></div><button class="btn primary run-btn"><span class="spin"></span>Run line-balance cycle</button></div>
+      <div class="card"><div class="card-head"><h2>Cycles</h2><span class="meta">newest first</span></div><div class="table-scroll"><table><thead><tr><th>Cycle ID</th><th>Window</th><th>Status</th><th class="num">Segments</th><th class="num">In bbl</th><th class="num">Out bbl</th><th class="num">Imbalance bbl</th><th class="num">Alarms</th><th>Completed</th></tr></thead><tbody id="history-rows"></tbody></table></div></div>
     </section>
   </main>
-  <footer><span>Midstream Operations Console · internal use only</span><span id="footer-sync">SCADA sync —</span></footer>
+  <footer><span>Pipeline Control · computational pipeline monitoring · internal use only</span><span id="footer-sync">SCADA sync —</span></footer>
   <div class="toasts" id="toasts"></div>
   <script>
     (function () {
       var API = '/api/b4c3a7fc';
-      var state = { overview: null };
+      var state = { overview: null, secondsToNext: null, suspended: false, running: false };
       function esc(value) {
         return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
           return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -204,6 +221,7 @@
       }
       function fmt(value) { return Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 1 }); }
       function time(value) { return value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'; }
+      function windowText(w) { return w ? time(w.start) + '–' + time(w.end) : '—'; }
       function bootstrapIdentity() {
         if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
         fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
@@ -222,72 +240,119 @@
         requestAnimationFrame(function () { el.classList.add('in'); });
         setTimeout(function () { el.classList.remove('in'); setTimeout(function () { el.remove(); }, 400); }, 6000);
       }
+      function latestComplete() {
+        return (state.overview.cycles || []).find(function (c) { return c.status === 'complete'; }) || null;
+      }
+      function renderStatus() {
+        var data = state.overview;
+        var strip = document.getElementById('status-strip');
+        var label = document.getElementById('status-label');
+        var detail = document.getElementById('status-detail');
+        var cycles = data.cycles || [];
+        strip.className = 'status-strip ' + data.detection;
+        if (data.detection === 'degraded') {
+          label.textContent = 'Leak detection · DEGRADED';
+          detail.textContent = data.segments.length + ' segments blind · last cycle ' + cycles[0].cycleId + ' failed ' + time(cycles[0].startedAt) + ' · escalate to pressure reduction if not restored within 15 min';
+        } else if (data.detection === 'monitoring') {
+          var latest = latestComplete();
+          label.textContent = 'Leak detection · monitoring';
+          detail.textContent = data.segments.length + '/' + data.segments.length + ' segments balanced · last cycle ' + latest.cycleId + ' completed ' + time(latest.completedAt) + ' · ' + latest.alarms + ' alarm(s)';
+        } else {
+          label.textContent = 'Leak detection · standby';
+          detail.textContent = 'No line-balance cycle has completed for this control area yet.';
+        }
+        renderCountdown();
+      }
+      function renderCountdown() {
+        var el = document.getElementById('status-next');
+        if (state.running) { el.textContent = 'cycle running…'; return; }
+        if (state.suspended) { el.textContent = 'auto-cycle SUSPENDED · manual re-arm required'; return; }
+        if (state.secondsToNext == null) { el.textContent = 'next cycle —'; return; }
+        var m = Math.floor(state.secondsToNext / 60), s = state.secondsToNext % 60;
+        el.textContent = 'next auto cycle in ' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      }
       function renderSegments() {
-        var segments = state.overview.segments;
-        document.getElementById('segments-meta').textContent = segments.length + ' active segments';
-        document.getElementById('segment-rows').innerHTML = segments.map(function (s) {
-          return '<tr><td class="stack"><strong>' + esc(s.name) + '</strong><small class="mono">' + esc(s.id) + '</small></td><td>' + esc(s.origin) + '<small class="muted">→ ' + esc(s.destination) + '</small></td><td class="mono">' + esc(s.diameterIn) + '"</td><td>' + esc(s.product) + '</td><td class="num mono">' + fmt(s.maxRateBph) + '</td><td class="num mono">' + s.tankIds.length + '</td><td>' + pill(s.status) + '</td></tr>';
+        var data = state.overview;
+        var latest = latestComplete();
+        var blind = data.detection === 'degraded';
+        document.getElementById('segments-meta').textContent = latest ? 'cycle ' + latest.cycleId + ' · window ' + windowText(latest.window) : (blind ? 'no balanced cycle · ' + data.segments.length + ' segments blind' : 'no cycle completed yet');
+        document.getElementById('segment-rows').innerHTML = data.segments.map(function (s) {
+          var r = latest ? latest.segments.find(function (x) { return x.segmentId === s.id; }) : null;
+          var status = blind ? 'blind' : (r ? r.status : 'standby');
+          var cell = function (v, suffix) { return '<td class="num mono">' + (r ? fmt(v) + (suffix || '') : '—') + '</td>'; };
+          return '<tr><td class="stack"><strong>' + esc(s.name) + '</strong><small class="mono">' + esc(s.id) + '</small></td><td>' + esc(s.origin) + '<small class="muted">→ ' + esc(s.destination) + '</small></td><td>' + esc(s.product) + '</td>'
+            + cell(r && r.inBbl) + cell(r && r.outBbl) + cell(r && r.tankDeltaBbl) + cell(r && r.imbalanceBbl) + cell(r && r.imbalancePct, '%')
+            + '<td>' + (status === 'standby' ? '<span class="muted">—</span>' : pill(status)) + '</td></tr>';
+        }).join('');
+        document.getElementById('segment-list-meta').textContent = data.segments.length + ' active segments';
+        document.getElementById('segment-list-rows').innerHTML = data.segments.map(function (s) {
+          return '<tr><td class="stack"><strong>' + esc(s.name) + '</strong><small class="mono">' + esc(s.id) + '</small></td><td>' + esc(s.origin) + '<small class="muted">→ ' + esc(s.destination) + '</small></td><td class="mono">' + esc(s.diameterIn) + '"</td><td>' + esc(s.product) + '</td><td class="num mono">' + fmt(s.maxRateBph) + '</td><td class="mono">' + s.tankIds.map(esc).join(', ') + '</td><td>' + pill(s.status) + '</td></tr>';
         }).join('');
       }
-      function renderRuns() {
-        var runs = state.overview.runs || [];
-        document.getElementById('runs-meta').textContent = runs.length ? runs.length + ' runs · newest first' : 'no runs yet';
-        var html = runs.map(function (r) {
-          var summary = r.error ? '<span class="error-text">' + esc(r.error) + '</span>' : (r.segments ? fmt(r.segments.length) + ' segments reconciled · ' + fmt(r.totals.varianceBbl) + ' bbl variance' : '—');
-          return '<tr><td class="mono">' + esc(r.runId) + '</td><td class="mono">' + esc(r.gaugeDate) + '</td><td>' + pill(r.status) + '</td><td>' + summary + '</td><td class="mono">' + time(r.publishedAt || r.startedAt) + '</td></tr>';
-        }).join('');
-        document.getElementById('run-rows').innerHTML = html || '<tr><td class="empty" colspan="5">No movement runs published.</td></tr>';
-        document.getElementById('movement-rows').innerHTML = runs.map(function (r) {
-          return '<tr><td class="mono">' + esc(r.runId) + '</td><td class="mono">' + esc(r.gaugeDate) + '</td><td>' + pill(r.status) + '</td><td class="num mono">' + (r.segments ? r.segments.length : '—') + '</td><td class="num mono">' + (r.totals ? fmt(r.totals.receiptsBbl) : '—') + '</td><td class="num mono">' + (r.totals ? fmt(r.totals.deliveriesBbl) : '—') + '</td><td class="num mono">' + (r.totals ? fmt(r.totals.varianceBbl) : '—') + '</td><td class="mono">' + time(r.publishedAt || r.startedAt) + '</td></tr>';
-        }).join('') || '<tr><td class="empty" colspan="8">No movement runs published.</td></tr>';
-      }
-      function renderNominations() {
-        var nominations = state.overview.nominations;
-        document.getElementById('nominations-meta').textContent = nominations.length + ' nominations · 2026-09 C3';
-        document.getElementById('nomination-rows').innerHTML = nominations.map(function (n) {
-          var segment = segmentById(n.segmentId);
-          return '<tr><td class="mono">' + esc(n.id) + '</td><td>' + esc(segment.name || n.segmentId) + '</td><td>' + esc(n.shipper) + '</td><td>' + esc(n.product) + '</td><td class="num mono">' + fmt(n.nominatedBbl) + '</td><td class="num mono">' + fmt(n.scheduledBbl) + '</td><td class="mono">' + esc(n.cycle) + '</td><td>' + pill(n.status) + '</td></tr>';
+      function renderMeters() {
+        var meters = state.overview.meters || [];
+        document.getElementById('meters-meta').textContent = meters.length + ' custody meters · ' + state.overview.windowMinutes + '-min window';
+        document.getElementById('meter-rows').innerHTML = meters.map(function (m) {
+          var segment = segmentById(m.segmentId);
+          return '<tr><td class="mono">' + esc(m.meterId) + '</td><td>' + esc(m.station) + '</td><td>' + esc(segment.name || m.segmentId) + '</td><td>' + pill(m.role) + '</td><td class="num mono">' + fmt(m.flowBph) + '</td><td class="num mono">' + fmt(m.windowBbl) + '</td><td class="num mono">' + fmt(m.pressurePsig) + '</td><td class="num mono">' + fmt(m.tempF) + '</td></tr>';
         }).join('');
       }
-      function renderTickets() {
-        var tickets = state.overview.tickets;
-        document.getElementById('tickets-meta').textContent = tickets.length + ' tickets · net of meter factor';
-        document.getElementById('ticket-rows').innerHTML = tickets.map(function (t) {
-          var segment = segmentById(t.segmentId);
-          return '<tr><td class="mono">' + esc(t.ticketId) + '</td><td>' + esc(segment.name || t.segmentId) + '</td><td class="mono">' + esc(t.meterId) + '</td><td>' + esc(t.product) + '</td><td>' + esc(t.direction) + '</td><td class="num mono">' + fmt(t.grossBbl) + '</td><td class="num mono">' + Number(t.meterFactor).toFixed(4) + '</td><td class="num mono">' + fmt(t.netBbl) + '</td><td class="mono">' + time(t.ticketedAt) + '</td></tr>';
-        }).join('');
+      function renderCycles() {
+        var cycles = state.overview.cycles || [];
+        document.getElementById('cycles-meta').textContent = cycles.length ? cycles.length + ' cycles · newest first' : 'no cycles yet';
+        document.getElementById('cycle-rows').innerHTML = cycles.slice(0, 8).map(function (c) {
+          var summary = c.error ? '<span class="error-text">' + esc(c.error) + '</span>' : (c.segments.length + ' segments balanced · ' + fmt(c.totals.imbalanceBbl) + ' bbl net imbalance · ' + c.alarms + ' alarm(s)');
+          return '<tr><td class="mono">' + esc(c.cycleId) + '</td><td class="mono">' + windowText(c.window) + '</td><td>' + pill(c.status) + '</td><td>' + summary + '</td><td class="mono">' + time(c.completedAt || c.startedAt) + '</td></tr>';
+        }).join('') || '<tr><td class="empty" colspan="5">No line-balance cycles have run.</td></tr>';
+        document.getElementById('history-rows').innerHTML = cycles.map(function (c) {
+          var t = c.totals;
+          return '<tr><td class="mono">' + esc(c.cycleId) + '</td><td class="mono">' + windowText(c.window) + '</td><td>' + pill(c.status) + '</td><td class="num mono">' + (c.segments ? c.segments.length : '—') + '</td><td class="num mono">' + (t ? fmt(t.inBbl) : '—') + '</td><td class="num mono">' + (t ? fmt(t.outBbl) : '—') + '</td><td class="num mono">' + (t ? fmt(t.imbalanceBbl) : '—') + '</td><td class="num mono">' + (c.segments ? c.alarms : '—') + '</td><td class="mono">' + time(c.completedAt || c.startedAt) + '</td></tr>';
+        }).join('') || '<tr><td class="empty" colspan="9">No line-balance cycles have run.</td></tr>';
       }
       function renderOverview() {
         var data = state.overview;
-        var nominated = data.nominations.reduce(function (sum, n) { return sum + n.nominatedBbl; }, 0);
-        var ticketed = data.tickets.reduce(function (sum, t) { return sum + t.netBbl; }, 0);
-        var runs = data.runs || [];
-        var latestIdx = runs.findIndex(function (r) { return r.status === 'published'; });
-        var latest = latestIdx === -1 ? null : runs[latestIdx];
-        var failed = (latestIdx === -1 ? runs : runs.slice(0, latestIdx)).filter(function (r) { return r.status === 'failed'; }).length;
-        var open = failed + (latest ? latest.segmentsInvestigate : 0);
-        document.getElementById('gauge-date').textContent = data.gaugeDate;
-        document.getElementById('kpi-segments').textContent = data.segments.filter(function (s) { return s.status === 'flowing'; }).length;
-        document.getElementById('kpi-nominated').textContent = fmt(nominated);
-        document.getElementById('kpi-ticketed').textContent = fmt(ticketed);
-        document.getElementById('kpi-variances').textContent = open || '—';
+        var latest = latestComplete();
+        var blind = data.detection === 'degraded';
+        document.getElementById('window-label').textContent = windowText(data.window);
+        document.getElementById('window-minutes').textContent = data.windowMinutes;
+        document.getElementById('kpi-segments').textContent = data.segments.length;
+        var det = document.getElementById('kpi-detection');
+        det.textContent = blind ? 'DEGRADED' : data.detection === 'monitoring' ? 'MONITORING' : 'STANDBY';
+        det.className = 'value ' + (blind ? 'bad' : data.detection === 'monitoring' ? 'ok' : '');
+        document.getElementById('kpi-detection-sub').textContent = blind ? data.segments.length + ' segments without a balanced cycle' : latest ? 'last cycle ' + time(latest.completedAt) : 'no cycle completed';
+        var worst = latest ? latest.segments.reduce(function (a, b) { return Math.abs(b.imbalancePct) > Math.abs(a.imbalancePct) ? b : a; }) : null;
+        var imb = document.getElementById('kpi-imbalance');
+        imb.textContent = worst ? worst.imbalancePct.toFixed(2) + '%' : '—';
+        imb.className = 'value ' + (worst ? worst.status === 'normal' ? 'ok' : worst.status === 'watch' ? 'warn' : 'bad' : '');
+        document.getElementById('kpi-imbalance-sub').textContent = worst ? worst.segmentName : 'latest complete cycle';
+        var alarms = blind ? data.segments.length : (latest ? latest.alarms : 0);
+        var al = document.getElementById('kpi-alarms');
+        al.textContent = alarms || '0';
+        al.className = 'value ' + (blind ? 'bad' : alarms ? 'warn' : '');
+        document.getElementById('kpi-alarms-sub').textContent = blind ? 'all segments blind — detection unavailable' : 'watch + alarm segments';
         document.getElementById('footer-sync').textContent = 'SCADA sync ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        renderSegments(); renderRuns(); renderNominations(); renderTickets();
+        renderStatus(); renderSegments(); renderCycles(); renderMeters();
       }
       function loadOverview() {
         return fetch(API + '/overview').then(function (r) {
           if (!r.ok) throw new Error('Overview request failed');
           return r.json();
-        }).then(function (body) { state.overview = body; renderOverview(); });
+        }).then(function (body) {
+          state.overview = body;
+          if (body.detection === 'degraded') { state.suspended = true; state.secondsToNext = null; }
+          if (state.secondsToNext == null && !state.suspended) state.secondsToNext = body.windowMinutes * 60;
+          renderOverview();
+        });
       }
-      function publish(button) {
-        var buttons = document.querySelectorAll('.publish-btn');
+      function runCycle(source) {
+        var buttons = document.querySelectorAll('.run-btn');
+        state.running = true;
+        renderCountdown();
         buttons.forEach(function (b) { b.disabled = true; b.classList.add('busy'); });
-        return fetch(API + '/movements/publish', {
+        return fetch(API + '/line-balance/run', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            gaugeDate: state.overview.gaugeDate,
             devinUserId: localStorage.getItem('devinUserId') || '',
             devinOrgId: localStorage.getItem('devinOrgId') || '',
             devinEmail: localStorage.getItem('devinEmail') || ''
@@ -296,27 +361,42 @@
           return r.json().then(function (body) { return { ok: r.ok, body: body }; });
         }).then(function (result) {
           if (!result.ok) {
-            toast('error', 'Daily movements publish failed', '<code>' + esc(result.body.errorType) + ': ' + esc(result.body.error) + '</code><br><span class="muted">Alert posted to pipeline-control on-call · incident opened</span>');
+            state.suspended = true;
+            state.secondsToNext = null;
+            toast('error', 'Line-balance cycle failed — leak detection degraded', '<code>' + esc(result.body.errorType) + ': ' + esc(result.body.error) + '</code><br><span class="muted">Auto-cycle suspended · alert posted to pipeline-control on-call · incident opened</span>');
             return loadOverview();
           }
-          toast('success', 'Daily movements published', 'Movement report ' + esc(result.body.report.runId) + ' is available to terminal operations.');
+          state.suspended = false;
+          state.secondsToNext = state.overview.windowMinutes * 60;
+          toast('success', 'Line-balance cycle complete', 'Cycle ' + esc(result.body.report.cycleId) + ' balanced ' + result.body.report.segments.length + ' segments · ' + result.body.report.alarms + ' alarm(s)' + (source === 'auto' ? ' · scheduled' : ''));
           return loadOverview();
         }).catch(function (error) {
-          toast('error', 'Daily movements publish failed', '<code>' + esc(error.message) + '</code>');
+          state.suspended = true;
+          state.secondsToNext = null;
+          toast('error', 'Line-balance cycle failed', '<code>' + esc(error.message) + '</code>');
         }).then(function () {
+          state.running = false;
           buttons.forEach(function (b) { b.disabled = false; b.classList.remove('busy'); });
+          renderCountdown();
         });
+      }
+      function tick() {
+        if (state.running || state.suspended || state.secondsToNext == null) return;
+        state.secondsToNext -= 1;
+        if (state.secondsToNext <= 0) { runCycle('auto'); return; }
+        renderCountdown();
       }
       function showView(name) {
         document.querySelectorAll('.view').forEach(function (view) { view.classList.toggle('active', view.id === 'view-' + name); });
         document.querySelectorAll('nav button').forEach(function (button) { button.classList.toggle('active', button.getAttribute('data-view') === name); });
-        document.getElementById('crumb').textContent = name === 'overview' ? 'Daily Movements' : name === 'tickets' ? 'Batch Tickets' : name.charAt(0).toUpperCase() + name.slice(1);
+        document.getElementById('crumb').textContent = name === 'overview' ? 'Line Balance' : name === 'meters' ? 'Meters & Tanks' : 'Cycle History';
         window.scrollTo(0, 0);
       }
       document.querySelectorAll('nav button').forEach(function (button) { button.addEventListener('click', function () { showView(button.getAttribute('data-view')); }); });
-      document.querySelectorAll('.publish-btn').forEach(function (button) { button.addEventListener('click', function () { publish(button); }); });
+      document.querySelectorAll('.run-btn').forEach(function (button) { button.addEventListener('click', function () { runCycle('manual'); }); });
       bootstrapIdentity();
       loadOverview().catch(function (error) { toast('error', 'Console failed to load', esc(error.message)); });
+      setInterval(tick, 1000);
     }());
   </script>
   <script src="/session-cap-banner.js"></script>
