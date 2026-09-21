@@ -273,10 +273,11 @@
       function renderCountdown() {
         var el = document.getElementById('status-next');
         if (state.running) { el.textContent = 'cycle running…'; return; }
-        if (state.suspended) { el.textContent = 'auto-cycle SUSPENDED · manual re-arm required'; return; }
+        if (state.suspended) { el.textContent = 'detection SUSPENDED · manual re-arm required'; return; }
         if (state.secondsToNext == null) { el.textContent = 'next cycle —'; return; }
+        if (state.secondsToNext <= 0) { el.textContent = 'cycle due · run manually'; return; }
         var m = Math.floor(state.secondsToNext / 60), s = state.secondsToNext % 60;
-        el.textContent = 'next auto cycle in ' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        el.textContent = 'next cycle due in ' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
       }
       function renderSegments() {
         var data = state.overview;
@@ -370,7 +371,7 @@
           if (!result.ok) {
             state.suspended = true;
             state.secondsToNext = null;
-            toast('error', 'Line-balance cycle failed — leak detection degraded', '<code>' + esc(result.body.errorType) + ': ' + esc(result.body.error) + '</code><br><span class="muted">Auto-cycle suspended · alert posted to pipeline-control on-call · incident opened</span>');
+            toast('error', 'Line-balance cycle failed — leak detection degraded', '<code>' + esc(result.body.errorType) + ': ' + esc(result.body.error) + '</code><br><span class="muted">Detection suspended · alert posted to pipeline-control on-call · incident opened</span>');
             return loadOverview();
           }
           state.suspended = false;
@@ -397,9 +398,8 @@
         }).catch(function (error) { toast('error', 'Re-arm failed', esc(error.message)); });
       }
       function tick() {
-        if (state.running || state.suspended || state.secondsToNext == null) return;
+        if (state.running || state.suspended || state.secondsToNext == null || state.secondsToNext <= 0) return;
         state.secondsToNext -= 1;
-        if (state.secondsToNext <= 0) { runCycle('auto'); return; }
         renderCountdown();
       }
       function showView(name) {
