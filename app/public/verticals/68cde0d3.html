@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorkOS — Directory Sync</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --purple: #6363f1;
+      --purple-dark: #4f4fd8;
+      --ink: #29363d;
+      --ink-2: #656b8a;
+      --ink-3: #8f96bd;
+      --dark: #030628;
+      --wash: #f9f9fb;
+      --line: #e8eaed;
+      --mint: #23f0c3;
+      --white: #ffffff;
+      --radius-card: 8px;
+      --radius-pill: 100px;
+      --gradient: linear-gradient(45deg, #a163f1, #6363f1 34%, #3498ea 60%, #40dfa3);
+      --shadow-cta: rgba(23, 6, 100, 0.035) 0 24px 22px, rgba(23, 6, 100, 0.055) 0 8.6px 8px, rgba(23, 6, 100, 0.067) 0 4.8px 3.9px, rgba(23, 6, 100, 0.082) 0 2.6px 1.9px, rgba(23, 6, 100, 0.12) 0 1.2px 0.75px;
+      --shadow-card: rgba(23, 6, 100, 0.04) 0 20px 40px, rgba(23, 6, 100, 0.06) 0 2px 6px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: "Untitled Sans", "Inter", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--white);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    .nav { height: 72px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; letter-spacing: -0.3px; color: var(--ink); }
+    .logo svg { display: block; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a { font-size: 14px; padding: 8px 10px; color: var(--ink); }
+    .nav-links a:hover { color: var(--purple); }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--radius-pill); font-weight: 500; font-size: 16px; line-height: 1.2; padding: 12px 24px; border: 0; cursor: pointer; font-family: inherit; min-height: 44px; }
+    .btn-primary { background: var(--purple); background-image: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0)); color: var(--white); box-shadow: var(--shadow-cta); }
+    .btn-primary:hover { background-color: var(--purple-dark); }
+    .btn-primary:disabled { opacity: 0.75; cursor: wait; }
+    .btn-outline { background: transparent; color: var(--purple); border: 1px solid var(--line); font-size: 14px; padding: 9.5px 20px; }
+    .btn-outline:hover { border-color: var(--purple); }
+    .btn-sm { font-size: 14px; padding: 9.5px 20px; }
+    .btn-mint { background: var(--mint); color: var(--dark); box-shadow: 0 0 24px rgba(35, 240, 195, 0.35); }
+    .text-link { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; padding: 8px 24px; color: var(--ink); min-height: 44px; }
+    .text-link.on-dark { color: var(--white); }
+    .text-link .chev { font-size: 14px; color: var(--ink-3); }
+
+    /* Hero */
+    .hero { padding: 72px 0 64px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .eyebrow { font-size: 28px; font-weight: 500; letter-spacing: -1.4px; line-height: 1.2; color: var(--purple); margin-bottom: 12px; }
+    h1.heading, h2.heading { font-size: 52px; font-weight: 500; letter-spacing: -2.6px; line-height: 1.07; color: var(--ink); }
+    .lead { font-size: 19px; letter-spacing: -0.19px; line-height: 1.6; color: var(--ink-2); margin-top: 20px; max-width: 520px; }
+    .hero-actions { display: flex; align-items: center; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+
+    /* Provisioning card (primary action) */
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-card); padding: 28px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .card-title { font-size: 18px; font-weight: 500; letter-spacing: -0.3px; }
+    .card-sub { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+    .env-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 4px 10px; }
+    .env-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 500; color: var(--ink); }
+    select, input { font-family: inherit; font-size: 15px; color: var(--ink); background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; min-height: 44px; width: 100%; outline: none; appearance: none; -webkit-appearance: none; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23656b8a' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+    select:focus, input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(99, 99, 241, 0.15); }
+    .hint { font-size: 12px; color: var(--ink-3); }
+    .form-actions { margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .form-actions .btn { min-width: 220px; }
+    .meta { font-size: 12px; color: var(--ink-3); }
+    .result-box { display: none; margin-top: 16px; border-radius: 8px; padding: 14px 16px; font-size: 14px; border: 1px solid var(--line); }
+    .result-box.success { display: block; background: #f1fdf9; border-color: #b6f2e1; color: #0f5d4b; }
+    .result-box.error { display: block; background: #fff4f4; border-color: #ffd0d0; color: #8a1f1f; }
+    .r-title { font-weight: 500; margin-bottom: 4px; }
+    .r-detail { opacity: 0.9; word-break: break-word; }
+
+    /* Integrates with */
+    .integrations { padding: 24px 0 72px; text-align: center; }
+    .allcaps { font-size: 12px; font-weight: 500; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-3); }
+    .logo-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px 44px; margin-top: 28px; }
+    .logo-row span { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: #a5aac6; }
+
+    /* Light section */
+    .section { padding: 96px 0; }
+    .section.wash { background: var(--wash); }
+    .section-center { text-align: center; max-width: 720px; margin: 0 auto; }
+    .section-center .btn { margin-top: 28px; }
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 64px; align-items: start; }
+    .feature-grid > *, .stat-row > *, .dark-grid > * { min-width: 0; }
+    .tile { background: var(--white); border-radius: var(--radius-card); padding: 40px 32px; text-align: center; }
+    .tile-icon { width: 56px; height: 56px; border-radius: 12px; margin: 0 auto 20px; background: linear-gradient(135deg, #2f2a7a, #6363f1); display: flex; align-items: center; justify-content: center; }
+    .tile-title { font-size: 28px; font-weight: 500; letter-spacing: -1px; color: var(--purple); }
+    .tile-sub { font-size: 17px; color: var(--ink-2); margin-top: 6px; }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 32px; }
+    .stat { background: var(--white); border-radius: var(--radius-card); padding: 32px 24px; text-align: center; }
+    .stat-num { font-size: 52px; font-weight: 500; letter-spacing: -2.6px; line-height: 1.3; }
+    .stat-num.small { font-size: 34px; letter-spacing: -1.2px; }
+    .gradient-text { background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+    .stat-label { font-size: 17px; color: var(--ink-2); }
+    .tile.text { text-align: left; padding: 48px 40px; }
+    .tile.text h3 { font-size: 30px; font-weight: 500; letter-spacing: -1.2px; line-height: 1.2; }
+    .tile.text p { font-size: 17px; color: var(--ink-2); margin-top: 20px; line-height: 1.7; }
+    .lifecycle { display: flex; align-items: center; gap: 12px; margin-top: 40px; color: var(--purple); font-size: 13px; font-weight: 500; flex-wrap: wrap; }
+    .lifecycle .dots { flex: 1; border-top: 2px dotted #c7c9f5; }
+
+    /* Dark section */
+    .section.dark { background: var(--dark) radial-gradient(60% 50% at 80% 10%, rgba(99, 99, 241, 0.35), transparent 70%); color: var(--white); }
+    .dark-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+    .section.dark h2.heading { color: var(--white); }
+    .section.dark .lead { color: #c4c8e8; }
+    .dark-actions { display: flex; align-items: center; gap: 16px; margin-top: 32px; flex-wrap: wrap; }
+    .feature-list { display: flex; flex-direction: column; gap: 32px; margin-top: 56px; }
+    .feature { display: grid; grid-template-columns: 32px 1fr; gap: 20px; }
+    .feature .ic { width: 32px; height: 32px; border-radius: 6px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; }
+    .feature h4 { font-size: 17px; font-weight: 500; letter-spacing: -0.2px; }
+    .feature p { font-size: 14px; color: #b7bbdc; margin-top: 4px; line-height: 1.6; }
+
+    /* Trust row */
+    .trust { text-align: center; }
+    .trust h2 { font-size: 24px; font-weight: 500; letter-spacing: -0.72px; }
+    .trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 40px; }
+    .trust h5 { font-size: 20px; font-weight: 500; letter-spacing: -0.4px; }
+    .trust p { font-size: 17px; color: var(--ink-2); margin-top: 6px; line-height: 1.5; }
+    .trust a { color: var(--purple); font-size: 16px; display: inline-block; margin-top: 8px; }
+
+    /* Footer */
+    footer { background: var(--wash); padding: 72px 0 40px; }
+    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap: 32px; }
+    .foot-grid h6 { font-size: 16px; font-weight: 400; color: var(--ink-3); margin-bottom: 14px; }
+    .foot-grid a { display: block; font-size: 15px; color: var(--ink-2); margin-bottom: 12px; }
+    .foot-bottom { margin-top: 56px; font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; align-items: center; }
+
+    @media (max-width: 960px) {
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 0 40px; }
+      h1.heading, h2.heading { font-size: 38px; letter-spacing: -1.6px; }
+      .eyebrow { font-size: 22px; letter-spacing: -0.8px; }
+      .lead { font-size: 17px; }
+      .feature-grid, .dark-grid, .trust-grid { grid-template-columns: 1fr; }
+      .foot-grid { grid-template-columns: 1fr 1fr; }
+      .section { padding: 64px 0; }
+    }
+    @media (max-width: 520px) {
+      .container { padding: 0 16px; }
+      .card { padding: 20px; }
+      .form-grid, .stat-row { grid-template-columns: 1fr; }
+      .form-actions .btn { width: 100%; }
+      .nav-actions .btn-outline { display: none; }
+      .foot-grid { grid-template-columns: 1fr; }
+      .foot-bottom { flex-direction: column; gap: 12px; align-items: flex-start; }
+      .stat-num { font-size: 40px; letter-spacing: -1.6px; }
+      .stat-num.small { font-size: 28px; letter-spacing: -0.8px; }
+      .tile.text h3 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="container nav">
+    <a class="logo" href="#">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+        <path d="M15 2 L26 8.5 V21.5 L15 28 L4 21.5 V8.5 Z" stroke="#6363f1" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M15 9 L20 15 L15 21 L10 15 Z" fill="#6363f1"/>
+      </svg>
+      <span>WorkOS</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#">Products</a>
+      <a href="#">Developers</a>
+      <a href="#">Docs</a>
+      <a href="#">Pricing</a>
+      <a href="#">Blog</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-outline" href="#">Sign in</a>
+      <a class="btn btn-primary btn-sm" href="#provisionForm">Get started</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="container hero">
+      <div>
+        <div class="eyebrow">Directory Sync</div>
+        <h1 class="heading">Provision enterprise users from any directory</h1>
+        <p class="lead">Connect a customer's corporate directory or HRIS once and sync users, groups, and access controls into your app through a single, normalized API.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#provisionForm">Add Directory Sync to your app</a>
+          <a class="text-link" href="#">Read the docs <span class="chev">&rsaquo;</span></a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">New directory connection</div>
+            <div class="card-sub">Initial sync provisions every active user in the directory.</div>
+          </div>
+          <span class="env-pill"><span class="dot"></span>Production</span>
+        </div>
+        <form id="provisionForm">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="product">Directory provider</label>
+              <select id="product">
+                <option value="okta">Okta</option>
+                <option value="entra_id">Microsoft Entra ID</option>
+                <option value="google_workspace">Google Workspace</option>
+                <option value="rippling">Rippling</option>
+                <option value="jumpcloud">JumpCloud</option>
+                <option value="workday">Workday</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="seats">Users to provision</label>
+              <input type="number" id="seats" value="250" min="1">
+              <span class="hint">Active users in the directory</span>
+            </div>
+            <div class="form-group">
+              <label for="planTier">Plan</label>
+              <select id="planTier">
+                <option value="enterprise">Enterprise</option>
+                <option value="business">Business</option>
+                <option value="starter">Starter</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="region">Data region</label>
+              <select id="region">
+                <option value="us">United States</option>
+                <option value="eu">European Union</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Provision connection</button>
+            <span class="meta">Webhook events: dsync.user.created, dsync.group.created</span>
+          </div>
+        </form>
+        <div id="result" class="result-box"></div>
+      </div>
+    </section>
+
+    <section class="container integrations">
+      <div class="allcaps">Integrates with</div>
+      <div class="logo-row">
+        <span>Okta</span><span>Microsoft Entra ID</span><span>Google Workspace</span><span>Workday</span><span>JumpCloud</span><span>Rippling</span><span>PingFederate</span><span>SCIM</span>
+      </div>
+    </section>
+
+    <section class="section wash">
+      <div class="container">
+        <div class="section-center">
+          <h2 class="heading">Streamline user activation, deactivation, and groups</h2>
+          <a class="btn btn-primary" href="#">Read the Developer&rsquo;s Guide to SCIM</a>
+        </div>
+        <div class="feature-grid">
+          <div>
+            <div class="tile">
+              <div class="tile-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              </div>
+              <div class="tile-title">Directory Sync</div>
+              <div class="tile-sub">Your app&rsquo;s gateway into enterprise HR</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat"><div class="stat-num gradient-text">12+</div><div class="stat-label">Directory services supported</div></div>
+              <div class="stat"><div class="stat-num gradient-text small">Real-time updates</div><div class="stat-label">with webhook events</div></div>
+            </div>
+          </div>
+          <div class="tile text">
+            <h3>Integrate into the systems that enterprises are already using</h3>
+            <p>WorkOS integrates corporate directories and HRIS systems to power the user lifecycle management of your app. With a single integration, automatically provision and deprovision users, groups, and access controls.</p>
+            <div class="lifecycle">
+              <span>User added</span><span class="dots"></span>
+              <span>Activated</span><span class="dots"></span>
+              <span>Group updated</span><span class="dots"></span>
+              <span>Deprovisioned</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dark">
+      <div class="container dark-grid">
+        <div>
+          <h2 class="heading">Effortlessly integrate with directory users + groups</h2>
+          <div class="dark-actions">
+            <a class="btn btn-mint" href="#">Read the docs</a>
+            <a class="text-link on-dark" href="#">Get your API key</a>
+          </div>
+        </div>
+        <div>
+          <p class="lead" style="margin-top:0;">Seamless user lifecycle management for both you and your customers by keeping your app in sync with their employee directory.</p>
+          <div class="feature-list">
+            <div class="feature">
+              <div class="ic"><svg width="14" height="14" viewBox="0 0 14 14" fill="#ffffff" aria-hidden="true"><circle cx="2" cy="2" r="1.5"/><circle cx="7" cy="2" r="1.5"/><circle cx="12" cy="2" r="1.5"/><circle cx="2" cy="7" r="1.5"/><circle cx="7" cy="7" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="2" cy="12" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/></svg></div>
+              <div><h4>Normalized data</h4><p>Access attributes in a standardized format from dozens of HRIS and directory providers.</p></div>
+            </div>
+            <div class="feature">
+              <div class="ic"><svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="#ffffff" stroke-width="1.4" aria-hidden="true"><rect x="1" y="1" width="14" height="12" rx="2"/><circle cx="5.5" cy="6" r="1.8"/><path d="M9 5h4M9 8h4"/></svg></div>
+              <div><h4>Attribute mapping</h4><p>Map the required custom attributes you want to pull in from various directory providers.</p></div>
+            </div>
+            <div class="feature">
+              <div class="ic"><svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="#ffffff" stroke-width="1.4" aria-hidden="true"><ellipse cx="7" cy="3.5" rx="6" ry="2.5"/><path d="M1 3.5v9c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-9M1 8c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/></svg></div>
+              <div><h4>Advanced use cases</h4><p>Fetch and manipulate data from different entities such as directories, groups, and users.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container trust">
+        <h2 class="gradient-text">Built for the most demanding apps</h2>
+        <div class="trust-grid">
+          <div><h5>99.99% uptime</h5><p>Guaranteed uptime SLAs for enterprise customers</p><a href="#">View uptime SLAs</a></div>
+          <div><h5>Premium support</h5><p>Expert guided integration support and response time SLAs</p><a href="#">View support plans</a></div>
+          <div><h5>Custom enterprise plans</h5><p>Contract-based plans tailored to your business requirements</p><a href="#">Contact sales</a></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="foot-grid">
+        <div>
+          <svg width="44" height="44" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+            <path d="M15 2 L26 8.5 V21.5 L15 28 L4 21.5 V8.5 Z" stroke="#8f96bd" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M15 9 L20 15 L15 21 L10 15 Z" fill="#8f96bd"/>
+          </svg>
+        </div>
+        <div>
+          <h6>Products</h6>
+          <a href="#">User Management</a><a href="#">Enterprise SSO</a><a href="#">Directory Sync</a><a href="#">Admin Portal</a><a href="#">Audit Logs</a><a href="#">AuthKit</a>
+        </div>
+        <div>
+          <h6>Developers</h6>
+          <a href="#">Documentation</a><a href="#">Changelog</a><a href="#">API Status</a>
+        </div>
+        <div>
+          <h6>Resources</h6>
+          <a href="#">Blog</a><a href="#">Guides</a><a href="#">Pricing</a><a href="#">Support Plans</a><a href="#">Enterprise SLA</a>
+        </div>
+        <div>
+          <h6>Company</h6>
+          <a href="#">About</a><a href="#">Customers</a><a href="#">Careers</a><a href="#">Security</a><a href="#">Trust Center</a><a href="#">Contact</a>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>&copy; WorkOS, Inc.</span>
+        <span>Directory Sync &middot; Enterprise SSO &middot; Admin Portal</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const PROVIDER_LABELS = {
+      okta: 'Okta',
+      entra_id: 'Microsoft Entra ID',
+      google_workspace: 'Google Workspace',
+      rippling: 'Rippling',
+      jumpcloud: 'JumpCloud',
+      workday: 'Workday',
+    };
+    const escapeHtml = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Provisioning...';
+      result.className = 'result-box';
+      const provider = document.getElementById('product').value;
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: provider,
+            planName: document.getElementById('planTier').value,
+            seats: parseInt(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="r-title">Provisioning failed</div><div class="r-detail">${escapeHtml(data.errorClass)}: ${escapeHtml(data.error)}</div>`;
+        } else {
+          const label = PROVIDER_LABELS[provider] || 'directory';
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="r-title">Connection provisioned</div><div class="r-detail">${escapeHtml(data.seatsAdded)} users synced from ${escapeHtml(label)} &mdash; directory_${escapeHtml(data.licenseId)}</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="r-title">Network error</div><div class="r-detail">${escapeHtml(err.message)}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Provision connection'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
