@@ -194,7 +194,7 @@
               <div class="field">
                 <label for="amount">You send</label>
                 <div class="amount-row">
-                  <input type="number" id="amount" value="500" min="5" step="0.01" placeholder="0.00" inputmode="decimal">
+                  <input type="number" id="amount" value="500" min="5" max="25000" step="0.01" placeholder="0.00" inputmode="decimal" required>
                   <span class="ccy"><img class="flag" src="https://careem-public-web-media.media.careem.com/flag_ae_988e46c07b.webp" alt="" onerror="this.style.display='none'">AED</span>
                 </div>
               </div>
@@ -225,7 +225,7 @@
               </div>
               <ul class="quote">
                 <li><strong><span class="dot"></span>AED 1 = INR 24.050</strong><span>Exchange rate</span></li>
-                <li><strong><span class="dot"></span>AED 5 &nbsp;<span class="free">FREE</span></strong><span>Fixed fee</span></li>
+                <li><strong><span class="dot"></span><span id="feeQuote">AED 0.00 &nbsp;<span class="free">FREE</span></span></strong><span>Transfer fee</span></li>
               </ul>
               <button type="submit" id="submitBtn">Send money now</button>
             </form>
@@ -365,6 +365,32 @@
     })();
   </script>
   <script>
+    const FEE_QUOTE = { premium: { rate: 0, flat: 0 }, standard: { rate: 0.001, flat: 2.50 }, basic: { rate: 0.002, flat: 4.99 } };
+    function renderFeeQuote() {
+      const tier = FEE_QUOTE[document.getElementById('accountTier').value] || FEE_QUOTE.standard;
+      const amount = parseFloat(document.getElementById('amount').value) || 0;
+      const fee = Math.max(tier.rate * amount, tier.flat);
+      const quote = document.getElementById('feeQuote');
+      quote.textContent = 'AED ' + fee.toFixed(2);
+      if (fee === 0) {
+        const free = document.createElement('span');
+        free.className = 'free';
+        free.textContent = 'FREE';
+        quote.append('\u00a0\u00a0', free);
+      }
+    }
+    document.getElementById('accountTier').addEventListener('change', renderFeeQuote);
+    document.getElementById('amount').addEventListener('input', renderFeeQuote);
+    document.addEventListener('DOMContentLoaded', renderFeeQuote);
+
+    function showResult(box, kind, title, detail) {
+      box.className = 'result-box ' + kind;
+      box.replaceChildren();
+      const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+      const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+      box.append(t, d);
+    }
+
     document.getElementById('transferForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -378,15 +404,12 @@
         });
         const data = await res.json();
         if (!res.ok) {
-          result.className = 'result-box error';
-          result.innerHTML = `<div class="error-title">Transfer failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+          showResult(result, 'error', 'Transfer failed', `${data.errorClass}: ${data.error}`);
         } else {
-          result.className = 'result-box success';
-          result.innerHTML = `<div class="error-title">Transfer sent</div><div class="error-detail">AED ${data.debitAmount} debited (includes AED ${data.fee} fee). Your recipient will be notified when the money arrives.</div>`;
+          showResult(result, 'success', 'Transfer sent', `AED ${data.debitAmount} debited (includes AED ${data.fee} fee). Your recipient will be notified when the money arrives.`);
         }
       } catch (err) {
-        result.className = 'result-box error';
-        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+        showResult(result, 'error', 'Network error', err.message);
       } finally { btn.disabled = false; btn.textContent = 'Send money now'; }
     });
   </script>
