@@ -328,7 +328,7 @@
           <span class="tag">Admin</span>
         </div>
         <div class="card-body">
-          <form id="provisionForm" novalidate>
+          <form id="provisionForm">
             <div class="form-group">
               <label for="product">Workspace</label>
               <select id="product">
@@ -342,7 +342,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="seats">Personnel seats</label>
-                <input type="number" id="seats" value="25" min="1" max="250" inputmode="numeric">
+                <input type="number" id="seats" value="25" min="1" max="250" step="1" required inputmode="numeric">
               </div>
               <div class="form-group">
                 <label for="planTier">Plan</label>
@@ -514,13 +514,19 @@
         e.preventDefault();
         var productEl = document.getElementById('product');
         var workspaceLabel = productEl.options[productEl.selectedIndex].text;
-        var seats = parseInt(document.getElementById('seats').value, 10) || 0;
+        var seats = Number(document.getElementById('seats').value);
         var started = Date.now();
+
+        result.className = 'result-box';
+        result.innerHTML = '';
+        if (!Number.isInteger(seats) || seats < 1 || seats > 250) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="result-title">Invalid seat count</div><div class="result-detail">Enter a whole number of seats between 1 and 250.</div>';
+          return;
+        }
 
         btn.disabled = true;
         btn.textContent = 'Provisioning\u2026';
-        result.className = 'result-box';
-        result.innerHTML = '';
 
         try {
           var res = await fetch('/api/licenses/provision', {
@@ -545,6 +551,12 @@
               '<div class="result-detail"><code>' + esc(data.errorClass || 'Error') + '</code>: ' + esc(data.error || 'Request failed') +
               (data.requestId ? '<br>Request <code>' + esc(data.requestId) + '</code>' : '') +
               ' &middot; ' + secs + 's</div>';
+          } else if (data.withinLimit === false) {
+            result.className = 'result-box error';
+            result.innerHTML =
+              '<div class="result-title">Seat request exceeds plan</div>' +
+              '<div class="result-detail">' + esc(data.seats) + ' seats is more than the ' + esc(data.plan) + ' plan allows for ' + esc(workspaceLabel) +
+              '. Reduce the seat count or choose a larger plan. &middot; ' + secs + 's</div>';
           } else {
             result.className = 'result-box success';
             result.innerHTML =
