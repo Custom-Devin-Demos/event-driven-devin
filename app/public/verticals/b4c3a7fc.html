@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pipeline Control · Line Balance · b4c3a7fc</title>
+  <link rel="icon" href="/verticals/assets/b4c3a7fc/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-blue: #0054a4;
+      --v-blue-2: #009dd9;
+      --v-red: #e21836;
+      --v-ink: #1a2b45;
+      --v-muted: #68788e;
+      --v-line: #dfe5ed;
+      --v-bg: #f4f6f9;
+      --v-card: #fff;
+      --v-ok: #167c4a;
+      --v-ok-bg: #e9f6ef;
+      --v-warn: #b45309;
+      --v-warn-bg: #fff4e5;
+      --v-bad: #b3261e;
+      --v-bad-bg: #fdecea;
+      --v-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--v-bg); color: var(--v-ink); font-family: Inter, Arial, sans-serif; font-size: 13px; }
+    button, a { font: inherit; }
+    button { cursor: pointer; }
+    .hdr { min-height: 68px; padding: 0 28px; background: var(--v-blue); color: #fff; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,29,72,.2); }
+    .brand-pill { width: 72px; height: 48px; border-radius: 7px; background: #fff; display: grid; place-items: center; overflow: hidden; flex: none; }
+    .brand-pill img { height: 40px; width: auto; max-width: 64px; object-fit: contain; }
+    .divider { height: 34px; width: 1px; background: rgba(255,255,255,.3); }
+    .app { min-width: 200px; line-height: 1.25; }
+    .app strong { display: block; font-size: 14px; letter-spacing: .01em; }
+    .app span { color: rgba(255,255,255,.68); font-size: 10px; letter-spacing: .11em; }
+    nav { display: flex; align-self: stretch; gap: 2px; margin-left: 12px; }
+    nav button { border: 0; border-bottom: 3px solid transparent; color: rgba(255,255,255,.7); background: transparent; padding: 0 13px; font-size: 12px; }
+    nav button:hover, nav button.active { color: #fff; background: rgba(255,255,255,.08); border-bottom-color: #fff; }
+    .right { display: flex; align-items: center; gap: 18px; margin-left: auto; }
+    .env { padding: 5px 8px; border: 1px solid rgba(255,255,255,.35); border-radius: 4px; font: 500 10px var(--v-mono); letter-spacing: .06em; color: rgba(255,255,255,.88); }
+    .user { display: flex; align-items: center; gap: 9px; white-space: nowrap; font-size: 12px; }
+    .user small { display: block; color: rgba(255,255,255,.62); font-size: 10px; margin-top: 2px; }
+    .avatar { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.18); color: #fff; font: 600 11px var(--v-mono); }
+    .subbar { min-height: 42px; display: flex; align-items: center; gap: 17px; padding: 0 28px; background: #fff; border-bottom: 1px solid var(--v-line); color: var(--v-muted); font-size: 12px; }
+    .crumb b { color: var(--v-ink); font-weight: 600; }
+    .live { display: inline-flex; align-items: center; gap: 7px; font: 11px var(--v-mono); }
+    .live .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--v-ok); box-shadow: 0 0 0 3px rgba(22,124,74,.15); }
+    .back { margin-left: auto; color: var(--v-muted); text-decoration: none; }
+    .back:hover { color: var(--v-blue); }
+    .status-strip { display: flex; align-items: center; gap: 14px; padding: 11px 28px; border-bottom: 1px solid var(--v-line); font-size: 12px; }
+    .status-strip.monitoring { background: var(--v-ok-bg); color: var(--v-ok); }
+    .status-strip.standby { background: #eef3f9; color: var(--v-blue); }
+    .status-strip.degraded { background: var(--v-bad-bg); color: var(--v-bad); }
+    .status-strip strong { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
+    .status-strip strong::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+    .status-strip.degraded strong::before { animation: blink 1.1s steps(2) infinite; }
+    @keyframes blink { to { opacity: .25; } }
+    .status-strip .detail { color: inherit; opacity: .85; }
+    .status-strip .next { margin-left: auto; font: 11px var(--v-mono); opacity: .9; }
+    main { max-width: 1480px; margin: 0 auto; padding: 24px 28px 54px; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: 23px; line-height: 1.2; font-weight: 600; letter-spacing: -.02em; }
+    .page-head p { color: var(--v-muted); margin-top: 5px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--v-line); background: #fff; color: var(--v-ink); border-radius: 6px; padding: 10px 14px; font-weight: 600; font-size: 12px; }
+    .btn:hover { border-color: #aab8cb; }
+    .btn.primary { background: var(--v-red); border-color: var(--v-red); color: #fff; box-shadow: 0 2px 6px rgba(226,24,54,.2); }
+    .btn.primary:hover { background: #c9132e; }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn .spin { width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; display: none; animation: spin .75s linear infinite; }
+    .btn.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    .kpi, .card { border: 1px solid var(--v-line); background: var(--v-card); border-radius: 8px; }
+    .kpi { padding: 15px 17px; }
+    .kpi .label { color: var(--v-muted); font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+    .kpi .value { margin-top: 7px; font-size: 25px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .kpi .sub { margin-top: 3px; color: var(--v-muted); font-size: 11px; }
+    .kpi .value.ok { color: var(--v-ok); }
+    .kpi .value.warn { color: var(--v-warn); }
+    .kpi .value.bad { color: var(--v-bad); }
+    .card { overflow: hidden; }
+    .card + .card { margin-top: 18px; }
+    .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; border-bottom: 1px solid var(--v-line); }
+    .card-head h2 { font-size: 14px; font-weight: 600; }
+    .meta { color: var(--v-muted); font: 11px var(--v-mono); }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 10px 14px; text-align: left; background: #fafbfd; color: var(--v-muted); border-bottom: 1px solid var(--v-line); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 10px 14px; border-bottom: 1px solid #edf0f4; vertical-align: middle; font-size: 12px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #fbfcfe; }
+    .mono { font-family: var(--v-mono); font-size: 11px; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    th.num { text-align: right; }
+    .stack small { display: block; color: var(--v-muted); font-size: 11px; margin-top: 3px; }
+    .pill { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+    .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .pill.flowing, .pill.complete, .pill.normal, .pill.inlet { color: var(--v-ok); background: var(--v-ok-bg); }
+    .pill.partial, .pill.watch, .pill.outlet { color: var(--v-warn); background: var(--v-warn-bg); }
+    .pill.failed, .pill.alarm, .pill.blind { color: var(--v-bad); background: var(--v-bad-bg); }
+    .pill.outlet { color: var(--v-blue); background: #eef3f9; }
+    .empty { padding: 26px 16px; color: var(--v-muted); text-align: center; }
+    .error-text { max-width: 480px; color: var(--v-bad); font: 11px var(--v-mono); white-space: normal; overflow-wrap: anywhere; }
+    .muted { color: var(--v-muted); }
+    footer { max-width: 1480px; margin: 0 auto; padding: 0 28px 26px; color: var(--v-muted); display: flex; justify-content: space-between; font-size: 11px; }
+    .toasts { position: fixed; right: 22px; bottom: 22px; z-index: 50; display: flex; flex-direction: column; gap: 10px; }
+    .toast { min-width: 350px; max-width: 470px; display: flex; gap: 10px; align-items: stretch; padding: 12px 14px 12px 11px; border-radius: 8px; background: rgba(8,20,36,.94); color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); transform: translateX(120%); opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; font-size: 12px; }
+    .toast.in { transform: translateX(0); opacity: 1; }
+    .toast .bar { width: 4px; flex: none; border-radius: 3px; background: var(--v-blue-2); }
+    .toast.error .bar { background: var(--v-red); }
+    .toast b { display: block; margin-bottom: 3px; font-size: 12px; }
+    .toast .msg { color: rgba(255,255,255,.82); line-height: 1.45; }
+    .toast code { color: #fecaca; font: 11px var(--v-mono); }
+    @media (max-width: 1100px) {
+      .hdr { padding: 0 18px; gap: 11px; }
+      .subbar, main, .status-strip { padding-left: 18px; padding-right: 18px; }
+      .hdr nav { margin-left: 0; }
+      .hdr nav button { padding: 0 8px; }
+      .right .user div, .right .env { display: none; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .hdr { min-height: 60px; }
+      .brand-pill { width: 52px; height: 40px; }
+      .brand-pill img { height: 34px; max-width: 46px; }
+      .app { min-width: 0; }
+      .app span { display: none; }
+      .hdr { flex-wrap: wrap; padding-bottom: 6px; }
+      .hdr nav { order: 10; flex-basis: 100%; margin-left: 0; overflow-x: auto; }
+      .hdr nav button { padding: 8px 10px; white-space: nowrap; }
+      .divider { display: none; }
+      .page-head { align-items: flex-start; flex-direction: column; }
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .subbar { gap: 9px; }
+      .status-strip { flex-wrap: wrap; }
+      .status-strip .next { margin-left: 0; }
+      .crumb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .toasts { right: 12px; left: 12px; bottom: 12px; }
+      .toast { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hdr">
+    <a class="brand-pill" href="#" aria-label="Chevron">
+      <img src="/verticals/assets/b4c3a7fc/logo.svg" alt="Chevron">
+    </a>
+    <span class="divider"></span>
+    <div class="app">
+      <strong>Pipeline Control</strong>
+      <span>LINE BALANCE · LEAK DETECTION</span>
+    </div>
+    <nav>
+      <button class="active" data-view="overview">Overview</button>
+      <button data-view="meters">Meters &amp; Tanks</button>
+      <button data-view="cycles">Cycle History</button>
+    </nav>
+    <div class="right">
+      <span class="env">PROD · CONTROL ROOM · GOM-WEST</span>
+      <div class="user">
+        <span class="avatar">RC</span>
+        <div><span>R. Cole</span><small>Pipeline Controller</small></div>
+      </div>
+    </div>
+  </header>
+  <div class="subbar">
+    <span class="crumb">Pipeline Control › CPM › <b id="crumb">Line Balance</b></span>
+    <span class="live"><span class="dot"></span>SCADA feed · live</span>
+    <a class="back" href="/">← All Demos</a>
+  </div>
+  <div class="status-strip standby" id="status-strip">
+    <strong id="status-label">Leak detection · standby</strong>
+    <span class="detail" id="status-detail">Waiting for first line-balance cycle.</span>
+    <span class="next" id="status-next">next cycle —</span>
+  </div>
+  <main>
+    <section id="view-overview" class="view active">
+      <div class="page-head">
+        <div><h1>Line Balance — <span id="window-label">—</span></h1><p>Metered in − metered out − tank change, per segment, every <span id="window-minutes">5</span> minutes.</p></div>
+        <button class="btn primary run-btn"><span class="spin"></span>Run line-balance cycle</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="label">Segments monitored</div><div class="value" id="kpi-segments">—</div><div class="sub">GOM-West control area</div></div>
+        <div class="kpi"><div class="label">Detection status</div><div class="value" id="kpi-detection">—</div><div class="sub" id="kpi-detection-sub">no cycle completed</div></div>
+        <div class="kpi"><div class="label">Largest imbalance</div><div class="value" id="kpi-imbalance">—</div><div class="sub" id="kpi-imbalance-sub">latest complete cycle</div></div>
+        <div class="kpi"><div class="label">Active alarms</div><div class="value" id="kpi-alarms">—</div><div class="sub" id="kpi-alarms-sub">watch + alarm + blind segments</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Segment balance</h2><span class="meta" id="segments-meta">—</span></div>
+        <div class="table-scroll"><table><thead><tr><th>Segment</th><th>Origin → destination</th><th>Product</th><th class="num">In bbl</th><th class="num">Out bbl</th><th class="num">Tank Δ bbl</th><th class="num">Imbalance bbl</th><th class="num">Imbalance %</th><th>Detection</th></tr></thead><tbody id="segment-rows"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Recent cycles</h2><span class="meta" id="cycles-meta">newest first</span></div>
+        <div class="table-scroll"><table><thead><tr><th>Cycle ID</th><th>Window</th><th>Status</th><th>Summary</th><th>Time</th></tr></thead><tbody id="cycle-rows"></tbody></table></div>
+      </div>
+    </section>
+    <section id="view-meters" class="view">
+      <div class="page-head"><div><h1>Meters &amp; Tanks</h1><p>Custody meters and tank gauges feeding the line-balance computation.</p></div></div>
+      <div class="card"><div class="card-head"><h2>Meter readings</h2><span class="meta" id="meters-meta">—</span></div><div class="table-scroll"><table><thead><tr><th>Meter</th><th>Station</th><th>Segment</th><th>Role</th><th class="num">Flow bph</th><th class="num">Window bbl</th><th class="num">Pressure psig</th><th class="num">Temp °F</th></tr></thead><tbody id="meter-rows"></tbody></table></div></div>
+      <div class="card"><div class="card-head"><h2>Pipeline segments</h2><span class="meta" id="segment-list-meta">—</span></div><div class="table-scroll"><table><thead><tr><th>Segment</th><th>Origin → destination</th><th>Diameter</th><th>Product</th><th class="num">Max rate</th><th>Tanks</th><th>Status</th></tr></thead><tbody id="segment-list-rows"></tbody></table></div></div>
+    </section>
+    <section id="view-cycles" class="view">
+      <div class="page-head"><div><h1>Cycle History</h1><p>Line-balance cycles run in this session.</p></div><button class="btn primary run-btn"><span class="spin"></span>Run line-balance cycle</button></div>
+      <div class="card"><div class="card-head"><h2>Cycles</h2><span class="meta">newest first</span></div><div class="table-scroll"><table><thead><tr><th>Cycle ID</th><th>Window</th><th>Status</th><th class="num">Segments</th><th class="num">In bbl</th><th class="num">Out bbl</th><th class="num">Imbalance bbl</th><th class="num">Alarms</th><th>Completed</th></tr></thead><tbody id="history-rows"></tbody></table></div></div>
+    </section>
+  </main>
+  <footer><span>Pipeline Control · computational pipeline monitoring · internal use only</span><span id="footer-sync">SCADA sync —</span></footer>
+  <div class="toasts" id="toasts"></div>
+  <script>
+    (function () {
+      var API = '/api/b4c3a7fc';
+      var state = { overview: null, secondsToNext: null, suspended: false, running: false };
+      function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function fmt(value) { return Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 1 }); }
+      function time(value) { return value ? new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'; }
+      function windowText(w) { return w ? time(w.start) + '–' + time(w.end) : '—'; }
+      function bootstrapIdentity() {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
+          if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+          if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+          if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+        }).catch(function () {});
+      }
+      function pill(value) { return '<span class="pill ' + esc(value) + '">' + esc(value) + '</span>'; }
+      function segmentById(id) { return state.overview.segments.find(function (s) { return s.id === id; }) || {}; }
+      function toast(kind, title, msg) {
+        var el = document.createElement('div');
+        el.className = 'toast ' + kind;
+        el.innerHTML = '<span class="bar"></span><div><b>' + esc(title) + '</b><div class="msg">' + msg + '</div></div>';
+        document.getElementById('toasts').appendChild(el);
+        requestAnimationFrame(function () { el.classList.add('in'); });
+        setTimeout(function () { el.classList.remove('in'); setTimeout(function () { el.remove(); }, 400); }, 6000);
+      }
+      function latestComplete() {
+        return (state.overview.cycles || []).find(function (c) { return c.status === 'complete'; }) || null;
+      }
+      function renderStatus() {
+        var data = state.overview;
+        var strip = document.getElementById('status-strip');
+        var label = document.getElementById('status-label');
+        var detail = document.getElementById('status-detail');
+        var cycles = data.cycles || [];
+        strip.className = 'status-strip ' + data.detection;
+        if (data.detection === 'degraded') {
+          label.textContent = 'Leak detection · DEGRADED';
+          detail.textContent = data.segments.length + ' segments blind · last cycle ' + cycles[0].cycleId + ' failed ' + time(cycles[0].startedAt) + ' · escalate to pressure reduction if not restored within 15 min';
+        } else if (data.detection === 'monitoring') {
+          var latest = latestComplete();
+          label.textContent = 'Leak detection · monitoring';
+          detail.textContent = data.segments.length + '/' + data.segments.length + ' segments balanced · last cycle ' + latest.cycleId + ' completed ' + time(latest.completedAt) + ' · ' + latest.alarms + ' alarm(s)';
+        } else {
+          label.textContent = 'Leak detection · standby';
+          detail.textContent = 'No line-balance cycle has completed for this control area yet.';
+        }
+        renderCountdown();
+      }
+      function renderCountdown() {
+        var el = document.getElementById('status-next');
+        if (state.running) { el.textContent = 'cycle running…'; return; }
+        if (state.suspended) { el.textContent = 'auto-cycle SUSPENDED · manual re-arm required'; return; }
+        if (state.secondsToNext == null) { el.textContent = 'next cycle —'; return; }
+        var m = Math.floor(state.secondsToNext / 60), s = state.secondsToNext % 60;
+        el.textContent = 'next auto cycle in ' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      }
+      function renderSegments() {
+        var data = state.overview;
+        var latest = latestComplete();
+        var blind = data.detection === 'degraded';
+        document.getElementById('segments-meta').textContent = latest ? 'cycle ' + latest.cycleId + ' · window ' + windowText(latest.window) : (blind ? 'no balanced cycle · ' + data.segments.length + ' segments blind' : 'no cycle completed yet');
+        document.getElementById('segment-rows').innerHTML = data.segments.map(function (s) {
+          var r = latest ? latest.segments.find(function (x) { return x.segmentId === s.id; }) : null;
+          var status = blind ? 'blind' : (r ? r.status : 'standby');
+          var cell = function (v, suffix) { return '<td class="num mono">' + (r ? fmt(v) + (suffix || '') : '—') + '</td>'; };
+          return '<tr><td class="stack"><strong>' + esc(s.name) + '</strong><small class="mono">' + esc(s.id) + '</small></td><td>' + esc(s.origin) + '<small class="muted">→ ' + esc(s.destination) + '</small></td><td>' + esc(s.product) + '</td>'
+            + cell(r && r.inBbl) + cell(r && r.outBbl) + cell(r && r.tankDeltaBbl) + cell(r && r.imbalanceBbl) + cell(r && r.imbalancePct, '%')
+            + '<td>' + (status === 'standby' ? '<span class="muted">—</span>' : pill(status)) + '</td></tr>';
+        }).join('');
+        document.getElementById('segment-list-meta').textContent = data.segments.length + ' active segments';
+        document.getElementById('segment-list-rows').innerHTML = data.segments.map(function (s) {
+          return '<tr><td class="stack"><strong>' + esc(s.name) + '</strong><small class="mono">' + esc(s.id) + '</small></td><td>' + esc(s.origin) + '<small class="muted">→ ' + esc(s.destination) + '</small></td><td class="mono">' + esc(s.diameterIn) + '"</td><td>' + esc(s.product) + '</td><td class="num mono">' + fmt(s.maxRateBph) + '</td><td class="mono">' + s.tankIds.map(esc).join(', ') + '</td><td>' + pill(s.status) + '</td></tr>';
+        }).join('');
+      }
+      function renderMeters() {
+        var meters = state.overview.meters || [];
+        document.getElementById('meters-meta').textContent = meters.length + ' custody meters · ' + state.overview.windowMinutes + '-min window';
+        document.getElementById('meter-rows').innerHTML = meters.map(function (m) {
+          var segment = segmentById(m.segmentId);
+          return '<tr><td class="mono">' + esc(m.meterId) + '</td><td>' + esc(m.station) + '</td><td>' + esc(segment.name || m.segmentId) + '</td><td>' + pill(m.role) + '</td><td class="num mono">' + fmt(m.flowBph) + '</td><td class="num mono">' + fmt(m.windowBbl) + '</td><td class="num mono">' + fmt(m.pressurePsig) + '</td><td class="num mono">' + fmt(m.tempF) + '</td></tr>';
+        }).join('');
+      }
+      function renderCycles() {
+        var cycles = state.overview.cycles || [];
+        document.getElementById('cycles-meta').textContent = cycles.length ? cycles.length + ' cycles · newest first' : 'no cycles yet';
+        document.getElementById('cycle-rows').innerHTML = cycles.slice(0, 8).map(function (c) {
+          var summary = c.error ? '<span class="error-text">' + esc(c.error) + '</span>' : (c.segments.length + ' segments balanced · ' + fmt(c.totals.imbalanceBbl) + ' bbl net imbalance · ' + c.alarms + ' alarm(s)');
+          return '<tr><td class="mono">' + esc(c.cycleId) + '</td><td class="mono">' + windowText(c.window) + '</td><td>' + pill(c.status) + '</td><td>' + summary + '</td><td class="mono">' + time(c.completedAt || c.startedAt) + '</td></tr>';
+        }).join('') || '<tr><td class="empty" colspan="5">No line-balance cycles have run.</td></tr>';
+        document.getElementById('history-rows').innerHTML = cycles.map(function (c) {
+          var t = c.totals;
+          return '<tr><td class="mono">' + esc(c.cycleId) + '</td><td class="mono">' + windowText(c.window) + '</td><td>' + pill(c.status) + '</td><td class="num mono">' + (c.segments ? c.segments.length : '—') + '</td><td class="num mono">' + (t ? fmt(t.inBbl) : '—') + '</td><td class="num mono">' + (t ? fmt(t.outBbl) : '—') + '</td><td class="num mono">' + (t ? fmt(t.imbalanceBbl) : '—') + '</td><td class="num mono">' + (c.segments ? c.alarms : '—') + '</td><td class="mono">' + time(c.completedAt || c.startedAt) + '</td></tr>';
+        }).join('') || '<tr><td class="empty" colspan="9">No line-balance cycles have run.</td></tr>';
+      }
+      function renderOverview() {
+        var data = state.overview;
+        var latest = latestComplete();
+        var blind = data.detection === 'degraded';
+        document.getElementById('window-label').textContent = windowText(data.window);
+        document.getElementById('window-minutes').textContent = data.windowMinutes;
+        document.getElementById('kpi-segments').textContent = data.segments.length;
+        var det = document.getElementById('kpi-detection');
+        det.textContent = blind ? 'DEGRADED' : data.detection === 'monitoring' ? 'MONITORING' : 'STANDBY';
+        det.className = 'value ' + (blind ? 'bad' : data.detection === 'monitoring' ? 'ok' : '');
+        document.getElementById('kpi-detection-sub').textContent = blind ? data.segments.length + ' segments without a balanced cycle' : latest ? 'last cycle ' + time(latest.completedAt) : 'no cycle completed';
+        var worst = latest ? latest.segments.reduce(function (a, b) { return Math.abs(b.imbalancePct) > Math.abs(a.imbalancePct) ? b : a; }) : null;
+        var imb = document.getElementById('kpi-imbalance');
+        imb.textContent = worst ? worst.imbalancePct.toFixed(2) + '%' : '—';
+        imb.className = 'value ' + (worst ? worst.status === 'normal' ? 'ok' : worst.status === 'watch' ? 'warn' : 'bad' : '');
+        document.getElementById('kpi-imbalance-sub').textContent = worst ? worst.segmentName : 'latest complete cycle';
+        var alarms = blind ? data.segments.length : (latest ? latest.alarms : 0);
+        var al = document.getElementById('kpi-alarms');
+        al.textContent = alarms || '0';
+        al.className = 'value ' + (blind ? 'bad' : alarms ? 'warn' : '');
+        document.getElementById('kpi-alarms-sub').textContent = blind ? 'all segments blind — detection unavailable' : 'watch + alarm segments';
+        document.getElementById('footer-sync').textContent = 'SCADA sync ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        renderStatus(); renderSegments(); renderCycles(); renderMeters();
+      }
+      function loadOverview() {
+        return fetch(API + '/overview').then(function (r) {
+          if (!r.ok) throw new Error('Overview request failed');
+          return r.json();
+        }).then(function (body) {
+          state.overview = body;
+          if (body.detection === 'degraded') { state.suspended = true; state.secondsToNext = null; }
+          if (state.secondsToNext == null && !state.suspended) state.secondsToNext = body.windowMinutes * 60;
+          renderOverview();
+        });
+      }
+      function runCycle(source) {
+        var buttons = document.querySelectorAll('.run-btn');
+        state.running = true;
+        renderCountdown();
+        buttons.forEach(function (b) { b.disabled = true; b.classList.add('busy'); });
+        return fetch(API + '/line-balance/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (r) {
+          return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+        }).then(function (result) {
+          if (!result.ok) {
+            state.suspended = true;
+            state.secondsToNext = null;
+            toast('error', 'Line-balance cycle failed — leak detection degraded', '<code>' + esc(result.body.errorType) + ': ' + esc(result.body.error) + '</code><br><span class="muted">Auto-cycle suspended · alert posted to pipeline-control on-call · incident opened</span>');
+            return loadOverview();
+          }
+          state.suspended = false;
+          state.secondsToNext = state.overview.windowMinutes * 60;
+          toast('success', 'Line-balance cycle complete', 'Cycle ' + esc(result.body.report.cycleId) + ' balanced ' + result.body.report.segments.length + ' segments · ' + result.body.report.alarms + ' alarm(s)' + (source === 'auto' ? ' · scheduled' : ''));
+          return loadOverview();
+        }).catch(function (error) {
+          state.suspended = true;
+          state.secondsToNext = null;
+          toast('error', 'Line-balance cycle failed', '<code>' + esc(error.message) + '</code>');
+        }).then(function () {
+          state.running = false;
+          buttons.forEach(function (b) { b.disabled = false; b.classList.remove('busy'); });
+          renderCountdown();
+        });
+      }
+      function tick() {
+        if (state.running || state.suspended || state.secondsToNext == null) return;
+        state.secondsToNext -= 1;
+        if (state.secondsToNext <= 0) { runCycle('auto'); return; }
+        renderCountdown();
+      }
+      function showView(name) {
+        document.querySelectorAll('.view').forEach(function (view) { view.classList.toggle('active', view.id === 'view-' + name); });
+        document.querySelectorAll('nav button').forEach(function (button) { button.classList.toggle('active', button.getAttribute('data-view') === name); });
+        document.getElementById('crumb').textContent = name === 'overview' ? 'Line Balance' : name === 'meters' ? 'Meters & Tanks' : 'Cycle History';
+        window.scrollTo(0, 0);
+      }
+      document.querySelectorAll('nav button').forEach(function (button) { button.addEventListener('click', function () { showView(button.getAttribute('data-view')); }); });
+      document.querySelectorAll('.run-btn').forEach(function (button) { button.addEventListener('click', function () { runCycle('manual'); }); });
+      bootstrapIdentity();
+      loadOverview().catch(function (error) { toast('error', 'Console failed to load', esc(error.message)); });
+      setInterval(tick, 1000);
+    }());
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
