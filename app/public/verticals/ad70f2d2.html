@@ -176,11 +176,13 @@
       display: none; margin-top: 20px; padding: 16px;
       border: 1px solid var(--line); border-radius: 4px; background: var(--bg);
     }
-    .result-box.success, .result-box.error { display: block; }
+    .result-box.success, .result-box.warn, .result-box.error { display: block; }
     .result-box.success { border-color: rgba(47, 191, 113, .5); }
+    .result-box.warn { border-color: rgba(242, 182, 50, .55); }
     .result-box.error { border-color: rgba(255, 90, 60, .55); }
     .result-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
     .result-box.success .result-title { color: var(--green); }
+    .result-box.warn .result-title { color: var(--amber); }
     .result-box.error .result-title { color: var(--red); }
     .result-detail { font-size: 14px; color: var(--muted); line-height: 1.5; word-break: break-word; }
     .result-detail code { font-family: var(--mono); font-size: 12.5px; color: var(--text); }
@@ -552,11 +554,13 @@
               (data.requestId ? '<br>Request <code>' + esc(data.requestId) + '</code>' : '') +
               ' &middot; ' + secs + 's</div>';
           } else if (data.withinLimit === false) {
-            result.className = 'result-box error';
+            result.className = 'result-box warn';
             result.innerHTML =
-              '<div class="result-title">Seat request exceeds plan</div>' +
-              '<div class="result-detail">' + esc(data.seats) + ' seats is more than the ' + esc(data.plan) + ' plan allows for ' + esc(workspaceLabel) +
-              '. Reduce the seat count or choose a larger plan. &middot; ' + secs + 's</div>';
+              '<div class="result-title">Personnel provisioned &mdash; over plan allotment</div>' +
+              '<div class="result-detail">' + esc(data.seatsAdded) + ' seats added to ' + esc(workspaceLabel) +
+              ' &middot; Entitlement <code>' + esc(String(data.licenseId || '').slice(0, 8)) + '</code>' +
+              '<br>Exceeds the ' + esc(data.plan) + ' plan allotment; the workspace is flagged for a plan review. No further action is required.' +
+              ' &middot; ' + secs + 's</div>';
           } else {
             result.className = 'result-box success';
             result.innerHTML =
