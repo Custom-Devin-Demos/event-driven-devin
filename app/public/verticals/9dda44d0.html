@@ -561,8 +561,8 @@
               <label for="planTier">Offering</label>
               <select id="planTier">
                 <option value="enterprise">Degree programs — Strayer &amp; Capella</option>
-                <option value="business">Skills pathways &amp; certificates</option>
-                <option value="starter">General education — Sophia</option>
+                <option value="business" data-max-seats="100">Skills pathways &amp; certificates (up to 100 seats)</option>
+                <option value="starter" data-max-seats="5">General education — Sophia (up to 5 seats)</option>
               </select>
             </div>
             <div class="form-group">
@@ -646,7 +646,13 @@
     const region = document.getElementById('region');
     const summary = document.getElementById('summary');
 
+    const applySeatLimit = () => {
+      const max = planTier.options[planTier.selectedIndex].dataset.maxSeats;
+      if (max) seats.max = max; else seats.removeAttribute('max');
+    };
+
     const updateSummary = () => {
+      applySeatLimit();
       const employer = product.value;
       const offering = planTier.options[planTier.selectedIndex].text;
       const regionLabel = region.options[region.selectedIndex].text;
@@ -693,6 +699,9 @@
         if (!res.ok) {
           result.className = 'result failure';
           render("We couldn't add these seats right now", 'Please try again in a few minutes or contact Strategic Education Support.');
+        } else if (data.withinLimit === false) {
+          result.className = 'result failure';
+          render('Seat request exceeds this offering', `${data.seats} seats is more than this offering allows for ${data.product}. Reduce the seat count or choose Degree programs.`);
         } else {
           result.className = 'result success';
           render('Learner seats added', `${data.seatsAdded} seats provisioned for ${data.product}. Employees can enroll now.`);
