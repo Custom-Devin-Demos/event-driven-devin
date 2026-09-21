@@ -1,14 +1,16 @@
 const TANK_GAUGES = {
-  'TK-PAS-101': { openingBbl: 186420, closingBbl: 191860, apiGravity: 32.1, tempF: 78.4, readAt: '2026-09-13T05:42:16.000Z' },
-  'TK-PAS-102': { openingBbl: 174980, closingBbl: 171240, apiGravity: 31.8, tempF: 79.1, readAt: '2026-09-13T05:43:02.000Z' },
-  'TK-COL-201': { openingBbl: 248600, closingBbl: 246180, apiGravity: 33.4, tempF: 77.8, readAt: '2026-09-13T05:44:11.000Z' },
-  'TK-RCH-310': { openingBbl: 132750, closingBbl: 140920, apiGravity: 38.6, tempF: 71.2, readAt: '2026-09-13T05:38:47.000Z' },
-  'TK-RCH-311': { openingBbl: 118430, closingBbl: 113880, apiGravity: 41.2, tempF: 70.7, readAt: '2026-09-13T05:39:20.000Z' },
-  'TK-BAY-402': { openingBbl: 207910, closingBbl: 199480, apiGravity: 39.5, tempF: 72.5, readAt: '2026-09-13T05:40:06.000Z' },
-  'TK-MID-510': { openingBbl: 294180, closingBbl: 303760, apiGravity: 35.7, tempF: 84.3, readAt: '2026-09-13T05:31:15.000Z' },
-  'TK-CRN-520': { openingBbl: 265740, closingBbl: 259320, apiGravity: 34.9, tempF: 83.8, readAt: '2026-09-13T05:32:04.000Z' },
-  'TK-ELS-601': { openingBbl: 156820, closingBbl: 151470, apiGravity: 41.6, tempF: 68.9, readAt: '2026-09-13T05:35:29.000Z' },
-  'TK-LAX-610': { openingBbl: 221460, closingBbl: 224920, apiGravity: 42.1, tempF: 69.4, readAt: '2026-09-13T05:36:12.000Z' },
+  'TK-PAS-101': { startBbl: 186420, endBbl: 186445, levelFt: 41.2, apiGravity: 32.1, tempF: 78.4 },
+  'TK-PAS-102': { startBbl: 174980, endBbl: 174980, levelFt: 38.7, apiGravity: 31.8, tempF: 79.1 },
+  'TK-COL-201': { startBbl: 248600, endBbl: 248610, levelFt: 44.9, apiGravity: 33.4, tempF: 77.8 },
+  'TK-RCH-310': { startBbl: 132750, endBbl: 132760, levelFt: 36.1, apiGravity: 38.6, tempF: 71.2 },
+  'TK-RCH-311': { startBbl: 118430, endBbl: 118430, levelFt: 33.4, apiGravity: 41.2, tempF: 70.7 },
+  'TK-BAY-402': { startBbl: 207910, endBbl: 207918, levelFt: 42.6, apiGravity: 39.5, tempF: 72.5 },
+  'TK-MID-510': { startBbl: 294180, endBbl: 294200, levelFt: 46.3, apiGravity: 35.7, tempF: 84.3 },
+  'TK-CRN-520': { startBbl: 265740, endBbl: 265752, levelFt: 45.1, apiGravity: 34.9, tempF: 83.8 },
+  'TK-ELS-601': { startBbl: 156820, endBbl: 156826, levelFt: 39.8, apiGravity: 41.6, tempF: 68.9 },
+  'TK-LAX-610': { startBbl: 221460, endBbl: 221464, levelFt: 43.2, apiGravity: 42.1, tempF: 69.4 },
+  'TK-SLC-701': { startBbl: 88400, endBbl: 88410, levelFt: 29.6, apiGravity: 40.3, tempF: 66.8 },
+  'TK-BOI-710': { startBbl: 96200, endBbl: 96206, levelFt: 30.9, apiGravity: 40.1, tempF: 65.2 },
 };
 
 async function readTankGauges(tankIds) {
