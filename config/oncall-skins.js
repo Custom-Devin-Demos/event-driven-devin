@@ -2102,6 +2102,22 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CAREEM SITE — internal demo only, not affiliated with, endorsed by, or a real Careem product.',
   },
+  '9dda44d0': {
+    slug: '9dda44d0',
+    company: 'Strategic Education, Inc.',
+    brandMark: 'S',
+    vertical: 'hightech',
+    page: { file: '9dda44d0.html', title: 'Add learner seats | Education Benefits Management – Strategic Education, Inc.' },
+    theme: {
+      '--accent': '#DD2A3F',
+      '--ink': '#212529',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#101820',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Strategic Education Support',
+    disclaimer: 'NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.',
+  },
 };
 
 function getOncallSkin(slug) {
