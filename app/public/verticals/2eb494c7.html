@@ -623,6 +623,7 @@
   var promo = '';
   var placing = false;
   var ordered = false;
+  var ORDER_TIMEOUT_MS = 20000;
   var modalItem = null;
   var modalQty = 1;
   var modalSel = {};
@@ -983,8 +984,11 @@
   function placeOrder() {
     if (!cart.length || placing || ordered) return;
     clearResult(); setPlacing(true);
+    var ctl = new AbortController();
+    var timer = setTimeout(function () { ctl.abort(); }, ORDER_TIMEOUT_MS);
     fetch(API + '/order', {
       method: 'POST',
+      signal: ctl.signal,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         items: cart.map(function (l) { return { sku: l.sku, qty: l.qty, modifiers: l.modifiers || undefined }; }),
@@ -1020,10 +1024,11 @@
         $('t-tip').textContent = money(r.data.tip); $('t-total').textContent = money(r.data.total);
       })
       .catch(function (err) {
-        $('err-msg').textContent = 'We could not reach the ordering service.'; $('err-tech').textContent = err.message;
-        $('result-err').classList.add('show'); showToast('Order failed', err.message, true);
+        var msg = err.name === 'AbortError' ? 'The ordering service did not respond in time.' : err.message;
+        $('err-msg').textContent = 'We could not reach the ordering service. Your payment method has not been charged.'; $('err-tech').textContent = msg;
+        $('result-err').classList.add('show'); showToast('Order failed', msg, true);
       })
-      .then(function () { setPlacing(false); });
+      .then(function () { clearTimeout(timer); setPlacing(false); });
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-place]'), function (b) { b.addEventListener('click', placeOrder); });
 
