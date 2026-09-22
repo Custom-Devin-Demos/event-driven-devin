@@ -2322,6 +2322,29 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Claims Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ZURICH SITE — internal demo only, not affiliated with, endorsed by, or a real Zurich product.',
   },
+  'd949b852': {
+    slug: 'd949b852',
+    company: 'LSEG',
+    brandMark: 'L',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: 'd949b852.html',
+      title: 'TradeAgent — Settlement Instructions | LSEG Post Trade',
+    },
+    theme: {
+      '--accent': '#001EFF',
+      '--ink': '#4D4D4D',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#001489',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'LSEG Post Trade Client Services',
+    supportCenterSub: 'TradeAgent Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN LSEG SITE — internal demo only, not affiliated with, endorsed by, or a real London Stock Exchange Group product.',
+  },
   'e63edc26': {
     slug: 'e63edc26',
     company: 'Harvey',
