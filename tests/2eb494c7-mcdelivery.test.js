@@ -12,6 +12,8 @@ jest.mock('../app/telemetry/sentry', () => ({
 }));
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { Sentry } = require('../app/telemetry/sentry');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 const {
   placeOrder, buildCartLines, computeFees, resolveHandoffProtocol, buildDasherInstructions,
   DROP_OFF_OPTIONS, HANDOFF_PROTOCOLS, MENU, DELIVERY_FEE,
@@ -116,6 +118,21 @@ describe('McDelivery (2eb494c7) — placeOrder', () => {
     expect(payload.slackMemberId).toBe('');
     expect(payload.slackMemberIdFallback).toBeTruthy();
     expect(payload.tags).toEqual(expect.arrayContaining([{ key: 'route', value: '/api/2eb494c7/order' }]));
+  });
+
+  test('the Sentry webhook treats McDelivery events as already alerted', async () => {
+    await expect(placeOrder({ items: [BIG_MAC_MEAL] })).rejects.toBeInstanceOf(TypeError);
+    const captured = Sentry.captureException.mock.calls.at(-1)[1];
+    expect(captured.tags.alert_path).toBe('instant');
+
+    expect(isInstantPathEvent({
+      tags: Object.entries(captured.tags),
+      culprit: '',
+    })).toBe(true);
+    expect(isInstantPathEvent({
+      tags: [],
+      culprit: 'app/services/verticals/2eb494c7.js — buildDasherInstructions',
+    })).toBe(true);
   });
 
   test('scheduled orders also hit the defect', async () => {

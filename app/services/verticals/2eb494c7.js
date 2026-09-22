@@ -357,6 +357,7 @@ async function placeOrder(data) {
         service: SERVICE,
         drop_off: dropOff.code,
         schedule: schedule.mode,
+        alert_path: 'instant',
       },
       extra: {
         orderId,
