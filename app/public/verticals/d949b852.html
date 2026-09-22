@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TradeAgent — Settlement Instructions | LSEG Post Trade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #001EFF;
+      --blue-deep: #001489;
+      --blue-navy: #000D52;
+      --cyan: #00A4E4;
+      --orange: #FF5000;
+      --orange-dark: #E04600;
+      --green: #2D9F7D;
+      --ink: #4D4D4D;
+      --ink-strong: #212121;
+      --muted: #666666;
+      --line: #E6E6E6;
+      --line-strong: #999999;
+      --wash: #F2F2F2;
+      --white: #FFFFFF;
+      --font: proximanova, "Proxima Nova", "Nunito Sans", "Helvetica Neue", Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--font); font-size: 16px; line-height: 24px; color: var(--ink); background: var(--white); -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+
+    .wrap { max-width: 1248px; margin: 0 auto; padding: 0 24px; }
+
+    /* Group navigation band */
+    .group-nav { background: var(--blue); color: var(--white); height: 48px; }
+    .group-nav .wrap { display: flex; align-items: center; justify-content: center; height: 48px; gap: 4px; }
+    .group-nav a { color: var(--white); font-size: 19px; line-height: 20px; padding: 14px 16px; white-space: nowrap; }
+    .group-nav a.group-home { padding-right: 24px; margin-right: 8px; border-right: 1px solid rgba(255,255,255,0.6); }
+    .group-nav a.current { background: rgba(255,255,255,0.12); border-bottom: 3px solid var(--white); padding-bottom: 11px; }
+    .group-nav .mobile-only { display: none; font-size: 14px; }
+    .group-nav .mobile-only strong { font-size: 19px; font-weight: 400; margin-left: 8px; }
+
+    /* Site header */
+    .site-header { background: var(--white); border-bottom: 1px solid var(--line); height: 78px; }
+    .site-header .wrap { display: flex; align-items: center; height: 78px; gap: 24px; }
+    .logo { display: flex; align-items: center; gap: 16px; color: var(--blue); }
+    .logo-mark { font-weight: 700; font-size: 34px; letter-spacing: 0.5px; line-height: 1; color: var(--blue); }
+    .logo-context { display: flex; align-items: center; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--blue); }
+    .logo-context span + span { border-left: 1px solid var(--blue); margin-left: 8px; padding-left: 8px; }
+    .site-nav { margin-left: auto; display: flex; align-items: center; gap: 32px; }
+    .site-nav a { color: var(--ink); font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .site-nav a.active { color: var(--blue); }
+    .site-nav svg { width: 12px; height: 12px; }
+    .user-chip { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 18px; color: var(--ink); padding-left: 24px; border-left: 1px solid var(--line); white-space: nowrap; }
+    .user-chip .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--wash); color: var(--blue); font-weight: 700; display: grid; place-items: center; font-size: 13px; }
+    .user-chip small { display: block; color: var(--muted); font-size: 12px; }
+
+    /* Breadcrumb */
+    .crumbs { border-bottom: 1px solid var(--line); }
+    .crumbs .wrap { display: flex; align-items: center; gap: 12px; height: 50px; font-size: 12px; line-height: 16px; color: var(--ink); white-space: nowrap; overflow: hidden; }
+    .crumbs a { color: var(--ink); text-decoration: underline; }
+    .crumbs strong { font-weight: 700; }
+
+    /* Hero */
+    .hero { position: relative; background: var(--blue); color: var(--white); overflow: hidden; }
+    .hero .wrap { position: relative; z-index: 1; padding-top: 96px; padding-bottom: 96px; max-width: 1248px; }
+    .hero .eyebrow { font-size: 12px; line-height: 20px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+    .hero h1 { font-size: 44px; line-height: 56px; font-weight: 600; margin-bottom: 24px; }
+    .hero p { font-size: 16px; line-height: 24px; max-width: 600px; }
+    .hero-art { position: absolute; inset: 0; pointer-events: none; }
+    .hero-art svg { position: absolute; right: 0; top: 0; height: 100%; width: auto; }
+
+    /* Sub nav + CTA strip */
+    .strip { border-bottom: 1px solid var(--line); background: var(--white); }
+    .strip .wrap { display: flex; align-items: center; height: 64px; gap: 32px; }
+    .strip .tabs { display: flex; gap: 32px; height: 100%; }
+    .strip .tabs a { color: var(--ink); font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; height: 100%; border-bottom: 3px solid transparent; white-space: nowrap; }
+    .strip .tabs a.active { border-bottom-color: var(--blue); }
+    .strip .env { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); background: var(--wash); border-radius: 4px; padding: 6px 12px; }
+    .strip .env i { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+
+    /* Buttons (LSEG standard: 20px/700, 8px 24px, radius 4) */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; line-height: 28px; font-weight: 700; padding: 8px 24px; border-radius: 4px; border: 1px solid transparent; cursor: pointer; transition: background-color .15s ease, border-color .15s ease; min-height: 46px; }
+    .btn-primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+    .btn-primary:hover { background: var(--orange-dark); border-color: var(--orange-dark); }
+    .btn-primary:disabled { opacity: .7; cursor: progress; }
+    .btn-secondary { background: var(--white); border-color: var(--blue); color: var(--blue); }
+
+    /* Main */
+    main { padding: 56px 0 72px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) 384px; gap: 64px; align-items: start; }
+    .section-title { font-size: 28px; line-height: 36px; font-weight: 400; color: var(--ink); margin-bottom: 8px; }
+    .section-sub { color: var(--ink); margin-bottom: 32px; max-width: 680px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+    .stat { border: 1px solid var(--line); border-top: 4px solid var(--blue); padding: 16px; }
+    .stat .k { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .stat .v { font-size: 28px; line-height: 32px; font-weight: 600; color: var(--ink-strong); }
+    .stat .d { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: 4px; }
+
+    .card { border: 1px solid var(--line); background: var(--white); }
+    .card-head { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .card-head h3 { font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ink-strong); }
+    .pill { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; padding: 4px 10px; border-radius: 2px; background: var(--wash); color: var(--ink); white-space: nowrap; }
+    .card-body { padding: 24px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .field { position: relative; margin-bottom: 24px; }
+    .field label { position: absolute; left: 16px; top: 6px; font-size: 12px; line-height: 16px; color: var(--muted); pointer-events: none; }
+    .field select, .field input { width: 100%; height: 48px; padding: 20px 40px 2px 16px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--white); color: var(--ink); font-size: 16px; line-height: 24px; appearance: none; -webkit-appearance: none; outline: none; }
+    .field input { padding-right: 16px; }
+    .field select:focus, .field input:focus { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+    .field .chev { position: absolute; right: 16px; top: 18px; width: 12px; height: 12px; pointer-events: none; color: var(--ink); }
+    .field .prefix { position: absolute; left: 16px; top: 22px; font-size: 16px; line-height: 24px; color: var(--ink); pointer-events: none; }
+    .field input.has-prefix { padding-left: 56px; }
+    .hint { font-size: 12px; line-height: 16px; color: var(--muted); margin-top: -12px; margin-bottom: 24px; }
+
+    .review { background: var(--wash); padding: 16px 20px; margin-bottom: 24px; font-size: 14px; line-height: 20px; }
+    .review dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 24px; }
+    .review dt { color: var(--muted); }
+    .review dd { color: var(--ink-strong); font-weight: 600; }
+    .review code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 13px; font-weight: 400; color: var(--ink-strong); }
+
+    .actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .actions .note { font-size: 12px; line-height: 16px; color: var(--muted); }
+
+    .result-box { margin-top: 24px; padding: 16px 20px; border: 1px solid var(--line); border-left-width: 4px; display: none; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; border-color: var(--green); background: rgba(45,159,125,.06); }
+    .result-box.error { display: block; border-color: var(--orange); background: rgba(255,80,0,.06); }
+    .result-box .error-title { font-weight: 700; color: var(--ink-strong); margin-bottom: 4px; font-size: 16px; }
+    .result-box .error-detail { color: var(--ink); word-break: break-word; }
+    .result-box .meta { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+    /* Aside */
+    aside h4 { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--ink); padding-bottom: 16px; border-bottom: 1px solid var(--line-strong); margin-bottom: 16px; }
+    .links { list-style: none; margin-bottom: 40px; }
+    .links li { border-bottom: 1px solid var(--line); }
+    .links a { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; color: var(--ink); font-weight: 600; font-size: 16px; }
+    .links a svg { width: 14px; height: 14px; color: var(--blue); flex: none; }
+    .queue { list-style: none; }
+    .queue li { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; line-height: 20px; }
+    .queue .id { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 13px; color: var(--ink-strong); }
+    .queue .sub { grid-column: 1 / -1; color: var(--muted); font-size: 12px; line-height: 16px; }
+    .status { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .status.ok { color: var(--green); }
+    .status.pend { color: var(--blue); }
+
+    /* Footer */
+    footer { background: var(--wash); color: var(--ink); padding: 40px 0 32px; margin-top: 24px; }
+    footer .cols { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+    footer .cols h5 { font-size: 14px; font-weight: 700; color: var(--ink-strong); margin-bottom: 12px; }
+    footer .cols a { display: block; color: var(--ink); font-size: 14px; line-height: 20px; margin-bottom: 8px; }
+    footer .legal { border-top: 1px solid var(--line); padding-top: 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; font-size: 12px; line-height: 16px; color: var(--muted); flex-wrap: wrap; }
+    footer .legal .logo-mark { font-size: 24px; }
+
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; gap: 48px; }
+      .site-nav { display: none; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 16px; }
+      .group-nav .desktop-only { display: none; }
+      .group-nav .mobile-only { display: inline-flex; align-items: center; }
+      .site-header { height: 64px; }
+      .site-header .wrap { height: 64px; gap: 12px; }
+      .logo-mark { font-size: 28px; }
+      .logo-context { font-size: 13px; }
+      .user-chip { padding-left: 0; border-left: 0; margin-left: auto; }
+      .user-chip div { display: none; }
+      .crumbs .wrap { height: 44px; }
+      .hero .wrap { padding-top: 88px; padding-bottom: 120px; }
+      .hero h1 { font-size: 36px; line-height: 44px; }
+      .hero-art svg { height: 40%; }
+      .strip .wrap { height: auto; flex-direction: column; align-items: stretch; gap: 0; }
+      .strip .tabs { gap: 20px; height: 52px; overflow-x: auto; scrollbar-width: none; }
+      .strip .tabs::-webkit-scrollbar { display: none; }
+      .strip .env { margin: 0 0 12px; align-self: flex-start; }
+      main { padding: 40px 0 56px; }
+      .section-title { font-size: 24px; line-height: 32px; }
+      .stats { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .stat .v { font-size: 22px; line-height: 28px; }
+      .card-head, .card-body { padding: 16px; }
+      .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .btn { width: 100%; }
+      footer .cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="group-nav" aria-label="LSEG businesses">
+    <div class="wrap">
+      <a class="group-home desktop-only" href="#">LSEG</a>
+      <a class="desktop-only" href="#">Data &amp; Analytics</a>
+      <a class="desktop-only" href="#">FTSE Russell</a>
+      <a class="desktop-only" href="#">London Stock Exchange</a>
+      <a class="desktop-only" href="#">FX</a>
+      <a class="desktop-only current" href="#">Post Trade</a>
+      <a class="desktop-only" href="#">Risk Intelligence</a>
+      <a class="mobile-only" href="#">Our businesses <strong>Post Trade</strong></a>
+    </div>
+  </nav>
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="LSEG Post Trade">
+        <span class="logo-mark">LSEG</span>
+        <span class="logo-context"><span>Markets</span><span>Post Trade</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Post Trade">
+        <a href="#">Clearing <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a>
+        <a href="#" class="active">Post Trade Solutions <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a>
+        <a href="#">Regulatory Reporting Solutions <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a>
+        <a href="#">Portals <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg></a>
+      </nav>
+      <div class="user-chip">
+        <span class="avatar">AC</span>
+        <div>Alice Chen<small>Settlement Operations</small></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="crumbs">
+    <div class="wrap">
+      <a href="#">Post Trade</a> <span>/</span>
+      <a href="#">Post Trade Solutions</a> <span>/</span>
+      <a href="#">Centralise</a> <span>/</span>
+      <a href="#">TradeAgent</a> <span>/</span>
+      <strong>Settlement instructions</strong>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 900 560" preserveAspectRatio="xMaxYMid slice">
+        <polygon points="0,0 620,0 620,360" fill="#001489"/>
+        <polygon points="620,0 900,0 900,560 620,360" fill="#00A4E4"/>
+      </svg>
+    </div>
+    <div class="wrap">
+      <p class="eyebrow">Centralise</p>
+      <h1>TradeAgent</h1>
+      <p>Central settlement routing for OTC derivatives cashflows. Instruct bilateral cashflow settlement from the golden source of trade and agreement data, with a single authoritative record for every payment leg.</p>
+    </div>
+  </section>
+
+  <div class="strip">
+    <div class="wrap">
+      <nav class="tabs" aria-label="TradeAgent workspace">
+        <a href="#" class="active">Settlement instructions</a>
+        <a href="#">Cashflows</a>
+        <a href="#">Margin in Transit</a>
+        <a href="#">Lifecycle events</a>
+      </nav>
+      <span class="env"><i></i> Production &middot; London</span>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap grid">
+      <div>
+        <h2 class="section-title">Instruct a settlement</h2>
+        <p class="section-sub">Route a bilateral cashflow between settlement accounts. Instructions are validated against the authoritative trade record before release to central settlement.</p>
+
+        <div class="stats">
+          <div class="stat"><div class="k">Value date</div><div class="v" id="valueDate">—</div><div class="d">T+0 same-day</div></div>
+          <div class="stat"><div class="k">Cutoff</div><div class="v">15:30</div><div class="d">London (GMT)</div></div>
+          <div class="stat"><div class="k">Pending</div><div class="v">14</div><div class="d">Awaiting release</div></div>
+          <div class="stat"><div class="k">Settled today</div><div class="v">212</div><div class="d">Across 38 counterparties</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Settlement instruction</h3>
+            <span class="pill">Interest rate derivatives</span>
+          </div>
+          <div class="card-body">
+            <form id="transferForm" novalidate>
+              <div class="form-row">
+                <div class="field">
+                  <label for="fromAccount">Paying settlement account</label>
+                  <select id="fromAccount">
+                    <option value="ACCT-1001">Meridian Capital — GBP House</option>
+                    <option value="ACCT-1002">Meridian Capital — USD Client</option>
+                  </select>
+                  <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg>
+                </div>
+                <div class="field">
+                  <label for="toAccount">Receiving counterparty account</label>
+                  <select id="toAccount">
+                    <option value="ACCT-1002">Meridian Capital — USD Client</option>
+                    <option value="ACCT-1001">Meridian Capital — GBP House</option>
+                    <option value="ACCT-EXT-001">Northgate Markets — Settlement</option>
+                  </select>
+                  <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label for="amount">Cashflow amount</label>
+                  <span class="prefix">GBP</span>
+                  <input type="number" id="amount" class="has-prefix" value="250000" min="0.01" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="accountTier">Settlement route</label>
+                  <select id="accountTier">
+                    <option value="standard">Standard — CHAPS</option>
+                    <option value="premium">Priority — pre-cleared counterparty</option>
+                    <option value="basic">Deferred — end of day netting</option>
+                  </select>
+                  <svg class="chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l4 4 4-4"/></svg>
+                </div>
+              </div>
+              <div class="hint">Standard route releases to central settlement on validation. Priority route uses pre-cleared counterparty terms.</div>
+
+              <div class="review">
+                <dl>
+                  <dt>Trade reference</dt><dd><code>IRS-2026-0917-04412</code></dd>
+                  <dt>Cashflow</dt><dd>Fixed leg coupon · 6M GBP SONIA swap</dd>
+                  <dt>Agreement</dt><dd>ISDA 2002 · CSA (GBP cash)</dd>
+                  <dt>Source</dt><dd>Authoritative trade record · matched &amp; affirmed</dd>
+                </dl>
+              </div>
+
+              <div class="actions">
+                <button type="submit" class="btn btn-primary" id="submitBtn">Instruct settlement</button>
+                <span class="note">Releases on validation. A settlement reference is returned when the instruction is accepted.</span>
+              </div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <h4>Useful links</h4>
+        <ul class="links">
+          <li><a href="#">Settlement calendar <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h8M7 3l4 4-4 4"/></svg></a></li>
+          <li><a href="#">Counterparty SSIs <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h8M7 3l4 4-4 4"/></svg></a></li>
+          <li><a href="#">Cashflow reconciliation <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h8M7 3l4 4-4 4"/></svg></a></li>
+          <li><a href="#">TradeAgent API reference <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h8M7 3l4 4-4 4"/></svg></a></li>
+        </ul>
+
+        <h4>Recent instructions</h4>
+        <ul class="queue">
+          <li><span class="id">STL-8841027</span><span class="status ok">Settled</span><span class="sub">Northgate Markets plc · GBP 1,200,000.00 · Fixed leg coupon</span></li>
+          <li><span class="id">STL-8841019</span><span class="status ok">Settled</span><span class="sub">Halden Bank AG · USD 640,500.00 · Variation margin</span></li>
+          <li><span class="id">STL-8841003</span><span class="status pend">Pending</span><span class="sub">Corvane Asset Management · EUR 310,000.00 · Novation fee</span></li>
+          <li><span class="id">STL-8840996</span><span class="status ok">Settled</span><span class="sub">Meridian Capital Partners · GBP 88,250.00 · Floating leg reset</span></li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <h5>TradeAgent</h5>
+          <a href="#">Centralised post trade processing for OTC derivatives</a>
+          <a href="#">Golden source of trade and agreement data</a>
+          <a href="#">FINOS Common Domain Model</a>
+        </div>
+        <div>
+          <h5>Post Trade Solutions</h5>
+          <a href="#">Optimise</a>
+          <a href="#">Centralise</a>
+          <a href="#">Connect</a>
+        </div>
+        <div>
+          <h5>Support</h5>
+          <a href="#">Client services</a>
+          <a href="#">Service status</a>
+          <a href="#">Documentation</a>
+        </div>
+        <div>
+          <h5>Legal</h5>
+          <a href="#">Privacy policy</a>
+          <a href="#">Cookie policy</a>
+          <a href="#">Terms of use</a>
+        </div>
+      </div>
+      <div class="legal">
+        <span class="logo-mark">LSEG</span>
+        <span>Internal demo environment. Not an LSEG service.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+
+    document.getElementById('valueDate').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'Europe/London' });
+
+    function fmtGBP(n) {
+      return 'GBP ' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const fromAccount = document.getElementById('fromAccount').value;
+      const toAccount = document.getElementById('toAccount').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const invalid = !(amount > 0) || !Number.isFinite(amount) ? 'Enter a cashflow amount greater than zero.'
+        : fromAccount === toAccount ? 'Paying and receiving settlement accounts must differ.' : '';
+      if (invalid) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Instruction not submitted</div><div class="error-detail"></div>';
+        result.querySelector('.error-detail').textContent = invalid;
+        return;
+      }
+      const started = Date.now();
+      btn.disabled = true;
+      btn.textContent = 'Validating instruction…';
+      result.className = 'result-box';
+      result.innerHTML = '';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount,
+            toAccount,
+            amount,
+            accountTier: document.getElementById('accountTier').value,
+            userId: 'usr_alice_chen',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        });
+        const data = await res.json();
+        const secs = ((Date.now() - started) / 1000).toFixed(1);
+        if (!res.ok || data.success === false) {
+          result.className = 'result-box error';
+          result.innerHTML = '<div class="error-title">Instruction rejected</div><div class="error-detail"></div><div class="meta"></div>';
+          result.querySelector('.error-detail').textContent = (data.errorClass ? data.errorClass + ': ' : '') + (data.error || 'Settlement instruction could not be released.');
+          result.querySelector('.meta').textContent = 'Response time ' + secs + 's';
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = '<div class="error-title">Instruction accepted</div><div class="error-detail"></div><div class="meta"></div>';
+          result.querySelector('.error-detail').textContent = 'Settlement reference ' + (data.transferId || '—') + '. Debit ' + fmtGBP(data.debitAmount) + ' including ' + fmtGBP(data.fee) + ' routing fee. Released to central settlement.';
+          result.querySelector('.meta').textContent = 'Response time ' + secs + 's';
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Network error</div><div class="error-detail"></div>';
+        result.querySelector('.error-detail').textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Instruct settlement';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
