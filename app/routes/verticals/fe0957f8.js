@@ -5,6 +5,7 @@ const {
   CERTIFICATIONS,
   DOMAINS,
   MAX_PRODUCT_NAME,
+  MAX_PUBLISHED_BY,
 } = require('../../services/verticals/fe0957f8');
 
 const router = express.Router();
@@ -44,11 +45,12 @@ function has(map, key) {
 }
 
 router.post('/api/fe0957f8/publish', async (req, res) => {
-  const productName = typeof req.body.productName === 'string' ? req.body.productName.trim() : '';
-  const publishedBy = typeof req.body.publishedBy === 'string' ? req.body.publishedBy.trim() : '';
-  const assetId = stringField(req.body.assetId, 'snowflake/finance/dp_revenue_daily');
-  const certification = stringField(req.body.certification, 'verified');
-  const domain = stringField(req.body.domain, 'finance');
+  const body = req.body || {};
+  const productName = typeof body.productName === 'string' ? body.productName.trim() : '';
+  const publishedBy = typeof body.publishedBy === 'string' ? body.publishedBy.trim() : '';
+  const assetId = stringField(body.assetId, 'snowflake/finance/dp_revenue_daily');
+  const certification = stringField(body.certification, 'verified');
+  const domain = stringField(body.domain, 'finance');
 
   if (!productName || productName.length > MAX_PRODUCT_NAME) {
     return res.status(400).json({
@@ -57,8 +59,12 @@ router.post('/api/fe0957f8/publish', async (req, res) => {
       code: 'VALIDATION_ERROR',
     });
   }
-  if (!publishedBy) {
-    return res.status(400).json({ success: false, error: 'publishedBy is required', code: 'VALIDATION_ERROR' });
+  if (!publishedBy || publishedBy.length > MAX_PUBLISHED_BY) {
+    return res.status(400).json({
+      success: false,
+      error: `publishedBy is required and must be at most ${MAX_PUBLISHED_BY} characters`,
+      code: 'VALIDATION_ERROR',
+    });
   }
   if (!has(ASSETS, assetId)) {
     return res.status(400).json({ success: false, error: `Unknown catalog asset: ${assetId}`, code: 'VALIDATION_ERROR' });

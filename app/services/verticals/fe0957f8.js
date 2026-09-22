@@ -163,6 +163,7 @@ const DOMAINS = {
 };
 
 const MAX_PRODUCT_NAME = 120;
+const MAX_PUBLISHED_BY = 120;
 
 function resolveAsset(assetId) {
   const asset = ASSETS[assetId];
@@ -379,4 +380,5 @@ module.exports = {
   CERTIFICATIONS,
   DOMAINS,
   MAX_PRODUCT_NAME,
+  MAX_PUBLISHED_BY,
 };
