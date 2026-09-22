@@ -316,7 +316,7 @@ async function publishDataProduct(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, source: 'atlan-catalog-publish' },
+      tags: { route: ROUTE, service: SERVICE, source: 'atlan-catalog-publish', alert_path: 'instant' },
       extra: {
         requestId,
         assetId: data.assetId,
