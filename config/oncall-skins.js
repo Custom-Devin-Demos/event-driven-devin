@@ -2141,6 +2141,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Strategic Education Support',
     disclaimer: 'NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.',
   },
+  '68cde0d3': {
+    slug: '68cde0d3',
+    company: 'WorkOS',
+    brandMark: 'W',
+    vertical: 'hightech',
+    page: { file: '68cde0d3.html', title: 'WorkOS — Directory Sync' },
+    theme: {
+      '--accent': '#6363F1',
+      '--ink': '#29363D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#030628',
+      '--chrome-text': '#F9F9FB',
+    },
+    supportCenter: 'WorkOS Support',
+    supportCenterSub: 'Enterprise Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A WORKOS SITE — internal demo only, not affiliated with, endorsed by, or a real WorkOS product.',
+  },
   'ce0199ec': {
     slug: 'ce0199ec',
     company: 'Cross River',
