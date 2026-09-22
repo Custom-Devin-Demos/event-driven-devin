@@ -353,7 +353,6 @@
       border: 1px solid var(--engen-line);
       border-radius: 22px;
       padding: 32px;
-      scroll-margin-top: 110px;
     }
     .coverage-card h3 {
       font-size: 20px;
@@ -651,7 +650,7 @@
       <a href="#">Resources</a>
       <a href="#">Contact</a>
     </nav>
-    <button class="btn-contact" onclick="document.querySelector('.coverage-card').scrollIntoView({behavior:'smooth', block:'start'})">Contact Sales</button>
+    <button class="btn-contact" onclick="scrollToCoverage()">Contact Sales</button>
   </header>
 
   <div class="shell">
@@ -664,7 +663,7 @@
       <div class="hero-text">
         <h1>Powering healthtech.</h1>
         <p>Highmark member coverage, benefits, and claims on one platform &mdash; unlocking AI-driven outcomes for clinicians, administrators, and the people they serve.</p>
-        <button class="hero-cta" onclick="document.querySelector('.coverage-card').scrollIntoView({behavior:'smooth', block:'start'})">
+        <button class="hero-cta" onclick="scrollToCoverage()">
           Check Member Coverage
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </button>
@@ -926,6 +925,13 @@
         });
       });
     })();
+
+    function scrollToCoverage() {
+      var header = document.querySelector('.site-header');
+      var card = document.querySelector('.coverage-card');
+      var offset = (header ? header.getBoundingClientRect().height : 0) + 24;
+      window.scrollTo({ top: card.getBoundingClientRect().top + window.pageYOffset - offset, behavior: 'smooth' });
+    }
 
     function money(n) { return '$' + Number(n).toFixed(2); }
     function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
