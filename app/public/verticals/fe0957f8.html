@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DP_REVENUE_DAILY | Atlan</title>
+  <link rel="icon" href="/verticals/assets/fe0957f8/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand: #2026d2;
+      --brand-dark: #171ca6;
+      --brand-soft: #eef0ff;
+      --ink: #0f1121;
+      --body: #3b4058;
+      --muted: #6b7189;
+      --line: #e5e7f0;
+      --line-soft: #eff1f7;
+      --bg: #f7f8fc;
+      --green: #0f8a5f;
+      --green-soft: #e8f7f0;
+      --amber: #9a6400;
+      --amber-soft: #fdf4e3;
+      --red: #b3261e;
+      --red-soft: #fdf1f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    a { color: var(--brand); text-decoration: none; }
+    button { font: inherit; }
+
+    /* App shell */
+    .app { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
+
+    /* Left nav */
+    aside.nav {
+      background: #fff; border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    aside.nav .brand { padding: 22px 22px 18px; border-bottom: 1px solid var(--line-soft); }
+    aside.nav .brand img { height: 26px; width: auto; display: block; }
+    .nav-search {
+      margin: 16px 18px 8px; position: relative;
+    }
+    .nav-search input[type=text] {
+      margin-top: 0; width: 100%; height: 38px; border: 1px solid var(--line); border-radius: 8px;
+      padding: 0 12px 0 34px; font: inherit; font-size: 13.5px; color: var(--ink); background: #fff; outline: none;
+    }
+    .nav-search input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(32,38,210,0.12); }
+    .nav-search svg { position: absolute; left: 11px; top: 11px; width: 16px; height: 16px; color: var(--muted); }
+    .nav-group { padding: 10px 12px; }
+    .nav-group h5 {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+      font-weight: 600; padding: 8px 10px 6px;
+    }
+    .nav-group a {
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+      color: var(--body); font-size: 14px; font-weight: 500;
+    }
+    .nav-group a svg { width: 17px; height: 17px; color: var(--muted); flex: none; }
+    .nav-group a:hover { background: var(--line-soft); }
+    .nav-group a.active { background: var(--brand-soft); color: var(--brand); font-weight: 600; }
+    .nav-group a.active svg { color: var(--brand); }
+    .nav-group a .count { margin-left: auto; font-size: 11.5px; color: var(--muted); font-weight: 500; }
+    aside.nav .who {
+      margin-top: auto; border-top: 1px solid var(--line-soft); padding: 14px 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%; background: var(--brand); color: #fff;
+      display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none;
+    }
+    aside.nav .who b { display: block; font-size: 13.5px; font-weight: 600; }
+    aside.nav .who span { display: block; font-size: 12px; color: var(--muted); }
+
+    /* Main */
+    main { min-width: 0; display: flex; flex-direction: column; }
+    .topbar {
+      background: #fff; border-bottom: 1px solid var(--line); padding: 0 32px; height: 56px;
+      display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10;
+    }
+    .crumbs { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .crumbs b { color: var(--ink); font-weight: 600; }
+    .crumbs i { font-style: normal; color: #c3c7d6; }
+    .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .ghost {
+      border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 13px;
+      font-size: 13.5px; font-weight: 500; color: var(--body); cursor: pointer;
+    }
+    .ghost:hover { border-color: #cdd1e0; background: #fbfbfe; }
+
+    .content { padding: 28px 32px 56px; max-width: 1360px; width: 100%; }
+
+    /* Asset header */
+    .asset-head { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px 26px; }
+    .asset-head .row1 { display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .src-badge {
+      width: 42px; height: 42px; border-radius: 10px; background: var(--brand-soft); color: var(--brand);
+      display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none;
+    }
+    .asset-head h1 { font-size: 24px; letter-spacing: -0.015em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .asset-head .qname { font-size: 13px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 3px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 11px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.01em;
+    }
+    .pill.verified { background: var(--green-soft); color: var(--green); }
+    .pill.draft { background: var(--amber-soft); color: var(--amber); }
+    .pill.type { background: var(--line-soft); color: var(--body); }
+    .pill svg { width: 13px; height: 13px; }
+    .asset-head .row1 .spacer { margin-left: auto; }
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px;
+      margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line-soft);
+    }
+    .meta-grid div span { display: block; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .meta-grid div b { display: block; font-size: 17px; font-weight: 600; margin-top: 4px; }
+    .meta-grid div small { display: block; font-size: 12.5px; color: var(--muted); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin: 22px 0 18px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+    .tabs span {
+      flex: none; white-space: nowrap; padding: 10px 14px; font-size: 14px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent;
+    }
+    .tabs span.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 600; }
+
+    /* Layout */
+    .cols { display: grid; grid-template-columns: minmax(0, 1fr) 372px; gap: 22px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; }
+    .card > header {
+      padding: 18px 24px; border-bottom: 1px solid var(--line-soft);
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    }
+    .card > header h2 { font-size: 16px; font-weight: 600; }
+    .card > header p { font-size: 13px; color: var(--muted); }
+    .card .pad { padding: 24px; }
+
+    fieldset { border: 0; margin: 0 0 26px; }
+    fieldset:last-of-type { margin-bottom: 0; }
+    legend { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand); font-weight: 700; margin-bottom: 12px; }
+    label.field { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+    label.field small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+    input[type=text], select {
+      margin-top: 7px; width: 100%; height: 42px; padding: 0 12px; font: inherit; font-size: 14px; color: var(--ink);
+      border: 1px solid var(--line); border-radius: 9px; background: #fff; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(32,38,210,0.12); }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Asset picker */
+    .assets { display: grid; gap: 10px; }
+    .asset-opt { position: relative; }
+    .asset-opt input { position: absolute; opacity: 0; inset: 0; }
+    .asset-opt .box {
+      border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px; cursor: pointer; background: #fff;
+      display: flex; align-items: center; gap: 13px; transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .asset-opt input:checked + .box { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); background: #f8f9ff; }
+    .asset-opt .box .ico {
+      width: 32px; height: 32px; border-radius: 8px; background: var(--line-soft); color: var(--body);
+      display: grid; place-items: center; font-size: 10.5px; font-weight: 700; flex: none;
+    }
+    .asset-opt input:checked + .box .ico { background: var(--brand-soft); color: var(--brand); }
+    .asset-opt .box b { display: block; font-size: 14px; font-weight: 600; }
+    .asset-opt .box small { display: block; font-size: 12.5px; color: var(--muted); }
+    .asset-opt .box .tail { margin-left: auto; text-align: right; flex: none; }
+    .asset-opt .box .tail .pill { font-size: 11px; padding: 3px 9px; }
+    .asset-opt .box .tail small { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+    .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .opt { position: relative; }
+    .opt input { position: absolute; opacity: 0; inset: 0; }
+    .opt .box { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; font-size: 13.5px; font-weight: 600; }
+    .opt .box small { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; margin-top: 2px; }
+    .opt input:checked + .box { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); background: #f8f9ff; }
+
+    .actions {
+      display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px;
+      border-top: 1px solid var(--line-soft); flex-wrap: wrap;
+    }
+    button.primary {
+      background: var(--brand); color: #fff; border: 0; border-radius: 9px; padding: 12px 22px; font-size: 14.5px;
+      font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
+    }
+    button.primary:hover { background: var(--brand-dark); }
+    button.primary:disabled { opacity: .6; cursor: default; }
+    button.primary svg { width: 17px; height: 17px; }
+    .actions .note { font-size: 12.5px; color: var(--muted); }
+    .processing { display: none; align-items: center; gap: 9px; font-size: 13.5px; color: var(--muted); }
+    .processing.visible { display: inline-flex; }
+    .spinner { width: 15px; height: 15px; border: 2px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Result */
+    .result-box { display: none; margin-top: 22px; border-radius: 12px; padding: 20px 22px; border: 1px solid transparent; }
+    .result-box.success { display: block; background: var(--green-soft); border-color: rgba(15,138,95,0.32); }
+    .result-box.error { display: block; background: var(--red-soft); border-color: rgba(179,38,30,0.32); }
+    .result-box h3 { font-size: 16.5px; font-weight: 600; }
+    .result-box.error h3 { color: var(--red); }
+    .result-box p { margin-top: 7px; font-size: 14px; color: var(--body); }
+    .result-box code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: rgba(15,17,33,0.06); padding: 2px 6px; border-radius: 4px; word-break: break-word; }
+    .result-box ul { margin-top: 10px; padding-left: 18px; font-size: 14px; color: var(--body); }
+    .result-box ul li { margin: 4px 0; }
+    .checks { margin-top: 14px; display: grid; gap: 8px; }
+    .check { display: flex; align-items: flex-start; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; }
+    .check .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; flex: none; background: var(--green); }
+    .check.pending .dot { background: var(--amber); }
+    .check.warning .dot { background: var(--amber); }
+    .check b { display: block; font-size: 13.5px; font-weight: 600; }
+    .check small { display: block; font-size: 12.5px; color: var(--muted); }
+    .terms { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .terms span { font-size: 12px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--body); }
+    .error-meta { display: flex; flex-wrap: wrap; gap: 7px 18px; margin-top: 12px; font-size: 12px; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* Side panels */
+    .side { display: grid; gap: 18px; position: sticky; top: 78px; }
+    .panel-line { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
+    .panel-line:last-child { border-bottom: 0; }
+    .panel-line span { color: var(--muted); }
+    .panel-line b { font-weight: 600; text-align: right; }
+    .lineage { display: grid; gap: 10px; }
+    .hop { display: flex; align-items: center; gap: 12px; }
+    .hop .node {
+      flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; background: #fff;
+    }
+    .hop.current .node { border-color: var(--brand); background: #f8f9ff; }
+    .hop .node b { display: block; font-size: 13.5px; font-weight: 600; }
+    .hop .node small { display: block; font-size: 12px; color: var(--muted); }
+    .hop .rail { width: 22px; text-align: center; color: #c3c7d6; font-size: 16px; }
+    .connector { height: 14px; border-left: 2px dashed var(--line); margin-left: 18px; }
+    .classif { display: flex; flex-wrap: wrap; gap: 7px; }
+    .classif span { font-size: 12px; border-radius: 6px; padding: 4px 9px; background: var(--brand-soft); color: var(--brand); font-weight: 500; }
+    .classif span.pii { background: #fdeeee; color: #a3261f; }
+
+    @media (max-width: 1180px) {
+      .cols { grid-template-columns: minmax(0, 1fr); }
+      .side { position: static; }
+      .meta-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      aside.nav { position: static; height: auto; }
+      aside.nav .nav-group:nth-of-type(2) { display: none; }
+      .content, .topbar { padding-left: 18px; padding-right: 18px; }
+      .meta-grid { grid-template-columns: 1fr 1fr; }
+      .row2, .opts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="nav">
+      <div class="brand"><img src="/verticals/assets/fe0957f8/atlan-logo.svg" alt="Atlan"></div>
+      <div class="nav-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="text" placeholder="Search assets, terms, people" aria-label="Search the catalog">
+      </div>
+      <nav class="nav-group">
+        <h5>Discover</h5>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h18M3 6h18M3 18h18"/></svg>Assets<span class="count">86.4k</span></a>
+        <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Data products<span class="count">142</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 1.5z"/></svg>Glossary<span class="count">1.2k</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>Queries</a>
+      </nav>
+      <nav class="nav-group">
+        <h5>Govern</h5>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6z"/></svg>Policies</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v6H4zM4 14h16v6H4z"/></svg>Domains</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17V7m6 10V4m6 13v-7m6 7V9"/></svg>Insights</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>Stewardship</a>
+      </nav>
+      <nav class="nav-group">
+        <h5>Workspace</h5>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>New request</a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 2.6 7"/></svg>Settings</a>
+      </nav>
+      <div class="who">
+        <div class="avatar">PR</div>
+        <div><b>Priya Raghavan</b><span>Finance domain steward</span></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div class="crumbs">
+          <span>Snowflake</span><i>/</i><span>FINANCE</span><i>/</i><span>REPORTING</span><i>/</i><b id="crumbAsset">DP_REVENUE_DAILY</b>
+        </div>
+        <div class="right">
+          <button type="button" class="ghost">Open lineage</button>
+          <button type="button" class="ghost">Share</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <section class="asset-head">
+          <div class="row1">
+            <div class="src-badge" id="srcBadge">SF</div>
+            <div>
+              <h1>
+                <span id="headName">DP_REVENUE_DAILY</span>
+                <span class="pill verified" id="headCert">Verified</span>
+                <span class="pill type" id="headType">Dynamic Table</span>
+              </h1>
+              <div class="qname" id="headQname">snowflake/finance/DP_REVENUE_DAILY</div>
+            </div>
+            <div class="spacer"></div>
+          </div>
+          <div class="meta-grid">
+            <div><span>Rows</span><b id="metaRows">48,210,934</b><small>Last run 22 Sep 04:15 UTC</small></div>
+            <div><span>Columns</span><b id="metaCols">34</b><small>6 governed fields</small></div>
+            <div><span>Downstream</span><b id="metaDownstream">41</b><small id="metaDash">12 dashboards</small></div>
+            <div><span>Domain</span><b id="metaDomain">Finance</b><small id="metaSteward">Steward Priya Raghavan</small></div>
+            <div><span>Popularity</span><b id="metaPop">High</b><small>Top 5% of queried assets</small></div>
+          </div>
+        </section>
+
+        <div class="tabs">
+          <span class="active">Overview</span>
+          <span>Columns</span>
+          <span>Lineage</span>
+          <span>Governance</span>
+          <span>Activity</span>
+        </div>
+
+        <form class="cols" id="publishForm" onsubmit="publishProduct(event)" novalidate>
+          <section class="card">
+            <header>
+              <div>
+                <h2>Publish data product</h2>
+                <p>Classification propagation and lineage impact are resolved before the product goes live.</p>
+              </div>
+              <span class="pill type">Step 2 of 2</span>
+            </header>
+            <div class="pad">
+              <fieldset>
+                <legend>Product</legend>
+                <div class="row2">
+                  <label class="field">Data product name
+                    <input type="text" id="productName" value="Daily Revenue (Finance)" autocomplete="off">
+                  </label>
+                  <label class="field">Published by
+                    <input type="text" id="publishedBy" value="Priya Raghavan" autocomplete="off">
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Source asset</legend>
+                <div class="assets" id="assets">
+                  <label class="asset-opt">
+                    <input type="radio" name="assetId" value="snowflake/finance/dp_revenue_daily" checked onchange="syncPanels()">
+                    <div class="box">
+                      <div class="ico">SF</div>
+                      <div>
+                        <b>DP_REVENUE_DAILY</b>
+                        <small>SNOWFLAKE / FINANCE / REPORTING &middot; 48.2M rows</small>
+                      </div>
+                      <div class="tail"><span class="pill type">Dynamic Table</span><small>41 downstream</small></div>
+                    </div>
+                  </label>
+                  <label class="asset-opt">
+                    <input type="radio" name="assetId" value="snowflake/finance/fct_invoice_line" onchange="syncPanels()">
+                    <div class="box">
+                      <div class="ico">SF</div>
+                      <div>
+                        <b>FCT_INVOICE_LINE</b>
+                        <small>SNOWFLAKE / FINANCE / CORE &middot; 219.9M rows</small>
+                      </div>
+                      <div class="tail"><span class="pill type">Table</span><small>27 downstream</small></div>
+                    </div>
+                  </label>
+                  <label class="asset-opt">
+                    <input type="radio" name="assetId" value="snowflake/marketing/vw_campaign_attribution" onchange="syncPanels()">
+                    <div class="box">
+                      <div class="ico">SF</div>
+                      <div>
+                        <b>VW_CAMPAIGN_ATTRIBUTION</b>
+                        <small>SNOWFLAKE / MARKETING / ANALYTICS &middot; 3.1M rows</small>
+                      </div>
+                      <div class="tail"><span class="pill type">View</span><small>14 downstream</small></div>
+                    </div>
+                  </label>
+                  <label class="asset-opt">
+                    <input type="radio" name="assetId" value="databricks/product/mv_active_workspaces" onchange="syncPanels()">
+                    <div class="box">
+                      <div class="ico">DB</div>
+                      <div>
+                        <b>MV_ACTIVE_WORKSPACES</b>
+                        <small>DATABRICKS / PRODUCT / GOLD &middot; 884.2k rows</small>
+                      </div>
+                      <div class="tail"><span class="pill type">Materialized View</span><small>9 downstream</small></div>
+                    </div>
+                  </label>
+                  <label class="asset-opt">
+                    <input type="radio" name="assetId" value="kafka/platform/stream_usage_events" onchange="syncPanels()">
+                    <div class="box">
+                      <div class="ico">KA</div>
+                      <div>
+                        <b>STREAM_USAGE_EVENTS</b>
+                        <small>KAFKA / PLATFORM / EVENTS &middot; 1.9B events</small>
+                      </div>
+                      <div class="tail"><span class="pill type">Stream</span><small>19 downstream</small></div>
+                    </div>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Certification &amp; ownership</legend>
+                <div class="opts">
+                  <label class="opt">
+                    <input type="radio" name="certification" value="verified" checked onchange="syncPanels()">
+                    <div class="box">Verified<small>Governance council sign-off, policies enforced downstream</small></div>
+                  </label>
+                  <label class="opt">
+                    <input type="radio" name="certification" value="draft" onchange="syncPanels()">
+                    <div class="box">Draft<small>Discoverable in the domain, reviewed within 5 days</small></div>
+                  </label>
+                </div>
+                <label class="field" style="margin-top:16px">Owning domain
+                  <select id="domain" onchange="syncPanels()">
+                    <option value="finance">Finance &middot; Priya Raghavan</option>
+                    <option value="marketing">Marketing &middot; Daniel Okonkwo</option>
+                    <option value="product">Product Analytics &middot; Mei Lin</option>
+                    <option value="platform">Platform &middot; Tomas Alvarez</option>
+                  </select>
+                </label>
+              </fieldset>
+
+              <div class="actions">
+                <button type="submit" class="primary" id="submitBtn">
+                  Publish data product
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+                <span class="processing" id="processingIndicator"><span class="spinner"></span> Resolving classification propagation&hellip;</span>
+                <span class="note">Policies apply to every downstream consumer on publish.</span>
+              </div>
+              <div class="result-box" id="resultBox" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <aside class="side">
+            <section class="card">
+              <header><h2>Governance</h2></header>
+              <div class="pad">
+                <div class="panel-line"><span>Certification</span><b id="panelCert">Verified</b></div>
+                <div class="panel-line"><span>Owning domain</span><b id="panelDomain">Finance</b></div>
+                <div class="panel-line"><span>Steward</span><b id="panelSteward">Priya Raghavan</b></div>
+                <div class="panel-line"><span>Policy pack</span><b id="panelPolicy">SOX + PII</b></div>
+                <div class="panel-line"><span>Asset type</span><b id="panelType">Dynamic Table</b></div>
+                <div style="margin-top:14px">
+                  <span style="font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600">Classifications</span>
+                  <div class="classif" id="panelClassif" style="margin-top:8px"></div>
+                </div>
+                <div style="margin-top:14px">
+                  <span style="font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600">Linked glossary terms</span>
+                  <div class="terms" id="panelTerms"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <header><h2>Lineage impact</h2><p id="lineageCount">41 downstream</p></header>
+              <div class="pad">
+                <div class="lineage">
+                  <div class="hop"><div class="rail">&uarr;</div><div class="node"><b id="lineageUp">FCT_INVOICE_LINE</b><small>Upstream source table</small></div></div>
+                  <div class="connector"></div>
+                  <div class="hop current"><div class="rail">&bull;</div><div class="node"><b id="lineageSelf">DP_REVENUE_DAILY</b><small id="lineageSelfType">Dynamic Table &middot; this asset</small></div></div>
+                  <div class="connector"></div>
+                  <div class="hop"><div class="rail">&darr;</div><div class="node"><b id="lineageDown">Revenue Executive Dashboard</b><small id="lineageDownMeta">+ 40 downstream assets &middot; 12 dashboards</small></div></div>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ASSETS = {
+      'snowflake/finance/dp_revenue_daily': {
+        name: 'DP_REVENUE_DAILY', qname: 'snowflake/finance/DP_REVENUE_DAILY', src: 'SF',
+        path: 'SNOWFLAKE / FINANCE / REPORTING', typeLabel: 'Dynamic Table', rows: 48210934, cols: 34,
+        downstream: 41, dashboards: 12, popularity: 'High', lastRun: 'Last run 22 Sep 04:15 UTC',
+        classifications: ['PII', 'Financially Sensitive'], terms: ['Net Revenue', 'Booked ARR', 'Fiscal Period'],
+        upstream: 'FCT_INVOICE_LINE', downstreamTop: 'Revenue Executive Dashboard'
+      },
+      'snowflake/finance/fct_invoice_line': {
+        name: 'FCT_INVOICE_LINE', qname: 'snowflake/finance/FCT_INVOICE_LINE', src: 'SF',
+        path: 'SNOWFLAKE / FINANCE / CORE', typeLabel: 'Table', rows: 219884012, cols: 52,
+        downstream: 27, dashboards: 8, popularity: 'High', lastRun: 'Last run 22 Sep 03:40 UTC',
+        classifications: ['Financially Sensitive'], terms: ['Invoice Line', 'Net Revenue'],
+        upstream: 'RAW_BILLING_INVOICE', downstreamTop: 'DP_REVENUE_DAILY'
+      },
+      'snowflake/marketing/vw_campaign_attribution': {
+        name: 'VW_CAMPAIGN_ATTRIBUTION', qname: 'snowflake/marketing/VW_CAMPAIGN_ATTRIBUTION', src: 'SF',
+        path: 'SNOWFLAKE / MARKETING / ANALYTICS', typeLabel: 'View', rows: 3120448, cols: 21,
+        downstream: 14, dashboards: 6, popularity: 'Medium', lastRun: 'Last run 21 Sep 22:05 UTC',
+        classifications: ['Internal'], terms: ['Attributed Pipeline', 'Campaign'],
+        upstream: 'FCT_CAMPAIGN_TOUCH', downstreamTop: 'Marketing Funnel Dashboard'
+      },
+      'databricks/product/mv_active_workspaces': {
+        name: 'MV_ACTIVE_WORKSPACES', qname: 'databricks/product/MV_ACTIVE_WORKSPACES', src: 'DB',
+        path: 'DATABRICKS / PRODUCT / GOLD', typeLabel: 'Materialized View', rows: 884210, cols: 18,
+        downstream: 9, dashboards: 4, popularity: 'Medium', lastRun: 'Last run 22 Sep 01:10 UTC',
+        classifications: ['Internal'], terms: ['Active Workspace', 'Weekly Active Team'],
+        upstream: 'SILVER_WORKSPACE_EVENTS', downstreamTop: 'Product Adoption Dashboard'
+      },
+      'kafka/platform/stream_usage_events': {
+        name: 'STREAM_USAGE_EVENTS', qname: 'kafka/platform/STREAM_USAGE_EVENTS', src: 'KA',
+        path: 'KAFKA / PLATFORM / EVENTS', typeLabel: 'Stream', rows: 1904223871, cols: 12,
+        downstream: 19, dashboards: 3, popularity: 'High', lastRun: 'Last run 22 Sep 06:02 UTC',
+        classifications: ['Internal'], terms: ['Usage Event'],
+        upstream: 'app-usage-producer', downstreamTop: 'SILVER_WORKSPACE_EVENTS'
+      }
+    };
+    var DOMAINS = {
+      finance: { label: 'Finance', steward: 'Priya Raghavan', policy: 'SOX + PII' },
+      marketing: { label: 'Marketing', steward: 'Daniel Okonkwo', policy: 'PII' },
+      product: { label: 'Product Analytics', steward: 'Mei Lin', policy: 'Internal' },
+      platform: { label: 'Platform', steward: 'Tomas Alvarez', policy: 'Internal' }
+    };
+    var CERT_LABEL = { verified: 'Verified', draft: 'Draft' };
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function checked(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+    function num(n) { return n.toLocaleString('en-US'); }
+    function text(id, value) { document.getElementById(id).textContent = value; }
+
+    function syncPanels() {
+      var asset = ASSETS[checked('assetId')];
+      var cert = checked('certification');
+      var domain = DOMAINS[document.getElementById('domain').value];
+
+      text('crumbAsset', asset.name);
+      text('headName', asset.name);
+      var headCert = document.getElementById('headCert');
+      headCert.className = 'pill ' + (cert === 'verified' ? 'verified' : 'draft');
+      headCert.textContent = CERT_LABEL[cert];
+      text('headType', asset.typeLabel);
+      text('headQname', asset.qname);
+      text('srcBadge', asset.src);
+
+      text('metaRows', num(asset.rows));
+      document.querySelector('#metaRows + small').textContent = asset.lastRun;
+      text('metaCols', asset.cols);
+      text('metaDownstream', asset.downstream);
+      text('metaDash', asset.dashboards + ' dashboards');
+      text('metaDomain', domain.label);
+      text('metaSteward', 'Steward ' + domain.steward);
+      text('metaPop', asset.popularity);
+
+      text('panelCert', CERT_LABEL[cert]);
+      text('panelDomain', domain.label);
+      text('panelSteward', domain.steward);
+      text('panelPolicy', domain.policy);
+      text('panelType', asset.typeLabel);
+      document.getElementById('panelClassif').innerHTML = asset.classifications.map(function (c) {
+        return '<span class="' + (c === 'PII' ? 'pii' : '') + '">' + esc(c) + '</span>';
+      }).join('');
+      document.getElementById('panelTerms').innerHTML = asset.terms.map(function (t) {
+        return '<span>' + esc(t) + '</span>';
+      }).join('');
+
+      text('lineageCount', asset.downstream + ' downstream');
+      text('lineageUp', asset.upstream);
+      text('lineageSelf', asset.name);
+      text('lineageSelfType', asset.typeLabel + ' \u00b7 this asset');
+      text('lineageDown', asset.downstreamTop);
+      text('lineageDownMeta', '+ ' + (asset.downstream - 1) + ' downstream assets \u00b7 ' + asset.dashboards + ' dashboards');
+    }
+    syncPanels();
+
+    function publishProduct(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+
+      fetch('/api/fe0957f8/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: document.getElementById('productName').value,
+          publishedBy: document.getElementById('publishedBy').value,
+          assetId: checked('assetId'),
+          certification: checked('certification'),
+          domain: document.getElementById('domain').value,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        setTimeout(function () { resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>Data product could not be published</h3>' +
+            '<p>Classification propagation could not be resolved for this asset type. Nothing was published and no downstream policies changed.<br><br><code>' + esc(result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + esc(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + esc(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + esc(result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+          return;
+        }
+        var d = result.data;
+        var li = d.lineageImpact;
+        var checks = d.policyChecks.map(function (c) {
+          return '<div class="check ' + esc(c.status) + '"><span class="dot"></span><div><b>' + esc(c.name) + '</b><small>' + esc(c.detail) + '</small></div></div>';
+        }).join('');
+        var terms = (li.glossaryTermsPropagated.length ? li.glossaryTermsPropagated : d.glossaryTerms).map(function (t) {
+          return '<span>' + esc(t) + '</span>';
+        }).join('');
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML =
+          '<h3>' + esc(d.productName) + ' published as ' + esc(d.certification.label) + '</h3>' +
+          '<p><strong>' + esc(d.asset.displayName) + '</strong> &middot; ' + esc(d.asset.assetTypeLabel) + ' &middot; ' + esc(d.domain.label) + ' domain. Request <code>' + esc(d.requestId) + '</code></p>' +
+          '<ul>' +
+          '<li>Classifications propagate ' + esc(li.downstreamHops) + ' hop(s) to ' + esc(li.propagatedAssets) + ' of ' + esc(li.downstreamAssets) + ' downstream assets</li>' +
+          '<li>' + esc(li.dashboardsImpacted) + ' dashboards refresh on <code>' + esc(li.lineageRefresh) + '</code> via ' + esc(li.policyEngine) + '</li>' +
+          '<li>Reviewers: ' + esc(li.reviewers.join(', ')) + '</li>' +
+          '</ul>' +
+          '<div class="checks">' + checks + '</div>' +
+          '<div class="terms">' + terms + '</div>' +
+          '<p style="margin-top:10px">' + esc(d.nextStep) + '</p>';
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach the catalog service.<br><br><code>' + esc(err.message) + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
