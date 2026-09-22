@@ -4,6 +4,7 @@ const logger = require('../telemetry/logger');
 const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
 const { createDevinSession } = require('./devin-api');
 const { canCreateSession, reserveSession } = require('./session-rate-limiter');
+const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -589,6 +590,18 @@ async function triggerSkinDevinSession(
 }
 
 /**
+ * Queue the SonarCloud remediation demo PR for a skin that opted in with
+ * sonarPR: { auto: true }. Fire-and-forget like the legacy alert flow; the
+ * trigger itself logs and skips when no GitHub token is configured.
+ */
+function triggerSkinSonarPR(skin, requester) {
+  const config = skin && skin.sonarPR;
+  if (!config || !config.auto) return false;
+  scheduleVulnerablePR(0, config.customer || 'default', requester.userId || undefined, requester.orgId || undefined);
+  return true;
+}
+
+/**
  * Post an alert card for the given scenario to the On-Call alerts channel.
  */
 async function postOncallAlert(scenarioId, options = {}) {
@@ -636,16 +649,24 @@ async function postOncallAlert(scenarioId, options = {}) {
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
+  const requester = resolveRequesterIdentity(options);
   const session = skin
     ? await triggerSkinDevinSession(scenario, skin, {
       token,
       channel: alertsChannel,
       threadTs: ts,
       runRef,
-      requester: resolveRequesterIdentity(options),
+      requester,
     })
     : null;
-  return { ok: true, ts, channel: alertsChannel, ...(session ? { sessionUrl: session.url } : {}) };
+  const sonarPR = triggerSkinSonarPR(skin, requester);
+  return {
+    ok: true,
+    ts,
+    channel: alertsChannel,
+    ...(session ? { sessionUrl: session.url } : {}),
+    ...(sonarPR ? { sonarPR: true } : {}),
+  };
 }
 
 /**
