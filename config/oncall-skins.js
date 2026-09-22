@@ -2280,6 +2280,25 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Parts & Distribution Operator Support',
     disclaimer: 'NOT ACTUALLY A MYBOEINGFLEET SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
   },
+  'bb0a082c': {
+    slug: 'bb0a082c',
+    company: 'Gap',
+    brandMark: 'G',
+    vertical: 'banking',
+    page: {
+      file: 'bb0a082c.html',
+      title: 'Checkout | Gap',
+    },
+    theme: {
+      '--accent': '#031BA1',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Gap Customer Service',
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+  },
   'afc90dda': {
     slug: 'afc90dda',
     company: 'Zurich',
