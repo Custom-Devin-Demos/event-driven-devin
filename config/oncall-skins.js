@@ -2322,6 +2322,29 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Claims Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A ZURICH SITE — internal demo only, not affiliated with, endorsed by, or a real Zurich product.',
   },
+  'e63edc26': {
+    slug: 'e63edc26',
+    company: 'Harvey',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: 'e63edc26.html',
+      title: 'Harvey | Workspace Access',
+    },
+    theme: {
+      '--accent': '#0f0e0d',
+      '--ink': '#0f0e0d',
+      '--surface': '#fafaf9',
+      '--chrome-bg': '#0f0e0d',
+      '--chrome-text': '#fafaf9',
+    },
+    supportCenter: 'Harvey Support',
+    supportCenterSub: 'Workspace Access & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A HARVEY SITE — internal demo only, not affiliated with, endorsed by, or a real Harvey product.',
+  },
 };
 
 function getOncallSkin(slug) {
