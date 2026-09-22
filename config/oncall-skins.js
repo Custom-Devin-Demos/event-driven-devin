@@ -2242,6 +2242,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Quality Systems Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A BOEING SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
   },
+  '180f1323': {
+    slug: '180f1323',
+    company: 'MyBoeingFleet',
+    brandMark: 'M',
+    vertical: 'industrials',
+    page: {
+      file: '180f1323.html',
+      title: 'PART Page — Spares price & availability | MyBoeingFleet',
+    },
+    theme: {
+      '--accent': '#009CDE',
+      '--ink': '#253746',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1D2B36',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'MyBoeingFleet Support',
+    supportCenterSub: 'Parts & Distribution Operator Support',
+    disclaimer: 'NOT ACTUALLY A MYBOEINGFLEET SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
+  },
 };
 
 function getOncallSkin(slug) {
