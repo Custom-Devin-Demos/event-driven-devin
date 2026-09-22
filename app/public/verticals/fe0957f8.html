@@ -170,8 +170,9 @@
       display: grid; place-items: center; font-size: 10.5px; font-weight: 700; flex: none;
     }
     .asset-opt input:checked + .box .ico { background: var(--brand-soft); color: var(--brand); }
-    .asset-opt .box b { display: block; font-size: 14px; font-weight: 600; }
-    .asset-opt .box small { display: block; font-size: 12.5px; color: var(--muted); }
+    .asset-opt .box > div { min-width: 0; }
+    .asset-opt .box b { display: block; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+    .asset-opt .box small { display: block; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
     .asset-opt .box .tail { margin-left: auto; text-align: right; flex: none; }
     .asset-opt .box .tail .pill { font-size: 11px; padding: 3px 9px; }
     .asset-opt .box .tail small { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
@@ -204,7 +205,7 @@
     .result-box { display: none; margin-top: 22px; border-radius: 12px; padding: 20px 22px; border: 1px solid transparent; }
     .result-box.success { display: block; background: var(--green-soft); border-color: rgba(15,138,95,0.32); }
     .result-box.error { display: block; background: var(--red-soft); border-color: rgba(179,38,30,0.32); }
-    .result-box h3 { font-size: 16.5px; font-weight: 600; }
+    .result-box h3 { font-size: 16.5px; font-weight: 600; overflow-wrap: anywhere; }
     .result-box.error h3 { color: var(--red); }
     .result-box p { margin-top: 7px; font-size: 14px; color: var(--body); }
     .result-box code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: rgba(15,17,33,0.06); padding: 2px 6px; border-radius: 4px; word-break: break-word; }
@@ -591,8 +592,13 @@
       text('lineageSelfType', asset.typeLabel + ' \u00b7 this asset');
       text('lineageDown', asset.downstreamTop);
       text('lineageDownMeta', '+ ' + (asset.downstream - 1) + ' downstream assets \u00b7 ' + asset.dashboards + ' dashboards');
+
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
     }
     syncPanels();
+    window.addEventListener('pageshow', syncPanels);
 
     function publishProduct(e) {
       e.preventDefault();
