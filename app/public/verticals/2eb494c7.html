@@ -622,6 +622,7 @@
   var cardSaved = false;
   var promo = '';
   var placing = false;
+  var ordered = false;
   var modalItem = null;
   var modalQty = 1;
   var modalSel = {};
@@ -635,6 +636,7 @@
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
 
   function showView(id) {
+    if (ordered && id !== 'view-checkout') { ordered = false; cart = []; renderCart(); clearResult(); setPlacing(false); }
     Array.prototype.forEach.call(document.querySelectorAll('.view'), function (v) { v.classList.toggle('on', v.id === id); });
     $('cart-open').hidden = (id === 'view-landing' || id === 'view-confirm' || id === 'view-checkout');
     window.scrollTo(0, 0);
@@ -924,12 +926,12 @@
     });
   }
   $('tips').addEventListener('click', function (e) {
-    var b = e.target.closest('button[data-tip]'); if (!b) return;
+    var b = e.target.closest('button[data-tip]'); if (!b || ordered) return;
     var v = b.getAttribute('data-tip');
     if (v === 'other') { customTip = true; $('tip-input').value = tip.toFixed(2); renderCheckout(); $('tip-input').focus(); }
     else { customTip = false; tip = Number(v); renderCheckout(); }
   });
-  $('tip-input').addEventListener('input', function () { var v = Number(this.value); if (Number.isFinite(v) && v >= 0) { tip = round2(v); renderCheckout(); } });
+  $('tip-input').addEventListener('input', function () { if (ordered) return; var v = Number(this.value); if (Number.isFinite(v) && v >= 0) { tip = round2(v); renderCheckout(); } });
   Array.prototype.forEach.call(document.querySelectorAll('.tcard'), function (c) {
     c.addEventListener('click', function () {
       var t = c.getAttribute('data-timing');
@@ -972,10 +974,13 @@
   function clearResult() { $('result-err').classList.remove('show'); $('result-ok').classList.remove('show'); }
   function setPlacing(on) {
     placing = on;
-    Array.prototype.forEach.call(document.querySelectorAll('[data-place]'), function (b) { b.disabled = on; b.textContent = on ? 'Placing your order\u2026' : 'Place Order'; });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-place]'), function (b) {
+      b.disabled = on || ordered;
+      b.textContent = on ? 'Placing your order\u2026' : ordered ? 'Order placed' : 'Place Order';
+    });
   }
   function placeOrder() {
-    if (!cart.length || placing) return;
+    if (!cart.length || placing || ordered) return;
     clearResult(); setPlacing(true);
     fetch(API + '/order', {
       method: 'POST',
@@ -1010,8 +1015,8 @@
         ok.appendChild(document.createTextNode(' ' + r.data.store.name + ' is preparing your order \u2014 ' + (r.data.delivery.mode === 'asap' ? 'arrives in ' + r.data.delivery.eta : 'scheduled for ' + scheduleValue.label) + '. Drop-off: ' + r.data.delivery.dropOff + '.'));
         ok.classList.add('show');
         showToast('Order placed', r.data.orderNumber + ' \u00b7 ' + money(r.data.total), false);
-        cart = []; renderCart();
-        $('cart-open').hidden = true;
+        ordered = true;
+        $('t-tip').textContent = money(r.data.tip); $('t-total').textContent = money(r.data.total);
       })
       .catch(function (err) {
         $('err-msg').textContent = 'We could not reach the ordering service.'; $('err-tech').textContent = err.message;
