@@ -2264,6 +2264,7 @@ const ONCALL_SKINS = {
     company: 'MyBoeingFleet',
     brandMark: 'M',
     vertical: 'industrials',
+    oncallOnly: true,
     page: {
       file: '180f1323.html',
       title: 'PART Page — Spares price & availability | MyBoeingFleet',
