@@ -71,7 +71,8 @@ const RECENT_CLAIMS = [
 function findMember(query) {
   const email = (query.email || '').trim().toLowerCase();
   const memberId = (query.memberId || '').trim().toUpperCase();
-  return MEMBERS.find((m) => (email && m.email === email) || (memberId && m.id === memberId)) || null;
+  if (!email && !memberId) return null;
+  return MEMBERS.find((m) => (!email || m.email === email) && (!memberId || m.id === memberId)) || null;
 }
 
 function findService(serviceId) {
