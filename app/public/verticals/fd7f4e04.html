@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Purchase | Carvana</title>
+  <link rel="icon" href="https://assets.fastly.carvana.io/partner-header-logos-assets/combo-desktop-carvana.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0a2237;
+      --navy-2: #0d375e;
+      --blue: #106bc7;
+      --blue-dark: #004c8f;
+      --sky: #a5d8ff;
+      --bg: #f6f7f9;
+      --line: #becbda;
+      --line-soft: #e2e8f0;
+      --slate: #475569;
+      --ink: #1e293b;
+      --green: #a9e34b;
+      --green-dark: #1b7f4b;
+      --red: #c8102e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: "Brandon Text", Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+
+    /* Header */
+    header.site {
+      background: #fff;
+      height: 80px;
+      box-shadow: 0 1px 0 var(--line-soft);
+      position: sticky; top: 0; z-index: 20;
+    }
+    header.site .wrap { height: 100%; display: flex; align-items: center; gap: 24px; }
+    header.site .logo img { height: 32px; width: auto; display: block; }
+    header.site nav { display: flex; align-items: center; gap: 4px; margin-left: 8px; }
+    header.site nav a {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; color: var(--navy);
+      background: #fff; border-radius: 99999px; padding: 16px; line-height: 20px;
+    }
+    header.site nav a:hover { background: var(--bg); }
+    header.site nav a svg { width: 18px; height: 18px; }
+    header.site .right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    header.site .right .heart { width: 28px; height: 28px; color: var(--navy); }
+    header.site .right .account {
+      display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px;
+      border: 1px solid var(--line-soft); border-radius: 99999px; background: #fff;
+    }
+    header.site .right .account .avatar {
+      width: 30px; height: 30px; border-radius: 50%; background: var(--bg);
+      display: inline-flex; align-items: center; justify-content: center; color: var(--slate);
+    }
+    header.site .right .account svg { width: 22px; height: 22px; }
+
+    /* Hero band */
+    .hero {
+      position: relative; color: #fff; overflow: hidden;
+      background: var(--navy);
+    }
+    .hero img.bg {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 60%;
+      opacity: 0.9;
+    }
+    .hero .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,34,55,0.85) 0%, rgba(10,34,55,0.55) 55%, rgba(10,34,55,0.15) 100%); }
+    .hero .wrap { position: relative; padding-top: 44px; padding-bottom: 44px; }
+    .hero .eyebrow { font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sky); margin-bottom: 10px; }
+    .hero h1 {
+      font-family: Inter, sans-serif; font-weight: 900; font-size: 44px; line-height: 1; letter-spacing: -0.02em; text-transform: uppercase;
+      max-width: 640px;
+    }
+    .hero p { font-family: Inter, sans-serif; font-size: 17px; margin-top: 12px; max-width: 560px; color: rgba(255,255,255,0.92); }
+
+    /* Stepper */
+    .stepper { background: #fff; border-bottom: 1px solid var(--line-soft); }
+    .stepper .wrap { display: flex; align-items: center; height: 60px; gap: 8px; font-family: Inter, sans-serif; font-size: 14px; }
+    .stepper .step { display: flex; align-items: center; gap: 10px; color: var(--slate); font-weight: 500; }
+    .stepper .step .n {
+      width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; border: 2px solid var(--line); color: var(--slate);
+    }
+    .stepper .step.done .n { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
+    .stepper .step.done { color: var(--navy); }
+    .stepper .step.active { color: var(--navy); font-weight: 700; }
+    .stepper .step.active .n { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .stepper .sep { flex: 0 0 48px; height: 2px; background: var(--line-soft); margin: 0 6px; }
+    .stepper .sep.done { background: var(--green-dark); }
+
+    /* Layout */
+    main .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 32px; padding-top: 32px; padding-bottom: 72px; align-items: start; }
+    .card { background: #fff; border-radius: 16px; border: 1px solid var(--line-soft); box-shadow: 0 1px 2px rgba(10,34,55,0.04); }
+    .card + .card { margin-top: 20px; }
+    .card .head { padding: 22px 28px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .card .head h2 { font-family: Inter, sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+    .card .head .hint { font-family: Inter, sans-serif; font-size: 13px; color: var(--slate); }
+    .card .body { padding: 18px 28px 26px; }
+
+    /* Vehicle card */
+    .vehicle { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: center; }
+    .vehicle .photo { background: var(--bg); border-radius: 12px; padding: 18px; display: flex; align-items: center; justify-content: center; min-height: 190px; }
+    .vehicle .photo img { width: 100%; max-width: 280px; height: auto; display: block; }
+    .vehicle h3 { font-family: Inter, sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
+    .vehicle .trim { font-family: Inter, sans-serif; color: var(--slate); font-weight: 500; margin-top: 2px; }
+    .vehicle .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-family: Inter, sans-serif; font-size: 14px; color: var(--slate); }
+    .vehicle .meta strong { color: var(--navy); font-weight: 600; }
+    .vehicle .price-row { display: flex; align-items: baseline; gap: 14px; margin-top: 16px; }
+    .vehicle .price { font-family: Inter, sans-serif; font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+    .vehicle .deal {
+      font-family: Inter, sans-serif; font-size: 12px; font-weight: 700; color: var(--navy);
+      background: var(--green); border-radius: 99999px; padding: 4px 10px;
+    }
+    .vehicle .badges { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600;
+      color: var(--navy-2); background: #eef5fc; border-radius: 99999px; padding: 6px 10px;
+    }
+    .badge svg { width: 14px; height: 14px; }
+    .vehicle select {
+      margin-top: 14px; width: 100%;
+    }
+
+    /* Forms */
+    label { display: block; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+    .field { margin-bottom: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    input[type="text"], input[type="number"], select {
+      width: 100%; height: 48px; padding: 0 14px; font-family: Inter, sans-serif; font-size: 15px; color: var(--navy);
+      background: #fff; border: 1px solid var(--line); border-radius: 10px; outline: none;
+      -webkit-appearance: none; appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230a2237' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px;
+    }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(16,107,199,0.15); }
+    .money { position: relative; }
+    .money input { padding-left: 28px; }
+    .money::before { content: "$"; position: absolute; left: 14px; top: 13px; font-family: Inter, sans-serif; font-size: 15px; color: var(--slate); }
+    .help { font-family: Inter, sans-serif; font-size: 12px; color: var(--slate); margin-top: 6px; }
+
+    .term-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .term { position: relative; }
+    .term input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+    .term span {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; height: 64px;
+      border: 1px solid var(--line); border-radius: 12px; font-family: Inter, sans-serif; font-weight: 700; font-size: 16px; color: var(--navy);
+      background: #fff; transition: all .12s;
+    }
+    .term span small { font-weight: 500; font-size: 12px; color: var(--slate); margin-top: 2px; }
+    .term input:checked + span { border-color: var(--blue); background: #eef5fc; box-shadow: inset 0 0 0 1px var(--blue); }
+    .term .new {
+      position: absolute; top: -8px; right: 8px; font-family: Inter, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .04em;
+      background: var(--green); color: var(--navy); border-radius: 99999px; padding: 2px 7px; pointer-events: none;
+    }
+
+    .option-list { display: grid; gap: 10px; }
+    .option { position: relative; }
+    .option input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+    .option .box {
+      display: grid; grid-template-columns: 22px 1fr auto; gap: 14px; align-items: center;
+      padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; transition: all .12s;
+    }
+    .option .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); position: relative; }
+    .option input:checked + .box { border-color: var(--blue); background: #eef5fc; }
+    .option input:checked + .box .dot { border-color: var(--blue); }
+    .option input:checked + .box .dot::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--blue); }
+    .option .t { font-family: Inter, sans-serif; font-size: 15px; font-weight: 600; }
+    .option .s { font-family: Inter, sans-serif; font-size: 13px; color: var(--slate); margin-top: 2px; }
+    .option .p { font-family: Inter, sans-serif; font-size: 15px; font-weight: 700; white-space: nowrap; }
+    .option .p.free { color: var(--green-dark); }
+
+    /* Summary */
+    .summary { position: sticky; top: 100px; }
+    .summary .card { max-height: calc(100vh - 120px); overflow-y: auto; }
+    .summary .pay { padding: 26px 28px 8px; border-bottom: 1px solid var(--line-soft); }
+    .summary .pay .lbl { font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--slate); text-transform: uppercase; letter-spacing: .06em; }
+    .summary .pay .amt { font-family: Inter, sans-serif; font-size: 44px; font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; margin-top: 6px; }
+    .summary .pay .amt small { font-size: 16px; font-weight: 600; color: var(--slate); letter-spacing: 0; margin-left: 6px; }
+    .summary .pay .apr { font-family: Inter, sans-serif; font-size: 14px; color: var(--slate); margin: 6px 0 16px; }
+    .summary .pay .apr strong { color: var(--navy); }
+    .summary .rows { padding: 16px 28px; }
+    .summary .row { display: flex; justify-content: space-between; font-family: Inter, sans-serif; font-size: 14px; padding: 7px 0; color: var(--slate); }
+    .summary .row span:last-child { color: var(--navy); font-weight: 600; }
+    .summary .row.total { border-top: 1px solid var(--line-soft); margin-top: 8px; padding-top: 14px; font-size: 15px; color: var(--navy); font-weight: 700; }
+    .summary .row.total span:last-child { font-size: 18px; font-weight: 800; }
+    .summary .row.fin { color: var(--navy); }
+    .summary .cta { padding: 8px 28px 26px; }
+    .btn {
+      width: 100%; height: 52px; border: 0; border-radius: 99999px; cursor: pointer;
+      font-family: Inter, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: 0;
+      background: var(--blue); color: #fff; transition: background .12s;
+    }
+    .btn:hover { background: var(--navy-2); }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .fineprint { font-family: Inter, sans-serif; font-size: 12px; color: var(--slate); margin-top: 12px; line-height: 1.45; }
+    .trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 28px 24px; }
+    .trust div { text-align: center; font-family: Inter, sans-serif; font-size: 12px; font-weight: 600; color: var(--navy-2); background: var(--bg); border-radius: 10px; padding: 10px 6px; line-height: 1.3; }
+    .trust div b { display: block; font-size: 15px; font-weight: 800; color: var(--navy); }
+
+    .processing { display: none; align-items: center; gap: 10px; font-family: Inter, sans-serif; font-size: 14px; color: var(--slate); margin-top: 14px; }
+    .processing.visible { display: flex; }
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--line-soft); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-box { display: none; margin-top: 16px; border-radius: 12px; padding: 18px 20px; font-family: Inter, sans-serif; font-size: 14px; }
+    .result-box.error { display: block; background: #fff4f4; border: 1px solid #f3c2c9; color: #7a0c1c; }
+    .result-box.success { display: block; background: #f1fbea; border: 1px solid #c8e8a1; color: #1f4d13; }
+    .result-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+    .result-box code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 6px; word-break: break-word; }
+    .result-box ul { margin: 10px 0 0 18px; }
+    .result-box .error-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12px; color: #9a2233; }
+    .result-box .error-meta span { background: rgba(200,16,46,0.08); padding: 3px 8px; border-radius: 99999px; }
+
+    /* Footer */
+    footer.site { background: var(--navy); color: #fff; padding: 56px 0 28px; }
+    footer .cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    footer h4 { font-family: Inter, sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+    footer ul { list-style: none; }
+    footer li { font-family: Inter, sans-serif; font-size: 14px; color: rgba(255,255,255,0.75); margin-bottom: 9px; }
+    footer .legal { border-top: 1px solid rgba(255,255,255,0.15); margin-top: 40px; padding-top: 22px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: Inter, sans-serif; font-size: 12px; color: rgba(255,255,255,0.65); }
+    footer .legal .links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+    @media (max-width: 900px) {
+      .wrap { padding: 0 20px; }
+      header.site nav { display: none; }
+      .hero h1 { font-size: 34px; }
+      .stepper .step span.txt { display: none; }
+      .stepper .step.active span.txt { display: inline; }
+      main .wrap { grid-template-columns: 1fr; }
+      .summary { position: static; }
+      .summary .card { max-height: none; overflow: visible; }
+      .vehicle { grid-template-columns: 1fr; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .term-row { grid-template-columns: repeat(3, 1fr); }
+      footer .cols { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Carvana">
+        <img src="https://assets.fastly.carvana.io/partner-header-logos-assets/combo-desktop-carvana.svg" alt="Carvana">
+      </a>
+      <nav>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search Cars</a>
+        <a href="#">Sell/Trade</a>
+        <a href="#">Financing</a>
+      </nav>
+      <div class="right">
+        <svg class="heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-9.6-9.4C1 8 3.2 4.5 6.8 4.5c2 0 3.5 1.1 5.2 3 1.7-1.9 3.2-3 5.2-3 3.6 0 5.8 3.5 4.4 7.1C19.5 16.4 12 21 12 21z"/></svg>
+        <div class="account">
+          <span class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0a2237" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <img class="bg" src="https://assets.fastly.carvana.io/merchui/images/home/hero-desktop.jpg?format=auto&height=650&optimize=medium" alt="A Carvana hauler delivering a car through a neighborhood" onerror="this.onerror=null;this.style.display='none';">
+    <div class="shade"></div>
+    <div class="wrap">
+      <div class="eyebrow">Almost there</div>
+      <h1>Right car.<br>Right price.</h1>
+      <p>Review your financing and delivery details below, then complete your purchase. Your vehicle is on hold for <strong>29:41</strong>.</p>
+    </div>
+  </section>
+
+  <div class="stepper">
+    <div class="wrap">
+      <div class="step done"><span class="n">&#10003;</span><span class="txt">Get pre-qualified</span></div>
+      <div class="sep done"></div>
+      <div class="step done"><span class="n">&#10003;</span><span class="txt">Choose your car</span></div>
+      <div class="sep done"></div>
+      <div class="step active"><span class="n">3</span><span class="txt">Financing &amp; delivery</span></div>
+      <div class="sep"></div>
+      <div class="step"><span class="n">4</span><span class="txt">Upload documents</span></div>
+    </div>
+  </div>
+
+  <main>
+    <form class="wrap" onsubmit="completePurchase(event)" novalidate>
+      <div>
+        <div class="card">
+          <div class="head"><h2>Your vehicle</h2><span class="hint">Stock #<span id="stockNo">2286413</span> &middot; Held for you</span></div>
+          <div class="body">
+            <div class="vehicle">
+              <div class="photo"><img id="vehicleImg" src="https://assets.fastly.carvana.io/home-assets/nba/electric.png?width=320" alt="Vehicle" onerror="this.onerror=null;this.style.display='none';"></div>
+              <div>
+                <h3 id="vehicleTitle">2022 Tesla Model 3</h3>
+                <div class="trim" id="vehicleTrim">Long Range AWD</div>
+                <div class="meta">
+                  <span><strong id="vehicleMiles">24,812</strong> miles</span>
+                  <span>Located in <strong id="vehicleLoc">Tempe, AZ</strong></span>
+                  <span>Free shipping to <strong id="vehicleZipEcho">85281</strong></span>
+                </div>
+                <div class="price-row">
+                  <span class="price" id="vehiclePrice">$29,990</span>
+                  <span class="deal" id="vehicleDeal">$1,810 below KBB&reg; typical listing</span>
+                </div>
+                <div class="badges">
+                  <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>150-point inspection</span>
+                  <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>7-day money-back guarantee</span>
+                  <span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6L9 17l-5-5"/></svg>Free CARFAX&reg; report</span>
+                </div>
+                <select id="vehicleId" onchange="syncSummary()" aria-label="Vehicle">
+                  <option value="cvna-2286413" selected>2022 Tesla Model 3 Long Range AWD — $29,990</option>
+                  <option value="cvna-2311907">2021 Toyota RAV4 Hybrid XLE — $27,590</option>
+                  <option value="cvna-2203344">2020 Ford F-150 XLT SuperCrew — $32,990</option>
+                  <option value="cvna-2298760">2022 Honda Civic EX — $22,590</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head"><h2>Financing</h2><span class="hint">Pre-qualified with no impact to your credit</span></div>
+          <div class="body">
+            <div class="grid-3">
+              <div class="field">
+                <label for="downPayment">Down payment</label>
+                <div class="money"><input type="number" id="downPayment" value="2500" min="0" step="1" oninput="syncSummary()"></div>
+              </div>
+              <div class="field">
+                <label for="tradeInValue">Trade-in value</label>
+                <div class="money"><input type="number" id="tradeInValue" value="0" min="0" step="1" oninput="syncSummary()"></div>
+                <div class="help">Get a real offer in under 2 minutes</div>
+              </div>
+              <div class="field">
+                <label for="creditTier">Credit tier</label>
+                <select id="creditTier" onchange="syncSummary()">
+                  <option value="excellent" selected>Excellent (760+)</option>
+                  <option value="good">Good (700–759)</option>
+                  <option value="fair">Fair (640–699)</option>
+                  <option value="rebuilding">Rebuilding (under 640)</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Loan term</label>
+              <div class="term-row" id="termRow">
+                <label class="term"><input type="radio" name="termMonths" value="36" onchange="syncSummary()"><span>36<small>months</small></span></label>
+                <label class="term"><input type="radio" name="termMonths" value="48" onchange="syncSummary()"><span>48<small>months</small></span></label>
+                <label class="term"><input type="radio" name="termMonths" value="60" onchange="syncSummary()"><span>60<small>months</small></span></label>
+                <label class="term"><input type="radio" name="termMonths" value="72" checked onchange="syncSummary()"><span>72<small>months</small></span><em class="new">NEW</em></label>
+                <label class="term"><input type="radio" name="termMonths" value="84" onchange="syncSummary()"><span>84<small>months</small></span></label>
+              </div>
+              <div class="help">Longer terms lower your monthly payment but increase total interest paid.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head"><h2>Delivery</h2><span class="hint">Based on your location</span></div>
+          <div class="body">
+            <div class="grid-2">
+              <div class="field">
+                <label for="buyerName">Full name (as it appears on your license)</label>
+                <input type="text" id="buyerName" value="Jordan Alvarez" autocomplete="name">
+              </div>
+              <div class="field">
+                <label for="zipCode">Delivery ZIP code</label>
+                <input type="text" id="zipCode" value="85281" inputmode="numeric" maxlength="5" oninput="syncSummary()">
+              </div>
+            </div>
+            <div class="option-list">
+              <label class="option">
+                <input type="radio" name="deliveryMethod" value="home_delivery" checked onchange="syncSummary()">
+                <div class="box"><span class="dot"></span><div><div class="t">Home delivery</div><div class="s">As soon as Saturday &middot; A Carvana advocate brings your car to your door</div></div><span class="p free">Free</span></div>
+              </label>
+              <label class="option">
+                <input type="radio" name="deliveryMethod" value="vending_machine" onchange="syncSummary()">
+                <div class="box"><span class="dot"></span><div><div class="t">Pick up at a Carvana Vending Machine</div><div class="s">Tempe, AZ &middot; Drop a coin and watch your car come down</div></div><span class="p free">Free</span></div>
+              </label>
+              <label class="option">
+                <input type="radio" name="deliveryMethod" value="shipped" onchange="syncSummary()">
+                <div class="box"><span class="dot"></span><div><div class="t">Shipped from another market</div><div class="s">Up to 9 days &middot; Vehicle travels from a Carvana hub outside your area</div></div><span class="p">$590</span></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head"><h2>Protection</h2><span class="hint">Optional &middot; Cancel anytime</span></div>
+          <div class="body">
+            <div class="option-list">
+              <label class="option">
+                <input type="radio" name="protectionPlan" value="none" onchange="syncSummary()">
+                <div class="box"><span class="dot"></span><div><div class="t">No protection plan</div><div class="s">Includes the 100-day / 4,189-mile limited warranty</div></div><span class="p free">Included</span></div>
+              </label>
+              <label class="option">
+                <input type="radio" name="protectionPlan" value="carvanacare_essential" checked onchange="syncSummary()">
+                <div class="box"><span class="dot"></span><div><div class="t">CarvanaCare&reg; Essential</div><div class="s">36 mo / 36K mi &middot; Powertrain, electrical, and A/C coverage</div></div><span class="p">$1,299</span></div>
+              </label>
+              <label class="option">
+                <input type="radio" name="protectionPlan" value="carvanacare_plus" onchange="syncSummary()">
+                <div class="box"><span class="dot"></span><div><div class="t">CarvanaCare&reg; Plus</div><div class="s">60 mo / 60K mi &middot; Exclusionary coverage with $0 deductible</div></div><span class="p">$2,199</span></div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="summary">
+        <div class="card">
+          <div class="pay">
+            <div class="lbl">Estimated monthly payment</div>
+            <div class="amt" id="sumMonthly">$—<small>/mo</small></div>
+            <div class="apr"><strong id="sumApr">—% APR</strong> &middot; <span id="sumTerm">72</span> months &middot; <span id="sumTier">Excellent</span> credit</div>
+          </div>
+          <div class="rows">
+            <div class="row"><span>Vehicle price</span><span id="sumPrice">$29,990</span></div>
+            <div class="row"><span>Sales tax &amp; fees (est.)</span><span id="sumTax">$0</span></div>
+            <div class="row"><span>Delivery</span><span id="sumDelivery">Free</span></div>
+            <div class="row"><span>Protection plan</span><span id="sumProtection">$0</span></div>
+            <div class="row"><span>Down payment</span><span id="sumDown">&minus;$2,500</span></div>
+            <div class="row"><span>Trade-in</span><span id="sumTrade">&minus;$0</span></div>
+            <div class="row total"><span>Amount financed</span><span id="sumFinanced">$0</span></div>
+          </div>
+          <div class="cta">
+            <button type="submit" class="btn" id="submitBtn">Complete Purchase</button>
+            <div class="processing" id="processingIndicator"><span class="spinner"></span>Locking in your terms with Carvana Financing&hellip;</div>
+            <div class="result-box" id="resultBox"></div>
+            <div class="fineprint">By completing your purchase you agree to the Carvana Terms of Use and E-Sign consent. Financing subject to final verification of income and residence. Payment estimates exclude title and registration.</div>
+          </div>
+          <div class="trust">
+            <div><b>7-day</b>money-back guarantee</div>
+            <div><b>150-pt</b>inspection</div>
+            <div><b>$0</b>dealer fees</div>
+          </div>
+        </div>
+      </aside>
+    </form>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <div class="cols">
+        <div><h4>Financing</h4><ul><li>Learn More</li><li>Get Pre-Qualified</li><li>Payment Calculator</li></ul></div>
+        <div><h4>Sell/Trade</h4><ul><li>Get an Offer</li><li>Carvana Value Tracker</li><li>How it works</li></ul></div>
+        <div><h4>About</h4><ul><li>About Carvana</li><li>Vending Machines</li><li>Careers</li><li>Newsroom</li><li>Investor Relations</li></ul></div>
+        <div><h4>Support</h4><ul><li>Help Center</li><li>Contact Us</li><li>Carvana Insurance</li><li>Referrals</li></ul></div>
+      </div>
+      <div class="legal">
+        <span>&copy; 2026 Carvana. All rights reserved.</span>
+        <div class="links"><span>Terms of Use</span><span>Privacy Policy</span><span>Do Not Sell My Info</span><span>Accessibility</span><span>Licensing</span></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var VEHICLES = {
+      'cvna-2286413': { title: '2022 Tesla Model 3', trim: 'Long Range AWD', miles: 24812, price: 29990, kbb: 1810, loc: 'Tempe, AZ', stock: '2286413', img: 'electric' },
+      'cvna-2311907': { title: '2021 Toyota RAV4 Hybrid', trim: 'XLE', miles: 31405, price: 27590, kbb: 1520, loc: 'Phoenix, AZ', stock: '2311907', img: 'suv' },
+      'cvna-2203344': { title: '2020 Ford F-150', trim: 'XLT SuperCrew', miles: 42118, price: 32990, kbb: 2240, loc: 'Tolleson, AZ', stock: '2203344', img: 'truck' },
+      'cvna-2298760': { title: '2022 Honda Civic', trim: 'EX', miles: 18230, price: 22590, kbb: 980, loc: 'Tempe, AZ', stock: '2298760', img: 'sedan' }
+    };
+    var APR = {
+      excellent: { 36: 6.49, 48: 6.79, 60: 6.99, 72: 7.49, 84: 7.99 },
+      good: { 36: 8.24, 48: 8.49, 60: 8.89, 72: 9.29, 84: 9.99 },
+      fair: { 36: 11.49, 48: 11.99, 60: 12.49, 72: 13.19, 84: 13.99 },
+      rebuilding: { 36: 16.99, 48: 17.49, 60: 17.99, 72: 18.69, 84: 19.49 }
+    };
+    var TIER_LABEL = { excellent: 'Excellent', good: 'Good', fair: 'Fair', rebuilding: 'Rebuilding' };
+    var DELIVERY_FEE = { home_delivery: 0, vending_machine: 0, shipped: 590 };
+    var PROTECTION_PRICE = { none: 0, carvanacare_essential: 1299, carvanacare_plus: 2199 };
+    var TAX_RATE = 0.083;
+
+    function fmt(n) { return Math.round(n).toLocaleString('en-US'); }
+    function money(n) { return '$' + fmt(n); }
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function checked(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+    function payment(principal, apr, months) {
+      if (principal <= 0) return 0;
+      var r = apr / 100 / 12;
+      return (principal * r) / (1 - Math.pow(1 + r, -months));
+    }
+
+    function syncSummary() {
+      var v = VEHICLES[document.getElementById('vehicleId').value];
+      var tier = document.getElementById('creditTier').value;
+      var term = parseInt(checked('termMonths'), 10);
+      var down = parseInt(document.getElementById('downPayment').value, 10) || 0;
+      var trade = parseInt(document.getElementById('tradeInValue').value, 10) || 0;
+      var delivery = DELIVERY_FEE[checked('deliveryMethod')] || 0;
+      var protection = PROTECTION_PRICE[checked('protectionPlan')] || 0;
+      var tax = v.price * TAX_RATE;
+      var financed = Math.max(v.price + tax + delivery + protection - down - trade, 0);
+      var apr = APR[tier][term];
+
+      document.getElementById('stockNo').textContent = v.stock;
+      document.getElementById('vehicleImg').src = 'https://assets.fastly.carvana.io/home-assets/nba/' + v.img + '.png?width=320';
+      document.getElementById('vehicleTitle').textContent = v.title;
+      document.getElementById('vehicleTrim').textContent = v.trim;
+      document.getElementById('vehicleMiles').textContent = fmt(v.miles);
+      document.getElementById('vehicleLoc').textContent = v.loc;
+      document.getElementById('vehicleZipEcho').textContent = document.getElementById('zipCode').value || '—';
+      document.getElementById('vehiclePrice').textContent = money(v.price);
+      document.getElementById('vehicleDeal').innerHTML = money(v.kbb) + ' below KBB&reg; typical listing';
+
+      document.getElementById('sumMonthly').innerHTML = money(payment(financed, apr, term)) + '<small>/mo</small>';
+      document.getElementById('sumApr').textContent = apr.toFixed(2) + '% APR';
+      document.getElementById('sumTerm').textContent = term;
+      document.getElementById('sumTier').textContent = TIER_LABEL[tier];
+      document.getElementById('sumPrice').textContent = money(v.price);
+      document.getElementById('sumTax').textContent = money(tax);
+      document.getElementById('sumDelivery').textContent = delivery ? money(delivery) : 'Free';
+      document.getElementById('sumProtection').textContent = money(protection);
+      document.getElementById('sumDown').innerHTML = '&minus;' + money(down);
+      document.getElementById('sumTrade').innerHTML = '&minus;' + money(trade);
+      document.getElementById('sumFinanced').textContent = money(financed);
+    }
+    syncSummary();
+
+    function completePurchase(e) {
+      e.preventDefault();
+      var btn = document.getElementById('submitBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      processing.classList.add('visible');
+
+      fetch('/api/fd7f4e04/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          buyerName: document.getElementById('buyerName').value,
+          zipCode: document.getElementById('zipCode').value,
+          vehicleId: document.getElementById('vehicleId').value,
+          termMonths: parseInt(checked('termMonths'), 10),
+          creditTier: document.getElementById('creditTier').value,
+          deliveryMethod: checked('deliveryMethod'),
+          protectionPlan: checked('protectionPlan'),
+          downPayment: parseInt(document.getElementById('downPayment').value, 10) || 0,
+          tradeInValue: parseInt(document.getElementById('tradeInValue').value, 10) || 0,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        setTimeout(function () { resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 50);
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>We couldn\u2019t complete your purchase</h3>' +
+            '<p>Carvana Financing was unable to lock in your loan terms. Your vehicle is still on hold.<br><br><code>' + esc(result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + esc(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + esc(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + esc(result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+          return;
+        }
+        var d = result.data;
+        resultBox.className = 'result-box success';
+        resultBox.innerHTML =
+          '<h3>You\u2019re all set, ' + esc(d.buyerName.split(' ')[0]) + '!</h3>' +
+          '<p><strong>' + esc(d.vehicle.title) + '</strong> is yours. Order <code>' + esc(d.orderId) + '</code></p>' +
+          '<ul>' +
+          '<li>' + money(d.financing.monthlyPayment) + '/mo for ' + esc(d.financing.termMonths) + ' months at ' + esc(d.financing.apr) + '% APR</li>' +
+          '<li>' + esc(d.delivery.label) + ' to ' + esc(d.delivery.zipCode) + ' &middot; est. ' + esc(d.delivery.estimatedDate) + '</li>' +
+          '<li>' + esc(d.protection.label) + '</li>' +
+          '</ul>' +
+          '<p style="margin-top:10px">' + esc(d.nextStep) + '</p>';
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        btn.disabled = false;
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network Error</h3>' +
+          '<p>Unable to reach Carvana.<br><br><code>' + esc(err.message) + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+      });
+    }
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

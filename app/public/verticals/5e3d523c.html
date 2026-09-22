@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Abra as portas para um novo morar - QuintoAndar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --qa-blue: #3957c1;
+    --qa-blue-dark: #2c469f;
+    --qa-ink: #000000;
+    --qa-muted: #5c5c66;
+    --qa-line: #e3e3e8;
+    --qa-grey: #f0f0f2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Figtree, 'Oatmeal', Arial, sans-serif;
+    font-size: 15px;
+    color: var(--qa-ink);
+    background: #fff;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; max-width: 100%; }
+
+  /* Header */
+  header.site {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: #fff;
+    border-bottom: 1px solid var(--qa-line);
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .logo img { height: 26px; }
+  nav.main { display: flex; gap: 22px; font-weight: 500; flex: 1; }
+  nav.main a:hover { color: var(--qa-blue); }
+  .header-actions { display: flex; align-items: center; gap: 14px; }
+  .pill {
+    border: 0;
+    border-radius: 100px;
+    padding: 12px 18px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--qa-grey);
+    color: var(--qa-ink);
+  }
+  .pill.primary { background: var(--qa-blue); color: #fff; }
+  .pill.primary:hover { background: var(--qa-blue-dark); }
+
+  /* Hero */
+  .hero { position: relative; background: #ebd1c1; }
+  .hero-media { position: absolute; inset: 0; }
+  .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; }
+  .hero-inner {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 56px 24px 72px;
+    min-height: 560px;
+  }
+  .search-card {
+    width: 520px;
+    max-width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  }
+  .mode-switch {
+    display: inline-flex;
+    background: var(--qa-grey);
+    border-radius: 100px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .mode-switch button {
+    border: 0;
+    background: transparent;
+    border-radius: 100px;
+    padding: 9px 16px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .mode-switch button.active { background: #fff; font-weight: 600; box-shadow: 0 1px 10px rgba(0, 0, 0, 0.06); }
+  .search-card h1 { font-size: 34px; line-height: 1.15; margin: 0 0 20px; font-weight: 700; }
+  .tabs { display: flex; gap: 24px; border-bottom: 1px solid var(--qa-line); margin-bottom: 18px; }
+  .tabs button {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+    padding: 0 0 12px;
+    cursor: pointer;
+    color: var(--qa-muted);
+    border-bottom: 2px solid transparent;
+  }
+  .tabs button.active { color: var(--qa-blue); border-bottom-color: var(--qa-blue); }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field { border: 1px solid var(--qa-line); border-radius: 12px; padding: 9px 12px; }
+  .field label { display: block; font-size: 12px; color: var(--qa-muted); margin-bottom: 2px; }
+  .field select, .field input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    font: inherit;
+    font-size: 16px;
+    background: transparent;
+    padding: 0;
+    color: var(--qa-ink);
+  }
+  .search-card .pill.primary { width: 100%; margin-top: 18px; padding: 15px; font-size: 16px; }
+
+  /* Sections */
+  section { max-width: 1280px; margin: 0 auto; padding: 64px 24px; }
+  h2 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; font-weight: 700; }
+  .lede { color: var(--qa-muted); margin: 0 0 28px; font-size: 16px; }
+
+  .listing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .listing {
+    border: 1px solid var(--qa-line);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .listing:hover { box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08); }
+  .listing.selected { border-color: var(--qa-blue); box-shadow: 0 0 0 1px var(--qa-blue); }
+  .listing img { height: 190px; width: 100%; object-fit: cover; }
+  .listing-body { padding: 16px; }
+  .listing-body .addr { font-weight: 600; margin-bottom: 4px; }
+  .listing-body .meta { color: var(--qa-muted); font-size: 14px; margin-bottom: 10px; }
+  .listing-body .price { font-size: 19px; font-weight: 700; }
+  .listing-body .price span { font-size: 13px; font-weight: 400; color: var(--qa-muted); }
+  .badge {
+    display: inline-block;
+    background: var(--qa-grey);
+    border-radius: 100px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .closing {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 28px;
+    border: 1px solid var(--qa-line);
+    border-radius: 20px;
+    padding: 28px;
+  }
+  .closing h3 { margin: 0 0 6px; font-size: 22px; }
+  .summary-line { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dashed var(--qa-line); }
+  .summary-line:last-child { border-bottom: 0; font-weight: 700; }
+  .closing .field { margin-bottom: 12px; }
+
+  .result { display: none; border-radius: 14px; padding: 16px 18px; margin-top: 16px; }
+  .result.show { display: block; }
+  .result.ok { background: #eaf7ee; border: 1px solid #b7e2c4; }
+  .result.err { background: #fdecec; border: 1px solid #f3bdbd; }
+  .result strong { display: block; margin-bottom: 6px; }
+  .result pre { margin: 8px 0 0; white-space: pre-wrap; font-size: 12px; color: #7a2020; font-family: ui-monospace, Menlo, monospace; }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .split img { border-radius: 20px; height: 380px; width: 100%; object-fit: cover; }
+  .split ul { padding-left: 18px; color: var(--qa-muted); line-height: 1.8; }
+  .band { background: var(--qa-grey); }
+  .band-inner { max-width: 1280px; margin: 0 auto; padding: 64px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .band-inner img { border-radius: 20px; height: 340px; width: 100%; object-fit: cover; }
+
+  footer.site { background: #12121a; color: #fff; margin-top: 24px; }
+  .foot-inner { max-width: 1280px; margin: 0 auto; padding: 56px 24px 32px; display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 32px; }
+  footer.site img.mark { height: 24px; margin-bottom: 18px; }
+  footer.site h4 { margin: 0 0 12px; font-size: 14px; }
+  footer.site ul { list-style: none; margin: 0; padding: 0; color: rgba(255, 255, 255, .7); line-height: 2; font-size: 14px; }
+  .badges { display: flex; gap: 10px; margin-top: 16px; }
+  .badges img { height: 38px; }
+  .foot-legal { max-width: 1280px; margin: 0 auto; padding: 0 24px 40px; color: rgba(255, 255, 255, .55); font-size: 13px; }
+
+  @media (max-width: 960px) {
+    nav.main { display: none; }
+    .listing-grid, .split, .band-inner, .closing { grid-template-columns: 1fr; }
+    .foot-inner { grid-template-columns: 1fr 1fr; }
+    .split img, .band-inner img { height: 240px; }
+  }
+  @media (max-width: 640px) {
+    .hero-inner { padding: 24px 16px 32px; min-height: 0; }
+    .search-card { padding: 18px; }
+    .search-card h1 { font-size: 26px; }
+    .field-grid { grid-template-columns: 1fr; }
+    section { padding: 40px 16px; }
+    h2 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <img
+        src="https://cozy-assets.quintoandar.com.br/cozy-static/v3/latest/default/logo/QuintoAndar/default/complete.pt-BR.svg"
+        alt="QuintoAndar"
+        onerror="this.onerror=null;this.outerHTML='<span style=&quot;font-weight:700;font-size:20px;color:#3957c1&quot;>QuintoAndar</span>'"
+      />
+    </a>
+    <nav class="main">
+      <a href="#imoveis">Alugar</a>
+      <a href="#imoveis">Comprar</a>
+      <a href="#anunciar">Anunciar</a>
+      <a href="#consorcio">QPreço</a>
+      <a href="#consorcio">Consórcio</a>
+      <a href="#anunciar">Links úteis</a>
+      <a href="#anunciar">Ajuda</a>
+    </nav>
+    <div class="header-actions">
+      <button class="pill" type="button">Entrar</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-media">
+    <img
+      src="https://www.quintoandar.com.br/img/landing/1920x0/filters:quality(75)/first-fold-landing-search-v3.jpg"
+      alt="Casal em casa"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=70'"
+    />
+  </div>
+  <div class="hero-inner">
+    <div class="search-card">
+      <div class="mode-switch">
+        <button type="button" class="active">Buscar Imóveis</button>
+        <button type="button">Anunciar Imóveis</button>
+      </div>
+      <h1>Alugue um lar<br />para chamar de seu</h1>
+      <div class="tabs">
+        <button type="button" class="active">Alugar</button>
+        <button type="button">Comprar</button>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="cidade">Cidade</label>
+          <select id="cidade">
+            <option>São Paulo</option>
+            <option>Rio de Janeiro</option>
+            <option>Belo Horizonte</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="bairro">Bairro</label>
+          <select id="bairro">
+            <option>Todos os bairros</option>
+            <option>Vila Madalena</option>
+            <option>Pinheiros</option>
+            <option>Perdizes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="valor">Valor total até</label>
+          <select id="valor">
+            <option>R$ 8.000</option>
+            <option>R$ 5.000</option>
+            <option>R$ 3.000</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="quartos">Quartos</label>
+          <select id="quartos">
+            <option>Qualquer</option>
+            <option>1+</option>
+            <option>2+</option>
+            <option>3+</option>
+          </select>
+        </div>
+      </div>
+      <button class="pill primary" type="button" id="buscar">Buscar imóveis</button>
+    </div>
+  </div>
+</div>
+
+<section id="imoveis">
+  <h2>Imóveis para alugar em São Paulo</h2>
+  <p class="lede">Sem fiador, sem burocracia e com visita agendada em minutos. Escolha um imóvel para fechar o aluguel online.</p>
+  <div class="listing-grid" id="listing-grid"></div>
+
+  <div class="closing">
+    <div>
+      <h3>Feche o aluguel online</h3>
+      <p class="lede" style="margin-bottom:16px">Confira o custo mensal do imóvel selecionado antes de enviar sua proposta.</p>
+      <div id="summary"></div>
+    </div>
+    <div>
+      <div class="field">
+        <label for="garantia">Garantia</label>
+        <select id="garantia">
+          <option value="quintoandar">Garantia QuintoAndar</option>
+          <option value="fiador">Fiador</option>
+          <option value="seguro-fianca">Seguro-fiança</option>
+          <option value="deposito">Depósito caução</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="prazo">Prazo do contrato</label>
+        <select id="prazo">
+          <option value="30">30 meses</option>
+          <option value="12">12 meses</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="mudanca">Data de mudança</label>
+        <input id="mudanca" type="date" value="2026-10-01" />
+      </div>
+      <button class="pill primary" type="button" data-cta style="width:100%;padding:15px;font-size:16px">Alugar agora</button>
+
+      <div class="result err" id="proposal-error">
+        <strong>Não foi possível enviar sua proposta.</strong>
+        Tente novamente em alguns instantes ou selecione outra garantia.
+        <pre id="proposal-error-tech"></pre>
+      </div>
+      <div class="result ok" id="proposal-ok">
+        <strong>Proposta enviada!</strong>
+        <span id="proposal-ok-body"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="split">
+  <div>
+    <h2>Alugar bem, sem complicação e fiador</h2>
+    <p class="lede">A gente cuida de tudo: da visita ao contrato digital, com aluguel garantido para quem anuncia.</p>
+    <ul>
+      <li>Visitas agendadas pelo app, sem corretor te esperando</li>
+      <li>Contrato 100% digital assinado em minutos</li>
+      <li>Sem fiador e sem depósito com a Garantia QuintoAndar</li>
+    </ul>
+  </div>
+  <img
+    src="https://www.quintoandar.com.br/img/landing/1920x0/filters:quality(75)/home-rent-1-v3.jpg"
+    alt="Morador em casa alugada"
+    onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1400&q=70'"
+  />
+</section>
+
+<div class="band" id="consorcio">
+  <div class="band-inner">
+    <img
+      src="https://www.quintoandar.com.br/img/landing/1440x0/filters:quality(75)/consorcio/focus-key-desktop.jpg"
+      alt="Chaves de um novo imóvel"
+      onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1400&q=70'"
+    />
+    <div>
+      <h2>Chegou o Consórcio QuintoAndar.</h2>
+      <p class="lede">Conquistar um novo lar pagando menos, sem juros e com parcelas que cabem no seu mês.</p>
+      <button class="pill primary" type="button">Simular consórcio</button>
+    </div>
+  </div>
+</div>
+
+<section class="split" id="anunciar">
+  <img
+    src="https://www.quintoandar.com.br/img/landing/1920x0/filters:quality(75)/home-sale-1-v3.jpg"
+    alt="Proprietário anunciando imóvel"
+    onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=70'"
+  />
+  <div>
+    <h2>Anuncie seu imóvel sem complicação</h2>
+    <p class="lede">Aluguel garantido todo dia 10, mesmo se o inquilino atrasar, e fotos profissionais por nossa conta.</p>
+    <button class="pill primary" type="button">Anunciar imóvel</button>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="foot-inner">
+    <div>
+      <img
+        class="mark"
+        src="https://cozy-assets.quintoandar.com.br/cozy-static/v3/latest/default/logo/QuintoAndar/inverse/complete.pt-BR.svg"
+        alt="QuintoAndar"
+        onerror="this.onerror=null;this.outerHTML='<div style=&quot;font-weight:700;font-size:20px;margin-bottom:18px&quot;>QuintoAndar</div>'"
+      />
+      <div style="color:rgba(255,255,255,.7);font-size:14px;max-width:320px">
+        Abra as portas para um novo morar. Alugue, compre e anuncie imóveis sem burocracia.
+      </div>
+      <div class="badges">
+        <img src="https://www.quintoandar.com.br/img/landing/badge-google-play-1x.png" alt="Google Play" onerror="this.onerror=null;this.style.display='none'" />
+        <img src="https://www.quintoandar.com.br/img/landing/badge-app-store-1x.png" alt="App Store" onerror="this.onerror=null;this.style.display='none'" />
+      </div>
+    </div>
+    <div>
+      <h4>Alugar</h4>
+      <ul>
+        <li>Apartamentos</li>
+        <li>Casas</li>
+        <li>Studios e kitnets</li>
+        <li>Imóveis comerciais</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Comprar</h4>
+      <ul>
+        <li>Apartamentos à venda</li>
+        <li>Casas à venda</li>
+        <li>Financiamento</li>
+        <li>Consórcio</li>
+      </ul>
+    </div>
+    <div>
+      <h4>QuintoAndar</h4>
+      <ul>
+        <li>Quem somos</li>
+        <li>Trabalhe conosco</li>
+        <li>Central de ajuda</li>
+        <li>Blog</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-legal">
+    &copy; 2026 QuintoAndar. Todos os direitos reservados. Termos de uso &nbsp;|&nbsp; Política de privacidade
+  </div>
+</footer>
+
+<script>
+  var DEVIN_USER_ID_FALLBACK = '';
+  var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+  var LISTING_IMAGES = {
+    '894213507': {
+      src: 'https://www.quintoandar.com.br/img/landing/1920x0/filters:quality(75)/home-rent-2-v3.jpg',
+      fallback: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=900&q=70',
+    },
+    '771560284': {
+      src: 'https://www.quintoandar.com.br/img/landing/1920x0/filters:quality(75)/home-sale-2-v3.jpg',
+      fallback: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=900&q=70',
+    },
+    '602934118': {
+      src: 'https://www.quintoandar.com.br/img/landing/3840x0/filters:quality(75)/home-financing-1-v3.jpg',
+      fallback: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=70',
+    },
+  };
+
+  var listings = [];
+  var selectedId = null;
+
+  var errorBox = document.getElementById('proposal-error');
+  var errorTech = document.getElementById('proposal-error-tech');
+  var okBox = document.getElementById('proposal-ok');
+  var okBody = document.getElementById('proposal-ok-body');
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
+
+  function brl(value) {
+    return 'R$ ' + Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function renderListings() {
+    var grid = document.getElementById('listing-grid');
+    grid.innerHTML = '';
+
+    listings.forEach(function (listing, index) {
+      var art = LISTING_IMAGES[listing.id] || {};
+      var card = document.createElement('article');
+      card.className = 'listing' + (listing.id === selectedId ? ' selected' : '');
+      card.innerHTML =
+        '<img src="' + art.src + '" alt="' + escapeHtml(listing.title) + '" onerror="this.onerror=null;this.src=\'' + art.fallback + '\'" />' +
+        '<div class="listing-body">' +
+        (index === 0 ? '<span class="badge">Destaque</span>' : '') +
+        '<div class="addr">' + escapeHtml(listing.street) + '</div>' +
+        '<div class="meta">' + escapeHtml(listing.neighborhood) + ', ' + escapeHtml(listing.city) + ' · ' + listing.area + ' m² · ' +
+        listing.bedrooms + ' quarto' + (listing.bedrooms > 1 ? 's' : '') + ' · ' + listing.parkingSpots + ' vaga' + (listing.parkingSpots > 1 ? 's' : '') + '</div>' +
+        '<div class="price">' + brl(listing.rent) + '<span> /mês + ' + brl(listing.condoFee + listing.iptu) + ' encargos</span></div>' +
+        '</div>';
+      card.addEventListener('click', function () {
+        selectedId = listing.id;
+        renderListings();
+        renderSummary();
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  function renderSummary() {
+    var listing = listings.filter(function (item) { return item.id === selectedId; })[0];
+    var summary = document.getElementById('summary');
+    if (!listing) { summary.innerHTML = ''; return; }
+
+    summary.innerHTML =
+      '<div class="summary-line"><span>' + escapeHtml(listing.street) + ' · ' + escapeHtml(listing.neighborhood) + '</span><span>' + listing.area + ' m²</span></div>' +
+      '<div class="summary-line"><span>Aluguel</span><span>' + brl(listing.rent) + '</span></div>' +
+      '<div class="summary-line"><span>Condomínio</span><span>' + brl(listing.condoFee) + '</span></div>' +
+      '<div class="summary-line"><span>IPTU</span><span>' + brl(listing.iptu) + '</span></div>' +
+      '<div class="summary-line"><span>Total estimado</span><span>' + brl(listing.rent + listing.condoFee + listing.iptu) + '</span></div>';
+  }
+
+  function showProposalError(payload) {
+    okBox.classList.remove('show');
+    errorTech.textContent = (payload.errorClass || 'Error') + ': ' + (payload.error || 'Erro desconhecido')
+      + '\n' + (payload.code || 'RENTAL_PROPOSAL_FAILED')
+      + ' \u00b7 Protocolo: ' + (payload.requestId || 'indisponível');
+    errorBox.classList.add('show');
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function showProposalOk(proposal) {
+    errorBox.classList.remove('show');
+    okBody.textContent = 'Proposta ' + proposal.proposalId.slice(0, 8) + ' enviada para ' + proposal.listingLabel
+      + ' — total mensal ' + brl(proposal.monthlyTotal) + ' (' + proposal.termLabel + ', '
+      + proposal.guarantee.guarantee + ', taxa de serviço ' + brl(proposal.serviceFee) + '). '
+      + 'Análise em até ' + proposal.guarantee.analysisDays + ' dia(s).';
+    okBox.classList.add('show');
+  }
+
+  function submitProposal(button) {
+    if (button._running) return;
+    if (!selectedId) {
+      showProposalError({
+        errorClass: 'ValidationError',
+        error: 'Selecione um imóvel para enviar sua proposta.',
+        code: 'LISTING_NOT_SELECTED',
+      });
+      return;
+    }
+    button._running = true;
+    var original = button.textContent;
+    button.textContent = 'Enviando proposta\u2026';
+    button.style.pointerEvents = 'none';
+    errorBox.classList.remove('show');
+    okBox.classList.remove('show');
+
+    fetch('/api/5e3d523c/proposta', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        listingId: selectedId,
+        guarantee: document.getElementById('garantia').value,
+        termMonths: Number(document.getElementById('prazo').value),
+        moveInDate: document.getElementById('mudanca').value,
+        channel: 'web',
+        devinUserId: localStorage.getItem('devinUserId') || DEVIN_USER_ID_FALLBACK,
+        devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) showProposalError(result.body);
+        else showProposalOk(result.body);
+      })
+      .catch(function (err) {
+        showProposalError({ errorClass: 'NetworkError', error: err.message });
+      })
+      .finally(function () {
+        button.textContent = original;
+        button.style.pointerEvents = '';
+        button._running = false;
+      });
+  }
+
+  document.querySelectorAll('[data-cta]').forEach(function (button) {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      submitProposal(button);
+    });
+  });
+
+  document.querySelectorAll('.mode-switch button, .tabs button').forEach(function (button) {
+    button.addEventListener('click', function () {
+      button.parentNode.querySelectorAll('button').forEach(function (sibling) {
+        sibling.classList.remove('active');
+      });
+      button.classList.add('active');
+    });
+  });
+
+  document.getElementById('buscar').addEventListener('click', function () {
+    document.getElementById('imoveis').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  fetch('/api/5e3d523c/imoveis')
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      listings = data.listings || [];
+      selectedId = listings.length ? listings[0].id : null;
+      renderListings();
+      renderSummary();
+    })
+    .catch(function (err) {
+      showProposalError({
+        errorClass: 'NetworkError',
+        error: 'Não foi possível carregar os imóveis. ' + err.message,
+        code: 'LISTINGS_UNAVAILABLE',
+      });
+    });
+</script>
+</body>
+</html>

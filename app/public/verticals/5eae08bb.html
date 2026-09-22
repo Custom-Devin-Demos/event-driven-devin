@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Tyk Cloud — Team access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #140527;
+      --paper: #fef9ff;
+      --chrome: #08051c;
+      --accent: #8438fa;
+      --violet: #bb11ff;
+      --muted: #655a72;
+      --line: #e7deee;
+      --sans: 'Inter', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.55 var(--sans); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, a, input, select { -webkit-tap-highlight-color: transparent; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .site-header { background: var(--chrome); color: var(--paper); }
+    .nav-inner { max-width: 1320px; min-height: 78px; margin: auto; padding: 14px 32px; display: flex; align-items: center; gap: 40px; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 29px; font-weight: 700; letter-spacing: -1px; }
+    .mark { display: inline-grid; place-items: center; width: 28px; height: 28px; background: var(--violet); border-radius: 8px 8px 8px 0; font-size: 19px; letter-spacing: 0; }
+    .nav-links { display: flex; align-items: center; gap: 28px; margin-left: auto; }
+    .nav-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 600; }
+    .nav-links a:hover { color: #dfb8ff; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 11px 24px; border: 1px solid transparent; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .pill-outline { color: var(--paper); border-color: #b3a9bf; background: transparent; }
+    .pill-white { background: white; color: var(--ink); }
+    .hero-shell { padding: 56px 32px 0; background: var(--ink); }
+    .hero { max-width: 1256px; margin: auto; padding: 48px 32px 50px; border-radius: 15px 15px 0 0; background: var(--violet); color: var(--paper); text-align: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 20px; font-size: 12px; font-weight: 600; letter-spacing: 1.3px; text-transform: uppercase; }
+    .eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    h1 { max-width: 880px; margin: 0 auto; font-size: 48px; line-height: 56px; font-weight: 700; }
+    .hero p { max-width: 630px; margin: 18px auto 26px; line-height: 24px; }
+    .hero-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; }
+    .product-strip { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin-top: 36px; font-size: 12px; font-weight: 500; }
+    .workspace { max-width: 1160px; margin: auto; padding: 56px 32px 64px; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+    h2 { margin: 0 0 8px; font-size: 32px; line-height: 1.2; letter-spacing: -0.6px; }
+    .section-heading p, .card-sub { margin: 0; color: var(--muted); font-size: 14px; }
+    .demo-label { padding: 7px 12px; background: #efe5fb; border-radius: 100px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .workspace-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+    .provision-card { border: 1px solid var(--line); border-radius: 15px; padding: 32px; background: white; }
+    h3 { margin: 0 0 8px; font-size: 22px; line-height: 1.3; }
+    .card-sub { margin-bottom: 26px; }
+    .form-group { margin-bottom: 20px; min-width: 0; }
+    .form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+    input, select { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid #bfb4ca; border-radius: 8px; background: white; color: var(--ink); font-size: 15px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-hint { display: block; margin-top: 7px; font-size: 12px; color: var(--muted); }
+    .btn-provision { width: 100%; background: var(--accent); color: white; min-height: 50px; }
+    .btn-provision:hover { background: #7025da; }
+    .btn-provision:disabled { opacity: 0.65; cursor: wait; }
+    .request-status { margin: 10px 0 0; min-height: 22px; font-size: 12px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 16px; padding: 16px; border: 1px solid; border-radius: 8px; overflow-wrap: anywhere; font-size: 14px; }
+    .result-box.success { display: block; background: #eefbf5; border-color: #8bbfa5; color: #185d40; }
+    .result-box.error { display: block; background: #fff1f1; border-color: #eab2b2; color: #942c2c; }
+    .guide { padding: 32px; border-radius: 15px; background: #efe5fb; }
+    .guide .eyebrow { color: #7025da; }
+    .guide > p { font-size: 14px; color: #554460; margin: 12px 0 24px; }
+    .guide-list { list-style: none; margin: 0; padding: 0; }
+    .guide-list li { display: flex; gap: 14px; padding: 18px 0; border-top: 1px solid #d8c7e8; }
+    .step { display: grid; place-items: center; flex: 0 0 28px; height: 28px; border: 1px solid #b899d0; border-radius: 50%; font-size: 12px; }
+    .guide-list strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .guide-list p { margin: 0; color: #655274; font-size: 13px; }
+    .docs-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 12px; color: #7025da; font-size: 14px; font-weight: 600; }
+    .site-footer { background: var(--chrome); color: var(--paper); padding: 32px; }
+    .footer-inner { max-width: 1096px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .footer-inner p { max-width: 400px; margin: 0; font-size: 13px; color: #c7bed0; }
+    .footer-inner a { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; }
+    @media (max-width: 800px) {
+      .nav-links { display: none; }
+      .nav-inner { justify-content: space-between; gap: 16px; padding: 12px 24px; }
+      .hero-shell { padding: 28px 24px 0; }
+      .hero { padding: 36px 24px; }
+      h1 { font-size: 36px; line-height: 1.15; }
+      .workspace-grid { grid-template-columns: 1fr; }
+      .workspace { padding: 40px 24px; }
+      .section-heading { align-items: flex-start; }
+      .footer-inner { flex-wrap: wrap; }
+    }
+    @media (max-width: 480px) {
+      .nav-inner { padding: 10px 20px; }
+      .nav-inner > .pill { padding: 10px 16px; font-size: 12px; }
+      .hero-shell { padding: 24px 16px 0; }
+      .hero { padding: 32px 20px; }
+      h1 { font-size: 32px; line-height: 1.18; }
+      .hero p { font-size: 14px; }
+      .product-strip { gap: 12px 20px; margin-top: 28px; }
+      .workspace { padding: 32px 16px 40px; }
+      .section-heading { flex-direction: column; gap: 12px; }
+      h2 { font-size: 28px; }
+      .provision-card, .guide { padding: 24px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .site-footer { padding: 28px 24px 76px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-inner">
+      <a class="logo" href="#top" aria-label="Tyk Cloud home"><span class="mark" aria-hidden="true">T</span>Tyk</a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#platform">Tyk Cloud</a>
+        <a href="#team-access">Team access</a>
+        <a href="https://tyk.io/docs/tyk-cloud" target="_blank" rel="noopener noreferrer">Docs ↗</a>
+      </nav>
+      <a class="pill pill-outline" href="#team-access">Manage team access</a>
+    </div>
+  </header>
+  <main id="top">
+    <div class="hero-shell" id="platform">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="eyebrow">Tyk Cloud</div>
+        <h1 id="hero-title">A fully managed API<br>management platform</h1>
+        <p>Fully hosted API lifecycle management around the world.<br>Manage your APIs, environments and teams in one place.</p>
+        <div class="hero-actions">
+          <a class="pill pill-white" href="#team-access">Manage team access</a>
+          <a class="pill pill-outline" href="https://tyk.io/docs/tyk-cloud" target="_blank" rel="noopener noreferrer">Explore the docs ↗</a>
+        </div>
+        <div class="product-strip"><span>API Gateway</span><span>Tyk Dashboard</span><span>Developer Portal</span></div>
+      </section>
+    </div>
+    <section class="workspace" id="team-access" aria-labelledby="workspace-title">
+      <div class="section-heading">
+        <div><h2 id="workspace-title">Your API team, connected.</h2><p>Manage access to your organization’s API platform.</p></div>
+        <span class="demo-label">Example workspace</span>
+      </div>
+      <div class="workspace-grid">
+        <div class="provision-card">
+          <h3>Provision team access</h3>
+          <p class="card-sub">Add license seats for your platform team.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">Organization</label>
+              <select id="product"><option value="platform_team">Platform team</option><option value="api_engineering">API engineering</option></select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">Additional seats</label>
+                <input id="seats" type="number" min="1" max="250" step="1" value="10" required aria-describedby="seats-hint">
+                <span class="field-hint" id="seats-hint">1–250 seats per request</span>
+              </div>
+              <div class="form-group">
+                <label for="planTier">Plan</label>
+                <select id="planTier"><option value="Professional">Professional</option></select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Home region</label>
+              <select id="region" aria-describedby="region-hint" disabled><option value="us-east">US East</option></select>
+              <span class="field-hint" id="region-hint">Set when your organization is created.</span>
+            </div>
+            <button type="submit" class="pill btn-provision" id="submitBtn">Provision access <span aria-hidden="true">&nbsp;→</span></button>
+            <p class="request-status" id="requestStatus" role="status">Example data. No real account changes.</p>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+        <aside class="guide" aria-labelledby="guide-title">
+          <div class="eyebrow">Built for platform teams</div>
+          <h3 id="guide-title">One platform.<br>Your teams and APIs.</h3>
+          <p>Tyk Cloud brings your API Gateway, Dashboard and Developer Portal together as a managed service.</p>
+          <ul class="guide-list">
+            <li><span class="step" aria-hidden="true">1</span><div><strong>Organizations</strong><p>Keep your environments, APIs and users together.</p></div></li>
+            <li><span class="step" aria-hidden="true">2</span><div><strong>Teams and users</strong><p>Manage your team structure with role-based access control.</p></div></li>
+            <li><span class="step" aria-hidden="true">3</span><div><strong>Environments</strong><p>Organize and manage your API deployments.</p></div></li>
+          </ul>
+          <a class="docs-link" href="https://tyk.io/docs/tyk-cloud/teams-users" target="_blank" rel="noopener noreferrer">Teams and users documentation ↗</a>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span class="logo"><span class="mark" aria-hidden="true">T</span>Tyk</span>
+      <p>The API management platform for REST, GraphQL, gRPC and async APIs.</p>
+      <a href="https://tyk.io/cloud/" target="_blank" rel="noopener noreferrer">Explore Tyk Cloud ↗</a>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const started = performance.now();
+      button.disabled = true;
+      button.textContent = 'Provisioning access…';
+      form.setAttribute('aria-busy', 'true');
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Request in progress…';
+      const timer = setInterval(() => {
+        status.textContent = `Request in progress · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      try {
+        const response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: document.getElementById('planTier').value,
+            seats: Number(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        result.className = 'result-box success';
+        result.textContent = 'Team access provisioned. Your request completed successfully.';
+      } catch (error) {
+        result.className = 'result-box error';
+        result.textContent = `Provisioning failed. ${error.message}`;
+      } finally {
+        clearInterval(timer);
+        status.textContent = `Request finished in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        form.removeAttribute('aria-busy');
+        button.disabled = false;
+        button.textContent = 'Provision access →';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

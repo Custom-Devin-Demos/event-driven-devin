@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { getCustomerConfig } = require('../../config/customers');
@@ -158,7 +159,9 @@ async function createVulnerablePR(options = {}) {
   const targetRepo = config.targetRepo;
   const prefix = options.branchPrefix || 'demo/sonar-remediation';
   const timestamp = Math.floor(Date.now() / 1000);
-  const branchName = `${prefix}-${timestamp}`;
+  const branchName = `${prefix}-${timestamp}-${crypto.randomBytes(3).toString('hex')}`;
+
+  const workflowOrgId = options.devinOrgId || config.devinOrgId || process.env.DEVIN_ORG_ID || '';
 
   logger.info('Creating vulnerable PR in target repo', { branch: branchName, targetRepo, customer: customerSlug });
 
@@ -243,7 +246,7 @@ async function createVulnerablePR(options = {}) {
             pr_branch: branchName,
             customer: config.sonarWorkflowCustomer || customerSlug,
             user_id: options.devinUserId || '',
-            org_id: options.devinOrgId || '',
+            org_id: workflowOrgId,
           },
       },
     );
@@ -252,7 +255,7 @@ async function createVulnerablePR(options = {}) {
       branch: branchName,
       customer: config.sonarWorkflowCustomer || customerSlug,
       devinUserId: options.devinUserId || 'none',
-      devinOrgId: options.devinOrgId || 'none',
+      devinOrgId: workflowOrgId || 'none',
     });
   } catch (dispatchErr) {
     logger.error('Failed to dispatch devin-scan workflow', {

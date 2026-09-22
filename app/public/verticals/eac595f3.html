@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cigna Global | Release Management — Release Gate</title>
+  <link rel="icon" href="https://www.cignaglobal.com/favicon.ico">
+  <link rel="stylesheet" href="/verticals/eac595f3-cigna-theme.css">
+  <style>
+    .gate-hero { padding-bottom: 120px; }
+    .gate-hero h1 { font-size: 40px; }
+    .queue-wrap { max-width: 1080px; margin: -90px auto 0; padding: 0 24px; position: relative; z-index: 2; }
+    .queue-card { background: var(--cigna-white); border-radius: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.18); padding: 28px 32px; }
+    .queue-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 12px; }
+    .queue-head h2 { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--cigna-black); margin: 0; }
+    .queue-head p { margin: 4px 0 0; font-size: 14px; color: var(--cigna-gray); }
+    .integrations { display: flex; gap: 10px; font-size: 12px; color: var(--cigna-dark); }
+    .integrations span { border: 1px solid var(--cigna-border); border-radius: 4px; padding: 4px 8px; }
+    .integrations span b { color: var(--cigna-blue); }
+    .integrations span.off b { color: var(--cigna-gray); }
+    table.queue { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.queue th { text-align: left; font-weight: 700; color: var(--cigna-dark); padding: 10px 8px; border-bottom: 1px solid var(--cigna-border); font-size: 13px; }
+    table.queue td { padding: 14px 8px; border-bottom: 1px solid var(--cigna-border); vertical-align: top; color: var(--cigna-dark); }
+    table.queue tr:last-child td { border-bottom: none; }
+    .svc { font-weight: 700; color: var(--cigna-black); }
+    .svc small { display: block; font-weight: 400; color: var(--cigna-gray); font-family: var(--font-mono); font-size: 11px; margin-top: 2px; }
+    .jira-key a { color: var(--cigna-blue); font-weight: 600; text-decoration: none; }
+    .jira-key a:hover { text-decoration: underline; color: var(--cigna-blue-hover); }
+    .jira-key small { display: block; color: var(--cigna-gray); font-size: 12px; margin-top: 2px; }
+    .status { display: inline-block; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+    .status.queued { background: var(--cigna-bg-light); color: var(--cigna-dark); border: 1px solid var(--cigna-border); }
+    .status.evaluating { background: #EEF1FF; color: var(--cigna-blue); border: 1px solid #C7D2FE; }
+    .status.blocked { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+    .status.corrected { background: #EEF1FF; color: var(--cigna-blue); border: 1px solid #C7D2FE; }
+    .status.ready { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+    .status small { display: block; font-weight: 400; font-size: 11px; margin-top: 3px; }
+    .status a { color: inherit; }
+    .actions { white-space: nowrap; }
+    .btn-sm { font-family: var(--font-sans); font-size: 13px; font-weight: 700; border-radius: 48px; padding: 8px 16px; border: 1px solid var(--cigna-blue); background: var(--cigna-blue); color: #fff; cursor: pointer; transition: background 0.2s, color 0.2s; }
+    .btn-sm:hover { background: var(--cigna-blue-hover); border-color: var(--cigna-blue-hover); }
+    .btn-sm:disabled { opacity: 0.5; cursor: default; }
+    .btn-sm.ghost { background: #fff; color: var(--cigna-blue); margin-left: 6px; }
+    .btn-sm.ghost:hover { background: #EEF1FF; }
+    .queue-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 12px; color: var(--cigna-gray); }
+    .queue-foot button { font-family: var(--font-sans); font-size: 12px; color: var(--cigna-blue); background: none; border: none; cursor: pointer; font-weight: 600; }
+    .queue-foot button:hover { text-decoration: underline; }
+
+    .verdict-section { max-width: 1080px; margin: 0 auto; padding: 48px 24px 0; }
+    .verdict-section h3 { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--cigna-black); margin: 0 0 6px; }
+    .verdict-section .sub { font-size: 14px; color: var(--cigna-gray); margin: 0 0 18px; }
+    .verdict-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+    .panel { border: 1px solid var(--cigna-border); border-radius: 8px; padding: 20px 22px; background: #fff; }
+    .panel h4 { margin: 0 0 12px; font-size: 15px; font-weight: 700; color: var(--cigna-black); }
+    .verdict-banner { display: flex; align-items: center; gap: 14px; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px; }
+    .verdict-banner.ready { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .verdict-banner.blocked { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .verdict-banner strong { font-size: 20px; }
+    .verdict-banner span { font-size: 13px; color: var(--cigna-dark); }
+    .checks { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .checks td { padding: 8px 6px; border-bottom: 1px solid var(--cigna-border); vertical-align: top; }
+    .checks tr:last-child td { border-bottom: none; }
+    .checks .mark { width: 22px; font-weight: 700; }
+    .checks .mark.pass { color: var(--success); }
+    .checks .mark.fail { color: var(--danger); }
+    .checks .detail { color: var(--cigna-gray); font-size: 12px; margin-top: 2px; }
+    .checks .fix { color: var(--danger); font-size: 12px; margin-top: 2px; }
+    .action-list { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .action-list li { padding: 8px 0; border-bottom: 1px solid var(--cigna-border); display: flex; gap: 10px; }
+    .action-list li:last-child { border-bottom: none; }
+    .action-list .sys { min-width: 86px; font-family: var(--font-mono); font-size: 11px; color: var(--cigna-gray); padding-top: 2px; }
+    .action-list a { color: var(--cigna-blue); text-decoration: none; font-weight: 600; }
+    .action-list a:hover { text-decoration: underline; }
+    .empty { color: var(--cigna-gray); font-size: 13px; }
+    .steps { list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--cigna-dark); }
+    .steps li { display: flex; gap: 10px; padding: 6px 0; }
+    .steps li i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; background: var(--cigna-blue); color: #fff; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .audit-section { max-width: 1080px; margin: 0 auto; padding: 40px 24px 0; }
+    .audit-section h3 { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--cigna-black); margin: 0 0 14px; }
+    table.audit { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.audit th { text-align: left; font-size: 12px; font-weight: 700; color: var(--cigna-dark); padding: 8px 6px; border-bottom: 1px solid var(--cigna-border); }
+    table.audit td { padding: 8px 6px; border-bottom: 1px solid var(--cigna-border); color: var(--cigna-dark); vertical-align: top; }
+    table.audit td.t { font-family: var(--font-mono); font-size: 11px; color: var(--cigna-gray); white-space: nowrap; }
+    table.audit td.e { font-weight: 700; }
+    table.audit td.e.ready { color: var(--success); }
+    table.audit td.e.blocked { color: var(--danger); }
+    @media (max-width: 900px) { .verdict-grid { grid-template-columns: 1fr; } .queue-head { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a href="#" class="cigna-logo">
+      <svg class="logo-tree" viewBox="0 0 40 18" fill="#00874D" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="3" r="2.4"/>
+        <circle cx="13" cy="6" r="2.2"/><circle cx="27" cy="6" r="2.2"/>
+        <circle cx="7" cy="10" r="2"/><circle cx="20" cy="9" r="2.2"/><circle cx="33" cy="10" r="2"/>
+        <circle cx="13" cy="13" r="1.8"/><circle cx="27" cy="13" r="1.8"/>
+        <rect x="19" y="12" width="2" height="6" rx="1" fill="#00874D"/>
+      </svg>
+      <span class="logo-text">cigna</span>
+      <span class="logo-tag">healthcare</span>
+    </a>
+    <div class="header-help">
+      Release Management
+      <a href="#" id="jiraLink" target="_blank" rel="noopener">Open Jira board</a>
+    </div>
+  </header>
+
+  <section class="hero-section gate-hero" style="background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&h=500&fit=crop&q=80');">
+    <div class="hero-text">
+      <h1>Every release audited<br>before it reaches change control</h1>
+      <p>Devin validates Jira approvals, test evidence and CAB metadata the moment a build is submitted — and only clean releases create a ServiceNow change.</p>
+    </div>
+  </section>
+
+  <div class="queue-wrap">
+    <div class="queue-card">
+      <div class="queue-head">
+        <div>
+          <h2>Release queue</h2>
+          <p>Builds submitted for the Sept 20–21 change windows</p>
+        </div>
+        <div class="integrations" id="integrations"></div>
+      </div>
+      <table class="queue">
+        <thead>
+          <tr><th>Build</th><th>Owner</th><th>Jira work item</th><th>Evidence</th><th>Gate</th><th></th></tr>
+        </thead>
+        <tbody id="queueBody"></tbody>
+      </table>
+      <div class="queue-foot">
+        <span id="queueNote">Submit a build to run the gate. Blocked builds are written back to Jira with the exact missing requirement.</span>
+        <button id="resetBtn" type="button">Reset demo</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="verdict-section">
+    <h3>Gate result</h3>
+    <p class="sub" id="verdictSub">No build evaluated yet.</p>
+    <div class="verdict-grid">
+      <div class="panel">
+        <div id="verdictBanner"></div>
+        <h4>Checks</h4>
+        <div id="checksWrap"><p class="empty">Checks appear here after a build is submitted.</p></div>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom: 20px;">
+          <h4>Actions taken</h4>
+          <div id="actionsWrap"><p class="empty">Jira comments, transitions, assignments and ServiceNow changes are listed here.</p></div>
+        </div>
+        <div class="panel">
+          <h4>What the gate replaces</h4>
+          <ul class="steps">
+            <li><i>1</i>Build arrives; release manager opens each Jira story and checks approvals by hand</li>
+            <li><i>2</i>Emails the developer about the gap and waits for a reply</li>
+            <li><i>3</i>Re-checks the evidence and the CAB fields</li>
+            <li><i>4</i>Keys the change request into ServiceNow manually</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="audit-section">
+    <h3>Audit trail</h3>
+    <table class="audit">
+      <thead><tr><th>Time (UTC)</th><th>Build</th><th>Event</th><th>Detail</th></tr></thead>
+      <tbody id="auditBody"><tr><td colspan="4" class="empty">No events yet.</td></tr></tbody>
+    </table>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-links">
+        <a href="#">Accessibility</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Disclaimer</a>
+        <a href="#">Change Policy</a>
+      </div>
+      <div class="footer-brand">
+        <a href="#" class="cigna-logo">
+          <svg class="logo-tree" viewBox="0 0 40 18" fill="#00874D" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="3" r="2.4"/>
+            <circle cx="13" cy="6" r="2.2"/><circle cx="27" cy="6" r="2.2"/>
+            <circle cx="7" cy="10" r="2"/><circle cx="20" cy="9" r="2.2"/><circle cx="33" cy="10" r="2"/>
+            <circle cx="13" cy="13" r="1.8"/><circle cx="27" cy="13" r="1.8"/>
+            <rect x="19" y="12" width="2" height="6" rx="1" fill="#00874D"/>
+          </svg>
+          <span class="logo-text">cigna</span>
+          <span class="logo-tag">healthcare</span>
+        </a>
+        <div class="footer-copyright">&copy; <span id="copyrightYear"></span> Cigna. All rights reserved</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    var API = '/api/eac595f3';
+    var busy = false;
+    var jiraBase = 'https://cog-gtm.atlassian.net';
+
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+    function el(id) { return document.getElementById(id); }
+
+    function statusCell(build) {
+      var g = build.gate || {};
+      var s = g.status || 'queued';
+      var label = { queued: 'Queued', evaluating: 'Evaluating…', blocked: 'BLOCKED', corrected: 'Corrected — resubmit', ready: 'READY' }[s] || s;
+      var extra = '';
+      if (s === 'ready' && g.lastRun && g.lastRun.change) {
+        extra = '<small><a href="' + esc(g.lastRun.change.url) + '" target="_blank" rel="noopener">' + esc(g.lastRun.change.number) + '</a> · ' + esc(g.lastRun.pipelineId) + '</small>';
+      } else if (s === 'ready' && g.lastRun) {
+        extra = '<small>' + esc(g.lastRun.pipelineId) + '</small>';
+      } else if (s === 'blocked' && g.lastRun) {
+        extra = '<small>' + g.lastRun.failures.length + ' requirement(s) missing</small>';
+      }
+      return '<span class="status ' + s + '">' + label + extra + '</span>';
+    }
+
+    function renderQueue(data) {
+      var integ = data.integrations || {};
+      jiraBase = integ.jiraBaseUrl || jiraBase;
+      el('jiraLink').href = jiraBase + '/jira/software/projects/MBA/issues/?jql=labels%3Dcigna-release-gate';
+      el('integrations').innerHTML =
+        '<span class="' + (integ.jira ? '' : 'off') + '">Jira <b>' + (integ.jira ? 'connected' : 'not configured') + '</b></span>' +
+        '<span class="' + (integ.servicenow ? '' : 'off') + '">ServiceNow <b>' + (integ.servicenow ? 'connected' : 'not configured') + '</b></span>' +
+        '<span>XL Release <b>mocked</b></span>';
+      el('queueBody').innerHTML = data.builds.map(function (b) {
+        var live = (b.gate && b.gate.lastRun && b.gate.lastRun.jira) || [];
+        var jiraCells = b.jiraKeys.map(function (k) {
+          var issue = live.filter(function (i) { return i.key === k; })[0];
+          return '<div class="jira-key"><a href="' + esc(jiraBase + '/browse/' + k) + '" target="_blank" rel="noopener">' + esc(k) + '</a>' +
+            (issue ? '<small>' + esc(issue.status) + '</small>' : '<small>status read at submit</small>') + '</div>';
+        }).join('');
+        var t = b.tests, m = b.metadata;
+        var evidence = esc(t.suite) + ': ' + t.passed + ' pass / ' + t.failed + ' fail · ' + t.coverage + '%<br>' +
+          '<span style="color:var(--cigna-gray);font-size:12px">QA: ' + esc(m.qaSignoff || '—') + ' · Rollback: ' + (m.rollbackPlan ? 'yes' : '—') + ' · Risk: ' + esc(m.riskRating) + '</span>';
+        var s = (b.gate && b.gate.status) || 'queued';
+        var btns = '<button class="btn-sm" data-submit="' + esc(b.id) + '"' + (busy ? ' disabled' : '') + '>' + (s === 'blocked' || s === 'corrected' ? 'Resubmit' : 'Submit for release') + '</button>';
+        if (s === 'blocked') btns += '<button class="btn-sm ghost" data-fix="' + esc(b.id) + '"' + (busy ? ' disabled' : '') + '>Developer fixes gap</button>';
+        return '<tr><td><span class="svc">' + esc(b.service) + ' ' + esc(b.version) + '<small>' + esc(b.commit) + '</small></span></td>' +
+          '<td>' + esc(b.owner.name) + '<br><span style="color:var(--cigna-gray);font-size:12px">' + esc(b.owner.email) + '</span></td>' +
+          '<td>' + jiraCells + '</td><td>' + evidence + '</td><td>' + statusCell(b) + '</td><td class="actions">' + btns + '</td></tr>';
+      }).join('');
+    }
+
+    function renderResult(r, build) {
+      var ready = r.verdict === 'READY';
+      el('verdictSub').textContent = build + ' · run ' + r.runId.slice(0, 8) + ' · ' + r.durationMs + ' ms · ' + new Date(r.at).toUTCString();
+      el('verdictBanner').innerHTML = '<div class="verdict-banner ' + (ready ? 'ready' : 'blocked') + '"><strong>' + r.verdict + '</strong><span>' +
+        (ready
+          ? (r.change ? 'ServiceNow change <a href="' + esc(r.change.url) + '" target="_blank" rel="noopener">' + esc(r.change.number) + '</a> created and handed to XL Release ' + esc(r.pipelineId) : 'Clean release — handed to XL Release ' + esc(r.pipelineId))
+          : r.failures.length + ' requirement(s) missing. Exact gaps written to Jira and the owning developer notified.') +
+        '</span></div>';
+      el('checksWrap').innerHTML = '<table class="checks">' + r.checks.map(function (c) {
+        return '<tr><td class="mark ' + (c.pass ? 'pass' : 'fail') + '">' + (c.pass ? '✓' : '✕') + '</td><td><div>' + esc(c.label) +
+          (c.url ? ' <a href="' + esc(c.url) + '" target="_blank" rel="noopener" style="color:var(--cigna-blue);font-size:12px">open</a>' : '') + '</div>' +
+          '<div class="detail">' + esc(c.detail) + '</div>' + (c.pass ? '' : '<div class="fix">Fix: ' + esc(c.remediation) + '</div>') + '</td></tr>';
+      }).join('') + '</table>';
+      el('actionsWrap').innerHTML = r.actions.length ? '<ul class="action-list">' + r.actions.map(function (a) {
+        var txt = esc(a.action) + (a.target ? ' · ' + (a.url ? '<a href="' + esc(a.url) + '" target="_blank" rel="noopener">' + esc(a.target) + '</a>' : esc(a.target)) : '') + (a.detail ? ' <span style="color:var(--cigna-gray)">— ' + esc(a.detail) + '</span>' : '');
+        return '<li><span class="sys">' + esc(a.system) + '</span><span>' + txt + '</span></li>';
+      }).join('') + '</ul>' : '<p class="empty">No external actions.</p>';
+    }
+
+    function renderAudit(rows) {
+      if (!rows.length) { el('auditBody').innerHTML = '<tr><td colspan="4" class="empty">No events yet.</td></tr>'; return; }
+      el('auditBody').innerHTML = rows.map(function (a) {
+        var cls = a.event === 'gate.ready' ? 'ready' : a.event === 'gate.blocked' ? 'blocked' : '';
+        return '<tr><td class="t">' + esc(a.at.replace('T', ' ').slice(0, 19)) + '</td><td>' + esc(a.buildId) + '</td><td class="e ' + cls + '">' + esc(a.event) + '</td><td>' + esc(a.detail) + '</td></tr>';
+      }).join('');
+    }
+
+    function refresh() {
+      return Promise.all([
+        fetch(API + '/builds').then(function (r) { return r.json(); }),
+        fetch(API + '/audit').then(function (r) { return r.json(); })
+      ]).then(function (res) { renderQueue(res[0]); renderAudit(res[1].audit); });
+    }
+
+    function setBusy(v, note) { busy = v; if (note) el('queueNote').textContent = note; refresh(); }
+
+    document.addEventListener('click', function (e) {
+      var submit = e.target.closest('[data-submit]');
+      var fix = e.target.closest('[data-fix]');
+      if (submit && !busy) {
+        var id = submit.getAttribute('data-submit');
+        setBusy(true, 'Gate running for ' + id + ' — reading Jira live, checking evidence and metadata…');
+        fetch(API + '/submit', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buildId: id,
+            triggerDevin: false,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+            devinEmail: localStorage.getItem('devinEmail') || ''
+          })
+        }).then(function (r) { return r.json(); }).then(function (res) {
+          if (res.error) throw new Error(res.error);
+          renderResult(res, id);
+          setBusy(false, res.verdict === 'READY' ? id + ' passed the gate.' : id + ' blocked — see Jira comment for the exact gap.');
+        }).catch(function (err) { setBusy(false, 'Gate failed: ' + err.message); });
+      }
+      if (fix && !busy) {
+        var fid = fix.getAttribute('data-fix');
+        setBusy(true, 'Developer correcting ' + fid + '…');
+        fetch(API + '/remediate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildId: fid }) })
+          .then(function (r) { return r.json(); })
+          .then(function (res) { setBusy(false, 'Corrected: ' + (res.applied || []).join('; ') + '. Resubmit to re-run the gate.'); })
+          .catch(function (err) { setBusy(false, 'Correction failed: ' + err.message); });
+      }
+    });
+
+    el('resetBtn').addEventListener('click', function () {
+      setBusy(true, 'Resetting demo state and Jira stories…');
+      fetch(API + '/reset', { method: 'POST' }).then(function (r) { return r.json(); }).then(function (res) {
+        el('verdictBanner').innerHTML = ''; el('verdictSub').textContent = 'No build evaluated yet.';
+        el('checksWrap').innerHTML = '<p class="empty">Checks appear here after a build is submitted.</p>';
+        el('actionsWrap').innerHTML = '<p class="empty">Jira comments, transitions, assignments and ServiceNow changes are listed here.</p>';
+        var j = (res.jiraReset || []);
+        setBusy(false, 'Demo reset.' + (j.length ? ' Jira: ' + j.join(', ') : ''));
+      });
+    });
+
+    refresh();
+  </script>
+</body>
+</html>

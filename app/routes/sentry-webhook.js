@@ -5,6 +5,18 @@ const { verifySentrySignature } = require('../middleware/verify-session-secret')
 const { PORTAL_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b992ae7');
 const { APP_REMEDIATION_DIRECTIVE } = require('../services/verticals/3aa9fa04');
 const { APP_REMEDIATION_DIRECTIVE: CITI_MOBILE_REMEDIATION_DIRECTIVE } = require('../services/verticals/67f2a7ba');
+const { APP_REMEDIATION_DIRECTIVE: NORDSTROM_REMEDIATION_DIRECTIVE } = require('../services/verticals/5b7227b4');
+const { APP_REMEDIATION_DIRECTIVE: COMED_REMEDIATION_DIRECTIVE } = require('../services/verticals/d08b052d');
+const { APP_REMEDIATION_DIRECTIVE: FPL_REMEDIATION_DIRECTIVE } = require('../services/verticals/b425648c');
+const {
+  APP_REMEDIATION_DIRECTIVE: NEXEN_REMEDIATION_DIRECTIVE,
+  SCENARIO: NEXEN_SCENARIO,
+} = require('../services/verticals/9bfabd45');
+const {
+  APP_REMEDIATION_DIRECTIVE: PLAN_PRICING_REMEDIATION_DIRECTIVE,
+  SCENARIO: PLAN_PRICING_SCENARIO,
+} = require('../services/verticals/a75ccde9');
+const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
 
 const router = express.Router();
 
@@ -134,6 +146,29 @@ function isSyntheticProbeEvent(alertData) {
     }
     return false;
   });
+}
+
+/**
+ * Verticals that alert directly tag their Sentry events so the webhook
+ * fallback does not raise a second alert or Devin session.
+ */
+// Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'a75ccde9', 'b4c3a7fc', '0eda990f', 'verticals/bac'];
+
+function isInstantPathEvent(alertData) {
+  const hasInstantTag = (alertData.tags || []).some((tag) => {
+    if (Array.isArray(tag)) return tag[0] === 'alert_path' && tag[1] === 'instant';
+    if (tag && typeof tag === 'object') {
+      return (tag.key === 'alert_path' && tag.value === 'instant')
+        || ('alert_path' in tag && tag.alert_path === 'instant');
+    }
+    return false;
+  });
+
+  return hasInstantTag || (
+    typeof alertData.culprit === 'string'
+    && INSTANT_PATH_SLUGS.some((slug) => alertData.culprit.toLowerCase().includes(slug))
+  );
 }
 
 /**
@@ -269,6 +304,116 @@ const CUSTOMER_ALERT_IDENTITY = {
       scenario: 'pay-citi-card',
     },
   },
+  // Nordstrom shopping Flutter app (github.com/Custom-Devin-Demos/
+  // nordstrom-shopping-demo-app): nordstrom.com on desktop web, the Nordstrom
+  // app on Android/iOS. Reports arrive via /api/5b7227b4/mobile/error;
+  // remediation lands in the Flutter repo and is verified on all three surfaces.
+  '5b7227b4': {
+    customer: '5b7227b4',
+    verticalLabel: 'Nordstrom',
+    service: 'customer-5b7227b4-mobile',
+    project: 'nordstrom-shop',
+    release: 'nordstrom-shop@1.0.0',
+    promptAppendix: NORDSTROM_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-5b7227b4-mobile',
+      service: 'customer-5b7227b4-mobile',
+      scenario: 'add-to-bag-rewards',
+    },
+  },
+  // ComEd My Account Flutter app (github.com/Custom-Devin-Demos/
+  // exelon-utility-demo-app): comed.com My Account on desktop web, the ComEd
+  // app on Android/iOS. Reports arrive via /api/d08b052d/mobile/error;
+  // remediation lands in the Flutter repo and is verified on all three surfaces.
+  'd08b052d': {
+    customer: 'd08b052d',
+    verticalLabel: 'ComEd',
+    service: 'customer-d08b052d-mobile',
+    project: 'comed-account',
+    release: 'comed-account@1.0.0',
+    promptAppendix: COMED_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-d08b052d-mobile',
+      service: 'customer-d08b052d-mobile',
+      scenario: 'report-outage-dispatch',
+    },
+  },
+  // FPL My Account Flutter app (github.com/Custom-Devin-Demos/
+  // fpl-my-account-demo-app): fpl.com My Account on desktop web, the FPL
+  // Mobile App on Android/iOS. Reports arrive via /api/b425648c/mobile/error;
+  // remediation lands in the Flutter repo and is verified on all three surfaces.
+  'b425648c': {
+    customer: 'b425648c',
+    verticalLabel: 'FPL',
+    service: 'customer-b425648c-mobile',
+    project: 'fpl-my-account',
+    release: 'fpl-my-account@1.0.0',
+    promptAppendix: FPL_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-b425648c-mobile',
+      service: 'customer-b425648c-mobile',
+      scenario: 'outage-report-restoration',
+    },
+  },
+  // BNY NEXEN custody platform (github.com/COG-GTM/bny): a Vite/React SPA
+  // hosted at /9bfabd45/app. Reports arrive via /api/9bfabd45/error;
+  // remediation lands in the NEXEN repo (frontend and its Java mirror).
+  '9bfabd45': {
+    customer: '9bfabd45',
+    verticalLabel: 'BNY NEXEN',
+    service: 'customer-9bfabd45-web',
+    project: 'nexen-custody',
+    release: 'nexen-custody@1.0.0',
+    promptAppendix: NEXEN_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-9bfabd45-web',
+      service: 'customer-9bfabd45-web',
+      scenario: NEXEN_SCENARIO,
+    },
+  },
+  'a75ccde9': {
+    customer: 'a75ccde9',
+    verticalLabel: 'FOX One',
+    service: 'customer-a75ccde9-web',
+    project: 'event-driven-devin',
+    release: 'a75ccde9-web@1.0.0',
+    promptAppendix: PLAN_PRICING_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'a75ccde9',
+      service: 'customer-a75ccde9-web',
+      scenario: PLAN_PRICING_SCENARIO,
+    },
+  },
+  '59b1e508': {
+    verticalLabel: 'Waste Collection Schedule Lookup',
+    service: '59b1e508-api',
+    project: 'event-driven-devin',
+    release: '59b1e508@1.0.0',
+    level: 'fatal',
+    slackMemberId: 'U0BDHHQUM24',
+    tagOverrides: {
+      service: '59b1e508-api',
+      scenario: 'schedule-lookup',
+      severity: 'sev1',
+    },
+  },
+  // NVIDIA GeForce NOW native SwiftUI app (github.com/Custom-Devin-Demos/
+  // nvidia-geforce-now-demo-app), iOS only. Reports arrive via
+  // /api/315f52fe/ios/error; remediation lands in the Swift repo and is
+  // verified on the iOS simulator from a macOS session.
+  '315f52fe': {
+    customer: '315f52fe',
+    verticalLabel: 'NVIDIA',
+    service: 'customer-315f52fe-ios',
+    project: 'geforce-now-ios',
+    release: 'geforce-now-ios@1.0.0',
+    promptAppendix: NVIDIA_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-315f52fe-ios',
+      service: 'customer-315f52fe-ios',
+      scenario: 'play-ultimate-rig-profile',
+    },
+  },
 };
 
 function tagKey(tag) {
@@ -341,6 +486,13 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
       return res.json({ received: true, skipped: true, reason: 'synthetic_probe' });
     }
 
+    if (isInstantPathEvent(alertData)) {
+      logger.info('Sentry webhook skipped — already alerted by instant path', {
+        issueTitle: alertData.issueTitle,
+      });
+      return res.json({ received: true, skipped: true, reason: 'instant_path' });
+    }
+
     if (isOncallSliceEvent(alertData)) {
       logger.info('Sentry webhook skipped — on-call slice event', {
         issueTitle: alertData.issueTitle,
@@ -385,3 +537,5 @@ router.post('/webhooks/sentry', verifySentrySignature, async (req, res) => {
 
 module.exports = router;
 module.exports.applyCustomerIdentity = applyCustomerIdentity;
+module.exports.isInstantPathEvent = isInstantPathEvent;
+module.exports.extractAlertData = extractAlertData;

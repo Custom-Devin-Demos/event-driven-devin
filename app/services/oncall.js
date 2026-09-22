@@ -1,7 +1,10 @@
 const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
-const { OWNER_DISCLAIMER, postMessage, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { OWNER_DISCLAIMER, postMessage, postThreadReply, lookupSlackUserByEmail, findChannelByNameFragment, joinChannel, postPersonaMessage, inviteToChannel } = require('./slack');
+const { createDevinSession } = require('./devin-api');
+const { canCreateSession, reserveSession } = require('./session-rate-limiter');
+const { scheduleVulnerablePR } = require('./sonar-pr-trigger');
 const { getScenario, getOncallRunRef, setScopedScenario, clearScopedScenario, setScopedConfig, getScopedConfig, clearScopedConfig } = require('../incidentModes');
 const { declareDatadogIncident, resolveDatadogIncident } = require('./datadog-incidents');
 const { COMPLIANCE_CONFIG: COMPLIANCE_DEFAULTS } = require('./oncall-verticals/banking');
@@ -11,13 +14,18 @@ const { releaseAccumulatedEntitlements } = require('./oncall-verticals/hightech'
  * On-Call demo service.
  *
  * Posts alert cards, human-style bug reports, and incident bursts to the
- * dedicated On-Call Slack channels. Alert-only by design: nothing here
- * triggers a Devin session — the On-Call responders listening to the
- * channels pick the messages up on their own.
+ * dedicated On-Call Slack channels. Alert-only by default: the On-Call
+ * responders listening to the channels pick the messages up on their own.
+ * A skin may opt its own branded page into auto-triage with
+ * devinSession: { auto: true }, which creates one Devin session per alert
+ * that skin raises and replies with its link in the alert thread. Alerts
+ * raised without such a skin never create a session.
  *
  * Channels/token are configurable via env:
  *   SLACK_ONCALL_ALERTS_CHANNEL_ID — alert + incident channel (#oncall-alerts)
  *   SLACK_ONCALL_BUGS_CHANNEL_ID   — bug report channel (#oncall-bugs)
+ *   SLACK_ONCALL_ALERTS_CHANNEL_NAME / SLACK_ONCALL_BUGS_CHANNEL_NAME — labels the
+ *     on-call ribbon shows after posting (default #oncall-alerts / #oncall-bugs)
  *   SLACK_ONCALL_BOT_TOKEN         — bot token override (default: SLACK_BOT_TOKEN)
  */
 
@@ -149,6 +157,26 @@ const ALERT_SCENARIOS = {
     symptom: 'Plan upgrades slowed sharply after the plan-catalog refresh added the legacy/regional plans. Latency scales with catalog size.',
     impact: 'Subscribers wait ~8 seconds on every plan change; upgrade completion rate is dropping.',
   },
+  marketplace: {
+    vertical: 'marketplace',
+    page: '63dbb52f.html',
+    apiPath: '/api/marketplace/cart',
+    oncallApiPath: '/api/oncall/marketplace/cart',
+    owner: 'Nina Brandt (marketplace-checkout-oncall)',
+    brand: 'Marktplatz Storefront (Product Detail)',
+    service: 'cart-api',
+    endpoint: 'POST /api/oncall/marketplace/cart',
+    monitor: '5xx rate — POST /api/oncall/marketplace/cart',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/marketplace/cart,http.status_code:504}',
+    metricValue: '504 on ~100% of add-to-cart requests',
+    threshold: '> 5% error rate',
+    baseline: '<0.4% (7-day)',
+    release: 'marketplace-storefront@1.0.4',
+    symptom: 'Add-to-cart requests hang ~8s and then fail with 504 Gateway Timeout. Stock reservation latency against the seller inventory partner is elevated.',
+    impact: 'Shoppers cannot add marketplace offers to the basket; every add sits on a spinner and then errors.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
@@ -166,6 +194,27 @@ const ALERT_SCENARIOS = {
     release: 'titan-mfg@1.0.1',
     symptom: 'Requests routed through the F3 edge site hang ~14s before completing. F2/F4 are normal and error rate is normal.',
     impact: 'Factory teams wait through a long instant-quote spinner for F3 work while other sites return normally.',
+  },
+  f8555891: {
+    vertical: 'f8555891',
+    page: 'f8555891.html',
+    apiPath: '/api/f8555891/release-batch',
+    oncallApiPath: '/api/f8555891/release-batch',
+    owner: 'Priya Natarajan (payroll-platform-oncall)',
+    brand: 'Gusto (Payroll Operations)',
+    service: 'customer-f8555891-payroll',
+    endpoint: 'POST /api/f8555891/release-batch',
+    monitor: 'Error rate — payroll batch ACH release',
+    metricQuery: 'sum:gusto_payroll.batch_release_failure{service:customer-f8555891-payroll} by {state}.as_count()',
+    metricValue: '100% of release attempts failing (HTTP 500 BATCH_RELEASE_FAILED)',
+    threshold: '> 0 failures / 5m',
+    baseline: '0 failures (30-day)',
+    release: 'gusto-payroll-platform@2026.09.15',
+    symptom: 'Releasing ACH debits for batch PB-2026-09-15-A fails on every attempt. Failures carry state:MN; the same batch releases cleanly when the one MN company (CO-51177) is excluded.',
+    impact: 'Sep 17 pay date for 5 companies / 133 employees is blocked ahead of the 17:30 PT ACH cutoff. MN is a newly onboarded work state.',
+    // Gusto-branded console at /gusto, not the generic on-call hub.
+    demoPage: '/gusto',
+    unlisted: true,
   },
 };
 
@@ -243,6 +292,20 @@ const BUG_CATALOG = {
       label: 'Family plan upgrade crawling',
       sev: 'High',
       text: "My whole family is on the Plus plan and I upgraded us to Ultra last night. Every line I upgraded sat on the confirm screen for close to ten seconds — I honestly thought it was frozen. It did go through eventually, but something is clearly wrong.",
+    },
+  ],
+  marketplace: [
+    {
+      id: 'marketplace-cart-timeout',
+      label: 'Add to cart fails with a timeout',
+      sev: 'High',
+      text: 'Shoppers cannot put marketplace items in the basket. You press add to cart, the button spins for about eight seconds and then an error comes back saying it could not be reserved. Same product, same seller, every attempt.',
+    },
+    {
+      id: 'marketplace-campaign-conversion',
+      label: 'Campaign traffic converting at zero',
+      sev: 'Critical',
+      text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
     },
   ],
   industrials: [
@@ -365,6 +428,16 @@ function contextBlock(service, triggeredBy, submittedFrom) {
  * responder treats it as a fresh occurrence; when false, the message matches
  * the canonical signature to demonstrate duplicate grouping.
  */
+function demoPagePath(scenario, skin) {
+  if (skin) return `/oncall/c/${skin.slug}`;
+  return scenario.demoPage || null;
+}
+
+function demoPageLine(scenario, skin) {
+  const path = demoPagePath(scenario, skin);
+  return path ? `*Demo page:* ${DEMO_BASE_URL()}${path} — reproduce the symptom on this branded page` : null;
+}
+
 function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggeredBy, skin }) {
 
   const brand = skin ? skin.company : scenario.brand;
@@ -372,7 +445,7 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
     `:rotating_light: *[Triggered] ${scenario.monitor}*`,
     '',
     `*Service:* ${scenario.service} (${brand})`,
-    skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page` : null,
+    demoPageLine(scenario, skin),
     `*Endpoint:* ${scenario.endpoint}`,
     `*Metric value:* ${scenario.metricValue} | *Threshold:* ${scenario.threshold} | *Baseline:* ${scenario.baseline}`,
     `*Monitor query:* \`${scenario.metricQuery}\``,
@@ -392,6 +465,143 @@ function buildAlertMessage(scenario, { runRef, now, firstSeen, events, triggered
 }
 
 /**
+ * Investigation prompt for a skin's auto-triage session. Built only from the
+ * scenario's monitor-shaped facts — the same signal a human responder gets —
+ * so no code locations, and no request-derived text, reach the session.
+ */
+function buildOncallSessionPrompt(scenario, skin, runRef) {
+  const lines = [
+    `A Datadog monitor is firing on ${scenario.service}. Investigate it and open a PR with the fix.`,
+    '',
+    `*Monitor:* ${scenario.monitor} — Triggered`,
+    `*Query:* \`${scenario.metricQuery}\``,
+    `*Endpoint:* ${scenario.endpoint}`,
+    `*Metric value:* ${scenario.metricValue} (threshold ${scenario.threshold}, baseline ${scenario.baseline})`,
+    `*Release:* ${scenario.release}`,
+    `*Symptom:* ${scenario.symptom}`,
+    `*Impact:* ${scenario.impact}`,
+    runRef ? `*Incident Ref:* ${runRef}` : null,
+    '',
+    `Reproduce the symptom at ${DEMO_BASE_URL()}/oncall/c/${skin.slug} and diagnose it from the repository and its telemetry: ${REPO_URL}`,
+  ].filter((l) => l !== null);
+
+  if (
+    skin.devinSession
+    && typeof skin.devinSession.promptAppendix === 'string'
+    && skin.devinSession.promptAppendix.trim()
+  ) {
+    lines.push('');
+    lines.push(skin.devinSession.promptAppendix);
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Identity of the person who triggered the run, as the demo header resolved it
+ * (org name + email → Devin ids) and the page forwarded it. Sessions are then
+ * created under that account instead of the service user's. Ids are shape-
+ * checked because they arrive from the browser, and org and user are taken as
+ * one identity: a user id only belongs to the org it was resolved against, so
+ * a requester org with no user runs as that org's service user rather than
+ * borrowing a user id from the skin or the environment.
+ */
+const DEVIN_ORG_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+// User ids carry their identity provider as a prefix, e.g. `email|<hex>`.
+const DEVIN_USER_ID_RE = /^[A-Za-z0-9_|.@+-]{1,128}$/;
+
+function resolveRequesterIdentity({ devinOrgId, devinUserId } = {}) {
+  const orgId = DEVIN_ORG_ID_RE.test(devinOrgId || '') ? devinOrgId : null;
+  if (!orgId) return { orgId: null, userId: null, complete: false };
+  return {
+    orgId,
+    userId: DEVIN_USER_ID_RE.test(devinUserId || '') ? devinUserId : null,
+    complete: true,
+  };
+}
+
+/**
+ * Pick the account the session is created under. A Devin user id only exists
+ * inside one org, so each source is taken whole: mixing a skin's org with the
+ * environment's user yields a pair the API rejects. A source that names an org
+ * but no user runs as that org's service user.
+ */
+function resolveSessionIdentity(requester, config) {
+  if (requester.complete) return { orgId: requester.orgId, userId: requester.userId };
+  if (config.orgId) return { orgId: config.orgId, userId: config.userId || null };
+  return {
+    orgId: process.env.DEVIN_ONCALL_ORG_ID || process.env.DEVIN_ORG_ID,
+    userId: process.env.DEVIN_ONCALL_USER_ID || null,
+  };
+}
+
+/**
+ * Create the auto-triage Devin session for a skin that opted in, and reply
+ * with its link in the alert thread. Never throws: a failed session must not
+ * fail the alert that triggered it.
+ */
+async function triggerSkinDevinSession(
+  scenario,
+  skin,
+  { token, channel, threadTs, runRef, requester },
+) {
+  const config = skin.devinSession;
+  if (!config || !config.auto) return null;
+
+  const cap = canCreateSession();
+  if (!cap.allowed) {
+    logger.warn('On-Call skin session creation throttled', { skin: skin.slug, ...cap });
+    return null;
+  }
+
+  // Reserve before the async call so concurrent alerts cannot all pass the cap check.
+  const release = reserveSession();
+  let session = null;
+  try {
+    session = await createDevinSession(buildOncallSessionPrompt(scenario, skin, runRef), {
+      ...resolveSessionIdentity(requester, config),
+      apiKey: config.apiKey || process.env.DEVIN_ONCALL_SERVICE_KEY,
+      title: `[On-Call] ${scenario.monitor}`,
+    });
+  } catch (error) {
+    logger.error('On-Call skin Devin session failed', { skin: skin.slug, error: error.message });
+  }
+
+  if (!session) {
+    release();
+    return null;
+  }
+
+  logger.info('On-Call skin Devin session created', {
+    skin: skin.slug,
+    scenario: scenario.vertical,
+    sessionId: session.sessionId,
+  });
+
+  try {
+    await postThreadReply(token, channel, threadTs, `Devin is investigating: ${session.url}`, [
+      mrkdwnSection(`:mag: *Devin is investigating this alert* — <${session.url}|View session>`),
+    ]);
+  } catch (error) {
+    logger.error('On-Call skin session link reply failed', { skin: skin.slug, error: error.message });
+  }
+
+  return session;
+}
+
+/**
+ * Queue the SonarCloud remediation demo PR for a skin that opted in with
+ * sonarPR: { auto: true }. Fire-and-forget like the legacy alert flow; the
+ * trigger itself logs and skips when no GitHub token is configured.
+ */
+function triggerSkinSonarPR(skin, requester) {
+  const config = skin && skin.sonarPR;
+  if (!config || !config.auto) return false;
+  scheduleVulnerablePR(0, config.customer || 'default', requester.userId || undefined, requester.orgId || undefined);
+  return true;
+}
+
+/**
  * Post an alert card for the given scenario to the On-Call alerts channel.
  */
 async function postOncallAlert(scenarioId, options = {}) {
@@ -406,7 +616,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     return { ok: false, skipped: true, error: 'SLACK_ONCALL_ALERTS_CHANNEL_ID or bot token not configured' };
   }
 
-  const runRef = options.unique !== false ? makeRunRef() : null;
+  const runRef = options.runRef || (options.unique !== false ? makeRunRef() : null);
   const triggeredBy = await resolveTriggeredBy(token, options.devinEmail);
   const now = new Date();
   const firstSeen = new Date(now.getTime() - (5 + Math.floor(Math.random() * 20)) * 60000);
@@ -431,7 +641,7 @@ async function postOncallAlert(scenarioId, options = {}) {
     mrkdwnSection(`*Monitor query:*\n\`\`\`${scenario.metricQuery}\`\`\``),
     mrkdwnSection(
       `*Symptom:* ${scenario.symptom}\n*Impact:* ${scenario.impact}\n` +
-      (skin ? `*Demo page:* ${DEMO_BASE_URL()}/oncall/c/${skin.slug} — reproduce the symptom on this branded page\n` : '') +
+      (demoPageLine(scenario, skin) ? `${demoPageLine(scenario, skin)}\n` : '') +
       `Repo: ${REPO_URL}`
     ),
     datadogActions(),
@@ -439,14 +649,33 @@ async function postOncallAlert(scenarioId, options = {}) {
   ];
   const ts = await postMessage(token, alertsChannel, text, blocks);
   logger.info('On-Call alert posted', { scenario: scenarioId, channel: alertsChannel, ts });
-  return { ok: true, ts, channel: alertsChannel };
+  const requester = resolveRequesterIdentity(options);
+  const session = skin
+    ? await triggerSkinDevinSession(scenario, skin, {
+      token,
+      channel: alertsChannel,
+      threadTs: ts,
+      runRef,
+      requester,
+    })
+    : null;
+  const sonarPR = triggerSkinSonarPR(skin, requester);
+  return {
+    ok: true,
+    ts,
+    channel: alertsChannel,
+    ...(session ? { sessionUrl: session.url } : {}),
+    ...(sonarPR ? { sonarPR: true } : {}),
+  };
 }
 
 /**
  * Post a human-style bug report to the On-Call bugs channel.
- * Accepts either a canned scenario id or free-form text.
+ * Accepts either a canned scenario id or free-form text. With `threadTs` the
+ * ticket is filed as a sub-ticket in that parent ticket's thread; `ticketId`
+ * is shown in the header the way a support tool labels a case.
  */
-async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug }) {
+async function postOncallBugReport({ scenarioId, templateId, text, reporter, severity, productArea, devinEmail, supportCenter, skinSlug, submittedFrom: submittedFromUrl, threadTs, ticketId, parentTicketId }) {
   const { token, bugsChannel } = resolveOncallEnv();
 
   const template = findBugTemplate(templateId);
@@ -482,7 +711,7 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
   const triggeredBy = await resolveTriggeredBy(token, devinEmail);
   // The page a skinned ticket came from is stamped on the ticket itself, the way
   // a support tool records the originating URL — no separate demo-page message.
-  const submittedFrom = skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null;
+  const submittedFrom = submittedFromUrl || (skinSlug ? `${DEMO_BASE_URL()}/oncall/c/${skinSlug}` : null);
   let message = [
     body,
     triggeredBy ? `Triggered by: ${triggeredBy}` : null,
@@ -495,8 +724,13 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
       : null;
     const centerName = supportCenter || 'Acme Support Center';
     const centerSlug = centerName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const label = ticketId ? ` ${ticketId}` : '';
+    const heading = threadTs
+      ? `:page_facing_up: Sub-ticket${label} — ${centerName}`
+      : `:inbox_tray: New support ticket${label} — ${centerName}`;
     message = [
-      `:inbox_tray: New support ticket — ${centerName}`,
+      heading,
+      parentTicketId ? `Parent ticket: ${parentTicketId}` : null,
       reportedBy ? `Reported by: ${reportedBy}` : null,
       productArea ? `Product area: ${productArea}` : null,
       severity ? `Severity: ${severity}` : null,
@@ -506,8 +740,9 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
       submittedFrom ? `Submitted from: ${submittedFrom}` : null,
     ].filter((l) => l !== null).join('\n');
     blocks = [
-      headerBlock(`:inbox_tray: New support ticket — ${centerName}`),
+      headerBlock(heading),
       ...fieldPairs([
+        parentTicketId ? ['Parent ticket', parentTicketId] : null,
         reportedBy ? ['Reported by', reportedBy] : null,
         productArea ? ['Product area', productArea] : null,
         severity ? ['Severity', severity] : null,
@@ -519,7 +754,9 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
 
   let ts;
   try {
-    ts = await postMessage(token, bugsChannel, message, blocks);
+    ts = threadTs
+      ? await postThreadReply(token, bugsChannel, threadTs, message, blocks)
+      : await postMessage(token, bugsChannel, message, blocks);
   } catch (error) {
     // Keep observable state consistent with what was announced: if the ticket
     // never posted, don't leave the app silently degraded for the full window.
@@ -532,6 +769,8 @@ async function postOncallBugReport({ scenarioId, templateId, text, reporter, sev
     activated,
     channel: bugsChannel,
     ts,
+    threadTs: threadTs || null,
+    ticketId: ticketId || null,
   });
   return {
     ok: true,
@@ -1779,6 +2018,7 @@ module.exports = {
   getSev1State,
   isActiveSev1ProbeRef,
   isSev1DebugTimingsUnlocked,
+  buildOncallSessionPrompt,
   setOncallConfigOverride,
   getOncallConfigView,
 };

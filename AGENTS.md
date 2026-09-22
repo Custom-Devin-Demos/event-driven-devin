@@ -28,14 +28,34 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Suncorp Bank Payments** (unlisted — direct URL only) | `/suncorp` | `app/public/verticals/suncorp.html` | `POST /api/suncorp/payment` | `app/services/verticals/suncorp.js` |
 | **Insignia Financial Super Allocation** (unlisted — direct URL only) | `/insignia` | `app/public/verticals/insignia.html` | `POST /api/insignia/allocation` | `app/services/verticals/insignia.js` |
 | **HUB24 Adviser Fee Arrangement** (unlisted — direct URL only) | `/hub24` | `app/public/verticals/hub24.html` | `POST /api/hub24/fee-arrangement` | `app/services/verticals/hub24.js` |
+| **CFS Lump Sum Withdrawal** (unlisted — direct URL only) | `/cfs` | `app/public/verticals/cfs.html` | `POST /api/cfs/withdrawal` | `app/services/verticals/cfs.js` |
+| **NRMA Insurance Home Claim** (unlisted — direct URL only) | `/nrma`, `/iag` | `app/public/verticals/nrma.html` | `POST /api/nrma/claim` | `app/services/verticals/nrma.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
-| **CommBank NetBank** (unlisted — direct URL only) | `/cba` | `app/public/verticals/cba.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
+| **CommBank NetBank — Pay anyone** (unlisted — direct URL only) | `/cba`, `/commbank`, `/netbank` | `app/public/verticals/cba.html` | `POST /api/cba/payment` | `app/services/verticals/cba.js` |
 | **Macquarie Online Banking** (unlisted — direct URL only) | `/macbank` | `app/public/verticals/macbank.html` | `POST /api/banking/transfer` (shared with Banking) | `app/services/verticals/banking.js` |
 | **Databricks Compute / Spark UI** (unlisted — direct URL only) | `/databricks`, `/0b6164d6` | `app/public/verticals/0b6164d6.html` | `POST /api/0b6164d6/cluster-ui` | `app/services/verticals/0b6164d6.js` |
 | **Morgan Stanley Wealth Management** (unlisted — direct URL only) | `/morganstanley`, `/c7d11cb8` | `app/public/verticals/c7d11cb8.html` | `POST /api/c7d11cb8/rebalance` | `app/services/verticals/c7d11cb8.js` |
 | **Ping Identity — PingOne Environment Provisioning** (unlisted — direct URL only) | `/pingidentity`, `/81deeb2e` | `app/public/verticals/81deeb2e.html` | `POST /api/81deeb2e/environments` | `app/services/verticals/81deeb2e.js` |
+| **Carvana — Checkout & Financing** (unlisted — direct URL only) | `/carvana`, `/fd7f4e04` | `app/public/verticals/fd7f4e04.html` | `POST /api/fd7f4e04/orders` | `app/services/verticals/fd7f4e04.js` |
+| **Millennium — Pod Capital Allocation** (unlisted — direct URL only) | `/millennium`, `/ff27e25f` | `app/public/verticals/ff27e25f.html` | `POST /api/ff27e25f/allocations` | `app/services/verticals/ff27e25f.js` |
+| **Aravia Therapeutics — Patient Access Portal** (fictional brand, unlisted — direct URL only) | `/patient-access`, `/fcf0f903` | `app/public/verticals/fcf0f903.html` | `POST /api/fcf0f903/enrollment`, `POST /api/fcf0f903/copay-estimate` | `app/services/verticals/fcf0f903.js` |
+| **Zuora — AI Usage-Based Pricing** (unlisted — direct URL only) | `/zuora`, `/ce4ebc10` | `app/public/verticals/ce4ebc10.html` | `POST /api/ce4ebc10/publish-pricing` | `app/services/verticals/ce4ebc10.js` |
+| **Rippling — Payroll Run** (unlisted — direct URL only) | `/rippling`, `/a7fb8819` | `app/public/verticals/a7fb8819.html` | `POST /api/a7fb8819/submit-pay-run` | `app/services/verticals/a7fb8819.js` |
+| **Gusto — Payroll Ops On-Call Console** (unlisted — direct URL only) | `/gusto`, `/f8555891` | `app/public/verticals/f8555891.html` | `POST /api/f8555891/release-batch` (failure → monitor card in the on-call alerts channel, no app-created Devin session), `POST /api/f8555891/support-ticket` (customer report → on-call bugs channel; with `split`, one parent ticket `GUS-####` plus threaded sub-tickets `GUS-####.N`) | `app/services/verticals/f8555891.js` |
+| **Tax Revenue Portal — Pay Taxes** (generic demo brand, unlisted — direct URL only) | `/tax-portal`, `/3640b94c` | `app/public/verticals/3640b94c.html` | `POST /api/3640b94c/payment` | `app/services/verticals/3640b94c.js` |
+| **FPL My Account — NextEra Energy** (Flutter app, unlisted — direct URL only) | `/fpl`, `/nextera`, `/b425648c` (landing), `/b425648c/app` (app) | `app/public/verticals/b425648c.html`, `app/public/verticals/b425648c-app/` | `POST /api/b425648c/mobile/error`, `POST /api/b425648c/outage/report` | `app/services/verticals/b425648c.js` |
+| **BNY NEXEN — Digital Asset Custody** (Vite/React app, unlisted — direct URL only) | `/bny`, `/nexen`, `/9bfabd45` (all redirect), `/9bfabd45/app` (app) | `app/public/verticals/9bfabd45-app/` | `POST /api/9bfabd45/error` | `app/services/verticals/9bfabd45.js` |
+| **State Street — Client Banking Portal** (unlisted — direct URL only) | `/statestreet`, `/4da81799` | `app/public/verticals/4da81799.html` | `POST /api/4da81799/transfer` | `app/services/verticals/4da81799.js` |
+| **BAC Credomatic — Banca en Línea** (unlisted — direct URL only) | `/bac`, `/baccredomatic` | `app/public/verticals/bac.html` | `POST /api/bac/transferencia` | `app/services/verticals/bac.js` |
+| **PNC Online Banking — Virtual Wallet Transfer** (unlisted — direct URL only; on-call + Devin session resolve from the page's devindemos.com email, no hard-coded `slackMemberId`) | `/pnc` | `app/public/verticals/pnc.html` | `GET /api/pnc/accounts`, `POST /api/pnc/transfer` | `app/services/verticals/pnc.js` |
+| **Fleet Health Console — Engine Health Pipeline** (unlisted — direct URL only) | `/fleet-health`, `/a693dab5` | `app/public/verticals/a693dab5.html` | `GET /api/a693dab5/fleet`, `GET /api/a693dab5/runs`, `POST /api/a693dab5/runs` | `app/services/verticals/a693dab5.js` |
+| **Midstream Pipeline Control — Line Balance Leak Detection** (unlisted — direct URL only) | `/b4c3a7fc` | `app/public/verticals/b4c3a7fc.html` | `GET /api/b4c3a7fc/overview`, `POST /api/b4c3a7fc/line-balance/run`, `POST /api/b4c3a7fc/line-balance/reset` | `app/services/verticals/b4c3a7fc.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
+
+## Group home page showcase (/lifeco)
+
+A static showcase recreating the home pages of the Power Corporation group of companies for demos. Eight slugs under `/lifeco` — `pcc` (Power Corporation), `lifeco` (Great-West Lifeco), `canada-life`, `irish-life`, `empower`, `igm-financial`, `ig-wealth`, `mackenzie` — plus a hub at `/lifeco`. Every page is the same HTML shell in `app/public/lifeco/brands/<slug>.html` driven by a `window.BRAND` config and rendered by `app/public/lifeco/assets/site.js` (shared CSS in `site.css`); routes live in `app/routes/lifeco.js`. Purely static — no APIs, no bugs, no alerts — and not listed on the hub.
 
 ### On-call vertical slice (Flows 1–2)
 
@@ -48,15 +68,20 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | High Tech | `POST /api/oncall/licenses/provision` | `app/services/oncall-verticals/hightech.js` |
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
+| Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
+| Samsara Fleet (native iOS/macOS app) | `POST /api/oncall/26a3d261/eta-failure` | `app/services/oncall-verticals/fleet.js` |
+| Partiful RSVP (native iOS/macOS app + `/partiful` web replica) | `POST /api/oncall/205bc15f/rsvp-page-failure` | `app/services/oncall-verticals/partiful.js` |
 
-Routes are mounted from `app/routes/oncall-verticals.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
+Routes are mounted from `app/routes/oncall-verticals.js`, except the two native-app report endpoints, which live in `app/routes/oncall.js`. The degradations are deliberately not described here — the on-call demo's premise is that the responder diagnoses them from telemetry. The legacy `/api/<vertical>/...` endpoints and their planted TypeErrors are untouched.
 
 **Voice fixes require real-audio verification.** Any fix touching the voice transcribe path (`app/services/oncall-verticals/voice.js` or `POST /api/oncall/voice/transcribe`) must be verified with real audio, not typed input: follow the "Voice (dictation) specifics" section of `.agents/skills/testing-oncall-skins/SKILL.md` — piper TTS speaks the utterance, ffplay plays it in a visible terminal, whisper.cpp transcribes it live, and the transcript finalizes on the page with the latency stopwatch on screen. Record 2–3 finalizes before and after the fix to show the climbing latency and the flat fast profile.
 
 Customer skins receive the alerts surface by default. Optional `bugPortal` and `incident` skin config entries opt into `/oncall/c/:slug/report` and `/oncall/c/:slug/incident` respectively.
 
-**Alert cards never route to a real person.** The *Owner* field is a fictional persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on a card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
+**On-call (`/oncall`) cards never route to a real person.** Their *Owner* field is a scenario persona (`OWNER_DISCLAIMER` in `app/services/slack.js`) and the only real mention on an on-call card is *Triggered by*, resolved from the `devinEmail` the run supplied. A responder that cannot resolve the persona must @-mention nobody in its place — do not fall back to `git blame`, commit authors, or CODEOWNERS to find someone to cc, since every file here was last touched by whoever built the demo, not by whoever is on call.
+
+**Customer-vertical alert cards (`postAlertToSlack`) name a real owner or nobody — never a made-up one.** The *On-Call* field is `onCallText()`: the `slackMemberId` the vertical passed to `createSessionAndAlert`, else the member resolved from `devinEmail`, else `slackMemberIdFallback`, else the opt-in `DEMO_ONCALL_SLACK_MEMBER_ID`, else `_Unassigned_` (`ONCALL_UNASSIGNED_TEXT`) with no @-mention. Every custom demo vertical passes `slackMemberId` explicitly — Russell unless the person who commissioned the demo named someone else — and the Devin session is created as that same person (`devinUserId`), so Slack and Devin agree on who owns the incident. A fictional name in that field reads to the audience as a real teammate, which is why the persona fallback was removed from this path; do not reintroduce one.
 
 ### Payer welcome-season scenario
 
@@ -70,6 +95,12 @@ Two things are deliberately separate:
 - **`scripts/welcome-season-sweep.js` is the prevention control** — it validates every Jan-1 plan config and submits synthetic claims, exiting non-zero before cards mail. It owns its own `validateRxRouting()` because the service intentionally has none yet.
 
 `FANOUT_DIRECTIVE` in the service is appended to the Devin prompt via `alertData.promptAppendix`, instructing the triage session to split remediation across four parallel child sessions. See `docs/DEMO-WELCOME-SEASON.md` for the run sheet and `docs/WIKI-PAYER-WELCOME-SEASON.md` for the full reference.
+
+### Gusto ticket-swarm scenario
+
+The Gusto vertical (`/gusto`, slug `f8555891`) is the multi-agent demo. The planted defect is a payroll batch that fails because Minnesota has no entry in `STATE_PAYROLL_PROGRAMS`; the release failure posts a monitor card to the on-call alerts channel and deliberately creates no Devin session. The agents enter through the **support side**: a multi-symptom customer report filed with `split` becomes one parent ticket (`GUS-1041`) in the on-call bugs channel with each symptom threaded under it as a numbered sub-ticket (`GUS-1041.1`, `.2`, …). `postOncallBugReport` accepts `threadTs` / `ticketId` / `parentTicketId` for this; single-symptom reports stay flat.
+
+The parent card tells the responder to @Devin `swarm this ticket`. That session follows `.devin/skills/gusto-ticket-swarm/SKILL.md`, which runs `.devin/skills/gusto-ticket-swarm/workflow.py`: one read-only investigator child per sub-ticket in parallel → one consolidator that dedupes findings into root-cause groups → one fixer per group that opens a single PR (tests, lint, browser recording; never merges). The prompts live in that `workflow.py` so a customer can edit agent behaviour live. **Leave the MN defect in place** and do not merge swarm PRs — the failure is the demo. See `docs/DEMO-GUSTO-ONCALL.md` for the run sheet.
 
 ### Kroger feature-encoding scenario
 
@@ -152,6 +183,66 @@ Identity is dynamic: the Flutter client reads `devinEmail` / `devinUserId` / `de
 
 Refresh the hosted build the same way as GE: `flutter build web --release --base-href /67f2a7ba/app/`, copy `build/web/` into `app/public/verticals/67f2a7ba-app/`, drop `canvaskit/`. Generated Flutter bundles under `app/public/verticals/*-app/` are excluded from `npm run lint`.
 
+### Nordstrom shopping scenario (5b7227b4, Flutter, external repo)
+
+The Nordstrom app vertical (slug `5b7227b4`, aliases `/nordstromapp`, `/nordstrom-app`; unlisted on the hub) is separate from the Nordstrom HTML vertical (`663500bd`, `/nordstrom`), which keeps its Node-side defect. `/5b7227b4/app` serves a Flutter web build from `app/public/verticals/5b7227b4-app/` (SPA fallback in `app/routes/verticals/5b7227b4.js`). The same codebase — `Custom-Devin-Demos/nordstrom-shopping-demo-app` — renders as the nordstrom.com desktop site on wide web and as the Nordstrom app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the product catalog carries a `New Markdown` price status, but the Nordy Club earning-rules registry never registers it, so adding a New Markdown item to the bag null-asserts while pricing rewards and the product screen shows its error message plus the incident toast. The client then `POST`s to `/api/5b7227b4/mobile/error` with `source: nordstrom-shop/<platform>` and `service: customer-5b7227b4-mobile`, plus `platform`, `screen`, `action`, `product`, `priceStatus` tags. `reportAppFailure` in `app/services/verticals/5b7227b4.js` raises the Slack alert and Devin session directly (Sentry capture + `add_to_bag.failure` metric); successful adds sync on `POST /api/5b7227b4/bag` (`add_to_bag.success`, no alert).
+
+Identity is dynamic, exactly as for Citi Mobile: the Flutter client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service passes them through untouched, resolves an email to a Nordstrom org member with `DEVIN_SERVICE_KEY_5B7227B4` when no user id was sent, and `DEVIN_USER_ID_5B7227B4` / `DEVIN_ORG_ID_5B7227B4` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-5b7227b4-mobile` to the Nordstrom `APP_REMEDIATION_DIRECTIVE` (fix the registry, tolerate unknown statuses, add a completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/5b7227b4-mobile-error.test.js`.
+
+Refresh the hosted build the same way as Citi: `flutter build web --release --base-href /5b7227b4/app/`, copy `build/web/` into `app/public/verticals/5b7227b4-app/`, drop `canvaskit/`.
+
+### NVIDIA GeForce NOW scenario (315f52fe, native SwiftUI iOS, external repo)
+
+The NVIDIA vertical (slug `315f52fe`, aliases `/nvidia`, `/geforce-now`, `/geforcenow`; unlisted on the hub) is a **native SwiftUI iOS app — iOS only, no web or Android build and no hosted web build**. `/315f52fe` serves a GeForce NOW-branded landing page (`app/public/verticals/315f52fe.html`) that explains how to clone, build and run the app on an iPhone simulator; the customer-facing app itself lives in `Custom-Devin-Demos/nvidia-geforce-now-demo-app`, and that repo is where the defect lives and where Devin remediates (`Core/` is a Foundation-only Swift package whose tests also run on Linux; `App/` is the SwiftUI target, generated with XcodeGen and verified with `scripts/verify-ios.sh` on macOS).
+
+The app plants a registry mismatch: every membership tier is scheduled onto a cloud rig class (`RigCatalog.rigClass(for:)` — Free → `basic`, Performance → `rtx4080`, Ultimate → `rtx5080`) but the stream-profile registry (`StreamProfileRegistry.profiles`) only registers `basic` and `rtx4080`, so tapping **Play** as an Ultimate member throws `StreamProfileError.unregisteredRig(.rtx5080, device)` and the game screen shows the "couldn't start your session" card plus the incident banner. Performance members launch fine. The client then `POST`s to `/api/315f52fe/ios/error` with `source: geforce-now-ios/ios` and `service: customer-315f52fe-ios`, plus `platform`, `screen`, `action`, `game`, `tier`, `rigClass`, `device`, `osVersion`, `appVersion` and a bounded `launch` context. `reportAppFailure` in `app/services/verticals/315f52fe.js` raises the Slack alert and Devin session directly (Sentry capture + `play.launch.failure` metric) and the Sentry webhook skips the same event via `INSTANT_PATH_SLUGS` / the `alert_path: instant` tag.
+
+Identity is pinned, not derived from the app: this demo was commissioned by Shawn, so `OWNER` in the service (`shawn@cognition.ai`, Slack `U08RSEMUV3L`, his Devin user id, the NVIDIA org id) is passed to `createSessionAndAlert` on every report — the card @-mentions him and the Devin session is created as him. The app still forwards `devinEmail` / `devinUserId` / `devinOrgId`, but the sign-in email is synthetic and only survives on the card as `extra.reporterEmail`; it never redirects ownership. `CUSTOMER_ALERT_IDENTITY` maps `customer-315f52fe-ios` to the NVIDIA `APP_REMEDIATION_DIRECTIVE` (register the missing rig profiles, make the lookup throw a typed error instead of crashing on a gap, add a tier × device completeness test, verify one commit on the iOS simulator, stop for human approval before merge). Regression coverage lives in `tests/315f52fe-ios-error.test.js`.
+
+**One failure, one alert.** Every report that reaches `POST /api/315f52fe/ios/error` raises a Slack alert and a Devin session, so a reproduction run must not report. The directive tells the remediation session to reproduce with failure reporting off (`scripts/verify-ios.sh` in the app repo disables it by default; `GFN_DISABLE_FAILURE_REPORTS=1` in the app environment otherwise), and only the presenter's live run — `REPORT_FAILURES=1 scripts/verify-ios.sh`, or a plain Xcode launch — reports. A remediation session that reproduces with reporting on opens a second alert and a second session for the same defect, which then reproduces again: that loop is what this rule prevents.
+
+### ComEd Report Outage scenario (d08b052d, Flutter, external repo)
+
+The ComEd (Exelon) vertical (slug `d08b052d`, aliases `/comed`, `/comed-app`, `/exelon`; unlisted on the hub) is a Flutter customer-account app, not an HTML page. `/d08b052d/app` serves a Flutter web build from `app/public/verticals/d08b052d-app/` (SPA fallback in `app/routes/verticals/d08b052d.js`). The same codebase — `Custom-Devin-Demos/exelon-utility-demo-app` — renders as the comed.com My Account desktop site on wide web and as the ComEd mobile app on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: the meter registry (`MeterType.all`) and the synthetic customer's Home premise carry a next-generation smart meter (`ami_gen2`), but the outage dispatch registry (`dispatchRules`, crew + ETR per meter type) never registers it, so Report Outage for that premise null-asserts while building the dispatch plan and the screen shows the "couldn't submit" card plus the incident toast. The Rental premise (`ami_smart`) reports fine. The client then `POST`s to `/api/d08b052d/mobile/error` with `source: comed-account/<platform>` and `service: customer-d08b052d-mobile`, plus `platform`, `screen`, `action`, `servicePoint`, `meterType`, `meterId`, `zip`, `outageType` tags. `reportAppFailure` in `app/services/verticals/d08b052d.js` raises the Slack alert and Devin session directly (Sentry capture + `report_outage.failure` metric); successful tickets sync on `POST /api/d08b052d/outages` (`report_outage.success`, no alert).
+
+Identity is dynamic, exactly as for Citi and Nordstrom: the client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service resolves an email to an Exelon org member with `DEVIN_SERVICE_KEY_D08B052D` when no user id was sent, and `DEVIN_USER_ID_D08B052D` / `DEVIN_ORG_ID_D08B052D` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-d08b052d-mobile` to the ComEd `APP_REMEDIATION_DIRECTIVE` (register the meter type, tolerate unknown registry entries, add a `MeterType.all` completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/d08b052d-mobile-error.test.js`.
+
+Refresh the hosted build the same way: `flutter build web --release --base-href /d08b052d/app/`, copy `build/web/` into `app/public/verticals/d08b052d-app/`, drop `canvaskit/`.
+
+### FPL My Account scenario (b425648c, Flutter, external repo)
+
+The FPL vertical (slug `b425648c`, aliases `/fpl`, `/nextera`; unlisted on the hub) is Florida Power & Light — a NextEra Energy company — as its customers see it. `/b425648c` serves an fpl.com-styled landing page (`app/public/verticals/b425648c.html`) that links into `/b425648c/app`, a Flutter web build from `app/public/verticals/b425648c-app/` (SPA fallback and `/fpl-app` redirects in `app/routes/verticals/b425648c.js`). The same codebase — `Custom-Devin-Demos/fpl-my-account-demo-app` — renders as fpl.com My Account (Account Summary, Bill, Energy Manager, Power Outages) on wide web and as the FPL Mobile App (bottom tabs) on Android/iOS/narrow web, and that repo is where the defect lives and where Devin remediates.
+
+The app plants a registry mismatch: both service points (Palm Beach Gardens `0123456780` and Jupiter `0123456798`) sit on `storm_secure_underground` circuits, but `restorationProfiles` in `lib/domain/circuits.dart` only registers overhead, underground and hardened-feeder profiles, so every Report an Outage submission null-asserts in `estimateRestoration` while estimating the restoration window. The form has no field validation, so submitting it as-is reproduces the failure. The outage screen shows the "We couldn't submit your outage report" card plus the incident toast, and the client `POST`s to `/api/b425648c/mobile/error` with `source: fpl-my-account/<platform>` and `service: customer-b425648c-mobile`, plus `platform`, `screen`, `action`, `accountNumber`, `premiseId`, `circuitType`, `problem` tags. `reportAppFailure` in `app/services/verticals/b425648c.js` raises the Slack alert and Devin session directly (Sentry capture + `outage_report.failure` metric); once the profile is registered, tickets sync on `POST /api/b425648c/outage/report` (`outage_report.success`, no alert).
+
+Identity is dynamic, exactly as for Nordstrom: the Flutter client forwards `devinEmail` / `devinUserId` / `devinOrgId` from the hub's `localStorage` (or the native sign-in email), the service passes them through untouched, resolves an email to a NextEra org member with `DEVIN_SERVICE_KEY_B425648C` when no user id was sent, and `DEVIN_USER_ID_B425648C` / `DEVIN_ORG_ID_B425648C` only fill in when the client sent nothing. `CUSTOMER_ALERT_IDENTITY` maps `customer-b425648c-mobile` to the FPL `APP_REMEDIATION_DIRECTIVE` (register the missing profile, tolerate unknown circuits, add a completeness test, verify one commit on web, Android and iOS, refresh the hosted build). Regression coverage lives in `tests/b425648c-mobile-error.test.js`.
+
+Refresh the hosted build the same way: `flutter build web --release --base-href /b425648c/app/`, copy `build/web/` into `app/public/verticals/b425648c-app/`, drop `canvaskit/`.
+
+### BNY NEXEN collateral overview scenario (9bfabd45, Vite/React, external repo)
+
+The BNY vertical (slug `9bfabd45`, aliases `/bny`, `/nexen`; unlisted on the hub) is NEXEN, BNY's institutional custody platform. There is no landing page: `/bny`, `/nexen` and `/9bfabd45` all redirect to `/9bfabd45/app`, a Vite/React build from `app/public/verticals/9bfabd45-app/` (SPA fallback in `app/routes/verticals/9bfabd45.js`). The app is `COG-GTM/bny` — a React frontend running on its baked-in mock client plus a Spring Boot mirror of the same domain that is never deployed — and that repo is where the defect lives and where Devin remediates.
+
+The app plants an encoding mismatch on its landing screen: `buildAllocationBars` in `frontend/src/domain/allocation.ts` keys the chart series off canonical band codes (`US_EQUITY`…) while the collateral aggregate reports display labels (`US Equity`…), so clicking **Chart View** on **Collateral Overview** dereferences undefined and the panel fails to load — for every client, no magic value needed. Table View renders normally. The client `POST`s to `/api/9bfabd45/error` with `source: nexen-custody/web` and `service: customer-9bfabd45-web`, plus `platform`, `screen` (`collateral_overview`) and `action` (`load_allocation_chart`) tags; no client-identifying tag is sent, so the investigation starts from the stack frame rather than from the answer. `reportAppFailure` in `app/services/verticals/9bfabd45.js` raises the Slack alert and Devin session directly (Sentry capture + `collateral_overview.failure` metric).
+
+The digital asset custody feature is deliberately *not* the incident: it is the feature Devin builds live during the demo (`COG-GTM/bny` PR #2).
+
+Identity: the client may forward `devinEmail` / `devinUserId` / `devinOrgId`, and the service resolves an email to an org member with `DEVIN_SERVICE_KEY_9BFABD45` when no user id was sent; with nothing from the client it falls back to the demo owner (Hannah Huh, `U0B2YAUPSHL`), who is also the `slackMemberId` on every card. `CUSTOMER_ALERT_IDENTITY` maps `customer-9bfabd45-web` to the NEXEN `APP_REMEDIATION_DIRECTIVE` (reconcile the chart series with the allocation data, replace the undefined dereference with explicit handling, add frontend and backend coverage for the chart series, refresh the hosted build). Regression coverage lives in `tests/9bfabd45-error.test.js`.
+
+Refresh the hosted build: in `COG-GTM/bny/frontend`, `npx vite build --base=/9bfabd45/app/`, then copy `dist/` into `app/public/verticals/9bfabd45-app/`.
+
+### Samsara Fleet mobile scenario (26a3d261, SwiftUI, external repo)
+
+The Fleet vertical is the native SwiftUI Samsara Fleet replica in `COG-GTM/ios-demos` (`apps/26a3d261`, iOS + macOS, no hosted web build and no telemetry SDK). Its planted defect is silent — "Share live ETA" on asset 224221 computes an arrival equal to the fleet clock (0 min out) — so the app checks the invariant itself and, on failure, `POST`s bounded facts (`source: fleet-mobile/<ios|macos>`, `service: fleet-mobile`, asset, route, strict ISO-8601 departure/arrival, time zone, screen/action, optional `devinEmail`) to `/api/oncall/26a3d261/eta-failure`. `reportEtaFailure` in `app/services/oncall-verticals/fleet.js` owns everything the app must not carry: it allocates the `FLT-xxxxxx` Incident Ref, emits the `fleet_live_share.eta_failure` metric and a Sentry message tagged with the on-call route (so `isOncallSliceEvent` in the Sentry webhook never raises a second session), posts one alert card to `SLACK_ONCALL_ALERTS_CHANNEL_ID`, creates one Devin session on `platform: macos` (`DEVIN_ONCALL_FLEET_PLATFORM` to override) against `COG-GTM/ios-demos` with a fixed server-side prompt, and links the session in the alert thread. The route validates and normalises before the hourly trigger cap, rejects healthy ETAs (arrival after departure), and answers `202` with `reference` + `statusToken`; `GET /api/oncall/26a3d261/eta-failure/:reference` needs that token in the `X-Status-Token` header (never a query string) because the reference is printed on the alert card; the in-memory status map keeps at most 200 reports for six hours and evicts finished entries before unfinished ones. The `#oncall-alerts` Slack responder automation skips messages containing `fleet-mobile` so only the macOS session investigates. Regression coverage lives in `tests/oncall-fleet-eta-failure.test.js`.
+
+### Partiful RSVP mobile scenario (205bc15f, SwiftUI, external repo)
+
+The Partiful vertical is the native SwiftUI Partiful replica in `COG-GTM/ios-demos` (`apps/205bc15f`, iOS + macOS, no telemetry SDK), plus a browser replica of the same screens at `/partiful` (`/205bc15f`) for demoing without Xcode. Its planted defect is a blank page — an event whose host picked a text-only theme has no cover photo, so the RSVP page model cannot be built and the guest sees nothing (`pasta-night-mine`, `board-game-night`; photo events render normally). The app reports it itself, `POST`ing bounded facts (`source: partiful-rsvp/<ios|macos|web>`, `service: partiful-rsvp`, event id/title, host, theme, screen/action, `reason`, guest counts, invite link, optional `devinEmail`) to `/api/oncall/205bc15f/rsvp-page-failure`. `reportRsvpPageFailure` in `app/services/oncall-verticals/partiful.js` mirrors the Fleet slice: it allocates the `PTF-xxxxxx` Incident Ref, emits the `partiful_rsvp.page_failure` metric and a Sentry message tagged with the on-call route (so `isOncallSliceEvent` never raises a second session), posts one alert card to `SLACK_ONCALL_ALERTS_CHANNEL_ID`, creates one Devin session on `platform: macos` (`DEVIN_ONCALL_PARTIFUL_PLATFORM` to override) against `COG-GTM/ios-demos`, and links the session in the alert thread. `reason` must be a key of `REASONS` — the prompt never carries a client string the server cannot explain — and the invite link is only kept when it is an `https://partiful.com` URL. The route answers `202` with `reference` + `statusToken`; `GET /api/oncall/205bc15f/rsvp-page-failure/:reference` needs that token in the `X-Status-Token` header, and the app polls it to show "Devin is investigating" under the blank page. Like Fleet, the `#oncall-alerts` responder automation must skip messages containing `partiful-rsvp` so only the macOS session investigates. Regression coverage lives in `tests/oncall-partiful-rsvp-failure.test.js`. `app/public/verticals/205bc15f.html` is the browser replica: the same feed, RSVP page, and blank page rendered in a phone frame, carrying the same defect in `buildPage()` and reporting with `source: partiful-rsvp/web`, so a demo needs only the URL.
+
 ### Bank of America Zelle field-migration scenario (6f43e66c, /bofa-snow)
 
 The Bank of America Zelle vertical (`/6f43e66c`, `/bofa-snow`) plants one field-migration gap with two consumers:
@@ -165,6 +256,34 @@ The defect is deliberately left in place so Devin performs the field-migration f
 
 - **`scripts/6f43e66c-limits-audit.js` is the prevention control** (`npm run audit:zelle`) — it probes both real service paths for every funding account and exits non-zero for unresolved or downgraded profiles. It is not wired into CI, which is why this shipped.
 - `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius, ServiceNow incident blast radius, and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'`.
+
+### Aravia Patient Access field-migration scenario (fcf0f903, /patient-access)
+
+The Aravia Therapeutics Patient Access vertical (`/fcf0f903`, `/patient-access`) is a customer-neutral life-sciences skin — a fictional specialty-pharma brand, no real company assets — that mirrors the Zelle shape: one field-migration gap with two consumers, in the domain of copay-assistance enrollment for a specialty therapy.
+
+| Consumer | Behavior | Signal |
+|----------|----------|--------|
+| `submitEnrollment()` | Reads the pre-FY26 `patient.coverageTier` field, resolves no benefit and throws while dereferencing it (`assertAssistanceCoverage`) | HTTP 500 `TypeError` → Sentry → Slack → Devin session → ServiceNow |
+| `estimateCopay()` | Reads the pre-FY26 field and falls back to `commercial-standard`, so Specialty Commercial ($10) and Foundation Assistance ($0) patients are quoted the $150 Standard copay and told they are not assistance-eligible | HTTP 200 with no Sentry/Devin alert; `copay_estimate.quoted` carries `tier:Standard` on patients whose verified tier is not Standard |
+
+The silent half is the point: the crash is what pages you; the quiet quote is what harms patients. The defect is deliberately left in place so Devin performs the field-migration fix live. The FY26 benefits refresh moved the verified tier to `patient.coverage.tier` in `app/services/verticals/fcf0f903-patients.js`, but both consumers in `app/services/verticals/fcf0f903.js` still read the old location; only the enrollment path crashes. To run the demo pre-fixed, point both resolvers at `patient.coverage.tier` (ideally through one shared resolver that throws when a tier cannot be resolved).
+
+- **`scripts/fcf0f903-copay-audit.js` is the prevention control** (`npm run audit:copay`) — it resolves the benefit for every patient record through both real service paths and exits non-zero for unresolved or silently downgraded tiers. It is not wired into `npm test`/CI, which is why this shipped; wiring it in is the demo's prevention workstream.
+- `REMEDIATION_DIRECTIVE` fans out to three child sessions: code blast radius (incl. the silent estimate consumer), ServiceNow incident blast radius in assignment group "Patient Access Platform Engineering", and prevention/audit wiring. The customer is configured for the ServiceNow incident path via `itsm: 'servicenow'` in `config/customers/fcf0f903.js`.
+- Regression coverage for both paths lives in `tests/fcf0f903-enrollment.test.js` and `tests/fcf0f903-copay-estimate.test.js`; the estimate tests pin the current Standard fallback and must be updated when the defect is fixed.
+
+### FOX One web scenario (a75ccde9, /oncall/c/a75ccde9)
+
+The FOX One on-call skin carries two **frontend** defects aimed at a web team. Both raise the alert from the browser and both require the auto-created session to record its browser work.
+
+| Flow | Trigger | Defect | Signal |
+|------|---------|--------|--------|
+| Plan pricing | Click the **Annual** billing toggle | `PLAN_PRICING['PLUS-24']` has no `annual` entry, so `renderPlanPricing` dereferences undefined | Client `TypeError` → `POST /api/a75ccde9/error` → `plan_change.pricing_failure` → Sentry → Slack → Devin session |
+| Promo banner quality | Nightly audit, or `POST /api/a75ccde9/quality-audit` | The `.promo-banner` markup/CSS ships contrast, accessible-name, keyboard, target-size and CLS/LCP defects | `web_quality.violations` → Sentry → Slack → Devin session |
+
+- **`scripts/a75ccde9-frontend-quality-audit.js` is the prevention control** (`npm run audit:fox`) — it reads the shipped markup and CSS and exits non-zero per violated rule, with the measured value, the required value and the WCAG criterion. It is not wired into CI, which is why the banner shipped. `--alert` raises the Slack alert and opens the session.
+- Both defects are deliberately left in place. `APP_REMEDIATION_DIRECTIVE` and `AUDIT_REMEDIATION_DIRECTIVE` require `recording_start` **before** any code change, annotated before/after passes, and — for the audit flow — a before/after scoreboard of the Lighthouse accessibility score, CLS, LCP and axe violation count. Neither session merges.
+- Run sheet: `docs/DEMO-FOX-WEB.md`. Coverage: `tests/a75ccde9-error.test.js`, `tests/a75ccde9-quality.test.js`.
 
 ### Incident Lab (evolving-incident demo)
 
@@ -371,7 +490,7 @@ Vertical Error (any of 10 verticals)
 1. **Instant (all verticals):** Each vertical's route/service calls `createSessionAndAlert()` directly in the catch block (non-blocking, fire-and-forget). This triggers within seconds.
 2. **Fallback (Sentry webhook):** `app/routes/sentry-webhook.js` receives the Sentry alert webhook and calls the same `createSessionAndAlert()`. This is slower (depends on Sentry alert rule evaluation).
 
-Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session.
+Both paths call the same `createSessionAndAlert()` function. There is no deduplication — every call creates a new Devin session. Verticals may tag their Sentry events `alert_path: instant` to have the webhook fallback skip them (Rippling does).
 
 **Two Devin trigger modes exist** (set via `DEVIN_TRIGGER_MODE` env var or per-customer config):
 1. **`slack` (default):** Uses `SLACK_USER_TOKEN` to post `@Devin` in the alert thread. The native Devin Slack integration picks up the mention and starts a session. Requires Devin to be installed in the Slack workspace.
@@ -437,10 +556,14 @@ Only the hub's `VERTICALS` array stays hand-written: it is the allow-list of wha
 | `SLACK_BOT_TOKEN` | Slack bot OAuth token (`xoxb-`) for posting alerts | For alerts |
 | `SLACK_USER_TOKEN` | Slack user OAuth token (`xoxp-`) for triggering Devin | For slack mode |
 | `SLACK_CHANNEL_ID` | Slack channel ID for alert messages | For alerts |
-| `DEMO_ONCALL_PERSONA` | Fictional name rendered in the *On-Call* field of alert cards (default `Riley Chen (platform-oncall)`) | No |
-| `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as on-call on every alert. Unset (default) means the persona is rendered as plain text and nobody is pinged | No |
+| `DEMO_ONCALL_SLACK_MEMBER_ID` | Slack member ID @-mentioned as *On-Call* on customer-vertical alert cards whose vertical names no owner and whose run supplied no hub email. Unset, the field reads `_Unassigned_` and nobody is mentioned. Must be a real member; a made-up name is never rendered | No |
 | `SLACK_TRIAGE_CHANNEL_ID` | Channel ID for the report-only bug-report mirror (default `#automated-devin-triage`). Never triggers a Devin session. Bot must be invited to the channel | No |
 | `SLACK_TRIAGE_BOT_TOKEN` | Bot token for the triage mirror post (defaults to `SLACK_BOT_TOKEN`) | No |
+| `SLACK_ONCALL_ALERTS_CHANNEL_ID` | Channel ID for on-call (`/oncall`) alert + incident posts | For on-call alerts |
+| `SLACK_ONCALL_BUGS_CHANNEL_ID` | Channel ID for on-call bug-report posts | For on-call bug reports |
+| `SLACK_ONCALL_ALERTS_CHANNEL_NAME` | Display label the on-call page ribbon shows after an alert posts ("Alert posted to …"). Label only — routing is decided by `SLACK_ONCALL_ALERTS_CHANNEL_ID` (default `#oncall-alerts`) | No |
+| `SLACK_ONCALL_BUGS_CHANNEL_NAME` | Display label the on-call ribbon shows after a bug report posts. Label only — routing is decided by `SLACK_ONCALL_BUGS_CHANNEL_ID` (default `#oncall-bugs`) | No |
+| `SLACK_ONCALL_BOT_TOKEN` | Bot token for on-call posts (defaults to `SLACK_BOT_TOKEN`) | No |
 | `DEVIN_TRIGGER_MODE` | `slack` (default) or `api` — how Devin is triggered | No |
 | `DEVIN_API_KEY` | Devin API key | For api mode |
 | `DEVIN_SLACK_USER_ID` | Devin app's Slack user ID | For slack mode |
@@ -527,7 +650,13 @@ bash "$S/scripts/deploy-ec2.sh" "$S" manual
 EOF
 ```
 
-`scripts/deploy-ec2.sh` (run on the host) does, in order: `flock /home/ubuntu/.deploy.lock`; free-space check; back up `.env` and every top-level entry it is about to touch to `/home/ubuntu/releases/<ts>.tgz` (last 5 kept); log any vertical files present on the host but absent from the release; `rsync --delete` each top-level entry of the release into place **except** that `app/routes/verticals`, `app/public/verticals`, `app/services/verticals` and `config/customers` are never deleted from (so a demo merged in only one repo keeps working until the sync PR lands) and `.env*`, `.ssh`, `certbot/`, `docker-compose.override.yml`, `archive/`, `releases/` are never touched; `docker compose build checkout-api loadgen` + `up -d --no-deps checkout-api`; wait for `/health`; GET every `app/public/verticals/*.html` slug, every alias and a fixed critical list (`/`, `/retail`, `/api/verticals`, `/oncall`, …) and require 200 from all; then restart loadgen and `docker compose up -d`. Any failure after the sync step restores the backup, rebuilds, and posts to Slack (`SLACK_BOT_TOKEN`/`SLACK_CHANNEL_ID` from the host `.env`). Exit code is non-zero on failure so the workflow run goes red.
+`scripts/deploy-ec2.sh` (run on the host) does, in order: `flock /home/ubuntu/.deploy.lock`; free-space check; back up `.env` and every top-level entry it is about to touch to `/home/ubuntu/releases/<ts>.tgz` (last 5 kept); log any vertical files present on the host but absent from the release; `rsync --delete` each top-level entry of the release into place **except** that `app/routes/verticals`, `app/public/verticals`, `app/services/verticals` and `config/customers` are never deleted from (so a demo merged in only one repo keeps working until the sync PR lands) and `.env*`, `.ssh`, `certbot/`, `docker-compose.override.yml`, `archive/`, `releases/` are never touched; `scripts/host-bootstrap.sh` (below); `docker compose build checkout-api`, then `build loadgen` (one at a time — parallel builds OOM-hung the 1.9G host), `up -d --no-deps checkout-api`; wait for `/health`; GET every `app/public/verticals/*.html` slug, every alias and a fixed critical list (`/`, `/retail`, `/api/verticals`, `/oncall`, …) and require 200 from all; then restart loadgen and `docker compose up -d`. Any failure after the sync step restores the backup, rebuilds, and emails via `scripts/ops-notify.sh` (SNS topic `devindemos-alerts`, published with the instance's IAM role — no secrets in `.env`; the app's Slack channel is customer-facing and is not used for host ops). Exit code is non-zero on failure so the workflow run goes red.
+
+**Host bootstrap.** `scripts/host-bootstrap.sh` is idempotent and runs on every deploy (and can be run by hand): it ensures a 2G `/swapfile` (fstab + `vm.swappiness=10`), persistent journald capped at 200M, `python3-boto3` for `scripts/ops-notify.sh` (warns if it or the instance IAM role is missing), and a single `*/5` cron entry for `scripts/vertical-guard.sh`, removing the legacy per-vertical `~/*-guard.sh` cron lines. Privileged steps use `sudo -n` and are skipped with a warning if passwordless sudo is unavailable.
+
+**Vertical guard.** `scripts/vertical-guard.sh` (cron, every 5 min) GETs `/health` plus the demo pages the old guards watched on `127.0.0.1:3000` (`GUARD_PATHS`, `GRACE_SECONDS`, `COOLDOWN_SECONDS` are process-environment knobs for manual runs — cron does not read `.env`). It **never builds an image**: it skips while `.deploy.lock` is held and for 15 min after the last deploy (`releases/CURRENT`), and on a non-200 it does `compose up -d --no-build` then `compose restart` for `checkout-api`, at most once per 10 min, emailing via `scripts/ops-notify.sh` if that does not recover. Missing vertical files are reported the same way, not "repaired" — a redeploy owns the tree. Logs to `/home/ubuntu/vertical-guard.log`.
+
+**Memory limits.** Every service in `docker-compose.yml` has a `deploy.resources.limits.memory` ceiling (2–5x steady state) so a leaking container is OOM-killed and restarted by Docker instead of taking the host down.
 
 **Repo sync.** `.github/workflows/sync-repos.yml` (identical in both repos) runs on every push to `main` and every 6h: it force-pushes this repo's `main` to `sync/from-<org>` in the sibling repo, opens (or reuses) a PR there, and merges it when GitHub reports it mergeable; it is a no-op when the sibling already has an identical tree, which is what stops the ping-pong. On conflict the PR is left open, Slack is pinged and — if `DEVIN_API_KEY` is set — a Devin session is started to resolve it (keep both sides for anything under the vertical directories). Needs the `SYNC_GH_TOKEN` Actions secret in each repo with Contents + Pull requests + Workflows write on the *other* repo.
 
@@ -546,11 +675,15 @@ EOF
 | `npm start` | Start the Express app |
 | `npm run dev` | Start with nodemon (auto-reload) |
 | `npm run lint` | Run ESLint |
+| `npm run pipeline:a693dab5` | Run the Fleet Health Console pipeline headlessly |
+| `npm run test:a693dab5` | Run the Fleet Health Console pipeline tests |
+| `npm run test:a693dab5:contract` | Run the schema contract demo suite (excluded from `npm test` via `.demo-test.js`) |
 | `npm run loadgen` | Run traffic generator standalone |
 | `npm run features:build` | Rebuild the Kroger offer-affinity feature view from its spec |
 | `npm run features:check` | Fail if the committed feature artifact is stale relative to the spec |
 | `npm run audit:kroger` | Score every membership tier through the ranker (exits 1 on any coverage gap) |
 | `npm run audit:zelle` | Probe send/request limit profiles (exits 1 on unresolved or downgraded rows) |
+| `npm run audit:fox` | Audit the FOX One plan page for a11y and Core Web Vitals defects (`--json`, `--alert`) |
 | `npm run feed:build` | Rebuild the SPGI feed field contract from its mapping spec |
 | `npm run feed:check` | Fail if the committed feed contract is stale relative to the spec |
 | `npm run audit:spgi` | Drive every instrument class through the parity harness (exits 1 on any uncovered class) |

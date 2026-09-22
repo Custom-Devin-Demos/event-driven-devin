@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Celonis — Team Administration</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: rgb(92, 254, 80);
+      --gray: rgb(118, 118, 118);
+      --copy-gray: rgb(203, 203, 203);
+      --line: #333;
+      --gutter: 56px;
+      --content: 1288px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Poppins, "Poppins Fallback", helvetica, arial, sans-serif;
+      font-size: 18px;
+      line-height: 24px;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    .shell {
+      width: min(calc(100% - (var(--gutter) * 2)), var(--content));
+      margin: 0 auto;
+    }
+    .icon { width: 24px; height: 24px; display: block; }
+    .site-header {
+      height: 88px;
+      background: #000;
+      border-bottom: 1px solid #111;
+      position: relative;
+      z-index: 2;
+    }
+    .header-inner {
+      height: 88px;
+      width: min(calc(100% - (var(--gutter) * 2)), var(--content));
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+    .brand {
+      display: flex;
+      width: 88px;
+      min-width: 88px;
+      color: #fff;
+      align-items: center;
+    }
+    .brand svg { width: 88px; height: 20px; }
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 27px;
+      flex: 1;
+      white-space: nowrap;
+    }
+    .nav-link, .nav-control {
+      font-size: 16px;
+      line-height: 20px;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+    .plus-box {
+      width: 20px;
+      height: 20px;
+      background: #333;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      line-height: 20px;
+    }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid #333;
+      background: #000;
+      color: #fff;
+      display: grid;
+      place-items: center;
+    }
+    .try-button {
+      height: 40px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 2px;
+      background: var(--green);
+      color: #000;
+      font-size: 14px;
+      line-height: 18px;
+      margin-left: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero {
+      padding: 67px 0 72px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero h1 {
+      max-width: 1040px;
+      font-size: 80px;
+      line-height: 80px;
+      font-weight: 400;
+      letter-spacing: -3px;
+      margin: 0;
+    }
+    .muted { color: var(--gray); }
+    .hero p {
+      max-width: 760px;
+      margin: 38px 0 0;
+      color: var(--copy-gray);
+      font-size: 22px;
+      line-height: 31px;
+    }
+    .hero-cta {
+      margin-top: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      color: #fff;
+      font-size: 18px;
+    }
+    .blink-square, .green-square {
+      width: 8px;
+      height: 8px;
+      display: inline-block;
+      background: var(--green);
+      flex: 0 0 auto;
+    }
+    .blink-square { animation: blink 1.6s steps(2, start) infinite; }
+    @keyframes blink { 50% { opacity: .35; } }
+    .light-section {
+      background: #fff;
+      color: #000;
+      padding: 72px 0 88px;
+    }
+    .light-section h2 {
+      margin: 0 0 28px;
+      font-size: 32px;
+      line-height: 40px;
+      font-weight: 400;
+    }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 56px;
+      align-items: start;
+    }
+    .overview-card, .provision-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      padding: 28px;
+      background: #fff;
+    }
+    .overview-card h2, .provision-card h2 {
+      font-size: 28px;
+      line-height: 34px;
+      margin: 0 0 22px;
+    }
+    .license-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 15px;
+      line-height: 21px;
+    }
+    .license-table th, .license-table td {
+      border: 1px solid #e5e5e5;
+      padding: 13px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .license-table th {
+      color: #666;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 15px;
+      line-height: 20px;
+      font-weight: 500;
+    }
+    .form-group select, .form-group input {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      color: #000;
+      background: #fff;
+      font-size: 16px;
+    }
+    .form-group select:focus, .form-group input:focus {
+      outline: 2px solid var(--green);
+      outline-offset: 1px;
+      border-color: var(--green);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .provision-button {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 16px;
+      border: 0;
+      border-radius: 2px;
+      background: var(--green);
+      color: #000;
+      font-size: 16px;
+      line-height: 24px;
+      cursor: pointer;
+    }
+    .provision-button:disabled { opacity: .55; cursor: wait; }
+    .result-box {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 4px;
+      font-size: 15px;
+      line-height: 21px;
+    }
+    .result-box.success {
+      display: block;
+      background: #eafff0;
+      border: 1px solid #5cfe50;
+      color: #166534;
+    }
+    .result-box.error {
+      display: block;
+      background: #fff1f1;
+      border: 1px solid #d44;
+      color: #9f1d1d;
+    }
+    .result-box .error-title { font-weight: 600; margin-bottom: 4px; }
+    .result-box .error-detail { word-break: break-word; }
+    .site-footer {
+      min-height: 450px;
+      background: #000;
+      color: #fff;
+      padding: 40px 0 0;
+      position: relative;
+    }
+    .footer-main {
+      display: grid;
+      grid-template-columns: 600px 1fr;
+      gap: 56px;
+      align-items: start;
+      padding-bottom: 46px;
+    }
+    .newsletter { display: block; padding: 0; }
+    .newsletter h2 {
+      margin: 0;
+      font-size: 44px;
+      line-height: 48px;
+      font-weight: 400;
+    }
+    .newsletter p {
+      margin: 0;
+      color: var(--gray);
+      font-size: 44px;
+      line-height: 48px;
+    }
+    .email-field {
+      width: 522px;
+      height: 48px;
+      border: 1px solid #555;
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      color: var(--gray);
+      margin-top: 26px;
+    }
+    .email-field input {
+      min-width: 0;
+      flex: 1;
+      color: #fff;
+      background: transparent;
+      border: 0;
+      outline: 0;
+    }
+    .email-field input::placeholder { color: var(--gray); }
+    .email-field button { border: 0; background: none; color: #fff; padding: 0; }
+    .footer-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 56px;
+      padding: 3px 0 0;
+    }
+    .footer-links h3 {
+      margin: 0 0 15px;
+      color: var(--gray);
+      font-size: 14px;
+      line-height: 18px;
+      font-weight: 400;
+    }
+    .footer-links a { display: block; font-size: 16px; line-height: 25px; }
+    .newsletter .newsletter-legal {
+      max-width: 522px;
+      margin: 16px 0 0;
+      color: var(--gray);
+      font-size: 12px;
+      line-height: 16px;
+    }
+    .footer-bottom {
+      border-top: 1px solid var(--line);
+      min-height: 80px;
+      padding-top: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      position: relative;
+    }
+    .locale-button {
+      height: 40px;
+      border: 1px solid #333;
+      padding: 0 12px;
+      color: #fff;
+      background: #000;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .locale-button .icon { width: 18px; height: 18px; }
+    .legal {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 22px;
+      max-width: 650px;
+      color: var(--gray);
+      font-size: 14px;
+    }
+    .wordmark {
+      height: 260px;
+      display: flex;
+      align-items: flex-end;
+      color: var(--gray);
+      font-size: 112px;
+      line-height: 112px;
+      letter-spacing: -6px;
+      padding-bottom: 10px;
+    }
+    @media (max-width: 1000px) {
+      :root { --gutter: 24px; }
+      .main-nav { gap: 14px; }
+      .nav-link, .nav-control { font-size: 14px; }
+      .header-inner { gap: 16px; }
+      .hero h1 { font-size: 58px; line-height: 60px; }
+      .admin-grid { gap: 28px; }
+    }
+    @media (max-width: 900px) {
+      .main-nav, .try-button { display: none; }
+      .header-inner { justify-content: space-between; }
+      .admin-grid { grid-template-columns: 1fr; }
+      .provision-card { max-width: none; }
+    }
+    @media (max-width: 720px) {
+      .site-header, .header-inner { height: 72px; }
+      .hero { padding: 55px 0 56px; }
+      .hero h1 { font-size: 44px; line-height: 47px; letter-spacing: -1.5px; }
+      .hero p { font-size: 18px; line-height: 27px; }
+      .light-section { padding-top: 56px; }
+      .overview-card, .provision-card { padding: 20px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .footer-main, .footer-links { grid-template-columns: 1fr; }
+      .newsletter, .footer-links { min-width: 0; }
+      .site-footer { padding-bottom: 120px; }
+      .footer-bottom { flex-wrap: wrap; }
+      .legal { margin-left: 0; justify-content: flex-start; }
+      .email-field { width: 100%; }
+      .wordmark { height: 180px; font-size: 78px; line-height: 82px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Celonis home">
+        <svg viewBox="0 0 107 25" width="88" height="20" fill="none" aria-hidden="true">
+          <path d="M13.9099 9.17396C15.3528 10.3413 16.2507 11.923 16.6035 13.919H12.8594C12.6538 12.8469 12.1541 12.0069 11.3604 11.399C10.5667 10.7911 9.57227 10.4872 8.37719 10.4872C7.74087 10.4719 7.10857 10.5922 6.52226 10.8399C5.93596 11.0877 5.40904 11.4573 4.97648 11.9243C4.07053 12.8833 3.61755 14.2899 3.61755 16.1441C3.61755 17.9983 4.07053 19.4099 4.97648 20.3787C5.40666 20.8498 5.93275 21.2232 6.51935 21.4739C7.10595 21.7246 7.73945 21.8467 8.37719 21.832C9.57227 21.832 10.5667 21.5227 11.3604 20.904C12.1541 20.2853 12.6538 19.4404 12.8594 18.3692H16.5995C16.2484 20.3697 15.3506 21.9568 13.9059 23.1304C12.4612 24.304 10.6371 24.8913 8.43376 24.8922C6.78346 24.8922 5.32531 24.542 4.0593 23.8416C2.79257 23.1419 1.75657 22.089 1.07745 20.8111C0.359151 19.4929 0 17.9373 0 16.1441C0 14.3716 0.359151 12.8263 1.07745 11.5081C1.75733 10.2307 2.79313 9.17804 4.0593 8.47762C5.32621 7.77724 6.78436 7.42704 8.43376 7.42704C10.6425 7.42704 12.4679 8.00935 13.9099 9.17396Z" fill="currentColor"/>
+          <path d="M42.0678 1.80116H38.5445V24.6754H42.0678V1.80116Z" fill="currentColor"/>
+          <path d="M61.2289 11.5082C60.5161 10.2183 59.4417 9.16495 58.138 8.47773C56.7642 7.76411 55.2346 7.4031 53.6867 7.42716C52.0382 7.42716 50.5599 7.77735 49.2517 8.47773C47.952 9.17049 46.879 10.2225 46.1607 11.5082C45.4083 12.8273 45.0321 14.3726 45.0321 16.1442C45.0321 17.9158 45.4083 19.4665 46.1607 20.7964C46.8748 22.0891 47.9485 23.1469 49.2517 23.8417C50.5599 24.5421 52.0382 24.8923 53.6867 24.8923C55.2346 24.9163 56.7642 24.5553 58.138 23.8417C59.4422 23.1553 60.5168 22.1017 61.2289 20.8112C61.9706 19.493 62.3414 17.9374 62.3414 16.1442C62.3432 14.3717 61.9723 12.8264 61.2289 11.5082ZM58.0302 19.2973C57.6149 20.0925 56.9752 20.7482 56.1905 21.1829C55.4184 21.589 54.5591 21.8012 53.6867 21.8012C52.8144 21.8012 51.9551 21.589 51.183 21.1829C50.3988 20.748 49.7596 20.0923 49.3446 19.2973C48.8813 18.4532 48.6492 17.4022 48.6483 16.1442C48.6483 14.9078 48.8804 13.8621 49.3446 13.0073C49.7557 12.2054 50.3955 11.5436 51.183 11.1055C51.9551 10.6995 52.8144 10.4873 53.6867 10.4873C54.5591 10.4873 55.4184 10.6995 56.1905 11.1055C56.9783 11.5435 57.6186 12.2053 58.0302 13.0073C58.4935 13.8621 58.7252 14.9078 58.7252 16.1442C58.727 17.4013 58.4962 18.4523 58.0329 19.2973H58.0302Z" fill="currentColor"/>
+          <path d="M84.9867 1.21408C85.3998 0.823398 85.9461 0.62761 86.6258 0.626712C87.3055 0.625814 87.8568 0.821602 88.2797 1.21408C88.4852 1.40128 88.6481 1.63049 88.7573 1.88616C88.8665 2.14184 88.9198 2.41801 88.9127 2.69596C88.9219 2.96989 88.8698 3.24241 88.7603 3.49365C88.6508 3.74489 88.4866 3.96851 88.2797 4.14821C87.8568 4.52002 87.3055 4.70548 86.6258 4.70458C85.9461 4.70369 85.3998 4.51913 84.9867 4.1509C84.7835 3.96902 84.6227 3.74464 84.5159 3.49366C84.4091 3.24268 84.3588 2.97126 84.3685 2.69865C84.3609 2.42156 84.412 2.14598 84.5185 1.89008C84.6251 1.63418 84.7847 1.40379 84.9867 1.21408Z" fill="currentColor"/>
+          <path d="M88.3875 7.64409H84.8642V24.6755H88.3875V7.64409Z" fill="currentColor"/>
+          <path d="M35.529 16.1441C35.529 14.3716 35.1698 12.8263 34.4515 11.5081C33.7696 10.2304 32.732 9.17777 31.4643 8.47762C30.1965 7.77724 28.7388 7.42704 27.0912 7.42704C25.4436 7.42704 23.9854 7.77724 22.7167 8.47762C21.4505 9.17839 20.4143 10.231 19.7335 11.5081C19.0152 12.8272 18.6561 14.3725 18.6561 16.1441C18.6561 17.94 19.0152 19.4961 19.7335 20.8124C20.414 22.0895 21.4502 23.1417 22.7167 23.8416C23.9845 24.542 25.4427 24.8922 27.0912 24.8922C28.7397 24.8922 30.1974 24.542 31.4643 23.8416C32.7308 23.1417 33.767 22.089 34.4475 20.8124C34.8006 20.1598 35.0655 19.4632 35.2354 18.7409H31.7875C31.5874 19.5059 31.1806 20.2012 30.6117 20.7505C29.7053 21.595 28.4272 22.0179 27.0885 22.0179C25.7497 22.0179 24.4703 21.595 23.5639 20.7505C22.6575 19.906 22.1713 18.6076 22.1147 16.8553H35.5047C35.5209 16.6227 35.529 16.3856 35.529 16.1441ZM22.1955 14.408C22.3867 13.1706 22.8631 12.204 23.6245 11.5081C24.5529 10.6623 25.7071 10.2398 27.0871 10.2407C28.4672 10.2416 29.6209 10.6641 30.5484 11.5081C31.3107 12.2022 31.7871 13.1688 31.9774 14.408H22.1955Z" fill="currentColor"/>
+          <path d="M79.3826 9.23881C80.5813 10.521 81.1806 12.3501 81.1806 14.726V24.6755H77.6466V15.0978C77.6466 13.5713 77.2542 12.3883 76.4695 11.5487C75.6847 10.7092 74.61 10.2907 73.2452 10.2934C71.84 10.2934 70.7141 10.7424 69.8674 11.6403C69.0207 12.5382 68.5969 13.8541 68.596 15.588V24.6701H65.0633V7.68585H68.596V10.7594C69.4903 9.06371 71.5118 7.3168 74.6095 7.3168C76.5938 7.31155 78.1849 7.95747 79.3826 9.23881Z" fill="currentColor"/>
+          <path d="M105.608 12.6129H102.172C102.172 10.8081 100.355 9.94202 98.5155 9.94202C97.1094 9.94202 95.5 10.672 95.5 12.0391C95.5 13.4561 97.0232 13.9248 99.7936 14.7194C103.414 15.7538 106.027 16.6684 106.027 20.0854C106.027 23.2601 102.375 24.8499 98.898 24.8499C94.6811 24.8499 91.1174 22.7132 91.1174 19.1547H94.7228C94.805 21.0521 97.012 22.0425 98.802 22.0425C100.645 22.0425 102.653 21.5037 102.653 19.9629C102.653 18.1782 101.163 17.8725 98.2084 16.9782C94.4952 15.8576 91.9605 15.1841 91.9605 12.0863C91.9605 8.98843 95.2683 7.31559 98.6434 7.31559C102.862 7.31155 105.608 9.58779 105.608 12.6129Z" fill="currentColor"/>
+        </svg>
+      </a>
+      <nav class="main-nav" aria-label="Primary navigation">
+        <a class="nav-link" href="/platform">Platform</a>
+        <button class="nav-control" type="button">Solutions <span class="plus-box">+</span></button>
+        <button class="nav-control" type="button">Get started <span class="plus-box">+</span></button>
+        <a class="nav-link" href="/insights">Insights</a>
+        <button class="nav-control" type="button">Company <span class="plus-box">+</span></button>
+        <a class="nav-link" href="/events">Events</a>
+      </nav>
+      <div class="header-actions">
+        <a class="icon-button" href="#" aria-label="Account">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.0001 14.1212C8.65292 14.1212 5.93949 11.4078 5.93949 8.06061C5.93949 4.71343 8.65292 2 12.0001 2C15.3473 2 18.0607 4.71343 18.0607 8.06061C18.0607 11.4078 15.3473 14.1212 12.0001 14.1212ZM12.0001 12.9091C9.32235 12.9091 7.15161 10.7384 7.15161 8.06061C7.15161 5.38286 9.32235 3.21212 12.0001 3.21212C14.6778 3.21212 16.8486 5.38286 16.8486 8.06061C16.8486 10.7384 14.6778 12.9091 12.0001 12.9091Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M2.90909 20.7879C2.90909 17.7754 5.35117 15.3333 8.36363 15.3333H15.6364C18.6488 15.3333 21.0909 17.7754 21.0909 20.7879V22H19.8788V20.7879C19.8788 18.4449 17.9794 16.5455 15.6364 16.5455H8.36363C6.02061 16.5455 4.12121 18.4449 4.12121 20.7879V22H2.90909V20.7879Z" fill="currentColor"/></svg>
+        </a>
+        <a class="icon-button" href="/search" aria-label="Search">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 10.9022C2.5 15.2664 6.05084 18.8043 10.431 18.8043C12.621 18.8043 14.6037 17.9199 16.0389 16.49L20.5653 21L21.5 20.0687L16.8956 15.4811C17.8193 14.1893 18.362 12.6089 18.362 10.9022C18.362 6.53792 14.8112 3 10.431 3C6.05084 3 2.5 6.53792 2.5 10.9022ZM3.82184 10.9022C3.82184 14.539 6.78087 17.4873 10.431 17.4873C14.0812 17.4873 17.0402 14.539 17.0402 10.9022C17.0402 7.26529 14.0812 4.31703 10.431 4.31703C6.78087 4.31703 3.82184 7.26529 3.82184 10.9022Z" fill="currentColor"/></svg>
+        </a>
+        <a class="try-button" href="/signup">Try for free</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="shell">
+        <h1><span class="muted">Team Administration.</span><br>Manage users and licenses.</h1>
+        <p>Add analyst and member seats to your Celonis Team. New users receive access to Studio, Process Intelligence, and the Process Copilot for their assigned data pool region.</p>
+        <a class="hero-cta" href="#licenses"><span class="blink-square"></span><span>Manage team licenses</span></a>
+      </div>
+    </section>
+
+    <section id="licenses" class="light-section">
+      <div class="shell admin-grid">
+        <div class="overview-card">
+          <h2>Team overview</h2>
+          <table class="license-table">
+            <thead><tr><th>License</th><th>Usage</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Analyst seats</td><td class="mono">340 / 400</td><td>Active</td></tr>
+              <tr><td>Member seats</td><td class="mono">1,820 / 2,500</td><td>Active</td></tr>
+              <tr><td>Developer (Studio) seats</td><td class="mono">48 / 50</td><td>96% used</td></tr>
+              <tr><td>Process Copilot</td><td class="mono">210 / 250</td><td>Active</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="provision-card">
+          <h2>Add license seats</h2>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">Product</label>
+              <select id="product">
+                <option value="process_intelligence">Process Intelligence Platform</option>
+                <option value="studio">Studio</option>
+                <option value="process_copilot">Process Copilot</option>
+                <option value="orchestration_engine">Orchestration Engine</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">Additional seats</label>
+                <input type="number" id="seats" value="25" min="1" max="10000" step="1" required>
+              </div>
+              <div class="form-group">
+                <label for="planTier">Plan tier</label>
+                <select id="planTier">
+                  <option value="enterprise">Enterprise</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Starter</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Data pool region</label>
+              <select id="region">
+                <option value="eu-1">EU (Frankfurt)</option>
+                <option value="us-1">US (Virginia)</option>
+                <option value="eu-2">EU (Amsterdam)</option>
+                <option value="ap-1">APAC (Tokyo)</option>
+              </select>
+            </div>
+            <button type="submit" class="provision-button" id="submitBtn">Provision seats</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <div class="footer-main">
+        <div class="newsletter">
+          <h2>Newsletter.</h2>
+          <p>Monthly news and updates.</p>
+          <div class="email-field"><input type="email" placeholder="Work Email" aria-label="Work Email"><button type="button" aria-label="Submit email">→</button></div>
+          <p class="newsletter-legal">By submitting this form, you confirm that you agree to the storing and processing of your personal data by Celonis as described in our <a href="/privacy"><u>Privacy Notice</u></a>.</p>
+        </div>
+        <div class="footer-links">
+          <div><h3>MORE CELONIS</h3><a href="/careers">Careers ↗</a><a href="/academy">Academy ↗</a><a href="/community">Community Celonis ↗</a><a href="/partners">Partner Portal ↗</a><a href="/documentation">Documentation ↗</a><a href="/developers">Developers ↗</a><a href="/marketplace">Marketplace ↗</a></div>
+          <div><h3>ANY QUESTIONS?</h3><a href="/contact">Talk to an expert →</a><a href="/support">Support →</a><a href="/faqs">FAQs →</a><a href="/glossary">Glossary →</a></div>
+          <div><h3>FOLLOW US</h3><a href="/linkedin">LinkedIn ↗</a><a href="/youtube">YouTube ↗</a><a href="/instagram">Instagram ↗</a><a href="/facebook">Facebook ↗</a><a href="/tiktok">TikTok ↗</a></div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <button class="locale-button" type="button">English⌄</button>
+        <button class="locale-button" type="button">Select your country</button>
+        <div class="legal"><a href="/" class="back-link">← All Demos</a><a href="/trust">Trust Center</a><a href="/terms">Terms &amp; Conditions</a><a href="/privacy">Privacy Notice</a><a href="/cookies">Cookies Notice</a><a href="/imprint">Imprint</a><a href="/disclaimer">Disclaimer</a></div>
+      </div>
+      <div class="wordmark">celonis</div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Provisioning...';
+      result.className = 'result-box';
+      const productSelect = document.getElementById('product');
+      const productLabel = productSelect.options[productSelect.selectedIndex].textContent;
+      const show = (cls, title, detail) => {
+        result.className = 'result-box ' + cls;
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: productSelect.value,
+            planName: document.getElementById('planTier').value,
+            seats: parseInt(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            region: document.getElementById('region').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          show('error', 'Provisioning Failed', `${data.errorClass}: ${data.error}`);
+        } else {
+          show('success', 'Seats Provisioned', `${data.seatsAdded} seats added to ${productLabel} \u2014 Total: $${data.annualCost}/yr`);
+        }
+      } catch (err) {
+        show('error', 'Network Error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Provision seats'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

@@ -40,9 +40,156 @@
  * ticket in #oncall-bugs (via /api/oncall/bug) instead of posting the
  * monitor-style alert card to #oncall-alerts. templateId must exist in
  * BUG_CATALOG. Two skins can share one page file to offer both flavors.
+ *
+ * A skin may set devinSession: { auto: true, orgId, userId, apiKey } to have
+ * its own alerts create a Devin investigation session immediately and reply
+ * with the session link in the alert thread. Alerts raised from the generic
+ * hub, or from skins without this key, stay alert-only. orgId defaults to
+ * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
+ * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
+ *
+ * A skin may set sonarPR: { auto: true, customer } to have each of its alerts
+ * also open the SonarCloud remediation demo PR (app/services/sonar-pr-trigger.js)
+ * in that customer's configured target repo, the same way the legacy
+ * event-driven alert flow does. customer defaults to 'default'; the GitHub
+ * token comes from the environment.
+ *
+ * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
+ * collapsed dot; rerouting and alert posting are unaffected.
+ *
+ * A native page whose primary action has no legacy /api/<vertical> endpoint
+ * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
+ * URL is served with the shim instead of as a bare page whose action 404s.
+ *
+ * Skins are direct-URL only by default. A skin may set listed: true to appear
+ * as a card on the branded hub at /oncall/branded (GET /api/oncall/skins);
+ * the stock /oncall hub never lists customers. That page is reachable from
+ * the hub nav, so opt in deliberately.
  */
 
 const ONCALL_SKINS = {
+  '857b6424': {
+    slug: '857b6424',
+    company: 'Qdoba',
+    brandMark: 'Q',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '857b6424.html',
+      title: 'Chicken Queso Bowl | QDOBA Mexican Eats',
+    },
+    accent: '#F09800',
+    accentDark: '#D78700',
+    supportCenter: 'QDOBA Guest Support',
+    supportCenterSub: 'Online Ordering',
+    disclaimer: 'NOT ACTUALLY A QDOBA SITE — internal demo only, not affiliated with, endorsed by, or a real Qdoba product.',
+  },
+  '63dbb52f': {
+    slug: '63dbb52f',
+    company: 'Kaufland',
+    brandMark: 'K',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    listed: true,
+    page: {
+      file: '63dbb52f.html',
+      title: 'Philips Airfryer Serie 2000, 4,2l, RapidAir, Digital, schwarz (NA221/00) | Kaufland.de',
+    },
+    accent: '#E10915',
+    accentDark: '#C00811',
+    theme: {
+      '--accent': '#E10915',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#E10915',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Kaufland Kundenservice',
+    supportCenterSub: 'Online-Marktplatz Support',
+    disclaimer: 'NOT ACTUALLY A KAUFLAND SITE — internal demo only, not affiliated with, endorsed by, or a real Kaufland product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'marketplace',
+          label: 'Kaufland Online-Marktplatz \u2014 Warenkorb',
+          persona: { name: 'Lena Hoffmann', email: 'lena.hoffmann@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'marketplace-cart-timeout',
+              label: 'Add to cart fails with a timeout',
+              sev: 'High',
+              text: 'Shoppers cannot put marketplace items in the basket. You press "In den Warenkorb", the button spins for about eight seconds and then an error comes back saying the item could not be reserved. Same product, same seller, every attempt.',
+            },
+            {
+              id: 'marketplace-campaign-conversion',
+              label: 'Campaign traffic converting at zero',
+              sev: 'Critical',
+              text: 'Escalating from trading: the weekend kitchen-appliance campaign is live, traffic is fine and product pages load, but basket adds have collapsed to almost nothing. Every add we try ourselves spins for ages and then errors out. We are burning media spend on a storefront that cannot take an order.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  '5eae08bb': {
+    slug: '5eae08bb',
+    company: 'Tyk',
+    brandMark: 'T',
+    vertical: 'hightech',
+    page: {
+      file: '5eae08bb.html',
+      title: 'Tyk Cloud — Team access',
+    },
+    theme: {
+      '--accent': '#8438FA',
+      '--ink': '#140527',
+      '--surface': '#FEF9FF',
+      '--chrome-bg': '#08051C',
+      '--chrome-text': '#FEF9FF',
+    },
+    supportCenter: 'Tyk Support',
+    disclaimer: 'NOT ACTUALLY A TYK SITE — internal demo only, not affiliated with, endorsed by, or a real Tyk product.',
+  },
+  '0f76667b': {
+    slug: '0f76667b',
+    company: 'Abacum',
+    brandMark: 'A',
+    vertical: 'hightech',
+    page: {
+      file: '0f76667b.html',
+      title: 'Abacum — Workspace seats',
+    },
+    theme: {
+      '--accent': '#7700FE',
+      '--ink': '#0D0D0D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Abacum Support',
+    disclaimer: 'NOT ACTUALLY AN ABACUM SITE — internal demo only, not affiliated with, endorsed by, or a real Abacum product.',
+  },
+  '66cee815': {
+    slug: '66cee815',
+    company: 'JFrog',
+    brandMark: 'J',
+    vertical: 'hightech',
+    page: {
+      file: '66cee815.html',
+      title: 'JFrog Platform — Project access',
+    },
+    theme: {
+      '--accent': '#36A13B',
+      '--ink': '#2F2F2F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#080C25',
+      '--chrome-text': '#E4E9EA',
+    },
+    supportCenter: 'JFrog Support',
+    disclaimer: 'NOT ACTUALLY A JFROG SITE — internal demo only, not affiliated with, endorsed by, or a real JFrog product.',
+  },
   'cb414550': {
     slug: 'cb414550',
     company: 'Arcadia',
@@ -66,6 +213,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Arcadia Support',
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ARCADIA SITE — internal demo only, not affiliated with, endorsed by, or a real Arcadia product.',
+  },
+  '11c8bdaf': {
+    slug: '11c8bdaf',
+    company: 'Fujitsu',
+    brandMark: 'F',
+    vertical: 'hightech',
+    page: {
+      file: '11c8bdaf.html',
+      title: 'Fujitsu Kozuchi — Workspace access | Fujitsu Global',
+    },
+    theme: {
+      '--accent': '#EA0000',
+      '--ink': '#000000',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#3C3C3C',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Fujitsu Support',
+    disclaimer: 'NOT ACTUALLY A FUJITSU SITE — internal demo only, not affiliated with, endorsed by, or a real Fujitsu product.',
   },
   '8cc190d2': {
     slug: '8cc190d2',
@@ -161,6 +327,28 @@ const ONCALL_SKINS = {
       ],
     },
   },
+  'df1b99c6': {
+    slug: 'df1b99c6',
+    company: 'Bilt Rewards',
+    brandMark: 'B',
+    vertical: 'banking',
+    page: {
+      file: 'df1b99c6.html',
+      title: 'Bilt — Pay rent, earn points',
+    },
+    accent: '#97c6ea',
+    accentDark: '#6fa9d6',
+    theme: {
+      '--accent': '#6fa9d6',
+      '--ink': '#010a13',
+      '--surface': '#fbfbfb',
+      '--chrome-bg': '#010a13',
+      '--chrome-text': '#fafafa',
+    },
+    supportCenter: 'Bilt Support',
+    supportCenterSub: 'Member Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A BILT REWARDS SITE — internal demo only, not affiliated with, endorsed by, or a real Bilt Rewards product.',
+  },
   '70d04b0f': {
     slug: '70d04b0f',
     company: 'Cyera',
@@ -184,6 +372,30 @@ const ONCALL_SKINS = {
     supportCenter: 'Cyera Support',
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CYERA SITE — internal demo only, not affiliated with, endorsed by, or a real Cyera product.',
+  },
+  'cbb43fd1': {
+    slug: 'cbb43fd1',
+    company: 'Celonis',
+    brandMark: 'C',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cbb43fd1.html',
+      title: 'Celonis — Team Administration',
+    },
+    accent: '#5CFE50',
+    accentDark: '#3fd634',
+    theme: {
+      '--accent': '#3fd634',
+      '--ink': '#111111',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Celonis Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CELONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Celonis product.',
   },
   '71dff37b': {
     slug: '71dff37b',
@@ -531,6 +743,55 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MERCOR SITE — internal demo only, not affiliated with, endorsed by, or a real Mercor product.',
   },
+  'e51b6dc0': {
+    slug: 'e51b6dc0',
+    company: 'Crisil',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: 'e51b6dc0.html',
+      title: 'Crisil Integral IQ \u2014 Credit Risk Run',
+    },
+    accent: '#E8622A',
+    accentDark: '#C94F1D',
+    theme: {
+      '--accent': '#E8622A',
+      '--ink': '#14213D',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#06183A',
+      '--chrome-text': '#EAF1FB',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Crisil Client Support',
+    supportCenterSub: 'Analytics Platform Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CRISIL SITE — internal demo only, not affiliated with, endorsed by, or a real Crisil product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'banking',
+          label: 'Crisil Integral IQ \u2014 Credit Risk Runs',
+          persona: { name: 'Ananya Rao', email: 'ananya.rao@northmeridiancap.in', sev: 'High' },
+          templates: [
+            {
+              id: 'banking-transfer-slow',
+              label: 'Scoring runs extremely slow',
+              sev: 'High',
+              text: 'Our credit team is telling us Integral IQ scoring runs take forever now. You submit a run and the button sits there for a good ten seconds before results come back. Any portfolio on the standard run tier, every time. It does complete, it is just painfully slow, and it started today.',
+            },
+            {
+              id: 'banking-payroll-cutoff',
+              label: 'Overnight risk batch missing the reporting cutoff',
+              sev: 'Critical',
+              text: 'Escalating from risk ops: our overnight batch submits scoring runs one after another and each one now takes ~10 seconds, so the batch will miss the regulatory reporting cutoff. Nothing errors — it is just slow, and it was fine on Friday. Please treat as urgent.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   'a198d45f': {
     slug: 'a198d45f',
     company: 'MediCodio',
@@ -632,6 +893,25 @@ const ONCALL_SKINS = {
     },
     supportCenter: '우리은행 고객센터',
     disclaimer: 'NOT ACTUALLY A WOORI BANK SITE — internal demo only, not affiliated with, endorsed by, or a real Woori Bank product.',
+  },
+  '63840dfd': {
+    slug: '63840dfd',
+    company: 'Chapter',
+    brandMark: 'C',
+    vertical: 'telco',
+    page: {
+      file: '63840dfd.html',
+      title: 'Change Your Medicare Plan with a Licensed Advisor | Chapter',
+    },
+    theme: {
+      '--accent': '#FD2F4C',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#180D43',
+      '--chrome-text': '#FDF5EE',
+    },
+    supportCenter: 'Chapter Support',
+    disclaimer: 'NOT ACTUALLY A CHAPTER SITE — internal demo only, not affiliated with, endorsed by, or a real Chapter product.',
   },
   'd5f6d175': {
     slug: 'd5f6d175',
@@ -958,6 +1238,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Stellantis Financial Services Customer Care',
     disclaimer: 'NOT ACTUALLY A STELLANTIS SITE — internal demo only, not affiliated with, endorsed by, or a real Stellantis product.',
   },
+  '02238eb0': {
+    slug: '02238eb0',
+    company: 'Harborline FCU',
+    brandMark: 'H',
+    vertical: 'banking',
+    page: { file: '02238eb0.html', title: 'Transfer money | Harborline FCU Digital Banking' },
+    theme: {
+      '--accent': '#123a6b',
+      '--ink': '#1b2230',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0b1f3a',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Harborline FCU Member Services',
+    supportCenterSub: 'Digital Banking Support',
+    disclaimer: 'Harborline FCU is a fictional credit union — internal demo only, not affiliated with any real financial institution.',
+  },
   'ae0823ea': {
     slug: 'ae0823ea',
     company: 'Raymond James',
@@ -1092,6 +1389,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Monte Carlo Support',
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A MONTE CARLO SITE — internal demo only, not affiliated with, endorsed by, or a real Monte Carlo product.',
+  },
+  'c84ab9c6': {
+    slug: 'c84ab9c6',
+    company: 'Luma',
+    brandMark: 'L',
+    vertical: 'hightech',
+    page: { file: 'c84ab9c6.html', title: 'Add dedicated capacity | Luma API' },
+    accent: '#202020',
+    accentDark: '#000000',
+    theme: {
+      '--accent': '#202020',
+      '--ink': '#202020',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#050607',
+      '--chrome-text': '#F1F1F1',
+    },
+    supportCenter: 'Luma Support',
+    supportCenterSub: 'API Capacity & Platform Support',
+    disclaimer: 'NOT ACTUALLY A LUMA SITE — internal demo only, not affiliated with, endorsed by, or a real Luma product.',
   },
   'a46b7c5e': {
     slug: 'a46b7c5e',
@@ -1268,6 +1584,587 @@ const ONCALL_SKINS = {
     supportCenter: 'Eaze Support',
     disclaimer: 'NOT ACTUALLY A EAZE SITE — internal demo only, not affiliated with, endorsed by, or a real Eaze product.',
   },
+  '97d17d45': {
+    slug: '97d17d45',
+    company: 'Parallel',
+    brandMark: 'P',
+    vertical: 'hightech',
+    page: {
+      file: '97d17d45.html',
+      title: 'Provision seats | Parallel Platform',
+    },
+    theme: {
+      '--accent': '#FB631B',
+      '--ink': '#181818',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#202020',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Parallel Support',
+    disclaimer: 'NOT ACTUALLY A PARALLEL SITE — internal demo only, not affiliated with, endorsed by, or a real Parallel Web Systems product.',
+  },
+  'b96d078d': {
+    slug: 'b96d078d',
+    company: 'Bloomberg Law',
+    brandMark: 'BL',
+    vertical: 'hightech',
+    page: { file: 'b96d078d.html', title: 'Add users | Firm Administration – Bloomberg Law' },
+    theme: {
+      '--accent': '#0073FF',
+      '--ink': '#232323',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Bloomberg Law Help Desk',
+    disclaimer: 'NOT ACTUALLY A BLOOMBERG LAW SITE — internal demo only, not affiliated with, endorsed by, or a real Bloomberg Industry Group product.',
+  },
+  '4b663efb': {
+    slug: '4b663efb',
+    company: 'Nordstrom',
+    brandMark: 'N',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '4b663efb.html',
+      title: 'On Cloudsurfer 2 Running Shoe (Women) | Nordstrom',
+    },
+    accent: '#191A1B',
+    accentDark: '#000000',
+    theme: {
+      '--accent': '#191A1B',
+      '--ink': '#191A1B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Nordstrom Customer Care',
+    supportCenterSub: 'Online Orders & Shopping Bag',
+    disclaimer: 'NOT ACTUALLY A NORDSTROM SITE — internal demo only, not affiliated with, endorsed by, or a real Nordstrom product.',
+  },
+  '9cb2eced': {
+    slug: '9cb2eced',
+    company: 'Singapore Airlines',
+    brandMark: 'SQ',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '9cb2eced.html',
+      title: 'Singapore Airlines Official Website | Book International Flight Tickets',
+    },
+    accent: '#00266B',
+    accentDark: '#001D52',
+    theme: {
+      '--accent': '#00266B',
+      '--ink': '#222222',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00266B',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Singapore Airlines Support',
+    supportCenterSub: 'Flight Booking & KrisFlyer Support',
+    disclaimer: 'NOT ACTUALLY A SINGAPORE AIRLINES SITE — internal demo only, not affiliated with, endorsed by, or a real Singapore Airlines product.',
+    bugPortal: {
+      products: [
+        {
+          area: 'marketplace',
+          label: 'Singapore Airlines \u2014 Book flight',
+          persona: { name: 'Priya Nair', email: 'priya.nair@brightmail.io', sev: 'High' },
+          templates: [
+            {
+              id: 'marketplace-cart-timeout',
+              label: 'Flight search fails with a timeout',
+              sev: 'High',
+              text: 'Customers cannot search for flights. You press "Search" on Book trip, the button spins for about eight seconds and then an error comes back saying seat availability could not be checked. Same route, same dates, every attempt.',
+            },
+            {
+              id: 'marketplace-campaign-conversion',
+              label: 'Fare sale traffic converting at zero',
+              sev: 'Critical',
+              text: 'Escalating from revenue management: the Europe fare sale is live, traffic is fine and the homepage loads, but bookings have collapsed to almost nothing. Every search we try ourselves spins for ages and then errors out. We are burning media spend on a booking flow that cannot return a fare.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  '14fa2049': {
+    slug: '14fa2049',
+    company: 'CapitaLand',
+    brandMark: 'C',
+    vertical: 'marketplace',
+    oncallOnly: true,
+    page: {
+      file: '14fa2049.html',
+      title: 'eCapitaVoucher S$50 | CapitaStar eStore | CapitaLand Malls',
+    },
+    accent: '#00238B',
+    accentDark: '#001A68',
+    theme: {
+      '--accent': '#00238B',
+      '--ink': '#292929',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00238B',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'CapitaLand Malls Support',
+    supportCenterSub: 'CapitaStar eStore & eCapitaVoucher',
+    disclaimer: 'NOT ACTUALLY A CAPITALAND SITE — internal demo only, not affiliated with, endorsed by, or a real CapitaLand product.',
+  },
+  '5d7c46c1': {
+    slug: '5d7c46c1',
+    company: 'Figure',
+    brandMark: 'F',
+    vertical: 'banking',
+    page: { file: '5d7c46c1.html', title: 'Request a draw | Figure HELOC' },
+    theme: {
+      '--accent': '#5B56F5',
+      '--ink': '#1A1B22',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1A1B22',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Figure Support',
+    disclaimer: 'NOT ACTUALLY A FIGURE SITE — internal demo only, not affiliated with, endorsed by, or a real Figure Lending LLC product.',
+  },
+  '871f5f7f': {
+    slug: '871f5f7f',
+    company: 'Turnitin',
+    brandMark: 'T',
+    vertical: 'hightech',
+    page: {
+      file: '871f5f7f.html',
+      title: 'License management | Turnitin',
+    },
+    accent: '#0DFFAD',
+    accentDark: '#04E69A',
+    theme: {
+      '--accent': '#0096FF',
+      '--ink': '#003C46',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#003C46',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Turnitin Support',
+    supportCenterSub: 'Administrator & Instructor Support',
+    disclaimer: 'NOT ACTUALLY A TURNITIN SITE — internal demo only, not affiliated with, endorsed by, or a real Turnitin product.',
+  },
+  '42d69b95': {
+    slug: '42d69b95',
+    company: 'Rippling',
+    brandMark: 'R',
+    vertical: 'hightech',
+    page: { file: '42d69b95.html', title: 'Assign apps | App Management – Rippling IT' },
+    theme: {
+      '--accent': '#FFA81D',
+      '--ink': '#1C1C1C',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#4A0039',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Rippling Help Center',
+    disclaimer: 'NOT ACTUALLY A RIPPLING SITE — internal demo only, not affiliated with, endorsed by, or a real Rippling People Center Inc. product.',
+  },
+  '347abdf0': {
+    slug: '347abdf0',
+    company: 'Hebbia',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: { file: '347abdf0.html', title: 'Add seats | Matrix workspaces – Hebbia' },
+    theme: {
+      '--accent': '#465BFF',
+      '--ink': '#0E0B0B',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0E0B0B',
+      '--chrome-text': '#F4F1EB',
+    },
+    supportCenter: 'Hebbia Support',
+    disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
+  },
+  '7fcd58da': {
+    slug: '7fcd58da',
+    company: 'Rabobank',
+    brandMark: 'R',
+    vertical: 'banking',
+    page: { file: '7fcd58da.html', title: 'Overboeken | Rabo Online Bankieren – Rabobank' },
+    theme: {
+      '--accent': '#FA6400',
+      '--ink': '#202122',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000061',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Rabobank Klantenservice',
+    disclaimer: 'NOT ACTUALLY A RABOBANK SITE — internal demo only, not affiliated with, endorsed by, or a real Rabobank product.',
+  },
+  '85b32278': {
+    slug: '85b32278',
+    company: 'PostNL',
+    brandMark: 'P',
+    vertical: 'insurance',
+    page: { file: '85b32278.html', title: 'Schade melden | PostNL' },
+    theme: {
+      '--accent': '#6161FF',
+      '--ink': '#1F1E2F',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#001A73',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'PostNL Klantenservice',
+    disclaimer: 'NOT ACTUALLY A POSTNL SITE — internal demo only, not affiliated with, endorsed by, or a real PostNL product.',
+  },
+  '3659ea4f': {
+    slug: '3659ea4f',
+    company: 'Kela',
+    brandMark: 'K',
+    vertical: 'hightech',
+    page: { file: '3659ea4f.html', title: 'Operator access | Kela Perimeter Command & Control' },
+    theme: {
+      '--accent': '#00E6FF',
+      '--ink': '#181825',
+      '--surface': '#F1F0EE',
+      '--chrome-bg': '#181825',
+      '--chrome-text': '#F1F0EE',
+    },
+    supportCenter: 'Kela Support',
+    disclaimer: 'NOT ACTUALLY A KELA SITE — internal demo only, not affiliated with, endorsed by, or a real Kela product.',
+  },
+  '0e315106': {
+    slug: '0e315106',
+    company: 'Rootly',
+    brandMark: 'R',
+    vertical: 'hightech',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '0e315106.html',
+      title: 'Provision responder seats | Rootly',
+    },
+    accent: '#7748F6',
+    theme: {
+      '--accent': '#7748F6',
+      '--ink': '#1E1A33',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1E1A33',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Rootly Support',
+    supportCenterSub: 'Workspace & On-Call Administration',
+    disclaimer: 'NOT ACTUALLY A ROOTLY SITE — internal demo only, not affiliated with, endorsed by, or a real Rootly Inc. product.',
+  },
+  '5626e47f': {
+    slug: '5626e47f',
+    company: 'Solocal',
+    brandMark: 'S',
+    vertical: 'telco',
+    page: {
+      file: '5626e47f.html',
+      title: 'Solocal Manager — Mon offre pagesjaunes',
+    },
+    theme: {
+      '--accent': '#0A68F1',
+      '--ink': '#0B1B2B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0B1B2B',
+      '--chrome-text': '#F7F9FC',
+    },
+    supportCenter: 'Solocal Support',
+    disclaimer: 'NOT ACTUALLY A SOLOCAL SITE — internal demo only, not affiliated with, endorsed by, or a real Solocal product.',
+  },
+  '3555266e': {
+    slug: '3555266e',
+    company: 'Revolut',
+    brandMark: 'R',
+    vertical: 'banking',
+    page: { file: '3555266e.html', title: 'International Transfers | Revolut US' },
+    theme: {
+      '--accent': '#1F1F1F',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#191C1F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Revolut Support',
+    disclaimer: 'NOT ACTUALLY A REVOLUT SITE — internal demo only, not affiliated with, endorsed by, or a real Revolut product.',
+  },
+  '8bc7a017': {
+    slug: '8bc7a017',
+    company: 'Evercore',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: {
+      file: '8bc7a017.html',
+      title: 'Evercore — Client Portal | Move Money',
+    },
+    accent: '#1D4289',
+    accentDark: '#16336A',
+    theme: {
+      '--accent': '#1D4289',
+      '--ink': '#212121',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002037',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Evercore Client Service',
+    supportCenterSub: 'Wealth Management & Trust Company',
+    disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
+  },
+  '20d592fb': {
+    slug: '20d592fb',
+    company: 'Evercore',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: { file: '20d592fb.html', title: 'Sales & Trading - Evercore' },
+    theme: {
+      '--accent': '#1D4289',
+      '--ink': '#151B1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#002037',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Evercore ISI Client Service',
+    supportCenterSub: 'Sales & Trading Desk Support',
+    disclaimer: 'NOT ACTUALLY AN EVERCORE SITE — internal demo only, not affiliated with, endorsed by, or a real Evercore product.',
+  },
+  'e7f54d10': {
+    slug: 'e7f54d10',
+    company: 'InstaLILY',
+    brandMark: 'IL',
+    vertical: 'hightech',
+    page: {
+      file: 'e7f54d10.html',
+      title: 'InstaControl™ — Agent seats | InstaLILY',
+    },
+    theme: {
+      '--accent': '#2E6B45',
+      '--ink': '#0A0A0A',
+      '--surface': '#F2F3EC',
+      '--chrome-bg': '#0A0A0A',
+      '--chrome-text': '#F2F3EC',
+    },
+    supportCenter: 'InstaLILY Support',
+    disclaimer: 'NOT ACTUALLY AN INSTALILY SITE — internal demo only, not affiliated with, endorsed by, or a real InstaLILY product.',
+  },
+  'f6ea705e': {
+    slug: 'f6ea705e',
+    company: 'Adonis',
+    brandMark: 'a',
+    vertical: 'insurance',
+    page: { file: 'f6ea705e.html', title: 'Submit claim to payer | Adonis' },
+    theme: {
+      '--accent': '#074141',
+      '--ink': '#0D0D12',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#042F3A',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Adonis Support',
+    disclaimer: 'NOT ACTUALLY AN ADONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Adonis product.',
+  },
+  '28e47b87': {
+    slug: '28e47b87',
+    company: 'Vanguard',
+    brandMark: 'V',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '28e47b87.html',
+      title: 'Balances and holdings | Vanguard',
+    },
+    accent: '#96151D',
+    accentDark: '#7A1017',
+    theme: {
+      '--accent': '#96151D',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#96151D',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'Vanguard Client Services',
+    supportCenterSub: 'Personal Investor Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A VANGUARD SITE — internal demo only, not affiliated with, endorsed by, or a real Vanguard product.',
+  },
+  '848b5205': {
+    slug: '848b5205',
+    company: 'ZKB',
+    brandMark: 'Z',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '848b5205.html',
+      title: 'Zahlungen | ZKB eBanking',
+    },
+    accent: '#003CB4',
+    accentDark: '#002F8E',
+    theme: {
+      '--accent': '#003CB4',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#080F5E',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'ZKB Kundenservice',
+    supportCenterSub: 'eBanking Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A ZKB SITE — internal demo only, not affiliated with, endorsed by, or a real ZKB product.',
+  },
+  '763a0ead': {
+    slug: '763a0ead',
+    company: 'Adyen',
+    brandMark: 'A',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page, so the brand shim skips the title/logo rewrite. Keep the file's
+      // own <title> in sync with page.title.
+      file: '763a0ead.html',
+      title: 'Payouts | Adyen Customer Area',
+    },
+    accent: '#00D16A',
+    accentDark: '#00A855',
+    theme: {
+      '--accent': '#00D16A',
+      '--ink': '#0D1E2E',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#001222',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Adyen Support',
+    supportCenterSub: 'Customer Area Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN ADYEN SITE — internal demo only, not affiliated with, endorsed by, or a real Adyen product.',
+  },
+  'a75ccde9': {
+    slug: 'a75ccde9',
+    company: 'FOX One',
+    brandMark: 'F',
+    vertical: 'telco',
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Proof requirements for this incident (customer-facing web page):',
+        '1. Start a screen recording with recording_start before you change any code — the recording is a required deliverable. Then reproduce the failure in the browser at the live page above: click the "Annual" billing toggle and capture a screenshot of the failed state.',
+        '2. After the fix, run the app locally on your branch, repeat the same action on http://localhost:<port>/oncall/c/a75ccde9 and capture a screenshot of the successful state.',
+        '3. Keep recording across both passes so the before (live failure) and after (local fix) play back to back, annotate each pass with annotate_recording, then recording_stop. Attach the recording and both screenshots to the PR description and post the PR link here.',
+        '4. Do not merge; stop for human approval after Devin Review runs.',
+      ].join('\n'),
+    },
+    page: { file: 'a75ccde9.html', title: 'Change Your Plan | FOX One' },
+    theme: {
+      '--accent': '#000000',
+      '--ink': '#1A1A1A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'FOX One Help',
+    disclaimer: 'NOT ACTUALLY A FOX ONE SITE — internal demo only, not affiliated with, endorsed by, or a real FOX / Fox Media LLC product.',
+  },
+  '3983a181': {
+    slug: '3983a181',
+    company: 'British Airways',
+    brandMark: 'BA',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '3983a181.html', title: 'Payment | British Airways' },
+    theme: {
+      '--accent': '#3468AD',
+      '--ink': '#021B41',
+      '--surface': '#F9F9FA',
+      '--chrome-bg': '#01122C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'British Airways Help Centre',
+    disclaimer: 'NOT ACTUALLY A BRITISH AIRWAYS SITE — internal demo only, not affiliated with, endorsed by, or a real British Airways product.',
+  },
+  '30922028': {
+    slug: '30922028',
+    company: 'GovTech Singapore',
+    brandMark: 'P',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '30922028.html', title: 'Pay | PaySG' },
+    theme: {
+      '--accent': '#1E51D4',
+      '--ink': '#333A4A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#151D31',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'PaySG Support',
+    disclaimer: 'NOT ACTUALLY A GOVTECH SINGAPORE SITE — internal demo only, not affiliated with, endorsed by, or a real GovTech Singapore product.',
+  },
+  '696c04ec': {
+    slug: '696c04ec',
+    company: 'Careem',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      file: '696c04ec.html',
+      title: 'Send money abroad | Careem Pay',
+    },
+    accent: '#00EB79',
+    accentDark: '#00C965',
+    theme: {
+      '--accent': '#00EB79',
+      '--ink': '#1F2937',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#001942',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Careem Pay Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A CAREEM SITE — internal demo only, not affiliated with, endorsed by, or a real Careem product.',
+  },
+  '9dda44d0': {
+    slug: '9dda44d0',
+    company: 'Strategic Education, Inc.',
+    brandMark: 'S',
+    vertical: 'hightech',
+    page: { file: '9dda44d0.html', title: 'Add learner seats | Education Benefits Management – Strategic Education, Inc.' },
+    theme: {
+      '--accent': '#DD2A3F',
+      '--ink': '#212529',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#101820',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Strategic Education Support',
+    disclaimer: 'NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.',
+  },
+  'ce0199ec': {
+    slug: 'ce0199ec',
+    company: 'Cross River',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      file: 'ce0199ec.html',
+      title: 'Cross River | Payments — Move Money',
+    },
+    accent: '#00F996',
+    accentDark: '#00d67f',
+    theme: {
+      '--accent': '#1470CC',
+      '--ink': '#05112E',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#05112E',
+      '--chrome-text': '#ffffff',
+    },
+    devinSession: { auto: true },
+    sonarPR: { auto: true },
+    supportCenter: 'Cross River Support',
+    supportCenterSub: 'Payments & Accounts Operations',
+    disclaimer: 'NOT ACTUALLY A CROSS RIVER SITE — internal demo only, not affiliated with, endorsed by, or a real Cross River product.',
+  },
   '4c8c5b8f': {
     slug: '4c8c5b8f',
     company: 'OCBC',
@@ -1295,4 +2192,17 @@ function getOncallSkin(slug) {
   return Object.prototype.hasOwnProperty.call(ONCALL_SKINS, key) ? ONCALL_SKINS[key] : null;
 }
 
-module.exports = { ONCALL_SKINS, getOncallSkin };
+function listOncallSkins() {
+  return Object.values(ONCALL_SKINS)
+    .filter((skin) => skin.listed === true)
+    .map((skin) => ({
+      slug: skin.slug,
+      company: skin.company,
+      brandMark: skin.brandMark,
+      vertical: skin.vertical,
+      accent: skin.accent,
+      href: `/oncall/c/${skin.slug}`,
+    }));
+}
+
+module.exports = { ONCALL_SKINS, getOncallSkin, listOncallSkins };

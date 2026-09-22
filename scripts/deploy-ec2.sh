@@ -22,6 +22,9 @@
 #   - verified        /health, every vertical page, every alias and a fixed
 #                     list of critical paths must return 200 before loadgen
 #                     and the rest of the stack are reconciled
+#   - host-converged  scripts/host-bootstrap.sh runs every deploy (swap,
+#                     persistent journald, the single vertical-guard cron)
+#   - memory-aware    images are built one at a time; the box has ~1.9G RAM
 set -euo pipefail
 
 STAGING=${1:?usage: deploy-ec2.sh <staging-dir> [source-label]}
@@ -45,6 +48,7 @@ CRITICAL_PATHS=(/ /health /retail /api/verticals /oncall /publix /qbe /4f645972)
 TS=$(date +%s)
 LOG_PREFIX="[deploy $TS $SOURCE_LABEL]"
 log() { echo "$LOG_PREFIX $*"; }
+log_lines() { while IFS= read -r line; do log "${1:-}$line"; done; }
 die() { log "ERROR: $*" >&2; exit 1; }
 
 STAGING=$(cd "$STAGING" && pwd)
@@ -53,16 +57,14 @@ cd "$APP_DIR"
 
 compose() { docker compose "$@" 2> >(grep -v 'obsolete\|Bake' >&2 || true); }
 
-# Slack is best-effort: only if the host .env carries a bot token + channel.
-env_value() { grep -E "^$1=" "$APP_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2- || true; }
+# Ops notifications go to the SNS email topic via scripts/ops-notify.sh
+# (best-effort, instance role). Prefer the staging copy so a fix to the
+# notifier itself is used by the deploy that ships it.
 notify() {
-  local text="$1"
-  local token channel
-  token=$(env_value SLACK_BOT_TOKEN); channel=$(env_value SLACK_CHANNEL_ID)
-  [ -n "$token" ] && [ -n "$channel" ] || return 0
-  curl -s -o /dev/null -X POST https://slack.com/api/chat.postMessage \
-    -H "Authorization: Bearer $token" -H 'content-type: application/json' \
-    -d "$(jq -cn --arg c "$channel" --arg t "$text" '{channel:$c,text:$t}')" || true
+  local notifier="$STAGING/scripts/ops-notify.sh"
+  [ -f "$notifier" ] || notifier="$APP_DIR/scripts/ops-notify.sh"
+  [ -f "$notifier" ] || return 0
+  bash "$notifier" "$1" "${2:-}" || true
 }
 
 # ── 0. lock ─────────────────────────────────────────────────────────────────
@@ -76,7 +78,7 @@ AVAIL_MB=$(df -Pm / | awk 'NR==2 {print $4}')
 [ "$AVAIL_MB" -ge "$MIN_FREE_MB" ] || die "only ${AVAIL_MB}MB free on /, need ${MIN_FREE_MB}MB"
 
 mkdir -p "$RELEASES_DIR"
-cp -a "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
+cp "$APP_DIR/.env" "$RELEASES_DIR/env.$TS"
 cp -a "$APP_DIR/.env" "$APP_DIR/.env.bak"
 
 # Back up exactly the top-level entries this deploy will touch.
@@ -98,22 +100,85 @@ log "backed up ${#EXISTING[@]} top-level entries to $BACKUP"
 ls -1t "$RELEASES_DIR"/*.tgz 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 ls -1t "$RELEASES_DIR"/env.* 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) | xargs -r rm -f
 
+# Mirror one top-level entry from $1 into $APP_DIR. With $3=protect the
+# vertical registries are additive (a staging tree may lack the other repo's
+# demos); a backup is the complete live tree, so rollback mirrors it exactly.
+mirror_entry() {
+  local src=$1 e=$2 mode=${3:-exact} filters=()
+  if [ -d "$src/$e" ]; then
+    if [ "$mode" = protect ] && [ "$e" = app ]; then
+      for p in "${PROTECTED_APP[@]}"; do filters+=(--filter="P /$p/**"); done
+    elif [ "$mode" = protect ] && [ "$e" = config ]; then
+      for p in "${PROTECTED_CONFIG[@]}"; do filters+=(--filter="P /$p/**"); done
+    fi
+    rsync -a --delete --exclude=node_modules "${filters[@]}" "$src/$e/" "$APP_DIR/$e/"
+  else
+    cp -a "$src/$e" "$APP_DIR/$e"
+  fi
+}
+
+NGINX_TOUCHED=0
+nginx_serving() {
+  local code
+  for _ in $(seq 1 10); do
+    code=$(curl -skL -o /dev/null -w '%{http_code}' --max-time 5 "${NGINX_URL:-https://localhost/health}" || true)
+    [ "$code" = 200 ] && return 0
+    sleep 2
+  done
+  return 1
+}
+
+# 0 = prior release restored and healthy; 1 = not healthy; 2 = /health is 200
+# but a restore step failed, so which release is running is indeterminate.
+# The backup is mirrored back exactly (not overlaid) so files the failed
+# release added are removed too; entries it created from scratch are deleted.
 rollback() {
   log "ROLLING BACK to $BACKUP"
-  tar xzf "$BACKUP" -C "$APP_DIR"
-  cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env"
-  compose build -q checkout-api || true
-  compose up -d --no-deps checkout-api || true
+  local restored=1 tmp e
+  tmp=$(mktemp -d "$RELEASES_DIR/rollback.XXXXXX")
+  if tar xzf "$BACKUP" -C "$tmp"; then
+    for e in "${EXISTING[@]}"; do
+      mirror_entry "$tmp" "$e" || { log "rollback: restore of $e failed"; restored=0; }
+    done
+    for e in "${TOUCHED[@]}"; do
+      [[ " ${EXISTING[*]} " == *" $e "* ]] || rm -rf "$APP_DIR/$e" || { log "rollback: could not remove $e"; restored=0; }
+    done
+  else
+    log "rollback: archive extract failed"; restored=0
+  fi
+  rm -rf "$tmp"
+  cp -a "$RELEASES_DIR/env.$TS" "$APP_DIR/.env" || { log "rollback: .env restore failed"; restored=0; }
+  compose build -q checkout-api || { log "rollback: image rebuild failed"; restored=0; }
+  compose up -d --no-deps checkout-api || { log "rollback: container replace failed"; restored=0; }
+  if [ "$NGINX_TOUCHED" = 1 ]; then
+    compose up -d --no-deps --force-recreate nginx || { log "rollback: nginx recreate failed"; restored=0; }
+    nginx_serving || { log "rollback: nginx not serving on restored config"; restored=0; }
+  fi
   for _ in $(seq 1 40); do
-    [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ] && { log "rollback healthy"; return 0; }
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' "$HEALTH_URL" || true)" = 200 ]; then
+      [ $restored = 1 ] && { log "rollback healthy"; return 0; }
+      log "rollback: /health is 200 but a restore step failed — running release is indeterminate"
+      return 2
+    fi
     sleep 2
   done
   log "rollback did NOT come back healthy — manual attention required"
   return 1
 }
 fail() {
-  notify ":rotating_light: devindemos.com deploy from *$SOURCE_LABEL* failed: $1 — rolled back to release $TS"
-  rollback || true
+  local rc=0 outcome
+  rollback || rc=$?
+  case $rc in
+    0) outcome="Rolled back to release $TS; /health is 200." ;;
+    2) outcome="ROLLBACK INDETERMINATE: /health is 200 but a restore step failed (see run log) — verify which release is running." ;;
+    *) outcome="ROLLBACK DID NOT COME BACK HEALTHY — manual attention required on the host." ;;
+  esac
+  notify "[devindemos] deploy from $SOURCE_LABEL FAILED" \
+    "Deploy from $SOURCE_LABEL failed: $1
+
+$outcome
+Host: $(hostname) ($APP_DIR)
+Run log: see the GitHub Actions 'Deploy to EC2' run for this commit."
   die "$1"
 }
 
@@ -126,29 +191,25 @@ report_live_only() {
 LIVE_ONLY=$( { report_live_only app/routes/verticals '*.js'; report_live_only app/public/verticals '*.html'; report_live_only config/customers '*.js'; } | grep -v '^app/routes/verticals/index.js$' || true)
 if [ -n "$LIVE_ONLY" ]; then
   log "preserving $(echo "$LIVE_ONLY" | wc -l) vertical file(s) that exist on the host but not in this release (other repo's demos, or sync pending):"
-  echo "$LIVE_ONLY" | sed "s/^/$LOG_PREFIX    /"
+  echo "$LIVE_ONLY" | log_lines '   '
 fi
 
 # ── 3. mirror the staging tree into place ───────────────────────────────────
-for e in "${TOUCHED[@]}"; do
-  if [ -d "$STAGING/$e" ]; then
-    FILTERS=()
-    if [ "$e" = app ]; then
-      for p in "${PROTECTED_APP[@]}"; do FILTERS+=(--filter="P /$p/**"); done
-    elif [ "$e" = config ]; then
-      for p in "${PROTECTED_CONFIG[@]}"; do FILTERS+=(--filter="P /$p/**"); done
-    fi
-    rsync -a --delete --exclude=node_modules "${FILTERS[@]}" "$STAGING/$e/" "$APP_DIR/$e/"
-  else
-    cp -a "$STAGING/$e" "$APP_DIR/$e"
-  fi
-done
+NGINX_CONF_BEFORE=$(md5sum "$APP_DIR/nginx/nginx.conf" 2>/dev/null | cut -d' ' -f1)
+for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e" protect; done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
+# ── 3b. converge host-level setup (swap, journald, guard cron) ──────────────
+bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | log_lines || fail "host bootstrap failed (guard cron not converged)"
+
 # ── 4. build + swap checkout-api ────────────────────────────────────────────
 compose config -q || fail "docker compose config is invalid"
-compose build checkout-api loadgen >/dev/null || fail "image build failed"
+AVAIL_MEM_MB=$(awk '/^(MemAvailable|SwapFree):/ {s += $2} END {print int(s / 1024)}' /proc/meminfo)
+log "building with ${AVAIL_MEM_MB}MB available (RAM + swap)"
+# One image at a time: parallel builds are what OOM-hung the host.
+compose build checkout-api >/dev/null || fail "checkout-api image build failed"
+compose build loadgen >/dev/null || fail "loadgen image build failed"
 compose up -d --no-deps checkout-api >/dev/null || fail "checkout-api failed to start"
 
 STATUS=000
@@ -157,7 +218,11 @@ for _ in $(seq 1 40); do
   [ "$STATUS" = 200 ] && break
   sleep 2
 done
-[ "$STATUS" = 200 ] || fail "health check returned $STATUS after 80s"
+if [ "$STATUS" != 200 ]; then
+  log "checkout-api never answered /health; last container output:"
+  compose logs --no-color --no-log-prefix --tail=40 checkout-api 2>&1 | log_lines '   ' || true
+  fail "health check returned $STATUS after 80s"
+fi
 log "health 200"
 
 # ── 5. smoke every vertical page, alias and critical path ───────────────────
@@ -178,9 +243,72 @@ if [ ${#FAILED[@]} -gt 0 ]; then
 fi
 log "smoke ok ($TOTAL paths 200)"
 
+# ── 5b. avature (separate private repo, profile-gated service) ──────────────
+# Best effort and serialized after checkout-api for the same memory reason.
+# Failures here never roll back the main stack: nginx resolves the avature
+# upstream lazily, so only /avature/ breaks. The token travels in a one-shot
+# git header, not in the remote URL or compose metadata.
+env_value() { sed -n "s/^[[:space:]]*$1=//p" "$APP_DIR/.env" 2>/dev/null | tail -1 | tr -d "\"' "; }
+AV_SRC="$APP_DIR/avature-src"
+AV_REPO=${AVATURE_REPO:-https://github.com/COG-GTM/avature-talent-demo.git}
+AV_REF=${AVATURE_REF:-$(env_value AVATURE_REF)}; AV_REF=${AV_REF:-main}
+GITHUB_PAT=${GITHUB_PAT:-$(env_value GITHUB_PAT)}
+avature_git() {
+  if [ -n "${GITHUB_PAT:-}" ]; then
+    git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_PAT" | base64 -w0)" "$@"
+  else
+    git "$@"
+  fi
+}
+avature_sync() {
+  if [ ! -d "$AV_SRC/.git" ]; then
+    rm -rf "$AV_SRC" && mkdir -p "$AV_SRC" && git -C "$AV_SRC" init -q && git -C "$AV_SRC" remote add origin "$AV_REPO"
+  fi
+  # fetch + detach works for branches, tags and reachable SHAs alike
+  avature_git -C "$AV_SRC" fetch -q --depth 1 origin "$AV_REF" && git -C "$AV_SRC" checkout -q --detach FETCH_HEAD
+}
+AV_ERR=$(mktemp); trap 'rm -f "$AV_ERR"' EXIT
+if avature_sync 2>"$AV_ERR" && compose --profile avature build --pull avature >/dev/null 2>>"$AV_ERR" \
+   && compose --profile avature up -d --no-deps avature >/dev/null 2>>"$AV_ERR"; then
+  log "avature: built $(git -C "$AV_SRC" rev-parse --short HEAD) from $AV_REF"
+  AV_STATUS=000
+  for _ in $(seq 1 20); do
+    AV_STATUS=$(curl -s -o /dev/null -w '%{http_code}' "${AVATURE_HEALTH_URL:-http://localhost:3300/health}" || true)
+    [ "$AV_STATUS" = 200 ] && break
+    sleep 2
+  done
+  if [ "$AV_STATUS" = 200 ]; then log "avature health 200"; else log "warning: avature health returned $AV_STATUS"; fi
+else
+  log "warning: avature sync/build/start failed (GITHUB_PAT missing or repo unreachable?) — /avature/ left as-is"
+  [ -n "${GITHUB_PAT:-}" ] || log "   GITHUB_PAT is not set in $APP_DIR/.env"
+  tail -5 "$AV_ERR" | log_lines '   '
+fi
+
 # ── 6. reconcile the rest of the stack ──────────────────────────────────────
 compose up -d --no-deps loadgen >/dev/null || log "warning: loadgen restart failed"
 compose up -d >/dev/null || log "warning: compose up -d (reconcile) failed"
+# nginx renders its bind-mounted template only at container start, so the
+# running container can be serving a stale config regardless of whether this
+# deploy changed nginx.conf. Compare what the live container is serving
+# (`nginx -T` in it) with what a fresh container would render from the template
+# on disk; any difference means a recreate (brief blip). A template that fails
+# `nginx -t` is a deploy failure: it must not stay on disk where the next
+# restart would load it, so fail() -> rollback() restores it and recreates
+# nginx from the restored template.
+# NGINX_TOUCHED=1 from here on: any fail() below may leave nginx stopped or on
+# a bad template, so rollback must recreate it and re-probe ingress.
+NGINX_TOUCHED=1
+NGINX_LIVE=$(compose exec -T nginx nginx -T 2>/dev/null || true)
+NGINX_FRESH=$(compose run --rm --no-deps -T -e NGINX_ENTRYPOINT_QUIET_LOGS=1 nginx nginx -T 2>/dev/null) ||
+  fail "nginx.conf does not render/validate in a fresh nginx container"
+[ -n "$NGINX_FRESH" ] || fail "fresh nginx -T produced no config dump"
+if [ "$NGINX_CONF_BEFORE" != "$(md5sum "$APP_DIR/nginx/nginx.conf" | cut -d' ' -f1)" ] ||
+   [ -z "$NGINX_LIVE" ] || [ "$NGINX_LIVE" != "$NGINX_FRESH" ]; then
+  compose run --rm --no-deps -T nginx nginx -t >/dev/null 2>&1 || fail "new nginx.conf fails 'nginx -t'"
+  compose up -d --no-deps --force-recreate nginx >/dev/null || fail "nginx recreate failed"
+  nginx_serving || fail "nginx not serving after recreate"
+  log "nginx recreated (running config differed from nginx.conf)"
+fi
 docker image prune -f >/dev/null || true
 
 printf 'ts=%s\nsource=%s\nbackup=%s\n' "$TS" "$SOURCE_LABEL" "$BACKUP" > "$RELEASES_DIR/CURRENT"
