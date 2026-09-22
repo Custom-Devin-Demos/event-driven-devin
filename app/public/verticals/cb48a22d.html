@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Emergency Care &amp; ER Wait Times | Tenet Health</title>
+  <style>
+    :root {
+      --tenet-navy: #00285a;
+      --tenet-blue: #0b5fa5;
+      --tenet-sky: #e8f1f9;
+      --tenet-teal: #128a8a;
+      --ink: #1b1f24;
+      --muted: #5b6672;
+      --line: #d8dfe6;
+      --alert: #b3261e;
+      --good: #1a7f37;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: #fff;
+    }
+    a { color: var(--tenet-blue); }
+    .utility-bar { background: var(--tenet-navy); color: #cfe1f2; font-size: 13px; padding: 6px 0; }
+    .utility-bar a { color: #cfe1f2; text-decoration: none; margin-left: 20px; }
+    .utility-bar a:hover { text-decoration: underline; }
+    .wrap { max-width: 1140px; margin: 0 auto; padding: 0 20px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    header.site { border-bottom: 1px solid var(--line); padding: 16px 0; }
+    .brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
+    .brand .mark {
+      width: 42px; height: 42px; border-radius: 6px;
+      background: linear-gradient(135deg, var(--tenet-navy), var(--tenet-blue));
+      color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; letter-spacing: .5px;
+    }
+    .brand .name { font-size: 20px; font-weight: 700; color: var(--tenet-navy); line-height: 1.1; }
+    .brand .sub { font-size: 12px; color: var(--muted); }
+    nav.site a { margin-left: 26px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 15px; }
+    nav.site a:hover, nav.site a.active { color: var(--tenet-blue); }
+    .hero { background: linear-gradient(120deg, var(--tenet-navy) 0%, var(--tenet-blue) 100%); color: #fff; padding: 54px 0 62px; }
+    .hero h1 { font-size: 40px; margin: 0 0 12px; max-width: 640px; line-height: 1.15; }
+    .hero p { font-size: 18px; margin: 0 0 26px; max-width: 620px; color: #dbe9f7; }
+    .btn { display: inline-block; padding: 12px 22px; border-radius: 4px; font-weight: 600; text-decoration: none; border: 0; cursor: pointer; font-size: 15px; font-family: inherit; }
+    .btn-primary { background: #fff; color: var(--tenet-navy); }
+    .btn-solid { background: var(--tenet-blue); color: #fff; }
+    .btn-ghost { border: 2px solid #fff; color: #fff; background: transparent; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    section { padding: 44px 0; }
+    h2 { font-size: 26px; color: var(--tenet-navy); margin: 0 0 6px; }
+    .section-note { color: var(--muted); margin: 0 0 22px; }
+    .wait-board { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .wait-board table { width: 100%; border-collapse: collapse; }
+    .wait-board th { text-align: left; background: var(--tenet-sky); color: var(--tenet-navy); font-size: 13px; text-transform: uppercase; letter-spacing: .4px; padding: 12px 16px; }
+    .wait-board td { padding: 14px 16px; border-top: 1px solid var(--line); font-size: 15px; }
+    .wait-value { font-size: 22px; font-weight: 700; color: var(--tenet-teal); }
+    .wait-value.bad { color: var(--alert); }
+    .pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .pill.ok { background: #e6f4ea; color: var(--good); }
+    .pill.warn { background: #fdecea; color: var(--alert); }
+    .layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 26px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+    .panel h3 { margin: 0 0 6px; font-size: 19px; color: var(--tenet-navy); }
+    .panel p.help { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    input[type=text], input[type=email], input[type=date], select {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; font-size: 15px; font-family: inherit; background: #fff; color: var(--ink);
+    }
+    .field { margin-bottom: 16px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+    .notice { padding: 14px 16px; border-radius: 6px; font-size: 15px; margin-bottom: 18px; }
+    .notice.info { background: var(--tenet-sky); color: var(--tenet-navy); border: 1px solid #c7ddf0; }
+    .result { display: none; margin-top: 20px; border-radius: 6px; padding: 16px 18px; font-size: 15px; }
+    .result.visible { display: block; }
+    .result.success { background: #e6f4ea; border: 1px solid #b8e0c4; }
+    .result.error { background: #fdecea; border: 1px solid #f5c6c2; }
+    .result h4 { margin: 0 0 8px; font-size: 17px; color: var(--tenet-navy); }
+    .result.error h4 { color: var(--alert); }
+    .result code { display: inline-block; margin-top: 8px; font-size: 13px; background: rgba(0,0,0,.05); padding: 6px 8px; border-radius: 4px; }
+    .result .meta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 12px; color: var(--muted); }
+    .result dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 12px 0 0; font-size: 14px; }
+    .result dt { color: var(--muted); }
+    .result dd { margin: 0; font-weight: 600; }
+    .processing { display: none; margin-top: 14px; color: var(--muted); font-size: 14px; }
+    .processing.visible { display: block; }
+    .identity { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .identity .status { margin-top: 6px; font-size: 12px; color: var(--muted); min-height: 16px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+    .card h3 { margin: 0 0 8px; font-size: 18px; color: var(--tenet-navy); }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; }
+    footer.site { background: var(--tenet-navy); color: #b9cfe4; padding: 30px 0; font-size: 13px; margin-top: 40px; }
+    footer.site a { color: #b9cfe4; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 30px; }
+      nav.site { display: none; }
+      .wait-board { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility-bar">
+    <div class="wrap row">
+      <span>Nationwide hospital network &middot; Emergency care 24/7</span>
+      <span>
+        <a href="#board">MyTenet Patient Portal</a>
+        <a href="#board">Pay a Bill</a>
+        <a href="#board">Contact Us</a>
+      </span>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="wrap row">
+      <a class="brand" href="#">
+        <span class="mark">T</span>
+        <span>
+          <span class="name">Tenet Health</span><br>
+          <span class="sub">Patient Experience Platform 7.4</span>
+        </span>
+      </a>
+      <nav class="site">
+        <a href="#board" class="active">ER Wait Times</a>
+        <a href="#checkin">Save My Spot</a>
+        <a href="#plan">Find a Doctor</a>
+        <a href="#plan">Schedule</a>
+        <a href="#plan">MyTenet</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="wrap">
+      <h1>Emergency care, without the guesswork.</h1>
+      <p>Live emergency department wait times across our hospitals, updated directly from each facility&rsquo;s registration system.</p>
+      <a class="btn btn-primary" href="#board">See ER wait times</a>
+      <a class="btn btn-ghost" href="#checkin">Save my spot</a>
+    </div>
+  </div>
+
+  <section id="board" class="wrap">
+    <h2>Current ER wait times</h2>
+    <p class="section-note">Average time from arrival to being seen by a provider. Refreshed from the Millennium ADT feed every 45 seconds.</p>
+    <div id="notice"></div>
+    <div class="wait-board">
+      <table>
+        <thead>
+          <tr>
+            <th>Hospital</th>
+            <th>Location</th>
+            <th>Patients waiting</th>
+            <th>Average wait</th>
+            <th>Longest wait</th>
+            <th>Status</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="board-body">
+          <tr><td colspan="7" class="muted small">Loading wait times&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted" style="margin-top:12px">
+      If you are experiencing a medical emergency, call 911. Wait times are estimates and change constantly.
+    </p>
+  </section>
+
+  <section id="checkin" class="wrap">
+    <h2>Save my spot in the ER</h2>
+    <p class="section-note">Hold a place in line before you leave the house. Bring a photo ID and your insurance card.</p>
+    <div class="layout">
+      <div class="panel">
+        <h3>Online ER check-in</h3>
+        <p class="help">Your hold is released if you arrive more than the posted grace period after your reserved time.</p>
+        <form id="checkinForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="patientName">Patient name</label>
+              <input type="text" id="patientName" value="Marisol Alvarez" autocomplete="name">
+            </div>
+            <div class="field">
+              <label for="dateOfBirth">Date of birth</label>
+              <input type="date" id="dateOfBirth" value="1981-03-14">
+            </div>
+          </div>
+          <div class="field">
+            <label for="facilityCode">Hospital</label>
+            <select id="facilityCode"></select>
+          </div>
+          <div class="field">
+            <label for="reason">Reason for visit</label>
+            <select id="reason"></select>
+          </div>
+          <button type="submit" class="btn btn-solid" id="submitBtn">Check in online</button>
+          <div class="processing" id="processing">Reserving your place in line&hellip;</div>
+        </form>
+        <div class="result" id="result"></div>
+      </div>
+
+      <aside class="panel">
+        <div class="notice info small">
+          Online check-in is for non-emergency conditions only. Chest pain, stroke symptoms, or severe bleeding &mdash; call 911.
+        </div>
+        <h3>What happens next</h3>
+        <p class="help">
+          Registration holds your spot in the ED queue, sends the pre-registration packet to the front desk, and texts you if the
+          posted wait changes materially.
+        </p>
+        <div class="identity">
+          <label for="devinEmail">Demo identity (devindemos.com sign-in email)</label>
+          <input type="email" id="devinEmail" placeholder="you@company.com" autocomplete="email">
+          <div class="status" id="identityStatus"></div>
+        </div>
+      </aside>
+    </div>
+    <p class="small muted" style="margin-top:18px">
+      For demonstration purposes only. Not affiliated with, endorsed by, or an actual service of Tenet Healthcare Corporation.
+    </p>
+  </section>
+
+  <section id="plan" class="wrap">
+    <h2>Plan your visit</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Find a doctor</h3>
+        <p>Search more than 60,000 affiliated physicians by specialty, hospital, and language.</p>
+      </div>
+      <div class="card">
+        <h3>Schedule online</h3>
+        <p>Book primary care and specialty visits against live Millennium scheduling templates.</p>
+      </div>
+      <div class="card">
+        <h3>Pre-register</h3>
+        <p>Complete your paperwork before you arrive and shorten your check-in.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="wrap row">
+      <span>Tenet Patient Experience Platform 7.4 &middot; &copy; 2026 Demo environment. Patient portal services provided by Oracle Health.</span>
+      <a href="/">&larr; All Demos</a>
+    </div>
+  </footer>
+
+  <script>
+    /* Identity: the Slack on-call member and the Devin session are both resolved
+       from the demo user's devindemos.com sign-in email. */
+    (function () {
+      var emailInput = document.getElementById('devinEmail');
+      var statusEl = document.getElementById('identityStatus');
+      var resolutionToken = 0;
+
+      function setStatus(text) { statusEl.textContent = text; }
+      function storedOrgId() { return localStorage.getItem('devinOrgId') || ''; }
+
+      function loadConfig() {
+        return fetch('/api/config')
+          .then(function (r) { return r.json(); })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId && !storedOrgId()) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
+            return cfg;
+          })
+          .catch(function () { return {}; });
+      }
+
+      function resolveIdentity(email) {
+        resolutionToken += 1;
+        var token = resolutionToken;
+        if (!email) {
+          window.tenetIdentityReady = Promise.resolve();
+          return window.tenetIdentityReady;
+        }
+        window.tenetIdentityReady = loadConfig().then(function (cfg) {
+          if (token !== resolutionToken) return;
+          var orgId = storedOrgId() || cfg.defaultOrgId || '';
+          var orgName = cfg.defaultOrgName || '';
+          if (!orgId && !orgName) { setStatus('Signed in as ' + email); return; }
+          setStatus('Resolving ' + email + '\u2026');
+          return fetch('/api/resolve-identity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orgId: orgId, orgName: orgId ? '' : orgName, email: email })
+          })
+            .then(function (r) { return r.json().then(function (p) { return { ok: r.ok, payload: p }; }); })
+            .then(function (res) {
+              if (token !== resolutionToken) return;
+              if (!res.ok) { setStatus(res.payload.error || 'Could not resolve this email'); return; }
+              if (res.payload.orgId) localStorage.setItem('devinOrgId', res.payload.orgId);
+              if (res.payload.userId) localStorage.setItem('devinUserId', res.payload.userId);
+              setStatus('On-call and Devin session will use ' + email);
+            })
+            .catch(function (err) {
+              if (token === resolutionToken) setStatus('Could not resolve this email: ' + err.message);
+            });
+        });
+        return window.tenetIdentityReady;
+      }
+
+      emailInput.value = localStorage.getItem('devinEmail') || '';
+      if (emailInput.value && localStorage.getItem('devinUserId')) setStatus('On-call and Devin session will use ' + emailInput.value);
+      else if (emailInput.value) resolveIdentity(emailInput.value);
+      else loadConfig();
+
+      emailInput.addEventListener('change', function () {
+        var email = emailInput.value.trim();
+        localStorage.setItem('devinEmail', email);
+        localStorage.removeItem('devinUserId');
+        resolveIdentity(email);
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var boardBody = document.getElementById('board-body');
+      var noticeEl = document.getElementById('notice');
+      var facilitySelect = document.getElementById('facilityCode');
+      var reasonSelect = document.getElementById('reason');
+      var resultEl = document.getElementById('result');
+      var processingEl = document.getElementById('processing');
+      var submitBtn = document.getElementById('submitBtn');
+      var optionsLoaded = false;
+
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      function statusPill(status) {
+        var cls = status === 'Extended wait' ? 'warn' : 'ok';
+        return '<span class="pill ' + cls + '">' + esc(status) + '</span>';
+      }
+
+      function renderBoard(rows) {
+        boardBody.innerHTML = '';
+        rows.forEach(function (r) {
+          var bad = r.averageWaitMinutes < 0 || r.averageWaitMinutes > 240;
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td><strong>' + esc(r.facilityName) + '</strong></td>' +
+            '<td>' + esc(r.city) + ', ' + esc(r.state) + '</td>' +
+            '<td>' + r.patientsWaiting + '</td>' +
+            '<td><span class="wait-value' + (bad ? ' bad' : '') + '">' + r.averageWaitMinutes + '</span> min</td>' +
+            '<td>' + r.longestWaitMinutes + ' min</td>' +
+            '<td>' + statusPill(r.status) + '</td>' +
+            '<td class="small muted">' + esc(r.updatedAtDisplay) + '</td>';
+          boardBody.appendChild(tr);
+        });
+      }
+
+      function renderOptions(data) {
+        if (optionsLoaded) return;
+        optionsLoaded = true;
+        facilitySelect.innerHTML = data.facilities.map(function (f) {
+          return '<option value="' + esc(f.code) + '"' + (f.code === 'HVL' ? ' selected' : '') + '>' +
+            esc(f.name) + ' \u2014 ' + esc(f.city) + ', ' + esc(f.state) + '</option>';
+        }).join('');
+        reasonSelect.innerHTML = data.reasons.map(function (r) {
+          return '<option value="' + esc(r.code) + '"' + (r.code === 'injury' ? ' selected' : '') + '>' + esc(r.label) + '</option>';
+        }).join('');
+      }
+
+      function load() {
+        fetch('/api/cb48a22d/waittimes', { headers: { Accept: 'application/json' } })
+          .then(function (r) {
+            if (!r.ok) throw new Error('Request failed: ' + r.status);
+            return r.json();
+          })
+          .then(function (data) {
+            noticeEl.innerHTML = '';
+            renderOptions(data);
+            renderBoard(data.board);
+          })
+          .catch(function (err) {
+            noticeEl.innerHTML = '<div class="notice" style="background:#fdecea;border:1px solid #f5c6c2;color:#b3261e">' +
+              'Wait times are temporarily unavailable. ' + esc(err.message) + '</div>';
+          });
+      }
+
+      document.getElementById('checkinForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        resultEl.className = 'result';
+        resultEl.innerHTML = '';
+        submitBtn.disabled = true;
+        processingEl.classList.add('visible');
+
+        /* Wait for any in-flight email resolution so Slack's on-call mention and
+           the Devin session owner come from the same identity. */
+        Promise.resolve(window.tenetIdentityReady).catch(function () {}).then(function () {
+          return fetch('/api/cb48a22d/checkin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              patientName: document.getElementById('patientName').value,
+              dateOfBirth: document.getElementById('dateOfBirth').value,
+              facilityCode: facilitySelect.value,
+              reason: reasonSelect.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (out) {
+            processingEl.classList.remove('visible');
+            submitBtn.disabled = false;
+            if (!out.ok || !out.data.success) {
+              resultEl.className = 'result visible error';
+              resultEl.innerHTML =
+                '<h4>We could not hold your place in line</h4>' +
+                '<p>Online check-in is unavailable for this hospital right now. No place in line was reserved &mdash; go to the ' +
+                'emergency department directly, or call 911 if this is an emergency.</p>' +
+                '<code>' + esc(out.data.error || 'Unknown error') + '</code>' +
+                '<div class="meta">' +
+                '<span>Error: ' + esc(out.data.errorClass || 'InternalError') + '</span>' +
+                '<span>Code: ' + esc(out.data.code || 'INTERNAL_ERROR') + '</span>' +
+                '<span>Request: ' + esc(out.data.requestId || 'N/A') + '</span>' +
+                '<span>Time: ' + new Date().toISOString() + '</span>' +
+                '</div>';
+              return;
+            }
+            var d = out.data;
+            resultEl.className = 'result visible success';
+            resultEl.innerHTML =
+              '<h4>You&rsquo;re checked in &mdash; confirmation ' + esc(d.confirmationId) + '</h4>' +
+              '<p>' + esc(d.patientName) + ' is holding a place in line at <strong>' + esc(d.facility.name) + '</strong>, ' +
+              esc(d.facility.city) + ', ' + esc(d.facility.state) + '.</p>' +
+              '<dl>' +
+              '<dt>Hold until</dt><dd>' + esc(d.reservation.holdUntilDisplay) + ' (' + d.reservation.holdMinutes + ' min)</dd>' +
+              '<dt>ED queue</dt><dd>' + esc(d.reservation.queue) + '</dd>' +
+              '<dt>Fast track</dt><dd>' + (d.reservation.fastTrackEligible ? 'Eligible' : 'Not eligible') + '</dd>' +
+              '<dt>Posted wait</dt><dd>' + d.board.averageWaitMinutes + ' min &middot; ' + esc(d.board.status) + '</dd>' +
+              '<dt>Patients waiting</dt><dd>' + d.board.patientsWaiting + '</dd>' +
+              '</dl>';
+          })
+          .catch(function (err) {
+            processingEl.classList.remove('visible');
+            submitBtn.disabled = false;
+            resultEl.className = 'result visible error';
+            resultEl.innerHTML =
+              '<h4>Network error</h4><p>Unable to reach the check-in service.</p><code>' + esc(err.message) + '</code>';
+          });
+      });
+
+      load();
+      setInterval(load, 45000);
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
