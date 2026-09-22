@@ -54,6 +54,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Midstream Pipeline Control — Line Balance Leak Detection** (unlisted — direct URL only) | `/b4c3a7fc` | `app/public/verticals/b4c3a7fc.html` | `GET /api/b4c3a7fc/overview`, `POST /api/b4c3a7fc/line-balance/run`, `POST /api/b4c3a7fc/line-balance/reset` | `app/services/verticals/b4c3a7fc.js` |
 | **Atlan — Data Product Publishing** (unlisted — direct URL only) | `/atlan`, `/fe0957f8` | `app/public/verticals/fe0957f8.html` | `GET /api/fe0957f8/assets`, `POST /api/fe0957f8/publish` | `app/services/verticals/fe0957f8.js` |
 | **Spring Venture Group — SmartMatch Medicare Supplement Quote** (unlisted — direct URL only) | `/springventuregroup`, `/springventure`, `/smartmatch`, `/64e85fcf` | `app/public/verticals/64e85fcf.html` | `GET /api/64e85fcf/carriers`, `POST /api/64e85fcf/quotes` | `app/services/verticals/64e85fcf.js` |
+| **Tenet Health — ER Wait Board & Online Check-In** (unlisted — direct URL only) | `/tenet`, `/tenethealth`, `/cb48a22d` | `app/public/verticals/cb48a22d.html` | `GET /api/cb48a22d/waittimes`, `POST /api/cb48a22d/checkin` | `app/services/verticals/cb48a22d.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
