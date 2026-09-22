@@ -76,6 +76,9 @@
       }
       .nav-links a {
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
       }
       .brand {
         display: flex;
@@ -99,6 +102,11 @@
         font-size: 16px;
         color: var(--muted);
         padding: 22px 0 6px;
+      }
+      .crumbs a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
       }
       .crumbs span {
         margin: 0 8px;
@@ -347,7 +355,9 @@
         margin: 0 0 18px;
       }
       .foot-grid a {
-        display: block;
+        display: flex;
+        align-items: center;
+        min-height: 44px;
         font-size: 17px;
         line-height: 32px;
       }
@@ -640,6 +650,35 @@
         currency: "USD",
       });
 
+      const HANDLING = {
+        "POL-5001": {
+          title: "Field adjuster",
+          note: "Auto physical damage losses over $10,000 are inspected on site. Rental and towing coverage apply under this policy.",
+          desk: true,
+          threshold: 10000,
+          deskNote:
+            "Losses under $10,000 are settled from photo estimates. Upload images in MyZNA once the claim number is issued.",
+        },
+        "POL-5002": {
+          title: "Property adjuster",
+          note: "A property adjuster schedules the site inspection and reviews business interruption cover. Keep damaged items until the inspection.",
+          desk: true,
+          threshold: 25000,
+          deskNote:
+            "Property losses under $25,000 are settled from documented estimates. Upload repair quotes and photos in MyZNA.",
+        },
+        "POL-5003": {
+          title: "Liability examiner",
+          note: "A liability examiner reviews the allegation and coordinates defence counsel. Forward any demand letters or legal papers on receipt.",
+          desk: false,
+        },
+        "POL-5004": {
+          title: "Claims case manager",
+          note: "A case manager contacts the injured worker and arranges medical management. Wage statements are required for indemnity benefits.",
+          desk: false,
+        },
+      };
+
       function syncSummary() {
         const label = policyEl.options[policyEl.selectedIndex].text
           .replace(/\s+/g, " ")
@@ -652,17 +691,21 @@
         const amt = parseFloat(amountEl.value);
         document.getElementById("sumAmount").textContent =
           amt > 0 ? usd.format(amt) : "—";
-        const desk = amt > 0 && amt < 10000;
+        const handling = HANDLING[policyEl.value] || HANDLING["POL-5001"];
+        const desk = handling.desk && amt > 0 && amt < handling.threshold;
         document.getElementById("handlingTitle").textContent = desk
           ? "Handling: Desk adjuster"
-          : "Handling: Field adjuster";
+          : "Handling: " + handling.title;
         document.getElementById("handlingNote").textContent = desk
-          ? "Losses under $10,000 are settled from photo estimates. Upload images in MyZNA once the claim number is issued."
-          : "Auto physical damage losses over $10,000 are inspected on site. Rental and towing coverage apply under this policy.";
+          ? handling.deskNote
+          : handling.note;
       }
       policyEl.addEventListener("change", syncSummary);
       claimTypeEl.addEventListener("change", syncSummary);
       amountEl.addEventListener("input", syncSummary);
+      document
+        .getElementById("claimForm")
+        .addEventListener("reset", () => setTimeout(syncSummary, 0));
       syncSummary();
 
       document
