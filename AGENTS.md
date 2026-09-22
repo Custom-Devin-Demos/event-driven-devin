@@ -53,6 +53,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **McDonald's McDelivery — DoorDash storefront replica** (unlisted — direct URL only; Place Order never contacts McDonald's/DoorDash) | `/mcdonalds`, `/mcdelivery`, `/2eb494c7` | `app/public/verticals/2eb494c7.html` | `GET /api/2eb494c7/menu`, `POST /api/2eb494c7/order` | `app/services/verticals/2eb494c7.js` |
 | **Midstream Pipeline Control — Line Balance Leak Detection** (unlisted — direct URL only) | `/b4c3a7fc` | `app/public/verticals/b4c3a7fc.html` | `GET /api/b4c3a7fc/overview`, `POST /api/b4c3a7fc/line-balance/run`, `POST /api/b4c3a7fc/line-balance/reset` | `app/services/verticals/b4c3a7fc.js` |
 | **Atlan — Data Product Publishing** (unlisted — direct URL only) | `/atlan`, `/fe0957f8` | `app/public/verticals/fe0957f8.html` | `GET /api/fe0957f8/assets`, `POST /api/fe0957f8/publish` | `app/services/verticals/fe0957f8.js` |
+| **Spring Venture Group — SmartMatch Medicare Supplement Quote** (unlisted — direct URL only) | `/springventuregroup`, `/springventure`, `/smartmatch`, `/64e85fcf` | `app/public/verticals/64e85fcf.html` | `GET /api/64e85fcf/carriers`, `POST /api/64e85fcf/quotes` | `app/services/verticals/64e85fcf.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 

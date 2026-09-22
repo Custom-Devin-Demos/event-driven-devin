@@ -2259,6 +2259,27 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Quality Systems Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A BOEING SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
   },
+  '180f1323': {
+    slug: '180f1323',
+    company: 'MyBoeingFleet',
+    brandMark: 'M',
+    vertical: 'industrials',
+    oncallOnly: true,
+    page: {
+      file: '180f1323.html',
+      title: 'PART Page — Spares price & availability | MyBoeingFleet',
+    },
+    theme: {
+      '--accent': '#009CDE',
+      '--ink': '#253746',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1D2B36',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'MyBoeingFleet Support',
+    supportCenterSub: 'Parts & Distribution Operator Support',
+    disclaimer: 'NOT ACTUALLY A MYBOEINGFLEET SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
+  },
   'bb0a082c': {
     slug: 'bb0a082c',
     company: 'Gap',
@@ -2323,6 +2344,29 @@ const ONCALL_SKINS = {
     supportCenter: 'LSEG Post Trade Client Services',
     supportCenterSub: 'TradeAgent Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN LSEG SITE — internal demo only, not affiliated with, endorsed by, or a real London Stock Exchange Group product.',
+  },
+  'e63edc26': {
+    slug: 'e63edc26',
+    company: 'Harvey',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: 'e63edc26.html',
+      title: 'Harvey | Workspace Access',
+    },
+    theme: {
+      '--accent': '#0f0e0d',
+      '--ink': '#0f0e0d',
+      '--surface': '#fafaf9',
+      '--chrome-bg': '#0f0e0d',
+      '--chrome-text': '#fafaf9',
+    },
+    supportCenter: 'Harvey Support',
+    supportCenterSub: 'Workspace Access & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A HARVEY SITE — internal demo only, not affiliated with, endorsed by, or a real Harvey product.',
   },
 };
 
