@@ -54,6 +54,20 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test.each([
+    'buildCoverageSummary(app.services.verticals.7c6a6ef9)',
+    'POST /api/7c6a6ef9/coverage',
+  ])('recognizes a tagless enGen coverage issue webhook by culprit %p', (culprit) => {
+    expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
+  });
+
+  test.each([
+    'estimateVisitCost(app.services.verticals.7c6a6ef9)',
+    'POST /api/7c6a6ef9/cost-estimate',
+  ])('does not treat a tagless enGen cost-estimate issue webhook as instant path %p', (culprit) => {
+    expect(isInstantPathEvent({ culprit, tags: [] })).toBe(false);
+  });
+
   test('does not recognize a tagless issue webhook from another vertical', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
