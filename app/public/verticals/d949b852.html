@@ -398,7 +398,7 @@
       }).catch(function () {});
     })();
 
-    document.getElementById('valueDate').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    document.getElementById('valueDate').textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'Europe/London' });
 
     function fmtGBP(n) {
       return 'GBP ' + Number(n).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -408,6 +408,17 @@
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
       const result = document.getElementById('result');
+      const fromAccount = document.getElementById('fromAccount').value;
+      const toAccount = document.getElementById('toAccount').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const invalid = !(amount > 0) || !Number.isFinite(amount) ? 'Enter a cashflow amount greater than zero.'
+        : fromAccount === toAccount ? 'Paying and receiving settlement accounts must differ.' : '';
+      if (invalid) {
+        result.className = 'result-box error';
+        result.innerHTML = '<div class="error-title">Instruction not submitted</div><div class="error-detail"></div>';
+        result.querySelector('.error-detail').textContent = invalid;
+        return;
+      }
       const started = Date.now();
       btn.disabled = true;
       btn.textContent = 'Validating instruction…';
@@ -418,9 +429,9 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            fromAccount: document.getElementById('fromAccount').value,
-            toAccount: document.getElementById('toAccount').value,
-            amount: parseFloat(document.getElementById('amount').value),
+            fromAccount,
+            toAccount,
+            amount,
             accountTier: document.getElementById('accountTier').value,
             userId: 'usr_alice_chen',
             devinUserId: localStorage.getItem('devinUserId') || '',
