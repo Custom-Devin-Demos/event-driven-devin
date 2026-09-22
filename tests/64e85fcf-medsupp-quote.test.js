@@ -21,6 +21,7 @@ const {
   carriersAppointedIn,
   effectiveDateFor,
   zipInRatingArea,
+  isCalendarDate,
   planFEligible,
   CARRIERS,
   RATE_FILINGS,
@@ -126,6 +127,14 @@ describe('Spring Venture Group SmartMatch Medicare Supplement quote (64e85fcf)',
     expect(planFEligible('2019-06-01')).toBe(true);
     expect(planFEligible('2020-01-01')).toBe(false);
     expect(planFEligible('')).toBe(false);
+    expect(planFEligible('2019-99-99')).toBe(false);
+  });
+
+  test('eligibility dates must be real calendar dates', () => {
+    expect(isCalendarDate('2016-02-29')).toBe(true);
+    expect(isCalendarDate('2017-02-29')).toBe(false);
+    expect(isCalendarDate('2019-13-01')).toBe(false);
+    expect(isCalendarDate('2019-04-31')).toBe(false);
   });
 
   test('effective date resolves to the first of the requested month', () => {
@@ -163,6 +172,8 @@ describe('Spring Venture Group SmartMatch Medicare Supplement quote (64e85fcf)',
         { ...baseRequest, zip: '' },
         { ...baseRequest, state: 'KS', zip: '33602' },
         { ...baseRequest, medicareEligibleDate: 'yesterday' },
+        { ...baseRequest, state: 'FL', zip: '33602', plan: 'F', medicareEligibleDate: '2019-99-99' },
+        { ...baseRequest, state: 'FL', zip: '33602', plan: 'F', medicareEligibleDate: '2019-02-29' },
         { ...baseRequest, age: 40 },
         { ...baseRequest, plan: 'Z' },
         { ...baseRequest, state: 'FL', zip: '33602', plan: 'F' },

@@ -3,6 +3,7 @@ const {
   runQuoteComparison,
   carriersAppointedIn,
   zipInRatingArea,
+  isCalendarDate,
   planFEligible,
   STATES,
   PLANS,
@@ -80,8 +81,8 @@ router.post('/api/64e85fcf/quotes', async (req, res) => {
       code: 'VALIDATION_ERROR',
     });
   }
-  if (medicareEligibleDate && !/^\d{4}-\d{2}-\d{2}$/.test(medicareEligibleDate)) {
-    return res.status(400).json({ success: false, error: 'medicareEligibleDate must be YYYY-MM-DD', code: 'VALIDATION_ERROR' });
+  if (medicareEligibleDate && !isCalendarDate(medicareEligibleDate)) {
+    return res.status(400).json({ success: false, error: 'medicareEligibleDate must be a valid YYYY-MM-DD calendar date', code: 'VALIDATION_ERROR' });
   }
   if (!Number.isSafeInteger(age) || age < AGE_MIN || age > AGE_MAX) {
     return res.status(400).json({
