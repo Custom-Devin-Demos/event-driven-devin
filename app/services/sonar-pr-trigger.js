@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const axios = require('axios');
 const logger = require('../telemetry/logger');
 const { getCustomerConfig } = require('../../config/customers');
@@ -158,7 +159,7 @@ async function createVulnerablePR(options = {}) {
   const targetRepo = config.targetRepo;
   const prefix = options.branchPrefix || 'demo/sonar-remediation';
   const timestamp = Math.floor(Date.now() / 1000);
-  const branchName = `${prefix}-${timestamp}`;
+  const branchName = `${prefix}-${timestamp}-${crypto.randomBytes(3).toString('hex')}`;
 
   const workflowOrgId = options.devinOrgId || config.devinOrgId || process.env.DEVIN_ORG_ID || '';
 
