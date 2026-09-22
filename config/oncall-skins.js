@@ -2160,6 +2160,23 @@ const ONCALL_SKINS = {
     supportCenter: 'Drata Support',
     disclaimer: 'NOT ACTUALLY A DRATA SITE — internal demo only, not affiliated with, endorsed by, or a real Drata product.',
   },
+  '68cde0d3': {
+    slug: '68cde0d3',
+    company: 'WorkOS',
+    brandMark: 'W',
+    vertical: 'hightech',
+    page: { file: '68cde0d3.html', title: 'WorkOS — Directory Sync' },
+    theme: {
+      '--accent': '#6363F1',
+      '--ink': '#29363D',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#030628',
+      '--chrome-text': '#F9F9FB',
+    },
+    supportCenter: 'WorkOS Support',
+    supportCenterSub: 'Enterprise Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A WORKOS SITE — internal demo only, not affiliated with, endorsed by, or a real WorkOS product.',
+  },
   'ce0199ec': {
     slug: 'ce0199ec',
     company: 'Cross River',
@@ -2183,6 +2200,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Cross River Support',
     supportCenterSub: 'Payments & Accounts Operations',
     disclaimer: 'NOT ACTUALLY A CROSS RIVER SITE — internal demo only, not affiliated with, endorsed by, or a real Cross River product.',
+  },
+  '4c8c5b8f': {
+    slug: '4c8c5b8f',
+    company: 'OCBC',
+    brandMark: 'O',
+    vertical: 'banking',
+    page: {
+      file: '4c8c5b8f.html',
+      title: 'Fund360 — Place a fund bid | OCBC',
+    },
+    theme: {
+      '--accent': '#E30613',
+      '--ink': '#363B40',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#2D3D45',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'OCBC Support',
+    disclaimer: 'NOT ACTUALLY AN OCBC SITE — internal demo only, not affiliated with, endorsed by, or a real OCBC product.',
   },
 };
 
