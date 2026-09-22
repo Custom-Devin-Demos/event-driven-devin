@@ -2184,6 +2184,28 @@ const ONCALL_SKINS = {
     supportCenter: 'OCBC Support',
     disclaimer: 'NOT ACTUALLY AN OCBC SITE — internal demo only, not affiliated with, endorsed by, or a real OCBC product.',
   },
+  '777b1b03': {
+    slug: '777b1b03',
+    company: 'Boeing',
+    brandMark: 'B',
+    vertical: 'industrials',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: '777b1b03.html',
+      title: 'Velocity — Nonconformance Submittal | Boeing',
+    },
+    theme: {
+      '--accent': '#0033A1',
+      '--ink': '#253746',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#0A2240',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Boeing Support',
+    supportCenterSub: 'Quality Systems Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A BOEING SITE — internal demo only, not affiliated with, endorsed by, or a real Boeing product.',
+  },
 };
 
 function getOncallSkin(slug) {
