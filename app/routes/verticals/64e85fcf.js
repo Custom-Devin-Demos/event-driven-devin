@@ -2,12 +2,15 @@ const express = require('express');
 const {
   runQuoteComparison,
   carriersAppointedIn,
+  zipInRatingArea,
+  planFEligible,
   STATES,
   PLANS,
   CARRIERS,
   GENDER_FACTORS,
   ENROLLMENT_WINDOWS,
   EFFECTIVE_DATES,
+  PLAN_F_ELIGIBILITY_CUTOFF,
   AGE_MIN,
   AGE_MAX,
 } = require('../../services/verticals/64e85fcf');
@@ -21,7 +24,7 @@ router.get('/api/64e85fcf/carriers', (req, res) => {
     : Object.entries(CARRIERS).map(([carrierId, c]) => ({ carrierId, ...c }));
   res.json({
     carriers,
-    states: Object.entries(STATES).map(([code, s]) => ({ code, name: s.name, ratingArea: s.ratingArea })),
+    states: Object.entries(STATES).map(([code, s]) => ({ code, name: s.name, ratingArea: s.ratingArea, zipPrefixes: s.zipPrefixes, sampleZip: s.sampleZip })),
     plans: Object.entries(PLANS).map(([code, p]) => ({ code, label: p.label, description: p.description, newlyEligible: p.newlyEligible })),
     enrollmentWindows: Object.entries(ENROLLMENT_WINDOWS).map(([code, w]) => ({ code, label: w.label, description: w.description })),
     effectiveDates: Object.entries(EFFECTIVE_DATES).map(([code, d]) => ({ code, label: d.label })),
@@ -50,6 +53,7 @@ router.post('/api/64e85fcf/quotes', async (req, res) => {
   const clientFirstName = typeof body.clientFirstName === 'string' ? body.clientFirstName.trim() : '';
   const state = stringField(body.state, 'MO');
   const zip = typeof body.zip === 'string' ? body.zip.trim() : '';
+  const medicareEligibleDate = typeof body.medicareEligibleDate === 'string' ? body.medicareEligibleDate.trim() : '';
   const age = numberField(body.age);
   const gender = stringField(body.gender, 'female');
   const tobacco = body.tobacco === true || body.tobacco === 'true' || body.tobacco === 'yes';
@@ -66,8 +70,18 @@ router.post('/api/64e85fcf/quotes', async (req, res) => {
   if (!has(STATES, state)) {
     return res.status(400).json({ success: false, error: `Unsupported state: ${state}`, code: 'VALIDATION_ERROR' });
   }
-  if (zip && !/^\d{5}$/.test(zip)) {
+  if (!/^\d{5}$/.test(zip)) {
     return res.status(400).json({ success: false, error: 'zip must be a 5-digit ZIP code', code: 'VALIDATION_ERROR' });
+  }
+  if (!zipInRatingArea(state, zip)) {
+    return res.status(400).json({
+      success: false,
+      error: `ZIP ${zip} is outside the ${STATES[state].ratingArea} rating area filed for ${STATES[state].name}`,
+      code: 'VALIDATION_ERROR',
+    });
+  }
+  if (medicareEligibleDate && !/^\d{4}-\d{2}-\d{2}$/.test(medicareEligibleDate)) {
+    return res.status(400).json({ success: false, error: 'medicareEligibleDate must be YYYY-MM-DD', code: 'VALIDATION_ERROR' });
   }
   if (!Number.isSafeInteger(age) || age < AGE_MIN || age > AGE_MAX) {
     return res.status(400).json({
@@ -81,6 +95,13 @@ router.post('/api/64e85fcf/quotes', async (req, res) => {
   }
   if (!has(PLANS, plan)) {
     return res.status(400).json({ success: false, error: `Unknown plan: ${plan}`, code: 'VALIDATION_ERROR' });
+  }
+  if (!PLANS[plan].newlyEligible && !planFEligible(medicareEligibleDate)) {
+    return res.status(400).json({
+      success: false,
+      error: `${PLANS[plan].label} is only available to clients first eligible for Medicare before ${PLAN_F_ELIGIBILITY_CUTOFF}`,
+      code: 'VALIDATION_ERROR',
+    });
   }
   if (!has(ENROLLMENT_WINDOWS, enrollmentWindow)) {
     return res.status(400).json({ success: false, error: `Unknown enrollment window: ${enrollmentWindow}`, code: 'VALIDATION_ERROR' });
@@ -103,6 +124,7 @@ router.post('/api/64e85fcf/quotes', async (req, res) => {
       clientFirstName,
       state,
       zip,
+      medicareEligibleDate,
       age,
       gender,
       tobacco,

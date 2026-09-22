@@ -20,6 +20,8 @@ const {
   runQuoteComparison,
   carriersAppointedIn,
   effectiveDateFor,
+  zipInRatingArea,
+  planFEligible,
   CARRIERS,
   RATE_FILINGS,
 } = require('../app/services/verticals/64e85fcf');
@@ -30,6 +32,7 @@ const baseRequest = {
   clientFirstName: 'Margaret',
   state: 'MO',
   zip: '64105',
+  medicareEligibleDate: '2026-09-01',
   age: 65,
   gender: 'female',
   tobacco: false,
@@ -103,14 +106,26 @@ describe('Spring Venture Group SmartMatch Medicare Supplement quote (64e85fcf)',
   });
 
   test('rating factors apply age, gender and tobacco loads to the filed base premium', async () => {
-    const female65 = await runQuoteComparison({ ...baseRequest, state: 'TX' });
-    const male72Tobacco = await runQuoteComparison({ ...baseRequest, state: 'TX', age: 72, gender: 'male', tobacco: true });
+    const female65 = await runQuoteComparison({ ...baseRequest, state: 'TX', zip: '75201' });
+    const male72Tobacco = await runQuoteComparison({ ...baseRequest, state: 'TX', zip: '75201', age: 72, gender: 'male', tobacco: true });
 
     const moo65 = female65.quotes.find((q) => q.carrierId === 'car-moo');
     const moo72 = male72Tobacco.quotes.find((q) => q.carrierId === 'car-moo');
     expect(moo65.monthly).toBe(RATE_FILINGS['car-moo'].TX.plans.G);
     expect(moo72.monthly).toBeCloseTo(RATE_FILINGS['car-moo'].TX.plans.G * 1.21 * 1.09 * 1.15, 1);
     expect(moo72.householdMonthly).toBeLessThan(moo72.monthly);
+  });
+
+  test('ZIPs must fall inside the rating area filed for the state', () => {
+    expect(zipInRatingArea('KS', '66210')).toBe(true);
+    expect(zipInRatingArea('KS', '33602')).toBe(false);
+    expect(zipInRatingArea('MO', '64105')).toBe(true);
+  });
+
+  test('Plan F eligibility requires original Medicare eligibility before 2020', () => {
+    expect(planFEligible('2019-06-01')).toBe(true);
+    expect(planFEligible('2020-01-01')).toBe(false);
+    expect(planFEligible('')).toBe(false);
   });
 
   test('effective date resolves to the first of the requested month', () => {
@@ -145,8 +160,13 @@ describe('Spring Venture Group SmartMatch Medicare Supplement quote (64e85fcf)',
         { ...baseRequest, agentName: '' },
         { ...baseRequest, state: 'NY' },
         { ...baseRequest, zip: '1234' },
+        { ...baseRequest, zip: '' },
+        { ...baseRequest, state: 'KS', zip: '33602' },
+        { ...baseRequest, medicareEligibleDate: 'yesterday' },
         { ...baseRequest, age: 40 },
         { ...baseRequest, plan: 'Z' },
+        { ...baseRequest, state: 'FL', zip: '33602', plan: 'F' },
+        { ...baseRequest, state: 'FL', zip: '33602', plan: 'F', medicareEligibleDate: '' },
         { ...baseRequest, enrollmentWindow: 'guaranteed_issue', plan: 'N' },
         { ...baseRequest, effectiveDate: 'tomorrow' },
       ];
@@ -164,6 +184,15 @@ describe('Spring Venture Group SmartMatch Medicare Supplement quote (64e85fcf)',
       expect(res.body.success).toBe(true);
       expect(res.body.quotes).toHaveLength(4);
       expect(res.body.client.stateName).toBe('Florida');
+    });
+
+    test('quotes Plan F once pre-2020 Medicare eligibility is established', async () => {
+      const res = await postJson(server, '/api/64e85fcf/quotes', {
+        ...baseRequest, state: 'FL', zip: '33602', age: 74, plan: 'F', medicareEligibleDate: '2017-03-01',
+      });
+      expect(res.status).toBe(200);
+      expect(res.body.plan.code).toBe('F');
+      expect(res.body.client.medicareEligibleDate).toBe('2017-03-01');
     });
   });
 });

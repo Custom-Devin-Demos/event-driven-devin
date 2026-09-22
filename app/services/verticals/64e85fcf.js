@@ -10,16 +10,18 @@ const SLACK_MEMBER_ID = process.env.SVG_SLACK_MEMBER_ID || 'U08S7AVJ478';
 
 /**
  * States the SmartMatch agent desk is licensed to quote Medicare Supplement
- * plans in. Rates are quoted by ZIP, so each state carries a sample
- * rating-area ZIP prefix that the console echoes back to the agent.
+ * plans in. Each state's filings are loaded for a single rating area, so a
+ * ZIP must fall inside that area's prefixes to be quoted.
  */
 const STATES = {
-  MO: { name: 'Missouri', ratingArea: 'Kansas City metro', zipPrefix: '641' },
-  KS: { name: 'Kansas', ratingArea: 'Johnson County', zipPrefix: '662' },
-  TX: { name: 'Texas', ratingArea: 'Dallas–Fort Worth', zipPrefix: '752' },
-  FL: { name: 'Florida', ratingArea: 'Tampa Bay', zipPrefix: '336' },
-  AZ: { name: 'Arizona', ratingArea: 'Phoenix metro', zipPrefix: '850' },
+  MO: { name: 'Missouri', ratingArea: 'Kansas City metro', zipPrefixes: ['640', '641'], sampleZip: '64105' },
+  KS: { name: 'Kansas', ratingArea: 'Johnson County', zipPrefixes: ['662'], sampleZip: '66210' },
+  TX: { name: 'Texas', ratingArea: 'Dallas–Fort Worth', zipPrefixes: ['750', '751', '752', '753', '760', '761'], sampleZip: '75201' },
+  FL: { name: 'Florida', ratingArea: 'Tampa Bay', zipPrefixes: ['335', '336', '337'], sampleZip: '33602' },
+  AZ: { name: 'Arizona', ratingArea: 'Phoenix metro', zipPrefixes: ['850', '851', '852', '853'], sampleZip: '85004' },
 };
+
+const PLAN_F_ELIGIBILITY_CUTOFF = '2020-01-01';
 
 /**
  * Standardized Medicare Supplement plans the desk quotes. Plan F is only
@@ -109,7 +111,7 @@ const ENROLLMENT_WINDOWS = {
   },
   guaranteed_issue: {
     label: 'Guaranteed Issue right',
-    description: 'Loss of coverage or trial right — plans A, B, D, G, K, L only',
+    description: 'Loss of coverage or trial right — of the plans this desk quotes, only Plan G (standard or high-deductible)',
     underwriting: 'none',
     eligiblePlans: ['G', 'HDG'],
   },
@@ -134,6 +136,15 @@ function resolveState(stateCode) {
     throw Object.assign(new Error(`Unsupported state: ${stateCode}`), { code: 'INVALID_STATE' });
   }
   return state;
+}
+
+function zipInRatingArea(stateCode, zip) {
+  const state = STATES[stateCode];
+  return Boolean(state) && state.zipPrefixes.some((prefix) => zip.startsWith(prefix));
+}
+
+function planFEligible(medicareEligibleDate) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(medicareEligibleDate || '') && medicareEligibleDate < PLAN_F_ELIGIBILITY_CUTOFF;
 }
 
 function ageFactor(age) {
@@ -248,6 +259,7 @@ async function runQuoteComparison(data) {
         stateName: state.name,
         ratingArea: state.ratingArea,
         zip: data.zip,
+        medicareEligibleDate: data.medicareEligibleDate,
       },
       plan: { code: data.plan, label: PLANS[data.plan].label, description: PLANS[data.plan].description },
       enrollment: {
@@ -350,6 +362,8 @@ async function runQuoteComparison(data) {
 module.exports = {
   runQuoteComparison,
   resolveState,
+  zipInRatingArea,
+  planFEligible,
   carriersAppointedIn,
   priceCarrierPlan,
   compareCarriers,
@@ -363,6 +377,7 @@ module.exports = {
   TOBACCO_FACTOR,
   ENROLLMENT_WINDOWS,
   EFFECTIVE_DATES,
+  PLAN_F_ELIGIBILITY_CUTOFF,
   AGE_MIN,
   AGE_MAX,
 };
