@@ -2177,6 +2177,23 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Enterprise Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A WORKOS SITE — internal demo only, not affiliated with, endorsed by, or a real WorkOS product.',
   },
+  'd2c12d14': {
+    slug: 'd2c12d14',
+    company: 'Modern Health',
+    brandMark: 'M',
+    vertical: 'hightech',
+    page: { file: 'd2c12d14.html', title: 'Modern Health — Member Access Provisioning' },
+    theme: {
+      '--accent': '#0069BF',
+      '--ink': '#3C3C3C',
+      '--surface': '#F8F6EE',
+      '--chrome-bg': '#043570',
+      '--chrome-text': '#F8F6EE',
+    },
+    supportCenter: 'Modern Health Support',
+    supportCenterSub: 'Employer & Member Support',
+    disclaimer: 'NOT ACTUALLY A MODERN HEALTH SITE — internal demo only, not affiliated with, endorsed by, or a real Modern Health product.',
+  },
   'ce0199ec': {
     slug: 'ce0199ec',
     company: 'Cross River',
