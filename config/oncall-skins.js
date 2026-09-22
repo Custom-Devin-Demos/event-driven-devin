@@ -48,6 +48,12 @@
  * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
  * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
  *
+ * A skin may set sonarPR: { auto: true, customer } to have each of its alerts
+ * also open the SonarCloud remediation demo PR (app/services/sonar-pr-trigger.js)
+ * in that customer's configured target repo, the same way the legacy
+ * event-driven alert flow does. customer defaults to 'default'; the GitHub
+ * token comes from the environment.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
@@ -62,6 +68,23 @@
  */
 
 const ONCALL_SKINS = {
+  '857b6424': {
+    slug: '857b6424',
+    company: 'Qdoba',
+    brandMark: 'Q',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '857b6424.html',
+      title: 'Chicken Queso Bowl | QDOBA Mexican Eats',
+    },
+    accent: '#F09800',
+    accentDark: '#D78700',
+    supportCenter: 'QDOBA Guest Support',
+    supportCenterSub: 'Online Ordering',
+    disclaimer: 'NOT ACTUALLY A QDOBA SITE — internal demo only, not affiliated with, endorsed by, or a real Qdoba product.',
+  },
   '63dbb52f': {
     slug: '63dbb52f',
     company: 'Kaufland',
@@ -2136,6 +2159,30 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Drata Support',
     disclaimer: 'NOT ACTUALLY A DRATA SITE — internal demo only, not affiliated with, endorsed by, or a real Drata product.',
+  },
+  'ce0199ec': {
+    slug: 'ce0199ec',
+    company: 'Cross River',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      file: 'ce0199ec.html',
+      title: 'Cross River | Payments — Move Money',
+    },
+    accent: '#00F996',
+    accentDark: '#00d67f',
+    theme: {
+      '--accent': '#1470CC',
+      '--ink': '#05112E',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#05112E',
+      '--chrome-text': '#ffffff',
+    },
+    devinSession: { auto: true },
+    sonarPR: { auto: true },
+    supportCenter: 'Cross River Support',
+    supportCenterSub: 'Payments & Accounts Operations',
+    disclaimer: 'NOT ACTUALLY A CROSS RIVER SITE — internal demo only, not affiliated with, endorsed by, or a real Cross River product.',
   },
 };
 
