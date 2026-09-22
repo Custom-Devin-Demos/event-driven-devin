@@ -2141,6 +2141,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Strategic Education Support',
     disclaimer: 'NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.',
   },
+  'ad70f2d2': {
+    slug: 'ad70f2d2',
+    company: 'Drata',
+    brandMark: 'D',
+    vertical: 'hightech',
+    page: {
+      file: 'ad70f2d2.html',
+      title: 'Drata — Personnel Provisioning',
+    },
+    theme: {
+      '--accent': '#354ECF',
+      '--ink': '#09090A',
+      '--surface': '#F5F6F7',
+      '--chrome-bg': '#09090A',
+      '--chrome-text': '#F5F6F7',
+    },
+    supportCenter: 'Drata Support',
+    disclaimer: 'NOT ACTUALLY A DRATA SITE — internal demo only, not affiliated with, endorsed by, or a real Drata product.',
+  },
   '68cde0d3': {
     slug: '68cde0d3',
     company: 'WorkOS',
