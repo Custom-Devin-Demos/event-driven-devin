@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Harvey | Workspace Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0f0e0d;
+      --ink-soft: #33312c;
+      --muted: #6b6862;
+      --surface: #fafaf9;
+      --surface-2: #f2f1f0;
+      --line: #e2e0dd;
+      --line-strong: #cfccc7;
+      --chrome: #0f0e0d;
+      --chrome-text: #fafaf9;
+      --chrome-muted: #a3a09a;
+      --sans: 'HarveySansFont', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      --serif: 'HarveySerifFont', 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+      --gutter: 32px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font: 400 16px/24px var(--sans); color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .wrap { max-width: 1728px; margin: 0 auto; padding: 0 var(--gutter); }
+
+    .announce { background: var(--chrome); color: var(--chrome-text); }
+    .announce .wrap { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 32px; padding: 6px var(--gutter); font-size: 14px; line-height: 20px; text-align: center; }
+    .announce strong { font-weight: 500; }
+
+    .site-header { background: var(--surface); }
+    .header-inner { display: flex; align-items: center; gap: 28px; min-height: 74px; }
+    .logo { font-family: var(--serif); font-size: 26px; line-height: 1; font-weight: 400; letter-spacing: 0.2px; display: inline-flex; align-items: center; min-height: 44px; }
+    .nav { display: flex; align-items: center; gap: 28px; }
+    .nav a { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; font-size: 14px; color: var(--ink); }
+    .nav a:hover { opacity: 0.7; }
+    .nav svg { width: 14px; height: 14px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 20px; border: 1px solid transparent; border-radius: 4px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.2s ease; }
+    .btn:hover { opacity: 0.85; }
+    .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+    .btn-ghost:hover { border-color: var(--ink); opacity: 1; }
+
+    .hero { padding: 72px 0 0; }
+    .hero-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; align-items: start; }
+    h1 { grid-column: 1 / span 7; margin: 0; font-family: var(--serif); font-size: 80px; line-height: 84px; letter-spacing: -1px; font-weight: 400; }
+    .hero-side { grid-column: 8 / span 4; }
+    .hero-side p { margin: 8px 0 28px; font-size: 20px; line-height: 26px; color: var(--ink-soft); }
+    .hero-side .btn { min-height: 48px; font-size: 16px; }
+    .hero-media { margin-top: 64px; position: relative; aspect-ratio: 1440 / 700; border-radius: 2px; overflow: hidden; background: #2c3330; }
+    .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+
+    .band { border-top: 1px solid var(--line); margin-top: 96px; }
+    .band .wrap { display: flex; flex-wrap: wrap; gap: 10px 48px; padding-top: 20px; padding-bottom: 20px; font-size: 14px; color: var(--muted); }
+    .band span { display: inline-flex; align-items: center; gap: 8px; }
+    .band em { font-style: normal; color: var(--ink); }
+
+    .access { padding: 96px 0 104px; }
+    .section-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; margin-bottom: 44px; }
+    .eyebrow { grid-column: 1 / span 3; margin: 0; font-size: 13px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); }
+    .section-head > div { grid-column: 4 / span 7; }
+    h2 { margin: 0 0 12px; font-family: var(--serif); font-size: 44px; line-height: 50px; letter-spacing: -0.4px; font-weight: 400; }
+    .section-head p { margin: 0; font-size: 18px; line-height: 26px; color: var(--ink-soft); max-width: 640px; }
+    .access-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+    .card { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 36px; }
+    h3 { margin: 0 0 8px; font-family: var(--serif); font-size: 26px; line-height: 32px; font-weight: 400; }
+    .card-sub { margin: 0 0 28px; font-size: 15px; line-height: 22px; color: var(--muted); }
+    .form-group { margin-bottom: 20px; min-width: 0; }
+    .form-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; letter-spacing: 0.2px; }
+    input, select { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: 4px; background: #fff; font-size: 15px; }
+    input:focus, select:focus { border-color: var(--ink); }
+    select:disabled { background: var(--surface-2); color: var(--muted); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-hint { display: block; margin-top: 7px; font-size: 12.5px; color: var(--muted); }
+    .btn-block { width: 100%; min-height: 52px; font-size: 16px; margin-top: 4px; }
+    .btn-block:disabled { opacity: 0.6; cursor: wait; }
+    .request-status { margin: 12px 0 0; min-height: 20px; font-size: 12.5px; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 16px; padding: 14px 16px; border: 1px solid; border-radius: 4px; overflow-wrap: anywhere; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: #f1f5f2; border-color: #b9cdbd; color: #1f4a2b; }
+    .result-box.error { display: block; background: #fbf1ef; border-color: #ddb3ac; color: #8a2f1f; }
+    .panel { background: var(--chrome); color: var(--chrome-text); border-radius: 6px; padding: 36px; }
+    .panel .eyebrow { color: var(--chrome-muted); }
+    .panel h3 { margin-top: 10px; }
+    .panel > p { margin: 12px 0 26px; font-size: 15px; line-height: 22px; color: var(--chrome-muted); }
+    .panel-list { list-style: none; margin: 0; padding: 0; }
+    .panel-list li { display: flex; gap: 16px; padding: 18px 0; border-top: 1px solid #2a2825; }
+    .panel-list .n { flex: 0 0 24px; height: 24px; display: grid; place-items: center; border: 1px solid #45423d; border-radius: 50%; font-size: 12px; color: var(--chrome-muted); }
+    .panel-list strong { display: block; font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .panel-list p { margin: 0; font-size: 14px; line-height: 21px; color: var(--chrome-muted); }
+    .panel-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 10px; font-size: 15px; }
+    .panel-link:hover { opacity: 0.75; }
+
+    .site-footer { background: var(--chrome); color: var(--chrome-text); padding: 72px 0 40px; }
+    .footer-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding-bottom: 48px; border-bottom: 1px solid #2a2825; }
+    .footer-top h3 { max-width: 520px; font-size: 32px; line-height: 38px; }
+    .footer-top .btn { background: var(--surface); color: var(--ink); min-height: 48px; font-size: 16px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; padding: 44px 0 36px; }
+    .footer-cols h4 { margin: 0 0 14px; font-size: 13px; font-weight: 500; letter-spacing: 0.3px; color: var(--chrome-muted); text-transform: uppercase; }
+    .footer-cols a { display: inline-flex; align-items: center; min-height: 32px; font-size: 14px; color: var(--chrome-text); }
+    .footer-cols a:hover { opacity: 0.7; }
+    .footer-cols ul { list-style: none; margin: 0; padding: 0; }
+    .footer-base { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 28px; border-top: 1px solid #2a2825; font-size: 13px; color: var(--chrome-muted); }
+    .footer-base .logo { font-size: 22px; color: var(--chrome-text); }
+
+    @media (max-width: 1100px) {
+      h1 { grid-column: 1 / span 12; font-size: 56px; line-height: 60px; }
+      .hero-side { grid-column: 1 / span 12; margin-top: 24px; }
+      .nav { display: none; }
+      .section-head { grid-template-columns: 1fr; }
+      .eyebrow, .section-head > div { grid-column: auto; }
+      .access-grid { grid-template-columns: 1fr; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      :root { --gutter: 20px; }
+      .hero { padding-top: 44px; }
+      h1 { font-size: 40px; line-height: 44px; letter-spacing: -0.5px; }
+      .hero-side p { font-size: 17px; line-height: 24px; }
+      .hero-media { margin-top: 40px; aspect-ratio: 4 / 3; }
+      .band { margin-top: 56px; }
+      .access { padding: 56px 0 64px; }
+      h2 { font-size: 32px; line-height: 38px; }
+      .card, .panel { padding: 24px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-top h3 { font-size: 26px; line-height: 32px; }
+      .footer-cols { grid-template-columns: 1fr; }
+      .site-footer { padding-bottom: 80px; }
+      .header-actions .btn-ghost { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="announce">
+    <div class="wrap"><span>Harvey Academy: on-demand training and expert workflows for legal teams</span><strong>Learn more</strong></div>
+  </div>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="logo" href="#top" aria-label="Harvey home">Harvey</a>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#top">Platform</a>
+        <a href="#top">Solutions</a>
+        <a href="https://www.harvey.ai/customers" target="_blank" rel="noopener noreferrer">Customers</a>
+        <a href="https://www.harvey.ai/security" target="_blank" rel="noopener noreferrer">Security</a>
+        <a href="#top">Resources</a>
+        <a href="#top">Company</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-ghost" href="#access">Login</a>
+        <a class="btn" href="#access">Request a Demo</a>
+      </div>
+    </div>
+  </header>
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-grid">
+          <h1>Bring Harvey to Every Team in Your Firm</h1>
+          <div class="hero-side">
+            <p>Workspace administrators assign Harvey seats to the practice groups that need them, with the firm's security and data controls already in place.</p>
+            <a class="btn" href="#access">Manage workspace seats</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="https://cdn.sanity.io/images/07s0r5r6/production/acf4a0772c068016f3d3312b1bf191a0e2727114-3296x1796.png?auto=format&amp;w=1920&amp;q=90" alt="" onerror="this.style.display='none'">
+        </div>
+      </div>
+    </section>
+    <div class="band">
+      <div class="wrap">
+        <span><em>Assistant</em></span>
+        <span><em>Agents</em></span>
+        <span><em>Vault</em></span>
+        <span><em>Knowledge</em></span>
+        <span><em>Spaces</em></span>
+        <span><em>Command Center</em></span>
+      </div>
+    </div>
+    <section class="access" id="access">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow">Workspace access</p>
+          <div>
+            <h2>Assign Harvey seats to your practice groups</h2>
+            <p>Seats are allocated from your firm's plan. Named users sign in with the firm's identity provider and pick up Assistant, Vault and Knowledge in the workspace you assign them to.</p>
+          </div>
+        </div>
+        <div class="access-grid">
+          <div class="card">
+            <h3>Provision user seats</h3>
+            <p class="card-sub">Seats become available in the workspace as soon as the request completes.</p>
+            <form id="provisionForm">
+              <div class="form-group">
+                <label for="product">Workspace</label>
+                <select id="product">
+                  <option value="litigation">Litigation</option>
+                  <option value="transactional">Transactional</option>
+                  <option value="in_house">In-House Legal</option>
+                  <option value="knowledge_management">Knowledge Management</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="seats">Additional user seats</label>
+                  <input id="seats" type="number" min="1" max="250" step="1" value="25" required aria-describedby="seats-hint">
+                  <span class="field-hint" id="seats-hint">1–250 seats per request</span>
+                </div>
+                <div class="form-group">
+                  <label for="planTier">Plan</label>
+                  <select id="planTier"><option value="Professional">Professional</option></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="region">Data region</label>
+                <select id="region" aria-describedby="region-hint" disabled><option value="us-east">United States (us-east)</option></select>
+                <span class="field-hint" id="region-hint">Set when the workspace was created.</span>
+              </div>
+              <button type="submit" class="btn btn-block" id="submitBtn">Provision seats</button>
+              <p class="request-status" id="requestStatus" role="status">Example data. No real account changes.</p>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+          <aside class="panel" aria-labelledby="panel-title">
+            <p class="eyebrow">How access works</p>
+            <h3 id="panel-title">Professional class AI, governed by your firm</h3>
+            <p>Every workspace keeps its own membership, matter access and retention settings. Nothing is shared between workspaces unless a Space is created for it.</p>
+            <ul class="panel-list">
+              <li><span class="n" aria-hidden="true">1</span><div><strong>Workspaces</strong><p>Each practice group has its own workspace, administrators and seat allocation.</p></div></li>
+              <li><span class="n" aria-hidden="true">2</span><div><strong>Named users</strong><p>Seats are assigned to named users who sign in through your identity provider.</p></div></li>
+              <li><span class="n" aria-hidden="true">3</span><div><strong>Products</strong><p>Assistant, Vault, Knowledge and Command Center are available as soon as a seat is active.</p></div></li>
+            </ul>
+            <a class="panel-link" href="https://www.harvey.ai/security" target="_blank" rel="noopener noreferrer">Security and controls →</a>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <h3>Unlock Professional Class AI for Your Organization</h3>
+        <a class="btn" href="#access">Request a Demo</a>
+      </div>
+      <div class="footer-cols">
+        <div>
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="#top">Agents</a></li>
+            <li><a href="#top">Vault</a></li>
+            <li><a href="#top">Knowledge</a></li>
+            <li><a href="#top">Command Center</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Solutions</h4>
+          <ul>
+            <li><a href="#top">Litigation</a></li>
+            <li><a href="#top">Transactional</a></li>
+            <li><a href="#top">In-House</a></li>
+            <li><a href="#top">Law Firms</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="https://www.harvey.ai/customers" target="_blank" rel="noopener noreferrer">Customers</a></li>
+            <li><a href="https://www.harvey.ai/security" target="_blank" rel="noopener noreferrer">Security</a></li>
+            <li><a href="https://www.harvey.ai/about" target="_blank" rel="noopener noreferrer">About</a></li>
+            <li><a href="https://www.harvey.ai/careers" target="_blank" rel="noopener noreferrer">Careers</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="https://www.harvey.ai/blog" target="_blank" rel="noopener noreferrer">Blog</a></li>
+            <li><a href="#top">Resources Hub</a></li>
+            <li><a href="#top">Harvey Academy</a></li>
+            <li><a href="#top">Help Center</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-base">
+        <span class="logo">Harvey</span>
+        <small>Copyright © 2026 Harvey AI Corporation. All rights reserved.</small>
+      </div>
+    </div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const started = performance.now();
+      button.disabled = true;
+      button.textContent = 'Provisioning seats…';
+      form.setAttribute('aria-busy', 'true');
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Request in progress…';
+      const timer = setInterval(() => {
+        status.textContent = `Request in progress · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+      }, 100);
+      try {
+        const response = await fetch('/api/licenses/provision', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: document.getElementById('product').value,
+            planName: document.getElementById('planTier').value,
+            seats: Number(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The request could not be completed. Please try again.');
+        result.className = 'result-box success';
+        result.textContent = 'User seats provisioned. The workspace has been updated.';
+      } catch (error) {
+        result.className = 'result-box error';
+        result.textContent = `Provisioning could not be completed. ${error.message}`;
+      } finally {
+        clearInterval(timer);
+        status.textContent = `Request finished in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        form.removeAttribute('aria-busy');
+        button.disabled = false;
+        button.textContent = 'Provision seats';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
