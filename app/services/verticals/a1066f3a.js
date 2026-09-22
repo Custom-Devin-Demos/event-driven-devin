@@ -313,7 +313,12 @@ async function issueCapitalCall(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, source: 'vista-lp-portal' },
+      tags: {
+        route: ROUTE,
+        service: SERVICE,
+        source: 'vista-lp-portal',
+        alert_path: 'instant',
+      },
       extra: {
         requestId,
         fundId: data.fundId,

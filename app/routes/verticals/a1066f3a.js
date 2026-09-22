@@ -46,10 +46,11 @@ router.get('/api/a1066f3a/funds', (req, res) => {
 });
 
 router.post('/api/a1066f3a/capital-calls', async (req, res) => {
-  const issuedBy = typeof req.body.issuedBy === 'string' ? req.body.issuedBy.trim() : '';
-  const fundId = stringField(req.body.fundId, '');
-  const lpId = stringField(req.body.lpId, DEFAULT_LP_ID);
-  const purpose = stringField(req.body.purpose, 'investment');
+  const body = req.body || {};
+  const issuedBy = typeof body.issuedBy === 'string' ? body.issuedBy.trim() : '';
+  const fundId = stringField(body.fundId, '');
+  const lpId = stringField(body.lpId, DEFAULT_LP_ID);
+  const purpose = stringField(body.purpose, 'investment');
 
   if (!issuedBy) {
     return res.status(400).json({ success: false, error: 'issuedBy is required', code: 'VALIDATION_ERROR' });
@@ -70,9 +71,9 @@ router.post('/api/a1066f3a/capital-calls', async (req, res) => {
       fundId,
       lpId,
       purpose,
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
     return res.json(result);
   } catch (error) {
