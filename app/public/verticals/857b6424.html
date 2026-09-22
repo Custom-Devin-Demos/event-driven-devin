@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chicken Queso Bowl | QDOBA Mexican Eats</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --teal: #005670;
+        --teal-deep: #00455a;
+        --orange: #f09800;
+        --orange-dark: #d78700;
+        --ink: #1c2b31;
+        --muted: #5b6b72;
+        --line: #d8e0e3;
+        --paper: #ffffff;
+        --wash: #f5f7f8;
+        --font: 'Inter Primary', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--paper);
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; text-decoration: none; }
+
+      header.site {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 28px;
+        background: #fff;
+        border-bottom: 1px solid #eef2f3;
+        position: relative;
+        z-index: 3;
+      }
+      .wordmark {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.045em;
+        color: var(--orange);
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .wordmark svg { display: block; }
+      .head-right { display: flex; align-items: center; gap: 22px; }
+      .login {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--teal);
+        min-height: 44px;
+      }
+      .avatar {
+        width: 30px; height: 30px; border-radius: 50%;
+        background: var(--teal); color: #fff;
+        display: grid; place-items: center;
+      }
+      .bag {
+        min-width: 44px; min-height: 44px;
+        display: grid; place-items: center;
+        color: var(--teal);
+      }
+
+      .ribbon-wrap { background: #fff; display: flex; justify-content: center; }
+      .ribbon {
+        background: var(--teal);
+        color: #fff;
+        width: min(1180px, 92%);
+        text-align: center;
+        padding: 14px 24px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        clip-path: polygon(2% 0, 98% 0, 96% 100%, 4% 100%);
+      }
+      .ribbon a { text-decoration: underline; text-underline-offset: 3px; }
+
+      .shell {
+        width: min(1180px, 92%);
+        margin: 34px auto 60px;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 56px;
+        align-items: start;
+      }
+
+      .rail { display: grid; gap: 14px; }
+      .rail-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 16px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        min-height: 56px;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        color: var(--teal);
+        text-decoration: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      .rail-item:hover { border-color: var(--teal); }
+      .rail-item.active { border: 2px solid var(--teal); }
+      .rail-item img { width: 44px; height: 32px; object-fit: contain; }
+      .rail-item .chev { margin-left: auto; color: var(--teal); }
+
+      .crumb { font-size: 14px; color: var(--muted); margin: 6px 0 18px; }
+      .crumb a { color: var(--teal); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+      h1 {
+        margin: 0;
+        font-size: 44px;
+        line-height: 1.05;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        color: var(--teal);
+      }
+
+      .item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 48px;
+        margin-top: 26px;
+        align-items: start;
+      }
+      .shot {
+        background: #fff;
+        border-radius: 22px;
+        padding: 18px;
+        display: grid;
+        place-items: center;
+      }
+      .shot img { width: 100%; height: auto; display: block; }
+      .thumbs { display: flex; gap: 12px; margin-top: 16px; }
+      .thumb {
+        width: 76px; height: 60px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--wash);
+        padding: 4px;
+        cursor: pointer;
+      }
+      .thumb.active { border: 2px solid var(--teal); }
+      .thumb img { width: 100%; height: 100%; object-fit: contain; }
+
+      .price { font-size: 30px; font-weight: 800; color: var(--ink); margin: 0 0 10px; }
+      .cals { font-size: 14px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+      .desc { font-size: 17px; line-height: 1.6; color: var(--ink); margin: 16px 0 22px; }
+
+      .picks { border-top: 1px solid var(--line); padding-top: 18px; display: grid; gap: 14px; }
+      .pick-title {
+        font-size: 13px; font-weight: 800; letter-spacing: 0.1em;
+        text-transform: uppercase; color: var(--teal);
+      }
+      .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+      .chip {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        background: #fff;
+      }
+      .chip.on { border-color: var(--teal); background: rgba(0, 86, 112, 0.06); color: var(--teal); }
+
+      form#cartForm { margin-top: 26px; }
+      .actions { display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; }
+      .qty { position: relative; }
+      .qty select {
+        appearance: none;
+        -webkit-appearance: none;
+        min-height: 56px;
+        min-width: 104px;
+        padding: 0 42px 0 20px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .qty svg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--teal); pointer-events: none; }
+      .cart-btn {
+        flex: 1 1 260px;
+        min-height: 56px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--orange);
+        color: #fff;
+        font-family: inherit;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .cart-btn svg { width: 20px; height: 20px; }
+      .cart-btn:hover { background: var(--orange-dark); }
+      .cart-btn:disabled { opacity: 0.75; cursor: default; }
+      .pickup-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+      .result-box { margin-top: 18px; font-size: 15px; line-height: 1.5; }
+      .result-box:empty { display: none; }
+      .result-box.success, .result-box.error {
+        border-radius: 16px;
+        padding: 16px 18px;
+      }
+      .result-box.success { background: rgba(0, 86, 112, 0.07); border: 1px solid rgba(0, 86, 112, 0.25); }
+      .result-box.error { background: #fdf1ee; border: 1px solid #e4b7ab; color: #8a2d15; }
+      .result-title { font-weight: 800; margin-bottom: 4px; }
+
+      .related { margin-top: 64px; }
+      .related h2 {
+        font-size: 30px; font-weight: 800; text-transform: uppercase;
+        color: var(--teal); letter-spacing: -0.01em; margin: 0 0 22px;
+      }
+      .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+      .card { text-align: center; }
+      .card img { width: 100%; height: auto; }
+      .card-name { font-weight: 700; color: var(--teal); margin: 10px 0 14px; }
+      .card a {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 46px; padding: 0 30px;
+        border-radius: 999px; background: var(--teal); color: #fff;
+        font-size: 13px; font-weight: 800; letter-spacing: 0.1em;
+        text-transform: uppercase; text-decoration: none;
+      }
+
+      footer.site {
+        background: var(--teal);
+        color: #fff;
+        padding: 40px 28px;
+        margin-top: 70px;
+      }
+      .foot-inner {
+        width: min(1180px, 92%);
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px 36px;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 14px;
+      }
+      .foot-links { display: flex; flex-wrap: wrap; gap: 18px 28px; }
+      .foot-links span { font-weight: 600; }
+      .foot-note { opacity: 0.85; }
+
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: 1fr; gap: 28px; margin-top: 22px; }
+        .rail { grid-template-columns: repeat(2, minmax(0, 1fr)); display: grid; }
+        .item { grid-template-columns: 1fr; gap: 26px; }
+        h1 { font-size: 32px; }
+        .cards { grid-template-columns: 1fr; }
+        header.site { padding: 12px 16px; }
+        .wordmark { font-size: 24px; min-height: 44px; }
+        .login > span:not(.avatar) { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site">
+      <a class="wordmark logo" href="#" aria-label="QDOBA Mexican Eats">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="4" />
+          <path d="M20 20l6 6" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+        </svg>
+        QDOBA
+      </a>
+      <div class="head-right">
+        <a class="login" href="#"><span>Log in</span>
+          <span class="avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.4-3.6 4-5.2 7-5.2s5.6 1.6 7 5.2"/></svg>
+          </span>
+        </a>
+        <a class="bag" href="#" aria-label="Your order">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14l-1.2 13H6.2z"/><path d="M9 7V5.4A3 3 0 0 1 15 5.4V7"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <div class="ribbon-wrap">
+      <div class="ribbon">READY TO ORDER? <a href="#">Find a QDOBA</a></div>
+    </div>
+
+    <main class="shell">
+      <nav class="rail" aria-label="Menu categories">
+        <a class="rail-item" href="#">
+          <img src="https://nomnom-files.qdoba.com/global/assets/categories/full-menu/full-menu.png" alt="" onerror="this.style.display='none'" />
+          Full Menu <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item" href="#">
+          <img src="https://olo-images-live.imgix.net/e1/e1c8a92431ba4acf80422de01b1a2121.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=1a31216f65a7aad5fd2c6b5ab8143999" alt="" onerror="this.style.display='none'" />
+          New &amp; Popular <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item active" href="#">
+          <img src="https://olo-images-live.imgix.net/37/37acfa49cd9544edae100bafd79a80cb.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=bf8b1675e0c4b61822d2f313c4d51d3c" alt="" onerror="this.style.display='none'" />
+          Bowls <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item" href="#">
+          <img src="https://olo-images-live.imgix.net/0a/0af6f5d9bfb146f0ab7ad2a82af9c04c.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=c1fedf75fa247bd3f535c8350d2b13f0" alt="" onerror="this.style.display='none'" />
+          Burritos <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item" href="#">
+          <img src="https://olo-images-live.imgix.net/6d/6db60c111eac4c3187673e17fa9f15fb.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=a49be40ddf7e02326978b33ed8bb35a6" alt="" onerror="this.style.display='none'" />
+          Quesadillas <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item" href="#">
+          <img src="https://olo-images-live.imgix.net/96/96d8e1cbbfeb412794bd6dafdeb654d9.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=1008e3798bd1c7b5a57565fec345315d" alt="" onerror="this.style.display='none'" />
+          Salads <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item" href="#">
+          <img src="https://olo-images-live.imgix.net/f4/f4c64f47808142efaa4771f09a8feaee.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=4b0e0e050f6e8145fc43b8295799540d" alt="" onerror="this.style.display='none'" />
+          Tacos <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+        <a class="rail-item" href="#">
+          <img src="https://olo-images-live.imgix.net/5f/5fb8e0ea2b814ba881ae5d5e14125e27.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1000&h=276&fit=fill&fm=png32&bg=transparent&s=6218861977a3e5b585c4055548b98896" alt="" onerror="this.style.display='none'" />
+          Kids Meals <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+      </nav>
+
+      <div>
+        <div class="crumb"><a href="#">Menu</a> / <a href="#">Bowls</a> / Chicken Queso Bowl</div>
+        <h1>Chicken Queso Bowl</h1>
+
+        <div class="item">
+          <div>
+            <div class="shot">
+              <img id="hero" src="https://olo-images-live.imgix.net/0c/0cae9cd0e35c423f9f2cddbd0f2042b5.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=2fa50f56aac471c109ece3fd5ea12e46" alt="Chicken Queso Bowl" onerror="this.closest('.shot').style.display='none'" />
+            </div>
+            <div class="thumbs">
+              <button class="thumb active" type="button" aria-label="Chicken Queso Bowl">
+                <img src="https://olo-images-live.imgix.net/0c/0cae9cd0e35c423f9f2cddbd0f2042b5.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=2fa50f56aac471c109ece3fd5ea12e46" alt="" onerror="this.style.display='none'" />
+              </button>
+              <button class="thumb" type="button" aria-label="Bowl with guacamole">
+                <img src="https://olo-images-live.imgix.net/79/7950316f01944a59b7b259f80cd798a0.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=63d155eacd5be12fbc36efb84f589dd3" alt="" onerror="this.style.display='none'" />
+              </button>
+              <button class="thumb" type="button" aria-label="Fajita veggie bowl">
+                <img src="https://olo-images-live.imgix.net/fc/fce01fc6432748bab2c734e4feb27637.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=13c6167a5df621815a4ae6c7cd4733bc" alt="" onerror="this.style.display='none'" />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p class="price">$11.45</p>
+            <div class="cals">790 Cal</div>
+            <p class="desc">
+              Grilled adobo chicken over cilantro lime rice and black beans with our signature 3-Cheese Queso,
+              pico de gallo, hand-smashed guac and shredded cheese. Guac is always free.
+            </p>
+
+            <div class="picks">
+              <div class="pick-title">Included with your bowl</div>
+              <div class="chips">
+                <span class="chip on">3-Cheese Queso</span>
+                <span class="chip on">Hand-smashed guac</span>
+                <span class="chip">Pico de gallo</span>
+                <span class="chip">Fajita veggies</span>
+              </div>
+            </div>
+
+            <form id="cartForm">
+              <div class="actions">
+                <div class="qty">
+                  <select id="quantity" aria-label="Quantity">
+                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                  </select>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+                <button class="cart-btn" id="addToCartBtn" type="submit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14l-1.2 13H6.2z"/><path d="M9 7V5.4A3 3 0 0 1 15 5.4V7"/></svg>
+                  Add to Order
+                </button>
+              </div>
+              <div class="pickup-note">Pickup from QDOBA — 1106 N Michigan Ave. Ready in about 12 minutes.</div>
+            </form>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <section class="related">
+          <h2>Pairs Well With</h2>
+          <div class="cards">
+            <div class="card">
+              <img src="https://olo-images-live.imgix.net/89/89eea6e2b1684666afb93576c8a0f964.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=3da1160f0d26b5790b9c44aadf487392" alt="Create Your Own Bowl" onerror="this.style.display='none'" />
+              <div class="card-name">Create Your Own Bowl</div>
+              <a href="#">Start Order</a>
+            </div>
+            <div class="card">
+              <img src="https://olo-images-live.imgix.net/79/7950316f01944a59b7b259f80cd798a0.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=63d155eacd5be12fbc36efb84f589dd3" alt="Cholula Hot &amp; Sweet Chicken Bowl" onerror="this.style.display='none'" />
+              <div class="card-name">Cholula® Hot &amp; Sweet Chicken Bowl</div>
+              <a href="#">Start Order</a>
+            </div>
+            <div class="card">
+              <img src="https://olo-images-live.imgix.net/fc/fce01fc6432748bab2c734e4feb27637.jpg?auto=format%2Ccompress&q=60&cs=tinysrgb&w=1050&h=699&fit=fill&fm=png32&bg=transparent&s=13c6167a5df621815a4ae6c7cd4733bc" alt="Fajita Veggie Post-Workout Bowl" onerror="this.style.display='none'" />
+              <div class="card-name">Fajita Veggie Post-Workout Bowl</div>
+              <a href="#">Start Order</a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site">
+      <div class="foot-inner">
+        <div class="foot-links">
+          <span>Our Menu</span><span>Locations</span><span>QDOBA Rewards</span><span>Catering</span><span>Gift Cards</span><span>Careers</span>
+        </div>
+        <div class="foot-note">Nutrition, allergen and ingredient information available in restaurant.</div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        }).catch(function () {});
+      })();
+    </script>
+    <script>
+      document.querySelectorAll('.thumb').forEach(function (thumb) {
+        thumb.addEventListener('click', function () {
+          document.querySelectorAll('.thumb').forEach(function (t) { t.classList.remove('active'); });
+          thumb.classList.add('active');
+          var img = thumb.querySelector('img');
+          if (img) document.getElementById('hero').src = img.src;
+        });
+      });
+
+      document.getElementById('cartForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('addToCartBtn');
+        const result = document.getElementById('result');
+        const label = btn.innerHTML;
+        const show = (cls, title, detail) => {
+          result.className = 'result-box ' + cls;
+          result.textContent = '';
+          const t = document.createElement('div');
+          t.className = 'result-title';
+          t.textContent = title;
+          const d = document.createElement('div');
+          d.textContent = detail;
+          result.append(t, d);
+        };
+        btn.disabled = true;
+        btn.textContent = 'Adding to order\u2026';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/marketplace/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              offerId: 'OFF-NA221-PHG',
+              sellerId: 'SELLER-PHILIPS-HHG',
+              listingId: '408492471',
+              quantity: parseInt(document.getElementById('quantity').value, 10) || 1,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            const detail = data.code === 'RESERVATION_TIMEOUT'
+              ? 'This item is taking too long to confirm with the restaurant. Please try again in a few minutes.'
+              : data.error;
+            show('error', 'We could not add this item to your order.', detail);
+          } else {
+            show('success', 'Added to your order', data.quantity + ' x Chicken Queso Bowl — pickup at 1106 N Michigan Ave');
+          }
+        } catch (err) {
+          show('error', 'We could not add this item to your order.', err.message);
+        }
+        btn.disabled = false;
+        btn.innerHTML = label;
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
