@@ -62,6 +62,23 @@
  */
 
 const ONCALL_SKINS = {
+  '857b6424': {
+    slug: '857b6424',
+    company: 'Qdoba',
+    brandMark: 'Q',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: '857b6424.html',
+      title: 'Chicken Queso Bowl | QDOBA Mexican Eats',
+    },
+    accent: '#F09800',
+    accentDark: '#D78700',
+    supportCenter: 'QDOBA Guest Support',
+    supportCenterSub: 'Online Ordering',
+    disclaimer: 'NOT ACTUALLY A QDOBA SITE — internal demo only, not affiliated with, endorsed by, or a real Qdoba product.',
+  },
   '63dbb52f': {
     slug: '63dbb52f',
     company: 'Kaufland',
