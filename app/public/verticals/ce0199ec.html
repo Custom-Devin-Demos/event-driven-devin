@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross River | Payments — Move Money</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cr-navy: #05112E;
+      --cr-navy-2: #0B1E4A;
+      --cr-blue: #103CA3;
+      --cr-blue-bright: #1470CC;
+      --cr-link: #1863DC;
+      --cr-cyan: #00C9FE;
+      --cr-mint: #00F996;
+      --cr-mint-dark: #00d67f;
+      --cr-ink: #000000;
+      --cr-ink-2: #212121;
+      --cr-muted: #5b6474;
+      --cr-line: #e3e8ef;
+      --cr-wash: #F5F8FA;
+      --cr-white: #ffffff;
+      --cr-danger: #d1363b;
+      --head: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --serif: 'Tiempos Headline', 'Instrument Serif', Georgia, serif;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--cr-white); color: var(--cr-ink); line-height: 1.5; -webkit-font-smoothing: antialiased; font-size: 16px; }
+    a { color: inherit; }
+
+    .fdic { background: var(--cr-navy); color: var(--cr-white); font-size: 13px; padding: 8px 40px; display: flex; align-items: center; gap: 12px; }
+    .fdic b { font-family: var(--head); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
+    .fdic i { font-style: italic; opacity: 0.9; }
+
+    .top { background: var(--cr-navy); color: var(--cr-white); }
+    nav.cr-nav { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 22px 40px; }
+    .logo { display: flex; align-items: center; gap: 8px; color: var(--cr-white); text-decoration: none; font-family: var(--head); font-weight: 500; font-size: 24px; letter-spacing: -0.02em; line-height: 1; }
+    .logo svg { width: 34px; height: 22px; display: block; }
+    .nav-links { display: flex; align-items: center; gap: 30px; list-style: none; }
+    .nav-links a { color: var(--cr-white); text-decoration: none; font-size: 16px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+    .nav-links a::after { content: ''; width: 5px; height: 5px; border-right: 1.5px solid rgba(255,255,255,0.6); border-bottom: 1.5px solid rgba(255,255,255,0.6); transform: rotate(45deg) translateY(-2px); margin-left: 4px; }
+    .nav-links a.plain::after { display: none; }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 8px 24px; border-radius: 75px; font-family: var(--sans); font-size: 16px; font-weight: 500; text-decoration: none; cursor: pointer; border: none; transition: background .15s, transform .15s; white-space: nowrap; }
+    .pill-ghost { background: rgba(255,255,255,0.08); color: var(--cr-white); border: 1px solid rgba(255,255,255,0.35); }
+    .pill-mint { background: var(--cr-mint); color: var(--cr-ink); }
+    .pill-mint:hover { background: var(--cr-mint-dark); }
+    .pill-ghost:hover { background: rgba(255,255,255,0.14); }
+    @media (max-width: 960px) { .nav-links { display: none; } .fdic, nav.cr-nav { padding-left: 20px; padding-right: 20px; } }
+
+    .hero { position: relative; color: var(--cr-white); overflow: hidden; background: linear-gradient(284.81deg, #05112E -3.9%, #103CA3 33.09%, #05112E 73.43%); }
+    .hero-bg { position: absolute; inset: 0; background: url('https://cdn.prod.website-files.com/66fe64ba69170883a51d5fd5/6939825e179a8d195bab158e_e8cac363368604f45f8ba839c6bf9525_CS%20IP%20Hero%20Logo.avif') right center / auto 100% no-repeat; opacity: 0.9; }
+    .hero-bg img { display: none; }
+    .hero-inner { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 96px 40px 120px; }
+    .eyebrow { font-family: var(--sans); font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--cr-white); }
+    .hero h1 { font-family: var(--head); font-weight: 400; font-size: clamp(2.6rem, 5vw, 64px); line-height: 1.0; letter-spacing: -1.35px; max-width: 700px; }
+    .hero h1 em { font-family: var(--serif); font-style: italic; color: var(--cr-cyan); font-weight: 400; }
+    .hero p { margin-top: 28px; font-size: 18px; line-height: 27px; max-width: 560px; color: var(--cr-white); }
+    .hero-actions { display: flex; align-items: center; gap: 24px; margin-top: 40px; flex-wrap: wrap; }
+    .hero-link { color: var(--cr-white); font-weight: 500; font-size: 16px; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+    @media (max-width: 960px) { .hero-bg { opacity: 0.35; } .hero-inner { padding: 64px 20px 80px; } }
+
+    .rails { background: var(--cr-navy); color: var(--cr-white); }
+    .rails-inner { max-width: 1240px; margin: 0 auto; padding: 28px 40px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .rails-inner span.lbl { font-size: 14px; color: rgba(255,255,255,0.7); margin-right: 8px; }
+    .chip { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 75px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); font-size: 15px; font-weight: 500; }
+    .chip.on { background: var(--cr-white); color: var(--cr-ink); border-color: var(--cr-white); }
+    @media (max-width: 960px) { .rails-inner { padding: 20px; } }
+
+    .app { max-width: 1240px; margin: 0 auto; padding: 88px 40px 96px; }
+    .app-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 40px; flex-wrap: wrap; }
+    .app-head h2 { font-family: var(--head); font-weight: 400; font-size: clamp(2rem, 4vw, 48px); line-height: 1.1; letter-spacing: -1.2px; }
+    .app-head h2 em { font-family: var(--serif); font-style: italic; color: var(--cr-blue-bright); font-weight: 400; }
+    .app-head p { color: var(--cr-muted); font-size: 16px; max-width: 520px; margin-top: 12px; }
+    .env { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--cr-ink-2); border: 1px solid var(--cr-line); border-radius: 75px; padding: 8px 14px; background: var(--cr-wash); }
+    .env::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--cr-mint); box-shadow: 0 0 0 3px rgba(0,249,150,0.25); }
+
+    .accounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+    @media (max-width: 900px) { .accounts { grid-template-columns: 1fr; } }
+    .account-card { background: var(--cr-white); border: 1px solid var(--cr-line); border-radius: 16px; padding: 26px 28px; }
+    .account-type { font-size: 13px; font-weight: 500; color: var(--cr-muted); margin-bottom: 14px; display: flex; justify-content: space-between; }
+    .account-type span.tag { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cr-blue-bright); background: rgba(20,112,204,0.08); padding: 3px 8px; border-radius: 6px; }
+    .account-balance { font-family: var(--head); font-weight: 500; font-size: 2.1rem; line-height: 1; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .account-meta { font-size: 13px; color: var(--cr-muted); }
+
+    .transfer-wrap { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: stretch; }
+    @media (max-width: 900px) { .transfer-wrap { grid-template-columns: 1fr; } }
+    .transfer-card { background: var(--cr-white); border: 1px solid var(--cr-line); border-radius: 16px; padding: 36px; }
+    .transfer-card h3 { font-family: var(--head); font-weight: 500; font-size: 1.6rem; letter-spacing: -0.03em; margin-bottom: 6px; }
+    .transfer-card .sub { color: var(--cr-muted); font-size: 15px; margin-bottom: 26px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--cr-ink-2); margin-bottom: 8px; }
+    .form-group select, .form-group input { width: 100%; height: 50px; padding: 0 16px; background: var(--cr-white); border: 1px solid #c9d1dc; border-radius: 8px; color: var(--cr-ink); font-family: var(--sans); font-size: 15px; transition: border-color .15s, box-shadow .15s; appearance: none; }
+    .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23212121' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--cr-blue-bright); box-shadow: 0 0 0 3px rgba(20,112,204,0.15); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-transfer { width: 100%; height: 52px; border-radius: 75px; background: var(--cr-mint); color: var(--cr-ink); font-family: var(--sans); font-size: 16px; font-weight: 500; border: none; cursor: pointer; transition: background .15s, opacity .15s; margin-top: 8px; }
+    .btn-transfer:hover { background: var(--cr-mint-dark); }
+    .btn-transfer:disabled { opacity: 0.55; cursor: not-allowed; }
+    .fine { margin-top: 14px; font-size: 12px; color: var(--cr-muted); line-height: 1.5; }
+    .result-box { margin-top: 16px; padding: 14px 16px; border-radius: 10px; font-size: 14px; display: none; }
+    .result-box.error { display: block; background: rgba(209,54,59,0.06); border: 1px solid rgba(209,54,59,0.35); color: var(--cr-danger); }
+    .result-box.success { display: block; background: rgba(0,214,127,0.08); border: 1px solid rgba(0,214,127,0.4); color: #0a6b45; }
+    .result-box .error-title { font-weight: 600; margin-bottom: 2px; }
+    .result-box .error-detail { font-size: 12.5px; opacity: 0.9; word-break: break-all; }
+
+    .side-card { border-radius: 16px; overflow: hidden; position: relative; min-height: 360px; color: var(--cr-white); background: linear-gradient(160deg, #103CA3 0%, #05112E 100%); }
+    .side-card img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; opacity: 0.55; }
+    .side-card .overlay { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 32px; background: linear-gradient(transparent 20%, rgba(5,17,46,0.92)); min-height: 360px; }
+    .side-card h4 { font-family: var(--head); font-weight: 500; font-size: 1.5rem; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .side-card h4 em { font-family: var(--serif); font-style: italic; color: var(--cr-cyan); font-weight: 400; }
+    .side-card p { font-size: 15px; color: rgba(255,255,255,0.88); }
+    .side-card ul { list-style: none; margin-top: 16px; display: grid; gap: 8px; font-size: 14px; }
+    .side-card li { display: flex; gap: 10px; align-items: center; }
+    .side-card li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cr-mint); flex: none; }
+
+    .activity { margin-top: 48px; }
+    .activity h3 { font-family: var(--head); font-weight: 500; font-size: 1.5rem; letter-spacing: -0.03em; margin-bottom: 18px; }
+    .txn-card { background: var(--cr-white); border: 1px solid var(--cr-line); border-radius: 16px; overflow: hidden; }
+    .txn-table { width: 100%; border-collapse: collapse; }
+    .txn-table th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--cr-muted); padding: 14px 24px; background: var(--cr-wash); border-bottom: 1px solid var(--cr-line); }
+    .txn-table td { padding: 16px 24px; border-bottom: 1px solid var(--cr-line); font-size: 14.5px; }
+    .txn-table tbody tr:last-child td { border-bottom: none; }
+    .rail { font-size: 12px; font-weight: 600; color: var(--cr-blue); background: rgba(16,60,163,0.08); padding: 3px 8px; border-radius: 6px; }
+    .credit { color: #0a6b45; font-weight: 500; }
+    .status { font-size: 13px; font-weight: 500; }
+    .status.ok::before { content: '● '; color: var(--cr-mint-dark); }
+    .status.pending::before { content: '● '; color: #e0a100; }
+    @media (max-width: 640px) { .txn-table th:nth-child(3), .txn-table td:nth-child(3), .txn-table th:nth-child(1), .txn-table td:nth-child(1) { display: none; } .txn-table td { font-size: 13.5px; } .txn-table th, .txn-table td { padding: 12px 14px; } .app { padding: 56px 20px 72px; } .transfer-card { padding: 24px; } }
+
+    footer { background: var(--cr-wash); color: var(--cr-ink); padding: 56px 40px 40px; border-top: 1px solid var(--cr-line); }
+    .foot-inner { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; }
+    @media (max-width: 900px) { .foot-inner { grid-template-columns: 1fr 1fr; } footer { padding: 40px 20px; } }
+    @media (max-width: 480px) { .foot-inner { grid-template-columns: 1fr; } }
+    .foot-brand { display: flex; align-items: center; gap: 8px; font-family: var(--head); font-weight: 500; font-size: 22px; letter-spacing: -0.02em; margin-bottom: 16px; }
+    .foot-brand svg { width: 30px; height: 20px; }
+    .foot-brand svg path { stroke: var(--cr-navy); }
+    footer h6 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+    footer ul { list-style: none; display: grid; gap: 9px; font-size: 14px; color: var(--cr-ink-2); }
+    footer p { font-size: 12.5px; color: var(--cr-muted); max-width: 520px; margin-bottom: 8px; }
+    .foot-legal { max-width: 1240px; margin: 40px auto 0; padding-top: 24px; border-top: 1px solid var(--cr-line); font-size: 12px; color: var(--cr-muted); }
+  </style>
+</head>
+<body>
+  <div class="fdic"><b>FDIC</b><i>FDIC-Insured - Backed by the full faith and credit of the U.S. Government</i></div>
+  <div class="top">
+    <nav class="cr-nav">
+      <a class="logo" href="#" aria-label="Cross River">
+        <svg viewBox="0 0 34 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 15c5-9 11-9 14-4s9 5 14-4" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M3 7c5 9 11 9 14 4s9-5 14 4" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg>
+        cross river
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Solutions</a></li>
+        <li><a href="#">Developers</a></li>
+        <li><a href="#">Banking</a></li>
+        <li><a href="#">Resources</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a class="pill pill-ghost" href="#">Login</a>
+        <a class="pill pill-mint" href="#move-money">Move Money</a>
+      </div>
+    </nav>
+  </div>
+
+  <section class="hero">
+    <div class="hero-bg"><img src="https://cdn.prod.website-files.com/66fe64ba69170883a51d5fd5/6939825e179a8d195bab158e_e8cac363368604f45f8ba839c6bf9525_CS%20IP%20Hero%20Logo.avif" alt="" onerror="this.parentNode.style.background='none'"></div>
+    <div class="hero-inner">
+      <div class="eyebrow">Payments &middot; Instant Payments</div>
+      <h1>Move money through <em>interoperable</em> rails</h1>
+      <p>ACH, wire, RTP&reg; and FedNow&reg; on one API-driven bank core. Route each payment to the rail that settles it fastest.</p>
+      <div class="hero-actions">
+        <a class="pill pill-mint" href="#move-money">Send a Payment</a>
+        <a class="hero-link" href="#">Explore API Documentation</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="rails">
+    <div class="rails-inner">
+      <span class="lbl">Rails</span>
+      <span class="chip on">Instant Payments</span>
+      <span class="chip">ACH</span>
+      <span class="chip">Same-Day ACH</span>
+      <span class="chip">Wires</span>
+      <span class="chip">Push to Card</span>
+      <span class="chip">Accounts</span>
+    </div>
+  </div>
+
+  <main class="app" id="move-money">
+    <div class="app-head">
+      <div>
+        <h2>Operating accounts, <em>instant</em> money movement</h2>
+        <p>Alice Chen &middot; Treasury Operations &middot; Signed in via Cross River Operating System</p>
+      </div>
+      <span class="env">Production &middot; API v1</span>
+    </div>
+
+    <div class="accounts">
+      <div class="account-card">
+        <div class="account-type">Operating Account <span class="tag">Checking</span></div>
+        <div class="account-balance">$1,284,920.18</div>
+        <div class="account-meta">ACCT-1001 &middot; Available now</div>
+      </div>
+      <div class="account-card">
+        <div class="account-type">Settlement Account <span class="tag">Reserve</span></div>
+        <div class="account-balance">$418,600.00</div>
+        <div class="account-meta">ACCT-1002 &middot; Funds RTP&reg; and FedNow&reg; sends</div>
+      </div>
+      <div class="account-card">
+        <div class="account-type">Payments today <span class="tag">Live</span></div>
+        <div class="account-balance">2,318</div>
+        <div class="account-meta">Instant 61% &middot; ACH 33% &middot; Wire 6%</div>
+      </div>
+    </div>
+
+    <div class="transfer-wrap">
+      <div class="transfer-card">
+        <h3>Send a payment</h3>
+        <div class="sub">Instant Payments settle in seconds when the receiving bank is on RTP&reg; or FedNow&reg;. Otherwise the payment falls back to Same-Day ACH.</div>
+        <form id="transferForm">
+          <div class="form-row">
+            <div class="form-group"><label for="fromAccount">From account</label><select id="fromAccount"><option value="ACCT-1001">Operating Account &mdash; ACCT-1001</option><option value="ACCT-1002">Settlement Account &mdash; ACCT-1002</option></select></div>
+            <div class="form-group"><label for="toAccount">To</label><select id="toAccount"><option value="ACCT-1002">Settlement Account &mdash; ACCT-1002</option><option value="ACCT-1001">Operating Account &mdash; ACCT-1001</option><option value="ACCT-EXT-001">External &mdash; Vendor payout ****4921</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label for="amount">Amount (USD)</label><input type="number" id="amount" value="2500" min="1" step="0.01" placeholder="$0.00"></div>
+            <div class="form-group"><label for="accountTier">Account tier</label><select id="accountTier"><option value="standard">Standard</option><option value="premium">Enterprise</option><option value="basic">Starter</option></select></div>
+          </div>
+          <button type="submit" class="btn-transfer" id="submitBtn">Send Payment</button>
+        </form>
+        <div id="result" class="result-box"></div>
+        <div class="fine">Payments are originated by Cross River Bank, Member FDIC. Instant Payments availability depends on the receiving institution's participation in the RTP&reg; network or FedNow&reg; Service.</div>
+      </div>
+      <div class="side-card">
+        <img src="https://cdn.prod.website-files.com/66fe64ba69170883a51d5fd5/67349827eafc564cecdf6b84_PR-CapitalRaise2022-Hero-min.jpeg" alt="" onerror="this.style.display='none'">
+        <div class="overlay">
+          <h4>Leave the RTP vs. FedNow debate to <em>our tech</em></h4>
+          <p>One request, one response. Cross River selects the rail, handles the network messaging, and returns the settlement status to your API client.</p>
+          <ul>
+            <li>24/7/365 instant settlement</li>
+            <li>Unified webhooks across rails</li>
+            <li>Sandbox parity with production</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity">
+      <h3>Recent payments</h3>
+      <div class="txn-card">
+        <table class="txn-table">
+          <thead><tr><th>Time</th><th>Description</th><th>Rail</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>09:41</td><td>Vendor payout &mdash; Northwind Logistics</td><td><span class="rail">RTP&reg;</span></td><td>-$18,400.00</td><td class="status ok">Settled</td></tr>
+            <tr><td>09:37</td><td>Marketplace seller disbursement batch</td><td><span class="rail">FedNow&reg;</span></td><td>-$92,115.50</td><td class="status ok">Settled</td></tr>
+            <tr><td>09:20</td><td>Incoming &mdash; Card settlement</td><td><span class="rail">ACH</span></td><td class="credit">+$240,318.77</td><td class="status ok">Posted</td></tr>
+            <tr><td>08:55</td><td>Treasury sweep to Settlement Account</td><td><span class="rail">Book</span></td><td>-$150,000.00</td><td class="status ok">Settled</td></tr>
+            <tr><td>08:10</td><td>Payroll funding &mdash; Contoso Payroll</td><td><span class="rail">Same-Day ACH</span></td><td>-$64,200.00</td><td class="status pending">In window</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div>
+        <div class="foot-brand">
+          <svg viewBox="0 0 34 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 15c5-9 11-9 14-4s9 5 14-4" stroke-width="3" stroke-linecap="round"/><path d="M3 7c5 9 11 9 14 4s9-5 14 4" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg>
+          cross river
+        </div>
+        <p>Cross River's trusted platform delivers banking infrastructure for the boldest builders to reimagine finance.</p>
+        <p>Banking services provided by Cross River Bank, Member FDIC.</p>
+      </div>
+      <div><h6>Platform</h6><ul><li>Cross River Operating System</li><li>APIs</li><li>Sandbox</li><li>Accounts</li><li>Instant Payments</li><li>Card Payments</li></ul></div>
+      <div><h6>Banking</h6><ul><li>Commercial</li><li>Business</li><li>Personal</li><li>Branches</li></ul></div>
+      <div><h6>Company</h6><ul><li>About Us</li><li>Careers</li><li>Newsroom</li><li>Insights</li><li>Support</li></ul></div>
+    </div>
+    <div class="foot-legal">&copy; 2026 Cross River Bank. All rights reserved. RTP&reg; is a registered service mark of The Clearing House Payments Company L.L.C. FedNow&reg; is a registered service mark of the Federal Reserve Banks.</div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Sending...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="error-title">Payment failed</div><div class="error-detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="error-title">Payment settled</div><div class="error-detail">Debited $${data.debitAmount} (includes $${data.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="error-title">Network error</div><div class="error-detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Send Payment'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

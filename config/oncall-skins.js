@@ -48,6 +48,12 @@
  * DEVIN_ORG_ID and the credential to DEVIN_ONCALL_SERVICE_KEY /
  * DEVIN_SERVICE_KEY / DEVIN_API_KEY; never put a credential in this file.
  *
+ * A skin may set sonarPR: { auto: true, customer } to have each of its alerts
+ * also open the SonarCloud remediation demo PR (app/services/sonar-pr-trigger.js)
+ * in that customer's configured target repo, the same way the legacy
+ * event-driven alert flow does. customer defaults to 'default'; the GitHub
+ * token comes from the environment.
+ *
  * A skin may set hideRibbon: true to suppress the floating demo ribbon and its
  * collapsed dot; rerouting and alert posting are unaffected.
  *
@@ -2134,6 +2140,30 @@ const ONCALL_SKINS = {
     },
     supportCenter: 'Strategic Education Support',
     disclaimer: 'NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.',
+  },
+  'ce0199ec': {
+    slug: 'ce0199ec',
+    company: 'Cross River',
+    brandMark: 'C',
+    vertical: 'banking',
+    page: {
+      file: 'ce0199ec.html',
+      title: 'Cross River | Payments — Move Money',
+    },
+    accent: '#00F996',
+    accentDark: '#00d67f',
+    theme: {
+      '--accent': '#1470CC',
+      '--ink': '#05112E',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#05112E',
+      '--chrome-text': '#ffffff',
+    },
+    devinSession: { auto: true },
+    sonarPR: { auto: true },
+    supportCenter: 'Cross River Support',
+    supportCenterSub: 'Payments & Accounts Operations',
+    disclaimer: 'NOT ACTUALLY A CROSS RIVER SITE — internal demo only, not affiliated with, endorsed by, or a real Cross River product.',
   },
 };
 

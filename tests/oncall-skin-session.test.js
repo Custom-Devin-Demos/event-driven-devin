@@ -16,7 +16,12 @@ jest.mock('../app/services/devin-api', () => ({
   }),
 }));
 
+jest.mock('../app/services/sonar-pr-trigger', () => ({
+  scheduleVulnerablePR: jest.fn(),
+}));
+
 const { postMessage, postThreadReply } = require('../app/services/slack');
+const { scheduleVulnerablePR } = require('../app/services/sonar-pr-trigger');
 const { createDevinSession } = require('../app/services/devin-api');
 const { getOncallSkin } = require('../config/oncall-skins');
 
@@ -214,6 +219,29 @@ describe('on-call alerts that auto-create a Devin session', () => {
     expect(result.sessionUrl).toBeUndefined();
     expect(createDevinSession).not.toHaveBeenCalled();
     expect(postThreadReply).not.toHaveBeenCalled();
+  });
+
+  test('a skin opted into sonarPR queues the remediation demo PR for the requester', async () => {
+    const skin = getOncallSkin('ce0199ec');
+    expect(skin.sonarPR).toEqual({ auto: true });
+
+    const result = await postOncallAlert(skin.vertical, {
+      skin,
+      devinUserId: 'user_requester',
+      devinOrgId: 'org_requester',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.sonarPR).toBe(true);
+    expect(scheduleVulnerablePR).toHaveBeenCalledTimes(1);
+    expect(scheduleVulnerablePR).toHaveBeenCalledWith(0, 'default', 'user_requester', 'org_requester');
+  });
+
+  test('skins without sonarPR and generic alerts never open the demo PR', async () => {
+    await postOncallAlert('marketplace');
+    await postOncallAlert('marketplace', { skin: getOncallSkin(AUTO_SKIN_SLUG) });
+
+    expect(scheduleVulnerablePR).not.toHaveBeenCalled();
   });
 
   test('a failed session creation still leaves the alert posted', async () => {
