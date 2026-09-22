@@ -2278,6 +2278,29 @@ const ONCALL_SKINS = {
     supportCenter: 'Gap Customer Service',
     disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
   },
+  'afc90dda': {
+    slug: 'afc90dda',
+    company: 'Zurich',
+    brandMark: 'Z',
+    vertical: 'insurance',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: 'afc90dda.html',
+      title: 'Report a claim | Zurich U.S.',
+    },
+    theme: {
+      '--accent': '#2167AE',
+      '--ink': '#23366F',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#2167AE',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Zurich Customer Care Center',
+    supportCenterSub: 'Claims Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A ZURICH SITE — internal demo only, not affiliated with, endorsed by, or a real Zurich product.',
+  },
 };
 
 function getOncallSkin(slug) {
