@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Riot Account</title>
+  <link rel="icon" type="image/png" href="/verticals/assets/6f38d771/favicon.png" />
+  <style>
+    @font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url('/verticals/assets/6f38d771/fonts/inter-400.woff2') format('woff2'); }
+    @font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: swap; src: url('/verticals/assets/6f38d771/fonts/inter-500.woff2') format('woff2'); }
+    @font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url('/verticals/assets/6f38d771/fonts/inter-600.woff2') format('woff2'); }
+    @font-face { font-family: 'Inter'; font-weight: 700; font-style: normal; font-display: swap; src: url('/verticals/assets/6f38d771/fonts/inter-700.woff2') format('woff2'); }
+
+    :root {
+      --bg: #0a0a0a;
+      --card: #141212;
+      --input-bg: #211e1f;
+      --input-bg-focus: #292727;
+      --label: #b8b8b8;
+      --text: #f0f0f0;
+      --muted: #8a8a8a;
+      --red: #d13639;
+      --red-hover: #b52d30;
+      --disabled-text: #525252;
+      --disabled-border: rgba(138, 138, 138, 0.1);
+      --border: rgba(138, 138, 138, 0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    #app { min-height: 100vh; display: flex; flex-direction: column; }
+    .view { display: none; flex: 1; flex-direction: column; }
+    .view.active { display: flex; }
+
+    /* ---------- Login ---------- */
+    .login-page {
+      flex: 1; display: flex; align-items: center; justify-content: flex-end; padding: 48px 8vw;
+      background-image: url('/verticals/assets/6f38d771/valo-background.jpg');
+      background-size: cover; background-position: center;
+    }
+    .login-card { width: 400px; max-width: 92vw; background: #fff; border-radius: 8px; padding: 32px; color: #1a1a1a; }
+    .login-card .login-lockup { display: block; width: 180px; margin: -24px auto -12px; }
+    .login-card h1 { font-size: 25px; font-weight: 700; color: #1a1a1a; margin-bottom: 24px; }
+    .field { margin-bottom: 14px; }
+    .login-card .field input {
+      width: 100%; background: #ececec; border: 2px solid transparent; border-radius: 4px; padding: 14px;
+      color: #1a1a1a; font-family: inherit; font-size: 14px; outline: none;
+    }
+    .login-card .field input::placeholder { color: #757575; font-weight: 500; }
+    .login-card .field input:focus { border-color: #1a1a1a; }
+    .btn {
+      display: inline-block; width: 100%; padding: 14px; border-radius: 4px; border: none; font-family: inherit;
+      font-size: 14px; font-weight: 600; letter-spacing: 1.1px; text-transform: uppercase; cursor: pointer;
+      background: var(--red); color: #fff; margin-top: 10px; transition: background 0.15s ease;
+    }
+    .btn:hover:not(:disabled) { background: var(--red-hover); }
+    .btn:disabled { background: transparent; border: 2px solid var(--disabled-border); color: var(--disabled-text); cursor: not-allowed; }
+    .login-card .btn:disabled { color: #a0a0a0; border-color: #e0e0e0; }
+    .btn-secondary { width: auto; background: transparent; border: 2px solid var(--border); color: var(--label); padding: 11px 20px; margin: 0; }
+    .btn-secondary:hover:not(:disabled) { background: transparent; border-color: var(--red); color: var(--text); }
+    .error-banner {
+      display: none; background: var(--card); border-left: 3px solid var(--red); border-radius: 4px; color: var(--text);
+      font-size: 13px; padding: 12px 14px; margin-bottom: 16px; line-height: 1.5; word-break: break-word;
+    }
+    .error-banner.visible { display: block; }
+    .error-banner code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #f5b8b9; }
+    .error-banner .error-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+    .success-banner { display: none; background: var(--card); border-left: 3px solid #22c55e; border-radius: 4px; color: var(--text); font-size: 13px; padding: 12px 14px; margin-bottom: 16px; line-height: 1.5; }
+    .success-banner.visible { display: block; }
+    .login-card .error-banner { background: #faf3f3; color: #1a1a1a; }
+    .login-footer { margin-top: 24px; text-align: center; font-size: 12px; color: #757575; }
+    .login-footer a { color: #757575; text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; font-weight: 600; }
+    .login-footer a:hover { color: #1a1a1a; }
+    .login-hint { margin-top: 14px; font-size: 11px; color: #757575; text-align: center; }
+    .login-hint a { color: #1a1a1a; cursor: pointer; text-decoration: underline; }
+
+    /* ---------- Interior ---------- */
+    .topnav { display: flex; align-items: center; gap: 12px; padding: 14px 28px; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .topnav .nav-lockup { height: 28px; object-fit: contain; }
+    .topnav .spacer { flex: 1; }
+    .user-pill { background: var(--input-bg); border-radius: 999px; padding: 7px 16px; font-size: 13px; color: var(--label); cursor: default; }
+    .home-page { max-width: 900px; width: 100%; margin: 0 auto; padding: 40px 24px 64px; }
+    .home-page h1 { font-size: 34px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .home-page .subtitle { color: var(--label); font-size: 14px; margin-bottom: 32px; }
+    .riot-id-accent { color: var(--red); }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .tab {
+      background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px 12px; font-family: inherit;
+      font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--label); cursor: pointer;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--red); border-bottom-color: var(--red); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .card { display: flex; gap: 40px; background: var(--card); border-radius: 8px; padding: 28px 32px; margin-bottom: 20px; }
+    .card-left { flex: 0 0 260px; }
+    .card-left h2 { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+    .card-left p { font-size: 14px; color: var(--label); line-height: 1.5; }
+    .card-right { flex: 1; min-width: 0; }
+    @media (max-width: 720px) { .card { flex-direction: column; gap: 20px; } .card-left { flex: none; } }
+    .field label { display: block; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--label); margin-bottom: 6px; }
+    .card .field input {
+      width: 100%; background: var(--input-bg); border: 1px solid transparent; border-radius: 4px; padding: 12px 14px;
+      color: var(--text); font-family: inherit; font-size: 14px; outline: none;
+    }
+    .card .field input:focus { background: var(--input-bg-focus); border-color: var(--red); }
+    .tagline-input { display: flex; align-items: center; background: var(--input-bg); border: 1px solid transparent; border-radius: 4px; }
+    .tagline-input:focus-within { background: var(--input-bg-focus); border-color: var(--red); }
+    .tagline-input .hash { padding: 0 4px 0 14px; color: var(--muted); font-size: 14px; }
+    .card .field .tagline-input input { background: transparent; border: none; padding-left: 4px; }
+    .card .field .tagline-input input:focus { background: transparent; border: none; }
+    .field-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+    .stat .stat-label { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .stat .stat-value { font-size: 18px; font-weight: 600; color: var(--text); }
+    .match-row { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .match-row:first-child { padding-top: 0; }
+    .match-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .match-game {
+      width: 52px; height: 52px; border-radius: 6px; background: var(--input-bg); display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--red); flex-shrink: 0;
+    }
+    .match-game img { width: 100%; height: 100%; object-fit: contain; border-radius: 6px; }
+    .match-info { flex: 1; min-width: 0; }
+    .match-title { font-size: 14px; font-weight: 600; }
+    .match-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .match-wl { font-size: 13px; color: var(--label); text-align: right; }
+    .match-wl .wins { color: #22c55e; }
+    .match-wl .losses { color: var(--red); }
+    .home-actions { display: flex; justify-content: flex-end; }
+    .footer { margin-top: auto; padding: 28px 24px; text-align: center; font-size: 11px; color: var(--muted); }
+    .footer .footer-links { margin-top: 6px; }
+    .footer a { color: var(--label); text-decoration: none; margin: 0 10px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .footer a:hover { color: #fff; }
+    .spinner { display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px; }
+    .btn.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Sign in -->
+    <section class="view active" id="view-login">
+      <div class="login-page">
+        <div class="login-card">
+          <img class="login-lockup" src="/verticals/assets/6f38d771/riot-lockup-red.png" alt="Riot Games" />
+          <h1>Sign in</h1>
+          <div class="error-banner" id="login-error" role="alert"></div>
+          <form id="login-form">
+            <div class="field">
+              <input id="username" name="username" placeholder="USERNAME" aria-label="Username" autocomplete="username" value="garen.demacia" required />
+            </div>
+            <div class="field">
+              <input id="password" name="password" type="password" placeholder="PASSWORD" aria-label="Password" autocomplete="current-password" value="DemaciaJustice!23" required />
+            </div>
+            <button class="btn" type="submit" id="login-btn">Sign In</button>
+          </form>
+          <div class="login-footer">
+            <a href="#">Support</a> · <a href="#">Privacy Notice</a> · <a href="#">Terms of Service</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Account management -->
+    <section class="view" id="view-home">
+      <div class="topnav">
+        <img class="nav-lockup" src="/verticals/assets/6f38d771/riot-lockup-red-transparent.png" alt="Riot Games" />
+        <span class="spacer"></span>
+        <span class="user-pill" id="user-pill">▾</span>
+      </div>
+      <div class="home-page">
+        <h1>Account Management</h1>
+        <div class="subtitle">Signed in as <span class="riot-id-accent" id="subtitle-riot-id"></span><span id="subtitle-status"></span></div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" id="tab-profile" data-tab="profile" aria-controls="panel-profile">Player Profile</button>
+          <button class="tab" role="tab" id="tab-games" data-tab="games" aria-controls="panel-games">Games Played</button>
+          <button class="tab active" role="tab" id="tab-riot-id" data-tab="riot-id" aria-controls="panel-riot-id" aria-selected="true">Riot ID</button>
+        </div>
+
+        <div class="tab-panel" data-panel="profile" role="tabpanel" id="panel-profile" aria-labelledby="tab-profile">
+          <div class="card">
+            <div class="card-left">
+              <h2>Player Profile</h2>
+              <p>Your account overview across Riot Games titles.</p>
+            </div>
+            <div class="card-right">
+              <div class="profile-grid">
+                <div class="stat"><div class="stat-label">Riot ID</div><div class="stat-value" id="stat-riot-id"></div></div>
+                <div class="stat"><div class="stat-label">Region</div><div class="stat-value" id="stat-region"></div></div>
+                <div class="stat"><div class="stat-label">Level</div><div class="stat-value" id="stat-level"></div></div>
+                <div class="stat"><div class="stat-label">Rank</div><div class="stat-value" id="stat-rank"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" data-panel="games" role="tabpanel" id="panel-games" aria-labelledby="tab-games">
+          <div class="card">
+            <div class="card-left">
+              <h2>Games Played</h2>
+              <p>Ranked standings from your recently played queues.</p>
+            </div>
+            <div class="card-right" id="match-rows"></div>
+          </div>
+        </div>
+
+        <div class="tab-panel active" data-panel="riot-id" role="tabpanel" id="panel-riot-id" aria-labelledby="tab-riot-id">
+          <div class="card">
+            <div class="card-left">
+              <h2>Riot ID</h2>
+              <p>Your Riot ID is used by players to find you through the social panel in our games. You can change it once every 30 days.</p>
+            </div>
+            <div class="card-right">
+              <div class="error-banner" id="riot-id-error" role="alert"></div>
+              <div class="success-banner" id="riot-id-success" role="status"></div>
+              <form id="riot-id-form">
+                <div class="field">
+                  <label for="riot-id-game-name">Game Name</label>
+                  <input id="riot-id-game-name" required />
+                </div>
+                <div class="field">
+                  <label for="riot-id-tag-line">Tagline</label>
+                  <div class="tagline-input">
+                    <span class="hash">#</span>
+                    <input id="riot-id-tag-line" required />
+                  </div>
+                  <div class="field-hint" id="tagline-hint"></div>
+                </div>
+                <button class="btn" type="submit" id="riot-id-save"><span class="spinner"></span>Save Changes</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-actions">
+          <button class="btn btn-secondary" id="logout-btn">Log Out</button>
+        </div>
+      </div>
+      <div class="footer">
+        © 2017–2026 Riot Games, Inc. RIOT GAMES and any associated logos are trademarks of Riot Games, Inc.
+        <div class="footer-links">
+          <a href="#">Privacy Notice</a><a href="#">Terms of Service</a><a href="#">Cookie Preferences</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var GAME_LOGOS = {
+      lol: '/verticals/assets/6f38d771/logo-lol.png',
+      valorant: '/verticals/assets/6f38d771/logo-valorant.png',
+      tft: '/verticals/assets/6f38d771/logo-tft.png',
+      wildrift: '/verticals/assets/6f38d771/logo-wildrift.png'
+    };
+    var SHARD_LABELS = { NA1: 'North America', EUW1: 'Europe West', KR: 'Korea', OC1: 'Oceania', BR1: 'Brazil', JP1: 'Japan' };
+    var CREDENTIALS = {
+      'garen.demacia': 'DemaciaJustice!23',
+      'jinx.powder': 'GetJinxed!44',
+      'faker.hide': 'Unkillable#Demon1',
+      'penguin.pengu': 'FeatherKnight_77',
+      'arcane.vi': 'PiltoverEnforcer#6'
+    };
+    var accounts = {};
+    var current = null;
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function maskUsername(name) {
+      if (name.length <= 4) return name;
+      return name.slice(0, 2) + '*'.repeat(Math.min(name.length - 4, 4)) + name.slice(-2);
+    }
+    function rankedSummary(profile) {
+      var lol = profile.games.filter(function (g) { return g.game === 'lol'; })[0];
+      var entry = (lol && lol.ranked[0]) || (profile.games[0] && profile.games[0].ranked[0]);
+      if (!entry) return 'Unranked';
+      return entry.tier + ' ' + entry.division + ' \u00b7 ' + entry.leaguePoints + ' LP';
+    }
+    function matchRows(profile) {
+      var rows = [];
+      profile.games.forEach(function (game) {
+        game.ranked.forEach(function (entry) {
+          var tile = GAME_LOGOS[game.game]
+            ? '<div class="match-game"><img src="' + GAME_LOGOS[game.game] + '" alt="' + esc(game.game) + '" /></div>'
+            : '<div class="match-game">' + esc(game.game) + '</div>';
+          rows.push('<div class="match-row">' + tile +
+            '<div class="match-info"><div class="match-title">' + esc(entry.queue.replace(/_/g, ' ')) + '</div>' +
+            '<div class="match-sub">' + esc(entry.tier) + ' ' + esc(entry.division) + ' \u00b7 ' + entry.leaguePoints + ' LP \u00b7 Level ' + game.level + '</div></div>' +
+            '<div class="match-wl"><span class="wins">' + entry.wins + 'W</span> / <span class="losses">' + entry.losses + 'L</span></div></div>');
+        });
+      });
+      return rows.join('') || '<div class="match-sub">No recent games.</div>';
+    }
+
+    fetch('/api/6f38d771/accounts').then(function (r) { return r.json(); }).then(function (data) {
+      data.accounts.forEach(function (a) { accounts[a.username] = a; });
+      data.shards.forEach(function (s) { SHARD_LABELS[s.code] = s.label; });
+    }).catch(function () {});
+
+    function show(viewId) {
+      document.querySelectorAll('.view').forEach(function (v) { v.classList.toggle('active', v.id === viewId); });
+    }
+
+    function renderHome(profile) {
+      current = profile;
+      var riotId = profile.gameName + '#' + profile.tagLine;
+      document.getElementById('user-pill').textContent = maskUsername(profile.gameName) + ' \u25BE';
+      document.getElementById('subtitle-riot-id').textContent = riotId;
+      document.getElementById('subtitle-status').textContent = profile.statusMessage ? ' \u00b7 ' + profile.statusMessage : '';
+      document.getElementById('stat-riot-id').textContent = riotId;
+      document.getElementById('stat-region').textContent = profile.region;
+      document.getElementById('stat-level').textContent = profile.accountLevel;
+      document.getElementById('stat-rank').textContent = rankedSummary(profile);
+      document.getElementById('match-rows').innerHTML = matchRows(profile);
+      document.getElementById('riot-id-game-name').value = profile.gameName;
+      document.getElementById('riot-id-tag-line').value = profile.tagLine;
+      document.getElementById('tagline-hint').textContent = 'Homed on ' + (SHARD_LABELS[profile.region] || profile.region) + ' (' + profile.region + '). Taglines are 2\u20135 characters.';
+      document.getElementById('riot-id-error').className = 'error-banner';
+      document.getElementById('riot-id-success').className = 'success-banner';
+      show('view-home');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value;
+      var banner = document.getElementById('login-error');
+      var profile = accounts[username];
+      if (!profile || CREDENTIALS[username] !== password) {
+        banner.textContent = 'INVALID_CREDENTIALS: Unable to sign in.';
+        banner.classList.add('visible');
+        return;
+      }
+      banner.className = 'error-banner';
+      renderHome(profile);
+    });
+
+    document.querySelectorAll('.tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var tab = btn.dataset.tab;
+        document.querySelectorAll('.tab').forEach(function (b) {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-selected', String(b === btn));
+        });
+        document.querySelectorAll('.tab-panel').forEach(function (p) {
+          p.classList.toggle('active', p.dataset.panel === tab);
+        });
+      });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', function () {
+      current = null;
+      show('view-login');
+    });
+
+    document.getElementById('riot-id-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!current) return;
+      var btn = document.getElementById('riot-id-save');
+      var errorBanner = document.getElementById('riot-id-error');
+      var successBanner = document.getElementById('riot-id-success');
+      errorBanner.className = 'error-banner';
+      successBanner.className = 'success-banner';
+      btn.disabled = true;
+      btn.classList.add('loading');
+
+      fetch('/api/6f38d771/riot-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: current.username,
+          gameName: document.getElementById('riot-id-game-name').value.trim(),
+          tagLine: document.getElementById('riot-id-tag-line').value.trim(),
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        if (!result.ok || !result.data.success) {
+          errorBanner.innerHTML =
+            '<strong>Unable to update Riot ID.</strong> Your Riot ID was not changed.<br>' +
+            '<code>' + esc(result.data.error || 'Unknown error') + '</code>' +
+            '<div class="error-meta">' +
+            '<span>' + esc(result.data.errorClass || 'Error') + '</span>' +
+            '<span>' + esc(result.data.code || 'ERROR') + '</span>' +
+            '<span>Request ' + esc(result.data.requestId || 'N/A') + '</span>' +
+            '</div>';
+          errorBanner.classList.add('visible');
+          return;
+        }
+        var s = result.data.session;
+        current.gameName = s.gameName;
+        current.tagLine = s.tagLine;
+        var riotId = s.gameName + '#' + s.tagLine;
+        document.getElementById('subtitle-riot-id').textContent = riotId;
+        document.getElementById('stat-riot-id').textContent = riotId;
+        document.getElementById('user-pill').textContent = maskUsername(s.gameName) + ' \u25BE';
+        successBanner.innerHTML = '<strong>Riot ID updated.</strong> ' + esc(s.previousRiotId) + ' \u2192 <strong>' + esc(riotId) + '</strong> on ' +
+          esc(result.data.shard.label) + '. Next change available ' + esc(new Date(result.data.taglinePolicy.nextChangeAllowedAt).toLocaleDateString()) + '.';
+        successBanner.classList.add('visible');
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        errorBanner.textContent = 'Network error: ' + err.message;
+        errorBanner.classList.add('visible');
+      });
+    });
+  </script>
+</body>
+</html>
