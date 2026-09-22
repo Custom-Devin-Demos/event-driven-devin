@@ -205,6 +205,7 @@ async function lookupCoverage(data) {
         service: SERVICE,
         route: ROUTE,
         memberId: member.id,
+        alert_path: 'instant',
       },
       extra: {
         lookupId,
