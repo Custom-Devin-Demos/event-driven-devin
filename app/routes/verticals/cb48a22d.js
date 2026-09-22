@@ -16,6 +16,14 @@ const REASONS = {
   'fever': 'Fever or infection',
 };
 
+function isCalendarDateInPast(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return false;
+  if (parsed.toISOString().slice(0, 10) !== value) return false;
+  return parsed.getTime() < Date.now();
+}
+
 router.get('/api/cb48a22d/waittimes', (_req, res) => {
   res.json({
     board: waitBoard(),
@@ -34,8 +42,8 @@ router.post('/api/cb48a22d/checkin', async (req, res) => {
   if (!patientName) {
     return res.status(400).json({ success: false, error: 'patientName is required', code: 'VALIDATION_ERROR' });
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
-    return res.status(400).json({ success: false, error: 'dateOfBirth must be a YYYY-MM-DD date', code: 'VALIDATION_ERROR' });
+  if (!isCalendarDateInPast(dateOfBirth)) {
+    return res.status(400).json({ success: false, error: 'dateOfBirth must be a past YYYY-MM-DD date', code: 'VALIDATION_ERROR' });
   }
   if (!resolveFacility(facilityCode)) {
     return res.status(400).json({ success: false, error: `Unknown hospital: ${facilityCode}`, code: 'VALIDATION_ERROR' });

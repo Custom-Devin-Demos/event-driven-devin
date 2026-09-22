@@ -10,25 +10,17 @@ const SLACK_MEMBER_ID = process.env.TENET_SLACK_MEMBER_ID || 'U08S7AVJ478';
 
 /**
  * Tenet hospitals published on the public ER wait board. `timeZoneId` is the
- * Windows time zone the Millennium interface engine stamps for the facility.
+ * Windows time zone the Millennium interface engine stamps for the facility;
+ * `ianaZone` is what the board renders with.
  */
 const FACILITIES = [
-  { code: 'DMC', name: 'Detroit Receiving Hospital', city: 'Detroit', state: 'MI', market: 'Detroit Medical Center', timeZoneId: 'Eastern Standard Time', licensedBeds: 273 },
-  { code: 'SFH', name: 'Saint Francis Hospital', city: 'Memphis', state: 'TN', market: 'Memphis', timeZoneId: 'Central Standard Time', licensedBeds: 519 },
-  { code: 'BSW', name: 'Baptist Hospitals of Southeast Texas', city: 'Beaumont', state: 'TX', market: 'Southeast Texas', timeZoneId: 'Central Standard Time', licensedBeds: 421 },
-  { code: 'DSH', name: 'Desert Regional Medical Center', city: 'Palm Springs', state: 'CA', market: 'Southern California', timeZoneId: 'Pacific Standard Time', licensedBeds: 385 },
-  { code: 'HVL', name: 'Hi-Desert Medical Center', city: 'Joshua Tree', state: 'CA', market: 'Southern California', timeZoneId: 'Pacific Standard Time', licensedBeds: 179 },
-  { code: 'PBH', name: 'Palm Beach Gardens Medical Center', city: 'Palm Beach Gardens', state: 'FL', market: 'South Florida', timeZoneId: 'Eastern Standard Time', licensedBeds: 199 },
+  { code: 'DMC', name: 'Detroit Receiving Hospital', city: 'Detroit', state: 'MI', market: 'Detroit Medical Center', timeZoneId: 'Eastern Standard Time', ianaZone: 'America/Detroit', licensedBeds: 273 },
+  { code: 'SFH', name: 'Saint Francis Hospital', city: 'Memphis', state: 'TN', market: 'Memphis', timeZoneId: 'Central Standard Time', ianaZone: 'America/Chicago', licensedBeds: 519 },
+  { code: 'BSW', name: 'Baptist Hospitals of Southeast Texas', city: 'Beaumont', state: 'TX', market: 'Southeast Texas', timeZoneId: 'Central Standard Time', ianaZone: 'America/Chicago', licensedBeds: 421 },
+  { code: 'DSH', name: 'Desert Regional Medical Center', city: 'Palm Springs', state: 'CA', market: 'Southern California', timeZoneId: 'Pacific Standard Time', ianaZone: 'America/Los_Angeles', licensedBeds: 385 },
+  { code: 'HVL', name: 'Hi-Desert Medical Center', city: 'Joshua Tree', state: 'CA', market: 'Southern California', timeZoneId: 'Pacific Standard Time', ianaZone: 'America/Los_Angeles', licensedBeds: 179 },
+  { code: 'PBH', name: 'Palm Beach Gardens Medical Center', city: 'Palm Beach Gardens', state: 'FL', market: 'South Florida', timeZoneId: 'Eastern Standard Time', ianaZone: 'America/New_York', licensedBeds: 199 },
 ];
-
-/**
- * UTC offsets the platform applies when rendering facility wall-clock time.
- */
-const FACILITY_ZONES = {
-  'Eastern Standard Time': { utcOffsetMinutes: -240, abbreviation: 'EDT' },
-  'Central Standard Time': { utcOffsetMinutes: -300, abbreviation: 'CDT' },
-  'Pacific Standard Time': { utcOffsetMinutes: -420, abbreviation: 'PDT' },
-};
 
 /**
  * Online ER check-in ("Save My Spot") program registered per hospital: the
@@ -98,17 +90,14 @@ function resolveFacility(code) {
   return FACILITIES.find((f) => f.code === code) || null;
 }
 
-/** Wall-clock "now" at the hospital. */
-function facilityLocalNow(facility, at = Date.now()) {
-  const zone = FACILITY_ZONES[facility.timeZoneId];
-  return new Date(at + zone.utcOffsetMinutes * 60000);
-}
-
-function formatBoardTime(facility, localNow) {
-  const zone = FACILITY_ZONES[facility.timeZoneId];
-  const hours = localNow.getUTCHours();
-  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
-  return `${hour12}:${pad(localNow.getUTCMinutes(), 2)} ${hours < 12 ? 'AM' : 'PM'} ${zone.abbreviation}`;
+/** Renders an instant as wall-clock time at the hospital, e.g. `3:04 PM EDT`. */
+function formatBoardTime(facility, at = Date.now()) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: facility.ianaZone,
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(new Date(at));
 }
 
 function openEmergencyVisits(facilityCode, at = Date.now()) {
@@ -146,7 +135,7 @@ function boardEntry(facility, at = Date.now()) {
     averageWaitMinutes: average,
     longestWaitMinutes: waits.length === 0 ? 0 : Math.max(...waits),
     status: describeStatus(average),
-    updatedAtDisplay: formatBoardTime(facility, facilityLocalNow(facility, at)),
+    updatedAtDisplay: formatBoardTime(facility, at),
   };
 }
 
@@ -155,8 +144,7 @@ function waitBoard(at = Date.now()) {
 }
 
 function holdExpiry(facility, program, at = Date.now()) {
-  const localNow = facilityLocalNow(facility, at + program.holdMinutes * 60000);
-  return formatBoardTime(facility, localNow);
+  return formatBoardTime(facility, at + program.holdMinutes * 60000);
 }
 
 /**
@@ -240,7 +228,9 @@ async function reserveEdCheckin(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, source: 'tenet-er-wait-board', facility: data.facilityCode },
+      tags: {
+        route: ROUTE, service: SERVICE, source: 'tenet-er-wait-board', facility: data.facilityCode, alert_path: 'instant',
+      },
       extra: { confirmationId, facilityCode: data.facilityCode, reason: data.reason },
     });
 
@@ -289,11 +279,10 @@ module.exports = {
   openEmergencyVisits,
   parseHl7Timestamp,
   formatHl7Timestamp,
-  facilityLocalNow,
+  formatBoardTime,
   resolveFacility,
   describeStatus,
   FACILITIES,
-  FACILITY_ZONES,
   CHECKIN_PROGRAMS,
   ED_CENSUS_MINUTES,
 };

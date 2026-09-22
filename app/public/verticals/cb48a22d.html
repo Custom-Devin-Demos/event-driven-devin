@@ -273,8 +273,11 @@
       function resolveIdentity(email) {
         resolutionToken += 1;
         var token = resolutionToken;
-        if (!email) return Promise.resolve();
-        return loadConfig().then(function (cfg) {
+        if (!email) {
+          window.tenetIdentityReady = Promise.resolve();
+          return window.tenetIdentityReady;
+        }
+        window.tenetIdentityReady = loadConfig().then(function (cfg) {
           if (token !== resolutionToken) return;
           var orgId = storedOrgId() || cfg.defaultOrgId || '';
           var orgName = cfg.defaultOrgName || '';
@@ -297,6 +300,7 @@
               if (token === resolutionToken) setStatus('Could not resolve this email: ' + err.message);
             });
         });
+        return window.tenetIdentityReady;
       }
 
       emailInput.value = localStorage.getItem('devinEmail') || '';
@@ -387,18 +391,22 @@
         submitBtn.disabled = true;
         processingEl.classList.add('visible');
 
-        fetch('/api/cb48a22d/checkin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            patientName: document.getElementById('patientName').value,
-            dateOfBirth: document.getElementById('dateOfBirth').value,
-            facilityCode: facilitySelect.value,
-            reason: reasonSelect.value,
-            devinUserId: localStorage.getItem('devinUserId') || '',
-            devinOrgId: localStorage.getItem('devinOrgId') || '',
-            devinEmail: localStorage.getItem('devinEmail') || ''
-          })
+        /* Wait for any in-flight email resolution so Slack's on-call mention and
+           the Devin session owner come from the same identity. */
+        Promise.resolve(window.tenetIdentityReady).catch(function () {}).then(function () {
+          return fetch('/api/cb48a22d/checkin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              patientName: document.getElementById('patientName').value,
+              dateOfBirth: document.getElementById('dateOfBirth').value,
+              facilityCode: facilitySelect.value,
+              reason: reasonSelect.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || ''
+            })
+          });
         })
           .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
           .then(function (out) {
