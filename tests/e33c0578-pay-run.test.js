@@ -13,6 +13,7 @@ const {
   submitPayRun,
   calculateGrossPay,
   resolveWorkRule,
+  requireWorkRule,
   EMPLOYEES,
   WORK_RULES,
   PAY_GROUP,
@@ -23,13 +24,7 @@ const REGISTERED_EMPLOYEE_IDS = EMPLOYEES
   .filter((employee) => WORK_RULES[employee.workRule])
   .map((employee) => employee.id);
 
-const WEEKEND_ROTATION_RULE = {
-  label: 'Weekend rotation (Northgate)',
-  overtimeMultiplier: 1.5,
-  doubleTimeMultiplier: 2,
-  overtimeThresholdHours: 40,
-  shiftDifferential: 1.75,
-};
+const WEEKEND_ROTATION_RULE = { ...WORK_RULES['US-WEEKEND-ROTATION'] };
 
 function postPayRun(body) {
   const app = express();
@@ -73,7 +68,7 @@ const VALID_REQUEST = {
 };
 
 afterEach(() => {
-  delete WORK_RULES['US-WEEKEND-ROTATION'];
+  WORK_RULES['US-WEEKEND-ROTATION'] = { ...WEEKEND_ROTATION_RULE };
   createSessionAndAlert.mockClear();
 });
 
@@ -105,43 +100,29 @@ describe('UKG Pro pay run calculation', () => {
   });
 });
 
-describe('UKG Pro pay run unregistered work rule', () => {
-  test('has no payroll work rule for the Northgate weekend rotation', () => {
-    expect(resolveWorkRule({ workRule: 'US-WEEKEND-ROTATION' })).toBeUndefined();
+describe('UKG Pro pay run weekend rotation work rule', () => {
+  test('registers the Northgate weekend rotation rule in the payroll rule set', () => {
+    const rule = resolveWorkRule({ workRule: 'US-WEEKEND-ROTATION' });
+
+    expect(rule).toEqual({
+      label: 'Weekend rotation (Northgate)',
+      overtimeMultiplier: 1.5,
+      doubleTimeMultiplier: 2,
+      overtimeThresholdHours: 40,
+      shiftDifferential: 1.75,
+    });
   });
 
-  test('raises a TypeError and sends the Cognition identity to the alert flow', async () => {
-    await expect(submitPayRun(VALID_REQUEST)).rejects.toThrow(TypeError);
+  test('calculates gross pay for the Northgate employee that used to throw', () => {
+    const line = calculateGrossPay(EMPLOYEES.find((employee) => employee.id === 'E-100503'));
 
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
-    const alert = createSessionAndAlert.mock.calls[0][0];
-    expect(alert.customer).toBe('e33c0578');
-    expect(alert.service).toBe('customer-e33c0578-pay-run');
-    expect(alert.culprit).toBe('app/services/verticals/e33c0578.js — calculateGrossPay');
-    expect(alert.errorType).toBe('TypeError');
-    expect(alert.devinUserId).toBe('clerk-user_demo');
-    expect(alert.devinOrgId).toBe('org_demo');
-    expect(alert.tags).toEqual(expect.arrayContaining([
-      { key: 'route', value: '/api/e33c0578/pay-run' },
-      { key: 'payGroup', value: PAY_GROUP.id },
-    ]));
+    expect(line.workRule).toBe('Weekend rotation (Northgate)');
+    expect(line.regularPay).toBe(2512.8);
+    expect(line.premiumPay).toBe(440.1);
+    expect(line.grossPay).toBe(2952.9);
   });
 
-  test('returns a 500 response for the default pay run', async () => {
-    const { status, body } = await postPayRun(VALID_REQUEST);
-
-    expect(status).toBe(500);
-    expect(body.success).toBe(false);
-    expect(body.errorClass).toBe('TypeError');
-    expect(body.error).toMatch(/Cannot read properties of undefined \(reading 'shiftDifferential'\)/);
-    expect(body.code).toBe('PAY_RUN_SUBMISSION_FAILED');
-  });
-});
-
-describe('UKG Pro pay run fixed behavior', () => {
-  test('submits every employee once the weekend rotation rule is registered', async () => {
-    WORK_RULES['US-WEEKEND-ROTATION'] = { ...WEEKEND_ROTATION_RULE };
-
+  test('submits every employee in the pay group without alerting', async () => {
     const result = await submitPayRun(VALID_REQUEST);
 
     expect(result.success).toBe(true);
@@ -150,14 +131,66 @@ describe('UKG Pro pay run fixed behavior', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
-  test('returns 200 from the API once the weekend rotation rule is registered', async () => {
-    WORK_RULES['US-WEEKEND-ROTATION'] = { ...WEEKEND_ROTATION_RULE };
-
+  test('returns 200 from the API for the default pay run', async () => {
     const { status, body } = await postPayRun(VALID_REQUEST);
 
     expect(status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.payDate).toBe(PAY_GROUP.payDate);
+    expect(body.totalGross).toBe(
+      Math.round(body.lines.reduce((sum, line) => sum + line.grossPay, 0) * 100) / 100,
+    );
+  });
+});
+
+describe('UKG Pro pay run unregistered work rule', () => {
+  test('raises a validation error instead of a TypeError', () => {
+    const employee = { id: 'E-000001', workRule: 'US-HOLIDAY-POOL', payType: 'hourly' };
+
+    expect(() => requireWorkRule(employee)).toThrow(/US-HOLIDAY-POOL/);
+    try {
+      calculateGrossPay(employee);
+    } catch (error) {
+      expect(error).not.toBeInstanceOf(TypeError);
+      expect(error.name).toBe('ValidationError');
+      expect(error.code).toBe('WORK_RULE_NOT_REGISTERED');
+      expect(error.statusCode).toBe(422);
+    }
+    expect.assertions(5);
+  });
+
+  test('returns 422 and still raises the alert when a rule is missing from the rule set', async () => {
+    delete WORK_RULES['US-WEEKEND-ROTATION'];
+
+    const { status, body } = await postPayRun(VALID_REQUEST);
+
+    expect(status).toBe(422);
+    expect(body.success).toBe(false);
+    expect(body.errorClass).toBe('ValidationError');
+    expect(body.code).toBe('WORK_RULE_NOT_REGISTERED');
+    expect(body.error).toMatch(/US-WEEKEND-ROTATION/);
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.customer).toBe('e33c0578');
+    expect(alert.service).toBe('customer-e33c0578-pay-run');
+    expect(alert.culprit).toBe('app/services/verticals/e33c0578.js — calculateGrossPay');
+    expect(alert.tags).toEqual(expect.arrayContaining([
+      { key: 'route', value: '/api/e33c0578/pay-run' },
+      { key: 'payGroup', value: PAY_GROUP.id },
+    ]));
+  });
+
+  test('submitting only registered employees still succeeds when a rule is missing', async () => {
+    delete WORK_RULES['US-WEEKEND-ROTATION'];
+
+    const registeredIds = EMPLOYEES
+      .filter((employee) => WORK_RULES[employee.workRule])
+      .map((employee) => employee.id);
+    const result = await submitPayRun({ ...VALID_REQUEST, employeeIds: registeredIds });
+
+    expect(result.success).toBe(true);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 });
 
