@@ -175,7 +175,7 @@
     </a>
     <div class="search" role="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search cards, drivers, or transactions</div>
     <div class="spacer"></div>
-    <span class="org-pill"><span class="dot">N</span><span class="lbl">Northline Logistics LLC</span><b>&bull;&bull;&bull;&bull; 5521</b></span>
+    <span class="org-pill"><span class="dot">N</span><span class="lbl">Northline Logistics LLC</span><b id="orgLast4">&bull;&bull;&bull;&bull; 5521</b></span>
     <button type="button" class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg></button>
     <span class="avatar" aria-label="Maria Reyes">MR</span>
   </header>
@@ -220,26 +220,21 @@
             <div class="field">
               <label for="toAccount">Card account</label>
               <select id="toAccount">
-                <option value="ACCT-1002" data-label="bp Business Solutions Mastercard&reg; &bull;&bull;&bull;&bull; 5521" data-balance="4862.17" data-current="5104.66">bp Business Solutions Mastercard&reg; &mdash; account &bull;&bull;&bull;&bull; 5521</option>
-                <option value="ACCT-1003" data-label="bp Business Solutions Fuel Plus &bull;&bull;&bull;&bull; 3308" data-balance="1218.40" data-current="1290.05">bp Business Solutions Fuel Plus &mdash; account &bull;&bull;&bull;&bull; 3308</option>
+                <option value="ACCT-1002" data-label="bp Business Solutions Mastercard&reg; &bull;&bull;&bull;&bull; 5521" data-last4="5521" data-balance="4862.17" data-current="5104.66" data-lines='[["Fuel purchases","1,417.6 gal &middot; 186 transactions",4611.02],["Maintenance &amp; service","3 transactions",318.90],["Fleet rebate","6&cent;/gal at bp and Amoco",-67.75],["Previous balance paid","Aug 29 &middot; ACH",0]]'>bp Business Solutions Mastercard&reg; &mdash; account &bull;&bull;&bull;&bull; 5521</option>
+                <option value="ACCT-1003" data-label="bp Business Solutions Fuel Plus &bull;&bull;&bull;&bull; 3308" data-last4="3308" data-balance="1218.40" data-current="1290.05" data-lines='[["Fuel purchases","362.4 gal &middot; 41 transactions",1236.15],["Fleet rebate","6&cent;/gal at bp and Amoco",-17.75],["Previous balance paid","Aug 29 &middot; ACH",0]]'>bp Business Solutions Fuel Plus &mdash; account &bull;&bull;&bull;&bull; 3308</option>
               </select>
             </div>
             <div class="table-wrap">
               <table class="table" aria-label="Statement summary">
                 <thead><tr><th>Item</th><th class="opt">Detail</th><th class="num">Amount</th></tr></thead>
-                <tbody>
-                  <tr><td>Fuel purchases</td><td class="opt">1,417.6 gal &middot; 186 transactions</td><td class="num">$4,611.02</td></tr>
-                  <tr><td>Maintenance &amp; service</td><td class="opt">3 transactions</td><td class="num">$318.90</td></tr>
-                  <tr><td>Fleet rebate</td><td class="opt">6&cent;/gal at bp and Amoco</td><td class="num">-$67.75</td></tr>
-                  <tr><td>Previous balance paid</td><td class="opt">Aug 29 &middot; ACH</td><td class="num">$0.00</td></tr>
-                </tbody>
+                <tbody id="statementLines"></tbody>
               </table>
             </div>
           </section>
 
           <section class="card">
             <h2>Payment</h2>
-            <p class="hint">Payments are drawn by ACH from the bank account you select. Your bank may take 1&ndash;2 business days to reflect the debit.</p>
+            <p class="hint">Payments are drawn by ACH from the bank account you select. Any processing fee for the posting speed you choose is shown on your confirmation and itemized on your next statement.</p>
             <div class="two">
               <div class="field">
                 <label for="fromAccount">Pay from</label>
@@ -251,7 +246,7 @@
               <div class="field">
                 <label for="accountTier">Posting speed</label>
                 <select id="accountTier">
-                  <option value="standard">Standard &mdash; posts next business day, no fee</option>
+                  <option value="standard">Standard &mdash; posts next business day</option>
                   <option value="premium">Same-day &mdash; before 5 p.m. CT</option>
                   <option value="basic">Scheduled &mdash; on the due date</option>
                 </select>
@@ -328,6 +323,16 @@
         var o = selected(cardAcct);
         return { statement: parseFloat(o.dataset.balance) || 0, current: parseFloat(o.dataset.current) || 0 };
       }
+      function renderStatement() {
+        var o = selected(cardAcct);
+        var lines = [];
+        try { lines = JSON.parse(o.dataset.lines || '[]'); } catch (e) { lines = []; }
+        document.getElementById('statementLines').innerHTML = lines.map(function (l) {
+          var v = l[2] || 0;
+          return '<tr><td>' + l[0] + '</td><td class="opt">' + l[1] + '</td><td class="num">' + (v < 0 ? '-' : '') + fmt(Math.abs(v)) + '</td></tr>';
+        }).join('');
+        document.getElementById('orgLast4').innerHTML = '&bull;&bull;&bull;&bull; ' + o.dataset.last4;
+      }
       function applyKind() {
         var b = balances();
         if (amountKind === 'statement') amount.value = b.statement.toFixed(2);
@@ -347,7 +352,7 @@
         document.getElementById('sumTotal').textContent = fmt(amt);
         chips.forEach(function (c) { c.classList.toggle('on', c.dataset.kind === amountKind); });
       }
-      cardAcct.addEventListener('change', function () { applyKind(); recalc(); });
+      cardAcct.addEventListener('change', function () { renderStatement(); applyKind(); recalc(); });
       [bank, speed].forEach(function (el) { el.addEventListener('change', recalc); });
       amount.addEventListener('input', function () { amountKind = 'other'; recalc(); });
       chips.forEach(function (c) {
@@ -358,7 +363,8 @@
           recalc();
         });
       });
-      form.addEventListener('reset', function () { amountKind = 'statement'; setTimeout(function () { applyKind(); recalc(); }, 0); });
+      form.addEventListener('reset', function () { amountKind = 'statement'; setTimeout(function () { renderStatement(); applyKind(); recalc(); }, 0); });
+      renderStatement();
       applyKind();
       recalc();
 
@@ -374,12 +380,15 @@
         var amt = parseFloat(amount.value);
         result.className = 'result-box';
         result.innerHTML = '';
-        if (!isFinite(amt) || amt < 1) {
+        if (!isFinite(amt) || amt < 1 || amt > 50000 || Math.abs(Math.round(amt * 100) - amt * 100) > 1e-6) {
           result.className = 'result-box error';
-          result.innerHTML = '<div class="error-title">Enter a payment amount</div><div class="error-detail">The minimum payment is $1.00.</div>';
+          result.innerHTML = '<div class="error-title">Enter a valid payment amount</div><div class="error-detail">Payments must be between $1.00 and $50,000.00, in whole cents.</div>';
           amount.focus();
           return;
         }
+        var submitted = { amount: amt, bank: selected(bank).dataset.label, card: selected(cardAcct).dataset.label };
+        var controls = [cardAcct, bank, speed, amount].concat(chips);
+        controls.forEach(function (el) { el.disabled = true; });
         btn.disabled = true; btn.classList.add('busy'); label.textContent = 'Submitting payment\u2026';
         try {
           var res = await fetch('/api/banking/transfer', {
@@ -400,13 +409,20 @@
             result.innerHTML = '<div class="error-title">We couldn\u2019t submit this payment</div><div class="error-detail">Nothing was debited from your bank account. Try again, or contact bp Business Solutions Customer Service.</div>';
           } else {
             var confirmation = 'BPB-' + String(data.transferId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+            var fee = parseFloat(data.fee) || 0;
+            var debit = parseFloat(data.debitAmount);
+            if (!isFinite(debit)) debit = submitted.amount + fee;
+            var feeCopy = fee > 0 ? ' Your bank account will be debited ' + fmt(debit) + ', including a ' + fmt(fee) + ' processing fee.' : '';
             result.className = 'result-box success';
-            result.innerHTML = '<div class="error-title">Payment submitted</div><div class="error-detail">Confirmation ' + confirmation + ' &middot; ' + fmt(amt) + ' from ' + selected(bank).dataset.label + ' to ' + selected(cardAcct).dataset.label + '. Available credit updates when the payment posts.</div>';
+            result.innerHTML = '<div class="error-title">Payment submitted</div><div class="error-detail">Confirmation ' + confirmation + ' &middot; ' + fmt(submitted.amount) + ' from ' + submitted.bank + ' to ' + submitted.card + '.' + feeCopy + ' Available credit updates when the payment posts.</div>';
           }
         } catch (err) {
           result.className = 'result-box error';
           result.innerHTML = '<div class="error-title">We couldn\u2019t submit this payment</div><div class="error-detail">Check your connection and try again.</div>';
-        } finally { btn.disabled = false; btn.classList.remove('busy'); label.textContent = 'Pay balance'; }
+        } finally {
+          controls.forEach(function (el) { el.disabled = false; });
+          btn.disabled = false; btn.classList.remove('busy'); label.textContent = 'Pay balance';
+        }
       });
     })();
   </script>
