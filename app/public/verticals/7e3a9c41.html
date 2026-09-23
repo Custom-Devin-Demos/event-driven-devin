@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthEdge — HealthRules® Payer | Data without silos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #141D41;
+    --blue: #008FD5;
+    --teal: #98E0F0;
+    --orange: #F0742F;
+    --grey: #7C8699;
+    --card: #F1F3F7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Outfit', sans-serif; font-weight: 400; font-size: 17px; color: var(--navy); background: #fff; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-weight: 300; }
+
+  /* Header */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px; background: #fff; position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 1px 0 rgba(20,29,65,.06);
+  }
+  .logo img { height: 40px; }
+  .logo .logo-text { font-weight: 500; font-size: 24px; letter-spacing: .06em; color: var(--navy); display: none; }
+  nav { display: flex; gap: 34px; align-items: center; }
+  nav a { color: var(--navy); text-decoration: none; font-size: 15px; font-weight: 400; white-space: nowrap; }
+  nav a:hover { color: var(--blue); }
+  .header-right { display: flex; align-items: center; gap: 22px; }
+  .icon-btn { background: none; border: none; cursor: pointer; color: var(--navy); padding: 4px; }
+  .cta-link { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; cursor: pointer; }
+  .cta-link .cta-label { color: var(--orange); font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+  .cta-link .cta-circle {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--orange);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .cta-link .cta-circle svg { width: 20px; height: 20px; stroke: #fff; }
+  .cta-link:hover .cta-circle { background: #d85f1e; }
+
+  /* Hero */
+  .hero {
+    margin: 12px 24px 0; border-radius: 16px; min-height: 560px;
+    display: flex; align-items: center; padding: 96px 8%;
+    background-color: var(--navy);
+    background-image:
+      url('https://healthedge.com/wp-content/uploads/2026/06/home-hero-bg-optimized-1.avif'),
+      radial-gradient(ellipse 60% 80% at 72% 45%, rgba(0,143,213,.55) 0%, rgba(20,29,65,0) 70%),
+      repeating-linear-gradient(115deg, transparent 0 46px, rgba(240,116,127,.10) 46px 47px, transparent 47px 92px, rgba(152,224,240,.10) 92px 93px),
+      linear-gradient(160deg, #141D41 0%, #101a3c 60%, #0d1734 100%);
+    background-size: cover, cover, auto, auto;
+    background-position: center;
+  }
+  .hero-inner { max-width: 620px; }
+  .hero h1 { color: var(--teal); font-size: 64px; line-height: 1.08; font-weight: 300; margin-bottom: 26px; }
+  .hero p { color: #fff; font-size: 17px; line-height: 1.65; font-weight: 300; margin-bottom: 40px; max-width: 540px; }
+
+  /* Sections */
+  section { padding: 90px 48px; max-width: 1280px; margin: 0 auto; }
+  .section-label { color: var(--blue); font-size: 13px; letter-spacing: .22em; text-transform: uppercase; font-weight: 500; margin-bottom: 18px; }
+  h2 { font-size: 44px; line-height: 1.15; font-weight: 300; color: var(--navy); margin-bottom: 20px; }
+
+  /* By the numbers */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 48px; }
+  .stat-card { background: var(--card); border-radius: 16px; overflow: hidden; min-height: 260px; display: flex; flex-direction: column; }
+  .stat-card .stat-img { height: 110px; background-size: cover; background-position: center; }
+  .stat-card .stat-body { padding: 28px; }
+  .stat-card .stat-num { font-size: 56px; font-weight: 300; color: var(--navy); line-height: 1; }
+  .stat-card .stat-cap { margin-top: 14px; color: var(--grey); font-size: 15px; line-height: 1.5; }
+
+  /* Solutions band */
+  .solutions { display: grid; grid-template-columns: 1.1fr .9fr; gap: 60px; align-items: center; position: relative; }
+  .solutions .deco {
+    position: absolute; top: -30px; left: -48px; width: 260px; height: 260px; pointer-events: none;
+    background: repeating-linear-gradient(120deg, transparent 0 14px, rgba(0,143,213,.16) 14px 15px);
+  }
+  .solutions p.lead { color: var(--grey); line-height: 1.7; font-size: 17px; margin-bottom: 34px; }
+  .pillars { list-style: none; margin-top: 22px; }
+  .pillars li { padding: 14px 0 14px 34px; border-bottom: 1px solid #E4E8F0; color: var(--navy); font-size: 16px; position: relative; }
+  .pillars li::before { content: ''; position: absolute; left: 0; top: 20px; width: 18px; height: 2px; background: var(--orange); }
+
+  /* Adjudication panel */
+  .adjudicate-wrap { max-width: 1280px; margin: 0 auto; padding: 0 48px 90px; }
+  .adjudicate {
+    background: var(--navy); border-radius: 16px; padding: 64px 8%;
+    background-image: radial-gradient(ellipse 55% 75% at 80% 20%, rgba(0,143,213,.45) 0%, rgba(20,29,65,0) 70%);
+  }
+  .adjudicate h2 { color: var(--teal); }
+  .adjudicate > p { color: rgba(255,255,255,.82); font-weight: 300; max-width: 620px; margin-bottom: 36px; line-height: 1.6; }
+  .form-card { background: #fff; border-radius: 12px; padding: 36px; }
+  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .field label { display: block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--grey); font-weight: 500; margin-bottom: 8px; }
+  .field input, .field select {
+    width: 100%; padding: 12px 14px; border: 1px solid #D8DEE9; border-radius: 8px;
+    font-family: inherit; font-size: 15px; color: var(--navy); background: #fff;
+  }
+  .field input:focus, .field select:focus { outline: 2px solid var(--blue); border-color: var(--blue); }
+  .submit-row { margin-top: 26px; display: flex; align-items: center; gap: 22px; }
+  .btn-adjudicate {
+    border: none; background: var(--orange); color: #fff; font-family: inherit;
+    font-size: 14px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
+    padding: 16px 34px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 12px;
+  }
+  .btn-adjudicate:hover { background: #d85f1e; }
+  .btn-adjudicate:disabled { opacity: .6; cursor: default; }
+  .result { display: none; margin-top: 28px; border-radius: 10px; padding: 22px 26px; }
+  .result.visible { display: block; }
+  .result.good { background: #E9F8EC; border: 1px solid #B9E6C4; }
+  .result.bad { background: #FDECEA; border: 1px solid #F3C3BC; }
+  .result h3 { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+  .result.good h3 { color: #1E7A38; }
+  .result.bad h3 { color: #B3261E; }
+  .result .rline { color: var(--navy); font-size: 15px; }
+  .result code { display: block; margin-top: 10px; font-size: 14px; color: #B3261E; }
+  .result .metrics { display: flex; gap: 34px; margin-top: 12px; flex-wrap: wrap; }
+  .result .metrics div span { display: block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--grey); }
+  .result .metrics div b { font-size: 20px; font-weight: 400; color: var(--navy); }
+
+  /* Footer CTA */
+  .footer-cta {
+    margin: 0 24px; border-radius: 16px; padding: 90px 48px; text-align: center;
+    background-color: var(--navy);
+    background-image: url('https://healthedge.com/wp-content/themes/health-edge/images/footer-cta-background.png'),
+      linear-gradient(140deg, #141D41, #0e1734);
+    background-size: cover; background-position: center;
+  }
+  .footer-cta h2 { color: #fff; font-size: 40px; margin-bottom: 34px; }
+
+  /* Footer */
+  footer.site { margin-top: 0; background: var(--navy); padding: 70px 48px 40px; }
+  .footer-cols { max-width: 1280px; margin: 0 auto 56px; display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 44px; }
+  .footer-cols img.footer-logo { height: 38px; margin-bottom: 18px; }
+  .footer-cols p { color: rgba(255,255,255,.6); font-size: 14px; font-weight: 300; line-height: 1.7; max-width: 320px; }
+  .footer-cols h4 { color: var(--teal); font-size: 13px; letter-spacing: .18em; text-transform: uppercase; font-weight: 500; margin-bottom: 18px; }
+  .footer-cols ul { list-style: none; }
+  .footer-cols ul li { margin-bottom: 12px; }
+  .footer-cols ul a { color: rgba(255,255,255,.8); text-decoration: none; font-size: 15px; font-weight: 300; }
+  .footer-cols ul a:hover { color: #fff; }
+  .legal { max-width: 1280px; margin: 0 auto; padding-top: 26px; border-top: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.55); font-size: 13px; font-weight: 300; }
+
+  @media (max-width: 960px) {
+    nav { display: none; }
+    .hero h1 { font-size: 42px; }
+    .stats-grid, .form-grid, .solutions, .footer-cols { grid-template-columns: 1fr 1fr; }
+    .hero { padding: 64px 8%; }
+    section { padding: 60px 24px; }
+    .adjudicate-wrap { padding: 0 24px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#">
+    <img src="https://healthedge.com/wp-content/uploads/2024/10/cropped-103A_HE_2_COLOR_HORIZ_POS_268x60.png"
+         alt="HealthEdge" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="logo-text">HEALTHEDGE</span>
+  </a>
+  <nav>
+    <a href="#">Converge Without Limits</a>
+    <a href="#">Solutions &#8250;</a>
+    <a href="#">Lines of Business &#8250;</a>
+    <a href="#">Resources &#8250;</a>
+    <a href="#">About Us &#8250;</a>
+  </nav>
+  <div class="header-right">
+    <button class="icon-btn" aria-label="Search">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="Account">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+    </button>
+    <a class="cta-link" href="#">
+      <span class="cta-label">Contact Us</span>
+      <span class="cta-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Data without silos.<br>For healthcare that<br>embraces automation.</h1>
+    <p>HealthEdge&reg; solutions &ndash; deployed as standalone next-generation SaaS or together as an integrated platform &ndash; break down the boundaries that prevent health plans from harnessing the power of their data.</p>
+    <a class="cta-link" href="#adjudicate">
+      <span class="cta-label">Converge Without Limits</span>
+      <span class="cta-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </div>
+</div>
+
+<section>
+  <div class="section-label">Our Impact</div>
+  <h2>HealthEdge by the Numbers</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-img" style="background-image:url('https://healthedge.com/wp-content/uploads/2022/10/Homepage-Stat-One.jpeg')"></div>
+      <div class="stat-body"><div class="stat-num">110+</div><div class="stat-cap">Million Covered Lives Served by our Solutions</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-body"><div class="stat-num">130+</div><div class="stat-cap">Health Plan Customers</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-img" style="background-image:url('https://healthedge.com/wp-content/uploads/2022/10/GettyImages-578161141-1.png')"></div>
+      <div class="stat-body"><div class="stat-num">100+</div><div class="stat-cap">Integrations With Third-Party Solutions</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-body"><div class="stat-num">48+</div><div class="stat-cap">States Supported With 23 Medicare Advantage Clients</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="solutions">
+    <div class="deco"></div>
+    <div>
+      <div class="section-label">Solutions</div>
+      <h2>What can HealthEdge do for you?</h2>
+      <a class="cta-link" href="#">
+        <span class="cta-label">See Our Solutions</span>
+        <span class="cta-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </a>
+    </div>
+    <p class="lead">Health plans are under pressure to deliver more value with less. Our integrated platform connects core administration, care management, and payment integrity so your teams can automate the routine and focus on what matters &mdash; members.</p>
+  </div>
+</section>
+
+<section>
+  <div class="solutions">
+    <div>
+      <div class="section-label">Transformation</div>
+      <h2>Evolving from payers to true partners in care</h2>
+    </div>
+    <div>
+      <p class="lead">The four transformational pillars:</p>
+      <ul class="pillars">
+        <li>Touchless transaction processing</li>
+        <li>Prospective payment accuracy</li>
+        <li>Care integrity</li>
+        <li>AI-driven business intelligence</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="adjudicate-wrap" id="adjudicate">
+  <div class="adjudicate">
+    <h2>HealthRules&reg; Payer &mdash; Touchless Claims Adjudication</h2>
+    <p>Submit a professional claim and watch HealthRules Payer auto-adjudicate it in real time &mdash; no pends, no queues, no manual touches.</p>
+    <div class="form-card">
+      <form id="claimForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="lineOfBusiness">Line of Business</label>
+            <select id="lineOfBusiness">
+              <option value="medicare_advantage" selected>Medicare Advantage</option>
+              <option value="commercial">Commercial</option>
+              <option value="medicaid">Medicaid</option>
+              <option value="dental">Dental</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="memberId">Member ID</label>
+            <input id="memberId" type="text" value="HE-4471-0928">
+          </div>
+          <div class="field">
+            <label for="procedureCode">Procedure Code</label>
+            <select id="procedureCode">
+              <option value="99213" selected>99213 &mdash; Office visit, established patient</option>
+              <option value="99214">99214 &mdash; Office visit, moderate complexity</option>
+              <option value="71046">71046 &mdash; Chest X-ray, 2 views</option>
+              <option value="D0120">D0120 &mdash; Periodic oral evaluation</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="billedAmount">Billed Amount</label>
+            <input id="billedAmount" type="number" step="0.01" value="240.00">
+          </div>
+          <div class="field">
+            <label for="providerNpi">Provider NPI</label>
+            <input id="providerNpi" type="text" value="1780012345">
+          </div>
+        </div>
+        <div class="submit-row">
+          <button type="submit" class="btn-adjudicate" id="submitBtn">
+            Adjudicate Claim
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </form>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-cta">
+  <h2>Ready to usher in the future of healthcare with HealthEdge?</h2>
+  <a class="cta-link" href="#">
+    <span class="cta-label">Schedule a Consultation</span>
+    <span class="cta-circle"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </a>
+</div>
+
+<footer class="site">
+  <div class="footer-cols">
+    <div>
+      <img class="footer-logo" src="https://healthedge.com/wp-content/uploads/2022/08/footer-logo.svg" alt="HealthEdge" onerror="this.style.display='none'">
+      <p>HealthEdge delivers the industry&rsquo;s most advanced, integrated platform for health plans &mdash; modernizing operations and unlocking the power of data.</p>
+    </div>
+    <div>
+      <h4>Solutions</h4>
+      <ul>
+        <li><a href="#">HealthRules&reg; Payer</a></li>
+        <li><a href="#">HealthEdge Source&trade;</a></li>
+        <li><a href="#">GuidingCare&reg;</a></li>
+        <li><a href="#">Wellframe&trade;</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About Us</a></li>
+        <li><a href="#">Leadership</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">News &amp; Events</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Resources</h4>
+      <ul>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Case Studies</a></li>
+        <li><a href="#">Webinars</a></li>
+        <li><a href="#">Contact Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="legal">&copy;2026 HealthEdge Software, Inc. HealthRules&reg;, GuidingCare&reg;, and HealthEdge Source&trade; are trademarks of HealthEdge Software, Inc. All rights reserved.</div>
+</footer>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function dollars(n) {
+    return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  document.getElementById('claimForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('submitBtn');
+    var result = document.getElementById('result');
+    btn.disabled = true;
+    result.className = 'result';
+    result.innerHTML = '';
+
+    fetch('/api/7e3a9c41/adjudicate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lineOfBusiness: document.getElementById('lineOfBusiness').value,
+        memberId: document.getElementById('memberId').value,
+        procedureCode: document.getElementById('procedureCode').value,
+        billedAmount: document.getElementById('billedAmount').value,
+        providerNpi: document.getElementById('providerNpi').value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })
+    })
+    .then(function (res) {
+      return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+    })
+    .then(function (out) {
+      btn.disabled = false;
+      result.classList.add('visible');
+      if (out.ok && out.data.success) {
+        var c = out.data.claim;
+        result.className = 'result good visible';
+        result.innerHTML =
+          '<h3>Claim ' + esc(c.claimId) + ' &mdash; ' + esc(c.status) + '</h3>' +
+          '<div class="rline">Auto-adjudicated in ' + esc(c.adjudicatedIn) + '</div>' +
+          '<div class="metrics">' +
+          '<div><span>Allowed Amount</span><b>' + esc(dollars(c.allowedAmount)) + '</b></div>' +
+          '<div><span>Plan Paid</span><b>' + esc(dollars(c.planPaid)) + '</b></div>' +
+          '<div><span>Member Liability</span><b>' + esc(dollars(c.memberLiability)) + '</b></div>' +
+          '</div>';
+      } else {
+        result.className = 'result bad visible';
+        result.innerHTML =
+          '<h3>Claim could not be adjudicated</h3>' +
+          '<div class="rline">The claim was pended out of auto-adjudication and routed to manual review.</div>' +
+          '<code>' + esc(out.data.error || 'Unknown error') + '</code>';
+      }
+    })
+    .catch(function (err) {
+      btn.disabled = false;
+      result.className = 'result bad visible';
+      result.innerHTML =
+        '<h3>Network error</h3><code>' + esc(err.message) + '</code>';
+    });
+  });
+</script>
+
+</body>
+</html>
