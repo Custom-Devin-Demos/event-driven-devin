@@ -56,6 +56,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Spring Venture Group — SmartMatch Medicare Supplement Quote** (unlisted — direct URL only) | `/springventuregroup`, `/springventure`, `/smartmatch`, `/64e85fcf` | `app/public/verticals/64e85fcf.html` | `GET /api/64e85fcf/carriers`, `POST /api/64e85fcf/quotes` | `app/services/verticals/64e85fcf.js` |
 | **Tenet Health — ER Wait Board & Online Check-In** (unlisted — direct URL only) | `/tenet`, `/tenethealth`, `/cb48a22d` | `app/public/verticals/cb48a22d.html` | `GET /api/cb48a22d/waittimes`, `POST /api/cb48a22d/checkin` | `app/services/verticals/cb48a22d.js` |
 | **Lilly — LillyDirect Self Pay Vial Order** (unlisted — direct URL only) | `/lilly`, `/lillydirect`, `/zepbound`, `/eda0e2e5` | `app/public/verticals/eda0e2e5.html` | `GET /api/eda0e2e5/catalog`, `POST /api/eda0e2e5/orders` | `app/services/verticals/eda0e2e5.js` |
+| **Mainspring Energy — Get Power Project Inquiry** (unlisted — direct URL only) | `/mainspring`, `/915a6563` | `app/public/verticals/915a6563.html` | `POST /api/915a6563/power-inquiry` | `app/services/verticals/915a6563.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
