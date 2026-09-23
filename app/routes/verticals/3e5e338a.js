@@ -18,7 +18,7 @@ router.post('/api/3e5e338a/results/upload', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: error.message, errorType: error.name });
+    res.status(error.statusCode || 500).json({ error: error.message, errorType: error.name });
   }
 });
 

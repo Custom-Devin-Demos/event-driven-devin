@@ -94,8 +94,34 @@ const BASELINE_YIELD = {
 const UPLOADS = [];
 const UNITS = [];
 
+class UnknownBatchError extends Error {
+  constructor(batchId) {
+    super(`No pending upload batch with id ${JSON.stringify(batchId)}`);
+    this.name = 'UnknownBatchError';
+    this.statusCode = 404;
+  }
+}
+
 function capHistory() {
-  UPLOADS.splice(30);
+  UPLOADS.splice(30).forEach((evicted) => {
+    for (let i = UNITS.length - 1; i >= 0; i -= 1) {
+      if (UNITS[i].batchId === evicted.batchId) UNITS.splice(i, 1);
+    }
+  });
+}
+
+function replaceBatchState(batchId, receipt, units) {
+  const previous = UPLOADS.find((upload) => upload.batchId === batchId);
+  for (let i = UPLOADS.length - 1; i >= 0; i -= 1) {
+    if (UPLOADS[i].batchId === batchId) UPLOADS.splice(i, 1);
+  }
+  for (let i = UNITS.length - 1; i >= 0; i -= 1) {
+    if (UNITS[i].batchId === batchId) UNITS.splice(i, 1);
+  }
+  receipt.attempts = (previous ? previous.attempts : 0) + 1;
+  UPLOADS.unshift(receipt);
+  UNITS.unshift(...units);
+  capHistory();
 }
 
 function evaluateMeasurement(parameter, value) {
@@ -166,7 +192,8 @@ async function ingestUpload(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
   const uploadId = `ING-${requestId.slice(0, 8).toUpperCase()}`;
-  const batch = PENDING_UPLOADS.find((upload) => upload.id === data.batchId) || PENDING_UPLOADS[PENDING_UPLOADS.length - 1];
+  const batch = PENDING_UPLOADS.find((upload) => upload.id === data.batchId);
+  if (!batch) throw new UnknownBatchError(data.batchId);
 
   logger.info('Ingesting test-station upload', {
     requestId,
@@ -183,11 +210,9 @@ async function ingestUpload(data) {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
     const spec = SPECS[LINES.find((line) => line.id === batch.lineId).partNumber];
     const parsed = parseUpload(batch, spec.parameters.map((parameter) => parameter.name));
-    const graded = parsed.map(gradeUnit);
-    UNITS.unshift(...graded);
+    const graded = parsed.map((unit) => ({ ...gradeUnit(unit), batchId: batch.id }));
     const receipt = formatUploadReceipt(uploadId, batch, graded, startTime);
-    UPLOADS.unshift(receipt);
-    capHistory();
+    replaceBatchState(batch.id, receipt, graded);
     incrementMetric('teststation.ingest.success', { route: '/api/3e5e338a/results/upload', line: batch.lineId });
     recordTiming('teststation.ingest.latency', Date.now() - startTime, { route: '/api/3e5e338a/results/upload' });
     return { success: true, requestId, receipt, units: graded };
@@ -213,7 +238,7 @@ async function ingestUpload(data) {
       errorClass: error.name,
       durationMs: duration,
     });
-    UPLOADS.unshift({
+    replaceBatchState(batch.id, {
       uploadId,
       batchId: batch.id,
       lineId: batch.lineId,
@@ -225,8 +250,7 @@ async function ingestUpload(data) {
       status: 'failed',
       error: `${error.name}: ${error.message}`,
       startedAt: new Date(startTime).toISOString(),
-    });
-    capHistory();
+    }, []);
     Sentry.captureException(error, {
       tags: {
         route: '/api/3e5e338a/results/upload',
@@ -316,4 +340,4 @@ function getOverview() {
   };
 }
 
-module.exports = { ingestUpload, resetIngest, getOverview, LINES, STATIONS, SPECS, PENDING_UPLOADS };
+module.exports = { ingestUpload, resetIngest, getOverview, UnknownBatchError, LINES, STATIONS, SPECS, PENDING_UPLOADS };
