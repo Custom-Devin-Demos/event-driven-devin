@@ -38,20 +38,36 @@ const RESERVATION_DEADLINE_MS = 8000;
 const NODE_CALL_LATENCY_MS = [1000, 1250];
 
 /**
- * Reserve stock at a single fulfilment node. Each call is a round trip to the
- * seller's inventory partner.
+ * Simulated round trip to the seller's inventory partner.
  */
-function reserveAtNode(node, quantity) {
+function partnerCall(respond) {
   const [minMs, maxMs] = NODE_CALL_LATENCY_MS;
   return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        node: node.id,
-        reserved: node.stock >= quantity,
-        available: node.stock,
-      });
-    }, minMs + Math.random() * (maxMs - minMs));
+    setTimeout(() => resolve(respond()), minMs + Math.random() * (maxMs - minMs));
   });
+}
+
+/**
+ * Read-only availability check at a single fulfilment node
+ * (`inventory/v1/availability`). Creates no reservation.
+ */
+function checkAvailabilityAtNode(node, quantity) {
+  return partnerCall(() => ({
+    node: node.id,
+    canCover: node.stock >= quantity,
+    available: node.stock,
+  }));
+}
+
+/**
+ * Reserve stock at a single fulfilment node (`inventory/v1/reserve`).
+ */
+function reserveAtNode(node, quantity) {
+  return partnerCall(() => ({
+    node: node.id,
+    reserved: node.stock >= quantity,
+    available: node.stock,
+  }));
 }
 
 function withDeadline(promise, ms, label) {
@@ -66,31 +82,59 @@ function withDeadline(promise, ms, label) {
   return Promise.race([promise, deadline]).finally(() => clearTimeout(timer));
 }
 
+async function probeAvailability(node, quantity, offer, cartId) {
+  const startedAt = Date.now();
+  const result = await checkAvailabilityAtNode(node, quantity);
+  logger.info('Stock availability probe', {
+    cartId,
+    sellerId: offer.sellerId,
+    node: node.id,
+    region: node.region,
+    canCover: result.canCover,
+    available: result.available,
+    durationMs: Date.now() - startedAt,
+    service: 'cart-api',
+    endpoint: 'inventory/v1/availability',
+  });
+  return result;
+}
+
 /**
- * Walk the seller's fulfilment nodes and reserve the requested quantity from
- * the first node that can cover it.
+ * Reserve the requested quantity for the shopper in two partner round trips:
+ * check availability at every fulfilment node in parallel, then place exactly
+ * one reservation at the first node that can cover the quantity. Latency is
+ * bounded by two round trips regardless of how many nodes the seller has, and a
+ * partner failure on any probe is surfaced rather than reported as no stock.
  */
 async function reserveStock(offer, quantity, cartId) {
-  for (const node of FULFILMENT_NODES) {
-    const startedAt = Date.now();
-    const attempt = await reserveAtNode(node, quantity);
-    logger.info('Stock reservation probe', {
-      cartId,
-      sellerId: offer.sellerId,
-      node: node.id,
-      region: node.region,
-      reserved: attempt.reserved,
-      durationMs: Date.now() - startedAt,
-      service: 'cart-api',
-      endpoint: 'inventory/v1/reserve',
-    });
-    if (attempt.reserved) {
-      return { node: node.id, reservationRef: `RES-${cartId.slice(0, 8)}` };
-    }
+  const availability = await Promise.all(
+    FULFILMENT_NODES.map((node) => probeAvailability(node, quantity, offer, cartId)),
+  );
+  const candidate = FULFILMENT_NODES.find((node, i) => availability[i].canCover);
+  if (!candidate) {
+    const err = new Error(`No fulfilment node can cover offer ${offer.id}`);
+    err.code = 'OUT_OF_STOCK';
+    throw err;
   }
-  const err = new Error(`No fulfilment node can cover offer ${offer.id}`);
-  err.code = 'OUT_OF_STOCK';
-  throw err;
+
+  const startedAt = Date.now();
+  const attempt = await reserveAtNode(candidate, quantity);
+  logger.info('Stock reservation', {
+    cartId,
+    sellerId: offer.sellerId,
+    node: candidate.id,
+    region: candidate.region,
+    reserved: attempt.reserved,
+    durationMs: Date.now() - startedAt,
+    service: 'cart-api',
+    endpoint: 'inventory/v1/reserve',
+  });
+  if (!attempt.reserved) {
+    const err = new Error(`Fulfilment node ${candidate.id} could not reserve offer ${offer.id}`);
+    err.code = 'RESERVATION_REJECTED';
+    throw err;
+  }
+  return { node: candidate.id, reservationRef: `RES-${cartId.slice(0, 8)}` };
 }
 
 function lookupOffer(offerId) {
@@ -189,4 +233,4 @@ async function addToCart(cartData, options = {}) {
   }
 }
 
-module.exports = { addToCart, OFFERS, FULFILMENT_NODES };
+module.exports = { addToCart, OFFERS, FULFILMENT_NODES, RESERVATION_DEADLINE_MS };
