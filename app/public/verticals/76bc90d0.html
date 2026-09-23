@@ -144,6 +144,15 @@
     const button = document.getElementById('submitBtn');
     const result = document.getElementById('result');
     const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    function keepAccountsDistinct(changed, other) {
+      if (changed.value !== other.value) return;
+      const alternative = Array.from(other.options).find((option) => option.value !== changed.value);
+      if (alternative) other.value = alternative.value;
+    }
+    fromAccount.addEventListener('change', () => keepAccountsDistinct(fromAccount, toAccount));
+    toAccount.addEventListener('change', () => keepAccountsDistinct(toAccount, fromAccount));
     form.addEventListener('reset', () => {
       result.className = 'result-box';
       result.textContent = '';
@@ -151,6 +160,12 @@
     });
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose two different accounts to make a transfer.';
+        status.textContent = 'Select different accounts.';
+        return;
+      }
       button.disabled = true;
       button.textContent = 'Processing transfer…';
       status.textContent = 'Transfer in progress…';
