@@ -4,21 +4,22 @@ const { submitPowerInquiry } = require('../../services/verticals/915a6563');
 const router = express.Router();
 
 router.post('/api/915a6563/power-inquiry', async (req, res) => {
+  const body = req.body || {};
   try {
     const result = await submitPowerInquiry({
-      workEmail: req.body.workEmail,
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      company: req.body.company,
-      market: req.body.market,
-      capacityNeed: req.body.capacityNeed,
-      projectCountry: req.body.projectCountry,
-      projectState: req.body.projectState,
-      timeline: req.body.timeline,
-      message: req.body.message,
-      devinUserId: req.body.devinUserId,
-      devinOrgId: req.body.devinOrgId,
-      devinEmail: req.body.devinEmail,
+      workEmail: body.workEmail,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      company: body.company,
+      market: body.market,
+      capacityNeed: body.capacityNeed,
+      projectCountry: body.projectCountry,
+      projectState: body.projectState,
+      timeline: body.timeline,
+      message: body.message,
+      devinUserId: body.devinUserId,
+      devinOrgId: body.devinOrgId,
+      devinEmail: body.devinEmail,
     });
 
     res.json(result);

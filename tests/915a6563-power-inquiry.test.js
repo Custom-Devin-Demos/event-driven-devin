@@ -46,17 +46,16 @@ function postInquiry(body) {
   return new Promise((resolve, reject) => {
     const server = app.listen(0, () => {
       const { port } = server.address();
-      const payload = JSON.stringify(body);
+      const payload = body === undefined ? '' : JSON.stringify(body);
+      const headers = { 'Content-Length': Buffer.byteLength(payload) };
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
       const req = http.request(
         {
           host: '127.0.0.1',
           port,
           path: '/api/915a6563/power-inquiry',
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(payload),
-          },
+          headers,
         },
         (res) => {
           let raw = '';
@@ -166,6 +165,14 @@ describe('Mainspring Get Power validation', () => {
 
     expect(status).toBe(400);
     expect(body.errorClass).toBe('ValidationError');
+    expect(body.code).toBe('CONTACT_DETAILS_REQUIRED');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('rejects a request with no JSON body as a validation error', async () => {
+    const { status, body } = await postInquiry(undefined);
+
+    expect(status).toBe(400);
     expect(body.code).toBe('CONTACT_DETAILS_REQUIRED');
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
