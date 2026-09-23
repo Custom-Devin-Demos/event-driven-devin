@@ -382,9 +382,9 @@
       { mg: 15, role: 'Maintenance', list: 1049, journey: 499, window: true, isNew: true }
     ];
     var PHARMACIES = [
-      { name: 'Indianapolis', states: ['IN', 'OH', 'IL', 'MI', 'KY', 'TN', 'MO', 'WI', 'MN'] },
-      { name: 'Phoenix', states: ['AZ', 'CA', 'NV', 'UT', 'CO', 'NM', 'TX', 'OR', 'WA'] },
-      { name: 'Raleigh', states: ['NC', 'SC', 'GA', 'FL', 'VA', 'MD', 'PA', 'NJ', 'NY', 'MA', 'CT'] }
+      { name: 'Indianapolis', states: ['IN', 'OH', 'IL', 'MI', 'KY', 'TN', 'MO', 'WI', 'MN'], cutoffHour: 14, tz: 'America/Indiana/Indianapolis' },
+      { name: 'Phoenix', states: ['AZ', 'CA', 'NV', 'UT', 'CO', 'NM', 'TX', 'OR', 'WA'], cutoffHour: 13, tz: 'America/Phoenix' },
+      { name: 'Raleigh', states: ['NC', 'SC', 'GA', 'FL', 'VA', 'MD', 'PA', 'NJ', 'NY', 'MA', 'CT'], cutoffHour: 15, tz: 'America/New_York' }
     ];
     var STATE_NAMES = { AZ: 'Arizona', CA: 'California', CO: 'Colorado', CT: 'Connecticut', FL: 'Florida', GA: 'Georgia', IL: 'Illinois', IN: 'Indiana', KY: 'Kentucky', MA: 'Massachusetts', MD: 'Maryland', MI: 'Michigan', MN: 'Minnesota', MO: 'Missouri', NC: 'North Carolina', NJ: 'New Jersey', NM: 'New Mexico', NV: 'Nevada', NY: 'New York', OH: 'Ohio', OR: 'Oregon', PA: 'Pennsylvania', SC: 'South Carolina', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VA: 'Virginia', WA: 'Washington', WI: 'Wisconsin' };
     var FILL_LABEL = { first_fill: 'First fill', refill: 'Refill', dose_increase: 'Dose increase' };
@@ -398,7 +398,15 @@
     function money(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function isoDaysAgo(days) { var d = new Date(); d.setUTCDate(d.getUTCDate() - days); return d.toISOString().slice(0, 10); }
     function fmtDate(iso) { return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }); }
-    function daysSince(iso) { return Math.floor((Date.now() - new Date(iso + 'T00:00:00Z').getTime()) / 86400000); }
+    function daysBetween(fromIso, toIso) { return Math.round((new Date(toIso + 'T00:00:00Z') - new Date(fromIso + 'T00:00:00Z')) / 86400000); }
+    // Mirrors estimatedDelivery() on the server: pharmacy-local cutoff decides the ship date, then transit days.
+    function deliveryDateFor(ph, transitDays) {
+      var parts = new Intl.DateTimeFormat('en-US', { timeZone: ph.tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit' }).formatToParts(new Date());
+      var get = function (t) { return Number(parts.filter(function (p) { return p.type === t; })[0].value); };
+      var shipsToday = (get('hour') % 24) < ph.cutoffHour;
+      var ship = new Date(Date.UTC(get('year'), get('month') - 1, get('day') + (shipsToday ? 0 : 1)));
+      return new Date(ship.getTime() + transitDays * 86400000).toISOString().slice(0, 10);
+    }
 
     document.getElementById('doses').innerHTML = VIALS.map(function (v) {
       return '<label class="dose"><input type="radio" name="strengthMg" value="' + v.mg + '"' + (v.mg === 12.5 ? ' checked' : '') + ' onchange="syncSummary()">' +
@@ -429,9 +437,10 @@
       var priorField = document.getElementById('priorDeliveryField');
       priorField.style.opacity = fill === 'first_fill' ? '0.45' : '1';
       document.getElementById('priorDeliveryDate').disabled = fill === 'first_fill';
-      var deliveryDays = shipping === 'expedited' ? 1 : 2;
-      var since = prior ? daysSince(prior) : null;
-      var atDelivery = since === null ? null : since + deliveryDays;
+      var ph = pharmacyFor(state);
+      var deliveryDate = deliveryDateFor(ph || PHARMACIES[0], shipping === 'expedited' ? 1 : 2);
+      var since = prior ? daysBetween(prior, isoDaysAgo(0)) : null;
+      var atDelivery = prior ? daysBetween(prior, deliveryDate) : null;
       var within = fill !== 'refill' || (atDelivery !== null && atDelivery <= 45);
       document.getElementById('priorHint').textContent = fill === 'first_fill'
         ? 'Not needed for a first fill'
@@ -439,7 +448,6 @@
 
       var medPrice = (v.window && !within) ? v.list : v.journey;
       var shipFee = shipping === 'expedited' ? 24 : 0;
-      var ph = pharmacyFor(state);
 
       document.getElementById('sumMed').textContent = 'Zepbound ' + v.mg + ' mg/0.5 mL vial';
       document.getElementById('sumFill').textContent = FILL_LABEL[fill] + (fill === 'dose_increase' && mg > 2.5 ? ' · from ' + (Math.round((mg - 2.5) * 10) / 10) + ' mg' : '');
@@ -448,7 +456,7 @@
       document.getElementById('sumSavings').textContent = (v.list - medPrice > 0 ? '−' : '') + money(v.list - medPrice);
       document.getElementById('sumShipping').textContent = shipFee ? money(shipFee) : 'Included';
       document.getElementById('sumPharmacy').textContent = ph ? ph.name : 'Not available in ' + state;
-      document.getElementById('sumDelivery').textContent = fmtDate(isoDaysAgo(-deliveryDays));
+      document.getElementById('sumDelivery').textContent = fmtDate(deliveryDate);
       document.getElementById('sumTotal').textContent = money(medPrice + shipFee);
     }
     syncSummary();
