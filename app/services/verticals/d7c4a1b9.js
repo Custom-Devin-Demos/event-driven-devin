@@ -20,25 +20,15 @@ const SHARED_ACCOUNTS = {
 };
 
 /**
- * One tenant per audience. Each tenant owns the loyalty account that carries
+ * One tenant per demo owner. Each tenant owns the loyalty account that carries
  * the demo failure and its own segment key, so registering one tenant's
  * segment profile leaves every other tenant's sign-in failing as before.
  *
- * Add a tenant by adding an entry here; it is served at /login/<slug> and
- * POST /api/login/<slug>/signin with no other change.
+ * There is deliberately no shared or default tenant: the vertical is reachable
+ * only at /d7c4a1b9/<slug>, so nobody lands on someone else's demo. Add an
+ * owner by adding an entry here with an unused segment key.
  */
 const TENANTS = {
-  default: {
-    slug: 'default',
-    label: 'Al Rajhi Bank — Sign In',
-    account: {
-      username: '1098342271',
-      password: 'Demo@1234',
-      fullName: 'Noura Al-Harbi',
-      // the Mokafaa Plus segment shipped with the 2026 loyalty rollout
-      segment: 'mokafaa_plus',
-    },
-  },
   nouf: {
     slug: 'nouf',
     label: 'Al Rajhi Bank — Sign In (Nouf)',
@@ -46,13 +36,14 @@ const TENANTS = {
       username: '1098342271',
       password: 'Demo@1234',
       fullName: 'Noura Al-Harbi',
+      // the Mokafaa Plus segment shipped with the 2026 loyalty rollout
       segment: 'mokafaa_plus_nouf',
     },
   },
 };
 
 function getTenant(slug) {
-  const key = String(slug || 'default').trim().toLowerCase();
+  const key = String(slug || '').trim().toLowerCase();
   return Object.hasOwn(TENANTS, key) ? TENANTS[key] : undefined;
 }
 
@@ -65,11 +56,15 @@ const DIRECTORIES = Object.fromEntries(
   ]),
 );
 
+function routeTag(tenant) {
+  return `/api/d7c4a1b9/${tenant.slug}/signin`;
+}
+
 function directoryFor(tenant) {
   return DIRECTORIES[tenant.slug];
 }
 
-const DIRECTORY = DIRECTORIES.default;
+const DIRECTORY = DIRECTORIES.nouf;
 
 // Customer segments registered with the digital banking access service.
 const SEGMENT_PROFILES = {
@@ -91,9 +86,9 @@ const LOGIN_SLACK_MEMBER_ID = process.env.LOGIN_SLACK_MEMBER_ID || 'U0C1N7TQ7MM'
 
 const SENTRY_ISSUE_QUERY = 'is:unresolved segment profile';
 
-const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the sign-in failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues; ignore every issue that is not from POST /api/login/signin and do not modify any other vertical. The failing surface is the Al Rajhi Bank sign-in page at app/public/verticals/login.html (page route GET /login), whose "Sign in" action posts to POST /api/login/signin in app/routes/verticals/login.js. The sign-in pipeline lives in app/services/verticals/login.js: signIn -> buildSession -> resolveSegmentProfile. resolveSegmentProfile looks up SEGMENT_PROFILES by the customer segment on the directory account, so a directory account whose segment has no registered profile cannot build a session. Use the segment named in the alert's segment tag as the remediation target: register that segment's access profile (label, permissions, landing page, session minutes) and keep unregistered segments failing as a handled configuration error rather than a TypeError. Verify by starting the server (node app/server.js) and signing in as the affected account, which must return a successful session, and confirm npm run lint and npm test pass.
+const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the sign-in failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues; ignore every issue that is not from the sign-in route named in the alert's route tag and do not modify any other vertical. The failing surface is the Al Rajhi Bank sign-in page at app/public/verticals/d7c4a1b9.html, served per demo owner at GET /d7c4a1b9/<tenant>, whose "Sign in" action posts to POST /api/d7c4a1b9/<tenant>/signin in app/routes/verticals/d7c4a1b9.js. The sign-in pipeline lives in app/services/verticals/d7c4a1b9.js: signIn -> buildSession -> resolveSegmentProfile. resolveSegmentProfile looks up SEGMENT_PROFILES by the customer segment on the directory account, so a directory account whose segment has no registered profile cannot build a session. Use the segment named in the alert's segment tag as the remediation target: register that segment's access profile (label, permissions, landing page, session minutes) and keep unregistered segments failing as a handled configuration error rather than a TypeError. Verify by starting the server (node app/server.js) and signing in as the affected account, which must return a successful session, and confirm npm run lint and npm test pass.
 
-The sign-in surface is served per tenant: /login and POST /api/login/signin are the default tenant, and /login/<slug> with POST /api/login/<slug>/signin are additional tenants declared in TENANTS. Each tenant owns its own loyalty account and its own segment key, so register a profile only for the segment named in the alert's segment tag and leave every other tenant's segment untouched.
+The sign-in surface is served per demo owner: every tenant declared in TENANTS is reachable only at /d7c4a1b9/<slug> with POST /api/d7c4a1b9/<slug>/signin, and there is no shared or default tenant. Each tenant owns its own loyalty account and its own segment key, so register a profile only for the segment named in the alert's segment tag and leave every other tenant's segment untouched.
 
 Verification evidence is mandatory and must be visual, not curl-only: with the server running, open the sign-in page for the affected tenant in a real browser, sign in as the affected account, and record your screen for the whole attempt so the recording shows the form, the click, and the successful sign-in that replaces the previous error panel. Attach a screenshot and an animated webp of the recording to the pull request under a "Fix Verification" heading.`;
 
@@ -145,7 +140,7 @@ async function signIn(data) {
     username,
     segment: account.segment,
     service: 'identity-api',
-    route: '/api/login/signin',
+    route: routeTag(tenant),
   });
 
   try {
@@ -153,22 +148,22 @@ async function signIn(data) {
     const duration = Date.now() - startTime;
 
     incrementMetric('login.success', {
-      route: '/api/login/signin',
+      route: routeTag(tenant),
       segment: account.segment,
     });
-    recordTiming('login.latency', duration, { route: '/api/login/signin' });
+    recordTiming('login.latency', duration, { route: routeTag(tenant) });
 
     return { success: true, session };
   } catch (error) {
     const duration = Date.now() - startTime;
 
     incrementMetric('login.failure', {
-      route: '/api/login/signin',
+      route: routeTag(tenant),
       errorClass: error.name,
       segment: account.segment,
     });
     recordTiming('login.latency', duration, {
-      route: '/api/login/signin',
+      route: routeTag(tenant),
       error: 'true',
     });
 
@@ -183,7 +178,7 @@ async function signIn(data) {
 
     Sentry.captureException(error, {
       tags: {
-        route: '/api/login/signin',
+        route: routeTag(tenant),
         service: 'identity-api',
         segment: account.segment,
         alert_path: 'instant',
@@ -194,12 +189,12 @@ async function signIn(data) {
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=${encodeURIComponent(SENTRY_ISSUE_QUERY)}`,
-      culprit: 'app/services/verticals/login.js — buildSession',
+      culprit: 'app/services/verticals/d7c4a1b9.js — buildSession',
       errorType: error.name || 'Error',
       errorValue: error.message,
       service: 'identity-api',
       verticalLabel: tenant.label,
-      customer: 'login',
+      customer: 'd7c4a1b9',
       slackMemberId: data.devinEmail ? '' : LOGIN_SLACK_MEMBER_ID,
       slackMemberIdFallback: LOGIN_SLACK_MEMBER_ID,
       devinUserId: data.devinUserId,
@@ -207,7 +202,7 @@ async function signIn(data) {
       devinOrgId: data.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
       tags: [
-        { key: 'route', value: '/api/login/signin' },
+        { key: 'route', value: routeTag(tenant) },
         { key: 'service', value: 'identity-api' },
         { key: 'segment', value: account.segment },
       ],

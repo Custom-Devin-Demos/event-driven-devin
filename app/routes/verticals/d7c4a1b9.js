@@ -1,10 +1,10 @@
 const express = require('express');
 const path = require('path');
-const { signIn, getTenant } = require('../../services/verticals/login');
+const { signIn, getTenant } = require('../../services/verticals/d7c4a1b9');
 
 const router = express.Router();
 
-const PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', 'login.html');
+const PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', 'd7c4a1b9.html');
 
 function sendPage(_req, res) {
   res.sendFile(PAGE);
@@ -34,14 +34,14 @@ async function handleSignIn(req, res) {
   }
 }
 
-router.get('/login', sendPage);
-
-router.get('/login/:tenant', (req, res, next) => {
+// Every demo owner gets their own unlisted URL: /d7c4a1b9/<tenant>. The bare
+// slug is served by the vertical registry but carries no tenant, so its form
+// refuses to sign in rather than running against someone else's demo state.
+router.get('/d7c4a1b9/:tenant', (req, res, next) => {
   if (!getTenant(req.params.tenant)) return next();
   sendPage(req, res);
 });
 
-router.post('/api/login/signin', handleSignIn);
-router.post('/api/login/:tenant/signin', handleSignIn);
+router.post('/api/d7c4a1b9/:tenant/signin', handleSignIn);
 
 module.exports = router;
