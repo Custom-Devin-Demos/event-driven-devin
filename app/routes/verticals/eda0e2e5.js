@@ -56,6 +56,7 @@ router.post('/api/eda0e2e5/orders', async (req, res) => {
   const strengthMg = numberField(body.strengthMg);
   const fillType = stringField(body.fillType, 'first_fill');
   const priorDeliveryDate = typeof body.priorDeliveryDate === 'string' ? body.priorDeliveryDate.trim() : '';
+  const street = typeof body.street === 'string' ? body.street.trim() : '';
   const state = stringField(body.state, 'IN');
   const zip = typeof body.zip === 'string' ? body.zip.trim() : '';
   const shipping = stringField(body.shipping, 'standard');
@@ -98,6 +99,9 @@ router.post('/api/eda0e2e5/orders', async (req, res) => {
       });
     }
   }
+  if (street.length < 5 || street.length > 120) {
+    return res.status(400).json({ success: false, error: 'street is required (5–120 characters)', code: 'VALIDATION_ERROR' });
+  }
   if (!/^[A-Z]{2}$/.test(state || '') || !SHIP_TO_STATES.includes(state)) {
     return res.status(400).json({ success: false, error: `LillyDirect does not ship to ${state}`, code: 'VALIDATION_ERROR' });
   }
@@ -116,6 +120,7 @@ router.post('/api/eda0e2e5/orders', async (req, res) => {
       strengthMg,
       fillType,
       priorDeliveryDate,
+      street,
       state,
       zip,
       shipping,

@@ -56,9 +56,9 @@ const SHIPPING_OPTIONS = {
  * temperature-controlled shipments into.
  */
 const DISPENSING_PHARMACIES = {
-  'ph-ind': { name: 'LillyDirect Pharmacy — Indianapolis', shipsTo: ['IN', 'OH', 'IL', 'MI', 'KY', 'TN', 'MO', 'WI', 'MN'], cutoffHourLocal: 14 },
-  'ph-phx': { name: 'LillyDirect Pharmacy — Phoenix', shipsTo: ['AZ', 'CA', 'NV', 'UT', 'CO', 'NM', 'TX', 'OR', 'WA'], cutoffHourLocal: 13 },
-  'ph-rdu': { name: 'LillyDirect Pharmacy — Raleigh', shipsTo: ['NC', 'SC', 'GA', 'FL', 'VA', 'MD', 'PA', 'NJ', 'NY', 'MA', 'CT'], cutoffHourLocal: 15 },
+  'ph-ind': { name: 'LillyDirect Pharmacy — Indianapolis', shipsTo: ['IN', 'OH', 'IL', 'MI', 'KY', 'TN', 'MO', 'WI', 'MN'], cutoffHourLocal: 14, timeZone: 'America/Indiana/Indianapolis' },
+  'ph-phx': { name: 'LillyDirect Pharmacy — Phoenix', shipsTo: ['AZ', 'CA', 'NV', 'UT', 'CO', 'NM', 'TX', 'OR', 'WA'], cutoffHourLocal: 13, timeZone: 'America/Phoenix' },
+  'ph-rdu': { name: 'LillyDirect Pharmacy — Raleigh', shipsTo: ['NC', 'SC', 'GA', 'FL', 'VA', 'MD', 'PA', 'NJ', 'NY', 'MA', 'CT'], cutoffHourLocal: 15, timeZone: 'America/New_York' },
 };
 
 /** States the self-pay channel currently ships to. */
@@ -76,6 +76,15 @@ function isCalendarDate(value) {
 function daysBetween(fromIso, toDate) {
   const from = new Date(`${fromIso}T00:00:00Z`);
   return Math.floor((toDate.getTime() - from.getTime()) / 86400000);
+}
+
+/** Calendar date and hour of `now` in the given IANA time zone. */
+function localClock(now, timeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
+  }).formatToParts(now);
+  const get = (type) => Number(parts.find((p) => p.type === type).value);
+  return { year: get('year'), month: get('month'), day: get('day'), hour: get('hour') % 24 };
 }
 
 function strengthKey(strengthMg) {
@@ -106,43 +115,48 @@ function pharmacyFor(stateCode) {
 }
 
 /**
- * Whether a refill lands inside the program's refill window. First fills and
- * dose increases always start a fresh window.
+ * Whether a refill is delivered inside the program's refill window, measured
+ * from the prior delivery to this fill's delivery date. First fills and dose
+ * increases always start a fresh window; a `null` window never expires.
  */
-function refillStatus(fillType, priorDeliveryDate, now = new Date()) {
+function refillStatus(fillType, priorDeliveryDate, deliveryDate, refillWindowDays) {
   if (fillType !== 'refill') return { daysSincePrior: null, withinWindow: true };
-  const daysSincePrior = daysBetween(priorDeliveryDate, now);
-  return { daysSincePrior, withinWindow: daysSincePrior <= 45 };
+  const daysSincePrior = daysBetween(priorDeliveryDate, new Date(`${deliveryDate}T00:00:00Z`));
+  return { daysSincePrior, withinWindow: refillWindowDays === null || daysSincePrior <= refillWindowDays };
 }
 
 /**
  * Prices one 28-day fill under the Self Pay Journey Program.
  * BUG: SELF_PAY_PRICING has no 12.5 or 15 entry, so `pricing.listPrice` crashes.
  */
-function priceFill(vial, fillType, status, shipping) {
+function priceFill(vial, fillType, priorDeliveryDate, timeline, shipping) {
   const pricing = SELF_PAY_PRICING[strengthKey(vial.strengthMg)];
   const listPrice = pricing.listPrice;
-  const programEligible = pricing.refillWindowDays === null || fillType !== 'refill' || status.withinWindow;
-  const medicationPrice = programEligible ? pricing.journeyPrice : listPrice;
+  const status = refillStatus(fillType, priorDeliveryDate, timeline.deliveryDate, pricing.refillWindowDays);
+  const medicationPrice = status.withinWindow ? pricing.journeyPrice : listPrice;
   const shippingFee = SHIPPING_OPTIONS[shipping].fee;
   return {
     program: pricing.program,
     listPrice,
     journeyPrice: pricing.journeyPrice,
-    programEligible,
+    programEligible: status.withinWindow,
     medicationPrice,
     programSavings: listPrice - medicationPrice,
     shippingFee,
     total: medicationPrice + shippingFee,
     perVial: Math.round((medicationPrice / vial.vialsPerFill) * 100) / 100,
     refillWindowDays: pricing.refillWindowDays,
+    daysSincePrior: status.daysSincePrior,
+    withinRefillWindow: status.withinWindow,
   };
 }
 
+/** Ship/delivery dates from the pharmacy's local order cutoff and the option's transit time. */
 function estimatedDelivery(pharmacy, shipping, now = new Date()) {
   const opt = SHIPPING_OPTIONS[shipping];
-  const shipsToday = now.getUTCHours() < pharmacy.cutoffHourLocal + 5;
-  const shipDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + (shipsToday ? 0 : 1)));
+  const local = localClock(now, pharmacy.timeZone);
+  const shipsToday = local.hour < pharmacy.cutoffHourLocal;
+  const shipDate = new Date(Date.UTC(local.year, local.month - 1, local.day + (shipsToday ? 0 : 1)));
   const delivery = new Date(shipDate.getTime() + opt.transitDays * 86400000);
   return { shipDate: shipDate.toISOString().slice(0, 10), deliveryDate: delivery.toISOString().slice(0, 10) };
 }
@@ -176,9 +190,8 @@ async function placeVialOrder(data) {
 
     const vial = resolveVial(data.strengthMg);
     const pharmacy = pharmacyFor(data.state);
-    const status = refillStatus(data.fillType, data.priorDeliveryDate);
-    const pricing = priceFill(vial, data.fillType, status, data.shipping);
     const timeline = estimatedDelivery(pharmacy, data.shipping);
+    const pricing = priceFill(vial, data.fillType, data.priorDeliveryDate, timeline, data.shipping);
 
     const duration = Date.now() - startTime;
 
@@ -194,7 +207,7 @@ async function placeVialOrder(data) {
     return {
       success: true,
       orderId,
-      patient: { firstName: data.patientFirstName, state: data.state, zip: data.zip },
+      patient: { firstName: data.patientFirstName, street: data.street, state: data.state, zip: data.zip },
       prescription: {
         prescriber: data.prescriberName,
         rxNumber: data.rxNumber,
@@ -207,13 +220,14 @@ async function placeVialOrder(data) {
       fill: {
         type: FILL_TYPES[data.fillType].label,
         steppedUpFrom: data.fillType === 'dose_increase' ? previousStrength(vial.strengthMg) : null,
-        daysSincePrior: status.daysSincePrior,
-        withinRefillWindow: status.withinWindow,
+        daysSincePrior: pricing.daysSincePrior,
+        withinRefillWindow: pricing.withinRefillWindow,
       },
       pricing,
       fulfillment: {
         pharmacy: pharmacy.name,
         pharmacyId: pharmacy.pharmacyId,
+        shipTo: `${data.street}, ${data.state} ${data.zip}`,
         shipping: SHIPPING_OPTIONS[data.shipping].label,
         shipDate: timeline.shipDate,
         estimatedDelivery: timeline.deliveryDate,

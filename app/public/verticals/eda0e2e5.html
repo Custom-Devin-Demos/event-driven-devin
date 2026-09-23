@@ -429,16 +429,17 @@
       var priorField = document.getElementById('priorDeliveryField');
       priorField.style.opacity = fill === 'first_fill' ? '0.45' : '1';
       document.getElementById('priorDeliveryDate').disabled = fill === 'first_fill';
+      var deliveryDays = shipping === 'expedited' ? 1 : 2;
       var since = prior ? daysSince(prior) : null;
-      var within = fill !== 'refill' || (since !== null && since <= 45);
+      var atDelivery = since === null ? null : since + deliveryDays;
+      var within = fill !== 'refill' || (atDelivery !== null && atDelivery <= 45);
       document.getElementById('priorHint').textContent = fill === 'first_fill'
         ? 'Not needed for a first fill'
-        : (since === null ? 'Required for refills and dose increases' : since + ' days since your last delivery' + (fill === 'refill' ? (within ? ' — inside the 45-day window' : ' — outside the 45-day window, regular price applies') : ' — dose increase starts a new window'));
+        : (since === null ? 'Required for refills and dose increases' : since + ' days since your last delivery' + (fill === 'refill' ? (within ? ' — this fill arrives inside the 45-day window' : ' — this fill would arrive outside the 45-day window, regular price applies') : ' — dose increase starts a new window'));
 
       var medPrice = (v.window && !within) ? v.list : v.journey;
       var shipFee = shipping === 'expedited' ? 24 : 0;
       var ph = pharmacyFor(state);
-      var deliveryDays = shipping === 'expedited' ? 1 : 2;
 
       document.getElementById('sumMed').textContent = 'Zepbound ' + v.mg + ' mg/0.5 mL vial';
       document.getElementById('sumFill').textContent = FILL_LABEL[fill] + (fill === 'dose_increase' && mg > 2.5 ? ' · from ' + (Math.round((mg - 2.5) * 10) / 10) + ' mg' : '');
@@ -472,6 +473,7 @@
           strengthMg: parseFloat(checked('strengthMg')),
           fillType: checked('fillType'),
           priorDeliveryDate: document.getElementById('priorDeliveryDate').value,
+          street: document.getElementById('street').value,
           state: stateSel.value,
           zip: document.getElementById('zip').value,
           shipping: checked('shipping'),
@@ -511,6 +513,7 @@
           '<tr><td>Medication</td><td>' + money(d.pricing.medicationPrice) + (d.pricing.programSavings ? ' <small style="color:var(--green)">(saved ' + money(d.pricing.programSavings) + ')</small>' : '') + '</td></tr>' +
           '<tr><td>Shipping</td><td>' + (d.pricing.shippingFee ? money(d.pricing.shippingFee) : 'Included') + '</td></tr>' +
           '<tr><td>Charged today</td><td>' + money(d.pricing.total) + '</td></tr>' +
+          '<tr><td>Ship to</td><td>' + esc(d.fulfillment.shipTo) + '</td></tr>' +
           '<tr><td>Ships</td><td>' + esc(fmtDate(d.fulfillment.shipDate)) + '</td></tr>' +
           '<tr><td>Estimated delivery</td><td>' + esc(fmtDate(d.fulfillment.estimatedDelivery)) + '</td></tr>' +
           '<tr><td>Next refill due</td><td>' + esc(fmtDate(d.fulfillment.nextRefillDue)) + '</td></tr>' +

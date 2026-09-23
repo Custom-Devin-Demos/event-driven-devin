@@ -42,6 +42,7 @@ const baseRequest = {
   strengthMg: 12.5,
   fillType: 'dose_increase',
   priorDeliveryDate: isoDaysAgo(31),
+  street: '1420 N Meridian St, Apt 4B',
   state: 'IN',
   zip: '46202',
   shipping: 'standard',
@@ -118,6 +119,7 @@ describe('Lilly LillyDirect self-pay vial order (eda0e2e5)', () => {
     expect(result.pricing.programSavings).toBe(200);
     expect(result.pricing.total).toBe(499);
     expect(result.fulfillment.pharmacyId).toBe('ph-ind');
+    expect(result.fulfillment.shipTo).toBe('1420 N Meridian St, Apt 4B, IN 46202');
     expect(result.fulfillment.nextRefillDue > result.fulfillment.estimatedDelivery).toBe(true);
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
@@ -134,6 +136,13 @@ describe('Lilly LillyDirect self-pay vial order (eda0e2e5)', () => {
     expect(onTime.pricing.medicationPrice).toBe(499);
   });
 
+  test('the refill window is measured at delivery, not at order time', async () => {
+    const arrivesLate = await placeVialOrder({ ...baseRequest, strengthMg: 7.5, fillType: 'refill', priorDeliveryDate: isoDaysAgo(44), shipping: 'standard' });
+    expect(arrivesLate.fill.daysSincePrior).toBeGreaterThanOrEqual(46);
+    expect(arrivesLate.fill.withinRefillWindow).toBe(false);
+    expect(arrivesLate.pricing.medicationPrice).toBe(599);
+  });
+
   test('flat-price strengths ignore the refill window and expedited shipping adds its fee', async () => {
     const result = await placeVialOrder({ ...baseRequest, strengthMg: 5, fillType: 'refill', priorDeliveryDate: isoDaysAgo(90), shipping: 'expedited', state: 'TX', zip: '75201' });
     expect(result.pricing.medicationPrice).toBe(499);
@@ -143,11 +152,11 @@ describe('Lilly LillyDirect self-pay vial order (eda0e2e5)', () => {
   });
 
   test('priceFill resolves every priced strength and crashes on the unpriced ones', () => {
-    const status = { daysSincePrior: null, withinWindow: true };
+    const timeline = { shipDate: '2026-09-22', deliveryDate: '2026-09-24' };
     for (const key of Object.keys(SELF_PAY_PRICING)) {
-      expect(priceFill(VIAL_CATALOG[key], 'first_fill', status, 'standard').journeyPrice).toBe(SELF_PAY_PRICING[key].journeyPrice);
+      expect(priceFill(VIAL_CATALOG[key], 'first_fill', '', timeline, 'standard').journeyPrice).toBe(SELF_PAY_PRICING[key].journeyPrice);
     }
-    expect(() => priceFill(VIAL_CATALOG['12.5'], 'first_fill', status, 'standard')).toThrow(TypeError);
+    expect(() => priceFill(VIAL_CATALOG['12.5'], 'first_fill', '', timeline, 'standard')).toThrow(TypeError);
   });
 
   test('titration steps resolve the prior strength', () => {
@@ -162,17 +171,30 @@ describe('Lilly LillyDirect self-pay vial order (eda0e2e5)', () => {
     expect(() => pharmacyFor('HI')).toThrow(/does not ship/);
   });
 
-  test('refill status only counts days for refills', () => {
-    const now = new Date('2026-09-22T12:00:00Z');
-    expect(refillStatus('refill', '2026-08-20', now)).toEqual({ daysSincePrior: 33, withinWindow: true });
-    expect(refillStatus('refill', '2026-07-01', now)).toEqual({ daysSincePrior: 83, withinWindow: false });
-    expect(refillStatus('dose_increase', '2026-07-01', now)).toEqual({ daysSincePrior: null, withinWindow: true });
+  test('refill status counts days to the delivery date and honours the strength\'s window', () => {
+    expect(refillStatus('refill', '2026-08-20', '2026-09-22', 45)).toEqual({ daysSincePrior: 33, withinWindow: true });
+    expect(refillStatus('refill', '2026-08-08', '2026-09-22', 45)).toEqual({ daysSincePrior: 45, withinWindow: true });
+    expect(refillStatus('refill', '2026-08-08', '2026-09-23', 45)).toEqual({ daysSincePrior: 46, withinWindow: false });
+    expect(refillStatus('refill', '2026-07-01', '2026-09-22', null)).toEqual({ daysSincePrior: 83, withinWindow: true });
+    expect(refillStatus('dose_increase', '2026-07-01', '2026-09-22', 45)).toEqual({ daysSincePrior: null, withinWindow: true });
   });
 
-  test('delivery estimates respect the pharmacy cutoff and transit time', () => {
-    const pharmacy = { ...DISPENSING_PHARMACIES['ph-ind'], pharmacyId: 'ph-ind' };
-    expect(estimatedDelivery(pharmacy, 'standard', new Date('2026-09-22T10:00:00Z'))).toEqual({ shipDate: '2026-09-22', deliveryDate: '2026-09-24' });
-    expect(estimatedDelivery(pharmacy, 'expedited', new Date('2026-09-22T23:00:00Z'))).toEqual({ shipDate: '2026-09-23', deliveryDate: '2026-09-24' });
+  test('delivery estimates apply each pharmacy\'s cutoff in its own time zone', () => {
+    const ind = { ...DISPENSING_PHARMACIES['ph-ind'], pharmacyId: 'ph-ind' };
+    const phx = { ...DISPENSING_PHARMACIES['ph-phx'], pharmacyId: 'ph-phx' };
+    const rdu = { ...DISPENSING_PHARMACIES['ph-rdu'], pharmacyId: 'ph-rdu' };
+    // 10:00Z is 06:00 EDT in Indianapolis — before the 14:00 cutoff
+    expect(estimatedDelivery(ind, 'standard', new Date('2026-09-22T10:00:00Z'))).toEqual({ shipDate: '2026-09-22', deliveryDate: '2026-09-24' });
+    // 23:00Z is 19:00 EDT — after cutoff, ships next day
+    expect(estimatedDelivery(ind, 'expedited', new Date('2026-09-22T23:00:00Z'))).toEqual({ shipDate: '2026-09-23', deliveryDate: '2026-09-24' });
+    // 18:30Z is 11:30 MST in Phoenix (no DST) — still before the 13:00 cutoff
+    expect(estimatedDelivery(phx, 'standard', new Date('2026-09-22T18:30:00Z'))).toEqual({ shipDate: '2026-09-22', deliveryDate: '2026-09-24' });
+    // 20:30Z is 13:30 MST — past cutoff
+    expect(estimatedDelivery(phx, 'standard', new Date('2026-09-22T20:30:00Z'))).toEqual({ shipDate: '2026-09-23', deliveryDate: '2026-09-25' });
+    // 02:00Z on the 23rd is still 22:00 EDT on the 22nd in Raleigh — after cutoff, ships the 23rd
+    expect(estimatedDelivery(rdu, 'standard', new Date('2026-09-23T02:00:00Z'))).toEqual({ shipDate: '2026-09-23', deliveryDate: '2026-09-25' });
+    // January: 19:30Z is 14:30 EST in Raleigh — before the 15:00 cutoff
+    expect(estimatedDelivery(rdu, 'standard', new Date('2026-01-12T19:30:00Z'))).toEqual({ shipDate: '2026-01-12', deliveryDate: '2026-01-14' });
   });
 
   describe('route', () => {
@@ -218,6 +240,8 @@ describe('Lilly LillyDirect self-pay vial order (eda0e2e5)', () => {
         { ...baseRequest, fillType: 'refill', priorDeliveryDate: '2026-02-30' },
         { ...baseRequest, fillType: 'refill', priorDeliveryDate: isoDaysAgo(-3) },
         { ...baseRequest, fillType: 'refill', priorDeliveryDate: isoDaysAgo(200) },
+        { ...baseRequest, street: '' },
+        { ...baseRequest, street: '12' },
         { ...baseRequest, state: 'HI' },
         { ...baseRequest, state: 'in' },
         { ...baseRequest, zip: '4620' },
