@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Test Station Data Platform | Molex Manufacturing Quality</title>
+  <link rel="icon" href="/verticals/assets/3e5e338a/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #EA0437;
+      --red-dark: #B8002A;
+      --ink: #1F262D;
+      --body: #444D55;
+      --muted: #7A858F;
+      --line: #E1E6EA;
+      --bg: #F4F6F8;
+      --card: #FFFFFF;
+      --slate: #5A7E92;
+      --green: #1E8E5A;
+      --green-bg: #E6F5EC;
+      --amber: #B9750B;
+      --amber-bg: #FFF4DF;
+      --red-bg: #FDE8ED;
+      --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Open Sans', sans-serif; font-size: 15px; color: var(--body); background: var(--bg); min-height: 100vh; }
+    a { color: var(--slate); }
+
+    header { background: var(--card); border-bottom: 1px solid var(--line); }
+    .top { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 18px; }
+    .brand img { height: 26px; display: block; }
+    .brand .divider { width: 1px; height: 28px; background: var(--line); }
+    .brand .app { font-weight: 700; color: var(--ink); font-size: 16px; letter-spacing: -0.01em; }
+    .brand .app small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .top-right { display: flex; align-items: center; gap: 18px; font-size: 13px; color: var(--muted); }
+    .env-pill { border: 1px solid var(--line); border-radius: 4px; padding: 3px 10px; font-family: var(--mono); font-size: 12px; color: var(--body); }
+    .user { display: flex; align-items: center; gap: 8px; color: var(--body); }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--slate); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+    nav { display: flex; gap: 4px; padding: 0 20px; }
+    nav a { text-decoration: none; padding: 12px 12px; font-size: 14px; font-weight: 600; color: var(--muted); border-bottom: 3px solid transparent; }
+    nav a.active { color: var(--ink); border-bottom-color: var(--red); }
+
+    .strip { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 28px; font-size: 13px; border-bottom: 1px solid var(--line); }
+    .strip.healthy { background: var(--green-bg); color: var(--green); }
+    .strip.idle { background: #EEF3F6; color: var(--slate); }
+    .strip.degraded { background: var(--red-bg); color: var(--red-dark); }
+    .strip strong { font-weight: 700; }
+    .strip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: currentColor; margin-right: 8px; }
+
+    main { max-width: 1280px; margin: 0 auto; padding: 24px 28px 60px; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    h1 { font-size: 22px; color: var(--ink); font-weight: 700; letter-spacing: -0.01em; }
+    .page-head p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .page-head .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; line-height: 1.7; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+    .line-card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; position: relative; overflow: hidden; }
+    .line-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--green); }
+    .line-card.awaiting-upload::before { background: var(--slate); }
+    .line-card.quarantine::before { background: var(--red); }
+    .line-card .name { font-weight: 700; color: var(--ink); font-size: 15px; }
+    .line-card .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .fpy { display: flex; align-items: baseline; gap: 8px; margin-top: 14px; }
+    .fpy .num { font-size: 36px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .fpy .num.zero { color: var(--red); }
+    .fpy .lbl { font-size: 12px; color: var(--muted); }
+    .bar { height: 6px; background: var(--line); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--green); border-radius: 3px; transition: width .4s; }
+    .bar.quarantine span { background: var(--red); }
+    .line-foot { display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+    .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px; }
+    .badge.shipping { background: var(--green-bg); color: var(--green); }
+    .badge.awaiting-upload { background: #EEF3F6; color: var(--slate); }
+    .badge.quarantine { background: var(--red-bg); color: var(--red-dark); }
+    .badge.pass { background: var(--green-bg); color: var(--green); }
+    .badge.fail { background: var(--red-bg); color: var(--red-dark); }
+    .badge.ingested { background: var(--green-bg); color: var(--green); }
+    .badge.failed { background: var(--red-bg); color: var(--red-dark); }
+    .badge.pending { background: var(--amber-bg); color: var(--amber); }
+
+    .two { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; align-items: start; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { font-size: 14px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.05em; }
+    .panel-head .hint { font-size: 12px; color: var(--muted); }
+    .panel-body { padding: 18px 20px; }
+
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--body); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    select { width: 100%; height: 44px; border: 1px solid var(--slate); border-radius: 4px; padding: 0 12px; font: inherit; color: var(--ink); background: #fff; }
+    .file-meta { margin-top: 12px; border: 1px dashed var(--line); border-radius: 4px; padding: 12px 14px; font-family: var(--mono); font-size: 12px; color: var(--body); line-height: 1.8; background: var(--bg); }
+    .file-meta b { color: var(--ink); font-weight: 500; }
+    .preview { margin-top: 12px; overflow-x: auto; }
+    .preview table { font-size: 11.5px; }
+    .actions { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+    .btn { font: inherit; font-weight: 700; font-size: 14px; border-radius: 4px; padding: 0 22px; height: 44px; cursor: pointer; border: 1px solid transparent; }
+    .btn-primary { background: var(--red); color: #fff; }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-primary:disabled { opacity: .6; cursor: progress; }
+    .btn-ghost { background: transparent; color: var(--slate); border-color: var(--slate); }
+    .actions .note { font-size: 12px; color: var(--muted); }
+
+    .result { margin-top: 16px; border-radius: 4px; padding: 14px 16px; font-size: 13px; display: none; }
+    .result.show { display: block; }
+    .result.ok { background: var(--green-bg); border: 1px solid #BFE5CF; color: #14563A; }
+    .result.err { background: var(--red-bg); border: 1px solid #F5B6C6; color: #7A0A22; }
+    .result h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .result code { font-family: var(--mono); font-size: 12px; display: block; background: rgba(255,255,255,.7); padding: 8px 10px; border-radius: 3px; margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
+    .result .impact { margin-top: 10px; line-height: 1.55; }
+    .reset-row { display: none; margin-top: 12px; }
+    .reset-row.show { display: flex; align-items: center; gap: 10px; }
+    .btn-reset { font: inherit; font-size: 12px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+    .btn-reset:hover { color: var(--ink); border-color: var(--slate); }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); padding: 10px 20px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    td { padding: 11px 20px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--body); }
+    tr:last-child td { border-bottom: none; }
+    td.mono, .mono { font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .preview th, .preview td { padding: 7px 10px; }
+    .empty { padding: 26px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+
+    .stations { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 16px 20px; }
+    .station { border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 12px; }
+    .station .id { font-family: var(--mono); font-weight: 500; color: var(--ink); font-size: 13px; }
+    .station .fw { margin-top: 6px; color: var(--muted); }
+    .station .fw b { color: var(--body); font-weight: 600; font-family: var(--mono); }
+    .station.new .fw b { color: var(--amber); }
+    .station .hb { color: var(--muted); margin-top: 2px; }
+
+    .toast-wrap { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 50; }
+    .toast { background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 4px; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,.18); animation: rise .25s ease-out; max-width: 380px; }
+    .toast.err { background: var(--red-dark); }
+    .toast.ok { background: var(--green); }
+    @keyframes rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    footer { text-align: center; font-size: 12px; color: var(--muted); padding: 20px; }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 1000px) {
+      .grid { grid-template-columns: 1fr; }
+      .two { grid-template-columns: 1fr; }
+      .stations { grid-template-columns: repeat(2, 1fr); }
+      .page-head { flex-direction: column; align-items: flex-start; }
+      .page-head .meta { text-align: left; }
+      .top { padding: 0 16px; }
+      main { padding: 16px; }
+      .top-right .env-pill, .top-right .user span { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top">
+      <div class="brand">
+        <img src="/verticals/assets/3e5e338a/logo.svg" alt="Molex">
+        <span class="divider"></span>
+        <div class="app">Test Station Data Platform<small>Manufacturing Quality · Global Operations</small></div>
+      </div>
+      <div class="top-right">
+        <span class="env-pill">tsdp-prod · us-west</span>
+        <div class="user"><span>D. Okafor · Quality Eng</span><div class="avatar">DO</div></div>
+      </div>
+    </div>
+    <nav>
+      <a href="#" class="active">Yield</a>
+      <a href="#">Uploads</a>
+      <a href="#">Units</a>
+      <a href="#">Spec Limits</a>
+      <a href="#">Stations</a>
+      <a href="#">Reports</a>
+    </nav>
+  </header>
+
+  <div id="strip" class="strip idle">
+    <div><span class="dot"></span><strong>Ingest pipeline:</strong> <span id="strip-text">no uploads processed this shift</span></div>
+    <div id="strip-right" class="mono">results/upload · 0 req</div>
+  </div>
+
+  <main>
+    <div class="page-head">
+      <div>
+        <h1>First-pass yield — Shift B</h1>
+        <p>Pass / fail disposition of every unit tested against the spec limits registered for its part number. Units with no disposition are held in quarantine.</p>
+      </div>
+      <div class="meta">Tue 23 Sep 2026 · 01:05 UTC<br>Trailing window: 7 shifts · 3 lines · 5 stations</div>
+    </div>
+
+    <section id="lines" class="grid"></section>
+
+    <div class="two">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Ingest station upload</h2>
+          <span class="hint">Pending in the station drop folder</span>
+        </div>
+        <div class="panel-body">
+          <label for="batch">Upload batch</label>
+          <select id="batch"></select>
+          <div id="file-meta" class="file-meta"></div>
+          <div id="preview" class="preview"></div>
+          <div class="actions">
+            <button id="ingest-btn" class="btn btn-primary" type="button">Ingest results</button>
+            <span class="note">Parses the file, grades each unit against spec, and updates line yield.</span>
+          </div>
+          <div id="result" class="result"></div>
+          <div id="reset-row" class="reset-row">
+            <button id="reset-btn" class="btn-reset" type="button">Clear ingest state</button>
+            <span class="note" style="font-size:12px;color:var(--muted)">Clears processed uploads and dispositions for this shift.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Upload log</h2>
+          <span class="hint" id="upload-count">0 this shift</span>
+        </div>
+        <div id="uploads"></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:16px">
+      <div class="panel-head">
+        <h2>Unit dispositions</h2>
+        <span class="hint" id="unit-count">Shift B</span>
+      </div>
+      <div id="units"></div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <div class="panel-head">
+        <h2>Test stations</h2>
+        <span class="hint">Heartbeat &lt; 15 min</span>
+      </div>
+      <div id="stations" class="stations"></div>
+    </section>
+  </main>
+
+  <footer>Internal tool · Manufacturing Quality Systems · <a href="/">Back to demo hub</a></footer>
+  <div id="toasts" class="toast-wrap"></div>
+
+  <script>
+    var API = '/api/3e5e338a';
+    var overview = null;
+    var requestCount = 0;
+
+    function esc(v) { return String(v == null ? '' : v).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function fmtTime(iso) { return iso ? iso.slice(11, 16) + ' UTC' : '—'; }
+    function fmtVal(v) {
+      if (v === null || v === undefined) return '—';
+      if (Math.abs(v) < 1e-6 && v !== 0) return v.toExponential(1);
+      return String(v);
+    }
+    function toast(msg, cls) {
+      var el = document.createElement('div');
+      el.className = 'toast ' + (cls || '');
+      el.textContent = msg;
+      document.getElementById('toasts').appendChild(el);
+      setTimeout(function () { el.remove(); }, 4200);
+    }
+
+    function renderStrip() {
+      var strip = document.getElementById('strip');
+      strip.className = 'strip ' + overview.status;
+      var failed = overview.uploads.filter(function (u) { return u.status === 'failed'; });
+      var text = overview.status === 'idle' ? 'no uploads processed this shift'
+        : overview.status === 'healthy' ? overview.uploads.length + ' upload(s) ingested, all units dispositioned'
+        : failed.length + ' upload(s) rejected · ' + failed.reduce(function (n, u) { return n + u.rowCount; }, 0) + ' units in quarantine on ' + failed.map(function (u) { return u.lineId; }).filter(function (l, i, a) { return a.indexOf(l) === i; }).join(', ');
+      document.getElementById('strip-text').textContent = text;
+      document.getElementById('strip-right').textContent = 'results/upload · ' + requestCount + ' req · ' + failed.length + ' 5xx';
+    }
+
+    function renderLines() {
+      document.getElementById('lines').innerHTML = overview.lines.map(function (line) {
+        var y = line.yield;
+        var fpy = y.shift.tested || y.status === 'quarantine' ? y.shift.fpy : y.trailing.fpy;
+        var lbl = y.shift.tested || y.status === 'quarantine' ? 'FPY · Shift B' : 'FPY · trailing (no upload yet this shift)';
+        return '<div class="line-card ' + y.status + '">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="name">' + esc(line.name) + '</div><div class="sub">' + esc(line.site) + ' · ' + esc(line.businessUnit) + ' · PN ' + esc(line.partNumber) + '</div></div>' +
+          '<span class="badge ' + y.status + '">' + y.status.replace('-', ' ') + '</span></div>' +
+          '<div class="fpy"><span class="num' + (fpy === 0 ? ' zero' : '') + '">' + (fpy === null ? '—' : fpy.toFixed(1) + '%') + '</span><span class="lbl">' + lbl + '<br>target ' + line.targetFpy.toFixed(1) + '%</span></div>' +
+          '<div class="bar ' + y.status + '"><span style="width:' + (fpy || 0) + '%"></span></div>' +
+          '<div class="line-foot"><span>shift: ' + y.shift.passed + '/' + y.shift.tested + ' pass</span><span>quarantine: ' + y.quarantined + '</span><span>trailing: ' + y.trailing.fpy.toFixed(1) + '%</span></div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function selectedBatch() {
+      var id = document.getElementById('batch').value;
+      return overview.pendingUploads.filter(function (u) { return u.id === id; })[0] || overview.pendingUploads[overview.pendingUploads.length - 1];
+    }
+
+    function renderBatchDetail() {
+      var b = selectedBatch();
+      var station = overview.stations.filter(function (s) { return s.id === b.stationId; })[0];
+      document.getElementById('file-meta').innerHTML =
+        '<b>' + esc(b.fileName) + '</b><br>' +
+        'station <b>' + esc(b.stationId) + '</b> · firmware <b>' + esc(b.firmware) + '</b>' + (station && station.firmware !== '4.1.3' ? ' (new)' : '') + ' · ' + esc(b.format) + ' · ' + b.rowCount + ' units<br>' +
+        'received ' + fmtTime(b.receivedAt) + ' · line ' + esc(b.lineId);
+      var cols = Object.keys(b.preview[0]).filter(function (k) { return ['serial_number', 'shift', 'operator', 'tested_at', 'part_number', 'station_id', 'line_id'].indexOf(k) === -1; });
+      document.getElementById('preview').innerHTML = '<table><thead><tr><th>serial_number</th>' + cols.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        b.preview.map(function (r) { return '<tr><td class="mono">' + esc(r.serial_number) + '</td>' + cols.map(function (c) { return '<td class="mono">' + esc(r[c]) + '</td>'; }).join('') + '</tr>'; }).join('') +
+        '<tr><td colspan="' + (cols.length + 1) + '" style="color:var(--muted);font-size:11px">… ' + (b.rowCount - b.preview.length) + ' more rows</td></tr></tbody></table>';
+    }
+
+    function renderBatches() {
+      var sel = document.getElementById('batch');
+      var current = sel.value;
+      sel.innerHTML = overview.pendingUploads.map(function (u) {
+        return '<option value="' + esc(u.id) + '">' + esc(u.lineId) + ' · ' + esc(u.stationId) + ' · fw ' + esc(u.firmware) + ' · ' + u.rowCount + ' units (' + esc(u.format) + ')</option>';
+      }).join('');
+      sel.value = current || overview.pendingUploads[overview.pendingUploads.length - 1].id;
+      renderBatchDetail();
+    }
+
+    function renderUploads() {
+      document.getElementById('upload-count').textContent = overview.uploads.length + ' this shift';
+      if (!overview.uploads.length) {
+        document.getElementById('uploads').innerHTML = '<div class="empty">No uploads ingested yet this shift. Select a batch and click <b>Ingest results</b>.</div>';
+        return;
+      }
+      document.getElementById('uploads').innerHTML = '<table><thead><tr><th>Upload</th><th>Line / Station</th><th>Units</th><th>Status</th></tr></thead><tbody>' +
+        overview.uploads.map(function (u) {
+          return '<tr><td class="mono">' + esc(u.uploadId) + '<br><span style="color:var(--muted);font-size:11px">' + esc(u.fileName) + '</span></td>' +
+            '<td>' + esc(u.lineId) + '<br><span class="mono" style="font-size:11px">' + esc(u.stationId) + ' · fw ' + esc(u.firmware) + '</span></td>' +
+            '<td class="num">' + u.rowCount + (u.yield ? '<br><span style="color:var(--muted);font-size:11px">' + u.yield.passed + ' pass · ' + u.yield.failed + ' fail</span>' : '') + '</td>' +
+            '<td><span class="badge ' + u.status + '">' + u.status + '</span>' + (u.attempts > 1 ? ' <span style="font-size:11px;color:var(--muted)">×' + u.attempts + '</span>' : '') + (u.error ? '<br><span class="mono" style="font-size:11px;color:var(--red-dark)">' + esc(u.error) + '</span>' : '') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    function renderUnits() {
+      document.getElementById('unit-count').textContent = overview.units.length + ' units · Shift B';
+      if (!overview.units.length) {
+        document.getElementById('units').innerHTML = '<div class="empty">No unit dispositions recorded this shift.</div>';
+        return;
+      }
+      document.getElementById('units').innerHTML = '<table><thead><tr><th>Serial</th><th>Part</th><th>Station</th><th>Measurements (LSL / USL)</th><th>Disposition</th></tr></thead><tbody>' +
+        overview.units.map(function (u) {
+          return '<tr><td class="mono">' + esc(u.serialNumber) + '</td><td>' + esc(u.partNumber) + '<br><span style="color:var(--muted);font-size:11px">' + esc(u.description) + '</span></td>' +
+            '<td class="mono">' + esc(u.stationId) + '</td><td>' + u.results.map(function (r) {
+              return '<div style="display:flex;justify-content:space-between;gap:12px"><span>' + esc(r.label) + '</span><span class="mono" style="color:' + (r.result === 'pass' ? 'var(--ink)' : 'var(--red-dark)') + '">' + fmtVal(r.value) + ' ' + esc(r.unit) + ' <span style="color:var(--muted)">(' + fmtVal(r.lsl) + ' / ' + fmtVal(r.usl) + ')</span></span></div>';
+            }).join('') + '</td><td><span class="badge ' + u.status + '">' + u.status + '</span></td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    function renderStations() {
+      document.getElementById('stations').innerHTML = overview.stations.map(function (s) {
+        return '<div class="station' + (s.firmware !== '4.1.3' ? ' new' : '') + '"><div class="id">' + esc(s.id) + '</div><div style="color:var(--muted)">' + esc(s.lineId) + ' · ' + esc(s.type) + '</div>' +
+          '<div class="fw">firmware <b>' + esc(s.firmware) + '</b>' + (s.firmware !== '4.1.3' ? ' · rolled out this shift' : '') + '</div><div class="hb">heartbeat ' + fmtTime(s.lastHeartbeat) + '</div></div>';
+      }).join('');
+    }
+
+    function renderAll() {
+      renderStrip(); renderLines(); renderBatches(); renderUploads(); renderUnits(); renderStations();
+      document.getElementById('reset-row').className = 'reset-row' + (overview.uploads.length ? ' show' : '');
+    }
+
+    function loadOverview() {
+      return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (data) { overview = data; renderAll(); });
+    }
+
+    function showResult(kind, html) {
+      var el = document.getElementById('result');
+      el.className = 'result show ' + kind;
+      el.innerHTML = html;
+    }
+
+    function ingest() {
+      var btn = document.getElementById('ingest-btn');
+      var batch = selectedBatch();
+      btn.disabled = true;
+      btn.textContent = 'Parsing ' + batch.rowCount + ' rows…';
+      requestCount += 1;
+      return fetch(API + '/results/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          batchId: batch.id,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+        .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
+        .then(function (res) {
+          if (res.ok) {
+            var y = res.body.receipt.yield;
+            showResult('ok', '<h3>Upload ' + esc(res.body.receipt.uploadId) + ' ingested</h3>' + esc(batch.fileName) + ' — ' + y.tested + ' units dispositioned (' + y.passed + ' pass, ' + y.failed + ' fail), shift FPY ' + y.fpy.toFixed(1) + '% on ' + esc(batch.lineId) + '.');
+            toast('Upload ingested · ' + batch.lineId + ' FPY ' + y.fpy.toFixed(1) + '%', 'ok');
+          } else {
+            showResult('err', '<h3>HTTP ' + res.status + ' — upload rejected by ingest</h3>' + esc(batch.fileName) + ' from ' + esc(batch.stationId) + ' (firmware ' + esc(batch.firmware) + ') could not be processed. No unit in this batch received a disposition.' +
+              '<code>' + esc(res.body.errorType || 'Error') + ': ' + esc(res.body.error) + '</code>' +
+              '<div class="impact"><b>Impact:</b> ' + batch.rowCount + ' units held in quarantine on ' + esc(batch.lineId) + '; shift FPY reads 0%. The line cannot ship until the upload is accepted. Alert routed to Sentry → Slack on-call → Devin.</div>');
+            toast('HTTP ' + res.status + ' on results/upload · ' + batch.lineId + ' quarantined', 'err');
+          }
+        })
+        .catch(function (err) {
+          showResult('err', '<h3>Request failed</h3><code>' + esc(err.message) + '</code>');
+        })
+        .then(function () {
+          btn.disabled = false;
+          btn.textContent = 'Ingest results';
+          return loadOverview();
+        });
+    }
+
+    function resetState() {
+      return fetch(API + '/results/upload/reset', { method: 'POST' })
+        .then(function (r) { return r.json(); })
+        .then(function () {
+          requestCount = 0;
+          document.getElementById('result').className = 'result';
+          document.getElementById('result').innerHTML = '';
+          toast('Ingest state cleared', 'ok');
+          return loadOverview();
+        });
+    }
+
+    document.getElementById('ingest-btn').addEventListener('click', ingest);
+    document.getElementById('reset-btn').addEventListener('click', resetState);
+    document.getElementById('batch').addEventListener('change', renderBatchDetail);
+    document.querySelectorAll('nav a').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('nav a').forEach(function (x) { x.classList.remove('active'); });
+        a.classList.add('active');
+      });
+    });
+
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.devinUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.devinUserId);
+      if (cfg.devinOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.devinOrgId);
+      if (cfg.devinEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.devinEmail);
+    }).catch(function () {});
+
+    loadOverview();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
