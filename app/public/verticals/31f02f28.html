@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Move money | Erebor</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #f8f7f4;
+      --bg-card: #f5f3ef;
+      --bg-app: #ffffff;
+      --ink: #1a1a18;
+      --ink-2: #504f4b;
+      --muted: #696762;
+      --line: rgba(84, 64, 16, 0.14);
+      --line-subtle: rgba(84, 64, 16, 0.08);
+      --fill-subtle: #efece5;
+      --fill-hover: #dad6cc;
+      --bronze: #ccbca3;
+      --success-fill: #eef2ea;
+      --success-ink: #465c38;
+      --success-line: #b0c49a;
+      --danger-fill: #ffe4e6;
+      --danger-ink: #9f1239;
+      --danger-line: #fb7185;
+      --sans: 'KH Teka', 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --mono: 'KH Teka Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --radius: 4px;
+      --shadow-resting: 0 1px 2px 0 rgba(26,26,24,0.05);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--bg-page); color: var(--ink); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+
+    .fdic { background: #000; color: #f8f7f4; display: flex; align-items: center; gap: 12px; padding: 8px 24px; font-size: 12px; }
+    .fdic .mark { font-family: var(--sans); font-weight: 600; letter-spacing: 0.02em; border: 1px solid rgba(248,247,244,0.8); padding: 1px 4px; font-size: 10px; }
+    .fdic span { font-style: italic; opacity: 0.92; }
+
+    header.site { background: var(--bg-page); border-bottom: 1px solid var(--line-subtle); position: sticky; top: 0; z-index: 20; }
+    .head-inner { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 14px 24px; }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-size: 17px; font-weight: 500; letter-spacing: 0.01em; }
+    .logo svg { width: 26px; height: 22px; display: block; }
+    nav.main { display: flex; gap: 2px; }
+    nav.main a { text-decoration: none; font-size: 14px; color: var(--ink-2); padding: 7px 12px; border-radius: var(--radius); }
+    nav.main a:hover { background: var(--fill-subtle); color: var(--ink); }
+    nav.main a.active { background: var(--fill-subtle); color: var(--ink); font-weight: 500; }
+    .head-right { display: flex; align-items: center; gap: 12px; }
+    .who { text-align: right; line-height: 1.25; }
+    .who b { display: block; font-size: 13px; font-weight: 500; }
+    .who span { font-size: 12px; color: var(--muted); }
+    .btn-ghost { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; color: var(--ink); font-family: var(--sans); font-size: 14px; cursor: pointer; text-decoration: none; }
+    .btn-ghost:hover { background: var(--fill-subtle); }
+    @media (max-width: 1000px) { nav.main { display: none; } }
+    @media (max-width: 560px) { .who { display: none; } }
+
+    .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line-subtle); }
+    .hero::before { content: ''; position: absolute; inset: 0; background: url('https://erebor.bank/ls_3.webp') center 62% / cover no-repeat; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10,18,34,0.78), rgba(10,18,34,0.35)); }
+    .hero-inner { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 56px 24px 52px; color: #f8f7f4; }
+    .hero h1 { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 450; letter-spacing: -0.02em; line-height: 1.05; }
+    .hero p { margin-top: 12px; max-width: 520px; font-size: 15px; color: rgba(248,247,244,0.86); }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+    .section-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+    .accounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 36px; }
+    @media (max-width: 900px) { .accounts { grid-template-columns: 1fr; } }
+    .account { background: var(--bg-app); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-resting); }
+    .account .name { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .account .balance { font-size: 1.85rem; font-weight: 450; letter-spacing: -0.02em; }
+    .account .meta { margin-top: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .chip { display: inline-block; margin-top: 12px; padding: 2px 8px; border-radius: 999px; background: var(--fill-subtle); border: 1px solid var(--line-subtle); font-size: 11.5px; color: var(--ink-2); }
+
+    .cols { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+    .card { background: var(--bg-app); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-resting); }
+    .card-head { padding: 22px 24px 0; }
+    .card-head h2 { font-size: 1.15rem; font-weight: 500; letter-spacing: -0.01em; }
+    .card-head p { margin-top: 4px; font-size: 13.5px; color: var(--muted); }
+    .card-body { padding: 20px 24px 24px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+    .form-group select, .form-group input { width: 100%; height: 44px; padding: 0 12px; background: var(--bg-app); border: 1px solid var(--line); border-radius: var(--radius); color: var(--ink); font-family: var(--sans); font-size: 14.5px; appearance: none; }
+    .form-group select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23696762' stroke-width='1.4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+    .helper { font-size: 12.5px; color: var(--muted); margin: -6px 0 18px; }
+    .btn-primary { width: 100%; height: 48px; border: none; border-radius: var(--radius); background: var(--ink); color: #f8f7f4; font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; transition: background .15s; }
+    .btn-primary:hover { background: #3c3c38; }
+    .btn-primary:disabled { background: #85837e; cursor: not-allowed; }
+    .result-box { margin-top: 16px; padding: 13px 15px; border-radius: var(--radius); font-size: 14px; display: none; }
+    .result-box.success { display: block; background: var(--success-fill); border: 1px solid var(--success-line); color: var(--success-ink); }
+    .result-box.error { display: block; background: var(--danger-fill); border: 1px solid var(--danger-line); color: var(--danger-ink); }
+    .result-box .title { font-weight: 500; margin-bottom: 2px; }
+    .result-box .detail { font-size: 12.5px; font-family: var(--mono); opacity: 0.9; word-break: break-word; }
+
+    .aside .row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line-subtle); font-size: 13.5px; }
+    .aside .row:last-child { border-bottom: none; }
+    .aside .row span { color: var(--muted); }
+    .aside .row b { font-weight: 450; font-family: var(--mono); font-size: 13px; }
+    .note { margin-top: 16px; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--line-subtle); border-radius: var(--radius); font-size: 12.5px; color: var(--ink-2); }
+
+    .activity { margin-top: 36px; }
+    table { width: 100%; border-collapse: collapse; background: var(--bg-app); border: 1px solid var(--line); border-radius: var(--radius); }
+    th { text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 12px 20px; border-bottom: 1px solid var(--line-subtle); }
+    td { padding: 14px 20px; border-bottom: 1px solid var(--line-subtle); font-size: 14px; }
+    tbody tr:last-child td { border-bottom: none; }
+    td.num { font-family: var(--mono); font-size: 13.5px; text-align: right; }
+    td.credit { color: var(--success-ink); }
+    @media (max-width: 640px) { th:nth-child(4), td:nth-child(4) { display: none; } th, td { padding: 11px 14px; } }
+
+    footer { background: #000; color: rgba(248,247,244,0.72); margin-top: 56px; }
+    .foot-inner { max-width: 1180px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; font-size: 12.5px; }
+    .foot-inner a { text-decoration: none; }
+    .foot-inner a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="fdic"><span class="mark">FDIC</span><span>FDIC-Insured &mdash; Backed by the full faith and credit of the U.S. Government.</span></div>
+
+  <header class="site">
+    <div class="head-inner">
+      <a class="logo" href="#move-money">
+        <svg viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13 1.5 20.5 20.5H16.6L13 9.8 9.4 20.5H5.5L13 1.5Z" fill="#1a1a18"/><path d="M2 20.5 6.2 9.6l1.9 4.8-2.3 6.1H2Z" fill="#1a1a18" opacity="0.55"/></svg>
+        Erebor
+      </a>
+      <nav class="main">
+        <a href="#move-money" class="active">Accounts</a>
+        <a href="#move-money">Payments</a>
+        <a href="#activity">Activity</a>
+        <a href="#">Cards</a>
+        <a href="#">Treasury</a>
+        <a href="#">Lending</a>
+      </nav>
+      <div class="head-right">
+        <div class="who"><b>Alice Chen</b><span>Meridian Aerostructures, Inc.</span></div>
+        <a class="btn-ghost" href="#">Sign out</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Move money</h1>
+      <p>Erebor is a nationally chartered bank built for the next century of American innovation. Transfers between your Erebor accounts settle instantly, around the clock.</p>
+    </div>
+  </section>
+
+  <main>
+    <div class="section-label">Accounts</div>
+    <div class="accounts">
+      <div class="account">
+        <div class="name">Operating &middot; Business Checking</div>
+        <div class="balance">$4,182,940.18</div>
+        <div class="meta">ACCT-1001 &middot; Available now</div>
+        <div class="chip">Primary</div>
+      </div>
+      <div class="account">
+        <div class="name">Treasury &middot; Money Market</div>
+        <div class="balance">$18,650,000.00</div>
+        <div class="meta">ACCT-1002 &middot; 4.10% APY</div>
+        <div class="chip">Sweep enabled</div>
+      </div>
+      <div class="account">
+        <div class="name">Payroll reserve</div>
+        <div class="balance">$960,412.55</div>
+        <div class="meta">ACCT-1003 &middot; Funds next run Mar 31</div>
+        <div class="chip">Restricted</div>
+      </div>
+    </div>
+
+    <div class="cols" id="move-money">
+      <div class="card">
+        <div class="card-head">
+          <h2>Transfer between accounts</h2>
+          <p>Internal transfers post immediately. Wires and ACH follow published cutoffs.</p>
+        </div>
+        <div class="card-body">
+          <form id="transferForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fromAccount">From</label>
+                <select id="fromAccount">
+                  <option value="ACCT-1001">Operating &mdash; ACCT-1001</option>
+                  <option value="ACCT-1002">Treasury &mdash; ACCT-1002</option>
+                  <option value="ACCT-1003">Payroll reserve &mdash; ACCT-1003</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="toAccount">To</label>
+                <select id="toAccount">
+                  <option value="ACCT-1002">Treasury &mdash; ACCT-1002</option>
+                  <option value="ACCT-1001">Operating &mdash; ACCT-1001</option>
+                  <option value="ACCT-1003">Payroll reserve &mdash; ACCT-1003</option>
+                  <option value="ACCT-EXT-001">External &mdash; Vendor (ACH) ****4921</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="amount">Amount (USD)</label>
+              <input type="number" id="amount" value="250000" min="1" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="accountTier">Relationship tier</label>
+              <select id="accountTier">
+                <option value="standard">Standard</option>
+                <option value="premium">Priority</option>
+                <option value="basic">Basic</option>
+              </select>
+            </div>
+            <div class="helper">Transfers are reviewed against your account controls before they post.</div>
+            <button type="submit" class="btn-primary" id="submitBtn">Review and transfer</button>
+          </form>
+          <div id="result" class="result-box"></div>
+        </div>
+      </div>
+
+      <div class="card aside">
+        <div class="card-head">
+          <h2>Transfer details</h2>
+          <p>Cutoffs shown in Eastern Time.</p>
+        </div>
+        <div class="card-body">
+          <div class="row"><span>Internal transfer</span><b>Immediate</b></div>
+          <div class="row"><span>Domestic wire cutoff</span><b>5:00 PM ET</b></div>
+          <div class="row"><span>Same-day ACH cutoff</span><b>2:45 PM ET</b></div>
+          <div class="row"><span>Daily transfer limit</span><b>$25,000,000</b></div>
+          <div class="row"><span>Relationship manager</span><b>D. Okafor</b></div>
+          <div class="note">Deposits are held at Erebor Bank, NA, Member FDIC. Balances shown reflect posted and pending activity as of the last refresh.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="activity" id="activity">
+      <div class="section-label">Recent activity</div>
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Balance</th></tr></thead>
+        <tbody>
+          <tr><td>Mar 15</td><td>Incoming wire &mdash; Series C tranche</td><td class="num credit">+$12,000,000.00</td><td class="num">$4,182,940.18</td></tr>
+          <tr><td>Mar 14</td><td>Transfer to Treasury &mdash; ACCT-1002</td><td class="num">-$8,000,000.00</td><td class="num">$3,914,220.41</td></tr>
+          <tr><td>Mar 13</td><td>ACH debit &mdash; Machining vendor</td><td class="num">-$412,806.22</td><td class="num">$11,914,220.41</td></tr>
+          <tr><td>Mar 12</td><td>Payroll funding &mdash; ACCT-1003</td><td class="num">-$960,412.55</td><td class="num">$12,327,026.63</td></tr>
+          <tr><td>Mar 11</td><td>Interest &mdash; Treasury sweep</td><td class="num credit">+$61,240.09</td><td class="num">$13,287,439.18</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div>&copy; 2026 Erebor Bank, NA Member FDIC</div>
+      <div><a href="#">Privacy Notice</a> &middot; <a href="#">Messaging Terms</a></div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('transferForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Processing...';
+      result.className = 'result-box';
+      try {
+        const res = await fetch('/api/banking/transfer', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fromAccount: document.getElementById('fromAccount').value, toAccount: document.getElementById('toAccount').value, amount: parseFloat(document.getElementById('amount').value), accountTier: document.getElementById('accountTier').value, userId: 'usr_alice_chen', devinUserId: localStorage.getItem('devinUserId') || '', devinOrgId: localStorage.getItem('devinOrgId') || '', devinEmail: localStorage.getItem('devinEmail') || '' }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          result.className = 'result-box error';
+          result.innerHTML = `<div class="title">Transfer failed</div><div class="detail">${data.errorClass}: ${data.error}</div>`;
+        } else {
+          result.className = 'result-box success';
+          result.innerHTML = `<div class="title">Transfer complete</div><div class="detail">Debited $${data.debitAmount} (includes $${data.fee} fee)</div>`;
+        }
+      } catch (err) {
+        result.className = 'result-box error';
+        result.innerHTML = `<div class="title">Network error</div><div class="detail">${err.message}</div>`;
+      } finally { btn.disabled = false; btn.textContent = 'Review and transfer'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

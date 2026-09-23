@@ -2391,6 +2391,28 @@ const ONCALL_SKINS = {
     supportCenter: 'bp Business Solutions Customer Service',
     disclaimer: 'NOT ACTUALLY A BP SITE — internal demo only, not affiliated with, endorsed by, or a real bp product.',
   },
+  '31f02f28': {
+    slug: '31f02f28',
+    company: 'Erebor',
+    brandMark: 'E',
+    vertical: 'banking',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: '31f02f28.html',
+      title: 'Move money | Erebor',
+    },
+    theme: {
+      '--accent': '#1a1a18',
+      '--ink': '#1a1a18',
+      '--surface': '#f8f7f4',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#f8f7f4',
+    },
+    supportCenter: 'Erebor Client Service',
+    disclaimer: 'NOT ACTUALLY AN EREBOR SITE — internal demo only, not affiliated with, endorsed by, or a real Erebor product.',
+  },
 };
 
 function getOncallSkin(slug) {
