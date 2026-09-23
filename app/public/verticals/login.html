@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In | Alrajhi Bank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;family=Rubik:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --arb-ink: #000045;
+      --arb-primary: #0038ff;
+      --arb-cyan: #01b2fe;
+      --arb-muted: #5b6079;
+      --arb-surface: #f1f5f9;
+      --arb-line: #e5e7eb;
+      --arb-danger: #b3261e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #fff; color: var(--arb-ink); font: 400 16px/24px rubik, ui-sans-serif, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .arb-utility { display: flex; align-items: center; justify-content: space-between; padding: 10px 40px; font-size: 14px; line-height: 20px; border-bottom: 1px solid var(--arb-line); }
+    .arb-utility-right { display: flex; align-items: center; gap: 28px; }
+    .arb-header { display: flex; align-items: center; gap: 32px; padding: 18px 40px; }
+    .arb-logo { width: 158px; height: 56px; object-fit: contain; }
+    .arb-switch { display: flex; align-items: center; padding: 4px; border-radius: 9999px; background: var(--arb-surface); }
+    .arb-switch a { padding: 10px 26px; border-radius: 9999px; font: 500 14px/20px poppins, rubik, sans-serif; }
+    .arb-switch a.active { background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 69, .08); }
+    .arb-nav { display: flex; align-items: center; gap: 28px; margin: 0 auto; font: 400 15px/24px poppins, rubik, sans-serif; }
+    .arb-nav a:hover { color: var(--arb-primary); }
+    .arb-header-right { display: flex; align-items: center; gap: 20px; }
+    .arb-main { display: flex; justify-content: center; padding: 56px 40px 72px; background: linear-gradient(180deg, #fbfcff 0%, #eef3ff 100%); }
+    .arb-panel { display: flex; width: 100%; max-width: 980px; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 24px 64px rgba(0, 0, 69, .12); }
+    .arb-aside { flex: 1; padding: 44px 38px; color: #fff; background: linear-gradient(150deg, var(--arb-primary) 0%, #001c96 55%, var(--arb-ink) 100%); }
+    .arb-aside h2 { margin: 0; font: 600 32px/42px poppins, rubik, sans-serif; letter-spacing: -.4px; }
+    .arb-aside p { margin: 14px 0 0; color: rgba(255, 255, 255, .78); font-size: 15px; line-height: 26px; }
+    .arb-aside ul { margin: 30px 0 0; padding: 0; list-style: none; }
+    .arb-aside li { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; font-size: 14px; line-height: 22px; color: rgba(255, 255, 255, .9); }
+    .arb-aside li span.dot { flex: none; width: 22px; height: 22px; border-radius: 9999px; background: rgba(1, 178, 254, .28); display: flex; align-items: center; justify-content: center; }
+    .arb-form-wrap { flex: 1; padding: 44px 40px; }
+    .arb-form-wrap h1 { margin: 0; font: 600 28px/38px poppins, rubik, sans-serif; }
+    .arb-form-wrap > p { margin: 8px 0 28px; color: var(--arb-muted); font-size: 15px; line-height: 24px; }
+    .arb-field { margin-bottom: 18px; }
+    .arb-field label { display: block; margin-bottom: 8px; font: 500 14px/20px poppins, rubik, sans-serif; }
+    .arb-field input { width: 100%; padding: 14px 16px; border: 1px solid var(--arb-line); border-radius: 12px; background: #fff; font: 400 15px/22px rubik, sans-serif; color: var(--arb-ink); }
+    .arb-field input:focus { outline: none; border-color: var(--arb-primary); box-shadow: 0 0 0 3px rgba(0, 56, 255, .12); }
+    .arb-row { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 22px; font-size: 14px; color: var(--arb-muted); }
+    .arb-row a { color: var(--arb-primary); }
+    .arb-submit { width: 100%; padding: 15px 18px; border: 0; border-radius: 12px; background: var(--arb-primary); color: #fff; font: 500 15px/22px poppins, rubik, sans-serif; cursor: pointer; }
+    .arb-submit:hover { background: #0030dd; }
+    .arb-submit[disabled] { opacity: .65; cursor: progress; }
+    .arb-hint { margin-top: 22px; padding: 14px 16px; border: 1px dashed var(--arb-line); border-radius: 12px; color: var(--arb-muted); font-size: 13px; line-height: 21px; }
+    .arb-result { margin-top: 22px; padding: 16px 18px; border-radius: 12px; font-size: 14px; line-height: 22px; display: none; }
+    .arb-result.show { display: block; }
+    .arb-result.error { border: 1px solid #f3c2bd; background: #fdf3f2; color: var(--arb-danger); }
+    .arb-result.success { border: 1px solid #b8e6cd; background: #f1fbf5; color: #0d6b3f; }
+    .arb-result strong { display: block; margin-bottom: 4px; font: 600 15px/23px poppins, rubik, sans-serif; }
+    .arb-result code { font-size: 12px; }
+    .arb-footer { padding: 28px 40px; border-top: 1px solid var(--arb-line); color: var(--arb-muted); font-size: 12px; line-height: 20px; }
+    .arb-back { position: fixed; left: 12px; bottom: 8px; z-index: 90; color: var(--arb-muted); font-size: 11px; line-height: 16px; opacity: .45; }
+    @media (max-width: 1100px) { .arb-nav { display: none; } }
+    @media (max-width: 900px) {
+      .arb-utility { display: none; }
+      .arb-header { flex-wrap: wrap; gap: 16px; padding: 14px 20px; }
+      .arb-main { padding: 24px 16px 48px; }
+      .arb-panel { flex-direction: column; }
+      .arb-aside { padding: 28px 24px; }
+      .arb-form-wrap { padding: 28px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="arb-utility">
+    <span>Secure sign in to Alrajhi online banking</span>
+    <div class="arb-utility-right">
+      <a href="https://www.alrajhibank.com.sa/en/help-and-support">Help &amp; Support</a>
+      <a href="https://www.alrajhibank.com.sa/en/about-alrajhi-bank/media-center">Media Center</a>
+    </div>
+  </div>
+
+  <header class="arb-header">
+    <a href="https://www.alrajhibank.com.sa/en/personal" aria-label="alrajhi bank home">
+      <img class="arb-logo" src="https://www.alrajhibank.com.sa/img/logo.svg" alt="alrajhi bank">
+    </a>
+    <div class="arb-switch">
+      <a class="active" href="https://www.alrajhibank.com.sa/en/personal">Personal</a>
+      <a href="https://www.alrajhibank.com.sa/en/business">Business</a>
+    </div>
+    <nav class="arb-nav">
+      <a href="https://www.alrajhibank.com.sa/en/personal/accounts">Accounts</a>
+      <a href="https://www.alrajhibank.com.sa/en/personal/cards">Cards</a>
+      <a href="https://www.alrajhibank.com.sa/en/personal/finance">Finance</a>
+      <a href="https://www.alrajhibank.com.sa/en/personal/offers">Offers</a>
+    </nav>
+    <div class="arb-header-right">
+      <span>العربية</span>
+    </div>
+  </header>
+
+  <main class="arb-main">
+    <div class="arb-panel">
+      <section class="arb-aside">
+        <h2>Alrajhi Online</h2>
+        <p>Sign in to view your accounts, move money and manage your cards, anytime.</p>
+        <ul>
+          <li><span class="dot">✓</span><span>256-bit encrypted session</span></li>
+          <li><span class="dot">✓</span><span>Instant local and international transfers</span></li>
+          <li><span class="dot">✓</span><span>Mokafaa rewards at a glance</span></li>
+        </ul>
+      </section>
+
+      <section class="arb-form-wrap">
+        <h1>Sign In</h1>
+        <p>Enter your username and password to continue.</p>
+
+        <form id="arb-login-form" autocomplete="off">
+          <div class="arb-field">
+            <label for="arb-username">Username</label>
+            <input id="arb-username" name="username" type="text" value="1098342271" inputmode="numeric">
+          </div>
+          <div class="arb-field">
+            <label for="arb-password">Password</label>
+            <input id="arb-password" name="password" type="password" value="Demo@1234">
+          </div>
+          <div class="arb-row">
+            <span>Remember username</span>
+            <a href="https://www.alrajhibank.com.sa/en/help-and-support">Forgot password?</a>
+          </div>
+          <button class="arb-submit" id="arb-submit" type="submit">Sign In</button>
+        </form>
+
+        <div class="arb-result" id="arb-result"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="arb-footer">
+    <span>&copy; 2026 Al Rajhi Bank. Demo environment.</span>
+  </footer>
+
+  <a class="arb-back" href="/">back to hub</a>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
+
+    function render(kind, title, detail) {
+      var box = document.getElementById('arb-result');
+      box.className = 'arb-result show ' + kind;
+      box.innerHTML = '<strong>' + escapeHtml(title) + '</strong>' + detail;
+    }
+
+    document.getElementById('arb-login-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+      var button = document.getElementById('arb-submit');
+      button.disabled = true;
+      button.textContent = 'Signing in…';
+
+      identityReady.then(function () {
+        return fetch('/api/login/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('arb-username').value.trim(),
+            password: document.getElementById('arb-password').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+      })
+        .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+        .then(function (result) {
+          if (result.ok && result.body.success) {
+            var session = result.body.session;
+            render('success', 'Welcome back, ' + session.fullName,
+              '<div>' + escapeHtml(session.segmentLabel) + ' · session <code>' + escapeHtml(session.sessionId) + '</code></div>');
+          } else {
+            render('error', 'We could not sign you in',
+              '<div>' + escapeHtml(result.body.error || 'Unexpected error') + '</div>'
+              + '<div><code>' + escapeHtml(result.body.errorClass || 'Error') + ' · ' + escapeHtml(result.body.code || '') + '</code></div>');
+          }
+        })
+        .catch(function (error) {
+          render('error', 'We could not sign you in', '<div>' + escapeHtml(error.message) + '</div>');
+        })
+        .then(function () {
+          button.disabled = false;
+          button.textContent = 'Sign In';
+        });
+    });
+  </script>
+</body>
+</html>
