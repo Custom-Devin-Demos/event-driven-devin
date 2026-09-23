@@ -68,6 +68,22 @@
  */
 
 const ONCALL_SKINS = {
+  '76bc90d0': {
+    slug: '76bc90d0',
+    company: 'Charles Schwab',
+    brandMark: 'S',
+    vertical: 'banking',
+    page: { file: '76bc90d0.html', title: 'Move Money | Charles Schwab' },
+    theme: {
+      '--accent': '#00A0DF',
+      '--ink': '#16242F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#003057',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Charles Schwab Support',
+    disclaimer: 'NOT ACTUALLY A CHARLES SCHWAB SITE — internal demo only, not affiliated with, endorsed by, or a real Charles Schwab product.',
+  },
   '857b6424': {
     slug: '857b6424',
     company: 'Qdoba',
