@@ -179,6 +179,15 @@ describe('UKG Pro pay run validation', () => {
     expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
+  test('rejects employee IDs that are not in the pay group', async () => {
+    const { status, body } = await postPayRun({ ...VALID_REQUEST, employeeIds: ['E-100341', 'E-999999'] });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('UNKNOWN_EMPLOYEE');
+    expect(body.error).toMatch(/E-999999/);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
   test('rejects a request with no JSON body as a validation error', async () => {
     const { status, body } = await postPayRun(undefined);
 

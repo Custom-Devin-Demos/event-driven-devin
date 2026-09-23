@@ -158,6 +158,16 @@ function validatePayRun(data) {
     error.statusCode = 400;
     throw error;
   }
+
+  const unknownEmployeeIds = data.employeeIds
+    .filter((employeeId) => !EMPLOYEES.some((employee) => employee.id === employeeId));
+  if (unknownEmployeeIds.length > 0) {
+    const error = new Error(`Unknown employee ID(s) for this pay group: ${unknownEmployeeIds.join(', ')}`);
+    error.name = 'ValidationError';
+    error.code = 'UNKNOWN_EMPLOYEE';
+    error.statusCode = 400;
+    throw error;
+  }
 }
 
 function resolveWorkRule(employee) {
@@ -217,6 +227,7 @@ function getPayRun() {
     employees: EMPLOYEES.map((employee) => ({
       ...employee,
       workRuleLabel: (WORK_RULES[employee.workRule] || {}).label || employee.workRule,
+      shiftDifferential: (WORK_RULES[employee.workRule] || {}).shiftDifferential || 0,
     })),
   };
 }
@@ -281,6 +292,7 @@ async function submitPayRun(data) {
         route: '/api/e33c0578/pay-run',
         service: 'customer-e33c0578-pay-run',
         payGroup: PAY_GROUP.id,
+        alert_path: 'instant',
       },
       extra: {
         confirmationId,
