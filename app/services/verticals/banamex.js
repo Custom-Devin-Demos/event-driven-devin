@@ -114,9 +114,9 @@ function calculateTransferFee(schedule, amount) {
 /**
  * Format the comprobante returned to the browser.
  */
-function formatReceipt(transfer, feeBreakdown) {
+function formatReceipt(transfer, feeBreakdown, transferId) {
   return {
-    receiptId: `BMX-${Date.now()}`,
+    receiptId: `BMX-${transferId}`,
     from: transfer.fromAccount,
     to: transfer.toAccount,
     amount: Number(transfer.amount).toFixed(2),
@@ -150,7 +150,7 @@ async function processTransfer(data) {
     const schedule = resolveCommissionSchedule(accountTier);
     const fee = calculateTransferFee(schedule, Number(data.amount));
     const totalDebit = Number(data.amount) + fee;
-    const receipt = formatReceipt(data, { fee, totalDebit });
+    const receipt = formatReceipt(data, { fee, totalDebit }, transferId);
 
     const duration = Date.now() - startTime;
 
