@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Move Money | Charles Schwab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #00A0DF;
+      --ink: #16242F;
+      --surface: #FFFFFF;
+      --chrome-bg: #003057;
+      --chrome-text: #FFFFFF;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.5 'Inter', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .utility { background: var(--chrome-bg); color: var(--chrome-text); }
+    .utility-inner { max-width: 1160px; min-height: 36px; margin: auto; padding: 6px 28px; display: flex; justify-content: flex-end; align-items: center; gap: 25px; font-size: 12px; }
+    .utility a:hover, .navigation a:hover { text-decoration: underline; }
+    .header { background: var(--surface); border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, var(--surface)); }
+    .header-inner { max-width: 1160px; min-height: 82px; padding: 12px 28px; margin: auto; display: flex; align-items: center; gap: 38px; }
+    .identity { display: inline-flex; flex-shrink: 0; align-items: center; gap: 11px; color: var(--chrome-bg); }
+    .identity-mark { display: grid; place-items: center; width: 51px; height: 51px; background: var(--accent); color: var(--chrome-text); font: italic 35px Georgia, serif; }
+    .identity-name { display: flex; flex-direction: column; line-height: 1.02; font: italic 18px Georgia, serif; }
+    .identity-name strong { font: 700 17px/1.1 'Inter', Arial, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+    .navigation { display: flex; gap: 26px; align-items: center; font-size: 13px; font-weight: 600; }
+    .navigation a { min-height: 44px; display: inline-flex; align-items: center; }
+    .navigation .current { color: var(--chrome-bg); border-bottom: 3px solid var(--accent); }
+    .header-note { margin-left: auto; color: color-mix(in srgb, var(--ink) 65%, var(--surface)); white-space: nowrap; font-size: 12px; }
+    .hero { background: linear-gradient(118deg, var(--chrome-bg) 15%, color-mix(in srgb, var(--accent) 27%, var(--chrome-bg)) 100%); color: var(--chrome-text); }
+    .hero-inner { max-width: 1160px; margin: auto; padding: 52px 28px 60px; display: grid; grid-template-columns: minmax(0, 1fr) 280px; align-items: center; gap: 50px; }
+    .eyebrow { margin: 0 0 12px; color: color-mix(in srgb, var(--accent) 70%, var(--chrome-text)); font-size: 12px; letter-spacing: .12em; font-weight: 700; text-transform: uppercase; }
+    h1 { max-width: 640px; margin: 0 0 16px; font-size: clamp(34px, 4.5vw, 52px); line-height: 1.1; font-weight: 400; letter-spacing: -.035em; }
+    .hero p:last-child { max-width: 570px; margin: 0; color: color-mix(in srgb, var(--chrome-text) 85%, var(--chrome-bg)); font-size: 16px; line-height: 1.7; }
+    .hero-art { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 12px; }
+    .hero-art span { display: grid; place-items: center; aspect-ratio: 1; border: 1px solid color-mix(in srgb, var(--chrome-text) 38%, transparent); border-radius: 50%; font-size: 12px; text-align: center; }
+    .hero-art i { height: 2px; margin: 0 -12px; grid-column: 1 / -1; grid-row: 1; background: var(--accent); }
+    .hero-art span { grid-row: 1; z-index: 1; background: var(--chrome-bg); }
+    .hero-art span:last-child { grid-column: 2; }
+    .content { max-width: 1160px; margin: auto; padding: 42px 28px 80px; }
+    .section-heading { margin-bottom: 26px; }
+    .section-heading h2 { margin: 0 0 7px; font-size: 29px; font-weight: 500; letter-spacing: -.025em; }
+    .section-heading p { margin: 0; color: color-mix(in srgb, var(--ink) 65%, var(--surface)); font-size: 14px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, .8fr); gap: 24px; align-items: start; }
+    .transfer-card, .info-card { border: 1px solid color-mix(in srgb, var(--ink) 15%, var(--surface)); border-radius: 6px; background: var(--surface); }
+    .transfer-card { padding: 28px 32px 32px; box-shadow: 0 10px 34px color-mix(in srgb, var(--chrome-bg) 7%, transparent); }
+    .transfer-card h3, .info-card h3 { margin: 0; font-size: 20px; font-weight: 600; }
+    .card-intro { margin: 7px 0 27px; font-size: 13px; color: color-mix(in srgb, var(--ink) 66%, var(--surface)); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
+    .field { min-width: 0; margin-bottom: 21px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 10px 13px; border: 1px solid color-mix(in srgb, var(--ink) 32%, var(--surface)); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 14px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: color-mix(in srgb, var(--ink) 68%, var(--surface)); font-size: 11px; }
+    .transfer-btn { width: 100%; min-height: 50px; margin-top: 5px; border: 0; border-radius: 4px; background: var(--accent); color: var(--chrome-bg); font-weight: 700; }
+    .transfer-btn:hover { background: color-mix(in srgb, var(--accent) 82%, var(--surface)); }
+    .transfer-btn:disabled { cursor: wait; opacity: .7; }
+    .status { min-height: 20px; margin: 13px 0 0; color: color-mix(in srgb, var(--ink) 68%, var(--surface)); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 14px; padding: 15px; border-radius: 4px; font-size: 13px; }
+    .result-box.success { display: block; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--surface)); background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+    .result-box.notice { display: block; border: 1px solid color-mix(in srgb, var(--ink) 30%, var(--surface)); background: color-mix(in srgb, var(--ink) 5%, var(--surface)); }
+    .info-card { padding: 27px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+    .info-card .eyebrow { color: var(--chrome-bg); }
+    .info-card h3 { line-height: 1.3; }
+    .info-card p { margin: 13px 0 0; color: color-mix(in srgb, var(--ink) 74%, var(--surface)); font-size: 14px; line-height: 1.65; }
+    .info-card a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 16px; color: var(--chrome-bg); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+    .footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .footer-inner { max-width: 1160px; margin: auto; padding: 28px; display: flex; align-items: center; justify-content: space-between; gap: 24px; font-size: 12px; }
+    .footer a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 3px; }
+    @media (max-width: 850px) {
+      .header-inner { gap: 20px; }
+      .navigation { display: none; }
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-art { display: none; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .utility-inner { justify-content: center; }
+      .utility-inner a:first-child { display: none; }
+      .header-inner { min-height: 70px; padding: 10px 18px; }
+      .header-note { display: none; }
+      .identity-mark { width: 44px; height: 44px; }
+      .hero-inner { padding: 40px 20px 45px; }
+      .content { padding: 34px 18px 52px; }
+      .transfer-card { padding: 24px 18px; }
+      .form-grid { grid-template-columns: 1fr; gap: 0; }
+      .footer-inner { flex-direction: column; align-items: flex-start; padding: 24px 18px 70px; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility"><div class="utility-inner"><a href="https://www.schwab.com/contact-us">Contact Us</a><a href="https://www.schwab.com/branch-locator">Find a Branch</a></div></div>
+  <header class="header"><div class="header-inner">
+    <a class="identity" href="#top" aria-label="Charles Schwab"><span class="identity-mark" aria-hidden="true">S</span><span class="identity-name">charles<strong>Schwab</strong></span></a>
+    <nav class="navigation" aria-label="Main navigation"><a href="https://www.schwab.com/checking">Schwab Bank Investor Checking</a><a href="#move-money" class="current">Move Money</a><a href="https://www.schwab.com/brokerage">Brokerage</a></nav>
+    <span class="header-note">Account services</span>
+  </div></header>
+  <main id="top">
+    <section class="hero" aria-labelledby="page-title"><div class="hero-inner">
+      <div><p class="eyebrow">Accounts &amp; Products / Transfers</p><h1 id="page-title">Move money between your accounts.</h1><p>Transfer cash between your Schwab One brokerage account and Schwab Bank Investor Checking account.</p></div>
+      <div class="hero-art" aria-hidden="true"><i></i><span>Schwab One<br>brokerage</span><span>Investor<br>Checking</span></div>
+    </div></section>
+    <section class="content" id="move-money" aria-labelledby="transfer-heading">
+      <div class="section-heading"><h2 id="transfer-heading">Transfer money</h2><p>Choose your accounts and enter an amount to make a transfer.</p></div>
+      <div class="layout">
+        <div class="transfer-card">
+          <h3>Between Schwab accounts</h3>
+          <p class="card-intro">Example accounts. No real money is moved on this page.</p>
+          <form id="transferForm">
+            <div class="form-grid">
+              <div class="field"><label for="fromAccount">From account</label><select id="fromAccount"><option value="ACCT-1001">Investor Checking ····1001</option><option value="ACCT-1002">Schwab One brokerage ····1002</option></select></div>
+              <div class="field"><label for="toAccount">To account</label><select id="toAccount"><option value="ACCT-1002">Schwab One brokerage ····1002</option><option value="ACCT-1001">Investor Checking ····1001</option></select></div>
+              <div class="field"><label for="amount">Amount (USD)</label><input type="number" id="amount" min="1" step="0.01" value="500" required></div>
+              <div class="field"><label for="accountTier">Account type</label><select id="accountTier"><option value="standard">Standard</option><option value="premium">Premium</option><option value="basic">Basic</option></select><small>Account type is set for this example.</small></div>
+            </div>
+            <button type="submit" id="submitBtn" class="transfer-btn">Transfer money</button>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Example transfer only.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+        <aside class="info-card"><p class="eyebrow">Schwab Bank Investor Checking</p><h3>Checking built for investors.</h3><p>Your Schwab Bank Investor Checking account is linked to a Schwab One brokerage account. Move cash between the two accounts.</p><a href="https://www.schwab.com/checking" target="_blank" rel="noopener noreferrer">About Investor Checking ↗</a></aside>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="footer-inner"><span>Charles Schwab &amp; Co., Inc. · Example account experience</span><a href="https://www.schwab.com/contact-us" target="_blank" rel="noopener noreferrer">Contact Schwab</a></div></footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Example transfer only.';
+    });
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      button.textContent = 'Processing transfer…';
+      status.textContent = 'Transfer in progress…';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error('Transfer could not be completed. Please try again.');
+        result.className = 'result-box success';
+        result.textContent = `Transfer complete. $${Number(data.receipt.amount).toFixed(2)} moved between your accounts.`;
+        status.textContent = 'Transfer completed.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'Transfer could not be completed. Please try again.';
+        status.textContent = 'Transfer unavailable.';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transfer money';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
