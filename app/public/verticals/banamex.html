@@ -57,7 +57,8 @@
 
     .section-title { font-size: 1.05rem; font-weight: 700; color: var(--bmx-navy); margin: 2rem 0 0.75rem; }
     .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; min-width: 420px; border-collapse: collapse; }
     thead { background: #F7F9FC; }
     th { text-align: left; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0.7rem 1.15rem; border-bottom: 1px solid var(--line); }
     td { padding: 0.8rem 1.15rem; border-bottom: 1px solid #EEF2F7; font-size: 0.86rem; }
@@ -161,6 +162,7 @@
 
     <div class="section-title">Movimientos recientes</div>
     <div class="card fade-in d3">
+      <div class="table-scroll">
       <table>
         <thead><tr><th>Fecha</th><th>Descripci&oacute;n</th><th>Monto</th><th>Saldo</th></tr></thead>
         <tbody>
@@ -171,6 +173,7 @@
           <tr><td>12 mar</td><td>Pago Tarjeta Oro Banamex</td><td class="debit">-$3,200.00</td><td>$28,404.05</td></tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <div class="section-title">Traspaso entre cuentas</div>
@@ -198,7 +201,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="amount">Monto (MXN)</label>
-              <input type="number" id="amount" value="1500" min="1" step="0.01">
+              <input type="number" id="amount" value="1500" min="1" step="0.01" required>
             </div>
             <div class="form-group">
               <label for="accountTier">Tipo de cuenta</label>
@@ -372,6 +375,21 @@
         event.preventDefault();
         var btn = document.getElementById('submitBtn');
         var result = document.getElementById('result');
+        var fromAccount = document.getElementById('fromAccount').value;
+        var toAccount = document.getElementById('toAccount').value;
+        var amount = parseFloat(document.getElementById('amount').value);
+
+        if (fromAccount === toAccount) {
+          result.className = 'result-box error';
+          setResult(result, 'Revisa las cuentas', 'La cuenta origen y la cuenta destino deben ser distintas.');
+          return;
+        }
+        if (!(amount > 0)) {
+          result.className = 'result-box error';
+          setResult(result, 'Revisa el monto', 'Captura un monto mayor a cero.');
+          return;
+        }
+
         btn.disabled = true;
         btn.textContent = 'Procesando\u2026';
         result.className = 'result-box';
@@ -382,9 +400,9 @@
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                fromAccount: document.getElementById('fromAccount').value,
-                toAccount: document.getElementById('toAccount').value,
-                amount: parseFloat(document.getElementById('amount').value),
+                fromAccount: fromAccount,
+                toAccount: toAccount,
+                amount: amount,
                 accountTier: document.getElementById('accountTier').value,
                 description: document.getElementById('description').value,
                 devinUserId: stored('devinUserId'),
@@ -404,6 +422,7 @@
             }
             result.className = 'result-box success';
             setResult(result, 'Traspaso aplicado', 'Comprobante ' + res.data.receipt.receiptId
+              + ' \u00b7 comisi\u00f3n $' + res.data.receipt.fee
               + ' \u00b7 cargo total $' + res.data.receipt.totalDebit);
           })
           .catch(function (err) {
