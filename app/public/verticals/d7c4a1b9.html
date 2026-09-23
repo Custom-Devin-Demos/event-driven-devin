@@ -153,6 +153,10 @@
   <script>
     var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
 
+    // The page is only served at /d7c4a1b9/<slug>, so the tenant is its URL.
+    var TENANT_SLUG = (window.location.pathname.match(/^\/d7c4a1b9\/([^/]+)/) || [])[1] || '';
+    var SIGNIN_ENDPOINT = '/api/d7c4a1b9/' + encodeURIComponent(TENANT_SLUG) + '/signin';
+
     function escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, function (ch) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -167,12 +171,18 @@
 
     document.getElementById('arb-login-form').addEventListener('submit', function (event) {
       event.preventDefault();
+
+      if (!TENANT_SLUG) {
+        render('error', 'This link is incomplete', '<p>Open your own sign-in URL, which ends in your name.</p>');
+        return;
+      }
+
       var button = document.getElementById('arb-submit');
       button.disabled = true;
       button.textContent = 'Signing in…';
 
       identityReady.then(function () {
-        return fetch('/api/login/signin', {
+        return fetch(SIGNIN_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
