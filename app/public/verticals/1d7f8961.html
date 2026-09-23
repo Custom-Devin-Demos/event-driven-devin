@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Payroll Disbursement | TASAMA Business Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand: #10069f;
+      --brand-deep: #07105f;
+      --gold: #b59e5f;
+      --green: #addc91;
+      --ink: #0a0d12;
+      --ink-2: #181d27;
+      --muted: #717680;
+      --label: #414651;
+      --surface: #ffffff;
+      --page: #f3f4f5;
+      --line: #e9e9e9;
+      --field-line: #bab5d7;
+      --radius-card: 24px;
+      --radius-field: 12px;
+      --gutter: 32px;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 400 16px/24px 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; color: inherit; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
+
+    .site-header { background: var(--surface); border-bottom: 1px solid var(--line); }
+    .header-inner { display: flex; align-items: center; gap: 28px; min-height: 76px; }
+    .brand { display: inline-flex; flex-direction: column; justify-content: center; min-height: 44px; }
+    .brand .mark { font-size: 26px; font-weight: 600; letter-spacing: 6px; color: var(--brand); line-height: 1; }
+    .brand .sub { margin-top: 5px; font-size: 9px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--gold); }
+    .nav { display: flex; align-items: center; gap: 26px; margin-left: 16px; }
+    .nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
+    .nav a.is-active { color: var(--brand); }
+    .nav a:hover { color: var(--brand); }
+    .header-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .lang { font-size: 13px; font-weight: 500; color: var(--brand); min-height: 44px; display: inline-flex; align-items: center; }
+    .account { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 16px 6px 6px; border-radius: 999px; background: #f5f5f5; font-size: 12px; font-weight: 500; color: var(--ink-2); }
+    .account .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+
+    .hero { background: linear-gradient(90deg, #070a4e 0%, var(--brand) 62%, #1a10c8 100%); color: #fff; }
+    .hero .wrap { padding-top: 40px; padding-bottom: 44px; }
+    .crumbs { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255, 255, 255, 0.62); }
+    .crumbs span { color: #fff; }
+    .hero h1 { margin: 16px 0 0; font-size: 40px; line-height: 48px; font-weight: 300; }
+    .hero h1 strong { display: block; font-weight: 600; color: var(--gold); }
+    .hero p { margin: 14px 0 0; max-width: 620px; font-size: 15px; line-height: 24px; color: rgba(255, 255, 255, 0.82); }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 10px 32px; margin-top: 26px; font-size: 13px; color: rgba(255, 255, 255, 0.72); }
+    .hero-meta em { display: block; font-style: normal; font-size: 15px; font-weight: 500; color: #fff; }
+
+    main { padding: 40px 0 72px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+    .card { background: var(--surface); border-radius: var(--radius-card); padding: 36px; }
+    .card h2 { margin: 0 0 6px; font-size: 26px; line-height: 34px; font-weight: 500; }
+    .card .lede { margin: 0 0 28px; font-size: 14px; line-height: 22px; color: var(--muted); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .field { margin-bottom: 20px; min-width: 0; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; color: var(--label); }
+    input, select {
+      width: 100%; min-height: 48px; padding: 12px 18px;
+      border: 1px solid var(--field-line); border-radius: var(--radius-field);
+      background: var(--surface); font-size: 14px;
+    }
+    input:focus, select:focus { border-color: var(--brand); }
+    .hint { display: block; margin-top: 7px; font-size: 12px; color: var(--muted); }
+    .summary { border: 1px solid var(--line); border-radius: var(--radius-field); padding: 18px 20px; margin-bottom: 24px; }
+    .summary dl { display: grid; grid-template-columns: 1fr auto; gap: 10px 16px; margin: 0; font-size: 13px; }
+    .summary dt { color: var(--muted); }
+    .summary dd { margin: 0; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .summary dt.total, .summary dd.total { font-size: 15px; color: var(--ink); font-weight: 600; padding-top: 12px; border-top: 1px solid var(--line); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: space-between; gap: 16px;
+      min-height: 48px; padding: 8px 8px 8px 24px; border: 0; border-radius: 999px;
+      background: var(--brand); color: #fff; font-size: 14px; font-weight: 500; letter-spacing: 0.6px;
+      text-transform: uppercase; cursor: pointer; transition: opacity 0.2s ease;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:disabled { opacity: 0.65; cursor: wait; }
+    .btn .chip { width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: var(--brand-deep); display: grid; place-items: center; font-size: 15px; }
+    .btn-block { width: 100%; }
+    .request-status { margin: 14px 0 0; min-height: 20px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 18px; padding: 16px 18px; border: 1px solid; border-radius: var(--radius-field); font-size: 14px; line-height: 21px; overflow-wrap: anywhere; }
+    .result-box.success { display: block; background: #f3faef; border-color: #c4e3b0; color: #2f5d21; }
+    .result-box.error { display: block; background: #fef3f2; border-color: #fecdca; color: #8a2f1f; }
+    .result-box .title { display: block; font-weight: 600; margin-bottom: 4px; }
+    .note { margin: 20px 0 0; font-size: 12px; line-height: 19px; color: var(--muted); }
+
+    .panel { background: var(--brand-deep); color: #fff; border-radius: var(--radius-card); padding: 36px; }
+    .panel .eyebrow { margin: 0; font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gold); }
+    .panel h3 { margin: 12px 0 10px; font-size: 22px; line-height: 30px; font-weight: 500; }
+    .panel > p { margin: 0 0 22px; font-size: 14px; line-height: 22px; color: rgba(255, 255, 255, 0.74); }
+    .steps { list-style: none; margin: 0; padding: 0; }
+    .steps li { display: flex; gap: 16px; padding: 16px 0; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+    .steps .n { flex: 0 0 26px; height: 26px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 50%; font-size: 11px; color: var(--gold); }
+    .steps strong { display: block; font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+    .steps p { margin: 0; font-size: 13px; line-height: 20px; color: rgba(255, 255, 255, 0.7); }
+    .panel-foot { display: flex; align-items: center; gap: 10px; margin-top: 22px; font-size: 13px; color: rgba(255, 255, 255, 0.8); }
+    .panel-foot .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+    .service-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 24px; background: var(--surface); border-radius: var(--radius-card); padding: 28px 36px; }
+    .service-strip h4 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+    .service-strip p { margin: 0; font-size: 13px; line-height: 20px; color: var(--muted); }
+
+    .site-footer { background: var(--brand-deep); color: rgba(255, 255, 255, 0.78); padding: 56px 0 32px; }
+    .footer-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; padding-bottom: 36px; border-bottom: 1px solid rgba(255, 255, 255, 0.14); }
+    .footer-cols h4 { margin: 0 0 12px; font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); }
+    .footer-cols ul { list-style: none; margin: 0; padding: 0; }
+    .footer-cols li a { display: inline-flex; align-items: center; min-height: 32px; font-size: 13px; color: rgba(255, 255, 255, 0.82); }
+    .footer-cols li a:hover { color: #fff; }
+    .footer-base { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding-top: 24px; font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+    .footer-base .mark { font-size: 20px; font-weight: 600; letter-spacing: 5px; color: #fff; }
+
+    @media (max-width: 1000px) {
+      .nav { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .service-strip { grid-template-columns: 1fr; }
+      .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      :root { --gutter: 20px; }
+      .hero h1 { font-size: 30px; line-height: 38px; }
+      .card, .panel, .service-strip { padding: 24px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .account span { display: none; }
+      .account { padding: 6px; }
+      .footer-cols { grid-template-columns: 1fr; }
+      .footer-cols li a { min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="#top" aria-label="TASAMA Business Center home">
+        <span class="mark">TASAMA</span>
+        <span class="sub">Business Services</span>
+      </a>
+      <nav class="nav" aria-label="Business Center navigation">
+        <a href="#top">Dashboard</a>
+        <a href="#top">Services</a>
+        <a href="#top">Requests</a>
+        <a class="is-active" href="#disbursement">Payroll</a>
+        <a href="#top">Reports</a>
+      </nav>
+      <div class="header-actions">
+        <a class="lang" href="#top" lang="ar">العربية</a>
+        <span class="account"><span class="avatar" aria-hidden="true">NA</span><span>Nouf A. &middot; Al Manar Industrial Co.</span></span>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="wrap">
+      <p class="crumbs">Business Center / Payroll / <span>Disbursement</span></p>
+      <h1>Payroll Disbursement<strong>Cycle 09 &middot; September 2026</strong></h1>
+      <p>Release the approved payroll cycle to employee accounts. Disbursement is executed under the agreed Service Level Agreement and reported to the Wage Protection System.</p>
+      <div class="hero-meta">
+        <span>Employees in cycle<em>1,248</em></span>
+        <span>Payroll entity<em>Al Manar Industrial Co.</em></span>
+        <span>Approval status<em>Approved by finance</em></span>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <div class="wrap">
+      <div class="grid">
+        <section class="card" id="disbursement">
+          <h2>Release payroll disbursement</h2>
+          <p class="lede">Salaries are debited from the funding account and credited to employee accounts through the selected disbursement channel.</p>
+          <form id="transferForm">
+            <div class="form-row">
+              <div class="field">
+                <label for="fromAccount">Funding account</label>
+                <select id="fromAccount">
+                  <option value="ACCT-1001">Corporate operating account &mdash; SA** 1001</option>
+                  <option value="ACCT-1002">Payroll reserve account &mdash; SA** 1002</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="toAccount">Disbursement channel</label>
+                <select id="toAccount">
+                  <option value="ACCT-1002">WPS salary file &mdash; employee accounts</option>
+                  <option value="ACCT-1001">Corporate operating account &mdash; SA** 1001</option>
+                  <option value="ACCT-EXT-001">External payroll agent &mdash; SA** 4921</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="amount">Total payroll amount (SAR)</label>
+                <input type="number" id="amount" value="4875600" min="1" step="0.01" required aria-describedby="amount-hint">
+                <span class="hint" id="amount-hint">Gross salaries, allowances and end-of-service accrual for the cycle.</span>
+              </div>
+              <div class="field">
+                <label for="runType">Payroll run type</label>
+                <select id="runType">
+                  <option value="off-cycle-bonus">Off-cycle bonus run</option>
+                  <option value="monthly-salary">Monthly salary run</option>
+                  <option value="mid-month-adjustment">Mid-month adjustment run</option>
+                </select>
+                <span class="hint">Determines the Wage Protection System file filed for the cycle.</span>
+              </div>
+            </div>
+            <div class="summary">
+              <dl>
+                <dt>Employees in cycle</dt><dd>1,248</dd>
+                <dt>Funding account</dt><dd id="sumFrom">Corporate operating account</dd>
+                <dt>Disbursement channel</dt><dd id="sumChannel">WPS salary file</dd>
+                <dt>Payroll run type</dt><dd id="sumRun">Off-cycle bonus run</dd>
+                <dt class="total">Total to disburse</dt><dd class="total" id="sumTotal">SAR 4,875,600.00</dd>
+              </dl>
+            </div>
+            <button type="submit" class="btn btn-block" id="submitBtn">
+              Release disbursement<span class="chip" aria-hidden="true">&rarr;</span>
+            </button>
+            <p class="request-status" id="requestStatus" role="status">Sample payroll data. No real accounts are debited.</p>
+          </form>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="note">Disbursements submitted before 14:00 AST settle the same business day. The Wage Protection System report is generated once settlement is confirmed.</p>
+        </section>
+
+        <aside class="panel" aria-labelledby="panel-title">
+          <p class="eyebrow">Payroll cycle</p>
+          <h3 id="panel-title">From approval to salary disbursement</h3>
+          <p>Every cycle follows the governance framework agreed with your payroll service team, with responsibilities and approvals defined up front.</p>
+          <ul class="steps">
+            <li><span class="n" aria-hidden="true">1</span><div><strong>Master data</strong><p>Employee records, allowances and deductions are confirmed against the cycle calendar.</p></div></li>
+            <li><span class="n" aria-hidden="true">2</span><div><strong>Calculation and review</strong><p>Payroll is calculated and reviewed with your finance team before approval.</p></div></li>
+            <li><span class="n" aria-hidden="true">3</span><div><strong>Disbursement</strong><p>Salaries are released to employee accounts from the funding account you select.</p></div></li>
+            <li><span class="n" aria-hidden="true">4</span><div><strong>Compliance reporting</strong><p>Wage Protection System files and cycle reports are filed after settlement.</p></div></li>
+          </ul>
+          <p class="panel-foot"><span class="dot" aria-hidden="true"></span>Service level: same-day settlement, 99.5% on-time cycles</p>
+        </aside>
+      </div>
+
+      <div class="service-strip">
+        <div><h4>Enterprise Value-Added Services</h4><p>Finance, HR and procurement operations delivered under one agreement.</p></div>
+        <div><h4>Smart Enterprise Services</h4><p>Digital tools that streamline approvals and reporting across the cycle.</p></div>
+        <div><h4>Business Enablement Services</h4><p>Workplace and infrastructure services for teams inside and outside the Kingdom.</p></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-cols">
+        <div>
+          <h4>Services</h4>
+          <ul>
+            <li><a href="#top">Enterprise Value-Added Services</a></li>
+            <li><a href="#top">Business Enablement Services</a></li>
+            <li><a href="#top">Smart Enterprise Services</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Products</h4>
+          <ul>
+            <li><a href="#disbursement">TASAMA Payroll Management</a></li>
+            <li><a href="#top">Business Landing</a></li>
+            <li><a href="#top">Automated Payments</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="#top">Business Center Portal</a></li>
+            <li><a href="#top">Service Catalogue</a></li>
+            <li><a href="#top">Request Tracking</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#top">Contact us</a></li>
+            <li><a href="#top">Service Level Agreements</a></li>
+            <li><a href="#top">Privacy Statement</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-base">
+        <span class="mark">TASAMA</span>
+        <small>Riyadh, Kingdom of Saudi Arabia &middot; Business Center Portal</small>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('transferForm');
+      var fromAccount = document.getElementById('fromAccount');
+      var toAccount = document.getElementById('toAccount');
+      var amount = document.getElementById('amount');
+      var runType = document.getElementById('runType');
+      var button = document.getElementById('submitBtn');
+      var status = document.getElementById('requestStatus');
+      var result = document.getElementById('result');
+      var idleStatus = status.textContent;
+
+      function money(value) {
+        var n = Number(value);
+        if (!isFinite(n)) n = 0;
+        return 'SAR ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function labelOf(select) {
+        var option = select.options[select.selectedIndex];
+        return option ? option.textContent.split(' — ')[0].trim() : '';
+      }
+      function recalc() {
+        document.getElementById('sumFrom').textContent = labelOf(fromAccount);
+        document.getElementById('sumChannel').textContent = labelOf(toAccount);
+        document.getElementById('sumRun').textContent = labelOf(runType);
+        document.getElementById('sumTotal').textContent = money(amount.value);
+      }
+      fromAccount.addEventListener('change', recalc);
+      toAccount.addEventListener('change', recalc);
+      runType.addEventListener('change', recalc);
+      amount.addEventListener('input', recalc);
+      form.addEventListener('reset', function () {
+        setTimeout(function () {
+          recalc();
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = idleStatus;
+        }, 0);
+      });
+      recalc();
+
+      form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        var started = performance.now();
+        var submitted = parseFloat(amount.value);
+        button.disabled = true;
+        form.setAttribute('aria-busy', 'true');
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = 'Disbursement in progress…';
+        var timer = setInterval(function () {
+          status.textContent = 'Disbursement in progress · ' + ((performance.now() - started) / 1000).toFixed(1) + 's';
+        }, 100);
+        try {
+          var response = await fetch('/api/1d7f8961/disbursement', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: submitted,
+              runType: runType.value,
+              employeeCount: 1248,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var data = await response.json();
+          if (!response.ok || !data.success) {
+            var failure = new Error(data.error || 'Disbursement failed');
+            failure.code = data.code || 'DISBURSEMENT_FAILED';
+            failure.requestId = data.requestId || '';
+            throw failure;
+          }
+          result.className = 'result-box success';
+          result.innerHTML = '<span class="title">Disbursement released</span>Reference ' + data.reference + ' · ' + money(submitted)
+            + ' released to 1,248 employee accounts. The Wage Protection System report will be available once settlement is confirmed.';
+        } catch (error) {
+          result.className = 'result-box error';
+          result.innerHTML = '<span class="title">Disbursement failed &mdash; no salaries were debited</span>'
+            + 'The Wage Protection System salary file could not be generated for this payroll run. '
+            + 'Reference ' + (error.requestId || 'unavailable') + ' · ' + (error.code || 'DISBURSEMENT_FAILED')
+            + '. Your payroll service team has been notified.';
+        } finally {
+          clearInterval(timer);
+          status.textContent = 'Completed in ' + ((performance.now() - started) / 1000).toFixed(1) + 's';
+          button.disabled = false;
+          form.removeAttribute('aria-busy');
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
