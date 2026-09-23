@@ -200,6 +200,25 @@ for e in "${TOUCHED[@]}"; do mirror_entry "$STAGING" "$e" protect; done
 mkdir -p "$APP_DIR/certbot/conf" "$APP_DIR/certbot/www"
 log "synced ${#TOUCHED[@]} top-level entries"
 
+# ── 3a. delete verticals this repo has retired ──────────────────────────────
+# The registries above are additive, so a vertical deleted in git keeps serving
+# on the host until its id is listed in config/retired-verticals.txt.
+RETIRED_LIST="$STAGING/config/retired-verticals.txt"
+if [ -f "$RETIRED_LIST" ]; then
+  RETIRED_COUNT=0
+  while read -r id; do
+    id=${id%%#*}; id=$(echo "$id" | tr -d '[:space:]')
+    [ -n "$id" ] || continue
+    for f in "app/routes/verticals/$id.js" "app/public/verticals/$id.html" \
+             "app/services/verticals/$id.js" "config/customers/$id.js"; do
+      [ -e "$APP_DIR/$f" ] || continue
+      rm -rf "$APP_DIR/$f" && log "retired: removed $f"
+      RETIRED_COUNT=$((RETIRED_COUNT + 1))
+    done
+  done < "$RETIRED_LIST"
+  [ "$RETIRED_COUNT" = 0 ] || log "removed $RETIRED_COUNT retired vertical file(s)"
+fi
+
 # ── 3b. converge host-level setup (swap, journald, guard cron) ──────────────
 bash "$APP_DIR/scripts/host-bootstrap.sh" 2>&1 | log_lines || fail "host bootstrap failed (guard cron not converged)"
 
