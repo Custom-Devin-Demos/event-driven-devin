@@ -2368,6 +2368,29 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Workspace Access & Incident Intake',
     disclaimer: 'NOT ACTUALLY A HARVEY SITE — internal demo only, not affiliated with, endorsed by, or a real Harvey product.',
   },
+  '248de71e': {
+    slug: '248de71e',
+    company: 'bp',
+    brandMark: 'bp',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it. Keep the
+      // file's own <title> in sync with page.title.
+      file: '248de71e.html',
+      title: 'Pay card balance | bp Business Solutions',
+    },
+    theme: {
+      '--accent': '#007F00',
+      '--ink': '#121000',
+      '--surface': '#FBFCF8',
+      '--chrome-bg': '#004200',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'bp Business Solutions Customer Service',
+    disclaimer: 'NOT ACTUALLY A BP SITE — internal demo only, not affiliated with, endorsed by, or a real bp product.',
+  },
 };
 
 function getOncallSkin(slug) {
