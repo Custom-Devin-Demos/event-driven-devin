@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payroll Gateway | UKG Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ukg-green: #005151;
+      --ukg-green-dark: #003d3d;
+      --ukg-green-soft: #e6efef;
+      --ink: #14201f;
+      --muted: #5c6b6a;
+      --line: #dde5e4;
+      --surface: #f4f7f6;
+      --white: #fff;
+      --success-text: #0f6b46;
+      --danger: #a42a1f;
+      --danger-bg: #fdf2f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; width: 248px; padding: 22px 14px;
+      background: var(--ukg-green); color: #cfe0df; z-index: 2;
+    }
+    .brand { padding: 4px 12px 26px; }
+    .brand svg { width: 74px; height: auto; display: block; }
+    .brand .product { margin-top: 10px; color: #9dc0bd; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    .nav-section { margin: 14px 0 8px; padding: 0 12px; color: #7fa9a6; font-size: 11px; text-transform: uppercase; letter-spacing: .09em; }
+    .nav { display: grid; gap: 2px; }
+    .nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 6px; color: #d7e6e5; text-decoration: none; }
+    .nav a:hover { background: rgba(255,255,255,.08); }
+    .nav a.active { background: var(--white); color: var(--ukg-green); font-weight: 700; }
+    .nav svg { width: 17px; height: 17px; }
+    .main { width: calc(100% - 248px); margin-left: 248px; }
+    .topbar {
+      height: 66px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 34px; background: var(--white); border-bottom: 1px solid var(--line);
+    }
+    .org { display: flex; align-items: center; gap: 11px; font-weight: 500; }
+    .org-logo { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 7px; background: var(--ukg-green-soft); color: var(--ukg-green); font-size: 12px; font-weight: 700; }
+    .org-sub { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+    .top-actions { display: flex; align-items: center; gap: 20px; color: #465958; }
+    .top-actions svg { width: 19px; height: 19px; }
+    .avatar { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 50%; background: var(--ukg-green); color: #fff; font-size: 12px; font-weight: 700; }
+    .content { max-width: 1320px; margin: 0 auto; padding: 30px 36px 56px; }
+    .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+    .breadcrumb strong { color: var(--ink); font-weight: 500; }
+    .heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 24px; }
+    h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.15; letter-spacing: -.5px; font-weight: 700; }
+    .subtitle { margin: 0; color: var(--muted); }
+    .run-state { display: inline-flex; align-items: center; gap: 8px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: #3d504e; font-size: 13px; }
+    .run-state .dot { width: 8px; height: 8px; border-radius: 50%; background: #d9a400; }
+    .stepper { display: flex; align-items: center; flex-wrap: wrap; margin-bottom: 26px; }
+    .step { display: flex; align-items: center; gap: 9px; color: #8b9a99; font-size: 13px; font-weight: 500; }
+    .step.current { color: var(--ink); font-weight: 700; }
+    .step-icon { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #b6c4c3; border-radius: 50%; font-size: 12px; }
+    .step.done .step-icon { background: var(--ukg-green); border-color: var(--ukg-green); color: #fff; }
+    .step.current .step-icon { background: #d9a400; border-color: #d9a400; color: #2b2100; }
+    .step-line { width: 56px; height: 1px; margin: 0 14px; background: #c6d2d1; }
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+    .summary-card { min-height: 100px; padding: 17px 19px; background: var(--white); border: 1px solid var(--line); border-radius: 8px; }
+    .summary-card .label { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+    .summary-card .value { font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+    .summary-card.small .value { font-size: 15px; padding-top: 5px; font-weight: 500; }
+    .panel { background: var(--white); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--line); }
+    .panel-head h2 { margin: 0; font-size: 17px; font-weight: 700; }
+    .panel-head span { color: var(--muted); font-size: 13px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 960px; }
+    th { padding: 12px 20px; background: #f6faf9; color: #64736f; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    td { padding: 16px 20px; border-top: 1px solid var(--line); color: #33403f; vertical-align: middle; }
+    td.numeric { text-align: right; font-variant-numeric: tabular-nums; }
+    th.numeric { text-align: right; }
+    .person { display: flex; align-items: center; gap: 11px; min-width: 200px; }
+    .person-avatar { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--ukg-green-soft); color: var(--ukg-green); font-size: 11px; font-weight: 700; }
+    .person-name { color: var(--ink); font-weight: 500; }
+    .person-title { margin-top: 3px; color: #7d8b8a; font-size: 12px; }
+    .rule-pill { display: inline-flex; padding: 5px 9px; border-radius: 5px; background: #eef3f2; color: #465958; font-size: 12px; font-weight: 500; }
+    .flag { display: inline-flex; margin-left: 7px; padding: 4px 7px; border-radius: 4px; background: #fff3cf; color: #7a5800; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+    .include-cell { white-space: nowrap; color: var(--muted); font-size: 12px; }
+    .include-cell input { width: 15px; height: 15px; margin: 0 7px 0 0; accent-color: var(--ukg-green); vertical-align: -3px; }
+    .action-area { margin-top: 22px; }
+    .result { display: none; margin-bottom: 15px; padding: 17px 20px; border-radius: 8px; }
+    .result.show { display: block; }
+    .result.error { background: var(--danger-bg); border: 1px solid #efc0b8; color: var(--danger); }
+    .result.success { background: #eef8f3; border: 1px solid #a9d6c2; color: var(--success-text); }
+    .result-title { margin-bottom: 6px; font-size: 15px; font-weight: 700; }
+    .result-tech { color: #7c2419; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; white-space: pre-wrap; }
+    .result.success .result-tech { color: #14734c; }
+    .action-bar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 20px; background: var(--white); border: 1px solid var(--line); border-radius: 8px; }
+    .action-note { color: var(--muted); font-size: 12px; }
+    .submit { min-width: 178px; padding: 13px 22px; border: 0; border-radius: 6px; background: var(--ukg-green); color: #fff; font-weight: 700; }
+    .submit:hover { background: var(--ukg-green-dark); }
+    .submit:disabled { opacity: .6; cursor: wait; }
+    @media (max-width: 1080px) {
+      .sidebar { width: 210px; }
+      .main { width: calc(100% - 210px); margin-left: 210px; }
+      .summary { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .sidebar { position: static; width: 68px; padding: 18px 8px; }
+      .brand svg { width: 44px; }
+      .brand .product, .nav-section, .nav a span { display: none; }
+      .nav a { justify-content: center; padding: 12px 6px; }
+      .main { width: 100%; margin-left: 0; }
+      .topbar { padding: 0 16px; }
+      .content { padding: 22px 16px 40px; }
+      .summary { grid-template-columns: repeat(2, 1fr); }
+      .heading { display: block; }
+      .run-state { margin-top: 14px; }
+      .step-line { width: 16px; margin: 0 7px; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .submit { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <svg viewBox="0 0 336 134" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="UKG">
+          <path d="M335.397 19.8661C329.26 25.6442 323.194 31.3585 317.057 37.1446C314.452 35.4948 311.253 33.0959 307.751 31.3107C295.095 24.8472 282.13 24.2574 269.188 30.3145C260.661 34.3073 255.095 41.2411 252.134 50.0875C248.14 62.0103 248.069 74.0288 253.079 85.6806C258.692 98.7431 268.894 105.884 282.908 107.55C291.07 108.522 298.97 107.143 306.727 104.593C307.989 104.179 308.101 103.485 308.101 102.401C308.077 91.4428 308.085 80.4923 308.085 69.5338C308.085 68.8086 308.085 68.0833 308.085 67.1748H335.858C335.897 67.8522 335.977 68.5456 335.977 69.2469C335.977 85.7125 335.961 102.178 336.017 118.652C336.017 120.094 335.58 120.939 334.349 121.664C327.489 125.713 320.018 128.08 312.348 129.913C302.932 132.161 293.428 133.619 283.702 133.468C253.777 132.981 228.886 112.196 223.13 82.692C219.756 65.4055 221.336 48.6689 229.823 33.0481C239.446 15.3312 254.579 5.01832 274.23 1.66303C290.951 -1.19015 307.029 1.16891 322.003 9.55313C326.878 12.2788 331.269 15.65 335.421 19.882L335.397 19.8661Z" fill="#ffffff"/>
+          <path d="M-0.000682774 2.97066H27.8518C27.8518 3.91906 27.8518 4.76386 27.8518 5.60866C27.8518 29.1196 27.8359 52.6305 27.8597 76.1414C27.8597 81.7441 28.3361 87.2752 30.4957 92.5432C34.1797 101.509 41.0872 106.164 50.4164 107.51C55.7916 108.284 61.127 107.957 66.272 106.14C75.3073 102.952 80.2379 96.1854 82.0323 87.0281C82.7309 83.4736 82.9453 79.7836 82.9612 76.1493C83.0406 52.6384 83.0009 29.1275 83.0009 5.61663C83.0009 4.81965 83.0009 4.03064 83.0009 3.05036H110.679C110.742 3.46478 110.877 3.90312 110.877 4.33349C110.861 29.5659 111.044 54.8062 110.734 80.0386C110.544 95.516 104.914 108.937 93.3781 119.497C84.1998 127.889 73.1874 132.225 60.9127 133.253C47.6137 134.369 35.061 131.826 23.8263 124.343C9.54283 114.827 2.19067 101.095 0.396302 84.1988C0.0469554 80.9073 0.0231363 77.568 0.0151966 74.2525C-0.00862247 51.3473 -0.000682774 28.4342 -0.000682774 5.52099V2.97066Z" fill="#ffffff"/>
+          <path d="M130.767 2.96974H158.492V41.0176C159.405 40.1329 159.897 39.6627 160.382 39.1765C171.982 27.5327 183.59 15.8888 195.158 4.21303C196.118 3.24868 197.063 2.81831 198.437 2.82628C209.02 2.88207 219.604 2.85019 230.196 2.85816C230.823 2.85816 231.458 2.92192 232.379 2.96974C231.823 3.60732 231.514 4.01378 231.156 4.38039C213.435 22.1849 195.761 40.0373 177.968 57.7701C166.464 69.2306 148.917 68.9278 137.952 57.2361C133.109 52.0717 130.759 45.8233 130.687 38.786C130.576 27.166 130.648 15.5461 130.648 3.92611C130.648 3.67108 130.711 3.41605 130.775 2.97771L130.767 2.96974Z" fill="#ffffff"/>
+          <path d="M232.006 131.141C231.371 131.141 230.735 131.141 230.1 131.141C219.517 131.141 208.941 131.117 198.357 131.173C196.984 131.173 196.039 130.758 195.078 129.786C183.566 118.158 172.006 106.57 160.453 94.974C159.945 94.464 159.413 93.9858 158.595 93.1968V130.99H130.751C130.711 130.416 130.64 129.834 130.64 129.26C130.64 118.238 130.584 107.224 130.648 96.2014C130.735 81.8239 139.85 70.7697 153.784 68.331C162.224 66.8486 169.759 69.0642 176.261 74.6989C177.158 75.4799 178.008 76.3167 178.85 77.1615C196.102 94.4879 213.348 111.814 230.608 129.133C231.124 129.651 231.744 130.057 232.307 130.511C232.204 130.719 232.101 130.934 231.998 131.141H232.006Z" fill="#ffffff"/>
+        </svg>
+        <div class="product">Pro Payroll</div>
+      </div>
+      <div class="nav-section">Payroll</div>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 12 8-7 8 7"/><path d="M6 10v9h12v-9M10 19v-5h4v5"/></svg><span>Home</span></a>
+        <a class="active" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h5"/></svg><span>Pay runs</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><span>Timekeeping</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0 0-6M16 14.5a5.4 5.4 0 0 1 4.5 5.5"/></svg><span>People</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h16v11H4zM8 8V5h8v3M8 13h8"/></svg><span>Benefits</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-6"/></svg><span>Reporting</span></a>
+        <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H3a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 4.3 6.3l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9.8 4.3V4a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.1.9z"/></svg><span>Setup</span></a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div class="org">
+          <span class="org-logo">RH</span>
+          <span>Riverbend Health System<span class="org-sub">Company 0142 · United States</span></span>
+        </div>
+        <div class="top-actions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+          <span class="avatar">SB</span>
+        </div>
+      </header>
+      <section class="content">
+        <div class="breadcrumb">Payroll <span>›</span> Pay runs <span>›</span> <strong>PG-US-SEMI-01 · Sep 1–15, 2026</strong></div>
+        <div class="heading">
+          <div>
+            <h1>Review &amp; submit pay run</h1>
+            <p class="subtitle">Confirm calculated gross pay before releasing this pay run to treasury.</p>
+          </div>
+          <div class="run-state"><span class="dot"></span> Timecards approved · ready to submit</div>
+        </div>
+        <div class="stepper" aria-label="Pay run steps">
+          <div class="step done"><span class="step-icon">✓</span><span>Timecards</span></div>
+          <span class="step-line"></span>
+          <div class="step done"><span class="step-icon">✓</span><span>Calculate</span></div>
+          <span class="step-line"></span>
+          <div class="step current"><span class="step-icon">3</span><span>Review &amp; submit</span></div>
+        </div>
+        <div class="summary">
+          <div class="summary-card"><div class="label">Employees</div><div class="value" id="employee-total">6</div></div>
+          <div class="summary-card"><div class="label">Regular hours</div><div class="value" id="total-regular-hours">0</div></div>
+          <div class="summary-card"><div class="label">Premium hours</div><div class="value" id="total-premium-hours">0</div></div>
+          <div class="summary-card"><div class="label">Estimated gross</div><div class="value" id="total-gross">$0.00</div></div>
+          <div class="summary-card small"><div class="label">Pay date</div><div class="value" id="pay-date">Sep 20, 2026</div></div>
+        </div>
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Pay group employees (<span id="employee-count">6</span>)</h2>
+            <span id="period-label">Sep 1 – Sep 15, 2026 · Semi-monthly</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Location</th>
+                  <th>Work rule</th>
+                  <th class="numeric">Reg hrs</th>
+                  <th class="numeric">OT hrs</th>
+                  <th class="numeric">Rate</th>
+                  <th>Include</th>
+                </tr>
+              </thead>
+              <tbody id="employee-rows"></tbody>
+            </table>
+          </div>
+        </section>
+        <div class="action-area">
+          <div id="result" class="result" role="alert">
+            <div id="result-title" class="result-title"></div>
+            <div id="result-tech" class="result-tech"></div>
+          </div>
+          <div class="action-bar">
+            <div class="action-note">Submitting releases funding instructions for Operating ••4417 on the scheduled pay date.</div>
+            <button class="submit" id="submit-pay-run">Submit pay run</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const fallbackPayRun = {
+      payGroup: { id: 'PG-US-SEMI-01', payDate: '2026-09-20' },
+      employees: [
+        { id: 'E-100341', name: 'Alicia Moreno', jobTitle: 'Registered Nurse', location: 'Riverbend Medical Center', workRuleLabel: 'Healthcare 8/80 (8h day, 80h period)', payType: 'hourly', hourlyRate: 48.5, regularHours: 80, overtimeHours: 6 },
+        { id: 'E-100388', name: 'Desmond Clark', jobTitle: 'Patient Access Specialist', location: 'Riverbend Medical Center', workRuleLabel: 'Standard 40-hour week', payType: 'hourly', hourlyRate: 26.75, regularHours: 80, overtimeHours: 4.5 },
+        { id: 'E-100412', name: 'Priya Raman', jobTitle: 'Director of Nursing', location: 'Riverbend Medical Center', workRuleLabel: 'Salaried exempt', payType: 'salary', semiMonthlySalary: 6250, regularHours: 0, overtimeHours: 0 },
+        { id: 'E-100457', name: 'Tom Whitfield', jobTitle: 'Environmental Services Tech', location: 'Riverbend Medical Center', workRuleLabel: 'Night shift 12-hour rotation', payType: 'hourly', hourlyRate: 22.4, regularHours: 80, overtimeHours: 8 },
+        { id: 'E-100503', name: 'Grace Okonkwo', jobTitle: 'Surgical Tech', location: 'Northgate Surgery Center', workRuleLabel: 'US-WEEKEND-ROTATION', payType: 'hourly', hourlyRate: 34.9, regularHours: 72, overtimeHours: 6, newLocation: true },
+        { id: 'E-100526', name: 'Martin Alvarez', jobTitle: 'Respiratory Therapist', location: 'Riverbend Medical Center', workRuleLabel: 'Standard 40-hour week', payType: 'hourly', hourlyRate: 39.15, regularHours: 80, overtimeHours: 0 },
+      ],
+    };
+    const result = document.getElementById('result');
+    const resultTitle = document.getElementById('result-title');
+    const resultTech = document.getElementById('result-tech');
+    const submitButton = document.getElementById('submit-pay-run');
+    let payRun = fallbackPayRun;
+    let submitting = false;
+    const initials = (name) => name.split(' ').map((part) => part[0]).join('').slice(0, 2);
+    const money = (value) => '$' + Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function estimateGross(employee) {
+      if (employee.payType === 'salary') return Number(employee.semiMonthlySalary || 0);
+      const regular = Number(employee.regularHours || 0) * Number(employee.hourlyRate || 0);
+      const overtime = Number(employee.overtimeHours || 0) * Number(employee.hourlyRate || 0) * 1.5;
+      const doubleTime = Number(employee.doubleTimeHours || 0) * Number(employee.hourlyRate || 0) * 2;
+      return regular + overtime + doubleTime;
+    }
+
+    function renderEmployees() {
+      const rows = document.getElementById('employee-rows');
+      const previouslyChecked = new Set([...document.querySelectorAll('[data-employee-id]:checked')].map((input) => input.dataset.employeeId));
+      const hadRows = rows.children.length > 0;
+      rows.replaceChildren();
+      payRun.employees.forEach((employee) => {
+        const row = document.createElement('tr');
+
+        const personCell = document.createElement('td');
+        const person = document.createElement('div');
+        person.className = 'person';
+        const personAvatar = document.createElement('span');
+        personAvatar.className = 'person-avatar';
+        personAvatar.textContent = initials(employee.name);
+        const personDetails = document.createElement('div');
+        const personName = document.createElement('div');
+        personName.className = 'person-name';
+        personName.textContent = employee.name;
+        if (employee.newLocation) {
+          const flag = document.createElement('span');
+          flag.className = 'flag';
+          flag.textContent = 'New location';
+          personName.appendChild(flag);
+        }
+        const personTitle = document.createElement('div');
+        personTitle.className = 'person-title';
+        personTitle.textContent = employee.id + ' · ' + employee.jobTitle;
+        personDetails.append(personName, personTitle);
+        person.append(personAvatar, personDetails);
+        personCell.appendChild(person);
+
+        const location = document.createElement('td');
+        location.textContent = employee.location;
+
+        const ruleCell = document.createElement('td');
+        const rule = document.createElement('span');
+        rule.className = 'rule-pill';
+        rule.textContent = employee.workRuleLabel;
+        ruleCell.appendChild(rule);
+
+        const regular = document.createElement('td');
+        regular.className = 'numeric';
+        regular.textContent = employee.payType === 'salary' ? '—' : employee.regularHours;
+
+        const overtime = document.createElement('td');
+        overtime.className = 'numeric';
+        overtime.textContent = employee.payType === 'salary' ? '—' : employee.overtimeHours;
+
+        const rate = document.createElement('td');
+        rate.className = 'numeric';
+        rate.textContent = employee.payType === 'salary' ? money(employee.semiMonthlySalary) + ' / period' : money(employee.hourlyRate) + ' / hr';
+
+        const includeCell = document.createElement('td');
+        includeCell.className = 'include-cell';
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.dataset.employeeId = employee.id;
+        checkbox.checked = !hadRows || previouslyChecked.has(employee.id);
+        checkbox.disabled = submitting;
+        checkbox.addEventListener('change', updateSummary);
+        label.append(checkbox, document.createTextNode(' Include'));
+        includeCell.appendChild(label);
+
+        row.append(personCell, location, ruleCell, regular, overtime, rate, includeCell);
+        rows.appendChild(row);
+      });
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const checkedIds = new Set([...document.querySelectorAll('[data-employee-id]:checked')].map((input) => input.dataset.employeeId));
+      const selected = payRun.employees.filter((employee) => checkedIds.has(employee.id));
+      const regularHours = selected.reduce((sum, employee) => sum + Number(employee.regularHours || 0), 0);
+      const premiumHours = selected.reduce((sum, employee) => sum + Number(employee.overtimeHours || 0) + Number(employee.doubleTimeHours || 0), 0);
+      const gross = selected.reduce((sum, employee) => sum + estimateGross(employee), 0);
+      document.getElementById('employee-total').textContent = selected.length;
+      document.getElementById('employee-count').textContent = selected.length;
+      document.getElementById('total-regular-hours').textContent = regularHours;
+      document.getElementById('total-premium-hours').textContent = premiumHours;
+      document.getElementById('total-gross').textContent = money(gross);
+    }
+
+    function showResult(kind, title, tech) {
+      result.className = 'result show ' + kind;
+      resultTitle.textContent = title;
+      resultTech.textContent = tech;
+      result.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function submitPayRun() {
+      const checkboxes = [...document.querySelectorAll('[data-employee-id]')];
+      const checkedIds = checkboxes.filter((input) => input.checked).map((input) => input.dataset.employeeId);
+      submitting = true;
+      submitButton.disabled = true;
+      checkboxes.forEach((input) => { input.disabled = true; });
+      result.className = 'result';
+      try {
+        const response = await fetch('/api/e33c0578/pay-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            payGroupId: payRun.payGroup.id,
+            employeeIds: checkedIds,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          showResult('error', "We couldn't submit this pay run.", (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error') + '\n' + (payload.code || 'PAY_RUN_SUBMISSION_FAILED') + ' · Reference ID: ' + (payload.requestId || 'unavailable'));
+        } else {
+          showResult('success', 'Pay run submitted to treasury.', 'Confirmation: ' + payload.confirmation + '\nPay date: ' + payload.payDate + '\nTotal gross: ' + money(payload.totalGross));
+        }
+      } catch (error) {
+        showResult('error', "We couldn't submit this pay run.", 'NetworkError: ' + error.message + '\nPAY_RUN_SUBMISSION_FAILED · Reference ID: unavailable');
+      } finally {
+        submitting = false;
+        submitButton.disabled = false;
+        document.querySelectorAll('[data-employee-id]').forEach((input) => { input.disabled = false; });
+      }
+    }
+
+    submitButton.addEventListener('click', submitPayRun);
+    renderEmployees();
+    fetch('/api/e33c0578/pay-run')
+      .then((response) => response.json())
+      .then((payload) => {
+        if (payload.employees) {
+          payRun = payload;
+          document.getElementById('pay-date').textContent = new Date(payload.payGroup.payDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          renderEmployees();
+        }
+      })
+      .catch(() => {});
+  </script>
+</body>
+</html>
