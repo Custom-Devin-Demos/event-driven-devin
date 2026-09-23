@@ -165,6 +165,7 @@ async function releaseDisbursement(data) {
         service: 'customer-1d7f8961-payroll',
         route: '/api/1d7f8961/disbursement',
         runType,
+        alert_path: 'instant',
       },
       extra: { disbursementId, amount, employeeCount },
     });
