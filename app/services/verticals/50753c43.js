@@ -175,6 +175,7 @@ async function checkOfferEligibility(data) {
         service: 'customer-50753c43-offer-eligibility',
         campaign: data.campaignCode,
         channel: data.channel,
+        alert_path: 'instant',
       },
       extra: {
         offerId,
