@@ -1,18 +1,21 @@
 const express = require('express');
 const path = require('path');
-const { signIn } = require('../../services/verticals/login');
+const { signIn, getTenant } = require('../../services/verticals/login');
 
 const router = express.Router();
 
-router.get('/login', (_req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'verticals', 'login.html'));
-});
+const PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', 'login.html');
 
-router.post('/api/login/signin', async (req, res) => {
+function sendPage(_req, res) {
+  res.sendFile(PAGE);
+}
+
+async function handleSignIn(req, res) {
   const body = req.body || {};
 
   try {
     const result = await signIn({
+      tenant: req.params.tenant,
       username: body.username,
       password: body.password,
       devinUserId: body.devinUserId,
@@ -29,6 +32,16 @@ router.post('/api/login/signin', async (req, res) => {
       requestId: req.requestId,
     });
   }
+}
+
+router.get('/login', sendPage);
+
+router.get('/login/:tenant', (req, res, next) => {
+  if (!getTenant(req.params.tenant)) return next();
+  sendPage(req, res);
 });
+
+router.post('/api/login/signin', handleSignIn);
+router.post('/api/login/:tenant/signin', handleSignIn);
 
 module.exports = router;

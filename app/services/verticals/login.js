@@ -4,14 +4,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-const DIRECTORY = {
-  '1098342271': {
-    username: '1098342271',
-    password: 'Demo@1234',
-    fullName: 'Noura Al-Harbi',
-    // the Mokafaa Plus segment shipped with the 2026 loyalty rollout
-    segment: 'mokafaa_plus',
-  },
+const SHARED_ACCOUNTS = {
   '1054118903': {
     username: '1054118903',
     password: 'Demo@1234',
@@ -25,6 +18,58 @@ const DIRECTORY = {
     segment: 'tahweel_private',
   },
 };
+
+/**
+ * One tenant per audience. Each tenant owns the loyalty account that carries
+ * the demo failure and its own segment key, so registering one tenant's
+ * segment profile leaves every other tenant's sign-in failing as before.
+ *
+ * Add a tenant by adding an entry here; it is served at /login/<slug> and
+ * POST /api/login/<slug>/signin with no other change.
+ */
+const TENANTS = {
+  default: {
+    slug: 'default',
+    label: 'Al Rajhi Bank — Sign In',
+    account: {
+      username: '1098342271',
+      password: 'Demo@1234',
+      fullName: 'Noura Al-Harbi',
+      // the Mokafaa Plus segment shipped with the 2026 loyalty rollout
+      segment: 'mokafaa_plus',
+    },
+  },
+  nouf: {
+    slug: 'nouf',
+    label: 'Al Rajhi Bank — Sign In (Nouf)',
+    account: {
+      username: '1098342271',
+      password: 'Demo@1234',
+      fullName: 'Noura Al-Harbi',
+      segment: 'mokafaa_plus_nouf',
+    },
+  },
+};
+
+function getTenant(slug) {
+  const key = String(slug || 'default').trim().toLowerCase();
+  return Object.hasOwn(TENANTS, key) ? TENANTS[key] : undefined;
+}
+
+// One directory per tenant, built once so a test (or a demo reset) can mutate
+// a tenant's directory the same way it could when there was only one.
+const DIRECTORIES = Object.fromEntries(
+  Object.entries(TENANTS).map(([slug, tenant]) => [
+    slug,
+    { ...SHARED_ACCOUNTS, [tenant.account.username]: tenant.account },
+  ]),
+);
+
+function directoryFor(tenant) {
+  return DIRECTORIES[tenant.slug];
+}
+
+const DIRECTORY = DIRECTORIES.default;
 
 // Customer segments registered with the digital banking access service.
 const SEGMENT_PROFILES = {
@@ -48,7 +93,9 @@ const SENTRY_ISSUE_QUERY = 'is:unresolved segment profile';
 
 const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the sign-in failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues; ignore every issue that is not from POST /api/login/signin and do not modify any other vertical. The failing surface is the Al Rajhi Bank sign-in page at app/public/verticals/login.html (page route GET /login), whose "Sign in" action posts to POST /api/login/signin in app/routes/verticals/login.js. The sign-in pipeline lives in app/services/verticals/login.js: signIn -> buildSession -> resolveSegmentProfile. resolveSegmentProfile looks up SEGMENT_PROFILES by the customer segment on the directory account, so a directory account whose segment has no registered profile cannot build a session. Use the segment named in the alert's segment tag as the remediation target: register that segment's access profile (label, permissions, landing page, session minutes) and keep unregistered segments failing as a handled configuration error rather than a TypeError. Verify by starting the server (node app/server.js) and signing in as the affected account, which must return a successful session, and confirm npm run lint and npm test pass.
 
-Verification evidence is mandatory and must be visual, not curl-only: with the server running, open the /login page in a real browser, sign in as the affected account, and record your screen for the whole attempt so the recording shows the form, the click, and the successful sign-in that replaces the previous error panel. Attach a screenshot and an animated webp of the recording to the pull request under a "Fix Verification" heading.`;
+The sign-in surface is served per tenant: /login and POST /api/login/signin are the default tenant, and /login/<slug> with POST /api/login/<slug>/signin are additional tenants declared in TENANTS. Each tenant owns its own loyalty account and its own segment key, so register a profile only for the segment named in the alert's segment tag and leave every other tenant's segment untouched.
+
+Verification evidence is mandatory and must be visual, not curl-only: with the server running, open the sign-in page for the affected tenant in a real browser, sign in as the affected account, and record your screen for the whole attempt so the recording shows the form, the click, and the successful sign-in that replaces the previous error panel. Attach a screenshot and an animated webp of the recording to the pull request under a "Fix Verification" heading.`;
 
 function validationError(message, code) {
   const error = new Error(message);
@@ -78,8 +125,14 @@ function buildSession(account) {
 
 async function signIn(data) {
   const startTime = Date.now();
+  const tenant = getTenant(data.tenant);
+
+  if (!tenant) {
+    throw validationError(`Unknown sign-in tenant "${data.tenant}"`, 'UNKNOWN_TENANT');
+  }
+
   const username = String(data.username || '').trim();
-  const account = DIRECTORY[username];
+  const account = directoryFor(tenant)[username];
 
   if (!username || !data.password) {
     throw validationError('Username and password are required', 'MISSING_CREDENTIALS');
@@ -145,7 +198,7 @@ async function signIn(data) {
       errorType: error.name || 'Error',
       errorValue: error.message,
       service: 'identity-api',
-      verticalLabel: 'Al Rajhi Bank — Sign In',
+      verticalLabel: tenant.label,
       customer: 'login',
       slackMemberId: data.devinEmail ? '' : LOGIN_SLACK_MEMBER_ID,
       slackMemberIdFallback: LOGIN_SLACK_MEMBER_ID,
@@ -184,6 +237,9 @@ module.exports = {
   signIn,
   buildSession,
   resolveSegmentProfile,
+  getTenant,
+  directoryFor,
+  TENANTS,
   DIRECTORY,
   SEGMENT_PROFILES,
   REMEDIATION_DIRECTIVE,

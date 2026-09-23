@@ -153,6 +153,12 @@
   <script>
     var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
 
+    // /login/<slug> signs in against that tenant; /login uses the default one.
+    var TENANT_SLUG = (window.location.pathname.match(/^\/login\/([^/]+)/) || [])[1] || '';
+    var SIGNIN_ENDPOINT = TENANT_SLUG
+      ? '/api/login/' + encodeURIComponent(TENANT_SLUG) + '/signin'
+      : '/api/login/signin';
+
     function escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, function (ch) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -172,7 +178,7 @@
       button.textContent = 'Signing in…';
 
       identityReady.then(function () {
-        return fetch('/api/login/signin', {
+        return fetch(SIGNIN_ENDPOINT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
