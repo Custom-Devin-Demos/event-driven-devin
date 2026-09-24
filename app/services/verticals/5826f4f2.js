@@ -28,6 +28,7 @@ const EVENTS = {
 };
 
 const HOUR_MS = 3600000;
+const LOOKBACK_DAYS = [30, 90, 180];
 
 // Rollup windows the query engine uses to bucket raw events before aggregation.
 const ROLLUP_WINDOWS = {
@@ -43,6 +44,7 @@ const ROLLUP_WINDOWS = {
     monthly: { bucketMs: 30 * 24 * HOUR_MS, maxBuckets: 36, table: 'funnel_monthly' },
   },
   retention_analysis: {
+    hourly: { bucketMs: HOUR_MS, maxBuckets: 168, table: 'retention_hourly' },
     daily: { bucketMs: 24 * HOUR_MS, maxBuckets: 180, table: 'retention_daily' },
     weekly: { bucketMs: 7 * 24 * HOUR_MS, maxBuckets: 104, table: 'retention_weekly' },
     monthly: { bucketMs: 30 * 24 * HOUR_MS, maxBuckets: 36, table: 'retention_monthly' },
@@ -82,6 +84,14 @@ function validateQuery(data) {
     const error = new Error('Select a supported chart type and time interval.');
     error.name = 'ValidationError';
     error.code = 'CHART_CONFIG_INVALID';
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (data.lookbackDays !== undefined && !LOOKBACK_DAYS.includes(Number(data.lookbackDays))) {
+    const error = new Error('Select a supported date range for this chart.');
+    error.name = 'ValidationError';
+    error.code = 'CHART_RANGE_INVALID';
     error.statusCode = 400;
     throw error;
   }
@@ -130,6 +140,7 @@ function buildChartSeries(queryId, data, rollup) {
       table: rollup.table,
       bucketMs: rollup.bucketMs,
       buckets: series.length,
+      coveredDays: Math.round((series.length * rollup.bucketMs) / (24 * HOUR_MS)),
     },
     results: {
       total,
@@ -201,6 +212,7 @@ async function runChartQuery(data) {
         service: 'customer-5826f4f2-chart-query',
         chartType: data.chartType,
         interval: data.interval,
+        alert_path: 'instant',
       },
       extra: {
         queryId,

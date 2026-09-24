@@ -95,6 +95,26 @@ describe('Amplitude chart query rollups', () => {
     expect(result.chart.metricLabel).toBe('Uniques');
   });
 
+  test('runs hourly retention without raising an incident', async () => {
+    const result = await runChartQuery({
+      ...VALID_QUERY,
+      chartType: 'retention_analysis',
+      interval: 'hourly',
+    });
+
+    expect(result.rollup.table).toBe('retention_hourly');
+    expect(result.rollup.coveredDays).toBe(7);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('rejects an unsupported lookback range without creating an alert', async () => {
+    const { status, body } = await postQuery({ ...VALID_QUERY, interval: 'weekly', lookbackDays: 5000 });
+
+    expect(status).toBe(400);
+    expect(body.code).toBe('CHART_RANGE_INVALID');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
   test('keeps monthly rollups for the other chart types', () => {
     expect(resolveRollupWindow('funnel_analysis', 'monthly').table).toBe('funnel_monthly');
     expect(resolveRollupWindow('retention_analysis', 'monthly').table).toBe('retention_monthly');

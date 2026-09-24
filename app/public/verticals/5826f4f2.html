@@ -359,6 +359,15 @@
       });
     });
 
+    function clearSeries() {
+      bars.innerHTML = '';
+      bars.classList.remove('show');
+      axis.classList.remove('show');
+      emptyState.style.display = '';
+      document.getElementById('metric-value').textContent = '—';
+      document.getElementById('metric-delta').textContent = '';
+    }
+
     function formatCount(value) {
       if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
       if (value >= 1000) return (value / 1000).toFixed(1) + 'k';
@@ -402,6 +411,7 @@
       runButton.textContent = 'Running…';
       errorPanel.classList.remove('show');
       successPanel.classList.remove('show');
+      clearSeries();
 
       await identityReady;
 
@@ -438,7 +448,7 @@
           renderSeries(result.body);
           document.getElementById('chart-success-copy').textContent =
             'Query ' + result.body.queryId + ' read ' + result.body.rollup.buckets + ' buckets from ' +
-            result.body.rollup.table + '.';
+            result.body.rollup.table + ' (' + result.body.rollup.coveredDays + ' days).';
           successPanel.classList.add('show');
         })
         .catch(function (error) {
