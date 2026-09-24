@@ -104,9 +104,7 @@ const COMMISSION_SCHEDULES = {
  * in the message rather than surfacing as an undefined schedule downstream.
  */
 function resolveCommissionSchedule(accountTier) {
-  const schedule = COMMISSION_SCHEDULES[accountTier];
-
-  if (!schedule) {
+  if (!Object.prototype.hasOwnProperty.call(COMMISSION_SCHEDULES, accountTier)) {
     const error = new Error(`No commission schedule is configured for account tier "${accountTier}"`);
     error.name = 'CommissionScheduleError';
     error.code = 'COMMISSION_SCHEDULE_NOT_FOUND';
@@ -114,7 +112,7 @@ function resolveCommissionSchedule(accountTier) {
     throw error;
   }
 
-  return schedule;
+  return COMMISSION_SCHEDULES[accountTier];
 }
 
 /**

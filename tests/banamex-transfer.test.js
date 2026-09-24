@@ -80,6 +80,18 @@ describe('Banamex Banca en Linea traspaso (banamex)', () => {
     expect(alert.promptAppendix).toContain('/banamex');
   });
 
+  test('an inherited object property is not mistaken for a commission schedule', async () => {
+    await expect(processTransfer({
+      fromAccount: 'BMX-5729814',
+      toAccount: 'BMX-5731042',
+      amount: 1500,
+      accountTier: 'toString',
+    })).rejects.toMatchObject({
+      name: 'CommissionScheduleError',
+      code: 'COMMISSION_SCHEDULE_NOT_FOUND',
+    });
+  });
+
   test('tiers with a commission schedule complete and return a receipt', async () => {
     const result = await processTransfer({
       fromAccount: 'BMX-5731042',
