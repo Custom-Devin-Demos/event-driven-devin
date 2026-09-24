@@ -481,8 +481,8 @@
         <p class="kicker">My Account · Subscription</p>
         <h1>Manage your subscription</h1>
         <p class="lede">
-          Change your plan below. Your new plan starts on your next billing date,
-          and you can cancel auto-renewal at any time.
+          Change your plan below. Changes take effect immediately, and you can
+          cancel auto-renewal at any time.
         </p>
         <div class="plan-pills" aria-hidden="true">
           <span class="plan-pill" id="pill-basic">Espresso</span>
@@ -499,12 +499,12 @@
           <p class="sub">
             Move between Espresso, Premium and Premium + Print whenever your
             reading habits change. Everything you already subscribe to stays with
-            your account.
+            your account, and changes take effect immediately.
           </p>
           <ul class="reassure">
-            <li>Your new plan starts on your next billing date.</li>
-            <li>A confirmation email is sent after every change.</li>
+            <li>Changes take effect immediately.</li>
             <li>Cancel auto-renewal at any time.</li>
+            <li>Everything you already subscribe to stays with your account.</li>
           </ul>
         </div>
         <div class="plan-form">
@@ -515,15 +515,16 @@
               <div class="form-group">
                 <label for="currentPlan">Current plan</label>
                 <select id="currentPlan">
-                  <option value="BASIC-12">Espresso — $99/yr</option>
-                  <option value="PLUS-24">Premium — $289/yr</option>
-                  <option value="ULTRA-36">Premium + Print — annual</option>
+                  <option value="BASIC-12">Espresso</option>
+                  <option value="PLUS-24">Premium</option>
+                  <option value="ULTRA-36">Premium + Print</option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="newPlan">New plan</label>
                 <select id="newPlan">
-                  <option value="PLUS-24">Premium</option>
+                  <option value="BASIC-12">Espresso</option>
+                  <option value="PLUS-24" selected>Premium</option>
                   <option value="ULTRA-36">Premium + Print</option>
                   <option value="UNLIMITED-24">Premium + Print, multi-year</option>
                 </select>
@@ -537,12 +538,12 @@
                   <option value="podcasts">Podcasts+</option>
                   <option value="insider">Insider</option>
                 </select>
-                <span class="field-hint" id="addon-hint">Optional extras, added at checkout.</span>
+                <span class="field-hint" id="addon-hint">Optional.</span>
               </div>
               <div class="form-group">
                 <label for="promoCode">Promotion code</label>
                 <input type="text" id="promoCode" placeholder="Promotion code (optional)" />
-                <span class="field-hint">Applied to your next invoice if valid.</span>
+                <span class="field-hint">Optional.</span>
               </div>
             </div>
             <button type="submit" class="btn btn-cta btn-plan" id="submitBtn">Confirm plan change</button>
@@ -551,16 +552,15 @@
           <div class="summary" aria-label="Plan summary">
             <h4>Plan summary</h4>
             <ul>
-              <li><span>Current plan</span><span class="v" id="sumCurrent">Espresso — $99/yr</span></li>
+              <li><span>Current plan</span><span class="v" id="sumCurrent">Espresso</span></li>
               <li><span>New plan</span><span class="v" id="sumNew">Premium</span></li>
               <li><span>Add-on</span><span class="v" id="sumAddon">None</span></li>
-              <li><span>Effective</span><span class="v">Next billing date</span></li>
+              <li><span>Effective</span><span class="v">Immediately</span></li>
             </ul>
           </div>
           <div id="result" class="result-box" role="status" aria-live="polite"></div>
           <p class="micro">
-            Prices shown are list prices before any introductory offer. Cancel
-            auto-renewal at any time from My Account.
+            Cancel auto-renewal at any time from My Account.
           </p>
         </div>
       </div>
@@ -659,21 +659,40 @@
         const active = pills[newPlan.value];
         if (active) active.classList.add('on');
       }
+      const submitBtn = document.getElementById('submitBtn');
+      const status = document.getElementById('requestStatus');
+      function syncPlanGuard() {
+        if (currentPlan.value === newPlan.value) {
+          submitBtn.disabled = true;
+          status.textContent = 'Choose a different plan to continue.';
+        } else {
+          submitBtn.disabled = false;
+          status.textContent = 'No changes are made until you confirm.';
+        }
+      }
       [currentPlan, newPlan, addon].forEach(function (el) {
         el.addEventListener('change', updateSummary);
         el.addEventListener('input', updateSummary);
       });
+      [currentPlan, newPlan].forEach(function (el) {
+        el.addEventListener('change', syncPlanGuard);
+        el.addEventListener('input', syncPlanGuard);
+      });
       form.addEventListener('reset', function () {
-        setTimeout(updateSummary, 0);
+        setTimeout(function () {
+          updateSummary();
+          syncPlanGuard();
+        }, 0);
       });
       updateSummary();
+      syncPlanGuard();
 
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const button = document.getElementById('submitBtn');
         const result = document.getElementById('result');
-        const status = document.getElementById('requestStatus');
         const started = performance.now();
+        if (currentPlan.value === newPlan.value) return;
         button.disabled = true;
         button.textContent = 'Changing plan…';
         form.setAttribute('aria-busy', 'true');
@@ -700,18 +719,18 @@
           const data = await response.json();
           if (!response.ok) throw new Error('plan change failed');
           result.className = 'result-box success';
-          result.textContent =
-            'Your plan has been changed. Your new plan starts on your next billing date; a confirmation email is on its way.';
+          result.textContent = `Your plan has been changed to ${data.newPlan || newPlan.options[newPlan.selectedIndex].text}. The change is effective ${data.effectiveDate || 'today'}.`;
         } catch (error) {
           result.className = 'result-box error';
           result.textContent =
             'We could not change your plan. Plan changes are taking longer than usual — nothing has changed on your subscription. Please try again in a few minutes or contact Customer Service.';
         } finally {
           clearInterval(timer);
-          status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
           form.removeAttribute('aria-busy');
           button.disabled = false;
           button.textContent = 'Confirm plan change';
+          syncPlanGuard();
+          status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
         }
       });
     </script>
