@@ -661,7 +661,9 @@
       }
       const submitBtn = document.getElementById('submitBtn');
       const status = document.getElementById('requestStatus');
+      let inFlight = false;
       function syncPlanGuard() {
+        if (inFlight) return;
         if (currentPlan.value === newPlan.value) {
           submitBtn.disabled = true;
           status.textContent = 'Choose a different plan to continue.';
@@ -692,7 +694,8 @@
         const button = document.getElementById('submitBtn');
         const result = document.getElementById('result');
         const started = performance.now();
-        if (currentPlan.value === newPlan.value) return;
+        if (inFlight || currentPlan.value === newPlan.value) return;
+        inFlight = true;
         button.disabled = true;
         button.textContent = 'Changing plan…';
         form.setAttribute('aria-busy', 'true');
@@ -729,6 +732,7 @@
           form.removeAttribute('aria-busy');
           button.disabled = false;
           button.textContent = 'Confirm plan change';
+          inFlight = false;
           syncPlanGuard();
           status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
         }
