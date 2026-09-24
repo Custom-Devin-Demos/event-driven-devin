@@ -1,21 +1,20 @@
 # d67c33e4 — legacy stock platform services
 
-Two long-lived services that sit behind the stock & inventory control tower
-(`/d67c33e4`). They predate the Node 20 application in this repository, are
-deployed from their own pipelines, and are **not** installed by the root
-`package.json` or exercised by `npm test`.
+Source for two legacy services from the estate that predates the stock &
+inventory control tower (`/d67c33e4`). They are **dependency-upgrade fixtures
+only**: nothing here is installed, executed, deployed or called by the control
+tower, which computes its own positions, demand curve and safety-stock
+allowance. The root `package.json`, `npm run lint` and `npm test` ignore this
+directory, and the WMS endpoints and signing keys the code references do not
+exist.
 
-| Service | Runtime | Entry point | Purpose |
+| Service | Runtime | Entry point | What the code does |
 |---|---|---|---|
-| `node-stock-sync` | Node 12 | `src/sync.js` | Pulls WMS stock movements every 15 minutes and writes normalised positions |
-| `py-demand-forecast` | Python 3.7 | `app.py` | Weekly demand forecast + safety-stock service consumed by the replenishment run |
+| `node-stock-sync` | Node 12 | `src/sync.js` | Polls a WMS movement feed and normalises it into stock positions |
+| `py-demand-forecast` | Python 3.7 | `app.py` | Serves a weekly demand forecast and safety-stock allowance |
 
-## Running them
-
-```bash
-cd stacks/d67c33e4/node-stock-sync && npm install && node src/sync.js --once
-cd stacks/d67c33e4/py-demand-forecast && pip install -r requirements.txt && python app.py
-```
+Neither is expected to run as-is; read them as the code an upgrade would have
+to carry forward.
 
 ## Known upgrade friction
 
