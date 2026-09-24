@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Add seats | Siemens Xcelerator</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --accent: #007993;
+        --accent-dark: #005f74;
+        --cyan: #00cccc;
+        --ink: #000028;
+        --muted: #4c4c68;
+        --surface: #ffffff;
+        --band: #f3f3f0;
+        --rule: #d9d9df;
+        --ok: #1f5c2e;
+        --ok-bg: #ecf3ec;
+        --warn: #7a1f1f;
+        --warn-bg: #f9ecec;
+        --sans: 'Open Sans', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--surface);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        width: min(1200px, calc(100% - 48px));
+        margin: 0 auto;
+      }
+      .eyebrow {
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+
+      /* ---------- header ---------- */
+      .utility {
+        background: var(--ink);
+        color: #b3b3be;
+        font-size: 13px;
+      }
+      .utility .wrap {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 20px;
+        min-height: 36px;
+      }
+      .utility a:hover {
+        color: #ffffff;
+      }
+      header.site {
+        background: var(--ink);
+        color: #ffffff;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .site-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        min-height: 72px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: 0.04em;
+      }
+      .logo .mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        background: var(--accent);
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 19px;
+        flex: none;
+      }
+      nav.main {
+        display: flex;
+        gap: 4px;
+      }
+      nav.main a {
+        font-size: 15px;
+        padding: 10px 12px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        color: #ffffff;
+      }
+      nav.main a:hover {
+        color: var(--cyan);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--sans);
+        font-size: 15px;
+        font-weight: 600;
+        min-height: 44px;
+        padding: 0 20px;
+        border: 1px solid transparent;
+        border-radius: 2px;
+        cursor: pointer;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: #ffffff;
+        border-color: #4c4c68;
+      }
+      .btn-ghost:hover {
+        border-color: #ffffff;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #ffffff;
+      }
+      .btn-primary:hover {
+        background: var(--accent-dark);
+      }
+      .btn-primary:disabled {
+        background: #5b8290;
+        cursor: progress;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        background: var(--ink);
+        color: #ffffff;
+        padding: 72px 0 80px;
+      }
+      .hero .rule {
+        width: 96px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--cyan), var(--accent));
+        margin-bottom: 28px;
+      }
+      .hero .eyebrow {
+        color: var(--cyan);
+        margin-bottom: 16px;
+      }
+      .hero h1 {
+        font-size: clamp(32px, 4vw, 48px);
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        max-width: 20ch;
+      }
+      .hero p.lede {
+        margin-top: 20px;
+        font-size: 17px;
+        color: #b3b3be;
+        max-width: 56ch;
+      }
+
+      /* ---------- main panel ---------- */
+      section.block {
+        padding: 72px 0;
+      }
+      .panel-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 56px;
+        align-items: start;
+      }
+      .panel-copy h2 {
+        font-size: clamp(26px, 3vw, 34px);
+        font-weight: 800;
+        line-height: 1.2;
+        margin-top: 16px;
+      }
+      .panel-copy p.sub {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 16px;
+        max-width: 54ch;
+      }
+      .facts {
+        margin-top: 28px;
+        border-top: 1px solid var(--rule);
+      }
+      .facts .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--rule);
+        font-size: 15px;
+      }
+      .facts .row .k {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .provision {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        padding: 28px;
+        border-top: 4px solid var(--accent);
+      }
+      .provision h3 {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .provision p.note {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 18px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      select,
+      input[type='number'] {
+        font-family: var(--sans);
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        min-height: 46px;
+        padding: 0 12px;
+        width: 100%;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      select {
+        background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+          linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+        background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px;
+        background-size: 5px 5px;
+        background-repeat: no-repeat;
+      }
+      input[type='number'] {
+        appearance: auto;
+        -webkit-appearance: auto;
+      }
+      select:focus,
+      input:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .field-hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .btn-order {
+        width: 100%;
+        margin-top: 22px;
+        min-height: 48px;
+      }
+      .request-status {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 12px;
+        text-align: center;
+        min-height: 21px;
+      }
+      .result-box {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 2px;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid var(--rule);
+      }
+      .result-box.success {
+        display: block;
+        background: var(--ok-bg);
+        border-color: #9dc2a4;
+        color: var(--ok);
+      }
+      .result-box.error {
+        display: block;
+        background: var(--warn-bg);
+        border-color: #d8a4a4;
+        color: var(--warn);
+      }
+
+      .summary {
+        margin-top: 24px;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .summary h4 {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        background: var(--band);
+        padding: 10px 14px;
+      }
+      .summary ul {
+        list-style: none;
+      }
+      .summary li {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 14px;
+        border-top: 1px solid var(--rule);
+        font-size: 14px;
+      }
+      .summary li .v {
+        font-weight: 700;
+        text-align: right;
+      }
+      .summary li.total {
+        background: var(--band);
+      }
+
+      /* ---------- footer ---------- */
+      footer.site {
+        background: var(--ink);
+        color: #b3b3be;
+        padding: 80px 0 24px;
+      }
+      .foot-grid {
+        display: grid;
+        grid-template-columns: 1.5fr repeat(4, 1fr);
+        gap: 32px;
+      }
+      .foot-grid h4 {
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #ffffff;
+        margin-bottom: 14px;
+      }
+      .foot-grid ul {
+        list-style: none;
+        display: grid;
+        gap: 9px;
+        font-size: 14px;
+      }
+      .foot-grid a:hover {
+        color: #ffffff;
+      }
+      .foot-legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 48px;
+        padding-top: 16px;
+        border-top: 1px solid #2c2c44;
+        font-size: 12px;
+        color: #7d8099;
+      }
+
+      @media (max-width: 900px) {
+        nav.main {
+          display: none;
+        }
+        .panel-grid {
+          grid-template-columns: 1fr;
+          gap: 36px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .wrap {
+          width: calc(100% - 32px);
+        }
+        .utility .wrap {
+          justify-content: flex-start;
+        }
+        .hero {
+          padding: 48px 0 56px;
+        }
+        section.block {
+          padding: 48px 0;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .provision {
+          padding: 20px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="utility">
+      <div class="wrap">
+        <a href="#top">United States | EN</a>
+        <a href="#top">Support &amp; community</a>
+        <a href="#top">Log in</a>
+      </div>
+    </div>
+    <header class="site" id="top">
+      <div class="wrap site-bar">
+        <a class="logo" href="#top" aria-label="Siemens home">
+          <span class="mark" aria-hidden="true">S</span>
+          <span>Siemens</span>
+        </a>
+        <nav class="main" aria-label="Primary">
+          <a href="#top">Products &amp; services</a>
+          <a href="#top">Solutions</a>
+          <a href="#top">Industries</a>
+          <a href="#top">Partner ecosystem</a>
+          <a href="#top">Topics &amp; insights</a>
+        </nav>
+        <a class="btn btn-ghost" href="#order">Contact us</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap">
+        <div class="rule" aria-hidden="true"></div>
+        <p class="eyebrow">Marketplace · Siemens Xcelerator</p>
+        <h1>Add seats to your Digital Industries Software subscription</h1>
+        <p class="lede">
+          Scale your Teamcenter X, NX X, or Solid Edge X subscription directly from
+          the Siemens Xcelerator Marketplace. New seats are available to your
+          organization within a few minutes of the order.
+        </p>
+      </div>
+    </section>
+
+    <section class="block" id="order">
+      <div class="wrap panel-grid">
+        <div class="panel-copy">
+          <p class="eyebrow" style="color: var(--accent)">Subscription management</p>
+          <h2>Grow your team without a new contract.</h2>
+          <p class="sub">
+            Additional seats inherit the plan tier and renewal date of your current
+            subscription. The order confirmation is sent to the account
+            administrator listed on your Siemens account.
+          </p>
+          <div class="facts">
+            <div class="row"><span class="k">Availability</span><span>Seats active within minutes</span></div>
+            <div class="row"><span class="k">Billing</span><span>Annual, prorated to your renewal date</span></div>
+            <div class="row"><span class="k">Administration</span><span>Managed in Siemens Xcelerator admin console</span></div>
+            <div class="row"><span class="k">Support</span><span>Siemens Support Center</span></div>
+          </div>
+        </div>
+        <div class="provision">
+          <h3>Add seats</h3>
+          <p class="note">Choose a product, plan tier, and the number of seats to add.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">Product</label>
+              <select id="product">
+                <option value="Teamcenter X">Teamcenter X</option>
+                <option value="NX X">NX X</option>
+                <option value="Solid Edge X">Solid Edge X</option>
+                <option value="Simcenter X">Simcenter X</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">Seats</label>
+                <input type="number" id="seats" value="25" min="1" step="1" required />
+              </div>
+              <div class="form-group">
+                <label for="planTier">Plan tier</label>
+                <select id="planTier">
+                  <option value="enterprise">Enterprise (Premium support)</option>
+                  <option value="business">Business</option>
+                  <option value="starter">Starter</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Region</label>
+              <select id="region" aria-describedby="region-hint">
+                <option value="americas">Americas</option>
+                <option value="emea">EMEA</option>
+                <option value="apac">APAC</option>
+              </select>
+              <span class="field-hint" id="region-hint">Data residency is set on the subscription.</span>
+            </div>
+            <button type="submit" class="btn btn-primary btn-order" id="submitBtn">Add seats</button>
+            <p class="request-status" id="requestStatus" role="status">No changes are made until you confirm.</p>
+          </form>
+          <div class="summary" aria-label="Order summary">
+            <h4>Order summary</h4>
+            <ul>
+              <li><span>Product</span><span class="v" id="sumProduct">Teamcenter X</span></li>
+              <li><span>Plan tier</span><span class="v" id="sumTier">Enterprise (Premium support)</span></li>
+              <li><span>Seats</span><span class="v" id="sumSeats">25</span></li>
+              <li class="total"><span>Estimated annual amount</span><span class="v" id="sumTotal">$47,500</span></li>
+            </ul>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <a class="logo" href="#top" aria-label="Siemens home">
+              <span class="mark" aria-hidden="true">S</span>
+              <span>Siemens</span>
+            </a>
+            <p style="margin-top: 16px; font-size: 14px; max-width: 30ch">
+              Siemens Xcelerator is the open digital business platform for
+              software, services and IoT-enabled hardware.
+            </p>
+          </div>
+          <div>
+            <h4>About Siemens</h4>
+            <ul>
+              <li><a href="#top">About us</a></li>
+              <li><a href="#top">Leadership</a></li>
+              <li><a href="#top">News &amp; press</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company info</h4>
+            <ul>
+              <li><a href="#top">Investor relations</a></li>
+              <li><a href="#top">Sustainability</a></li>
+              <li><a href="#top">Compliance</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Get in touch</h4>
+            <ul>
+              <li><a href="#top">Contact us</a></li>
+              <li><a href="#top">Support &amp; community</a></li>
+              <li><a href="#top">Partner ecosystem</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Careers</h4>
+            <ul>
+              <li><a href="#top">Jobs</a></li>
+              <li><a href="#top">Students</a></li>
+              <li><a href="#top">Early careers</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-legal">
+          <span>&copy; Siemens demo page</span>
+          <a href="#top">Terms of use</a>
+          <a href="#top">Privacy notice</a>
+          <a href="#top">Cookie settings</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config')
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+    </script>
+    <script>
+      const PRICE_PER_SEAT = {
+        'Teamcenter X': 1900,
+        'NX X': 2400,
+        'Solid Edge X': 420,
+        'Simcenter X': 3100,
+      };
+      const product = document.getElementById('product');
+      const planTier = document.getElementById('planTier');
+      const seats = document.getElementById('seats');
+      const form = document.getElementById('provisionForm');
+
+      function fmt(n) {
+        return '$' + n.toLocaleString('en-US');
+      }
+      function updateSummary() {
+        document.getElementById('sumProduct').textContent = product.value;
+        document.getElementById('sumTier').textContent =
+          planTier.options[planTier.selectedIndex].text;
+        const count = Math.max(0, parseInt(seats.value, 10) || 0);
+        document.getElementById('sumSeats').textContent = String(count);
+        document.getElementById('sumTotal').textContent = fmt(
+          count * (PRICE_PER_SEAT[product.value] || 0)
+        );
+      }
+      ['change', 'input'].forEach(function (evt) {
+        product.addEventListener(evt, updateSummary);
+        planTier.addEventListener(evt, updateSummary);
+        seats.addEventListener(evt, updateSummary);
+      });
+      form.addEventListener('reset', function () {
+        setTimeout(updateSummary, 0);
+      });
+      updateSummary();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const status = document.getElementById('requestStatus');
+        const started = performance.now();
+        button.disabled = true;
+        button.textContent = 'Adding seats…';
+        form.setAttribute('aria-busy', 'true');
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = 'Adding seats…';
+        const timer = setInterval(() => {
+          status.textContent = `Adding seats · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        }, 100);
+        try {
+          const response = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: product.value,
+              planName: planTier.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error('provision failed');
+          result.className = 'result-box success';
+          result.textContent = `${data.seatsAdded} seats added to ${data.product}. Licenses are available in the Siemens Xcelerator Marketplace account within a few minutes; the order confirmation is sent to the account administrator.`;
+        } catch (error) {
+          result.className = 'result-box error';
+          result.textContent =
+            'Seats were not added. Provisioning is taking longer than usual — nothing was changed on the subscription. Try again in a few minutes or contact the Siemens Support Center.';
+        } finally {
+          clearInterval(timer);
+          status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+          form.removeAttribute('aria-busy');
+          button.disabled = false;
+          button.textContent = 'Add seats';
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
