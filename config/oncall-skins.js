@@ -71,6 +71,7 @@ const ONCALL_SKINS = {
     company: 'Charles Schwab',
     brandMark: 'S',
     vertical: 'banking',
+    oncallOnly: true,
     page: { file: '76bc90d0.html', title: 'Move Money | Charles Schwab' },
     theme: {
       '--accent': '#00A0DF',
