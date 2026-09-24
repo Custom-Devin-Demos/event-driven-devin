@@ -2447,6 +2447,27 @@ const ONCALL_SKINS = {
     supportCenterSub: 'AI Cloud Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY A NEBIUS SITE — internal demo only, not affiliated with, endorsed by, or a real Nebius product.',
   },
+  '5afb121f': {
+    slug: '5afb121f',
+    company: 'Siemens',
+    brandMark: 'S',
+    vertical: 'hightech',
+    oncallOnly: true,
+    page: {
+      file: '5afb121f.html',
+      title: 'Add seats | Siemens Xcelerator',
+    },
+    theme: {
+      '--accent': '#007993',
+      '--ink': '#000028',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#000028',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Siemens Support Center',
+    supportCenterSub: 'Digital Industries Software Support',
+    disclaimer: 'NOT ACTUALLY A SIEMENS SITE — internal demo only, not affiliated with, endorsed by, or a real Siemens product.',
+  },
 };
 
 function getOncallSkin(slug) {
