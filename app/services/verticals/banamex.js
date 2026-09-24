@@ -92,15 +92,29 @@ const TRANSACTIONS = [
  * Comisiones por traspaso según el tipo de cuenta.
  */
 const COMMISSION_SCHEDULES = {
+  prioritario: { rate: 0, flat: 0 },
   clasica: { rate: 0.0015, flat: 12 },
   oro: { rate: 0.001, flat: 8 },
 };
 
 /**
  * Resolve the commission schedule the debit account is enrolled in.
+ *
+ * An unenrolled tier is a configuration defect, so it fails here with the tier
+ * in the message rather than surfacing as an undefined schedule downstream.
  */
 function resolveCommissionSchedule(accountTier) {
-  return COMMISSION_SCHEDULES[accountTier];
+  const schedule = COMMISSION_SCHEDULES[accountTier];
+
+  if (!schedule) {
+    const error = new Error(`No commission schedule is configured for account tier "${accountTier}"`);
+    error.name = 'CommissionScheduleError';
+    error.code = 'COMMISSION_SCHEDULE_NOT_FOUND';
+    error.accountTier = accountTier;
+    throw error;
+  }
+
+  return schedule;
 }
 
 /**
