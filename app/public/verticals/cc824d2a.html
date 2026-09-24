@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cash Movement | PIMCO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Fraunces:opsz,wght@9..144,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #00F6FF;
+      --ink: #00243C;
+      --surface: #FFFFFF;
+      --chrome-bg: #00243C;
+      --chrome-text: #FFFFFF;
+      --muted: #DCDEE3;
+      --paper: #F7F4F1;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 16px/1.75 'Roboto', 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .serif { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
+    .site-header { background: var(--chrome-bg); color: var(--chrome-text); }
+    .header-row { max-width: 1320px; margin: auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; }
+    .header-row.utility { min-height: 60px; }
+    .header-row.primary { min-height: 56px; border-top: 1px solid color-mix(in srgb, var(--chrome-text) 14%, transparent); }
+    .wordmark { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; }
+    .wordmark-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 2px solid var(--chrome-text); font: 700 17px/1 'Roboto', Arial, sans-serif; letter-spacing: .02em; }
+    .wordmark-name { font: 700 22px/1 'Roboto', Arial, sans-serif; letter-spacing: .34em; }
+    .utility-links { display: flex; align-items: center; gap: 28px; font-size: 12px; color: var(--muted); }
+    .utility-links a { min-height: 44px; display: inline-flex; align-items: center; }
+    .utility-links .login { color: var(--accent); font-size: 16px; font-weight: 500; }
+    .utility-links a:hover, .primary-nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .primary-nav { display: flex; gap: 40px; font-weight: 500; }
+    .primary-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+    .primary-nav .current { box-shadow: inset 0 -3px 0 var(--accent); }
+    .header-note { font-size: 12px; color: var(--muted); }
+    .hero { background: var(--chrome-bg); color: var(--chrome-text); }
+    .hero-inner { max-width: 1320px; margin: auto; padding: 56px 40px 72px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr); gap: 56px; align-items: end; }
+    .eyebrow { margin: 0 0 14px; font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+    h1 { margin: 0 0 18px; font-size: clamp(36px, 4vw, 48px); line-height: 1.25; letter-spacing: -.01em; }
+    .hero-lede { max-width: 620px; margin: 0; color: var(--muted); font-size: 16px; }
+    .hero-facts { display: grid; gap: 0; border-left: 2px solid var(--accent); padding-left: 22px; }
+    .hero-facts div { padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--chrome-text) 14%, transparent); }
+    .hero-facts div:last-child { border-bottom: 0; }
+    .hero-facts dt { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .hero-facts dd { margin: 0; font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .content { max-width: 1320px; margin: auto; padding: 56px 40px 88px; }
+    .section-heading { margin-bottom: 30px; }
+    .section-heading h2 { margin: 0 0 8px; font-size: 40px; line-height: 1.25; }
+    .section-heading p { margin: 0; max-width: 680px; color: color-mix(in srgb, var(--ink) 70%, var(--surface)); }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr); gap: 32px; align-items: start; }
+    .movement-card { padding: 36px 40px 40px; background: var(--surface); border: 1px solid color-mix(in srgb, var(--ink) 16%, var(--surface)); }
+    .movement-card h3, .aside-card h3 { margin: 0; font-size: 24px; line-height: 1.3; }
+    .card-intro { margin: 8px 0 30px; font-size: 14px; color: color-mix(in srgb, var(--ink) 70%, var(--surface)); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+    .field { min-width: 0; margin-bottom: 24px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 52px; padding: 12px 16px; border: 2px solid color-mix(in srgb, var(--ink) 40%, var(--surface)); background: var(--surface); color: var(--ink); font-size: 16px; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: color-mix(in srgb, var(--ink) 70%, var(--surface)); }
+    .summary { margin: 4px 0 26px; padding: 18px 22px; background: var(--paper); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .summary dt { margin: 0; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--ink) 70%, var(--surface)); }
+    .summary dd { margin: 0; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .submit-btn { width: 100%; min-height: 56px; padding: 16px 32px; border: 2px solid var(--accent); background: var(--accent); color: var(--chrome-bg); font-weight: 500; font-size: 16px; }
+    .submit-btn:hover { background: color-mix(in srgb, var(--accent) 85%, var(--chrome-bg)); border-color: color-mix(in srgb, var(--accent) 85%, var(--chrome-bg)); }
+    .submit-btn:disabled { cursor: wait; opacity: .75; }
+    .status { min-height: 22px; margin: 14px 0 0; font-size: 13px; color: color-mix(in srgb, var(--ink) 70%, var(--surface)); font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 16px; padding: 16px 20px; font-size: 14px; border-left: 4px solid var(--ink); background: var(--paper); }
+    .result-box.success { display: block; border-left-color: var(--accent); }
+    .result-box.notice { display: block; }
+    .aside-card { padding: 32px; background: var(--paper); }
+    .aside-card .eyebrow { color: color-mix(in srgb, var(--ink) 70%, var(--surface)); }
+    .aside-card p { margin: 14px 0 0; font-size: 14px; line-height: 1.7; color: color-mix(in srgb, var(--ink) 80%, var(--surface)); }
+    .aside-card ul { margin: 14px 0 0; padding: 0; list-style: none; font-size: 14px; }
+    .aside-card li { padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--ink) 14%, var(--surface)); display: flex; justify-content: space-between; gap: 12px; }
+    .aside-card li span:last-child { font-weight: 500; font-variant-numeric: tabular-nums; }
+    .aside-card a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 18px; padding: 0 24px; border: 2px solid var(--ink); font-weight: 500; font-size: 14px; }
+    .site-footer { background: var(--chrome-bg); color: var(--chrome-text); }
+    .footer-inner { max-width: 1320px; margin: auto; padding: 40px 40px 44px; }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 0 28px; font-size: 14px; }
+    .footer-links a { min-height: 44px; display: inline-flex; align-items: center; }
+    .footer-links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .footer-legal { margin: 18px 0 0; max-width: 960px; font-size: 12px; line-height: 1.7; color: var(--muted); }
+    @media (max-width: 900px) {
+      .header-row { padding: 0 24px; }
+      .primary-nav { gap: 24px; }
+      .header-note { display: none; }
+      .hero-inner { grid-template-columns: 1fr; gap: 32px; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 520px) {
+      .header-row { padding: 0 16px; }
+      .header-row.primary { display: none; }
+      .utility-links { gap: 16px; }
+      .utility-links .region { display: none; }
+      .wordmark-name { font-size: 19px; letter-spacing: .28em; }
+      .hero-inner { padding: 40px 16px 48px; }
+      .content { padding: 40px 16px 60px; }
+      .section-heading h2 { font-size: 32px; }
+      .movement-card { padding: 24px 16px 28px; }
+      .form-grid { grid-template-columns: 1fr; gap: 0; }
+      .summary { grid-template-columns: 1fr; gap: 12px; }
+      .aside-card { padding: 24px 18px; }
+      .footer-inner { padding: 28px 16px 72px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-row utility">
+      <a class="wordmark" href="#top" aria-label="PIMCO"><span class="wordmark-mark" aria-hidden="true">P</span><span class="wordmark-name">PIMCO</span></a>
+      <div class="utility-links"><a class="region" href="https://www.pimco.com/us/en">United States</a><a class="login" href="https://www.pimco.com/us/en">Log In</a></div>
+    </div>
+    <div class="header-row primary">
+      <nav class="primary-nav" aria-label="Main navigation"><a href="https://www.pimco.com/us/en/investments">Investments</a><a href="https://www.pimco.com/us/en/insights">Insights</a><a href="#cash-movement" class="current">Client Accounts</a><a href="https://www.pimco.com/us/en/about-us">About Us</a></nav>
+      <span class="header-note">Institutional Investor · Client Portal</span>
+    </div>
+  </header>
+  <main id="top">
+    <section class="hero" aria-labelledby="page-title"><div class="hero-inner">
+      <div><p class="eyebrow">Client Portal / Cash Movement</p><h1 id="page-title" class="serif">Move cash between client accounts.</h1><p class="hero-lede">Submit a cash movement between a separately managed account and its settlement or custody account. Instructions received before the 2:00 p.m. PT cutoff are processed same day.</p></div>
+      <dl class="hero-facts"><div><dt>Business date</dt><dd id="businessDate">—</dd></div><div><dt>Same-day cutoff</dt><dd>2:00 p.m. PT</dd></div><div><dt>Settlement</dt><dd>Fed wire · USD</dd></div></dl>
+    </div></section>
+    <section class="content" id="cash-movement" aria-labelledby="movement-heading">
+      <div class="section-heading"><h2 id="movement-heading" class="serif">Submit a cash movement</h2><p>Select the source and destination accounts, enter the amount, and submit the instruction for processing.</p></div>
+      <div class="layout">
+        <div class="movement-card">
+          <h3 class="serif">Between client accounts</h3>
+          <p class="card-intro">Example client accounts. No real money is moved on this page.</p>
+          <form id="transferForm">
+            <div class="form-grid">
+              <div class="field"><label for="fromAccount">From account</label><select id="fromAccount"><option value="ACCT-1001">Total Return SMA ····1001</option><option value="ACCT-1002">Settlement cash ····1002</option></select></div>
+              <div class="field"><label for="toAccount">To account</label><select id="toAccount"><option value="ACCT-1002">Settlement cash ····1002</option><option value="ACCT-1001">Total Return SMA ····1001</option></select></div>
+              <div class="field"><label for="amount">Amount (USD)</label><input type="number" id="amount" min="1" step="0.01" value="2500000" required></div>
+              <div class="field"><label for="accountTier">Client classification</label><select id="accountTier"><option value="standard">Institutional</option><option value="premium">Sovereign / Official</option><option value="basic">Sub-advised</option></select><small>Classification is set for this example.</small></div>
+            </div>
+            <dl class="summary" aria-label="Instruction summary"><div><dt>Direction</dt><dd id="summaryDirection">—</dd></div><div><dt>Amount</dt><dd id="summaryAmount">—</dd></div><div><dt>Value date</dt><dd id="summaryValueDate">—</dd></div></dl>
+            <button type="submit" id="submitBtn" class="submit-btn">Submit transfer</button>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Example instruction only.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+        <aside class="aside-card"><p class="eyebrow">Subscriptions &amp; redemptions</p><h3 class="serif">Cash movement at a glance.</h3><p>Instructions submitted here move cash between accounts held with PIMCO. Redemption proceeds settle to the linked settlement account.</p><ul><li><span>Same-day cutoff</span><span>2:00 p.m. PT</span></li><li><span>Standard settlement</span><span>T+0</span></li><li><span>Wire type</span><span>Fed wire</span></li></ul><a href="https://www.pimco.com/us/en/about-us/contact-us" target="_blank" rel="noopener noreferrer">Contact Client Services</a></aside>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="footer-inner">
+    <div class="footer-links"><a href="https://www.pimco.com/us/en/about-us">About Us</a><a href="https://www.pimco.com/us/en/about-us/contact-us">Contact Us</a><a href="https://www.pimco.com/us/en/about-us/pimco-offices">PIMCO Offices</a><a href="https://www.pimco.com/us/en/general/legal">Terms and Conditions</a><a href="https://www.pimco.com/us/en/general/privacy-policy">Privacy Policy</a></div>
+    <p class="footer-legal">Pacific Investment Management Company LLC · 650 Newport Center Drive, Newport Beach, CA 92660 · Example client account experience.</p>
+  </div></footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    const amountInput = document.getElementById('amount');
+    const summaryDirection = document.getElementById('summaryDirection');
+    const summaryAmount = document.getElementById('summaryAmount');
+    const summaryValueDate = document.getElementById('summaryValueDate');
+    const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const dateFmt = new Intl.DateTimeFormat('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const today = dateFmt.format(new Date());
+    document.getElementById('businessDate').textContent = today;
+    function label(select) { return select.options[select.selectedIndex].text.replace(/\s*····\d+$/, ''); }
+    function renderSummary() {
+      summaryDirection.textContent = `${label(fromAccount)} → ${label(toAccount)}`;
+      const amount = parseFloat(amountInput.value);
+      summaryAmount.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
+      summaryValueDate.textContent = today;
+    }
+    function keepAccountsDistinct(changed, other) {
+      if (changed.value !== other.value) return;
+      const alternative = Array.from(other.options).find((option) => option.value !== changed.value);
+      if (alternative) other.value = alternative.value;
+    }
+    fromAccount.addEventListener('change', () => { keepAccountsDistinct(fromAccount, toAccount); renderSummary(); });
+    toAccount.addEventListener('change', () => { keepAccountsDistinct(toAccount, fromAccount); renderSummary(); });
+    amountInput.addEventListener('input', renderSummary);
+    form.addEventListener('reset', () => {
+      result.className = 'result-box';
+      result.textContent = '';
+      status.textContent = 'Example instruction only.';
+      setTimeout(renderSummary, 0);
+    });
+    renderSummary();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Select two different accounts to submit a cash movement.';
+        status.textContent = 'Select different accounts.';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Submitting instruction…';
+      status.textContent = 'Instruction in progress…';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: document.getElementById('fromAccount').value,
+            toAccount: document.getElementById('toAccount').value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error('Instruction could not be submitted. Please try again.');
+        result.className = 'result-box success';
+        result.textContent = `Instruction accepted. ${usd.format(Number(data.receipt.amount))} scheduled for ${today} settlement.`;
+        status.textContent = 'Instruction accepted.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'Instruction could not be submitted. Please try again or contact Client Services.';
+        status.textContent = 'Cash movement unavailable.';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Submit transfer';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>

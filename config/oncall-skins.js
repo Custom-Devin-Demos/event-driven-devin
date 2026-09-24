@@ -2489,6 +2489,23 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Subscription Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ECONOMIST SITE — internal demo only, not affiliated with, endorsed by, or a real Economist product.',
   },
+  'cc824d2a': {
+    slug: 'cc824d2a',
+    company: 'PIMCO',
+    brandMark: 'P',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: 'cc824d2a.html', title: 'Cash Movement | PIMCO' },
+    theme: {
+      '--accent': '#00F6FF',
+      '--ink': '#00243C',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#00243C',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'PIMCO Client Services',
+    disclaimer: 'NOT ACTUALLY A PIMCO SITE — internal demo only, not affiliated with, endorsed by, or a real PIMCO product.',
+  },
 };
 
 function getOncallSkin(slug) {
