@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal banking including accounts, credit cards and home loans</title>
+  <link rel="icon" href="/verticals/assets/50753c43/favicon.ico">
+  <style>
+    :root {
+      --ink: #1e1e1e;
+      --ink-alt: #231f20;
+      --link: #0000ee;
+      --accent: #ffcc00;
+      --line: #d8d8d8;
+      --muted: #706d6e;
+      --page: #f4f4f4;
+      --dark: #1e1e1e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font: 400 16px/24px "CBABeaconSans", helvetica, arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--link); }
+
+    .shell { max-width: 1385px; margin: 0 auto; background: #fff; }
+    .wrap { max-width: 1321px; margin: 0 auto; padding: 0 32px; }
+
+    /* Header */
+    header { height: 80px; background: #fff; display: flex; align-items: center; }
+    .header-inner { display: flex; align-items: center; gap: 28px; width: 100%; padding: 0 32px; }
+    .logo { width: 40px; height: 40px; display: block; }
+    .main-nav { display: flex; align-items: center; gap: 24px; flex: 1; }
+    .main-nav a {
+      color: var(--ink-alt);
+      font-size: 16px;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 6px 0;
+      border-bottom: 3px solid transparent;
+    }
+    .main-nav a:hover { border-bottom-color: var(--accent); }
+    .header-actions { display: flex; align-items: center; gap: 18px; }
+    .search-btn {
+      width: 40px; height: 40px; border: 0; background: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .search-btn svg { width: 22px; height: 22px; }
+    .logon {
+      display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+      height: 48px; padding: 0 28px;
+      background: var(--accent); color: var(--ink-alt);
+      font-size: 16px; font-weight: 800; text-decoration: none;
+    }
+
+    /* Hero */
+    .hero { position: relative; }
+    .hero img { display: block; width: 100%; height: 650px; object-fit: cover; object-position: center center; }
+    .hero-card {
+      position: absolute; left: 64px; top: 96px;
+      max-width: 620px; padding: 40px 48px 44px; background: rgba(255, 255, 255, .94);
+    }
+    .hero-card h1 { margin: 0 0 16px; font-size: 40px; line-height: 48px; font-weight: 800; }
+    .hero-card p { margin: 0 0 28px; font-size: 16px; line-height: 24px; color: var(--ink); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 48px; min-width: 180px; padding: 0 24px;
+      border-radius: 24px; border: 1px solid var(--accent); background: var(--accent);
+      color: var(--ink-alt); font: 400 16px/24px inherit; text-decoration: none; cursor: pointer;
+    }
+    .btn:hover { background: #f0bf00; border-color: #f0bf00; }
+    .btn:disabled { opacity: .6; cursor: progress; }
+    .btn-ghost { background: transparent; border: 1px solid var(--muted); }
+    .btn-ghost:hover { background: #f4f4f4; border-color: var(--muted); }
+
+    /* Products */
+    section { padding: 0; }
+    h2 { margin: 0 0 32px; font-size: 32px; line-height: 40px; font-weight: 800; }
+    .products { position: relative; margin: -110px 32px 0; padding: 48px 0 64px; background: #fff; }
+    .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 48px; }
+    .product-col h3 { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; font-size: 24px; line-height: 28px; font-weight: 800; }
+    .product-col h3 img { width: 56px; height: 56px; }
+    .product-col ul { list-style: none; margin: 0; padding: 0 0 0 70px; }
+    .product-col li { margin-bottom: 10px; }
+    .product-col a { font-size: 16px; }
+
+    /* Split blades */
+    .blade { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 64px; padding: 56px 0; border-top: 1px solid var(--line); }
+    .blade img { width: 100%; height: 439px; object-fit: cover; object-position: center center; display: block; }
+    .blade p { margin: 0 0 28px; }
+    .blade.reverse .blade-media { order: -1; }
+
+    /* Cards row */
+    .cards { padding: 56px 0; border-top: 1px solid var(--line); }
+    .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; }
+    .card img { width: 100%; height: 146px; object-fit: cover; object-position: center center; display: block; }
+    .card h3 { margin: 18px 0 10px; font-size: 20px; line-height: 28px; font-weight: 800; }
+    .card p { margin: 0 0 14px; font-size: 16px; line-height: 24px; }
+
+    /* Financial difficulty */
+    .assist { display: flex; align-items: center; justify-content: center; gap: 32px; padding: 44px 0; border-top: 1px solid var(--line); }
+    .assist h2 { margin: 0; }
+
+    /* More from */
+    .more { padding: 56px 0 64px; border-top: 1px solid var(--line); }
+    .more-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+    .feature { border: 1px solid var(--line); }
+    .feature img { width: 100%; height: 199px; object-fit: cover; object-position: center center; display: block; }
+    .feature-body { padding: 22px 24px 26px; }
+    .feature h3 { margin: 0 0 12px; font-size: 20px; line-height: 28px; font-weight: 800; }
+    .feature p { margin: 0 0 16px; }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .tile { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: center; border: 1px solid var(--line); }
+    .tile img { width: 120px; height: 120px; object-fit: cover; display: block; }
+    .tile span { padding-right: 20px; font-size: 16px; line-height: 24px; }
+
+    /* Dark help */
+    .help { background: var(--dark); color: #fff; }
+    .help .wrap { padding-top: 40px; padding-bottom: 56px; }
+    .help h2 { color: #fff; }
+    .help-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 56px; }
+    .help-group h3 { display: flex; align-items: center; gap: 14px; margin: 0 0 18px; font-size: 20px; line-height: 28px; font-weight: 800; color: #fff; }
+    .help-group h3 img { width: 40px; height: 40px; }
+    .help-links { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; }
+    .help-links a {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 14px 0; color: #fff; text-decoration: none; border-bottom: 1px solid #4a4a4a; font-size: 16px;
+    }
+    .help-links a:hover { text-decoration: underline; }
+    .help-contact { display: flex; flex-direction: column; gap: 32px; }
+    .help-contact h3 { display: flex; align-items: center; gap: 14px; margin: 0 0 10px; font-size: 20px; font-weight: 800; color: #fff; }
+    .help-contact img { width: 40px; height: 40px; }
+    .help-contact p { margin: 0; color: #e4e4e4; font-size: 16px; }
+    .tys { border-top: 1px solid #4a4a4a; display: grid; grid-template-columns: 1fr 2fr; gap: 56px; padding: 44px 0 56px; }
+    .tys p { margin: 0; color: #e4e4e4; font-size: 14px; line-height: 22px; }
+    .tys a { color: #fff; }
+
+    /* Footer */
+    footer { background: #fff; }
+    footer .wrap { padding-top: 40px; padding-bottom: 32px; }
+    .to-top { display: flex; justify-content: flex-end; }
+    .to-top a {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; background: var(--accent); color: var(--ink-alt); text-decoration: none; font-weight: 800;
+    }
+    .foot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 24px 0 32px; }
+    .foot-grid h4 { margin: 0 0 14px; font-size: 13px; line-height: 20px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .foot-grid ul { list-style: none; margin: 0; padding: 0; }
+    .foot-grid li { margin-bottom: 8px; }
+    .foot-grid a { font-size: 16px; }
+    .acknowledge { padding: 24px 0; border-top: 1px solid var(--line); font-size: 14px; line-height: 22px; color: var(--ink); }
+    .copyright { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 0 32px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+    .copyright a { color: var(--muted); font-size: 13px; text-decoration: none; }
+
+    /* Toast */
+    .toast {
+      position: fixed; right: 24px; bottom: -160px; z-index: 100; max-width: 420px;
+      padding: 15px 20px; color: #fff; border-left: 4px solid var(--accent); border-radius: 4px;
+      background: rgba(30, 30, 30, .96); box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+      font: 400 14px/1.5 helvetica, arial, sans-serif; transition: bottom .35s ease, opacity .35s ease;
+      opacity: 0; visibility: hidden;
+    }
+    .toast.visible { bottom: 24px; opacity: 1; visibility: visible; }
+
+    @media (max-width: 1100px) {
+      .product-grid, .more-grid, .card-grid { grid-template-columns: repeat(2, 1fr); }
+      .blade, .help-grid, .tys { grid-template-columns: 1fr; gap: 32px; }
+      .blade.reverse .blade-media { order: 0; }
+      .hero-card { position: static; max-width: none; padding: 32px 24px; background: #fff; }
+      .hero img { height: 320px; }
+      .products { margin: 0; }
+      .main-nav { display: none; }
+    }
+    @media (max-width: 680px) {
+      .product-grid, .more-grid, .card-grid, .foot-grid { grid-template-columns: 1fr; }
+      .help-links { grid-template-columns: 1fr; }
+      .assist { flex-direction: column; text-align: center; }
+      .hero img { object-position: 74% center; }
+      .header-inner { gap: 12px; padding: 0 16px; }
+      .logon { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="header-inner">
+        <a href="#" aria-label="Homepage">
+          <img class="logo" src="https://www.commbank.com.au/content/dam/commbank/commBank-logo.svg" alt="Homepage"
+               onerror="this.onerror=null;this.src='/verticals/assets/50753c43/favicon.ico';">
+        </a>
+        <nav class="main-nav">
+          <a href="#">Banking</a>
+          <a href="#">Home loans</a>
+          <a href="#">Insurance</a>
+          <a href="#">Investing &amp; Super</a>
+          <a href="#">Business</a>
+          <a href="#">Institutional</a>
+          <a href="#">CommBank Yello</a>
+        </nav>
+        <div class="header-actions">
+          <button class="search-btn" type="button" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#231f20" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+          </button>
+          <a class="logon" href="#">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#231f20" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            Log on
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div class="hero">
+      <img src="https://www.commbank.com.au/content/dam/dynamic-media/homepage/2026/migrant-coles-3000x1200px-01.jpg.transform/1956x1216/image.jpg"
+           alt="Customer holding a Coles grocery bag"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80';">
+      <div class="hero-card">
+        <h1>New to Australia? Save on groceries online at Coles.</h1>
+        <p>Get $15 off when you spend $50 or more online at Coles with your first Everyday Smart Access account by 27 October 2026.</p>
+        <button class="btn" id="offer-cta" type="button">Find out more</button>
+      </div>
+    </div>
+
+    <section class="products">
+      <div class="wrap">
+        <h2>Products and services</h2>
+        <div class="product-grid">
+          <div class="product-col">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/accounts64_pictogram.svg" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">Banking</h3>
+            <ul>
+              <li><a href="#">Bank &amp; savings accounts</a></li>
+              <li><a href="#">Credit cards</a></li>
+              <li><a href="#">Personal loans &amp; car loans</a></li>
+            </ul>
+          </div>
+          <div class="product-col">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/property-investments_pictograms.svg" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">Home loans</h3>
+            <ul>
+              <li><a href="#">Repayments calculator</a></li>
+              <li><a href="#">Interest rates</a></li>
+              <li><a href="#">Refinancing</a></li>
+            </ul>
+          </div>
+          <div class="product-col">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/insurance64_pictogram.svg" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">Insurance &amp; more</h3>
+            <ul>
+              <li><a href="#">Insurance</a></li>
+              <li><a href="#">Investing</a></li>
+              <li><a href="#">Superannuation</a></li>
+            </ul>
+          </div>
+          <div class="product-col">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/pictogramTravel64.svg" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">International</h3>
+            <ul>
+              <li><a href="#">Travel products &amp; services</a></li>
+              <li><a href="#">Overseas payment</a></li>
+              <li><a href="#">Foreign exchange calculator</a></li>
+            </ul>
+          </div>
+          <div class="product-col">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/pictogramSmallBusiness64.svg" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">Business</h3>
+            <ul>
+              <li><a href="#">Bank accounts &amp; cards</a></li>
+              <li><a href="#">EFTPOS &amp; eCommerce</a></li>
+              <li><a href="#">Business loans &amp; finance</a></li>
+            </ul>
+          </div>
+          <div class="product-col">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/toolsAndCalcs@2x_pictograms.png" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">Rates &amp; calculators</h3>
+            <ul>
+              <li><a href="#">Rates &amp; fees</a></li>
+              <li><a href="#">Tools &amp; calculators</a></li>
+              <li><a href="#">Business product selector</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="blade">
+          <div>
+            <h2>Premium design minus the visual clutter</h2>
+            <p>[Sponsored] How the Polestar 4 coupé’s Scandi design helps deliver performance and calm.</p>
+            <a class="btn" href="#">Learn more</a>
+          </div>
+          <div class="blade-media">
+            <img src="https://assets.commbank.com.au/is/image/commbank/Polestar4_HomePage_LongFormBlade_Hero_?$W728_H432$&amp;fit=crop" alt="Polestar 4 coupé"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=80';">
+          </div>
+        </div>
+
+        <div class="blade reverse">
+          <div>
+            <h2>Making smart banking, smarter</h2>
+            <p>Upgrade your money IQ with real-time intelligence that helps you understand your spending habits and hit your saving goals.</p>
+            <a class="btn" href="#">Learn more about Insights</a>
+          </div>
+          <div class="blade-media">
+            <img src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2026/smart-banking.jpg" alt="Customer reviewing spending insights on a phone"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&q=80';">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cards">
+      <div class="wrap">
+        <div class="card-grid">
+          <article class="card">
+            <img src="https://assets.commbank.com.au/is/image/commbank/Homepage-banner-next-chapter?$W375_H200$&amp;fit=crop&amp;align=0,-1" alt="CommBank Next Chapter"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&q=80';">
+            <h3>CommBank Next Chapter</h3>
+            <p>We're dedicated to supporting victim-survivors who experience financial abuse, even if you don't bank with us.</p>
+            <a href="#">Learn more</a>
+          </article>
+          <article class="card">
+            <img src="https://assets.commbank.com.au/is/image/commbank/CBA0726_grow-fair-shares-article?$W375_H200$&amp;fit=crop&amp;align=0,-1" alt="The share market explained"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80';">
+            <h3>The share market explained</h3>
+            <p>We ask CommSec share market experts to explain four core investing pillars and why they warrant understanding.</p>
+            <a href="#">Learn more</a>
+          </article>
+          <article class="card">
+            <img src="https://assets.commbank.com.au/is/image/commbank/Brighter_JH_Adv_ModernFarmhouse?$W375_H200$&amp;fit=crop" alt="Modern Australian home exterior"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80';">
+            <h3>James Hardie’s top exterior design tips for Aussie homes</h3>
+            <p>[Sponsored] New research from the James Hardie Modern Homes Forecast 2026 reveals what matters most to Australians when building their homes.</p>
+            <a href="#">Learn more</a>
+          </article>
+          <article class="card">
+            <img src="https://assets.commbank.com.au/is/image/commbank/scam-alert-august?$W375_H200$&amp;fit=crop" alt="Scam alert"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&q=80';">
+            <h3>CommBank Scam Alert</h3>
+            <p>With investment scams rising on social media, it’s important to check for signs of a scam.</p>
+            <a href="#">Latest alerts</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="assist">
+      <h2>Are you experiencing financial difficulty?</h2>
+      <a class="btn btn-ghost" href="#">Get help</a>
+    </section>
+
+    <section class="more">
+      <div class="wrap">
+        <h2>More from CommBank</h2>
+        <div class="more-grid">
+          <article class="feature">
+            <img src="https://assets.commbank.com.au/is/image/commbank/CBA0726_house-proud_street-appeal-2?$W780_H416$&amp;fit=crop&amp;align=0,1" alt="Street appeal of an Australian home"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1000&q=80';">
+            <div class="feature-body">
+              <h3>This week in the Brighter Online Edit</h3>
+              <p>Thinking about your next move? Explore practical tips for upsizing, getting your home sale-ready and making confident property decisions.</p>
+              <a href="#">Read more</a>
+            </div>
+          </article>
+          <article class="feature">
+            <img src="https://assets.commbank.com.au/is/image/commbank/lesson-5-1?$W780_H416$&amp;fit=crop" alt="Customer checking a message on a phone"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=1000&q=80';">
+            <div class="feature-body">
+              <h3>Stop, check, reject: 5 ways to help scam-proof yourself</h3>
+              <p>You’ve probably heard the adage ‘if something seems too good to be true, it probably is’. Sound advice but unfortunately distinguishing between legitimate business and scammers is getting harder than ever, thanks to new and emerging technologies.</p>
+              <a href="#">Test your financial fitness</a>
+            </div>
+          </article>
+          <div class="stack">
+            <a class="tile" href="#">
+              <img src="https://assets.commbank.com.au/is/image/commbank/CBA-Results-Square-2026:ARTTHUMB" alt=""
+                   onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=80';">
+              <span>See our 2026 Annual Report for information on our financial and non-financial performance</span>
+            </a>
+            <a class="tile" href="#">
+              <img src="https://assets.commbank.com.au/is/image/commbank/commbank-ai-learning-hub-header:ARTTHUMB" alt=""
+                   onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&q=80';">
+              <span>CommBank AI Learning Hub</span>
+            </a>
+            <a class="tile" href="#">
+              <img src="https://assets.commbank.com.au/is/image/commbank/A-392252254:ARTTHUMB" alt=""
+                   onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511895426328-dc8714191300?w=400&q=80';">
+              <span>You're building a life, consider protecting it</span>
+            </a>
+            <a class="tile" href="#">
+              <img src="https://assets.commbank.com.au/is/image/commbank/our-stories-careers:ARTTHUMB" alt=""
+                   onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&q=80';">
+              <span>Summer Intern and Graduate Program applications are now open</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="help">
+      <div class="wrap">
+        <h2>We’re here to help</h2>
+        <div class="help-grid">
+          <div class="help-group">
+            <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/ds_pictogram_support2.svg" alt=""
+                     onerror="this.onerror=null;this.style.visibility='hidden';">Support &amp; FAQs</h3>
+            <div class="help-links">
+              <a href="#">Emergency assistance <span>›</span></a>
+              <a href="#">Cost of living support <span>›</span></a>
+              <a href="#">Cancel a pending transaction <span>›</span></a>
+              <a href="#">Dispute a transaction <span>›</span></a>
+              <a href="#">What’s a phishing scam? <span>›</span></a>
+              <a href="#">How do I activate a card? <span>›</span></a>
+              <a href="#">Service updates &amp; availability <span>›</span></a>
+              <a href="#">Complaints and compliments <span>›</span></a>
+            </div>
+          </div>
+          <div class="help-contact">
+            <div>
+              <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/pictogramCallUs64.svg" alt=""
+                       onerror="this.onerror=null;this.style.visibility='hidden';">Contact us ›</h3>
+              <p>Message us, ask our virtual assistant or call to connect to the right help.</p>
+            </div>
+            <div>
+              <h3><img src="https://www.commbank.com.au/content/dam/commbank-assets/pictograms/branch_pictograms.svg" alt=""
+                       onerror="this.onerror=null;this.style.visibility='hidden';">Locate us ›</h3>
+              <p>Find a branch, ATM or specialist near you.</p>
+            </div>
+          </div>
+        </div>
+        <div class="tys">
+          <h2>Things you should know</h2>
+          <p>As this advice has been prepared without considering your objectives, financial situation or needs, you should, before acting on the advice, consider its appropriateness to your circumstances. Visit <a href="#">Important Information</a> to access Product Disclosure Statements or Terms and Conditions which are currently available electronically for products of the Commonwealth Bank Group, along with the relevant Financial Services Guide. The target market for products issued by Commonwealth Bank can be found within the corresponding product’s <a href="#">Target Market Determination (TMD)</a>, available on our website. TMDs for products not issued by the Commonwealth Bank can be found on the website of the product issuer. Loan applications are subject to credit approval. Interest rates are subject to change. Fees and charges may apply.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <div class="to-top"><a href="#" aria-label="Back to top">↑</a></div>
+        <div class="foot-grid">
+          <div>
+            <h4>Quick links</h4>
+            <ul>
+              <li><a href="#">Security &amp; scams</a></li>
+              <li><a href="#">Help &amp; support</a></li>
+              <li><a href="#">Financial assistance</a></li>
+              <li><a href="#">Complaints &amp; compliments</a></li>
+              <li><a href="#">Accessibility</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>About us</h4>
+            <ul>
+              <li><a href="#">About CommBank</a></li>
+              <li><a href="#">Careers at CommBank</a></li>
+              <li><a href="#">Sustainability</a></li>
+              <li><a href="#">Newsroom</a></li>
+              <li><a href="#">Investor centre</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Important information</h4>
+            <ul>
+              <li><a href="#">Important documents</a></li>
+              <li><a href="#">Banking Code of Practice</a></li>
+              <li><a href="#">Cookies policy</a></li>
+              <li><a href="#">Privacy statement</a></li>
+              <li><a href="#">Modern Slavery Statement</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="acknowledge">CommBank acknowledges the <a href="#">Traditional Owners</a> of the lands across Australia as the continuing custodians of Country and Culture. We pay our respect to First Nations peoples and their Elders, past and present.</div>
+        <div class="copyright">
+          <span>©2026 Commonwealth Bank of Australia ABN 48 123 123 124 AFSL and Australian credit licence 234945</span>
+          <a href="/">← All Demos</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    var toast = document.getElementById('toast');
+    var toastTimer;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+    }
+
+    document.getElementById('offer-cta').addEventListener('click', async function () {
+      var button = document.getElementById('offer-cta');
+      button.disabled = true;
+      try {
+        var response = await fetch('/api/50753c43/offer-eligibility', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaignCode: 'COLES15-NEWTOAU',
+            productCode: 'everyday_smart_access',
+            channel: 'online_grocery_partner',
+            residencyStatus: 'new_to_australia',
+            state: 'NSW',
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        var data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'We could not retrieve this offer.');
+        showToast('Offer confirmed: $' + data.offer.creditAmount + ' off your first eligible online grocery shop.');
+      } catch (error) {
+        showToast('We can’t show this offer right now. ' + error.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
