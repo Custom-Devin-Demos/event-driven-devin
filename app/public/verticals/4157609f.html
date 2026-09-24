@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayID - CommBank</title>
+<link rel="icon" href="/verticals/assets/4157609f/favicon.ico">
+<style>
+  @font-face {
+    font-family: 'CBABeaconSans';
+    src: url('https://www.commbank.com.au/etc.clientlibs/cba/commbank/clientlibs/clientlib-react/resources/static/media/CBABeaconSans-Regular.d1bf90389b6f3c587efa.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'CBABeaconSans';
+    src: url('https://www.commbank.com.au/etc.clientlibs/cba/commbank/clientlibs/clientlib-react/resources/static/media/CBABeaconSans-Bold.bf57c9250a9332da07ae.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'CBABeaconSans';
+    src: url('https://www.commbank.com.au/etc.clientlibs/cba/commbank/clientlibs/clientlib-react/resources/static/media/CBABeaconSans-ExtraBold.1bab7e6364f9e48646af.woff2') format('woff2');
+    font-weight: 800;
+    font-display: swap;
+  }
+  :root {
+    --v4157609f-yellow: rgb(255,204,0);
+    --v4157609f-ink: rgb(30,30,30);
+    --v4157609f-nav: rgb(35,31,32);
+    --v4157609f-link: rgb(17,117,181);
+    --v4157609f-grey: rgb(244,244,244);
+    --v4157609f-line: rgb(233,233,233);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'CBABeaconSans', helvetica, arial, sans-serif;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--v4157609f-ink);
+    background: #fff;
+  }
+  h1 { font-size: 40px; line-height: 48px; font-weight: 800; margin: 0 0 24px; }
+  h2 { font-size: 32px; line-height: 40px; font-weight: 800; margin: 0 0 24px; }
+  h3 { font-size: 20px; line-height: 28px; font-weight: 800; margin: 0 0 16px; }
+  h4 { font-size: 16px; font-weight: 800; text-transform: uppercase; margin: 0 0 16px; }
+  p { margin: 0 0 16px; }
+  a { color: var(--v4157609f-link); text-decoration: none; border-bottom: 1px solid var(--v4157609f-link); }
+  ul { margin: 0 0 16px; padding-left: 24px; }
+  li { margin-bottom: 8px; }
+
+  .v-wrap { max-width: 1321px; margin: 0 auto; }
+
+  /* Header */
+  .v-header {
+    display: flex;
+    align-items: stretch;
+    height: 80px;
+    background: #fff;
+    border-bottom: 1px solid var(--v4157609f-line);
+    position: relative;
+    z-index: 5;
+  }
+  .v-header .logo {
+    display: flex;
+    align-items: center;
+    padding: 0 32px 0 32px;
+    width: 104px;
+    flex: none;
+  }
+  .v-header nav {
+    display: flex;
+    align-items: stretch;
+    gap: 32px;
+    flex: 1;
+  }
+  .v-header nav a {
+    display: flex;
+    align-items: center;
+    color: var(--v4157609f-nav);
+    font-weight: 800;
+    font-size: 16px;
+    border-bottom: none;
+    white-space: nowrap;
+  }
+  .v-header .search {
+    width: 85px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid var(--v4157609f-line);
+    color: var(--v4157609f-nav);
+  }
+  .v-header .logon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--v4157609f-yellow);
+    color: var(--v4157609f-nav);
+    font-weight: 800;
+    font-size: 16px;
+    padding: 0 16px;
+    width: 113px;
+    flex: none;
+    border-bottom: none;
+  }
+
+  /* Hero band */
+  .v-band {
+    position: relative;
+    background: var(--v4157609f-grey);
+    min-height: 576px;
+  }
+  .v-band .crumbs {
+    padding: 28px 80px 28px;
+    font-size: 14px;
+    margin: 0;
+  }
+  .v-band .crumbs a {
+    color: var(--v4157609f-ink);
+    border-bottom: 1px solid var(--v4157609f-ink);
+  }
+  .v-heroimg {
+    position: absolute;
+    left: 572px;
+    top: 0;
+    width: 860px;
+    height: 576px;
+    overflow: hidden;
+    background: var(--v4157609f-yellow);
+  }
+  .v-heroimg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .v-panel {
+    position: absolute;
+    left: 32px;
+    top: 80px;
+    width: 660px;
+    min-height: 316px;
+    background: #fff;
+    padding: 64px 0;
+    z-index: 2;
+  }
+  .v-panel .inner {
+    border-left: 16px solid var(--v4157609f-yellow);
+    padding: 0 48px;
+  }
+
+  /* Tab strip */
+  .v-tabs {
+    background: #fff;
+    border-bottom: 1px solid var(--v4157609f-line);
+  }
+  .v-tabs ul {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+    margin: 0 48px;
+    padding: 0;
+  }
+  .v-tabs li { margin: 0; }
+  .v-tabs a {
+    display: block;
+    padding: 32px 0;
+    font-weight: 800;
+    color: var(--v4157609f-nav);
+    border-bottom: 4px solid transparent;
+    font-size: 16px;
+  }
+  .v-tabs a.active { border-bottom-color: var(--v4157609f-yellow); }
+
+  /* Content sections */
+  .v-section { padding: 64px; }
+  .v-section.grey { background: var(--v4157609f-grey); }
+  .v-cols { display: flex; gap: 96px; }
+  .v-col-head { flex: 0 0 350px; }
+  .v-col-body { flex: 1; }
+  .v-divider { border: none; border-top: 1px solid var(--v4157609f-line); margin: 32px 0; }
+  .v-listblock { border-bottom: 1px solid var(--v4157609f-line); padding-bottom: 16px; margin-bottom: 32px; }
+
+  .v-cards { display: flex; gap: 32px; margin-top: 32px; }
+  .v-card {
+    background: #fff;
+    padding: 32px;
+    flex: 1;
+    min-width: 0;
+  }
+  .v-card .thumb {
+    height: 180px;
+    background: var(--v4157609f-grey);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .v-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .v-img { max-width: 600px; }
+  .v-img img { width: 100%; display: block; background: var(--v4157609f-grey); }
+
+  .v-banner {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    background: #fff;
+    padding: 32px;
+    margin-top: 32px;
+  }
+  .v-banner .thumb { width: 320px; flex: none; background: var(--v4157609f-grey); }
+  .v-banner .thumb img { width: 100%; display: block; }
+
+  /* Footer */
+  .v-footer {
+    background: #fff;
+    border-top: 1px solid var(--v4157609f-line);
+    padding: 24px 64px;
+    position: relative;
+  }
+  .v-footer .cols { display: flex; gap: 48px; }
+  .v-footer .col { flex: 1; }
+  .v-footer .col a {
+    display: block;
+    color: var(--v4157609f-ink);
+    border-bottom: none;
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  .v-topbtn {
+    position: absolute;
+    right: 64px;
+    top: 24px;
+    width: 72px;
+    height: 72px;
+    background: var(--v4157609f-yellow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: none;
+    color: var(--v4157609f-nav);
+  }
+  .v-ack { padding: 24px 0 0; font-size: 16px; }
+  .v-legal { padding: 16px 0 0; font-size: 14px; color: var(--v4157609f-ink); }
+  .v-hub { margin-top: 16px; }
+  .v-hub a { font-size: 12px; color: #999; border-bottom: none; }
+
+  /* Toast */
+  .v-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    background: rgba(20,20,20,0.92);
+    color: #fff;
+    font-size: 14px;
+    border-radius: 6px;
+    max-width: 420px;
+    padding: 16px 20px;
+    z-index: 100;
+    display: none;
+  }
+  .v-toast.show { display: block; }
+  .v-toast .t-title { font-weight: 800; margin-bottom: 4px; }
+  .v-toast .t-body { font-family: monospace; word-break: break-word; }
+  .v-toast .t-meta { color: rgba(255,255,255,0.6); margin-top: 8px; font-size: 12px; }
+  .v-toast.ok { background: rgba(23,105,60,0.95); }
+
+  /* Reset pill */
+  #v4157609f-reset {
+    display: none;
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    background: rgba(20,20,20,0.85);
+    color: #fff;
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 100;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  body.v4157609f-degraded #v4157609f-reset { display: block; }
+
+  #biz-cta .status { color: var(--v4157609f-ink); border-bottom: none; }
+
+  @media (max-width: 1100px) {
+    .v-header nav { display: none; }
+    .v-heroimg { position: static; width: 100%; height: 320px; }
+    .v-panel { position: static; width: auto; margin: 0 32px; }
+    .v-band { min-height: 0; padding-bottom: 40px; }
+    .v-cols { flex-direction: column; gap: 24px; }
+    .v-cards { flex-direction: column; }
+    .v-footer .cols { flex-direction: column; }
+    .v-banner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="v-header">
+  <a class="logo" href="#" aria-label="CommBank">
+    <img src="https://www.commbank.com.au/content/dam/commbank/commBank-logo.svg" height="40" alt="CommBank"
+      onerror="this.onerror=null;this.outerHTML='<svg height=&quot;40&quot; width=&quot;40&quot; viewBox=&quot;0 0 40 40&quot;><rect x=&quot;2&quot; y=&quot;2&quot; width=&quot;36&quot; height=&quot;36&quot; transform=&quot;rotate(45 20 20)&quot; fill=&quot;#FFCC00&quot;/><rect x=&quot;12&quot; y=&quot;12&quot; width=&quot;16&quot; height=&quot;16&quot; transform=&quot;rotate(45 20 20)&quot; fill=&quot;#231f20&quot;/></svg>';">
+  </a>
+  <nav>
+    <a href="#">Banking</a>
+    <a href="#">Home loans</a>
+    <a href="#">Insurance</a>
+    <a href="#">Investing &amp; Super</a>
+    <a href="#">Business</a>
+    <a href="#">Institutional</a>
+    <a href="#">CommBank Yello</a>
+  </nav>
+  <a class="search" href="#" aria-label="Search">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+  </a>
+  <a class="logon" href="#">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="1"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+    Log on
+  </a>
+</header>
+
+<div class="v-band">
+  <div class="v-heroimg">
+    <img src="https://www.commbank.com.au/content/dam/commbank-assets/banking/online/2017-10/pay-id_lghero.jpg" alt="" onerror="this.onerror=null;this.style.display='none';">
+  </div>
+  <div class="v-wrap" style="position:relative;">
+    <p class="crumbs"><a href="#">Digital Banking</a> / <span>PayID</span></p>
+    <div class="v-panel">
+      <div class="inner">
+        <h1>PayID<sup>®</sup></h1>
+        <h3>Enjoy fast, secure payments anytime with PayID.</h3>
+        <p>Set up your mobile number or email address as your PayID in a few taps, search ‘PayID’ in the CommBank app.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="v-tabs">
+  <div class="v-wrap">
+    <ul>
+      <li><a href="#what" class="active">What is PayID?</a></li>
+      <li><a href="#osko">What is Osko®?</a></li>
+      <li><a href="#why">Why use PayID?</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#start">Get started</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="v-wrap">
+  <section class="v-section" id="what">
+    <div class="v-cols">
+      <div class="v-col-head"><h2>What is PayID?</h2></div>
+      <div class="v-col-body">
+        <div class="v-listblock">
+          <h3>Send quick and easy payments in real time<sup>1</sup></h3>
+          <ul>
+            <li>PayID is a memorable piece of information such as your mobile number or email address, that you can link to your bank account to receive payments<br></li>
+            <li>Once linked, you can simply provide your PayID for payments instead of handing out your BSB and account number<br></li>
+            <li>If you need to pay someone who has registered for PayID, you’ll only need their PayID to transfer money directly into their bank account</li>
+          </ul>
+        </div>
+        <p><b>Are you a business owner? </b>Learn how you can quickly, easily and securely receive payments from customers with PayID. <a id="biz-cta" href="#">Explore PayID for small business</a>.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="v-section grey" id="osko">
+  <div class="v-wrap">
+    <div class="v-cols">
+      <div class="v-col-head"><h2>What is an Osko® payment?</h2></div>
+      <div class="v-col-body">
+        <div class="v-listblock" style="border-bottom-color:#ddd;">
+          <h3>Fast payments, whenever you need them</h3>
+          <p>Osko is a service that lets you make fast payments to anyone with an account at a participating bank, 24 hours a day, 7 days a week. When you pay with PayID or a BSB and account number, most payments arrive in under a minute.</p>
+          <ul>
+            <li>Near real-time payments, 24/7</li>
+            <li>Send up to 280 characters in the payment description</li>
+            <li>Available in the CommBank app and NetBank</li>
+          </ul>
+        </div>
+        <a href="#">Tell me more</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="v-wrap">
+  <section class="v-section" id="why">
+    <div class="v-cols">
+      <div class="v-col-body v-img">
+        <img src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2024/manage-payID.jpg" alt="Manage PayID in the CommBank app" onerror="this.onerror=null;this.style.display='none';this.parentElement.style.height='320px';">
+      </div>
+      <div class="v-col-body">
+        <h2>Why use PayID?</h2>
+        <p>Transfer money to friends and family using their PayID as quickly and easily as you transfer money between your CommBank accounts.</p>
+        <ul>
+          <li>Fast: Near real-time<sup>1</sup> payments across participating banks</li>
+          <li>Easy: Easier to remember than your BSB and account number</li>
+          <li>Mobile: Available through the CommBank app</li>
+          <li>Simple registration: A few clicks and you’re ready</li>
+        </ul>
+        <p>First time payments to a new payee may be held for up to 24 hours as a security measure.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="v-section grey" id="how">
+  <div class="v-wrap">
+    <h2>How it works</h2>
+    <div class="v-cards">
+      <div class="v-card">
+        <div class="thumb">
+          <img src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2017-02/PayID-register-4.png" alt="" onerror="this.onerror=null;this.style.display='none';">
+        </div>
+        <h3>Use PayID to receive money</h3>
+        <p>Share your PayID instead of your BSB and account number and get paid in near real time.</p>
+      </div>
+      <div class="v-card">
+        <div class="thumb">
+          <img src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2018-11/PayID-register-2.jpg" alt="" onerror="this.onerror=null;this.style.display='none';">
+        </div>
+        <h3>Use PayID to send money</h3>
+        <p>Pay someone using just their mobile number, email address or ABN — no account details needed.</p>
+      </div>
+      <div class="v-card">
+        <div class="thumb">
+          <img src="https://www.commbank.com.au/content/dam/commbank-assets/digital-banking/2017-02/PayID-register-3.png" alt="" onerror="this.onerror=null;this.style.display='none';">
+        </div>
+        <h3>How to register your PayID</h3>
+        <p>Register in the CommBank app in a few taps — search ‘PayID’ and follow the prompts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="v-wrap">
+  <section class="v-section" id="start">
+    <div class="v-cols">
+      <div class="v-col-head"><h2>Get started</h2></div>
+      <div class="v-col-body">
+        <h3>What you need first:</h3>
+        <ul>
+          <li>A CommBank transaction account</li>
+          <li>The CommBank app</li>
+          <li>An Australian mobile number or email address</li>
+        </ul>
+        <div class="v-banner">
+          <div class="thumb">
+            <img src="https://www.commbank.com.au/content/dam/commbank-assets/support/2024/messaging-promo_50split.jpg" alt="Message us in the CommBank app" onerror="this.onerror=null;this.style.display='none';this.parentElement.style.minHeight='120px';">
+          </div>
+          <div>
+            <h3>Message us 24/7</h3>
+            <p>Get instant help from our virtual assistant or chat with a specialist in the CommBank app.</p>
+            <a href="#">Tell me more</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="v-footer">
+  <a class="v-topbtn" href="#" aria-label="Back to top" onclick="window.scrollTo(0,0);return false;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 14 12 8 18 14"/></svg>
+  </a>
+  <div class="cols">
+    <div class="col">
+      <h4>Quick links</h4>
+      <a href="#">Security &amp; scams</a>
+      <a href="#">Help &amp; support</a>
+      <a href="#">Financial assistance</a>
+      <a href="#">Complaints &amp; compliments</a>
+      <a href="#">Accessibility</a>
+    </div>
+    <div class="col">
+      <h4>About us</h4>
+      <a href="#">About CommBank</a>
+      <a href="#">Careers at CommBank</a>
+      <a href="#">Sustainability</a>
+      <a href="#">Newsroom</a>
+      <a href="#">Investor centre</a>
+    </div>
+    <div class="col">
+      <h4>Important information</h4>
+      <a href="#">Privacy</a>
+      <a href="#">Terms of use</a>
+      <a href="#">Financial Services Guide</a>
+      <a href="#">Banking Code of Practice</a>
+    </div>
+  </div>
+  <p class="v-ack">CommBank acknowledges the Traditional Owners of the lands across Australia as the continuing custodians of Country and Culture. We pay our respect to First Nations peoples and their Elders, past and present.</p>
+  <p class="v-legal">© 2026 Commonwealth Bank of Australia ABN 48 123 123 124 AFSL and Australian credit licence 234945</p>
+  <p class="v-hub"><a href="/">Demo hub</a></p>
+</footer>
+
+<div class="v-toast" id="v4157609f-toast" role="status"></div>
+<button id="v4157609f-reset" type="button" title="Presenter control: clears the gateway's in-memory payment history and failure state so the demo can be run again. Does not fix the release.">Reset · npp-payments-gateway</button>
+
+<script>
+(function () {
+  var API = '/api/4157609f/payments';
+  var toastEl = document.getElementById('v4157609f-toast');
+  var resetBtn = document.getElementById('v4157609f-reset');
+  var cta = document.getElementById('biz-cta');
+  var toastTimer = null;
+  var inFlight = false;
+
+  function bootstrapIdentity() {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (config) {
+      if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+      if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      if (config.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', config.defaultEmail);
+    }).catch(function () {});
+  }
+
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function hideToast() {
+    toastEl.className = 'v-toast';
+    toastEl.innerHTML = '';
+  }
+
+  function showToast(ok, title, body, meta) {
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+    toastEl.className = 'v-toast show' + (ok ? ' ok' : '');
+    toastEl.innerHTML = '<div class="t-title">' + esc(title) + '</div>'
+      + (body ? '<div class="t-body">' + esc(body) + '</div>' : '')
+      + (meta ? '<div class="t-meta">' + esc(meta) + '</div>' : '');
+    toastTimer = setTimeout(hideToast, 12000);
+  }
+
+  function clientRef() {
+    return Math.random().toString(16).slice(2, 10).toUpperCase();
+  }
+
+  function triggerPayment() {
+    if (inFlight) return;
+    inFlight = true;
+    var status = document.createElement('span');
+    status.className = 'status';
+    status.textContent = 'Resolving PayID…';
+    cta.parentNode.insertBefore(status, cta.nextSibling);
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })
+    }).then(function (r) {
+      return r.json().then(function (body) { return { ok: r.ok, body: body }; });
+    }).then(function (result) {
+      status.remove();
+      if (!result.ok) {
+        document.body.classList.add('v4157609f-degraded');
+        showToast(false, 'Payment could not be completed',
+          result.body.errorType + ': ' + result.body.error,
+          'Ref ' + clientRef() + ' · ABN PayID 51 824 753 556 · npp-payments-gateway@2.31.0');
+      } else {
+        showToast(true, 'Payment settled', '', '');
+      }
+    }).catch(function (error) {
+      status.remove();
+      document.body.classList.add('v4157609f-degraded');
+      showToast(false, 'Payment could not be completed', 'Error: ' + error.message,
+        'Ref ' + clientRef() + ' · ABN PayID 51 824 753 556 · npp-payments-gateway@2.31.0');
+    }).then(function () {
+      inFlight = false;
+    });
+  }
+
+  cta.addEventListener('click', function (e) {
+    e.preventDefault();
+    triggerPayment();
+  });
+
+  resetBtn.addEventListener('click', function () {
+    fetch(API + '/reset', { method: 'POST' }).then(function () {
+      document.body.classList.remove('v4157609f-degraded');
+      if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+      showToast(true, 'Reset · back to standby', '', '');
+    }).catch(function () {});
+  });
+
+  document.querySelectorAll('.v-tabs a').forEach(function (link) {
+    link.addEventListener('click', function () {
+      document.querySelectorAll('.v-tabs a').forEach(function (l) { l.classList.remove('active'); });
+      link.classList.add('active');
+    });
+  });
+
+  bootstrapIdentity();
+}());
+</script>
+<script src="/session-cap-banner.js"></script>
+</body>
+</html>
