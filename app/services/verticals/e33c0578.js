@@ -46,13 +46,6 @@ const WORK_RULES = {
     overtimeThresholdHours: 40,
     shiftDifferential: 3.5,
   },
-  'US-WEEKEND-ROTATION': {
-    label: 'Weekend rotation (Northgate)',
-    overtimeMultiplier: 1.5,
-    doubleTimeMultiplier: 2,
-    overtimeThresholdHours: 40,
-    shiftDifferential: 1.75,
-  },
 };
 
 const EMPLOYEES = [
@@ -109,7 +102,8 @@ const EMPLOYEES = [
     name: 'Grace Okonkwo',
     jobTitle: 'Surgical Tech',
     location: 'Northgate Surgery Center',
-    // Northgate opened this period and runs the weekend rotation work rule.
+    // Northgate opened this period; its weekend-rotation work rule was created
+    // in Workforce Management but never added to the payroll rule set.
     workRule: 'US-WEEKEND-ROTATION',
     payType: 'hourly',
     hourlyRate: 34.9,
@@ -180,22 +174,8 @@ function resolveWorkRule(employee) {
   return WORK_RULES[employee.workRule];
 }
 
-function requireWorkRule(employee) {
-  const workRule = resolveWorkRule(employee);
-  if (!workRule) {
-    const error = new Error(
-      `No payroll work rule is registered for '${employee.workRule}' (employee ${employee.id}).`,
-    );
-    error.name = 'ValidationError';
-    error.code = 'WORK_RULE_NOT_REGISTERED';
-    error.statusCode = 422;
-    throw error;
-  }
-  return workRule;
-}
-
 function calculateGrossPay(employee) {
-  const workRule = requireWorkRule(employee);
+  const workRule = resolveWorkRule(employee);
 
   if (employee.payType === 'salary') {
     return {
@@ -373,7 +353,6 @@ module.exports = {
   getPayRun,
   calculateGrossPay,
   resolveWorkRule,
-  requireWorkRule,
   buildPayRunSummary,
   PAY_GROUP,
   EMPLOYEES,
