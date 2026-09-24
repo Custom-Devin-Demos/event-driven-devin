@@ -467,7 +467,7 @@
             <div class="two">
               <div class="field">
                 <label for="seats">GPUs</label>
-                <input id="seats" type="number" value="64" min="8" step="8" required />
+                <input id="seats" type="number" value="64" min="8" max="248" step="8" required />
                 <div class="hint">8 GPUs per node</div>
               </div>
               <div class="field">
@@ -588,6 +588,11 @@
         btn.textContent = "Reserving…";
         result.className = "result-box";
         result.textContent = "";
+        const chosen = {
+          platform: label(product),
+          commitment: label(planTier),
+          region: label(region).split(" — ")[0],
+        };
         try {
           const res = await fetch("/api/licenses/provision", {
             method: "POST",
@@ -596,7 +601,7 @@
               orgName: product.value,
               planName: planTier.value,
               seats: parseInt(seats.value, 10),
-              billingCycle: "annual",
+              billingCycle: planTier.value === "enterprise" ? "annual" : "monthly",
               devinUserId: localStorage.getItem("devinUserId") || "",
               devinOrgId: localStorage.getItem("devinOrgId") || "",
               devinEmail: localStorage.getItem("devinEmail") || "",
@@ -612,7 +617,7 @@
               "The reservation could not be completed right now. No capacity was allocated and nothing was billed.";
           } else {
             result.className = "result-box success";
-            result.textContent = `Cluster reserved — ${d.seats} × ${label(product)}, ${label(planTier)}, ${label(region).split(" — ")[0]}. Capacity is available in the console.`;
+            result.textContent = `Cluster reserved — ${d.seats} × ${chosen.platform}, ${chosen.commitment}, ${chosen.region}. Capacity is available in the console.`;
           }
         } catch (_) {
           result.className = "result-box error";
