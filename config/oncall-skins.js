@@ -2452,6 +2452,7 @@ const ONCALL_SKINS = {
     company: 'Siemens',
     brandMark: 'S',
     vertical: 'hightech',
+    oncallOnly: true,
     page: {
       file: '5afb121f.html',
       title: 'Add seats | Siemens Xcelerator',
