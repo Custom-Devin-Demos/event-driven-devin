@@ -61,6 +61,13 @@
     .hero-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); display:inline-block; }
     .hero h1 { font-family:var(--serif); font-size:clamp(40px,6vw,64px); font-weight:400; line-height:1.15; letter-spacing:-.02em; color:var(--chrome-text); text-transform:none; max-width:800px; margin-bottom:16px; }
     .hero-sub { color:var(--chrome-muted); max-width:640px; font-size:15px; }
+    .hero-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:24px; }
+    .hero-cta { display:inline-flex; align-items:center; gap:8px; padding:11px 22px; border:1px solid var(--accent); border-radius:100px; background:var(--accent); color:#fff; font-family:var(--sans); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; text-decoration:none; text-align:center; line-height:1.4; max-width:100%; transition:all .2s; }
+    .hero-cta:hover { background:#98a3ff; border-color:#98a3ff; }
+    .hero-cta-ghost { background:transparent; color:var(--chrome-text); border-color:var(--chrome-line); }
+    .hero-cta-ghost:hover { background:rgba(255,255,255,.06); border-color:var(--chrome-text); }
+    .hero-note { margin-top:20px; display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px 8px; padding:10px 16px; border:1px solid var(--chrome-line); border-radius:8px; color:var(--chrome-muted); font-size:13px; }
+    .hero-note code { font-family:var(--mono); font-size:12px; color:var(--chrome-text); background:rgba(255,255,255,.06); border:1px solid var(--chrome-line); border-radius:4px; padding:1px 6px; }
     .pipeline-section { width:100%; background:var(--chrome-deep); padding:32px 0 48px; }
     .pipeline-inner { max-width:1200px; margin:0 auto; padding:0 40px; }
     .section-title,.card-vertical { color:var(--muted); font-family:var(--sans); font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
@@ -78,6 +85,7 @@
     .section h2 { font:400 28px/1.15 var(--serif); margin:0 0 16px; }
     .badge { padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); font:11px var(--mono); }
     .section-desc { max-width:780px; font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
+    .section-desc code { font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--wash); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
     .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
     .grid.cols-1 { grid-template-columns:repeat(1,minmax(0,1fr)); }
     .grid.cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -162,6 +170,11 @@
       <div class="hero-badge" id="hero-badge">DEVIN ON-CALL</div>
       <h1>On-call operations</h1>
       <p class="hero-sub">Trigger an incident. The running service degrades, alerting fires, and Devin picks up the alert and investigates.</p>
+      <div class="hero-actions">
+        <a class="hero-cta" href="https://coggtm.slack.com/archives/C0BVC5WS88G" target="_blank" rel="noopener">Major incident (SEV-1) &rarr; open incident channel</a>
+        <a class="hero-cta hero-cta-ghost" href="/oncall/report" target="_blank" rel="noopener">Customer bug report &rarr;</a>
+      </div>
+      <p class="hero-note">Before you start, make sure you&rsquo;re in <code>#oncall-alerts</code> and <code>#oncall-bugs</code> &mdash; that&rsquo;s where the alerts and tickets land.</p>
     </div>
   </section>
 
@@ -189,7 +202,7 @@
         <span class="badge" id="alert-badge">#oncall-alerts</span>
       </div>
       <h2 id="alert-heading">Production degradations</h2>
-      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR. <span id="retry-note"></span></p>
+      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <code>#oncall-alerts</code> for Devin to investigate. <span id="retry-note"></span></p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
@@ -201,7 +214,7 @@
         <span class="badge">SEV-1</span>
       </div>
       <h2>Beyond machine alerts</h2>
-      <p class="section-desc">Some issues arrive as customer reports or major incidents rather than machine alerts. Customer reports describe symptoms without a stack trace.</p>
+      <p class="section-desc">Not everything starts as a machine alert.</p>
       <div class="wide-row">
         <a class="wide-card" href="/oncall/report" target="_blank" rel="noopener">
           <div class="wide-title">Customer Bug Report</div>
@@ -281,14 +294,11 @@
       const climbing = scenarios.filter((s) => s.retryWindow)
         .map((s) => s.brand.replace(/ \(.*\)$/, ''));
       if (!climbing.length) {
-        el.textContent = 'Every scenario posts a fresh incident on every submit.';
+        el.textContent = '';
         return;
       }
-      el.textContent = 'On the climbing-latency scenarios (' + climbing.join(', ') + '), the ' +
-        'first submit posts the alert and opens a 60-second retry window: repeat submits within ' +
-        'it join the same incident and show the latency rising; after the window expires or the ' +
-        'page is refreshed, the next submit registers as a fresh occurrence. All other scenarios ' +
-        'post a fresh incident on every submit.';
+      el.textContent = 'On ' + climbing.join(', ') + ', repeat submits within 60 seconds ' +
+        'join the same incident and show the latency climbing.';
     }
 
     async function init() {
