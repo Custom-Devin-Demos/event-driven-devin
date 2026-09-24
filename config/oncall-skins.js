@@ -2426,6 +2426,26 @@ const ONCALL_SKINS = {
     supportCenter: 'Erebor Client Service',
     disclaimer: 'NOT ACTUALLY AN EREBOR SITE — internal demo only, not affiliated with, endorsed by, or a real Erebor product.',
   },
+  '82b32928': {
+    slug: '82b32928',
+    company: 'Nebius',
+    brandMark: 'N',
+    vertical: 'hightech',
+    page: {
+      file: '82b32928.html',
+      title: 'Provision GPUs | Nebius AI Cloud',
+    },
+    theme: {
+      '--accent': '#3277FF',
+      '--ink': '#052B42',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#052B42',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'Nebius Support',
+    supportCenterSub: 'AI Cloud Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A NEBIUS SITE — internal demo only, not affiliated with, endorsed by, or a real Nebius product.',
+  },
 };
 
 function getOncallSkin(slug) {
