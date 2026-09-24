@@ -75,8 +75,10 @@
     .field-term .term-wrap::before { content: ""; position: absolute; left: 14px; top: 12px; width: 20px; height: 20px; background: url("data:image/svg+xml;charset=utf-8,%3Csvg fill='%23515761' width='24px' height='24px' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M17.2931323,15.1607228 L23.5521788,21.4197694 C24.144796,22.0123865 24.1516928,22.9663118 23.5584088,23.5595958 C22.9692324,24.1487722 22.0118256,24.1466091 21.4185824,23.5533658 L15.1594457,17.2942292 C13.5850535,18.436437 11.6485378,19.1099534 9.55471812,19.1099534 C4.27779301,19.1099534 0,14.8320446 0,9.55497671 C0,4.27790879 4.27779301,0 9.55471812,0 C14.8316432,0 19.1094362,4.27790879 19.1094362,9.55497671 C19.1094362,11.6492373 18.4356908,13.586132 17.2931323,15.1607228 Z M9.55471812,16.0925924 C13.1652458,16.0925924 16.0921568,13.1656021 16.0921568,9.55497671 C16.0921568,5.94435129 13.1652458,3.01736107 9.55471812,3.01736107 C5.94419041,3.01736107 3.01727941,5.94435129 3.01727941,9.55497671 C3.01727941,13.1656021 5.94419041,16.0925924 9.55471812,16.0925924 Z'/%3E%3C/svg%3E") no-repeat center / 20px; }
     .field-term input { width: 100%; height: 44.8px; padding: 0 40px 0 48px; border: 1px solid var(--v-muted); border-radius: 3px; background: var(--v-white); color: var(--v-muted); font: 400 16px/24px Inter, sans-serif; box-shadow: rgba(0,0,0,0.1) 0 0 5px 0; outline: none; }
     .field-term input:focus { border-color: var(--v-primary); box-shadow: 0 0 0 1px var(--v-primary); }
-    .field-alt .select { position: relative; display: flex; align-items: center; width: 233.6px; height: 44.8px; padding: 8px 40px 8px 16px; border: 1px solid var(--v-muted); border-radius: 3px; background: var(--v-white); color: var(--v-muted); font: 400 16px/24px Inter, sans-serif; box-shadow: rgba(0,0,0,0.1) 0 0 5px 0; cursor: default; white-space: nowrap; }
-    .field-alt .select::after { content: ""; position: absolute; right: 14px; top: 16px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid var(--v-muted); }
+    .field-alt .select-wrap { position: relative; width: 233.6px; }
+    .field-alt select { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 44.8px; padding: 8px 40px 8px 16px; border: 1px solid var(--v-muted); border-radius: 3px; background: var(--v-white); color: var(--v-muted); font: 400 16px/24px Inter, sans-serif; box-shadow: rgba(0,0,0,0.1) 0 0 5px 0; cursor: pointer; white-space: nowrap; outline: none; }
+    .field-alt select:focus { border-color: var(--v-primary); box-shadow: 0 0 0 1px var(--v-primary); }
+    .field-alt .select-wrap::after { content: ""; position: absolute; right: 14px; top: 19px; width: 0; height: 0; pointer-events: none; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid var(--v-muted); }
     .actions { display: flex; align-items: center; margin-left: 8px; }
     .btn-search { height: 46px; width: 130px; padding: 10.5px 24px; margin: 0 8px 0 0; border: 1px solid var(--v-primary); border-radius: 8px; background: var(--v-primary); color: var(--v-white); font: 500 19px/1 Inter, sans-serif; cursor: pointer; }
     .btn-search:hover { background: var(--v-primary-dark); border-color: var(--v-primary-dark); }
@@ -196,8 +198,13 @@
           <div class="term-wrap"><input id="edit-term" type="text" autocomplete="off" placeholder=""></div>
         </div>
         <div class="field field-alt">
-          <label id="alt-label">Generic/Biosimilar (Optional)</label>
-          <div class="select" role="combobox" aria-labelledby="alt-label" aria-expanded="false" tabindex="0" id="altSelect" data-value="any">- Generic/Biosimilar -</div>
+          <label for="altSelect">Generic/Biosimilar (Optional)</label>
+          <div class="select-wrap"><select id="altSelect">
+            <option value="any">- Generic/Biosimilar -</option>
+            <option value="generic">Generic(s) Available</option>
+            <option value="biosimilar">Biosimilar(s) Available</option>
+            <option value="none">No Generic/Biosimilar</option>
+          </select></div>
         </div>
         <div class="actions">
           <button type="button" class="btn-search" id="searchBtn">Search</button>
@@ -359,7 +366,7 @@
         if (searchBtn.disabled) return;
         searchBtn.disabled = true;
         var term = document.getElementById('edit-term').value;
-        var alternative = document.getElementById('altSelect').getAttribute('data-value') || 'any';
+        var alternative = document.getElementById('altSelect').value || 'any';
         fetch(API + '/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -394,6 +401,7 @@
         event.preventDefault();
         fetch(API + '/search/reset', { method: 'POST' }).then(function (r) { return r.json(); }).then(function (body) {
           document.getElementById('edit-term').value = '';
+          document.getElementById('altSelect').value = 'any';
           document.body.classList.remove('degraded');
           return loadCatalog().then(function () {
             toast('success', 'Reset · back to standby', '<span class="muted">' + (body.cleared || 0) + ' search record(s) cleared</span>');

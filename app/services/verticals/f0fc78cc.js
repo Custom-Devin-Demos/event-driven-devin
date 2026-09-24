@@ -37,6 +37,7 @@ const ALTERNATIVE_LABELS = {
 
 const SEARCH_HISTORY = [];
 const MAX_HISTORY = 50;
+const MAX_TERM_LENGTH = 120;
 
 function tokenize(term) {
   return String(term || '')
@@ -47,7 +48,7 @@ function tokenize(term) {
 }
 
 function normalizeQuery(body) {
-  const term = typeof body.term === 'string' ? body.term.trim() : '';
+  const term = typeof body.term === 'string' ? body.term.trim().slice(0, MAX_TERM_LENGTH) : '';
   const alternative = typeof body.alternative === 'string' && body.alternative in ALTERNATIVE_LABELS ? body.alternative : 'any';
   const page = Number.isInteger(body.page) && body.page > 0 ? body.page : 1;
   return {
