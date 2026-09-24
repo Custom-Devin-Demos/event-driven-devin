@@ -68,6 +68,13 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent({ culprit, tags: [] })).toBe(false);
   });
 
+  test('recognizes a tagless NPP payments issue webhook by its culprit module path', () => {
+    expect(isInstantPathEvent({
+      culprit: 'app/services/verticals/4157609f.js — initiatePayment',
+      tags: [],
+    })).toBe(true);
+  });
+
   test('does not recognize a tagless issue webhook from another vertical', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
