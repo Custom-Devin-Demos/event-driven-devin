@@ -2473,6 +2473,7 @@ const ONCALL_SKINS = {
     company: 'The Economist',
     brandMark: 'E',
     vertical: 'telco',
+    oncallOnly: true,
     page: {
       file: 'd47f7970.html',
       title: 'Manage subscription | The Economist',
