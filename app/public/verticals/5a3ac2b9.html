@@ -29,8 +29,20 @@
     padding: 34px 32px 0;
     color: #fff; mix-blend-mode: difference;
     pointer-events: none;
+    transition: padding .25s ease, transform .3s ease, background-color .25s ease;
   }
   header > * { pointer-events: auto; }
+  header.scrolled {
+    padding: 18px 32px 16px;
+    color: #000; mix-blend-mode: normal; background: #fff;
+  }
+  header.scrolled::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 56px;
+    background: linear-gradient(to bottom, #fff 0%, rgba(255,255,255,.85) 35%, rgba(255,255,255,0) 100%);
+    pointer-events: none;
+  }
+  header.hidden { transform: translateY(-100%); }
+  header.hidden::after { opacity: 0; }
   .menu { display: flex; align-items: center; gap: 14px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 500; }
   .menu .lines { width: 22px; display: flex; flex-direction: column; gap: 5px; }
   .menu .lines span { display: block; height: 1px; background: currentColor; }
@@ -135,6 +147,7 @@
 
   @media (max-width: 900px) {
     header { padding: 22px 18px 0; }
+    header.scrolled { padding: 14px 18px 12px; }
     .hero-titles { left: 18px; bottom: 56px; }
     .hero-eyebrow { right: 18px; left: 18px; bottom: 20px; justify-content: space-between; }
     .stack-item, .previs-head, .previs form { grid-template-columns: 1fr; }
@@ -344,6 +357,22 @@
       if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
       if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
     }).catch(function () {});
+  })();
+
+  (function () {
+    var header = document.querySelector('header');
+    var hero = document.querySelector('.hero');
+    var lastY = window.scrollY;
+    function onScroll() {
+      var y = window.scrollY;
+      var pastHero = y > hero.offsetHeight - header.offsetHeight;
+      header.classList.toggle('scrolled', pastHero);
+      if (!pastHero || y < lastY - 4) header.classList.remove('hidden');
+      else if (y > lastY + 4) header.classList.add('hidden');
+      lastY = y;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
   })();
 
   var REPRO_MODE = new URLSearchParams(window.location.search).get('repro') === '1';
