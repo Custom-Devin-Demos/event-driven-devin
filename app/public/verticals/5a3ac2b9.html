@@ -43,6 +43,7 @@
   }
   header.hidden { transform: translateY(-100%); }
   header.hidden::after { opacity: 0; }
+  #tools, #previs { scroll-margin-top: 72px; }
   .menu { display: flex; align-items: center; gap: 14px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 500; }
   .menu .lines { width: 22px; display: flex; flex-direction: column; gap: 5px; }
   .menu .lines span { display: block; height: 1px; background: currentColor; }
@@ -367,9 +368,16 @@
       var y = window.scrollY;
       var pastHero = y > hero.offsetHeight - header.offsetHeight;
       header.classList.toggle('scrolled', pastHero);
-      if (!pastHero || y < lastY - 4) header.classList.remove('hidden');
-      else if (y > lastY + 4) header.classList.add('hidden');
-      lastY = y;
+      if (!pastHero) {
+        header.classList.remove('hidden');
+        lastY = y;
+      } else if (y < lastY - 4) {
+        header.classList.remove('hidden');
+        lastY = y;
+      } else if (y > lastY + 4) {
+        header.classList.add('hidden');
+        lastY = y;
+      }
     }
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
