@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Untitled Chart | Amplitude Analytics</title>
+  <style>
+    :root {
+      --blue: #1e61f0;
+      --blue-dark: #1a54d1;
+      --ink: #0c0d0e;
+      --body: #41464c;
+      --muted: #6b7280;
+      --line: #e3e5e9;
+      --surface: #ffffff;
+      --canvas: #f6f7f9;
+      --rail: #12131a;
+      --green: #12805c;
+      --red: #c8321f;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+
+    .app { display: grid; grid-template-columns: 216px 1fr; min-height: 100vh; }
+
+    .rail {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 18px 12px;
+      color: rgba(255, 255, 255, .72);
+      background: var(--rail);
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .rail-logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px; color: #fff; }
+    .rail-logo span { font-size: 17px; font-weight: 600; letter-spacing: -.02em; }
+    .rail-section { display: flex; flex-direction: column; gap: 2px; }
+    .rail-section h4 {
+      margin: 0 0 8px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .38);
+    }
+    .rail-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+    .rail-item:hover { background: rgba(255, 255, 255, .07); color: #fff; }
+    .rail-item.active { background: rgba(30, 97, 240, .22); color: #fff; }
+    .rail-item .dot { width: 8px; height: 8px; border-radius: 2px; background: currentColor; opacity: .7; }
+    .rail-footer { margin-top: auto; padding: 10px 8px; font-size: 12px; color: rgba(255, 255, 255, .42); }
+
+    .main { display: flex; flex-direction: column; min-width: 0; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+    .crumbs { color: var(--muted); font-size: 13px; }
+    .crumbs strong { color: var(--ink); font-weight: 600; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--body);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: #c9cdd4; }
+    .btn-primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-dark); border-color: var(--blue-dark); }
+    .btn-primary[disabled] { opacity: .6; cursor: wait; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: #dbe6ff; color: var(--blue);
+      font-size: 12px; font-weight: 600;
+    }
+
+    .tabs {
+      display: flex; gap: 4px; padding: 0 24px;
+      background: var(--surface); border-bottom: 1px solid var(--line);
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      flex: 0 0 auto;
+      padding: 12px 14px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: none;
+      color: var(--muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+    .workspace { display: grid; grid-template-columns: 340px 1fr; gap: 20px; padding: 20px 24px 40px; align-items: start; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-bottom: 1px solid var(--line);
+    }
+    .panel-head h3 { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+    .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    .field label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 12.5px; font-weight: 500; }
+    .field select, .field input {
+      width: 100%; height: 36px; padding: 0 10px;
+      border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
+    }
+    .field select:focus, .field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(30, 97, 240, .14); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .event-chip {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfe;
+    }
+    .event-chip .badge {
+      width: 22px; height: 22px; border-radius: 5px;
+      display: grid; place-items: center;
+      background: var(--blue); color: #fff; font-size: 11px; font-weight: 700;
+    }
+    .event-chip .meta { font-size: 12px; color: var(--muted); }
+
+    .chart-panel { min-height: 520px; display: flex; flex-direction: column; }
+    .chart-toolbar {
+      display: flex; align-items: center; gap: 16px;
+      padding: 14px 18px; border-bottom: 1px solid var(--line);
+    }
+    .metric { display: flex; flex-direction: column; gap: 2px; }
+    .metric .value { font-size: 24px; font-weight: 600; letter-spacing: -.02em; }
+    .metric .label { font-size: 12px; color: var(--muted); }
+    .delta { font-size: 12.5px; font-weight: 600; color: var(--green); }
+    .chart-body { flex: 1; padding: 22px 18px 18px; }
+
+    .empty {
+      height: 100%; min-height: 360px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+      color: var(--muted); text-align: center;
+    }
+    .empty strong { color: var(--ink); font-size: 15px; }
+
+    .bars { display: none; align-items: flex-end; gap: 6px; height: 320px; padding-top: 10px; border-bottom: 1px solid var(--line); }
+    .bars.show { display: flex; }
+    .bar { flex: 1; min-width: 4px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, #4d86ff, var(--blue)); }
+    .bars-axis { display: none; justify-content: space-between; padding-top: 8px; color: var(--muted); font-size: 12px; }
+    .bars-axis.show { display: flex; }
+
+    .result { display: none; margin: 0 18px 18px; padding: 14px 16px; border-radius: 8px; font-size: 13.5px; line-height: 1.5; }
+    .result.show { display: block; }
+    .result strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .result.error { border: 1px solid #f3c7bf; border-left: 4px solid var(--red); background: #fdf3f1; }
+    .result.success { border: 1px solid #c3e5d8; border-left: 4px solid var(--green); background: #f1f9f5; }
+    .result-tech {
+      display: block; margin-top: 8px;
+      color: #8a2c19;
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      word-break: break-word; white-space: pre-wrap;
+    }
+
+    @media (max-width: 1080px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .workspace { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .topbar { padding: 12px 14px; }
+      .crumbs { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .tabs { padding: 0 14px; }
+      .workspace { padding: 16px 14px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <div class="rail-logo">
+        <svg width="26" height="26" viewBox="0 0 32 32" role="img" aria-label="Amplitude">
+          <path d="M3 25c4.5 0 6.6-18 10.2-18S20 25 24.6 25c2.2 0 3.4-3.4 4.4-7.4" fill="none" stroke="#1e61f0" stroke-width="3.4" stroke-linecap="round"/>
+        </svg>
+        <span>amplitude</span>
+      </div>
+
+      <div class="rail-section">
+        <h4>Analytics</h4>
+        <div class="rail-item"><i class="dot"></i>Home</div>
+        <div class="rail-item active"><i class="dot"></i>Charts</div>
+        <div class="rail-item"><i class="dot"></i>Dashboards</div>
+        <div class="rail-item"><i class="dot"></i>Cohorts</div>
+      </div>
+
+      <div class="rail-section">
+        <h4>Data</h4>
+        <div class="rail-item"><i class="dot"></i>Events</div>
+        <div class="rail-item"><i class="dot"></i>Properties</div>
+        <div class="rail-item"><i class="dot"></i>Sources &amp; Destinations</div>
+      </div>
+
+      <div class="rail-footer">Project: Growth Analytics (Prod)</div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="crumbs">Growth Analytics &nbsp;/&nbsp; Charts &nbsp;/&nbsp; <strong>Checkout Conversion — Untitled Chart</strong></div>
+        <div class="topbar-actions">
+          <button class="btn" type="button">Share</button>
+          <button class="btn" type="button">Save</button>
+          <div class="avatar">AM</div>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Chart type">
+        <button class="tab active" type="button" data-chart="event_segmentation">Event Segmentation</button>
+        <button class="tab" type="button" data-chart="funnel_analysis">Funnel Analysis</button>
+        <button class="tab" type="button" data-chart="retention_analysis">Retention Analysis</button>
+        <button class="tab" type="button" data-chart="user_sessions">User Sessions</button>
+      </nav>
+
+      <div class="workspace">
+        <section class="panel">
+          <div class="panel-head"><h3>Chart definition</h3></div>
+          <div class="panel-body">
+            <div class="event-chip">
+              <span class="badge">A</span>
+              <div>
+                <div>Checkout Completed</div>
+                <div class="meta">Any event property · 48.2k uniques / wk</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="eventName">Event</label>
+              <select id="eventName">
+                <option value="checkout_completed" selected>Checkout Completed</option>
+                <option value="signup_completed">Sign Up Completed</option>
+                <option value="session_start">Session Start</option>
+                <option value="feature_activated">Feature Activated</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="segmentBy">Group by</label>
+              <select id="segmentBy">
+                <option value="None" selected>None</option>
+                <option value="country">country</option>
+                <option value="plan_tier">plan_tier</option>
+                <option value="platform">platform</option>
+              </select>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label for="lookbackDays">Date range</label>
+                <select id="lookbackDays">
+                  <option value="30">Last 30 days</option>
+                  <option value="90" selected>Last 90 days</option>
+                  <option value="180">Last 180 days</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="interval">Interval</label>
+                <select id="interval">
+                  <option value="hourly">Hourly</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly" selected>Monthly</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="projectId">Project</label>
+              <input id="projectId" value="prj_growth_analytics_prod" readonly>
+            </div>
+
+            <button class="btn btn-primary" type="button" id="run-button" style="justify-content:center;">Run Analysis</button>
+          </div>
+        </section>
+
+        <section class="panel chart-panel">
+          <div class="chart-toolbar">
+            <div class="metric">
+              <span class="value" id="metric-value">—</span>
+              <span class="label" id="metric-label">Uniques · Last 90 days</span>
+            </div>
+            <span class="delta" id="metric-delta"></span>
+          </div>
+
+          <div class="chart-body">
+            <div class="empty" id="chart-empty">
+              <strong>No results yet</strong>
+              <span>Run the analysis to query the event rollups for this chart.</span>
+            </div>
+            <div class="bars" id="chart-bars" aria-hidden="true"></div>
+            <div class="bars-axis" id="chart-axis"><span id="axis-start"></span><span id="axis-end"></span></div>
+          </div>
+
+          <div class="result error" id="chart-error" role="alert">
+            <strong>Chart query failed</strong>
+            <span>The query engine could not build this series. Try a different interval or contact your Amplitude admin.</span>
+            <code class="result-tech" id="chart-error-tech"></code>
+          </div>
+          <div class="result success" id="chart-success" role="status">
+            <strong>Query complete</strong>
+            <span id="chart-success-copy"></span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var METRIC_LABELS = {
+      event_segmentation: 'Uniques',
+      funnel_analysis: 'Conversion',
+      retention_analysis: 'Retained users',
+      user_sessions: 'Sessions',
+    };
+
+    var chartType = 'event_segmentation';
+    var runButton = document.getElementById('run-button');
+    var errorPanel = document.getElementById('chart-error');
+    var successPanel = document.getElementById('chart-success');
+    var bars = document.getElementById('chart-bars');
+    var axis = document.getElementById('chart-axis');
+    var emptyState = document.getElementById('chart-empty');
+
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+      tab.addEventListener('click', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (other) {
+          other.classList.remove('active');
+        });
+        tab.classList.add('active');
+        chartType = tab.getAttribute('data-chart');
+      });
+    });
+
+    function clearSeries() {
+      bars.innerHTML = '';
+      bars.classList.remove('show');
+      axis.classList.remove('show');
+      emptyState.style.display = '';
+      document.getElementById('metric-value').textContent = '—';
+      document.getElementById('metric-delta').textContent = '';
+      document.getElementById('metric-label').textContent =
+        METRIC_LABELS[chartType] + ' · Last ' + document.getElementById('lookbackDays').value + ' days';
+    }
+
+    function formatCount(value) {
+      if (value >= 1000000) return (value / 1000000).toFixed(2) + 'M';
+      if (value >= 1000) return (value / 1000).toFixed(1) + 'k';
+      return String(value);
+    }
+
+    function formatBucket(iso) {
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    function renderSeries(body) {
+      var series = body.results.series.slice(-40);
+      var max = series.reduce(function (peak, point) { return Math.max(peak, point.value); }, 1);
+
+      bars.innerHTML = '';
+      series.forEach(function (point) {
+        var bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = Math.max(4, Math.round((point.value / max) * 100)) + '%';
+        bar.title = formatBucket(point.bucketStart) + ' · ' + point.value.toLocaleString();
+        bars.appendChild(bar);
+      });
+
+      document.getElementById('axis-start').textContent = formatBucket(series[0].bucketStart);
+      document.getElementById('axis-end').textContent = formatBucket(series[series.length - 1].bucketStart);
+      document.getElementById('metric-value').textContent = formatCount(body.results.total);
+      document.getElementById('metric-label').textContent =
+        body.chart.metricLabel + ' · ' + body.chart.event + ' · ' + body.chart.interval;
+      document.getElementById('metric-delta').textContent =
+        (body.results.changePct >= 0 ? '▲ ' : '▼ ') + Math.abs(body.results.changePct) + '% vs previous bucket';
+
+      emptyState.style.display = 'none';
+      bars.classList.add('show');
+      axis.classList.add('show');
+    }
+
+    runButton.addEventListener('click', async function () {
+      if (runButton.disabled) return;
+
+      runButton.disabled = true;
+      runButton.textContent = 'Running…';
+      errorPanel.classList.remove('show');
+      successPanel.classList.remove('show');
+      clearSeries();
+
+      await identityReady;
+
+      var payload = {
+        projectId: document.getElementById('projectId').value,
+        eventName: document.getElementById('eventName').value,
+        chartType: chartType,
+        interval: document.getElementById('interval').value,
+        segmentBy: document.getElementById('segmentBy').value,
+        lookbackDays: Number(document.getElementById('lookbackDays').value),
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+
+      fetch('/api/5826f4f2/chart-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || result.body.error) {
+            document.getElementById('chart-error-tech').textContent =
+              (result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error') +
+              '\n' + (result.body.code || 'CHART_QUERY_FAILED') +
+              ' · Reference ID: ' + (result.body.requestId || 'unavailable');
+            errorPanel.classList.add('show');
+            return;
+          }
+
+          renderSeries(result.body);
+          document.getElementById('chart-success-copy').textContent =
+            'Query ' + result.body.queryId + ' read ' + result.body.rollup.buckets + ' buckets from ' +
+            result.body.rollup.table + ' (' + result.body.rollup.coveredDays + ' days).';
+          successPanel.classList.add('show');
+        })
+        .catch(function (error) {
+          document.getElementById('chart-error-tech').textContent = 'NetworkError: ' + error.message;
+          errorPanel.classList.add('show');
+        })
+        .finally(function () {
+          runButton.disabled = false;
+          runButton.textContent = 'Run Analysis';
+        });
+    });
+  </script>
+</body>
+</html>

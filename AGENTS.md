@@ -58,6 +58,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Tenet Health — ER Wait Board & Online Check-In** (unlisted — direct URL only) | `/tenet`, `/tenethealth`, `/cb48a22d` | `app/public/verticals/cb48a22d.html` | `GET /api/cb48a22d/waittimes`, `POST /api/cb48a22d/checkin` | `app/services/verticals/cb48a22d.js` |
 | **Lilly — LillyDirect Self Pay Vial Order** (unlisted — direct URL only) | `/lilly`, `/lillydirect`, `/zepbound`, `/eda0e2e5` | `app/public/verticals/eda0e2e5.html` | `GET /api/eda0e2e5/catalog`, `POST /api/eda0e2e5/orders` | `app/services/verticals/eda0e2e5.js` |
 | **Mainspring Energy — Get Power Project Inquiry** (unlisted — direct URL only) | `/mainspring`, `/915a6563` | `app/public/verticals/915a6563.html` | `POST /api/915a6563/power-inquiry` | `app/services/verticals/915a6563.js` |
+| **Amplitude Analytics — Chart query** (unlisted — direct URL only) | `/amplitude`, `/5826f4f2` | `app/public/verticals/5826f4f2.html` | `GET /api/5826f4f2/metadata`, `POST /api/5826f4f2/chart-query` | `app/services/verticals/5826f4f2.js` |
 | **UKG Pro — Payroll Gateway pay run** (unlisted — direct URL only) | `/ukg`, `/ukgpro`, `/e33c0578` | `app/public/verticals/e33c0578.html` | `GET /api/e33c0578/pay-run`, `POST /api/e33c0578/pay-run` | `app/services/verticals/e33c0578.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
