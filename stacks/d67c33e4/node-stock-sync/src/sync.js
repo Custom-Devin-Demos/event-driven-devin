@@ -3,9 +3,9 @@
 /**
  * WMS stock movement sync worker.
  *
- * Runs on the legacy Node 12 estate. Polls the warehouse management system for
- * movement deltas, normalises them into stock positions and posts them to the
- * control tower API.
+ * Legacy Node 12 estate code, kept as a dependency-upgrade fixture only: it is
+ * not installed, executed or wired into the control tower API, and the
+ * endpoints and signing keys it references do not exist. See ../../README.md.
  */
 
 var _ = require('lodash');

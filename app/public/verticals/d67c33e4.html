@@ -139,11 +139,16 @@
       .grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 760px) {
-      .sidebar { position: static; width: 64px; padding: 16px 8px; }
+      .sidebar { position: static; flex: 0 0 64px; width: 64px; padding: 16px 8px; }
+      .brand { padding: 2px 0 20px; text-align: center; }
+      .brand .mark { font-size: 19px; }
       .brand .product, .nav-section, .nav a span, .sidebar-foot { display: none; }
       .nav a { justify-content: center; }
-      .main { width: 100%; margin-left: 0; }
-      .topbar { padding: 0 16px; }
+      .main { flex: 1; width: auto; min-width: 0; margin-left: 0; }
+      .topbar { padding: 0 16px; gap: 12px; }
+      .org { min-width: 0; }
+      .org-sub, .top-actions .pill, .top-actions svg { display: none; }
+      .top-actions { gap: 12px; }
       .content { padding: 20px 16px 44px; }
       .kpis { grid-template-columns: repeat(2, 1fr); }
       .heading { display: block; }
@@ -282,6 +287,16 @@
     const resultTitle = document.getElementById('result-title');
     const resultTech = document.getElementById('result-tech');
     const runButton = document.getElementById('run-plan');
+    let planRunning = false;
+    const defaultIdentity = { orgId: '', userId: '' };
+
+    fetch('/api/config')
+      .then((response) => response.json())
+      .then((config) => {
+        defaultIdentity.orgId = config.defaultOrgId || '';
+        defaultIdentity.userId = config.defaultUserId || '';
+      })
+      .catch(() => {});
 
     const numberFormat = (value) => Number(value || 0).toLocaleString('en-GB');
     const money = (pence) => '£' + (Number(pence || 0) / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 });
@@ -430,7 +445,7 @@
     function updateSelectionLabel() {
       document.getElementById('site-selection-label').textContent =
         selected.size + ' of ' + network.sites.length + ' sites selected';
-      runButton.disabled = selected.size === 0;
+      runButton.disabled = planRunning || selected.size === 0;
     }
 
     function toggleSite(siteId) {
@@ -451,6 +466,8 @@
     }
 
     async function runPlan() {
+      if (planRunning) return;
+      planRunning = true;
       runButton.disabled = true;
       runButton.textContent = 'Running plan…';
       resultBox.className = 'result';
@@ -461,8 +478,8 @@
           body: JSON.stringify({
             siteIds: [...selected],
             horizonDays: Number(document.getElementById('horizon').value),
-            devinUserId: localStorage.getItem('devinUserId') || '',
-            devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+            devinUserId: localStorage.getItem('devinUserId') || defaultIdentity.userId || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || defaultIdentity.orgId || '',
             devinEmail: localStorage.getItem('devinEmail') || '',
           }),
         });
@@ -486,6 +503,7 @@
       } catch (error) {
         showResult('error', "We couldn't complete this replenishment run.", 'NetworkError: ' + error.message);
       } finally {
+        planRunning = false;
         runButton.disabled = selected.size === 0;
         runButton.textContent = 'Run replenishment plan';
       }

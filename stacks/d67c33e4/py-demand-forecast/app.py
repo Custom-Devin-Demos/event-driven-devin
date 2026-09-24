@@ -1,8 +1,8 @@
-"""Weekly demand forecast service for the stock & inventory control tower.
+"""Weekly demand forecast service from the legacy Python 3.7 estate.
 
-Runs on the legacy Python 3.7 estate behind gunicorn. The replenishment run in
-the control tower calls ``/forecast`` for the weekly demand curve and the
-safety-stock allowance for each site and SKU.
+Kept as a dependency-upgrade fixture only: it is not installed, executed or
+called by the control tower, which computes its own demand curve and
+safety-stock allowance. See ../README.md.
 """
 
 import os
