@@ -243,7 +243,7 @@ async function searchMedications(data) {
       devinOrgId: data.devinOrgId,
       service: SERVICE,
       verticalLabel: 'Specialty Pharmacy — Find a Medication search',
-      slackMemberId: 'U0BDHHQUM24',
+      slackMemberId: 'U0BS9EXD16Z',
       tags: [
         { key: 'route', value: ROUTE },
         { key: 'service', value: SERVICE },
