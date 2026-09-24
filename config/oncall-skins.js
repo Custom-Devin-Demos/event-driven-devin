@@ -61,10 +61,8 @@
  * (only the on-call one) sets oncallOnly: true, so its direct /<page-slug>
  * URL is served with the shim instead of as a bare page whose action 404s.
  *
- * Skins are direct-URL only by default. A skin may set listed: true to appear
- * as a card on the branded hub at /oncall/branded (GET /api/oncall/skins);
- * the stock /oncall hub never lists customers. That page is reachable from
- * the hub nav, so opt in deliberately.
+ * Skins are direct-URL only: the stock /oncall hub never lists customers,
+ * and each skin is reachable solely by its own /oncall/c/<slug> URL.
  */
 
 const ONCALL_SKINS = {
@@ -108,7 +106,6 @@ const ONCALL_SKINS = {
     vertical: 'marketplace',
     hideRibbon: true,
     oncallOnly: true,
-    listed: true,
     page: {
       file: '63dbb52f.html',
       title: 'Philips Airfryer Serie 2000, 4,2l, RapidAir, Digital, schwarz (NA221/00) | Kaufland.de',
@@ -2437,17 +2434,4 @@ function getOncallSkin(slug) {
   return Object.prototype.hasOwnProperty.call(ONCALL_SKINS, key) ? ONCALL_SKINS[key] : null;
 }
 
-function listOncallSkins() {
-  return Object.values(ONCALL_SKINS)
-    .filter((skin) => skin.listed === true)
-    .map((skin) => ({
-      slug: skin.slug,
-      company: skin.company,
-      brandMark: skin.brandMark,
-      vertical: skin.vertical,
-      accent: skin.accent,
-      href: `/oncall/c/${skin.slug}`,
-    }));
-}
-
-module.exports = { ONCALL_SKINS, getOncallSkin, listOncallSkins };
+module.exports = { ONCALL_SKINS, getOncallSkin };
