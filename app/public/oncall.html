@@ -105,13 +105,6 @@
     .status.ok,.status.err { display:block; }
     .status.ok { background:var(--wash); border:1px solid var(--line); color:var(--ink); }
     .status.err { background:var(--paper); border:1px solid var(--danger); color:var(--danger); }
-    .health-strip { display:flex; align-items:center; flex-wrap:wrap; gap:12px 24px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-bottom:20px; font:11px var(--mono); color:var(--muted); }
-    .health-item { display:flex; align-items:center; gap:7px; min-width:0; }
-    .health-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--ink); } .health-dot.degraded { background:var(--danger); }
-    .health-val { color:var(--ink); } .health-val.slow { color:var(--danger); }
-    .health-spark { display:flex; align-items:flex-end; gap:2px; height:22px; margin-left:auto; visibility:hidden; }
-    .health-spark span { width:4px; min-height:2px; background:var(--ink); border-radius:1px; }
-    .health-spark span.slow { background:var(--danger); }
     .wide-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:stretch; }
     .wide-card { display:flex; flex-direction:column; border:1px solid var(--line); border-radius:10px; padding:32px; background:var(--paper); color:var(--ink); text-decoration:none; transition:background .2s; }
     .wide-title { font:500 20px/1.15 var(--serif); margin-bottom:8px; }
@@ -128,7 +121,6 @@
     @media (max-width:1100px) { .grid, .grid[class*="cols-"] { grid-template-columns:repeat(2,minmax(0,1fr)); } .grid.cols-2 { grid-template-columns:minmax(0,1fr); } }
     @media (max-width:900px) { .wide-row { grid-template-columns:1fr; } }
     @media (max-width:768px) { :root { --hero-content-padding-top:48px; } nav { padding:0 20px; } .nav-links { display:none; } .hero-content { padding:var(--hero-content-padding-top) 20px 40px; } .pipeline-section { padding:24px 0 40px; } .pipeline-inner { padding:0 20px; } .pipeline-step { font-size:10px; padding:10px 6px; } .pipeline-step .step-num { display:none; } .sections { padding:48px 20px 64px; } .fire-btn { min-height:44px; } footer { padding:40px 20px 32px; } }
-    @media (max-width:700px) { .health-spark { display:none; } }
     @media (max-width:600px) { .grid, .grid[class*="cols-"] { grid-template-columns:minmax(0,1fr); } .pipeline-track { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .pipeline-step { min-width:0; min-height:48px; white-space:normal; text-align:center; } .pipeline-step:nth-child(even) { border-right:0; } .pipeline-step:nth-child(-n+4) { border-bottom:1px solid var(--chrome-line); } }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
   </style>
@@ -210,14 +202,6 @@
       </div>
       <h2>Beyond machine alerts</h2>
       <p class="section-desc">Some issues arrive as customer reports or major incidents rather than machine alerts. Customer reports describe symptoms without a stack trace.</p>
-      <div class="health-strip" id="health-strip">
-        <div class="health-item"><span class="health-dot" id="health-dot"></span><span id="health-scenario">checkout-api: healthy</span></div>
-        <div class="health-item">live probe <span class="health-val" id="health-latency">&mdash;</span></div>
-        <div class="health-item">rss <span class="health-val" id="health-rss">&mdash;</span></div>
-        <div class="health-item" id="health-checkout-item" style="display:none;">checkout <span class="health-val" id="health-checkout">&mdash;</span></div>
-        <div class="health-item" id="health-window" style="display:none;">reverts in <span class="health-val" id="health-remaining"></span></div>
-        <div class="health-spark" id="health-spark"></div>
-      </div>
       <div class="wide-row">
         <a class="wide-card" href="/oncall/report" target="_blank" rel="noopener">
           <div class="wide-title">Customer Bug Report</div>
@@ -340,112 +324,6 @@
       // innerHTML escapes &, <, > only; quotes matter in attribute values.
       return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-
-    // Live health strip: browser-timed probe of the real search endpoint
-    // endpoint + server-side incident state, so the audience sees the
-    // degradation (and the recovery) as it happens.
-    (function healthStrip() {
-      var HISTORY = 26;
-      var probes = [];
-      var sparkEl = document.getElementById('health-spark');
-      var KIND_LABELS = {
-        latency: 'DB latency spike',
-        'dependency-timeout': 'payments-gateway timeouts',
-        'memory-leak': 'memory leak',
-        'slo-burn': 'SLO fast burn',
-      };
-
-      function renderSpark() {
-        sparkEl.style.visibility = probes.length >= 8 ? 'visible' : 'hidden';
-        var max = Math.max(400, Math.max.apply(null, probes));
-        sparkEl.innerHTML = probes.map(function (ms) {
-          var h = Math.max(2, Math.round((ms / max) * 22));
-          return '<span class="' + (ms > 1000 ? 'slow' : '') + '" style="height:' + h + 'px" title="' + ms + 'ms"></span>';
-        }).join('');
-      }
-
-      // Checkout probe: fires real synthetic checkouts (Sentry suppressed via
-      // x-synthetic) only while a checkout-affecting incident is active, so the
-      // strip shows a live success rate as timeouts / 500s appear.
-      var CHECKOUT_KINDS = { 'dependency-timeout': true, 'slo-burn': true };
-      var checkoutResults = [];
-      var checkoutInFlight = false;
-      var checkoutGeneration = 0;
-
-      async function probeCheckout(active) {
-        var itemEl = document.getElementById('health-checkout-item');
-        if (!active) {
-          checkoutGeneration++;
-          checkoutResults = [];
-          itemEl.style.display = 'none';
-          return;
-        }
-        if (checkoutInFlight) return;
-        checkoutInFlight = true;
-        var gen = checkoutGeneration;
-        var ok = false;
-        try {
-          var res = await fetch('/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-synthetic': '1' },
-            body: JSON.stringify({ persona: 'oncall-health-strip' }),
-          });
-          ok = res.ok;
-          await res.text().catch(function () {});
-        } catch (e) {
-          ok = false;
-        } finally {
-          checkoutInFlight = false;
-        }
-        if (gen !== checkoutGeneration) return;
-        checkoutResults.push(ok);
-        if (checkoutResults.length > 12) checkoutResults.shift();
-        var okCount = checkoutResults.filter(Boolean).length;
-        var pct = Math.round((okCount / checkoutResults.length) * 100);
-        var el = document.getElementById('health-checkout');
-        el.textContent = pct + '% ok (' + okCount + '/' + checkoutResults.length + ')';
-        el.className = 'health-val' + (pct < 100 ? ' slow' : '');
-        itemEl.style.display = '';
-      }
-
-      async function tick() {
-        if (document.hidden) {
-          setTimeout(tick, 4000);
-          return;
-        }
-        try {
-          var t0 = performance.now();
-          var probeRes = await fetch('/search?q=espresso', { headers: { 'x-synthetic': '1' } });
-          await probeRes.text();
-          var ms = Math.round(performance.now() - t0);
-          probes.push(ms);
-          if (probes.length > HISTORY) probes.shift();
-          var latEl = document.getElementById('health-latency');
-          latEl.textContent = ms + 'ms';
-          latEl.className = 'health-val' + (ms > 1000 ? ' slow' : '');
-          renderSpark();
-
-          var state = await (await fetch('/api/oncall/infra/state')).json();
-          probeCheckout(Boolean(CHECKOUT_KINDS[state.activeKind])).catch(function () {});
-          var degraded = state.scenario !== 'healthy' || state.activeKind !== null;
-          document.getElementById('health-dot').className = 'health-dot' + (degraded ? ' degraded' : '');
-          document.getElementById('health-scenario').textContent =
-            'checkout-api: ' + (degraded ? (KIND_LABELS[state.activeKind] || state.scenario) : 'healthy');
-          document.getElementById('health-rss').textContent = state.rssMB + 'MB' + (state.memoryGrowth ? ' \u2191' : '');
-          var windowEl = document.getElementById('health-window');
-          if (degraded && state.msRemaining !== null) {
-            windowEl.style.display = '';
-            document.getElementById('health-remaining').textContent = state.msRemaining >= 60000
-              ? Math.ceil(state.msRemaining / 60000) + ' min'
-              : Math.ceil(state.msRemaining / 1000) + 's';
-          } else {
-            windowEl.style.display = 'none';
-          }
-        } catch (e) { /* transient - next tick recovers */ }
-        setTimeout(tick, 4000);
-      }
-      tick();
-    })();
 
     init();
   </script>
