@@ -99,6 +99,9 @@ function buildCreditTransfer(payment, resolved, requestId) {
 }
 
 function checkLimits(payment, account) {
+  if (!Number.isInteger(payment.amountCents) || payment.amountCents <= 0) {
+    throw new Error(`Invalid amountCents: ${payment.amountCents}`);
+  }
   if (payment.amountCents > account.dailyLimitCents) {
     throw new Error(`Amount exceeds daily payment limit of ${account.dailyLimitCents / 100} for ${account.account}`);
   }
@@ -151,6 +154,7 @@ async function initiatePayment(data) {
       latencyMs,
     };
     PAYMENTS.push(result);
+    if (PAYMENTS.length > 200) PAYMENTS.shift();
     incrementMetric('npp.payments.settled', metricTags);
     recordTiming('npp.payments.latency', latencyMs, metricTags);
     logger.info('NPP payment settled', {

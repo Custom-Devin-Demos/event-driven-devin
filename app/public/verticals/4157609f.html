@@ -223,7 +223,7 @@
     padding: 32px;
     margin-top: 32px;
   }
-  .v-banner .thumb { width: 320px; flex: none; background: var(--v4157609f-grey); }
+  .v-banner .thumb { width: 320px; max-width: 100%; flex: none; background: var(--v4157609f-grey); }
   .v-banner .thumb img { width: 100%; display: block; }
 
   /* Footer */
@@ -309,6 +309,7 @@
     .v-band { min-height: 0; padding-bottom: 40px; }
     .v-cols { flex-direction: column; gap: 24px; }
     .v-cards { flex-direction: column; }
+    .v-col-head { flex: none; }
     .v-footer .cols { flex-direction: column; }
     .v-banner { flex-direction: column; align-items: flex-start; }
   }
@@ -604,11 +605,17 @@
   });
 
   resetBtn.addEventListener('click', function () {
-    fetch(API + '/reset', { method: 'POST' }).then(function () {
+    fetch(API + '/reset', { method: 'POST' }).then(function (r) {
+      if (!r.ok) {
+        showToast(false, 'Reset failed', 'HTTP ' + r.status, '');
+        return;
+      }
       document.body.classList.remove('v4157609f-degraded');
       if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
       showToast(true, 'Reset · back to standby', '', '');
-    }).catch(function () {});
+    }).catch(function (error) {
+      showToast(false, 'Reset failed', 'Error: ' + error.message, '');
+    });
   });
 
   document.querySelectorAll('.v-tabs a').forEach(function (link) {
