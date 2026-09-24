@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Provision GPUs | Nebius AI Cloud</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #052b42;
+        --ink-2: #0f2839;
+        --accent: #3277ff;
+        --violet: #614efa;
+        --muted: rgba(5, 43, 66, 0.6);
+        --surface: #ffffff;
+        --band: #f3f4f5;
+        --rule: #e6eaec;
+        --lime: #e0ff4f;
+        --ok: #14532d;
+        --ok-bg: #eaf4ec;
+        --warn: #7a1f1f;
+        --warn-bg: #f9ecec;
+        --display: 'Manrope', 'Helvetica Neue', Arial, sans-serif;
+        --sans: 'Inter', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        font-family: var(--sans);
+        font-size: 17px;
+        color: var(--ink);
+        background: var(--surface);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        width: min(1200px, calc(100% - 48px));
+        margin: 0 auto;
+      }
+
+      /* ---------- header ---------- */
+      header.site {
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .site-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        height: 64px;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 20px;
+        color: var(--ink);
+      }
+      .logo .mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--violet));
+        color: #ffffff;
+        font-size: 17px;
+        font-weight: 700;
+        flex: none;
+      }
+      nav.main {
+        display: flex;
+        gap: 4px;
+      }
+      nav.main a {
+        font-size: 15px;
+        font-weight: 500;
+        padding: 10px 12px;
+        border-radius: 8px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        color: var(--ink);
+      }
+      nav.main a:hover {
+        background: var(--band);
+      }
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--sans);
+        font-size: 15px;
+        font-weight: 500;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        cursor: pointer;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--ink);
+        border-color: var(--rule);
+      }
+      .btn-ghost:hover {
+        border-color: var(--ink);
+      }
+      .btn-dark {
+        background: var(--ink);
+        color: #ffffff;
+      }
+      .btn-dark:hover {
+        background: var(--ink-2);
+      }
+      .btn-dark:disabled {
+        background: rgba(5, 43, 66, 0.4);
+        cursor: progress;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        background: var(--ink);
+        color: #ffffff;
+        padding: 80px 0;
+      }
+      .hero .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: var(--lime);
+        text-transform: uppercase;
+      }
+      .hero h1 {
+        font-family: var(--display);
+        font-size: clamp(34px, 4.4vw, 56px);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: 0.02em;
+        margin-top: 18px;
+        max-width: 20ch;
+      }
+      .hero p.lede {
+        margin-top: 20px;
+        font-size: 17px;
+        color: rgba(255, 255, 255, 0.75);
+        max-width: 54ch;
+      }
+
+      /* ---------- main ---------- */
+      section.block {
+        padding: 72px 0;
+      }
+      .panel-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.05fr;
+        gap: 56px;
+        align-items: start;
+      }
+      .panel-copy h2 {
+        font-family: var(--display);
+        font-size: clamp(26px, 3vw, 34px);
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: 0.01em;
+      }
+      .panel-copy p.sub {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 16px;
+        max-width: 54ch;
+      }
+      .specs {
+        margin-top: 26px;
+        border-top: 1px solid var(--rule);
+      }
+      .specs .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--rule);
+        font-size: 15px;
+      }
+      .specs .row .k {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .specs .row .v {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+
+      .provision {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 16px;
+        padding: 28px;
+      }
+      .provision h3 {
+        font-family: var(--display);
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .provision p.note {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 18px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      select,
+      input[type='number'] {
+        font-family: var(--sans);
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 12px;
+        min-height: 46px;
+        padding: 0 14px;
+        width: 100%;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      select {
+        background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+          linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+        background-position: calc(100% - 19px) 21px, calc(100% - 14px) 21px;
+        background-size: 5px 5px;
+        background-repeat: no-repeat;
+      }
+      input[type='number'] {
+        appearance: auto;
+        -webkit-appearance: auto;
+      }
+      select:focus,
+      input:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .field-hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .btn-provision {
+        width: 100%;
+        margin-top: 22px;
+        min-height: 48px;
+      }
+      .request-status {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 12px;
+        text-align: center;
+        min-height: 21px;
+      }
+      .result-box {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid var(--rule);
+      }
+      .result-box.success {
+        display: block;
+        background: var(--ok-bg);
+        border-color: #a5cfae;
+        color: var(--ok);
+      }
+      .result-box.error {
+        display: block;
+        background: var(--warn-bg);
+        border-color: #d8a4a4;
+        color: var(--warn);
+      }
+
+      .estimate {
+        margin-top: 24px;
+        border: 1px solid var(--rule);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .estimate h4 {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        background: var(--band);
+        padding: 10px 16px;
+      }
+      .estimate ul {
+        list-style: none;
+      }
+      .estimate li {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 16px;
+        border-top: 1px solid var(--rule);
+        font-size: 14px;
+      }
+      .estimate li .v {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        text-align: right;
+      }
+      .estimate li.total {
+        background: var(--band);
+      }
+      .estimate li.total .v {
+        color: var(--accent);
+      }
+      .estimate .fine {
+        padding: 10px 16px;
+        border-top: 1px solid var(--rule);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* ---------- footer ---------- */
+      footer.site {
+        background: var(--ink);
+        color: rgba(255, 255, 255, 0.75);
+        padding: 72px 0 40px;
+      }
+      .foot-cta {
+        font-family: var(--display);
+        font-size: clamp(24px, 3vw, 36px);
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 40px;
+        max-width: 24ch;
+      }
+      .foot-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 28px;
+      }
+      .foot-grid h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 12px;
+      }
+      .foot-grid ul {
+        list-style: none;
+        display: grid;
+        gap: 9px;
+        font-size: 14px;
+      }
+      .foot-grid a:hover {
+        color: #ffffff;
+      }
+      .foot-legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 48px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      @media (max-width: 900px) {
+        nav.main {
+          display: none;
+        }
+        .panel-grid {
+          grid-template-columns: 1fr;
+          gap: 36px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .wrap {
+          width: calc(100% - 32px);
+        }
+        .hero {
+          padding: 52px 0;
+        }
+        section.block {
+          padding: 48px 0;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .provision {
+          padding: 20px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site" id="top">
+      <div class="wrap site-bar">
+        <a class="logo" href="#top" aria-label="Nebius home">
+          <span class="mark" aria-hidden="true">N</span>
+          <span>Nebius</span>
+        </a>
+        <nav class="main" aria-label="Primary">
+          <a href="#top">Products</a>
+          <a href="#top">Solutions</a>
+          <a href="#top">Why Nebius</a>
+          <a href="#top">Resources</a>
+          <a href="#top">Pricing</a>
+          <a href="#top">Company</a>
+        </nav>
+        <div class="header-actions">
+          <a class="btn btn-ghost" href="#provision">Contact sales</a>
+          <a class="btn btn-dark" href="#top">Log in</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap">
+        <p class="kicker">AI Cloud · Compute</p>
+        <h1>Provision GPU nodes for your project</h1>
+        <p class="lede">
+          Dedicated NVIDIA GPU instances, billed per GPU-hour. Nodes join your
+          project's Compute list as they come online, ready for Kubernetes or
+          Slurm via Managed Soperator.
+        </p>
+      </div>
+    </section>
+
+    <section class="block" id="provision">
+      <div class="wrap panel-grid">
+        <div class="panel-copy">
+          <h2>Raw power. No surprises.</h2>
+          <p class="sub">
+            On-demand GPU-hour rates, spot pricing for preemptible capacity, and
+            commitment discounts of up to 35% for reserved clusters running
+            multiple months.
+          </p>
+          <div class="specs">
+            <div class="row"><span class="k">HGX H100 · on-demand</span><span class="v">$3.85 / GPU-hr</span></div>
+            <div class="row"><span class="k">HGX H200 · on-demand</span><span class="v">$4.50 / GPU-hr</span></div>
+            <div class="row"><span class="k">HGX B200 · on-demand</span><span class="v">$7.15 / GPU-hr</span></div>
+            <div class="row"><span class="k">HGX B300 · on-demand</span><span class="v">$7.85 / GPU-hr</span></div>
+            <div class="row"><span class="k">Preemptible</span><span class="v">from $0.79 / GPU-hr</span></div>
+            <div class="row"><span class="k">Kubernetes · Soperator</span><span class="v">Free</span></div>
+          </div>
+        </div>
+        <div class="provision">
+          <h3>Provision GPUs</h3>
+          <p class="note">Choose a GPU platform, a pricing model, and a node count.</p>
+          <form id="provisionForm">
+            <div class="form-group">
+              <label for="product">GPU platform</label>
+              <select id="product">
+                <option value="HGX H100">NVIDIA HGX H100</option>
+                <option value="HGX H200">NVIDIA HGX H200</option>
+                <option value="HGX B200">NVIDIA HGX B200</option>
+                <option value="HGX B300">NVIDIA HGX B300</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="seats">GPUs</label>
+                <input type="number" id="seats" value="8" min="1" step="1" required />
+              </div>
+              <div class="form-group">
+                <label for="planTier">Pricing model</label>
+                <select id="planTier">
+                  <option value="enterprise">Reserved (commitment)</option>
+                  <option value="business">On-demand</option>
+                  <option value="starter">Preemptible</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="region">Region</label>
+              <select id="region" aria-describedby="region-hint">
+                <option value="eu-north1">eu-north1 · Finland</option>
+                <option value="us-central1">us-central1 · Kansas City</option>
+                <option value="eu-west1">eu-west1 · Paris</option>
+              </select>
+              <span class="field-hint" id="region-hint">Quota is allocated per project and region.</span>
+            </div>
+            <button type="submit" class="btn btn-dark btn-provision" id="submitBtn">Provision GPUs</button>
+            <p class="request-status" id="requestStatus" role="status">No nodes are created until you confirm.</p>
+          </form>
+          <div class="estimate" aria-label="Cost estimate">
+            <h4>Estimated cost</h4>
+            <ul>
+              <li><span>Platform</span><span class="v" id="estGpu">HGX H100</span></li>
+              <li><span>GPUs</span><span class="v" id="estCount">8</span></li>
+              <li><span>On-demand rate</span><span class="v" id="estRate">$3.85 / GPU-hr</span></li>
+              <li class="total"><span>Estimated hourly</span><span class="v" id="estHourly">$30.80 / hr</span></li>
+            </ul>
+            <p class="fine">Estimate uses on-demand rates. Reserved and preemptible pricing differs.</p>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site">
+      <div class="wrap">
+        <p class="foot-cta">Start your journey with the ultimate AI cloud.</p>
+        <div class="foot-grid">
+          <div>
+            <h4>Products</h4>
+            <ul>
+              <li><a href="#top">Compute</a></li>
+              <li><a href="#top">AI Storage</a></li>
+              <li><a href="#top">Managed Kubernetes</a></li>
+              <li><a href="#top">Managed Soperator</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Solutions</h4>
+            <ul>
+              <li><a href="#top">Training</a></li>
+              <li><a href="#top">Inference</a></li>
+              <li><a href="#top">Managed services</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Pricing</h4>
+            <ul>
+              <li><a href="#top">GPU instances</a></li>
+              <li><a href="#top">Commitment discounts</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="#top">Documentation</a></li>
+              <li><a href="#top">Blog</a></li>
+              <li><a href="#top">Academy</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Tech docs</h4>
+            <ul>
+              <li><a href="#top">Quickstart</a></li>
+              <li><a href="#top">API reference</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="#top">Terms</a></li>
+              <li><a href="#top">Privacy</a></li>
+              <li><a href="#top">Security and compliance</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-legal">
+          <span>Nebius AI Cloud demo page</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config')
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+    </script>
+    <script>
+      const GPU_RATE = {
+        'HGX H100': 3.85,
+        'HGX H200': 4.5,
+        'HGX B200': 7.15,
+        'HGX B300': 7.85,
+      };
+      const product = document.getElementById('product');
+      const seats = document.getElementById('seats');
+      const form = document.getElementById('provisionForm');
+
+      function updateEstimate() {
+        const rate = GPU_RATE[product.value] || 0;
+        const count = Math.max(0, parseInt(seats.value, 10) || 0);
+        document.getElementById('estGpu').textContent = product.value;
+        document.getElementById('estCount').textContent = String(count);
+        document.getElementById('estRate').textContent = `$${rate.toFixed(2)} / GPU-hr`;
+        document.getElementById('estHourly').textContent = `$${(rate * count).toFixed(2)} / hr`;
+      }
+      ['change', 'input'].forEach(function (evt) {
+        product.addEventListener(evt, updateEstimate);
+        seats.addEventListener(evt, updateEstimate);
+      });
+      form.addEventListener('reset', function () {
+        setTimeout(updateEstimate, 0);
+      });
+      updateEstimate();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const status = document.getElementById('requestStatus');
+        const planTier = document.getElementById('planTier');
+        const started = performance.now();
+        button.disabled = true;
+        button.textContent = 'Provisioning…';
+        form.setAttribute('aria-busy', 'true');
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = 'Provisioning…';
+        const timer = setInterval(() => {
+          status.textContent = `Provisioning · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        }, 100);
+        try {
+          const response = await fetch('/api/licenses/provision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orgName: product.value,
+              planName: planTier.value,
+              seats: parseInt(seats.value, 10),
+              billingCycle: 'annual',
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error('provision failed');
+          result.className = 'result-box success';
+          result.textContent = `${data.seatsAdded} × ${product.value} GPUs are being provisioned. Nodes appear in the project's Compute list as they come online.`;
+        } catch (error) {
+          result.className = 'result-box error';
+          result.textContent =
+            'GPUs were not provisioned. Provisioning is taking longer than usual — no nodes were created and nothing was billed. Try again in a few minutes or contact Nebius Support.';
+        } finally {
+          clearInterval(timer);
+          status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+          form.removeAttribute('aria-busy');
+          button.disabled = false;
+          button.textContent = 'Provision GPUs';
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
