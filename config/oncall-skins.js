@@ -2468,6 +2468,26 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Digital Industries Software Support',
     disclaimer: 'NOT ACTUALLY A SIEMENS SITE — internal demo only, not affiliated with, endorsed by, or a real Siemens product.',
   },
+  'd47f7970': {
+    slug: 'd47f7970',
+    company: 'The Economist',
+    brandMark: 'E',
+    vertical: 'telco',
+    page: {
+      file: 'd47f7970.html',
+      title: 'Manage subscription | The Economist',
+    },
+    theme: {
+      '--accent': '#E3120B',
+      '--ink': '#0D0D0D',
+      '--surface': '#ffffff',
+      '--chrome-bg': '#1A1A1A',
+      '--chrome-text': '#ffffff',
+    },
+    supportCenter: 'The Economist Customer Service',
+    supportCenterSub: 'Subscription Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN ECONOMIST SITE — internal demo only, not affiliated with, endorsed by, or a real Economist product.',
+  },
 };
 
 function getOncallSkin(slug) {

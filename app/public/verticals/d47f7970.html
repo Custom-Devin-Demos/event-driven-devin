@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manage subscription | The Economist</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --red: #e3120b;
+        --ink: #0d0d0d;
+        --muted: #595959;
+        --surface: #ffffff;
+        --band: #f5f4ef;
+        --rule: #d9d9d9;
+        --cta: #2e45b8;
+        --cta-dark: #1f2e7a;
+        --navy: #141f52;
+        --ok: #1f5c2e;
+        --ok-bg: #ecf3ec;
+        --warn: #7a1f1f;
+        --warn-bg: #f9ecec;
+        --serif: 'Lora', Georgia, 'Times New Roman', serif;
+        --sans: 'Inter', system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        font-family: var(--sans);
+        color: var(--ink);
+        background: var(--surface);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+      }
+
+      /* ---------- header ---------- */
+      .masthead {
+        background: var(--red);
+        color: #ffffff;
+      }
+      .masthead .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+      }
+      .masthead .wordmark {
+        font-family: var(--serif);
+        font-weight: 600;
+        font-size: 24px;
+        letter-spacing: 0.01em;
+      }
+      header.site {
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .site-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 56px;
+      }
+      nav.topics {
+        display: flex;
+        gap: 2px;
+      }
+      nav.topics a {
+        font-size: 15px;
+        padding: 10px 12px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        color: var(--ink);
+      }
+      nav.topics a:hover {
+        color: var(--red);
+      }
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--sans);
+        font-size: 15px;
+        font-weight: 500;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-red {
+        background: var(--red);
+        color: #ffffff;
+      }
+      .btn-red:hover {
+        background: #b80e08;
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--ink);
+        border-color: var(--rule);
+      }
+      .btn-ghost:hover {
+        border-color: var(--ink);
+      }
+      .btn-cta {
+        background: var(--cta);
+        color: #ffffff;
+      }
+      .btn-cta:hover {
+        background: var(--cta-dark);
+      }
+      .btn-cta:disabled {
+        background: #93a0d8;
+        cursor: progress;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        background: var(--band);
+        padding: 64px 0 56px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .hero .kicker {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--red);
+      }
+      .hero h1 {
+        font-family: var(--serif);
+        font-size: clamp(30px, 4vw, 46px);
+        font-weight: 400;
+        line-height: 1.15;
+        margin-top: 12px;
+        max-width: 22ch;
+      }
+      .hero p.lede {
+        margin-top: 16px;
+        font-size: 16px;
+        color: var(--muted);
+        max-width: 56ch;
+      }
+
+      /* ---------- plan pills ---------- */
+      .plan-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 24px;
+      }
+      .plan-pill {
+        font-size: 15px;
+        font-weight: 500;
+        padding: 10px 22px;
+        border-radius: 320px;
+        border: 1px solid var(--rule);
+        background: var(--surface);
+        color: var(--ink);
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .plan-pill.on {
+        background: var(--cta-dark);
+        border-color: var(--cta-dark);
+        color: #ffffff;
+      }
+
+      /* ---------- main ---------- */
+      section.block {
+        padding: 64px 0;
+      }
+      .panel-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.05fr;
+        gap: 56px;
+        align-items: start;
+      }
+      .panel-copy h2 {
+        font-family: var(--serif);
+        font-size: clamp(26px, 3vw, 34px);
+        font-weight: 400;
+        line-height: 1.2;
+      }
+      .panel-copy p.sub {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 16px;
+        max-width: 54ch;
+      }
+      .reassure {
+        margin-top: 24px;
+        display: grid;
+        gap: 12px;
+        font-size: 14px;
+        color: var(--ink);
+      }
+      .reassure li {
+        list-style: none;
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .reassure li::before {
+        content: '—';
+        color: var(--red);
+        font-weight: 600;
+      }
+
+      .plan-form {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 28px;
+      }
+      .plan-form h3 {
+        font-family: var(--serif);
+        font-size: 22px;
+        font-weight: 500;
+      }
+      .plan-form p.note {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 18px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      select,
+      input[type='text'] {
+        font-family: var(--sans);
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        min-height: 46px;
+        padding: 0 12px;
+        width: 100%;
+      }
+      select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%),
+          linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+        background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px;
+        background-size: 5px 5px;
+        background-repeat: no-repeat;
+      }
+      select:focus,
+      input:focus {
+        outline: 2px solid var(--cta);
+        outline-offset: 1px;
+      }
+      .field-hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .btn-plan {
+        width: 100%;
+        margin-top: 22px;
+        min-height: 48px;
+      }
+      .request-status {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 12px;
+        text-align: center;
+        min-height: 21px;
+      }
+      .result-box {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid var(--rule);
+      }
+      .result-box.success {
+        display: block;
+        background: var(--ok-bg);
+        border-color: #9dc2a4;
+        color: var(--ok);
+      }
+      .result-box.error {
+        display: block;
+        background: var(--warn-bg);
+        border-color: #d8a4a4;
+        color: var(--warn);
+      }
+
+      .summary {
+        margin-top: 24px;
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .summary h4 {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: var(--band);
+        padding: 10px 14px;
+        color: var(--ink);
+      }
+      .summary ul {
+        list-style: none;
+      }
+      .summary li {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 14px;
+        border-top: 1px solid var(--rule);
+        font-size: 14px;
+      }
+      .summary li .v {
+        font-weight: 600;
+        text-align: right;
+      }
+      .micro {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* ---------- footer ---------- */
+      footer.site {
+        background: #1a1a1a;
+        color: #d6d6d6;
+        padding: 48px 0 40px;
+      }
+      .foot-grid {
+        display: grid;
+        grid-template-columns: 1.4fr repeat(4, 1fr);
+        gap: 32px;
+      }
+      .foot-grid h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 12px;
+      }
+      .foot-grid ul {
+        list-style: none;
+        display: grid;
+        gap: 9px;
+        font-size: 14px;
+      }
+      .foot-grid a:hover {
+        color: #ffffff;
+      }
+      .foot-legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 40px;
+        padding-top: 18px;
+        border-top: 1px solid #333333;
+        font-size: 13px;
+        color: #999999;
+      }
+
+      @media (max-width: 900px) {
+        nav.topics {
+          display: none;
+        }
+        .panel-grid {
+          grid-template-columns: 1fr;
+          gap: 36px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .wrap {
+          width: calc(100% - 32px);
+        }
+        .masthead .wordmark {
+          font-size: 20px;
+        }
+        .hero {
+          padding: 44px 0;
+        }
+        section.block {
+          padding: 44px 0;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .plan-form {
+          padding: 20px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="masthead">
+      <div class="wrap">
+        <span class="wordmark">The Economist</span>
+      </div>
+    </div>
+    <header class="site" id="top">
+      <div class="wrap site-bar">
+        <nav class="topics" aria-label="Sections">
+          <a href="#top">The world in brief</a>
+          <a href="#top">1843</a>
+          <a href="#top">Podcasts</a>
+          <a href="#top">Video</a>
+          <a href="#top">Insider</a>
+          <a href="#top">Newsletters</a>
+        </nav>
+        <div class="header-actions">
+          <a class="btn btn-red" href="#manage">Subscribe</a>
+          <a class="btn btn-ghost" href="#top">Log in</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap">
+        <p class="kicker">My Account · Subscription</p>
+        <h1>Manage your subscription</h1>
+        <p class="lede">
+          Change your plan below. Your new plan starts on your next billing date,
+          and you can cancel auto-renewal at any time.
+        </p>
+        <div class="plan-pills" aria-hidden="true">
+          <span class="plan-pill" id="pill-basic">Espresso</span>
+          <span class="plan-pill on" id="pill-premium">Premium</span>
+          <span class="plan-pill" id="pill-print">Premium + Print</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="manage">
+      <div class="wrap panel-grid">
+        <div class="panel-copy">
+          <h2>Your plan, on your terms.</h2>
+          <p class="sub">
+            Move between Espresso, Premium and Premium + Print whenever your
+            reading habits change. Everything you already subscribe to stays with
+            your account.
+          </p>
+          <ul class="reassure">
+            <li>Your new plan starts on your next billing date.</li>
+            <li>A confirmation email is sent after every change.</li>
+            <li>Cancel auto-renewal at any time.</li>
+          </ul>
+        </div>
+        <div class="plan-form">
+          <h3>Change plan</h3>
+          <p class="note">Choose your current plan and the plan you want to move to.</p>
+          <form id="upgradeForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="currentPlan">Current plan</label>
+                <select id="currentPlan">
+                  <option value="BASIC-12">Espresso — $99/yr</option>
+                  <option value="PLUS-24">Premium — $289/yr</option>
+                  <option value="ULTRA-36">Premium + Print — annual</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newPlan">New plan</label>
+                <select id="newPlan">
+                  <option value="PLUS-24">Premium</option>
+                  <option value="ULTRA-36">Premium + Print</option>
+                  <option value="UNLIMITED-24">Premium + Print, multi-year</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="addon">Add-on</label>
+                <select id="addon" aria-describedby="addon-hint">
+                  <option value="none">None</option>
+                  <option value="podcasts">Podcasts+</option>
+                  <option value="insider">Insider</option>
+                </select>
+                <span class="field-hint" id="addon-hint">Optional extras, added at checkout.</span>
+              </div>
+              <div class="form-group">
+                <label for="promoCode">Promotion code</label>
+                <input type="text" id="promoCode" placeholder="Promotion code (optional)" />
+                <span class="field-hint">Applied to your next invoice if valid.</span>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-cta btn-plan" id="submitBtn">Confirm plan change</button>
+            <p class="request-status" id="requestStatus" role="status">No changes are made until you confirm.</p>
+          </form>
+          <div class="summary" aria-label="Plan summary">
+            <h4>Plan summary</h4>
+            <ul>
+              <li><span>Current plan</span><span class="v" id="sumCurrent">Espresso — $99/yr</span></li>
+              <li><span>New plan</span><span class="v" id="sumNew">Premium</span></li>
+              <li><span>Add-on</span><span class="v" id="sumAddon">None</span></li>
+              <li><span>Effective</span><span class="v">Next billing date</span></li>
+            </ul>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="micro">
+            Prices shown are list prices before any introductory offer. Cancel
+            auto-renewal at any time from My Account.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <span class="wordmark" style="font-family: var(--serif); font-size: 20px; color: #ffffff">The Economist</span>
+            <p style="margin-top: 14px; font-size: 14px; max-width: 30ch">
+              Independent journalism and analysis of world politics, business,
+              science and culture.
+            </p>
+          </div>
+          <div>
+            <h4>The Economist</h4>
+            <ul>
+              <li><a href="#top">Subscribe</a></li>
+              <li><a href="#top">The Economist app</a></li>
+              <li><a href="#top">Podcasts</a></li>
+              <li><a href="#top">Newsletters</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>The Economist Group</h4>
+            <ul>
+              <li><a href="#top">Economist Impact</a></li>
+              <li><a href="#top">Economist Intelligence</a></li>
+              <li><a href="#top">Economist Education</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <ul>
+              <li><a href="#top">Help and support</a></li>
+              <li><a href="#top">Reuse our content</a></li>
+              <li><a href="#top">Advertise</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Careers</h4>
+            <ul>
+              <li><a href="#top">Working here</a></li>
+              <li><a href="#top">Vacancies</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-legal">
+          <span>&copy; The Economist Newspaper Limited 2026</span>
+          <a href="#top">Terms of use</a>
+          <a href="#top">Privacy</a>
+          <a href="#top">Cookie Policy</a>
+          <a href="#top">Accessibility</a>
+          <a href="#top">Manage cookies</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config')
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+    </script>
+    <script>
+      const currentPlan = document.getElementById('currentPlan');
+      const newPlan = document.getElementById('newPlan');
+      const addon = document.getElementById('addon');
+      const form = document.getElementById('upgradeForm');
+      const pills = {
+        'BASIC-12': document.getElementById('pill-basic'),
+        'PLUS-24': document.getElementById('pill-premium'),
+        'ULTRA-36': document.getElementById('pill-print'),
+        'UNLIMITED-24': document.getElementById('pill-print'),
+      };
+
+      function updateSummary() {
+        document.getElementById('sumCurrent').textContent =
+          currentPlan.options[currentPlan.selectedIndex].text;
+        document.getElementById('sumNew').textContent =
+          newPlan.options[newPlan.selectedIndex].text;
+        document.getElementById('sumAddon').textContent =
+          addon.options[addon.selectedIndex].text;
+        Object.values(pills).forEach(function (p) {
+          if (p) p.classList.remove('on');
+        });
+        const active = pills[newPlan.value];
+        if (active) active.classList.add('on');
+      }
+      [currentPlan, newPlan, addon].forEach(function (el) {
+        el.addEventListener('change', updateSummary);
+        el.addEventListener('input', updateSummary);
+      });
+      form.addEventListener('reset', function () {
+        setTimeout(updateSummary, 0);
+      });
+      updateSummary();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const status = document.getElementById('requestStatus');
+        const started = performance.now();
+        button.disabled = true;
+        button.textContent = 'Changing plan…';
+        form.setAttribute('aria-busy', 'true');
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = 'Changing plan…';
+        const timer = setInterval(() => {
+          status.textContent = `Changing plan · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        }, 100);
+        try {
+          const response = await fetch('/api/telco/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              accountId: 'CUST-3001',
+              currentPlanCode: currentPlan.value,
+              targetPlanCode: newPlan.value,
+              billingDay: 15,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error('plan change failed');
+          result.className = 'result-box success';
+          result.textContent =
+            'Your plan has been changed. Your new plan starts on your next billing date; a confirmation email is on its way.';
+        } catch (error) {
+          result.className = 'result-box error';
+          result.textContent =
+            'We could not change your plan. Plan changes are taking longer than usual — nothing has changed on your subscription. Please try again in a few minutes or contact Customer Service.';
+        } finally {
+          clearInterval(timer);
+          status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+          form.removeAttribute('aria-busy');
+          button.disabled = false;
+          button.textContent = 'Confirm plan change';
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
