@@ -123,8 +123,6 @@
     .wide-title { font:500 20px/1.15 var(--serif); margin-bottom:8px; }
     .wide-desc { font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:16px; }
     .wide-cta { margin-top:auto; color:var(--accent); font-size:13px; text-transform:none; }
-    #incident-kind { width:100%; margin-bottom:8px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:13px var(--sans); background:var(--paper); color:var(--ink); }
-    #incident-kind:focus { outline:2px solid var(--accent); outline-offset:2px; }
     footer { background:var(--paper); border-top:1px solid var(--line); color:var(--ink); padding:48px 40px 36px; }
     .footer-top { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:32px; margin-bottom:40px; }
     .footer-brand-logo { height:24px; width:auto; display:block; margin-bottom:16px; mix-blend-mode:multiply; }
@@ -135,7 +133,7 @@
     .footer-copy,.footer-links a { color:var(--muted-2); }
     @media (max-width:1100px) { .grid, .grid[class*="cols-"] { grid-template-columns:repeat(2,minmax(0,1fr)); } .grid.cols-2 { grid-template-columns:minmax(0,1fr); } }
     @media (max-width:900px) { .wide-row { grid-template-columns:1fr; } }
-    @media (max-width:768px) { :root { --hero-content-padding-top:48px; } nav { padding:0 20px; } .nav-links { display:none; } .hero-content { padding:var(--hero-content-padding-top) 20px 40px; } .pipeline-section { padding:24px 0 40px; } .pipeline-inner { padding:0 20px; } .pipeline-step { font-size:10px; padding:10px 6px; } .pipeline-step .step-num { display:none; } .sections { padding:48px 20px 64px; } .fire-btn,#incident-kind { min-height:44px; } footer { padding:40px 20px 32px; } }
+    @media (max-width:768px) { :root { --hero-content-padding-top:48px; } nav { padding:0 20px; } .nav-links { display:none; } .hero-content { padding:var(--hero-content-padding-top) 20px 40px; } .pipeline-section { padding:24px 0 40px; } .pipeline-inner { padding:0 20px; } .pipeline-step { font-size:10px; padding:10px 6px; } .pipeline-step .step-num { display:none; } .sections { padding:48px 20px 64px; } .fire-btn { min-height:44px; } footer { padding:40px 20px 32px; } }
     @media (max-width:700px) { .health-spark { display:none; } }
     @media (max-width:600px) { .grid, .grid[class*="cols-"] { grid-template-columns:minmax(0,1fr); } .pipeline-track { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .pipeline-step { min-width:0; min-height:48px; white-space:normal; text-align:center; } .pipeline-step:nth-child(even) { border-right:0; } .pipeline-step:nth-child(-n+4) { border-bottom:1px solid var(--chrome-line); } }
     @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
@@ -239,15 +237,11 @@
           <div class="wide-desc">A customer or support agent submits an issue through the <span class="support-center-name">Acme Support Center</span> portal. The form records a product area and reported symptom. The ticket is sent to #oncall-bugs for reproduction and root-cause analysis.</div>
           <div class="wide-cta">Open support portal &rarr;</div>
         </a>
-        <div class="wide-card">
+        <a class="wide-card" href="https://coggtm.slack.com/archives/C0BVC5WS88G" target="_blank" rel="noopener">
           <div class="wide-title">Major Incident (SEV-1)</div>
-          <div class="wide-desc">Declares a Datadog incident for a degradation. Datadog creates a dedicated Slack incident channel. Devin joins the channel and investigates. Each incident has its own channel.</div>
-          <div style="margin-top:auto;">
-            <select id="incident-kind"></select>
-            <button class="fire-btn sev" id="incident-btn">Declare SEV-1 Incident</button>
-            <div class="status" id="incident-status"></div>
-          </div>
-        </div>
+          <div class="wide-desc">Major incidents are declared in Slack. Devin joins the incident channel and investigates alongside the responders.</div>
+          <div class="wide-cta">Open incident channel &rarr;</div>
+        </a>
       </div>
     </div>
 
@@ -351,22 +345,6 @@
       });
     }
 
-    function show(el, ok, msg) {
-      el.className = 'status ' + (ok ? 'ok' : 'err');
-      el.textContent = msg;
-    }
-
-    async function post(url, body) {
-      // Attribute the trigger to the demo user's hub identity (set on the hub page)
-      const payload = Object.assign({ devinEmail: localStorage.getItem('devinEmail') || '' }, body || {});
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      return { status: res.status, data: await res.json() };
-    }
-
     // Column count the grid actually renders: a single row up to four cards,
     // then even rows of three when the count divides by three, otherwise rows
     // of four. Only classes cols-1..cols-4 exist, so stay inside that range.
@@ -420,43 +398,12 @@
     }
 
 
-    (async function sev1Setup() {
-      const kindSel = document.getElementById('incident-kind');
-      try {
-        const kinds = await fetch('/api/oncall/incident/kinds').then((r) => r.json());
-        kindSel.innerHTML = kinds.map((k) =>
-          '<option value="' + escapeHtml(k.id) + '">' + escapeHtml(k.label) + '</option>').join('');
-      } catch (e) { /* selector stays empty; server falls back to default kind */ }
-    })();
-
     function escapeHtml(s) {
       const d = document.createElement('div');
       d.textContent = String(s == null ? '' : s);
       // innerHTML escapes &, <, > only; quotes matter in attribute values.
       return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-
-    document.getElementById('incident-btn').onclick = async () => {
-      const status = document.getElementById('incident-status');
-      const btn = document.getElementById('incident-btn');
-      btn.disabled = true;
-      show(status, true, 'Declaring incident\u2026');
-      try {
-        const kind = document.getElementById('incident-kind').value || undefined;
-        const { status: code, data } = await post('/api/oncall/incident', { kind: kind });
-        if (code === 200 && data.provider === 'datadog') {
-          show(status, true, 'SEV-1 declared (IR-' + (data.publicId || data.id) + ', ref ' + data.runRef + '). Slack channel incoming\u2026');
-        } else {
-          show(status, code === 200,
-            code === 200
-              ? 'SEV-1 posted to ' + data.channel + ' (ref ' + data.runRef + ').'
-              : (data.error || 'Failed'));
-        }
-      } catch (e) {
-        show(status, false, e.message);
-      }
-      btn.disabled = false;
-    };
 
     // Live health strip: browser-timed probe of the real search endpoint
     // endpoint + server-side incident state, so the audience sees the

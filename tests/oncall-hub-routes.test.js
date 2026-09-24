@@ -75,7 +75,7 @@ describe('on-call hub page contract', () => {
   });
 
   test('branded mode keeps the shared on-call mechanics on the page', () => {
-    for (const marker of ['id="incident-btn"', 'href="/oncall/report"', 'id="health-strip"', '/api/oncall/infra/state']) {
+    for (const marker of ['href="https://coggtm.slack.com/archives/C0BVC5WS88G"', 'href="/oncall/report"', 'id="health-strip"', '/api/oncall/infra/state']) {
       expect(html).toContain(marker);
     }
   });
