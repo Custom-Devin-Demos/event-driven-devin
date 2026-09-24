@@ -123,7 +123,7 @@
   <main id="top">
     <section class="hero" aria-labelledby="page-title"><div class="hero-inner">
       <div><p class="eyebrow">Client Portal / Cash Movement</p><h1 id="page-title" class="serif">Move cash between client accounts.</h1><p class="hero-lede">Submit a cash movement between a separately managed account and its settlement or custody account. Instructions received before the 2:00 p.m. PT cutoff are processed same day.</p></div>
-      <dl class="hero-facts"><div><dt>Business date</dt><dd id="businessDate">—</dd></div><div><dt>Same-day cutoff</dt><dd>2:00 p.m. PT</dd></div><div><dt>Settlement</dt><dd>Fed wire · USD</dd></div></dl>
+      <dl class="hero-facts"><div><dt>Today</dt><dd id="businessDate">—</dd></div><div><dt>Same-day cutoff</dt><dd>2:00 p.m. PT</dd></div><div><dt>Settlement</dt><dd>Fed wire · USD</dd></div></dl>
     </div></section>
     <section class="content" id="cash-movement" aria-labelledby="movement-heading">
       <div class="section-heading"><h2 id="movement-heading" class="serif">Submit a cash movement</h2><p>Select the source and destination accounts, enter the amount, and submit the instruction for processing.</p></div>
@@ -138,7 +138,7 @@
               <div class="field"><label for="amount">Amount (USD)</label><input type="number" id="amount" min="1" step="0.01" value="2500000" required></div>
               <div class="field"><label for="accountTier">Client classification</label><select id="accountTier"><option value="standard">Institutional</option><option value="premium">Sovereign / Official</option><option value="basic">Sub-advised</option></select><small>Classification is set for this example.</small></div>
             </div>
-            <dl class="summary" aria-label="Instruction summary"><div><dt>Direction</dt><dd id="summaryDirection">—</dd></div><div><dt>Amount</dt><dd id="summaryAmount">—</dd></div><div><dt>Value date</dt><dd id="summaryValueDate">—</dd></div></dl>
+            <dl class="summary" aria-label="Instruction summary"><div><dt>Direction</dt><dd id="summaryDirection">—</dd></div><div><dt>Amount</dt><dd id="summaryAmount">—</dd></div><div><dt>Requested value date</dt><dd id="summaryValueDate">—</dd></div></dl>
             <button type="submit" id="submitBtn" class="submit-btn">Submit transfer</button>
             <p class="status" id="transferStatus" role="status" aria-live="polite">Example instruction only.</p>
             <div id="result" class="result-box" role="status" aria-live="polite"></div>
@@ -174,14 +174,14 @@
     const summaryValueDate = document.getElementById('summaryValueDate');
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     const dateFmt = new Intl.DateTimeFormat('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-    const today = dateFmt.format(new Date());
-    document.getElementById('businessDate').textContent = today;
+    const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+    document.getElementById('businessDate').textContent = dateFmt.format(new Date());
     function label(select) { return select.options[select.selectedIndex].text.replace(/\s*····\d+$/, ''); }
     function renderSummary() {
       summaryDirection.textContent = `${label(fromAccount)} → ${label(toAccount)}`;
       const amount = parseFloat(amountInput.value);
       summaryAmount.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
-      summaryValueDate.textContent = today;
+      summaryValueDate.textContent = `${dateFmt.format(new Date())} · subject to cutoff`;
     }
     function keepAccountsDistinct(changed, other) {
       if (changed.value !== other.value) return;
@@ -228,7 +228,8 @@
         const data = await response.json();
         if (!response.ok) throw new Error('Instruction could not be submitted. Please try again.');
         result.className = 'result-box success';
-        result.textContent = `Instruction accepted. ${usd.format(Number(data.receipt.amount))} scheduled for ${today} settlement.`;
+        const receivedAt = new Date(data.receipt.timestamp);
+        result.textContent = `Instruction ${data.receipt.receiptId} accepted. ${usd.format(Number(data.receipt.amount))} received ${dateFmt.format(receivedAt)} at ${timeFmt.format(receivedAt)}. Settlement follows the same-day cutoff.`;
         status.textContent = 'Instruction accepted.';
       } catch (_error) {
         result.className = 'result-box notice';
