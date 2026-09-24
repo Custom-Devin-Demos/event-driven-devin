@@ -85,6 +85,7 @@
     .section h2 { font:400 28px/1.15 var(--serif); margin:0 0 16px; }
     .badge { padding:3px 8px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); font:11px var(--mono); }
     .section-desc { max-width:780px; font-size:15px; color:var(--muted); line-height:1.6; margin-bottom:24px; }
+    .section-desc code { font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--wash); border:1px solid var(--line); border-radius:4px; padding:1px 5px; }
     .grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
     .grid.cols-1 { grid-template-columns:repeat(1,minmax(0,1fr)); }
     .grid.cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -201,7 +202,7 @@
         <span class="badge" id="alert-badge">#oncall-alerts</span>
       </div>
       <h2 id="alert-heading">Production degradations</h2>
-      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. The customer action degrades &mdash; slow, hanging, or timing out &mdash; and a metric-shaped alert lands in the alerts channel. The Alert Responder investigates each alert from telemetry, replies in the thread, and opens a fix PR. <span id="retry-note"></span></p>
+      <p class="section-desc" id="alert-desc">Each card opens a branded page in on-call mode. Submit the customer action, it degrades, and an alert lands in <code>#oncall-alerts</code> for Devin to investigate. <span id="retry-note"></span></p>
       <div class="grid" id="alert-grid"></div>
     </div>
 
@@ -213,7 +214,7 @@
         <span class="badge">SEV-1</span>
       </div>
       <h2>Beyond machine alerts</h2>
-      <p class="section-desc">Some issues arrive as customer reports or major incidents rather than machine alerts. Customer reports describe symptoms without a stack trace.</p>
+      <p class="section-desc">Not everything starts as a machine alert.</p>
       <div class="wide-row">
         <a class="wide-card" href="/oncall/report" target="_blank" rel="noopener">
           <div class="wide-title">Customer Bug Report</div>
@@ -293,14 +294,11 @@
       const climbing = scenarios.filter((s) => s.retryWindow)
         .map((s) => s.brand.replace(/ \(.*\)$/, ''));
       if (!climbing.length) {
-        el.textContent = 'Every scenario posts a fresh incident on every submit.';
+        el.textContent = '';
         return;
       }
-      el.textContent = 'On the climbing-latency scenarios (' + climbing.join(', ') + '), the ' +
-        'first submit posts the alert and opens a 60-second retry window: repeat submits within ' +
-        'it join the same incident and show the latency rising; after the window expires or the ' +
-        'page is refreshed, the next submit registers as a fresh occurrence. All other scenarios ' +
-        'post a fresh incident on every submit.';
+      el.textContent = 'On ' + climbing.join(', ') + ', repeat submits within 60 seconds ' +
+        'join the same incident and show the latency climbing.';
     }
 
     async function init() {
