@@ -9,7 +9,7 @@ const ROUTE = '/api/4157609f/payments';
 const SERVICE = '4157609f-api';
 const RELEASE = 'npp-payments-gateway@2.31.0';
 const PREVIOUS_RELEASE = 'npp-payments-gateway@2.30.0';
-const SLACK_MEMBER_ID = 'U08S7AVJ478';
+const SLACK_MEMBER_ID = 'U0BDHHQUM24';
 const TIMEZONE = 'Australia/Sydney';
 const REGION = 'ap-southeast-2';
 
