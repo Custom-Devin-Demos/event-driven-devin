@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A24 Labs — Previs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Inter", "NB International Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: #000;
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .mono { font-family: "IBM Plex Mono", "NB International Mono Web", ui-monospace, Menlo, monospace; }
+
+  /* ---------- header ---------- */
+  header {
+    position: fixed; top: 0; left: 0; width: 100%; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 34px 32px 0;
+    color: #fff; mix-blend-mode: difference;
+    pointer-events: none;
+  }
+  header > * { pointer-events: auto; }
+  .menu { display: flex; align-items: center; gap: 14px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 500; }
+  .menu .lines { width: 22px; display: flex; flex-direction: column; gap: 5px; }
+  .menu .lines span { display: block; height: 1px; background: currentColor; }
+  .logo { display: flex; align-items: baseline; gap: 10px; }
+  .logo svg { width: 46px; height: auto; fill: currentColor; display: block; }
+  .logo .labs { font-size: 11px; letter-spacing: .28em; text-transform: uppercase; font-weight: 500; }
+  .search { width: 18px; height: 18px; }
+  .search svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.4; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; height: 100vh; min-height: 640px; background: #000; color: #fff; overflow: hidden;
+  }
+  .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: .92; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.15) 45%, rgba(0,0,0,0) 70%); }
+  .hero-titles { position: absolute; left: 30px; bottom: 30px; z-index: 2; list-style: none; }
+  .hero-titles li { line-height: .94; }
+  .hero-titles a { display: inline-block; font-size: clamp(44px, 5.1vw, 74px); font-weight: 500; letter-spacing: -.035em; transition: opacity .15s linear; }
+  .hero-titles li:first-child a { opacity: .55; }
+  .hero-titles a:hover { opacity: .55; }
+  .hero-titles sup { font-size: 12px; letter-spacing: .02em; vertical-align: top; position: relative; top: 8px; margin-left: 12px; font-weight: 400; }
+  .hero-eyebrow { position: absolute; right: 32px; bottom: 34px; z-index: 2; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; opacity: .85; display: flex; align-items: center; gap: 14px; }
+  .hero-eyebrow svg { width: 44px; height: 16px; fill: currentColor; }
+
+  /* ---------- stack rows (A24 home) ---------- */
+  .stack { width: 91.6667%; margin: 0 auto; }
+  .stack-item {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: stretch;
+    padding: 46px 0 40px; border-bottom: 1px solid #000;
+  }
+  .stack-item.reverse .stack-image { order: 2; }
+  .stack-image { background: #eeeeee; display: flex; align-items: center; justify-content: center; min-height: 460px; overflow: hidden; }
+  .stack-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .stack-image.contain { padding: 40px; }
+  .stack-image.contain img { object-fit: contain; height: auto; max-height: 420px; }
+  .copy-wrapper { display: flex; flex-direction: column; justify-content: space-between; padding-top: 4px; }
+  .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #444; margin-bottom: 26px; }
+  .title { font-size: clamp(40px, 4.4vw, 64px); font-weight: 500; letter-spacing: -.035em; line-height: .96; max-width: 11ch; }
+  .copy { margin-top: 28px; font-size: 16px; line-height: 1.45; color: #222; max-width: 46ch; }
+  .link { display: inline-flex; align-items: center; gap: 22px; font-size: 13px; font-weight: 500; letter-spacing: .02em; text-transform: uppercase; margin-top: 40px; }
+  .link svg { width: 40px; height: 14px; fill: currentColor; transition: transform .15s ease; }
+  .link:hover svg { transform: translateX(6px); }
+
+  /* ---------- tool grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding: 46px 0 40px; border-bottom: 1px solid #000; }
+  .grid .cell .stack-image { min-height: 0; aspect-ratio: 3 / 2; }
+  .grid .cell h3 { font-size: 26px; font-weight: 500; letter-spacing: -.03em; margin-top: 18px; line-height: 1.05; }
+  .grid .cell h3 sup { font-size: 10px; margin-left: 8px; top: -8px; position: relative; font-weight: 400; letter-spacing: .05em; }
+  .grid .cell p { font-size: 14px; line-height: 1.45; color: #444; margin-top: 10px; }
+
+  /* ---------- previs form ---------- */
+  .previs { padding: 46px 0 60px; border-bottom: 1px solid #000; }
+  .previs-head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 44px; }
+  .previs form { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .field { display: flex; flex-direction: column; border-bottom: 1px solid #000; padding-bottom: 12px; }
+  .field label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #444; margin-bottom: 12px; }
+  .field select, .field textarea, .field input {
+    border: 0; background: transparent; outline: none; font-size: 20px; font-weight: 500; letter-spacing: -.02em;
+    -webkit-appearance: none; appearance: none; border-radius: 0; padding: 0; width: 100%;
+  }
+  .field select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='black' fill='none' stroke-width='1.4'/></svg>"); background-repeat: no-repeat; background-position: right 2px center; }
+  .field textarea { resize: vertical; min-height: 118px; line-height: 1.3; font-weight: 400; font-size: 18px; }
+  .field .hint { font-size: 12px; color: #888; margin-top: 10px; }
+  .form-left, .form-right { display: flex; flex-direction: column; gap: 34px; }
+  .submit { display: inline-flex; align-items: center; gap: 22px; background: #000; color: #fff; border: 0; padding: 22px 30px; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; font-weight: 500; cursor: pointer; align-self: flex-start; margin-top: 8px; }
+  .submit svg { width: 40px; height: 14px; fill: currentColor; }
+  .submit:disabled { opacity: .5; cursor: progress; }
+
+  /* result board */
+  .board { grid-column: 1 / -1; display: none; margin-top: 8px; border-top: 1px solid #000; padding-top: 34px; }
+  .board.visible { display: block; }
+  .board-meta { display: flex; flex-wrap: wrap; gap: 40px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #444; margin-bottom: 30px; }
+  .board-meta b { display: block; color: #000; font-size: 16px; letter-spacing: -.01em; text-transform: none; margin-top: 6px; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .shots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .shot { background: #eeeeee; padding: 18px; min-height: 190px; display: flex; flex-direction: column; justify-content: space-between; }
+  .shot .num { font-size: 11px; letter-spacing: .1em; color: #666; }
+  .shot h4 { font-size: 20px; font-weight: 500; letter-spacing: -.02em; line-height: 1.05; margin-top: 18px; }
+  .shot p { font-size: 13px; line-height: 1.4; color: #444; margin-top: 10px; }
+  .shot .tech { font-size: 11px; color: #000; margin-top: 16px; }
+
+  /* ---------- banner / toast ---------- */
+  .banner { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 30; background: #000; color: #fff; padding: 14px 32px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+  .banner.visible { display: block; }
+  .toast { position: fixed; right: 24px; bottom: 24px; z-index: 40; background: #000; color: #fff; padding: 18px 20px; width: 380px; max-width: calc(100vw - 48px); transform: translateY(20px); opacity: 0; pointer-events: none; transition: all .2s ease; border-left: 3px solid #e0281b; }
+  .toast.visible { transform: none; opacity: 1; pointer-events: auto; }
+  .toast .t-eyebrow { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #ff7b72; }
+  .toast .t-title { font-size: 15px; font-weight: 500; margin-top: 8px; letter-spacing: -.01em; }
+  .toast code { display: block; margin-top: 10px; font-size: 11px; line-height: 1.45; color: #bbb; word-break: break-word; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+  /* ---------- footer ---------- */
+  footer { background: #000; color: #fff; padding: 60px 32px 30px; margin-top: 0; }
+  .foot-grid { display: grid; grid-template-columns: 1.2fr 1fr 1.6fr; gap: 40px; }
+  footer h6 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #888; margin-bottom: 20px; }
+  footer ul { list-style: none; }
+  footer li { font-size: 14px; margin-bottom: 12px; }
+  footer li a:hover { text-decoration: underline; }
+  footer .news p { font-size: 14px; line-height: 1.45; color: #ddd; max-width: 40ch; }
+  footer .news form { display: flex; margin-top: 18px; border: 1px solid #fff; max-width: 420px; }
+  footer .news input { flex: 1; background: transparent; border: 0; padding: 16px 14px; color: #fff; outline: none; font-size: 13px; }
+  footer .news button { background: #fff; color: #000; border: 0; padding: 0 22px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 500; cursor: pointer; }
+  .foot-legal { margin-top: 60px; font-size: 10px; letter-spacing: .04em; color: #777; text-transform: uppercase; line-height: 1.5; }
+
+  @media (max-width: 900px) {
+    header { padding: 22px 18px 0; }
+    .hero-titles { left: 18px; bottom: 56px; }
+    .hero-eyebrow { right: 18px; left: 18px; bottom: 20px; justify-content: space-between; }
+    .stack-item, .previs-head, .previs form { grid-template-columns: 1fr; }
+    .stack-item.reverse .stack-image { order: 0; }
+    .grid { grid-template-columns: 1fr; }
+    .shots { grid-template-columns: 1fr 1fr; }
+    .foot-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="banner" id="banner"></div>
+
+<header>
+  <a class="menu" href="#tools"><span class="lines"><span></span><span></span></span>Menu</a>
+  <a class="logo" href="#" title="A24 Labs">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 156"><path d="M379.85,111.86h-.1v-.04h-10.9V.2l-105.9,117.6h-81.3c-3.5,0-6.3-1.28-6.3-4.78,0-2.4,1.3-4.4,3.2-5.5.1-.05.1-.07.2-.1,8.2-4.2,16.1-6.4,20.6-7.7l1.4-.4c2.7-.8,6.1-1.5,9.6-2.3,1.2-.3,2.5-.6,3.8-.8,21.5-4.9,50.6-14.82,50.6-49.12,0-7.6-1.9-15.3-6.3-22.2-7-11-20.2-19.9-41.8-22.5-4.2-.5-8.8-.8-13.7-.8-33.5,0-56.1,17.6-56.9,44v1.4c0,14.6,11.8,26.4,26.4,26.4s26.4-11.9,26.4-26.4-11.8-26.4-26.4-26.4c-.8,0-1.6,0-2.4.1h-.1c-5.4.5-6.16.81-10.12,2.36,2.79-3.66,3.49-4.13,8.22-7.57.1,0,.1-.1.2-.1,9-5.8,21-9,35.1-9,1.5,0,3,0,4.4.1h.9c3.1.4,5.2,2.35,5.2,5.55v72.95c0,3.4-2.4,6.3-5.5,7.1-.2,0-.3.1-.5.1-3,.6-5.7,1.3-8.1,2l-1.3.4c-6.5,1.8-20,5.6-31.9,14.7-4.2,3.2-7.8,6.7-10.9,10.6-7.8,9.9-11.7,22-11.7,36.1h84.9l34.3-38.1h62.3v38.1h43.5v-38.07h10.8v-.03h.1v-6.04.01h0ZM325.35,111.8l-48.19-.06,48.19-54.62v54.68ZM57.85,32.4c-5.4,11.3-16.6,12.5-16.6,12.5l5.4,11.5v.1L.15,155.9h6.58l15.62-33.3h55.23l15.5,33.3h47.96L70.75,4.9l-12.9,27.5ZM25.27,116.5l24.75-52.86,24.69,52.86H25.27Z"/></svg>
+    <span class="labs">Labs</span>
+  </a>
+  <a class="search" href="#previs" title="Search">
+    <svg viewBox="0 0 22 22"><circle cx="9.5" cy="9.5" r="7.5"/><path d="M15 15l6 6"/></svg>
+  </a>
+</header>
+
+<section class="hero">
+  <img src="https://atwenty-four.transforms.svdcdn.com/production/images/Onslaught-16x9-Trailer.png?w=2400&q=82&fm=webp&fit=clip&dm=1780354789&s=6dc4f2ee3a683641c4920473d67d18b7"
+       onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1485846234645-a62644f84728?w=2400&q=80';"
+       alt="Film still">
+  <ul class="hero-titles">
+    <li><a href="#previs">Previs <sup class="mono">BETA</sup></a></li>
+    <li><a href="#tools">Shot List <sup class="mono">2026</sup></a></li>
+    <li><a href="#tools">Script Reader <sup class="mono">2026</sup></a></li>
+    <li><a href="#tools">Dailies Notes <sup class="mono">2026</sup></a></li>
+    <li><a href="#tools">Sound Bed <sup class="mono">2026</sup></a></li>
+  </ul>
+  <div class="hero-eyebrow">A24 Labs — tools for the people who make the films
+    <svg viewBox="0 0 55 20"><polygon points="43.3,0 55,10 43.3,20 42.4,19.1 52.2,10.7 0,10.7 0,9.3 52.2,9.3 42.4,0.9 43.3,0"/></svg>
+  </div>
+</section>
+
+<main class="stack" id="tools">
+
+  <div class="stack-item">
+    <div class="stack-image">
+      <img src="https://atwenty-four.transforms.svdcdn.com/production/images/MG-Thumb-TXTLS.jpg?w=2400&q=82&fm=webp&fit=clip&dm=1784723583&s=4146b8e69c12d6b1fc89c73ae8251368"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1600&q=80';"
+           alt="Misty Green still">
+    </div>
+    <div class="copy-wrapper">
+      <div>
+        <div class="eyebrow">Labs</div>
+        <h2 class="title">Made in the room, not in the cloud.</h2>
+        <p class="copy">A24 Labs builds small, opinionated tools for our filmmakers. Everything here was shaped on a real production, runs on footage we own, and never trains on anyone else's. It exists to get you to the set faster with a clearer picture in your head.</p>
+      </div>
+      <a class="link" href="#previs">Try Previs <svg viewBox="0 0 55 20"><polygon points="43.3,0 55,10 43.3,20 42.4,19.1 52.2,10.7 0,10.7 0,9.3 52.2,9.3 42.4,0.9 43.3,0"/></svg></a>
+    </div>
+  </div>
+
+  <div class="stack-item reverse">
+    <div class="stack-image">
+      <img src="https://atwenty-four.transforms.svdcdn.com/production/images/YCSE_Trailer_YTThubmnail_16x9.png?w=2400&q=82&fm=webp&fit=clip&dm=1788737451&s=cd22d376e14e60e1b2aab2a7c4831257"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1600&q=80';"
+           alt="You Can See Everything still">
+    </div>
+    <div class="copy-wrapper">
+      <div>
+        <div class="eyebrow">Previs</div>
+        <h2 class="title">Paste a scene. Get a board.</h2>
+        <p class="copy">Previs reads a scene from your draft, breaks it into coverage, and returns a numbered shot board with lens, framing, and a still for each setup — in your frame format, in your look. Directors use it the night before. DPs use it to argue with directors the night before.</p>
+      </div>
+      <a class="link" href="#previs">Generate a board <svg viewBox="0 0 55 20"><polygon points="43.3,0 55,10 43.3,20 42.4,19.1 52.2,10.7 0,10.7 0,9.3 52.2,9.3 42.4,0.9 43.3,0"/></svg></a>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="cell">
+      <div class="stack-image">
+        <img src="https://atwenty-four.transforms.svdcdn.com/production/images/CK_Trailer_YTThubmnail_16x9-TXTLS.jpg?w=2400&q=82&fm=webp&fit=clip&dm=1787095283&s=7a3b7a96e49a047d7ecd33adb2c8babc"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?w=1200&q=80';" alt="Club Kid still">
+      </div>
+      <h3>Script Reader <sup class="mono">2026</sup></h3>
+      <p>Coverage notes on a draft in the voice of our story team: what's alive, what's stalling, what the third act owes the first.</p>
+    </div>
+    <div class="cell">
+      <div class="stack-image">
+        <img src="https://atwenty-four.transforms.svdcdn.com/production/images/0091526-Skyler-Gisondo-Austin-Abrams-_Landscape.jpg?w=2400&q=82&fm=webp&fit=clip&dm=1789503653&s=ce7390e419d3f84927f36a274c6e9bc4"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1598899134739-24c46f58b8c0?w=1200&q=80';" alt="Podcast still">
+      </div>
+      <h3>Dailies Notes <sup class="mono">2026</sup></h3>
+      <p>Overnight, every take gets a line: circled, performance, continuity flags. The editor wakes up to a rough assembly plan.</p>
+    </div>
+    <div class="cell">
+      <div class="stack-image">
+        <img src="https://atwenty-four.transforms.svdcdn.com/production/images/Primetime-Teaser-16x9.png?w=2400&q=82&fm=webp&fit=clip&dm=1779888756&s=b8ff6546167949a76ca42519e2653b6e"
+             onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80';" alt="Primetime still">
+      </div>
+      <h3>Sound Bed <sup class="mono">2026</sup></h3>
+      <p>Temp score and room tone that sit under a scene without arguing with it — cleared, ours, and gone when the composer shows up.</p>
+    </div>
+  </div>
+
+  <section class="previs" id="previs">
+    <div class="previs-head">
+      <div>
+        <div class="eyebrow">Previs · Beta</div>
+        <h2 class="title">Build a shot board.</h2>
+      </div>
+      <p class="copy" style="align-self:end">Pick the project, paste the scene, pick your frame format and look. Previs returns a numbered board you can drop into the call sheet.</p>
+    </div>
+
+    <form id="previsForm">
+      <div class="form-left">
+        <div class="field">
+          <label for="projectId">Project</label>
+          <select id="projectId" name="projectId">
+            <option value="onslaught" selected>Onslaught (2026)</option>
+            <option value="misty-green">Misty Green (2026)</option>
+            <option value="club-kid">Club Kid (2026)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sceneText">Scene</label>
+          <textarea id="sceneText" name="sceneText">INT. DINER — NIGHT. Rain on the window. DANA waits in the last booth, coffee untouched. The door opens and the room goes quiet. A MAN in a wet coat sits across from her without a word.</textarea>
+          <div class="hint">Scene heading plus action. Dialogue is optional.</div>
+        </div>
+      </div>
+      <div class="form-right">
+        <div class="field">
+          <label for="frameFormat">Frame format</label>
+          <select id="frameFormat" name="frameFormat">
+            <option value="anamorphic-239" selected>2.39 Anamorphic</option>
+            <option value="flat-185">1.85 Flat</option>
+            <option value="academy-137">1.37 Academy</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="lookId">Look</label>
+          <select id="lookId" name="lookId">
+            <option value="vision3-500t" selected>Kodak Vision3 500T — halation</option>
+            <option value="vision3-250d">Kodak Vision3 250D — clean</option>
+            <option value="double-x">Double-X — black &amp; white</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="shotCount">Setups</label>
+          <select id="shotCount" name="shotCount">
+            <option value="4" selected>4 setups</option>
+            <option value="6">6 setups</option>
+            <option value="8">8 setups</option>
+          </select>
+        </div>
+        <button class="submit" id="submitBtn" type="submit">Generate board
+          <svg viewBox="0 0 55 20"><polygon points="43.3,0 55,10 43.3,20 42.4,19.1 52.2,10.7 0,10.7 0,9.3 52.2,9.3 42.4,0.9 43.3,0"/></svg>
+        </button>
+      </div>
+
+      <div class="board" id="board"></div>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <h6>A24 Labs</h6>
+      <ul>
+        <li><a href="#tools">Previs</a></li>
+        <li><a href="#tools">Script Reader</a></li>
+        <li><a href="#tools">Dailies Notes</a></li>
+        <li><a href="#tools">Sound Bed</a></li>
+        <li><a href="#">Jobs</a></li>
+      </ul>
+    </div>
+    <div>
+      <h6>More A24</h6>
+      <ul>
+        <li><a href="#">Films</a></li>
+        <li><a href="#">Shop</a></li>
+        <li><a href="#">App</a></li>
+        <li><a href="#">Membership</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+    <div class="news">
+      <h6>Want more A24 Labs?</h6>
+      <p>Get our emails. Notes from the Labs team, new tools, beta invites, and the occasional shot board. Not too often — just enough.</p>
+      <form onsubmit="event.preventDefault(); this.querySelector('input').value=''; document.getElementById('banner').textContent='Thanks — you are on the list.'; document.getElementById('banner').classList.add('visible'); setTimeout(function(){document.getElementById('banner').classList.remove('visible');}, 4000);">
+        <input type="email" placeholder="EMAIL" aria-label="Email">
+        <button type="submit">Sign up</button>
+      </form>
+    </div>
+  </div>
+  <div class="foot-legal">A24 Labs is an internal tools program. Previs, Script Reader, Dailies Notes and Sound Bed run only on material A24 owns or has cleared. &copy; 2026 A24 Films LLC.</div>
+</footer>
+
+<div class="toast" id="toast">
+  <div class="t-eyebrow">Previs — board failed</div>
+  <div class="t-title" id="toastTitle"></div>
+  <code id="toastCode"></code>
+</div>
+
+<script>
+  (function () {
+    if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+    }).catch(function () {});
+  })();
+
+  var REPRO_MODE = new URLSearchParams(window.location.search).get('repro') === '1';
+  var toastTimer;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function showToast(title, detail) {
+    var toast = document.getElementById('toast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastCode').textContent = detail;
+    toast.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+  }
+
+  function showBanner(text) {
+    var banner = document.getElementById('banner');
+    banner.textContent = text;
+    banner.classList.add('visible');
+    setTimeout(function () { banner.classList.remove('visible'); }, 5000);
+  }
+
+  function renderBoard(b) {
+    var board = document.getElementById('board');
+    var html =
+      '<div class="board-meta">' +
+      '<div>Board<b>' + esc(b.boardId) + '</b></div>' +
+      '<div>Project<b>' + esc(b.project.title) + '</b></div>' +
+      '<div>Format<b>' + esc(b.frame.label) + ' · ' + esc(b.frame.width) + '×' + esc(b.frame.height) + '</b></div>' +
+      '<div>Look<b>' + esc(b.look.label) + '</b></div>' +
+      '<div>Render<b>' + esc(b.renderMs) + ' ms</b></div>' +
+      '</div><div class="shots">';
+    b.shots.forEach(function (s) {
+      html += '<div class="shot"><div><div class="num">' + esc(s.number) + ' · ' + esc(s.size) + '</div>' +
+        '<h4>' + esc(s.subject) + '</h4><p>' + esc(s.description) + '</p></div>' +
+        '<div class="tech mono">' + esc(s.lens) + ' · ' + esc(s.movement) + '</div></div>';
+    });
+    html += '</div>';
+    board.innerHTML = html;
+    board.classList.add('visible');
+  }
+
+  document.getElementById('previsForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('submitBtn');
+    var board = document.getElementById('board');
+    btn.disabled = true;
+    board.classList.remove('visible');
+
+    var headers = { 'Content-Type': 'application/json' };
+    if (REPRO_MODE) headers['x-synthetic'] = '1';
+
+    fetch('/api/5a3ac2b9/previs', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        projectId: document.getElementById('projectId').value,
+        sceneText: document.getElementById('sceneText').value,
+        frameFormat: document.getElementById('frameFormat').value,
+        lookId: document.getElementById('lookId').value,
+        shotCount: Number(document.getElementById('shotCount').value),
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
+        devinEmail: localStorage.getItem('devinEmail') || ''
+      })
+    })
+    .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+    .then(function (out) {
+      btn.disabled = false;
+      if (out.ok && out.data.success) {
+        renderBoard(out.data.board);
+        showBanner('Board ' + out.data.board.boardId + ' ready — ' + out.data.board.shots.length + ' setups');
+        board.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        showToast(out.data.error || 'The board could not be rendered.', (out.data.errorClass || 'Error') + ' · ' + (out.data.code || 'PREVIS_FAILED') + (out.data.requestId ? ' · ' + out.data.requestId : ''));
+      }
+    })
+    .catch(function (err) {
+      btn.disabled = false;
+      showToast('Network error', err.message);
+    });
+  });
+</script>
+</body>
+</html>
