@@ -298,7 +298,7 @@ async function applyRebalance(data) {
       slackMemberIdFallback: BLOOMBERG_SLACK_MEMBER_ID,
       devinUserId: owner.devinUserId,
       devinEmail: owner.devinEmail,
-      devinOrgId: data.devinOrgId,
+      devinOrgId: owner.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
       tags: [
         { key: 'route', value: '/api/bd631c20/rebalance' },
@@ -326,16 +326,22 @@ async function applyRebalance(data) {
       triggeredRule: '',
     });
 
-    const configuredOwner = { devinUserId: BLOOMBERG_DEVIN_USER_ID, devinEmail: '' };
+    // The configured owner belongs to the vertical's own org, so falling back to
+    // it means falling back to that org too — a user outside the page's org
+    // cannot own a session in it.
+    const configuredOwner = { devinUserId: BLOOMBERG_DEVIN_USER_ID, devinEmail: '', devinOrgId: '' };
+    const requestOwner = {
+      devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
+      devinOrgId: data.devinOrgId,
+    };
     const needsLookup = !data.devinUserId && data.devinEmail && data.devinOrgId;
 
     (needsLookup
       ? resolveUserIdByEmail(data.devinEmail, data.devinOrgId).then((userId) => (userId
-        ? raiseAlert({ devinUserId: userId, devinEmail: data.devinEmail })
+        ? raiseAlert({ ...requestOwner, devinUserId: userId })
         : raiseAlert(configuredOwner)))
-      : raiseAlert(data.devinUserId
-        ? { devinUserId: data.devinUserId, devinEmail: data.devinEmail }
-        : configuredOwner)
+      : raiseAlert(data.devinUserId ? requestOwner : configuredOwner)
     ).catch((alertError) => {
       logger.error('Failed to create Devin session for BlazingMQ rebalance error', {
         planId,
