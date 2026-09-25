@@ -16,6 +16,12 @@ router.post('/api/246706c4/payment', async (req, res) => {
   if (!body.bookingId || !body.paymentMethod) {
     return res.status(400).json({ success: false, error: 'bookingId and paymentMethod are required', code: 'VALIDATION_ERROR' });
   }
+  if (!BOOKINGS.find((b) => b.bookingId === body.bookingId)) {
+    return res.status(404).json({ success: false, error: 'Booking not found', code: 'NOT_FOUND' });
+  }
+  if (!['card', 'apple_pay', 'google_pay'].includes(body.paymentMethod)) {
+    return res.status(400).json({ success: false, error: `Unknown payment method: ${body.paymentMethod}`, code: 'VALIDATION_ERROR' });
+  }
 
   try {
     const result = await confirmBooking({

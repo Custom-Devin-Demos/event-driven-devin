@@ -51,8 +51,9 @@ function findBooking(bookingId) {
 
 function quoteSettlement(booking) {
   const addOnPence = booking.addOns.reduce((sum, a) => sum + a.pence, 0);
-  const insurerPence = booking.cover.route === 'insurance' ? PRICE_BOOK[booking.job.code].insurerPence : 0;
-  const customerPence = booking.cover.excessPence + addOnPence;
+  const insured = booking.cover.route === 'insurance';
+  const insurerPence = insured ? PRICE_BOOK[booking.job.code].insurerPence : 0;
+  const customerPence = booking.cover.excessPence + addOnPence + (insured ? 0 : PRICE_BOOK[booking.job.code].retailPence);
   return {
     insurerPence,
     customerPence,

@@ -373,7 +373,10 @@ body{background:var(--bg)}
     }
     var cta = document.getElementById('ctaConfirm');
     var label = cta.innerHTML;
+    var inFlight = false;
     cta.addEventListener('click', function () {
+      if (inFlight) return;
+      inFlight = true;
       cta.innerHTML = 'Processing…';
       fetch('/api/246706c4/payment', {
         method: 'POST',
@@ -391,6 +394,7 @@ body{background:var(--bg)}
       })
       .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
       .then(function (result) {
+        inFlight = false;
         cta.innerHTML = label;
         if (!result.ok) {
           var err = result.data || {};
@@ -400,6 +404,7 @@ body{background:var(--bg)}
         showToast('Booking confirmed — ref ' + (result.data.reference || result.data.bookingId || ''));
       })
       .catch(function (err) {
+        inFlight = false;
         cta.innerHTML = label;
         showToast('Payment could not be completed — ' + err.message);
       });
