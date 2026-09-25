@@ -41,7 +41,7 @@ router.post('/api/650815a4/demo-request', async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'DEMO_REQUEST_FAILED',
-      requestId: req.requestId,
+      requestId: error.requestId || req.requestId,
     });
   }
 });

@@ -82,7 +82,7 @@ function validateDemoRequest(data) {
     throw error;
   }
 
-  if (!PRODUCTS[data.product] || !REGIONS[data.region]) {
+  if (!Object.hasOwn(PRODUCTS, data.product || '') || !Object.hasOwn(REGIONS, data.region || '')) {
     const error = new Error('Select a valid product and region.');
     error.name = 'ValidationError';
     error.code = 'DEMO_DETAILS_INVALID';
@@ -179,6 +179,7 @@ async function submitDemoRequest(data) {
         service: 'customer-650815a4-demo-request',
         product: data.product,
         region: data.region,
+        alert_path: 'instant',
       },
       extra: {
         requestId,
@@ -230,6 +231,7 @@ async function submitDemoRequest(data) {
       });
     });
 
+    error.requestId = requestId;
     throw error;
   }
 }
