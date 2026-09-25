@@ -62,7 +62,7 @@ const GATEWAY_MANIFESTS = {
 };
 
 function getGatewayManifest(family) {
-  return GATEWAY_MANIFESTS[family] || null;
+  return Object.prototype.hasOwnProperty.call(GATEWAY_MANIFESTS, family) ? GATEWAY_MANIFESTS[family] : null;
 }
 
 module.exports = { GATEWAY_MANIFESTS, PGN_DECODE, getGatewayManifest };

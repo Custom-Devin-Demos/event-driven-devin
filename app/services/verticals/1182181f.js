@@ -657,12 +657,14 @@ function rolloverShift(line, shift) {
 
 // Rewrites the last INTERVAL_MIN of a cell's shift timeline from the interval
 // aggregate: run minutes, then the live (latest) state if it is not running.
+// Only the part of the interval inside the current shift (start..elapsed) is kept.
 function appendIntervalTimeline(segments, cell, elapsed) {
   const start = Math.max(0, elapsed - INTERVAL_MIN);
   const kept = segments
     .filter((segment) => segment.start < start)
     .map((segment) => (segment.end > start ? { ...segment, end: start } : segment));
-  const runMin = Math.min(INTERVAL_MIN, Math.max(0, Math.round(cell.runtimeMin)));
+  const covered = elapsed - start;
+  const runMin = Math.min(covered, Math.max(0, Math.round(cell.runtimeMin * (covered / INTERVAL_MIN))));
   const next = [];
   const push = (from, to, category, state, reason) => {
     if (to <= from) return;
@@ -683,8 +685,7 @@ function appendIntervalTimeline(segments, cell, elapsed) {
   return [...kept, ...next];
 }
 
-function publish(manifest, interval, alarms, run) {
-  const now = Date.now();
+function publish(manifest, interval, alarms, run, now = Date.now()) {
   const publishedAt = new Date(now).toISOString();
   const line = LINES[manifest.code];
   const shift = currentShift(now);
@@ -693,10 +694,16 @@ function publish(manifest, interval, alarms, run) {
   const elapsed = Math.max(1, Math.floor((now - shiftStartMs) / 60000));
   const bucket = intervalBucket(now);
   const rerun = line.lastIntervalBucket === bucket;
+  // Share of the interval that falls inside this shift; production sampled
+  // before the shift boundary belongs to the shift that just ended.
+  const inShift = Math.min(1, elapsed / INTERVAL_MIN);
+  const clip = (value) => Math.round(value * inShift);
 
   interval.cells.forEach((cell) => {
     const previous = CELLS[cell.cellId];
     const replaced = rerun && previous.lastInterval ? previous.lastInterval : { goodCount: 0, rejectCount: 0 };
+    const goodCount = clip(cell.goodCount);
+    const rejectCount = clip(cell.rejectCount);
     const timeline = appendIntervalTimeline(previous.timeline || [], cell, elapsed);
     const runningMin = timeline.filter((segment) => segment.category === 'running')
       .reduce((sum, segment) => sum + (segment.end - segment.start), 0);
@@ -707,21 +714,26 @@ function publish(manifest, interval, alarms, run) {
       stateSince: cell.category === previous.category ? previous.stateSince : publishedAt,
       actualCycleSec: cell.ratePerHr > 0 ? round(3600 / cell.ratePerHr, 1) : null,
       controlAlarm: cell.category !== 'running' ? previous.controlAlarm : null,
-      partsGood: (previous.partsGood || 0) - replaced.goodCount + cell.goodCount,
-      partsReject: (previous.partsReject || 0) - replaced.rejectCount + cell.rejectCount,
+      partsGood: (previous.partsGood || 0) - replaced.goodCount + goodCount,
+      partsReject: (previous.partsReject || 0) - replaced.rejectCount + rejectCount,
       utilization: round(runningMin / elapsed, 3),
       firstActiveAt: firstActive ? new Date(shiftStartMs + firstActive.start * 60 * 1000).toISOString() : null,
       timeline,
-      lastInterval: { goodCount: cell.goodCount, rejectCount: cell.rejectCount },
+      lastInterval: { goodCount, rejectCount },
     };
   });
   const replaced = rerun && line.lastInterval ? line.lastInterval : { goodCount: 0, rejectCount: 0, downtimeMin: 0 };
+  const contributed = {
+    goodCount: clip(interval.goodCount),
+    rejectCount: clip(interval.rejectCount),
+    downtimeMin: round(interval.downtimeMin * inShift, 1),
+  };
   line.ratePerHr = interval.ratePerHr;
-  line.shiftGoodCount += interval.goodCount - replaced.goodCount;
-  line.shiftRejectCount += interval.rejectCount - replaced.rejectCount;
-  line.shiftDowntimeMin = round(line.shiftDowntimeMin + interval.downtimeMin - replaced.downtimeMin, 1);
+  line.shiftGoodCount += contributed.goodCount - replaced.goodCount;
+  line.shiftRejectCount += contributed.rejectCount - replaced.rejectCount;
+  line.shiftDowntimeMin = round(line.shiftDowntimeMin + contributed.downtimeMin - replaced.downtimeMin, 1);
   line.lastIntervalBucket = bucket;
-  line.lastInterval = { goodCount: interval.goodCount, rejectCount: interval.rejectCount, downtimeMin: interval.downtimeMin };
+  line.lastInterval = contributed;
   line.availability = interval.availability;
   line.performance = interval.performance;
   line.quality = interval.quality;
@@ -967,10 +979,37 @@ function browseTags(now) {
   return tags;
 }
 
+// Runs one scheduled interval job for a healthy line with the clock pinned to
+// `startedAt`: the same read → decode → aggregate → evaluate → publish path a
+// live scheduler tick takes, so shift totals, cell timelines, utilization and
+// shift rollover all advance exactly as they would have.
+function replayInterval(manifest, startedAt) {
+  const random = mulberry32(Math.floor(startedAt / 1000));
+  const read = readHistorian(manifest, startedAt);
+  const decoded = decodeSamples(manifest, read.rows);
+  const interval = aggregateInterval(manifest, decoded);
+  const alarms = evaluateAlarms(manifest, interval, startedAt);
+  const run = {
+    runId: `job-${Math.floor(random() * 0xffffffff).toString(16).padStart(8, '0')}`,
+    lineCode: manifest.code,
+    lineName: manifest.name,
+    trigger: 'scheduled',
+    startedAt: new Date(startedAt).toISOString(),
+    finishedAt: null,
+    durationMs: null,
+    stageReached: 'publish',
+    status: 'failed',
+    rowsIn: read.rowsIn,
+    rowsOut: 0,
+    error: null,
+  };
+  return publish(manifest, interval, alarms, run, startedAt + 820 + Math.floor(random() * 640));
+}
+
 // With the background scheduler off (the default), healthy lines would otherwise
 // age into NO DATA purely from server uptime. Replay the interval jobs a running
-// scheduler would have completed so their publish/sample timestamps stay current;
-// lines with failures (L4) are left exactly as they are.
+// scheduler would have completed (at most the last eight) so their read model
+// stays current; lines with failures (L4) are left exactly as they are.
 function advanceHealthyLines(now) {
   if (schedulerHandle) return;
   const intervalMs = INTERVAL_MIN * 60 * 1000;
@@ -980,27 +1019,9 @@ function advanceHealthyLines(now) {
     if (!last || now - last < intervalMs + 2 * 60 * 1000) return;
     const missed = Math.floor((now - last - 2 * 60 * 1000) / intervalMs);
     if (missed < 1) return;
-    const random = mulberry32(Math.floor(last / 1000));
-    let latest = null;
     for (let index = Math.max(1, missed - 7); index <= missed; index += 1) {
-      latest = addSeedRun({
-        manifest,
-        trigger: 'scheduled',
-        status: 'succeeded',
-        stageReached: 'publish',
-        rowsIn: manifest.cells.length * 60,
-        rowsOut: manifest.cells.length,
-        startedAt: last + index * intervalMs,
-        error: null,
-        random,
-      });
+      replayInterval(manifest, last + index * intervalMs);
     }
-    const publishedMs = new Date(latest.finishedAt).getTime();
-    lastSuccessfulPublishes[manifest.code] = publishedMs;
-    LINES[manifest.code].lastPublishedAt = latest.finishedAt;
-    Object.values(CELLS).filter((cell) => cell.lineCode === manifest.code).forEach((cell) => {
-      cell.lastSampleAt = new Date(publishedMs - Math.floor(random() * 4000)).toISOString();
-    });
   });
 }
 
@@ -1066,9 +1087,9 @@ function getPlant(now = Date.now()) {
 }
 
 function getLine(code, now = Date.now()) {
-  const line = LINES[code];
-  if (!line) return null;
   const manifest = getLineManifest(code);
+  const line = manifest ? LINES[code] : null;
+  if (!line) return null;
   advanceHealthyLines(now);
   return {
     line: { ...line, ...deriveLineStatus(line, now) },

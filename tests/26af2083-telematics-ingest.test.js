@@ -219,6 +219,49 @@ describe('26af2083 J1939 telematics ingest', () => {
     expect(service.acknowledgeEvent('EV-0', 'jdoe')).toBeNull();
   });
 
+  test('healthy-gateway replay advances account-day utilization and resets it at account-local midnight', () => {
+    const timezone = service.getFleet(Date.now()).account.timezone;
+    const accountDate = (at) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: timezone }).format(new Date(at));
+    const hour = 60 * 60 * 1000;
+    const anchor = Math.floor(Date.now() / hour) * hour;
+    const midnight = Array.from({ length: 30 }, (_, index) => anchor + index * hour)
+      .find((at) => accountDate(at) !== accountDate(at + hour));
+    const midnightAt = midnight + hour;
+
+    // Same day: replay keeps adding worked/idle minutes.
+    service.resetStore(midnightAt - 6 * hour);
+    const workingId = Object.values(service.ASSETS)
+      .find((asset) => asset.gateway === 'TCU-G1' && asset.utilization.workedTodayMin + asset.utilization.idleTodayMin > 0).assetId;
+    const seeded = { ...service.ASSETS[workingId].utilization };
+    service.getFleet(midnightAt - 3 * hour);
+    const sameDay = service.ASSETS[workingId].utilization;
+    expect(sameDay.date).toBe(seeded.date);
+    expect(sameDay.workedTodayMin + sameDay.idleTodayMin).toBeGreaterThan(seeded.workedTodayMin + seeded.idleTodayMin);
+    expect(sameDay.lastBucket).toBeGreaterThan(midnightAt - 6 * hour);
+
+    // Across midnight: counters restart on the new account-local date.
+    service.resetStore(midnightAt - hour);
+    const yesterday = { ...service.ASSETS[workingId].utilization };
+    expect(yesterday.workedTodayMin + yesterday.idleTodayMin).toBeGreaterThan(60);
+    const later = midnightAt + hour;
+    const fleet = service.getFleet(later);
+    const today = service.ASSETS[workingId].utilization;
+    expect(today.date).toBe(accountDate(later));
+    expect(today.date).not.toBe(yesterday.date);
+    expect(today.workedTodayMin + today.idleTodayMin).toBeLessThanOrEqual(75);
+    expect(fleet.assets.find((asset) => asset.assetId === workingId).stale).toBe(false);
+  });
+
+  test('rejects inherited object properties as gateway families', async () => {
+    expect(service.getGatewayManifest('constructor')).toBeNull();
+    expect(service.getAsset('constructor')).toBeNull();
+    const app = testApp();
+    expect((await request(app, 'GET', '/api/26af2083/assets/constructor')).status).toBe(404);
+    const run = await request(app, 'POST', '/api/26af2083/runs', { gateway: 'constructor' });
+    expect(run.status).toBe(400);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
   test('serves fleet, asset, run and ack routes with validation', async () => {
     const app = testApp();
     const fleet = await request(app, 'GET', '/api/26af2083/fleet');

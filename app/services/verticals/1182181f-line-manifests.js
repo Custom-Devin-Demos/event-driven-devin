@@ -111,7 +111,7 @@ const LINE_MANIFESTS = {
 };
 
 function getLineManifest(code) {
-  return LINE_MANIFESTS[code] || null;
+  return Object.prototype.hasOwnProperty.call(LINE_MANIFESTS, code) ? LINE_MANIFESTS[code] : null;
 }
 
 module.exports = { LINE_MANIFESTS, getLineManifest };

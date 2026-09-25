@@ -518,8 +518,8 @@ function evaluateEvents(health, now) {
   return found;
 }
 
-function publish(manifest, health, events, run) {
-  const publishedAt = new Date().toISOString();
+function publish(manifest, health, events, run, now = Date.now()) {
+  const publishedAt = new Date(now).toISOString();
   health.forEach((update) => {
     const previous = ASSETS[update.assetId];
     const rest = { ...update };
@@ -736,10 +736,37 @@ function acknowledgeEvent(id, user) {
 
 // --- read model -------------------------------------------------------------
 
+// Runs one scheduled interval job for a healthy gateway with the clock pinned
+// to `startedAt`: the same pull → decode → health → events → publish path a live
+// scheduler tick takes, so account-day utilization, hours, faults and events
+// advance (and roll over at account-local midnight) exactly as they would have.
+function replayInterval(manifest, startedAt) {
+  const random = mulberry32(Math.floor(startedAt / 1000));
+  const pulled = pullMessages(manifest, startedAt);
+  const decoded = decodeJ1939(manifest, pulled.messages);
+  const health = computeHealth(manifest, decoded, startedAt);
+  const events = evaluateEvents(health, startedAt);
+  const run = {
+    runId: `job-${Math.floor(random() * 0xffffffff).toString(16).padStart(8, '0')}`,
+    gateway: manifest.family,
+    trigger: 'scheduled',
+    startedAt: new Date(startedAt).toISOString(),
+    finishedAt: null,
+    durationMs: null,
+    stageReached: 'publish',
+    status: 'failed',
+    messagesIn: pulled.messagesIn,
+    assetsOut: 0,
+    error: null,
+  };
+  return publish(manifest, health, events, run, startedAt + 640 + Math.floor(random() * 500));
+}
+
 // With the background scheduler off (the default), healthy gateways would
 // otherwise age into Not reporting purely from server uptime. Replay the interval
-// jobs a running scheduler would have completed so publish/report timestamps stay
-// current; gateways with failures (TCU-G3) are left exactly as they are.
+// jobs a running scheduler would have completed (at most the last eight) so the
+// read model stays current; gateways with failures (TCU-G3) are left exactly as
+// they are.
 function advanceHealthyGateways(now) {
   if (schedulerHandle) return;
   const intervalMs = INTERVAL_MIN * 60 * 1000;
@@ -749,23 +776,9 @@ function advanceHealthyGateways(now) {
     if (!last || now - last < intervalMs + 2 * 60000) return;
     const missed = Math.floor((now - last - 2 * 60000) / intervalMs);
     if (missed < 1) return;
-    const random = mulberry32(Math.floor(last / 1000));
-    const assets = Object.values(ASSETS).filter((asset) => asset.gateway === manifest.family);
-    let publishedAt = last;
     for (let index = Math.max(1, missed - 7); index <= missed; index += 1) {
-      const startedAt = last + index * intervalMs;
-      const durationMs = 640 + Math.floor(random() * 500);
-      publishedAt = startedAt + durationMs;
-      recordRun({
-        runId: `job-${uuidv4().replace(/-/g, '').slice(0, 8)}`, gateway: manifest.family, trigger: 'scheduled', startedAt: new Date(startedAt).toISOString(), finishedAt: new Date(publishedAt).toISOString(), durationMs, stageReached: 'publish', status: 'succeeded', messagesIn: assets.length * Math.round((INTERVAL_MIN * 60) / manifest.reportIntervalSec), assetsOut: assets.length, error: null,
-      }, { prepend: true });
+      replayInterval(manifest, last + index * intervalMs);
     }
-    lastSuccessfulPublishes[manifest.family] = publishedAt;
-    assets.forEach((asset) => {
-      asset.lastReportAt = new Date(publishedAt - Math.floor(random() * manifest.reportIntervalSec * 1000)).toISOString();
-      asset.lastPositionAt = new Date(publishedAt - Math.floor(random() * 90) * 1000).toISOString();
-      asset.faults.forEach((fault) => { fault.lastSeenAt = asset.lastReportAt; });
-    });
   });
 }
 
@@ -890,7 +903,7 @@ function getFleet(now = Date.now()) {
 }
 
 function getAsset(assetId, now = Date.now()) {
-  const asset = ASSETS[assetId];
+  const asset = Object.prototype.hasOwnProperty.call(ASSETS, assetId) ? ASSETS[assetId] : null;
   if (!asset) return null;
   const manifest = getGatewayManifest(asset.gateway);
   advanceHealthyGateways(now);

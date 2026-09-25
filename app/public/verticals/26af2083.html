@@ -364,9 +364,16 @@
   }
 
   // ---- Drawer --------------------------------------------------------------
+  // Detail responses are only applied if the asset is still the selected one.
+  function loadDetail(id) {
+    return fetch(API + '/assets/' + encodeURIComponent(id)).then(function (r) { return r.json(); }).then(function (d) {
+      if (selected !== id) return;
+      detail = d; renderDrawer(); renderAssets();
+    });
+  }
   function openAsset(id) {
     selected = id;
-    fetch(API + '/assets/' + encodeURIComponent(id)).then(function (r) { return r.json(); }).then(function (d) { detail = d; renderDrawer(); renderAssets(); });
+    loadDetail(id);
   }
   function renderDrawer() {
     var el = document.getElementById('drawer');
@@ -530,7 +537,7 @@
       renderBanner(); renderAssets();
       if (view === 'health') renderHealth();
       if (view === 'gateways') renderGateways();
-      if (selected) return fetch(API + '/assets/' + encodeURIComponent(selected)).then(function (r) { return r.json(); }).then(function (x) { detail = x; renderDrawer(); });
+      if (selected) return loadDetail(selected);
       return null;
     });
   }

@@ -160,6 +160,71 @@ describe('1182181f historian → MES ingest', () => {
     expect(later - new Date(cell.lastSampleAt).getTime()).toBeLessThan(plant.staleAfterMs);
   });
 
+  test('healthy-line replay advances shift totals, cell timelines and utilization like real publishes', () => {
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime();
+    const seededAt = shiftStart + 60 * 60 * 1000;
+    service.resetStore(seededAt);
+    const seededLine = { ...service.LINES.L1 };
+    const seededCell = { ...Object.values(service.CELLS).find((cell) => cell.lineCode === 'L1' && cell.category === 'running') };
+    const later = seededAt + 2 * 60 * 60 * 1000;
+    const plant = service.getPlant(later);
+    const line = plant.lines.find((candidate) => candidate.code === 'L1');
+    expect(line.shiftStartsAt).toBe(seededLine.shiftStartsAt);
+    expect(line.shiftGoodCount).toBeGreaterThan(seededLine.shiftGoodCount);
+    expect(later - line.lastIntervalBucket).toBeLessThan(35 * 60 * 1000);
+    const cell = plant.cells.find((candidate) => candidate.cellId === seededCell.cellId);
+    expect(cell.partsGood).toBeGreaterThan(seededCell.partsGood);
+    expect(cell.timeline.at(-1).end).toBeGreaterThan(seededCell.timeline.at(-1).end);
+    expect(cell.timeline.at(-1).end).toBeLessThanOrEqual(plant.shift.elapsedMin);
+    expect(cell.utilization).toBeGreaterThan(0);
+    expect(cell.utilization).toBeLessThanOrEqual(1);
+  });
+
+  test('healthy-line replay rolls the shift over when the missed intervals cross a shift boundary', () => {
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime();
+    const seededAt = shiftStart + 7 * 60 * 60 * 1000;
+    service.resetStore(seededAt);
+    const seededLine = { ...service.LINES.L1 };
+    const later = seededAt + 2 * 60 * 60 * 1000;
+    const plant = service.getPlant(later);
+    const line = plant.lines.find((candidate) => candidate.code === 'L1');
+    expect(plant.shift.startsAt).not.toBe(seededLine.shiftStartsAt);
+    expect(line.shiftStartsAt).toBe(plant.shift.startsAt);
+    expect(line.shiftGoodCount).toBeLessThan(seededLine.shiftGoodCount);
+    expect(line.shiftGoodCount).toBeGreaterThan(0);
+    plant.cells.filter((cell) => cell.lineCode === 'L1').forEach((cell) => {
+      expect(cell.timeline.every((segment) => segment.start >= 0 && segment.end <= plant.shift.elapsedMin)).toBe(true);
+      expect(cell.utilization).toBeLessThanOrEqual(1);
+    });
+  });
+
+  test('clips the first interval after a shift boundary so utilization cannot exceed 100 %', async () => {
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime();
+    service.resetStore(shiftStart - 30 * 60 * 1000);
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(shiftStart + 60 * 1000);
+    const run = await service.runPipeline('L1', { trigger: 'manual' });
+    clock.mockRestore();
+    expect(run.status).toBe('succeeded');
+    const line = service.LINES.L1;
+    expect(line.shiftGoodCount).toBe(line.lastInterval.goodCount);
+    expect(line.shiftGoodCount).toBeLessThanOrEqual(Math.ceil(line.lastInterval.goodCount));
+    Object.values(service.CELLS).filter((cell) => cell.lineCode === 'L1').forEach((cell) => {
+      expect(cell.utilization).toBeLessThanOrEqual(1);
+      expect(cell.timeline.every((segment) => segment.start >= 0 && segment.end <= 1)).toBe(true);
+      expect(cell.partsGood).toBeLessThanOrEqual(Math.ceil(cell.goodCount / 15) + 1);
+    });
+  });
+
+  test('rejects inherited object properties as line codes', async () => {
+    expect(service.getLineManifest('constructor')).toBeNull();
+    expect(service.getLine('constructor')).toBeNull();
+    const app = testApp();
+    expect((await request(app, 'GET', '/api/1182181f/lines/constructor')).status).toBe(404);
+    const run = await request(app, 'POST', '/api/1182181f/runs', { lineCode: 'constructor' });
+    expect(run.status).toBe(400);
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
   test('L4 fails at decode because no opcua-statuscode decoder is registered', async () => {
     const run = await service.runPipeline('L4', {
       trigger: 'manual',
