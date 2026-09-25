@@ -14,7 +14,7 @@ jest.mock('../app/telemetry/datadog', () => ({
 
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const { Sentry } = require('../app/telemetry/sentry');
-const { processTransfer } = require('../app/services/verticals/banamex');
+const { processTransfer, COMMISSION_SCHEDULES } = require('../app/services/verticals/banamex');
 const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
 
 describe('Banamex Banca en Linea traspaso (banamex)', () => {
@@ -23,22 +23,73 @@ describe('Banamex Banca en Linea traspaso (banamex)', () => {
     Sentry.captureException.mockClear();
   });
 
-  test('the prioritario tier fails with a TypeError and raises one alert', async () => {
-    await expect(processTransfer({
+  test('the prioritario tier completes without a commission and raises no alert', async () => {
+    const result = await processTransfer({
       fromAccount: 'BMX-5729814',
       toAccount: 'BMX-5731042',
       amount: 1500,
       accountTier: 'prioritario',
-    })).rejects.toThrow(TypeError);
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.receipt.fee).toBe('0.00');
+    expect(result.receipt.totalDebit).toBe('1500.00');
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('the default tier is prioritario when the request omits one', async () => {
+    const result = await processTransfer({
+      fromAccount: 'BMX-5729814',
+      toAccount: 'BMX-5731042',
+      amount: 1500,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.receipt.fee).toBe('0.00');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('every tier offered by the traspaso form has a commission schedule', () => {
+    ['prioritario', 'oro', 'clasica'].forEach((tier) => {
+      expect(COMMISSION_SCHEDULES[tier]).toEqual({
+        rate: expect.any(Number),
+        flat: expect.any(Number),
+      });
+    });
+  });
+
+  test('an unenrolled tier fails with a named schedule error, not a TypeError', async () => {
+    await expect(processTransfer({
+      fromAccount: 'BMX-5729814',
+      toAccount: 'BMX-5731042',
+      amount: 1500,
+      accountTier: 'platino',
+    })).rejects.toMatchObject({
+      name: 'CommissionScheduleError',
+      code: 'COMMISSION_SCHEDULE_NOT_FOUND',
+      message: expect.stringContaining('platino'),
+    });
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
-    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
 
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.customer).toBe('banamex');
-    expect(alert.errorType).toBe('TypeError');
+    expect(alert.errorType).toBe('CommissionScheduleError');
     expect(alert.culprit).toContain('processTransfer');
     expect(alert.promptAppendix).toContain('/banamex');
+  });
+
+  test('an inherited object property is not mistaken for a commission schedule', async () => {
+    await expect(processTransfer({
+      fromAccount: 'BMX-5729814',
+      toAccount: 'BMX-5731042',
+      amount: 1500,
+      accountTier: 'toString',
+    })).rejects.toMatchObject({
+      name: 'CommissionScheduleError',
+      code: 'COMMISSION_SCHEDULE_NOT_FOUND',
+    });
   });
 
   test('tiers with a commission schedule complete and return a receipt', async () => {
@@ -61,11 +112,11 @@ describe('Banamex Banca en Linea traspaso (banamex)', () => {
       fromAccount: 'BMX-5729814',
       toAccount: 'BMX-5731042',
       amount: 1500,
-      accountTier: 'prioritario',
+      accountTier: 'platino',
       devinEmail: 'mariana@devindemos.com',
       devinUserId: 'clerk-user_demo',
       devinOrgId: 'org_demo',
-    })).rejects.toThrow(TypeError);
+    })).rejects.toThrow('platino');
 
     const alert = createSessionAndAlert.mock.calls[0][0];
     expect(alert.devinEmail).toBe('mariana@devindemos.com');

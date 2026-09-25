@@ -4,6 +4,8 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
+const SLACK_MEMBER_ID = process.env.CUSTOMER_663500BD_SLACK_MEMBER_ID || 'U09A56TAB8B';
+
 /**
  * Bag catalog served to the checkout page.
  */
@@ -277,9 +279,11 @@ async function placeOrder(data) {
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       service: 'customer-663500bd-checkout',
-      verticalLabel: 'Bag Checkout',
+      verticalLabel: 'Nordstrom Bag Checkout',
       promptAppendix: REMEDIATION_DIRECTIVE,
       customer: '663500bd',
+      slackMemberId: SLACK_MEMBER_ID,
+      slackMemberIdFallback: SLACK_MEMBER_ID,
       tags: [
         { key: 'route', value: '/api/663500bd/checkout' },
         { key: 'service', value: 'customer-663500bd-checkout' },

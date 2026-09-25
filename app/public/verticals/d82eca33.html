@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summer Street Kitchen | Online Ordering | Toast Local</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --tsw-primary-color: #FF4C00;
+        --tsw-primary-hover-color: #eb3800;
+        --tsw-primary-text-color: #252525;
+        --tsw-secondary-text-color: #666666;
+        --tsw-line: #d0d0d0;
+        --tsw-line-soft: #e6e6e6;
+        --tsw-wash: #f0f0f2;
+        --tsw-success: #00a862;
+        --tsw-link-color: #2b4fb9;
+        --tsw-font-family: Effra, 'Figtree', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: var(--tsw-font-family);
+        font-size: 16px;
+        line-height: 24px;
+        color: var(--tsw-primary-text-color);
+        background: #fff;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; text-decoration: none; }
+      button { font-family: inherit; cursor: pointer; }
+      img { display: block; max-width: 100%; }
+      .wrap { max-width: 1224px; margin: 0 auto; padding: 0 24px; }
+
+      /* Header */
+      .site-header {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .logo { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--tsw-primary-color); }
+      .logo svg { display: block; }
+      .logo-word {
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -0.5px;
+        line-height: 1;
+        color: var(--tsw-primary-color);
+      }
+      .logo-badge {
+        display: inline-block;
+        background: var(--tsw-primary-color);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        padding: 3px 7px 4px;
+        border-radius: 8px;
+        margin-left: 2px;
+        margin-top: 4px;
+      }
+      .header-actions { display: flex; align-items: center; gap: 20px; }
+      .cart-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 48px;
+        padding: 0 24px;
+        border: 0;
+        border-radius: 99px;
+        background: var(--tsw-primary-color);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .cart-pill svg { width: 20px; height: 20px; }
+      .signin { font-size: 16px; font-weight: 500; color: var(--tsw-primary-text-color); background: none; border: 0; padding: 12px 0; }
+
+      /* Breadcrumb */
+      .crumbs {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        font-size: 16px;
+        line-height: 20px;
+        padding: 8px 0 0;
+        color: var(--tsw-primary-text-color);
+      }
+      .crumbs a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+      .crumbs .sep { color: #9a9a9a; }
+      .crumbs .current { font-weight: 700; }
+
+      /* Banner */
+      .banner {
+        position: relative;
+        height: 340px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #e9e3dc;
+        margin-top: 14px;
+      }
+      .banner img { width: 100%; height: 100%; object-fit: cover; }
+      .banner-fallback {
+        position: absolute; inset: 0;
+        background: linear-gradient(120deg, #ffd8c4 0%, #ff7a3d 60%, #ff4c00 100%);
+      }
+
+      /* Restaurant info row */
+      .info {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 32px;
+        padding: 28px 0 8px;
+        align-items: start;
+      }
+      .rest-name { font-size: 32px; line-height: 38px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.3px; }
+      .rest-meta { font-size: 16px; line-height: 24px; margin: 0; }
+      .rest-hours { display: flex; gap: 12px; align-items: baseline; margin: 6px 0 14px; }
+      .open-now { color: var(--tsw-success); font-weight: 600; }
+      .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+      .chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 44px; padding: 0 16px;
+        border: 1px solid var(--tsw-line); border-radius: 20px;
+        background: #fff; font-size: 14px; line-height: 20px; color: #000;
+      }
+      .chip svg { width: 16px; height: 16px; }
+
+      .fulfil { border: 1px solid var(--tsw-line-soft); border-radius: 12px; padding: 12px; }
+      .toggle {
+        display: grid; grid-template-columns: 1fr 1fr;
+        background: var(--tsw-wash); border-radius: 99px; padding: 4px;
+      }
+      .toggle button {
+        height: 44px; border: 0; border-radius: 99px; background: transparent;
+        font-size: 14px; font-weight: 500; color: #000;
+      }
+      .toggle button[aria-pressed="true"] { background: #000; color: #fff; }
+      .fulfil-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 8px 4px; font-size: 14px; line-height: 20px;
+      }
+      .fulfil-row + .fulfil-row { border-top: 1px solid var(--tsw-line-soft); margin-top: 8px; padding-top: 12px; }
+      .fulfil-row .dot { color: #9a9a9a; margin: 0 6px; }
+      .fulfil-row svg { width: 16px; height: 16px; color: #666; }
+
+      /* Menu tabs */
+      .menu-nav {
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        border-bottom: 1px solid var(--tsw-line-soft);
+        margin-top: 20px;
+        position: sticky; top: 0; background: #fff; z-index: 2;
+      }
+      .tabs { display: flex; gap: 8px; overflow-x: auto; }
+      .tab {
+        display: inline-flex; align-items: center; gap: 6px;
+        height: 48px; padding: 0 12px; border: 0; background: none;
+        font-size: 16px; font-weight: 700; color: #000; white-space: nowrap;
+        border-bottom: 3px solid transparent;
+      }
+      .tab.active { border-bottom-color: #000; }
+      .tab svg { width: 14px; height: 14px; }
+      .search {
+        display: inline-flex; align-items: center; gap: 8px;
+        height: 40px; padding: 0 16px; min-width: 220px;
+        border: 1px solid var(--tsw-line); border-radius: 99px; color: #666; font-size: 14px;
+      }
+      .search svg { width: 16px; height: 16px; }
+
+      /* Featured items */
+      .section-title { font-size: 18px; font-weight: 600; margin: 28px 0 16px; }
+      .items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .item {
+        display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 12px;
+        border: 1px solid var(--tsw-line-soft); border-radius: 8px; padding: 14px 14px 14px 16px;
+        background: #fff; text-align: left; color: inherit; min-height: 118px;
+      }
+      .item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      .item-name { font-size: 16px; line-height: 20px; font-weight: 600; margin: 0 0 4px; }
+      .item-desc {
+        font-size: 14px; line-height: 16px; color: var(--tsw-secondary-text-color); margin: 0;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .item-price { font-size: 14px; margin-top: 12px; }
+      .item-media {
+        position: relative; width: 118px; height: 90px; border-radius: 6px;
+        background: #f7f4f0; display: grid; place-items: center; overflow: hidden;
+      }
+      .item-media img { width: 60px; height: 60px; }
+      .item-media .plus {
+        position: absolute; right: 6px; bottom: 6px; width: 32px; height: 32px;
+        border-radius: 50%; background: #fff; border: 1px solid var(--tsw-line);
+        display: grid; place-items: center; font-size: 20px; line-height: 1; color: #000;
+      }
+
+      /* Item detail (matches the guest item sheet) */
+      .detail {
+        display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 32px;
+        margin: 36px 0 48px; padding-top: 28px; border-top: 1px solid var(--tsw-line-soft);
+      }
+      .detail-media {
+        border-radius: 12px; height: 300px; overflow: hidden;
+        background: linear-gradient(160deg, #fff4ee 0%, #ffe0d0 100%);
+        display: grid; place-items: center;
+      }
+      .detail-media img { width: 160px; height: 160px; }
+      .detail-title { font-size: 24px; line-height: 30px; font-weight: 600; margin: 20px 0 6px; }
+      .detail-price { font-size: 16px; margin: 0 0 8px; }
+      .detail-desc { font-size: 14px; line-height: 20px; color: var(--tsw-secondary-text-color); margin: 0; }
+
+      .customize { border: 1px solid var(--tsw-line-soft); border-radius: 12px; padding: 20px; }
+      .customize h3 { font-size: 18px; font-weight: 600; margin: 0 0 16px; }
+      .group { border-top: 1px solid var(--tsw-line-soft); padding: 16px 0 4px; }
+      .group-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+      .group-head strong { font-size: 16px; font-weight: 600; }
+      .group-sub { font-size: 12px; color: var(--tsw-secondary-text-color); margin: 0 0 8px; }
+      .pill-tag {
+        font-size: 12px; font-weight: 600; line-height: 14px; padding: 4px 8px;
+        border-radius: 36px; background: var(--tsw-wash); color: var(--tsw-primary-text-color);
+      }
+      .option {
+        display: flex; align-items: center; justify-content: space-between;
+        min-height: 44px; font-size: 16px; font-weight: 600;
+        border-bottom: 1px solid var(--tsw-line-soft);
+      }
+      .option:last-child { border-bottom: 0; }
+      .option input { width: 20px; height: 20px; margin: 0; accent-color: #000; }
+      .qty-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+      .qty-row label { font-size: 16px; font-weight: 600; }
+      .select {
+        position: relative; display: inline-flex; align-items: center;
+        height: 46px; border: 1px solid var(--tsw-line); border-radius: 99px; padding: 0 40px 0 16px;
+      }
+      .select select {
+        appearance: none; -webkit-appearance: none; border: 0; background: transparent;
+        font: inherit; font-size: 16px; font-weight: 500; color: inherit; padding: 0; height: 100%; min-width: 44px;
+      }
+      .select svg { position: absolute; right: 14px; width: 16px; height: 16px; pointer-events: none; }
+      .add-btn {
+        display: flex; align-items: center; justify-content: space-between;
+        width: 100%; min-height: 48px; margin-top: 20px; padding: 12px 24px;
+        border: 2px solid var(--tsw-primary-color); border-radius: 99px;
+        background: var(--tsw-primary-color); color: #fff;
+        font-size: 16px; line-height: 20px; font-weight: 500;
+      }
+      .add-btn:hover { background: var(--tsw-primary-hover-color); border-color: var(--tsw-primary-hover-color); }
+      .add-btn:disabled { opacity: 0.75; cursor: progress; }
+
+      .result-box { display: none; margin-top: 16px; padding: 14px 16px; border-radius: 8px; font-size: 14px; line-height: 20px; }
+      .result-box.success { display: block; background: #e6f7ee; color: #0b5c37; border: 1px solid #b8e6cf; }
+      .result-box.error { display: block; background: #fdeeea; color: #8a2a12; border: 1px solid #f5c6b8; }
+      .result-title { font-weight: 600; margin-bottom: 2px; }
+
+      /* Footer */
+      .site-footer {
+        background: #fff; border-top: 1px solid var(--tsw-line-soft);
+        padding: 32px 0 40px; font-size: 14px; line-height: 20px; color: var(--tsw-secondary-text-color);
+      }
+      .site-footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 32px; }
+      .site-footer ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0 20px; margin: 0; padding: 0; }
+      .site-footer ul a { display: inline-flex; align-items: center; min-height: 44px; }
+      .site-footer .logo-word { font-size: 22px; }
+
+      @media (max-width: 900px) {
+        .info, .detail { grid-template-columns: 1fr; }
+        .items { grid-template-columns: 1fr; }
+        .search { display: none; }
+      }
+      @media (max-width: 600px) {
+        .wrap { padding: 0 16px; }
+        .banner { height: 200px; border-radius: 8px; }
+        .rest-name { font-size: 26px; line-height: 32px; }
+        .signin { display: none; }
+        .cart-pill span.label { display: none; }
+        .detail-media { height: 220px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="wrap site-header">
+      <a class="logo" href="#" aria-label="Toast Local">
+        <svg width="30" height="26" viewBox="0 0 30 26" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 11.5C2.6 11 2 8.8 2 7.2 2 4.2 4.8 2 8.4 2c1.6 0 2.6.4 3.6 1 1-.6 2-1 3.6-1 3.6 0 6.4 2.2 6.4 5.2 0 1.6-.6 3.8-3 4.3V22a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/>
+        </svg>
+        <span class="logo-word">toast</span>
+        <span class="logo-badge">local</span>
+      </a>
+      <div class="header-actions">
+        <button class="cart-pill" type="button" aria-label="Cart, 0 items">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 7h12l1 13H5z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg>
+          <span id="cartCount">0</span>
+        </button>
+        <button class="signin" type="button">Sign in</button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="#">Home</a><span class="sep">/</span>
+        <a href="#">Boston</a><span class="sep">/</span>
+        <a href="#">Summer Street Kitchen</a><span class="sep">/</span>
+        <span class="current">Online Ordering</span>
+      </nav>
+
+      <div class="banner">
+        <img
+          src="https://images.ctfassets.net/tgv5pu8pgmos/6AA5zvrr7k1tquX2OFsaUs/2fa74f1a7bd16747e3767e91dd917b26/f20b024ec1b56372a73d1fb8bae944df10af6b5d.jpg?w=1600&h=680&fit=fill&f=center&fm=jpg&q=70"
+          alt="Restaurant banner image"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+        />
+        <div class="banner-fallback" style="display:none" aria-hidden="true"></div>
+      </div>
+
+      <section class="info">
+        <div>
+          <h1 class="rest-name">Summer Street Kitchen</h1>
+          <p class="rest-meta">American</p>
+          <div class="rest-hours"><span class="open-now">Open now</span><span>11AM - 9PM</span></div>
+          <div class="chips">
+            <a class="chip" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call</a>
+            <a class="chip" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>Directions</a>
+            <a class="chip" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M3 12h18M12 7v13"/></svg>Gift Cards</a>
+          </div>
+        </div>
+        <div class="fulfil">
+          <div class="toggle" role="group" aria-label="Dining option">
+            <button type="button" aria-pressed="true">Pickup</button>
+            <button type="button" aria-pressed="false">Delivery</button>
+          </div>
+          <div class="fulfil-row">
+            <span>Pickup at 333 Summer St, Boston</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+          <div class="fulfil-row">
+            <span>ASAP<span class="dot">&bull;</span>Ready in 15 - 20 min</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <div class="menu-nav">
+        <div class="tabs" role="tablist">
+          <button class="tab active" type="button" role="tab" aria-selected="true">Food <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button class="tab" type="button" role="tab" aria-selected="false">NA Beverages <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button class="tab" type="button" role="tab" aria-selected="false">Desserts <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        </div>
+        <div class="search" role="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          Search
+        </div>
+      </div>
+
+      <h2 class="section-title">Featured Items</h2>
+      <div class="items">
+        <a class="item" href="#item">
+          <div>
+            <h3 class="item-name">Smash Burger</h3>
+            <p class="item-desc">Double patty, American cheese, pickles, shaved onion, house sauce on a toasted potato bun. Served with fries.</p>
+            <div class="item-price">$16.95</div>
+          </div>
+          <div class="item-media">
+            <img src="https://cdn.toasttab.com/spa/capman-guest-app/962/public/images/cuisines/burgers.svg" alt="" onerror="this.remove()" />
+            <span class="plus" aria-hidden="true">+</span>
+          </div>
+        </a>
+        <a class="item" href="#">
+          <div>
+            <h3 class="item-name">Roast Turkey Club</h3>
+            <p class="item-desc">Oven-roasted turkey, bacon, lettuce, tomato, garlic aioli on sourdough.</p>
+            <div class="item-price">$14.50</div>
+          </div>
+          <div class="item-media">
+            <img src="https://cdn.toasttab.com/spa/capman-guest-app/962/public/images/cuisines/sandwiches.svg" alt="" onerror="this.remove()" />
+            <span class="plus" aria-hidden="true">+</span>
+          </div>
+        </a>
+        <a class="item" href="#">
+          <div>
+            <h3 class="item-name">Harvest Grain Salad</h3>
+            <p class="item-desc">Farro, roasted squash, kale, dried cranberries, feta, maple vinaigrette.</p>
+            <div class="item-price">$13.95</div>
+          </div>
+          <div class="item-media">
+            <img src="https://cdn.toasttab.com/spa/capman-guest-app/962/public/images/cuisines/salad.svg" alt="" onerror="this.remove()" />
+            <span class="plus" aria-hidden="true">+</span>
+          </div>
+        </a>
+        <a class="item" href="#">
+          <div>
+            <h3 class="item-name">Margherita Flatbread</h3>
+            <p class="item-desc">Crushed tomato, fresh mozzarella, basil, olive oil.</p>
+            <div class="item-price">$12.95</div>
+          </div>
+          <div class="item-media">
+            <img src="https://cdn.toasttab.com/spa/capman-guest-app/962/public/images/cuisines/pizza.svg" alt="" onerror="this.remove()" />
+            <span class="plus" aria-hidden="true">+</span>
+          </div>
+        </a>
+      </div>
+
+      <section class="detail" id="item">
+        <div>
+          <div class="detail-media">
+            <img src="https://cdn.toasttab.com/spa/capman-guest-app/962/public/images/cuisines/burgers.svg" alt="" onerror="this.remove()" />
+          </div>
+          <h2 class="detail-title">Smash Burger</h2>
+          <p class="detail-price">$16.95</p>
+          <p class="detail-desc">Double patty, American cheese, pickles, shaved onion, house sauce on a toasted potato bun. Served with fries.</p>
+        </div>
+
+        <form class="customize" id="cartForm" novalidate>
+          <h3>Customize your item</h3>
+
+          <div class="group">
+            <div class="group-head"><strong>Choice of Side</strong><span class="pill-tag">Required</span></div>
+            <p class="group-sub">Select 1</p>
+            <label class="option"><span>Fries</span><input type="radio" name="side" value="fries" checked /></label>
+            <label class="option"><span>Sweet Potato Fries</span><input type="radio" name="side" value="sweet" /></label>
+            <label class="option"><span>Side Salad</span><input type="radio" name="side" value="salad" /></label>
+          </div>
+
+          <div class="group">
+            <div class="group-head"><strong>Temperature</strong><span class="pill-tag">Required</span></div>
+            <p class="group-sub">Select 1</p>
+            <label class="option"><span>Medium</span><input type="radio" name="temp" value="medium" checked /></label>
+            <label class="option"><span>Medium Well</span><input type="radio" name="temp" value="medium-well" /></label>
+            <label class="option"><span>Well Done</span><input type="radio" name="temp" value="well" /></label>
+          </div>
+
+          <div class="group">
+            <div class="qty-row">
+              <label for="quantity">Quantity</label>
+              <div class="select">
+                <select id="quantity" aria-label="Quantity">
+                  <option value="1" selected>1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <button class="add-btn" id="addToCartBtn" type="submit" data-testid="menu-item-cart-cta">
+            <span id="addLabel">Add to Cart</span>
+            <span id="addPrice">$16.95</span>
+          </button>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div>
+          <span class="logo" aria-hidden="true"><span class="logo-word">toast</span><span class="logo-badge">local</span></span>
+          <div style="margin-top:8px">333 Summer Street, Boston, MA 02210<br />&copy; 2026 Toast, Inc.</div>
+        </div>
+        <ul>
+          <li><a href="#">Restaurants by city</a></li>
+          <li><a href="#">About Toast</a></li>
+          <li><a href="#">For restaurants</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+          if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+          if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        }).catch(function () {});
+      })();
+    </script>
+    <script>
+      const UNIT_PRICE = 16.95;
+      const fmt = (n) => '$' + n.toFixed(2);
+
+      document.querySelectorAll('.toggle button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.toggle button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+          btn.setAttribute('aria-pressed', 'true');
+        });
+      });
+
+      document.getElementById('quantity').addEventListener('change', function () {
+        document.getElementById('addPrice').textContent = fmt(UNIT_PRICE * (parseInt(this.value, 10) || 1));
+      });
+
+      document.getElementById('cartForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('addToCartBtn');
+        const label = document.getElementById('addLabel');
+        const result = document.getElementById('result');
+        const show = (cls, title, detail) => {
+          result.className = 'result-box ' + cls;
+          result.textContent = '';
+          const t = document.createElement('div');
+          t.className = 'result-title';
+          t.textContent = title;
+          const d = document.createElement('div');
+          d.textContent = detail;
+          result.append(t, d);
+        };
+        const quantity = parseInt(document.getElementById('quantity').value, 10) || 1;
+        btn.disabled = true;
+        label.textContent = 'Adding to cart\u2026';
+        result.className = 'result-box';
+        try {
+          const res = await fetch('/api/marketplace/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              offerId: 'OFF-NA221-PHG',
+              sellerId: 'SELLER-PHILIPS-HHG',
+              listingId: '408492471',
+              quantity: quantity,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            const detail = data.code === 'RESERVATION_TIMEOUT'
+              ? 'We could not confirm this item with the restaurant in time. Please try again in a few minutes.'
+              : data.error;
+            show('error', 'Item not added to cart', detail);
+          } else {
+            const cart = document.getElementById('cartCount');
+            cart.textContent = String((parseInt(cart.textContent, 10) || 0) + quantity);
+            show('success', 'Added to cart', quantity + ' x Smash Burger \u2014 pickup at 333 Summer St, ready in 15 - 20 min');
+          }
+        } catch (err) {
+          show('error', 'Item not added to cart', err.message);
+        }
+        btn.disabled = false;
+        label.textContent = 'Add to Cart';
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>
