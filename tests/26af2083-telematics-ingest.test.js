@@ -224,6 +224,33 @@ describe('26af2083 J1939 telematics ingest', () => {
     expect(total(second)).toBeLessThan(total(seeded) + firstMin + secondMin);
   });
 
+  test('the first window after account-local midnight credits only the minutes since midnight', async () => {
+    const timezone = service.getFleet(Date.now()).account.timezone;
+    const accountDate = (at) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: timezone }).format(new Date(at));
+    const hour = 60 * 60 * 1000;
+    const anchor = Math.floor(Date.now() / hour) * hour;
+    const midnightAt = Array.from({ length: 30 }, (_, index) => anchor + index * hour)
+      .find((at) => accountDate(at) !== accountDate(at + hour)) + hour;
+
+    service.resetStore(midnightAt - hour);
+    const assetId = Object.values(service.ASSETS)
+      .find((asset) => asset.gateway === 'TCU-G1' && asset.status === 'WORKING').assetId;
+    const total = (u) => u.workedTodayMin + u.idleTodayMin;
+
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(midnightAt + 2 * 60 * 1000);
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    const first = service.ASSETS[assetId].utilization;
+    expect(first.date).toBe(accountDate(midnightAt + 60 * 1000));
+    // 00:02 window spans 23:57–00:02: only two of its five minutes are today's.
+    expect(total(first)).toBeLessThanOrEqual(2);
+
+    clock.mockReturnValue(midnightAt + 3 * 60 * 1000);
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    clock.mockRestore();
+    // The 00:03 window re-samples both of those minutes; today is three minutes old.
+    expect(total(service.ASSETS[assetId].utilization)).toBeLessThanOrEqual(3);
+  });
+
   test('replays every missed interval of the current account-local day after a long idle period', () => {
     const timezone = service.getFleet(Date.now()).account.timezone;
     const accountDate = (at) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: timezone }).format(new Date(at));

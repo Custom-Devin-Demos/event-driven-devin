@@ -158,6 +158,22 @@ describe('1182181f historian → MES ingest', () => {
     expect(service.LINES.L1.shiftGoodCount).toBe(before + first + service.LINES.L1.lastInterval.goodCount);
   });
 
+  test('two runs inside the first 15 minutes of a shift credit only the in-shift minutes once', async () => {
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime() + 8 * 60 * 60 * 1000;
+    service.resetStore(shiftStart - 60 * 60 * 1000);
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(shiftStart + 10 * 60 * 1000);
+    await service.runPipeline('L1', { trigger: 'manual' });
+    const first = service.LINES.L1.lastInterval.goodCount;
+    expect(service.LINES.L1.shiftGoodCount).toBe(first);
+    clock.mockReturnValue(shiftStart + 12 * 60 * 1000);
+    await service.runPipeline('L1', { trigger: 'manual' });
+    clock.mockRestore();
+    // The second window re-samples every in-shift minute the first credited.
+    expect(service.LINES.L1.shiftGoodCount).toBe(service.LINES.L1.lastInterval.goodCount);
+    const cells = service.getPlant(shiftStart + 12 * 60 * 1000).cells.filter((cell) => cell.lineCode === 'L1');
+    cells.forEach((cell) => expect(cell.partsGood).toBe(service.CELLS[cell.cellId].lastInterval.goodCount));
+  });
+
   test('replays every missed interval of the current shift after a long idle period', () => {
     // The shift after the current one, so a 5 h offset is guaranteed to stay inside it.
     const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime() + 8 * 60 * 60 * 1000;

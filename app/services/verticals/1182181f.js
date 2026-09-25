@@ -643,11 +643,16 @@ function intervalBucket(now) {
 // together than that re-read the same production. The share of the previous
 // window that the new one covers again is withdrawn before the new window is
 // credited: a re-run seconds later replaces its predecessor outright, a run
-// two minutes later leaves only the two minutes it did not re-sample.
-function overlapWithPrevious(previousEndMs, now) {
+// two minutes later leaves only the two minutes it did not re-sample. Only the
+// part of the previous window credited to this shift (after `floorMs`) counts.
+function overlapWithPrevious(previousEndMs, now, floorMs) {
   if (previousEndMs === null || previousEndMs === undefined) return 0;
   const intervalMs = INTERVAL_MIN * 60 * 1000;
-  return Math.max(0, Math.min(1, (previousEndMs - (now - intervalMs)) / intervalMs));
+  const previousStart = Math.max(previousEndMs - intervalMs, floorMs);
+  const credited = previousEndMs - previousStart;
+  if (credited <= 0) return 0;
+  const resampledFrom = Math.max(now - intervalMs, previousStart);
+  return Math.max(0, Math.min(1, (previousEndMs - resampledFrom) / credited));
 }
 
 function rolloverShift(line, shift) {
@@ -707,7 +712,7 @@ function publish(manifest, interval, alarms, run, now = Date.now()) {
   const elapsed = Math.max(1, Math.floor((now - shiftStartMs) / 60000));
   const bucket = intervalBucket(now);
   const rerun = line.lastIntervalBucket === bucket;
-  const overlap = overlapWithPrevious(line.lastIntervalEndMs, now);
+  const overlap = overlapWithPrevious(line.lastIntervalEndMs, now, shiftStartMs);
   const withdrawn = (previous) => Math.round((previous || 0) * overlap);
   // Share of the interval that falls inside this shift; production sampled
   // before the shift boundary belongs to the shift that just ended.

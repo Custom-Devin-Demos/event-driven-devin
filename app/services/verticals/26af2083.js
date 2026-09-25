@@ -186,11 +186,16 @@ function intervalBucket(now) {
 // together than that re-read the same minutes. The share of the previous window
 // the new one covers again is withdrawn before the new window is credited: a
 // re-run seconds later replaces its predecessor outright, a run two minutes
-// later leaves only the two minutes it did not re-sample.
-function overlapWithPrevious(previousEndMs, now) {
+// later leaves only the two minutes it did not re-sample. Only the part of the
+// previous window credited to this account-local day (after `floorMs`) counts.
+function overlapWithPrevious(previousEndMs, now, floorMs) {
   if (previousEndMs === null || previousEndMs === undefined) return 0;
   const intervalMs = INTERVAL_MIN * 60 * 1000;
-  return Math.max(0, Math.min(1, (previousEndMs - (now - intervalMs)) / intervalMs));
+  const previousStart = Math.max(previousEndMs - intervalMs, floorMs);
+  const credited = previousEndMs - previousStart;
+  if (credited <= 0) return 0;
+  const resampledFrom = Math.max(now - intervalMs, previousStart);
+  return Math.max(0, Math.min(1, (previousEndMs - resampledFrom) / credited));
 }
 
 // Maintenance reminders are one event per asset whose title tracks the meter;
@@ -453,6 +458,9 @@ function computeHealth(manifest, decoded, now) {
     if (!byAsset[sample.assetId]) byAsset[sample.assetId] = [];
     byAsset[sample.assetId].push(sample);
   });
+  const today = accountDate(now);
+  const bucket = intervalBucket(now);
+  const dayStartMs = accountDayStart(now);
   return Object.entries(byAsset).map(([assetId, samples]) => {
     const latest = samples[samples.length - 1];
     const previous = ASSETS[assetId];
@@ -462,15 +470,15 @@ function computeHealth(manifest, decoded, now) {
     const minutes = INTERVAL_MIN;
     const worked = samples.filter((sample) => statusFrom(sample.signals[190], sample.signals[92]) === 'WORKING').length / samples.length;
     const idle = samples.filter((sample) => statusFrom(sample.signals[190], sample.signals[92]) === 'IDLING').length / samples.length;
-    const today = accountDate(now);
-    const bucket = intervalBucket(now);
     const prior = previous.utilization.date === today ? previous.utilization : { workedTodayMin: 0, idleTodayMin: 0 };
-    const overlap = overlapWithPrevious(prior.lastIntervalEndMs, now);
+    const overlap = overlapWithPrevious(prior.lastIntervalEndMs, now, dayStartMs);
     const replaced = prior.lastInterval
       ? { worked: Math.round(prior.lastInterval.worked * overlap), idle: Math.round(prior.lastInterval.idle * overlap) }
       : { worked: 0, idle: 0 };
-    const intervalWorked = round(worked * minutes, 0);
-    const intervalIdle = round(idle * minutes, 0);
+    // Minutes sampled before account-local midnight belong to yesterday's totals.
+    const inDay = Math.min(1, (now - dayStartMs) / (minutes * 60 * 1000));
+    const intervalWorked = round(worked * minutes * inDay, 0);
+    const intervalIdle = round(idle * minutes * inDay, 0);
     const workedTodayMin = prior.workedTodayMin - replaced.worked + intervalWorked;
     const idleTodayMin = prior.idleTodayMin - replaced.idle + intervalIdle;
     const faults = latest.dtcs.map((dtc) => {
