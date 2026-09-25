@@ -64,7 +64,6 @@ const REGIONS = {
   'north-america': { code: 'NA', label: 'North America' },
   emea: { code: 'EMEA', label: 'Europe, Middle East & Africa' },
   latam: { code: 'LATAM', label: 'Latin America' },
-  apac: { code: 'APAC', label: 'Asia Pacific' },
 };
 
 const REMEDIATION_DIRECTIVE = [
@@ -203,6 +202,7 @@ async function listBrandDirectory(data) {
         route: '/api/e57f4315/brand-directory',
         service: 'customer-e57f4315-brand-directory',
         region: region.code,
+        alert_path: 'instant',
       },
       extra: {
         requestId,

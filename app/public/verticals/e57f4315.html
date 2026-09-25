@@ -156,6 +156,27 @@
     .pill.cyan:hover { background: var(--cyan); }
     .pill[disabled] { opacity: .6; cursor: progress; }
 
+    /* Brand directory */
+    .brand-directory { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; padding: 10px 0 30px; }
+    .brand-group h3 {
+      font-family: var(--font-bold);
+      font-weight: 400;
+      font-size: 17px;
+      color: var(--mint);
+      margin: 0 0 10px;
+    }
+    .brand-group ul { list-style: none; margin: 0; padding: 0; }
+    .brand-group li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .brand-group li em { font-style: normal; opacity: .6; font-size: 13px; }
+
     /* Brand marquee */
     .marquee { overflow: hidden; padding: 40px 0 76px; background: var(--navy); }
     .marquee-track {
@@ -254,7 +275,7 @@
 
     @media (max-width: 1000px) {
       .nav, .ticker { display: none; }
-      .cards, .careers .grid, .footer-grid { grid-template-columns: 1fr; }
+      .cards, .careers .grid, .footer-grid, .brand-directory { grid-template-columns: 1fr; }
       .hero { height: 380px; }
     }
   </style>
@@ -316,6 +337,10 @@
       </p>
     </div>
   </section>
+
+  <div class="wrap">
+    <div class="brand-directory" id="brandDirectory" hidden></div>
+  </div>
 
   <div class="marquee">
     <div class="marquee-track" id="marquee"></div>
@@ -472,6 +497,18 @@
       });
     }
 
+    function renderDirectory(data) {
+      var panel = document.getElementById('brandDirectory');
+      panel.innerHTML = data.portfolio.segments.map(function (group) {
+        return '<div class="brand-group"><h3>' + esc(group.segment) + '</h3><ul>' +
+          group.networks.map(function (network) {
+            return '<li><span>' + esc(network.name) + '</span><em>' + esc(network.category) + '</em></li>';
+          }).join('') + '</ul></div>';
+      }).join('');
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
     document.getElementById('brandsCta').addEventListener('click', function () {
       var btn = this;
       btn.disabled = true;
@@ -499,6 +536,7 @@
             );
             return;
           }
+          renderDirectory(result.data);
           showToast(
             result.data.portfolio.networkCount + ' brands in ' + esc(result.data.region.label),
             'Across ' + result.data.portfolio.segmentCount + ' segments.'
