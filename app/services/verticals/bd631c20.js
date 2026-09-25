@@ -71,7 +71,7 @@ const STORAGE_POLICIES = {
   },
 };
 
-const BLOOMBERG_SLACK_MEMBER_ID = process.env.BLOOMBERG_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const BLOOMBERG_SLACK_MEMBER_ID = process.env.BLOOMBERG_SLACK_MEMBER_ID || 'U0BU46F4WCU';
 const SENTRY_ISSUE_QUERY = 'is:unresolved maxUnconfirmedBytes';
 
 /**
