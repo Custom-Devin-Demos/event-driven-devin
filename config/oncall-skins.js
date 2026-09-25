@@ -83,6 +83,26 @@ const ONCALL_SKINS = {
     supportCenter: 'Charles Schwab Support',
     disclaimer: 'NOT ACTUALLY A CHARLES SCHWAB SITE — internal demo only, not affiliated with, endorsed by, or a real Charles Schwab product.',
   },
+  'd82eca33': {
+    slug: 'd82eca33',
+    company: 'Toast',
+    brandMark: 'T',
+    vertical: 'marketplace',
+    oncallOnly: true,
+    page: {
+      file: 'd82eca33.html',
+      title: 'Summer Street Kitchen | Online Ordering | Toast Local',
+    },
+    theme: {
+      '--accent': '#FF4C00',
+      '--ink': '#252525',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#1F1F1F',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Toast Guest Support',
+    disclaimer: 'NOT ACTUALLY A TOAST SITE — internal demo only, not affiliated with, endorsed by, or a real Toast product.',
+  },
   '857b6424': {
     slug: '857b6424',
     company: 'Qdoba',
