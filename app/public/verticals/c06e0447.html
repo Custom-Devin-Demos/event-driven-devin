@@ -581,6 +581,12 @@
     })();
   </script>
   <script>
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
+
     document.getElementById('cartForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       var btn = document.getElementById('addToCartBtn');
@@ -614,12 +620,12 @@
         if (res.ok && data.success !== false) {
           result.className = 'result-box show success';
           result.innerHTML = '<strong>Im Warenkorb</strong>' + quantity + ' × Concept for Life Medium Adult (13,5 kg) wurde deinem Warenkorb hinzugefügt.'
-            + '<span class="meta">Dauer ' + elapsed + ' s' + (data.cartId ? ' · Warenkorb ' + data.cartId : '') + '</span>';
+            + '<span class="meta">Dauer ' + elapsed + ' s' + (data.cartId ? ' · Warenkorb ' + esc(data.cartId) : '') + '</span>';
         } else {
           result.className = 'result-box show error';
           result.innerHTML = '<strong>Der Artikel konnte nicht hinzugefügt werden</strong>'
-            + (data.error || 'Bitte versuche es in einigen Minuten erneut.')
-            + '<span class="meta">Dauer ' + elapsed + ' s · HTTP ' + res.status + (data.requestId ? ' · Request ' + data.requestId : '') + '</span>';
+            + esc(data.error || 'Bitte versuche es in einigen Minuten erneut.')
+            + '<span class="meta">Dauer ' + elapsed + ' s · HTTP ' + res.status + (data.requestId ? ' · Request ' + esc(data.requestId) : '') + '</span>';
         }
       } catch (err) {
         var elapsedErr = ((Date.now() - started) / 1000).toFixed(1);
