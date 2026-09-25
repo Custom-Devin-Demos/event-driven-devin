@@ -1,7 +1,14 @@
+const path = require('path');
 const express = require('express');
 const { confirmBooking, BOOKINGS, PRICE_BOOK } = require('../../services/verticals/246706c4');
 
 const router = express.Router();
+
+const PAY_PAGE = path.join(__dirname, '..', '..', 'public', 'verticals', '246706c4-pay.html');
+
+router.get('/246706c4/pay', (_req, res) => {
+  res.sendFile(PAY_PAGE);
+});
 
 router.get('/api/246706c4/booking/:bookingId', (req, res) => {
   const booking = BOOKINGS.find((b) => b.bookingId === req.params.bookingId);
