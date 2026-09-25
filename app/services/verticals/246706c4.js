@@ -180,6 +180,7 @@ async function confirmBooking(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
+      slackMemberIdFallback: process.env.C246706C4_SLACK_MEMBER_ID,
       service: SERVICE,
       verticalLabel: 'Glass Repair — Booking Confirm & Pay',
       tags: [
