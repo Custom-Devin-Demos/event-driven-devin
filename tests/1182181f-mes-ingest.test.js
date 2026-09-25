@@ -121,6 +121,66 @@ describe('1182181f historian → MES ingest', () => {
     clock.mockRestore();
   });
 
+  test('manual runs straddling an aligned interval boundary credit the overlap only once', async () => {
+    const intervalMs = 15 * 60 * 1000;
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime();
+    // A boundary well inside the shift so neither run is clipped by the shift start.
+    const boundary = Math.ceil((shiftStart + 2 * 60 * 60 * 1000) / intervalMs) * intervalMs;
+    service.resetStore(boundary - 60 * 60 * 1000);
+    const before = service.LINES.L1.shiftGoodCount;
+
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(boundary - 60 * 1000);
+    expect((await service.runPipeline('L1', { trigger: 'manual' })).status).toBe('succeeded');
+    const first = service.LINES.L1.lastInterval.goodCount;
+    clock.mockReturnValue(boundary + 60 * 1000);
+    expect((await service.runPipeline('L1', { trigger: 'manual' })).status).toBe('succeeded');
+    clock.mockRestore();
+
+    const second = service.LINES.L1.lastInterval.goodCount;
+    // Two minutes apart: the 13 minutes the second window re-sampled are withdrawn from the first.
+    expect(service.LINES.L1.shiftGoodCount).toBe(before + first - Math.round(first * (13 / 15)) + second);
+    expect(service.LINES.L1.shiftGoodCount).toBeLessThan(before + first + second);
+    expect(service.LINES.L1.shiftGoodCount).toBeGreaterThanOrEqual(before + second);
+  });
+
+  test('runs a full interval apart add both windows in full', async () => {
+    const intervalMs = 15 * 60 * 1000;
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime();
+    const at = Math.ceil((shiftStart + 2 * 60 * 60 * 1000) / intervalMs) * intervalMs;
+    service.resetStore(at - 60 * 60 * 1000);
+    const before = service.LINES.L1.shiftGoodCount;
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(at);
+    await service.runPipeline('L1', { trigger: 'manual' });
+    const first = service.LINES.L1.lastInterval.goodCount;
+    clock.mockReturnValue(at + intervalMs);
+    await service.runPipeline('L1', { trigger: 'manual' });
+    clock.mockRestore();
+    expect(service.LINES.L1.shiftGoodCount).toBe(before + first + service.LINES.L1.lastInterval.goodCount);
+  });
+
+  test('replays every missed interval of the current shift after a long idle period', () => {
+    // The shift after the current one, so a 5 h offset is guaranteed to stay inside it.
+    const shiftStart = new Date(service.getPlant(Date.now()).shift.startsAt).getTime() + 8 * 60 * 60 * 1000;
+    const seededAt = shiftStart - 20 * 60 * 60 * 1000;
+    service.resetStore(seededAt);
+    const seededRuns = service.listRuns({ lineCode: 'L1', limit: 200 }).filter((run) => run.trigger === 'scheduled').length;
+    const later = shiftStart + 5 * 60 * 60 * 1000 + 7 * 60 * 1000;
+    const plant = service.getPlant(later);
+    const line = plant.lines.find((candidate) => candidate.code === 'L1');
+    expect(new Date(plant.shift.startsAt).getTime()).toBe(shiftStart);
+    expect(line.shiftStartsAt).toBe(plant.shift.startsAt);
+    const shiftRuns = service.listRuns({ lineCode: 'L1', limit: 200 })
+      .filter((run) => new Date(run.startedAt).getTime() >= shiftStart && run.trigger === 'scheduled');
+    // Every 15-minute job since the shift began (5 h → 20), not just the last eight.
+    expect(shiftRuns.length).toBeGreaterThanOrEqual(20);
+    const all = service.listRuns({ lineCode: 'L1', limit: 200 }).filter((run) => run.trigger === 'scheduled');
+    // Pre-shift jobs are bounded history, not the whole 20 h gap.
+    expect(all.length - shiftRuns.length).toBeLessThanOrEqual(seededRuns + 16 + 1);
+    const cell = plant.cells.find((candidate) => candidate.lineCode === 'L1' && candidate.category === 'running');
+    expect(cell.timeline.at(-1).end).toBeGreaterThan(plant.shift.elapsedMin - 16);
+    expect(cell.partsGood).toBeGreaterThan(cell.goodCount * 10);
+  });
+
   test('resets shift counters on the first publish of a new shift', async () => {
     service.resetStore(Date.now() - 9 * 60 * 60 * 1000);
     const seeded = service.LINES.L2;

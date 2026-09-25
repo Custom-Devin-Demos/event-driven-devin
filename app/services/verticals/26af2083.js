@@ -15,6 +15,7 @@ const ACCOUNT = {
 };
 const STAGES = ['pull_messages', 'decode_j1939', 'compute_health', 'evaluate_events', 'publish'];
 const INTERVAL_MIN = 5;
+const REPLAY_HISTORY_JOBS = 16;
 const STALE_AFTER_MS = Number(process.env.X26AF2083_STALE_AFTER_MS) || 30 * 60 * 1000;
 const ALERT_COOLDOWN_MS = Number(process.env.X26AF2083_ALERT_COOLDOWN_MS) || 24 * 60 * 60 * 1000;
 const CUTOVER_AGO_MS = 26 * 60 * 60 * 1000;
@@ -175,11 +176,21 @@ function accountDate(now) {
   }).format(new Date(now));
 }
 
-// Interval jobs are keyed to aligned INTERVAL_MIN buckets so a manual re-run of
-// the current interval replaces its utilization contribution instead of adding to it.
+// Aligned INTERVAL_MIN bucket a publish falls in.
 function intervalBucket(now) {
   const bucketMs = INTERVAL_MIN * 60 * 1000;
   return Math.floor(now / bucketMs) * bucketMs;
+}
+
+// Every run pulls the trailing INTERVAL_MIN of messages, so two publishes closer
+// together than that re-read the same minutes. The share of the previous window
+// the new one covers again is withdrawn before the new window is credited: a
+// re-run seconds later replaces its predecessor outright, a run two minutes
+// later leaves only the two minutes it did not re-sample.
+function overlapWithPrevious(previousEndMs, now) {
+  if (previousEndMs === null || previousEndMs === undefined) return 0;
+  const intervalMs = INTERVAL_MIN * 60 * 1000;
+  return Math.max(0, Math.min(1, (previousEndMs - (now - intervalMs)) / intervalMs));
 }
 
 // Maintenance reminders are one event per asset whose title tracks the meter;
@@ -259,6 +270,7 @@ function buildAsset(seed, now, random) {
       idleTodayMin,
       idlePct: workedTodayMin + idleTodayMin ? round((idleTodayMin / (workedTodayMin + idleTodayMin)) * 100, 1) : 0,
       lastBucket: null,
+      lastIntervalEndMs: null,
       lastInterval: null,
     },
     telemetry: {
@@ -453,7 +465,10 @@ function computeHealth(manifest, decoded, now) {
     const today = accountDate(now);
     const bucket = intervalBucket(now);
     const prior = previous.utilization.date === today ? previous.utilization : { workedTodayMin: 0, idleTodayMin: 0 };
-    const replaced = prior.lastBucket === bucket && prior.lastInterval ? prior.lastInterval : { worked: 0, idle: 0 };
+    const overlap = overlapWithPrevious(prior.lastIntervalEndMs, now);
+    const replaced = prior.lastInterval
+      ? { worked: Math.round(prior.lastInterval.worked * overlap), idle: Math.round(prior.lastInterval.idle * overlap) }
+      : { worked: 0, idle: 0 };
     const intervalWorked = round(worked * minutes, 0);
     const intervalIdle = round(idle * minutes, 0);
     const workedTodayMin = prior.workedTodayMin - replaced.worked + intervalWorked;
@@ -475,6 +490,7 @@ function computeHealth(manifest, decoded, now) {
         idleTodayMin,
         idlePct: workedTodayMin + idleTodayMin ? round((idleTodayMin / (workedTodayMin + idleTodayMin)) * 100, 1) : 0,
         lastBucket: bucket,
+        lastIntervalEndMs: now,
         lastInterval: { worked: intervalWorked, idle: intervalIdle },
       },
       telemetry: {
@@ -762,21 +778,40 @@ function replayInterval(manifest, startedAt) {
   return publish(manifest, health, events, run, startedAt + 640 + Math.floor(random() * 500));
 }
 
+// Start of the account-local calendar day `now` falls in.
+function accountDayStart(now) {
+  const day = accountDate(now);
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23', timeZone: ACCOUNT.timezone,
+  }).formatToParts(new Date(now)).map((part) => [part.type, part.value]));
+  const sinceMidnightMs = ((Number(parts.hour) * 60 + Number(parts.minute)) * 60 + Number(parts.second)) * 1000 + (now % 1000);
+  let start = now - sinceMidnightMs;
+  // A DST transition earlier in the day shifts the wall clock by an hour.
+  while (accountDate(start - 1) === day) start -= 60 * 60 * 1000;
+  while (accountDate(start) !== day) start += 60 * 60 * 1000;
+  return start;
+}
+
 // With the background scheduler off (the default), healthy gateways would
 // otherwise age into Not reporting purely from server uptime. Replay the interval
-// jobs a running scheduler would have completed (at most the last eight) so the
-// read model stays current; gateways with failures (TCU-G3) are left exactly as
-// they are.
+// jobs a running scheduler would have completed so the read model stays current:
+// every job of the current account-local day (today's utilization is the sum of
+// them) plus enough earlier ones to fill the job history. Jobs from days already
+// over only ever fed utilization that has since reset at midnight. Gateways with
+// failures (TCU-G3) are left exactly as they are.
 function advanceHealthyGateways(now) {
   if (schedulerHandle) return;
   const intervalMs = INTERVAL_MIN * 60 * 1000;
+  const dayStartMs = accountDayStart(now);
   Object.values(GATEWAY_MANIFESTS).forEach((manifest) => {
     if (consecutiveFailures[manifest.family]) return;
     const last = lastSuccessfulPublishes[manifest.family];
     if (!last || now - last < intervalMs + 2 * 60000) return;
     const missed = Math.floor((now - last - 2 * 60000) / intervalMs);
     if (missed < 1) return;
-    for (let index = Math.max(1, missed - 7); index <= missed; index += 1) {
+    const firstToday = Math.max(1, Math.ceil((dayStartMs - last) / intervalMs));
+    const from = Math.max(1, Math.min(missed, firstToday) - REPLAY_HISTORY_JOBS);
+    for (let index = from; index <= missed; index += 1) {
       replayInterval(manifest, last + index * intervalMs);
     }
   });

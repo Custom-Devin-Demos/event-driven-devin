@@ -192,6 +192,62 @@ describe('26af2083 J1939 telematics ingest', () => {
     expect(reset.workedTodayMin + reset.idleTodayMin).toBeLessThanOrEqual(5);
   });
 
+  test('manual runs straddling an aligned 5-minute boundary credit the overlap only once', async () => {
+    const timezone = service.getFleet(Date.now()).account.timezone;
+    const accountDate = (at) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: timezone }).format(new Date(at));
+    const hour = 60 * 60 * 1000;
+    const anchor = Math.floor(Date.now() / hour) * hour;
+    const midnightAt = Array.from({ length: 30 }, (_, index) => anchor + index * hour)
+      .find((at) => accountDate(at) !== accountDate(at + hour)) + hour;
+    // Noon, account-local: nowhere near a day boundary.
+    const boundary = midnightAt + 12 * hour;
+    service.resetStore(boundary - hour);
+    const assetId = Object.values(service.ASSETS)
+      .find((asset) => asset.gateway === 'TCU-G1' && asset.status === 'WORKING').assetId;
+    const seeded = service.ASSETS[assetId].utilization;
+    const total = (u) => u.workedTodayMin + u.idleTodayMin;
+
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(boundary - 30 * 1000);
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    const first = service.ASSETS[assetId].utilization;
+    expect(first.date).toBe(seeded.date);
+    clock.mockReturnValue(boundary + 30 * 1000);
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    clock.mockRestore();
+    const second = service.ASSETS[assetId].utilization;
+
+    expect(second.lastBucket).not.toBe(first.lastBucket);
+    const firstMin = first.lastInterval.worked + first.lastInterval.idle;
+    const secondMin = second.lastInterval.worked + second.lastInterval.idle;
+    // One minute apart: 4 of the first window's 5 minutes were re-sampled and are withdrawn.
+    expect(total(second)).toBeLessThanOrEqual(total(seeded) + secondMin + Math.ceil(firstMin / 5) + 1);
+    expect(total(second)).toBeLessThan(total(seeded) + firstMin + secondMin);
+  });
+
+  test('replays every missed interval of the current account-local day after a long idle period', () => {
+    const timezone = service.getFleet(Date.now()).account.timezone;
+    const accountDate = (at) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: timezone }).format(new Date(at));
+    const hour = 60 * 60 * 1000;
+    const anchor = Math.floor(Date.now() / hour) * hour;
+    const midnightAt = Array.from({ length: 30 }, (_, index) => anchor + index * hour)
+      .find((at) => accountDate(at) !== accountDate(at + hour)) + hour;
+
+    service.resetStore(midnightAt - 30 * hour);
+    const seededRuns = service.listRuns({ gateway: 'TCU-G1', limit: 200 }).filter((run) => run.trigger === 'scheduled').length;
+    const workingId = Object.values(service.ASSETS)
+      .find((asset) => asset.gateway === 'TCU-G1' && asset.status === 'WORKING').assetId;
+    const later = midnightAt + 6 * hour + 3 * 60 * 1000;
+    service.getFleet(later);
+    const today = service.ASSETS[workingId].utilization;
+    expect(today.date).toBe(accountDate(later));
+    // 6 h of 5-minute jobs → 72 intervals ≈ 360 min, not the 40 min an 8-job cap would leave.
+    expect(today.workedTodayMin + today.idleTodayMin).toBeGreaterThanOrEqual(300);
+    const runs = service.listRuns({ gateway: 'TCU-G1', limit: 200 }).filter((run) => run.trigger === 'scheduled');
+    const todayRuns = runs.filter((run) => new Date(run.startedAt).getTime() >= midnightAt);
+    expect(todayRuns.length).toBeGreaterThanOrEqual(72);
+    expect(runs.length - todayRuns.length).toBeLessThanOrEqual(seededRuns + 16 + 1);
+  });
+
   test('healthy gateways stay fresh with the scheduler off while TCU-G3 assets stay not reporting', () => {
     const seededAt = Date.now();
     service.resetStore(seededAt);
