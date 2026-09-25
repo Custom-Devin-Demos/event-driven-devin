@@ -573,8 +573,12 @@
   function dl(k, v) { return '<div><div class="lbl">' + k + '</div><div class="v">' + v + '</div></div>'; }
 
   // ---- Data ----
+  var loadGen = 0;
+  // Only the newest /plant response is applied; a slower earlier one is dropped.
   function load() {
+    var gen = ++loadGen;
     return fetch(API + '/plant').then(function (r) { return r.json(); }).then(function (p) {
+      if (gen !== loadGen) return;
       state.plant = p;
       if (!state.sel) state.sel = { type: 'cell', id: p.cells[0].cellId };
       render();
@@ -655,8 +659,13 @@
     }).catch(function () {});
   }
 
-  load();
-  setInterval(function () { if (state.plant) { renderList(); renderHeader(); } }, 15000);
+  load().catch(function (e) { toast('Could not load plant data: ' + e.message, true); });
+  setInterval(function () {
+    load().then(function () {
+      if (state.tab !== 'diagnostics' || !state.plant) return null;
+      return loadRuns(state.sel.type === 'cell' ? cellById(state.sel.id).lineCode : state.sel.id);
+    }).catch(function () {});
+  }, 15000);
 })();
 </script>
 </body>
