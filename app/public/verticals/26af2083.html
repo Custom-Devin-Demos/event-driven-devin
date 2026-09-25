@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talon Connect — Assets — Cumberland Aggregates &amp; Paving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bar: #1c1c1e; --bar-2: #2a2a2d; --accent: #f2a900;
+    --bg: #f4f4f5; --panel: #fff; --line: #dcdfe3; --line-2: #eceef1;
+    --text: #1f2327; --muted: #5f6771; --faint: #98a0aa;
+    --working: #2e9e44; --idling: #d98b00; --keyoff: #6b7280; --notrep: #b42318; --link: #0b5fbf;
+    --red: #c8102e; --amber: #f2a900; --protect: #a12ea1;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif; font-size: 13px; color: var(--text); background: var(--bg); display: grid; grid-template-rows: 48px 1fr; grid-template-columns: 72px 1fr; height: 100vh; overflow: hidden; }
+  button { font: inherit; cursor: pointer; }
+  a { color: var(--link); text-decoration: none; }
+  .mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; }
+
+  /* Top bar */
+  .top { grid-column: 1 / -1; background: var(--bar); color: #fff; display: flex; align-items: center; padding: 0 14px; gap: 14px; }
+  .top .burger { width: 20px; height: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+  .top .burger i { height: 2px; background: #fff; display: block; }
+  .top .brand { font-weight: 700; font-size: 17px; letter-spacing: -.01em; display: flex; align-items: center; gap: 6px; }
+  .top .brand b { color: var(--accent); }
+  .top .brand small { font-weight: 400; font-size: 11px; color: #b5b8bd; margin-left: 6px; }
+  .top .sp { flex: 1; }
+  .top .acct { border-left: 1px solid #3a3a3e; padding-left: 14px; height: 48px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: #e6e7e9; }
+  .top .acct .chev { color: #9a9ca1; font-size: 10px; }
+  .top .ico { width: 20px; height: 20px; stroke: #d5d7db; fill: none; stroke-width: 1.6; }
+  .top .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #1c1c1e; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+  /* Left nav */
+  .nav { background: #fff; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding-top: 4px; }
+  .nav a { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px 9px; font-size: 10.5px; color: var(--muted); border-left: 3px solid transparent; }
+  .nav a svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.6; }
+  .nav a.on { color: var(--text); font-weight: 600; border-left-color: var(--accent); background: #fafafa; }
+  .nav a:hover { color: var(--text); }
+  .nav .end { margin-top: auto; }
+
+  /* Main */
+  .main { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .banner { background: #fff4e5; border-bottom: 1px solid #f5d9a8; color: #6d3f00; padding: 7px 18px; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+  .banner b { font-weight: 700; }
+  .banner .go { margin-left: auto; font-weight: 600; white-space: nowrap; }
+  .banner.err { background: #fdecea; border-color: #f3c1bc; color: #7a1d16; }
+  .tabs { display: flex; gap: 0; background: #fff; border-bottom: 1px solid var(--line); padding: 0 18px; }
+  .tabs button { border: 0; background: none; padding: 12px 16px 10px; color: var(--muted); font-size: 13px; border-bottom: 3px solid transparent; }
+  .tabs button.on { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+  .body { flex: 1; min-height: 0; display: flex; }
+  .content { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #fff; }
+  .content.pad { background: var(--bg); overflow-y: auto; padding: 14px 18px 24px; display: block; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-bottom: 1px solid var(--line-2); }
+  .toolbar .date { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+  .toolbar .date .chev { font-size: 10px; color: var(--muted); }
+  .toolbar .search { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+  .toolbar .search input { border: 0; border-bottom: 1px solid transparent; font: inherit; font-size: 13px; width: 180px; padding: 3px 0; outline: none; }
+  .toolbar .search input:focus { border-bottom-color: var(--accent); }
+  .toolbar .search svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+  .toolbar .chips { display: flex; gap: 6px; margin-left: 12px; }
+  .chip { background: #eef0f3; border: 1px solid #e0e3e8; border-radius: 16px; padding: 3px 8px 3px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .chip .x { width: 14px; height: 14px; border-radius: 50%; background: #9aa1aa; color: #fff; font-size: 9px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+  .toolbar .pg { margin-left: auto; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12.5px; }
+  .toolbar .pg button { border: 0; background: none; color: var(--faint); font-size: 14px; padding: 0 2px; }
+  .toolbar .pg .tb { display: flex; gap: 12px; margin-left: 8px; }
+  .toolbar .pg .tb svg { width: 18px; height: 18px; stroke: var(--muted); fill: none; stroke-width: 1.6; }
+
+  .grid { flex: 1; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-weight: 600; font-size: 12px; color: var(--text); padding: 9px 12px; border-bottom: 1px solid var(--line); background: #fff; position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+  thead th small { color: var(--muted); font-weight: 400; }
+  tbody td { padding: 8px 10px; border-bottom: 1px solid var(--line-2); vertical-align: middle; white-space: nowrap; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover td { background: #f7f8f9; }
+  tbody tr.on td { background: #fff8e6; }
+  tbody tr.stale td { color: var(--muted); }
+  .asset { display: flex; align-items: center; gap: 10px; }
+  .glyph { width: 40px; height: 30px; border-radius: 3px; background: #f1f2f4; border: 1px solid #e2e4e8; display: flex; align-items: center; justify-content: center; }
+  .glyph svg { width: 30px; height: 20px; fill: #6b6f76; }
+  .asset .id { font-weight: 700; color: var(--text); }
+  .asset .sub { font-size: 11px; color: var(--muted); }
+  tr.stale .asset .id { color: var(--muted); }
+  .st { display: inline-flex; align-items: center; gap: 6px; }
+  .st i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .st.WORKING i { background: var(--working); } .st.IDLING i { background: var(--idling); } .st.KEY_OFF i { background: var(--keyoff); } .st.NOT_REPORTING i { background: var(--notrep); }
+  .st small { color: var(--muted); font-size: 11px; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.num { text-align: right; }
+  .lamp { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 3px; font-size: 10px; font-weight: 700; color: #fff; margin-right: 3px; vertical-align: middle; }
+  .lamp.RED { background: var(--red); } .lamp.AMBER { background: var(--amber); color: #2b2100; } .lamp.PROTECT { background: var(--protect); } .lamp.MIL { background: #444; }
+  .derate { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--red); border: 1px solid var(--red); border-radius: 2px; padding: 0 4px; margin-left: 4px; vertical-align: middle; }
+  .hot { color: var(--red); font-weight: 600; }
+  .warn { color: #9a5b00; font-weight: 600; }
+  .dash { color: var(--faint); }
+  .bar { width: 64px; height: 6px; background: #e6e8ec; border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: #3b7ddd; }
+  .bar.low i { background: var(--amber); } .bar.crit i { background: var(--red); }
+  .foot { display: flex; align-items: center; padding: 10px 18px; border-top: 1px solid var(--line-2); color: var(--muted); font-size: 12.5px; gap: 16px; }
+  .foot .pages { margin: 0 auto; display: flex; gap: 8px; align-items: center; }
+  .foot .pages b { border: 1px solid var(--line); border-radius: 3px; padding: 3px 9px; color: var(--text); }
+
+  /* Drawer */
+  .drawer { width: 500px; flex-shrink: 0; border-left: 1px solid var(--line); background: #fff; display: flex; flex-direction: column; min-height: 0; }
+  .drawer .dh { padding: 12px 16px 0; border-bottom: 1px solid var(--line); }
+  .drawer .dh .row { display: flex; align-items: center; gap: 12px; }
+  .drawer .dh h2 { margin: 0; font-size: 16px; font-weight: 700; }
+  .drawer .dh .close { margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 18px; }
+  .drawer .dh .meta { color: var(--muted); font-size: 12px; margin: 4px 0 8px; }
+  .drawer .dtabs { display: flex; gap: 18px; }
+  .drawer .dtabs button { border: 0; background: none; padding: 0 0 8px; color: var(--muted); font-size: 12.5px; border-bottom: 3px solid transparent; }
+  .drawer .dtabs button.on { color: var(--text); font-weight: 600; border-bottom-color: var(--accent); }
+  .drawer .dbody { flex: 1; overflow-y: auto; padding: 14px 16px 24px; background: var(--bg); }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 3px; margin-bottom: 12px; }
+  .card .ch { padding: 9px 12px; font-weight: 600; font-size: 12.5px; border-bottom: 1px solid var(--line-2); display: flex; align-items: center; gap: 8px; }
+  .card .ch .sub { color: var(--muted); font-weight: 400; }
+  .card .ch .act { margin-left: auto; }
+  .kv { display: grid; grid-template-columns: 1fr 1fr; }
+  .kv > div { padding: 9px 12px; border-bottom: 1px solid var(--line-2); border-right: 1px solid var(--line-2); }
+  .kv > div:nth-child(2n) { border-right: 0; }
+  .kv label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 2px; }
+  .kv .v { font-size: 13px; }
+  .kv .v.big { font-size: 20px; font-weight: 400; letter-spacing: -.01em; }
+  .kv .v small { color: var(--muted); font-size: 11px; margin-left: 4px; }
+  .card table thead th { position: static; font-size: 11.5px; color: var(--muted); padding: 7px 12px; }
+  .card table tbody td { padding: 7px 12px; white-space: normal; }
+  .card table tbody tr { cursor: default; }
+  .card table tbody tr:hover td { background: transparent; }
+  .sev { font-size: 10.5px; font-weight: 700; border-radius: 2px; padding: 1px 5px; display: inline-block; }
+  .sev.HIGH { background: #fdecea; color: #a11a10; } .sev.MEDIUM { background: #fff4e5; color: #8a4b00; } .sev.LOW { background: #eef1f5; color: #3b4a5a; }
+  .state { font-size: 11px; color: var(--muted); }
+  .state.OPEN { color: var(--notrep); font-weight: 600; }
+  .btn { border: 1px solid var(--line); background: #fff; border-radius: 3px; padding: 5px 10px; font-size: 12px; color: var(--text); }
+  .btn.pri { background: var(--accent); border-color: #d99700; color: #1c1c1e; font-weight: 600; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.sm { padding: 2px 8px; font-size: 11.5px; }
+  .pill { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 2px; padding: 1px 6px; }
+  .pill.ok { background: #e6f4ea; color: #1e6b32; } .pill.fail { background: #fdecea; color: #a11a10; }
+  .empty { padding: 18px 12px; color: var(--muted); text-align: center; }
+  .stalebox { background: #fdecea; border: 1px solid #f3c1bc; color: #7a1d16; border-radius: 3px; padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; }
+  .stalebox b { display: block; margin-bottom: 2px; }
+
+  /* Health + Gateways views */
+  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 14px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px; }
+  .kpi label { font-size: 11px; color: var(--muted); display: block; }
+  .kpi .v { font-size: 22px; font-weight: 400; margin-top: 2px; }
+  .kpi .v small { font-size: 11px; color: var(--muted); margin-left: 4px; }
+  .kpi.bad .v { color: var(--notrep); }
+  .gw { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+  .gw .card { margin: 0; }
+  .gw .card.stale .ch { background: #fdecea; }
+  .toast { position: fixed; right: 20px; bottom: 20px; background: #1c1c1e; color: #fff; padding: 10px 14px; border-radius: 4px; font-size: 12.5px; max-width: 460px; box-shadow: 0 4px 16px rgba(0,0,0,.25); display: none; }
+  .toast.err { background: #7a1d16; }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="burger"><i></i><i></i><i></i></span>
+  <span class="brand">Talon<b>Connect</b><small>Fleet</small></span>
+  <span class="sp"></span>
+  <span class="acct" id="acct">Cumberland Aggregates &amp; Paving <span class="chev">▼</span></span>
+  <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 3.5M12 17h.01"/></svg>
+  <svg class="ico" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>
+  <span class="avatar" id="avatar">OP</span>
+</header>
+
+<nav class="nav">
+  <a href="#"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>Dashboard</a>
+  <a href="#" class="on"><svg viewBox="0 0 24 24"><path d="M3 17h18M5 17V9h7l3 4h4v4M8 17a2 2 0 1 0 4 0M15 17a2 2 0 1 0 4 0M9 9V5h3"/></svg>Assets</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>Health</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Utilization</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M5 21h10M15 9h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>Fuel</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5L14 17a2.8 2.8 0 0 1-4 0l-1-1a2.8 2.8 0 0 1 0-4l5.7-5.7z"/><path d="M4 20l4-4"/></svg>Maintenance</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6zM15 3v5h5M9 13h6M9 17h6"/></svg>Reports</a>
+  <a href="#" class="end"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Admin</a>
+</nav>
+
+<main class="main">
+  <div class="banner" id="banner" style="display:none"></div>
+  <div class="tabs">
+    <button class="on" data-view="assets">Asset List</button>
+    <button data-view="health">Health Events</button>
+    <button data-view="gateways">Gateways &amp; Ingest</button>
+  </div>
+  <div class="body">
+    <section class="content" id="viewAssets">
+      <div class="toolbar">
+        <span class="date">📅 Today (<span id="today"></span>) <span class="chev">▼</span></span>
+        <span class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Asset/Site" autocomplete="off"></span>
+        <span class="chips" id="chips"></span>
+        <span class="pg"><span id="range"></span><button>‹</button><button>›</button>
+          <span class="tb">
+            <svg viewBox="0 0 24 24" title="Filters"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3"/></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </span>
+        </span>
+      </div>
+      <div class="grid">
+        <table id="assetTable">
+          <thead>
+            <tr>
+              <th>↓ Assets</th>
+              <th>Status</th>
+              <th>Site</th>
+              <th class="num">Hours <small>(SMU)</small></th>
+              <th class="num">Fuel</th>
+              <th class="num">Coolant <small>(°C)</small></th>
+              <th class="num">Oil <small>(kPa)</small></th>
+              <th class="num">EGT <small>(°C)</small></th>
+              <th class="num">Idle today</th>
+              <th>Faults</th>
+              <th>Date Last Reported</th>
+            </tr>
+          </thead>
+          <tbody id="assetRows"></tbody>
+        </table>
+      </div>
+      <div class="foot"><span id="viewing"></span><span class="pages">‹ <b>1</b> ›</span><span>Show <b style="color:var(--text)">20</b> ▾</span></div>
+    </section>
+
+    <section class="content pad" id="viewHealth" style="display:none"></section>
+    <section class="content pad" id="viewGateways" style="display:none"></section>
+
+    <aside class="drawer" id="drawer" style="display:none"></aside>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var API = '/api/26af2083';
+  var fleet = null;
+  var selected = null;
+  var detail = null;
+  var dtab = 'overview';
+  var view = 'assets';
+  var filters = { site: '', status: '', lamp: '' };
+  var TYPE_GLYPH = {
+    'Wheel loader': 'M2 16h5l2-6h8l3 3v3h2v2H2zM7 10l4-5h4v5',
+    'Excavator': 'M2 17h20v2H2zM5 17l3-6h6l2 3v3M8 11l4-8 6 3-2 4',
+    'Articulated haul truck': 'M2 17h20v2H2zM2 17V9h9l3 4h6v4M5 9V6h5',
+    'Generator set': 'M3 7h18v10H3zM6 10h6M6 13h4M15 9h3v6h-3z',
+    'Jaw crusher power unit': 'M3 7h18v10H3zM6 10h6M6 13h4M15 9h3v6h-3z',
+    'Cone crusher power unit': 'M3 7h18v10H3zM6 10h6M6 13h4M15 9h3v6h-3z',
+    'Dewatering pump': 'M4 9h12v8H4zM16 12h5v3h-5M7 17v3M13 17v3M8 6h4v3'
+  };
+
+  function identity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    };
+  }
+  function currentUser() {
+    var email = localStorage.getItem('devinEmail') || '';
+    var handle = email ? email.split('@')[0] : 'fleet.dispatch';
+    var initials = handle.split(/[._-]/).map(function (p) { return p.charAt(0).toUpperCase(); }).join('').slice(0, 2) || 'FD';
+    return { handle: handle, initials: initials };
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmtTime(iso) { return iso ? new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '—'; }
+  function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'; }
+  function fmtStamp(iso) { return iso ? fmtDate(iso) + ' ' + fmtTime(iso) : '—'; }
+  function ago(iso) {
+    if (!iso) return '—';
+    var m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return m + ' min ago';
+    var h = Math.floor(m / 60); var r = m % 60;
+    if (h < 48) return h + 'h ' + (r ? r + 'm ' : '') + 'ago';
+    return Math.floor(h / 24) + ' days ago';
+  }
+  function dur(iso) {
+    var m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (m < 60) return m + ' min';
+    var h = Math.floor(m / 60); return h + 'h ' + (m % 60) + 'm';
+  }
+  function statusLabel(s) { return { WORKING: 'Working', IDLING: 'Idling', KEY_OFF: 'Key off', NOT_REPORTING: 'Not reporting' }[s] || s; }
+  function hoursFmt(h) { return Number(h).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+  function glyph(type) { return '<span class="glyph"><svg viewBox="0 0 24 24"><path d="' + (TYPE_GLYPH[type] || TYPE_GLYPH['Wheel loader']) + '" fill="none" stroke="#6b6f76" stroke-width="1.6"/></svg></span>'; }
+  function lamps(a) {
+    if (a.stale) return '<span class="dash">—</span>';
+    var out = ['RED', 'AMBER', 'PROTECT', 'MIL'].filter(function (l) { return a.lamps[l]; })
+      .map(function (l) { return '<span class="lamp ' + l + '" title="' + l + ' lamp">' + { RED: '!', AMBER: '▲', PROTECT: 'P', MIL: 'M' }[l] + '</span>'; }).join('');
+    if (!out) return '<span class="dash">None</span>';
+    return out + '<span style="margin-left:4px">' + a.faults.length + '</span>' + (a.derate ? '<span class="derate">DERATE ' + a.derate.percent + '%</span>' : '');
+  }
+  function fuelBar(pct) {
+    if (pct == null) return '<span class="dash">—</span>';
+    var cls = pct < 15 ? ' crit' : pct < 30 ? ' low' : '';
+    return '<span class="bar' + cls + '"><i style="width:' + pct + '%"></i></span>' + Math.round(pct) + '%';
+  }
+  function toast(msg, err) {
+    var t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.style.display = 'block';
+    clearTimeout(t._h); t._h = setTimeout(function () { t.style.display = 'none'; }, 6500);
+  }
+
+  // ---- Asset list ----------------------------------------------------------
+  function filteredAssets() {
+    var q = (document.getElementById('q').value || '').toLowerCase();
+    return fleet.assets.filter(function (a) {
+      if (filters.site && a.site !== filters.site) return false;
+      if (filters.status && a.reportingStatus !== filters.status) return false;
+      if (filters.lamp === 'RED' && !a.lamps.RED) return false;
+      if (filters.lamp === 'AMBER' && !a.lamps.AMBER) return false;
+      if (q && !(a.assetId.toLowerCase().indexOf(q) >= 0 || a.siteName.toLowerCase().indexOf(q) >= 0 || a.machineModel.toLowerCase().indexOf(q) >= 0 || a.engine.serial.toLowerCase().indexOf(q) >= 0)) return false;
+      return true;
+    }).sort(function (a, b) { return a.site.localeCompare(b.site) || a.assetId.localeCompare(b.assetId); });
+  }
+  function renderChips() {
+    var out = '';
+    if (filters.site) out += '<span class="chip">' + esc(fleet.sites.filter(function (s) { return s.code === filters.site; })[0].name) + '<span class="x" data-f="site">✕</span></span>';
+    if (filters.status) out += '<span class="chip">' + statusLabel(filters.status) + '<span class="x" data-f="status">✕</span></span>';
+    if (filters.lamp) out += '<span class="chip">' + (filters.lamp === 'RED' ? 'Red stop lamp' : 'Amber warning lamp') + '<span class="x" data-f="lamp">✕</span></span>';
+    document.getElementById('chips').innerHTML = out;
+  }
+  function renderAssets() {
+    var rows = filteredAssets();
+    document.getElementById('assetRows').innerHTML = rows.map(function (a) {
+      var t = a.telemetry; var stale = a.stale;
+      var cool = stale ? '<span class="dash">--</span>' : (t.coolantC >= 104 ? '<span class="hot">' + t.coolantC.toFixed(0) + '</span>' : t.coolantC.toFixed(0));
+      var oil = stale ? '<span class="dash">--</span>' : (t.oilKpa ? Math.round(t.oilKpa) : '<span class="dash">0</span>');
+      var egt = stale ? '<span class="dash">--</span>' : (t.rpm ? Math.round(t.egtC) : '<span class="dash">' + Math.round(t.egtC) + '</span>');
+      var idle = stale ? '<span class="dash">--</span>' : (a.utilization.workedTodayMin + a.utilization.idleTodayMin ? (a.utilization.idlePct > 30 ? '<span class="warn">' + a.utilization.idlePct.toFixed(0) + '%</span>' : a.utilization.idlePct.toFixed(0) + '%') : '<span class="dash">--</span>');
+      return '<tr data-id="' + a.assetId + '" class="' + (stale ? 'stale' : '') + (selected === a.assetId ? ' on' : '') + '">' +
+        '<td><span class="asset">' + glyph(a.type) + '<span><div class="id">' + esc(a.assetId) + ' <span style="font-weight:400;color:var(--muted)">' + esc(a.machineModel) + '</span></div><div class="sub">' + esc(a.engine.model) + ' · S/N ' + esc(a.engine.serial) + '</div></span></span></td>' +
+        '<td><span class="st ' + a.reportingStatus + '"><i></i>' + statusLabel(a.reportingStatus) + (stale ? ' <small>' + dur(a.lastReportAt) + '</small>' : ' <small>' + dur(a.stateSince) + '</small>') + '</span></td>' +
+        '<td>' + esc(a.siteName) + '<div class="sub" style="font-size:11px;color:var(--muted)">' + esc(a.location.geofence) + '</div></td>' +
+        '<td class="num">' + hoursFmt(a.hours) + '</td>' +
+        '<td class="num">' + (stale ? '<span class="dash">--</span>' : fuelBar(t.fuelPct)) + '</td>' +
+        '<td class="num">' + cool + '</td>' +
+        '<td class="num">' + oil + '</td>' +
+        '<td class="num">' + egt + '</td>' +
+        '<td class="num">' + idle + '</td>' +
+        '<td>' + lamps(a) + '</td>' +
+        '<td>' + (stale ? '<span class="hot">' + fmtStamp(a.lastReportAt) + '</span>' : fmtStamp(a.lastReportAt)) + '</td>' +
+      '</tr>';
+    }).join('');
+    document.getElementById('range').textContent = rows.length ? '1 - ' + rows.length + ' of ' + rows.length : '0 of 0';
+    document.getElementById('viewing').textContent = 'Viewing 1 - ' + rows.length + ' of ' + rows.length;
+    renderChips();
+  }
+
+  function renderBanner() {
+    var b = document.getElementById('banner');
+    var gw = fleet.gateways.filter(function (g) { return g.stale; })[0];
+    if (!gw) { b.style.display = 'none'; return; }
+    b.style.display = 'flex'; b.className = 'banner err';
+    b.innerHTML = '<b>' + gw.assetCount + ' assets Not Reporting</b> ' + esc(gw.sites.join(', ')) + ' · gateway ' + esc(gw.family) + ' fw ' + esc(gw.firmware.split(' ')[0]) + ' · ingest failing at <span class="mono">decode_j1939</span> (' + gw.consecutiveFailures + ' consecutive) · last publish ' + ago(gw.lastPublishedAt) +
+      '<a href="#" class="go" data-view="gateways">View gateway ›</a>';
+  }
+
+  // ---- Drawer --------------------------------------------------------------
+  function openAsset(id) {
+    selected = id;
+    fetch(API + '/assets/' + encodeURIComponent(id)).then(function (r) { return r.json(); }).then(function (d) { detail = d; renderDrawer(); renderAssets(); });
+  }
+  function renderDrawer() {
+    var el = document.getElementById('drawer');
+    if (!detail) { el.style.display = 'none'; return; }
+    var a = detail.asset; var t = a.telemetry; var stale = a.stale;
+    el.style.display = 'flex';
+    var html = '<div class="dh"><div class="row">' + glyph(a.type) + '<div><h2>' + esc(a.assetId) + ' <span style="font-weight:400;color:var(--muted)">' + esc(a.machineModel) + '</span></h2></div><button class="close" id="closeDrawer">✕</button></div>' +
+      '<div class="meta"><span class="st ' + a.reportingStatus + '"><i></i>' + statusLabel(a.reportingStatus) + '</span> · ' + esc(a.siteName) + ' · ' + esc(a.type) + ' · Unit ' + esc(a.unitNumber) + '</div>' +
+      '<div class="dtabs">' + ['overview', 'faults', 'signals', 'gateway'].map(function (k) { return '<button data-dt="' + k + '" class="' + (dtab === k ? 'on' : '') + '">' + { overview: 'Overview', faults: 'Faults (' + (stale ? '—' : a.faults.length) + ')', signals: 'Signals', gateway: 'Gateway' }[k] + '</button>'; }).join('') + '</div></div>';
+    html += '<div class="dbody">';
+    if (stale) html += '<div class="stalebox"><b>Not reporting since ' + fmtStamp(a.lastReportAt) + '</b>Messages from TCU ' + esc(a.tcuSerial) + ' are on the broker (heartbeat OK, RSSI ' + a.rssiDbm + ' dBm) but the ' + esc(a.gateway) + ' ingest job has failed at <span class="mono">decode_j1939</span> every interval since the firmware rollout. Values below are the last published.</div>';
+
+    if (dtab === 'overview') {
+      html += '<div class="card"><div class="ch">Engine</div><div class="kv">' +
+        kv('Engine model', esc(a.engine.model) + ' <small>' + esc(a.engine.displacement) + ' · ' + a.engine.ratedKw + ' kW</small>') +
+        kv('Engine serial', '<span class="mono">' + esc(a.engine.serial) + '</span>') +
+        kv('Service meter', hoursFmt(a.hours) + ' <small>h</small>', 'big') +
+        kv('Next PM ' + a.serviceMeter.intervalHours + ' h', (a.serviceMeter.hoursToService < 0 ? '<span class="hot">' + Math.abs(a.serviceMeter.hoursToService) + ' h overdue</span>' : 'in ' + a.serviceMeter.hoursToService + ' h') + ' <small>due at ' + hoursFmt(a.serviceMeter.dueAtHours) + ' h</small>') +
+        kv('Emissions', esc(a.engine.tier)) + kv('Location', esc(a.location.geofence) + ' <small>' + esc(a.location.city) + ' · pos ' + ago(a.lastPositionAt) + '</small>') +
+      '</div></div>';
+      html += '<div class="card"><div class="ch">Latest engine data <span class="sub">' + (stale ? 'last published ' + fmtStamp(a.lastReportAt) : 'reported ' + ago(a.lastReportAt)) + '</span></div><div class="kv">' +
+        kv('Engine speed', t.rpm + ' <small>rpm</small>', 'big') + kv('Engine load', t.loadPct + ' <small>%</small>', 'big') +
+        kv('Coolant temp', (t.coolantC >= 104 ? '<span class="hot">' + t.coolantC + '</span>' : t.coolantC) + ' <small>°C</small>', 'big') + kv('Oil pressure', t.oilKpa + ' <small>kPa</small>', 'big') +
+        kv('Exhaust gas temp', t.egtC + ' <small>°C</small>', 'big') + kv('Fuel rate', t.fuelRateLph + ' <small>L/h</small>', 'big') +
+        kv('Fuel level', fuelBar(t.fuelPct)) + kv('DEF level', t.defPct == null ? '<span class="dash">N/A</span>' : fuelBar(t.defPct)) +
+        kv('Battery', t.battV + ' <small>V</small>') + kv('Derate', a.derate ? '<span class="hot">' + a.derate.percent + ' % torque limit</span>' : 'None') +
+      '</div></div>';
+      html += '<div class="card"><div class="ch">Utilization today</div><div class="kv">' +
+        kv('Working', (a.utilization.workedTodayMin / 60).toFixed(1) + ' <small>h</small>', 'big') + kv('Idle', (a.utilization.idleTodayMin / 60).toFixed(1) + ' <small>h · ' + a.utilization.idlePct + '%</small>', 'big') +
+      '</div></div>';
+      var open = detail.events.filter(function (e) { return e.state !== 'CLOSED'; });
+      html += '<div class="card"><div class="ch">Open health events <span class="sub">' + open.length + '</span></div>' + eventsTable(open, true) + '</div>';
+    } else if (dtab === 'faults') {
+      html += '<div class="card"><div class="ch">Active diagnostic trouble codes <span class="sub">J1939 DM1 · PGN 65226</span></div>';
+      if (stale) html += '<div class="empty">No decoded DM1 since ' + fmtStamp(a.lastReportAt) + '</div>';
+      else if (!a.faults.length) html += '<div class="empty">No active DTCs</div>';
+      else html += '<table><thead><tr><th>Lamp</th><th>SPN</th><th>FMI</th><th>OC</th><th>Description</th><th>First seen</th></tr></thead><tbody>' + a.faults.map(function (f) {
+        return '<tr><td><span class="lamp ' + f.lamp + '">' + { RED: '!', AMBER: '▲', PROTECT: 'P', MIL: 'M' }[f.lamp] + '</span></td><td class="mono">' + f.spn + '</td><td class="mono">' + f.fmi + '</td><td class="mono">' + f.oc + '</td><td><b>' + esc(f.spnName) + '</b><div style="color:var(--muted);font-size:11.5px">' + esc(f.fmiName) + '</div></td><td style="white-space:nowrap">' + fmtStamp(f.firstSeenAt) + '<div style="color:var(--muted);font-size:11px">' + dur(f.firstSeenAt) + '</div></td></tr>';
+      }).join('') + '</tbody></table>';
+      html += '</div>';
+      html += '<div class="card"><div class="ch">Lamp status</div><div class="kv">' +
+        kv('Red stop lamp', a.lamps.RED ? '<span class="hot">ON</span>' : 'Off') + kv('Amber warning lamp', a.lamps.AMBER ? '<span class="warn">ON</span>' : 'Off') +
+        kv('Protect lamp', a.lamps.PROTECT ? 'ON' : 'Off') + kv('Malfunction indicator', a.lamps.MIL ? 'ON' : 'Off') + '</div></div>';
+    } else if (dtab === 'signals') {
+      html += '<div class="card"><div class="ch">Broadcast parameters <span class="sub">' + detail.signals.length + ' SPNs · ' + esc(detail.gateway.canBus) + '</span></div>' +
+        '<table><thead><tr><th>PGN</th><th>SPN</th><th>Parameter</th><th class="num">Value</th><th>Quality</th><th>Timestamp</th></tr></thead><tbody>' + detail.signals.map(function (s) {
+          return '<tr><td class="mono" title="' + esc(s.pgnName) + '">' + s.pgn + '</td><td class="mono">' + (s.spn == null ? '—' : s.spn) + '</td><td>' + esc(s.name) + '</td><td class="num mono">' + (s.value == null ? '<span class="dash">--</span>' : s.value + ' ' + esc(s.unit)) + '</td><td>' + (s.quality === 'STALE' ? '<span class="hot">STALE</span>' : s.quality) + '</td><td style="white-space:nowrap">' + fmtStamp(s.timestamp) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    } else if (dtab === 'gateway') {
+      var g = detail.gateway;
+      html += '<div class="card"><div class="ch">Telematics gateway <span class="sub">' + esc(g.family) + '</span></div><div class="kv">' +
+        kv('Hardware', esc(g.hardware)) + kv('Firmware', esc(g.firmware)) +
+        kv('TCU serial', '<span class="mono">' + esc(a.tcuSerial) + '</span>') + kv('IMEI', '<span class="mono">' + esc(a.imei) + '</span>') +
+        kv('Modem', esc(g.modem)) + kv('Signal', a.rssiDbm + ' dBm') +
+        kv('CAN bus', esc(g.canBus)) + kv('Report interval', g.reportIntervalSec + ' s · heartbeat ' + g.heartbeatMin + ' min') +
+        kv('Payload', '<span class="mono">' + esc(g.payloadFormat) + '</span> · manifest v' + g.manifestVersion) + kv('DM1 SPN conversion', 'method ' + g.dm1.spnConversionMethod + (g.decoderRegistered ? '' : ' <span class="hot">— no decoder registered</span>')) +
+        kv('Uplink topic', '<span class="mono">' + esc(g.topic.replace('{assetId}', a.assetId)) + '</span>') + kv('Last publish to fleet store', g.stale ? '<span class="hot">' + ago(g.lastPublishedAt) + '</span>' : ago(g.lastPublishedAt)) +
+      '</div></div>';
+      html += runsCard(detail.runs, g.family);
+    }
+    html += '</div>';
+    el.innerHTML = html;
+  }
+  function kv(label, value, cls) { return '<div><label>' + label + '</label><div class="v ' + (cls || '') + '">' + value + '</div></div>'; }
+  function eventsTable(events, compact) {
+    if (!events.length) return '<div class="empty">No open events</div>';
+    return '<table><thead><tr>' + (compact ? '' : '<th>Asset</th><th>Site</th>') + '<th>Severity</th><th>Type</th><th>Event</th><th>Opened</th><th>State</th><th></th></tr></thead><tbody>' + events.map(function (e) {
+      return '<tr>' + (compact ? '' : '<td style="white-space:nowrap"><b>' + esc(e.assetId || e.gateway) + '</b></td><td style="white-space:nowrap">' + esc(siteName(e.site)) + '</td>') +
+        '<td><span class="sev ' + e.severity + '">' + e.severity + '</span></td><td>' + e.type + '</td><td><b>' + esc(e.title) + '</b><div style="color:var(--muted);font-size:11.5px">' + esc(e.detail) + '</div></td>' +
+        '<td style="white-space:nowrap">' + fmtStamp(e.openedAt) + '</td>' +
+        '<td><span class="state ' + e.state + '">' + e.state + (e.ackBy ? '<div style="font-weight:400">' + esc(e.ackBy) + '</div>' : '') + '</span></td>' +
+        '<td>' + (e.state === 'OPEN' ? '<button class="btn sm" data-ack="' + e.id + '">Ack</button>' : '') + '</td></tr>';
+    }).join('') + '</tbody></table>';
+  }
+  function siteName(code) { var s = fleet.sites.filter(function (x) { return x.code === code; })[0]; return s ? s.name : ''; }
+  function runsCard(runs, family) {
+    return '<div class="card"><div class="ch">Ingest jobs <span class="sub">' + esc(family) + ' · every ' + fleet.intervalMinutes + ' min · <span class="mono">telematics-ingest</span></span><span class="act"><button class="btn pri" data-run="' + esc(family) + '">Run ingest now</button></span></div>' +
+      '<table><thead><tr><th>Job</th><th>Started</th><th>Trigger</th><th>Stage reached</th><th class="num">Msgs in → assets</th><th class="num">Duration</th><th>Status</th></tr></thead><tbody>' + runs.map(function (r) {
+        return '<tr><td class="mono">' + esc(r.runId) + '</td><td style="white-space:nowrap">' + fmtStamp(r.startedAt) + '</td><td>' + r.trigger + '</td><td class="mono">' + r.stageReached + '</td><td class="num mono">' + r.messagesIn + ' → ' + r.assetsOut + '</td><td class="num">' + r.durationMs + ' ms</td><td>' + (r.status === 'succeeded' ? '<span class="pill ok">succeeded</span>' : '<span class="pill fail">failed</span><div class="mono" style="color:var(--notrep);margin-top:3px">' + esc(r.error.name + ': ' + r.error.message) + '</div>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  // ---- Health view -----------------------------------------------------------
+  function renderHealth() {
+    var s = fleet.summary;
+    var el = document.getElementById('viewHealth');
+    var open = fleet.events.filter(function (e) { return e.state !== 'CLOSED'; });
+    el.innerHTML = '<div class="kpis">' +
+      kpi('Assets', s.assetCount) + kpi('Working', s.working) + kpi('Idling', s.idling) + kpi('Key off', s.keyOff) +
+      kpi('Not reporting', s.notReporting, s.notReporting > 0) + kpi('Open events', s.openEvents + '<small>' + s.unackedEvents + ' unacked</small>') +
+      '</div><div class="kpis">' +
+      kpi('Red stop lamp', s.redLamp, s.redLamp > 0) + kpi('Amber warning', s.amberLamp) + kpi('Derated', s.derated, s.derated > 0) + kpi('PM due ≤ 50 h', s.serviceDue) + kpi('Fleet idle today', s.idlePct == null ? '—' : s.idlePct + '<small>%</small>') + kpi('Failed ingest jobs 24 h', s.failedRunsLast24h, s.failedRunsLast24h > 0) +
+      '</div>' +
+      '<div class="card"><div class="ch">Health events <span class="sub">' + open.length + ' open · sorted by severity</span></div>' + eventsTable(open, false) + '</div>' +
+      '<div class="card"><div class="ch">Sites</div><table><thead><tr><th>Site</th><th>Geofence</th><th>Gateway</th><th class="num">Assets</th><th class="num">Working</th><th class="num">Idling</th><th class="num">Key off</th><th class="num">Not reporting</th><th class="num">Open events</th></tr></thead><tbody>' + fleet.sites.map(function (x) {
+        return '<tr><td><b>' + esc(x.name) + '</b><div style="color:var(--muted);font-size:11.5px">' + esc(x.city) + '</div></td><td class="mono">' + esc(x.geofence) + '</td><td>' + esc(x.gateway) + '</td><td class="num">' + x.assetCount + '</td><td class="num">' + x.working + '</td><td class="num">' + x.idling + '</td><td class="num">' + x.keyOff + '</td><td class="num">' + (x.notReporting ? '<span class="hot">' + x.notReporting + '</span>' : 0) + '</td><td class="num">' + x.openEvents + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  function kpi(label, value, bad) { return '<div class="kpi' + (bad ? ' bad' : '') + '"><label>' + label + '</label><div class="v">' + value + '</div></div>'; }
+
+  // ---- Gateways view ---------------------------------------------------------
+  function renderGateways() {
+    var el = document.getElementById('viewGateways');
+    el.innerHTML = '<div class="gw">' + fleet.gateways.map(function (g) {
+      return '<div class="card' + (g.stale ? ' stale' : '') + '"><div class="ch">' + esc(g.family) + ' <span class="sub">' + esc(g.hardware) + '</span><span class="act">' + (g.stale ? '<span class="pill fail">' + g.consecutiveFailures + ' failed</span>' : '<span class="pill ok">healthy</span>') + '</span></div><div class="kv">' +
+        kv('Firmware', esc(g.firmware)) + kv('Assets', g.assetCount + ' <small>' + esc(g.sites.join(', ')) + '</small>') +
+        kv('Payload', '<span class="mono">' + esc(g.payloadFormat) + '</span> v' + g.manifestVersion) + kv('DM1 SPN conversion', 'method ' + g.dm1.spnConversionMethod + (g.decoderRegistered ? '' : ' <span class="hot">— no decoder</span>')) +
+        kv('Report / heartbeat', g.reportIntervalSec + ' s / ' + g.heartbeatMin + ' min') + kv('Msgs per interval', g.messagesPerInterval) +
+        kv('Uplink topic', '<span class="mono">' + esc(g.topic) + '</span>') + kv('Last publish', g.stale ? '<span class="hot">' + ago(g.lastPublishedAt) + '</span>' : ago(g.lastPublishedAt)) +
+        '</div><div style="padding:10px 12px;border-top:1px solid var(--line-2)"><button class="btn' + (g.stale ? ' pri' : '') + '" data-run="' + esc(g.family) + '">Run ingest now</button></div></div>';
+    }).join('') + '</div>';
+    el.innerHTML += '<div class="card"><div class="ch">Recent ingest jobs <span class="sub">all gateways · <span class="mono">telematics-ingest</span></span><span class="act"><button class="btn" data-run="all">Run all gateways</button></span></div>' +
+      '<table><thead><tr><th>Job</th><th>Gateway</th><th>Started</th><th>Trigger</th><th>Stage reached</th><th class="num">Msgs in → assets</th><th class="num">Duration</th><th>Status</th></tr></thead><tbody id="allRuns"></tbody></table></div>';
+    fetch(API + '/runs?limit=30').then(function (r) { return r.json(); }).then(function (d) {
+      document.getElementById('allRuns').innerHTML = d.runs.map(function (r) {
+        return '<tr><td class="mono">' + esc(r.runId) + '</td><td>' + esc(r.gateway) + '</td><td style="white-space:nowrap">' + fmtStamp(r.startedAt) + '</td><td>' + r.trigger + '</td><td class="mono">' + r.stageReached + '</td><td class="num mono">' + r.messagesIn + ' → ' + r.assetsOut + '</td><td class="num">' + r.durationMs + ' ms</td><td>' + (r.status === 'succeeded' ? '<span class="pill ok">succeeded</span>' : '<span class="pill fail">failed</span> <span class="mono" style="color:var(--notrep)">' + esc(r.error.name + ': ' + r.error.message) + '</span>') + '</td></tr>';
+      }).join('');
+    });
+  }
+
+  // ---- Actions ---------------------------------------------------------------
+  function runIngest(gateway, btn) {
+    var body = identity(); body.gateway = gateway;
+    if (btn) { btn.disabled = true; btn.textContent = 'Running…'; }
+    fetch(API + '/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var failed = (d.runs || []).filter(function (r) { return r.status === 'failed'; });
+        if (failed.length) toast(failed[0].gateway + ' ingest failed at ' + failed[0].stageReached + ' — ' + failed[0].error.name + ': ' + failed[0].error.message + '. Alert sent to on-call.', true);
+        else toast((d.runs || []).length + ' ingest job(s) succeeded — ' + d.runs.reduce(function (n, r) { return n + r.assetsOut; }, 0) + ' assets published.');
+        return refresh();
+      })
+      .catch(function (e) { toast('Request failed: ' + e.message, true); })
+      .then(function () { if (btn) { btn.disabled = false; btn.textContent = gateway === 'all' ? 'Run all gateways' : 'Run ingest now'; } });
+  }
+  function ackEvent(id) {
+    fetch(API + '/events/' + encodeURIComponent(id) + '/ack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser().handle }) })
+      .then(function (r) { return r.json(); }).then(function () { return refresh(); });
+  }
+
+  function setView(v) {
+    view = v;
+    document.querySelectorAll('.tabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.view === v); });
+    document.getElementById('viewAssets').style.display = v === 'assets' ? 'flex' : 'none';
+    document.getElementById('viewHealth').style.display = v === 'health' ? 'block' : 'none';
+    document.getElementById('viewGateways').style.display = v === 'gateways' ? 'block' : 'none';
+    document.getElementById('drawer').style.display = (v === 'assets' && detail) ? 'flex' : 'none';
+    if (v === 'health') renderHealth();
+    if (v === 'gateways') renderGateways();
+  }
+
+  function refresh() {
+    return fetch(API + '/fleet').then(function (r) { return r.json(); }).then(function (d) {
+      fleet = d;
+      document.getElementById('acct').innerHTML = esc(d.account.name) + ' <span class="chev">▼</span>';
+      document.getElementById('today').textContent = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      renderBanner(); renderAssets();
+      if (view === 'health') renderHealth();
+      if (view === 'gateways') renderGateways();
+      if (selected) return fetch(API + '/assets/' + encodeURIComponent(selected)).then(function (r) { return r.json(); }).then(function (x) { detail = x; renderDrawer(); });
+      return null;
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-view]'); if (t) { e.preventDefault(); setView(t.dataset.view); return; }
+    var x = e.target.closest('.chip .x'); if (x) { filters[x.dataset.f] = ''; renderAssets(); return; }
+    var row = e.target.closest('#assetRows tr'); if (row) { dtab = 'overview'; openAsset(row.dataset.id); return; }
+    if (e.target.closest('#closeDrawer')) { selected = null; detail = null; renderDrawer(); renderAssets(); return; }
+    var dt = e.target.closest('[data-dt]'); if (dt) { dtab = dt.dataset.dt; renderDrawer(); return; }
+    var run = e.target.closest('[data-run]'); if (run) { runIngest(run.dataset.run, run); return; }
+    var ack = e.target.closest('[data-ack]'); if (ack) { ackEvent(ack.dataset.ack); }
+  });
+  document.getElementById('q').addEventListener('input', renderAssets);
+  document.getElementById('avatar').textContent = currentUser().initials;
+
+  if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      document.getElementById('avatar').textContent = currentUser().initials;
+    }).catch(function () {});
+  }
+
+  refresh().then(function () {
+    var first = fleet.assets.filter(function (a) { return a.lamps.RED; })[0];
+    if (first) openAsset(first.assetId);
+  });
+  setInterval(refresh, 30000);
+})();
+</script>
+</body>
+</html>
