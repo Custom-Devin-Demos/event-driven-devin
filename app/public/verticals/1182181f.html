@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machines · Kingsport Engine Plant (P07)</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --sb: #34398c; --sb-active: #4a4fa3; --sb-text: #d9dbf3;
+    --list-bg: #f4f5f7; --panel-border: #dcdfe4; --page-bg: #eceef1;
+    --text: #2b2f36; --muted: #6b7280; --faint: #9aa0a6;
+    --indigo: #5a5fcf; --green: #2f9e5f; --red: #d0453d; --amber: #c98a00;
+    --run: #3aa76d; --idle: #5b8def; --down: #d9534f; --setup: #e8b923; --unknown: #b8bcc4; --dt: #8b5e5e;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 13px/1.45 "Open Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text); background: var(--page-bg);
+    display: grid; grid-template-columns: 152px 262px 1fr; height: 100vh; overflow: hidden;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  a { color: var(--indigo); text-decoration: none; }
+  .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+  .muted { color: var(--muted); }
+  .faint { color: var(--faint); }
+  .up { color: var(--green); } .dn { color: var(--red); }
+
+  /* Sidebar */
+  .sb { background: var(--sb); color: var(--sb-text); display: flex; flex-direction: column; padding: 10px 8px; }
+  .sb .brand { display: flex; align-items: center; gap: 7px; padding: 4px 6px 12px; color: #fff; font-weight: 600; font-size: 13.5px; letter-spacing: .01em; }
+  .sb .brand i { width: 20px; height: 20px; border-radius: 50%; border: 3px solid #8ee0a8; border-right-color: transparent; display: inline-block; }
+  .sb .acct { background: #fff; color: var(--text); border: 0; border-radius: 3px; padding: 6px 8px; width: 100%; text-align: left; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .sb .acct span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sb ul { list-style: none; margin: 0; padding: 0; }
+  .sb li { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 3px; font-size: 12px; cursor: default; }
+  .sb li svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+  .sb li.active { background: var(--sb-active); color: #fff; }
+  .sb li .chev { margin-left: auto; opacity: .6; font-size: 10px; }
+  .sb li .dot { margin-left: auto; width: 6px; height: 6px; border-radius: 50%; background: #5ad17c; }
+  .sb .bottom { margin-top: auto; }
+  .sb .bottom li.user { color: #fff; font-weight: 600; }
+
+  /* Machine list */
+  .ml { background: var(--list-bg); border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; min-height: 0; }
+  .ml .ctl { padding: 10px 10px 6px; display: flex; gap: 6px; align-items: center; }
+  .ml .sel { flex: 1; background: #fff; border: 1px solid var(--panel-border); border-radius: 3px; padding: 5px 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .ml .sel .cnt { background: #e7e9f6; color: var(--indigo); border-radius: 9px; padding: 0 6px; font-size: 10.5px; font-weight: 600; }
+  .ml .sel .chev { margin-left: auto; font-size: 10px; color: var(--muted); }
+  .ml .ib { background: #fff; border: 1px solid var(--panel-border); border-radius: 3px; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+  .ml .search { margin: 0 10px 6px; position: relative; }
+  .ml .search input { width: 100%; border: 1px solid var(--panel-border); border-radius: 3px; padding: 5px 8px 5px 26px; font: inherit; font-size: 12px; background: #fff; }
+  .ml .search svg { position: absolute; left: 8px; top: 8px; width: 12px; height: 12px; stroke: var(--faint); fill: none; stroke-width: 2; }
+  .ml .metric { padding: 4px 10px 8px; display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--panel-border); white-space: nowrap; }
+  .ml .metric select { font: inherit; font-size: 11.5px; color: var(--text); border: 0; background: transparent; padding: 0; font-weight: 600; }
+  .ml .metric .live { margin-left: auto; border: 1px solid #b9c1cc; color: var(--muted); border-radius: 2px; font-size: 9px; padding: 0 4px; letter-spacing: .06em; }
+  .ml .list { overflow-y: auto; flex: 1; }
+  .ml .grp { padding: 9px 10px 4px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap; }
+  .ml .grp .nm { overflow: hidden; text-overflow: ellipsis; }
+  .ml .grp:hover { color: var(--text); }
+  .ml .grp.on { color: var(--indigo); }
+  .ml .grp .st { margin-left: auto; font-weight: 400; text-transform: none; letter-spacing: 0; flex-shrink: 0; }
+  .ml .m { padding: 8px 10px 9px; border-top: 1px solid #e6e8ec; cursor: pointer; }
+  .ml .m:hover { background: #eceef2; }
+  .ml .m.on { background: #fff; box-shadow: inset 3px 0 0 var(--indigo); }
+  .ml .m .r1 { display: flex; align-items: center; gap: 6px; }
+  .ml .m .name { font-weight: 600; font-size: 13px; }
+  .ml .m .job { margin-left: auto; font-size: 10px; color: var(--muted); border: 1px solid #cfd3da; border-radius: 2px; padding: 0 4px; white-space: nowrap; }
+  .ml .m .r2 { display: flex; gap: 10px; font-size: 10.5px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; }
+  .ml .m .r3 { display: flex; align-items: baseline; gap: 8px; margin-top: 3px; }
+  .ml .m .big { font-size: 20px; font-weight: 400; letter-spacing: -.01em; }
+  .ml .m .delta { font-size: 10.5px; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+  .dot.running { background: var(--run); } .dot.idle { background: var(--idle); } .dot.down { background: var(--down); } .dot.setup { background: var(--setup); } .dot.unknown { background: var(--unknown); }
+
+  /* Main */
+  .mn { display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+  .notice { background: #fbe9e7; border-bottom: 1px solid #f0c4bf; color: #7a2e29; padding: 7px 18px; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+  .notice b { font-weight: 600; }
+  .notice a { margin-left: auto; font-weight: 600; white-space: nowrap; }
+  .hd { background: #fff; border-bottom: 1px solid var(--panel-border); padding: 12px 18px 0; }
+  .hd .t { display: flex; align-items: center; gap: 12px; }
+  .hd h1 { font-size: 16px; font-weight: 600; margin: 0; }
+  .hd .st { font-size: 11.5px; color: var(--muted); }
+  .hd .pg { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--muted); }
+  .hd .pg button { border: 1px solid var(--panel-border); background: #fff; border-radius: 3px; width: 24px; height: 24px; color: var(--muted); }
+  .tabs { display: flex; gap: 22px; margin-top: 10px; }
+  .tabs button { border: 0; background: none; padding: 0 0 8px; font-size: 12.5px; color: var(--muted); border-bottom: 2px solid transparent; }
+  .tabs button.on { color: var(--text); font-weight: 600; border-bottom-color: var(--indigo); }
+  .ct { overflow-y: auto; flex: 1; padding: 14px 18px 24px; }
+
+  .filters { display: flex; gap: 8px; margin-bottom: 12px; }
+  .chip { background: #fff; border: 1px solid var(--panel-border); border-radius: 3px; padding: 5px 9px; font-size: 12px; display: inline-flex; gap: 6px; align-items: center; color: var(--text); }
+  .chip.dis { color: var(--faint); }
+  .chip .chev { color: var(--muted); font-size: 10px; }
+
+  .panel { background: #fff; border: 1px solid var(--panel-border); border-radius: 3px; margin-bottom: 12px; }
+  .panel .ph { padding: 10px 14px; font-size: 12.5px; font-weight: 600; border-bottom: 1px solid #eceef1; display: flex; align-items: center; gap: 10px; }
+  .panel .ph > :first-child { white-space: nowrap; }
+  .panel .ph .sub { color: var(--muted); font-weight: 400; }
+  .panel .ph .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .strip .k { padding: 12px 14px; border-right: 1px solid #eceef1; }
+  .strip .k:last-child { border-right: 0; }
+  .strip .k .lbl { font-size: 11.5px; color: var(--muted); }
+  .strip .k .v { font-size: 22px; margin-top: 2px; letter-spacing: -.01em; }
+  .strip .k .v small { font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .strip .k .d { font-size: 11px; margin-top: 1px; }
+
+  .bars { padding: 10px 14px 14px; }
+  .bar { display: grid; grid-template-columns: 210px 1fr 56px; align-items: center; gap: 10px; font-size: 11.5px; padding: 4px 0; }
+  .bar .lbl { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+  .bar .trk { height: 14px; background: #f1f2f5; position: relative; }
+  .bar .trk i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--indigo); }
+  .bar .val { color: var(--muted); }
+  .axis { display: grid; grid-template-columns: 210px 1fr 56px; gap: 10px; font-size: 10px; color: var(--faint); }
+  .axis .tk { display: flex; justify-content: space-between; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); font-size: 11px; padding: 8px 12px; border-bottom: 1px solid #eceef1; white-space: nowrap; }
+  td { padding: 8px 12px; border-bottom: 1px solid #f1f2f5; vertical-align: top; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; }
+  .pill { display: inline-block; border-radius: 2px; padding: 1px 6px; font-size: 10.5px; font-weight: 600; }
+  .pill.ok { background: #e3f4ea; color: #1e7a45; } .pill.fail { background: #fbe4e2; color: #9c2c25; } .pill.warn { background: #fff2d6; color: #8a5a00; } .pill.gray { background: #eef0f3; color: var(--muted); }
+  .errline { color: #9c2c25; font-size: 11.5px; white-space: normal; }
+
+  /* Timeline */
+  .tl { padding: 8px 14px 14px; }
+  .tl .tax { display: grid; grid-template-columns: 150px 1fr; margin-bottom: 4px; }
+  .tl .tax .tk { position: relative; height: 16px; font-size: 10px; color: var(--muted); }
+  .tl .tax .tk span { position: absolute; transform: translateX(-50%); }
+  .tl .row { display: grid; grid-template-columns: 150px 1fr; align-items: center; margin-bottom: 6px; }
+  .tl .row .lbl { font-size: 11.5px; padding-right: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tl .row .lbl small { display: block; color: var(--muted); font-size: 10.5px; }
+  .tl .rib { position: relative; height: 18px; background: #f1f2f5; }
+  .tl .rib i { position: absolute; top: 0; bottom: 0; }
+  .tl .rib i.running { background: var(--run); } .tl .rib i.idle { background: var(--idle); } .tl .rib i.down { background: var(--down); } .tl .rib i.setup { background: var(--setup); } .tl .rib i.unknown { background: var(--unknown); }
+  .tl .rib i.dt { background: var(--dt); }
+  .tl .rib i.dt span { position: absolute; left: 4px; top: 0; line-height: 18px; color: #fff; font-size: 10px; white-space: nowrap; overflow: hidden; max-width: calc(100% - 6px); text-overflow: ellipsis; }
+  .tl .rib i.alm { background: var(--red); width: 2px; }
+  .tl .rib i.op { background: #a9bff2; }
+  .tl .rib i.op span { position: absolute; left: 4px; top: 0; line-height: 18px; color: #1f2f5c; font-size: 10px; }
+  .tl .rib .now { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--indigo); }
+  .tl .rib .now:after { content: ""; position: absolute; top: -3px; left: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--indigo); }
+  .tl .sect { display: grid; grid-template-columns: 150px 1fr; font-size: 11.5px; padding: 8px 0 6px; margin-top: 6px; border-top: 1px solid #eceef1; }
+  .tl .sect .lbl { font-weight: 600; }
+  .tl .sect .meta { color: var(--muted); }
+  .tl .sect .meta b { color: var(--text); font-weight: 600; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: var(--muted); padding: 6px 14px 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; margin-right: 4px; }
+
+  /* Diagnostics */
+  .dl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+  .dl div { padding: 10px 14px; border-right: 1px solid #eceef1; border-bottom: 1px solid #eceef1; }
+  .dl div:nth-child(4n) { border-right: 0; }
+  .dl .lbl { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .dl .v { margin-top: 2px; font-size: 12.5px; }
+  .btn { border: 1px solid var(--panel-border); background: #fff; border-radius: 3px; padding: 5px 10px; font-size: 12px; }
+  .btn.pri { background: var(--indigo); border-color: var(--indigo); color: #fff; font-weight: 600; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.sm { padding: 2px 8px; font-size: 11px; }
+  .toast { position: fixed; right: 18px; bottom: 18px; background: #2b2f36; color: #fff; padding: 9px 14px; border-radius: 3px; font-size: 12px; max-width: 460px; box-shadow: 0 4px 14px rgba(0,0,0,.2); display: none; }
+  .toast.fail { background: #7a2e29; }
+  .q { font-weight: 600; font-size: 11px; }
+  .q.GOOD { color: var(--green); } .q.BAD, .q.STALE { color: var(--red); } .q.UNCERTAIN { color: var(--amber); }
+  .empty { padding: 18px 14px; color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="sb">
+  <div class="brand"><i></i>plantview</div>
+  <button class="acct" title="Account"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Talon Power Systems</span></button>
+  <ul>
+    <li><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>Company</li>
+    <li class="active"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg>Machines</li>
+    <li><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-6 4 3 4-5"/></svg>Production<span class="chev">▾</span></li>
+    <li><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM15 3v4h4M9 13h6M9 17h6"/></svg>Reports</li>
+    <li><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg>Dashboards</li>
+    <li><svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Automations</li>
+    <li><svg viewBox="0 0 24 24"><path d="M21 16V8l-9-5-9 5v8l9 5z"/><path d="M3.3 7.6L12 12.5l8.7-4.9M12 22V12.5"/></svg>Assets<span class="dot"></span></li>
+    <li><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg>Integrations</li>
+  </ul>
+  <ul class="bottom">
+    <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg>Help</li>
+    <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 01-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 01-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 012.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 012.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>Settings</li>
+    <li class="user" id="sbUser"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg><span id="sbUserName">operator</span></li>
+    <li><svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M13 3h6v18h-6"/></svg>Log out</li>
+  </ul>
+</nav>
+
+<aside class="ml">
+  <div class="ctl">
+    <div class="sel"><span>All Machines</span><span class="cnt" id="mCount">–</span><span class="chev">▾</span></div>
+    <button class="ib" title="More">···</button>
+  </div>
+  <div class="search">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Search machines" autocomplete="off">
+  </div>
+  <div class="metric">
+    <select id="metricSel"><option value="utilization">Utilization</option><option value="parts">Parts</option><option value="oee">OEE</option></select>
+    <span class="faint">|</span>
+    <span>vs. Baseline</span>
+    <span class="live">LIVE</span>
+  </div>
+  <div class="list" id="list"></div>
+</aside>
+
+<main class="mn">
+  <div id="notice"></div>
+  <div class="hd">
+    <div class="t">
+      <h1 id="hdName">–</h1>
+      <span class="st" id="hdStatus"></span>
+      <div class="pg"><button id="pgPrev">‹</button><span id="pgText"></span><button id="pgNext">›</button></div>
+    </div>
+    <div class="tabs">
+      <button data-tab="overview" class="on">Overview</button>
+      <button data-tab="timeline">Timeline</button>
+      <button data-tab="diagnostics">Diagnostics</button>
+    </div>
+  </div>
+  <div class="ct" id="ct"></div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var API = '/api/1182181f';
+  var TZ = 'America/New_York';
+  var SHIFT_MIN = 480;
+  var state = { plant: null, sel: null, tab: 'overview', q: '', metric: 'utilization', runs: {} };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function pct(v, d) { return v == null ? '–' : (v * 100).toFixed(d == null ? 1 : d) + '%'; }
+  function pp(v, base) { if (v == null || base == null) return ''; var d = (v - base) * 100; var cls = d >= 0 ? 'up' : 'dn'; return '<span class="' + cls + '">' + (d >= 0 ? '↑ ' : '↓ ') + Math.abs(d).toFixed(1) + 'pp ' + (d >= 0 ? 'up' : 'down') + '</span>'; }
+  function fmtDur(ms) {
+    if (ms == null || isNaN(ms)) return '–';
+    var s = Math.max(0, Math.floor(ms / 1000));
+    if (s < 60) return s + 's';
+    var m = Math.floor(s / 60);
+    if (m < 60) return m + 'm ' + (s % 60) + 's';
+    var h = Math.floor(m / 60);
+    if (h < 48) return h + 'h ' + (m % 60) + 'm';
+    return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+  }
+  function fmtMin(min) { if (min == null) return '–'; var h = Math.floor(min / 60); var m = Math.round(min % 60); return h ? h + 'h ' + m + 'm' : m + 'm'; }
+  function fmtTime(iso) { return iso ? new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: TZ }).format(new Date(iso)) : '–'; }
+  function fmtTimeS(iso) { return iso ? new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZone: TZ }).format(new Date(iso)) : '–'; }
+  function fmtDate(iso) { return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: TZ }).format(new Date(iso)); }
+  function ago(iso) { return iso ? fmtDur(Date.now() - new Date(iso).getTime()) : '–'; }
+  function statusWord(c) { return { running: 'Active', idle: 'Idle', down: 'Fault', setup: 'Setup', unknown: 'Not Reporting' }[c] || c; }
+
+  function currentUser() {
+    var email = localStorage.getItem('devinEmail') || '';
+    var handle = email.split('@')[0] || 'operator';
+    return { handle: handle, email: email };
+  }
+  function identity() {
+    return {
+      devinUserId: localStorage.getItem('devinUserId') || '',
+      devinOrgId: localStorage.getItem('devinOrgId') || '',
+      devinEmail: localStorage.getItem('devinEmail') || ''
+    };
+  }
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
+
+  function lineOf(code) { return state.plant.lines.filter(function (l) { return l.code === code; })[0]; }
+  function cellsOf(code) { return state.plant.cells.filter(function (c) { return c.lineCode === code; }); }
+  function cellById(id) { return state.plant.cells.filter(function (c) { return c.cellId === id; })[0]; }
+  function lineCategory(line) {
+    if (line.stale) return 'unknown';
+    if (line.status === 'RUNNING') return 'running';
+    if (line.status === 'DOWN') return 'down';
+    return 'idle';
+  }
+  function lineUtil(code) { var cs = cellsOf(code); return cs.reduce(function (s, c) { return s + c.utilization; }, 0) / cs.length; }
+  function lineBase(code) { var cs = cellsOf(code); return cs.reduce(function (s, c) { return s + c.utilizationBaseline; }, 0) / cs.length; }
+
+  // Flattened navigation order: line header, then its cells.
+  function navItems() {
+    var items = [];
+    state.plant.lines.forEach(function (l) {
+      items.push({ type: 'line', id: l.code });
+      cellsOf(l.code).forEach(function (c) { items.push({ type: 'cell', id: c.cellId }); });
+    });
+    return items;
+  }
+  function selIndex() { var items = navItems(); for (var i = 0; i < items.length; i++) if (items[i].type === state.sel.type && items[i].id === state.sel.id) return i; return -1; }
+
+  // ---- Machine list ----
+  function renderList() {
+    var q = state.q.toLowerCase();
+    var html = '';
+    var total = 0;
+    state.plant.lines.forEach(function (line) {
+      var cells = cellsOf(line.code).filter(function (c) {
+        return !q || c.cellId.toLowerCase().indexOf(q) >= 0 || c.operator.toLowerCase().indexOf(q) >= 0 || c.workOrder.indexOf(q) >= 0 || line.name.toLowerCase().indexOf(q) >= 0;
+      });
+      total += cellsOf(line.code).length;
+      if (!cells.length) return;
+      var on = state.sel.type === 'line' && state.sel.id === line.code;
+      html += '<div class="grp' + (on ? ' on' : '') + '" data-line="' + line.code + '"><span class="nm">' + esc(line.name.replace(' — ', ' · ')) + '</span>' +
+        '<span class="st"><span class="dot ' + lineCategory(line) + '"></span>' + (line.stale ? 'Not Reporting' : line.runningCells + '/' + line.cellCount + ' active') + '</span></div>';
+      cells.forEach(function (c) {
+        var onC = state.sel.type === 'cell' && state.sel.id === c.cellId;
+        var big, delta;
+        if (state.metric === 'parts') {
+          big = c.partsGood == null ? '–' : c.partsGood + ' <span class="muted" style="font-size:12px">/ ' + c.partsGoal + '</span>';
+          delta = c.partsGood == null ? '' : '<span class="muted">' + Math.round(c.partsGood / c.partsGoal * 100) + '% of goal</span>';
+        } else if (state.metric === 'oee') {
+          var oee = c.category === 'unknown' ? null : c.utilization * Math.min(1, (c.ratePerHr || 0) / (lineOf(c.lineCode).targetRatePerHr)) * (c.partsGood ? c.partsGood / (c.partsGood + c.partsReject) : 1);
+          big = pct(oee); delta = pp(oee, c.utilizationBaseline * 0.9);
+        } else {
+          big = pct(c.category === 'unknown' ? null : c.utilization); delta = c.category === 'unknown' ? '' : pp(c.utilization, c.utilizationBaseline);
+        }
+        var stateTxt = c.category === 'unknown'
+          ? 'Not Reporting: ' + ago(c.lastSampleAt)
+          : statusWord(c.category) + ': ' + ago(c.stateSince);
+        html += '<div class="m' + (onC ? ' on' : '') + '" data-cell="' + c.cellId + '">' +
+          '<div class="r1"><span class="name">' + esc(c.cellId) + '</span><span class="job">' + esc(c.workOrder) + ' | ' + esc(c.operation) + '</span></div>' +
+          '<div class="r2"><span><span class="dot ' + c.category + '"></span>' + esc(stateTxt) + '</span>' +
+          (c.firstActiveAt ? '<span>⚑ First Active: ' + fmtTime(c.firstActiveAt) + '</span>' : '<span>⚑ Not Active Today</span>') + '</div>' +
+          '<div class="r3"><span class="big">' + big + '</span><span class="delta">' + delta + '</span></div>' +
+          '</div>';
+      });
+    });
+    $('list').innerHTML = html;
+    $('mCount').textContent = total;
+  }
+
+  // ---- Header + notice ----
+  function renderNotice() {
+    var stale = state.plant.lines.filter(function (l) { return l.stale; });
+    if (!stale.length) { $('notice').innerHTML = ''; return; }
+    var l = stale[0];
+    var failed = state.plant.summary.failedRunsLast24h;
+    $('notice').innerHTML = '<div class="notice"><b>' + esc(l.name) + '</b>' +
+      '<span>' + l.cellCount + ' machines Not Reporting for ' + ago(l.lastPublishedAt) + ' · historian → MES interval publish failing at <span class="mono">decode</span> (' + l.consecutiveFailures + ' consecutive, ' + failed + ' in 24h)</span>' +
+      '<a href="#" data-diag="' + l.code + '">View diagnostics ›</a></div>';
+  }
+
+  function renderHeader() {
+    var items = navItems();
+    var idx = selIndex();
+    $('pgText').textContent = (idx + 1) + ' of ' + items.length;
+    if (state.sel.type === 'cell') {
+      var c = cellById(state.sel.id);
+      $('hdName').textContent = c.cellId;
+      $('hdStatus').innerHTML = '<span class="dot ' + c.category + '"></span>' + (c.category === 'unknown'
+        ? 'Not Reporting: ' + ago(c.lastSampleAt)
+        : statusWord(c.category) + ': ' + ago(c.stateSince)) +
+        ' <span class="faint">·</span> ' + esc(c.partNumber) + ' ' + esc(c.partName) + ' <span class="faint">·</span> ' + esc(c.operator);
+    } else {
+      var l = lineOf(state.sel.id);
+      $('hdName').textContent = l.name;
+      $('hdStatus').innerHTML = '<span class="dot ' + lineCategory(l) + '"></span>' + (l.stale ? 'Not Reporting: ' + ago(l.lastPublishedAt) : l.runningCells + ' of ' + l.cellCount + ' active') +
+        ' <span class="faint">·</span> ' + esc(l.controller) + ' <span class="faint">·</span> ' + esc(l.area);
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.tabs button'), function (b) { b.classList.toggle('on', b.getAttribute('data-tab') === state.tab); });
+  }
+
+  // ---- Downtime aggregation from timelines ----
+  function downtimeBreakdown(cells) {
+    var map = {};
+    var totalMin = 0, events = 0;
+    cells.forEach(function (c) {
+      c.timeline.forEach(function (s) {
+        if (s.category === 'running') return;
+        var min = s.end - s.start;
+        var key = s.category === 'unknown' ? 'Not Reporting' : (s.reason || 'Uncategorized');
+        map[key] = (map[key] || 0) + min;
+        totalMin += min; events += 1;
+      });
+    });
+    var rows = Object.keys(map).map(function (k) { return { reason: k, min: map[k] }; }).sort(function (a, b) { return b.min - a.min; });
+    return { rows: rows, totalMin: totalMin, events: events };
+  }
+
+  // ---- Overview ----
+  function filters() {
+    var sh = state.plant.shift;
+    return '<div class="filters">' +
+      '<span class="chip">📅 Today: ' + fmtDate(state.plant.generatedAt) + '</span>' +
+      '<span class="chip">' + esc(sh.label) + ' (' + esc(sh.window) + ')<span class="chev">▾</span></span>' +
+      '<span class="chip dis">All Operations</span></div>';
+  }
+  function barsPanel(cells) {
+    var dt = downtimeBreakdown(cells);
+    var top = dt.rows.slice(0, 5);
+    var max = top.length ? top[0].min : 1;
+    var html = '<div class="panel"><div class="ph">Top 5 Downtimes by duration<span class="sub">' + fmtMin(dt.totalMin) + ' total · ' + dt.events + ' events</span></div><div class="bars">';
+    if (!top.length) html += '<div class="empty">No downtime this shift.</div>';
+    top.forEach(function (r) {
+      html += '<div class="bar"><span class="lbl" title="' + esc(r.reason) + '">' + esc(r.reason) + '</span><span class="trk"><i style="width:' + (r.min / max * 100) + '%"></i></span><span class="val">' + fmtMin(r.min) + '</span></div>';
+    });
+    if (top.length) {
+      var ticks = [0, 0.25, 0.5, 0.75, 1].map(function (f) { return '<span>' + fmtMin(Math.round(max * f)) + '</span>'; }).join('');
+      html += '<div class="axis"><span></span><span class="tk">' + ticks + '</span><span></span></div>';
+    }
+    return html + '</div></div>';
+  }
+  function runsTable(cells) {
+    var html = '<div class="panel"><div class="ph">Production Runs <span class="pill gray">' + cells.length + '</span><span class="faint">|</span><span class="muted" style="font-weight:400">Operators <span class="pill gray">' + uniq(cells.map(function (c) { return c.operator; })).length + '</span></span></div>' +
+      '<table><thead><tr><th>Machine</th><th>Operation</th><th>Part</th><th class="num">Good / Rej</th><th class="num">Parts Goal</th><th class="num">Cycle vs Expected</th><th class="num">Utilization</th><th>Operator</th><th>First Active</th></tr></thead><tbody>';
+    cells.forEach(function (c) {
+      var cyc = c.actualCycleSec == null ? '–' : c.actualCycleSec + 's <span class="muted">/ ' + c.expectedCycleSec + 's</span>';
+      var cycD = c.actualCycleSec == null ? '' : (c.actualCycleSec <= c.expectedCycleSec ? ' <span class="up">✓</span>' : ' <span class="dn">+' + (c.actualCycleSec - c.expectedCycleSec).toFixed(1) + 's</span>');
+      html += '<tr><td><b>' + esc(c.cellId) + '</b></td><td>' + esc(c.workOrder) + ' <span class="muted">' + esc(c.operation) + '</span></td><td>' + esc(c.partNumber) + ' <span class="muted">' + esc(c.partName) + '</span></td>' +
+        '<td class="num">' + (c.partsGood == null ? '–' : c.partsGood + ' <span class="muted">/ ' + c.partsReject + '</span>') + '</td>' +
+        '<td class="num">' + (c.partsGood == null ? '–' : c.partsGood + ' <span class="muted">/ ' + c.partsGoal + '</span>') + '</td>' +
+        '<td class="num">' + cyc + cycD + '</td><td class="num">' + pct(c.utilization) + '</td><td>' + esc(c.operator) + '</td><td>' + (c.firstActiveAt ? fmtTime(c.firstActiveAt) : '<span class="muted">Not Active Today</span>') + '</td></tr>';
+    });
+    return html + '</tbody></table></div>';
+  }
+  function uniq(a) { return a.filter(function (v, i) { return a.indexOf(v) === i; }); }
+
+  function renderOverview() {
+    var cells, util, base, good, rej, goal, oee, oeeLbl, extra;
+    var dt;
+    if (state.sel.type === 'cell') {
+      var c = cellById(state.sel.id);
+      cells = [c]; util = c.category === 'unknown' ? null : c.utilization; base = c.utilizationBaseline;
+      good = c.partsGood; rej = c.partsReject; goal = c.partsGoal;
+      oeeLbl = 'Cycle Time'; oee = null;
+      extra = c.actualCycleSec == null ? '<div class="v">–</div><div class="d muted">no cycles this shift</div>'
+        : '<div class="v">' + c.actualCycleSec + 's<small>/ ' + c.expectedCycleSec + 's expected</small></div><div class="d">' + (c.actualCycleSec <= c.expectedCycleSec ? '<span class="up">↓ ' + (c.expectedCycleSec - c.actualCycleSec).toFixed(1) + 's faster</span>' : '<span class="dn">↑ ' + (c.actualCycleSec - c.expectedCycleSec).toFixed(1) + 's slower</span>') + '</div>';
+    } else {
+      var l = lineOf(state.sel.id);
+      cells = cellsOf(l.code); util = l.stale ? null : lineUtil(l.code); base = lineBase(l.code);
+      good = l.stale ? null : l.shiftGoodCount; rej = l.shiftRejectCount; goal = l.targetRatePerHr * 8;
+      oeeLbl = 'OEE'; oee = l.stale ? null : l.oee;
+      extra = '<div class="v">' + pct(oee) + '</div><div class="d muted">' + (l.stale ? 'excluded from plant rollup' : 'A ' + pct(l.availability, 0) + ' · P ' + pct(l.performance, 0) + ' · Q ' + pct(l.quality, 1)) + '</div>';
+    }
+    dt = downtimeBreakdown(cells);
+    var html = filters() +
+      '<div class="panel"><div class="strip">' +
+      '<div class="k"><div class="lbl">Utilization</div><div class="v">' + pct(util) + '</div><div class="d">' + (util == null ? '<span class="muted">Not Reporting</span>' : pp(util, base)) + '</div></div>' +
+      '<div class="k"><div class="lbl">Parts</div><div class="v">' + (good == null ? '–' : good + '<small>/ ' + goal + ' goal</small>') + '</div><div class="d">' + (good == null ? '<span class="muted">no count published</span>' : '<span class="' + (rej / Math.max(good, 1) > 0.03 ? 'dn' : 'muted') + '">' + rej + ' rejected · ' + (rej / Math.max(good + rej, 1) * 100).toFixed(1) + '%</span>') + '</div></div>' +
+      '<div class="k"><div class="lbl">Downtime</div><div class="v">' + fmtMin(dt.totalMin / cells.length) + '</div><div class="d muted">' + dt.events + ' events' + (cells.length > 1 ? ' · avg per machine' : '') + '</div></div>' +
+      '<div class="k"><div class="lbl">' + oeeLbl + '</div>' + extra + '</div>' +
+      '</div></div>' +
+      barsPanel(cells) + runsTable(cells);
+    $('ct').innerHTML = html;
+  }
+
+  // ---- Timeline ----
+  function ribbon(segs, cls, withLabel) {
+    var html = '';
+    segs.forEach(function (s) {
+      var left = s.start / SHIFT_MIN * 100, w = (s.end - s.start) / SHIFT_MIN * 100;
+      var title = (s.state || '') + (s.reason ? ' — ' + s.reason : '') + ' · ' + fmtMin(s.end - s.start);
+      html += '<i class="' + (cls || s.category) + '" style="left:' + left + '%;width:' + w + '%" title="' + esc(title) + '">' + (withLabel && w > 4 ? '<span>' + esc(s.reason || s.state) + '</span>' : '') + '</i>';
+    });
+    return html;
+  }
+  function nowMarker() { var e = Math.min(state.plant.shift.elapsedMin, SHIFT_MIN); return '<span class="now" style="left:' + (e / SHIFT_MIN * 100) + '%"></span>'; }
+  function axisRow() {
+    var start = new Date(state.plant.shift.startsAt).getTime();
+    var html = '<div class="tax"><span></span><div class="tk">';
+    for (var m = 0; m <= SHIFT_MIN; m += 60) html += '<span style="left:' + (m / SHIFT_MIN * 100) + '%">' + fmtTime(new Date(start + m * 60000).toISOString()) + '</span>';
+    return html + '</div></div>';
+  }
+  function renderTimeline() {
+    var sh = state.plant.shift;
+    var html = '<div class="filters"><span class="chip">‹</span><span class="chip">›</span><span class="chip">📅 ' + esc(sh.label) + ': ' + fmtTime(sh.startsAt) + ' – ' + fmtTime(sh.endsAt) + ', ' + fmtDate(sh.startsAt) + '</span></div>';
+    if (state.sel.type === 'cell') {
+      var c = cellById(state.sel.id);
+      var run = c.timeline.filter(function (s) { return s.category === 'running'; }).reduce(function (a, s) { return a + s.end - s.start; }, 0);
+      var dtSegs = c.timeline.filter(function (s) { return s.category !== 'running' && s.category !== 'unknown'; });
+      var dt = downtimeBreakdown([c]);
+      html += '<div class="panel"><div class="tl">' + axisRow() +
+        '<div class="sect"><span class="lbl">Execution</span><span class="meta">Active Duration: <b>' + fmtMin(run) + '</b> &nbsp;|&nbsp; Utilization: <b>' + pct(c.utilization, 2) + '</b></span></div>' +
+        '<div class="row"><span class="lbl">' + esc(c.cellId) + '<small>' + esc(c.workOrder) + ' | ' + esc(c.operation) + '</small></span><div class="rib">' + ribbon(c.timeline) + nowMarker() + '</div></div>' +
+        '<div class="sect"><span class="lbl">Parts</span><span class="meta">Total Parts: <b>' + (c.partsGood == null ? '–' : c.partsGood + c.partsReject) + '</b> &nbsp;|&nbsp; Good Parts: <b>' + (c.partsGood == null ? '–' : c.partsGood) + '</b> &nbsp;|&nbsp; Rejected: <b>' + (c.partsReject == null ? '–' : c.partsReject) + '</b> &nbsp;|&nbsp; Expected cycle: <b>' + c.expectedCycleSec + 's</b></span></div>' +
+        '<div class="row"><span class="lbl"></span><div class="rib" style="background:transparent">' + partDots(c) + nowMarker() + '</div></div>' +
+        '<div class="sect"><span class="lbl">Downtime</span><span class="meta">Total Downtime: <b>' + fmtMin(dt.totalMin) + '</b> &nbsp;|&nbsp; Categorized: <b>' + fmtMin(dt.rows.filter(function (r) { return r.reason !== 'Uncategorized'; }).reduce(function (a, r) { return a + r.min; }, 0)) + '</b> &nbsp;|&nbsp; Events: <b>' + dt.events + '</b></span></div>' +
+        '<div class="row"><span class="lbl"></span><div class="rib">' + ribbon(dtSegs.map(function (s) { return { start: s.start, end: s.end, state: s.state, reason: s.reason || 'Uncategorized', category: 'dt' }; }), 'dt', true) + (c.category === 'unknown' ? ribbon(c.timeline, 'unknown', true) : '') + nowMarker() + '</div></div>' +
+        '<div class="sect"><span class="lbl">Alarms</span><span class="meta">' + (c.controlAlarm ? 'Active: <b>' + esc(c.controlAlarm) + '</b> since ' + fmtTime(c.stateSince) : 'No control alarms this shift') + '</span></div>' +
+        '<div class="row"><span class="lbl"></span><div class="rib">' + (c.controlAlarm ? '<i class="alm" style="left:' + (Math.max(0, sh.elapsedMin - (Date.now() - new Date(c.stateSince).getTime()) / 60000) / SHIFT_MIN * 100) + '%" title="' + esc(c.controlAlarm) + '"></i>' : '') + nowMarker() + '</div></div>' +
+        '<div class="sect"><span class="lbl">Operators</span><span class="meta">Total Operator Runs: <b>1</b> &nbsp;|&nbsp; Duration: <b>' + fmtMin(sh.elapsedMin) + '</b></span></div>' +
+        '<div class="row"><span class="lbl"></span><div class="rib">' + ribbon([{ start: 0, end: sh.elapsedMin, state: c.operator, category: 'op' }], 'op', true) + nowMarker() + '</div></div>' +
+        '</div>' + legend() + '</div>';
+    } else {
+      var l = lineOf(state.sel.id);
+      var cells = cellsOf(l.code);
+      var tot = 0;
+      cells.forEach(function (c) { c.timeline.forEach(function (s) { if (s.category === 'running') tot += s.end - s.start; }); });
+      html += '<div class="panel"><div class="tl">' + axisRow() +
+        '<div class="sect"><span class="lbl">Execution</span><span class="meta">Active Duration: <b>' + fmtMin(tot / cells.length) + '</b> avg &nbsp;|&nbsp; Utilization: <b>' + (l.stale ? '–' : pct(lineUtil(l.code), 2)) + '</b> &nbsp;|&nbsp; ' + cells.length + ' machines</span></div>';
+      cells.forEach(function (c) {
+        html += '<div class="row"><span class="lbl">' + esc(c.cellId) + '<small>' + esc(c.workOrder) + ' | ' + esc(c.operation) + ' · ' + esc(c.operator) + '</small></span><div class="rib">' + ribbon(c.timeline) + nowMarker() + '</div></div>';
+      });
+      html += '</div>' + legend() + '</div>';
+    }
+    $('ct').innerHTML = html;
+  }
+  function partDots(c) {
+    if (c.partsGood == null) return '';
+    var html = '';
+    var every = Math.max(1, Math.round(c.expectedCycleSec / 60 * 3)); // one dot per ~3 cycles
+    c.timeline.filter(function (s) { return s.category === 'running'; }).forEach(function (s) {
+      for (var m = s.start; m < s.end; m += every) html += '<i style="left:' + (m / SHIFT_MIN * 100) + '%;width:3px;top:7px;height:4px;border-radius:2px;background:#8f93a8"></i>';
+    });
+    return html;
+  }
+  function legend() {
+    return '<div class="legend"><span><i style="background:var(--run)"></i>Active</span><span><i style="background:var(--idle)"></i>Idle</span><span><i style="background:var(--setup)"></i>Setup</span><span><i style="background:var(--down)"></i>Fault</span><span><i style="background:var(--unknown)"></i>Not Reporting</span><span><i style="background:var(--dt)"></i>Downtime (categorized)</span></div>';
+  }
+
+  // ---- Diagnostics ----
+  function renderDiagnostics() {
+    var code = state.sel.type === 'cell' ? cellById(state.sel.id).lineCode : state.sel.id;
+    var cell = state.sel.type === 'cell' ? cellById(state.sel.id) : null;
+    var l = lineOf(code);
+    var tags = state.plant.tags.filter(function (t) { return t.lineCode === code && (!cell || !t.cellId || t.cellId === cell.cellId); });
+    var alarms = state.plant.alarms.filter(function (a) { return a.lineCode === code && (!cell || !a.cellId || a.cellId === cell.cellId); });
+    var runs = state.runs[code];
+    var html = '';
+    if (l.stale) {
+      html += '<div class="panel" style="border-color:#f0c4bf;background:#fdf3f2"><div class="ph" style="border:0;color:#7a2e29">Not Reporting since ' + fmtTimeS(l.lastPublishedAt) + ' (' + fmtDate(l.lastPublishedAt) + ')<span class="sub" style="color:#7a2e29">' + l.consecutiveFailures + ' consecutive interval publishes failed at <span class="mono">decode</span> since the ' + esc(l.adapter) + '. Live samples are landing in the historian; nothing reaches MES.</span></div></div>';
+    }
+    html += '<div class="panel"><div class="ph">Data Source<span class="sub">' + esc(l.name) + '</span></div><div class="dl">' +
+      dl('Adapter', l.adapter) + dl('Protocol', { mtconnect: 'MTConnect', opcda: 'OPC DA', opcua: 'OPC UA' }[l.protocol] || l.protocol) + dl('Controller', l.controller) + dl('Scan class', l.scanClass) +
+      dl('State model', l.stateModel === 'packml' ? 'PackML StateCurrent (ISA-TR88)' : 'MTConnect Execution') + dl('Quality encoding', '<span class="mono">' + esc(l.qualityEncoding) + '</span>') + dl('Manifest', 'v' + l.manifestVersion) +
+      dl('Last MES publish', l.stale ? '<span class="dn">' + ago(l.lastPublishedAt) + ' ago</span>' : fmtTimeS(l.lastPublishedAt)) +
+      '</div></div>';
+
+    html += '<div class="panel"><div class="ph">MES Interval Publish<span class="sub">every ' + state.plant.intervalMinutes + ' min · job <span class="mono">mes-ingest</span> · gateway P07-EDGE-02</span>' +
+      '<div class="right"><button class="btn pri" id="runNow" data-line="' + code + '">Run interval now</button></div></div>';
+    if (!runs) { html += '<div class="empty">Loading jobs…</div>'; }
+    else if (!runs.length) { html += '<div class="empty">No jobs recorded.</div>'; }
+    else {
+      html += '<table><thead><tr><th>Job</th><th>Started</th><th>Trigger</th><th>Stage reached</th><th class="num">Rows in → out</th><th class="num">Duration</th><th>Status</th></tr></thead><tbody>';
+      runs.slice(0, 12).forEach(function (r) {
+        html += '<tr><td class="mono">' + esc(r.runId) + '</td><td>' + fmtTimeS(r.startedAt) + ' <span class="muted">' + fmtDate(r.startedAt) + '</span></td><td>' + esc(r.trigger) + '</td><td class="mono">' + esc(r.stageReached) + '</td><td class="num">' + r.rowsIn + ' → ' + r.rowsOut + '</td><td class="num">' + (r.durationMs == null ? '–' : r.durationMs + ' ms') + '</td>' +
+          '<td><span class="pill ' + (r.status === 'succeeded' ? 'ok' : 'fail') + '">' + esc(r.status) + '</span>' + (r.error ? '<div class="errline mono">' + esc(r.error.name) + ': ' + esc(r.error.message) + '</div>' : '') + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    html += '<div class="panel"><div class="ph">Data Items<span class="sub">' + tags.length + ' tags · historian path · last value</span></div><table><thead><tr><th>Path</th><th>Type</th><th class="num">Value</th><th>EU</th><th>Quality</th><th>Timestamp</th></tr></thead><tbody>';
+    tags.forEach(function (t) {
+      html += '<tr><td class="mono">' + esc(t.path) + '</td><td class="mono muted">' + esc(t.dataType) + '</td><td class="num">' + (t.value == null ? '<span class="muted">—</span>' : esc(t.value) + (t.display && String(t.display) !== String(t.value) ? ' <span class="muted">(' + esc(t.display) + ')</span>' : '')) + '</td><td class="muted">' + esc(t.eu) + '</td><td><span class="q ' + esc(t.quality) + '">' + esc(t.quality) + '</span></td><td>' + fmtTimeS(t.timestamp) + ' <span class="muted">' + fmtDate(t.timestamp) + '</span></td></tr>';
+    });
+    html += '</tbody></table></div>';
+
+    html += '<div class="panel"><div class="ph">Alarms<span class="sub">' + alarms.filter(function (a) { return a.state.indexOf('ACTIVE') === 0; }).length + ' active · ' + alarms.filter(function (a) { return /_UNACK$/.test(a.state); }).length + ' unacknowledged</span></div>';
+    if (!alarms.length) html += '<div class="empty">No alarms for this selection.</div>';
+    else {
+      html += '<table><thead><tr><th>Tag</th><th>Description</th><th>Priority</th><th>State</th><th class="num">Value / Limit</th><th>Active</th><th>Ack</th><th></th></tr></thead><tbody>';
+      alarms.forEach(function (a) {
+        var pr = a.priority === 'CRITICAL' || a.priority === 'HIGH' ? 'fail' : a.priority === 'MEDIUM' ? 'warn' : 'gray';
+        html += '<tr><td class="mono">' + esc(a.tag) + '</td><td style="white-space:normal">' + esc(a.description) + '</td><td><span class="pill ' + pr + '">' + esc(a.priority) + '</span></td><td class="mono">' + esc(a.state) + '</td><td class="num">' + esc(a.value) + ' <span class="muted">/ ' + esc(a.limit) + ' ' + esc(a.eu) + '</span></td><td>' + fmtTime(a.activeAt) + ' <span class="muted">' + ago(a.activeAt) + ' ago</span></td><td>' + (a.ackBy ? esc(a.ackBy) + ' <span class="muted">' + fmtTime(a.ackAt) + '</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td>' + (/_UNACK$/.test(a.state) ? '<button class="btn sm" data-ack="' + esc(a.id) + '">Ack</button>' : '') + '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+    $('ct').innerHTML = html;
+    if (!runs) loadRuns(code);
+  }
+  function dl(k, v) { return '<div><div class="lbl">' + k + '</div><div class="v">' + v + '</div></div>'; }
+
+  // ---- Data ----
+  var loadGen = 0;
+  // Only the newest /plant response is applied; a slower earlier one is dropped.
+  function load() {
+    var gen = ++loadGen;
+    return fetch(API + '/plant').then(function (r) { return r.json(); }).then(function (p) {
+      if (gen !== loadGen) return;
+      state.plant = p;
+      if (!state.sel) state.sel = { type: 'cell', id: p.cells[0].cellId };
+      render();
+    });
+  }
+  function loadRuns(code) {
+    return fetch(API + '/runs?line=' + encodeURIComponent(code) + '&limit=20').then(function (r) { return r.json(); }).then(function (d) {
+      state.runs[code] = d.runs;
+      if (state.tab === 'diagnostics') renderDiagnostics();
+    });
+  }
+  function runNow(code, btn) {
+    btn.disabled = true; btn.textContent = 'Running…';
+    var body = identity(); body.lineCode = code;
+    fetch(API + '/runs', { method: 'POST', headers: postHeaders(), body: JSON.stringify(body) })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var run = d.runs && d.runs[0];
+        if (run && run.status === 'succeeded') toast('Job ' + run.runId + ' published ' + run.rowsOut + ' rows to MES in ' + run.durationMs + ' ms.');
+        else if (run) toast('Job ' + run.runId + ' failed at ' + run.stageReached + ' — ' + (run.error ? run.error.message : 'unknown error'), true);
+        else toast(d.error || 'Request failed', true);
+        delete state.runs[code];
+        return load();
+      })
+      .catch(function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = 'Run interval now'; });
+  }
+  function ack(id) {
+    fetch(API + '/alarms/' + encodeURIComponent(id) + '/ack', { method: 'POST', headers: postHeaders(), body: JSON.stringify({ user: currentUser().handle }) })
+      .then(function () { return load(); });
+  }
+  var toastTimer;
+  function toast(msg, fail) {
+    var t = $('toast'); t.textContent = msg; t.className = 'toast' + (fail ? ' fail' : ''); t.style.display = 'block';
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.style.display = 'none'; }, 6000);
+  }
+
+  function render() {
+    renderList(); renderNotice(); renderHeader();
+    if (state.tab === 'overview') renderOverview();
+    else if (state.tab === 'timeline') renderTimeline();
+    else renderDiagnostics();
+  }
+
+  // ---- Events ----
+  $('list').addEventListener('click', function (e) {
+    var m = e.target.closest('.m'), g = e.target.closest('.grp');
+    if (m) state.sel = { type: 'cell', id: m.getAttribute('data-cell') };
+    else if (g) state.sel = { type: 'line', id: g.getAttribute('data-line') };
+    else return;
+    render();
+  });
+  $('q').addEventListener('input', function (e) { state.q = e.target.value; renderList(); });
+  $('metricSel').addEventListener('change', function (e) { state.metric = e.target.value; renderList(); });
+  document.querySelector('.tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    state.tab = b.getAttribute('data-tab'); render();
+  });
+  $('pgPrev').addEventListener('click', function () { var items = navItems(); var i = selIndex(); state.sel = items[(i - 1 + items.length) % items.length]; render(); });
+  $('pgNext').addEventListener('click', function () { var items = navItems(); var i = selIndex(); state.sel = items[(i + 1) % items.length]; render(); });
+  $('notice').addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-diag]'); if (!a) return;
+    e.preventDefault(); state.sel = { type: 'line', id: a.getAttribute('data-diag') }; state.tab = 'diagnostics'; render();
+  });
+  $('ct').addEventListener('click', function (e) {
+    var run = e.target.closest('#runNow'); if (run) return runNow(run.getAttribute('data-line'), run);
+    var a = e.target.closest('[data-ack]'); if (a) return ack(a.getAttribute('data-ack'));
+  });
+
+  $('sbUserName').textContent = currentUser().handle;
+
+  // Same fallback the hub applies: a locked server-side org/user seeds the hub identity.
+  if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      $('sbUserName').textContent = currentUser().handle;
+    }).catch(function () {});
+  }
+
+  load().catch(function (e) { toast('Could not load plant data: ' + e.message, true); });
+  setInterval(function () {
+    load().then(function () {
+      if (state.tab !== 'diagnostics' || !state.plant) return null;
+      return loadRuns(state.sel.type === 'cell' ? cellById(state.sel.id).lineCode : state.sel.id);
+    }).catch(function () {});
+  }, 15000);
+})();
+</script>
+</body>
+</html>

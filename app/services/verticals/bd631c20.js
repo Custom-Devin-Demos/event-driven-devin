@@ -3,6 +3,8 @@ const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
+const { listOrgUsers, listEnterpriseAdmins } = require('../devin-api');
+const { getCustomerConfig } = require('../../../config/customers');
 
 const CLUSTERS = {
   'bmq-prod-east': {
@@ -71,7 +73,17 @@ const STORAGE_POLICIES = {
   },
 };
 
-const BLOOMBERG_SLACK_MEMBER_ID = process.env.BLOOMBERG_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const BLOOMBERG_SLACK_MEMBER_ID = process.env.BLOOMBERG_SLACK_MEMBER_ID || 'U0BU46F4WCU';
+const BLOOMBERG_DEVIN_USER_ID = process.env.DEVIN_USER_ID_BD631C20
+  || 'user-5e154bb05983499ba384fbeadd3f4478';
+
+if (process.env.BLOOMBERG_SLACK_MEMBER_ID && !process.env.DEVIN_USER_ID_BD631C20) {
+  logger.warn(
+    'BLOOMBERG_SLACK_MEMBER_ID is set without DEVIN_USER_ID_BD631C20 — the bd631c20 alert '
+    + 'and its Devin session will name different owners',
+  );
+}
+
 const SENTRY_ISSUE_QUERY = 'is:unresolved maxUnconfirmedBytes';
 
 /**
@@ -83,6 +95,31 @@ const SENTRY_ISSUE_QUERY = 'is:unresolved maxUnconfirmedBytes';
 const REMEDIATION_DIRECTIVE = `Repository: COG-GTM/event-driven-devin. Scope: only the BlazingMQ cluster operations partition-rebalance failure below. This repository hosts many independent demo verticals, each with its own intentional bug and its own Sentry issues. Ignore every issue that is not from POST /api/bd631c20/rebalance, do not investigate or modify any other vertical, and do not widen the Sentry or Datadog search beyond this route. The failing surface is the BlazingMQ Cluster Operations console at app/public/verticals/bd631c20.html (page routes GET /bd631c20 and GET /bloomberg), whose "Apply rebalance" action posts to POST /api/bd631c20/rebalance in app/routes/verticals/bd631c20.js. The rebalance planning pipeline lives in app/services/verticals/bd631c20.js: applyRebalance -> planPartitionRebalance -> resolveStoragePolicy. Start at resolveStoragePolicy: it looks up STORAGE_POLICIES by the queue's storage tier, and the nvme_tiered_2026 tier joined the storage-tier catalogue with the Q3 2026 NVMe rollout without a registered storage policy, so the lookup returns undefined and planPartitionRebalance dereferences it while computing the per-partition unconfirmed-bytes budget. Register the missing tier's storage policy and make the lookup fail as a handled cluster-operations error routed to the appropriate rebalance queue instead of a TypeError. Do not change the page's look and feel, and do not touch any other vertical. Verify by starting the server (node app/server.js) and POSTing the default rebalance to /api/bd631c20/rebalance, which must return a successful rebalance plan, and confirm npm run lint passes.
 
 Verification evidence is mandatory and must be visual, not curl-only: with the server running, open the /bloomberg page in a real browser, apply the pre-selected rebalance for the market-data.ticks queue, and record your screen for the whole submission so the recording shows the console, the click, and the successful rebalance plan that replaces the previous TypeError panel. Attach a screenshot of that successful rebalance plan and an animated webp of the recording to the pull request under a "Fix Verification" heading, and post the same evidence as a comment on the PR. Do not report the fix as complete, and do not leave the PR description saying verification is pending, until that browser evidence is attached.`;
+
+/**
+ * Resolve the Devin user behind an email the page supplied, so the session is
+ * created as the same person the Slack card @-mentions. Returns '' when nobody
+ * matches, in which case the caller drops the email and uses the configured
+ * owner on both sides rather than splitting ownership.
+ */
+async function resolveUserIdByEmail(email, orgId) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized || !orgId) return '';
+  try {
+    const { apiKey } = getCustomerConfig('bd631c20');
+    const auth = apiKey ? { apiKey } : {};
+    const members = await listOrgUsers(orgId, auth);
+    const member = members.find((u) => (u.email || '').toLowerCase() === normalized);
+    if (member) return member.user_id;
+    const admins = await listEnterpriseAdmins(auth);
+    const admin = admins.find((u) => (u.email || '').toLowerCase() === normalized);
+    if (admin) return admin.user_id;
+    logger.warn('BlazingMQ rebalance reporter email not found in org', { orgId });
+  } catch (err) {
+    logger.warn('BlazingMQ rebalance reporter lookup failed', { error: err.message, orgId });
+  }
+  return '';
+}
 
 function resolveStoragePolicy(queue) {
   return STORAGE_POLICIES[queue.storageTier];
@@ -248,7 +285,7 @@ async function applyRebalance(data) {
       },
     });
 
-    createSessionAndAlert({
+    const raiseAlert = (owner) => createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=${encodeURIComponent(SENTRY_ISSUE_QUERY)}`,
       culprit: 'app/services/verticals/bd631c20.js — planPartitionRebalance',
@@ -257,11 +294,11 @@ async function applyRebalance(data) {
       service: 'customer-bloomberg-bmq-rebalance',
       verticalLabel: 'BlazingMQ Cluster Operations — Partition Rebalance',
       customer: 'bd631c20',
-      slackMemberId: data.devinEmail ? '' : BLOOMBERG_SLACK_MEMBER_ID,
+      slackMemberId: owner.devinEmail ? '' : BLOOMBERG_SLACK_MEMBER_ID,
       slackMemberIdFallback: BLOOMBERG_SLACK_MEMBER_ID,
-      devinUserId: data.devinUserId,
-      devinEmail: data.devinEmail,
-      devinOrgId: data.devinOrgId,
+      devinUserId: owner.devinUserId,
+      devinEmail: owner.devinEmail,
+      devinOrgId: owner.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
       tags: [
         { key: 'route', value: '/api/bd631c20/rebalance' },
@@ -287,7 +324,25 @@ async function applyRebalance(data) {
       release: 'customer-bloomberg-bmq-rebalance@1.0.0',
       environment: process.env.DD_ENV || 'prod',
       triggeredRule: '',
-    }).catch((alertError) => {
+    });
+
+    // The configured owner belongs to the vertical's own org, so falling back to
+    // it means falling back to that org too — a user outside the page's org
+    // cannot own a session in it.
+    const configuredOwner = { devinUserId: BLOOMBERG_DEVIN_USER_ID, devinEmail: '', devinOrgId: '' };
+    const requestOwner = {
+      devinUserId: data.devinUserId,
+      devinEmail: data.devinEmail,
+      devinOrgId: data.devinOrgId,
+    };
+    const needsLookup = !data.devinUserId && data.devinEmail && data.devinOrgId;
+
+    (needsLookup
+      ? resolveUserIdByEmail(data.devinEmail, data.devinOrgId).then((userId) => (userId
+        ? raiseAlert({ ...requestOwner, devinUserId: userId })
+        : raiseAlert(configuredOwner)))
+      : raiseAlert(data.devinUserId ? requestOwner : configuredOwner)
+    ).catch((alertError) => {
       logger.error('Failed to create Devin session for BlazingMQ rebalance error', {
         planId,
         error: alertError.message,

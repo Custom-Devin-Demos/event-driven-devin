@@ -75,6 +75,13 @@ describe('Sentry customer identity mapping', () => {
     })).toBe(true);
   });
 
+  test.each([
+    'app/services/verticals/1182181f.js — decodeSamples',
+    'app/services/verticals/26af2083.js — decodeJ1939',
+  ])('recognizes a tagless Talon ingest issue webhook by culprit %p', (culprit) => {
+    expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
+  });
+
   test('does not recognize a tagless issue webhook from another vertical', () => {
     expect(isInstantPathEvent({
       culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
