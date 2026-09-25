@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accelya Payments | Settle an order payment</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy: #012169;
+        --navy-deep: #01174a;
+        --teal: #5cb8b2;
+        --teal-dark: #3f9b95;
+        --ink: #425563;
+        --muted: #6d7f8c;
+        --surface: #ffffff;
+        --band: #eef1f5;
+        --rule: #dee7f8;
+        --ok: #1c6b52;
+        --ok-bg: #edf7f3;
+        --warn: #8a3221;
+        --warn-bg: #fbf0ed;
+        --sans: 'Open Sans', Arial, Verdana, sans-serif;
+        --brand: 'Poppins', 'Open Sans', Arial, sans-serif;
+        --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        overflow-x: hidden;
+      }
+      body {
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.5;
+        color: var(--ink);
+        background: var(--surface);
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .wrap {
+        width: min(1200px, calc(100% - 48px));
+        margin: 0 auto;
+      }
+
+      /* ---------- announce ---------- */
+      .announce {
+        background: var(--teal);
+        color: var(--navy);
+        font-size: 14px;
+      }
+      .announce .wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 52px;
+        flex-wrap: wrap;
+        padding: 8px 0;
+      }
+      .announce strong {
+        font-weight: 700;
+      }
+      .announce a {
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      /* ---------- header ---------- */
+      header.site {
+        background: var(--surface);
+        border-bottom: 1px solid var(--rule);
+        position: sticky;
+        top: 0;
+        z-index: 40;
+      }
+      .site-bar {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        min-height: 72px;
+      }
+      .wordmark {
+        font-family: var(--brand);
+        font-weight: 600;
+        font-size: 30px;
+        letter-spacing: -0.01em;
+        color: var(--navy);
+        line-height: 1;
+      }
+      nav.main {
+        display: flex;
+        gap: 4px;
+        flex: 1;
+      }
+      nav.main a {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--navy);
+        padding: 10px 12px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      nav.main a:hover {
+        color: var(--teal-dark);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--sans);
+        font-size: 14px;
+        font-weight: 700;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .btn-navy {
+        background: var(--navy);
+        color: #ffffff;
+      }
+      .btn-navy:hover {
+        background: var(--navy-deep);
+      }
+      .btn-teal {
+        background: var(--teal);
+        color: var(--navy);
+      }
+      .btn-teal:hover {
+        background: var(--teal-dark);
+      }
+      .btn-teal:disabled {
+        background: #a8d6d3;
+        color: var(--navy);
+        cursor: progress;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        background: linear-gradient(105deg, var(--navy-deep) 0%, var(--navy) 58%, #0b3391 100%);
+        color: #ffffff;
+        padding: 56px 0 64px;
+      }
+      .crumbs {
+        font-size: 13px;
+        color: #b9c6e6;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .crumbs span[aria-current] {
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .hero h1 {
+        margin-top: 20px;
+        font-size: clamp(34px, 4.4vw, 48px);
+        font-weight: 400;
+        line-height: 1.1;
+      }
+      .hero h1 strong {
+        font-weight: 700;
+      }
+      .hero p.lede {
+        margin-top: 18px;
+        max-width: 62ch;
+        font-size: 17px;
+        color: #dbe3f4;
+      }
+      .hero-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+      .stat {
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 8px;
+        padding: 12px 18px;
+        min-width: 150px;
+      }
+      .stat b {
+        display: block;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--teal);
+      }
+      .stat span {
+        font-size: 13px;
+        color: #cdd8ef;
+      }
+
+      /* ---------- main ---------- */
+      section.block {
+        padding: 64px 0;
+      }
+      .panel-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.02fr;
+        gap: 56px;
+        align-items: start;
+      }
+      .eyebrow {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--teal-dark);
+      }
+      .panel-copy h2 {
+        margin-top: 10px;
+        font-size: clamp(26px, 3vw, 32px);
+        font-weight: 700;
+        color: var(--navy);
+        line-height: 1.2;
+      }
+      .panel-copy p.sub {
+        margin-top: 16px;
+        max-width: 54ch;
+      }
+      .features {
+        margin-top: 26px;
+        display: grid;
+        gap: 16px;
+      }
+      .features li {
+        list-style: none;
+        border-left: 3px solid var(--teal);
+        padding-left: 14px;
+      }
+      .features b {
+        display: block;
+        color: var(--navy);
+        font-size: 15px;
+      }
+      .features span {
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 8px;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(1, 33, 105, 0.06);
+      }
+      .card h3 {
+        font-size: 21px;
+        font-weight: 700;
+        color: var(--navy);
+      }
+      .card p.note {
+        margin-top: 4px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 18px;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      select,
+      input[type='number'] {
+        font-family: var(--sans);
+        font-size: 15px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        min-height: 46px;
+        padding: 0 12px;
+        width: 100%;
+      }
+      select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, var(--navy) 50%),
+          linear-gradient(135deg, var(--navy) 50%, transparent 50%);
+        background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px;
+        background-size: 5px 5px;
+        background-repeat: no-repeat;
+      }
+      select:focus,
+      input:focus {
+        outline: 2px solid var(--teal-dark);
+        outline-offset: 1px;
+      }
+      .field-hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .btn-submit {
+        width: 100%;
+        margin-top: 22px;
+        min-height: 48px;
+        font-size: 15px;
+      }
+      .request-status {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 12px;
+        text-align: center;
+        min-height: 20px;
+      }
+      .result-box {
+        display: none;
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid var(--rule);
+      }
+      .result-box.success {
+        display: block;
+        background: var(--ok-bg);
+        border-color: #a9d3c5;
+        color: var(--ok);
+      }
+      .result-box.notice {
+        display: block;
+        background: var(--warn-bg);
+        border-color: #e2b3a8;
+        color: var(--warn);
+      }
+      .summary {
+        margin-top: 24px;
+        border: 1px solid var(--rule);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .summary h4 {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: var(--band);
+        color: var(--navy);
+        padding: 10px 14px;
+      }
+      .summary ul {
+        list-style: none;
+      }
+      .summary li {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 14px;
+        border-top: 1px solid var(--rule);
+        font-size: 14px;
+      }
+      .summary li .v {
+        font-weight: 700;
+        text-align: right;
+        color: var(--navy);
+      }
+      .micro {
+        margin-top: 14px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      /* ---------- footer ---------- */
+      footer.site {
+        background: var(--navy);
+        color: #d7e0f3;
+        padding: 64px 0 40px;
+      }
+      .foot-grid {
+        display: grid;
+        grid-template-columns: 1.4fr repeat(4, 1fr);
+        gap: 32px;
+      }
+      .foot-grid h4 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 12px;
+      }
+      .foot-grid ul {
+        list-style: none;
+        display: grid;
+        gap: 9px;
+        font-size: 14px;
+      }
+      .foot-grid a:hover {
+        color: var(--teal);
+      }
+      .foot-legal {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 40px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        font-size: 13px;
+        color: #aebbd9;
+      }
+
+      @media (max-width: 980px) {
+        nav.main {
+          display: none;
+        }
+        .panel-grid {
+          grid-template-columns: 1fr;
+          gap: 36px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 480px) {
+        .wrap {
+          width: calc(100% - 32px);
+        }
+        .hero {
+          padding: 40px 0 44px;
+        }
+        section.block {
+          padding: 44px 0;
+        }
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .card {
+          padding: 20px;
+        }
+        .foot-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announce">
+      <div class="wrap">
+        <span><strong>For airline finance teams:</strong> how ready is your settlement for Offer &amp; Order?</span>
+        <a href="#settle">Check your readiness</a>
+      </div>
+    </div>
+
+    <header class="site" id="top">
+      <div class="wrap site-bar">
+        <span class="wordmark">accelya</span>
+        <nav class="main" aria-label="Main">
+          <a href="#top">Solutions</a>
+          <a href="#top">FLX AIViator</a>
+          <a href="#top">Customer Stories</a>
+          <a href="#top">Resources</a>
+          <a href="#top">Travel Ecosystem</a>
+          <a href="#top">Company</a>
+        </nav>
+        <a class="btn btn-navy" href="#settle">Request a Consultation</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap">
+        <p class="crumbs">
+          <span>Home</span><span>/</span><span>Products</span><span>/</span
+          ><span aria-current="page">Accelya Payments</span>
+        </p>
+        <h1>Accelya <strong>Payments</strong></h1>
+        <p class="lede">
+          Settle order payments across acquirers, currencies and BSP flows in
+          one place. Every settlement is tracked from acquirer billing through
+          to bank confirmation, so revenue booked and revenue in bank stay in
+          step.
+        </p>
+        <div class="hero-stats">
+          <div class="stat"><b>200+</b><span>airlines on platform</span></div>
+          <div class="stat"><b>$100bn+</b><span>settled annually</span></div>
+          <div class="stat"><b>PCI-DSS</b><span>native tokenization</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="settle">
+      <div class="wrap panel-grid">
+        <div class="panel-copy">
+          <p class="eyebrow">Order-to-cash</p>
+          <h2>Settle an order payment</h2>
+          <p class="sub">
+            Move a settled balance from an acquirer or BSP clearing account into
+            the airline account that carries the revenue. Order accounting is
+            updated with the same reference, so finance sees one view of the
+            order from sale to bank confirmation.
+          </p>
+          <ul class="features">
+            <li>
+              <b>End-to-end payment lifecycle visibility</b>
+              <span>Acquirer billing to bank confirmation, fully tracked.</span>
+            </li>
+            <li>
+              <b>Built for Offer &amp; Order complexity</b>
+              <span>Multi-item and split payments alongside BSP and ARC flows.</span>
+            </li>
+            <li>
+              <b>Short settlements surfaced</b>
+              <span>Billing gaps raised for dispute instead of written off.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>Settlement instruction</h3>
+          <p class="note">Amounts move once the instruction is confirmed.</p>
+          <form id="transferForm">
+            <div class="form-group">
+              <label for="fromAccount">Source account</label>
+              <select id="fromAccount">
+                <option value="ACQ-WORLDPAY-EUR">Acquirer settlement — Worldpay EUR</option>
+                <option value="ACQ-AMEX-EUR">Acquirer settlement — Amex EUR</option>
+                <option value="BSP-IATA-EUR">BSP clearing — IATA EUR</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="toAccount">Destination account</label>
+              <select id="toAccount">
+                <option value="AIRLINE-OPERATING-EUR" selected>Airline operating account — EUR</option>
+                <option value="AIRLINE-CARGO-EUR">Cargo revenue account — EUR</option>
+                <option value="AIRLINE-REFUND-FLOAT">Refund float account — EUR</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="amount">Amount (EUR)</label>
+                <input type="number" id="amount" value="48250.00" min="1" step="0.01" />
+                <span class="field-hint">Net of acquirer fees.</span>
+              </div>
+              <div class="form-group">
+                <label for="accountTier">Settlement service</label>
+                <select id="accountTier">
+                  <option value="standard" selected>Standard settlement</option>
+                </select>
+                <span class="field-hint">Cleared on the next settlement cycle.</span>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-teal btn-submit" id="submitBtn">Confirm settlement</button>
+            <p class="request-status" id="requestStatus" role="status">Nothing moves until you confirm.</p>
+          </form>
+          <div class="summary" aria-label="Settlement summary">
+            <h4>Settlement summary</h4>
+            <ul>
+              <li><span>Source</span><span class="v" id="sumFrom">Acquirer settlement — Worldpay EUR</span></li>
+              <li><span>Destination</span><span class="v" id="sumTo">Airline operating account — EUR</span></li>
+              <li><span>Amount</span><span class="v" id="sumAmount">EUR 48,250.00</span></li>
+              <li><span>Service</span><span class="v" id="sumTier">Standard settlement</span></li>
+            </ul>
+          </div>
+          <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          <p class="micro">
+            Settlement references are written back to order accounting automatically.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site">
+      <div class="wrap">
+        <div class="foot-grid">
+          <div>
+            <span class="wordmark" style="color: #ffffff">accelya</span>
+            <p style="margin-top: 14px; font-size: 14px; max-width: 32ch">
+              The airline-first software platform for modern retailing, powering
+              offer, order, settle and deliver.
+            </p>
+          </div>
+          <div>
+            <h4>Solutions</h4>
+            <ul>
+              <li><a href="#top">FLX ONE</a></li>
+              <li><a href="#top">FLX ONE Offer Management</a></li>
+              <li><a href="#top">FLX ONE Delivery</a></li>
+              <li><a href="#top">FLX ONE Cargo</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Financial</h4>
+            <ul>
+              <li><a href="#top">Accelya Financial Solutions</a></li>
+              <li><a href="#top">FLX ONE Order Accounting</a></li>
+              <li><a href="#top">Accelya Payments</a></li>
+              <li><a href="#top">Accelya Sales Audit</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="#top">Blogs</a></li>
+              <li><a href="#top">Case Studies</a></li>
+              <li><a href="#top">Whitepapers</a></li>
+              <li><a href="#top">Airline Solutions Glossary</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Company</h4>
+            <ul>
+              <li><a href="#top">About Accelya</a></li>
+              <li><a href="#top">Customer Stories</a></li>
+              <li><a href="#top">Careers</a></li>
+              <li><a href="#top">Our Locations</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="foot-legal">
+          <span>&copy; Accelya Group 2026</span>
+          <a href="#top">Privacy Policy</a>
+          <a href="#top">Cookies Policy</a>
+          <a href="#top">Terms of Use</a>
+          <a href="#top">Modern Slavery Statement</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+        fetch('/api/config')
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (cfg) {
+            if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+            if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+          })
+          .catch(function () {});
+      })();
+    </script>
+    <script>
+      const form = document.getElementById('transferForm');
+      const button = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      const status = document.getElementById('requestStatus');
+      const fromAccount = document.getElementById('fromAccount');
+      const toAccount = document.getElementById('toAccount');
+      const amount = document.getElementById('amount');
+      const accountTier = document.getElementById('accountTier');
+
+      function formatAmount(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return '—';
+        return `EUR ${number.toLocaleString('en-GB', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
+      }
+
+      function updateSummary() {
+        document.getElementById('sumFrom').textContent =
+          fromAccount.options[fromAccount.selectedIndex].text;
+        document.getElementById('sumTo').textContent =
+          toAccount.options[toAccount.selectedIndex].text;
+        document.getElementById('sumAmount').textContent = formatAmount(amount.value);
+        document.getElementById('sumTier').textContent =
+          accountTier.options[accountTier.selectedIndex].text;
+      }
+
+      [fromAccount, toAccount, amount, accountTier].forEach(function (el) {
+        el.addEventListener('change', updateSummary);
+        el.addEventListener('input', updateSummary);
+      });
+      form.addEventListener('reset', function () {
+        setTimeout(function () {
+          updateSummary();
+          result.className = 'result-box';
+          result.textContent = '';
+          status.textContent = 'Nothing moves until you confirm.';
+        }, 0);
+      });
+      updateSummary();
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const started = performance.now();
+        const destinationLabel = toAccount.options[toAccount.selectedIndex].text;
+        const value = parseFloat(amount.value);
+        if (!Number.isFinite(value) || value <= 0) {
+          result.className = 'result-box notice';
+          result.textContent = 'Enter a settlement amount greater than zero.';
+          status.textContent = 'Amount required.';
+          return;
+        }
+        button.disabled = true;
+        button.textContent = 'Settling…';
+        form.setAttribute('aria-busy', 'true');
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = 'Settling…';
+        const timer = setInterval(() => {
+          status.textContent = `Settling · ${((performance.now() - started) / 1000).toFixed(1)}s`;
+        }, 100);
+        try {
+          const response = await fetch('/api/banking/transfer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromAccount: fromAccount.value,
+              toAccount: toAccount.value,
+              amount: parseFloat(amount.value),
+              accountTier: accountTier.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          if (!response.ok) throw new Error('settlement rejected');
+          const data = await response.json();
+          result.className = 'result-box success';
+          result.textContent = `Settlement confirmed. ${formatAmount(
+            data.receipt && data.receipt.amount,
+          )} credited to ${destinationLabel}.`;
+          status.textContent = 'Settlement confirmed.';
+        } catch (error) {
+          result.className = 'result-box notice';
+          result.textContent =
+            'We could not confirm the outcome of this settlement. Check the settlement in order accounting before submitting it again, or contact Accelya Support.';
+          status.textContent = 'Settlement outcome unconfirmed.';
+        } finally {
+          clearInterval(timer);
+          form.removeAttribute('aria-busy');
+          button.disabled = false;
+          button.textContent = 'Confirm settlement';
+        }
+      });
+    </script>
+    <script src="/session-cap-banner.js"></script>
+  </body>
+</html>

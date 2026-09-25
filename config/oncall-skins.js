@@ -2511,6 +2511,27 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Onlineshop & Warenkorb',
     disclaimer: 'NOT ACTUALLY A ZOOPLUS SITE — internal demo only, not affiliated with, endorsed by, or a real zooplus product.',
   },
+  '93d48678': {
+    slug: '93d48678',
+    company: 'Accelya',
+    brandMark: 'a',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      file: '93d48678.html',
+      title: 'Accelya Payments | Settle an order payment',
+    },
+    theme: {
+      '--accent': '#5CB8B2',
+      '--ink': '#425563',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#012169',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Accelya Support',
+    supportCenterSub: 'Payments & order accounting',
+    disclaimer: 'NOT ACTUALLY AN ACCELYA SITE — internal demo only, not affiliated with, endorsed by, or a real Accelya product.',
+  },
 };
 
 function getOncallSkin(slug) {
