@@ -236,6 +236,7 @@ async function applyRebalance(data) {
         service: 'customer-bloomberg-bmq-rebalance',
         storageTier: queue.storageTier,
         clusterId,
+        alert_path: 'instant',
       },
       extra: {
         planId,

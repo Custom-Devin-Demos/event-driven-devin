@@ -366,15 +366,18 @@
       .catch(function () {});
   </script>
   <script>
-    // Falls back to the server-side identity when nothing is saved on the hub.
-    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
-
     // Presenter default: the queue whose storage tier has no registered policy.
     var DEFAULT_QUEUE_URI = 'bmq://bmq.prod.east/market-data.ticks';
 
     var queueSelect = document.getElementById('queueUri');
     var partitionsInput = document.getElementById('targetPartitions');
     var queues = [];
+
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
 
     function bytes(value) {
       var units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
@@ -401,11 +404,11 @@
     function renderQueues() {
       document.getElementById('queue-rows').innerHTML = queues.map(function (q) {
         var isNew = q.storageTier === 'nvme_tiered_2026';
-        return '<tr data-uri="' + q.queueUri + '">'
-          + '<td><div class="q-name">' + q.name + '</div>'
-          + '<div class="q-uri mono">' + q.queueUri + '</div></td>'
-          + '<td><span class="tag">' + q.mode + '</span></td>'
-          + '<td><span class="tag' + (isNew ? ' tag--new' : '') + '">' + q.storageTierLabel + '</span></td>'
+        return '<tr data-uri="' + esc(q.queueUri) + '">'
+          + '<td><div class="q-name">' + esc(q.name) + '</div>'
+          + '<div class="q-uri mono">' + esc(q.queueUri) + '</div></td>'
+          + '<td><span class="tag">' + esc(q.mode) + '</span></td>'
+          + '<td><span class="tag' + (isNew ? ' tag--new' : '') + '">' + esc(q.storageTierLabel) + '</span></td>'
           + '<td class="num mono">' + q.partitions + '</td>'
           + '<td class="num mono">' + q.consumers + '</td>'
           + '<td class="num mono">' + bytes(q.backlogBytes) + '</td>'
@@ -426,7 +429,7 @@
         queues = data.queues || [];
         if (!queues.length) return;
         queueSelect.innerHTML = queues.map(function (q) {
-          return '<option value="' + q.queueUri + '">' + q.queueUri + '</option>';
+          return '<option value="' + esc(q.queueUri) + '">' + esc(q.queueUri) + '</option>';
         }).join('');
         queueSelect.value = DEFAULT_QUEUE_URI;
         renderQueues();
@@ -469,7 +472,7 @@
         ['Rebalance queue', payload.rebalanceQueue],
       ].filter(function (row) { return row[1] != null && row[1] !== ''; });
       document.getElementById('success-detail').innerHTML = rows.map(function (row) {
-        return '<li><span>' + row[0] + '</span><b>' + row[1] + '</b></li>';
+        return '<li><span>' + esc(row[0]) + '</span><b>' + esc(row[1]) + '</b></li>';
       }).join('');
       document.getElementById('rebalance-success').style.display = 'block';
       document.getElementById('rebalance-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -494,7 +497,7 @@
           queueUri: queueSelect.value,
           targetPartitions: Number(partitionsInput.value),
           devinUserId: localStorage.getItem('devinUserId') || '',
-          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
           devinEmail: localStorage.getItem('devinEmail') || '',
         }),
       })
