@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cluster Operations | BlazingMQ Control Plane</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #14181d;
+      --panel-2: #1b2027;
+      --line: #2a313a;
+      --ink: #e8ecf1;
+      --muted: #8b97a6;
+      --amber: #ff9e1b;
+      --amber-dim: #a8681a;
+      --green: #35c46a;
+      --green-bg: #12291c;
+      --red: #ff5a52;
+      --red-bg: #2b1414;
+      --blue: #4ea3ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans', -apple-system, Segoe UI, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---------- top bar ---------- */
+    .topbar {
+      background: #000;
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar__inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand__mark {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      color: #000;
+      background: var(--amber);
+      padding: 3px 8px;
+      border-radius: 2px;
+    }
+    .brand__title { font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+    .brand__sub { color: var(--muted); font-size: 12px; }
+    .topbar__right { display: flex; align-items: center; gap: 18px; color: var(--muted); font-size: 12px; }
+    .topbar__right b { color: var(--ink); font-weight: 500; }
+
+    /* ---------- nav ---------- */
+    .nav {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .nav__inner { max-width: 1180px; margin: 0 auto; padding: 0 20px; display: flex; gap: 2px; }
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 10px 14px;
+      border-bottom: 2px solid transparent;
+    }
+    .nav a:hover { color: var(--ink); }
+    .nav a.is-active { color: var(--amber); border-bottom-color: var(--amber); }
+
+    /* ---------- layout ---------- */
+    main { padding: 24px 0 56px; }
+    .page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .page-head h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+    .page-head p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    .card__head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .card__head h2 {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .card__body { padding: 16px; }
+
+    /* ---------- cluster stats ---------- */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 4px; margin-bottom: 20px; }
+    .stat { background: var(--panel); padding: 12px 14px; }
+    .stat__k { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .stat__v { font-size: 18px; font-weight: 600; margin-top: 2px; }
+    .stat__v.ok { color: var(--green); }
+    @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+    /* ---------- queue table ---------- */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    tbody td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr.is-selected { background: var(--panel-2); }
+    tbody tr.is-selected td:first-child { box-shadow: inset 2px 0 0 var(--amber); }
+    .q-name { font-weight: 500; }
+    .q-uri { color: var(--muted); font-size: 11.5px; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+    .tag--new { border-color: var(--amber-dim); color: var(--amber); }
+
+    /* ---------- form ---------- */
+    label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .field { margin-bottom: 14px; }
+    select, input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      color: var(--ink);
+      padding: 9px 10px;
+      font-size: 13px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+    select:focus, input:focus { outline: none; border-color: var(--amber); }
+
+    .kv { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+    .kv li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+    .kv li:last-child { border-bottom: 0; }
+    .kv span { color: var(--muted); }
+    .kv b { font-weight: 500; font-family: 'IBM Plex Mono', monospace; }
+
+    .btn {
+      width: 100%;
+      background: var(--amber);
+      color: #000;
+      border: 0;
+      border-radius: 3px;
+      padding: 11px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+    }
+    .btn:hover { background: #ffb347; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .hint { color: var(--muted); font-size: 11.5px; margin: 10px 0 0; }
+
+    /* ---------- result panels ---------- */
+    .panel { display: none; margin-top: 20px; border-radius: 4px; padding: 16px; border: 1px solid; }
+    .panel h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+    .panel p { margin: 0 0 12px; font-size: 13px; }
+    .panel--error { background: var(--red-bg); border-color: #5a2320; }
+    .panel--error h3 { color: var(--red); }
+    .panel--success { background: var(--green-bg); border-color: #1f5334; }
+    .panel--success h3 { color: var(--green); }
+    pre.trace {
+      margin: 0;
+      background: #000;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #ffb1ac;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      margin-top: 40px;
+      padding: 18px 0 40px;
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+    footer p { margin: 0 0 6px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <span class="brand__mark">BMQ</span>
+        <div>
+          <div class="brand__title">BlazingMQ Control Plane</div>
+          <div class="brand__sub">Distributed Messaging Infrastructure &middot; Cluster Operations</div>
+        </div>
+      </div>
+      <div class="topbar__right">
+        <span>Region <b>us-east-1</b></span>
+        <span>Cluster <b class="mono">bmq-prod-east</b></span>
+        <span>Operator <b>svc-bmq-ops</b></span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="#">Overview</a>
+      <a href="#" class="is-active">Queues</a>
+      <a href="#">Partitions</a>
+      <a href="#">Brokers</a>
+      <a href="#">Storage</a>
+      <a href="#">Audit</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <div class="page-head">
+        <div>
+          <h1>Partition rebalance</h1>
+          <p>Redistribute partitions for a queue across the cluster's storage nodes. Changes are
+            planned against the queue's storage policy before they are applied.</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat__k">Broker nodes</div>
+          <div class="stat__v">5</div>
+        </div>
+        <div class="stat">
+          <div class="stat__k">Primary</div>
+          <div class="stat__v mono">node-2</div>
+        </div>
+        <div class="stat">
+          <div class="stat__k">Active queues</div>
+          <div class="stat__v">3</div>
+        </div>
+        <div class="stat">
+          <div class="stat__k">Cluster health</div>
+          <div class="stat__v ok">HEALTHY</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <div class="card__head">
+            <h2>Queues &mdash; bmq.prod.east</h2>
+            <span class="mono" style="color:var(--muted);font-size:11.5px;">select a queue to rebalance</span>
+          </div>
+          <div class="card__body">
+            <table>
+              <thead>
+                <tr>
+                  <th>Queue</th>
+                  <th>Mode</th>
+                  <th>Storage tier</th>
+                  <th class="num">Parts</th>
+                  <th class="num">Consumers</th>
+                  <th class="num">Backlog</th>
+                </tr>
+              </thead>
+              <tbody id="queue-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__head">
+            <h2>Rebalance plan</h2>
+          </div>
+          <div class="card__body">
+            <div class="field">
+              <label for="queueUri">Queue URI</label>
+              <select id="queueUri"></select>
+            </div>
+            <div class="field">
+              <label for="targetPartitions">Target partitions</label>
+              <input id="targetPartitions" type="number" min="1" max="64" value="6">
+            </div>
+
+            <ul class="kv" style="margin-bottom:16px;">
+              <li><span>Cluster</span><b class="mono">bmq-prod-east</b></li>
+              <li><span>Current partitions</span><b id="plan-current" class="mono">4</b></li>
+              <li><span>Storage tier</span><b id="plan-tier" class="mono">nvme_tiered_2026</b></li>
+            </ul>
+
+            <button class="btn" id="apply-rebalance">Apply rebalance</button>
+            <p class="hint">Applies immediately to the live cluster. Partition moves are throttled
+              by the storage policy's per-partition byte cap.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel--error" id="rebalance-error">
+        <h3>Rebalance could not be planned</h3>
+        <p>The control plane failed while computing the partition plan for this queue. No partitions
+          were moved. The error has been captured and routed to cluster operations.</p>
+        <pre class="trace" id="error-tech"></pre>
+      </div>
+
+      <div class="panel panel--success" id="rebalance-success">
+        <h3>Rebalance applied</h3>
+        <p id="success-copy"></p>
+        <ul class="kv" id="success-detail"></ul>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <p>BlazingMQ is an open-source distributed message queue published by Bloomberg L.P. under the
+        Apache-2.0 licence.</p>
+      <p>This page is a Cognition-built demonstration console. It is not affiliated with, endorsed
+        by, or connected to Bloomberg L.P., and it operates on simulated cluster data only.</p>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    // Falls back to the server-side identity when nothing is saved on the hub.
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+
+    // Presenter default: the queue whose storage tier has no registered policy.
+    var DEFAULT_QUEUE_URI = 'bmq://bmq.prod.east/market-data.ticks';
+
+    var queueSelect = document.getElementById('queueUri');
+    var partitionsInput = document.getElementById('targetPartitions');
+    var queues = [];
+
+    function bytes(value) {
+      var units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+      var n = Number(value);
+      var i = 0;
+      while (n >= 1024 && i < units.length - 1) { n /= 1024; i += 1; }
+      return n.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+    }
+
+    function selectedQueue() {
+      return queues.filter(function (q) { return q.queueUri === queueSelect.value; })[0];
+    }
+
+    function renderPlanSummary() {
+      var queue = selectedQueue();
+      if (!queue) return;
+      document.getElementById('plan-current').textContent = queue.partitions;
+      document.getElementById('plan-tier').textContent = queue.storageTier;
+      Array.prototype.slice.call(document.querySelectorAll('#queue-rows tr')).forEach(function (row) {
+        row.classList.toggle('is-selected', row.getAttribute('data-uri') === queue.queueUri);
+      });
+    }
+
+    function renderQueues() {
+      document.getElementById('queue-rows').innerHTML = queues.map(function (q) {
+        var isNew = q.storageTier === 'nvme_tiered_2026';
+        return '<tr data-uri="' + q.queueUri + '">'
+          + '<td><div class="q-name">' + q.name + '</div>'
+          + '<div class="q-uri mono">' + q.queueUri + '</div></td>'
+          + '<td><span class="tag">' + q.mode + '</span></td>'
+          + '<td><span class="tag' + (isNew ? ' tag--new' : '') + '">' + q.storageTierLabel + '</span></td>'
+          + '<td class="num mono">' + q.partitions + '</td>'
+          + '<td class="num mono">' + q.consumers + '</td>'
+          + '<td class="num mono">' + bytes(q.backlogBytes) + '</td>'
+          + '</tr>';
+      }).join('');
+
+      Array.prototype.slice.call(document.querySelectorAll('#queue-rows tr')).forEach(function (row) {
+        row.addEventListener('click', function () {
+          queueSelect.value = row.getAttribute('data-uri');
+          renderPlanSummary();
+        });
+      });
+    }
+
+    fetch('/api/bd631c20/cluster')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        queues = data.queues || [];
+        if (!queues.length) return;
+        queueSelect.innerHTML = queues.map(function (q) {
+          return '<option value="' + q.queueUri + '">' + q.queueUri + '</option>';
+        }).join('');
+        queueSelect.value = DEFAULT_QUEUE_URI;
+        renderQueues();
+        renderPlanSummary();
+      })
+      .catch(function () {});
+
+    queueSelect.addEventListener('change', renderPlanSummary);
+
+    function hidePanels() {
+      document.getElementById('rebalance-error').style.display = 'none';
+      document.getElementById('rebalance-success').style.display = 'none';
+    }
+
+    function showError(payload) {
+      hidePanels();
+      document.getElementById('error-tech').textContent =
+        (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n    at planPartitionRebalance (app/services/verticals/bd631c20.js)'
+        + '\n' + (payload.code || 'REBALANCE_PLANNING_FAILED')
+        + ' · Reference ID: ' + (payload.requestId || 'unavailable');
+      document.getElementById('rebalance-error').style.display = 'block';
+      document.getElementById('rebalance-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(payload) {
+      hidePanels();
+      document.getElementById('success-copy').textContent =
+        'Queue ' + (payload.queueName || '') + ' rebalanced from '
+        + payload.currentPartitions + ' to ' + payload.targetPartitions + ' partitions on '
+        + (payload.clusterLabel || 'the cluster') + '.';
+      var rows = [
+        ['Plan ID', payload.planId],
+        ['Partitions moved', payload.partitionsMoved],
+        ['Storage tier', payload.storageTierLabel],
+        ['Max unconfirmed', payload.maxUnconfirmedBytes != null
+          ? bytes(payload.maxUnconfirmedBytes) : null],
+        ['Per-partition budget', payload.perPartitionBudget != null
+          ? bytes(payload.perPartitionBudget) : null],
+        ['Rebalance queue', payload.rebalanceQueue],
+      ].filter(function (row) { return row[1] != null && row[1] !== ''; });
+      document.getElementById('success-detail').innerHTML = rows.map(function (row) {
+        return '<li><span>' + row[0] + '</span><b>' + row[1] + '</b></li>';
+      }).join('');
+      document.getElementById('rebalance-success').style.display = 'block';
+      document.getElementById('rebalance-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    document.getElementById('apply-rebalance').addEventListener('click', async function () {
+      var button = this;
+      if (button._running) return;
+      button._running = true;
+      var original = button.textContent;
+      button.textContent = 'Planning…';
+      button.disabled = true;
+      hidePanels();
+
+      await identityReady;
+
+      fetch('/api/bd631c20/rebalance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clusterId: 'bmq-prod-east',
+          queueUri: queueSelect.value,
+          targetPartitions: Number(partitionsInput.value),
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (err) {
+          showError({ errorClass: 'NetworkError', error: err.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    });
+  </script>
+</body>
+</html>
