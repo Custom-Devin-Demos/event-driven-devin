@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warner Bros. Discovery</title>
+  <link rel="icon" href="https://static-wbd-cdn.wbd.com/warner-bros-discovery-logo-horizontal-white.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --navy: #04006c;
+      --navy-deep: #0a0148;
+      --purple: #9000e8;
+      --blue: #015cfe;
+      --mint: #29f5d5;
+      --cyan: #00e0ff;
+      --green: #038566;
+      --white: #ffffff;
+      --font: "Beatrice Regular", "Helvetica Neue", Arial, Helvetica, sans-serif;
+      --font-bold: "Beatrice Bold", "Helvetica Neue", Arial, Helvetica, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--navy);
+      color: var(--white);
+      font-family: var(--font);
+      font-size: 17px;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 0 34px; }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--navy);
+      height: 110px;
+      display: flex;
+      align-items: center;
+    }
+    .header .wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 46px;
+    }
+    .logo img { height: 34px; display: block; }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .nav a { opacity: .95; padding: 6px 0; border-bottom: 2px solid transparent; }
+    .nav a:hover { border-bottom-color: var(--mint); }
+    .ticker {
+      margin-left: auto;
+      text-align: right;
+      font-size: 11px;
+      letter-spacing: .06em;
+      opacity: .85;
+    }
+    .ticker b { display: block; font-family: var(--font-bold); font-size: 17px; letter-spacing: 0; }
+
+    /* Hero */
+    .hero { position: relative; height: 560px; overflow: hidden; background: #120024; }
+    .hero video, .hero img.hero-fallback {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+    .hero .scrim {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(4,0,108,.35) 0%, rgba(4,0,108,0) 45%, rgba(4,0,108,.75) 100%);
+    }
+    .hero .badge {
+      position: absolute;
+      right: 44px;
+      bottom: 34px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      opacity: .92;
+    }
+    .hero .badge img { height: 26px; }
+
+    /* Our Company */
+    .company {
+      position: relative;
+      background: var(--navy);
+      padding: 96px 0 60px;
+      overflow: hidden;
+    }
+    .company .shield {
+      position: absolute;
+      right: -60px;
+      top: -40px;
+      width: 620px;
+      opacity: .16;
+      pointer-events: none;
+    }
+    .company .head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 40px;
+      position: relative;
+    }
+    h2.section-title {
+      font-family: var(--font-bold);
+      font-weight: 400;
+      font-size: 42.5px;
+      line-height: 1.3;
+      margin: 0 0 17px;
+      color: var(--purple);
+    }
+    .company p {
+      position: relative;
+      max-width: 694px;
+      font-size: 20.4px;
+      line-height: 1.8;
+      margin: 0 0 17px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 46px;
+      padding: 14px 29px;
+      font-family: var(--font-bold);
+      font-size: 16px;
+      font-weight: 700;
+      background: transparent;
+      color: var(--white);
+      border: 1px solid var(--purple);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .2s ease, color .2s ease;
+    }
+    .pill:hover { background: var(--purple); }
+    .pill.mint { border-color: var(--mint); }
+    .pill.mint:hover { background: var(--mint); color: var(--navy); }
+    .pill.cyan { border-color: var(--cyan); color: var(--navy); padding: 23.5px 30.6px; font-size: 20.4px; }
+    .pill.cyan:hover { background: var(--cyan); }
+    .pill[disabled] { opacity: .6; cursor: progress; }
+
+    /* Brand directory */
+    .brand-directory[hidden] { display: none; }
+    .brand-directory { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; padding: 10px 0 30px; }
+    .brand-group h3 {
+      font-family: var(--font-bold);
+      font-weight: 400;
+      font-size: 17px;
+      color: var(--mint);
+      margin: 0 0 10px;
+    }
+    .brand-group ul { list-style: none; margin: 0; padding: 0; }
+    .brand-group li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,.14);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .brand-group li em { font-style: normal; opacity: .6; font-size: 13px; }
+
+    /* Brand marquee */
+    .marquee { overflow: hidden; padding: 40px 0 76px; background: var(--navy); }
+    .marquee-track {
+      display: flex;
+      align-items: center;
+      gap: 76px;
+      width: max-content;
+      animation: slide 46s linear infinite;
+    }
+    .marquee img { height: 52px; width: auto; filter: brightness(1.05); }
+    @keyframes slide {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* News */
+    .news { background: var(--green); padding: 74px 0 86px; }
+    .news .head { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
+    .news h2 { color: var(--mint); }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 40px; }
+    .card img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      object-position: center center;
+      border: 3px solid var(--blue);
+      display: block;
+    }
+    .card .date {
+      display: block;
+      margin: 18px 0 6px;
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .85;
+    }
+    .card h3 {
+      font-family: var(--font-bold);
+      font-weight: 400;
+      font-size: 19px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    /* Careers */
+    .careers { background: var(--white); color: var(--navy); padding: 86px 0 96px; }
+    .careers .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+    .careers h2 { color: #00b7e0; font-size: 44px; }
+    .careers p { font-size: 20.4px; color: #00a7d8; max-width: 420px; }
+    .careers img.globe { width: 100%; max-width: 470px; justify-self: center; }
+
+    /* Footer */
+    .footer { background: var(--navy-deep); padding: 46px 0 34px; font-size: 16px; }
+    .social { display: flex; justify-content: center; gap: 26px; margin-bottom: 44px; opacity: .9; }
+    .social svg { width: 17px; height: 17px; fill: var(--white); }
+    .footer-grid { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 40px; align-items: start; }
+    .footer-grid img { height: 30px; }
+    .footer-links { display: flex; flex-direction: column; gap: 8px; font-size: 14px; opacity: .92; }
+    .footer-links a:hover { text-decoration: underline; }
+    .legal { text-align: center; font-size: 11px; opacity: .7; margin-top: 46px; line-height: 1.9; }
+
+    .back-link {
+      position: fixed;
+      left: 16px;
+      bottom: 14px;
+      z-index: 60;
+      font-size: 12px;
+      color: rgba(255,255,255,.55);
+      background: rgba(4,0,108,.7);
+      padding: 5px 11px;
+      border-radius: 20px;
+    }
+    .back-link:hover { color: #fff; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 80;
+      max-width: 360px;
+      background: #17123f;
+      color: #fff;
+      border-left: 3px solid #ff5a5a;
+      border-radius: 6px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.4);
+      padding: 14px 18px;
+      font-size: 14px;
+      line-height: 1.5;
+      transform: translateX(130%);
+      transition: transform .4s ease;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast b { display: block; font-family: var(--font-bold); margin-bottom: 4px; }
+    .toast code { font-size: 12px; opacity: .8; }
+
+    @media (max-width: 1000px) {
+      .nav, .ticker { display: none; }
+      .cards, .careers .grid, .footer-grid, .brand-directory { grid-template-columns: 1fr; }
+      .company .head, .news .head { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .pill { white-space: normal; }
+      .pill.cyan { padding: 16px 24px; font-size: 17px; }
+      .hero { height: 380px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="wrap">
+      <a class="logo" href="/e57f4315">
+        <img src="https://static-wbd-cdn.wbd.com/warner-bros-discovery-logo-horizontal-white.svg"
+             alt="Warner Bros. Discovery"
+             onerror="this.onerror=null;this.src='https://static-wbd-cdn.wbd.com/s3_assets/wm-gdpr/userconsent-logos/warner-bros-discovery-logo-horizontal-white.svg';">
+      </a>
+      <nav class="nav">
+        <a href="#company">Our Leadership</a>
+        <a href="#company">Our Values</a>
+        <a href="#company">Our Brands</a>
+        <a href="#news">Newsroom</a>
+        <a href="#careers">Careers</a>
+        <a href="#company">Investor Relations</a>
+      </nav>
+      <div class="ticker">WBD<b>30.84</b></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <video autoplay muted loop playsinline
+           poster="https://static-wbd-cdn.wbd.com/default_images/wbd-logo-card-1200x675_0.jpg">
+      <source src="https://static-wbd-cdn.wbd.com/s3_assets/2025-07/1416850_careerwebsiteteaser_updatejuly2025_hbomax_2560x1200_v1.mp4" type="video/mp4">
+    </video>
+    <div class="scrim"></div>
+    <div class="badge">
+      <img src="https://static-wbd-cdn.wbd.com/s3_assets/images/brands/2025-07/hbo_max_logo_pure_white_rgb_052225.svg"
+           alt="HBO Max"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=240&q=60';">
+    </div>
+  </section>
+
+  <section class="company" id="company">
+    <img class="shield"
+         src="https://static-wbd-cdn.wbd.com/s3_assets/images/brands/2024-08/wb-shieldonly-outline-ondark-allwhite-rgb_1.svg"
+         alt=""
+         onerror="this.onerror=null;this.style.display='none';">
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <h2 class="section-title">Our Company</h2>
+        </div>
+        <button class="pill" id="brandsCta" type="button">View All Brands <span>&rarr;</span></button>
+      </div>
+      <p>
+        Warner Bros. Discovery is a leading global media and entertainment company that creates and
+        distributes the world's most differentiated and complete portfolio of content, film and streaming.
+        Warner Bros. Discovery inspires, informs and entertains audiences worldwide through its iconic
+        brands and products including: Discovery Channel, HBO Max, discovery+, CNN, DC, Eurosport, HBO,
+        HGTV, Food Network, OWN, Investigation Discovery, TLC, Magnolia Network, TNT, TBS, truTV, Travel
+        Channel, Animal Planet, Science Channel, Warner Bros. Motion Picture Group, Warner Bros. Television
+        Group, Warner Bros. Pictures Animation, Warner Bros. Games, New Line Cinema, Cartoon Network, Adult
+        Swim, Turner Classic Movies, Discovery en Español, Hogar de HGTV and others.
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="brand-directory" id="brandDirectory" hidden></div>
+  </div>
+
+  <div class="marquee">
+    <div class="marquee-track" id="marquee"></div>
+  </div>
+
+  <section class="news" id="news">
+    <div class="wrap">
+      <div class="head">
+        <h2 class="section-title">Latest News</h2>
+        <a class="pill mint" href="#news">View All News <span>&rarr;</span></a>
+      </div>
+      <div class="cards">
+        <article class="card">
+          <img src="https://static-wbd-cdn.wbd.com/default_images/wbd-logo-card-1200x675_0.jpg"
+               alt="Warner Bros. Discovery"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=70';">
+          <span class="date">September 4, 2026</span>
+          <h3>WBD Access Announces 2026 Unlock Unscripted Program Participants</h3>
+        </article>
+        <article class="card">
+          <img src="https://static-wbd-cdn.wbd.com/default_images/wbd-logo-card-1200x675_0.jpg"
+               alt="Warner Bros. Discovery"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1200&q=70';">
+          <span class="date">August 8, 2026</span>
+          <h3>Warner Bros. Discovery Reports Second Quarter 2026 Results</h3>
+        </article>
+        <article class="card">
+          <img src="https://static-wbd-cdn.wbd.com/default_images/wbd-logo-card-1200x675_0.jpg"
+               alt="Warner Bros. Discovery"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1200&q=70';">
+          <span class="date">July 24, 2026</span>
+          <h3>Warner Bros. Discovery to Report Second Quarter 2026 Results on Thursday, August 6</h3>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="careers" id="careers">
+    <div class="wrap grid">
+      <div>
+        <h2 class="section-title">Work With Us</h2>
+        <p>Explore opportunities across all of our award-winning brands and businesses</p>
+        <a class="pill cyan" href="https://careers.wbd.com/" target="_blank" rel="noopener">Search Careers <span>&rarr;</span></a>
+      </div>
+      <img class="globe"
+           src="https://static-wbd-cdn.wbd.com/s3_assets/images/content_card/2024-08/globenew_2.svg"
+           alt="Global reach"
+           onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=70';">
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="social">
+        <svg viewBox="0 0 24 24"><path d="M18.9 2H22l-7 8 8.2 12h-6.4l-5-7.2L5.9 22H2.8l7.5-8.6L2.4 2h6.6l4.5 6.6L18.9 2Z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 3.3.1 4.8 1.7 4.9 4.9.1 1.3.1 1.6.1 4.8s0 3.6-.1 4.9c-.1 3.2-1.6 4.8-4.9 4.9-1.3.1-1.6.1-4.9.1s-3.6 0-4.9-.1c-3.3-.2-4.8-1.7-4.9-4.9C2.1 15.6 2.1 15.2 2.1 12s0-3.6.1-4.9C2.3 3.9 3.8 2.4 7.1 2.3 8.4 2.2 8.8 2.2 12 2.2Zm0 3.1a6.7 6.7 0 1 0 0 13.4 6.7 6.7 0 0 0 0-13.4Zm0 11a4.3 4.3 0 1 1 0-8.6 4.3 4.3 0 0 1 0 8.6Zm6.9-11.2a1.6 1.6 0 1 1-3.2 0 1.6 1.6 0 0 1 3.2 0Z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M13.5 22v-8.2h2.8l.4-3.2h-3.2V8.5c0-.9.3-1.6 1.6-1.6h1.7V4.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.3v3.2h2.8V22h3.4Z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M23 12s0-3.3-.4-4.9a2.6 2.6 0 0 0-1.8-1.8C19.2 5 12 5 12 5s-7.2 0-8.8.4c-.9.2-1.6.9-1.8 1.8C1 8.7 1 12 1 12s0 3.3.4 4.9c.2.9.9 1.6 1.8 1.8 1.6.3 8.8.3 8.8.3s7.2 0 8.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.5.4-4.8.4-4.8ZM9.8 15.2V8.8l6 3.2-6 3.2Z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M6.9 21H3.3V9.4h3.6V21ZM5.1 7.8A2.1 2.1 0 1 1 5.1 3.6a2.1 2.1 0 0 1 0 4.2ZM21 21h-3.6v-5.6c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V21H9.7V9.4h3.4V11h.1c.5-.9 1.7-1.9 3.4-1.9 3.6 0 4.3 2.4 4.3 5.5V21Z"/></svg>
+      </div>
+      <div class="footer-grid">
+        <div>
+          <img src="https://static-wbd-cdn.wbd.com/warner-bros-discovery-logo-horizontal-white.svg"
+               alt="Warner Bros. Discovery"
+               onerror="this.onerror=null;this.src='https://static-wbd-cdn.wbd.com/s3_assets/wm-gdpr/userconsent-logos/warner-bros-discovery-logo-horizontal-white.svg';">
+        </div>
+        <div class="footer-links">
+          <a href="#">Visitor Agreement</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">WBD Workforce Privacy Notice</a>
+          <a href="#">Accessibility Statement</a>
+          <a href="#">Forward-Looking Statements</a>
+          <a href="#">Modern Slavery Statement</a>
+          <a href="#">Global Tax Policy</a>
+          <a href="#">Code of Ethics</a>
+          <a href="#">Procurement</a>
+          <a href="#">Equal Employment Opportunity</a>
+          <a href="#">UK Gender Pay Gap Reports</a>
+        </div>
+        <div class="footer-links">
+          <a href="#">BR Gender Pay Gap Reports</a>
+          <a href="#">FR Gender Pay Gap Reports</a>
+          <a href="#">Mitigation Measures for Chile</a>
+          <a href="#">Accessibility Plan for You.i, Ontario</a>
+          <a href="#">Accessibility Policy for You.i, Ontario</a>
+          <a href="#">Responsible Disclosure</a>
+          <a href="#">HBO Legal Documents for Poland</a>
+          <a href="#">WBD Brand Resources</a>
+          <a href="#">Networks Newsletter Signups</a>
+          <a href="#">Clip &amp; Still Licensing</a>
+          <a href="#">Your Privacy Choices</a>
+        </div>
+      </div>
+      <div class="legal">
+        &copy; 2026 Warner Bros. Discovery, Inc. or its subsidiaries and affiliates.<br>
+        All trademarks are the property of their respective owners. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <a class="back-link" href="/">&larr; All Demos</a>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var BRAND_LOGOS = [
+      '2024-08/wb-shieldonly-outline-ondark-allwhite-rgb_1.svg',
+      '2024-08/wb_televisiongroup_outline_verticallogo_ondark_allwhite_rgb-1_1.svg',
+      '2024-08/wb_pictures_outline_verticallogo_ondark_allwhite_rgb-1_1.svg',
+      '2024-07/tnt-sports-white.svg',
+      '2024-07/cnn-logo-white.svg',
+      '2024-07/discovery-channel-logo-white.svg',
+      '2024-07/tlc-logo-white.svg',
+      '2024-07/food-network-logo-white.svg',
+      '2024-07/hgtv-logo-white.svg',
+      '2024-07/eurosport-logo-white.svg',
+      '2024-07/magnolia-logo-white.svg',
+      '2024-07/cooking-channel-logo-white.svg',
+      '2024-08/wb_games_outline_verticallogo_ondark_allwhite_rgb-1_1.svg',
+      '2024-07/cartoon-network-logo-white.svg',
+      '2024-07/adultswim-logo-white.svg',
+      '2024-07/discovery-plus-logo-white-stacked.svg'
+    ];
+
+    (function renderMarquee() {
+      var track = document.getElementById('marquee');
+      var html = BRAND_LOGOS.concat(BRAND_LOGOS).map(function (path) {
+        return '<img src="https://static-wbd-cdn.wbd.com/s3_assets/images/brands/' + path + '" alt="" ' +
+          'onerror="this.onerror=null;this.style.display=\'none\';">';
+      }).join('');
+      track.innerHTML = html;
+    })();
+
+    var toastTimer = null;
+    function showToast(title, detail) {
+      var toast = document.getElementById('toast');
+      toast.innerHTML = '<b>' + title + '</b>' + detail;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 5500);
+    }
+
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function renderDirectory(data) {
+      var panel = document.getElementById('brandDirectory');
+      panel.innerHTML = data.portfolio.segments.map(function (group) {
+        return '<div class="brand-group"><h3>' + esc(group.segment) + '</h3><ul>' +
+          group.networks.map(function (network) {
+            return '<li><span>' + esc(network.name) + '</span><em>' + esc(network.category) + '</em></li>';
+          }).join('') + '</ul></div>';
+      }).join('');
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    document.getElementById('brandsCta').addEventListener('click', function () {
+      var btn = this;
+      btn.disabled = true;
+
+      fetch('/api/e57f4315/brand-directory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          region: 'north-america',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || ''
+        })
+      })
+        .then(function (res) {
+          return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+        })
+        .then(function (result) {
+          btn.disabled = false;
+          if (!result.ok || !result.data.success) {
+            showToast(
+              'Brand directory unavailable',
+              'We could not load the brand portfolio. Please try again shortly.<br><code>' +
+                esc(result.data.errorClass || 'Error') + ' &middot; ' + esc(result.data.code || '') + '</code>'
+            );
+            return;
+          }
+          renderDirectory(result.data);
+          showToast(
+            result.data.portfolio.networkCount + ' brands in ' + esc(result.data.region.label),
+            'Across ' + result.data.portfolio.segmentCount + ' segments.'
+          );
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          showToast('Brand directory unavailable', 'Network error.<br><code>' + esc(err.message) + '</code>');
+        });
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
