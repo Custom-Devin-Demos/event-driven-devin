@@ -60,6 +60,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Mainspring Energy — Get Power Project Inquiry** (unlisted — direct URL only) | `/mainspring`, `/915a6563` | `app/public/verticals/915a6563.html` | `POST /api/915a6563/power-inquiry` | `app/services/verticals/915a6563.js` |
 | **Amplitude Analytics — Chart query** (unlisted — direct URL only) | `/amplitude`, `/5826f4f2` | `app/public/verticals/5826f4f2.html` | `GET /api/5826f4f2/metadata`, `POST /api/5826f4f2/chart-query` | `app/services/verticals/5826f4f2.js` |
 | **UKG Pro — Payroll Gateway pay run** (unlisted — direct URL only) | `/ukg`, `/ukgpro`, `/e33c0578` | `app/public/verticals/e33c0578.html` | `GET /api/e33c0578/pay-run`, `POST /api/e33c0578/pay-run` | `app/services/verticals/e33c0578.js` |
+| **Warner Bros. Discovery — Brand Directory** (unlisted — direct URL only) | `/wbd`, `/warnerbros`, `/e57f4315` | `app/public/verticals/e57f4315.html` | `POST /api/e57f4315/brand-directory` | `app/services/verticals/e57f4315.js` |
 | **Stock & Inventory Control Tower — replenishment run** (unlisted — direct URL only) | `/d67c33e4` | `app/public/verticals/d67c33e4.html` | `GET /api/d67c33e4/network`, `POST /api/d67c33e4/replenishment` | `app/services/verticals/d67c33e4.js`, `app/services/verticals/d67c33e4-network.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
