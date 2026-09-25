@@ -12,6 +12,7 @@ const INTERVAL_MIN = 15;
 const STALE_AFTER_MS = Number(process.env.X1182181F_STALE_AFTER_MS) || 60 * 60 * 1000;
 const ALERT_COOLDOWN_MS = Number(process.env.X1182181F_ALERT_COOLDOWN_MS) || 24 * 60 * 60 * 1000;
 const CUTOVER_AGO_MS = 26 * 60 * 60 * 1000;
+const REPLAY_HISTORY_JOBS = 16;
 
 const LINES = {};
 const CELLS = {};
@@ -332,6 +333,7 @@ function buildLine(manifest, now, random) {
     lastPublishedAt: new Date(now).toISOString(),
     shiftStartsAt: currentShift(now).startsAt,
     lastIntervalBucket: null,
+    lastIntervalEndMs: null,
     lastInterval: null,
   };
 }
@@ -631,11 +633,26 @@ function evaluateAlarms(manifest, interval, now = Date.now()) {
   return found.map((alarm) => ({ ...alarm, state: 'ACTIVE_UNACK', activeAt: new Date(now).toISOString(), ackBy: null, ackAt: null, rtnAt: null }));
 }
 
-// Interval jobs are keyed to aligned INTERVAL_MIN buckets; a manual re-run inside
-// the same bucket replaces that bucket's contribution instead of adding to it.
+// Aligned INTERVAL_MIN bucket a publish falls in; one OEE trend point per bucket.
 function intervalBucket(now) {
   const bucketMs = INTERVAL_MIN * 60 * 1000;
   return Math.floor(now / bucketMs) * bucketMs;
+}
+
+// Every run samples the trailing INTERVAL_MIN window, so two publishes closer
+// together than that re-read the same production. The share of the previous
+// window that the new one covers again is withdrawn before the new window is
+// credited: a re-run seconds later replaces its predecessor outright, a run
+// two minutes later leaves only the two minutes it did not re-sample. Only the
+// part of the previous window credited to this shift (after `floorMs`) counts.
+function overlapWithPrevious(previousEndMs, now, floorMs) {
+  if (previousEndMs === null || previousEndMs === undefined) return 0;
+  const intervalMs = INTERVAL_MIN * 60 * 1000;
+  const previousStart = Math.max(previousEndMs - intervalMs, floorMs);
+  const credited = previousEndMs - previousStart;
+  if (credited <= 0) return 0;
+  const resampledFrom = Math.max(now - intervalMs, previousStart);
+  return Math.max(0, Math.min(1, (previousEndMs - resampledFrom) / credited));
 }
 
 function rolloverShift(line, shift) {
@@ -644,6 +661,7 @@ function rolloverShift(line, shift) {
   line.shiftRejectCount = 0;
   line.shiftDowntimeMin = 0;
   line.lastIntervalBucket = null;
+  line.lastIntervalEndMs = null;
   line.lastInterval = null;
   Object.values(CELLS).filter((cell) => cell.lineCode === line.code).forEach((cell) => {
     cell.partsGood = 0;
@@ -694,6 +712,8 @@ function publish(manifest, interval, alarms, run, now = Date.now()) {
   const elapsed = Math.max(1, Math.floor((now - shiftStartMs) / 60000));
   const bucket = intervalBucket(now);
   const rerun = line.lastIntervalBucket === bucket;
+  const overlap = overlapWithPrevious(line.lastIntervalEndMs, now, shiftStartMs);
+  const withdrawn = (previous) => Math.round((previous || 0) * overlap);
   // Share of the interval that falls inside this shift; production sampled
   // before the shift boundary belongs to the shift that just ended.
   const inShift = Math.min(1, elapsed / INTERVAL_MIN);
@@ -701,7 +721,9 @@ function publish(manifest, interval, alarms, run, now = Date.now()) {
 
   interval.cells.forEach((cell) => {
     const previous = CELLS[cell.cellId];
-    const replaced = rerun && previous.lastInterval ? previous.lastInterval : { goodCount: 0, rejectCount: 0 };
+    const replaced = previous.lastInterval
+      ? { goodCount: withdrawn(previous.lastInterval.goodCount), rejectCount: withdrawn(previous.lastInterval.rejectCount) }
+      : { goodCount: 0, rejectCount: 0 };
     const goodCount = clip(cell.goodCount);
     const rejectCount = clip(cell.rejectCount);
     const timeline = appendIntervalTimeline(previous.timeline || [], cell, elapsed);
@@ -722,7 +744,13 @@ function publish(manifest, interval, alarms, run, now = Date.now()) {
       lastInterval: { goodCount, rejectCount },
     };
   });
-  const replaced = rerun && line.lastInterval ? line.lastInterval : { goodCount: 0, rejectCount: 0, downtimeMin: 0 };
+  const replaced = line.lastInterval
+    ? {
+      goodCount: withdrawn(line.lastInterval.goodCount),
+      rejectCount: withdrawn(line.lastInterval.rejectCount),
+      downtimeMin: round(line.lastInterval.downtimeMin * overlap, 1),
+    }
+    : { goodCount: 0, rejectCount: 0, downtimeMin: 0 };
   const contributed = {
     goodCount: clip(interval.goodCount),
     rejectCount: clip(interval.rejectCount),
@@ -733,6 +761,7 @@ function publish(manifest, interval, alarms, run, now = Date.now()) {
   line.shiftRejectCount += contributed.rejectCount - replaced.rejectCount;
   line.shiftDowntimeMin = round(line.shiftDowntimeMin + contributed.downtimeMin - replaced.downtimeMin, 1);
   line.lastIntervalBucket = bucket;
+  line.lastIntervalEndMs = now;
   line.lastInterval = contributed;
   line.availability = interval.availability;
   line.performance = interval.performance;
@@ -1008,18 +1037,24 @@ function replayInterval(manifest, startedAt) {
 
 // With the background scheduler off (the default), healthy lines would otherwise
 // age into NO DATA purely from server uptime. Replay the interval jobs a running
-// scheduler would have completed (at most the last eight) so their read model
-// stays current; lines with failures (L4) are left exactly as they are.
+// scheduler would have completed so their read model stays current: every job
+// of the current shift (its totals, timelines and utilization are built from
+// them) plus enough earlier ones to fill the OEE trend and job history. Jobs
+// from shifts already over only ever fed totals that have since rolled over.
+// Lines with failures (L4) are left exactly as they are.
 function advanceHealthyLines(now) {
   if (schedulerHandle) return;
   const intervalMs = INTERVAL_MIN * 60 * 1000;
+  const shiftStartMs = new Date(currentShift(now).startsAt).getTime();
   Object.values(LINE_MANIFESTS).forEach((manifest) => {
     if (consecutiveFailures[manifest.code]) return;
     const last = lastSuccessfulPublishes[manifest.code];
     if (!last || now - last < intervalMs + 2 * 60 * 1000) return;
     const missed = Math.floor((now - last - 2 * 60 * 1000) / intervalMs);
     if (missed < 1) return;
-    for (let index = Math.max(1, missed - 7); index <= missed; index += 1) {
+    const firstInShift = Math.max(1, Math.ceil((shiftStartMs - last) / intervalMs));
+    const from = Math.max(1, Math.min(missed, firstInShift) - REPLAY_HISTORY_JOBS);
+    for (let index = from; index <= missed; index += 1) {
       replayInterval(manifest, last + index * intervalMs);
     }
   });

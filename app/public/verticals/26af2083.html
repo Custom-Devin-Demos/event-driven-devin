@@ -503,11 +503,13 @@
     var body = identity(); body.gateway = gateway;
     if (btn) { btn.disabled = true; btn.textContent = 'Running…'; }
     fetch(API + '/runs', { method: 'POST', headers: postHeaders(), body: JSON.stringify(body) })
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        var failed = (d.runs || []).filter(function (r) { return r.status === 'failed'; });
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, body: d }; }); })
+      .then(function (res) {
+        var d = res.body;
+        if (!res.ok || !Array.isArray(d.runs)) { toast((d && d.error) || ('Request rejected (HTTP ' + res.status + ')'), true); return null; }
+        var failed = d.runs.filter(function (r) { return r.status === 'failed'; });
         if (failed.length) toast(failed[0].gateway + ' ingest failed at ' + failed[0].stageReached + ' — ' + failed[0].error.name + ': ' + failed[0].error.message + '. Alert sent to on-call.', true);
-        else toast((d.runs || []).length + ' ingest job(s) succeeded — ' + d.runs.reduce(function (n, r) { return n + r.assetsOut; }, 0) + ' assets published.');
+        else toast(d.runs.length + ' ingest job(s) succeeded — ' + d.runs.reduce(function (n, r) { return n + r.assetsOut; }, 0) + ' assets published.');
         return refresh();
       })
       .catch(function (e) { toast('Request failed: ' + e.message, true); })
