@@ -2489,6 +2489,28 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Subscription Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ECONOMIST SITE — internal demo only, not affiliated with, endorsed by, or a real Economist product.',
   },
+  'c06e0447': {
+    slug: 'c06e0447',
+    company: 'zooplus',
+    brandMark: 'Z',
+    vertical: 'marketplace',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: 'c06e0447.html',
+      title: '12 kg + 1,5 kg gratis! 13,5 kg Concept for Life Medium Adult | zooplus',
+    },
+    theme: {
+      '--accent': '#278403',
+      '--ink': '#323942',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#144700',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'zooplus Kundenservice',
+    supportCenterSub: 'Onlineshop & Warenkorb',
+    disclaimer: 'NOT ACTUALLY A ZOOPLUS SITE — internal demo only, not affiliated with, endorsed by, or a real zooplus product.',
+  },
 };
 
 function getOncallSkin(slug) {
