@@ -125,6 +125,20 @@
     .stat__v { font-size: 18px; font-weight: 600; margin-top: 2px; }
     .stat__v.ok { color: var(--green); }
     @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: minmax(0, 1fr); }
+      .card { min-width: 0; }
+      .card__head { flex-wrap: wrap; row-gap: 4px; }
+      .card__body { overflow-x: auto; }
+      .card__body > table { min-width: 460px; }
+    }
+    @media (max-width: 720px) {
+      .topbar__inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .nav__inner { overflow-x: auto; }
+      .q-uri { word-break: break-all; }
+      .kv li { gap: 8px; }
+      .kv b { word-break: break-all; text-align: right; }
+    }
 
     /* ---------- queue table ---------- */
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -333,8 +347,8 @@
       </div>
 
       <div class="panel panel--error" id="rebalance-error">
-        <h3>Rebalance could not be planned</h3>
-        <p>The control plane failed while computing the partition plan for this queue. No partitions
+        <h3 id="error-title">Rebalance could not be planned</h3>
+        <p id="error-copy">The control plane failed while computing the partition plan for this queue. No partitions
           were moved. The error has been captured and routed to cluster operations.</p>
         <pre class="trace" id="error-tech"></pre>
       </div>
@@ -446,6 +460,15 @@
 
     function showError(payload) {
       hidePanels();
+      var rejected = payload.code === 'INVALID_REBALANCE';
+      document.getElementById('error-title').textContent = rejected
+        ? 'Rebalance request rejected'
+        : 'Rebalance could not be planned';
+      document.getElementById('error-copy').textContent = rejected
+        ? 'The request was rejected before planning started. No partitions were moved and no '
+          + 'incident was raised — adjust the target and apply again.'
+        : 'The control plane failed while computing the partition plan for this queue. No '
+          + 'partitions were moved. The error has been captured and routed to cluster operations.';
       document.getElementById('error-tech').textContent =
         (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
         + '\n    at planPartitionRebalance (app/services/verticals/bd631c20.js)'
