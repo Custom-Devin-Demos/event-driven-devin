@@ -6,7 +6,6 @@ const { createSessionAndAlert } = require('../devin-session');
 
 const SERVICE = '246706c4-api';
 const ROUTE = '/api/246706c4/payment';
-const SLACK_MEMBER_ID = process.env.C246706C4_SLACK_MEMBER_ID || 'U08S7AVJ478';
 
 const BOOKINGS = [
   {
@@ -181,8 +180,6 @@ async function confirmBooking(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: data.devinEmail ? '' : SLACK_MEMBER_ID,
-      slackMemberIdFallback: SLACK_MEMBER_ID,
       service: SERVICE,
       verticalLabel: 'Glass Repair — Booking Confirm & Pay',
       tags: [
