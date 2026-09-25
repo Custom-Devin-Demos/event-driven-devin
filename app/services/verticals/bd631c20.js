@@ -72,6 +72,8 @@ const STORAGE_POLICIES = {
 };
 
 const BLOOMBERG_SLACK_MEMBER_ID = process.env.BLOOMBERG_SLACK_MEMBER_ID || 'U0BU46F4WCU';
+const BLOOMBERG_DEVIN_USER_ID = process.env.DEVIN_USER_ID_BD631C20
+  || 'user-5e154bb05983499ba384fbeadd3f4478';
 const SENTRY_ISSUE_QUERY = 'is:unresolved maxUnconfirmedBytes';
 
 /**
@@ -259,7 +261,7 @@ async function applyRebalance(data) {
       customer: 'bd631c20',
       slackMemberId: data.devinEmail ? '' : BLOOMBERG_SLACK_MEMBER_ID,
       slackMemberIdFallback: BLOOMBERG_SLACK_MEMBER_ID,
-      devinUserId: data.devinUserId,
+      devinUserId: data.devinUserId || (data.devinEmail ? '' : BLOOMBERG_DEVIN_USER_ID),
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
       promptAppendix: REMEDIATION_DIRECTIVE,
