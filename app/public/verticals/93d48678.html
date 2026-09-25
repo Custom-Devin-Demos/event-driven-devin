@@ -545,7 +545,7 @@
               <label for="fromAccount">Source account</label>
               <select id="fromAccount">
                 <option value="ACQ-WORLDPAY-EUR">Acquirer settlement — Worldpay EUR</option>
-                <option value="ACQ-AMEX-GBP">Acquirer settlement — Amex GBP</option>
+                <option value="ACQ-AMEX-EUR">Acquirer settlement — Amex EUR</option>
                 <option value="BSP-IATA-EUR">BSP clearing — IATA EUR</option>
               </select>
             </div>
@@ -553,7 +553,7 @@
               <label for="toAccount">Destination account</label>
               <select id="toAccount">
                 <option value="AIRLINE-OPERATING-EUR" selected>Airline operating account — EUR</option>
-                <option value="AIRLINE-OPERATING-USD">Airline operating account — USD</option>
+                <option value="AIRLINE-CARGO-EUR">Cargo revenue account — EUR</option>
                 <option value="AIRLINE-REFUND-FLOAT">Refund float account — EUR</option>
               </select>
             </div>
@@ -567,9 +567,8 @@
                 <label for="accountTier">Settlement service</label>
                 <select id="accountTier">
                   <option value="standard" selected>Standard settlement</option>
-                  <option value="premium">Priority settlement</option>
                 </select>
-                <span class="field-hint">Priority clears same day.</span>
+                <span class="field-hint">Cleared on the next settlement cycle.</span>
               </div>
             </div>
             <button type="submit" class="btn btn-teal btn-submit" id="submitBtn">Confirm settlement</button>
@@ -709,6 +708,7 @@
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const started = performance.now();
+        const destinationLabel = toAccount.options[toAccount.selectedIndex].text;
         const value = parseFloat(amount.value);
         if (!Number.isFinite(value) || value <= 0) {
           result.className = 'result-box notice';
@@ -739,18 +739,18 @@
               devinEmail: localStorage.getItem('devinEmail') || '',
             }),
           });
+          if (!response.ok) throw new Error('settlement rejected');
           const data = await response.json();
-          if (!response.ok) throw new Error('settlement failed');
           result.className = 'result-box success';
           result.textContent = `Settlement confirmed. ${formatAmount(
             data.receipt && data.receipt.amount,
-          )} credited to ${toAccount.options[toAccount.selectedIndex].text}.`;
+          )} credited to ${destinationLabel}.`;
           status.textContent = 'Settlement confirmed.';
         } catch (error) {
           result.className = 'result-box notice';
           result.textContent =
-            'We could not confirm this settlement. Settlements are taking longer than usual and nothing has been moved. Try again shortly or contact Accelya Support.';
-          status.textContent = 'Settlement unavailable.';
+            'We could not confirm the outcome of this settlement. Check the settlement in order accounting before submitting it again, or contact Accelya Support.';
+          status.textContent = 'Settlement outcome unconfirmed.';
         } finally {
           clearInterval(timer);
           form.removeAttribute('aria-busy');
