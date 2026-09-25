@@ -267,6 +267,12 @@
       devinEmail: localStorage.getItem('devinEmail') || ''
     };
   }
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
 
   function lineOf(code) { return state.plant.lines.filter(function (l) { return l.code === code; })[0]; }
   function cellsOf(code) { return state.plant.cells.filter(function (c) { return c.lineCode === code; }); }
@@ -583,7 +589,7 @@
   function runNow(code, btn) {
     btn.disabled = true; btn.textContent = 'Running…';
     var body = identity(); body.lineCode = code;
-    fetch(API + '/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    fetch(API + '/runs', { method: 'POST', headers: postHeaders(), body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var run = d.runs && d.runs[0];
@@ -596,7 +602,7 @@
       .catch(function (e) { toast(e.message, true); btn.disabled = false; btn.textContent = 'Run interval now'; });
   }
   function ack(id) {
-    fetch(API + '/alarms/' + encodeURIComponent(id) + '/ack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser().handle }) })
+    fetch(API + '/alarms/' + encodeURIComponent(id) + '/ack', { method: 'POST', headers: postHeaders(), body: JSON.stringify({ user: currentUser().handle }) })
       .then(function () { return load(); });
   }
   var toastTimer;
@@ -638,6 +644,17 @@
   });
 
   $('sbUserName').textContent = currentUser().handle;
+
+  // Same fallback the hub applies: a locked server-side org/user seeds the hub identity.
+  if (!(localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId'))) {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+      if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+      if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      $('sbUserName').textContent = currentUser().handle;
+    }).catch(function () {});
+  }
+
   load();
   setInterval(function () { if (state.plant) { renderList(); renderHeader(); } }, 15000);
 })();

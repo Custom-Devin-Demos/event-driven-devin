@@ -258,6 +258,12 @@
       devinEmail: localStorage.getItem('devinEmail') || ''
     };
   }
+  function postHeaders() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
   function currentUser() {
     var email = localStorage.getItem('devinEmail') || '';
     var handle = email ? email.split('@')[0] : 'fleet.dispatch';
@@ -462,7 +468,9 @@
   function kpi(label, value, bad) { return '<div class="kpi' + (bad ? ' bad' : '') + '"><label>' + label + '</label><div class="v">' + value + '</div></div>'; }
 
   // ---- Gateways view ---------------------------------------------------------
+  var gatewaysGeneration = 0;
   function renderGateways() {
+    var generation = ++gatewaysGeneration;
     var el = document.getElementById('viewGateways');
     el.innerHTML = '<div class="gw">' + fleet.gateways.map(function (g) {
       return '<div class="card' + (g.stale ? ' stale' : '') + '"><div class="ch">' + esc(g.family) + ' <span class="sub">' + esc(g.hardware) + '</span><span class="act">' + (g.stale ? '<span class="pill fail">' + g.consecutiveFailures + ' failed</span>' : '<span class="pill ok">healthy</span>') + '</span></div><div class="kv">' +
@@ -475,7 +483,9 @@
     el.innerHTML += '<div class="card"><div class="ch">Recent ingest jobs <span class="sub">all gateways · <span class="mono">telematics-ingest</span></span><span class="act"><button class="btn" data-run="all">Run all gateways</button></span></div>' +
       '<table><thead><tr><th>Job</th><th>Gateway</th><th>Started</th><th>Trigger</th><th>Stage reached</th><th class="num">Msgs in → assets</th><th class="num">Duration</th><th>Status</th></tr></thead><tbody id="allRuns"></tbody></table></div>';
     fetch(API + '/runs?limit=30').then(function (r) { return r.json(); }).then(function (d) {
-      document.getElementById('allRuns').innerHTML = d.runs.map(function (r) {
+      var tbody = document.getElementById('allRuns');
+      if (generation !== gatewaysGeneration || !tbody) return;
+      tbody.innerHTML = d.runs.map(function (r) {
         return '<tr><td class="mono">' + esc(r.runId) + '</td><td>' + esc(r.gateway) + '</td><td style="white-space:nowrap">' + fmtStamp(r.startedAt) + '</td><td>' + r.trigger + '</td><td class="mono">' + r.stageReached + '</td><td class="num mono">' + r.messagesIn + ' → ' + r.assetsOut + '</td><td class="num">' + r.durationMs + ' ms</td><td>' + (r.status === 'succeeded' ? '<span class="pill ok">succeeded</span>' : '<span class="pill fail">failed</span> <span class="mono" style="color:var(--notrep)">' + esc(r.error.name + ': ' + r.error.message) + '</span>') + '</td></tr>';
       }).join('');
     });
@@ -485,7 +495,7 @@
   function runIngest(gateway, btn) {
     var body = identity(); body.gateway = gateway;
     if (btn) { btn.disabled = true; btn.textContent = 'Running…'; }
-    fetch(API + '/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    fetch(API + '/runs', { method: 'POST', headers: postHeaders(), body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         var failed = (d.runs || []).filter(function (r) { return r.status === 'failed'; });
@@ -497,7 +507,7 @@
       .then(function () { if (btn) { btn.disabled = false; btn.textContent = gateway === 'all' ? 'Run all gateways' : 'Run ingest now'; } });
   }
   function ackEvent(id) {
-    fetch(API + '/events/' + encodeURIComponent(id) + '/ack', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: currentUser().handle }) })
+    fetch(API + '/events/' + encodeURIComponent(id) + '/ack', { method: 'POST', headers: postHeaders(), body: JSON.stringify({ user: currentUser().handle }) })
       .then(function (r) { return r.json(); }).then(function () { return refresh(); });
   }
 

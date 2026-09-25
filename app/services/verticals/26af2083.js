@@ -169,6 +169,27 @@ function nextEventId() {
   return `EV-${eventSequence}`;
 }
 
+function accountDate(now) {
+  return new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric', month: '2-digit', day: '2-digit', timeZone: ACCOUNT.timezone,
+  }).format(new Date(now));
+}
+
+// Interval jobs are keyed to aligned INTERVAL_MIN buckets so a manual re-run of
+// the current interval replaces its utilization contribution instead of adding to it.
+function intervalBucket(now) {
+  const bucketMs = INTERVAL_MIN * 60 * 1000;
+  return Math.floor(now / bucketMs) * bucketMs;
+}
+
+// Maintenance reminders are one event per asset whose title tracks the meter;
+// everything else is identified by its title (fault code, exceedance).
+function sameEvent(a, b) {
+  if (a.assetId !== b.assetId) return false;
+  if (a.type === 'SERVICE' || b.type === 'SERVICE') return a.type === b.type;
+  return a.title === b.title;
+}
+
 function recordRun(run, { prepend = false } = {}) {
   if (prepend) RUNS.unshift(run); else RUNS.push(run);
   if (RUNS.length > MAX_RUNS) RUNS.length = MAX_RUNS;
@@ -233,9 +254,12 @@ function buildAsset(seed, now, random) {
     hours: round(hours, 1),
     serviceMeter: { lastServiceHours, intervalHours: serviceIntervalHours, dueAtHours: lastServiceHours + serviceIntervalHours, hoursToService: round(lastServiceHours + serviceIntervalHours - hours, 1) },
     utilization: {
+      date: accountDate(now),
       workedTodayMin,
       idleTodayMin,
       idlePct: workedTodayMin + idleTodayMin ? round((idleTodayMin / (workedTodayMin + idleTodayMin)) * 100, 1) : 0,
+      lastBucket: null,
+      lastInterval: null,
     },
     telemetry: {
       rpm, loadPct, coolantC, oilKpa, egtC, fuelPct, fuelRateLph, defPct, battV,
@@ -426,8 +450,14 @@ function computeHealth(manifest, decoded, now) {
     const minutes = INTERVAL_MIN;
     const worked = samples.filter((sample) => statusFrom(sample.signals[190], sample.signals[92]) === 'WORKING').length / samples.length;
     const idle = samples.filter((sample) => statusFrom(sample.signals[190], sample.signals[92]) === 'IDLING').length / samples.length;
-    const workedTodayMin = previous.utilization.workedTodayMin + round(worked * minutes, 0);
-    const idleTodayMin = previous.utilization.idleTodayMin + round(idle * minutes, 0);
+    const today = accountDate(now);
+    const bucket = intervalBucket(now);
+    const prior = previous.utilization.date === today ? previous.utilization : { workedTodayMin: 0, idleTodayMin: 0 };
+    const replaced = prior.lastBucket === bucket && prior.lastInterval ? prior.lastInterval : { worked: 0, idle: 0 };
+    const intervalWorked = round(worked * minutes, 0);
+    const intervalIdle = round(idle * minutes, 0);
+    const workedTodayMin = prior.workedTodayMin - replaced.worked + intervalWorked;
+    const idleTodayMin = prior.idleTodayMin - replaced.idle + intervalIdle;
     const faults = latest.dtcs.map((dtc) => {
       const known = previous.faults.find((fault) => fault.spn === dtc.spn && fault.fmi === dtc.fmi);
       return { ...dtc, firstSeenAt: known ? known.firstSeenAt : latest.ts, lastSeenAt: latest.ts, status: 'ACTIVE' };
@@ -439,7 +469,14 @@ function computeHealth(manifest, decoded, now) {
       stateSince: status === previous.status ? previous.stateSince : new Date(now).toISOString(),
       hours: round(hours, 1),
       serviceMeter: { ...previous.serviceMeter, hoursToService: round(previous.serviceMeter.dueAtHours - hours, 1) },
-      utilization: { workedTodayMin, idleTodayMin, idlePct: workedTodayMin + idleTodayMin ? round((idleTodayMin / (workedTodayMin + idleTodayMin)) * 100, 1) : 0 },
+      utilization: {
+        date: today,
+        workedTodayMin,
+        idleTodayMin,
+        idlePct: workedTodayMin + idleTodayMin ? round((idleTodayMin / (workedTodayMin + idleTodayMin)) * 100, 1) : 0,
+        lastBucket: bucket,
+        lastInterval: { worked: intervalWorked, idle: intervalIdle },
+      },
       telemetry: {
         rpm: Math.round(rpm),
         loadPct: Math.round(loadPct),
@@ -492,14 +529,18 @@ function publish(manifest, health, events, run) {
   const assetIds = health.map((asset) => asset.assetId);
   EVENTS.filter((event) => assetIds.includes(event.assetId) && event.state !== 'CLOSED' && event.type !== 'COMMS')
     .forEach((event) => {
-      const still = events.find((candidate) => candidate.assetId === event.assetId && candidate.title === event.title);
+      const still = events.find((candidate) => sameEvent(candidate, event));
       if (!still) {
         event.state = 'CLOSED';
         event.closedAt = publishedAt;
+      } else {
+        event.title = still.title;
+        event.detail = still.detail;
+        event.severity = still.severity;
       }
     });
   events.forEach((event) => {
-    const existing = EVENTS.find((candidate) => candidate.assetId === event.assetId && candidate.title === event.title && candidate.state !== 'CLOSED');
+    const existing = EVENTS.find((candidate) => sameEvent(candidate, event) && candidate.state !== 'CLOSED');
     if (!existing) {
       EVENTS.push({ id: nextEventId(), site: ASSETS[event.assetId].site, gateway: manifest.family, ...event, state: 'OPEN', ackBy: null, ackAt: null, closedAt: null });
     }
@@ -695,6 +736,39 @@ function acknowledgeEvent(id, user) {
 
 // --- read model -------------------------------------------------------------
 
+// With the background scheduler off (the default), healthy gateways would
+// otherwise age into Not reporting purely from server uptime. Replay the interval
+// jobs a running scheduler would have completed so publish/report timestamps stay
+// current; gateways with failures (TCU-G3) are left exactly as they are.
+function advanceHealthyGateways(now) {
+  if (schedulerHandle) return;
+  const intervalMs = INTERVAL_MIN * 60 * 1000;
+  Object.values(GATEWAY_MANIFESTS).forEach((manifest) => {
+    if (consecutiveFailures[manifest.family]) return;
+    const last = lastSuccessfulPublishes[manifest.family];
+    if (!last || now - last < intervalMs + 2 * 60000) return;
+    const missed = Math.floor((now - last - 2 * 60000) / intervalMs);
+    if (missed < 1) return;
+    const random = mulberry32(Math.floor(last / 1000));
+    const assets = Object.values(ASSETS).filter((asset) => asset.gateway === manifest.family);
+    let publishedAt = last;
+    for (let index = Math.max(1, missed - 7); index <= missed; index += 1) {
+      const startedAt = last + index * intervalMs;
+      const durationMs = 640 + Math.floor(random() * 500);
+      publishedAt = startedAt + durationMs;
+      recordRun({
+        runId: `job-${uuidv4().replace(/-/g, '').slice(0, 8)}`, gateway: manifest.family, trigger: 'scheduled', startedAt: new Date(startedAt).toISOString(), finishedAt: new Date(publishedAt).toISOString(), durationMs, stageReached: 'publish', status: 'succeeded', messagesIn: assets.length * Math.round((INTERVAL_MIN * 60) / manifest.reportIntervalSec), assetsOut: assets.length, error: null,
+      }, { prepend: true });
+    }
+    lastSuccessfulPublishes[manifest.family] = publishedAt;
+    assets.forEach((asset) => {
+      asset.lastReportAt = new Date(publishedAt - Math.floor(random() * manifest.reportIntervalSec * 1000)).toISOString();
+      asset.lastPositionAt = new Date(publishedAt - Math.floor(random() * 90) * 1000).toISOString();
+      asset.faults.forEach((fault) => { fault.lastSeenAt = asset.lastReportAt; });
+    });
+  });
+}
+
 function isStale(asset, now) {
   return now - new Date(asset.lastReportAt).getTime() > STALE_AFTER_MS;
 }
@@ -770,6 +844,7 @@ function sortEvents(events) {
 }
 
 function getFleet(now = Date.now()) {
+  advanceHealthyGateways(now);
   const assets = Object.values(ASSETS).map((asset) => decorate(asset, now));
   const dayAgo = now - 24 * 60 * 60 * 1000;
   const count = (status) => assets.filter((asset) => asset.reportingStatus === status).length;
@@ -818,6 +893,7 @@ function getAsset(assetId, now = Date.now()) {
   const asset = ASSETS[assetId];
   if (!asset) return null;
   const manifest = getGatewayManifest(asset.gateway);
+  advanceHealthyGateways(now);
   return {
     asset: decorate(asset, now),
     site: SITES[asset.site],

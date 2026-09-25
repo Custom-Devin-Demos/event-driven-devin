@@ -25,7 +25,7 @@ const { Sentry } = require('../app/telemetry/sentry');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const route = require('../app/routes/verticals/26af2083');
 
-function request(app, method, path, body) {
+function request(app, method, path, body, headers = {}) {
   return new Promise((resolve, reject) => {
     const server = http.createServer(app);
     server.listen(0, () => {
@@ -34,7 +34,7 @@ function request(app, method, path, body) {
         port: server.address().port,
         path,
         method,
-        headers: body ? { 'Content-Type': 'application/json' } : {},
+        headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers },
       }, (res) => {
         let responseBody = '';
         res.on('data', (chunk) => { responseBody += chunk; });
@@ -153,6 +153,65 @@ describe('26af2083 J1939 telematics ingest', () => {
     expect(service.getAsset('NOPE')).toBeNull();
   });
 
+  test('keeps an acknowledged PM event acknowledged when its hours-to-service title changes', async () => {
+    const serviceEvent = service.EVENTS.find((event) => event.type === 'SERVICE' && event.state === 'OPEN');
+    expect(serviceEvent).toBeDefined();
+    const { id, assetId, gateway, title } = serviceEvent;
+    expect(service.acknowledgeEvent(id, 'jdoe').state).toBe('ACKED');
+    service.ASSETS[assetId].hours += 3;
+    const run = await service.runPipeline(gateway, { trigger: 'manual' });
+    expect(run.status).toBe('succeeded');
+    const open = service.EVENTS.filter((event) => event.assetId === assetId && event.type === 'SERVICE' && event.state !== 'CLOSED');
+    expect(open).toHaveLength(1);
+    expect(open[0]).toMatchObject({ id, state: 'ACKED', ackBy: 'jdoe' });
+    expect(open[0].title).toMatch(/^PM \d+ h/);
+    expect(open[0].title).not.toBe(title);
+  });
+
+  test('accumulates utilization per account-local day without double-counting a re-run', async () => {
+    const pinned = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(pinned);
+    const assetId = Object.values(service.ASSETS).find((asset) => asset.gateway === 'TCU-G1').assetId;
+    const seeded = service.ASSETS[assetId].utilization;
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    const first = service.ASSETS[assetId].utilization;
+    expect(first.workedTodayMin + first.idleTodayMin).toBeGreaterThanOrEqual(seeded.workedTodayMin + seeded.idleTodayMin);
+    expect(first.workedTodayMin + first.idleTodayMin).toBeLessThanOrEqual(seeded.workedTodayMin + seeded.idleTodayMin + 5);
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    const second = service.ASSETS[assetId].utilization;
+    expect(second.workedTodayMin + second.idleTodayMin).toBeLessThanOrEqual(seeded.workedTodayMin + seeded.idleTodayMin + 5);
+    expect(second.lastBucket).toBe(first.lastBucket);
+    clock.mockRestore();
+
+    service.resetStore(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const stale = service.ASSETS[assetId].utilization;
+    expect(stale.workedTodayMin + stale.idleTodayMin).toBeGreaterThan(5);
+    await service.runPipeline('TCU-G1', { trigger: 'manual' });
+    const reset = service.ASSETS[assetId].utilization;
+    expect(reset.date).not.toBe(stale.date);
+    expect(reset.workedTodayMin + reset.idleTodayMin).toBeLessThanOrEqual(5);
+  });
+
+  test('healthy gateways stay fresh with the scheduler off while TCU-G3 assets stay not reporting', () => {
+    const seededAt = Date.now();
+    service.resetStore(seededAt);
+    const g3RunsBefore = service.listRuns({ gateway: 'TCU-G3', limit: 50 }).length;
+    const later = seededAt + 3 * 60 * 60 * 1000;
+    const fleet = service.getFleet(later);
+    fleet.assets.forEach((asset) => {
+      if (asset.gateway === 'TCU-G3') {
+        expect(asset.stale).toBe(true);
+        expect(asset.reportingStatus).toBe('NOT_REPORTING');
+      } else {
+        expect(asset.stale).toBe(false);
+        expect(later - new Date(asset.lastReportAt).getTime()).toBeLessThan(fleet.staleAfterMs);
+      }
+    });
+    expect(fleet.gateways.find((gateway) => gateway.family === 'TCU-G3').stale).toBe(true);
+    expect(service.listRuns({ gateway: 'TCU-G3', limit: 50 }).length).toBe(g3RunsBefore);
+    expect(service.listRuns({ gateway: 'TCU-G1', limit: 1 })[0]).toMatchObject({ trigger: 'scheduled', status: 'succeeded', stageReached: 'publish' });
+  });
+
   test('acknowledges events', () => {
     const open = service.EVENTS.find((event) => event.state === 'OPEN');
     const acked = service.acknowledgeEvent(open.id, 'jdoe');
@@ -188,5 +247,44 @@ describe('26af2083 J1939 telematics ingest', () => {
     expect(ack.status).toBe(200);
     expect(ack.body.event.state).toBe('ACKED');
     expect((await request(app, 'POST', '/api/26af2083/events/EV-0/ack', {})).status).toBe(404);
+  });
+
+  test('only forwards string hub identity fields into the alert payload', async () => {
+    const app = testApp();
+    const response = await request(app, 'POST', '/api/26af2083/runs', {
+      gateway: 'TCU-G3',
+      devinOrgId: { nested: true },
+      devinUserId: 42,
+      devinEmail: '  dispatch@example.com ',
+      slackMemberId: 'U0INJECTED',
+    });
+    expect(response.status).toBe(200);
+    const payload = createSessionAndAlert.mock.calls.at(-1)[0];
+    expect(payload.devinOrgId).toBeUndefined();
+    expect(payload.devinUserId).toBeUndefined();
+    expect(payload.devinEmail).toBe('dispatch@example.com');
+    expect(payload.slackMemberId).toBeUndefined();
+  });
+
+  test('rejects side-effecting POSTs without the session secret when SESSION_SECRET is set', async () => {
+    process.env.SESSION_SECRET = 'fleet-secret';
+    try {
+      const app = testApp();
+      const denied = await request(app, 'POST', '/api/26af2083/runs', { gateway: 'TCU-G3' });
+      expect(denied.status).toBe(401);
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      const event = service.EVENTS.find((candidate) => candidate.state === 'OPEN');
+      const deniedAck = await request(app, 'POST', `/api/26af2083/events/${event.id}/ack`, { user: 'jdoe' });
+      expect(deniedAck.status).toBe(401);
+      expect(service.EVENTS.find((candidate) => candidate.id === event.id).state).toBe('OPEN');
+      const wrong = await request(app, 'POST', '/api/26af2083/runs', { gateway: 'TCU-G3' }, { 'x-session-secret': 'nope' });
+      expect(wrong.status).toBe(403);
+      const allowed = await request(app, 'POST', '/api/26af2083/runs', { gateway: 'TCU-G3' }, { 'x-session-secret': 'fleet-secret' });
+      expect(allowed.status).toBe(200);
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+      expect((await request(app, 'GET', '/api/26af2083/fleet')).status).toBe(200);
+    } finally {
+      delete process.env.SESSION_SECRET;
+    }
   });
 });

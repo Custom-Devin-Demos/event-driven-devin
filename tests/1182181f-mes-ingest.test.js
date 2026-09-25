@@ -25,7 +25,7 @@ const { Sentry } = require('../app/telemetry/sentry');
 const { createSessionAndAlert } = require('../app/services/devin-session');
 const route = require('../app/routes/verticals/1182181f');
 
-function request(app, method, path, body) {
+function request(app, method, path, body, headers = {}) {
   return new Promise((resolve, reject) => {
     const server = http.createServer(app);
     server.listen(0, () => {
@@ -34,7 +34,7 @@ function request(app, method, path, body) {
         port: server.address().port,
         path,
         method,
-        headers: body ? { 'Content-Type': 'application/json' } : {},
+        headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...headers },
       }, (res) => {
         let responseBody = '';
         res.on('data', (chunk) => { responseBody += chunk; });
@@ -93,6 +93,71 @@ describe('1182181f historian → MES ingest', () => {
       state: expect.any(String),
       goodCount: expect.any(Number),
     }));
+  });
+
+  test('publish rolls interval counts into the cell read model without double-counting a re-run', async () => {
+    const pinned = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(pinned);
+    const before = service.getLine('L1');
+    const cellBefore = before.cells[0];
+    const first = await service.runPipeline('L1', { trigger: 'manual' });
+    expect(first.status).toBe('succeeded');
+    const afterFirst = service.getLine('L1');
+    const cellAfterFirst = afterFirst.cells.find((cell) => cell.cellId === cellBefore.cellId);
+    expect(cellAfterFirst.partsGood).toBe(cellBefore.partsGood + cellAfterFirst.goodCount);
+    expect(cellAfterFirst.partsReject).toBe(cellBefore.partsReject + cellAfterFirst.rejectCount);
+    expect(cellAfterFirst.timeline.length).toBeGreaterThan(0);
+    expect(cellAfterFirst.timeline.at(-1).end).toBeGreaterThanOrEqual((cellBefore.timeline.at(-1) || { end: 0 }).end);
+    expect(afterFirst.line.shiftGoodCount).toBe(before.line.shiftGoodCount + afterFirst.line.lastInterval.goodCount);
+
+    // Same 5-minute bucket → the manual re-run replaces the interval instead of adding it again.
+    const second = await service.runPipeline('L1', { trigger: 'manual' });
+    expect(second.status).toBe('succeeded');
+    const afterSecond = service.getLine('L1');
+    const cellAfterSecond = afterSecond.cells.find((cell) => cell.cellId === cellBefore.cellId);
+    expect(cellAfterSecond.partsGood).toBe(cellBefore.partsGood + cellAfterSecond.goodCount);
+    expect(afterSecond.line.shiftGoodCount).toBe(before.line.shiftGoodCount + afterSecond.line.lastInterval.goodCount);
+    expect(afterSecond.line.shiftGoodCount).toBeLessThan(before.line.shiftGoodCount + 2 * afterSecond.line.lastInterval.goodCount);
+    clock.mockRestore();
+  });
+
+  test('resets shift counters on the first publish of a new shift', async () => {
+    service.resetStore(Date.now() - 9 * 60 * 60 * 1000);
+    const seeded = service.LINES.L2;
+    expect(seeded.shiftGoodCount).toBeGreaterThan(0);
+    const staleShift = seeded.shiftStartsAt;
+    const run = await service.runPipeline('L2', { trigger: 'manual' });
+    expect(run.status).toBe('succeeded');
+    const line = service.LINES.L2;
+    expect(line.shiftStartsAt).not.toBe(staleShift);
+    expect(line.shiftStartsAt).toBe(service.getPlant().shift.startsAt);
+    expect(line.shiftGoodCount).toBe(line.lastInterval.goodCount);
+    expect(line.shiftRejectCount).toBe(line.lastInterval.rejectCount);
+    const cells = Object.values(service.CELLS).filter((cell) => cell.lineCode === 'L2');
+    cells.forEach((cell) => {
+      expect(cell.partsGood).toBe(cell.goodCount);
+      expect(cell.timeline.every((segment) => segment.end <= service.getPlant().shift.elapsedMin + 1)).toBe(true);
+    });
+  });
+
+  test('healthy lines stay fresh with the scheduler off while L4 stays stale', () => {
+    const seededAt = Date.now();
+    service.resetStore(seededAt);
+    const l4RunsBefore = service.listRuns({ lineCode: 'L4', limit: 50 }).length;
+    const later = seededAt + 3 * 60 * 60 * 1000;
+    const plant = service.getPlant(later);
+    plant.lines.filter((line) => line.code !== 'L4').forEach((line) => {
+      expect(line.stale).toBe(false);
+      expect(later - new Date(line.lastPublishedAt).getTime()).toBeLessThan(plant.staleAfterMs);
+    });
+    const l4 = plant.lines.find((line) => line.code === 'L4');
+    expect(l4.stale).toBe(true);
+    expect(l4.consecutiveFailures).toBeGreaterThanOrEqual(3);
+    expect(service.listRuns({ lineCode: 'L4', limit: 50 }).length).toBe(l4RunsBefore);
+    const replayed = service.listRuns({ lineCode: 'L1', limit: 1 })[0];
+    expect(replayed).toMatchObject({ trigger: 'scheduled', status: 'succeeded', stageReached: 'publish' });
+    const cell = plant.cells.find((candidate) => candidate.lineCode === 'L1');
+    expect(later - new Date(cell.lastSampleAt).getTime()).toBeLessThan(plant.staleAfterMs);
   });
 
   test('L4 fails at decode because no opcua-statuscode decoder is registered', async () => {
@@ -162,5 +227,46 @@ describe('1182181f historian → MES ingest', () => {
     expect(ack.status).toBe(200);
     expect(ack.body.alarm.state).toBe('ACTIVE_ACK');
     expect((await request(app, 'POST', '/api/1182181f/alarms/ALM-0/ack', {})).status).toBe(404);
+  });
+
+  test('only forwards string hub identity fields into the alert payload', async () => {
+    const app = testApp();
+    const response = await request(app, 'POST', '/api/1182181f/runs', {
+      lineCode: 'L4',
+      devinOrgId: { nested: true },
+      devinUserId: ['array'],
+      devinEmail: '  ops@example.com ',
+      slackMemberId: 'U0INJECTED',
+      lineName: 'spoofed',
+    });
+    expect(response.status).toBe(200);
+    const payload = createSessionAndAlert.mock.calls.at(-1)[0];
+    expect(payload.devinOrgId).toBeUndefined();
+    expect(payload.devinUserId).toBeUndefined();
+    expect(payload.devinEmail).toBe('ops@example.com');
+    expect(payload.slackMemberId).toBeUndefined();
+    expect(payload.extra.lineName).toBe(LINE_MANIFESTS.L4.name);
+  });
+
+  test('rejects side-effecting POSTs without the session secret when SESSION_SECRET is set', async () => {
+    process.env.SESSION_SECRET = 'plant-secret';
+    try {
+      const app = testApp();
+      const denied = await request(app, 'POST', '/api/1182181f/runs', { lineCode: 'L4' });
+      expect(denied.status).toBe(401);
+      expect(createSessionAndAlert).not.toHaveBeenCalled();
+      const alarm = service.ALARMS.find((candidate) => candidate.state === 'ACTIVE_UNACK');
+      const deniedAck = await request(app, 'POST', `/api/1182181f/alarms/${alarm.id}/ack`, { user: 'jdoe' });
+      expect(deniedAck.status).toBe(401);
+      expect(service.ALARMS.find((candidate) => candidate.id === alarm.id).state).toBe('ACTIVE_UNACK');
+      const wrong = await request(app, 'POST', '/api/1182181f/runs', { lineCode: 'L4' }, { 'x-session-secret': 'nope' });
+      expect(wrong.status).toBe(403);
+      const allowed = await request(app, 'POST', '/api/1182181f/runs', { lineCode: 'L4' }, { 'x-session-secret': 'plant-secret' });
+      expect(allowed.status).toBe(200);
+      expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+      expect((await request(app, 'GET', '/api/1182181f/plant')).status).toBe(200);
+    } finally {
+      delete process.env.SESSION_SECRET;
+    }
   });
 });

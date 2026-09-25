@@ -330,6 +330,9 @@ function buildLine(manifest, now, random) {
     oee,
     oeeHistory,
     lastPublishedAt: new Date(now).toISOString(),
+    shiftStartsAt: currentShift(now).startsAt,
+    lastIntervalBucket: null,
+    lastInterval: null,
   };
 }
 
@@ -427,6 +430,7 @@ function seedStore(now = Date.now()) {
     const isCutover = manifest.code === 'L4';
     const lineNow = isCutover ? now - CUTOVER_AGO_MS : now - 3 * 60 * 1000 - Math.floor(random() * 90 * 1000);
     LINES[manifest.code] = buildLine(manifest, lineNow, random);
+    LINES[manifest.code].shiftStartsAt = new Date(shiftStartMs).toISOString();
     CELL_SEEDS[manifest.code].forEach((seed) => {
       CELLS[seed[0]] = buildCell(manifest, seed, isCutover ? now : lineNow, random, shiftStartMs);
       if (isCutover) {
@@ -627,21 +631,102 @@ function evaluateAlarms(manifest, interval, now = Date.now()) {
   return found.map((alarm) => ({ ...alarm, state: 'ACTIVE_UNACK', activeAt: new Date(now).toISOString(), ackBy: null, ackAt: null, rtnAt: null }));
 }
 
-function publish(manifest, interval, alarms, run) {
-  const publishedAt = new Date().toISOString();
-  const line = LINES[manifest.code];
-  interval.cells.forEach((cell) => {
-    CELLS[cell.cellId] = { ...CELLS[cell.cellId], ...cell };
+// Interval jobs are keyed to aligned INTERVAL_MIN buckets; a manual re-run inside
+// the same bucket replaces that bucket's contribution instead of adding to it.
+function intervalBucket(now) {
+  const bucketMs = INTERVAL_MIN * 60 * 1000;
+  return Math.floor(now / bucketMs) * bucketMs;
+}
+
+function rolloverShift(line, shift) {
+  line.shiftStartsAt = shift.startsAt;
+  line.shiftGoodCount = 0;
+  line.shiftRejectCount = 0;
+  line.shiftDowntimeMin = 0;
+  line.lastIntervalBucket = null;
+  line.lastInterval = null;
+  Object.values(CELLS).filter((cell) => cell.lineCode === line.code).forEach((cell) => {
+    cell.partsGood = 0;
+    cell.partsReject = 0;
+    cell.timeline = [];
+    cell.firstActiveAt = null;
+    cell.utilization = 0;
+    cell.lastInterval = null;
   });
+}
+
+// Rewrites the last INTERVAL_MIN of a cell's shift timeline from the interval
+// aggregate: run minutes, then the live (latest) state if it is not running.
+function appendIntervalTimeline(segments, cell, elapsed) {
+  const start = Math.max(0, elapsed - INTERVAL_MIN);
+  const kept = segments
+    .filter((segment) => segment.start < start)
+    .map((segment) => (segment.end > start ? { ...segment, end: start } : segment));
+  const runMin = Math.min(INTERVAL_MIN, Math.max(0, Math.round(cell.runtimeMin)));
+  const next = [];
+  const push = (from, to, category, state, reason) => {
+    if (to <= from) return;
+    const last = next[next.length - 1] || kept[kept.length - 1];
+    if (last && last.category === category && last.reason === (reason || null) && last.end === from) {
+      last.end = to;
+      return;
+    }
+    next.push({ start: from, end: to, category, state, reason: reason || null });
+  };
+  if (cell.category === 'running') {
+    push(start, elapsed - runMin, 'idle', 'Idle', null);
+    push(elapsed - runMin, elapsed, 'running', 'Active', null);
+  } else {
+    push(start, start + runMin, 'running', 'Active', null);
+    push(start + runMin, elapsed, cell.category, cell.state, cell.downtimeReason);
+  }
+  return [...kept, ...next];
+}
+
+function publish(manifest, interval, alarms, run) {
+  const now = Date.now();
+  const publishedAt = new Date(now).toISOString();
+  const line = LINES[manifest.code];
+  const shift = currentShift(now);
+  if (line.shiftStartsAt !== shift.startsAt) rolloverShift(line, shift);
+  const shiftStartMs = new Date(shift.startsAt).getTime();
+  const elapsed = Math.max(1, Math.floor((now - shiftStartMs) / 60000));
+  const bucket = intervalBucket(now);
+  const rerun = line.lastIntervalBucket === bucket;
+
+  interval.cells.forEach((cell) => {
+    const previous = CELLS[cell.cellId];
+    const replaced = rerun && previous.lastInterval ? previous.lastInterval : { goodCount: 0, rejectCount: 0 };
+    const timeline = appendIntervalTimeline(previous.timeline || [], cell, elapsed);
+    const runningMin = timeline.filter((segment) => segment.category === 'running')
+      .reduce((sum, segment) => sum + (segment.end - segment.start), 0);
+    const firstActive = timeline.find((segment) => segment.category === 'running');
+    CELLS[cell.cellId] = {
+      ...previous,
+      ...cell,
+      stateSince: cell.category === previous.category ? previous.stateSince : publishedAt,
+      actualCycleSec: cell.ratePerHr > 0 ? round(3600 / cell.ratePerHr, 1) : null,
+      controlAlarm: cell.category !== 'running' ? previous.controlAlarm : null,
+      partsGood: (previous.partsGood || 0) - replaced.goodCount + cell.goodCount,
+      partsReject: (previous.partsReject || 0) - replaced.rejectCount + cell.rejectCount,
+      utilization: round(runningMin / elapsed, 3),
+      firstActiveAt: firstActive ? new Date(shiftStartMs + firstActive.start * 60 * 1000).toISOString() : null,
+      timeline,
+      lastInterval: { goodCount: cell.goodCount, rejectCount: cell.rejectCount },
+    };
+  });
+  const replaced = rerun && line.lastInterval ? line.lastInterval : { goodCount: 0, rejectCount: 0, downtimeMin: 0 };
   line.ratePerHr = interval.ratePerHr;
-  line.shiftGoodCount += interval.goodCount;
-  line.shiftRejectCount += interval.rejectCount;
-  line.shiftDowntimeMin = round(line.shiftDowntimeMin + interval.downtimeMin, 1);
+  line.shiftGoodCount += interval.goodCount - replaced.goodCount;
+  line.shiftRejectCount += interval.rejectCount - replaced.rejectCount;
+  line.shiftDowntimeMin = round(line.shiftDowntimeMin + interval.downtimeMin - replaced.downtimeMin, 1);
+  line.lastIntervalBucket = bucket;
+  line.lastInterval = { goodCount: interval.goodCount, rejectCount: interval.rejectCount, downtimeMin: interval.downtimeMin };
   line.availability = interval.availability;
   line.performance = interval.performance;
   line.quality = interval.quality;
   line.oee = interval.oee;
-  line.oeeHistory = [...line.oeeHistory, interval.oee].slice(-16);
+  line.oeeHistory = rerun ? [...line.oeeHistory.slice(0, -1), interval.oee] : [...line.oeeHistory, interval.oee].slice(-16);
   line.lastPublishedAt = publishedAt;
 
   ALARMS.filter((alarm) => alarm.lineCode === manifest.code && alarm.state.startsWith('ACTIVE') && alarm.tag.match(/_(Rate_Lo|Reject_Rate_Hi|Down)$/))
@@ -882,6 +967,43 @@ function browseTags(now) {
   return tags;
 }
 
+// With the background scheduler off (the default), healthy lines would otherwise
+// age into NO DATA purely from server uptime. Replay the interval jobs a running
+// scheduler would have completed so their publish/sample timestamps stay current;
+// lines with failures (L4) are left exactly as they are.
+function advanceHealthyLines(now) {
+  if (schedulerHandle) return;
+  const intervalMs = INTERVAL_MIN * 60 * 1000;
+  Object.values(LINE_MANIFESTS).forEach((manifest) => {
+    if (consecutiveFailures[manifest.code]) return;
+    const last = lastSuccessfulPublishes[manifest.code];
+    if (!last || now - last < intervalMs + 2 * 60 * 1000) return;
+    const missed = Math.floor((now - last - 2 * 60 * 1000) / intervalMs);
+    if (missed < 1) return;
+    const random = mulberry32(Math.floor(last / 1000));
+    let latest = null;
+    for (let index = Math.max(1, missed - 7); index <= missed; index += 1) {
+      latest = addSeedRun({
+        manifest,
+        trigger: 'scheduled',
+        status: 'succeeded',
+        stageReached: 'publish',
+        rowsIn: manifest.cells.length * 60,
+        rowsOut: manifest.cells.length,
+        startedAt: last + index * intervalMs,
+        error: null,
+        random,
+      });
+    }
+    const publishedMs = new Date(latest.finishedAt).getTime();
+    lastSuccessfulPublishes[manifest.code] = publishedMs;
+    LINES[manifest.code].lastPublishedAt = latest.finishedAt;
+    Object.values(CELLS).filter((cell) => cell.lineCode === manifest.code).forEach((cell) => {
+      cell.lastSampleAt = new Date(publishedMs - Math.floor(random() * 4000)).toISOString();
+    });
+  });
+}
+
 function deriveLineStatus(line, now) {
   const stale = now - new Date(line.lastPublishedAt).getTime() > STALE_AFTER_MS;
   if (stale) return { stale, status: 'NO DATA' };
@@ -894,6 +1016,7 @@ function deriveLineStatus(line, now) {
 }
 
 function getPlant(now = Date.now()) {
+  advanceHealthyLines(now);
   const lines = Object.values(LINES).map((line) => {
     const derived = deriveLineStatus(line, now);
     const cells = Object.values(CELLS).filter((cell) => cell.lineCode === line.code);
@@ -946,6 +1069,7 @@ function getLine(code, now = Date.now()) {
   const line = LINES[code];
   if (!line) return null;
   const manifest = getLineManifest(code);
+  advanceHealthyLines(now);
   return {
     line: { ...line, ...deriveLineStatus(line, now) },
     manifest,
