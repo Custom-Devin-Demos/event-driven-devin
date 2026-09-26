@@ -258,6 +258,12 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
 /**
  * POST /api/oncall/grocery/checkout — place a PC Express pickup order
  */
+function defaultGroceryPickupSlot() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return `${d.toISOString().slice(0, 10)}T08:00`;
+}
+
 router.post('/api/oncall/grocery/checkout', async (req, res) => {
   try {
     const result = await checkoutOrder({
@@ -265,7 +271,7 @@ router.post('/api/oncall/grocery/checkout', async (req, res) => {
       lines: Array.isArray(req.body.lines) && req.body.lines.length
         ? req.body.lines
         : GROCERY_CART_ITEMS.map((i) => ({ sku: i.sku, quantity: i.quantity })),
-      pickupSlot: req.body.pickupSlot || '2026-09-27T08:00',
+      pickupSlot: req.body.pickupSlot || defaultGroceryPickupSlot(),
     }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
     res.json(result);
   } catch (error) {

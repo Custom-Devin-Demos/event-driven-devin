@@ -12,6 +12,7 @@ const CART_ITEMS = [
     name: 'Ginger + Lemon Juice Shots Juice Blend with Other Ingredients for Immune Support',
     priceCents: 1000,
     quantity: 1,
+    taxable: true,
   },
   {
     sku: '20083157_KG',
@@ -61,10 +62,13 @@ function lookupOffer(sku) {
  */
 function calculateOrderTotal(lines) {
   let subtotalCents = 0;
+  let taxableCents = 0;
   let optimumPoints = 0;
 
   for (const line of lines) {
-    subtotalCents += line.item.priceCents * line.quantity;
+    const lineCents = line.item.priceCents * line.quantity;
+    subtotalCents += lineCents;
+    if (line.item.taxable) taxableCents += lineCents;
   }
 
   for (const line of lines) {
@@ -74,10 +78,17 @@ function calculateOrderTotal(lines) {
     }
   }
 
-  const taxCents = Math.round((subtotalCents + BOTTLE_DEPOSIT_CENTS) * HST_RATE);
+  const taxCents = Math.round((taxableCents + BOTTLE_DEPOSIT_CENTS) * HST_RATE);
   const totalCents = subtotalCents + BOTTLE_DEPOSIT_CENTS + taxCents + PICKUP_FEE_CENTS;
 
   return { subtotalCents, optimumPoints, taxCents, totalCents };
+}
+
+function formatPickupWindow(slot) {
+  if (!slot || Number.isNaN(slot.getTime())) return '8:00am\u20139:00am';
+  const fmt = (d) => d.toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' }).toLowerCase().replace(/\s|\./g, '');
+  const end = new Date(slot.getTime() + 60 * 60 * 1000);
+  return `${slot.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })} ${fmt(slot)}\u2013${fmt(end)}`;
 }
 
 /**
@@ -98,6 +109,7 @@ async function checkoutOrder(orderData, options = {}) {
 
   try {
     const storeId = orderData.storeId || '1039';
+    const pickupSlot = orderData.pickupSlot ? new Date(orderData.pickupSlot) : null;
     const requested = Array.isArray(orderData.lines) ? orderData.lines : [];
 
     const lines = requested.map((line) => {
@@ -128,7 +140,8 @@ async function checkoutOrder(orderData, options = {}) {
       subtotal: totals.subtotalCents / 100,
       optimumPoints: totals.optimumPoints,
       total: totals.totalCents / 100,
-      pickupWindow: 'Tomorrow 8:00am\u20139:00am',
+      pickupSlot: orderData.pickupSlot,
+      pickupWindow: formatPickupWindow(pickupSlot),
       store: 'Loblaws Dupont Street',
     };
   } catch (error) {

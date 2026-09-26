@@ -449,6 +449,11 @@
       result.append(t, d);
       result.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     };
+    const slotDate = new Date();
+    slotDate.setDate(slotDate.getDate() + 1);
+    slotDate.setHours(8, 0, 0, 0);
+    const pad = (n) => String(n).padStart(2, '0');
+    const pickupSlot = slotDate.getFullYear() + '-' + pad(slotDate.getMonth() + 1) + '-' + pad(slotDate.getDate()) + 'T08:00';
     btn.disabled = true;
     bottom.disabled = true;
     btn.textContent = 'Placing your order\u2026';
@@ -459,7 +464,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           storeId: '1039',
-          pickupSlot: '2026-09-27T08:00',
+          pickupSlot: pickupSlot,
           lines: [
             { sku: '21004836_EA', quantity: 1 },
             { sku: '20083157_KG', quantity: 2 },
@@ -476,7 +481,7 @@
         show('error', 'We couldn\u2019t complete your checkout.',
           'Something went wrong while calculating your order total. Your cart has been saved \u2014 please try again.');
       } else {
-        show('success', 'Order placed \u2014 pickup tomorrow 8:00am',
+        show('success', 'Order placed \u2014 pickup ' + (data.pickupWindow || 'tomorrow 8:00am'),
           'Order ' + (data.orderId || '') + ' confirmed at Loblaws Dupont Street. Total ' + (data.total != null ? '$' + Number(data.total).toFixed(2) : '') + '.');
       }
     } catch (err) {
