@@ -7,6 +7,7 @@ const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
+const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
 const router = express.Router();
@@ -249,6 +250,31 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
         : error.message,
       errorClass: error.name,
       code: error.code || 'CART_ADD_FAILED',
+      requestId: req.requestId,
+    });
+  }
+});
+
+/**
+ * POST /api/oncall/grocery/checkout — place a PC Express pickup order
+ */
+router.post('/api/oncall/grocery/checkout', async (req, res) => {
+  try {
+    const result = await checkoutOrder({
+      storeId: req.body.storeId || '1039',
+      lines: Array.isArray(req.body.lines) && req.body.lines.length
+        ? req.body.lines
+        : GROCERY_CART_ITEMS.map((i) => ({ sku: i.sku, quantity: i.quantity })),
+      pickupSlot: req.body.pickupSlot || defaultGroceryPickupSlot(),
+    }, { synthetic: isActiveSev1ProbeRef(req.get('x-synthetic-monitor')) });
+    res.json(result);
+  } catch (error) {
+    const statusCode = error.code === 'ITEM_NOT_FOUND' ? 422 : 500;
+    res.status(statusCode).json({
+      success: false,
+      error: 'We couldn\'t calculate your order total. Please try again.',
+      errorClass: error.name,
+      code: error.code || 'CHECKOUT_FAILED',
       requestId: req.requestId,
     });
   }

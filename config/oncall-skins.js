@@ -2569,6 +2569,31 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Payments & order accounting',
     disclaimer: 'NOT ACTUALLY AN ACCELYA SITE — internal demo only, not affiliated with, endorsed by, or a real Accelya product.',
   },
+  'e2d82a44': {
+    slug: 'e2d82a44',
+    company: 'Loblaws',
+    brandMark: 'L',
+    vertical: 'grocery',
+    hideRibbon: true,
+    oncallOnly: true,
+    page: {
+      file: 'e2d82a44.html',
+      title: 'Your PC Express Cart | Loblaws',
+    },
+    accent: '#D22318',
+    accentDark: '#B81C12',
+    theme: {
+      '--accent': '#D22318',
+      '--ink': '#1F1F1F',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#4B1541',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'PC Express Customer Care',
+    supportCenterSub: 'Online Grocery Orders & Pickup',
+    disclaimer: '',
+  },
 };
 
 function getOncallSkin(slug) {
