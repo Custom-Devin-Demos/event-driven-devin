@@ -84,6 +84,7 @@ Separate from the legacy verticals above, the On-Call demo (`/oncall`) serves th
 | Insurance | `POST /api/oncall/insurance/claim` | `app/services/oncall-verticals/insurance.js` |
 | Industrials | `POST /api/oncall/industrials/quote` | `app/services/oncall-verticals/industrials.js` |
 | Marketplace | `POST /api/oncall/marketplace/cart` | `app/services/oncall-verticals/marketplace.js` |
+| Grocery | `POST /api/oncall/grocery/checkout` | `app/services/oncall-verticals/grocery.js` |
 | Voice | `POST /api/oncall/voice/transcribe` | `app/services/oncall-verticals/voice.js` |
 | Samsara Fleet (native iOS/macOS app) | `POST /api/oncall/26a3d261/eta-failure` | `app/services/oncall-verticals/fleet.js` |
 | Partiful RSVP (native iOS/macOS app + `/partiful` web replica) | `POST /api/oncall/205bc15f/rsvp-page-failure` | `app/services/oncall-verticals/partiful.js` |

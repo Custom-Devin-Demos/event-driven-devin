@@ -177,6 +177,26 @@ const ALERT_SCENARIOS = {
     // Branded page only: the storefront card is not offered on the generic hub.
     unlisted: true,
   },
+  grocery: {
+    vertical: 'grocery',
+    page: 'e2d82a44.html',
+    apiPath: '/api/grocery/checkout',
+    oncallApiPath: '/api/oncall/grocery/checkout',
+    owner: 'Maya Chen (online-grocery-checkout-oncall)',
+    brand: 'PC Express (Grocery Checkout)',
+    service: 'order-api',
+    endpoint: 'POST /api/oncall/grocery/checkout',
+    monitor: '5xx rate — POST /api/oncall/grocery/checkout',
+    metricQuery: 'sum:trace.express.request.errors{service:checkout-api,resource:POST /api/oncall/grocery/checkout,http.status_code:500}',
+    metricValue: '500 on ~100% of checkout submissions',
+    threshold: '> 2% error rate',
+    baseline: '<0.3% (7-day)',
+    release: 'pcx-checkout@1.0.6',
+    symptom: 'Checkout submissions fail immediately with HTTP 500 during order-total calculation. Latency is normal. Onset coincides with the weekly PC Optimum offer catalog refresh.',
+    impact: 'Shoppers cannot complete PC Express pickup orders; every checkout attempt errors before reaching payment.',
+    // Branded page only: the storefront card is not offered on the generic hub.
+    unlisted: true,
+  },
   industrials: {
     vertical: 'industrials',
     page: 'industrials-quote.html',
