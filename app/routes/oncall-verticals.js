@@ -7,7 +7,7 @@ const { finalizeTranscript } = require('../services/oncall-verticals/voice');
 const { runCompletion } = require('../services/oncall-verticals/inference');
 const { processQuote } = require('../services/oncall-verticals/industrials');
 const { addToCart } = require('../services/oncall-verticals/marketplace');
-const { checkoutOrder, CART_ITEMS: GROCERY_CART_ITEMS, STORE_TIME_ZONE: GROCERY_TIME_ZONE } = require('../services/oncall-verticals/grocery');
+const { checkoutOrder, defaultPickupSlot: defaultGroceryPickupSlot, CART_ITEMS: GROCERY_CART_ITEMS } = require('../services/oncall-verticals/grocery');
 const { isActiveSev1ProbeRef, isSev1DebugTimingsUnlocked } = require('../services/oncall');
 
 const router = express.Router();
@@ -258,11 +258,6 @@ router.post('/api/oncall/marketplace/cart', async (req, res) => {
 /**
  * POST /api/oncall/grocery/checkout — place a PC Express pickup order
  */
-function defaultGroceryPickupSlot() {
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  return `${tomorrow.toLocaleDateString('en-CA', { timeZone: GROCERY_TIME_ZONE })}T08:00`;
-}
-
 router.post('/api/oncall/grocery/checkout', async (req, res) => {
   try {
     const result = await checkoutOrder({

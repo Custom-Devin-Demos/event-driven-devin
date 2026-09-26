@@ -85,12 +85,28 @@ function calculateOrderTotal(lines) {
   return { subtotalCents, optimumPoints, taxCents, totalCents };
 }
 
+const SLOT_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+/**
+ * Format a store-local wall-clock slot ("YYYY-MM-DDTHH:mm") as a one-hour
+ * pickup window, e.g. "Sun, Sep 27 8:00am–9:00am".
+ */
 function formatPickupWindow(slot) {
-  if (!slot || Number.isNaN(slot.getTime())) return '8:00am\u20139:00am';
-  const fmt = (d) => d.toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', timeZone: STORE_TIME_ZONE }).toLowerCase().replace(/\s|\./g, '');
-  const end = new Date(slot.getTime() + 60 * 60 * 1000);
-  const day = slot.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: STORE_TIME_ZONE });
-  return `${day} ${fmt(slot)}\u2013${fmt(end)}`;
+  const m = typeof slot === 'string' ? SLOT_RE.exec(slot) : null;
+  if (!m) return '8:00am\u20139:00am';
+  const [, y, mo, d, h, mi] = m.map(Number);
+  const asUtc = new Date(Date.UTC(y, mo - 1, d, h, mi));
+  const fmt = (dt) => dt.toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).toLowerCase().replace(/\s|\./g, '');
+  const day = asUtc.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return `${day} ${fmt(asUtc)}\u2013${fmt(new Date(asUtc.getTime() + 60 * 60 * 1000))}`;
+}
+
+/**
+ * Next calendar day in the store's time zone, at 08:00 wall-clock.
+ */
+function defaultPickupSlot(now = new Date()) {
+  const [y, mo, d] = now.toLocaleDateString('en-CA', { timeZone: STORE_TIME_ZONE }).split('-').map(Number);
+  return `${new Date(Date.UTC(y, mo - 1, d + 1)).toISOString().slice(0, 10)}T08:00`;
 }
 
 /**
@@ -111,7 +127,6 @@ async function checkoutOrder(orderData, options = {}) {
 
   try {
     const storeId = orderData.storeId || '1039';
-    const pickupSlot = orderData.pickupSlot ? new Date(orderData.pickupSlot) : null;
     const requested = Array.isArray(orderData.lines) ? orderData.lines : [];
 
     const lines = requested.map((line) => {
@@ -143,7 +158,7 @@ async function checkoutOrder(orderData, options = {}) {
       optimumPoints: totals.optimumPoints,
       total: totals.totalCents / 100,
       pickupSlot: orderData.pickupSlot,
-      pickupWindow: formatPickupWindow(pickupSlot),
+      pickupWindow: formatPickupWindow(orderData.pickupSlot),
       store: 'Loblaws Dupont Street',
     };
   } catch (error) {
@@ -185,4 +200,4 @@ async function checkoutOrder(orderData, options = {}) {
   }
 }
 
-module.exports = { checkoutOrder, CART_ITEMS, OPTIMUM_OFFERS, STORE_TIME_ZONE };
+module.exports = { checkoutOrder, defaultPickupSlot, CART_ITEMS, OPTIMUM_OFFERS };
