@@ -44,6 +44,7 @@ const OPTIMUM_OFFERS = [
   { sku: '20812144_EA', type: 'points', points: 2000 },
 ];
 
+const STORE_TIME_ZONE = 'America/Toronto';
 const HST_RATE = 0.13;
 const BOTTLE_DEPOSIT_CENTS = 0;
 const PICKUP_FEE_CENTS = 0;
@@ -86,9 +87,10 @@ function calculateOrderTotal(lines) {
 
 function formatPickupWindow(slot) {
   if (!slot || Number.isNaN(slot.getTime())) return '8:00am\u20139:00am';
-  const fmt = (d) => d.toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' }).toLowerCase().replace(/\s|\./g, '');
+  const fmt = (d) => d.toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', timeZone: STORE_TIME_ZONE }).toLowerCase().replace(/\s|\./g, '');
   const end = new Date(slot.getTime() + 60 * 60 * 1000);
-  return `${slot.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })} ${fmt(slot)}\u2013${fmt(end)}`;
+  const day = slot.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: STORE_TIME_ZONE });
+  return `${day} ${fmt(slot)}\u2013${fmt(end)}`;
 }
 
 /**
@@ -183,4 +185,4 @@ async function checkoutOrder(orderData, options = {}) {
   }
 }
 
-module.exports = { checkoutOrder, CART_ITEMS, OPTIMUM_OFFERS };
+module.exports = { checkoutOrder, CART_ITEMS, OPTIMUM_OFFERS, STORE_TIME_ZONE };
