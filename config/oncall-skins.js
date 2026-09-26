@@ -2573,7 +2573,7 @@ const ONCALL_SKINS = {
     slug: 'e2d82a44',
     company: 'Loblaws',
     brandMark: 'L',
-    vertical: 'marketplace',
+    vertical: 'grocery',
     hideRibbon: true,
     oncallOnly: true,
     page: {

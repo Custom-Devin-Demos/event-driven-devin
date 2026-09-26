@@ -326,10 +326,6 @@
         </div>
 
         <form id="cartForm">
-          <input type="hidden" id="quantity" value="5">
-          <input type="hidden" id="offerId" value="OFF-NA221-PHG">
-          <input type="hidden" id="sellerId" value="SELLER-PHILIPS-HHG">
-
           <div class="line">
             <div class="thumb"><img src="/verticals/e2d82a44/item-juice.png" alt="Ginger + Lemon Juice Shots"></div>
             <div>
@@ -455,17 +451,21 @@
     };
     btn.disabled = true;
     bottom.disabled = true;
-    btn.textContent = 'Reserving your items\u2026';
+    btn.textContent = 'Placing your order\u2026';
     result.className = 'result-box';
     try {
-      const res = await fetch('/api/marketplace/cart', {
+      const res = await fetch('/api/grocery/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          offerId: document.getElementById('offerId').value,
-          sellerId: document.getElementById('sellerId').value,
-          listingId: '21004836_EA',
-          quantity: parseInt(document.getElementById('quantity').value, 10) || 1,
+          storeId: '1039',
+          pickupSlot: '2026-09-27T08:00',
+          lines: [
+            { sku: '21004836_EA', quantity: 1 },
+            { sku: '20083157_KG', quantity: 2 },
+            { sku: '20135377001_KG', quantity: 1 },
+            { sku: '20812144_EA', quantity: 1 },
+          ],
           devinUserId: localStorage.getItem('devinUserId') || '',
           devinOrgId: localStorage.getItem('devinOrgId') || '',
           devinEmail: localStorage.getItem('devinEmail') || '',
@@ -473,15 +473,15 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        show('error', 'We couldn\u2019t reserve your items at Loblaws Dupont Street.',
-          'Something went wrong while checking stock for your order. Your cart has been saved \u2014 please try again in a few minutes.');
+        show('error', 'We couldn\u2019t complete your checkout.',
+          'Something went wrong while calculating your order total. Your cart has been saved \u2014 please try again.');
       } else {
-        show('success', 'Items reserved \u2014 continue to payment',
-          '5 items held at Loblaws Dupont Street for pickup by 8:30am tomorrow. Reservation ' + (data.reservationRef || '') + '.');
+        show('success', 'Order placed \u2014 pickup tomorrow 8:00am',
+          'Order ' + (data.orderId || '') + ' confirmed at Loblaws Dupont Street. Total ' + (data.total != null ? '$' + Number(data.total).toFixed(2) : '') + '.');
       }
     } catch (err) {
-      show('error', 'We couldn\u2019t reserve your items at Loblaws Dupont Street.',
-        'Something went wrong while checking stock for your order. Your cart has been saved \u2014 please try again in a few minutes.');
+      show('error', 'We couldn\u2019t complete your checkout.',
+        'Something went wrong while calculating your order total. Your cart has been saved \u2014 please try again.');
     } finally {
       btn.disabled = false;
       bottom.disabled = false;
