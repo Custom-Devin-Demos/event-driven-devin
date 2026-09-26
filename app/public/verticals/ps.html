@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PerfectServe - Messaging</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: "Open Sans", Helvetica, Arial, sans-serif; font-size: 13px; color: #333; background: #e9ebee; display: flex; flex-direction: column; }
+    a { color: #4a9fd8; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* Top nav */
+    .topnav { height: 50px; background: #dfe3e6; display: flex; align-items: center; padding: 0 16px; flex-shrink: 0; border-bottom: 1px solid #cfd4d9; }
+    .logo { display: flex; align-items: flex-start; margin-right: 22px; line-height: 1; }
+    .logo .ps { font-size: 26px; font-weight: 700; color: #3d434a; letter-spacing: -1px; }
+    .logo .dots { display: grid; grid-template-columns: repeat(2, 5px); gap: 2px; margin-left: 3px; margin-top: -2px; }
+    .logo .dots i { width: 5px; height: 5px; border-radius: 50%; }
+    .logo .dots i:nth-child(1) { background: #f5c518; }
+    .logo .dots i:nth-child(2) { background: #f08a24; }
+    .logo .dots i:nth-child(3) { background: #5aaee0; }
+    .logo .dots i:nth-child(4) { background: #3d8b37; }
+    .topnav .nav { display: flex; align-items: center; gap: 4px; height: 100%; }
+    .topnav .nav a { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 4px; color: #3d434a; font-weight: 600; font-size: 13px; }
+    .topnav .nav a.active { background: #3d434a; color: #fff; }
+    .topnav .nav a:hover:not(.active) { background: #cdd2d7; }
+    .topnav .nav a .car { font-size: 9px; }
+    .topnav .spacer { flex: 1; }
+    .topnav .user { display: flex; align-items: center; gap: 6px; color: #3d434a; font-weight: 700; font-size: 13px; }
+
+    /* Two-column shell */
+    .shell { flex: 1; display: flex; min-height: 0; padding: 8px; gap: 0; }
+    .leftcol { width: 455px; flex-shrink: 0; background: #d9dde2; border: 1px solid #c8cdd3; border-right: none; display: flex; flex-direction: column; }
+    .rightcol { flex: 1; background: #ededed; border: 1px solid #c8cdd3; display: flex; flex-direction: column; min-width: 0; position: relative; }
+
+    /* Left column */
+    .inbox-bar { display: flex; align-items: center; padding: 10px 12px; gap: 10px; }
+    .seg { flex: 1; display: flex; background: #c6cbd1; border-radius: 5px; padding: 2px; }
+    .seg button { flex: 1; border: none; background: transparent; padding: 7px 0; font-size: 13px; font-weight: 600; color: #666; border-radius: 4px; }
+    .seg button.on { background: #fff; color: #222; }
+    .compose-btn { width: 42px; height: 42px; border-radius: 50%; border: none; background: #5aaee0; color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .compose-btn:hover { background: #4a9fd0; }
+    .conv-search { display: flex; align-items: center; margin: 0 12px 10px; background: #f4f5f6; border: 1px solid #c0c5cb; border-radius: 4px; height: 34px; }
+    .conv-search .mg { padding: 0 10px; color: #777; font-size: 15px; }
+    .conv-search input { flex: 1; border: none; outline: none; background: transparent; font-size: 13px; color: #333; font-family: inherit; }
+    .conv-search .arch { padding: 0 10px; color: #555; font-size: 15px; }
+    .conv-list { flex: 1; overflow-y: auto; }
+    .conv-empty { text-align: center; color: #777; padding: 40px 0; font-size: 14px; }
+    .monitor-bar { border-top: 1px solid #c0c5cb; background: #d3d7dc; padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; color: #444; font-size: 13px; }
+    .monitor-bar .lbl { display: flex; align-items: center; gap: 7px; }
+
+    /* Conversation list card (post-send) */
+    .conv-card { display: flex; gap: 10px; padding: 12px 14px; background: #33528a; color: #fff; cursor: pointer; border-left: 4px solid #24406e; }
+    .conv-card .av { width: 42px; height: 42px; border-radius: 50%; background: #e8ecf1; color: #555; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .conv-card .cc-main { flex: 1; min-width: 0; }
+    .conv-card .cc-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .conv-card .cc-name { font-weight: 700; font-size: 14px; }
+    .conv-card .cc-time { font-size: 11px; opacity: 0.85; }
+    .conv-card .cc-type { font-size: 12px; opacity: 0.9; margin: 1px 0; }
+    .conv-card .cc-prev { font-size: 12px; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Right column empty state */
+    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #b9bec4; }
+    .empty-state .env { font-size: 110px; line-height: 1; color: #c9ced4; }
+    .empty-state p { margin-top: 14px; font-size: 14px; color: #9aa0a6; }
+
+    /* Compose form */
+    .compose { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    .compose-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid #d5d9de; }
+    .compose-head button { background: none; border: none; font-size: 13px; font-weight: 700; color: #3d434a; display: flex; align-items: center; gap: 6px; }
+    .compose-body { flex: 1; overflow-y: auto; }
+    .frow { display: flex; border-bottom: 1px solid #dde1e6; padding: 14px 16px; }
+    .frow > label { width: 160px; flex-shrink: 0; font-weight: 700; color: #3d434a; font-size: 13px; padding-top: 4px; }
+    .frow > label .sub { display: block; font-weight: 400; color: #888; font-size: 11px; margin-top: 3px; line-height: 1.4; }
+    .frow .ctl { flex: 1; min-width: 0; }
+
+    .sel { border: 1px solid #b9c1c9; border-radius: 4px; background: #fff; min-height: 34px; display: flex; align-items: center; flex-wrap: wrap; padding: 3px 6px; cursor: pointer; position: relative; }
+    .sel .ph { color: #888; padding: 4px 6px; font-size: 13px; }
+    .sel .chev { margin-left: auto; color: #777; padding: 0 6px; font-size: 10px; border-left: 1px solid #e2e5e9; }
+    .sel input.inline { border: none; outline: none; flex: 1; min-width: 80px; font-size: 13px; font-family: inherit; padding: 4px; }
+    .dd { position: absolute; left: -1px; right: -1px; top: 100%; background: #fff; border: 1px solid #aab4bd; box-shadow: 0 6px 16px rgba(0,0,0,0.15); z-index: 50; max-height: 320px; overflow-y: auto; margin-top: 1px; }
+    .dd .browse { display: block; text-align: right; padding: 8px 12px; color: #4a9fd8; font-weight: 600; font-size: 12px; }
+    .dd .sec { padding: 8px 12px 4px; font-size: 10.5px; letter-spacing: 0.6px; color: #999; font-weight: 600; }
+    .dd .opt { display: flex; align-items: center; gap: 10px; padding: 8px 12px; cursor: pointer; }
+    .dd .opt:hover, .dd .opt.hl { background: #dce9f7; }
+    .dd .opt .nm { font-weight: 700; font-size: 13px; }
+    .dd .opt .rl { font-size: 11px; color: #777; }
+    .dd .opt .enc-adm { font-size: 11px; color: #777; font-weight: 400; margin-left: 8px; }
+    .dd .opt .chips { margin-top: 3px; display: flex; gap: 6px; }
+    .chip-pill { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #b9c1c9; border-radius: 9px; padding: 1px 8px; font-size: 10.5px; color: #555; background: #f4f5f6; }
+    .dd .none { padding: 12px; color: #999; font-size: 12px; }
+
+    .avatar-c { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: relative; }
+    .presence { position: absolute; bottom: -1px; right: -1px; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; }
+    .presence.available { background: #6fbf4a; }
+    .presence.busy { background: #e05252; }
+    .presence.offline { background: #aaa; }
+
+    .sel-chip { display: flex; align-items: center; gap: 8px; background: #eef0f2; border: 1px solid #d4d8dd; border-radius: 4px; padding: 4px 8px; margin: 2px; }
+    .sel-chip .nm { font-weight: 700; font-size: 12.5px; }
+    .sel-chip .rl { font-size: 11px; color: #777; }
+    .sel-chip .x { border: none; background: none; color: #888; font-size: 14px; padding: 0 2px; }
+
+    textarea.mtxt { width: 100%; border: 1px solid #b9c1c9; border-radius: 4px; padding: 8px 10px; font-family: inherit; font-size: 13px; min-height: 66px; resize: vertical; }
+    input.cbnum, .sel-static { width: 100%; border: 1px solid #b9c1c9; border-radius: 4px; padding: 8px 10px; font-family: inherit; font-size: 13px; background: #fff; }
+    .fld-label { font-weight: 600; font-size: 12px; color: #555; margin: 12px 0 5px; }
+    .fld-label:first-child { margin-top: 0; }
+
+    .attach-none { color: #888; font-size: 12.5px; margin-bottom: 8px; }
+    .attach-list { font-size: 12.5px; margin-bottom: 8px; }
+    .attach-list div { padding: 3px 0; color: #3d434a; }
+    .btn-add { background: #5aaee0; color: #fff; border: none; border-radius: 4px; padding: 7px 16px; font-weight: 700; font-size: 12.5px; }
+    .btn-add:hover { background: #4a9fd0; }
+
+    .compose-foot { position: sticky; bottom: 0; padding: 10px 16px; display: flex; justify-content: flex-end; border-top: 1px solid #e0d9a8; background: #fdf8dc; }
+    .compose-foot.clean { background: #f3f3f3; border-top: 1px solid #dde1e6; }
+    .btn-send { background: #5aaee0; color: #fff; border: none; border-radius: 4px; padding: 9px 22px; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .btn-send:hover { background: #4a9fd0; }
+    .btn-send:disabled { opacity: 0.7; cursor: default; }
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Conversation view */
+    .conv-view { flex: 1; display: flex; min-height: 0; }
+    .conv-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .conv-toolbar { display: flex; align-items: center; gap: 4px; padding: 8px 12px; border-bottom: 1px solid #d5d9de; font-size: 12.5px; }
+    .conv-toolbar button { background: none; border: none; color: #3d434a; font-weight: 600; font-size: 12.5px; padding: 5px 10px; border-radius: 3px; display: flex; align-items: center; gap: 5px; }
+    .conv-toolbar button:hover { background: #e0e3e7; }
+    .conv-toolbar .right { margin-left: auto; }
+    .conv-scroll { flex: 1; overflow-y: auto; padding: 14px 18px; }
+    .pat-banner { display: flex; align-items: center; gap: 14px; background: #fdeeee; border: 1px solid #f3d3d3; border-radius: 6px; padding: 12px 18px; }
+    .pat-banner .clip { width: 40px; height: 46px; border: 2px solid #d66; border-radius: 4px; background: #fff; position: relative; flex-shrink: 0; }
+    .pat-banner .clip:before { content: ""; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 16px; height: 8px; background: #d66; border-radius: 3px; }
+    .pat-banner .clip:after { content: "\2630"; position: absolute; top: 8px; left: 7px; color: #d66; font-size: 18px; }
+    .pat-banner .nm { color: #4a9fd8; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .pat-banner .lbl { color: #999; font-size: 11px; margin-right: 4px; }
+    .pat-banner .val { color: #3d434a; font-size: 12.5px; }
+    .pat-banner .mid { flex: 1; }
+    .pat-banner .rgt { text-align: right; display: grid; grid-template-columns: auto auto; gap: 2px 8px; }
+    .date-div { text-align: center; color: #777; font-size: 12.5px; margin: 22px 0 14px; }
+    .bubble-row { display: flex; justify-content: flex-end; margin: 8px 0; }
+    .bubble { background: #5aaee0; color: #fff; padding: 10px 16px; border-radius: 16px 16px 3px 16px; max-width: 70%; font-size: 13.5px; }
+    .bubble-ts { text-align: right; font-size: 11px; color: #999; margin-top: 3px; }
+    .end-conv-row { text-align: center; margin: 26px 0 10px; }
+    .btn-end { background: #fff; border: 1px solid #b9c1c9; border-radius: 4px; padding: 8px 20px; font-weight: 700; font-size: 12.5px; color: #3d434a; }
+    .reply-box { border-top: 1px solid #d5d9de; padding: 10px 14px 14px; background: #f7f7f7; }
+    .reply-box input { width: 100%; border: 1px solid #c0c5cb; border-radius: 4px; padding: 9px 12px; font-family: inherit; font-size: 13px; }
+    .reply-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    .reply-row .clip { color: #777; font-size: 15px; }
+    .reply-row label { display: flex; align-items: center; gap: 6px; color: #555; font-size: 12.5px; }
+    .reply-row .send { margin-left: auto; background: #bcd6ea; color: #fff; border: none; border-radius: 4px; padding: 7px 20px; font-weight: 700; font-size: 12.5px; cursor: not-allowed; }
+
+    .details-rail { width: 250px; flex-shrink: 0; border-left: 1px solid #d5d9de; background: #f4f5f6; display: flex; flex-direction: column; }
+    .details-rail .hdr { padding: 10px 14px; font-weight: 700; font-size: 13px; color: #3d434a; border-bottom: 1px solid #e0e3e7; display: flex; justify-content: space-between; align-items: center; }
+    .details-rail .hdr .cnt { background: #3d434a; color: #fff; border-radius: 8px; padding: 0 7px; font-size: 11px; }
+    .details-rail .addp { padding: 10px 14px; color: #3d434a; font-weight: 700; font-size: 12.5px; border: none; background: none; text-align: left; }
+    .sub-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; }
+    .sub-row .sm { font-size: 10.5px; color: #888; }
+    .sub-row .st { margin-left: auto; font-size: 12px; color: #555; white-space: nowrap; }
+    .sub-row .st.read { color: #5aaee0; font-weight: 600; }
+    .details-rail .sett { margin-top: auto; border-top: 1px solid #e0e3e7; padding: 10px 14px; font-weight: 700; font-size: 12.5px; color: #3d434a; display: flex; justify-content: space-between; background: none; border-left: none; border-right: none; border-bottom: none; width: 100%; text-align: left; }
+
+    /* Error toast */
+    .toast { position: fixed; top: 60px; right: 20px; width: 420px; max-width: 92vw; background: #fdecea; border: 1px solid #f5c2c0; border-left: 5px solid #d32f2f; border-radius: 4px; padding: 14px 38px 14px 16px; z-index: 10000; box-shadow: 0 8px 24px rgba(0,0,0,0.18); display: none; }
+    .toast.visible { display: block; }
+    .toast-title { font-weight: 700; color: #b71c1c; font-size: 13px; margin-bottom: 5px; overflow-wrap: anywhere; }
+    .toast-detail { font-size: 12px; color: #7a2020; overflow-wrap: anywhere; }
+    .toast-close { position: absolute; top: 8px; right: 10px; background: none; border: none; color: #b71c1c; font-size: 17px; opacity: 0.6; }
+    .toast-close:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="topnav">
+    <div class="logo"><span class="ps">ps</span><span class="dots"><i></i><i></i><i></i><i></i></span></div>
+    <nav class="nav">
+      <a href="#" class="active">&#9993; Messaging</a>
+      <a href="#">&#128209; Directory</a>
+      <a href="#">&#9777; Patients <span class="car">&#9662;</span></a>
+      <a href="#">&#128197; On Calls</a>
+      <a href="#">&#128680; Emergency Alerts</a>
+      <a href="#">More <span class="car">&#9662;</span></a>
+    </nav>
+    <div class="spacer"></div>
+    <div class="user">&#128100; EllieBishop <span class="car">&#9662;</span></div>
+  </div>
+
+  <div class="shell">
+    <div class="leftcol">
+      <div class="inbox-bar">
+        <div class="seg"><button class="on" id="segInbox">Inbox</button><button id="segDone">Done</button></div>
+        <button class="compose-btn" id="composeBtn" title="Compose">&#9998;</button>
+      </div>
+      <div class="conv-search"><span class="mg">&#9906;</span><input type="text" placeholder="Search conversations..." aria-label="Search conversations"><span class="arch">&#128451;</span></div>
+      <div class="conv-list" id="convList"><div class="conv-empty">No conversations.</div></div>
+      <div class="monitor-bar"><span class="lbl">&#128065; Monitor</span><span>&#710;</span></div>
+    </div>
+
+    <div class="rightcol" id="rightcol">
+      <div class="empty-state"><div class="env">&#9993;</div><p>No thread selected.</p></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <button class="toast-close" onclick="document.getElementById('toast').classList.remove('visible')">&times;</button>
+    <div class="toast-title" id="toastTitle"></div>
+    <div class="toast-detail" id="toastDetail"></div>
+  </div>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var ME_ID = 'bishop-ellie';
+    var AV_COLORS = ['#7e57c2', '#5aaee0', '#ef7d1a', '#43a047', '#c05a8a', '#607d8b'];
+    var state = {
+      contacts: [], messageTypes: [], encounters: [],
+      participants: [], messageType: 'general', encounterId: '',
+      message: '', callbackNumber: '', attachments: [],
+      openDd: null, filter: '', busy: false, sent: null,
+    };
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+    function byId(id) { return document.getElementById(id); }
+    function contactById(id) { return state.contacts.filter(function (c) { return c.id === id; })[0]; }
+    function encById(id) { return state.encounters.filter(function (e) { return e.id === id; })[0]; }
+    function typeById(id) { return state.messageTypes.filter(function (t) { return t.id === id; })[0]; }
+    function initials(name) {
+      return name.split(',').map(function (p) { return p.trim().charAt(0); }).join('').slice(0, 2).toUpperCase();
+    }
+    function colorFor(id) {
+      var h = 0;
+      for (var i = 0; i < id.length; i++) h = (h + id.charCodeAt(i)) % AV_COLORS.length;
+      return AV_COLORS[h];
+    }
+    function avatarHtml(c, size) {
+      return '<span class="avatar-c" style="width:' + size + 'px;height:' + size + 'px;background:' + colorFor(c.id) + '">' + esc(initials(c.name)) + '<span class="presence ' + esc(c.presence) + '"></span></span>';
+    }
+    function encChips(e) {
+      return '<span class="chips"><span class="chip-pill">&#128719; ' + esc(e.unit) + '</span><span class="chip-pill">' + (e.sex === 'Female' ? '&#9792;' : (e.sex === 'Male' ? '&#9794;' : '&#9794;')) + ' ' + esc(e.sex) + '</span></span>';
+    }
+    function fmtTime(iso) {
+      var d = new Date(iso);
+      var h = d.getHours(), m = d.getMinutes();
+      var ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12;
+      return h + ':' + String(m).padStart(2, '0') + ' ' + ap;
+    }
+    function fmtDate(iso) {
+      var d = new Date(iso);
+      return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    }
+
+    function showToast(title, detail) {
+      var toast = byId('toast');
+      byId('toastTitle').textContent = title;
+      byId('toastDetail').textContent = detail;
+      toast.classList.add('visible');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(function () { toast.classList.remove('visible'); }, 6000);
+    }
+
+    function isDirty() {
+      return state.participants.length > 0 || state.message.trim() !== '' || state.encounterId || state.callbackNumber.trim() !== '' || state.attachments.length > 0;
+    }
+
+    /* ---------- Compose ---------- */
+
+    function renderCompose() {
+      if (state.sent) { renderConversation(); return; }
+      var rc = byId('rightcol');
+      var type = typeById(state.messageType) || { label: 'General' };
+      rc.innerHTML =
+        '<div class="compose">' +
+          '<div class="compose-head">' +
+            '<button id="cancelCompose">&#8855; Cancel Compose</button>' +
+            '<button>&#9881; Settings <span class="car">&#9662;</span></button>' +
+          '</div>' +
+          '<div class="compose-body">' +
+            '<div class="frow"><label>Participants</label><div class="ctl">' +
+              '<div class="sel" id="pSel">' +
+                state.participants.map(function (id) {
+                  var c = contactById(id);
+                  return '<span class="sel-chip">' + avatarHtml(c, 24) + '<span><span class="nm">' + esc(c.name) + '</span> <span class="rl">' + esc(c.role) + '</span></span><button class="x" data-rm="' + esc(id) + '">&times;</button></span>';
+                }).join('') +
+                '<input class="inline" id="pFilter" placeholder="' + (state.participants.length ? '' : 'Search...') + '" value="' + esc(state.filter) + '">' +
+                '<span class="chev">&#9662;</span>' +
+                (state.openDd === 'participants' ? participantsDd() : '') +
+              '</div>' +
+            '</div></div>' +
+            '<div class="frow"><label>Message Type</label><div class="ctl">' +
+              '<div class="sel" id="tSel"><span style="padding:4px 6px;color:#5aaee0">&#9993;</span><span style="padding:4px 0">' + esc(type.label) + '</span><span class="chev">&#9662;</span>' +
+                (state.openDd === 'type' ? '<div class="dd">' + state.messageTypes.map(function (t) {
+                  return '<div class="opt" data-type="' + esc(t.id) + '"><span style="color:#5aaee0">&#9993;</span><span class="nm">' + esc(t.label) + '</span></div>';
+                }).join('') + '</div>' : '') +
+              '</div>' +
+            '</div></div>' +
+            '<div class="frow"><label>Message Fields</label><div class="ctl">' +
+              '<div class="fld-label">Patient Encounter</div>' +
+              '<div class="sel" id="eSel">' +
+                (state.encounterId ? encSelChip() : '<span class="ph">Select...</span>') +
+                '<span class="chev">&#9662;</span>' +
+                (state.openDd === 'encounter' ? '<div class="dd">' + state.encounters.map(function (e) {
+                  return '<div class="opt" data-enc="' + esc(e.id) + '" style="display:block"><div><span class="nm">' + esc(e.patient) + '</span><span class="enc-adm">' + esc(e.admitted) + '</span></div>' + encChips(e) + '</div>';
+                }).join('') + '</div>' : '') +
+              '</div>' +
+              '<div class="fld-label">Message</div>' +
+              '<textarea class="mtxt" id="msgTxt">' + esc(state.message) + '</textarea>' +
+              '<div class="fld-label">Callback Number (optional)</div>' +
+              '<input class="cbnum" id="cbNum" value="' + esc(state.callbackNumber) + '">' +
+            '</div></div>' +
+            '<div class="frow"><label>Attachments<span class="sub">Add any number of audio, video, image, or document files</span></label><div class="ctl">' +
+              (state.attachments.length
+                ? '<div class="attach-list">' + state.attachments.map(function (a) { return '<div>&#128206; ' + esc(a) + '</div>'; }).join('') + '</div>'
+                : '<div class="attach-none">No attachments.</div>') +
+              '<button class="btn-add" id="addAtt">&#43; Add Attachment</button>' +
+              '<input type="file" id="fileIn" multiple style="display:none">' +
+            '</div></div>' +
+          '</div>' +
+          '<div class="compose-foot' + (isDirty() ? '' : ' clean') + '">' +
+            '<button class="btn-send" id="sendBtn"' + (state.busy ? ' disabled' : '') + '>' + (state.busy ? '<span class="spinner"></span>Sending\u2026' : '&#9992; Send Message') + '</button>' +
+          '</div>' +
+        '</div>';
+      bindCompose();
+    }
+
+    function encSelChip() {
+      var e = encById(state.encounterId);
+      return '<span class="sel-chip" style="display:inline-flex;flex-direction:column;align-items:flex-start">' +
+        '<span><span class="nm">' + esc(e.patient) + '</span> <span class="rl">' + esc(e.admitted) + '</span>' +
+        ' <button class="x" id="encClear">&times;</button></span>' + encChips(e) + '</span>';
+    }
+
+    function participantsDd() {
+      var f = state.filter.toLowerCase();
+      var list = state.contacts.filter(function (c) {
+        return c.id !== ME_ID && state.participants.indexOf(c.id) === -1 &&
+          (!f || c.name.toLowerCase().indexOf(f) !== -1 || c.role.toLowerCase().indexOf(f) !== -1);
+      });
+      var pinned = list.filter(function (c) { return c.pinned; });
+      var rest = list.filter(function (c) { return !c.pinned; });
+      var html = '<div class="dd"><a class="browse" href="#">Browse &rsaquo;</a>';
+      if (pinned.length) {
+        html += '<div class="sec">PINNED</div>' + pinned.map(optHtml).join('');
+      }
+      if (rest.length) {
+        html += '<div class="sec">DIRECTORY</div>' + rest.map(optHtml).join('');
+      }
+      if (!pinned.length && !rest.length) html += '<div class="none">No matching contacts.</div>';
+      return html + '</div>';
+    }
+
+    function optHtml(c) {
+      return '<div class="opt" data-add="' + esc(c.id) + '">' + avatarHtml(c, 30) +
+        '<span><div class="nm">' + esc(c.name) + '</div><div class="rl">' + esc(c.role) + '</div></span></div>';
+    }
+
+    function bindCompose() {
+      byId('cancelCompose').addEventListener('click', function () {
+        state.sent = null; state.participants = []; state.message = ''; state.encounterId = ''; state.openDd = null;
+        byId('rightcol').innerHTML = '<div class="empty-state"><div class="env">&#9993;</div><p>No thread selected.</p></div>';
+      });
+      var pSel = byId('pSel');
+      pSel.addEventListener('click', function (e) {
+        var rm = e.target.closest('[data-rm]');
+        if (rm) {
+          state.participants = state.participants.filter(function (id) { return id !== rm.getAttribute('data-rm'); });
+          renderCompose();
+          return;
+        }
+        var add = e.target.closest('[data-add]');
+        if (add) {
+          state.participants.push(add.getAttribute('data-add'));
+          state.filter = ''; state.openDd = null;
+          renderCompose();
+          return;
+        }
+        if (e.target.closest('.browse')) { e.preventDefault(); return; }
+        state.openDd = 'participants';
+        renderCompose();
+        var inp = byId('pFilter');
+        if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+      });
+      byId('pFilter').addEventListener('input', function () {
+        state.filter = this.value;
+        var dd = this.parentElement.querySelector('.dd');
+        if (dd) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = participantsDd();
+          dd.replaceWith(tmp.firstChild);
+        }
+      });
+      byId('tSel').addEventListener('click', function (e) {
+        var t = e.target.closest('[data-type]');
+        if (t) { state.messageType = t.getAttribute('data-type'); state.openDd = null; }
+        else { state.openDd = state.openDd === 'type' ? null : 'type'; }
+        renderCompose();
+      });
+      byId('eSel').addEventListener('click', function (e) {
+        if (e.target.closest('#encClear')) { state.encounterId = ''; state.openDd = null; renderCompose(); return; }
+        var enc = e.target.closest('[data-enc]');
+        if (enc) { state.encounterId = enc.getAttribute('data-enc'); state.openDd = null; }
+        else { state.openDd = state.openDd === 'encounter' ? null : 'encounter'; }
+        renderCompose();
+      });
+      byId('msgTxt').addEventListener('input', function () { state.message = this.value; markDirty(); });
+      byId('cbNum').addEventListener('input', function () { state.callbackNumber = this.value; markDirty(); });
+      byId('addAtt').addEventListener('click', function () { byId('fileIn').click(); });
+      byId('fileIn').addEventListener('change', function () {
+        for (var i = 0; i < this.files.length; i++) state.attachments.push(this.files[i].name);
+        renderCompose();
+      });
+      byId('sendBtn').addEventListener('click', submitMessage);
+    }
+
+    function markDirty() {
+      var foot = document.querySelector('.compose-foot');
+      if (foot) foot.className = 'compose-foot' + (isDirty() ? '' : ' clean');
+    }
+
+    function submitMessage() {
+      if (state.busy) return;
+      state.message = byId('msgTxt').value;
+      state.callbackNumber = byId('cbNum').value;
+      state.busy = true;
+      renderCompose();
+      fetch('/api/ps/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantIds: state.participants,
+          messageType: state.messageType,
+          encounterId: state.encounterId || undefined,
+          message: state.message,
+          callbackNumber: state.callbackNumber || undefined,
+          attachments: state.attachments,
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.error || data.errorClass) {
+            showToast(
+              (data.errorClass || 'Error') + ': ' + (data.error || 'Unknown error'),
+              'Message was not delivered. Request ID: ' + (data.requestId || 'n/a')
+            );
+            state.busy = false;
+            renderCompose();
+            return;
+          }
+          state.sent = data;
+          renderCompose();
+          renderConvList();
+        })
+        .catch(function (err) {
+          showToast('Network Error: ' + err.message, 'Message was not delivered.');
+          state.busy = false;
+          renderCompose();
+        })
+        .finally(function () { state.busy = false; });
+    }
+
+    /* ---------- Conversation view (post-send) ---------- */
+
+    function renderConvList() {
+      var first = state.sent.subscribers.filter(function (s) { return s.name !== 'Bishop, Ellie'; })[0] || state.sent.subscribers[0];
+      var disp = first ? first.name.split(',').reverse().join(' ').trim() : '';
+      var prev = state.sent.messages[0] ? state.sent.messages[0].body : '';
+      byId('convList').innerHTML =
+        '<div class="conv-card"><span class="av">&#128100;</span><div class="cc-main">' +
+        '<div class="cc-top"><span class="cc-name">' + esc(disp) + '</span><span class="cc-time">' + esc(fmtTime(state.sent.sentAt)) + '</span></div>' +
+        '<div class="cc-type">' + esc(state.sent.subject) + '</div>' +
+        '<div class="cc-prev">' + esc(prev) + '</div></div><span>&#9993; &#8857;</span></div>';
+    }
+
+    function renderConversation() {
+      var s = state.sent;
+      var enc = encById(state.encounterId);
+      var rc = byId('rightcol');
+      rc.innerHTML =
+        '<div class="conv-view"><div class="conv-main">' +
+          '<div class="conv-toolbar">' +
+            '<button>&#128465; Recall</button><button>&#10003; Mark Done</button><button>&#8618; Forward</button>' +
+            '<button>&#128263; Silence Thread <span class="car">&#9662;</span></button><button>&hellip;</button>' +
+            '<span class="right"><button>&#9664; Hide Details</button></span>' +
+          '</div>' +
+          '<div class="conv-scroll">' +
+            (enc ? '<div class="pat-banner"><span class="clip"></span><div class="mid">' +
+              '<div class="nm">' + esc(enc.patient) + '</div>' +
+              '<div><span class="lbl">Date of Birth</span><span class="val">' + esc(enc.dob) + '</span></div>' +
+              '<div><span class="lbl">Sex</span><span class="val">' + (enc.sex === 'Female' ? '&#9792; ' : '') + esc(enc.sex) + '</span></div>' +
+              '</div><div class="rgt">' +
+              '<span class="lbl">Location</span><span class="val">' + esc(enc.unit) + '</span>' +
+              '<span class="lbl">MRN</span><span class="val">' + esc(enc.mrn) + '</span>' +
+              '<span class="lbl">Admitted Date</span><span class="val">' + esc(enc.admitted.split(' ').slice(0, 3).join(' ')) + '</span>' +
+              '</div></div>' : '') +
+            '<div class="date-div">' + esc(fmtDate(s.sentAt)) + '</div>' +
+            s.messages.map(function (m) {
+              return '<div class="bubble-row"><div><div class="bubble">Message: ' + esc(m.body) + '</div>' +
+                '<div class="bubble-ts">' + esc(fmtDate(m.sentAt)) + ' ' + esc(fmtTime(m.sentAt)) + '</div></div></div>';
+            }).join('') +
+            '<div class="end-conv-row"><button class="btn-end">&#128683; End Conversation</button></div>' +
+          '</div>' +
+          '<div class="reply-box">' +
+            '<input type="text" placeholder="Send a reply...">' +
+            '<div class="reply-row"><span class="clip">&#128206;</span>' +
+            '<label><input type="checkbox" checked> Press enter to send the message</label>' +
+            '<button class="send" disabled>&#9992; Send</button></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="details-rail">' +
+          '<div class="hdr">Subscribers <span class="cnt">' + s.subscribers.length + '</span></div>' +
+          '<button class="addp">&#43; Add Participants</button>' +
+          s.subscribers.map(function (sub) {
+            var c = state.contacts.filter(function (x) { return x.name === sub.name; })[0] || { id: 'x', name: sub.name, presence: 'offline' };
+            return '<div class="sub-row">' + avatarHtml(c, 30) + '<span><div style="font-weight:700">' + esc(sub.name.split(',').reverse().join(' ').trim()) + '</div>' +
+              '<div class="sm">Added: ' + esc(fmtTime(sub.addedAt)) + '</div></span>' +
+              '<span class="st' + (sub.status === 'Read' ? ' read' : '') + '">' + (sub.status === 'Read' ? '&#10004; Read' : 'Sent') + '</span></div>';
+          }).join('') +
+          '<button class="sett">Settings <span class="car">&#9662;</span></button>' +
+        '</div></div>';
+    }
+
+    /* ---------- Boot ---------- */
+
+    byId('composeBtn').addEventListener('click', function () {
+      state.sent = null;
+      renderCompose();
+    });
+
+    fetch('/api/ps/directory')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        state.contacts = d.contacts || [];
+        state.messageTypes = d.messageTypes || [];
+        state.encounters = d.encounters || [];
+      })
+      .catch(function (err) { showToast('Could not load directory', err.message); });
+  </script>
+</body>
+</html>
