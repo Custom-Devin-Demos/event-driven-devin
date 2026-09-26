@@ -2592,7 +2592,7 @@ const ONCALL_SKINS = {
     devinSession: { auto: true },
     supportCenter: 'PC Express Customer Care',
     supportCenterSub: 'Online Grocery Orders & Pickup',
-    disclaimer: 'NOT ACTUALLY A LOBLAWS SITE — internal demo only, not affiliated with, endorsed by, or a real Loblaws product.',
+    disclaimer: '',
   },
 };
 
