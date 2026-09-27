@@ -66,6 +66,39 @@
  */
 
 const ONCALL_SKINS = {
+  'cb84fd21': {
+    slug: 'cb84fd21',
+    company: 'RBC Royal Bank',
+    brandMark: 'R',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'cb84fd21.html',
+      title: 'Transfer Funds - RBC Royal Bank',
+    },
+    theme: {
+      '--accent': '#006AC3',
+      '--ink': '#252525',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0051A5',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: {
+      auto: true,
+      promptAppendix: [
+        'Investigation requirements for this incident (evidence-based SRE triage):',
+        '1. Start from the telemetry, not the code. Use the Datadog integration available to you (Datadog is the observability platform wired into this demo environment) to pull the firing monitor, the APM traces and spans for the affected endpoint, and the service logs around the Incident Ref above. Record which spans and log lines carry the added latency.',
+        '2. Only then inspect the relevant code path and the on-call runbook, and write an evidence-based investigation summary: signals reviewed (quote metric values, span names and durations, log lines), hypotheses considered and how each was confirmed or ruled out, the root cause, and the blast radius (which customers and account types are affected).',
+        '3. Implement the fix and open a PR whose description begins with that investigation summary, followed by the change and how you verified locally that the endpoint latency returned to its baseline.',
+        '4. Post the investigation summary and the PR link back in this alert thread. Do not merge; stop for human approval after Devin Review runs.',
+      ].join('\n'),
+    },
+    supportCenter: 'RBC Royal Bank Support',
+    supportCenterSub: 'Online Banking Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY AN RBC ROYAL BANK SITE — internal demo only, not affiliated with, endorsed by, or a real RBC Royal Bank product.',
+  },
   '76bc90d0': {
     slug: '76bc90d0',
     company: 'Charles Schwab',
