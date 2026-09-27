@@ -200,7 +200,7 @@
             <div class="form-grid">
               <div class="field"><label for="fromAccount">From account</label><select id="fromAccount"><option value="ACCT-1001">RBC Advantage Banking &middot;&middot;&middot;&middot;1001</option><option value="ACCT-1002">RBC High Interest eSavings &middot;&middot;&middot;&middot;1002</option></select></div>
               <div class="field"><label for="toAccount">To account</label><select id="toAccount"><option value="ACCT-1002">RBC High Interest eSavings &middot;&middot;&middot;&middot;1002</option><option value="ACCT-1001">RBC Advantage Banking &middot;&middot;&middot;&middot;1001</option><option value="ACCT-EXT-001">Another financial institution &middot;&middot;&middot;&middot;4921</option></select></div>
-              <div class="field"><label for="amount">Amount (CAD)</label><input type="number" id="amount" min="1" step="0.01" value="500" required></div>
+              <div class="field"><label for="amount">Amount</label><input type="number" id="amount" min="1" step="0.01" value="500" required></div>
               <div class="field"><label for="accountTier">Banking package</label><select id="accountTier"><option value="standard">RBC Advantage Banking</option><option value="premium">RBC VIP Banking</option><option value="basic">RBC Day to Day Banking</option></select><small>The package on the account you are transferring from.</small></div>
             </div>
             <button type="submit" id="submitBtn" class="btn-primary transfer-btn">Transfer Funds</button>
@@ -307,7 +307,10 @@
         const amount = Number(data.receipt.amount).toFixed(2);
         const fee = Number(data.fee || 0);
         result.className = 'result-box success';
-        result.textContent = `Transfer complete. $${amount} CAD moved between your accounts${fee > 0 ? ` (includes a $${fee.toFixed(2)} transfer fee)` : ''}.`;
+        const debit = Number(data.debitAmount || amount).toFixed(2);
+        result.textContent = fee > 0
+          ? `Transfer complete. $${amount} moved between your accounts. A $${fee.toFixed(2)} transfer fee applies — total debited from the source account: $${debit}.`
+          : `Transfer complete. $${amount} moved between your accounts.`;
         status.textContent = 'Transfer completed.';
       } catch (_error) {
         result.className = 'result-box notice';
