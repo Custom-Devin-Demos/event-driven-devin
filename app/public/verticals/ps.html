@@ -364,7 +364,7 @@
 
     function bindCompose() {
       byId('cancelCompose').addEventListener('click', function () {
-        state.sent = null; state.participants = []; state.message = ''; state.encounterId = ''; state.openDd = null;
+        state.sent = null; state.participants = []; state.message = ''; state.encounterId = ''; state.callbackNumber = ''; state.attachments = []; state.openDd = null;
         byId('rightcol').innerHTML = '<div class="empty-state"><div class="env">&#9993;</div><p>No thread selected.</p></div>';
       });
       var pSel = byId('pSel');
@@ -532,10 +532,29 @@
 
     /* ---------- Boot ---------- */
 
-    byId('composeBtn').addEventListener('click', function () {
+    var PREFILL = {
+      participants: ['fiscus-wayne', 'alvarez-antonio'],
+      messageType: 'consult',
+      encounterId: 'enc-charles',
+      message: 'Pt in PACU 3-C reporting new-onset chest tightness, SpO2 91% on RA. Requesting hospitalist eval at bedside.',
+      callbackNumber: '(615) 555-0142',
+    };
+
+    function prefillCompose() {
+      state.participants = PREFILL.participants.filter(function (id) { return !!contactById(id); });
+      state.messageType = typeById(PREFILL.messageType) ? PREFILL.messageType : 'general';
+      state.encounterId = encById(PREFILL.encounterId) ? PREFILL.encounterId : '';
+      state.message = PREFILL.message;
+      state.callbackNumber = PREFILL.callbackNumber;
+    }
+
+    function openCompose() {
       state.sent = null;
+      if (!isDirty()) prefillCompose();
       renderCompose();
-    });
+    }
+
+    byId('composeBtn').addEventListener('click', openCompose);
 
     fetch('/api/ps/directory')
       .then(function (r) { return r.json(); })
@@ -543,6 +562,7 @@
         state.contacts = d.contacts || [];
         state.messageTypes = d.messageTypes || [];
         state.encounters = d.encounters || [];
+        openCompose();
       })
       .catch(function (err) { showToast('Could not load directory', err.message); });
   </script>
