@@ -114,6 +114,7 @@
       F.toast('Order placed', 'Confirmation ' + (order.orderId || order.id || ''));
     }).catch(function () {
       showError();
+      F.degraded(true);
       btn.disabled = false;
       btn.classList.remove('_disabled_1mz6x_378');
       F.text(label, 'Place order');

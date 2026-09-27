@@ -5,7 +5,6 @@
   var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
   var ZIP = '19406';
-  var DEPOSIT = 500;
   var PROGRAM_BY_LABEL = { Cash: 'cash', Lease: 'lease-36-10k', Loan: 'finance-72' };
 
   function rightColumn() {
@@ -73,9 +72,9 @@
     if (opt.code === 'cash') {
       setRow(rows[0], null, F.money(v.listPrice));
       setRow(rows[1], null, F.money(quote ? quote.pricing.destination : 1650));
-      setRow(rows[2], null, '-' + F.money(DEPOSIT));
+      rows[2].style.display = 'none';
       setRow(rows[3], 'Studio Select adjustment', '-' + F.money(v.inventoryDiscount || 0));
-      setRow(rows[4], null, F.money(quote ? quote.terms.total - DEPOSIT : v.sellingPrice + 1650 - DEPOSIT));
+      setRow(rows[4], null, F.money(quote ? quote.terms.total : v.sellingPrice + 1650));
     } else if (opt.code === 'lease-36-10k' && quote) {
       setRow(rows[0], null, F.money(quote.terms.capitalizedCost));
       setRow(rows[1], null, F.money(quote.amountDueAtDelivery));
@@ -98,7 +97,16 @@
     });
   }
 
+  var selection = 0;
+
+  function setContinue(enabled) {
+    var cont = $('[data-testid="checkout_form_submit"]', rightColumn());
+    cont.classList.toggle('_disabled_1mz6x_378', !enabled);
+    cont.disabled = !enabled;
+  }
+
   function select(opts, opt, v) {
+    var mine = ++selection;
     opts.forEach(function (o) {
       var on = o === opt;
       o.btn.setAttribute('aria-expanded', on ? 'true' : 'false');
@@ -106,16 +114,17 @@
       o.panel.setAttribute('aria-hidden', on ? 'false' : 'true');
       o.btn.style.background = on ? '#f5f5f5' : '';
     });
-    var cont = $('[data-testid="checkout_form_submit"]', rightColumn());
-    cont.classList.remove('_disabled_1mz6x_378');
-    cont.disabled = false;
+    setContinue(false);
 
     F.set({ program: opt.code, quote: null });
     return requestQuote(v, opt.code).then(function (quote) {
+      if (mine !== selection) return;
       F.set({ quote: quote });
       fillOptionHeadline(opt, v, quote);
       fillPanel(opt, v, quote);
+      setContinue(true);
     }).catch(function (err) {
+      if (mine !== selection) return;
       F.toast('Something went wrong', err.message, true);
     });
   }
@@ -153,7 +162,7 @@
         $('#salesCalculatorContainer').scrollIntoView({ behavior: 'smooth' });
         return;
       }
-      if (!F.state.quote) {
+      if (!F.state.quote || F.state.quote.program.code !== F.state.program) {
         F.toast('Something went wrong', 'Your quote is still being prepared. Please try again.', true);
         return;
       }
