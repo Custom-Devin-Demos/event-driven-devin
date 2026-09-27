@@ -432,7 +432,9 @@
         });
       }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
         .then(function (res) {
-          if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            toast('error', 'Not authorized', esc(res.body.error || 'Session secret missing or invalid'));
+          } else if (!res.ok) {
             toast('error', 'Batch rejected — rolled back and parked', esc((res.body.errorType || 'Error') + ': ' + (res.body.error || 'Ingest failed')));
           } else {
             var run = res.body.run;

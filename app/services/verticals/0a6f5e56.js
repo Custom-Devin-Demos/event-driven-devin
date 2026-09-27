@@ -243,8 +243,10 @@ function applyRouteProgress(events) {
     if (event.type === 'NOT_OUT') route.notOut += 1;
     if (event.type === 'BLOCKED' || event.type === 'CONTAMINATED') route.exceptions += 1;
     if (event.type === 'MILEAGE') route.lastOdometerMi = event.odometerMi;
-    route.lastEventAt = event.occurredAt;
-    route.lastEventType = event.type;
+    if (!route.lastEventAt || event.occurredAt >= route.lastEventAt) {
+      route.lastEventAt = event.occurredAt;
+      route.lastEventType = event.type;
+    }
     route.status = route.serviced >= route.stopsTotal ? 'Complete' : 'In progress';
   });
 }
@@ -253,8 +255,10 @@ function applyFleetActivity(events) {
   events.forEach((event) => {
     const unit = FLEET.find((u) => u.unitId === event.unitId);
     if (!unit) return;
-    unit.lastMessageAt = event.occurredAt;
-    unit.lastSchema = event.schema;
+    if (!unit.lastMessageAt || event.occurredAt >= unit.lastMessageAt) {
+      unit.lastMessageAt = event.occurredAt;
+      unit.lastSchema = event.schema;
+    }
     unit.messagesToday += 1;
     unit.status = 'Reporting';
   });
@@ -271,8 +275,8 @@ function writeToSinks(events, writtenAt) {
     const sink = SINKS[sinkKey];
     sink.writesToday += writes[sinkKey];
     sink.lastWriteAt = writtenAt;
-    sink.status = 'Current';
-    sink.lagBatches = 0;
+    sink.status = PARKED.length ? 'Stale' : 'Current';
+    sink.lagBatches = PARKED.length;
   });
   return writes;
 }
@@ -295,8 +299,11 @@ function commitBatch(batch, events, run) {
   run.unitsReporting = new Set(events.map((e) => e.unitId)).size;
   ingestState.messagesToday += events.length;
   ingestState.lastSuccessfulBatchAt = writtenAt;
-  ingestState.lastBatchId = batch.batchId;
-  ingestState.lastSeq = batch.messages[batch.messages.length - 1].header.seq;
+  const lastSeq = batch.messages[batch.messages.length - 1].header.seq;
+  if (ingestState.lastSeq === null || lastSeq > ingestState.lastSeq) {
+    ingestState.lastBatchId = batch.batchId;
+    ingestState.lastSeq = lastSeq;
+  }
 }
 
 function markDegraded(batch, error, failedAt) {
