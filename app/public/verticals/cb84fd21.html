@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transfer Funds - RBC Royal Bank</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Nunito+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #006AC3;
+      --ink: #252525;
+      --surface: #FFFFFF;
+      --chrome-bg: #0051A5;
+      --chrome-text: #FFFFFF;
+      --gold: #FEDF01;
+      --muted: #585858;
+      --line: #E0E0E0;
+      --wash: #F3F4F5;
+      --display: 'RBCDisplay', 'Nunito Sans', Roboto, Arial, Helvetica, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--surface); color: var(--ink); font: 300 16px/24px Roboto, Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    .wrap { max-width: 1200px; margin: auto; padding: 0 24px; }
+    .utility { background: var(--chrome-bg); color: var(--chrome-text); font-size: 12px; font-weight: 400; }
+    .utility .wrap { min-height: 30px; display: flex; align-items: stretch; justify-content: space-between; }
+    .utility ul { display: flex; margin: 0; padding: 0; list-style: none; gap: 30px; }
+    .utility a { color: var(--chrome-text); display: inline-flex; align-items: center; min-height: 30px; position: relative; }
+    .utility .here::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--gold); }
+    .promo-dot { display: inline-grid; place-items: center; width: 14px; height: 14px; margin-right: 6px; border-radius: 50%; background: var(--gold); color: var(--chrome-bg); font-size: 10px; font-weight: 700; }
+    .masthead { background: var(--accent); color: var(--chrome-text); }
+    .masthead .wrap { min-height: 64px; display: flex; align-items: center; gap: 30px; }
+    .identity { display: inline-flex; align-items: flex-start; gap: 34px; color: var(--chrome-text); position: relative; height: 64px; }
+    .identity:hover { text-decoration: none; }
+    .identity svg { width: 76px; height: 100px; margin-top: 8px; position: relative; z-index: 2; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .25)); }
+    .identity-name { align-self: center; font: 700 20px/1 var(--display); }
+    .masthead-tools { margin-left: auto; display: flex; align-items: center; gap: 28px; font-size: 16px; font-weight: 400; }
+    .masthead-tools a { color: var(--chrome-text); display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
+    .search { border-bottom: 1px solid color-mix(in srgb, var(--chrome-text) 70%, transparent); padding-bottom: 4px; font-size: 20px; font-weight: 300; }
+    .search svg { width: 24px; height: 24px; }
+    .signin { background: var(--gold); color: var(--ink) !important; padding: 0 20px; min-height: 44px; border-radius: 1px; font-size: 14px; font-weight: 500; }
+    .signin:hover { text-decoration: none; background: color-mix(in srgb, var(--gold) 88%, #000); }
+    .navbar { border-bottom: 1px solid var(--line); }
+    .navbar .wrap { min-height: 66px; display: flex; align-items: center; justify-content: flex-end; gap: 30px; font-weight: 400; }
+    .navbar a { display: inline-flex; align-items: center; min-height: 44px; }
+    .navbar .more { color: var(--accent); font-size: 22px; line-height: 1; }
+    .crumbs { margin: 14px 0 34px; font-size: 12px; font-weight: 400; color: var(--ink); }
+    .crumbs a::after { content: '›'; margin: 0 8px; color: var(--muted); }
+    h1 { margin: 0 0 24px; color: var(--accent); font: 500 40px/48px var(--display); }
+    .hero { display: grid; grid-template-columns: 400px minmax(0, 1fr); border: 1px solid var(--line); background: var(--surface); }
+    .hero-photo { min-height: 380px; background: var(--wash) url('https://www.rbcroyalbank.com/ways-to-bank/_assets-custom/images/banners/onlinebanking-medium.jpg') center / cover no-repeat; }
+    .hero-photo.fallback { background: linear-gradient(160deg, var(--chrome-bg), var(--accent)); }
+    .hero-copy { padding: 58px 60px 50px; }
+    .hero-copy h2 { margin: 0 0 22px; font: 500 36px/44px var(--display); }
+    .hero-copy p { margin: 0 0 28px; font-size: 16px; }
+    .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 22px; font-weight: 400; }
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 22px; border: 0; border-radius: 2px; background: var(--accent); color: var(--chrome-text); font-size: 16px; font-weight: 500; }
+    .btn-primary:hover { text-decoration: none; background: color-mix(in srgb, var(--accent) 85%, #000); }
+    .btn-primary:disabled { cursor: wait; opacity: .7; }
+    .hero-link { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 400; }
+    .hero-link svg { width: 20px; height: 20px; }
+    .section { padding: 56px 0 64px; }
+    .section-heading { margin-bottom: 26px; }
+    .section-heading h2 { margin: 0 0 8px; font: 500 32px/40px var(--display); }
+    .section-heading p { margin: 0; color: var(--muted); }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr); gap: 24px; align-items: start; }
+    .card { border: 1px solid var(--line); background: var(--surface); }
+    .transfer-card { padding: 32px 36px 36px; }
+    .transfer-card h3, .aside-card h3 { margin: 0; font: 700 22px/30px var(--display); }
+    .card-intro { margin: 8px 0 28px; font-size: 14px; color: var(--muted); }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
+    .field { min-width: 0; margin-bottom: 22px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; }
+    .field input, .field select { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid #7C7F81; border-radius: 2px; background: var(--surface); color: var(--ink); font-size: 16px; font-weight: 400; }
+    .field input:focus, .field select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .field small { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .transfer-btn { width: 100%; min-height: 50px; margin-top: 4px; }
+    .status { min-height: 20px; margin: 14px 0 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .result-box { display: none; margin-top: 14px; padding: 16px; border-radius: 2px; font-size: 14px; font-weight: 400; }
+    .result-box.success { display: block; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--surface)); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+    .result-box.notice { display: block; border: 1px solid #C4C8CC; background: var(--wash); }
+    .aside-card { padding: 28px; background: #F3F7F8; }
+    .aside-card ul { margin: 18px 0 0; padding: 0; list-style: none; }
+    .aside-card li { border-top: 1px solid var(--line); }
+    .aside-card li a { display: flex; align-items: center; justify-content: space-between; min-height: 52px; font-weight: 400; }
+    .aside-card li a::after { content: '›'; color: var(--accent); font-size: 22px; }
+    .aside-card p { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+    .benefits { background: #FAFAFB; border-top: 1px solid var(--line); padding: 64px 0 60px; text-align: center; }
+    .benefits h2 { margin: 0 0 50px; font: 500 40px/48px var(--display); }
+    .benefit-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; text-align: left; }
+    .benefit svg { width: 60px; height: 52px; margin-bottom: 26px; }
+    .benefit h3 { margin: 0 0 10px; font: 700 18px/26px Roboto, Arial, sans-serif; }
+    .benefit p { margin: 0; font-size: 16px; }
+    .footer-links { border-top: 1px solid var(--line); padding: 44px 0 40px; }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px; }
+    .footer-grid h4 { margin: 0 0 12px; font: 700 18px/26px Roboto, Arial, sans-serif; }
+    .footer-grid a { display: block; padding: 8px 0; font-weight: 400; line-height: 20px; }
+    .legal { background: var(--chrome-bg); color: var(--chrome-text); font-size: 12px; font-weight: 400; }
+    .legal .wrap { min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .legal ul { display: flex; flex-wrap: wrap; gap: 24px; margin: 0; padding: 0; list-style: none; }
+    .legal a { color: var(--chrome-text); display: inline-flex; align-items: center; min-height: 44px; }
+    @media (max-width: 900px) {
+      .navbar { display: none; }
+      .masthead-tools .search, .masthead-tools .contact, .masthead-tools .lang { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-photo { min-height: 220px; }
+      .hero-copy { padding: 32px 26px; }
+      .layout { grid-template-columns: 1fr; }
+      .benefit-grid { grid-template-columns: 1fr; gap: 30px; }
+      .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      .wrap { padding: 0 16px; }
+      .utility ul li:nth-child(n+3) { display: none; }
+      .utility .promo, .utility .lang { display: none; }
+      .identity { gap: 20px; }
+      .identity svg { width: 60px; height: 80px; }
+      .identity-name { font-size: 18px; }
+      h1 { font-size: 32px; line-height: 40px; }
+      .hero-copy h2 { font-size: 28px; line-height: 36px; }
+      .transfer-card { padding: 24px 18px; }
+      .form-grid { grid-template-columns: 1fr; gap: 0; }
+      .section { padding: 40px 0 48px; }
+      .benefits h2 { font-size: 30px; line-height: 38px; margin-bottom: 34px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .legal .wrap { padding: 16px; padding-bottom: 70px; }
+      .utility .wrap { min-height: 44px; }
+      .utility a { min-height: 44px; }
+      .crumbs { display: flex; align-items: center; flex-wrap: wrap; }
+      .crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+      .footer-grid a { padding: 12px 0; }
+      .hero-actions span a { display: inline-flex; align-items: center; min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility"><div class="wrap">
+    <ul>
+      <li><a href="#top" class="here">Personal</a></li>
+      <li><a href="https://www.rbcroyalbank.com/business/" target="_blank" rel="noopener noreferrer">Business</a></li>
+      <li><a href="https://www.rbc.com/commercial/" target="_blank" rel="noopener noreferrer">Commercial</a></li>
+      <li><a href="https://www.rbcwealthmanagement.com/" target="_blank" rel="noopener noreferrer">Wealth</a></li>
+      <li><a href="https://www.rbc.com/about-rbc.html" target="_blank" rel="noopener noreferrer">About RBC</a></li>
+    </ul>
+    <ul>
+      <li class="promo"><a href="https://www.rbcroyalbank.com/promotions/" target="_blank" rel="noopener noreferrer"><span class="promo-dot" aria-hidden="true">$</span>Promotions</a></li>
+      <li class="lang"><a href="#top" aria-label="Language: English">EN</a></li>
+      <li><a href="https://www.rbcroyalbank.com/customer-service/" target="_blank" rel="noopener noreferrer">Contact Us &rsaquo;</a></li>
+    </ul>
+  </div></div>
+  <header class="masthead"><div class="wrap">
+    <a class="identity" href="#top" aria-label="RBC Royal Bank home">
+      <svg viewBox="0 0 76 100" aria-hidden="true"><path d="M2 2h72v62c0 20-19 32-36 34C21 96 2 84 2 64Z" fill="#0051A5" stroke="#FFFFFF" stroke-width="3"/><path d="M8 8h60v54c0 16-16 27-30 29C24 89 8 78 8 62Z" fill="#006AC3"/><circle cx="38" cy="36" r="15" fill="none" stroke="#FEDF01" stroke-width="3"/><path d="M23 36h30M38 21c-6 8-6 22 0 30M38 21c6 8 6 22 0 30" fill="none" stroke="#FEDF01" stroke-width="2.4"/><text x="38" y="80" text-anchor="middle" fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-weight="700" letter-spacing="1">RBC</text></svg>
+      <span class="identity-name">Royal Bank</span>
+    </a>
+    <div class="masthead-tools">
+      <a class="search" href="https://www.rbcroyalbank.com/search/" target="_blank" rel="noopener noreferrer" aria-label="Search RBC"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l6 6" stroke="currentColor" stroke-width="2"/></svg>Search RBC...</a>
+      <a class="contact" href="https://www.rbcroyalbank.com/customer-service/" target="_blank" rel="noopener noreferrer">&rsaquo; Contact Us</a>
+      <a class="lang" href="#top" aria-label="Language: English">EN &#9662;</a>
+      <a class="signin" href="https://www1.royalbank.com/cgi-bin/rbaccess/rbunxcgi?F6=1&amp;F7=IB&amp;F21=IB&amp;F22=IB&amp;REQUEST=ClientSignin&amp;LANGUAGE=ENGLISH" target="_blank" rel="noopener noreferrer">Sign In</a>
+    </div>
+  </div></header>
+  <nav class="navbar" aria-label="Main navigation"><div class="wrap">
+    <a href="https://www.rbcroyalbank.com/accounts/" target="_blank" rel="noopener noreferrer">Accounts</a>
+    <a href="https://www.rbcroyalbank.com/credit-cards/" target="_blank" rel="noopener noreferrer">Credit Cards</a>
+    <a href="https://www.rbcroyalbank.com/mortgages/" target="_blank" rel="noopener noreferrer">Mortgages</a>
+    <a href="https://www.rbcroyalbank.com/personal-loans/" target="_blank" rel="noopener noreferrer">Loans</a>
+    <a href="https://www.rbcroyalbank.com/investments/" target="_blank" rel="noopener noreferrer">Investments</a>
+    <a href="https://www.rbcroyalbank.com/rewards/" target="_blank" rel="noopener noreferrer">Rewards</a>
+    <a href="https://www.rbcroyalbank.com/advice/" target="_blank" rel="noopener noreferrer">Advice</a>
+    <span class="more" aria-hidden="true">&#8942;</span>
+  </div></nav>
+  <main id="top">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="#top">Personal</a><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">Ways to Bank</a><a href="https://www.rbcroyalbank.com/ways-to-bank/online-banking/" target="_blank" rel="noopener noreferrer">Online Banking</a><span>Transfer Funds</span></nav>
+      <h1>Transfer Funds</h1>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-photo" role="img" aria-label="Client using RBC Online Banking on a laptop"></div>
+        <div class="hero-copy">
+          <h2 id="hero-title">Move Money Between Your RBC Accounts</h2>
+          <p>Transfer funds between your RBC chequing and savings accounts, or to an account at another financial institution, in a few steps. Transfers between your own RBC accounts are unlimited and free with most banking packages.</p>
+          <div class="hero-actions"><a class="btn-primary" href="#transfer">Transfer Funds</a><span>Not yet banking online? <a href="https://www.rbcroyalbank.com/ways-to-bank/online-banking/" target="_blank" rel="noopener noreferrer">Enrol Now</a></span></div>
+          <a class="hero-link" href="https://www.rbcroyalbank.com/ways-to-bank/online-banking/" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M1 19h22" stroke="currentColor" stroke-width="1.8"/></svg>View Online Banking Tutorials</a>
+        </div>
+      </section>
+    </div>
+    <section class="section" id="transfer" aria-labelledby="transfer-heading"><div class="wrap">
+      <div class="section-heading"><h2 id="transfer-heading">Transfer Between Your Accounts</h2><p>Choose the accounts, enter an amount and submit your transfer.</p></div>
+      <div class="layout">
+        <div class="card transfer-card">
+          <h3>Make a Transfer</h3>
+          <p class="card-intro">Example accounts. No real money is moved on this page.</p>
+          <form id="transferForm">
+            <div class="form-grid">
+              <div class="field"><label for="fromAccount">From account</label><select id="fromAccount"><option value="ACCT-1001">RBC Advantage Banking &middot;&middot;&middot;&middot;1001</option><option value="ACCT-1002">RBC High Interest eSavings &middot;&middot;&middot;&middot;1002</option></select></div>
+              <div class="field"><label for="toAccount">To account</label><select id="toAccount"><option value="ACCT-1002">RBC High Interest eSavings &middot;&middot;&middot;&middot;1002</option><option value="ACCT-1001">RBC Advantage Banking &middot;&middot;&middot;&middot;1001</option><option value="ACCT-EXT-001">Another financial institution &middot;&middot;&middot;&middot;4921</option></select></div>
+              <div class="field"><label for="amount">Amount (CAD)</label><input type="number" id="amount" min="1" step="0.01" value="500" required></div>
+              <div class="field"><label for="accountTier">Banking package</label><select id="accountTier"><option value="standard">RBC Advantage Banking</option><option value="premium">RBC VIP Banking</option><option value="basic">RBC Day to Day Banking</option></select><small>The package on the account you are transferring from.</small></div>
+            </div>
+            <button type="submit" id="submitBtn" class="btn-primary transfer-btn">Transfer Funds</button>
+            <p class="status" id="transferStatus" role="status" aria-live="polite">Example transfer only.</p>
+            <div id="result" class="result-box" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+        <aside class="card aside-card" aria-labelledby="ways-heading">
+          <h3 id="ways-heading">Other Ways to Move Money</h3>
+          <p>Send money to people and businesses in Canada and around the world from RBC Online Banking.</p>
+          <ul>
+            <li><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">Interac e-Transfer</a></li>
+            <li><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">Wire Transfer</a></li>
+            <li><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">International Money Transfer</a></li>
+            <li><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">Pay Bills</a></li>
+          </ul>
+        </aside>
+      </div>
+    </div></section>
+    <section class="benefits" aria-labelledby="benefits-heading"><div class="wrap">
+      <h2 id="benefits-heading">RBC Bank Accounts Come with These Extra Benefits</h2>
+      <div class="benefit-grid">
+        <div class="benefit"><svg viewBox="0 0 60 52" aria-hidden="true"><rect x="8" y="4" width="44" height="30" rx="2" fill="none" stroke="#0051A5" stroke-width="2.5"/><path d="M2 42h56" stroke="#0051A5" stroke-width="2.5"/><path d="M20 20l6 6 12-12" fill="none" stroke="#006AC3" stroke-width="2.5"/></svg><h3>Right Account Guarantee</h3><p>If you&rsquo;re not 100% satisfied within the first 4 months, we&rsquo;ll refund up to 3 months of monthly fees. That&rsquo;s our Right Account Guarantee.</p></div>
+        <div class="benefit"><svg viewBox="0 0 60 52" aria-hidden="true"><circle cx="30" cy="26" r="22" fill="none" stroke="#0051A5" stroke-width="2.5"/><path d="M30 12v28M36 18c0-3-3-5-6-5s-6 2-6 5 3 5 6 5 6 2 6 5-3 5-6 5-6-2-6-5" fill="none" stroke="#006AC3" stroke-width="2.5"/></svg><h3>No Minimum Balance Needed</h3><p>You don&rsquo;t need to carry a balance to enjoy the benefits that come with your RBC bank account.</p></div>
+        <div class="benefit"><svg viewBox="0 0 60 52" aria-hidden="true"><path d="M30 3l22 8v14c0 12-10 21-22 25C18 46 8 37 8 25V11Z" fill="none" stroke="#0051A5" stroke-width="2.5"/><path d="M20 26l7 7 13-14" fill="none" stroke="#006AC3" stroke-width="2.5"/></svg><h3>Security Guarantee</h3><p>Trust your money is safe. Your account is CDIC-insured for up to $100,000 and protected against unauthorized transactions with our Security Guarantee.</p></div>
+      </div>
+    </div></section>
+  </main>
+  <footer>
+    <div class="footer-links"><div class="wrap footer-grid">
+      <div><h4>Customer Service</h4><a href="https://www.rbcroyalbank.com/customer-service/" target="_blank" rel="noopener noreferrer">General Inquiries</a><a href="https://www.rbcroyalbank.com/accounts/" target="_blank" rel="noopener noreferrer">Open an Account</a><a href="https://maps.rbcroyalbank.com/" target="_blank" rel="noopener noreferrer">Find Branches &amp; ATMs</a></div>
+      <div><h4>Account Information</h4><a href="https://www.rbcroyalbank.com/accounts/" target="_blank" rel="noopener noreferrer">Account Interest Rates</a><a href="https://www.rbcroyalbank.com/accounts/" target="_blank" rel="noopener noreferrer">Additional Service Fees</a><a href="https://www.rbcroyalbank.com/accounts/" target="_blank" rel="noopener noreferrer">Disclosures &amp; Agreements</a></div>
+      <div><h4>Get More From Your Account</h4><a href="https://www.rbcroyalbank.com/ways-to-bank/online-banking/" target="_blank" rel="noopener noreferrer">Enrol in Online Banking</a><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">Set Up Alerts</a><a href="https://www.rbcroyalbank.com/ways-to-bank/" target="_blank" rel="noopener noreferrer">Pay Bills</a></div>
+      <div><h4>Protecting Your Money</h4><a href="https://www.cdic.ca/" target="_blank" rel="noopener noreferrer">Canada Deposit Insurance Corporation Member Info</a><a href="https://www.rbc.com/privacysecurity/" target="_blank" rel="noopener noreferrer">Privacy &amp; Security</a></div>
+    </div></div>
+    <div class="legal"><div class="wrap">
+      <ul>
+        <li><a href="https://www.rbc.com/legal/" target="_blank" rel="noopener noreferrer">Legal</a></li>
+        <li><a href="https://www.rbc.com/accessibility/" target="_blank" rel="noopener noreferrer">Accessibility</a></li>
+        <li><a href="https://www.rbc.com/privacysecurity/" target="_blank" rel="noopener noreferrer">Privacy &amp; Security</a></li>
+        <li><a href="https://www.rbc.com/privacysecurity/" target="_blank" rel="noopener noreferrer">Advertising &amp; Cookies</a></li>
+      </ul>
+      <span>Royal Bank of Canada &middot; Example account experience</span>
+    </div></div>
+  </footer>
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      const photo = document.querySelector('.hero-photo');
+      const probe = new Image();
+      probe.onerror = () => photo.classList.add('fallback');
+      probe.src = 'https://www.rbcroyalbank.com/ways-to-bank/_assets-custom/images/banners/onlinebanking-medium.jpg';
+    })();
+    const form = document.getElementById('transferForm');
+    const button = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const status = document.getElementById('transferStatus');
+    const fromAccount = document.getElementById('fromAccount');
+    const toAccount = document.getElementById('toAccount');
+    function keepAccountsDistinct(changed, other) {
+      if (changed.value !== other.value) return;
+      const alternative = Array.from(other.options).find((option) => option.value !== changed.value);
+      if (alternative) other.value = alternative.value;
+    }
+    fromAccount.addEventListener('change', () => keepAccountsDistinct(fromAccount, toAccount));
+    toAccount.addEventListener('change', () => keepAccountsDistinct(toAccount, fromAccount));
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (fromAccount.value === toAccount.value) {
+        result.className = 'result-box notice';
+        result.textContent = 'Choose two different accounts to make a transfer.';
+        status.textContent = 'Select different accounts.';
+        return;
+      }
+      button.disabled = true;
+      button.textContent = 'Processing transfer\u2026';
+      status.textContent = 'Transfer in progress\u2026';
+      result.className = 'result-box';
+      result.textContent = '';
+      try {
+        const response = await fetch('/api/banking/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAccount: fromAccount.value,
+            toAccount: toAccount.value,
+            amount: parseFloat(document.getElementById('amount').value),
+            accountTier: document.getElementById('accountTier').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error('Transfer could not be completed.');
+        const amount = Number(data.receipt.amount).toFixed(2);
+        const fee = Number(data.fee || 0);
+        result.className = 'result-box success';
+        result.textContent = `Transfer complete. $${amount} CAD moved between your accounts${fee > 0 ? ` (includes a $${fee.toFixed(2)} transfer fee)` : ''}.`;
+        status.textContent = 'Transfer completed.';
+      } catch (_error) {
+        result.className = 'result-box notice';
+        result.textContent = 'We couldn\u2019t complete your transfer. Please try again.';
+        status.textContent = 'Transfer unavailable.';
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Transfer Funds';
+      }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
