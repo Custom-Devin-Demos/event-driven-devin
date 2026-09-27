@@ -299,11 +299,9 @@ function commitBatch(batch, events, run) {
   run.unitsReporting = new Set(events.map((e) => e.unitId)).size;
   ingestState.messagesToday += events.length;
   ingestState.lastSuccessfulBatchAt = writtenAt;
+  ingestState.lastBatchId = batch.batchId;
   const lastSeq = batch.messages[batch.messages.length - 1].header.seq;
-  if (ingestState.lastSeq === null || lastSeq > ingestState.lastSeq) {
-    ingestState.lastBatchId = batch.batchId;
-    ingestState.lastSeq = lastSeq;
-  }
+  if (ingestState.lastSeq === null || lastSeq > ingestState.lastSeq) ingestState.lastSeq = lastSeq;
 }
 
 function markDegraded(batch, error, failedAt) {
