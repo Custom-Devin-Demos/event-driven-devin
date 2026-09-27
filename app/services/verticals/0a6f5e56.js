@@ -351,6 +351,7 @@ function currentSummary() {
 function alertData(error, batch, run, meta) {
   const schemas = summarizeSchemas(batch.messages);
   const affectedUnits = [...new Set(batch.messages.filter((m) => m.header.schema !== 'obc/3.2').map((m) => m.header.unit))];
+  const sample = batch.messages.find((m) => m.header.schema !== 'obc/3.2') || null;
   return {
     issueTitle: `${error.name}: ${error.message}`,
     issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/0a6f5e56-obc-ingest-${batch.batchNo}`,
@@ -383,7 +384,7 @@ function alertData(error, batch, run, meta) {
       schemasInBatch: schemas,
       affectedUnits,
       parkedMessages: PARKED.reduce((sum, p) => sum + p.messageCount, 0),
-      sampleRejectedMessage: batch.messages.find((m) => m.header.schema !== 'obc/3.2') || null,
+      sampleRejectedMessage: sample,
       vendorRollout: VENDOR_ROLLOUT,
       sinks: Object.values(SINKS).map((s) => ({ key: s.key, status: s.status, lagBatches: s.lagBatches })),
       replayEndpoint: 'POST /api/0a6f5e56/ingest/replay',
@@ -398,14 +399,19 @@ function alertData(error, batch, run, meta) {
     release: RELEASE,
     environment: process.env.DD_ENV || 'prod',
     triggeredRule: 'Datadog monitor: obc.ingest.batch.failed > 0 over 5m (district 3120)',
-    promptContext: [
-      `The onboard-computer (OBC) event ingest for WM hauling district ${DISTRICT.id} (${DISTRICT.name}) rejected ${batch.batchId}: ${batch.messages.length} truck messages from ${DISTRICT.gateway} were rolled back and parked in the dead-letter store.`,
-      `The batch mixes message schemas (${Object.entries(schemas).map(([k, v]) => `${k}: ${v}`).join(', ')}). ${VENDOR_ROLLOUT.vendor} began rolling firmware ${VENDOR_ROLLOUT.toFirmware} (${VENDOR_ROLLOUT.changeTicket}) to ${VENDOR_ROLLOUT.unitsUpdated} of ${VENDOR_ROLLOUT.unitsTotal} units in this district; release notes: ${VENDOR_ROLLOUT.releaseNotes}`,
-      'Dispatch, billing and reporting have received no events since the failure; every affected route shows stale progress and serviced containers are not reaching billing.',
-    ].join(' '),
     promptAppendix: [
+      '## Incident context',
+      `- The onboard-computer (OBC) event ingest for WM hauling district ${DISTRICT.id} (${DISTRICT.name}) rejected ${batch.batchId}: ${batch.messages.length} truck messages from ${DISTRICT.gateway} were rolled back and parked in the dead-letter store (${PARKED.reduce((sum, p) => sum + p.messageCount, 0)} parked in total).`,
+      `- The batch mixes message schemas (${Object.entries(schemas).map(([k, v]) => `${k}: ${v}`).join(', ')}); the service currently declares ${Object.keys(MESSAGE_SCHEMAS).join(', ')}. ${VENDOR_ROLLOUT.vendor} began rolling ${VENDOR_ROLLOUT.product} firmware ${VENDOR_ROLLOUT.fromFirmware} → ${VENDOR_ROLLOUT.toFirmware} (${VENDOR_ROLLOUT.changeTicket}) to ${VENDOR_ROLLOUT.unitsUpdated} of ${VENDOR_ROLLOUT.unitsTotal} units in this district. Release notes: ${VENDOR_ROLLOUT.releaseNotes}`,
+      `- Affected units on the new firmware in this batch: ${affectedUnits.join(', ')}.`,
+      '- Dispatch, billing and reporting have received no events since the failure; every affected route shows stale progress and serviced containers are not reaching billing.',
+      '- Sample rejected message (new format):',
+      '```json',
+      JSON.stringify(sample, null, 2),
+      '```',
+      '',
       '## Remediation expectations',
-      '- Read the service logs and the parked-message sample in `extra.sampleRejectedMessage` and tie the failures to the vendor firmware rollout in `extra.vendorRollout`.',
+      '- Read the service logs and the sample above and tie the failures to the vendor firmware rollout.',
       '- Fix the ingest service so it accepts BOTH the existing obc/3.2 flat messages and the new obc/4.0 nested messages, mapping both onto the same normalized events consumed by dispatch, billing and reporting. Do not drop, skip or down-sample messages from either format.',
       '- Add a unit test covering one message of each schema (route started, container serviced, bin not out, odometer/mileage) that asserts the identical normalized event shape.',
       '- Re-process the parked batch(es) via `POST /api/0a6f5e56/ingest/replay` once the fix is in place and confirm the parked count returns to zero.',
@@ -506,6 +512,7 @@ async function ingestBatch(batch, meta, trigger) {
     Sentry.withScope((scope) => {
       scope.setTag('route', '/api/0a6f5e56/ingest/run');
       scope.setTag('service', SERVICE);
+      scope.setTag('alert_path', 'instant');
       scope.setTag('component', 'obc-event-ingest');
       scope.setTag('district', DISTRICT.id);
       scope.setTag('batch', batch.batchId);
@@ -545,7 +552,7 @@ async function replayParked(meta = {}) {
     };
     try {
       results.push(await ingestBatch(batch, meta, 'replay'));
-    } catch (_error) {
+    } catch {
       results.push(RUNS[0]);
     }
   }

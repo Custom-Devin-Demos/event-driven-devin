@@ -285,6 +285,12 @@
       })
       .catch(function () {});
 
+    function postHeaders() {
+      var h = { 'Content-Type': 'application/json' };
+      var secret = localStorage.getItem('sessionSecret');
+      if (secret) h['x-session-secret'] = secret;
+      return h;
+    }
     function identity() {
       return {
         devinOrgId: localStorage.getItem('devinOrgId') || undefined,
@@ -421,7 +427,7 @@
       identityReady.then(function () {
         return fetch(API + '/ingest/run', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: postHeaders(),
           body: JSON.stringify(identity())
         });
       }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
@@ -443,7 +449,7 @@
     });
 
     document.getElementById('reset').addEventListener('click', function () {
-      fetch(API + '/ingest/reset', { method: 'POST' }).then(function (r) {
+      fetch(API + '/ingest/reset', { method: 'POST', headers: postHeaders() }).then(function (r) {
         if (!r.ok) throw new Error('Reset request failed');
         return r.json();
       }).then(function (res) {

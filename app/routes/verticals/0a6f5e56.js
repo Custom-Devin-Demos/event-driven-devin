@@ -7,6 +7,7 @@ const {
   listRuns,
   listParked,
 } = require('../../services/verticals/0a6f5e56');
+const { verifySessionSecret } = require('../../middleware/verify-session-secret');
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ router.get('/api/0a6f5e56/parked', (_req, res) => {
   res.json({ parked: listParked() });
 });
 
-router.post('/api/0a6f5e56/ingest/run', async (req, res) => {
+router.post('/api/0a6f5e56/ingest/run', verifySessionSecret, async (req, res) => {
   const body = req.body || {};
   try {
     const result = await runNextBatch({
@@ -37,7 +38,7 @@ router.post('/api/0a6f5e56/ingest/run', async (req, res) => {
   }
 });
 
-router.post('/api/0a6f5e56/ingest/replay', async (req, res) => {
+router.post('/api/0a6f5e56/ingest/replay', verifySessionSecret, async (req, res) => {
   const body = req.body || {};
   try {
     res.json(await replayParked({
@@ -50,7 +51,7 @@ router.post('/api/0a6f5e56/ingest/replay', async (req, res) => {
   }
 });
 
-router.post('/api/0a6f5e56/ingest/reset', (_req, res) => {
+router.post('/api/0a6f5e56/ingest/reset', verifySessionSecret, (_req, res) => {
   res.json(resetIngest());
 });
 
