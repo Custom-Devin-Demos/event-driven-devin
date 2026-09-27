@@ -260,6 +260,15 @@ const PROGRAMS = [
 ];
 
 const QUOTES = new Map();
+const MAX_QUOTES = 200;
+
+function storeQuote(quoteId, record) {
+  QUOTES.delete(quoteId);
+  QUOTES.set(quoteId, record);
+  while (QUOTES.size > MAX_QUOTES) {
+    QUOTES.delete(QUOTES.keys().next().value);
+  }
+}
 
 function round2(n) {
   return Math.round(n * 100) / 100;
@@ -501,7 +510,7 @@ async function createQuote(data) {
   const quote = formatQuote({
     quoteId, vehicle, trim, program, pricing, incentives, terms, tax, amountDueAtDelivery, requestId,
   });
-  QUOTES.set(quoteId, { ...quote, state });
+  storeQuote(quoteId, { ...quote, state });
 
   const duration = Date.now() - startTime;
   incrementMetric('ev_checkout.quote.success', { route: QUOTE_ROUTE, program: program.code, trim: trim.code });

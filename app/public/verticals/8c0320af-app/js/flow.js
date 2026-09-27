@@ -159,7 +159,30 @@
     return cat.inventory.filter(function (v) { return v.vin === vin; })[0] || null;
   }
 
-  var INTERIOR_THUMB = 'https://renderchain.lucidmotors.com/240x240/filters:format(.webp)/1400x200:2560x600/renderchain/thumbnails/air/options/INT02-Grand-Touring-Mojave.png';
+  var THUMBS = MIRROR + 'thumbs/';
+  var INTERIOR_THUMB = THUMBS + 'INT02-Grand-Touring-Mojave.webp';
+  var PAINT_THUMB = {
+    L102: 'L102-Stellar-White', L203: 'L203-Cosmos-Silver', L205: 'L205-Quantum-Grey',
+    L304: 'L304-Zenith-Red', L806: 'L806-Fathom-Blue', L901: 'L901-Infinite-Black'
+  };
+  var WHEEL_THUMB = [
+    [/21.*Aero Blade/, 'WH03-Wheel-21-Aero-Blade'], [/21.*Aero Sport/, 'WH02-Wheel-21-Aero-Sport'],
+    [/20.*Aero Lite/, 'WH01-Wheel-20-Aero-Lite'], [/19.*Aero Range/, 'WH00-Wheel-19-Aero-Range']
+  ];
+
+  function paintThumb(v) {
+    var m = (v.image || '').match(/-(L\d{3})-/);
+    return m && PAINT_THUMB[m[1]] ? THUMBS + PAINT_THUMB[m[1]] + '.webp' : v.image;
+  }
+
+  function wheelThumb(v) {
+    var hit = WHEEL_THUMB.filter(function (w) { return w[0].test(v.wheels || ''); })[0];
+    return hit ? THUMBS + hit[1] + '.webp' : null;
+  }
+
+  function appearanceThumb(v) {
+    return THUMBS + (/stealth/i.test(v.appearance || '') ? 'EXT07-Stealth' : 'EXT03-Platinum') + '.webp';
+  }
 
   function seatingOf(v) {
     return v.trim === 'pure' ? '12-Way Power Heated Front Seats' : '20-Way Power Heated Front Seats With Ventilation And Massage';
@@ -189,7 +212,9 @@
       }
       var img = sw.querySelector('img');
       if (img && key === 'Interior Theme') setImage(img, INTERIOR_THUMB);
-      if (img && key === 'Exterior Color') setImage(img, v.image);
+      if (img && key === 'Exterior Color') setImage(img, paintThumb(v));
+      if (img && key === 'Wheels' && wheelThumb(v)) setImage(img, wheelThumb(v));
+      if (img && key === 'Appearance') setImage(img, appearanceThumb(v));
     });
   }
 
