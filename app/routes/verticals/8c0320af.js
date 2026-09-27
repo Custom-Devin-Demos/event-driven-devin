@@ -72,8 +72,8 @@ router.post('/api/8c0320af/quotes', async (req, res) => {
       vin: body.vin,
       program: body.program,
       deliveryState: body.deliveryState,
-      loyalty: body.loyalty,
-      conquest: body.conquest,
+      loyalty: body.loyalty === true,
+      conquest: body.conquest === true,
     });
     return res.json(quote);
   } catch (error) {

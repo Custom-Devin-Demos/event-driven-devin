@@ -60,8 +60,26 @@
     return catalogPromise;
   }
 
+  var GT_INTERIOR = 'AIR-GT-STD-RF01-INT02-AD02-AU00-12W2-CCP01-RENA-COUS';
+  var GT_RENDER = 'AIR-GT-STD-L304-SCL0-RF01-EXT07-WH08-INT02-AD02-RENA';
+
+  /* Mirror miss: interior angle → same angle on the GT interior; exterior angle → the unit's
+     base render; base render → the featured GT render. */
+  function mirrorFallback(img) {
+    var name = img.src.split('?')[0].split('/').pop().replace(/\.webp$/, '');
+    var next;
+    var cam = (name.match(/-(CAM_[A-Z]+_\d+)/) || [])[1];
+    var studioSuffix = /-studio$/.test(name) ? '-studio' : '';
+    if (cam && /CAM_INT_/.test(cam) && name.indexOf(GT_INTERIOR) < 0) next = GT_INTERIOR + '-' + cam + studioSuffix;
+    else if (cam) next = name.replace('-' + cam, '');
+    else if (/^AIR-/.test(name) && name.indexOf(GT_RENDER) < 0) next = GT_RENDER + studioSuffix;
+    if (!next) { img.onerror = null; return; }
+    img.src = MIRROR + next + '.webp';
+  }
+
   function mirror(img) {
-    if (!img || !img.src || img.src.indexOf(MIRROR) >= 0) return;
+    if (!img || !img.src) return;
+    if (img.src.indexOf(MIRROR) >= 0) return mirrorFallback(img);
     var name = img.src.split('?')[0].split('/').pop().replace(/\.(png|webp)$/, '');
     var cam = img.src.match(/\/(CAM_[A-Z]+_\d+)\//);
     if (cam && cam[1] !== 'CAM_EXT_08') name += '-' + cam[1];
