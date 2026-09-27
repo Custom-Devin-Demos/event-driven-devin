@@ -1,10 +1,24 @@
 const express = require('express');
+const path = require('path');
 const {
   STUDIO, TRIMS, INVENTORY, PROGRAMS, FEES, findTrim, buildPaymentOptions, createQuote,
 } = require('../../services/verticals/8c0320af');
 const { placeOrder, resetOrders, currentStatus } = require('../../services/verticals/8c0320af-orders');
 
 const router = express.Router();
+
+const PAGES_DIR = path.join(__dirname, '..', '..', 'public', 'verticals', '8c0320af-app');
+const PAGES = ['configure', 'vehicles', 'vehicle', 'review'];
+
+/**
+ * GET /8c0320af/:page — configure, available vehicles, vehicle detail / payment
+ * estimator and order review. The landing page itself is served by the
+ * registry from app/public/verticals/8c0320af.html.
+ */
+router.get('/8c0320af/:page', (req, res, next) => {
+  if (!PAGES.includes(req.params.page)) return next();
+  return res.sendFile(path.join(PAGES_DIR, `${req.params.page}.html`));
+});
 
 function sendError(res, req, error, fallbackCode) {
   res.status(error.status || 500).json({
