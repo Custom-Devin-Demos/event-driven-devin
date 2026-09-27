@@ -17,13 +17,6 @@
     F.text(ps[1], value);
   }
 
-  function fillGallery(v) {
-    $$('img[alt^="Exterior Image - CAM_"], img[alt^="Interior Image - CAM_"]').forEach(function (img) {
-      F.setImage(img, F.angle(v.image, F.camOf(img)));
-      img.style.opacity = '1';
-    });
-  }
-
   function fillZip() {
     $$('p, span').forEach(function (p) {
       if (p.children.length === 0 && p.textContent.trim() === '67570') p.textContent = ZIP;
@@ -137,7 +130,7 @@
 
     var col = rightColumn();
     var cards = $$(':scope > div', col);
-    fillGallery(v);
+    F.fillGallery(v);
     F.fillHeader(cards[1], v);
     F.fillSwatches(cards[2], v);
     fillZip();

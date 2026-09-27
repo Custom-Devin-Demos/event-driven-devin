@@ -22,13 +22,6 @@
     container.appendChild(r);
   }
 
-  function fillGallery(v) {
-    $$('img[class*="_image_g6qy1"]').forEach(function (img) {
-      F.setImage(img, v.image);
-      img.style.opacity = '1';
-    });
-  }
-
   function fillConfig(v, q) {
     var rows = $('#rev-config-rows');
     rows.innerHTML = '';
@@ -112,9 +105,9 @@
       F.set({ order: order });
       F.text(label, 'Order placed');
       F.toast('Order placed', 'Confirmation ' + (order.orderId || order.id || ''));
-    }).catch(function () {
+    }).catch(function (err) {
       showError();
-      F.degraded(true);
+      if (err.status === 409) F.degraded(true);
       btn.disabled = false;
       btn.classList.remove('_disabled_1mz6x_378');
       F.text(label, 'Place order');
@@ -131,7 +124,7 @@
     document.title = 'Review Your Order | Lucid Motors';
     var col = $('[class*="_cardSpacing_1irxy_8"]').parentElement;
     var cards = $$(':scope > div', col);
-    fillGallery(v);
+    F.fillGallery(v);
     F.fillHeader(cards[1], v);
     fillConfig(v, q);
     fillPayment(q);

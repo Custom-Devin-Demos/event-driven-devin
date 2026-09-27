@@ -144,6 +144,15 @@ function formatOrder({ orderId, quote, reconciliation }) {
   };
 }
 
+let resetGeneration = 0;
+
+function quoteNotFound(quoteId) {
+  const err = new Error(`Quote ${quoteId} not found or expired`);
+  err.status = 404;
+  err.code = 'QUOTE_NOT_FOUND';
+  return err;
+}
+
 /**
  * Place an order against a previously issued quote.
  */
@@ -151,14 +160,10 @@ async function placeOrder(data) {
   const requestId = uuidv4();
   const orderId = `ord_${uuidv4()}`;
   const startTime = Date.now();
+  const generation = resetGeneration;
 
   const quote = getQuote(data.quoteId);
-  if (!quote) {
-    const err = new Error(`Quote ${data.quoteId} not found or expired`);
-    err.status = 404;
-    err.code = 'QUOTE_NOT_FOUND';
-    throw err;
-  }
+  if (!quote) throw quoteNotFound(data.quoteId);
 
   logger.info('Placing order', {
     requestId,
@@ -171,9 +176,12 @@ async function placeOrder(data) {
     route: ROUTE,
   });
 
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
+  await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
+  if (generation !== resetGeneration || getQuote(data.quoteId) !== quote) {
+    throw quoteNotFound(data.quoteId);
+  }
 
+  try {
     const reconciliation = reconcileQuote(orderId, quote);
     const order = formatOrder({ orderId, quote, reconciliation });
     ORDERS.push(order);
@@ -273,6 +281,7 @@ async function placeOrder(data) {
 }
 
 function resetOrders() {
+  resetGeneration += 1;
   const cleared = ORDERS.length + MISMATCHES.length + clearQuotes();
   ORDERS.length = 0;
   MISMATCHES.length = 0;

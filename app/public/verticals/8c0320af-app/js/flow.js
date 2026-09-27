@@ -139,7 +139,10 @@
 
   function reset() {
     return fetch(API + '/orders/reset', { method: 'POST' })
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error('reset ' + r.status);
+        return r.json();
+      })
       .then(function () {
         sessionStorage.removeItem(KEY);
         location.href = BASE;
@@ -249,6 +252,53 @@
     });
   });
 
+  /* Captured gallery: every CAM_* render gets the unit's matching angle; slides sit in a translateX
+     track and the thumbnails / arrows pick the active slide. */
+  function fillGallery(v) {
+    var imgs = document.querySelectorAll('img[alt^="Exterior Image - CAM_"], img[alt^="Interior Image - CAM_"]');
+    Array.prototype.forEach.call(imgs, function (img) {
+      setImage(img, angle(v.image, camOf(img)));
+      img.style.opacity = '1';
+    });
+    bindCarousel();
+  }
+
+  function bindCarousel() {
+    var $ = function (sel, root) { return (root || document).querySelector(sel); };
+    var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+    var track = $('[class*="_imgContainer_gx4o4"]');
+    var slides = track ? $$('[class*="_slide_gx4o4"]', track) : [];
+    var thumbs = $$('[class*="_imagesSubContainer_gx4o4"] button[data-testid="swatch"]');
+    var right = $('[class*="_rightArrow_gx4o4"]');
+    if (!track || !slides.length || !right) return;
+
+    var left = right.cloneNode(true);
+    left.className = right.className.replace(/_rightArrow_gx4o4_\d+/, '_leftArrow_gx4o4_144');
+    $('svg', left).style.transform = 'rotate(180deg)';
+    right.parentElement.insertBefore(left, right);
+
+    var index = 0;
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      var step = slides[0].getBoundingClientRect().width + parseFloat(getComputedStyle(slides[0]).marginRight || '0');
+      track.style.transform = 'translateX(' + (-index * step) + 'px)';
+      thumbs.forEach(function (t, n) {
+        var on = n === index;
+        t.classList.toggle('_swatchActive_gx4o4_102', on);
+        var wrap = $('[class*="_thumbnailWrapper_"]', t);
+        if (wrap) wrap.classList.toggle('_active_e3z2o_670', on);
+        if (on && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', inline: 'center' });
+      });
+      left.style.display = index === 0 ? 'none' : '';
+      right.style.display = index === slides.length - 1 ? 'none' : '';
+    }
+    thumbs.forEach(function (t, n) { t.addEventListener('click', function () { show(n); }); });
+    $('button', right).addEventListener('click', function () { show(index + 1); });
+    $('button', left).addEventListener('click', function () { show(index - 1); });
+    window.addEventListener('resize', function () { show(index); });
+    show(0);
+  }
+
   window.Flow = {
     API: API,
     BASE: BASE,
@@ -273,6 +323,7 @@
     vehicleOf: vehicleOf,
     seatingOf: seatingOf,
     fillSwatches: fillSwatches,
-    fillHeader: fillHeader
+    fillHeader: fillHeader,
+    fillGallery: fillGallery
   };
 })();
