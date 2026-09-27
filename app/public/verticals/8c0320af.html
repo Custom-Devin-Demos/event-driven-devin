@@ -146,6 +146,10 @@ body.degraded .reset-link { display: inline-block; }
 .offer p { font-size: 16px; line-height: 24px; margin: 0 0 32px; }
 .offer .more { font-family: var(--v-label); font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 10px; }
 .card { background: var(--v-white); border: 1px solid var(--v-line); border-radius: 4px; overflow: hidden; }
+.card-empty { padding: 32px 24px; }
+.card-empty .ttl { font-family: var(--v-label); font-size: 20px; line-height: 32px; color: var(--v-ink); }
+.card-empty p { margin: 8px 0 24px; color: var(--v-muted); font-size: 14px; line-height: 20px; }
+.card-empty .card-cta { width: 100%; margin: 0; }
 .card.hot { border-color: var(--v-ink); }
 .card-h { display: flex; justify-content: space-between; padding: 24px 24px 0; }
 .card-h .yr { font-family: var(--v-label); font-size: 12px; letter-spacing: 2px; color: var(--v-muted); text-transform: uppercase; }
@@ -598,10 +602,20 @@ body.degraded .status-strip { display: flex; }
   var SWATCH = { 'Zenith Red Metallic': '#5a1a1f', 'Cosmos Silver Metallic': '#b9bcc0', 'Fathom Blue Metallic': '#3c4d63', 'Infinite Black Metallic': '#151515', 'Stellar White Metallic': '#e9e9e9' };
   function renderCards() {
     var grid = $('cards');
-    Array.prototype.forEach.call(grid.querySelectorAll('.card'), function (c) { c.remove(); });
+    Array.prototype.forEach.call(grid.querySelectorAll('.card, .card-empty'), function (c) { c.remove(); });
     renderTrimFilters();
     var list = catalog.inventory.filter(function (v) { return v.trim === state.trim; })
       .sort(function (a, b) { return a.availabilityDays - b.availabilityDays; });
+    if (!list.length) {
+      var empty = el('div', 'card card-empty');
+      empty.appendChild(el('div', 'ttl', 'No ' + trimOf(state.trim).name + ' vehicles available near 19406'));
+      empty.appendChild(el('p', '', 'Choose another trim on the left, or design yours and we\u2019ll build it to order.'));
+      var back = el('button', 'card-cta', 'Design Yours'); back.type = 'button';
+      back.addEventListener('click', function () { go('configure'); });
+      empty.appendChild(back);
+      grid.appendChild(empty);
+      return;
+    }
     list.forEach(function (v) {
       var lease = v.paymentOptions.filter(function (p) { return p.type === 'lease'; })[0];
       var card = el('div', 'card' + (v.inventoryDiscount ? ' hot' : ''));
@@ -671,9 +685,11 @@ body.degraded .status-strip { display: flex; }
   $('cta-review').addEventListener('click', function () {
     var btn = $('cta-review'); if (btn.disabled) return;
     btn.disabled = true; btn.textContent = 'Preparing your quote…';
-    fetch(API + '/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ vin: state.vin, program: state.program }) })
+    var asked = { vin: state.vin, program: state.program };
+    fetch(API + '/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(asked) })
       .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
       .then(function (r) {
+        if (asked.vin !== state.vin || asked.program !== state.program) return;
         if (!r.ok) { showToast('Something went wrong', 'We couldn\u2019t prepare your quote. Please try again.'); return; }
         state.quote = r.data; go('review');
       })

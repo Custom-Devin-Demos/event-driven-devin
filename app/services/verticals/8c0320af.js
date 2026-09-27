@@ -61,7 +61,7 @@ const TRIMS = [
     zeroToSixty: '3.4',
     drivetrain: 'Dual Motor, All-Wheel Drive',
     leaseFrom: 819,
-    image: 'https://renderchain.lucidmotors.com/1920x1440/filters:format(.webp)/renderchain/air/2025/touring/CAM_EXT_08/studio/3840-2880/AIR-TOURING-STD-L102-SCL0-RF00-EXT01-WH00-INT06-AD01-RENA.png',
+    image: 'https://renderchain.lucidmotors.com/1280x960/filters:format(.webp)/filters:sharpen(1,0,false)/filters:quality(90)/renderchain/air/2025/touring/CAM_EXT_08/alpha/3840-2880/AIR-AT-STD-L102-SCL0-RF00-EXT02-WH00-INT18-AD01-RENA.png',
   },
   {
     code: 'grand_touring',
@@ -87,7 +87,7 @@ const TRIMS = [
     zeroToSixty: '1.89',
     drivetrain: 'Tri Motor, All-Wheel Drive',
     leaseFrom: 2799,
-    image: 'https://renderchain.lucidmotors.com/1920x1440/filters:format(.webp)/renderchain/air/2025/sapphire/CAM_EXT_08/studio/3840-2880/AIR-SAPPHIRE-STD-L807-SCL0-RF01-EXT08-WH26-INT19-AD01-RENA.png',
+    image: 'https://images.ctfassets.net/5ky6szwjj7ya/lucid-air-sapphire-desktop-02_2x.webp/444a19bec99f32d7092af4e771beb165/lucid-air-sapphire-desktop-02_2x.webp?q=50',
   },
 ];
 
@@ -196,7 +196,7 @@ const INVENTORY = [
     sound: 'Surreal Sound\u2122 Pro',
     options: [],
     inventoryDiscount: 0,
-    image: `${RENDER_BASE}/touring/CAM_EXT_08/alpha/3840-2880/AIR-TOURING-STD-L102-SCL0-RF00-EXT01-WH00-INT06-AD01-RENA.png`,
+    image: `${RENDER_BASE}/touring/CAM_EXT_08/alpha/3840-2880/AIR-AT-STD-L102-SCL0-RF00-EXT02-WH00-INT18-AD01-RENA.png`,
   },
 ];
 
