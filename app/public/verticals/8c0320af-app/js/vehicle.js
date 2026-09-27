@@ -61,6 +61,14 @@
       var row = p.closest('[class*="_checkBox_"]');
       if (row) row.parentElement.style.display = 'none';
     });
+    $$('input[id^="downPayment"]', opt.panel).forEach(function (inp) {
+      inp.readOnly = true;
+      inp.title = 'Fixed by the ' + opt.label + ' program';
+    });
+    $$('input#dropdown', opt.panel).forEach(function (inp) {
+      var trigger = inp.parentElement && inp.parentElement.querySelector('[role="button"], button, [class*="_trigger_"], [class*="_dropdown_"]');
+      if (trigger) trigger.setAttribute('aria-disabled', 'true');
+    });
 
     if (opt.code === 'cash') {
       setRow(rows[0], null, F.money(v.listPrice));
