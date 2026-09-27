@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboard Event Ingest · District 3120 · 0a6f5e56</title>
+  <link rel="icon" href="/verticals/assets/0a6f5e56/favicon.ico">
+  <style>
+    @font-face { font-family: 'Maax'; font-weight: 400; font-display: swap; src: url('https://www.wm.com/content/dam/wm/fonts/maax-regular.woff2') format('woff2'); }
+    @font-face { font-family: 'Maax'; font-weight: 500; font-display: swap; src: url('https://www.wm.com/content/dam/wm/fonts/maax-medium.woff2') format('woff2'); }
+    @font-face { font-family: 'Maax'; font-weight: 700; font-display: swap; src: url('https://www.wm.com/content/dam/wm/fonts/maax-bold.woff2') format('woff2'); }
+    @font-face { font-family: 'Maax'; font-weight: 900; font-display: swap; src: url('https://www.wm.com/content/dam/wm/fonts/maax-black.woff2') format('woff2'); }
+
+    :root {
+      --v-green-dark: #024731;
+      --v-green: #006937;
+      --v-green-bright: #1c8200;
+      --v-green-tint: #e6f2ea;
+      --v-yellow: #EBA900;
+      --v-yellow-tint: #fff4d6;
+      --v-red: #b3261e;
+      --v-red-tint: #fbe9e7;
+      --v-bg: #F8F8F2;
+      --v-bg-2: #EFEFE4;
+      --v-white: #ffffff;
+      --v-text: #212529;
+      --v-muted: #4f4f58;
+      --v-faint: #767676;
+      --v-border: #dcdcd0;
+      --v-font: 'Maax', 'Helvetica Neue', Arial, sans-serif;
+      --v-mono: 'SFMono-Regular', Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { font-family: var(--v-font); color: var(--v-text); background: var(--v-bg); font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+    a { color: var(--v-green); }
+    button { font-family: inherit; }
+
+    /* Utility bar */
+    .util { background: var(--v-bg-2); height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; font-size: 12px; color: var(--v-muted); }
+    .util .left { display: flex; align-items: center; gap: 18px; }
+    .util .env { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: var(--v-green-dark); }
+    .util .env::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--v-green-bright); }
+    .util .right { display: flex; align-items: center; gap: 18px; }
+    .util .right a { color: var(--v-muted); text-decoration: none; }
+    .util .right a:hover { color: var(--v-green-dark); text-decoration: underline; }
+    .util .back { font-size: 11px; color: var(--v-faint); }
+
+    /* Header */
+    .hdr { background: var(--v-white); border-bottom: 1px solid var(--v-border); height: 72px; display: flex; align-items: center; padding: 0 32px; gap: 32px; position: sticky; top: 0; z-index: 20; }
+    .hdr .brand { display: flex; align-items: center; gap: 16px; text-decoration: none; }
+    .hdr .brand img { height: 32px; width: auto; display: block; }
+    .hdr .brand .divider { width: 1px; height: 34px; background: var(--v-border); }
+    .hdr .brand .product { display: flex; flex-direction: column; line-height: 1.15; }
+    .hdr .brand .product strong { font-size: 16px; font-weight: 700; color: var(--v-green-dark); letter-spacing: -0.01em; }
+    .hdr .brand .product span { font-size: 11.5px; color: var(--v-faint); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+    .tabs { display: flex; gap: 4px; margin-left: 12px; height: 100%; }
+    .tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 0 16px; height: 100%; font-size: 14.5px; font-weight: 500; color: var(--v-text); cursor: pointer; }
+    .tabs button:hover { color: var(--v-green); }
+    .tabs button.active { color: var(--v-green-dark); border-bottom-color: var(--v-green-bright); font-weight: 700; }
+    .hdr .tools { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--v-muted); }
+    .hdr .tools .user { display: inline-flex; align-items: center; gap: 8px; }
+    .hdr .tools .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--v-green-dark); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+
+    /* Title band */
+    .band { background: var(--v-green-dark); color: #fff; padding: 30px 32px 26px; }
+    .band .inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .band h1 { margin: 0 0 6px; font-size: 32px; font-weight: 900; letter-spacing: -0.01em; line-height: 1.1; }
+    .band p { margin: 0; font-size: 15px; color: rgba(255,255,255,0.86); font-weight: 500; }
+    .band .kpis { display: flex; gap: 28px; }
+    .band .kpi { min-width: 120px; }
+    .band .kpi .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.7); font-weight: 500; }
+    .band .kpi .val { font-size: 26px; font-weight: 700; line-height: 1.15; }
+    .band .kpi .sub { font-size: 12px; color: rgba(255,255,255,0.72); }
+    .pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; }
+    .pill::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .pill.ok { background: rgba(28,130,0,0.25); color: #b9f0a3; }
+    .pill.bad { background: rgba(235,169,0,0.25); color: #ffd86b; }
+    .band .status-line { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.86); }
+
+    /* Queue strip */
+    .strip { background: var(--v-white); border-bottom: 1px solid var(--v-border); }
+    .strip .inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; gap: 18px; padding: 12px 32px; flex-wrap: wrap; }
+    .strip .queue { display: flex; align-items: center; gap: 12px; }
+    .strip .queue .ic { width: 36px; height: 36px; border-radius: 8px; background: var(--v-green-tint); display: inline-flex; align-items: center; justify-content: center; color: var(--v-green); }
+    .strip .queue .t { line-height: 1.2; }
+    .strip .queue .t strong { display: block; font-size: 14px; font-weight: 700; color: var(--v-green-dark); }
+    .strip .queue .t span { font-size: 12.5px; color: var(--v-muted); }
+    .strip .spacer { flex: 1; }
+    .btn { border: 0; border-radius: 999px; background: var(--v-green-bright); color: #fff; font-weight: 700; font-size: 14px; padding: 11px 22px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background .15s; }
+    .btn:hover { background: var(--v-green); }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .btn .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; display: none; animation: spin .8s linear infinite; }
+    .btn.busy .spin { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .strip .meta { font-size: 12px; color: var(--v-faint); }
+    .reset { display: none; background: none; border: 1px solid var(--v-border); color: var(--v-faint); border-radius: 4px; font-size: 11px; padding: 3px 8px; cursor: pointer; margin-left: 4px; }
+    .reset:hover { color: var(--v-green-dark); border-color: var(--v-green-dark); }
+    body.degraded .reset { display: inline-block; }
+
+    /* Layout */
+    main { max-width: 1280px; margin: 0 auto; padding: 24px 32px 60px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .grid { display: grid; gap: 18px; }
+    .grid.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.c2 { grid-template-columns: 2fr 1fr; }
+    @media (max-width: 1000px) { .grid.c4, .grid.c3, .grid.c2 { grid-template-columns: 1fr 1fr; } }
+    .card { background: var(--v-white); border: 1px solid var(--v-border); border-radius: 10px; padding: 18px 20px; }
+    .card h3 { margin: 0 0 12px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--v-faint); }
+    .card .big { font-size: 30px; font-weight: 700; color: var(--v-green-dark); line-height: 1.1; }
+    .card .big.warn { color: var(--v-yellow); }
+    .card .big.bad { color: var(--v-red); }
+    .card .sub { font-size: 12.5px; color: var(--v-muted); margin-top: 4px; }
+    .section { margin-top: 22px; }
+    .section-h { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 10px; }
+    .section-h h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--v-green-dark); }
+    .section-h .hint { font-size: 12.5px; color: var(--v-faint); }
+
+    table { width: 100%; border-collapse: collapse; background: var(--v-white); border: 1px solid var(--v-border); border-radius: 10px; overflow: hidden; }
+    thead th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--v-faint); font-weight: 700; padding: 10px 14px; background: var(--v-bg-2); border-bottom: 1px solid var(--v-border); }
+    tbody td { padding: 10px 14px; border-bottom: 1px solid #ecece3; font-size: 13.5px; vertical-align: top; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: #fbfbf6; }
+    td.mono, .mono { font-family: var(--v-mono); font-size: 12.5px; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    th.num { text-align: right; }
+    .tag { display: inline-block; border-radius: 4px; padding: 2px 7px; font-size: 11.5px; font-weight: 700; }
+    .tag.ok { background: var(--v-green-tint); color: var(--v-green); }
+    .tag.warn { background: var(--v-yellow-tint); color: #8a5a00; }
+    .tag.bad { background: var(--v-red-tint); color: var(--v-red); }
+    .tag.neutral { background: var(--v-bg-2); color: var(--v-muted); }
+    .tag.fw4 { background: #e7f0ff; color: #1f4f9c; }
+    .bar { height: 6px; background: var(--v-bg-2); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+    .bar i { display: block; height: 100%; background: var(--v-green-bright); }
+    .muted { color: var(--v-faint); }
+    .sink { display: flex; align-items: flex-start; gap: 12px; }
+    .sink .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: var(--v-green-bright); flex: none; }
+    .sink.stale .dot { background: var(--v-yellow); }
+    .sink strong { display: block; font-size: 15px; color: var(--v-green-dark); }
+    .sink .sys { font-size: 12.5px; color: var(--v-muted); }
+    .sink .stats { margin-top: 8px; font-size: 12.5px; color: var(--v-muted); display: flex; gap: 14px; }
+    .sink .stats b { color: var(--v-text); font-weight: 700; }
+    .notice { border-left: 4px solid var(--v-yellow); background: var(--v-yellow-tint); border-radius: 8px; padding: 12px 16px; font-size: 13px; }
+    .notice strong { color: #8a5a00; }
+    .notice .row { display: flex; gap: 22px; margin-top: 6px; color: var(--v-muted); flex-wrap: wrap; }
+    .notice .row b { color: var(--v-text); }
+    .err-box { background: var(--v-red-tint); border: 1px solid #f0c2bd; border-radius: 8px; padding: 12px 14px; font-family: var(--v-mono); font-size: 12.5px; color: var(--v-red); white-space: pre-wrap; word-break: break-word; }
+    .parked-card { border-left: 4px solid var(--v-red); }
+    details summary { cursor: pointer; color: var(--v-green); font-size: 12.5px; font-weight: 500; }
+    pre.sample { background: #1f2a24; color: #d9f2df; border-radius: 8px; padding: 12px 14px; font-size: 12px; overflow: auto; margin: 10px 0 0; }
+    .empty { padding: 22px; text-align: center; color: var(--v-faint); font-size: 13px; background: var(--v-white); border: 1px dashed var(--v-border); border-radius: 10px; }
+
+    footer { border-top: 1px solid var(--v-border); background: var(--v-white); padding: 18px 32px; font-size: 12px; color: var(--v-faint); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer img { height: 22px; opacity: .9; }
+    footer .links a { color: var(--v-faint); text-decoration: none; margin-left: 16px; }
+
+    /* Toast */
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 440px; background: rgba(0,0,0,0.85); color: #fff; border-radius: 10px; padding: 14px 16px 14px 18px; box-shadow: 0 10px 30px rgba(0,0,0,.25); transform: translateX(120%); opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; z-index: 50; border-left: 4px solid var(--v-green-bright); }
+    .toast.show { transform: none; opacity: 1; }
+    .toast.error { border-left-color: #ff6b5b; }
+    .toast strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+    .toast span { font-size: 12.5px; color: rgba(255,255,255,.85); font-family: var(--v-mono); word-break: break-word; }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="left">
+      <span class="env">Operations Tools · Production</span>
+      <span>Northwest Houston Hauling — District 3120</span>
+      <span id="tz-now" class="muted"></span>
+    </div>
+    <div class="right">
+      <a href="#">Support</a>
+      <a href="#">Runbooks</a>
+      <a href="#">Change calendar</a>
+      <a class="back" href="/">← All Demos</a>
+    </div>
+  </div>
+
+  <header class="hdr">
+    <a class="brand" href="#">
+      <img src="https://www.wm.com/content/dam/wm/icons/branding/wm-logo-web-header-footer.svg" alt="WM" onerror="this.onerror=null;this.src='/verticals/assets/0a6f5e56/logo.svg';">
+      <span class="divider"></span>
+      <span class="product"><strong>Onboard Event Ingest</strong><span>Fleet Telematics Operations</span></span>
+    </a>
+    <nav class="tabs" id="tabs">
+      <button class="active" data-tab="overview">Overview</button>
+      <button data-tab="batches">Ingest batches</button>
+      <button data-tab="fleet">Fleet &amp; firmware</button>
+    </nav>
+    <div class="tools">
+      <span id="release" class="mono muted"></span>
+      <span class="user"><span class="avatar">DO</span> District Ops</span>
+    </div>
+  </header>
+
+  <section class="band">
+    <div class="inner">
+      <div>
+        <h1>Onboard Event Ingest</h1>
+        <p>Truck onboard-computer messages → dispatch, billing and reporting for District 3120</p>
+        <div class="status-line">
+          <span id="status-pill" class="pill ok">Healthy</span>
+          <span id="status-text">Loading…</span>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="lbl">Messages today</div><div id="kpi-messages" class="val">—</div><div class="sub">written to downstream systems</div></div>
+        <div class="kpi"><div class="lbl">Containers serviced</div><div id="kpi-serviced" class="val">—</div><div class="sub" id="kpi-notout">— not out</div></div>
+        <div class="kpi"><div class="lbl">Trucks reporting</div><div id="kpi-units" class="val">—</div><div class="sub">of 118 in district</div></div>
+        <div class="kpi"><div class="lbl">Parked messages</div><div id="kpi-parked" class="val">—</div><div class="sub" id="kpi-parked-sub">dead-letter store</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="strip">
+    <div class="inner">
+      <div class="queue">
+        <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h13v9H3zM16 10h4l1 3v3h-5z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+        <div class="t"><strong id="queue-title">Inbound queue</strong><span id="queue-sub">Waiting for gateway…</span></div>
+      </div>
+      <div class="spacer"></div>
+      <span class="meta" id="last-batch"></span>
+      <button class="btn" id="run-batch" type="button"><span class="spin"></span><span>Process next batch</span></button>
+      <button class="reset" id="reset" type="button" title="Presenter control: clears parked messages and run history and returns the console to its opening state">Reset</button>
+    </div>
+  </div>
+
+  <main>
+    <section class="panel active" id="panel-overview">
+      <div class="grid c3" id="sinks"></div>
+      <div class="section" id="rollout-wrap"></div>
+      <div class="section" id="parked-overview"></div>
+      <div class="section">
+        <div class="section-h"><h2>Active routes today</h2><span class="hint">Progress written by dispatch from container-serviced events</span></div>
+        <table>
+          <thead><tr><th>Route</th><th>Type</th><th>Truck</th><th>Progress</th><th class="num">Serviced</th><th class="num">Not out</th><th>Last event</th><th>Status</th></tr></thead>
+          <tbody id="routes-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-batches">
+      <div class="section-h" style="margin-top:0"><h2>Ingest batches</h2><span class="hint" id="batches-hint"></span></div>
+      <table>
+        <thead><tr><th>Batch</th><th>Received</th><th>Trigger</th><th class="num">Messages</th><th>Formats</th><th class="num">Events written</th><th>Dispatch · Billing · Reporting</th><th class="num">Duration</th><th>Status</th></tr></thead>
+        <tbody id="runs-body"></tbody>
+      </table>
+      <div class="section" id="parked-section"></div>
+    </section>
+
+    <section class="panel" id="panel-fleet">
+      <div class="section-h" style="margin-top:0"><h2>Fleet &amp; onboard computer firmware</h2><span class="hint" id="fleet-hint"></span></div>
+      <table>
+        <thead><tr><th>Truck</th><th>Route</th><th>Chassis / body</th><th>Fuel</th><th>OBC firmware</th><th>Firmware updated</th><th>Last message</th><th class="num">Msgs today</th><th>Status</th></tr></thead>
+        <tbody id="fleet-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="https://www.wm.com/content/dam/wm/icons/branding/wm-logo-web-header-footer.svg" alt="WM" onerror="this.onerror=null;this.src='/verticals/assets/0a6f5e56/logo.svg';">
+      <span>© 2026 WM Intellectual Property Holdings, L.L.C. · Internal operations tool</span>
+    </div>
+    <div class="links"><a href="#">Runbook: OBC ingest</a><a href="#">On-call rotation</a><a href="#">Vendor: Peregrine Telematics</a></div>
+  </footer>
+
+  <div class="toast" id="toast"><strong id="toast-title"></strong><span id="toast-body"></span></div>
+
+  <script>
+    var API = '/api/0a6f5e56';
+    var TZ = 'America/Chicago';
+    var state = { overview: null, busy: false };
+
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      })
+      .catch(function () {});
+
+    function identity() {
+      return {
+        devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+        devinUserId: localStorage.getItem('devinUserId') || undefined,
+        devinEmail: localStorage.getItem('devinEmail') || undefined
+      };
+    }
+
+    function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function fmtTime(iso) {
+      if (!iso) return '—';
+      return new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso)) + ' CT';
+    }
+    function fmtNum(n) { return Number(n || 0).toLocaleString('en-US'); }
+    function ago(iso) {
+      if (!iso) return '—';
+      var m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+      if (m < 1) return 'just now';
+      if (m < 60) return m + ' min ago';
+      return Math.floor(m / 60) + ' h ' + (m % 60) + ' min ago';
+    }
+
+    var toastTimer = null;
+    function toast(kind, title, body) {
+      var el = document.getElementById('toast');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-body').innerHTML = body || '';
+      el.className = 'toast ' + kind + ' show';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.className = 'toast ' + kind; }, 6000);
+    }
+
+    document.getElementById('tabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('button[data-tab]');
+      if (!btn) return;
+      document.querySelectorAll('#tabs button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      document.querySelectorAll('.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + btn.dataset.tab); });
+    });
+
+    function loadOverview() {
+      return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (data) {
+        state.overview = data;
+        render(data);
+        return data;
+      });
+    }
+
+    function render(d) {
+      var s = d.summary;
+      var degraded = s.status !== 'healthy';
+      document.body.classList.toggle('degraded', degraded);
+      document.getElementById('tz-now').textContent = 'Central Time (' + TZ + ')';
+      document.getElementById('release').textContent = d.release;
+
+      var pill = document.getElementById('status-pill');
+      pill.className = 'pill ' + (degraded ? 'bad' : 'ok');
+      pill.textContent = degraded ? 'Degraded — messages rejected' : 'Healthy';
+      document.getElementById('status-text').textContent = degraded
+        ? s.parkedMessages + ' messages parked · downstream systems stale since ' + fmtTime(s.lastSuccessfulBatchAt)
+        : 'All ' + d.runs.length + ' batches committed · last write ' + fmtTime(s.lastSuccessfulBatchAt) + ' (' + ago(s.lastSuccessfulBatchAt) + ')';
+
+      var serviced = 0, notOut = 0;
+      d.routes.forEach(function (r) { serviced += r.serviced; notOut += r.notOut; });
+      var reporting = d.fleet.filter(function (u) { return u.messagesToday > 0; }).length;
+      document.getElementById('kpi-messages').textContent = fmtNum(s.messagesToday);
+      document.getElementById('kpi-serviced').textContent = fmtNum(serviced);
+      document.getElementById('kpi-notout').textContent = fmtNum(notOut) + ' not out · ' + fmtNum(d.routes.reduce(function (a, r) { return a + r.exceptions; }, 0)) + ' blocked';
+      document.getElementById('kpi-units').textContent = fmtNum(reporting + 106);
+      document.getElementById('kpi-parked').textContent = fmtNum(s.parkedMessages);
+      document.getElementById('kpi-parked-sub').textContent = s.parkedBatches ? s.parkedBatches + ' batch' + (s.parkedBatches > 1 ? 'es' : '') + ' in dead-letter store' : 'dead-letter store empty';
+
+      document.getElementById('queue-title').textContent = 'Inbound queue · ' + s.nextBatch.batchId + ' ready';
+      document.getElementById('queue-sub').textContent = s.nextBatch.messageCount + ' messages from ' + d.district.gateway + ' · topic ' + d.district.topic;
+      document.getElementById('last-batch').textContent = s.lastBatchId ? 'Last committed ' + s.lastBatchId + ' · seq ' + s.lastSeq : '';
+
+      document.getElementById('sinks').innerHTML = d.sinks.map(function (k) {
+        var stale = k.status !== 'Current';
+        return '<div class="card"><div class="sink ' + (stale ? 'stale' : '') + '"><span class="dot"></span><div><strong>' + esc(k.label) + '</strong><div class="sys">' + esc(k.system) + '</div>' +
+          '<div class="stats"><span>Writes today <b>' + fmtNum(k.writesToday) + '</b></span><span>Last write <b>' + fmtTime(k.lastWriteAt) + '</b></span></div>' +
+          '<div class="stats"><span>Table <b class="mono">' + esc(k.table) + '</b></span><span>' + (stale ? '<span class="tag warn">Stale · ' + k.lagBatches + ' batch' + (k.lagBatches > 1 ? 'es' : '') + ' behind</span>' : '<span class="tag ok">Current</span>') + '</span></div></div></div></div>';
+      }).join('');
+
+      var v = d.vendorRollout;
+      document.getElementById('rollout-wrap').innerHTML = '<div class="notice"><strong>Vendor change in progress · ' + esc(v.changeTicket) + '</strong> — ' + esc(v.vendor) + ' is rolling ' + esc(v.product) + ' firmware ' + esc(v.fromFirmware) + ' → <b>' + esc(v.toFirmware) + '</b> across this district (started ' + fmtTime(v.startedAt) + ').' +
+        '<div class="row"><span>Units updated <b>' + v.unitsUpdated + ' of ' + v.unitsTotal + '</b></span><span>Release notes <b>' + esc(v.releaseNotes) + '</b></span></div></div>';
+
+      var parkedHtml = d.parked.length ? d.parked.map(function (p) {
+        return '<div class="card parked-card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><strong style="color:var(--v-green-dark);font-size:15px">' + esc(p.batchId) + '</strong> <span class="tag bad">Parked · ' + p.messageCount + ' messages</span> <span class="muted" style="font-size:12.5px">' + fmtTime(p.parkedAt) + ' · stage ' + esc(p.stage) + '</span></div>' +
+          '<div class="muted" style="font-size:12.5px">Formats: ' + Object.keys(p.schemas).map(function (k) { return '<span class="tag ' + (k === 'obc/3.2' ? 'neutral' : 'fw4') + '">' + esc(k) + ' × ' + p.schemas[k] + '</span>'; }).join(' ') + ' · ' + p.units.length + ' trucks</div></div>' +
+          '<div class="err-box" style="margin-top:10px">' + esc(p.reason) + '</div>' +
+          '<details style="margin-top:10px"><summary>Sample rejected message (truck ' + esc(p.sample.header.unit) + ', seq ' + esc(p.sample.header.seq) + ')</summary><pre class="sample">' + esc(JSON.stringify(p.sample, null, 2)) + '</pre></details></div>';
+      }).join('') : '';
+      document.getElementById('parked-overview').innerHTML = parkedHtml ? '<div class="section-h"><h2>Parked messages</h2><span class="hint">Rolled back — nothing from these batches reached dispatch, billing or reporting</span></div>' + parkedHtml : '';
+      document.getElementById('parked-section').innerHTML = '<div class="section-h"><h2>Dead-letter store</h2><span class="hint">Batches rolled back at ingest and held for replay</span></div>' + (parkedHtml || '<div class="empty">No parked messages — every batch today committed cleanly.</div>');
+
+      document.getElementById('routes-body').innerHTML = d.routes.map(function (r) {
+        var pct = Math.min(100, Math.round(r.serviced / r.stopsTotal * 100));
+        var st = r.status.indexOf('Stale') === 0 ? 'warn' : (r.status === 'Complete' ? 'ok' : 'neutral');
+        return '<tr><td class="mono"><b>' + esc(r.routeId) + '</b><br><span class="muted">' + esc(r.area) + '</span></td><td>' + esc(r.type) + '</td><td class="mono">' + esc(r.unitId) + '</td>' +
+          '<td style="min-width:140px"><span class="muted">' + pct + '%</span><div class="bar"><i style="width:' + pct + '%"></i></div></td>' +
+          '<td class="num">' + fmtNum(r.serviced) + ' / ' + fmtNum(r.stopsTotal) + '</td><td class="num">' + fmtNum(r.notOut) + '</td>' +
+          '<td>' + fmtTime(r.lastEventAt) + '<br><span class="muted" style="font-size:12px">' + esc(r.lastEventType || '') + '</span></td><td><span class="tag ' + st + '">' + esc(r.status) + '</span></td></tr>';
+      }).join('');
+
+      document.getElementById('batches-hint').textContent = d.runs.length + ' batches today · gateway cadence every ' + d.district.cadenceMinutes + ' min';
+      document.getElementById('runs-body').innerHTML = d.runs.map(function (r) {
+        var ok = r.status === 'succeeded';
+        var w = r.sinkWrites || {};
+        return '<tr><td class="mono"><b>' + esc(r.batchId) + '</b><br><span class="muted">' + esc(r.runId) + '</span></td><td>' + fmtTime(r.receivedAt) + '</td><td>' + esc(r.trigger) + '</td><td class="num">' + r.messagesIn + '</td>' +
+          '<td>' + Object.keys(r.schemas).map(function (k) { return '<span class="tag ' + (k === 'obc/3.2' ? 'neutral' : 'fw4') + '">' + esc(k) + ' × ' + r.schemas[k] + '</span>'; }).join(' ') + '</td>' +
+          '<td class="num">' + (ok ? fmtNum(r.eventsWritten) : '<span class="tag bad">0 · rolled back</span>') + '</td>' +
+          '<td class="mono">' + (ok ? fmtNum(w.dispatch) + ' · ' + fmtNum(w.billing) + ' · ' + fmtNum(w.reporting) : '<span class="muted">— · — · —</span>') + '</td>' +
+          '<td class="num">' + (r.durationMs != null ? r.durationMs + ' ms' : '—') + '</td>' +
+          '<td>' + (ok ? '<span class="tag ok">Committed</span>' : '<span class="tag bad">Failed · ' + esc(r.stage) + '</span>' + (r.error ? '<div class="err-box" style="margin-top:6px">' + esc(r.error.type + ': ' + r.error.message) + '</div>' : '')) + '</td></tr>';
+      }).join('');
+
+      var v4 = d.fleet.filter(function (u) { return u.firmware.indexOf('4.') === 0; }).length;
+      document.getElementById('fleet-hint').textContent = d.fleet.length + ' trucks shown of ' + d.district.unitsTotal + ' · ' + v4 + ' on firmware ' + v.toFirmware + ' in this sample';
+      document.getElementById('fleet-body').innerHTML = d.fleet.map(function (u) {
+        var fw4 = u.firmware.indexOf('4.') === 0;
+        var st = u.status === 'Reporting' ? 'ok' : (u.status === 'Idle' ? 'neutral' : 'bad');
+        return '<tr><td class="mono"><b>' + esc(u.unitId) + '</b></td><td class="mono">' + esc(u.route || '—') + '</td><td>' + esc(u.chassis) + '<br><span class="muted">' + esc(u.body) + '</span></td><td>' + esc(u.fuel) + '</td>' +
+          '<td><span class="tag ' + (fw4 ? 'fw4' : 'neutral') + '">' + esc(u.firmware) + '</span></td><td>' + (u.firmwareUpdatedAt ? fmtTime(u.firmwareUpdatedAt) + ' <span class="muted">(' + esc(v.changeTicket) + ')</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td>' + fmtTime(u.lastMessageAt) + (u.lastSchema ? '<br><span class="muted" style="font-size:12px">' + esc(u.lastSchema) + '</span>' : '') + '</td><td class="num">' + fmtNum(u.messagesToday) + '</td><td><span class="tag ' + st + '">' + esc(u.status) + '</span></td></tr>';
+      }).join('');
+    }
+
+    document.getElementById('run-batch').addEventListener('click', function () {
+      if (state.busy) return;
+      var btn = this;
+      state.busy = true;
+      btn.disabled = true;
+      btn.classList.add('busy');
+      identityReady.then(function () {
+        return fetch(API + '/ingest/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(identity())
+        });
+      }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
+        .then(function (res) {
+          if (!res.ok) {
+            toast('error', 'Batch rejected — rolled back and parked', esc((res.body.errorType || 'Error') + ': ' + (res.body.error || 'Ingest failed')));
+          } else {
+            var run = res.body.run;
+            toast('success', run.batchId + ' committed', esc(run.eventsWritten + ' events written · dispatch ' + run.sinkWrites.dispatch + ' · billing ' + run.sinkWrites.billing + ' · reporting ' + run.sinkWrites.reporting));
+          }
+          return loadOverview();
+        })
+        .catch(function (err) { toast('error', 'Request failed', esc(err.message)); })
+        .then(function () {
+          state.busy = false;
+          btn.disabled = false;
+          btn.classList.remove('busy');
+        });
+    });
+
+    document.getElementById('reset').addEventListener('click', function () {
+      fetch(API + '/ingest/reset', { method: 'POST' }).then(function (r) {
+        if (!r.ok) throw new Error('Reset request failed');
+        return r.json();
+      }).then(function (res) {
+        toast('success', 'Reset · back to standby', esc('Cleared ' + res.cleared.parked + ' parked batch(es) · ' + res.cleared.runs + ' runs · re-seeded 5 committed batches'));
+        return loadOverview();
+      }).catch(function (err) { toast('error', 'Reset failed', esc(err.message)); });
+    });
+
+    loadOverview().catch(function (err) { toast('error', 'Could not load overview', esc(err.message)); });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
