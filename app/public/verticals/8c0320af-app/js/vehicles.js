@@ -118,11 +118,6 @@
       card.setAttribute('data-vin', v.vin);
       grid.insertBefore(card, tpl);
     });
-
-    var count = $$('p, span, h2, h3').filter(function (e) {
-      return e.children.length === 0 && /^\d+ (Vehicles?|Results?)\b/i.test(e.textContent.trim());
-    })[0];
-    if (count) count.textContent = count.textContent.replace(/^\d+/, String(list.length));
   }
 
   function bindFilters(cat) {
