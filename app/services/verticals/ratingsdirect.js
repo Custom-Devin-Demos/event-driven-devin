@@ -427,8 +427,8 @@ async function generateScorecard(data) {
 
     Sentry.captureException(error, {
       tags: {
-      route: '/api/ratingsdirect/scorecard',
-      service: 'customer-spg-ratingsdirect',
+        route: '/api/ratingsdirect/scorecard',
+        service: 'customer-spg-ratingsdirect',
         subIndustry: issuer.subIndustry,
         sector: issuer.sector,
         issuerId,
