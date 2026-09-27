@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dispute a transaction | Westpac</title>
+  <link rel="icon" href="data:,">
+  <style>
+    @font-face {
+      font-family: Westpac;
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url("/fonts/westpac/Westpac-Bold.woff2") format("woff2");
+    }
+
+    :root {
+      --font-brand: Westpac, "Arial Narrow", "Helvetica Neue Condensed", Arial, sans-serif;
+      --red: #da1710;
+      --ink: #161619;
+      --muted: #706f7c;
+      --page: #f5f5f6;
+      --white: #ffffff;
+      --line: #e3e3e6;
+      --subtle: #f9f9fa;
+      --dark: #171719;
+      --success: #176b3a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      font-size: 16px;
+      line-height: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .container {
+      width: min(1180px, calc(100% - 48px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: var(--white);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .header-main {
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .wordmark {
+      display: inline-flex;
+      align-items: center;
+      color: var(--red);
+    }
+
+    .wordmark svg {
+      display: block;
+      width: 125px;
+      height: 32px;
+    }
+
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 29px;
+      margin-left: auto;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .main-nav a {
+      position: relative;
+      padding: 28px 0 25px;
+    }
+
+    .main-nav a:first-child::after {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--red);
+      content: "";
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .online-select {
+      min-height: 40px;
+      padding: 0 30px 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .button {
+      min-height: 42px;
+      padding: 9px 22px;
+      border: 1px solid var(--ink);
+      border-radius: 3px;
+      background: var(--white);
+      color: var(--ink);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .button--primary {
+      border-color: var(--red);
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .button--primary:hover { background: #b91510; }
+    .button:disabled { cursor: default; opacity: .65; }
+
+    .search-icon {
+      width: 20px;
+      height: 20px;
+      margin-left: 5px;
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .search-icon::after {
+      position: absolute;
+      right: -6px;
+      bottom: -3px;
+      width: 8px;
+      height: 2px;
+      background: var(--ink);
+      content: "";
+      transform: rotate(45deg);
+    }
+
+    .hero {
+      margin: 28px auto 0;
+      padding: 48px 0 52px;
+      border-radius: 4px;
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .hero__inner {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 40px;
+    }
+
+    .eyebrow {
+      margin: 0 0 16px;
+      font-size: 14px;
+      line-height: 1;
+      letter-spacing: .12em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      max-width: 650px;
+      margin: 0;
+      font-family: var(--font-brand);
+      font-size: clamp(48px, 6vw, 60px);
+      line-height: .9;
+      font-weight: 700;
+      letter-spacing: normal;
+      text-transform: uppercase;
+    }
+
+    .hero p {
+      max-width: 610px;
+      margin: 22px 0 0;
+      font-size: 18px;
+      line-height: 27px;
+    }
+
+    .hero .button {
+      flex: 0 0 auto;
+      border-color: var(--white);
+      background: var(--white);
+      color: var(--red);
+    }
+
+    main { padding: 34px 0 78px; }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      align-items: start;
+      gap: 24px;
+    }
+
+    .card,
+    .side-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+
+    .form-card { padding: 34px; }
+
+    h2, h3 {
+      margin: 0;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 30px;
+      line-height: 36px;
+    }
+
+    h3 {
+      font-size: 20px;
+      line-height: 27px;
+    }
+
+    .intro {
+      margin: 8px 0 27px;
+      color: var(--muted);
+    }
+
+    .card-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-bottom: 30px;
+      border: 1px solid var(--line);
+      background: var(--line);
+    }
+
+    .summary-item {
+      min-height: 82px;
+      padding: 13px 15px;
+      background: var(--subtle);
+    }
+
+    .summary-item--wide { grid-column: span 2; }
+
+    .summary-item span {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .summary-item strong {
+      display: block;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 21px;
+    }
+
+    .summary-item--credit strong {
+      color: var(--red);
+      font-size: 20px;
+    }
+
+    .field { margin-bottom: 21px; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .field-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .field-hint {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 19px;
+    }
+
+    select,
+    input[type="text"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    textarea {
+      width: 100%;
+      min-height: 48px;
+      padding: 11px 13px;
+      border: 1px solid #b8b8bd;
+      border-radius: 3px;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 126px;
+      resize: vertical;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      outline: 3px solid rgba(218, 23, 16, .16);
+      border-color: var(--red);
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+      margin: 14px 0 0;
+      padding: 14px;
+      background: var(--subtle);
+      color: var(--ink);
+    }
+
+    .check-row input {
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      margin: 3px 0 0;
+      accent-color: var(--red);
+    }
+
+    .notice {
+      margin-top: 22px;
+      padding: 17px 18px;
+      border-left: 4px solid var(--red);
+      background: #fff9f8;
+    }
+
+    .notice strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .notice p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 27px;
+    }
+
+    .panel {
+      display: none;
+      margin-top: 27px;
+      padding: 20px 22px;
+      border: 1px solid var(--line);
+      background: var(--white);
+    }
+
+    .panel--error { border-left: 4px solid var(--red); }
+    .panel--error h3 { color: var(--red); }
+    .panel--success { border-left: 4px solid var(--success); }
+    .panel p { margin: 7px 0 0; color: var(--muted); }
+
+    .technical {
+      margin: 13px 0 0;
+      padding: 12px 14px;
+      overflow-x: auto;
+      border: 1px solid #edcfcd;
+      background: #fffafa;
+      color: #76221e;
+      font: 13px/20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+
+    .receipt {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      margin: 16px 0 0;
+      padding: 0;
+      border: 1px solid #cce1d4;
+      background: #cce1d4;
+      list-style: none;
+    }
+
+    .receipt li {
+      display: flex;
+      justify-content: space-between;
+      gap: 13px;
+      padding: 10px 12px;
+      background: var(--white);
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .receipt li span { color: var(--muted); }
+    .receipt li strong { color: var(--ink); text-align: right; }
+
+    .side-rail { display: grid; gap: 16px; }
+    .side-card { padding: 23px; }
+    .side-card p { margin: 9px 0 0; color: var(--muted); }
+
+    .side-card--notice {
+      border-top: 4px solid var(--red);
+    }
+
+    .next-list {
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: next-step;
+    }
+
+    .next-list li {
+      position: relative;
+      padding-left: 35px;
+      counter-increment: next-step;
+    }
+
+    .next-list li + li { margin-top: 18px; }
+
+    .next-list li::before {
+      position: absolute;
+      top: 1px;
+      left: 0;
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--white);
+      content: counter(next-step);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .help-number {
+      display: block;
+      margin-top: 11px;
+      color: var(--red);
+      font-size: 30px;
+      line-height: 36px;
+      font-weight: 700;
+    }
+
+    .side-link {
+      display: block;
+      margin-top: 16px;
+      padding-top: 13px;
+      border-top: 1px solid var(--line);
+      font-weight: 700;
+    }
+
+    .side-link:hover { color: var(--red); }
+
+    .site-footer {
+      padding: 43px 0 29px;
+      background: var(--dark);
+      color: var(--white);
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 42px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid #49494c;
+    }
+
+    .footer-brand p {
+      max-width: 500px;
+      margin: 17px 0 0;
+      color: #d4d4d7;
+      font-size: 14px;
+      line-height: 21px;
+    }
+
+    .footer-brand .wordmark { color: var(--white); }
+    .footer-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 10px 30px;
+      align-content: start;
+      color: #e7e7e9;
+      font-size: 14px;
+    }
+
+    .footer-links a:hover { color: var(--red); }
+    .footer-legal { margin: 17px 0 0; color: #98989d; font-size: 12px; }
+
+    @media (max-width: 920px) {
+      .main-nav { display: none; }
+      .content-layout { grid-template-columns: 1fr; }
+      .side-rail { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 650px) {
+      .container { width: min(100% - 28px, 1180px); }
+      .header-main { min-height: 70px; }
+      .header-actions .online-select { display: none; }
+      .hero { margin-top: 14px; padding: 34px 0 38px; }
+      .hero__inner { display: block; }
+      .hero .button { margin-top: 25px; }
+      .form-card { padding: 22px 18px; }
+      .card-summary,
+      .field-row,
+      .receipt,
+      .side-rail { grid-template-columns: 1fr; }
+      .summary-item--wide { grid-column: auto; }
+      .footer-top { display: block; }
+      .footer-links { margin-top: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-main">
+      <a class="wordmark" href="#" aria-label="Westpac home">
+        <svg viewBox="0 0 69 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M24.0303 25.0896L17.3333 4.1147C16.447 0.903226 14.7727 0 12.4091 0H0C0.984848 0.401434 1.57576 2.91039 1.57576 2.91039L7.58333 23.9857C8.27273 26.595 10.4394 28 12.9015 28H26C25.0152 27.8996 24.0303 25.0896 24.0303 25.0896Z"/>
+          <path d="M44.9697 25.0896L51.6667 4.1147C52.553 0.903226 54.2273 0 56.5909 0H69C68.0152 0.401434 67.4242 2.91039 67.4242 2.91039L61.4167 23.9857C60.7273 26.595 58.5606 28 56.0985 28H43C43.9848 27.8996 44.9697 25.0896 44.9697 25.0896Z"/>
+          <path d="M42 0H27V28H42V0Z"/>
+        </svg>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#">Personal</a>
+        <a href="#">Business</a>
+        <a href="#">Corporate</a>
+        <a href="#">Help centre</a>
+      </nav>
+      <div class="header-actions">
+        <select class="online-select" aria-label="Online banking">
+          <option>Online Banking - Personal</option>
+        </select>
+        <button class="button button--primary" type="button">Sign in</button>
+        <span class="search-icon" aria-label="Search" role="img"></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero">
+      <div class="container hero__inner">
+        <div>
+          <p class="eyebrow">Cards &amp; transactions</p>
+          <h1>Dispute a transaction</h1>
+          <p>Tell us about a card transaction you do not recognise. We’ll review the details and keep you updated throughout the dispute process.</p>
+        </div>
+        <button class="button" type="button">View card support</button>
+      </div>
+    </section>
+  </div>
+
+  <main>
+    <div class="container content-layout">
+      <section class="card form-card">
+        <h2>Tell us about the transaction</h2>
+        <p class="intro">Complete the details below so our card disputes team can investigate your transaction.</p>
+
+        <div class="card-summary" aria-live="polite">
+          <div class="summary-item">
+            <span>Cardholder</span>
+            <strong id="summary-cardholder">Lachlan Pemberton</strong>
+          </div>
+          <div class="summary-item">
+            <span>Card account</span>
+            <strong id="summary-account">WBC-CC-4417-2280</strong>
+          </div>
+          <div class="summary-item">
+            <span>Card</span>
+            <strong id="summary-product">Altitude Black Mastercard</strong>
+          </div>
+          <div class="summary-item summary-item--wide">
+            <span>Card number</span>
+            <strong id="summary-card-number">5163 •••• •••• 8042</strong>
+          </div>
+          <div class="summary-item summary-item--credit">
+            <span>Available credit</span>
+            <strong id="summary-credit">$31,284.55</strong>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="card-account-number">Card account</label>
+          <select id="card-account-number" aria-label="Card account"></select>
+          <span class="field-hint">Select the card account that contains the transaction.</span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="dispute-reason">Why are you disputing this transaction?</label>
+            <select id="dispute-reason">
+              <option value="unauthorised" selected>Unauthorised transaction</option>
+              <option value="duplicate">Duplicate charge</option>
+              <option value="goods-not-received">Goods or services not received</option>
+              <option value="incorrect-amount">Incorrect amount charged</option>
+              <option value="subscription-not-cancelled">Subscription not cancelled</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="merchant-name">Merchant name</label>
+            <input id="merchant-name" type="text" value="LUMA TRAVEL SERVICES PTY LTD">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="transaction-date">Transaction date</label>
+            <input id="transaction-date" type="date" value="2026-09-18">
+          </div>
+          <div class="field">
+            <label class="field-label" for="transaction-amount">Transaction amount</label>
+            <input id="transaction-amount" type="number" min="0.01" step="0.01" value="2480.75">
+            <span class="field-hint">Enter the amount shown on your statement.</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="description">What happened?</label>
+          <textarea id="description">I did not authorise this charge. I have never used this merchant and my card has not left my wallet. I contacted the merchant on 20 September and they could not locate any booking in my name.</textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="contact-number">Best contact number</label>
+            <input id="contact-number" type="tel" value="0438 662 105">
+          </div>
+          <div class="field">
+            <label class="field-label" for="card-present">Was your card present?</label>
+            <select id="card-present">
+              <option value="false" selected>No</option>
+              <option value="true">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="check-row">
+          <input id="contacted-merchant" type="checkbox" checked>
+          <span>I have contacted the merchant about this transaction.</span>
+        </label>
+
+        <label class="check-row">
+          <input id="card-lost-or-stolen" type="checkbox">
+          <span>My card has been lost or stolen.</span>
+        </label>
+
+        <label class="check-row">
+          <input id="declaration" type="checkbox" checked>
+          <span>I declare that the information provided is true and correct to the best of my knowledge.</span>
+        </label>
+
+        <div class="notice">
+          <strong>Important notice</strong>
+          <p>Continue to monitor your account and contact us immediately if you see any other transactions you do not recognise.</p>
+        </div>
+
+        <div class="actions">
+          <button class="button button--primary" id="submit-dispute" type="button">Lodge dispute</button>
+          <button class="button" type="button">Save and continue later</button>
+        </div>
+
+        <div class="panel panel--error" id="dispute-error">
+          <h3>We couldn't lodge your dispute</h3>
+          <p>Your card account has not been changed. Review the details and try again.</p>
+          <pre class="technical" id="error-technical"></pre>
+        </div>
+
+        <div class="panel panel--success" id="dispute-success">
+          <h3>Dispute lodged successfully</h3>
+          <p id="success-copy"></p>
+          <ul class="receipt" id="success-receipt"></ul>
+        </div>
+      </section>
+
+      <aside class="side-rail">
+        <div class="side-card">
+          <h3>What happens next</h3>
+          <ol class="next-list">
+            <li>We review your transaction details and confirm the card account.</li>
+            <li>Our disputes team contacts you if we need more information.</li>
+            <li>We let you know the outcome of our investigation.</li>
+          </ol>
+        </div>
+        <div class="side-card side-card--notice">
+          <h3>Need help?</h3>
+          <p>Our card support team is here to help with disputed transactions.</p>
+          <strong class="help-number">132 032</strong>
+          <a class="side-link" href="#">Call Westpac card support</a>
+        </div>
+        <div class="side-card">
+          <h3>Lost or stolen card?</h3>
+          <p>If your card is missing, lock it in the Westpac app and contact us straight away.</p>
+          <a class="side-link" href="#">Report a lost or stolen card</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="wordmark" href="#" aria-label="Westpac home">
+            <svg viewBox="0 0 69 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24.0303 25.0896L17.3333 4.1147C16.447 0.903226 14.7727 0 12.4091 0H0C0.984848 0.401434 1.57576 2.91039 1.57576 2.91039L7.58333 23.9857C8.27273 26.595 10.4394 28 12.9015 28H26C25.0152 27.8996 24.0303 25.0896 24.0303 25.0896Z"/>
+              <path d="M44.9697 25.0896L51.6667 4.1147C52.553 0.903226 54.2273 0 56.5909 0H69C68.0152 0.401434 67.4242 2.91039 67.4242 2.91039L61.4167 23.9857C60.7273 26.595 58.5606 28 56.0985 28H43C43.9848 27.8996 44.9697 25.0896 44.9697 25.0896Z"/>
+              <path d="M42 0H27V28H42V0Z"/>
+            </svg>
+          </a>
+          <p>Westpac acknowledges the Traditional Custodians of the land on which we live and work. We pay our respects to Elders past, present and emerging.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#">About Westpac</a>
+          <a href="#">Contact us</a>
+          <a href="#">Privacy</a>
+          <a href="#">Accessibility</a>
+          <a href="#">Security</a>
+          <a href="#">Terms and conditions</a>
+        </div>
+      </div>
+      <p class="footer-legal">Westpac Banking Corporation ABN 33 007 457 141, AFSL and Australian credit licence 233714.</p>
+    </div>
+  </footer>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+  </script>
+  <script>
+    var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
+    var DEFAULT_CARD_ACCOUNT = 'WBC-CC-4417-2280';
+    var fallbackCards = [
+      {
+        cardAccountNumber: 'WBC-CC-4417-2280',
+        cardholderName: 'Lachlan Pemberton',
+        productLabel: 'Altitude Black Mastercard',
+        maskedCardNumber: '5163 •••• •••• 8042',
+        creditLimit: 45000,
+        availableCredit: 31284.55,
+      },
+      {
+        cardAccountNumber: 'WBC-CC-9902-1147',
+        cardholderName: 'Melina Farrugia',
+        productLabel: 'Low Rate Card',
+        maskedCardNumber: '4564 •••• •••• 3317',
+        creditLimit: 12000,
+        availableCredit: 8420.10,
+      },
+      {
+        cardAccountNumber: 'WBC-DB-2213-7788',
+        cardholderName: 'Tomas Nowak',
+        productLabel: 'Choice Debit Mastercard',
+        maskedCardNumber: '4176 •••• •••• 5590',
+        creditLimit: 0,
+        availableCredit: 4210.65,
+      },
+    ];
+    var cards = fallbackCards;
+
+    function money(value) {
+      return '$' + Number(value).toLocaleString('en-AU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function currentCard() {
+      var accountNumber = document.getElementById('card-account-number').value;
+      return cards.filter(function (card) {
+        return card.cardAccountNumber === accountNumber;
+      })[0];
+    }
+
+    function renderCardSummary() {
+      var card = currentCard();
+      if (!card) return;
+      document.getElementById('summary-cardholder').textContent = card.cardholderName;
+      document.getElementById('summary-account').textContent = card.cardAccountNumber;
+      document.getElementById('summary-product').textContent = card.productLabel;
+      document.getElementById('summary-card-number').textContent = card.maskedCardNumber;
+      document.getElementById('summary-credit').textContent = money(card.availableCredit);
+    }
+
+    function populateCards() {
+      var select = document.getElementById('card-account-number');
+      select.innerHTML = cards.map(function (card) {
+        return '<option value="' + card.cardAccountNumber + '">'
+          + card.cardAccountNumber + ' — ' + card.cardholderName + ' · ' + card.productLabel
+          + '</option>';
+      }).join('');
+      select.value = DEFAULT_CARD_ACCOUNT;
+      select.addEventListener('change', renderCardSummary);
+      renderCardSummary();
+    }
+
+    function hidePanels() {
+      document.getElementById('dispute-error').style.display = 'none';
+      document.getElementById('dispute-success').style.display = 'none';
+    }
+
+    function showError(payload) {
+      hidePanels();
+      document.getElementById('error-technical').textContent =
+        (payload.errorClass || 'Error') + ': ' + (payload.error || 'Unknown error')
+        + '\n' + (payload.code || 'DISPUTE_LODGEMENT_FAILED')
+        + ' · Reference ID: ' + (payload.requestId || 'unavailable');
+      document.getElementById('dispute-error').style.display = 'block';
+      document.getElementById('dispute-error').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function showSuccess(payload) {
+      hidePanels();
+      document.getElementById('success-copy').textContent =
+        'Your card dispute for ' + payload.cardholderName + ' has been lodged. '
+        + (payload.appliedAtText || '');
+      var rows = [
+        ['Dispute reference', payload.disputeReference],
+        ['Receipt number', payload.receiptNumber],
+        ['Scheme', payload.scheme],
+        ['Provisional credit', money(payload.provisionalCreditAmount)],
+        ['Estimated outcome', payload.estimatedOutcomeDate],
+        ['Investigation days', payload.investigationDays],
+        ['Within chargeback window', payload.withinChargebackWindow ? 'Yes' : 'No'],
+        ['Dispute queue', payload.disputeQueue],
+      ].filter(function (row) { return row[1] != null; });
+      document.getElementById('success-receipt').innerHTML = rows.map(function (row) {
+        return '<li><span>' + row[0] + '</span><strong>' + row[1] + '</strong></li>';
+      }).join('');
+      document.getElementById('dispute-success').style.display = 'block';
+      document.getElementById('dispute-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    fetch('/api/westpac/cards')
+      .then(function (response) {
+        if (!response.ok) throw new Error('Card service unavailable');
+        return response.json();
+      })
+      .then(function (data) {
+        if (Array.isArray(data.cards) && data.cards.length) cards = data.cards;
+        populateCards();
+      })
+      .catch(function () {
+        populateCards();
+      });
+
+    document.getElementById('submit-dispute').addEventListener('click', async function () {
+      var button = this;
+      if (button._running) return;
+      button._running = true;
+      var original = button.textContent;
+      button.textContent = 'Lodging…';
+      button.disabled = true;
+      hidePanels();
+
+      await identityReady;
+
+      fetch('/api/westpac/dispute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cardAccountNumber: document.getElementById('card-account-number').value,
+          disputeReason: document.getElementById('dispute-reason').value,
+          merchantName: document.getElementById('merchant-name').value,
+          transactionDate: document.getElementById('transaction-date').value,
+          transactionAmount: Number(document.getElementById('transaction-amount').value),
+          cardPresent: document.getElementById('card-present').value === 'true',
+          contactedMerchant: document.getElementById('contacted-merchant').checked,
+          cardLostOrStolen: document.getElementById('card-lost-or-stolen').checked,
+          contactNumber: document.getElementById('contact-number').value,
+          description: document.getElementById('description').value,
+          declaration: document.getElementById('declaration').checked,
+          channel: 'web',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+          devinEmail: localStorage.getItem('devinEmail') || '',
+        }),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) {
+            return { ok: response.ok, body: body };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok || result.body.error) showError(result.body);
+          else showSuccess(result.body);
+        })
+        .catch(function (error) {
+          showError({ errorClass: 'NetworkError', error: error.message });
+        })
+        .finally(function () {
+          button.textContent = original;
+          button.disabled = false;
+          button._running = false;
+        });
+    });
+
+    populateCards();
+  </script>
+</body>
+</html>
