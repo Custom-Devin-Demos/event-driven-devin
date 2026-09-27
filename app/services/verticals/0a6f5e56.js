@@ -299,9 +299,10 @@ function commitBatch(batch, events, run) {
   run.unitsReporting = new Set(events.map((e) => e.unitId)).size;
   ingestState.messagesToday += events.length;
   ingestState.lastSuccessfulBatchAt = writtenAt;
-  ingestState.lastBatchId = batch.batchId;
   const lastSeq = batch.messages[batch.messages.length - 1].header.seq;
-  if (ingestState.lastSeq === null || lastSeq > ingestState.lastSeq) ingestState.lastSeq = lastSeq;
+  ingestState.lastBatchId = batch.batchId;
+  ingestState.lastBatchSeq = lastSeq;
+  if (ingestState.highWaterSeq === null || lastSeq > ingestState.highWaterSeq) ingestState.highWaterSeq = lastSeq;
 }
 
 function markDegraded(batch, error, failedAt) {
@@ -602,7 +603,8 @@ function seedStore() {
     failedBatches: 0,
     lastSuccessfulBatchAt: null,
     lastBatchId: null,
-    lastSeq: null,
+    lastBatchSeq: null,
+    highWaterSeq: null,
     lastFailureAt: null,
     lastError: null,
   };
