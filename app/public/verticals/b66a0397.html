@@ -168,6 +168,8 @@
       letter-spacing: normal; text-transform: none;
     }
     .form-group .ship-option input { width: auto; padding: 0; margin: 0; accent-color: var(--dsg-green); }
+    .receipt-lines { list-style: none; margin: 0.75rem 0 0; padding: 0.6rem 0 0; border-top: 1px solid var(--border-light); font-size: 0.82rem; }
+    .receipt-lines li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.15rem 0; }
     .ship-option .price { margin-left: auto; font-weight: 700; }
 
     /* ── Summary ── */
@@ -489,6 +491,11 @@
         gwp.innerHTML = 'Spend <strong>' + money(GWP_THRESHOLD - sub) + '</strong> more to unlock a free DSG Team Duffel.';
       }
       document.getElementById('placeOrderBtn').disabled = CART.length === 0;
+      var resultBox = document.getElementById('resultBox');
+      if (!submitting && resultBox.classList.contains('success')) {
+        resultBox.className = 'result-box';
+        resultBox.innerHTML = '';
+      }
     }
 
     var submitting = false;
@@ -551,7 +558,11 @@
             '<h3>Thanks, Taylor! Your order is confirmed.</h3>' +
             '<p>Order <strong>#' + escapeHtml(d.orderId) + '</strong><br>' +
             'Total: ' + money(d.total) + ' (incl. ' + money(d.tax) + ' tax)<br>' +
-            escapeHtml(d.scorecard.tier) + ': +' + d.scorecard.pointsEarned.toLocaleString() + ' points</p>';
+            escapeHtml(d.scorecard.tier) + ': +' + d.scorecard.pointsEarned.toLocaleString() + ' points</p>' +
+            '<ul class="receipt-lines">' + (d.receipt || []).map(function (line) {
+              return '<li><span>' + escapeHtml(line.name) + ' &times; ' + line.qty + '</span><span>' +
+                (line.lineTotal === 0 ? 'FREE' : money(line.lineTotal)) + '</span></li>';
+            }).join('') + '</ul>';
         }
         setCheckoutLocked(false);
         btn.style.display = 'block';
@@ -572,6 +583,16 @@
 
     renderCart();
     renderSummary();
+    fetch('/api/b66a0397/catalog')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var prices = {};
+        (data.products || []).forEach(function (p) { prices[p.id] = p.price; });
+        CART.forEach(function (item) { if (typeof prices[item.sku] === 'number') item.price = prices[item.sku]; });
+        renderCart();
+        renderSummary();
+      })
+      .catch(function () {});
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>
