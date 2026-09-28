@@ -344,7 +344,7 @@
                 <div class="ship-options">
                   <label class="ship-option"><input type="radio" name="ship" value="standard" checked onchange="renderSummary()"> Standard Shipping (5&ndash;7 business days) <span class="price" id="stdPrice">FREE</span></label>
                   <label class="ship-option"><input type="radio" name="ship" value="express" onchange="renderSummary()"> Express Shipping (2 business days) <span class="price">$19.99</span></label>
-                  <label class="ship-option"><input type="radio" name="ship" value="pickup" onchange="renderSummary()"> Free Store Pickup &mdash; Robinson Township, PA <span class="price">FREE</span></label>
+                  <label class="ship-option"><input type="radio" name="ship" value="pickup" onchange="renderSummary()"> Free Store Pickup &mdash; nearest store <span class="price">FREE</span></label>
                 </div>
               </div>
               <div class="form-row" style="margin-bottom:0;">
@@ -456,7 +456,7 @@
             '<div class="item-variant">' + escapeHtml(item.variant) + '</div>' +
             '<div class="item-sku">' + item.sku + '</div>' +
             '<div class="item-fulfill">&#10003; In stock &mdash; ships to home</div>' +
-            '<div class="item-actions"><button type="button" class="link-btn" onclick="removeItem(' + idx + ')">Remove</button><button type="button" class="link-btn">Save for Later</button></div>' +
+            '<div class="item-actions"><button type="button" class="link-btn" onclick="removeItem(' + idx + ')">Remove</button></div>' +
           '</div>' +
           '<div class="item-meta">' +
             '<div class="item-price">' + money(item.price * item.qty) + '</div>' +
@@ -470,13 +470,13 @@
       var sub = subtotal();
       var method = shipMethod();
       var shipping = method === 'express' ? 19.99 : (method === 'standard' && sub < 65 ? 8.99 : 0);
-      var tax = sub * TAX[document.getElementById('stateSelect').value];
+      var tax = cents(sub * TAX[document.getElementById('stateSelect').value]);
       var gold = document.getElementById('tierSelect').value === 'gold';
       document.getElementById('stdPrice').textContent = sub >= 65 ? 'FREE' : '$8.99';
       document.getElementById('sumSubtotal').textContent = money(sub);
       document.getElementById('sumShipping').textContent = shipping === 0 ? 'FREE' : money(shipping);
       document.getElementById('sumTax').textContent = money(tax);
-      document.getElementById('sumTotal').textContent = money(sub + shipping + tax);
+      document.getElementById('sumTotal').textContent = money(cents(cents(sub) + tax + shipping));
       document.getElementById('pointsLine').textContent = 'Earn ' + Math.floor(sub * (gold ? 1.5 : 1)).toLocaleString() + ' ScoreCard points with this order';
       document.getElementById('tierBadge').textContent = gold ? 'Gold' : 'Member';
       document.getElementById('tierText').textContent = (gold ? 'ScoreCard Gold' : 'ScoreCard') + ' \u00B7 1,840 points';
@@ -491,12 +491,19 @@
       document.getElementById('placeOrderBtn').disabled = CART.length === 0;
     }
 
-    function removeItem(idx) { CART.splice(idx, 1); renderCart(); renderSummary(); }
-    function setQty(idx, value) { CART[idx].qty = parseInt(value, 10); renderCart(); renderSummary(); }
+    var submitting = false;
+    function cents(v) { return Math.round(v * 100) / 100; }
+    function removeItem(idx) { if (submitting) return; CART.splice(idx, 1); renderCart(); renderSummary(); }
+    function setQty(idx, value) { if (submitting) return; CART[idx].qty = parseInt(value, 10); renderCart(); renderSummary(); }
+    function setCheckoutLocked(locked) {
+      submitting = locked;
+      document.querySelectorAll('#cartItems select, #cartItems button, #stateSelect, #tierSelect, input[name="ship"]')
+        .forEach(function (el) { el.disabled = locked; });
+    }
 
     function submitOrder(e) {
       e.preventDefault();
-      if (CART.length === 0) return;
+      if (CART.length === 0 || submitting) return;
       var btn = document.getElementById('placeOrderBtn');
       var processing = document.getElementById('processingIndicator');
       var resultBox = document.getElementById('resultBox');
@@ -505,6 +512,7 @@
       btn.disabled = true;
       btn.style.display = 'none';
       processing.classList.add('visible');
+      setCheckoutLocked(true);
 
       fetch('/api/b66a0397/checkout', {
         method: 'POST',
@@ -545,6 +553,7 @@
             'Total: ' + money(d.total) + ' (incl. ' + money(d.tax) + ' tax)<br>' +
             escapeHtml(d.scorecard.tier) + ': +' + d.scorecard.pointsEarned.toLocaleString() + ' points</p>';
         }
+        setCheckoutLocked(false);
         btn.style.display = 'block';
         btn.disabled = CART.length === 0;
       })
@@ -555,6 +564,7 @@
           '<h3>Network Error</h3>' +
           '<p>Unable to reach the server.<br><br><code>' + escapeHtml(err.message) + '</code></p>' +
           '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        setCheckoutLocked(false);
         btn.style.display = 'block';
         btn.disabled = CART.length === 0;
       });

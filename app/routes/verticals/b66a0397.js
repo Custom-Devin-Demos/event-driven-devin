@@ -9,6 +9,7 @@ const {
 } = require('../../services/verticals/b66a0397');
 
 const router = express.Router();
+const MAX_CART_LINES = 20;
 
 function badRequest(res, error) {
   return res.status(400).json({ success: false, error, errorClass: 'ValidationError', code: 'VALIDATION_ERROR' });
@@ -26,6 +27,7 @@ router.post('/api/b66a0397/checkout', async (req, res) => {
   const scorecardTier = typeof body.scorecardTier === 'string' ? body.scorecardTier : 'gold';
 
   if (rawItems.length === 0) return badRequest(res, 'Your cart is empty');
+  if (rawItems.length > MAX_CART_LINES) return badRequest(res, `Cart cannot exceed ${MAX_CART_LINES} items`);
   if (!Object.hasOwn(STATE_TAX, state)) return badRequest(res, `Unsupported ship-to state: ${state}`);
   if (!Object.hasOwn(SHIPPING_METHODS, shippingMethod)) return badRequest(res, `Unknown shipping method: ${shippingMethod}`);
   if (!Object.hasOwn(SCORECARD_TIERS, scorecardTier)) return badRequest(res, `Unknown ScoreCard tier: ${scorecardTier}`);

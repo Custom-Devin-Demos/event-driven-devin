@@ -81,13 +81,14 @@ function computeShipping(method, subtotal) {
  * Computes the order totals.
  */
 function computeOrderTotal(subtotal, state, shippingMethod) {
-  const tax = subtotal * STATE_TAX[state].rate;
-  const shipping = computeShipping(shippingMethod, subtotal);
+  const roundedSubtotal = roundCents(subtotal);
+  const tax = roundCents(subtotal * STATE_TAX[state].rate);
+  const shipping = roundCents(computeShipping(shippingMethod, subtotal));
   return {
-    subtotal: roundCents(subtotal),
-    tax: roundCents(tax),
-    shipping: roundCents(shipping),
-    total: roundCents(subtotal + tax + shipping),
+    subtotal: roundedSubtotal,
+    tax,
+    shipping,
+    total: roundCents(roundedSubtotal + tax + shipping),
     currency: 'USD',
   };
 }
@@ -119,7 +120,7 @@ function formatReceipt(allItems) {
  */
 async function processCheckout(orderData) {
   const startTime = Date.now();
-  const orderId = `DSG${Date.now().toString().slice(-9)}`;
+  const orderId = `DSG-${uuidv4().slice(0, 13).toUpperCase()}`;
   const requestId = uuidv4();
 
   logger.info("Processing DICK'S checkout", {
