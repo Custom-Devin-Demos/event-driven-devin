@@ -128,7 +128,7 @@ Behaviour:
 - Frames are captured from the screen area of the app window on a capture thread
   (like a real RDP host capturing the desktop), so while the app's UI thread is
   blocked in a synchronous RFC call the handheld keeps seeing the last painted
-  screen ("Please wait…").
+  screen ("Please wait...").
 - Input is queued and dispatched onto the WinForms UI thread (`BeginInvoke`); keystrokes
   sent while the app is busy are processed when the UI thread frees up.
 - Every outbound message and every inbound input is delayed by
