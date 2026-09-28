@@ -170,8 +170,14 @@ public static class Rfc
     {
         var lgnum = c.Str("I_LGNUM");
         var p = FindPallet(c, c.Str("I_VLENR"));
-        if (p.Lgnum != lgnum || p.Lgpla != c.Str("I_VLPLA"))
-            throw new AbapException("SU_NOT_IN_SOURCE_BIN", $"Storage unit {p.Exidv} is not in bin {c.Str("I_VLPLA")}");
+        var vlpla = c.Str("I_VLPLA");
+        void RequireInSource()
+        {
+            if (p.Lgnum != lgnum || p.Lgpla != vlpla)
+                throw new AbapException("SU_NOT_IN_SOURCE_BIN", $"Storage unit {p.Exidv} is not in bin {vlpla}");
+        }
+        RequireInSource();
+        c.Session.Checks.Add(RequireInSource);
         if (p.Status != "CLOSED") throw new AbapException("SU_NOT_CLOSED", $"Storage unit {p.Exidv} is still open for packing");
         var dest = c.S.FindBin(lgnum, c.Str("I_NLPLA")) ?? throw new AbapException("BIN_NOT_FOUND", $"Storage bin {lgnum} {c.Str("I_NLPLA")} does not exist");
         if (dest.Lgtyp != c.Str("I_NLTYP")) throw new AbapException("WRONG_STORAGE_TYPE", $"Bin {dest.Lgpla} is not in storage type {c.Str("I_NLTYP")}");
@@ -207,6 +213,10 @@ public static class Rfc
         var sl = c.S.Slocs.FirstOrDefault(s => s.Werks == werks && s.Lgort == h["STGE_LOC"]?.ToString());
         if (sl is null) return r.Ret("E", "HUGENERAL", "070", $"Storage location {h["STGE_LOC"]} not defined in plant {werks}");
         var pallet = new Pallet { Exidv = exidv, Werks = werks, Lgnum = c.S.Plants[werks].Lgnum, Lgort = sl.Lgort, Lgtyp = sl.Lgtyp, Lgpla = sl.StagingBin, Status = "OPEN", CreatedBy = c.Session.User, CreatedOn = DateTime.Today };
+        c.Session.Checks.Add(() =>
+        {
+            if (c.S.Pallets.ContainsKey(exidv)) throw new AbapException("HU_EXISTS", $"Handling unit {exidv} already exists");
+        });
         c.Session.Pending.Add(() => c.S.Pallets[exidv] = pallet);
         r.Exports["HUKEY"] = exidv;
         r.Exports["HUHEADER"] = Header(pallet);
@@ -219,8 +229,14 @@ public static class Rfc
         if (p.Status != "OPEN") throw new AbapException("PALLET_CLOSED", $"Pallet {p.Exidv} is closed");
         var bc = c.Str("IV_CASE_BARCODE");
         var cs = c.S.Cases.GetValueOrDefault(bc) ?? throw new AbapException("CASE_NOT_FOUND", $"Case label {bc} not found in production records");
-        if (c.S.Pallets.Values.Any(x => x.Items.Any(i => i.CaseBarcode == bc)))
-            throw new AbapException("CASE_ALREADY_PACKED", $"Case {bc} is already packed on a pallet");
+        void RequirePackable()
+        {
+            if (p.Status != "OPEN") throw new AbapException("PALLET_CLOSED", $"Pallet {p.Exidv} is closed");
+            if (c.S.Pallets.Values.Any(x => x.Items.Any(i => i.CaseBarcode == bc)))
+                throw new AbapException("CASE_ALREADY_PACKED", $"Case {bc} is already packed on a pallet");
+        }
+        RequirePackable();
+        c.Session.Checks.Add(RequirePackable);
         var m = c.S.Materials[cs.Matnr];
         RequireStorCond(c, cs.Matnr, p.Lgtyp);
         c.Session.Pending.Add(() => p.Items.Add(new PalletItem { Matnr = cs.Matnr, Charg = cs.Charg, Qty = cs.Qty, Uom = m.BaseUom, CaseBarcode = bc }));
