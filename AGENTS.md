@@ -820,8 +820,7 @@ per-package friction.
 
 ## Legacy RF handheld stack (`stacks/51d7cf9e`)
 
-A self-contained, pre-migration warehouse RF environment used for a
-modernization demo: a .NET Framework 4.8 WinForms RF app
+A self-contained legacy warehouse RF environment used for a demo: a .NET Framework 4.8 WinForms RF app
 (`legacy-windows`), a separate remote-session host that stands in for RDP
 (`rdp-sim`), a Kotlin Android thin client that only views the remote session
 (`android-rf-client`) and a .NET 8 SAP RFC mock with fictional seeded
