@@ -15,13 +15,13 @@ pkill -f "SapMock" 2>/dev/null || true
 "$DOTNET" build -c Release "$STACK/rdp-sim/RdpSim.csproj" -v q -nologo
 "$DOTNET" build -c Release "$STACK/legacy-windows/EimRf.csproj" -v q -nologo
 
-(cd "$STACK" && nohup "$DOTNET" sap-mock/bin/Release/net8.0/SapMock.dll --urls http://0.0.0.0:8400 \
-    > "$STACK/sap-mock.log" 2>&1 &)
+(cd "$STACK" && exec nohup "$DOTNET" sap-mock/bin/Release/net8.0/SapMock.dll --urls http://0.0.0.0:8400 \
+    > "$STACK/sap-mock.log" 2>&1 < /dev/null) &
 for _ in $(seq 60); do curl -sf localhost:8400/health >/dev/null && break; sleep 1; done
 curl -sf localhost:8400/health >/dev/null || { echo "sap-mock not healthy, see $STACK/sap-mock.log"; exit 1; }
 
-(cd "$BIN" && nohup xvfb-run -a -s "-screen 0 1024x768x24" mono EimRf.exe /rdpsim \
-    > "$STACK/eimrf.log" 2>&1 &)
+(cd "$BIN" && exec nohup xvfb-run -a -s "-screen 0 1024x768x24" mono EimRf.exe /rdpsim \
+    > "$STACK/eimrf.log" 2>&1 < /dev/null) &
 for _ in $(seq 30); do ss -ltn | grep -q ':3390 ' && break; sleep 1; done
 ss -ltn | grep -q ':3390 ' || { echo "rdp-sim not listening, see $STACK/eimrf.log"; exit 1; }
 
