@@ -51,6 +51,7 @@ router.post('/api/b66a0397/checkout', async (req, res) => {
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
+      requestId: req.requestId,
     });
     return res.json(result);
   } catch (error) {

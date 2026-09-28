@@ -121,7 +121,7 @@ function formatReceipt(allItems) {
 async function processCheckout(orderData) {
   const startTime = Date.now();
   const orderId = `DSG-${uuidv4().slice(0, 13).toUpperCase()}`;
-  const requestId = uuidv4();
+  const requestId = orderData.requestId || uuidv4();
 
   logger.info("Processing DICK'S checkout", {
     orderId,
