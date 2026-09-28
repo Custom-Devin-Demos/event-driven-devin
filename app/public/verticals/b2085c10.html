@@ -399,6 +399,7 @@
     e.preventDefault();
     btn.disabled = true;
     btn.textContent = 'Resuming\u2026';
+    var blockedOn = AGENTS.filter(function (x) { return x.status === 'blocked'; }).map(function (x) { return x.id; })[0];
     setWave('W3', 'running');
     setAgent('orchestrator', 'running', 'Dispatching wave 3 \u00b7 EDW_PRC');
     addFeed('orchestrator', 'Resuming wave 3 (EDW_PRC) \u2014 dispatching schema-mapper-03 and data-validator-01 across 3 tables.', { fresh: true });
@@ -430,11 +431,11 @@
           return;
         }
         if (data.code !== 'AGENT_INPUT_REQUIRED') {
-          setWave('W3', 'checkpoint');
-          setAgent('orchestrator', 'running', 'Coordinating waves 3\u20134 \u00b7 CP-3.4 hold');
-          addFeed('orchestrator', 'Resume request failed: ' + (data.error || 'request rejected') + '. Wave 3 remains at checkpoint CP-3.4.', { fresh: true, warn: true });
+          setWave('W3', blockedOn ? 'blocked' : 'checkpoint');
+          setAgent('orchestrator', 'running', blockedOn ? 'Wave 3 paused \u00b7 waiting on ' + blockedOn : 'Coordinating waves 3\u20134 \u00b7 CP-3.4 hold');
+          addFeed('orchestrator', 'Resume request failed: ' + (data.error || 'request rejected') + '. Wave 3 remains ' + (blockedOn ? 'paused on ' + blockedOn : 'at checkpoint CP-3.4') + '.', { fresh: true, warn: true });
           showToast('Resume failed', data.error || 'The orchestrator rejected the request.');
-          btn.textContent = 'Resume wave 3';
+          btn.textContent = blockedOn ? 'Retry wave 3' : 'Resume wave 3';
           return;
         }
         var agent = data.agent || 'orchestrator';
