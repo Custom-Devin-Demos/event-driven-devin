@@ -17,10 +17,11 @@ function validationError(res, req, message) {
 
 router.post('/api/1b17e823/checkout', async (req, res) => {
   const body = req.body || {};
-  if (body.items !== undefined && (!Array.isArray(body.items) || !body.items.length)) {
+  const hasItems = Object.hasOwn(body, 'items');
+  if (hasItems && (!Array.isArray(body.items) || !body.items.length)) {
     return validationError(res, req, 'Cart must contain at least one item');
   }
-  const requested = body.items
+  const requested = hasItems
     ? body.items
     : [{ sku: '24NIKMPGSS41RDXXXRNN', qty: 1 }, { sku: '20SPAUTF1000LGCYBSKB', qty: 1 }];
 
