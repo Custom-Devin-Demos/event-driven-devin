@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dealer Service DW · SMU_WORKORDER_DAILY_LOAD | Caterpillar Data Operations</title>
+  <link rel="icon" href="/verticals/assets/a70e8270/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --v-yellow: #FFCD11;
+      --v-yellow-dark: #E0B400;
+      --v-black: #000000;
+      --v-ink: #1A1A1A;
+      --v-gray-900: #2B2B2B;
+      --v-gray-700: #4A4A4A;
+      --v-gray-500: #6E6E6E;
+      --v-gray-300: #C9C9C9;
+      --v-gray-200: #E1E1E1;
+      --v-gray-100: #F3F3F3;
+      --v-white: #FFFFFF;
+      --v-ok: #2E7D32;
+      --v-ok-bg: #E8F3E9;
+      --v-warn: #B26A00;
+      --v-warn-bg: #FFF3DC;
+      --v-bad: #C62828;
+      --v-bad-bg: #FBE9E9;
+      --v-blocked: #7A5C00;
+      --v-blocked-bg: #FFF7D6;
+      --v-mono: 'Roboto Mono', Menlo, Consolas, monospace;
+      --v-cond: 'Roboto Condensed', 'Roboto', Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: var(--v-ink); background: var(--v-gray-100); line-height: 1.45; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; }
+
+    /* utility bar */
+    .util { background: var(--v-black); color: #D8D8D8; font-size: 12px; }
+    .util .in { max-width: 1440px; margin: 0 auto; padding: 0 28px; height: 32px; display: flex; align-items: center; justify-content: space-between; }
+    .util a { color: #D8D8D8; margin-left: 20px; }
+    .util a:hover { color: var(--v-yellow); }
+    .util .env { display: inline-flex; align-items: center; gap: 8px; }
+    .util .env b { color: var(--v-yellow); font-weight: 700; letter-spacing: .04em; }
+    .util .back { opacity: .55; font-size: 11px; }
+
+    /* header */
+    header { background: var(--v-white); border-bottom: 4px solid var(--v-yellow); position: sticky; top: 0; z-index: 20; }
+    header .in { max-width: 1440px; margin: 0 auto; padding: 0 28px; height: 68px; display: flex; align-items: center; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 18px; }
+    .brand img { height: 22px; display: block; }
+    .brand .div { width: 1px; height: 34px; background: var(--v-gray-300); }
+    .brand .product { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand .product b { font-family: var(--v-cond); font-size: 17px; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+    .brand .product span { font-size: 11px; color: var(--v-gray-500); text-transform: uppercase; letter-spacing: .08em; margin-top: 3px; }
+    nav.top { margin-left: auto; display: flex; gap: 2px; height: 100%; }
+    nav.top a { display: flex; align-items: center; padding: 0 16px; font-family: var(--v-cond); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--v-gray-700); border-bottom: 4px solid transparent; margin-bottom: -4px; }
+    nav.top a.on { color: var(--v-black); border-bottom-color: var(--v-black); }
+    nav.top a:hover { color: var(--v-black); }
+    .who { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--v-gray-700); padding-left: 20px; border-left: 1px solid var(--v-gray-200); height: 40px; }
+    .who .av { width: 30px; height: 30px; border-radius: 50%; background: var(--v-yellow); color: var(--v-black); font-weight: 700; display: grid; place-items: center; font-size: 12px; }
+
+    /* title band */
+    .band { background: var(--v-ink); color: var(--v-white); }
+    .band .in { max-width: 1440px; margin: 0 auto; padding: 22px 28px 20px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; align-items: end; }
+    .crumbs { font-size: 12px; color: #A9A9A9; margin-bottom: 8px; }
+    .crumbs span { color: var(--v-yellow); }
+    .band h1 { font-family: var(--v-cond); font-size: 30px; font-weight: 700; text-transform: uppercase; letter-spacing: .01em; line-height: 1.05; }
+    .band h1 small { display: block; font-family: var(--v-mono); font-size: 14px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--v-yellow); margin-top: 6px; }
+    .band p { color: #C8C8C8; margin-top: 10px; font-size: 13px; max-width: 640px; }
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #3a3a3a; border: 1px solid #3a3a3a; }
+    .kpi { background: var(--v-gray-900); padding: 12px 14px; }
+    .kpi .l { font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: #A9A9A9; }
+    .kpi .v { font-family: var(--v-cond); font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1; }
+    .kpi .s { font-size: 11px; color: #A9A9A9; margin-top: 5px; }
+    .kpi .v.ok { color: #8BD68F; }
+    .kpi .v.bad { color: #FF8A80; }
+    .kpi .v.warn { color: var(--v-yellow); }
+
+    /* status strip */
+    .strip { background: var(--v-white); border-bottom: 1px solid var(--v-gray-200); }
+    .strip .in { max-width: 1440px; margin: 0 auto; padding: 10px 28px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .pill { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 3px; background: var(--v-gray-100); color: var(--v-gray-700); }
+    .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--v-gray-300); display: inline-block; }
+    .pill.ok { background: var(--v-ok-bg); color: var(--v-ok); } .pill.ok i { background: var(--v-ok); }
+    .pill.bad { background: var(--v-bad-bg); color: var(--v-bad); } .pill.bad i { background: var(--v-bad); }
+    .pill.warn { background: var(--v-warn-bg); color: var(--v-warn); } .pill.warn i { background: var(--v-warn); }
+    .pill.blocked { background: var(--v-blocked-bg); color: var(--v-blocked); } .pill.blocked i { background: var(--v-blocked); }
+    .strip .meta { font-size: 12px; color: var(--v-gray-500); }
+    .strip .meta code { font-family: var(--v-mono); color: var(--v-ink); }
+    .actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .btn { border: 0; cursor: pointer; font-family: var(--v-cond); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: 14px; padding: 11px 20px; background: var(--v-yellow); color: var(--v-black); border-radius: 2px; display: inline-flex; align-items: center; gap: 10px; transition: background .12s; }
+    .btn:hover { background: var(--v-yellow-dark); }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .btn .spin { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,.25); border-top-color: var(--v-black); border-radius: 50%; display: none; animation: rot .8s linear infinite; }
+    .btn.busy .spin { display: inline-block; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+    .reset { display: none; background: none; border: 1px solid var(--v-gray-300); color: var(--v-gray-500); border-radius: 3px; font-size: 11px; padding: 4px 9px; cursor: pointer; }
+    .reset:hover { color: var(--v-ink); border-color: var(--v-ink); }
+    body.degraded .reset { display: inline-block; }
+
+    /* layout */
+    main { max-width: 1440px; margin: 0 auto; padding: 22px 28px 60px; }
+    .grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; }
+    .card { background: var(--v-white); border: 1px solid var(--v-gray-200); border-radius: 3px; }
+    .card h2 { font-family: var(--v-cond); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 12px 16px; border-bottom: 1px solid var(--v-gray-200); display: flex; align-items: center; justify-content: space-between; }
+    .card h2 small { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--v-gray-500); }
+    .card .body { padding: 14px 16px; }
+    .stack { display: grid; gap: 20px; }
+
+    /* job chain */
+    .chain { display: grid; gap: 10px; }
+    .job { display: grid; grid-template-columns: 26px 1fr auto; gap: 12px; align-items: start; padding: 12px 14px; border: 1px solid var(--v-gray-200); border-left: 4px solid var(--v-gray-300); border-radius: 3px; background: var(--v-white); }
+    .job.success { border-left-color: var(--v-ok); }
+    .job.ready, .job.scheduled { border-left-color: var(--v-yellow); }
+    .job.running { border-left-color: var(--v-gray-700); }
+    .job.failed { border-left-color: var(--v-bad); background: #FFF8F8; }
+    .job.blocked { border-left-color: var(--v-blocked); background: #FFFCF0; }
+    .job .n { font-family: var(--v-mono); font-size: 12px; color: var(--v-gray-500); padding-top: 2px; }
+    .job .name { font-family: var(--v-mono); font-size: 13px; font-weight: 500; }
+    .job .d { font-size: 12px; color: var(--v-gray-500); margin-top: 3px; }
+    .job .d code { font-family: var(--v-mono); font-size: 11px; }
+    .job .err { font-family: var(--v-mono); font-size: 11.5px; color: var(--v-bad); margin-top: 6px; background: var(--v-bad-bg); padding: 6px 8px; border-radius: 2px; word-break: break-word; }
+    .job .blk { font-size: 11.5px; color: var(--v-blocked); margin-top: 6px; }
+    .job .r { text-align: right; font-size: 11.5px; color: var(--v-gray-500); white-space: nowrap; }
+
+    /* tables */
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--v-gray-500); font-weight: 500; padding: 8px 10px; border-bottom: 2px solid var(--v-gray-200); background: #FAFAFA; white-space: nowrap; }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--v-gray-100); vertical-align: middle; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td code, .mono { font-family: var(--v-mono); font-size: 12px; }
+    .tag { display: inline-block; font-size: 10.5px; font-weight: 500; padding: 2px 7px; border-radius: 2px; background: var(--v-gray-100); color: var(--v-gray-700); text-transform: uppercase; letter-spacing: .04em; }
+    .tag.ok { background: var(--v-ok-bg); color: var(--v-ok); }
+    .tag.bad { background: var(--v-bad-bg); color: var(--v-bad); }
+    .tag.warn { background: var(--v-warn-bg); color: var(--v-warn); }
+    .tag.blocked { background: var(--v-blocked-bg); color: var(--v-blocked); }
+    .tag.new { background: var(--v-yellow); color: var(--v-black); }
+    .tag.cva { background: #E3EEF9; color: #1F4E79; }
+    .scroll { max-height: 420px; overflow: auto; }
+    .tbl-wrap { overflow-x: auto; }
+
+    /* systems */
+    .sys { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .sys .box { border: 1px solid var(--v-gray-200); border-radius: 3px; }
+    .sys .box h3 { font-size: 12px; font-weight: 500; padding: 9px 12px; background: #FAFAFA; border-bottom: 1px solid var(--v-gray-200); display: flex; justify-content: space-between; }
+    .sys .box h3 span { color: var(--v-gray-500); font-weight: 400; }
+    .sys .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--v-gray-100); font-size: 12px; }
+    .sys .row:last-child { border-bottom: 0; }
+    .sys .row code { font-family: var(--v-mono); font-size: 11.5px; }
+    .sys .row > span:last-child { white-space: nowrap; margin-left: 8px; }
+    .sys .row .m { color: var(--v-gray-500); font-size: 11px; margin-left: 10px; }
+
+    .models { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+    .model { border: 1px solid var(--v-gray-200); border-top: 3px solid var(--v-yellow); border-radius: 3px; padding: 10px 12px; }
+    .model b { font-family: var(--v-cond); font-size: 20px; display: block; }
+    .model span { font-size: 11px; color: var(--v-gray-500); display: block; }
+
+    .empty { color: var(--v-gray-500); font-size: 12.5px; padding: 12px 0; }
+    .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--v-gray-200); background: var(--v-white); border: 1px solid var(--v-gray-200); border-bottom: 0; border-radius: 3px 3px 0 0; }
+    .tabs button { background: none; border: 0; padding: 12px 16px; font-family: var(--v-cond); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--v-gray-500); cursor: pointer; border-bottom: 3px solid transparent; }
+    .tabs button.on { color: var(--v-black); border-bottom-color: var(--v-yellow); }
+    .panel { display: none; } .panel.on { display: block; }
+    .card.tabbed { border-radius: 0 0 3px 3px; border-top: 0; }
+
+    footer { border-top: 1px solid var(--v-gray-200); background: var(--v-white); }
+    footer .in { max-width: 1440px; margin: 0 auto; padding: 16px 28px; display: flex; justify-content: space-between; font-size: 11px; color: var(--v-gray-500); }
+
+    /* toast */
+    .toast { position: fixed; right: 22px; bottom: 22px; width: 400px; background: var(--v-white); border: 1px solid var(--v-gray-200); border-left: 5px solid var(--v-gray-500); border-radius: 3px; box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 12px 16px 12px 14px; z-index: 50; transform: translateY(16px); opacity: 0; pointer-events: none; transition: all .18s ease; }
+    .toast.show { transform: none; opacity: 1; pointer-events: auto; }
+    .toast.error { border-left-color: var(--v-bad); }
+    .toast.success { border-left-color: var(--v-ok); }
+    .toast b { display: block; font-size: 13px; }
+    .toast p { font-family: var(--v-mono); font-size: 11.5px; color: var(--v-gray-700); margin-top: 5px; word-break: break-word; }
+    .toast .x { position: absolute; top: 6px; right: 8px; border: 0; background: none; color: var(--v-gray-500); font-size: 16px; cursor: pointer; }
+
+    @media (max-width: 1100px) { .grid, .sys { grid-template-columns: 1fr; } .band .in { grid-template-columns: 1fr; } .models { grid-template-columns: repeat(3, 1fr); } }
+  </style>
+</head>
+<body>
+  <div class="util">
+    <div class="in">
+      <span class="env"><b>DATA OPERATIONS</b> · Dealer Service Data Warehouse · <span id="util-env">PROD</span></span>
+      <span>
+        <a href="#">Tidal Console</a>
+        <a href="#">Snowflake</a>
+        <a href="#">Runbooks</a>
+        <a href="#">On-call</a>
+        <a class="back" href="/">← All Demos</a>
+      </span>
+    </div>
+  </div>
+
+  <header>
+    <div class="in">
+      <div class="brand">
+        <img src="/verticals/assets/a70e8270/logo.svg" alt="Caterpillar">
+        <div class="div"></div>
+        <div class="product">
+          <b>Dealer Service DW</b>
+          <span>Batch operations console</span>
+        </div>
+      </div>
+      <nav class="top">
+        <a href="#" class="on">Jobs</a>
+        <a href="#">Data quality</a>
+        <a href="#">Lineage</a>
+        <a href="#">Alerts</a>
+      </nav>
+      <div class="who"><span class="av">DE</span><span>Data Eng · CT on-call</span></div>
+    </div>
+  </header>
+
+  <div class="band">
+    <div class="in">
+      <div>
+        <div class="crumbs">Tidal Automation · <span id="job-group">DEALER_SERVICE_DW</span> · <span id="agent">TIDAL-AGT-DW02</span></div>
+        <h1>Nightly work-order load<small id="job-title">SMU_WORKORDER_DAILY_LOAD · 02:15 CT</small></h1>
+        <p>Extracts work orders closed in the last 24 hours from DSMS (SQL Server), resolves each dealer to its sales district, computes SMU deltas per machine PIN and loads <code class="mono">ANALYTICS.FACT_WORK_ORDER</code> in Snowflake. Feeds CVA coverage and parts demand.</p>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Load status</div><div class="v" id="k-status">—</div><div class="s" id="k-status-s">&nbsp;</div></div>
+        <div class="kpi"><div class="l">Rows · last run</div><div class="v" id="k-rows">—</div><div class="s" id="k-rows-s">&nbsp;</div></div>
+        <div class="kpi"><div class="l">Rows · 7 nights</div><div class="v" id="k-week">—</div><div class="s" id="k-week-s">&nbsp;</div></div>
+        <div class="kpi"><div class="l">Failed batches</div><div class="v" id="k-failed">—</div><div class="s" id="k-failed-s">&nbsp;</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip">
+    <div class="in">
+      <span class="pill" id="p-status"><i></i><span>Loading…</span></span>
+      <span class="meta">Pending batch <code id="pend-id">—</code> · <span id="pend-rows">—</span> closed work orders · window <span id="pend-window">—</span></span>
+      <span class="meta">Downstream: <span id="downstream">—</span></span>
+      <div class="actions">
+        <button class="reset" id="reset" title="Reset demo state">Reset console</button>
+        <button class="btn" id="run-load"><span class="spin"></span><span>Run SMU_WORKORDER_DAILY_LOAD now</span></button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="grid">
+      <div class="stack">
+        <div class="card">
+          <h2>Job chain · tonight <small id="chain-sub">Tidal group DEALER_SERVICE_DW</small></h2>
+          <div class="body"><div class="chain" id="chain"></div></div>
+        </div>
+
+        <div>
+          <div class="tabs">
+            <button class="on" data-tab="runs">Run history</button>
+            <button data-tab="preview">Extract preview</button>
+            <button data-tab="dealers">Dealers</button>
+          </div>
+          <div class="card tabbed">
+            <div class="panel on" id="tab-runs">
+              <div class="tbl-wrap scroll"><table>
+                <thead><tr><th>Batch</th><th>Trigger</th><th>Started</th><th>Status</th><th class="num">Extracted</th><th class="num">Loaded</th><th class="num">Machines</th><th class="num">Duration</th></tr></thead>
+                <tbody id="runs"></tbody>
+              </table></div>
+            </div>
+            <div class="panel" id="tab-preview">
+              <div class="body" style="padding-bottom:0"><span class="empty" style="padding:0">First 12 rows of the pending window from <code class="mono">dbo.work_orders</code> (closed in last 24 h).</span></div>
+              <div class="tbl-wrap scroll"><table>
+                <thead><tr><th>Work order</th><th>Machine PIN</th><th>Model</th><th>Dealer</th><th class="num">SMU hrs</th><th>Closed</th><th class="num">Labor</th><th class="num">Parts</th><th>CVA</th></tr></thead>
+                <tbody id="preview"></tbody>
+              </table></div>
+            </div>
+            <div class="panel" id="tab-dealers">
+              <div class="tbl-wrap scroll"><table>
+                <thead><tr><th>Dealer</th><th>Name</th><th>District</th><th>Active</th><th class="num">Machines</th><th class="num">Open WOs</th><th class="num">Closed 24h</th></tr></thead>
+                <tbody id="dealers"></tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <h2>Systems <small id="release">—</small></h2>
+          <div class="body sys">
+            <div class="box">
+              <h3>Source <span id="src-sys">—</span></h3>
+              <div id="src-tables"></div>
+            </div>
+            <div class="box">
+              <h3>Warehouse <span id="wh-sys">—</span></h3>
+              <div id="wh-tables"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Fleet in scope <small>machines by model · avg SMU</small></h2>
+          <div class="body"><div class="models" id="models"></div></div>
+        </div>
+
+        <div class="card">
+          <h2>Last failure <small id="fail-sub">none</small></h2>
+          <div class="body" id="failure"><div class="empty">No failures in the current window.</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="in">
+      <span>© Caterpillar Inc. · Internal — Dealer Service Data Warehouse · For authorized data operations personnel only</span>
+      <span>Tidal Automation · Snowflake · Datadog · Sentry</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast"><button class="x" id="toast-x">×</button><b id="toast-t"></b><p id="toast-b"></p></div>
+
+  <script>
+    var API = '/api/a70e8270';
+    var TZ = 'America/Chicago';
+    var state = { busy: false };
+
+    var identityReady = fetch('/api/config')
+      .then(function (r) { return r.json(); })
+      .then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.defaultEmail && !localStorage.getItem('devinEmail')) localStorage.setItem('devinEmail', cfg.defaultEmail);
+      })
+      .catch(function () {});
+
+    function postHeaders() {
+      var h = { 'Content-Type': 'application/json' };
+      var secret = localStorage.getItem('sessionSecret');
+      if (secret) h['x-session-secret'] = secret;
+      return h;
+    }
+    function identity() {
+      return {
+        devinOrgId: localStorage.getItem('devinOrgId') || undefined,
+        devinUserId: localStorage.getItem('devinUserId') || undefined,
+        devinEmail: localStorage.getItem('devinEmail') || undefined
+      };
+    }
+    function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function fmtNum(n) { return Number(n || 0).toLocaleString('en-US'); }
+    function fmtMoney(n) { return '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+    function fmtTime(iso) {
+      if (!iso) return '—';
+      return new Intl.DateTimeFormat('en-US', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso)) + ' CT';
+    }
+    function fmtDateTime(iso) {
+      if (!iso) return '—';
+      return new Intl.DateTimeFormat('en-US', { timeZone: TZ, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(iso)) + ' CT';
+    }
+    function fmtDate(iso) {
+      if (!iso) return '—';
+      var d = iso.length === 10 ? new Date(iso + 'T12:00:00Z') : new Date(iso);
+      return new Intl.DateTimeFormat('en-US', { timeZone: TZ, month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+    }
+    function fmtDur(ms) {
+      if (ms == null) return '—';
+      if (ms < 1000) return ms + ' ms';
+      var s = Math.round(ms / 1000);
+      return s < 60 ? s + ' s' : Math.floor(s / 60) + ' m ' + (s % 60) + ' s';
+    }
+    function ago(iso) {
+      if (!iso) return '—';
+      var m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+      if (m < 1) return 'just now';
+      if (m < 60) return m + ' min ago';
+      var h = Math.floor(m / 60);
+      return h < 48 ? h + ' h ' + (m % 60) + ' min ago' : Math.floor(h / 24) + ' d ago';
+    }
+    function statusClass(s) {
+      return { success: 'ok', ready: 'warn', scheduled: '', running: '', failed: 'bad', blocked: 'blocked', Current: 'ok', Stale: 'blocked' }[s] || '';
+    }
+
+    var toastTimer = null;
+    function toast(kind, title, body) {
+      var el = document.getElementById('toast');
+      el.className = 'toast show ' + kind;
+      document.getElementById('toast-t').textContent = title;
+      document.getElementById('toast-b').innerHTML = body;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { el.className = 'toast'; }, 9000);
+    }
+    document.getElementById('toast-x').addEventListener('click', function () { document.getElementById('toast').className = 'toast'; });
+
+    document.querySelectorAll('.tabs button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        document.querySelectorAll('.tabs button').forEach(function (x) { x.classList.remove('on'); });
+        document.querySelectorAll('.panel').forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        document.getElementById('tab-' + b.getAttribute('data-tab')).classList.add('on');
+      });
+    });
+
+    function renderJobs(jobs, summary) {
+      var html = jobs.map(function (j, i) {
+        var right = '';
+        if (j.status === 'failed') right = 'failed ' + esc(ago(j.lastRunAt));
+        else if (j.status === 'blocked') right = 'waiting on dependency';
+        else if (j.status === 'ready') right = 'next ' + esc(fmtTime(j.nextRunAt));
+        else right = 'last ' + esc(fmtDateTime(j.lastRunAt)) + '<br>' + esc(fmtDur(j.lastDurationMs));
+        var extra = '';
+        if (j.status === 'failed' && summary.lastError) extra = '<div class="err">' + esc(summary.lastError.errorClass || 'Error') + ': ' + esc(summary.lastError.message) + '</div>';
+        if (j.status === 'blocked') extra = '<div class="blk">Blocked by <code class="mono">' + esc(j.blockedBy) + '</code> — will not start until the upstream batch commits.</div>';
+        return '<div class="job ' + esc(j.status) + '">' +
+          '<div class="n">' + (i + 1) + '</div>' +
+          '<div><div class="name">' + esc(j.jobName) + ' <span class="tag ' + statusClass(j.status) + '">' + esc(j.status) + '</span></div>' +
+          '<div class="d">' + esc(j.schedule) + ' · ' + esc(j.description || '') + (j.dependsOn ? ' · depends on <code>' + esc([].concat(j.dependsOn).join(', ')) + '</code>' : '') + '</div>' + extra + '</div>' +
+          '<div class="r">' + right + '</div>' +
+        '</div>';
+      }).join('');
+      document.getElementById('chain').innerHTML = html;
+    }
+
+    function renderRuns(runs) {
+      var body = document.getElementById('runs');
+      if (!runs.length) { body.innerHTML = '<tr><td colspan="8" class="empty">No runs yet.</td></tr>'; return; }
+      body.innerHTML = runs.map(function (r) {
+        return '<tr>' +
+          '<td><code>' + esc(r.batchId) + '</code></td>' +
+          '<td>' + esc(r.trigger) + '</td>' +
+          '<td>' + esc(fmtDateTime(r.startedAt)) + '</td>' +
+          '<td><span class="tag ' + statusClass(r.status) + '">' + esc(r.status) + '</span>' + (r.status === 'failed' ? ' <span class="tag">' + esc(r.stage) + '</span>' : '') + '</td>' +
+          '<td class="num">' + fmtNum(r.rowsExtracted) + '</td>' +
+          '<td class="num">' + (r.status === 'failed' ? '<b style="color:var(--v-bad)">0</b>' : fmtNum(r.rowsLoaded)) + '</td>' +
+          '<td class="num">' + fmtNum(r.machinesUpdated) + '</td>' +
+          '<td class="num">' + esc(fmtDur(r.durationMs)) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function renderPreview(rows) {
+      document.getElementById('preview').innerHTML = rows.map(function (w) {
+        return '<tr>' +
+          '<td><code>' + esc(w.workOrderNo) + '</code></td>' +
+          '<td><code>' + esc(w.machinePin) + '</code></td>' +
+          '<td>' + esc(w.model) + '</td>' +
+          '<td><code>' + esc(w.dealerCd) + '</code></td>' +
+          '<td class="num">' + fmtNum(w.smuHrs) + '</td>' +
+          '<td>' + esc(fmtDateTime(w.closeDt)) + '</td>' +
+          '<td class="num">' + esc(w.laborHrs) + ' h</td>' +
+          '<td class="num">' + esc(fmtMoney(w.partsCost)) + '</td>' +
+          '<td>' + (w.cvaFlag ? '<span class="tag cva">CVA</span>' : '<span class="tag">—</span>') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function renderDealers(dealers, districts) {
+      var byCd = {};
+      (districts || []).forEach(function (d) { byCd[d.code] = d.name; });
+      document.getElementById('dealers').innerHTML = dealers.map(function (d) {
+        return '<tr>' +
+          '<td><code>' + esc(d.dealerCd) + '</code></td>' +
+          '<td>' + esc(d.dealerName) + (d.territorySplit ? ' <span class="tag new">new · split from ' + esc(d.territorySplit.from) + '</span>' : '') + '</td>' +
+          '<td><code>' + esc(d.districtCd) + '</code> <span style="color:var(--v-gray-500)">' + esc(byCd[d.districtCd] || '') + '</span></td>' +
+          '<td>' + esc(fmtDate(d.activeDt)) + '</td>' +
+          '<td class="num">' + fmtNum(d.machines) + '</td>' +
+          '<td class="num">' + fmtNum(d.openWorkOrders) + '</td>' +
+          '<td class="num">' + fmtNum(d.closedLast24h) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function renderSystems(o) {
+      document.getElementById('src-sys').textContent = o.source.system;
+      document.getElementById('wh-sys').textContent = o.warehouse.system;
+      document.getElementById('src-tables').innerHTML = o.source.tables.map(function (t) {
+        return '<div class="row"><code>' + esc(t.name) + '</code><span>' + fmtNum(t.rows) + ' rows</span></div>';
+      }).join('');
+      document.getElementById('wh-tables').innerHTML = o.warehouse.tables.map(function (t) {
+        return '<div class="row"><span><code>' + esc(t.name) + '</code><span class="m">' + fmtNum(t.rows) + ' rows · ' + esc(ago(t.lastLoadAt)) + '</span></span><span class="tag ' + statusClass(t.status) + '">' + esc(t.status) + '</span></div>';
+      }).join('');
+      document.getElementById('release').textContent = o.release;
+    }
+
+    function renderModels(models) {
+      document.getElementById('models').innerHTML = models.map(function (m) {
+        return '<div class="model"><b>' + esc(m.model) + '</b><span>' + fmtNum(m.count) + ' machines</span><span>avg ' + fmtNum(m.avgSmuHrs) + ' SMU</span></div>';
+      }).join('');
+    }
+
+    function renderFailure(summary) {
+      var el = document.getElementById('failure');
+      var sub = document.getElementById('fail-sub');
+      if (!summary.lastError) { el.innerHTML = '<div class="empty">No failures in the current window.</div>'; sub.textContent = 'none'; return; }
+      var e = summary.lastError;
+      sub.textContent = fmtDateTime(summary.lastFailureAt);
+      el.innerHTML =
+        '<div class="job failed" style="grid-template-columns:1fr"><div>' +
+          '<div class="name">' + esc(e.batchId) + ' <span class="tag bad">rolled back</span> <span class="tag">stage: ' + esc(e.stage) + '</span></div>' +
+          '<div class="err">' + esc(e.errorClass) + (e.code ? ' ' + esc(e.code) + ' (' + esc(e.sqlState) + ')' : '') + ': ' + esc(e.message) + '</div>' +
+          '<div class="d">' + fmtNum(e.rowsExtracted) + ' rows extracted · 0 loaded · target <code>' + esc(e.targetTable) + '</code></div>' +
+          '<div class="d">Downstream blocked: <code>' + esc((summary.blockedJobs || []).join(', ')) + '</code></div>' +
+          '<div class="d">Alert routed to on-call · Devin session requested</div>' +
+        '</div></div>';
+    }
+
+    function renderSummary(o) {
+      var s = o.summary;
+      var degraded = s.status === 'degraded';
+      document.body.classList.toggle('degraded', degraded);
+      var p = document.getElementById('p-status');
+      p.className = 'pill ' + (degraded ? 'bad' : 'ok');
+      p.querySelector('span').textContent = degraded ? 'SMU_WORKORDER_DAILY_LOAD failed — downstream blocked' : 'All jobs healthy · last load committed';
+
+      document.getElementById('k-status').textContent = degraded ? 'FAILED' : 'READY';
+      document.getElementById('k-status').className = 'v ' + (degraded ? 'bad' : 'ok');
+      document.getElementById('k-status-s').textContent = degraded ? 'batch rolled back · ' + ago(s.lastFailureAt) : 'last commit ' + ago(s.lastSuccessfulLoadAt);
+      document.getElementById('k-rows').textContent = degraded ? '0' : fmtNum(s.rowsLoadedLastRun);
+      document.getElementById('k-rows').className = 'v ' + (degraded ? 'bad' : '');
+      document.getElementById('k-rows-s').textContent = s.lastBatchId || '—';
+      document.getElementById('k-week').textContent = fmtNum(s.rowsLoadedWeek);
+      document.getElementById('k-week-s').textContent = 'into ANALYTICS.FACT_WORK_ORDER';
+      document.getElementById('k-failed').textContent = fmtNum(s.failedBatches);
+      document.getElementById('k-failed').className = 'v ' + (s.failedBatches ? 'bad' : 'ok');
+      document.getElementById('k-failed-s').textContent = s.failedBatches ? 'CVA coverage stale · demand signal 1 day behind' : 'coverage & demand current';
+
+      var pb = s.pendingBatch || {};
+      document.getElementById('pend-id').textContent = pb.batchId || '—';
+      document.getElementById('pend-rows').textContent = fmtNum(pb.rowCount);
+      document.getElementById('pend-window').textContent = fmtDateTime(pb.windowStart) + ' → ' + fmtDateTime(pb.windowEnd);
+      document.getElementById('downstream').innerHTML = degraded
+        ? '<span class="tag blocked">CVA_COVERAGE_REFRESH blocked</span> <span class="tag blocked">PARTS_DEMAND_FORECAST blocked</span>'
+        : '<span class="tag ok">CVA_COVERAGE_REFRESH</span> <span class="tag ok">PARTS_DEMAND_FORECAST</span>';
+      document.getElementById('job-group').textContent = o.scheduler.group;
+      document.getElementById('agent').textContent = o.scheduler.agent;
+    }
+
+    function loadOverview() {
+      return fetch(API + '/overview').then(function (r) { return r.json(); }).then(function (o) {
+        renderSummary(o);
+        renderJobs(o.jobs, o.summary);
+        renderRuns(o.runs);
+        renderPreview(o.previewRows);
+        renderDealers(o.dealers, o.districts);
+        renderSystems(o);
+        renderModels(o.machinesByModel);
+        renderFailure(o.summary);
+      }).catch(function (err) { toast('error', 'Console unavailable', esc(err.message)); });
+    }
+
+    document.getElementById('run-load').addEventListener('click', function () {
+      if (state.busy) return;
+      var btn = this;
+      state.busy = true;
+      btn.disabled = true;
+      btn.classList.add('busy');
+      identityReady.then(function () {
+        return fetch(API + '/load/run', {
+          method: 'POST',
+          headers: postHeaders(),
+          body: JSON.stringify(identity())
+        });
+      }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
+        .then(function (res) {
+          if (res.status === 401 || res.status === 403) {
+            toast('error', 'Not authorized', esc(res.body.error || 'Session secret missing or invalid'));
+          } else if (!res.ok) {
+            toast('error', 'SMU_WORKORDER_DAILY_LOAD failed — batch rolled back', esc((res.body.errorType || 'Error') + (res.body.code ? ' ' + res.body.code + ' (' + res.body.sqlState + ')' : '') + ': ' + (res.body.error || 'Load failed')));
+          } else {
+            var run = res.body.run;
+            toast('success', run.batchId + ' committed', esc(run.rowsLoaded + ' rows → ANALYTICS.FACT_WORK_ORDER · ' + run.machinesUpdated + ' machines updated · ' + fmtDur(run.durationMs)));
+          }
+          return loadOverview();
+        })
+        .catch(function (err) { toast('error', 'Request failed', esc(err.message)); })
+        .then(function () {
+          state.busy = false;
+          btn.disabled = false;
+          btn.classList.remove('busy');
+        });
+    });
+
+    document.getElementById('reset').addEventListener('click', function () {
+      fetch(API + '/load/reset', { method: 'POST', headers: postHeaders() }).then(function (r) {
+        if (!r.ok) throw new Error('Reset request failed');
+        return r.json();
+      }).then(function (res) {
+        toast('success', 'Console reset · back to ready', esc('Cleared ' + res.cleared.failed + ' failed batch(es) · ' + res.cleared.runs + ' runs · re-seeded nightly history'));
+        return loadOverview();
+      }).catch(function (err) { toast('error', 'Reset failed', esc(err.message)); });
+    });
+
+    loadOverview();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
