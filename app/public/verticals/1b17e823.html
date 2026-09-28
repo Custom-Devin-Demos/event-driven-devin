@@ -69,6 +69,7 @@
     .btn.primary { background:var(--green); color:#fff; }
     .btn.primary:hover { background:var(--green-dk); }
     .btn.primary:disabled { opacity:.6; cursor:wait; }
+    .btn.express:disabled { opacity:.6; cursor:not-allowed; }
     .btn.pp { background:#ffc439; color:#003087; font-style:italic; font-weight:900; margin-top:10px; }
     .btn.ap { background:#000; color:#fff; margin-top:10px; }
     .note { color:var(--muted); font-size:12px; text-align:center; margin-top:12px; }
@@ -206,6 +207,7 @@
       a.addEventListener('click', function (e) { e.preventDefault(); if (checkoutInFlight) return; cart.splice(+a.dataset.rm, 1); render(); });
     });
     $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0;
+    Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) { b.disabled = $('checkoutBtn').disabled; });
     $('member').disabled = checkoutInFlight;
     if (!cart.length) $('lines').innerHTML = '<div class="line" style="display:block;color:var(--muted)">Your cart is empty.</div>';
     var n = cart.reduce(function (s, it) { return s + it.qty; }, 0);
@@ -276,6 +278,7 @@
 
   Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) {
     b.addEventListener('click', function () {
+      if ($('checkoutBtn').disabled) return;
       pendingPaymentMethod = b.getAttribute('data-method');
       $('checkoutBtn').click();
       pendingPaymentMethod = null;

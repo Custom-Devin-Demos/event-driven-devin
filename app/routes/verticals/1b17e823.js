@@ -11,6 +11,8 @@ router.get('/api/1b17e823/catalog', (_req, res) => {
   });
 });
 
+const MAX_CART_LINES = 25;
+
 function validationError(res, req, message) {
   return res.status(400).json({ success: false, error: message, errorClass: 'ValidationError', code: 'INVALID_CART', requestId: req.requestId });
 }
@@ -20,6 +22,9 @@ router.post('/api/1b17e823/checkout', async (req, res) => {
   const hasItems = Object.hasOwn(body, 'items');
   if (hasItems && (!Array.isArray(body.items) || !body.items.length)) {
     return validationError(res, req, 'Cart must contain at least one item');
+  }
+  if (hasItems && body.items.length > MAX_CART_LINES) {
+    return validationError(res, req, `Cart cannot contain more than ${MAX_CART_LINES} lines`);
   }
   const requested = hasItems
     ? body.items
