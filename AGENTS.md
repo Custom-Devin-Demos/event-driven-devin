@@ -817,3 +817,18 @@ APIs the code still uses, and are **not** installed by the root `package.json`,
 linted, or covered by `npm test`. They exist so a dependency-upgrade demo has a
 realistic, genuinely-blocked upgrade path; see that directory's README for the
 per-package friction.
+
+## Legacy RF handheld stack (`stacks/51d7cf9e`)
+
+A self-contained, pre-migration warehouse RF environment used for a
+modernization demo: a .NET Framework 4.8 WinForms RF app
+(`legacy-windows`), a separate remote-session host that stands in for RDP
+(`rdp-sim`), a Kotlin Android thin client that only views the remote session
+(`android-rf-client`) and a .NET 8 SAP RFC mock with fictional seeded
+inventory (`sap-mock`). It is not part of the Express app: nothing here is
+installed by the root `package.json`, linted, covered by `npm test`, built into
+the checkout-api image (`stacks/` is in `.dockerignore`) or served by the
+demo host. Component contracts (RFC-over-HTTP API, call sequences, wire
+protocol, seed barcodes) are in `stacks/51d7cf9e/docs/INTERFACES.md`; setup,
+baseline timings and the live click-path are in `stacks/51d7cf9e/docs/`.
+The single latency/profile file is `stacks/51d7cf9e/config/demo-profile.json`.
