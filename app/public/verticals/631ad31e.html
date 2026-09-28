@@ -210,7 +210,6 @@
       <div class="callout-title" id="calloutTitle">Wave 3 &middot; Deposits &amp; Balances is paused at checkpoint CP-3.4</div>
       <div class="callout-text" id="calloutText">Change window CHG-0048213 is open. 3 tables remaining in EDW_DEP (12.5B rows). Agents are standing by.</div>
     </div>
-    <button class="btn btn-ghost" type="button">View runbook</button>
     <button class="btn btn-primary" type="button" id="resumeWave">Resume wave 3</button>
   </section>
 
@@ -365,6 +364,13 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove('is-visible'); }, 6000);
   }
 
+  function headers() {
+    var h = { 'Content-Type': 'application/json' };
+    var secret = localStorage.getItem('sessionSecret');
+    if (secret) h['x-session-secret'] = secret;
+    return h;
+  }
+
   function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function playSteps(steps) {
@@ -386,13 +392,6 @@
     renderProgram(data.program);
   });
 
-  if (!localStorage.getItem('devinOrgId') || !localStorage.getItem('devinUserId')) {
-    fetch('/api/config').then(function (r) { return r.ok ? r.json() : {}; }).then(function (cfg) {
-      if (cfg.lockOrg && cfg.defaultOrgId && !localStorage.getItem('devinOrgId')) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
-      if (cfg.lockUser && cfg.defaultUserId && !localStorage.getItem('devinUserId')) localStorage.setItem('devinUserId', cfg.defaultUserId);
-    }).catch(function () {});
-  }
-
   btn.addEventListener('click', function (e) {
     e.preventDefault();
     btn.disabled = true;
@@ -404,7 +403,7 @@
     var orgId = localStorage.getItem('devinOrgId') || '';
     fetch('/api/631ad31e/resume-wave', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: headers(),
       body: JSON.stringify({
         waveId: 'W3',
         devinUserId: localStorage.getItem('devinUserId') || '',

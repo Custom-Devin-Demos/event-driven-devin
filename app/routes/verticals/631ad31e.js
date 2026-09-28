@@ -1,4 +1,5 @@
 const express = require('express');
+const { verifySessionSecret } = require('../../middleware/verify-session-secret');
 const { getCockpit, resumeWave } = require('../../services/verticals/631ad31e');
 
 const router = express.Router();
@@ -7,7 +8,7 @@ router.get('/api/631ad31e/cockpit', (req, res) => {
   res.json({ success: true, ...getCockpit() });
 });
 
-router.post('/api/631ad31e/resume-wave', async (req, res) => {
+router.post('/api/631ad31e/resume-wave', verifySessionSecret, async (req, res) => {
   try {
     const result = await resumeWave({
       waveId: req.body.waveId,

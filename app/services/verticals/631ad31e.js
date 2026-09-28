@@ -16,7 +16,7 @@ const {
  * returns the Delta DDL for every table that cleared both.
  */
 
-const SLACK_MEMBER_ID = process.env.C631AD31E_SLACK_MEMBER_ID || 'U08S7AVJ478';
+const SLACK_MEMBER_ID = process.env.C631AD31E_SLACK_MEMBER_ID || '';
 const ROUTE = '/api/631ad31e/resume-wave';
 const SERVICE = 'edw-migration-orchestrator';
 
