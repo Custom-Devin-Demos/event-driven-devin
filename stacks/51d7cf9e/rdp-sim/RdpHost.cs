@@ -176,10 +176,7 @@ namespace RdpSim
             if (Volatile.Read(ref client.Closed) != 0) return;
             lock (client.QueueLock)
             {
-                long now = StopwatchNow();
-                long baseTime = Math.Max(now, client.LastOutboundDue);
-                int delay = Delay();
-                long due = baseTime + Milliseconds(delay);
+                long due = Math.Max(StopwatchNow() + Milliseconds(Delay()), client.LastOutboundDue);
                 client.LastOutboundDue = due;
                 if (type == (byte)'F')
                 {
@@ -235,7 +232,7 @@ namespace RdpSim
                     uint length = ReadUInt32(header, 1);
                     if (length > 1024 * 1024) throw new InvalidDataException("Input frame is too large.");
                     byte[] payload = ReadExact(client.Stream, (int)length);
-                    long due = Math.Max(StopwatchNow(), client.LastInboundDue) + Milliseconds(Delay());
+                    long due = Math.Max(StopwatchNow() + Milliseconds(Delay()), client.LastInboundDue);
                     client.LastInboundDue = due;
                     if (!WaitUntil(client, due)) break;
                     if (header[0] == (byte)'P')
@@ -271,6 +268,7 @@ namespace RdpSim
             {
                 MarshalControl.BeginInvoke((MethodInvoker)delegate
                 {
+                    PublishTarget(null, EventArgs.Empty);
                     ScreenTarget target = Target;
                     if (target == null || target.Form == null || target.Form.IsDisposed) return;
                     try { DispatchOnUi(target.Form, command); }

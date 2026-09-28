@@ -123,6 +123,8 @@ namespace EimRf
             if (!_confirmed) { ShowError("F1 Confirm first"); return; }
             RunStep("MoveInventory", "Post", delegate
             {
+                _document = null;
+                _transferOrder = null;
                 RfcDestination destination = RfcHelper.GetDestination();
                 RfcSessionManager.BeginContext(destination);
                 try

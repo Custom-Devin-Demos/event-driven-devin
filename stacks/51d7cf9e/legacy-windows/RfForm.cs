@@ -130,7 +130,7 @@ namespace EimRf
             WaitLabel.Visible = true;
             WaitLabel.BringToFront();
             Cursor = Cursors.WaitCursor;
-            WaitLabel.Refresh();
+            Refresh();
         }
 
         protected void HideWait()
