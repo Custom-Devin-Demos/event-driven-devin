@@ -1,6 +1,6 @@
 const express = require('express');
 const {
-  placeOrder, findProduct, findMember, CATALOG, STORES, SHIPPING,
+  placeOrder, findProduct, findMember, CATALOG, STORES, SHIPPING, PAYMENT_METHODS,
 } = require('../../services/verticals/1b17e823');
 
 const router = express.Router();
@@ -47,6 +47,8 @@ router.post('/api/1b17e823/checkout', async (req, res) => {
   const submittedZip = String(body.zipCode || STORES[storeNumber].zipCode);
   if (!/^\d{5}$/.test(submittedZip)) return validationError(res, req, 'ZIP code must be 5 digits');
   const zipCode = fulfillment === 'pickup' ? STORES[storeNumber].zipCode : submittedZip;
+  const paymentMethod = body.paymentMethod || 'card';
+  if (!PAYMENT_METHODS[paymentMethod]) return validationError(res, req, `Unsupported payment method: ${paymentMethod}`);
 
   try {
     const order = await placeOrder({
@@ -55,6 +57,7 @@ router.post('/api/1b17e823/checkout', async (req, res) => {
       fulfillment,
       storeNumber,
       zipCode,
+      paymentMethod,
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,

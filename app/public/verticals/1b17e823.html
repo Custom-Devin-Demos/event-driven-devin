@@ -33,7 +33,6 @@
     .banner h2 { font-size:28px; font-weight:900; letter-spacing:.5px; text-transform:uppercase; font-style:italic; }
     .banner p { font-size:14px; margin-top:4px; }
     main { display:grid; grid-template-columns:1fr 380px; gap:24px; margin-top:20px; margin-bottom:40px; }
-    @media (max-width: 860px) { main { grid-template-columns:minmax(0,1fr); } .hd-links, nav.cats { display:none; } .line { grid-template-columns:88px 1fr; } .line .price { grid-column:2; } .fulfill { flex-wrap:wrap; } }
     h1 { font-size:26px; font-weight:900; text-transform:uppercase; letter-spacing:.3px; margin:22px 0 4px; }
     .sub { color:var(--muted); font-size:13px; }
     .card { background:#fff; border:1px solid var(--line); border-radius:4px; }
@@ -90,6 +89,7 @@
     footer b { display:block; margin-bottom:8px; text-transform:uppercase; letter-spacing:.4px; }
     footer li { list-style:none; opacity:.85; line-height:1.9; }
     .legal { background:var(--green-dk); color:#cfe5df; font-size:12px; text-align:center; padding:12px 0; }
+    @media (max-width: 860px) { main { grid-template-columns:minmax(0,1fr); } .hd-links, nav.cats { display:none; } .line { grid-template-columns:88px minmax(0,1fr); gap:12px; } .line .meta { overflow-wrap:anywhere; } .thumb { width:88px; height:88px; } .line .price { grid-column:2; } .fulfill { flex-wrap:wrap; } .grid { grid-template-columns:repeat(2, minmax(0,1fr)); } }
   </style>
 </head>
 <body>
@@ -140,8 +140,8 @@
           </div>
           <button class="btn primary" id="checkoutBtn">Checkout</button>
           <div class="result" id="result"></div>
-          <button class="btn pp express" type="button">PayPal</button>
-          <button class="btn ap express" type="button">Apple Pay</button>
+          <button class="btn pp express" type="button" data-method="paypal">PayPal</button>
+          <button class="btn ap express" type="button" data-method="applepay">Apple Pay</button>
           <div class="note">Returns accepted within 90 days. <u>Return Policy</u></div>
         </div>
       </aside>
@@ -179,6 +179,7 @@
   ];
   var fulfillment = 'ship';
   var checkoutInFlight = false;
+  var pendingPaymentMethod = null;
   var members = {
     'SC-8841207733': { first: 'Jordan', badge: 'FLX X3 linked', text: 'Your Foot Locker FLX status is linked — points post when you check out. 60 points to your next $10 reward.', pct: 80 },
     'SC-5520917046': { first: 'Casey', badge: 'Gold', text: 'Gold members earn 1.5x points. 20 points to your next $10 reward.', pct: 93 },
@@ -237,6 +238,8 @@
 
   $('checkoutBtn').addEventListener('click', function () {
     var btn = this, result = $('result');
+    var paymentMethod = pendingPaymentMethod || 'card';
+    pendingPaymentMethod = null;
     checkoutInFlight = true; btn.disabled = true; btn.textContent = 'Placing order…'; result.className = 'result'; result.innerHTML = '';
     fetch('/api/1b17e823/checkout', {
       method: 'POST',
@@ -247,6 +250,7 @@
         fulfillment: fulfillment,
         storeNumber: '0212',
         zipCode: '15205',
+        paymentMethod: paymentMethod,
         devinUserId: localStorage.getItem('devinUserId') || '',
         devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || ''
@@ -256,7 +260,7 @@
         if (res.ok) {
           var sc = res.body.scorecard;
           result.className = 'result ok';
-          result.innerHTML = '<b>Order placed — #' + esc(res.body.orderId) + '</b><br>Total charged: ' + money(res.body.total) +
+          result.innerHTML = '<b>Order placed — #' + esc(res.body.orderId) + '</b><br>Total charged: ' + money(res.body.total) + ' · ' + esc(res.body.payment.label) +
             (sc && sc.member ? '<br>' + esc(sc.tierLabel) + ': +' + sc.pointsEarned + ' points' + (sc.rewardsIssued ? ' · ' + money(sc.rewardValue) + ' reward issued' : '') : '<br>' + esc(sc.message));
         } else {
           result.className = 'result err';
@@ -269,7 +273,11 @@
   });
 
   Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) {
-    b.addEventListener('click', function () { $('checkoutBtn').click(); });
+    b.addEventListener('click', function () {
+      pendingPaymentMethod = b.getAttribute('data-method');
+      $('checkoutBtn').click();
+      pendingPaymentMethod = null;
+    });
   });
 
   render();

@@ -51,6 +51,12 @@ const TAX_RATES = {
 const DEFAULT_TAX = { jurisdiction: 'US — standard', rate: 0.06 };
 const TAX_EXEMPT_CATEGORIES = { 15205: ['apparel', 'footwear'] };
 
+const PAYMENT_METHODS = {
+  card: 'Credit / Debit Card',
+  paypal: 'PayPal',
+  applepay: 'Apple Pay',
+};
+
 const SHIPPING = {
   ship: { label: 'Ship to Me', fee: 7.99, freeThreshold: 65 },
   pickup: { label: 'Free Store Pickup', fee: 0, freeThreshold: 0 },
@@ -219,6 +225,7 @@ async function placeOrder(data) {
       shipping,
       tax,
       total,
+      payment: { method: data.paymentMethod, label: PAYMENT_METHODS[data.paymentMethod] },
       scorecard,
       placedAt: new Date().toISOString(),
     };
@@ -300,6 +307,7 @@ module.exports = {
   MEMBERS,
   STORES,
   SHIPPING,
+  PAYMENT_METHODS,
   SCORECARD_TIERS,
   FLX_STATUS_CROSSWALK,
 };
