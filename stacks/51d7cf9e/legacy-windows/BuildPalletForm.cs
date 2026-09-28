@@ -123,6 +123,7 @@ namespace EimRf
             string barcode = ScanValue(CaseText);
             RunStep("BuildPallet", "ScanCase", delegate
             {
+                string warning = "";
                 RfcDestination destination = RfcHelper.GetDestination();
                 RfcSessionManager.BeginContext(destination);
                 try
@@ -135,18 +136,22 @@ namespace EimRf
                     IRfcFunction commit = RfcHelper.CreateFunction(destination, "BAPI_TRANSACTION_COMMIT");
                     commit.SetValue("WAIT", "X");
                     commit.Invoke(destination);
+                    CaseText.Clear();
                     LastCaseLabel.Text = "Last: " + caseInfo.GetString("MATNR") + " " + caseInfo.GetString("MAKTX") +
                         "  " + caseInfo.GetString("CHARG") + "  " + caseInfo.GetDecimal("MENGE").ToString("0.##") +
                         " " + caseInfo.GetString("MEINS");
                 }
                 finally { RfcSessionManager.EndContext(destination); }
 
-                IRfcFunction pallet = RfcHelper.GetPallet(_sscc);
-                _header = pallet.GetStructure("ES_HEADER");
-                _items = pallet.GetTable("ET_ITEMS");
-                SetPalletDisplay();
-                ClearMessage();
-                CaseText.Clear();
+                try
+                {
+                    IRfcFunction pallet = RfcHelper.GetPallet(_sscc);
+                    _header = pallet.GetStructure("ES_HEADER");
+                    _items = pallet.GetTable("ET_ITEMS");
+                    SetPalletDisplay();
+                }
+                catch (RfcBaseException ex) { warning = "Case added - WARNING: re-read failed: " + ex.Message; }
+                if (warning.Length > 0) ShowWarning(warning); else ClearMessage();
                 FocusField(CaseText);
             });
         }
@@ -168,23 +173,34 @@ namespace EimRf
                     IRfcFunction commit = RfcHelper.CreateFunction(destination, "BAPI_TRANSACTION_COMMIT");
                     commit.SetValue("WAIT", "X");
                     commit.Invoke(destination);
+                    _active = false;
+                    CaseText.Enabled = false;
                 }
                 finally { RfcSessionManager.EndContext(destination); }
 
-                IRfcFunction pallet = RfcHelper.GetPallet(_sscc);
-                _header = pallet.GetStructure("ES_HEADER");
-                _items = pallet.GetTable("ET_ITEMS");
-                RfcHelper.ValidateBin(RfSession.Lgnum, _header.GetString("LGPLA"), false);
-                IRfcFunction label = RfcHelper.Invoke("Z_EIM_PRINT_PALLET_LABEL", f =>
+                string warning = "";
+                try
                 {
-                    f.SetValue("IV_EXIDV", _sscc);
-                    f.SetValue("IV_PADEST", ConfigurationManager.AppSettings["Label.Printer"]);
-                });
-                _active = false;
-                CaseText.Enabled = false;
-                SetPalletDisplay();
-                ShowSuccess("Pallet closed: " + count + " CS - label spool " +
-                    label.GetString("EV_SPOOLID") + " on " + label.GetString("EV_PRINTER"));
+                    IRfcFunction pallet = RfcHelper.GetPallet(_sscc);
+                    _header = pallet.GetStructure("ES_HEADER");
+                    _items = pallet.GetTable("ET_ITEMS");
+                    RfcHelper.ValidateBin(RfSession.Lgnum, _header.GetString("LGPLA"), false);
+                    SetPalletDisplay();
+                }
+                catch (RfcBaseException ex) { warning += " - WARNING: re-read failed: " + ex.Message; }
+                string printed = "";
+                try
+                {
+                    IRfcFunction label = RfcHelper.Invoke("Z_EIM_PRINT_PALLET_LABEL", f =>
+                    {
+                        f.SetValue("IV_EXIDV", _sscc);
+                        f.SetValue("IV_PADEST", ConfigurationManager.AppSettings["Label.Printer"]);
+                    });
+                    printed = " - label spool " + label.GetString("EV_SPOOLID") + " on " + label.GetString("EV_PRINTER");
+                }
+                catch (RfcBaseException ex) { warning += " - WARNING: label not printed: " + ex.Message; }
+                string message = "Pallet closed: " + count + " CS" + printed + warning;
+                if (warning.Length > 0) ShowWarning(message); else ShowSuccess(message);
                 FocusField(PalletText);
             });
         }

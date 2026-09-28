@@ -119,9 +119,17 @@ namespace EimRf
             catch (Exception ex) { _stepResult = "E:APPLICATION_ERROR"; ShowError(ex.Message); }
             finally
             {
-                long elapsed = RfcHelper.EndStep(_stepResult);
-                LastTxnStatus.Text = "Last txn: " + (elapsed / 1000.0).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s";
-                HideWait();
+                try
+                {
+                    long elapsed = RfcHelper.EndStep(_stepResult);
+                    LastTxnStatus.Text = "Last txn: " + (elapsed / 1000.0).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s";
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine("timings.csv write failed: " + ex.Message);
+                    LastTxnStatus.Text = "Last txn: " + (RfcHelper.StepElapsed / 1000.0).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "s (log failed)";
+                }
+                finally { HideWait(); }
             }
         }
 
@@ -152,6 +160,13 @@ namespace EimRf
         {
             MessageLabel.ForeColor = Color.DarkGreen;
             MessageLabel.Text = message;
+        }
+
+        protected void ShowWarning(string message)
+        {
+            MessageLabel.ForeColor = Color.DarkOrange;
+            MessageLabel.Text = message;
+            SystemSounds.Exclamation.Play();
         }
 
         protected void ClearMessage() { MessageLabel.Text = ""; }

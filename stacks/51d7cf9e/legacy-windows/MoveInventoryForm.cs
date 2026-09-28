@@ -85,9 +85,9 @@ namespace EimRf
             DestInfoLabel.Text = "";
             RunStep("MoveInventory", "ScanDestBin", delegate
             {
+                RfcHelper.Require(bin != _sourceBin, "SAME_BIN", "Destination bin is the same as the source bin");
                 IRfcStructure info = RfcHelper.ValidateBin(RfSession.Lgnum, bin, true);
                 IRfcStructure material = RfcHelper.GetMaterial(_material, RfSession.Plant);
-                RfcHelper.Require(bin != _sourceBin, "SAME_BIN", "Destination bin is the same as the source bin");
                 string type = info.GetString("LGTYP");
                 bool allowed = _storageConditions == "FZ" ? type == "300" || type == "910" :
                     _storageConditions == "CH" ? type == "200" || type == "910" :
@@ -111,6 +111,7 @@ namespace EimRf
         private void ConfirmMove()
         {
             if (!_destinationReady) { ShowError("Scan a destination bin first"); return; }
+            _confirmed = false;
             RunStep("MoveInventory", "Confirm", delegate
             {
                 IRfcFunction pallet = RfcHelper.GetPallet(_sscc);
@@ -190,7 +191,7 @@ namespace EimRf
                         RfcHelper.GetPallet(_sscc);
                         RfcHelper.ValidateBin(RfSession.Lgnum, _destinationBin, false);
                     }
-                    catch (RfcBaseException ex) { warning = "  WARNING: re-read failed - " + ex.Message; }
+                    catch (RfcBaseException ex) { warning = " - WARNING: re-read failed: " + ex.Message; }
                 }
                 finally { RfcSessionManager.EndContext(destination); }
 
@@ -201,7 +202,7 @@ namespace EimRf
                 DestInfoLabel.Text = "";
                 PalletText.Clear();
                 DestText.Clear();
-                ShowSuccess(success);
+                if (warning.Length > 0) ShowWarning(success); else ShowSuccess(success);
                 FocusField(PalletText);
             });
         }
