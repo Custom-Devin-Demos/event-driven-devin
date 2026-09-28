@@ -325,7 +325,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="stateSelect">Ship-To State</label>
-                  <select id="stateSelect" onchange="renderSummary()">
+                  <select id="stateSelect" onchange="onOrderEdit()">
                     <option value="PA" selected>Pennsylvania</option>
                     <option value="NY">New York</option>
                     <option value="OH">Ohio</option>
@@ -335,7 +335,7 @@
                 </div>
                 <div class="form-group">
                   <label for="tierSelect">ScoreCard Account</label>
-                  <select id="tierSelect" onchange="renderSummary()">
+                  <select id="tierSelect" onchange="onOrderEdit()">
                     <option value="gold" selected>ScoreCard Gold &middot; 8842 1937 0056</option>
                     <option value="member">ScoreCard &middot; 8842 1937 0056</option>
                   </select>
@@ -344,9 +344,9 @@
               <div class="form-group" style="margin-bottom:1rem;">
                 <label>Shipping Method</label>
                 <div class="ship-options">
-                  <label class="ship-option"><input type="radio" name="ship" value="standard" checked onchange="renderSummary()"> Standard Shipping (5&ndash;7 business days) <span class="price" id="stdPrice">FREE</span></label>
-                  <label class="ship-option"><input type="radio" name="ship" value="express" onchange="renderSummary()"> Express Shipping (2 business days) <span class="price">$19.99</span></label>
-                  <label class="ship-option"><input type="radio" name="ship" value="pickup" onchange="renderSummary()"> Free Store Pickup &mdash; nearest store <span class="price">FREE</span></label>
+                  <label class="ship-option"><input type="radio" name="ship" value="standard" checked onchange="onOrderEdit()"> Standard Shipping (5&ndash;7 business days) <span class="price" id="stdPrice">FREE</span></label>
+                  <label class="ship-option"><input type="radio" name="ship" value="express" onchange="onOrderEdit()"> Express Shipping (2 business days) <span class="price">$19.99</span></label>
+                  <label class="ship-option"><input type="radio" name="ship" value="pickup" onchange="onOrderEdit()"> Free Store Pickup &mdash; nearest store <span class="price">FREE</span></label>
                 </div>
               </div>
               <div class="form-row" style="margin-bottom:0;">
@@ -491,17 +491,21 @@
         gwp.innerHTML = 'Spend <strong>' + money(GWP_THRESHOLD - sub) + '</strong> more to unlock a free DSG Team Duffel.';
       }
       document.getElementById('placeOrderBtn').disabled = CART.length === 0;
-      var resultBox = document.getElementById('resultBox');
-      if (!submitting && resultBox.classList.contains('success')) {
-        resultBox.className = 'result-box';
-        resultBox.innerHTML = '';
-      }
     }
 
     var submitting = false;
     function cents(v) { return Math.round(v * 100) / 100; }
-    function removeItem(idx) { if (submitting) return; CART.splice(idx, 1); renderCart(); renderSummary(); }
-    function setQty(idx, value) { if (submitting) return; CART[idx].qty = parseInt(value, 10); renderCart(); renderSummary(); }
+    function onOrderEdit() {
+      var resultBox = document.getElementById('resultBox');
+      if (resultBox.classList.contains('success')) {
+        resultBox.className = 'result-box';
+        resultBox.innerHTML = '';
+      }
+      renderSummary();
+    }
+
+    function removeItem(idx) { if (submitting) return; CART.splice(idx, 1); renderCart(); onOrderEdit(); }
+    function setQty(idx, value) { if (submitting) return; CART[idx].qty = parseInt(value, 10); renderCart(); onOrderEdit(); }
     function setCheckoutLocked(locked) {
       submitting = locked;
       document.querySelectorAll('#cartItems select, #cartItems button, #stateSelect, #tierSelect, input[name="ship"]')
