@@ -195,17 +195,18 @@
       return '<div class="line"><div class="thumb"><img src="' + it.img + '" alt="' + it.name.replace(/"/g, '') + '"></div>' +
         '<div><h3>' + it.name + '</h3><div class="meta">Color: ' + it.color + '<br>Size: ' + it.size + '<br>Item #: ' + it.sku + '</div>' +
         '<div class="ship-tag">' + (fulfillment === 'ship' ? '✓ Ships free with $65+ order' : '✓ In stock at Robinson Township') + '</div>' +
-        '<div><select data-i="' + i + '" aria-label="Quantity">' + opts + '</select></div>' +
-        '<div class="acts"><span>Save for Later</span><a href="#" data-rm="' + i + '">Remove</a></div></div>' +
+        '<div><select data-i="' + i + '" aria-label="Quantity"' + (checkoutInFlight ? ' disabled' : '') + '>' + opts + '</select></div>' +
+        '<div class="acts"><a href="#" data-rm="' + i + '">Remove</a></div></div>' +
         '<div class="price"><b>' + money(it.price * it.qty) + '</b>' + (it.was ? '<s>' + money(it.was * it.qty) + '</s><span class="save">Save ' + money((it.was - it.price) * it.qty) + '</span>' : '') + '</div></div>';
     }).join('');
     Array.prototype.forEach.call(document.querySelectorAll('#lines select'), function (s) {
       s.addEventListener('change', function () { cart[+s.dataset.i].qty = +s.value; render(); });
     });
     Array.prototype.forEach.call(document.querySelectorAll('#lines [data-rm]'), function (a) {
-      a.addEventListener('click', function (e) { e.preventDefault(); cart.splice(+a.dataset.rm, 1); render(); });
+      a.addEventListener('click', function (e) { e.preventDefault(); if (checkoutInFlight) return; cart.splice(+a.dataset.rm, 1); render(); });
     });
     $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0;
+    $('member').disabled = checkoutInFlight;
     if (!cart.length) $('lines').innerHTML = '<div class="line" style="display:block;color:var(--muted)">Your cart is empty.</div>';
     var n = cart.reduce(function (s, it) { return s + it.qty; }, 0);
     var sub = cart.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
@@ -222,6 +223,7 @@
 
   Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (o) {
     o.addEventListener('click', function () {
+      if (checkoutInFlight) return;
       fulfillment = o.dataset.f;
       Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (x) { x.classList.toggle('sel', x === o); });
       render();
@@ -240,7 +242,7 @@
     var btn = this, result = $('result');
     var paymentMethod = pendingPaymentMethod || 'card';
     pendingPaymentMethod = null;
-    checkoutInFlight = true; btn.disabled = true; btn.textContent = 'Placing order…'; result.className = 'result'; result.innerHTML = '';
+    checkoutInFlight = true; render(); btn.textContent = 'Placing order…'; result.className = 'result'; result.innerHTML = '';
     fetch('/api/1b17e823/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -269,7 +271,7 @@
         }
       })
       .catch(function (e) { result.className = 'result err'; result.textContent = 'Network error: ' + e.message; })
-      .then(function () { checkoutInFlight = false; btn.disabled = cart.length === 0; btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
+      .then(function () { checkoutInFlight = false; render(); btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
   });
 
   Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) {

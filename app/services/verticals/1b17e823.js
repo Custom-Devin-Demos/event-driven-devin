@@ -197,7 +197,7 @@ function computeScoreCardEarn(member, tierKey, eligibleSubtotal) {
  */
 async function placeOrder(data) {
   const startTime = Date.now();
-  const orderId = `DSG${Date.now().toString().slice(-9)}`;
+  const orderId = `DSG${uuidv4().replace(/-/g, '').slice(0, 12).toUpperCase()}`;
   const member = findMember(data.memberId);
   const store = STORES[data.storeNumber] || STORES['0212'];
   let lines = [];
