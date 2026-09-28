@@ -129,22 +129,32 @@ class MainActivity : Activity() {
         root.addView(frameArea, LinearLayout.LayoutParams(MATCH_PARENT, 0, 1f))
         status = TextView(this).apply {
             setTextColor(Color.WHITE)
+            textSize = 13f
+            maxLines = 1
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(24, 0, 24, 0)
+            setPadding(24, 0, 8, 0)
         }
         val strip = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             setBackgroundColor(0xFF222222.toInt())
             addView(status, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
-            addView(Button(context).apply { text = "SCAN"; setOnClickListener { showScan() } })
-            addView(Button(context).apply { text = "KBD"; setOnClickListener { showKeyboard() } })
+            addView(stripButton("SCAN") { showScan() })
+            addView(stripButton("KBD") { showKeyboard() })
             setOnLongClickListener { showSettings(); true }
         }
         root.addView(strip,
             LinearLayout.LayoutParams(MATCH_PARENT, (48 * resources.displayMetrics.density).toInt()))
         setContentView(root)
         updateStatus()
+    }
+
+    private fun stripButton(label: String, action: () -> Unit) = Button(this).apply {
+        text = label
+        minWidth = 0
+        minimumWidth = 0
+        setPadding(36, 0, 36, 0)
+        setOnClickListener { action() }
     }
 
     private fun showKeyboard() {
@@ -154,8 +164,9 @@ class MainActivity : Activity() {
     }
 
     private fun showSettings() {
-        val hostEdit = EditText(this).apply { setText(host()) }
+        val hostEdit = EditText(this).apply { hint = "Host"; setText(host()) }
         val portEdit = EditText(this).apply {
+            hint = "Port"
             setText(port().toString())
             inputType = InputType.TYPE_CLASS_NUMBER
         }
