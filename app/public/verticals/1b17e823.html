@@ -33,6 +33,7 @@
     .banner h2 { font-size:28px; font-weight:900; letter-spacing:.5px; text-transform:uppercase; font-style:italic; }
     .banner p { font-size:14px; margin-top:4px; }
     main { display:grid; grid-template-columns:1fr 380px; gap:24px; margin-top:20px; margin-bottom:40px; }
+    @media (max-width: 860px) { main { grid-template-columns:minmax(0,1fr); } .hd-links, nav.cats { display:none; } .line { grid-template-columns:88px 1fr; } .line .price { grid-column:2; } .fulfill { flex-wrap:wrap; } }
     h1 { font-size:26px; font-weight:900; text-transform:uppercase; letter-spacing:.3px; margin:22px 0 4px; }
     .sub { color:var(--muted); font-size:13px; }
     .card { background:#fff; border:1px solid var(--line); border-radius:4px; }
@@ -139,8 +140,8 @@
           </div>
           <button class="btn primary" id="checkoutBtn">Checkout</button>
           <div class="result" id="result"></div>
-          <button class="btn pp" type="button">PayPal</button>
-          <button class="btn ap" type="button">Apple Pay</button>
+          <button class="btn pp express" type="button">PayPal</button>
+          <button class="btn ap express" type="button">Apple Pay</button>
           <div class="note">Returns accepted within 90 days. <u>Return Policy</u></div>
         </div>
       </aside>
@@ -265,6 +266,10 @@
       })
       .catch(function (e) { result.className = 'result err'; result.textContent = 'Network error: ' + e.message; })
       .then(function () { checkoutInFlight = false; btn.disabled = cart.length === 0; btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('.express'), function (b) {
+    b.addEventListener('click', function () { $('checkoutBtn').click(); });
   });
 
   render();
