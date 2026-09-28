@@ -345,7 +345,7 @@
                 <label>Shipping Method</label>
                 <div class="ship-options">
                   <label class="ship-option"><input type="radio" name="ship" value="standard" checked onchange="onOrderEdit()"> Standard Shipping (5&ndash;7 business days) <span class="price" id="stdPrice">FREE</span></label>
-                  <label class="ship-option"><input type="radio" name="ship" value="express" onchange="onOrderEdit()"> Express Shipping (2 business days) <span class="price">$19.99</span></label>
+                  <label class="ship-option"><input type="radio" name="ship" value="express" onchange="onOrderEdit()"> Express Shipping (2 business days) <span class="price" id="expPrice">$19.99</span></label>
                   <label class="ship-option"><input type="radio" name="ship" value="pickup" onchange="onOrderEdit()"> Free Store Pickup &mdash; nearest store <span class="price">FREE</span></label>
                 </div>
               </div>
@@ -474,7 +474,9 @@
       var shipping = CART.length === 0 ? 0 : (method === 'express' ? 19.99 : (method === 'standard' && sub < 65 ? 8.99 : 0));
       var tax = cents(sub * TAX[document.getElementById('stateSelect').value]);
       var gold = document.getElementById('tierSelect').value === 'gold';
-      document.getElementById('stdPrice').textContent = sub >= 65 ? 'FREE' : '$8.99';
+      var empty = CART.length === 0;
+      document.getElementById('stdPrice').textContent = empty || sub >= 65 ? 'FREE' : '$8.99';
+      document.getElementById('expPrice').textContent = empty ? 'FREE' : '$19.99';
       document.getElementById('sumSubtotal').textContent = money(sub);
       document.getElementById('sumShipping').textContent = shipping === 0 ? 'FREE' : money(shipping);
       document.getElementById('sumTax').textContent = money(tax);
