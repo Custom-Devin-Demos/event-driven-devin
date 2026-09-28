@@ -19,24 +19,24 @@ const DEALER_ACCOUNTS = {
 };
 
 const CATALOG = {
-  'CG-Base-006': { name: 'Guidanz® Diagnostic Toolkit Suite', unitPrice: 612.0, subscription: true },
+  'CG-Base-006': { name: 'Guidanz® Diagnostic Toolkit Suite', unitPrice: 612.0, subscriptionTerms: [12, 24, 36] },
   'COOLK-ADV-5': { name: 'Engine Coolant Analysis Advanced', unitPrice: 112.2 },
-  'CalAssist-12345': { name: 'CalAssist', unitPrice: 255.0, subscription: true, esnRequired: true },
+  'CalAssist-12345': { name: 'CalAssist', unitPrice: 255.0, subscriptionTerms: [12], esnRequired: true },
   'DEOK-ADV-5': { name: 'Diesel Engine Oil Analysis Advanced', unitPrice: 125.8 },
   'DEOK-B-5': { name: 'Diesel Engine Oil Analysis Basic', unitPrice: 82.88 },
-  'FLTCNT-12345': { name: 'Fleet Count', unitPrice: 459.0, subscription: true },
-  'INCAL-02300': { name: 'INCAL', unitPrice: 348.5, subscription: true, esnRequired: true },
-  'INS-Lite-000406': { name: 'INSITE™ Lite (Service Plus)', unitPrice: 357.0, subscription: true },
-  'INS-Lite-00045': { name: 'INSITE™ Lite (MR/HD Plus)', unitPrice: 272.0, subscription: true },
-  'INS-Pro-00345': { name: 'INSITE™ Pro (MR/HD Plus)', unitPrice: 731.0, subscription: true },
-  'INS-Pro-02300': { name: 'INSITE™ Pro (Service Plus)', unitPrice: 977.5, subscription: true },
-  'Intapp-12345': { name: 'Intapp', unitPrice: 833.0, subscription: true },
+  'FLTCNT-12345': { name: 'Fleet Count', unitPrice: 459.0, subscriptionTerms: [12, 24] },
+  'INCAL-02300': { name: 'INCAL', unitPrice: 348.5, subscriptionTerms: [12], esnRequired: true },
+  'INS-Lite-000406': { name: 'INSITE™ Lite (Service Plus)', unitPrice: 357.0, subscriptionTerms: [12, 24] },
+  'INS-Lite-00045': { name: 'INSITE™ Lite (MR/HD Plus)', unitPrice: 272.0, subscriptionTerms: [12, 24] },
+  'INS-Pro-00345': { name: 'INSITE™ Pro (MR/HD Plus)', unitPrice: 731.0, subscriptionTerms: [12, 24, 36] },
+  'INS-Pro-02300': { name: 'INSITE™ Pro (Service Plus)', unitPrice: 977.5, subscriptionTerms: [12, 24, 36] },
+  'Intapp-12345': { name: 'Intapp', unitPrice: 833.0, subscriptionTerms: [12] },
   'NGEOK-ADV-5': { name: 'Natural Gas Engine Oil Analysis Advanced', unitPrice: 135.15 },
   'NGEOK-B-5': { name: 'Natural Gas Engine Oil Analysis Basic', unitPrice: 89.25 },
-  'QSOL-Cpg-004': { name: 'QuickServe® Online for Power Generation', unitPrice: 544.0, subscription: true },
-  'QSOLK-00045': { name: 'QuickServe® Online Kit  (QSOL, CST)', unitPrice: 1270.75, subscription: true },
-  'Z-IT-10045': { name: 'Zap-It', unitPrice: 212.5, subscription: true },
-  'Z-IT-OEM-02305': { name: 'Zap-It OEM', unitPrice: 331.5, subscription: true },
+  'QSOL-Cpg-004': { name: 'QuickServe® Online for Power Generation', unitPrice: 544.0, subscriptionTerms: [12, 24] },
+  'QSOLK-00045': { name: 'QuickServe® Online Kit  (QSOL, CST)', unitPrice: 1270.75, subscriptionTerms: [12, 24, 36] },
+  'Z-IT-10045': { name: 'Zap-It', unitPrice: 212.5, subscriptionTerms: [12] },
+  'Z-IT-OEM-02305': { name: 'Zap-It OEM', unitPrice: 331.5, subscriptionTerms: [12] },
 };
 
 const MAX_QUANTITY = 9999;
@@ -118,7 +118,9 @@ function validateItem(product, item) {
   if (!product) throw cartError('Cart_Error_UnknownSKU');
   if (!Number.isInteger(item.quantity) || item.quantity <= 0) throw cartError('Cart_Error_InvalidQuantity');
   if (item.quantity > MAX_QUANTITY) throw cartError('Cart_Error_AboveMaximumQuantity');
-  if (product.subscription && !item.subscriptionTerm) throw cartError('Cart_Error_InvalidSubscriptionTerm');
+  if (product.subscriptionTerms && !product.subscriptionTerms.includes(item.subscriptionTerm)) {
+    throw cartError('Cart_Error_InvalidSubscriptionTerm');
+  }
   if (product.esnRequired) {
     if (!item.esn) throw cartError('ESN_Required');
     if (!/^[0-9]{8}$/.test(item.esn)) throw cartError('ESN_Invalid_Format');
@@ -136,9 +138,10 @@ async function addToCart(data) {
     throw error;
   }
 
+  const rawQuantity = data.quantity === undefined || data.quantity === null ? '1' : String(data.quantity).trim();
   const item = {
     sku: String(data.sku || '').trim(),
-    quantity: Number(data.quantity || 1),
+    quantity: rawQuantity === '' ? NaN : Number(rawQuantity),
     subscriptionTerm: data.subscriptionTerm ? Number(data.subscriptionTerm) : null,
     esn: data.esn ? String(data.esn).trim() : null,
   };
@@ -185,7 +188,7 @@ async function addToCart(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, branchCode: account.branchCode },
+      tags: { route: ROUTE, service: SERVICE, branchCode: account.branchCode, alert_path: 'instant' },
       extra: context,
     });
 
