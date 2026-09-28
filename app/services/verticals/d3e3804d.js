@@ -53,8 +53,14 @@ function priceLines(items) {
       err.statusCode = 400;
       throw err;
     }
-    const n = Math.floor(Number(item.qty));
-    const qty = Number.isFinite(n) ? Math.max(1, Math.min(10, n)) : 1;
+    const qty = Number(item.qty);
+    if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
+      const err = new Error(`Quantity for item ${product.sku} must be between 1 and 10.`);
+      err.name = 'ValidationError';
+      err.code = 'INVALID_QUANTITY';
+      err.statusCode = 400;
+      throw err;
+    }
     return {
       sku: product.sku,
       brand: product.brand,
