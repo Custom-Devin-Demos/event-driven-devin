@@ -429,6 +429,14 @@
           btn.textContent = 'Resume wave 3';
           return;
         }
+        if (data.code !== 'AGENT_INPUT_REQUIRED') {
+          setWave('W3', 'checkpoint');
+          setAgent('orchestrator', 'running', 'Coordinating waves 3\u20134 \u00b7 CP-3.4 hold');
+          addFeed('orchestrator', 'Resume request failed: ' + (data.error || 'request rejected') + '. Wave 3 remains at checkpoint CP-3.4.', { fresh: true, warn: true });
+          showToast('Resume failed', data.error || 'The orchestrator rejected the request.');
+          btn.textContent = 'Resume wave 3';
+          return;
+        }
         var agent = data.agent || 'orchestrator';
         setWave('W3', 'blocked');
         setAgent(agent, 'blocked', 'Needs input \u00b7 question escalated to on-call');
