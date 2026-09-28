@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="420" viewBox="0 0 1040 420" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker>
+  </defs>
+  <rect width="1040" height="420" fill="#fff"/>
+  <text x="520" y="32" text-anchor="middle" font-size="20" font-weight="600" fill="#222">EIM RF — current architecture</text>
+
+  <!-- plant floor -->
+  <rect x="20" y="60" width="220" height="300" rx="8" fill="#f4f6f8" stroke="#8a96a3" stroke-dasharray="6 4"/>
+  <text x="130" y="82" text-anchor="middle" font-size="13" fill="#555">Plant floor (Wi-Fi)</text>
+  <rect x="45" y="100" width="170" height="200" rx="14" fill="#fff" stroke="#333" stroke-width="2"/>
+  <rect x="65" y="120" width="130" height="120" fill="#dde3ea" stroke="#666"/>
+  <text x="130" y="172" text-anchor="middle" font-size="12" fill="#333">remote frames</text>
+  <text x="130" y="188" text-anchor="middle" font-size="12" fill="#333">(JPEG, ~4 fps)</text>
+  <text x="130" y="262" text-anchor="middle" font-size="14" font-weight="600">Android handheld</text>
+  <text x="130" y="280" text-anchor="middle" font-size="11" fill="#555">android-rf-client (viewer only)</text>
+  <text x="130" y="330" text-anchor="middle" font-size="11" fill="#555">scanner / keys / taps</text>
+
+  <!-- RDP link -->
+  <line x1="240" y1="180" x2="378" y2="180" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="378" y1="210" x2="240" y2="210" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+  <text x="309" y="168" text-anchor="middle" font-size="13" font-weight="600">RDP</text>
+  <text x="309" y="232" text-anchor="middle" font-size="11" fill="#555">rdp-sim, TCP 3390</text>
+  <text x="309" y="247" text-anchor="middle" font-size="11" fill="#555">+ one-way latency/jitter</text>
+  <text x="309" y="262" text-anchor="middle" font-size="11" fill="#555">(optional flaky Wi-Fi)</text>
+
+  <!-- AWS VM -->
+  <rect x="380" y="60" width="360" height="300" rx="8" fill="#eef3fb" stroke="#4a6fa5"/>
+  <text x="560" y="82" text-anchor="middle" font-size="13" fill="#34507a">AWS — Windows VM "EIMRF-VM01"</text>
+  <rect x="405" y="100" width="310" height="60" rx="4" fill="#fff" stroke="#4a6fa5"/>
+  <text x="560" y="125" text-anchor="middle" font-size="13" font-weight="600">RdpSim.dll (session host)</text>
+  <text x="560" y="144" text-anchor="middle" font-size="11" fill="#555">screen capture → JPEG · input → UI thread</text>
+  <rect x="405" y="175" width="310" height="160" rx="4" fill="#fff" stroke="#4a6fa5"/>
+  <text x="560" y="200" text-anchor="middle" font-size="14" font-weight="600">EimRf.exe — .NET Framework 4.8 WinForms</text>
+  <text x="560" y="222" text-anchor="middle" font-size="11" fill="#555">Login · Menu · Move Inventory · Build Pallet · Pallet Inquiry</text>
+  <text x="560" y="244" text-anchor="middle" font-size="11" fill="#555">business logic in form code-behind</text>
+  <text x="560" y="266" text-anchor="middle" font-size="11" fill="#555">synchronous RFC on the UI thread ("Please wait…")</text>
+  <text x="560" y="288" text-anchor="middle" font-size="11" fill="#555">new RFC logon per call · no caching · re-reads</text>
+  <text x="560" y="310" text-anchor="middle" font-size="11" fill="#555">NCo-style RfcDestination / IRfcFunction</text>
+  <line x1="560" y1="160" x2="560" y2="175" stroke="#4a6fa5" stroke-width="2"/>
+
+  <!-- RFC link -->
+  <line x1="740" y1="255" x2="838" y2="255" stroke="#333" stroke-width="2" marker-end="url(#a)"/>
+  <text x="789" y="243" text-anchor="middle" font-size="13" font-weight="600">RFC</text>
+  <text x="789" y="275" text-anchor="middle" font-size="11" fill="#555">BAPIs + Z-FMs</text>
+
+  <!-- SAP -->
+  <rect x="840" y="160" width="180" height="200" rx="8" fill="#fbf5ea" stroke="#b07a2a"/>
+  <text x="930" y="188" text-anchor="middle" font-size="14" font-weight="600">SAP ECC</text>
+  <text x="930" y="206" text-anchor="middle" font-size="11" fill="#555">sap-mock (.NET 8)</text>
+  <text x="930" y="232" text-anchor="middle" font-size="10" fill="#555">BAPI_GOODSMVT_CREATE</text>
+  <text x="930" y="247" text-anchor="middle" font-size="10" fill="#555">L_TO_CREATE_SINGLE</text>
+  <text x="930" y="262" text-anchor="middle" font-size="10" fill="#555">BAPI_TRANSACTION_COMMIT</text>
+  <text x="930" y="277" text-anchor="middle" font-size="10" fill="#555">BAPI_MATERIAL_GET_DETAIL</text>
+  <text x="930" y="292" text-anchor="middle" font-size="10" fill="#555">Z_EIM_GET_PALLET</text>
+  <text x="930" y="307" text-anchor="middle" font-size="10" fill="#555">Z_EIM_VALIDATE_BIN</text>
+  <text x="930" y="322" text-anchor="middle" font-size="10" fill="#555">Z_EIM_ADD_CASE_TO_PALLET …</text>
+  <text x="930" y="345" text-anchor="middle" font-size="10" fill="#555">~350 ms logon · ~150±50 ms/call</text>
+
+  <text x="520" y="395" text-anchor="middle" font-size="12" fill="#666">handheld → RDP → Windows VM .NET app → RFC → SAP   (rdp-sim and sap-mock are simulations; production uses real RDP and SAP ECC)</text>
+</svg>
