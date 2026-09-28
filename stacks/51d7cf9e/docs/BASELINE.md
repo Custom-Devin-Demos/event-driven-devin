@@ -48,7 +48,8 @@ Remote-session link during these runs: ~133 frames per run, median ping RTT 125โ
 Call counts were identical in all three runs and match `INTERFACES.md` ยง3.
 
 Handheld-side wall time is measured by `run-workflows.py` over rdp-sim from the first scan
-to the Post screen, i.e. it includes the RDP input delay and the next frame arriving. It
+until the app writes the Post timing row, i.e. it includes the RDP input delay but not the
+following frame reaching the handheld (up to one frame interval plus one-way latency more). It
 excludes the worker's own think/scan time.
 
 **Known counting quirk:** for Build Pallet / CreatePallet the first `Z_EIM_GET_PALLET` (which
