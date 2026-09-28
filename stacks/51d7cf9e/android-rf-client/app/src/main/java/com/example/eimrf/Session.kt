@@ -76,8 +76,9 @@ class Session(
 
     private fun loop() {
         while (running) {
+            var s: Socket? = null
             try {
-                val s = Socket()
+                s = Socket()
                 s.connect(InetSocketAddress(host(), port()), 3000)
                 s.soTimeout = 5000
                 s.tcpNoDelay = true
@@ -86,7 +87,10 @@ class Session(
                 val r = DataInputStream(s.getInputStream())
                 while (running) {
                     val type = r.readByte()
-                    val buf = ByteArray(r.readInt())
+                    val len = r.readInt()
+                    if (len < 0 || len > 4 * 1024 * 1024)
+                        throw java.io.IOException("bad frame length $len")
+                    val buf = ByteArray(len)
                     r.readFully(buf)
                     when (type) {
                         'H'.code.toByte() -> {
@@ -100,6 +104,10 @@ class Session(
                     }
                 }
             } catch (_: Exception) {
+                try {
+                    s?.close()
+                } catch (_: Exception) {
+                }
                 close()
                 onDrop()
                 try {

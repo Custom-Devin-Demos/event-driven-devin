@@ -135,16 +135,22 @@ class MainActivity : Activity() {
             setPadding(24, 0, 8, 0)
         }
         val strip = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
+            orientation = LinearLayout.VERTICAL
             setBackgroundColor(0xFF222222.toInt())
-            addView(status, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
-            addView(stripButton("SCAN") { showScan() })
-            addView(stripButton("KBD") { showKeyboard() })
+            addView(status, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
+            addView(LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(stripButton("F1") { send("key F1") }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+                addView(stripButton("F3") { send("key F3") }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+                addView(stripButton("F4") { send("key F4") }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+                addView(stripButton("SCAN") { showScan() }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+                addView(stripButton("KBD") { showKeyboard() }, LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f))
+            }, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
             setOnLongClickListener { showSettings(); true }
         }
-        root.addView(strip,
-            LinearLayout.LayoutParams(MATCH_PARENT, (48 * resources.displayMetrics.density).toInt()))
+        status.setOnLongClickListener { showSettings(); true }
+        root.addView(strip, LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT))
         setContentView(root)
         updateStatus()
     }
