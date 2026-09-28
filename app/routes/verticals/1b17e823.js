@@ -41,14 +41,14 @@ router.post('/api/1b17e823/checkout', async (req, res) => {
   const memberId = body.memberId || 'SC-8841207733';
   if (memberId !== 'guest' && !findMember(memberId)) return validationError(res, req, `Unknown ScoreCard member: ${memberId}`);
   const fulfillment = body.fulfillment || 'ship';
-  if (!SHIPPING[fulfillment]) return validationError(res, req, `Unsupported fulfillment method: ${fulfillment}`);
+  if (!Object.hasOwn(SHIPPING, fulfillment)) return validationError(res, req, `Unsupported fulfillment method: ${fulfillment}`);
   const storeNumber = body.storeNumber || '0212';
-  if (!STORES[storeNumber]) return validationError(res, req, `Unknown store: ${storeNumber}`);
+  if (!Object.hasOwn(STORES, storeNumber)) return validationError(res, req, `Unknown store: ${storeNumber}`);
   const submittedZip = String(body.zipCode || STORES[storeNumber].zipCode);
   if (!/^\d{5}$/.test(submittedZip)) return validationError(res, req, 'ZIP code must be 5 digits');
   const zipCode = fulfillment === 'pickup' ? STORES[storeNumber].zipCode : submittedZip;
   const paymentMethod = body.paymentMethod || 'card';
-  if (!PAYMENT_METHODS[paymentMethod]) return validationError(res, req, `Unsupported payment method: ${paymentMethod}`);
+  if (!Object.hasOwn(PAYMENT_METHODS, paymentMethod)) return validationError(res, req, `Unsupported payment method: ${paymentMethod}`);
 
   try {
     const order = await placeOrder({

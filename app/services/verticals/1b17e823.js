@@ -127,7 +127,7 @@ function findProduct(sku) {
 }
 
 function findMember(memberId) {
-  return MEMBERS[memberId] || null;
+  return Object.hasOwn(MEMBERS, memberId) ? MEMBERS[memberId] : null;
 }
 
 function buildCartLines(items) {
