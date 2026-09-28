@@ -17,18 +17,23 @@ function validationError(res, req, message) {
 
 router.post('/api/1b17e823/checkout', async (req, res) => {
   const body = req.body || {};
-  const items = Array.isArray(body.items) && body.items.length
+  const requested = Array.isArray(body.items) && body.items.length
     ? body.items
     : [{ sku: '24NIKMPGSS41RDXXXRNN', qty: 1 }, { sku: '20SPAUTF1000LGCYBSKB', qty: 1 }];
 
-  for (const item of items) {
+  const qtyBySku = new Map();
+  for (const item of requested) {
     const product = item && findProduct(item.sku);
     if (!product) return validationError(res, req, `Unknown SKU: ${item && item.sku}`);
     const qty = Number(item.qty);
-    if (!Number.isInteger(qty) || qty < 1 || qty > product.limitPerOrder) {
-      return validationError(res, req, `Quantity for ${product.sku} must be between 1 and ${product.limitPerOrder}`);
-    }
+    if (!Number.isInteger(qty) || qty < 1) return validationError(res, req, `Quantity for ${product.sku} must be a positive integer`);
+    qtyBySku.set(product.sku, (qtyBySku.get(product.sku) || 0) + qty);
   }
+  for (const [sku, qty] of qtyBySku) {
+    const { limitPerOrder } = findProduct(sku);
+    if (qty > limitPerOrder) return validationError(res, req, `Quantity for ${sku} must be between 1 and ${limitPerOrder}`);
+  }
+  const items = [...qtyBySku].map(([sku, qty]) => ({ sku, qty }));
 
   const memberId = body.memberId || 'SC-8841207733';
   if (memberId !== 'guest' && !findMember(memberId)) return validationError(res, req, `Unknown ScoreCard member: ${memberId}`);
@@ -36,7 +41,7 @@ router.post('/api/1b17e823/checkout', async (req, res) => {
   if (!SHIPPING[fulfillment]) return validationError(res, req, `Unsupported fulfillment method: ${fulfillment}`);
   const storeNumber = body.storeNumber || '0212';
   if (!STORES[storeNumber]) return validationError(res, req, `Unknown store: ${storeNumber}`);
-  const zipCode = String(body.zipCode || STORES[storeNumber].zipCode);
+  const zipCode = fulfillment === 'pickup' ? STORES[storeNumber].zipCode : String(body.zipCode || STORES[storeNumber].zipCode);
   if (!/^\d{5}$/.test(zipCode)) return validationError(res, req, 'ZIP code must be 5 digits');
 
   try {

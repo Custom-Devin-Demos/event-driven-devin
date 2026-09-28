@@ -91,7 +91,7 @@ const MEMBERS = {
     id: 'SC-5520917046',
     name: 'Casey Morgan',
     scorecardTier: 'gold',
-    pointsBalance: 1180,
+    pointsBalance: 280,
     linkedProgram: null,
   },
 };
@@ -204,6 +204,7 @@ async function placeOrder(data) {
     const tierKey = resolveScoreCardTier(member);
     const scorecard = computeScoreCardEarn(member, tierKey, subtotal);
     const total = roundCurrency(subtotal + shipping.fee + tax.tax);
+    if (member) member.pointsBalance = scorecard.newBalance;
 
     incrementMetric('dsg_checkout.success', { route: ROUTE, tier: tierKey || 'guest', fulfillment: shipping.method });
     recordTiming('dsg_checkout.latency', Date.now() - startTime, { route: ROUTE });
@@ -241,7 +242,7 @@ async function placeOrder(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, linkedProgram: linked },
+      tags: { route: ROUTE, service: SERVICE, linkedProgram: linked, alert_path: 'instant' },
       extra: { orderId, memberId: data.memberId, storeNumber: data.storeNumber, zipCode: data.zipCode, lines: lines.length },
     });
 

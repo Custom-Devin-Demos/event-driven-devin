@@ -168,8 +168,6 @@
 
 <script>
 (function () {
-  var DEVIN_USER_ID_FALLBACK = 'clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV';
-  var DEVIN_ORG_ID_FALLBACK = 'org_69IXJFLrljx8zSAw';
   var TAX_RATE = 0.07;
   var TAXABLE = { equipment: true };
   var cart = [
@@ -195,12 +193,17 @@
         '<div><h3>' + it.name + '</h3><div class="meta">Color: ' + it.color + '<br>Size: ' + it.size + '<br>Item #: ' + it.sku + '</div>' +
         '<div class="ship-tag">' + (fulfillment === 'ship' ? '✓ Ships free with $65+ order' : '✓ In stock at Robinson Township') + '</div>' +
         '<div><select data-i="' + i + '" aria-label="Quantity">' + opts + '</select></div>' +
-        '<div class="acts"><span>Save for Later</span><span>Remove</span></div></div>' +
+        '<div class="acts"><a href="#" data-rm="' + i + '">Save for Later</a><a href="#" data-rm="' + i + '">Remove</a></div></div>' +
         '<div class="price"><b>' + money(it.price * it.qty) + '</b>' + (it.was ? '<s>' + money(it.was * it.qty) + '</s><span class="save">Save ' + money((it.was - it.price) * it.qty) + '</span>' : '') + '</div></div>';
     }).join('');
     Array.prototype.forEach.call(document.querySelectorAll('#lines select'), function (s) {
       s.addEventListener('change', function () { cart[+s.dataset.i].qty = +s.value; render(); });
     });
+    Array.prototype.forEach.call(document.querySelectorAll('#lines [data-rm]'), function (a) {
+      a.addEventListener('click', function (e) { e.preventDefault(); cart.splice(+a.dataset.rm, 1); render(); });
+    });
+    $('checkoutBtn').disabled = cart.length === 0;
+    if (!cart.length) $('lines').innerHTML = '<div class="line" style="display:block;color:var(--muted)">Your cart is empty.</div>';
     var n = cart.reduce(function (s, it) { return s + it.qty; }, 0);
     var sub = cart.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
     var ship = fulfillment === 'pickup' || sub >= 65 ? 0 : 7.99;
@@ -242,8 +245,8 @@
         fulfillment: fulfillment,
         storeNumber: '0212',
         zipCode: '15205',
-        devinUserId: localStorage.getItem('devinUserId') || DEVIN_USER_ID_FALLBACK,
-        devinOrgId: localStorage.getItem('devinOrgId') || DEVIN_ORG_ID_FALLBACK,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || '',
         devinEmail: localStorage.getItem('devinEmail') || ''
       })
     }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
@@ -260,7 +263,7 @@
         }
       })
       .catch(function (e) { result.className = 'result err'; result.textContent = 'Network error: ' + e.message; })
-      .then(function () { btn.disabled = false; btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
+      .then(function () { btn.disabled = cart.length === 0; btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
   });
 
   render();
