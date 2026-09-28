@@ -83,6 +83,7 @@ class Session(
                 s.soTimeout = 5000
                 s.tcpNoDelay = true
                 sock = s
+                if (!running) break
                 synchronized(this) { outStream = DataOutputStream(s.getOutputStream()) }
                 val r = DataInputStream(s.getInputStream())
                 while (running) {
@@ -104,15 +105,16 @@ class Session(
                     }
                 }
             } catch (_: Exception) {
-                try {
-                    s?.close()
-                } catch (_: Exception) {
-                }
                 close()
                 onDrop()
                 try {
                     Thread.sleep(1000)
                 } catch (_: InterruptedException) {
+                }
+            } finally {
+                try {
+                    s?.close()
+                } catch (_: Exception) {
                 }
             }
         }
