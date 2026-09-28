@@ -78,27 +78,32 @@ namespace EimRf
         {
             if (!_hasPallet) { ShowError("Scan a pallet first"); return; }
             string bin = ScanValue(DestText);
+            _destinationReady = false;
+            _confirmed = false;
+            _destinationBin = null;
+            _destinationInfo = null;
+            DestInfoLabel.Text = "";
             RunStep("MoveInventory", "ScanDestBin", delegate
             {
-                _destinationInfo = RfcHelper.ValidateBin(RfSession.Lgnum, bin, true);
+                IRfcStructure info = RfcHelper.ValidateBin(RfSession.Lgnum, bin, true);
                 IRfcStructure material = RfcHelper.GetMaterial(_material, RfSession.Plant);
                 RfcHelper.Require(bin != _sourceBin, "SAME_BIN", "Destination bin is the same as the source bin");
-                string type = _destinationInfo.GetString("LGTYP");
+                string type = info.GetString("LGTYP");
                 bool allowed = _storageConditions == "FZ" ? type == "300" || type == "910" :
                     _storageConditions == "CH" ? type == "200" || type == "910" :
                     _storageConditions == "RW" ? type == "100" || type == "200" : true;
                 if (!allowed)
                     RfcHelper.Require(false, "STOR_COND", "Material " + _material + " (" + _storageConditions +
-                        ") not allowed in storage type " + type + " " + _destinationInfo.GetString("LTYPT"));
+                        ") not allowed in storage type " + type + " " + info.GetString("LTYPT"));
                 IRfcFunction pallet = RfcHelper.GetPallet(_sscc);
                 _palletHeader = pallet.GetStructure("ES_HEADER");
                 _items = pallet.GetTable("ET_ITEMS");
+                _destinationInfo = info;
                 _destinationBin = bin;
-                DestInfoLabel.Text = "Dest: " + bin + "  " + _destinationInfo.GetString("LGOBE") +
-                    " / " + _destinationInfo.GetString("LTYPT") + "  (" + _destinationInfo.GetString("ANZLE") +
-                    "/" + _destinationInfo.GetString("MAXLE") + ")";
+                DestInfoLabel.Text = "Dest: " + bin + "  " + info.GetString("LGOBE") +
+                    " / " + info.GetString("LTYPT") + "  (" + info.GetString("ANZLE") +
+                    "/" + info.GetString("MAXLE") + ")";
                 _destinationReady = true;
-                _confirmed = false;
                 ShowSuccess("F1 Confirm");
             });
         }
@@ -125,6 +130,7 @@ namespace EimRf
             {
                 _document = null;
                 _transferOrder = null;
+                string warning = "";
                 RfcDestination destination = RfcHelper.GetDestination();
                 RfcSessionManager.BeginContext(destination);
                 try
@@ -175,18 +181,22 @@ namespace EimRf
                     IRfcFunction commit = RfcHelper.CreateFunction(destination, "BAPI_TRANSACTION_COMMIT");
                     commit.SetValue("WAIT", "X");
                     commit.Invoke(destination);
+                    _hasPallet = false;
+                    _destinationReady = false;
+                    _confirmed = false;
 
-                    RfcHelper.GetPallet(_sscc);
-                    RfcHelper.ValidateBin(RfSession.Lgnum, _destinationBin, false);
+                    try
+                    {
+                        RfcHelper.GetPallet(_sscc);
+                        RfcHelper.ValidateBin(RfSession.Lgnum, _destinationBin, false);
+                    }
+                    catch (RfcBaseException ex) { warning = "  WARNING: re-read failed - " + ex.Message; }
                 }
                 finally { RfcSessionManager.EndContext(destination); }
 
                 string document = string.IsNullOrEmpty(_document) ? "" : " / Mat doc " + _document;
                 string success = "Posted: TO " + _transferOrder + document + " - pallet now in " +
-                    _destinationBin + " (" + _items.RowCount + " line(s))";
-                _hasPallet = false;
-                _destinationReady = false;
-                _confirmed = false;
+                    _destinationBin + " (" + _items.RowCount + " line(s))" + warning;
                 PalletInfoLabel.Text = "";
                 DestInfoLabel.Text = "";
                 PalletText.Clear();
