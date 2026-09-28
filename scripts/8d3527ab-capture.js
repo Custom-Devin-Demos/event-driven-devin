@@ -138,6 +138,9 @@ function rewrite(state, key, html) {
   if (state === 'ca') alt.US = pages.guest[key] ? pageUrl('guest', key) : pageUrl('guest', 'home');
   const shim = `<script>(function(p){window.getRemoteContact=function(){window.location.href=p.US;};window.getRemoteContactCA=function(){window.location.href=p.CA;};}(${JSON.stringify(alt)}));</script>`;
   html = html.replace(/(<script src="[^"]*cc_globalstore\.js"><\/script>)/, `$1\n${shim}`);
+  if (state === 'dealer' && html.includes('cc_add_to_cart_form')) {
+    html = html.replace('</body>', `<script src="${PUB}/add-to-cart.js"></script>\n</body>`);
+  }
   return html;
 }
 
