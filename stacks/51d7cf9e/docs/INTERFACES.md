@@ -63,7 +63,7 @@ session** and only applied by `BAPI_TRANSACTION_COMMIT` in the *same* session
 | `Z_EIM_ADD_CASE_TO_PALLET` | `IV_EXIDV`, `IV_CASE_BARCODE` | `ES_CASE{MATNR,MAKTX,CHARG,MENGE,MEINS}`, `EV_CASE_COUNT` | exc `PALLET_CLOSED`, `CASE_NOT_FOUND`, `CASE_ALREADY_PACKED`, `STOR_COND` |
 | `Z_EIM_CLOSE_PALLET` | `IV_EXIDV` | `EV_CASE_COUNT` | exc `ALREADY_CLOSED`, `PALLET_EMPTY` |
 | `Z_EIM_PRINT_PALLET_LABEL` | `IV_EXIDV`, `IV_PADEST` | `EV_SPOOLID`, `EV_PRINTER` | exc `NOT_FOUND` |
-| `BAPI_TRANSACTION_COMMIT` | `WAIT:"X"` | `RETURN` | exc `BIN_FULL`, `SU_NOT_IN_SOURCE_BIN`, `HU_EXISTS`, `CASE_ALREADY_PACKED`, `PALLET_CLOSED` (staged checks re-run under the state lock; on failure all pending updates are discarded) |
+| `BAPI_TRANSACTION_COMMIT` | `WAIT:"X"` | `RETURN` | exc `BIN_FULL`, `SU_NOT_IN_SOURCE_BIN`, `HU_EXISTS`, `CASE_ALREADY_PACKED`, `PALLET_CLOSED`, `ALREADY_CLOSED` (staged checks re-run under the state lock; on failure all pending updates are discarded) |
 | `BAPI_TRANSACTION_ROLLBACK` | | `RETURN` | — |
 
 Storage-condition rule (enforced by the legacy app, from `STOR_CONDS`):

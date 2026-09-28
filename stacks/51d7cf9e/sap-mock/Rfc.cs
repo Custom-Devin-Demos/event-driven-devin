@@ -249,8 +249,13 @@ public static class Rfc
     static RfcResult ClosePallet(RfcContext c)
     {
         var p = FindPallet(c, c.Str("IV_EXIDV"));
-        if (p.Status != "OPEN") throw new AbapException("ALREADY_CLOSED", $"Pallet {p.Exidv} is already closed");
-        if (p.Items.Count == 0) throw new AbapException("PALLET_EMPTY", $"Pallet {p.Exidv} has no cases");
+        void RequireClosable()
+        {
+            if (p.Status != "OPEN") throw new AbapException("ALREADY_CLOSED", $"Pallet {p.Exidv} is already closed");
+            if (p.Items.Count == 0) throw new AbapException("PALLET_EMPTY", $"Pallet {p.Exidv} has no cases");
+        }
+        RequireClosable();
+        c.Session.Checks.Add(RequireClosable);
         c.Session.Pending.Add(() => p.Status = "CLOSED");
         var r = new RfcResult();
         r.Exports["EV_CASE_COUNT"] = p.Items.Sum(i => i.Qty);
