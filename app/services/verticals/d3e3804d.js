@@ -135,7 +135,7 @@ async function checkout(data) {
   const requestId = uuidv4();
   const orderId = `N${Date.now().toString().slice(-6)}${requestId.replace(/-/g, '').slice(0, 6).toUpperCase()}`;
   const items = Array.isArray(data.items) ? data.items.slice(0, 20) : [];
-  const zip = DESTINATIONS[data.zip] ? String(data.zip) : '94115';
+  const zip = Object.hasOwn(DESTINATIONS, String(data.zip)) ? String(data.zip) : '94115';
   const destination = DESTINATIONS[zip];
 
   logger.info('Starting bag checkout', {
