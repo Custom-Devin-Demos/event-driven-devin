@@ -48,24 +48,24 @@ namespace EimRf
             status.Items.Add(new ToolStripStatusLabel("User: " + RfSession.User));
             status.Items.Add(new ToolStripStatusLabel("Plant: " + RfSession.Plant));
             status.Items.Add(new ToolStripStatusLabel("Dev: " + RfSession.Device));
-            Controls.Add(status);
 
             HintLabel = new Label
             {
                 Dock = DockStyle.Bottom, Height = 27, TextAlign = ContentAlignment.MiddleLeft,
                 BackColor = SystemColors.Control, Padding = new Padding(8, 0, 0, 0), Text = hint
             };
-            Controls.Add(HintLabel);
             MessageLabel = new Label
             {
-                Dock = DockStyle.Bottom, Height = 28, TextAlign = ContentAlignment.MiddleLeft,
+                Dock = DockStyle.Bottom, Height = 48, TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(8, 0, 0, 0), ForeColor = Color.DarkGreen
             };
             Controls.Add(MessageLabel);
+            Controls.Add(HintLabel);
+            Controls.Add(status);
             WaitLabel = new Label
             {
                 Visible = false, BorderStyle = BorderStyle.FixedSingle, BackColor = SystemColors.Control,
-                Text = "Please wait…", TextAlign = ContentAlignment.MiddleCenter,
+                Text = "Please wait...", TextAlign = ContentAlignment.MiddleCenter,
                 Font = new Font(Font.FontFamily, 18F, FontStyle.Bold), Size = new Size(300, 78),
                 Location = new Point(90, 276)
             };
@@ -143,6 +143,8 @@ namespace EimRf
         {
             MessageLabel.ForeColor = Color.DarkRed;
             MessageLabel.Text = message;
+            TextBox field = ActiveControl as TextBox;
+            if (field != null) field.SelectAll();
             SystemSounds.Hand.Play();
         }
 

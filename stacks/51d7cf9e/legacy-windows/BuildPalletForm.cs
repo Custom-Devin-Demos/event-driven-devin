@@ -145,6 +145,7 @@ namespace EimRf
                 _header = pallet.GetStructure("ES_HEADER");
                 _items = pallet.GetTable("ET_ITEMS");
                 SetPalletDisplay();
+                ClearMessage();
                 CaseText.Clear();
                 FocusField(CaseText);
             });
