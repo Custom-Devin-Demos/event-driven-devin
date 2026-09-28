@@ -176,6 +176,15 @@ public static class Rfc
         var dest = c.S.FindBin(lgnum, c.Str("I_NLPLA")) ?? throw new AbapException("BIN_NOT_FOUND", $"Storage bin {lgnum} {c.Str("I_NLPLA")} does not exist");
         if (dest.Lgtyp != c.Str("I_NLTYP")) throw new AbapException("WRONG_STORAGE_TYPE", $"Bin {dest.Lgpla} is not in storage type {c.Str("I_NLTYP")}");
         if (dest.Blocked) throw new AbapException("BIN_BLOCKED", $"Storage bin {dest.Lgpla} is blocked for putaway");
+        foreach (var i in p.Items) RequireStorCond(c, i.Matnr, dest.Lgtyp);
+        void RequireSpace()
+        {
+            var count = c.S.PalletsInBin(dest);
+            if (p.Lgpla != dest.Lgpla && count >= dest.MaxPallets)
+                throw new AbapException("BIN_FULL", $"Storage bin {dest.Lgpla} is full ({count}/{dest.MaxPallets} SU)");
+        }
+        RequireSpace();
+        c.Session.Checks.Add(RequireSpace);
         var tanum = (c.S.NextTo++).ToString("D10");
         c.Session.Pending.Add(() =>
         {
@@ -213,6 +222,7 @@ public static class Rfc
         if (c.S.Pallets.Values.Any(x => x.Items.Any(i => i.CaseBarcode == bc)))
             throw new AbapException("CASE_ALREADY_PACKED", $"Case {bc} is already packed on a pallet");
         var m = c.S.Materials[cs.Matnr];
+        RequireStorCond(c, cs.Matnr, p.Lgtyp);
         c.Session.Pending.Add(() => p.Items.Add(new PalletItem { Matnr = cs.Matnr, Charg = cs.Charg, Qty = cs.Qty, Uom = m.BaseUom, CaseBarcode = bc }));
         var r = new RfcResult();
         r.Exports["ES_CASE"] = new JsonObject { ["MATNR"] = cs.Matnr, ["MAKTX"] = m.Description, ["CHARG"] = cs.Charg, ["MENGE"] = cs.Qty, ["MEINS"] = m.BaseUom };
@@ -241,8 +251,30 @@ public static class Rfc
         return r;
     }
 
+    static void RequireStorCond(RfcContext c, string matnr, string lgtyp)
+    {
+        var cond = c.S.Materials[matnr].StorCond;
+        var allowed = cond switch
+        {
+            "FZ" => lgtyp is "300" or "910",
+            "CH" => lgtyp is "200" or "910",
+            "RW" => lgtyp is "100" or "200",
+            _ => true
+        };
+        if (!allowed)
+            throw new AbapException("STOR_COND", $"Material {matnr} ({cond}) not allowed in storage type {lgtyp}");
+    }
+
     static RfcResult Commit(RfcContext c)
     {
+        try { foreach (var check in c.Session.Checks) check(); }
+        catch (AbapException)
+        {
+            c.Session.Pending.Clear();
+            c.Session.Checks.Clear();
+            throw;
+        }
+        c.Session.Checks.Clear();
         foreach (var a in c.Session.Pending) a();
         var n = c.Session.Pending.Count;
         c.Session.Pending.Clear();
@@ -254,6 +286,7 @@ public static class Rfc
     static RfcResult Rollback(RfcContext c)
     {
         c.Session.Pending.Clear();
+        c.Session.Checks.Clear();
         var r = new RfcResult();
         r.Exports["RETURN"] = new JsonObject { ["TYPE"] = "", ["ID"] = "", ["NUMBER"] = "000", ["MESSAGE"] = "" };
         return r;

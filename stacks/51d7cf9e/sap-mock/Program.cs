@@ -88,6 +88,7 @@ app.Run();
 public record Session(string Id, string User, DateTime Created)
 {
     public List<Action> Pending { get; } = new();
+    public List<Action> Checks { get; } = new();
 }
 
 public class Stats
