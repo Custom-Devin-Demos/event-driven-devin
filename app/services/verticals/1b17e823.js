@@ -204,7 +204,6 @@ async function placeOrder(data) {
     const tierKey = resolveScoreCardTier(member);
     const scorecard = computeScoreCardEarn(member, tierKey, subtotal);
     const total = roundCurrency(subtotal + shipping.fee + tax.tax);
-    if (member) member.pointsBalance = scorecard.newBalance;
 
     incrementMetric('dsg_checkout.success', { route: ROUTE, tier: tierKey || 'guest', fulfillment: shipping.method });
     recordTiming('dsg_checkout.latency', Date.now() - startTime, { route: ROUTE });

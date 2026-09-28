@@ -177,6 +177,7 @@
       img: 'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=400&q=80&auto=format&fit=crop' }
   ];
   var fulfillment = 'ship';
+  var checkoutInFlight = false;
   var members = {
     'SC-8841207733': { first: 'Jordan', badge: 'FLX X3 linked', text: 'Your Foot Locker FLX status is linked — points post when you check out. 60 points to your next $10 reward.', pct: 80 },
     'SC-5520917046': { first: 'Casey', badge: 'Gold', text: 'Gold members earn 1.5x points. 20 points to your next $10 reward.', pct: 93 },
@@ -193,7 +194,7 @@
         '<div><h3>' + it.name + '</h3><div class="meta">Color: ' + it.color + '<br>Size: ' + it.size + '<br>Item #: ' + it.sku + '</div>' +
         '<div class="ship-tag">' + (fulfillment === 'ship' ? '✓ Ships free with $65+ order' : '✓ In stock at Robinson Township') + '</div>' +
         '<div><select data-i="' + i + '" aria-label="Quantity">' + opts + '</select></div>' +
-        '<div class="acts"><a href="#" data-rm="' + i + '">Save for Later</a><a href="#" data-rm="' + i + '">Remove</a></div></div>' +
+        '<div class="acts"><span>Save for Later</span><a href="#" data-rm="' + i + '">Remove</a></div></div>' +
         '<div class="price"><b>' + money(it.price * it.qty) + '</b>' + (it.was ? '<s>' + money(it.was * it.qty) + '</s><span class="save">Save ' + money((it.was - it.price) * it.qty) + '</span>' : '') + '</div></div>';
     }).join('');
     Array.prototype.forEach.call(document.querySelectorAll('#lines select'), function (s) {
@@ -202,11 +203,11 @@
     Array.prototype.forEach.call(document.querySelectorAll('#lines [data-rm]'), function (a) {
       a.addEventListener('click', function (e) { e.preventDefault(); cart.splice(+a.dataset.rm, 1); render(); });
     });
-    $('checkoutBtn').disabled = cart.length === 0;
+    $('checkoutBtn').disabled = checkoutInFlight || cart.length === 0;
     if (!cart.length) $('lines').innerHTML = '<div class="line" style="display:block;color:var(--muted)">Your cart is empty.</div>';
     var n = cart.reduce(function (s, it) { return s + it.qty; }, 0);
     var sub = cart.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
-    var ship = fulfillment === 'pickup' || sub >= 65 ? 0 : 7.99;
+    var ship = !cart.length || fulfillment === 'pickup' || sub >= 65 ? 0 : 7.99;
     var tax = cart.reduce(function (s, it) { return s + (TAXABLE[it.category] ? it.price * it.qty : 0); }, 0) * TAX_RATE;
     $('nItems').textContent = n; $('cartCount').textContent = n; $('itemSummary').textContent = n + ' items';
     $('subtotal').textContent = money(sub);
@@ -235,7 +236,7 @@
 
   $('checkoutBtn').addEventListener('click', function () {
     var btn = this, result = $('result');
-    btn.disabled = true; btn.textContent = 'Placing order…'; result.className = 'result'; result.innerHTML = '';
+    checkoutInFlight = true; btn.disabled = true; btn.textContent = 'Placing order…'; result.className = 'result'; result.innerHTML = '';
     fetch('/api/1b17e823/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -263,7 +264,7 @@
         }
       })
       .catch(function (e) { result.className = 'result err'; result.textContent = 'Network error: ' + e.message; })
-      .then(function () { btn.disabled = cart.length === 0; btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
+      .then(function () { checkoutInFlight = false; btn.disabled = cart.length === 0; btn.textContent = 'Checkout'; result.scrollIntoView({ block: 'center', behavior: 'smooth' }); });
   });
 
   render();

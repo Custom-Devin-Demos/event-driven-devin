@@ -41,8 +41,9 @@ router.post('/api/1b17e823/checkout', async (req, res) => {
   if (!SHIPPING[fulfillment]) return validationError(res, req, `Unsupported fulfillment method: ${fulfillment}`);
   const storeNumber = body.storeNumber || '0212';
   if (!STORES[storeNumber]) return validationError(res, req, `Unknown store: ${storeNumber}`);
-  const zipCode = fulfillment === 'pickup' ? STORES[storeNumber].zipCode : String(body.zipCode || STORES[storeNumber].zipCode);
-  if (!/^\d{5}$/.test(zipCode)) return validationError(res, req, 'ZIP code must be 5 digits');
+  const submittedZip = String(body.zipCode || STORES[storeNumber].zipCode);
+  if (!/^\d{5}$/.test(submittedZip)) return validationError(res, req, 'ZIP code must be 5 digits');
+  const zipCode = fulfillment === 'pickup' ? STORES[storeNumber].zipCode : submittedZip;
 
   try {
     const order = await placeOrder({
