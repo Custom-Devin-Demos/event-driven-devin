@@ -242,6 +242,7 @@
   var FALLBACK_IMG = 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=600&q=80';
   var products = [];
   var bag = [];
+  var pending = false;
   var $ = function (id) { return document.getElementById(id); };
   var money = function (n) { return '$' + n.toFixed(2); };
   var price = function (n) { return '$' + (n % 1 ? n.toFixed(2) : n); };
@@ -322,6 +323,7 @@
 
   function checkout() {
     var btn = $('checkoutBtn');
+    pending = true;
     btn.disabled = true; btn.textContent = 'Checking out…';
     fetch('/api/d3e3804d/checkout', {
       method: 'POST',
@@ -346,12 +348,12 @@
         }
       })
       .catch(function (e) { showToast('We couldn\'t complete your checkout', e.message); })
-      .then(function () { btn.textContent = 'Check Out'; btn.disabled = !bag.length; });
+      .then(function () { pending = false; btn.textContent = 'Check Out'; btn.disabled = !bag.length; });
   }
 
   document.addEventListener('click', function (e) {
     var el = e.target.closest('[data-add],[data-inc],[data-dec],[data-rm]');
-    if (!el) return;
+    if (!el || pending) return;
     var sku = el.getAttribute('data-add') || el.getAttribute('data-inc') || el.getAttribute('data-dec') || el.getAttribute('data-rm');
     if (el.hasAttribute('data-add')) return add(sku);
     var line = bag.find(function (l) { return l.sku === sku; });

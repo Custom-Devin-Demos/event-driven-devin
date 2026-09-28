@@ -27,7 +27,7 @@ router.post('/api/d3e3804d/checkout', verifySessionSecret, async (req, res) => {
       error: error.message,
       errorClass: error.name,
       code: error.code || 'CHECKOUT_FAILED',
-      requestId: req.requestId,
+      requestId: error.requestId || req.requestId,
     });
   }
 });

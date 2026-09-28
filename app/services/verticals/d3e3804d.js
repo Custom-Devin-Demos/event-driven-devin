@@ -53,7 +53,8 @@ function priceLines(items) {
       err.statusCode = 400;
       throw err;
     }
-    const qty = Math.max(1, Math.min(10, Number(item.qty) || 1));
+    const n = Math.floor(Number(item.qty));
+    const qty = Number.isFinite(n) ? Math.max(1, Math.min(10, n)) : 1;
     return {
       sku: product.sku,
       brand: product.brand,
@@ -131,11 +132,11 @@ function summarize(lines, destination) {
 
 async function checkout(data) {
   const startTime = Date.now();
-  const orderId = `N${Date.now().toString().slice(-9)}`;
   const requestId = uuidv4();
+  const orderId = `N${Date.now().toString().slice(-6)}${requestId.replace(/-/g, '').slice(0, 6).toUpperCase()}`;
   const items = Array.isArray(data.items) ? data.items.slice(0, 20) : [];
-  const zip = String(data.zip || '94115');
-  const destination = DESTINATIONS[zip] || DESTINATIONS[94115];
+  const zip = DESTINATIONS[data.zip] ? String(data.zip) : '94115';
+  const destination = DESTINATIONS[zip];
 
   logger.info('Starting bag checkout', {
     orderId, requestId, lines: items.length, zip, service: SERVICE, route: ROUTE,
@@ -179,10 +180,11 @@ async function checkout(data) {
       skus: items.map((i) => i.sku), zip, service: SERVICE,
     });
 
+    error.requestId = requestId;
     if (error.statusCode === 400) throw error;
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE, customer: 'd3e3804d' },
+      tags: { route: ROUTE, service: SERVICE, customer: 'd3e3804d', alert_path: 'instant' },
       extra: { orderId, requestId, skus: items.map((i) => i.sku), zip },
     });
 
