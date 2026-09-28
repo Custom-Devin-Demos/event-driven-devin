@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IHG Hotels &amp; Resorts® | Book Direct for Exclusive Hotel Deals</title>
+  <link rel="icon" href="https://www.ihg.com/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ihg-orange: #c7370f; --ihg-teal: #1f4456; --ihg-teal-dark: #193746; --ihg-sand: #f0efec; --ihg-grey: #707372; --ink: #000; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, "Helvetica Neue", Arial, sans-serif; color: var(--ink); background: var(--ihg-sand); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 1290px; margin: 0 auto; padding: 0 40px; }
+
+    .utility { background: var(--ihg-teal); color: #fff; font-size: 14px; font-weight: 500; }
+    .utility .wrap { display: flex; justify-content: space-between; align-items: center; height: 48px; }
+    .utility .left, .utility .right { display: flex; align-items: center; gap: 20px; }
+    .utility .ghost { border: 1px solid #fff; border-radius: 3px; padding: 6px 16px; }
+    .utility .solid { background: #fff; color: var(--ihg-teal); border-radius: 3px; padding: 6px 10px; }
+
+    .masthead { background: #fff; }
+    .masthead .wrap { display: flex; justify-content: space-between; align-items: center; height: 91px; }
+    .masthead img { height: 52px; display: block; }
+    .masthead nav { display: flex; gap: 40px; font-size: 16px; }
+    .masthead nav a:hover { color: var(--ihg-orange); }
+
+    .booking { background: var(--ihg-teal); padding: 34px 0 34px; }
+    .booking form { background: #fff; border-radius: 6px; display: flex; align-items: stretch; padding: 12px; gap: 0; }
+    .field { padding: 2px 16px; border-right: 1px solid #e3e3e3; display: flex; flex-direction: column; justify-content: center; }
+    .field:last-of-type { border-right: 0; }
+    .field label { font-size: 12px; font-weight: 500; color: var(--ihg-grey); text-transform: uppercase; margin-bottom: 8px; letter-spacing: .01em; }
+    .field select, .field input { border: 0; font: inherit; font-size: 16px; color: #000; background: transparent; outline: none; }
+    .field select { appearance: none; padding-right: 26px; cursor: pointer; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23c7370f' stroke-width='2.4' fill='none'/%3E%3C/svg%3E") no-repeat right center; }
+    .f-dest { flex: 1.5; }
+    .f-dest .row { display: flex; align-items: center; gap: 8px; }
+    .f-dest svg { flex: none; }
+    .f-dates { flex: 1.2; }
+    .f-dates .row { display: flex; align-items: center; gap: 10px; }
+    .f-dates input { width: 128px; font-size: 15px; }
+    .f-dest { flex: 1.6 0 270px; } .f-dest select { width: 100%; }
+    .f-rooms, .f-rate { flex: 1; }
+    .f-rooms .row { display: flex; gap: 10px; }
+    .search-btn { flex: 0 0 207px; background: var(--ihg-orange); color: #fff; border: 0; border-radius: 3px; font: inherit; font-size: 16px; font-weight: 500; text-transform: uppercase; width: 207px; cursor: pointer; margin-left: 10px; }
+    .search-btn:disabled { opacity: .75; cursor: progress; }
+    .ai-pill { display: inline-flex; margin-top: 12px; border-radius: 6px; overflow: hidden; font-size: 14px; font-weight: 600; }
+    .ai-pill span:first-child { background: var(--ihg-orange); color: #fff; padding: 8px 12px; }
+    .ai-pill span:last-child { background: #2d566a; color: #fff; padding: 8px 12px; font-weight: 500; }
+
+    .promo-strip { background: #eceae7; }
+    .promo-strip .wrap { display: flex; justify-content: center; align-items: center; gap: 40px; height: 104px; font-size: 16px; }
+    .promo-strip img { height: 48px; }
+    .promo-strip a { color: var(--ihg-orange); font-weight: 600; font-size: 18px; }
+
+    .results { background: #fff; display: none; padding: 40px 0 48px; }
+    .results.show { display: block; }
+    .results h2 { font-size: 34px; font-weight: 400; margin-bottom: 6px; }
+    .results .meta { color: var(--ihg-grey); font-size: 15px; margin-bottom: 26px; }
+    .loading { display: none; align-items: center; gap: 16px; font-size: 17px; padding: 26px 0; }
+    .loading.show { display: flex; }
+    .spinner { width: 34px; height: 34px; border: 4px solid #eee; border-top-color: var(--ihg-orange); border-radius: 50%; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hotel-list { display: grid; gap: 18px; }
+    .hotel { display: grid; grid-template-columns: 260px 1fr 220px; background: #fff; border: 1px solid #e3e3e3; border-radius: 4px; overflow: hidden; }
+    .hotel img { width: 100%; height: 170px; object-fit: cover; display: block; }
+    .hotel .info { padding: 18px 22px; }
+    .hotel .brand { font-size: 12px; font-weight: 600; color: var(--ihg-grey); text-transform: uppercase; letter-spacing: .04em; }
+    .hotel h3 { font-size: 21px; font-weight: 600; margin: 6px 0 8px; }
+    .hotel .addr { font-size: 14px; color: #444; }
+    .hotel .perks { margin-top: 12px; font-size: 13px; color: var(--ihg-teal); }
+    .hotel .price { padding: 18px 22px; border-left: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; text-align: right; }
+    .hotel .price .amt { font-size: 30px; font-weight: 600; }
+    .hotel .price small { color: var(--ihg-grey); font-size: 13px; }
+    .hotel .price a { margin-top: 12px; background: var(--ihg-orange); color: #fff; font-size: 14px; font-weight: 500; padding: 10px 20px; border-radius: 3px; }
+
+    .hero { position: relative; height: 520px; background: #2a3b44 url('https://digital.ihg.com/is/image/ihg/ihg-comm-rate-copy-mktg-mods-primary-img-homepg-denim-21x9-2500x1072?wid=2000') center/cover no-repeat; }
+    .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,0) 60%); }
+    .hero .copy { position: absolute; left: 180px; bottom: 90px; color: #fff; z-index: 1; }
+    .hero h2 { font-size: 48px; font-weight: 600; margin-bottom: 26px; }
+    .hero p { font-size: 18px; margin-bottom: 22px; }
+    .btn { display: inline-block; background: var(--ihg-orange); color: #fff; font-weight: 500; font-size: 15px; padding: 12px 26px; border-radius: 3px; text-transform: uppercase; }
+
+    .welcome { text-align: center; padding: 72px 0 40px; }
+    .welcome .eyebrow { font-size: 15px; letter-spacing: .04em; margin-bottom: 26px; }
+    .welcome h2 { font-size: 52px; font-weight: 300; line-height: 1.15; margin-bottom: 30px; }
+    .welcome p { max-width: 1180px; margin: 0 auto 28px; font-size: 18px; line-height: 1.5; }
+    .offers h2 { text-align: center; font-size: 52px; font-weight: 300; margin: 30px 0 40px; }
+    .offer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    .offer { background: #fff; }
+    .offer img { width: 100%; height: 200px; object-fit: cover; display: block; }
+    .offer .body { padding: 24px 20px 30px; }
+    .offer h3 { font-size: 30px; font-weight: 500; line-height: 1.2; margin-bottom: 20px; }
+    .offer p { font-size: 17px; line-height: 1.55; margin-bottom: 24px; }
+    .offer a { color: var(--ihg-orange); font-weight: 600; font-size: 17px; }
+    .center { text-align: center; padding: 34px 0 70px; }
+
+    .member { background: var(--ihg-teal-dark); color: #fff; display: grid; grid-template-columns: 1fr 1fr; }
+    .member .img { background: url('https://digital.ihg.com/is/image/ihg/ihg-homepg-refresh-loyalty-module-simplified-usen-lvp-720x500') center/cover no-repeat; min-height: 440px; }
+    .member .copy { padding: 56px 60px; }
+    .member h2 { font-size: 44px; font-weight: 500; text-transform: uppercase; line-height: 1.1; margin-bottom: 34px; letter-spacing: .01em; }
+    .member ul { list-style: none; margin-bottom: 34px; }
+    .member li { font-size: 16px; text-transform: uppercase; padding: 12px 0; display: flex; align-items: center; gap: 18px; }
+    .member li img { width: 34px; height: 34px; }
+    .member .actions { display: flex; align-items: center; gap: 100px; font-size: 18px; }
+    .member .actions u { cursor: pointer; }
+
+    .dests { padding: 70px 0 60px; text-align: center; }
+    .dests h2 { font-size: 52px; font-weight: 300; margin-bottom: 20px; }
+    .dests > .wrap > p { font-size: 18px; margin-bottom: 44px; }
+    .dests p a { color: var(--ihg-orange); text-decoration: underline; }
+    .dest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; text-align: left; }
+    .dest-card h3 { background: #fff; font-size: 21px; font-weight: 600; padding: 16px 14px; margin-bottom: 10px; }
+    .dest-card ul { background: #fff; margin: 0 12px; padding: 16px 20px 16px 44px; }
+    .dest-card li { padding: 7px 0; font-size: 16px; }
+    .dest-card li a { color: var(--ihg-orange); text-decoration: underline; }
+
+    footer { background: #fff; color: var(--ihg-grey); }
+    .brand-frame { border: 2px solid #333; margin: 50px 0 40px; padding: 34px 24px 34px; position: relative; }
+    .brand-frame .tag { position: absolute; top: -22px; left: 24px; background: #fff; padding: 0 12px; }
+    .brand-frame .tag img, .brand-frame .tag2 img { height: 36px; display: block; }
+    .brand-frame .tag2 { position: absolute; bottom: -20px; right: 24px; background: #fff; padding: 0 12px; }
+    .brand-row { display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 26px 30px; }
+    .brand-row img { height: 44px; max-width: 120px; }
+    .foot-cols { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 24px; padding: 20px 0 40px; font-size: 14px; }
+    .foot-cols h4 { font-size: 18px; font-weight: 500; margin-bottom: 20px; }
+    .foot-cols a { display: block; padding: 5px 0; text-decoration: underline; }
+    .legal { background: var(--ihg-orange); color: #fff; font-size: 12px; padding: 10px 0; }
+
+    .success-banner { display: none; background: #e6f1ec; border-left: 5px solid #1d7a4f; padding: 16px 20px; margin-bottom: 22px; font-size: 16px; }
+    .success-banner.show { display: block; }
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 440px; background: #fff; border-left: 5px solid var(--ihg-orange); box-shadow: 0 8px 30px rgba(0,0,0,.2); padding: 16px 20px; font-size: 14px; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all .3s; z-index: 50; }
+    .toast.show { opacity: 1; visibility: visible; transform: none; }
+    .toast strong { display: block; margin-bottom: 4px; color: var(--ihg-orange); }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <div class="left"><span>&#9742;&nbsp; 1 877 424 2449</span><span>Chat with us</span></div>
+      <div class="right"><span>&#127760; English &#9662;</span><span>My stays</span><a class="ghost" href="#">Join for free</a><a class="solid" href="#">Sign in</a></div>
+    </div>
+  </div>
+  <header class="masthead">
+    <div class="wrap">
+      <a href="/ihg"><img src="https://digital.ihg.com/is/image/ihg/ihg-logo-nav?fmt=png-alpha" alt="IHG Hotels &amp; Resorts" onerror="this.onerror=null;this.outerHTML='<strong style=&quot;font-size:34px;letter-spacing:.2em&quot;>IHG</strong>';"></a>
+      <nav><a href="#">Destinations</a><a href="#">Offers</a><a href="#">Groups &amp; Events</a><a href="#">Brands</a><a href="#">Credit Cards</a><a href="#">IHG® One Rewards</a></nav>
+    </div>
+  </header>
+
+  <section class="booking">
+    <div class="wrap">
+      <form id="search-form" autocomplete="off">
+        <div class="field f-dest">
+          <label for="destination">Destination</label>
+          <div class="row">
+            <svg width="18" height="18" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7" stroke="#c7370f" stroke-width="3" fill="none"/><path d="M15.5 15.5L22 22" stroke="#c7370f" stroke-width="3"/></svg>
+            <select id="destination">
+              <option value="new_york" selected>New York, NY, United States</option>
+              <option value="chicago">Chicago, IL, United States</option>
+              <option value="london">London, United Kingdom</option>
+              <option value="atlanta">Atlanta, GA, United States</option>
+            </select>
+          </div>
+        </div>
+        <div class="field f-dates">
+          <label id="nights-label">3 Nights</label>
+          <div class="row">
+            <svg width="16" height="16" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="18" rx="2" fill="#c7370f"/><rect x="5" y="10" width="14" height="9" fill="#fff"/></svg>
+            <input type="date" id="checkIn" aria-label="Check-in" required>
+            <span>&rarr;</span>
+            <input type="date" id="checkOut" aria-label="Check-out" required>
+          </div>
+        </div>
+        <div class="field f-rooms">
+          <label>Rooms &amp; Guests</label>
+          <div class="row">
+            <select id="rooms" aria-label="Rooms"><option value="1">1 Room</option><option value="2">2 Rooms</option><option value="3">3 Rooms</option></select>
+            <select id="adults" aria-label="Guests"><option value="1">1 Guest</option><option value="2" selected>2 Guests</option><option value="3">3 Guests</option><option value="4">4 Guests</option></select>
+          </div>
+        </div>
+        <div class="field f-rate">
+          <label for="ratePreference">Rate Preference</label>
+          <select id="ratePreference">
+            <option value="best_available" selected>Best Available</option>
+            <option value="points">IHG One Rewards Points</option>
+            <option value="aaa">AAA/CAA</option>
+            <option value="government">Government/Military</option>
+          </select>
+        </div>
+        <button type="submit" class="search-btn" id="search-button">Search</button>
+      </form>
+      <div class="ai-pill"><span>&#10022; AI SEARCH · BETA</span><span>Try our new AI search &rsaquo;</span></div>
+    </div>
+  </section>
+
+  <div class="promo-strip">
+    <div class="wrap">
+      <img src="https://digital.ihg.com/is/image/ihg/chase-ihgor-card-premier-elite-1540x1007?fmt=png-alpha&wid=160" alt="IHG One Rewards Premier Credit Card" onerror="this.style.display='none'">
+      <span>Earn 140,000 bonus points with our Premier Credit Card.</span>
+      <a href="#">Learn more &rsaquo;</a>
+    </div>
+  </div>
+
+  <section class="results" id="results">
+    <div class="wrap">
+      <div class="success-banner" id="search-success"></div>
+      <h2 id="results-title">Hotels in New York</h2>
+      <p class="meta" id="results-meta"></p>
+      <div class="loading" id="loading"><div class="spinner"></div><span id="loading-copy">Checking live rates across IHG hotels&hellip;</span></div>
+      <div class="hotel-list" id="hotel-list"></div>
+    </div>
+  </section>
+
+  <section class="hero">
+    <div class="copy">
+      <h2>Save up to 20% this fall</h2>
+      <p>Book early and save up to 20% with IHG One Rewards</p>
+      <a class="btn" href="#">Book now</a>
+    </div>
+  </section>
+
+  <section class="welcome">
+    <div class="wrap">
+      <p class="eyebrow">WELCOME TO IHG HOTELS &amp; RESORTS</p>
+      <h2>21 hotel brands.<br>7,000+ global destinations.</h2>
+      <p>Travel like you mean it with IHG One Rewards, our award winning loyalty program makes it easier for you to see the world and get rewarded while doing it.</p>
+      <a class="btn" href="#">Explore now</a>
+    </div>
+  </section>
+
+  <section class="offers">
+    <div class="wrap">
+      <h2>Offers for every way you travel</h2>
+      <div class="offer-grid">
+        <div class="offer">
+          <img src="https://digital.ihg.com/is/image/ihg/ihgor-chase-q3-bau-acq-primary-img-premier-2x1-2500x1250?wid=800" alt="IHG One Rewards Premier Credit Card" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80';">
+          <div class="body"><h3>Earn 140,000 bonus points</h3><p>That's worth up to 4 nights at most of our hotels &amp; resorts globally.</p><a href="#">Learn more &rsaquo;</a></div>
+        </div>
+        <div class="offer">
+          <img src="https://digital.ihg.com/is/image/ihg/hgrc-hero-points-purchase-1440x720?fit=crop,1&wid=800&hei=400" alt="Travelers with luggage" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80';">
+          <div class="body"><h3>Buy, gift, or transfer points</h3><p>Enjoy endless possibilities with Points Purchase.</p><a href="#">Buy points &rsaquo;</a></div>
+        </div>
+        <div class="offer">
+          <img src="https://digital.ihg.com/is/image/ihg/ihg-q4-public-promo-primary-2500x1250?wid=800" alt="Rooftop terrace" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80';">
+          <div class="body"><h3>Earn up to 3X points</h3><p>Register today. Earn double points starting on your second stay, or triple points booking direct in the IHG One Rewards app.</p><a href="#">Register now &rsaquo;</a></div>
+        </div>
+      </div>
+      <div class="center"><a class="btn" href="#">View all offers</a></div>
+    </div>
+  </section>
+
+  <section class="member">
+    <div class="img"></div>
+    <div class="copy">
+      <h2>It's better to be a<br>member</h2>
+      <ul>
+        <li><img src="https://digital.ihg.com/is/image/ihg/ihg-rewards-refresh-lp-icon-points-white-60x60-lvp?fmt=png-alpha" alt="" onerror="this.style.visibility='hidden'">Earn points to use for reward nights</li>
+        <li><img src="https://digital.ihg.com/is/image/ihg/ihg-rewards-refresh-lp-icon-calendar-white-70x70?fmt=png-alpha" alt="" onerror="this.style.visibility='hidden'">No blackout dates</li>
+        <li><img src="https://digital.ihg.com/is/image/ihg/ihg-rewards-lp-refresh-icon-heartbeat-white-70x70?fmt=png-alpha" alt="" onerror="this.style.visibility='hidden'">Access to member rates &amp; offers</li>
+        <li><img src="https://digital.ihg.com/is/image/ihg/ihg-rewards-lp-refresh-icon-wifi-white-70x70?fmt=png-alpha" alt="" onerror="this.style.visibility='hidden'">Free Wi-Fi</li>
+        <li><img src="https://digital.ihg.com/is/image/ihg/ihg-rewards-lp-refresh-icon-clock-white-70x70?fmt=png-alpha" alt="" onerror="this.style.visibility='hidden'">Late checkout</li>
+        <li><img src="https://digital.ihg.com/is/image/ihg/ihg-rewards-lp-refresh-icon-gift-white-70x70?fmt=png-alpha" alt="" onerror="this.style.visibility='hidden'">Plus even more perks when you become an elite member</li>
+      </ul>
+      <div class="actions"><a class="btn" href="#">Join for free</a><span>Already a member? <u>Sign in</u>.</span></div>
+    </div>
+  </section>
+
+  <section class="dests">
+    <div class="wrap">
+      <h2>Wherever you go, we’re here for you</h2>
+      <p>Whenever and wherever you travel, we’re here for you. Whether you are searching for a <a href="#">vacation destination</a> thinking about a staycation at a <a href="#">nearby hotel</a>, IHG has over 7,000+ hotels and resorts to choose from.</p>
+      <div class="dest-grid">
+        <div class="dest-card"><h3>Top Destinations in the US</h3><ul><li><a href="#">Boston</a></li><li><a href="#">Chicago</a></li><li><a href="#">Las Vegas</a></li><li><a href="#">Los Angeles</a></li><li><a href="#">Miami</a></li><li><a href="#">New York City</a></li><li><a href="#">Orlando</a></li><li><a href="#">Washington DC</a></li></ul></div>
+        <div class="dest-card"><h3>Top Destinations by country/region</h3><ul><li><a href="#">Australia</a></li><li><a href="#">Canada</a></li><li><a href="#">France</a></li><li><a href="#">Germany</a></li><li><a href="#">Italy</a></li><li><a href="#">Japan</a></li><li><a href="#">Spain</a></li><li><a href="#">United Kingdom</a></li></ul></div>
+        <div class="dest-card"><h3>Top International destinations</h3><ul><li><a href="#">Bangkok</a></li><li><a href="#">Barcelona</a></li><li><a href="#">Dubai</a></li><li><a href="#">London</a></li><li><a href="#">Osaka</a></li><li><a href="#">Paris</a></li><li><a href="#">Rome</a></li><li><a href="#">Tokyo</a></li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="brand-frame">
+        <div class="tag"><img src="https://digital.ihg.com/is/image/ihg/ihg-logo-nav?fmt=png-alpha" alt="IHG Hotels &amp; Resorts" onerror="this.style.display='none'"></div>
+        <div class="brand-row">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-sx" alt="Six Senses" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-re" alt="Regent" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-ic" alt="InterContinental" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-va" alt="Vignette Collection" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-ki" alt="Kimpton" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-in" alt="Hotel Indigo" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-vx" alt="voco" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-cp" alt="Crowne Plaza" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-vn" alt="EVEN Hotels" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-ex" alt="Holiday Inn Express" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-hi" alt="Holiday Inn" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-ge" alt="Garner" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-sb" alt="Staybridge Suites" onerror="this.style.display='none'">
+          <img src="https://digital.ihg.com/is/content/ihg/ihg-bb-logo-cv" alt="Candlewood Suites" onerror="this.style.display='none'">
+        </div>
+        <div class="tag2"><img src="https://digital.ihg.com/is/content/ihg/logos-onerewards" alt="IHG One Rewards" onerror="this.style.display='none'"></div>
+      </div>
+      <div class="foot-cols">
+        <div><h4>SOCIAL MEDIA</h4><p>Book online or call:</p><p style="font-size:18px;font-weight:500">1 877 424 2449</p></div>
+        <div><h4>COMPANY</h4><a href="#">IHG Careers</a><a href="#">Explore Hotels</a><a href="#">IHG Global Brands</a><a href="#">Hotel Development</a><a href="#">IHG Agent Portal</a><a href="#">Chat with us</a></div>
+        <div><h4>&nbsp;</h4><a href="#">IHG Business Rewards</a><a href="#">IHG Army Hotels</a><a href="#">Travel Advisory</a><a href="#">Sustainability</a><a href="#">IHG Corporate</a></div>
+        <div><h4>&nbsp;</h4><a href="#">Member Terms and Conditions</a><a href="#">Terms of Use</a><a href="#">Privacy and Cookie Center</a><a href="#">Do Not Sell or Share My Personal Information</a><a href="#">Site Map</a></div>
+      </div>
+    </div>
+    <div class="legal"><div class="wrap">© 2026 IHG. All rights reserved. Most hotels are independently owned and operated.</div></div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't complete your search</strong><span id="toast-copy"></span></div>
+
+  <script>
+    var HOTEL_IMAGES = [
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-vo-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-cp-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-sbs-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-cws-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-1-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-2-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-3-svp-1320x660?wid=600',
+      'https://digital.ihg.com/is/image/ihg/ihg-refresh-lp-offer-carousel-5-svp-1320x660-v2?wid=600',
+    ];
+    var FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80';
+
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    function isoDate(offsetDays) {
+      var d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().slice(0, 10);
+    }
+
+    var checkIn = document.getElementById('checkIn');
+    var checkOut = document.getElementById('checkOut');
+    checkIn.value = isoDate(1);
+    checkOut.value = isoDate(4);
+
+    function updateNights() {
+      var nights = Math.round((new Date(checkOut.value) - new Date(checkIn.value)) / 86400000);
+      document.getElementById('nights-label').textContent = nights > 0 ? nights + (nights === 1 ? ' Night' : ' Nights') : 'Check-in → Check-out';
+    }
+    checkIn.addEventListener('change', updateNights);
+    checkOut.addEventListener('change', updateNights);
+
+    var form = document.getElementById('search-form');
+    var button = document.getElementById('search-button');
+    var results = document.getElementById('results');
+    var loading = document.getElementById('loading');
+    var list = document.getElementById('hotel-list');
+    var success = document.getElementById('search-success');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+
+    function showToast(text) {
+      document.getElementById('toast-copy').textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+
+    function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+
+    function renderHotels(body) {
+      list.innerHTML = '';
+      body.hotels.forEach(function (hotel, i) {
+        var card = document.createElement('div');
+        card.className = 'hotel';
+        var price = hotel.avgNightlyUsd != null
+          ? '<span class="amt">' + money(hotel.avgNightlyUsd) + '</span><small>USD avg/night · ' + money(hotel.totalUsd) + ' total</small>'
+          : '<span class="amt">' + Number(hotel.pointsPerNight).toLocaleString('en-US') + '</span><small>points/night · ' + Number(hotel.totalPoints).toLocaleString('en-US') + ' total</small>';
+        card.innerHTML =
+          '<img alt="" src="' + HOTEL_IMAGES[i % HOTEL_IMAGES.length] + '" onerror="this.onerror=null;this.src=\'' + FALLBACK_IMAGE + '\';">' +
+          '<div class="info"><div class="brand"></div><h3></h3><div class="addr"></div><div class="perks">Free Wi-Fi · Earn IHG One Rewards points</div></div>' +
+          '<div class="price">' + price + '<a href="#">Select room</a></div>';
+        card.querySelector('.brand').textContent = hotel.brand;
+        card.querySelector('h3').textContent = hotel.name;
+        card.querySelector('.addr').textContent = hotel.address + ' · Hotel code ' + hotel.code;
+        list.appendChild(card);
+      });
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (button.disabled || !form.reportValidity()) return;
+
+      var destinationSelect = document.getElementById('destination');
+      button.disabled = true;
+      button.textContent = 'Searching…';
+      success.classList.remove('show');
+      list.innerHTML = '';
+      results.classList.add('show');
+      loading.classList.add('show');
+      document.getElementById('results-title').textContent = 'Hotels in ' + destinationSelect.options[destinationSelect.selectedIndex].text.split(',')[0];
+      document.getElementById('results-meta').textContent = checkIn.value + ' → ' + checkOut.value;
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      await identityReady;
+
+      var payload = {
+        destination: destinationSelect.value,
+        checkIn: checkIn.value,
+        checkOut: checkOut.value,
+        rooms: Number(document.getElementById('rooms').value),
+        adults: Number(document.getElementById('adults').value),
+        ratePreference: document.getElementById('ratePreference').value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+
+      fetch('/api/ef51d258/availability', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.body.success) {
+            showToast((result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error') +
+              ' · ' + (result.body.code || 'HOTEL_SEARCH_FAILED'));
+            results.classList.remove('show');
+            return;
+          }
+          var body = result.body;
+          document.getElementById('results-meta').textContent =
+            body.hotels.length + ' hotels · ' + body.nights + ' nights · ' + body.checkIn + ' → ' + body.checkOut +
+            ' · ' + body.ratePreference.label;
+          success.textContent = 'Search ' + body.searchId + ' complete — showing ' + body.ratePreference.label +
+            ' for ' + body.hotels.length + ' IHG hotels in ' + body.destination.label + '.';
+          success.classList.add('show');
+          renderHotels(body);
+        })
+        .catch(function (error) {
+          showToast('NetworkError: ' + error.message);
+          results.classList.remove('show');
+        })
+        .finally(function () {
+          loading.classList.remove('show');
+          button.disabled = false;
+          button.textContent = 'Search';
+        });
+    });
+  </script>
+</body>
+</html>
