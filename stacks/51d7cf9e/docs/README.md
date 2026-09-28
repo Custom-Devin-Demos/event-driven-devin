@@ -1,4 +1,4 @@
-# EIM RF — legacy handheld environment (pre-migration baseline)
+# EIM RF — legacy handheld environment (baseline)
 
 > **NOT A TYSON FOODS SYSTEM.** Internal demo prop. All plants, bins, materials,
 > pallets and users are fictional (GS1 example company prefix `0614141`).
