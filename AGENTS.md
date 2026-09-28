@@ -71,6 +71,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **PerfectServe — Clinical Secure Messaging** (unlisted — direct URL only) | `/ps`, `/perfectserve` | `app/public/verticals/ps.html` | `GET /api/ps/directory`, `POST /api/ps/messages` | `app/services/verticals/ps.js` |
 | **Dealer Service DW — SMU_WORKORDER_DAILY_LOAD console** (unlisted — direct URL only) | `/a70e8270` | `app/public/verticals/a70e8270.html` | `GET /api/a70e8270/overview`, `GET /api/a70e8270/runs`, `POST /api/a70e8270/load/run`, `POST /api/a70e8270/load/reset` | `app/services/verticals/a70e8270.js`, `app/services/verticals/a70e8270-dealer-mapping.js` |
 | **DICK'S Sporting Goods — Checkout** (unlisted — direct URL only) | `/dicks`, `/dickssportinggoods`, `/dsg`, `/b66a0397` | `app/public/verticals/b66a0397.html` | `GET /api/b66a0397/catalog`, `POST /api/b66a0397/checkout` | `app/services/verticals/b66a0397.js` |
+| **Cummins OneMarket — Marketplace storefront (UI only)** (unlisted — direct URL only; static mirror of the salesforce-base CloudCraze recreation, no API/bug, regenerate with `scripts/8d3527ab-capture.js`) | `/cummins`, `/onemarket`, `/8d3527ab` | `app/public/verticals/8d3527ab.html`, `app/public/verticals/8d3527ab/` | — | — |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
