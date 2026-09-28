@@ -103,7 +103,7 @@
 
     /* layout */
     main { max-width: 1440px; margin: 0 auto; padding: 22px 28px 60px; }
-    .grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 20px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 20px; }
     .card { background: var(--v-white); border: 1px solid var(--v-gray-200); border-radius: 3px; }
     .card h2 { font-family: var(--v-cond); font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 12px 16px; border-bottom: 1px solid var(--v-gray-200); display: flex; align-items: center; justify-content: space-between; }
     .card h2 small { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--v-gray-500); }
@@ -225,7 +225,7 @@
       <div class="kpis">
         <div class="kpi"><div class="l">Load status</div><div class="v" id="k-status">—</div><div class="s" id="k-status-s">&nbsp;</div></div>
         <div class="kpi"><div class="l">Rows · last run</div><div class="v" id="k-rows">—</div><div class="s" id="k-rows-s">&nbsp;</div></div>
-        <div class="kpi"><div class="l">Rows · 7 nights</div><div class="v" id="k-week">—</div><div class="s" id="k-week-s">&nbsp;</div></div>
+        <div class="kpi"><div class="l">Rows · last 6 nights</div><div class="v" id="k-week">—</div><div class="s" id="k-week-s">&nbsp;</div></div>
         <div class="kpi"><div class="l">Failed batches</div><div class="v" id="k-failed">—</div><div class="s" id="k-failed-s">&nbsp;</div></div>
       </div>
     </div>
@@ -384,7 +384,7 @@
       var el = document.getElementById('toast');
       el.className = 'toast show ' + kind;
       document.getElementById('toast-t').textContent = title;
-      document.getElementById('toast-b').innerHTML = body;
+      document.getElementById('toast-b').textContent = body;
       clearTimeout(toastTimer);
       toastTimer = setTimeout(function () { el.className = 'toast'; }, 9000);
     }
@@ -543,7 +543,7 @@
         renderSystems(o);
         renderModels(o.machinesByModel);
         renderFailure(o.summary);
-      }).catch(function (err) { toast('error', 'Console unavailable', esc(err.message)); });
+      }).catch(function (err) { toast('error', 'Console unavailable', err.message); });
     }
 
     document.getElementById('run-load').addEventListener('click', function () {
@@ -561,16 +561,16 @@
       }).then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
         .then(function (res) {
           if (res.status === 401 || res.status === 403) {
-            toast('error', 'Not authorized', esc(res.body.error || 'Session secret missing or invalid'));
+            toast('error', 'Not authorized', res.body.error || 'Session secret missing or invalid');
           } else if (!res.ok) {
-            toast('error', 'SMU_WORKORDER_DAILY_LOAD failed — batch rolled back', esc((res.body.errorType || 'Error') + (res.body.code ? ' ' + res.body.code + ' (' + res.body.sqlState + ')' : '') + ': ' + (res.body.error || 'Load failed')));
+            toast('error', 'SMU_WORKORDER_DAILY_LOAD failed — batch rolled back', (res.body.errorType || 'Error') + (res.body.code ? ' ' + res.body.code + ' (' + res.body.sqlState + ')' : '') + ': ' + (res.body.error || 'Load failed'));
           } else {
             var run = res.body.run;
-            toast('success', run.batchId + ' committed', esc(run.rowsLoaded + ' rows → ANALYTICS.FACT_WORK_ORDER · ' + run.machinesUpdated + ' machines updated · ' + fmtDur(run.durationMs)));
+            toast('success', run.batchId + ' committed', run.rowsLoaded + ' rows → ANALYTICS.FACT_WORK_ORDER · ' + run.machinesUpdated + ' machines updated · ' + fmtDur(run.durationMs));
           }
           return loadOverview();
         })
-        .catch(function (err) { toast('error', 'Request failed', esc(err.message)); })
+        .catch(function (err) { toast('error', 'Request failed', err.message); })
         .then(function () {
           state.busy = false;
           btn.disabled = false;
@@ -583,9 +583,9 @@
         if (!r.ok) throw new Error('Reset request failed');
         return r.json();
       }).then(function (res) {
-        toast('success', 'Console reset · back to ready', esc('Cleared ' + res.cleared.failed + ' failed batch(es) · ' + res.cleared.runs + ' runs · re-seeded nightly history'));
+        toast('success', 'Console reset · back to ready', 'Cleared ' + res.cleared.failed + ' failed batch(es) · ' + res.cleared.runs + ' runs · re-seeded nightly history');
         return loadOverview();
-      }).catch(function (err) { toast('error', 'Reset failed', esc(err.message)); });
+      }).catch(function (err) { toast('error', 'Reset failed', err.message); });
     });
 
     loadOverview();

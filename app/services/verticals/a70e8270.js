@@ -130,6 +130,7 @@ let MACHINES = [];
 let MACHINE_SMU = {};
 let dwState = {};
 let nextBatchNo = 1;
+let generation = 0;
 
 function createRandom(seed) {
   let t = seed >>> 0;
@@ -441,6 +442,29 @@ function markDegraded(batch, error, run, failedAt) {
   });
 }
 
+function markHealthy(run) {
+  dwState.status = 'healthy';
+  dwState.lastError = null;
+  const now = new Date();
+  JOBS.forEach((job) => {
+    if (job.status === 'blocked') {
+      job.status = 'success';
+      job.blockedBy = null;
+      job.lastRunAt = run.finishedAt;
+    }
+    const match = job.schedule.match(/^(\d{2}):(\d{2})/);
+    if (match) {
+      job.nextRunAt = nextCtOccurrence(now, Number(match[1]), Number(match[2])).toISOString();
+    }
+  });
+  WAREHOUSE_TABLES.forEach((table) => {
+    if (table.feed === 'CVA_COVERAGE_REFRESH' || table.feed === 'PARTS_DEMAND_FORECAST') {
+      table.status = 'Current';
+      table.lastLoadAt = run.finishedAt;
+    }
+  });
+}
+
 function alertData(error, batch, run, meta, counts) {
   return {
     issueTitle: `${error.name}: ${error.message}`,
@@ -507,6 +531,7 @@ function alertData(error, batch, run, meta, counts) {
 }
 
 async function runDailyLoad(meta = {}) {
+  const gen = generation;
   const batch = pendingBatch();
   const requestId = uuidv4();
   const startedAt = new Date();
@@ -549,6 +574,12 @@ async function runDailyLoad(meta = {}) {
   try {
     await new Promise((resolve) => setTimeout(resolve, 70 + Math.random() * 110));
 
+    if (gen !== generation) {
+      const stale = new Error('Console reset during run');
+      stale.discarded = true;
+      throw stale;
+    }
+
     run.stage = 'extract';
     const extracted = extractClosedWorkOrders(batch);
     run.rowsExtracted = extracted.length;
@@ -574,6 +605,7 @@ async function runDailyLoad(meta = {}) {
         job.lastDurationMs = run.durationMs;
       }
     });
+    markHealthy(run);
     incrementMetric('dw.job.succeeded', metricTags);
     recordMetric('dw.fact_work_order.rows_loaded', rowsLoaded, metricTags);
     recordTiming('dw.job.duration', run.durationMs, metricTags);
@@ -587,6 +619,18 @@ async function runDailyLoad(meta = {}) {
     });
     return { run, summary: currentSummary() };
   } catch (error) {
+    if (error.discarded) {
+      run.status = 'discarded';
+      run.finishedAt = new Date().toISOString();
+      run.durationMs = Date.now() - startedAt.getTime();
+      logger.warn('SMU_WORKORDER_DAILY_LOAD result discarded — console was reset mid-run', {
+        requestId,
+        jobName: batch.jobName,
+        batchId: batch.batchId,
+        service: SERVICE,
+      });
+      throw error;
+    }
     run.status = 'failed';
     run.finishedAt = new Date().toISOString();
     run.durationMs = Date.now() - startedAt.getTime();
@@ -735,6 +779,7 @@ function seedJobs(now) {
 
 function seedStore() {
   const now = new Date();
+  generation += 1;
   RUNS = [];
   nextBatchNo = 1;
   seedDealersAndMachines(now);

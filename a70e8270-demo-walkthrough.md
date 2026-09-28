@@ -8,7 +8,7 @@ A Caterpillar-branded batch-operations console for the **Dealer Service Data War
 2. `SMU_WORKORDER_DAILY_LOAD` (02:15 CT) — extracts work orders closed in the last 24 hours, resolves each dealer code to its sales district, computes SMU deltas per machine PIN, and loads `ANALYTICS.FACT_WORK_ORDER` in Snowflake (`DISTRICT_CD` is NOT NULL).
 3. `CVA_COVERAGE_REFRESH` (03:00 CT) → 4. `PARTS_DEMAND_FORECAST` (03:30 CT) — both depend on step 2.
 
-The page shows the job chain, tonight's pending batch (~190 closed work orders), seven nights of run history, an extract preview from `dbo.work_orders`, the 40-dealer network, source/warehouse tables, and the fleet by model. The brand elements (wordmark, Cat yellow, black utility bar, condensed uppercase headings) come from public brand references; the console itself is a simulation, not a copy of any internal Caterpillar system.
+The page shows the job chain, tonight's pending batch (~200 closed work orders), six nights of run history, an extract preview from `dbo.work_orders`, the 40-dealer network, source/warehouse tables, and the fleet by model. The brand elements (wordmark, Cat yellow, black utility bar, condensed uppercase headings) come from public brand references; the console itself is a simulation, not a copy of any internal Caterpillar system.
 
 ## The story
 
