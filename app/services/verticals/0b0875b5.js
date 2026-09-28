@@ -221,7 +221,7 @@ async function processFluAppointment(data = {}) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE },
+      tags: { route: ROUTE, service: SERVICE, alert_path: 'instant' },
       extra: { requestId, storeNumber, patientAge: data.patientAge },
     });
 
