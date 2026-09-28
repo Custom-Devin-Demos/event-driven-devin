@@ -176,6 +176,7 @@ async function processCheckout(orderData) {
         route: '/api/adbe35bc/checkout',
         service: 'rogers-ecommerce',
         source: 'rogers-storefront',
+        alert_path: 'instant',
       },
       extra: {
         orderId,

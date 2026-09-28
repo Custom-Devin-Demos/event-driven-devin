@@ -2,7 +2,13 @@ jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn().mockResolvedValue(null),
 }));
 
+jest.mock('../app/telemetry/sentry', () => ({
+  Sentry: { captureException: jest.fn() },
+  initSentry: jest.fn(),
+}));
+
 const { createSessionAndAlert } = require('../app/services/devin-session');
+const { Sentry } = require('../app/telemetry/sentry');
 const {
   processCheckout,
   computeOrderTotal,
@@ -36,6 +42,9 @@ describe('rogers checkout', () => {
         service: 'rogers-ecommerce',
       }),
     );
+
+    expect(Sentry.captureException).toHaveBeenCalled();
+    expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
   });
 
   test('computeOrderTotal applies ON HST and the 10% bundle tier', () => {

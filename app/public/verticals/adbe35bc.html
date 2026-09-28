@@ -405,7 +405,7 @@
         <div class="total-line"><span>Monthly subtotal</span><span>$165.24</span></div>
         <div class="total-line"><span>Tax</span><span>Calculated by province</span></div>
         <div class="total-line"><span>Infinite bundle savings</span><span>10% (monthly &gt; $150)</span></div>
-        <div class="total-line grand"><span>Est. Monthly Total</span><span>$165.24+</span></div>
+        <div class="total-line grand"><span>Est. Monthly Total</span><span>Calculated at checkout</span></div>
         <div class="due-today"><span>Due today</span><span>$0.00</span></div>
         <div class="rsat-badge">&#x1F6F0;&#xFE0F; Rogers Satellite &mdash; included with 5G+ Infinite</div>
       </div>
@@ -486,6 +486,12 @@
     ];
     var SUBTOTAL = 165.24;
 
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
     function submitOrder(e) {
       e.preventDefault();
       var btn = document.getElementById('placeOrderBtn');
@@ -521,19 +527,19 @@
           resultBox.className = 'result-box error';
           resultBox.innerHTML =
             '<h3>Order Failed</h3>' +
-            '<p>We couldn&rsquo;t complete your order.<br><br><code>' + (result.data.error || 'Unknown error') + '</code></p>' +
+            '<p>We couldn&rsquo;t complete your order.<br><br><code>' + escapeHtml(result.data.error || 'Unknown error') + '</code></p>' +
             '<div class="error-meta">' +
-            '<span>Error: ' + (result.data.errorClass || 'InternalError') + '</span>' +
-            '<span>Code: ' + (result.data.code || 'INTERNAL_ERROR') + '</span>' +
-            '<span>Request: ' + (result.data.requestId || 'N/A') + '</span>' +
+            '<span>Error: ' + escapeHtml(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + escapeHtml(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + escapeHtml(result.data.requestId || 'N/A') + '</span>' +
             '<span>Time: ' + new Date().toISOString() + '</span>' +
             '</div>';
         } else {
           resultBox.className = 'result-box success';
           resultBox.innerHTML =
             '<h3>Order Confirmed</h3>' +
-            '<p>Order <strong>' + result.data.orderId + '</strong> confirmed.<br>' +
-            'Monthly total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.tax.toFixed(2) + ' ' + (result.data.taxLabel || 'tax') + ')</p>';
+            '<p>Order <strong>' + escapeHtml(result.data.orderId) + '</strong> confirmed.<br>' +
+            'Monthly total: $' + result.data.total.toFixed(2) + ' (incl. $' + result.data.tax.toFixed(2) + ' ' + escapeHtml(result.data.taxLabel || 'tax') + ')</p>';
         }
         btn.style.display = 'block';
         btn.disabled = false;
@@ -544,7 +550,7 @@
         resultBox.className = 'result-box error';
         resultBox.innerHTML =
           '<h3>Network Error</h3>' +
-          '<p>Unable to reach the server.<br><br><code>' + err.message + '</code></p>' +
+          '<p>Unable to reach the server.<br><br><code>' + escapeHtml(err.message) + '</code></p>' +
           '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
         btn.style.display = 'block';
         btn.disabled = false;
