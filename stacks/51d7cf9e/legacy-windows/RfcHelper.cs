@@ -67,6 +67,8 @@ namespace EimRf
             RfcTrace.CurrentTxn = _workflow + "/" + step;
         }
 
+        public static long StepElapsed { get { return _watch == null ? 0 : _watch.ElapsedMilliseconds; } }
+
         public static long EndStep(string result)
         {
             _watch.Stop();
