@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hebbia — Workspace Administration</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: rgb(14, 11, 11);
+      --cream: rgb(244, 241, 235);
+      --cream-2: rgb(238, 236, 221);
+      --muted: rgba(244, 241, 235, 0.62);
+      --line: rgba(244, 241, 235, 0.14);
+      --panel: rgb(24, 21, 21);
+      --blue: rgb(70, 91, 255);
+      --blue-dark: rgb(52, 70, 224);
+      --sans: Selecta, Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+      --serif: "Edict Display", "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", serif;
+      --gutter: 68px;
+      --content: 1304px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 24px; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    .shell { width: min(calc(100% - (var(--gutter) * 2)), var(--content)); margin: 0 auto; }
+
+    .site-header { position: relative; z-index: 3; background: #000; }
+    .header-inner { height: 64px; display: flex; align-items: center; gap: 40px; }
+    .brand { display: flex; align-items: center; gap: 7px; color: var(--cream-2); font-size: 19px; font-weight: 500; letter-spacing: -0.3px; }
+    .brand svg { width: 15px; height: 15px; }
+    .main-nav { display: flex; gap: 16px; flex: 1; }
+    .main-nav a { font-size: 14.5px; letter-spacing: 0.145px; color: var(--cream-2); padding: 12px; border-radius: 4px; }
+    .main-nav a:hover { background: rgba(244, 241, 235, 0.08); }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .signin { font-size: 14.5px; padding: 10px 12px; border-radius: 4px; color: var(--cream-2); }
+    .demo-btn { font-size: 14.5px; padding: 10px 12px; border-radius: 4px; background: #fff; color: #0e0b0b; }
+
+    .hero { position: relative; min-height: 560px; display: flex; align-items: flex-end; overflow: hidden; background: #000; }
+    .hero-img { position: absolute; top: 0; right: 0; height: 100%; width: 58%; object-fit: cover; object-position: left center; opacity: 0.85; }
+    .hero-img.fallback { display: none; }
+    .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #000 38%, rgba(0,0,0,0.2) 75%, rgba(0,0,0,0) 100%); }
+    .hero .shell { position: relative; z-index: 1; padding: 110px 0 72px; }
+    .eyebrow { font-size: 14px; letter-spacing: 0.2px; text-transform: uppercase; color: var(--cream-2); margin: 0 0 18px; }
+    .hero h1 { font-family: var(--serif); font-weight: 400; font-size: 73px; line-height: 0.9; letter-spacing: 1.8px; text-transform: uppercase; margin: 0 0 22px; max-width: 760px; }
+    .hero p { font-size: 19px; line-height: 22px; max-width: 520px; margin: 0 0 26px; }
+    .primary-cta { display: inline-flex; align-items: center; min-height: 44px; background: var(--blue); color: #fff; padding: 14px 16px; border-radius: 4px; font-size: 16px; line-height: 16px; letter-spacing: 0.16px; }
+    .primary-cta:hover { background: var(--blue-dark); }
+
+    .admin { padding: 88px 0 104px; border-top: 1px solid var(--line); }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 40px; }
+    .section-head h2 { font-family: var(--serif); font-weight: 400; font-size: 45px; line-height: 50px; letter-spacing: 0.48px; margin: 0; }
+    .section-head p { color: var(--muted); max-width: 440px; margin: 0; font-size: 15px; line-height: 22px; }
+    .admin-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 28px; }
+    .card h3 { font-size: 16px; font-weight: 400; letter-spacing: -0.2px; margin: 0 0 4px; }
+    .card .sub { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
+    .seat-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .seat-table th { text-align: left; font-weight: 400; color: var(--muted); font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; padding: 0 0 10px; border-bottom: 1px solid var(--line); }
+    .seat-table td { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .seat-table tr:last-child td { border-bottom: 0; }
+    .mono { font-variant-numeric: tabular-nums; }
+    .pill { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: rgba(70, 91, 255, 0.18); color: #b9c1ff; }
+    .pill.warn { background: rgba(244, 241, 235, 0.1); color: var(--cream); }
+    .workspace-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+    .workspace-meta div { border: 1px solid var(--line); border-radius: 4px; padding: 12px; }
+    .workspace-meta span { display: block; font-size: 12px; color: var(--muted); }
+    .workspace-meta strong { font-weight: 400; font-size: 18px; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input, select { width: 100%; min-height: 44px; background: var(--bg); color: var(--cream); border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; font-size: 15px; }
+    input:focus, select:focus { outline: 2px solid var(--blue); outline-offset: 1px; border-color: transparent; }
+    .provision-button { width: 100%; min-height: 48px; background: var(--blue); color: #fff; border: 0; border-radius: 4px; font-size: 16px; letter-spacing: 0.16px; cursor: pointer; margin-top: 6px; }
+    .provision-button:hover { background: var(--blue-dark); }
+    .provision-button:disabled { opacity: 0.6; cursor: wait; }
+    .result-box { display: none; margin-top: 18px; padding: 14px 16px; border-radius: 4px; font-size: 14px; line-height: 20px; }
+    .result-box.success { display: block; background: rgba(21, 128, 61, 0.16); border: 1px solid rgba(21, 128, 61, 0.55); }
+    .result-box.error { display: block; background: rgba(185, 28, 28, 0.16); border: 1px solid rgba(185, 28, 28, 0.6); }
+    .error-title { font-weight: 500; margin-bottom: 2px; }
+    .error-detail { color: var(--muted); }
+
+    .site-footer { position: relative; overflow: hidden; border-top: 1px solid var(--line); padding: 72px 0 40px; }
+    .footer-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.22; }
+    .site-footer .shell { position: relative; }
+    .footer-cta h2 { font-family: var(--serif); font-weight: 400; font-size: 45px; line-height: 50px; margin: 0 0 22px; }
+    .footer-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin: 64px 0 40px; font-size: 14px; }
+    .footer-links h4 { font-weight: 400; color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+    .footer-links a { display: block; padding: 4px 0; }
+    .footer-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 20px; }
+    .footer-bottom .legal { display: flex; gap: 18px; flex-wrap: wrap; }
+
+    @media (max-width: 900px) {
+      :root { --gutter: 20px; }
+      .main-nav, .signin { display: none; }
+      .header-inner { justify-content: space-between; }
+      .hero { min-height: 520px; }
+      .hero-img { width: 100%; opacity: 0.45; }
+      .hero h1 { font-size: 44px; }
+      .hero p { font-size: 17px; }
+      .section-head { flex-direction: column; align-items: flex-start; }
+      .section-head h2, .footer-cta h2 { font-size: 34px; line-height: 38px; }
+      .admin-grid { grid-template-columns: 1fr; }
+      .card { padding: 20px; }
+      .workspace-meta { grid-template-columns: 1fr; }
+      .footer-links { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand logo" href="#" aria-label="Hebbia">
+        <svg viewBox="0 0 15 15" aria-hidden="true"><g fill="currentColor"><rect x="0" y="0" width="4" height="4"/><rect x="5.5" y="0" width="4" height="4"/><rect x="11" y="0" width="4" height="4"/><rect x="0" y="5.5" width="4" height="4"/><rect x="5.5" y="5.5" width="4" height="4"/><rect x="11" y="5.5" width="4" height="4"/><rect x="0" y="11" width="4" height="4"/><rect x="5.5" y="11" width="4" height="4"/><rect x="11" y="11" width="4" height="4"/></g></svg>
+        <span>Hebbia</span>
+      </a>
+      <nav class="main-nav" aria-label="Main">
+        <a href="#">Max</a><a href="#">Product</a><a href="#">Solutions</a><a href="#">Security</a><a href="#">Company</a>
+      </nav>
+      <div class="header-actions">
+        <a class="signin" href="#">Sign in</a>
+        <a class="demo-btn" href="#">Request a demo</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <img class="hero-img" src="https://images.ctfassets.net/bn476u6z5acg/4voB01VAnso4ig3ZLGTdoz/b14d05809ca631e0cad5687b25ca1b31/Bankers.jpg?w=1400&fm=webp" alt="" onerror="this.classList.add('fallback')">
+      <div class="shell">
+        <p class="eyebrow">Workspace administration</p>
+        <h1>Seats for the deal team</h1>
+        <p>Add Matrix and Max seats for analysts, associates, and deal partners. New members get access to your firm's shared projects and connected data sources.</p>
+        <a class="primary-cta" href="#seats">Manage seats</a>
+      </div>
+    </section>
+
+    <section id="seats" class="admin">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Your firm's workspace</h2>
+          <p>Seat changes apply to every project in the workspace. Members are added with your firm's default permissions and SSO policy.</p>
+        </div>
+        <div class="admin-grid">
+          <div class="card">
+            <h3>Seat overview</h3>
+            <p class="sub">Annual agreement, renews Jan 31</p>
+            <table class="seat-table">
+              <thead><tr><th>Product</th><th>Assigned</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Matrix</td><td class="mono">412 / 450</td><td><span class="pill">Active</span></td></tr>
+                <tr><td>Max</td><td class="mono">386 / 400</td><td><span class="pill warn">97% assigned</span></td></tr>
+                <tr><td>Deal team projects</td><td class="mono">58 / 75</td><td><span class="pill">Active</span></td></tr>
+                <tr><td>Data connectors</td><td class="mono">14 / 20</td><td><span class="pill">Active</span></td></tr>
+              </tbody>
+            </table>
+            <div class="workspace-meta">
+              <div><span>Workspace</span><strong>Investment Banking</strong></div>
+              <div><span>Files indexed</span><strong class="mono">2.9M</strong></div>
+              <div><span>SSO</span><strong>Enforced</strong></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Add seats</h3>
+            <p class="sub">Seats are available to assign as soon as provisioning completes.</p>
+            <form id="provisionForm">
+              <div class="form-group">
+                <label for="product">Product</label>
+                <select id="product">
+                  <option value="matrix">Matrix</option>
+                  <option value="max">Max</option>
+                  <option value="deal_team_projects">Deal team projects</option>
+                  <option value="data_connectors">Data connectors</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="seats">Additional seats</label>
+                  <input type="number" id="seats" value="25" min="1" max="10000" step="1" required>
+                </div>
+                <div class="form-group">
+                  <label for="planTier">Plan</label>
+                  <select id="planTier">
+                    <option value="enterprise">Enterprise</option>
+                    <option value="business">Business</option>
+                    <option value="starter">Starter</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="region">Data residency</label>
+                <select id="region">
+                  <option value="us-east">United States</option>
+                  <option value="eu-west">European Union</option>
+                  <option value="uk-south">United Kingdom</option>
+                  <option value="ap-south">Asia Pacific</option>
+                </select>
+              </div>
+              <button type="submit" class="provision-button" id="submitBtn">Add seats</button>
+            </form>
+            <div id="result" class="result-box"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <img class="footer-img" src="https://images.ctfassets.net/bn476u6z5acg/5QcevKBbcNkVqugvZLItRB/af63030eb9da74ee34b22f47878baf7e/Home_Page_Footer_Image.jpg?w=1600&fm=webp" alt="" onerror="this.style.display='none'">
+    <div class="shell">
+      <div class="footer-cta">
+        <h2>Institutional intelligence</h2>
+        <a class="primary-cta" href="#">Request a demo</a>
+      </div>
+      <div class="footer-links">
+        <div><h4>Product</h4><a href="#">Overview</a><a href="#">Max</a><a href="#">Matrix</a></div>
+        <div><h4>Solutions</h4><a href="#">Investing</a><a href="#">Banking</a><a href="#">Legal</a><a href="#">Corporate</a></div>
+        <div><h4>Company</h4><a href="#">About</a><a href="#">Careers</a><a href="#">Blog</a><a href="#">Forum</a></div>
+        <div><h4>Trust</h4><a href="#">Security</a><a href="#">SOC 2 Type 2</a><a href="#">ISO/IEC 27001:2022</a><a href="#">GDPR</a></div>
+      </div>
+      <div class="footer-bottom">
+        <span>Hebbia</span>
+        <div class="legal"><a href="/" class="back-link">← All Demos</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    document.getElementById('provisionForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const result = document.getElementById('result');
+      btn.disabled = true; btn.textContent = 'Adding seats...';
+      result.className = 'result-box';
+      const productSelect = document.getElementById('product');
+      const productLabel = productSelect.options[productSelect.selectedIndex].textContent;
+      const show = (cls, title, detail) => {
+        result.className = 'result-box ' + cls;
+        result.textContent = '';
+        const t = document.createElement('div'); t.className = 'error-title'; t.textContent = title;
+        const d = document.createElement('div'); d.className = 'error-detail'; d.textContent = detail;
+        result.append(t, d);
+      };
+      try {
+        const res = await fetch('/api/licenses/provision', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orgName: productSelect.value,
+            planName: document.getElementById('planTier').value,
+            seats: parseInt(document.getElementById('seats').value),
+            billingCycle: 'annual',
+            region: document.getElementById('region').value,
+            devinUserId: localStorage.getItem('devinUserId') || '',
+            devinOrgId: localStorage.getItem('devinOrgId') || '',
+            devinEmail: localStorage.getItem('devinEmail') || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          show('error', 'Seats not added', `${data.errorClass}: ${data.error}`);
+        } else {
+          show('success', 'Seats added', `${data.seatsAdded} ${productLabel} seats added — Total: $${data.annualCost}/yr`);
+        }
+      } catch (err) {
+        show('error', 'Network error', err.message);
+      } finally { btn.disabled = false; btn.textContent = 'Add seats'; }
+    });
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
