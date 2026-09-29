@@ -464,6 +464,30 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Customer Care & Incident Intake',
     disclaimer: 'NOT ACTUALLY A CELONIS SITE — internal demo only, not affiliated with, endorsed by, or a real Celonis product.',
   },
+  'e3ee301c': {
+    slug: 'e3ee301c',
+    company: 'Hebbia',
+    brandMark: 'H',
+    vertical: 'hightech',
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'e3ee301c.html',
+      title: 'Hebbia — Workspace Administration',
+    },
+    accent: '#465BFF',
+    accentDark: '#3446E0',
+    theme: {
+      '--accent': '#465BFF',
+      '--ink': '#0E0B0B',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0E0B0B',
+      '--chrome-text': '#F4F1EB',
+    },
+    supportCenter: 'Hebbia Support',
+    supportCenterSub: 'Customer Care & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A HEBBIA SITE — internal demo only, not affiliated with, endorsed by, or a real Hebbia product.',
+  },
   '71dff37b': {
     slug: '71dff37b',
     company: 'Point72',
