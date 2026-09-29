@@ -66,7 +66,7 @@ function recordLookup(entry) {
 
 async function getOutageStatus(data) {
   const startTime = Date.now();
-  const requestId = uuidv4();
+  const requestId = data.requestId || uuidv4();
 
   logger.info('Looking up outage status', {
     requestId,
@@ -112,6 +112,7 @@ async function getOutageStatus(data) {
       requestId,
       error: error.message,
       errorClass: error.name,
+      stack: error.stack,
       durationMs: duration,
       address: data.address,
       premiseId: servicePoint.premiseId,

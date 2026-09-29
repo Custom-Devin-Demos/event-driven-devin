@@ -9,6 +9,7 @@ const {
 
 const router = express.Router();
 const PAGE = path.join(__dirname, '../../public/verticals/b6f570dc.html');
+const MAX_ADDRESS_LENGTH = 160;
 
 router.get(['/b6f570dc/outage-status', '/b6f570dc/outage-status/'], (_req, res) => {
   res.sendFile(PAGE);
@@ -24,9 +25,20 @@ router.get('/api/b6f570dc/situation', (_req, res) => {
 });
 
 router.post('/api/b6f570dc/outage-status', async (req, res) => {
+  const { address } = req.body;
+  if (address !== undefined && (typeof address !== 'string' || address.length > MAX_ADDRESS_LENGTH)) {
+    res.status(400).json({
+      success: false,
+      error: `address must be a string of at most ${MAX_ADDRESS_LENGTH} characters`,
+      code: 'INVALID_ADDRESS',
+      requestId: req.requestId,
+    });
+    return;
+  }
   try {
     const result = await getOutageStatus({
-      address: req.body.address || '300 LAKESIDE DR OAKLAND CA 94612',
+      requestId: req.requestId,
+      address: address || '300 LAKESIDE DR OAKLAND CA 94612',
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
