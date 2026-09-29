@@ -13,6 +13,7 @@ const {
 } = require('./7c6a6ef9-members');
 
 const SERVICE = 'customer-7c6a6ef9-member-coverage';
+const DEFAULT_CUSTOMER = '7c6a6ef9';
 const ROUTE = '/api/7c6a6ef9/coverage';
 const ESTIMATE_ROUTE = '/api/7c6a6ef9/cost-estimate';
 
@@ -23,30 +24,56 @@ const DEFAULT_PLAN = 'ppo';
 const ONCALL_SLACK_MEMBER_ID = process.env.DEMO_ONCALL_SLACK_MEMBER_ID || 'U08S7AVJ478';
 
 /**
+ * Source-control and ITSM targets for each entry point that shares this
+ * service. The GitHub entry point is the default; the GitLab entry point
+ * remediates the gitlab.com mirror through a merge request and its own
+ * ServiceNow assignment group.
+ */
+const ENTRY_POINTS = {
+  [DEFAULT_CUSTOMER]: {
+    repository: '`COG-GTM/event-driven-devin`',
+    aliasPath: '/engen-snow',
+    assignmentGroup: 'Member Benefits Platform Engineering',
+    changeRequest: 'pull request',
+    changeRequestShort: 'PR',
+  },
+  '73ec4d01': {
+    repository: '`daniellagrimb/event-driven-devin-demos` on gitlab.com',
+    aliasPath: '/engen-gitlab',
+    assignmentGroup: 'Member Benefits Platform Engineering - GitLab',
+    changeRequest: 'merge request',
+    changeRequestShort: 'MR',
+  },
+};
+
+/**
  * Scenario directive appended to the Devin investigation prompt.
  *
  * The alert pipeline passes only a prompt to the Devin API, so the repository
  * to remediate has to be named explicitly here.
  */
-const REMEDIATION_DIRECTIVE = [
-  '*Repository to investigate and fix:* `COG-GTM/event-driven-devin`',
-  '',
-  'The failing code path is the Highmark enGen member coverage vertical:',
-  '- Service: `app/services/verticals/7c6a6ef9.js`',
-  '- Member records, plan configuration & service catalog: `app/services/verticals/7c6a6ef9-members.js`',
-  '- Route: `app/routes/verticals/7c6a6ef9.js`',
-  '- Page: `app/public/verticals/7c6a6ef9.html` (served at `/7c6a6ef9` and `/engen-snow`)',
-  '- Prevention control: `scripts/7c6a6ef9-benefits-audit.js` (`npm run audit:engen`)',
-  '',
-  '*Treat this as a field-migration defect, not a one-line crash.* The 2026 benefit-year renewal moved plan assignment on member records to a new location (see `7c6a6ef9-members.js`). Every consumer of the old location is broken; only one of them crashes.',
-  '',
-  '*Remediation plan — once the crash is root-caused, run these three workstreams in parallel as child sessions, wait for them, then summarize in the ServiceNow incident:*',
-  '1. *Blast radius in code* — find every consumer of the moved field in the service (coverage-status AND cost-estimate paths, telemetry included). The cost-estimate path does not crash: it silently falls back to the PPO network default, so HMO, EPO and HDHP members are quoted PPO deductibles, copays and coinsurance — an HDHP member is told the deductible is met and a specialist visit costs $30 when the plan still owes $1,400 of deductible. The only signal is the `cost_estimate.quoted` metric carrying `plan:ppo` on members whose enrolled plan is not PPO. Route all consumers through one shared resolver that fails loudly when a plan cannot be resolved, add regression tests for both paths, run `npm test` and `npm run lint`.',
-  '2. *Blast radius in ServiceNow* — using the same Table API credentials as the incident write-back, query open incidents in assignment group "Member Benefits Platform Engineering" (state < 6) that predate this incident and mention cost estimates, deductibles, copays or plan type. Decide which are the silent symptom of this same defect. For each: add a work note linking this incident and the fix PR, set `parent_incident` to this incident sys_id, and resolve it (`state` 6, `close_code` "Solution provided"). Report their numbers and count.',
-  '3. *Prevention* — run `npm run audit:engen`. It resolves benefits for every member record through both the coverage-status and cost-estimate paths and exits non-zero on any unresolved or silently downgraded plan; it is not wired into CI, which is why this shipped. Wire it into `npm test` (or the CI workflow) so a plan-assignment gap fails before it ships.',
-  '',
-  'Fold all code workstreams into a single pull request against `main`. If a child session cannot reach ServiceNow, perform workstream 2 from the parent session. The final ServiceNow work note must state: incidents linked and resolved (numbers), routes fixed, prevention control added, PR URL.',
-].join('\n');
+function buildRemediationDirective(customer) {
+  const target = ENTRY_POINTS[customer] || ENTRY_POINTS[DEFAULT_CUSTOMER];
+  return [
+    `*Repository to investigate and fix:* ${target.repository}`,
+    '',
+    'The failing code path is the Highmark enGen member coverage vertical:',
+    '- Service: `app/services/verticals/7c6a6ef9.js`',
+    '- Member records, plan configuration & service catalog: `app/services/verticals/7c6a6ef9-members.js`',
+    '- Route: `app/routes/verticals/7c6a6ef9.js`',
+    `- Page: \`app/public/verticals/${customer}.html\` (served at \`/${customer}\` and \`${target.aliasPath}\`)`,
+    '- Prevention control: `scripts/7c6a6ef9-benefits-audit.js` (`npm run audit:engen`)',
+    '',
+    '*Treat this as a field-migration defect, not a one-line crash.* The 2026 benefit-year renewal moved plan assignment on member records to a new location (see `7c6a6ef9-members.js`). Every consumer of the old location is broken; only one of them crashes.',
+    '',
+    '*Remediation plan — once the crash is root-caused, run these three workstreams in parallel as child sessions, wait for them, then summarize in the ServiceNow incident:*',
+    '1. *Blast radius in code* — find every consumer of the moved field in the service (coverage-status AND cost-estimate paths, telemetry included). The cost-estimate path does not crash: it silently falls back to the PPO network default, so HMO, EPO and HDHP members are quoted PPO deductibles, copays and coinsurance — an HDHP member is told the deductible is met and a specialist visit costs $30 when the plan still owes $1,400 of deductible. The only signal is the `cost_estimate.quoted` metric carrying `plan:ppo` on members whose enrolled plan is not PPO. Route all consumers through one shared resolver that fails loudly when a plan cannot be resolved, add regression tests for both paths, run `npm test` and `npm run lint`.',
+    `2. *Blast radius in ServiceNow* — using the same Table API credentials as the incident write-back, query open incidents in assignment group "${target.assignmentGroup}" (state < 6) that predate this incident and mention cost estimates, deductibles, copays or plan type. Decide which are the silent symptom of this same defect. For each: add a work note linking this incident and the fix ${target.changeRequestShort}, set \`parent_incident\` to this incident sys_id, and resolve it (\`state\` 6, \`close_code\` "Solution provided"). Report their numbers and count.`,
+    '3. *Prevention* — run `npm run audit:engen`. It resolves benefits for every member record through both the coverage-status and cost-estimate paths and exits non-zero on any unresolved or silently downgraded plan; it is not wired into CI, which is why this shipped. Wire it into `npm test` (or the CI workflow) so a plan-assignment gap fails before it ships.',
+    '',
+    `Fold all code workstreams into a single ${target.changeRequest} against \`main\`. If a child session cannot reach ServiceNow, perform workstream 2 from the parent session. The final ServiceNow work note must state: incidents linked and resolved (numbers), routes fixed, prevention control added, ${target.changeRequestShort} URL.`,
+  ].join('\n');
+}
 
 function memberNotFound() {
   const error = new Error('Member not found. Please verify the email address and member ID.');
@@ -129,6 +156,10 @@ function priceService(plan, accumulators, service) {
     planPays: Math.round((service.allowedAmount - memberPays) * 100) / 100,
     basis,
   };
+}
+
+function resolveCustomer(customer) {
+  return ENTRY_POINTS[customer] ? customer : DEFAULT_CUSTOMER;
 }
 
 /**
@@ -214,6 +245,7 @@ async function lookupCoverage(data) {
       },
     });
 
+    const customer = resolveCustomer(data.customer);
     createSessionAndAlert({
       issueTitle: `${error.name}: ${error.message}`,
       issueUrl: `https://${process.env.SENTRY_ORG_SLUG || 'sentry-org'}.sentry.io/issues/?project=${process.env.SENTRY_PROJECT_ID || ''}&query=is%3Aunresolved`,
@@ -225,8 +257,8 @@ async function lookupCoverage(data) {
       devinOrgId: data.devinOrgId,
       service: SERVICE,
       verticalLabel: 'enGen \u2014 Member Coverage Status',
-      promptAppendix: REMEDIATION_DIRECTIVE,
-      customer: '7c6a6ef9',
+      promptAppendix: buildRemediationDirective(customer),
+      customer,
       slackMemberId: data.devinEmail ? '' : ONCALL_SLACK_MEMBER_ID,
       slackMemberIdFallback: ONCALL_SLACK_MEMBER_ID,
       tags: [
