@@ -30,10 +30,10 @@ const DEFAULT_ORDER = {
 };
 
 describe('Verizon checkout', () => {
-  test('processCheckout rejects an unknown state without triggering telemetry or a Devin session', async () => {
+  test.each(['ZZ', 'constructor'])('processCheckout rejects invalid state %s without triggering telemetry or a Devin session', async (state) => {
     jest.clearAllMocks();
 
-    await expect(processCheckout({ ...DEFAULT_ORDER, state: 'ZZ' }))
+    await expect(processCheckout({ ...DEFAULT_ORDER, state }))
       .rejects.toMatchObject({
         name: 'ValidationError',
         code: 'INVALID_STATE',
@@ -71,10 +71,10 @@ describe('Verizon checkout', () => {
     expect(result.taxLabel).toBe('Sales tax');
   });
 
-  test('computeOrderTotal rejects an unknown state', () => {
-    expect(() => computeOrderTotal(100, 'ZZ')).toThrow('Unknown state: ZZ');
+  test.each(['ZZ', 'constructor'])('computeOrderTotal rejects invalid state %s', (state) => {
+    expect(() => computeOrderTotal(100, state)).toThrow(`Unknown state: ${state}`);
     try {
-      computeOrderTotal(100, 'ZZ');
+      computeOrderTotal(100, state);
     } catch (error) {
       expect(error.code).toBe('INVALID_STATE');
     }

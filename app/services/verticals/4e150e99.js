@@ -59,10 +59,10 @@ function applyPromotions(items) {
  * Computes the final order total.
  */
 function computeOrderTotal(subtotal, state) {
-  const taxConfig = STATES[state];
-  if (!taxConfig) {
+  if (!Object.prototype.hasOwnProperty.call(STATES, state)) {
     throw Object.assign(new Error(`Unknown state: ${state}`), { code: 'INVALID_STATE' });
   }
+  const taxConfig = STATES[state];
   const tax = subtotal * taxConfig.taxRate;
   const discount = getApplicableDiscount(subtotal);
   const discountAmount = (subtotal + tax) * discount.rate;
@@ -99,7 +99,7 @@ function formatReceipt(allItems) {
  * Processes a Verizon wireless checkout order.
  */
 async function processCheckout(orderData) {
-  if (!STATES[orderData.state]) {
+  if (!Object.prototype.hasOwnProperty.call(STATES, orderData.state)) {
     throw Object.assign(new Error(`Unknown state: ${orderData.state}`), {
       name: 'ValidationError',
       code: 'INVALID_STATE',
