@@ -58,6 +58,21 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
+  test('does not skip a LatencyBudgetExceeded issue from an unrelated route', () => {
+    const alertData = extractAlertData({
+      action: 'created',
+      data: {
+        issue: {
+          id: '3',
+          title: 'LatencyBudgetExceeded: GET /api/other/report took 5000ms',
+          culprit: 'processImmediate(node:internal/timers)',
+          metadata: { type: 'LatencyBudgetExceeded' },
+        },
+      },
+    });
+    expect(isInstantPathEvent(alertData)).toBe(false);
+  });
+
   test('recognizes a latency-breach event_alert webhook by its tags', () => {
     const alertData = extractAlertData({
       action: 'triggered',

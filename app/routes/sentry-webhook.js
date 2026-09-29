@@ -159,15 +159,15 @@ const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c
 // latency-budget breaches); the webhook must not raise a second alert.
 const DIRECT_ALERT_PATHS = ['instant', 'latency'];
 
-// Error names only emitted by services that already alert directly — issue
-// webhooks carry no event tags, so match on title/type regardless of culprit.
-const DIRECT_ALERT_ERROR_TYPES = ['LatencyBudgetExceeded'];
+// Latency-budget breaches alert directly; their issue webhooks carry no event
+// tags, so match the LatencyBudgetExceeded title/type against these routes.
+const LATENCY_DIRECT_ALERT_ROUTES = ['/api/ef51d258/', '/api/f887d0be/'];
 
 function isInstantPathEvent(alertData) {
-  const isDirectAlertError = DIRECT_ALERT_ERROR_TYPES.some(
-    (errorType) => (typeof alertData.issueTitle === 'string' && alertData.issueTitle.startsWith(errorType))
-      || alertData.errorType === errorType,
-  );
+  const isDirectAlertError = typeof alertData.issueTitle === 'string'
+    && (alertData.issueTitle.startsWith('LatencyBudgetExceeded')
+      || alertData.errorType === 'LatencyBudgetExceeded')
+    && LATENCY_DIRECT_ALERT_ROUTES.some((route) => alertData.issueTitle.includes(route));
   if (isDirectAlertError) return true;
 
   const hasInstantTag = (alertData.tags || []).some((tag) => {
