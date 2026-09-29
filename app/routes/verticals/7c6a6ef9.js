@@ -27,6 +27,7 @@ router.post('/api/7c6a6ef9/coverage', async (req, res) => {
   const body = req.body || {};
   try {
     const result = await lookupCoverage({
+      customer: body.customer,
       email: body.email,
       memberId: body.memberId,
       devinUserId: body.devinUserId,

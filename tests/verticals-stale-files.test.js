@@ -55,7 +55,8 @@ function buildScratchTree() {
     if (f.endsWith('.js')) fs.copyFileSync(path.join(ROUTES_DIR, f), path.join(scratchRoutes, f));
   }
   for (const f of fs.readdirSync(PAGES_DIR)) {
-    if (f.endsWith('.html')) fs.symlinkSync(path.join(PAGES_DIR, f), path.join(scratchPages, f));
+    const src = path.join(PAGES_DIR, f);
+    if (f.endsWith('.html') || fs.statSync(src).isDirectory()) fs.symlinkSync(src, path.join(scratchPages, f));
   }
 
   fs.writeFileSync(path.join(scratchRoutes, `${STALE}.js`), "require('../../services/verticals/zz-stale-test-missing');\n");
