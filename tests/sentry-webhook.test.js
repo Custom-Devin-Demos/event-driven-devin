@@ -1,5 +1,6 @@
 const {
   applyCustomerIdentity,
+  extractAlertData,
   isInstantPathEvent,
 } = require('../app/routes/sentry-webhook');
 
@@ -12,8 +13,93 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
+  test.each([
+    { tags: [['alert_path', 'latency']] },
+    { tags: [{ key: 'alert_path', value: 'latency' }] },
+    { tags: [{ alert_path: 'latency' }] },
+  ])('recognizes latency-path tag shape %p', (alertData) => {
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
   test('does not recognize a different alert path', () => {
     expect(isInstantPathEvent({ tags: [['alert_path', 'webhook']] })).toBe(false);
+  });
+
+  test.each([
+    'reportLatencyBreach(app/services/verticals/ef51d258)',
+    'reportLatencyBreach(app/services/verticals/f887d0be)',
+  ])('recognizes a tagless latency-breach issue webhook by culprit %p', (culprit) => {
+    expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
+  });
+
+  test('does not treat an unrelated culprit with another alert path as direct-alerted', () => {
+    expect(isInstantPathEvent({
+      culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
+      tags: [['alert_path', 'other']],
+    })).toBe(false);
+  });
+
+  test.each([
+    'LatencyBudgetExceeded: POST /api/ef51d258/availability took 9039ms (budget 3000ms)',
+    'LatencyBudgetExceeded: POST /api/f887d0be/enquiry took 9540ms (budget 3000ms)',
+  ])('recognizes a latency-breach issue webhook by error type regardless of culprit %p', (title) => {
+    const alertData = extractAlertData({
+      action: 'created',
+      data: {
+        issue: {
+          id: '1',
+          title,
+          culprit: 'processImmediate(node:internal/timers)',
+          metadata: { type: 'LatencyBudgetExceeded' },
+        },
+      },
+    });
+    expect(alertData.errorType).toBe('LatencyBudgetExceeded');
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
+  test('does not skip a LatencyBudgetExceeded issue from an unrelated route', () => {
+    const alertData = extractAlertData({
+      action: 'created',
+      data: {
+        issue: {
+          id: '3',
+          title: 'LatencyBudgetExceeded: GET /api/other/report took 5000ms',
+          culprit: 'processImmediate(node:internal/timers)',
+          metadata: { type: 'LatencyBudgetExceeded' },
+        },
+      },
+    });
+    expect(isInstantPathEvent(alertData)).toBe(false);
+  });
+
+  test('recognizes a latency-breach event_alert webhook by its tags', () => {
+    const alertData = extractAlertData({
+      action: 'triggered',
+      data: {
+        event: {
+          title: 'LatencyBudgetExceeded: POST /api/f887d0be/enquiry took 9540ms (budget 3000ms)',
+          culprit: 'x',
+          tags: [['alert_path', 'latency'], ['service', 'customer-f887d0be-enquiry']],
+        },
+      },
+    });
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
+  test('does not treat a regular vertical TypeError issue webhook as direct-alerted', () => {
+    const alertData = extractAlertData({
+      action: 'created',
+      data: {
+        issue: {
+          id: '2',
+          title: "TypeError: Cannot read properties of undefined (reading 'x')",
+          culprit: 'fn(app/services/verticals/b25c3f24)',
+          metadata: { type: 'TypeError' },
+        },
+      },
+    });
+    expect(isInstantPathEvent(alertData)).toBe(false);
   });
 
   test('recognizes a tagless Rippling issue webhook by its culprit module path', () => {
