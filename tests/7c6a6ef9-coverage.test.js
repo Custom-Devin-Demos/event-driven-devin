@@ -51,4 +51,33 @@ describe('enGen member coverage status (7c6a6ef9)', () => {
       { key: 'memberId', value: 'HM-20481973' },
     ]));
   });
+
+  test('the GitLab entry point routes the incident to its own customer', async () => {
+    await expect(lookupCoverage({
+      customer: '73ec4d01',
+      email: 'sarah.johnson@example.com',
+      memberId: 'HM-20481973',
+    })).rejects.toMatchObject({ name: 'TypeError' });
+
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.customer).toBe('73ec4d01');
+    expect(alert.promptAppendix).toContain('daniellagrimb/event-driven-devin-demos');
+    expect(alert.promptAppendix).toContain('Member Benefits Platform Engineering - GitLab');
+    expect(alert.promptAppendix).toContain('single merge request');
+    expect(alert.promptAppendix).not.toContain('COG-GTM/event-driven-devin');
+  });
+
+  test('an unknown customer identifier falls back to the default entry point', async () => {
+    await expect(lookupCoverage({
+      customer: 'not-a-customer',
+      email: 'sarah.johnson@example.com',
+      memberId: 'HM-20481973',
+    })).rejects.toMatchObject({ name: 'TypeError' });
+
+    const alert = createSessionAndAlert.mock.calls[0][0];
+    expect(alert.customer).toBe('7c6a6ef9');
+    expect(alert.promptAppendix).toContain('COG-GTM/event-driven-devin');
+    expect(alert.promptAppendix).not.toContain('GitLab');
+  });
 });
