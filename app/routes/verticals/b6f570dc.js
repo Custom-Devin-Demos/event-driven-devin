@@ -4,7 +4,6 @@ const {
   getOutageStatus,
   resetOutageStatus,
   searchServicePoints,
-  LOOKUP_HISTORY,
   SYSTEM_SITUATION,
 } = require('../../services/verticals/b6f570dc');
 
@@ -16,12 +15,12 @@ router.get(['/b6f570dc/outage-status', '/b6f570dc/outage-status/'], (_req, res) 
 });
 
 router.get('/api/b6f570dc/addresses', (req, res) => {
-  const query = typeof req.query.q === 'string' ? req.query.q : '';
+  const query = typeof req.query.q === 'string' ? req.query.q.slice(0, 120) : '';
   res.json({ query, matches: searchServicePoints(query) });
 });
 
 router.get('/api/b6f570dc/situation', (_req, res) => {
-  res.json({ system: SYSTEM_SITUATION, recentLookups: LOOKUP_HISTORY, asOf: new Date().toISOString() });
+  res.json({ system: SYSTEM_SITUATION, asOf: new Date().toISOString() });
 });
 
 router.post('/api/b6f570dc/outage-status', async (req, res) => {

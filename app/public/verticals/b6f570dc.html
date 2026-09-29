@@ -661,6 +661,8 @@
       }
     });
     clear.addEventListener('click', function () {
+      clearTimeout(state.debounce);
+      state.fetchSeq += 1;
       input.value = '';
       syncFilled();
       close();
@@ -786,7 +788,7 @@
     rememberRecent(label);
     Object.keys(lookups).forEach(function (key) { lookups[key].b6f570dcSetValue(label); });
 
-    if (state.view !== 'status') history.pushState({ view: 'status', address: label }, '', STATUS_PATH + '/#current');
+    history[state.view !== 'status' ? 'pushState' : 'replaceState']({ view: 'status', address: label }, '', STATUS_PATH + '/#current');
     showView('status');
     renderLoading();
 

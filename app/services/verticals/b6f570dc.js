@@ -123,6 +123,7 @@ async function getOutageStatus(data) {
       tags: {
         route: ROUTE,
         service: SERVICE,
+        alert_path: 'instant',
       },
       extra: {
         requestId,
@@ -141,7 +142,6 @@ async function getOutageStatus(data) {
       devinUserId: data.devinUserId,
       devinEmail: data.devinEmail,
       devinOrgId: data.devinOrgId,
-      slackMemberId: process.env.DEMO_ONCALL_SLACK_MEMBER_ID || 'U08S7AVJ478',
       service: SERVICE,
       verticalLabel: 'Utility Outage Center',
       tags: [
