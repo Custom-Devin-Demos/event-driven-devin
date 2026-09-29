@@ -44,12 +44,13 @@ const CATALOG = [
   },
 ];
 
+const PA_CLOTHING_EXEMPT = ['apparel', 'footwear'];
 const TAX_RATES = {
-  15205: { jurisdiction: 'PA — Allegheny County', rate: 0.07 },
-  10010: { jurisdiction: 'NY — New York City', rate: 0.08875 },
+  10010: { jurisdiction: 'NY — New York City', rate: 0.08875, exempt: [] },
 };
-const DEFAULT_TAX = { jurisdiction: 'US — standard', rate: 0.06 };
-const TAX_EXEMPT_CATEGORIES = { 15205: ['apparel', 'footwear'] };
+const ALLEGHENY_TAX = { jurisdiction: 'PA — Allegheny County', rate: 0.07, exempt: PA_CLOTHING_EXEMPT };
+const PA_STATE_TAX = { jurisdiction: 'PA — statewide', rate: 0.06, exempt: PA_CLOTHING_EXEMPT };
+const DEFAULT_TAX = { jurisdiction: 'US — standard', rate: 0.06, exempt: [] };
 
 const PAYMENT_METHODS = {
   card: 'Credit / Debit Card',
@@ -152,9 +153,15 @@ function computeShipping(fulfillment, subtotal) {
   return { method: fulfillment, label: method.label, fee };
 }
 
+function taxJurisdiction(zipCode) {
+  if (Object.hasOwn(TAX_RATES, zipCode)) return TAX_RATES[zipCode];
+  const prefix = Number(String(zipCode).slice(0, 3));
+  if (prefix === 152) return ALLEGHENY_TAX;
+  return prefix >= 150 && prefix <= 196 ? PA_STATE_TAX : DEFAULT_TAX;
+}
+
 function computeTax(lines, zipCode) {
-  const { jurisdiction, rate } = TAX_RATES[zipCode] || DEFAULT_TAX;
-  const exempt = TAX_EXEMPT_CATEGORIES[zipCode] || [];
+  const { jurisdiction, rate, exempt } = taxJurisdiction(zipCode);
   const taxable = lines
     .filter((line) => !exempt.includes(line.category))
     .reduce((sum, line) => sum + line.lineTotal, 0);
