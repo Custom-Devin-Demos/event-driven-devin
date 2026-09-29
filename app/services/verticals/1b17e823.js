@@ -46,7 +46,7 @@ const CATALOG = [
 
 const PA_CLOTHING_EXEMPT = ['apparel', 'footwear'];
 const TAX_RATES = {
-  10010: { jurisdiction: 'NY — New York City', rate: 0.08875, exempt: [] },
+  10010: { jurisdiction: 'NY — New York City', rate: 0.08875, exempt: ['apparel', 'footwear'], exemptBelow: 110 },
 };
 const ALLEGHENY_TAX = { jurisdiction: 'PA — Allegheny County', rate: 0.07, exempt: PA_CLOTHING_EXEMPT };
 const PA_STATE_TAX = { jurisdiction: 'PA — statewide', rate: 0.06, exempt: PA_CLOTHING_EXEMPT };
@@ -161,9 +161,9 @@ function taxJurisdiction(zipCode) {
 }
 
 function computeTax(lines, zipCode) {
-  const { jurisdiction, rate, exempt } = taxJurisdiction(zipCode);
+  const { jurisdiction, rate, exempt, exemptBelow = Infinity } = taxJurisdiction(zipCode);
   const taxable = lines
-    .filter((line) => !exempt.includes(line.category))
+    .filter((line) => !(exempt.includes(line.category) && line.price < exemptBelow))
     .reduce((sum, line) => sum + line.lineTotal, 0);
   return { jurisdiction, rate, taxableAmount: roundCurrency(taxable), tax: roundCurrency(taxable * rate) };
 }
