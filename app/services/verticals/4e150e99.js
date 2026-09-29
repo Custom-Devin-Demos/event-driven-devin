@@ -99,6 +99,14 @@ function formatReceipt(allItems) {
  * Processes a Verizon wireless checkout order.
  */
 async function processCheckout(orderData) {
+  if (!STATES[orderData.state]) {
+    throw Object.assign(new Error(`Unknown state: ${orderData.state}`), {
+      name: 'ValidationError',
+      code: 'INVALID_STATE',
+      status: 400,
+    });
+  }
+
   const startTime = Date.now();
   const orderId = uuidv4();
 

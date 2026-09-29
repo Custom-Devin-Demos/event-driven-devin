@@ -20,7 +20,7 @@ router.post('/api/4e150e99/checkout', async (req, res) => {
     });
     res.json(result);
   } catch (error) {
-    res.status(500).json({
+    res.status(error.status || 500).json({
       success: false,
       error: error.message,
       errorClass: error.name,

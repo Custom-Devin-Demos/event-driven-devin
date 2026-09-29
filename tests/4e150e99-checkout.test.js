@@ -30,6 +30,20 @@ const DEFAULT_ORDER = {
 };
 
 describe('Verizon checkout', () => {
+  test('processCheckout rejects an unknown state without triggering telemetry or a Devin session', async () => {
+    jest.clearAllMocks();
+
+    await expect(processCheckout({ ...DEFAULT_ORDER, state: 'ZZ' }))
+      .rejects.toMatchObject({
+        name: 'ValidationError',
+        code: 'INVALID_STATE',
+        status: 400,
+      });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   test('processCheckout rejects with the planted TypeError and triggers a Devin session', async () => {
     await expect(processCheckout(DEFAULT_ORDER))
       .rejects.toThrow(/reading 'name'/);
