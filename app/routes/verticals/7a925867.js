@@ -12,7 +12,7 @@ router.post('/api/7a925867/matrix/columns/run', async (req, res) => {
   try {
     const result = await runColumn({
       column: body.column,
-      documentIds: body.documentIds,
+      rowIds: body.rowIds,
       devinUserId: body.devinUserId,
       devinOrgId: body.devinOrgId,
       devinEmail: body.devinEmail,
