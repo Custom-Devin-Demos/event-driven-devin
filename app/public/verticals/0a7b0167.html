@@ -237,7 +237,7 @@
               <div class="field"><label for="amount">Amount (USD)</label><input type="number" id="amount" min="1" step="0.01" value="60000" required></div>
               <div class="field"><label for="accountTier">Purchase type</label><select id="accountTier">
                 <option value="standard">Spot purchase</option>
-                <option value="premium">Offtake agreement</option>
+                <option value="basic">Offtake agreement</option>
                 <option value="basic">Forward contract</option>
               </select><small>Set by your organization's procurement policy.</small></div>
               <dl class="summary">
@@ -316,7 +316,9 @@
     renderSummary();
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const project = selectedProject().text;
+      const selected = selectedProject();
+      const project = selected.text;
+      const price = Number(selected.dataset.price);
       button.disabled = true;
       button.textContent = 'Confirming purchase…';
       status.textContent = 'Submitting purchase to Marketplace…';
@@ -339,9 +341,8 @@
         const data = await response.json();
         if (!response.ok || !data.receipt) throw new Error('Purchase could not be confirmed.');
         const amount = Number(data.receipt.amount);
-        const price = Number(selectedProject().dataset.price);
         result.className = 'result-box success';
-        result.textContent = `Purchase ${data.receipt.receiptId} confirmed: ${usd.format(amount)} for ${tonnes.format(amount / price)} tCO₂e of ${project}. The contract appears under Carbon removal contracts once processed.`;
+        result.textContent = `Purchase ${data.receipt.receiptId} confirmed: ${usd.format(amount)} for ${tonnes.format(amount / price)} tCO₂e of ${project}.`;
         status.textContent = 'Purchase confirmed.';
       } catch (_error) {
         result.className = 'result-box notice';
