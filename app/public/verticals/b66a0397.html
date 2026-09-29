@@ -492,15 +492,17 @@
       } else {
         gwp.innerHTML = 'Spend <strong>' + money(GWP_THRESHOLD - sub) + '</strong> more to unlock a free DSG Team Duffel.';
       }
-      document.getElementById('placeOrderBtn').disabled = CART.length === 0;
+      document.getElementById('placeOrderBtn').disabled = CART.length === 0 || orderConfirmed;
     }
 
     var submitting = false;
+    var orderConfirmed = false;
     function cents(v) { return Math.round(v * 100) / 100; }
     function onOrderEdit() {
       var resultBox = document.getElementById('resultBox');
       resultBox.className = 'result-box';
       resultBox.innerHTML = '';
+      orderConfirmed = false;
       renderSummary();
     }
 
@@ -514,7 +516,7 @@
 
     function submitOrder(e) {
       e.preventDefault();
-      if (CART.length === 0 || submitting) return;
+      if (CART.length === 0 || submitting || orderConfirmed) return;
       var btn = document.getElementById('placeOrderBtn');
       var processing = document.getElementById('processingIndicator');
       var resultBox = document.getElementById('resultBox');
@@ -557,6 +559,7 @@
             '<span>Time: ' + new Date().toISOString() + '</span>' +
             '</div>';
         } else {
+          orderConfirmed = true;
           resultBox.className = 'result-box success';
           resultBox.innerHTML =
             '<h3>Thanks, Taylor! Your order is confirmed.</h3>' +
@@ -570,7 +573,7 @@
         }
         setCheckoutLocked(false);
         btn.style.display = 'block';
-        btn.disabled = CART.length === 0;
+        btn.disabled = CART.length === 0 || orderConfirmed;
       })
       .catch(function (err) {
         processing.classList.remove('visible');
@@ -581,7 +584,7 @@
           '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
         setCheckoutLocked(false);
         btn.style.display = 'block';
-        btn.disabled = CART.length === 0;
+        btn.disabled = CART.length === 0 || orderConfirmed;
       });
     }
 
