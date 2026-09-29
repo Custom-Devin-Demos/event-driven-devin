@@ -2669,6 +2669,23 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Reduction Plan & Marketplace',
     disclaimer: 'NOT ACTUALLY A WATERSHED SITE — internal demo only, not affiliated with, endorsed by, or a real Watershed product.',
   },
+  '2431a2c4': {
+    slug: '2431a2c4',
+    company: 'Northern Trust',
+    brandMark: 'N',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '2431a2c4.html', title: 'Transfers | Private Passport | Northern Trust' },
+    theme: {
+      '--accent': '#115740',
+      '--ink': '#111111',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#115740',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Northern Trust Private Passport Help Center',
+    disclaimer: 'NOT ACTUALLY A NORTHERN TRUST SITE — internal demo only, not affiliated with, endorsed by, or a real Northern Trust product.',
+  },
 };
 
 function getOncallSkin(slug) {
