@@ -140,7 +140,7 @@ async function checkout(data) {
   const startTime = Date.now();
   const requestId = uuidv4();
   const orderId = `N${Date.now().toString().slice(-6)}${requestId.replace(/-/g, '').slice(0, 6).toUpperCase()}`;
-  const items = Array.isArray(data.items) ? data.items.slice(0, 20) : [];
+  const items = Array.isArray(data.items) ? data.items : [];
   const zip = Object.hasOwn(DESTINATIONS, String(data.zip)) ? String(data.zip) : '94115';
   const destination = DESTINATIONS[zip];
 
@@ -155,6 +155,13 @@ async function checkout(data) {
       empty.code = 'EMPTY_BAG';
       empty.statusCode = 400;
       throw empty;
+    }
+    if (items.length > 20) {
+      const tooMany = new Error('Your Shopping Bag can hold up to 20 items.');
+      tooMany.name = 'ValidationError';
+      tooMany.code = 'BAG_LIMIT';
+      tooMany.statusCode = 400;
+      throw tooMany;
     }
 
     await new Promise((resolve) => setTimeout(resolve, 120 + Math.random() * 160));
