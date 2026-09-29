@@ -37,7 +37,7 @@
     .sub { color:var(--muted); font-size:13px; }
     .card { background:#fff; border:1px solid var(--line); border-radius:4px; }
     .fulfill { display:flex; gap:12px; padding:16px; }
-    .opt { flex:1; border:2px solid var(--line); border-radius:4px; padding:12px 14px; cursor:pointer; }
+    .opt { flex:1; border:2px solid var(--line); border-radius:4px; padding:12px 14px; cursor:pointer; background:#fff; color:inherit; font:inherit; text-align:left; }
     .opt.sel { border-color:var(--green); background:#f1f8f6; }
     .opt b { display:block; font-size:14px; }
     .opt small { color:var(--muted); font-size:12px; }
@@ -116,8 +116,8 @@
       <section>
         <div class="card">
           <div class="fulfill">
-            <div class="opt sel" data-f="ship"><b>Ship to Me</b><small>FREE shipping on orders $65+ · Arrives <span id="shipEta">in 3 days</span></small></div>
-            <div class="opt" data-f="pickup"><b>Free Store Pickup</b><small>Ready in 1 hour at Robinson Township</small></div>
+            <button type="button" class="opt sel" data-f="ship" aria-pressed="true"><b>Ship to Me</b><small>FREE shipping on orders $65+ · Arrives <span id="shipEta">in 3 days</span></small></button>
+            <button type="button" class="opt" data-f="pickup" aria-pressed="false"><b>Free Store Pickup</b><small>Ready in 1 hour at Robinson Township</small></button>
           </div>
           <div id="lines"></div>
         </div>
@@ -227,7 +227,7 @@
     o.addEventListener('click', function () {
       if (checkoutInFlight) return;
       fulfillment = o.dataset.f;
-      Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (x) { x.classList.toggle('sel', x === o); });
+      Array.prototype.forEach.call(document.querySelectorAll('.opt'), function (x) { x.classList.toggle('sel', x === o); x.setAttribute('aria-pressed', String(x === o)); });
       render();
     });
   });

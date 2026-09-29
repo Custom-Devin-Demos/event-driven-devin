@@ -47,6 +47,7 @@ const CATALOG = [
 const PA_CLOTHING_EXEMPT = ['apparel', 'footwear'];
 const NYC_TAX = { jurisdiction: 'NY — New York City', rate: 0.08875, exempt: ['apparel', 'footwear'], exemptBelow: 110 };
 const NYC_ZIP_PREFIXES = [100, 101, 102, 103, 104, 111, 112, 113, 114, 116];
+const NYC_ZIPS = ['11004', '11005'];
 const ALLEGHENY_TAX = { jurisdiction: 'PA — Allegheny County', rate: 0.07, exempt: PA_CLOTHING_EXEMPT };
 const PA_STATE_TAX = { jurisdiction: 'PA — statewide', rate: 0.06, exempt: PA_CLOTHING_EXEMPT };
 const DEFAULT_TAX = { jurisdiction: 'US — standard', rate: 0.06, exempt: [] };
@@ -154,7 +155,7 @@ function computeShipping(fulfillment, subtotal) {
 
 function taxJurisdiction(zipCode) {
   const prefix = Number(String(zipCode).slice(0, 3));
-  if (NYC_ZIP_PREFIXES.includes(prefix)) return NYC_TAX;
+  if (NYC_ZIP_PREFIXES.includes(prefix) || NYC_ZIPS.includes(String(zipCode))) return NYC_TAX;
   if (prefix === 152) return ALLEGHENY_TAX;
   return prefix >= 150 && prefix <= 196 ? PA_STATE_TAX : DEFAULT_TAX;
 }
