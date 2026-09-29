@@ -2691,6 +2691,7 @@ const ONCALL_SKINS = {
     company: 'QBE Insurance',
     brandMark: 'Q',
     vertical: 'insurance',
+    oncallOnly: true,
     page: { file: '8138f16b.html', title: 'c.change | Lodge a Claim' },
     theme: {
       '--accent': '#2e5ea8',
