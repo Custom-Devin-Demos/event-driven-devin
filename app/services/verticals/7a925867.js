@@ -4,7 +4,7 @@ const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
 const { Sentry } = require('../../telemetry/sentry');
 const { createSessionAndAlert } = require('../devin-session');
 
-const SLACK_MEMBER_ID = process.env.HEBBIA_SLACK_MEMBER_ID || 'U0BQZBHCNMA';
+const SLACK_MEMBER_ID = process.env.HEBBIA_SLACK_MEMBER_ID || 'U0B7F46NVA4';
 
 const SERVICE = 'customer-7a925867-matrix-run';
 const ROUTE = '/api/7a925867/matrix/columns/run';
