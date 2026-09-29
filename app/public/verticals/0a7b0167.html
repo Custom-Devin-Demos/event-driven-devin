@@ -81,6 +81,7 @@
     .find-head a { color: var(--accent); font-size: 14px; display: inline-flex; align-items: center; min-height: 44px; }
     .projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
     .project { display: flex; flex-direction: column; text-align: left; padding: 0; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); overflow: hidden; min-height: 44px; }
+    .project:disabled { cursor: default; opacity: .6; }
     .project:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
     .project[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
     .art { height: 92px; }
@@ -186,8 +187,8 @@
 
         <section class="stats" aria-label="Carbon removal summary">
           <div class="stat"><b>12,000 tCO<sub>2</sub>e</b><span>2030 removal target</span></div>
-          <div class="stat"><b>3,480 tCO<sub>2</sub>e</b><span>Contracted to date</span></div>
-          <div class="stat"><b>$1,420,000</b><span>Committed spend</span></div>
+          <div class="stat"><b>3,000 tCO<sub>2</sub>e</b><span>Contracted to date</span></div>
+          <div class="stat"><b>$1,320,000</b><span>Committed spend</span></div>
         </section>
 
         <div class="workspace">
@@ -313,12 +314,15 @@
     toAccount.addEventListener('change', renderSummary);
     amountInput.addEventListener('input', renderSummary);
     renderSummary();
+    function setBusy(busy) {
+      [button, toAccount, amountInput, document.getElementById('accountTier'), ...projectCards].forEach((el) => { el.disabled = busy; });
+    }
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const selected = selectedProject();
       const project = selected.text;
       const price = Number(selected.dataset.price);
-      button.disabled = true;
+      setBusy(true);
       button.textContent = 'Confirming purchase…';
       status.textContent = 'Submitting purchase to Marketplace…';
       result.className = 'result-box';
@@ -341,14 +345,14 @@
         if (!response.ok || !data.receipt) throw new Error('Purchase could not be confirmed.');
         const amount = Number(data.receipt.amount);
         result.className = 'result-box success';
-        result.textContent = `Purchase ${data.receipt.receiptId} confirmed: ${usd.format(amount)} for ${tonnes.format(amount / price)} tCO₂e of ${project}.`;
+        result.textContent = `Purchase ${data.receipt.receiptId} confirmed: ${usd.format(amount)} for ${tonnes.format(amount / price)} tCO₂e of ${project}. Total charged ${usd.format(Number(data.debitAmount))}, including a ${usd.format(Number(data.fee))} Marketplace fee.`;
         status.textContent = 'Purchase confirmed.';
       } catch (_error) {
         result.className = 'result-box notice';
         result.textContent = 'This purchase could not be confirmed. Try again, or contact Watershed Support.';
         status.textContent = 'Purchase not confirmed.';
       } finally {
-        button.disabled = false;
+        setBusy(false);
         button.textContent = 'Confirm purchase';
       }
     });
