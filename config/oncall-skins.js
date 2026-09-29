@@ -2668,6 +2668,30 @@ const ONCALL_SKINS = {
     supportCenter: 'Northern Trust Private Passport Help Center',
     disclaimer: 'NOT ACTUALLY A NORTHERN TRUST SITE — internal demo only, not affiliated with, endorsed by, or a real Northern Trust product.',
   },
+  'd945a314': {
+    slug: 'd945a314',
+    company: 'CoreWeave',
+    brandMark: 'C',
+    vertical: 'inference',
+    oncallOnly: true,
+    page: {
+      // Natively branded custom page: served instead of the vertical's stock
+      // page; the brand shim skips the title/logo rewrite for it.
+      file: 'd945a314.html',
+      title: 'Serverless Inference | CoreWeave Cloud',
+    },
+    theme: {
+      '--accent': '#0541E9',
+      '--ink': '#0A0A0A',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#0541E9',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'CoreWeave Support',
+    supportCenterSub: 'Cloud Support & Incident Intake',
+    disclaimer: 'NOT ACTUALLY A COREWEAVE SITE — internal demo only, not affiliated with, endorsed by, or a real CoreWeave product.',
+  },
 };
 
 function getOncallSkin(slug) {
