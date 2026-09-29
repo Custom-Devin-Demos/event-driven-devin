@@ -2673,6 +2673,7 @@ const ONCALL_SKINS = {
     company: 'CoreWeave',
     brandMark: 'C',
     vertical: 'inference',
+    oncallOnly: true,
     page: {
       // Natively branded custom page: served instead of the vertical's stock
       // page; the brand shim skips the title/logo rewrite for it.
