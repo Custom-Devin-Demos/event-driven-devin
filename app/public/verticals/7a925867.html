@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments &amp; FinTech Coverage — Matrix · Hebbia</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F5F5F4;
+      --pane: #FAFAFA;
+      --surface: #FFFFFF;
+      --ink: #111111;
+      --ink-2: #333333;
+      --muted: #6F6F6F;
+      --faint: #9B9B9B;
+      --line: #E6E6E4;
+      --line-2: #EFEFED;
+      --chip: #F3F3F2;
+      --blue: #3D5AFE;
+      --blue-2: #2F4BF0;
+      --blue-soft: #EDF0FF;
+      --purple: #7A6BE0;
+      --purple-soft: #F4F2FE;
+      --red: #C4321F;
+      --sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg); font-size: 13px; line-height: 18px; -webkit-font-smoothing: antialiased; overflow: hidden; }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    svg.i { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+    .app { display: grid; grid-template-columns: 56px 520px 1fr; height: 100vh; }
+
+    /* Icon rail */
+    .rail { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 0 14px; background: var(--pane); }
+    .rail .logo { width: 22px; height: 22px; margin-bottom: 14px; }
+    .rail .new { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; color: var(--ink-2); margin-bottom: 14px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+    .rail a { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; color: #7A7A7A; }
+    .rail a:hover { background: #EFEFEE; color: var(--ink); }
+    .rail a.on { background: #ECECEB; color: var(--ink); }
+    .rail svg.i { width: 18px; height: 18px; }
+    .rail .bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .me { width: 26px; height: 26px; border-radius: 50%; background: #2B2B2B; color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; }
+
+    /* Chat pane */
+    .chat { display: flex; flex-direction: column; min-height: 0; background: var(--pane); }
+    .chat header { height: 54px; display: flex; align-items: center; gap: 8px; padding: 0 24px; color: var(--ink-2); font-weight: 500; flex: none; }
+    .chat header .sep { color: var(--faint); }
+    .chat header .dots { color: var(--muted); margin-left: 6px; letter-spacing: 1px; }
+    .thread { flex: 1; overflow: auto; padding: 4px 24px 24px; min-height: 0; }
+    .msg-user { display: flex; justify-content: flex-end; margin: 10px 0 22px; }
+    .msg-user div { background: #EEEEED; border-radius: 12px; padding: 10px 14px; max-width: 300px; font-size: 13.5px; line-height: 20px; }
+    .msg-ai { margin: 0 0 20px; font-size: 13.5px; line-height: 21px; color: var(--ink-2); }
+    .msg-ai p { margin: 0 0 12px; }
+    .msg-ai ul { margin: 0 0 12px; padding-left: 20px; }
+    .msg-ai li { margin-bottom: 6px; }
+    .msg-ai b { color: var(--ink); font-weight: 600; }
+    .see-work { color: var(--muted); font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+    .ai-actions { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+    .ai-actions svg.i { width: 15px; height: 15px; }
+    .ai-actions .src { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+    .ai-actions .src span.dot { width: 14px; height: 14px; border-radius: 50%; background: #E04A2F; display: inline-block; }
+    .thinking { display: flex; flex-direction: column; gap: 14px; color: var(--muted); margin: 6px 0 20px; font-size: 13.5px; }
+    .ring { width: 38px; height: 38px; border-radius: 50%; background: repeating-conic-gradient(#222 0 3deg, transparent 3deg 12deg); -webkit-mask: radial-gradient(circle, transparent 11px, #000 12px, #000 18px, transparent 19px); mask: radial-gradient(circle, transparent 11px, #000 12px, #000 18px, transparent 19px); animation: spin 1.6s linear infinite; opacity: .85; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .err-line { color: var(--red); }
+    .suggest { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 24px 10px; }
+    .suggest button { border: 1px solid var(--line); background: #fff; border-radius: 999px; height: 30px; padding: 0 12px; color: var(--ink-2); font-weight: 500; font-size: 12.5px; }
+    .suggest button:hover { background: #F7F7F6; }
+    .composer { margin: 0 20px 18px; background: #fff; border: 1px solid var(--line); border-radius: 26px; display: flex; align-items: center; gap: 10px; padding: 7px 7px 7px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.04); flex: none; }
+    .composer .plus { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted); background: #fff; }
+    .composer input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; }
+    .composer input::placeholder { color: #A3A3A3; }
+    .send { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--blue); color: #fff; display: grid; place-items: center; }
+    .send[disabled] { background: #A9B5FF; cursor: default; }
+    .send svg.i { stroke-width: 2.2; }
+
+    /* Matrix card */
+    .stage { min-width: 0; min-height: 0; padding: 0 12px 12px 0; display: flex; flex-direction: column; }
+    .mx-title { height: 54px; display: flex; align-items: center; gap: 10px; padding: 0 16px; flex: none; font-weight: 600; }
+    .mx-title .mxi { width: 16px; height: 16px; }
+    .mx-title .dots { color: var(--muted); margin-left: 4px; letter-spacing: 1px; font-weight: 500; }
+    .avatars { margin-left: auto; display: flex; }
+    .avatars span { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--bg); margin-left: -7px; color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center; }
+    .card { flex: 1; min-height: 0; background: #fff; border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; overflow: clip; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,.03); }
+    .toolbar { height: 50px; display: flex; align-items: center; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--line); flex: none; }
+    .tb { height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; border: none; background: none; border-radius: 8px; color: var(--ink-2); font-weight: 500; }
+    .tb:hover { background: #F4F4F3; }
+    .tb svg.i { width: 15px; height: 15px; color: var(--muted); }
+    .tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .seg { display: flex; background: #F3F3F2; border-radius: 9px; padding: 2px; }
+    .seg button { width: 30px; height: 26px; border: none; background: none; border-radius: 7px; color: #A0A0A0; display: grid; place-items: center; }
+    .seg button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+    .seg svg.i { width: 15px; height: 15px; }
+    .pillbtn { height: 30px; padding: 0 14px; border: 1px solid var(--line); background: #fff; border-radius: 999px; font-weight: 500; }
+    .pillbtn:hover { background: #F7F7F6; }
+    .iconbtn { width: 30px; height: 30px; border: none; background: none; display: grid; place-items: center; color: var(--muted); border-radius: 8px; }
+
+    .grid-wrap { flex: 1; overflow: auto; min-height: 0; position: relative; }
+    table.mx { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+    .mx th, .mx td { border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); text-align: left; vertical-align: middle; }
+    .mx thead th { position: sticky; top: 0; z-index: 3; background: #fff; height: 42px; padding: 0 14px; font-weight: 500; color: var(--ink-2); border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .mx thead th .h { display: flex; align-items: center; gap: 8px; }
+    .mx thead th .h svg.i { width: 15px; height: 15px; color: var(--muted); }
+    .mx thead th.fresh { background: #FAFBFF; color: var(--blue-2); }
+    .mx thead th.fresh svg.i { color: var(--blue-2); }
+    .mx .num { width: 48px; min-width: 48px; text-align: center; color: var(--faint); font-size: 12px; font-variant-numeric: tabular-nums; position: sticky; left: 0; background: #fff; z-index: 2; padding: 0; }
+    .mx thead .num { z-index: 4; }
+    .cb { width: 15px; height: 15px; border: 1.5px solid #C9C9C7; border-radius: 4px; display: inline-grid; place-items: center; background: #fff; vertical-align: middle; }
+    .cb.on { background: var(--blue); border-color: var(--blue); }
+    .cb.on::after { content: ''; width: 7px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translate(1px, -1px); }
+    tr .num .cb { display: none; }
+    tr:hover .num .cb, tr.sel .num .cb, .mx.selecting .num .cb { display: inline-grid; }
+    tr:hover .num .n, tr.sel .num .n, .mx.selecting .num .n { display: none; }
+    .mx .co { position: sticky; left: 48px; z-index: 2; background: #fff; width: 232px; min-width: 232px; max-width: 232px; padding: 0 12px; }
+    .mx thead .co { z-index: 4; }
+    .mx td { height: 42px; padding: 0 14px; }
+    .mx.expanded td { height: 118px; vertical-align: top; padding-top: 12px; padding-bottom: 12px; }
+    .mx.expanded td.num { vertical-align: middle; }
+    .mx tbody tr:hover td { background: #FCFCFB; }
+    .mx tr.sel td { background: #F8F9FF; }
+    .entity { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px 0 4px; border: 1px solid var(--line); border-radius: 999px; background: #fff; max-width: 100%; box-shadow: 0 1px 1px rgba(0,0,0,.03); }
+    .entity .lg { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 10.5px; font-weight: 700; flex: none; }
+    .entity b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+    .entity small { color: var(--faint); font-size: 10.5px; font-weight: 500; }
+    .mx.expanded .entity { height: 34px; padding-right: 12px; }
+    .mx.expanded .entity .lg { width: 24px; height: 24px; }
+    .mx.expanded .entity b { font-size: 13.5px; }
+    .mx .docs { width: 262px; min-width: 262px; max-width: 262px; }
+    .docchips { display: flex; gap: 6px; align-items: center; }
+    .mx.expanded .docchips { flex-direction: column; align-items: stretch; }
+    .dchip { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 10px 0 6px; background: var(--chip); border-radius: 999px; min-width: 0; max-width: 200px; border: none; color: var(--ink-2); font-size: 12.5px; }
+    .dchip:hover { background: #EAEAE8; }
+    .mx.expanded .dchip { max-width: 100%; }
+    .dchip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pdf { width: 14px; height: 16px; border-radius: 2px; background: #E5484D; color: #fff; font-size: 5.5px; font-weight: 800; display: grid; place-items: end center; padding-bottom: 2px; flex: none; letter-spacing: .2px; }
+    .more { color: var(--muted); font-size: 12px; font-weight: 500; flex: none; }
+    .mx.expanded .more { display: none; }
+    .mx .tagc { width: 196px; min-width: 196px; max-width: 196px; }
+    .tag { display: inline-block; padding: 3px 7px; border-radius: 5px; font-weight: 600; font-size: 12.5px; line-height: 16px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+    .tag.blue { background: #EAF1FF; color: #2759C9; }
+    .tag.red { background: #FDEDEB; color: #C4321F; }
+    .tag.orange { background: #FDF0E4; color: #B85713; }
+    .tag.purple { background: #F3EEFD; color: #7445D6; }
+    .tag.gray { background: #F1F1F0; color: #555; }
+    .mx .txt { width: 300px; min-width: 300px; max-width: 300px; }
+    .clip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); }
+    .mx.expanded .clip { white-space: normal; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; line-height: 19px; }
+    .mx .adv { width: 320px; min-width: 320px; max-width: 320px; cursor: pointer; position: relative; }
+    .bul { display: flex; gap: 7px; align-items: baseline; min-width: 0; }
+    .bul .clip { flex: 0 1 auto; min-width: 0; }
+    .bul::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--ink-2); flex: none; transform: translateY(-3px); }
+    .bul b { font-weight: 600; color: var(--ink); }
+    .mx.expanded .adv .bul { margin-bottom: 6px; }
+    .mx:not(.expanded) .adv .bul + .bul { display: none; }
+    .plusn { color: var(--muted); font-size: 11.5px; font-weight: 600; margin-left: 4px; }
+    .mx.expanded .plusn { display: none; }
+    .none-found { color: var(--faint); font-style: italic; }
+    .mx td.adv.picked { box-shadow: inset 0 0 0 1.5px var(--purple); background: var(--purple-soft) !important; }
+    .mx td.adv.picked::after { content: 'You'; position: absolute; top: -9px; right: -1px; background: var(--purple); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px 3px 0 3px; line-height: 14px; }
+    .mx td.peer { position: relative; box-shadow: inset 0 0 0 1.5px var(--pc); }
+    .mx td.peer::after { content: attr(data-peer); position: absolute; top: -9px; right: -1px; background: var(--pc); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px 3px 0 3px; line-height: 14px; z-index: 1; }
+    .verified-ic { display: inline-block; width: 12px; height: 12px; margin-left: 6px; vertical-align: -1px; color: #1E8E5A; }
+    .mx td.filler, .mx th.filler { width: auto; border-right: none; }
+    .shim { height: 9px; border-radius: 4px; background: linear-gradient(90deg, #EEF1FF 0%, #DCE2FF 50%, #EEF1FF 100%); background-size: 200% 100%; animation: sh 1.2s linear infinite; width: 78%; }
+    .shim.s2 { width: 52%; margin-top: 7px; }
+    .mx:not(.expanded) .shim.s2 { display: none; }
+    @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .cell-fail { color: var(--red); display: flex; align-items: center; gap: 6px; font-size: 12.5px; }
+    .cell-fail svg.i { width: 14px; height: 14px; }
+    .reveal { animation: fadein .35s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+    .footer { height: 36px; flex: none; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 0 14px; color: var(--muted); font-size: 12px; }
+    .footer .proc { color: var(--blue-2); display: inline-flex; align-items: center; gap: 6px; }
+    .footer .proc .sp { width: 11px; height: 11px; border: 1.7px solid var(--blue-2); border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+    .footer .fail { color: var(--red); display: inline-flex; align-items: center; gap: 6px; }
+    .footer .ok { display: inline-flex; align-items: center; gap: 6px; }
+    .footer .ok::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #1E8E5A; }
+    .footer .clock { display: inline-flex; align-items: center; gap: 5px; }
+    .footer .clock svg.i { width: 13px; height: 13px; }
+    .footer .right { margin-left: auto; color: var(--faint); }
+
+    /* Popovers */
+    .menu { position: fixed; z-index: 30; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.12); padding: 6px; min-width: 220px; display: none; }
+    .menu.show { display: block; }
+    .menu button { display: flex; align-items: center; gap: 12px; width: 100%; border: none; background: none; padding: 9px 12px; border-radius: 8px; font-size: 14px; text-align: left; color: var(--ink); }
+    .menu button:hover { background: #F4F4F3; }
+    .menu button svg.i { width: 17px; height: 17px; color: #555; }
+    .menu hr { border: none; border-top: 1px solid var(--line-2); margin: 5px 4px; }
+    .colpop { position: absolute; top: 46px; left: 110px; z-index: 25; width: 400px; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 36px rgba(0,0,0,.14); display: none; }
+    .colpop.show { display: block; }
+    .colpop .hd { padding: 14px 16px 4px; font-weight: 600; font-size: 14px; }
+    .colpop .bd { padding: 8px 16px 4px; }
+    .colpop label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin: 8px 0 6px; }
+    .colpop input, .colpop textarea, .colpop select { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; outline: none; background: #fff; font-size: 13px; }
+    .colpop textarea { min-height: 70px; resize: vertical; line-height: 19px; }
+    .colpop input:focus, .colpop textarea:focus, .colpop select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+    .colpop .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .colpop .ft { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 16px; }
+    .btn { height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; font-weight: 500; }
+    .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .btn.primary:hover { background: #2A2A2A; }
+
+    /* Source drawer */
+    .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 440px; background: #fff; border-left: 1px solid var(--line); box-shadow: -10px 0 30px rgba(0,0,0,.07); transform: translateX(105%); visibility: hidden; transition: transform .22s ease, visibility 0s linear .22s; z-index: 20; display: flex; flex-direction: column; }
+    .drawer.show { transform: none; visibility: visible; transition: transform .22s ease; }
+    .drawer header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .drawer header b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer header .x { margin-left: auto; border: none; background: none; color: var(--muted); font-size: 20px; line-height: 1; padding: 2px 6px; }
+    .drawer .body { padding: 16px; overflow: auto; flex: 1; background: #F6F6F5; }
+    .drawer .meta { color: var(--muted); font-size: 12px; margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+    .paper { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 26px 28px; box-shadow: 0 1px 3px rgba(0,0,0,.05); font-family: 'Times New Roman', Georgia, serif; font-size: 13.5px; line-height: 21px; color: #2B2B2B; }
+    .paper .pg { font-family: var(--sans); font-size: 11px; color: var(--faint); display: flex; justify-content: space-between; margin-bottom: 14px; }
+    .paper .ghost { height: 8px; background: #EFEFED; border-radius: 3px; margin: 8px 0; }
+    .paper mark { background: #E3E8FF; box-shadow: 0 0 0 3px #E3E8FF; border-radius: 2px; color: #111; }
+    .drawer .srclist { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+    .drawer .srclist button { text-align: left; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 8px 10px; font-size: 12.5px; }
+    .drawer .srclist button.on { border-color: var(--blue); background: #FAFBFF; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: #1B1B1B; color: #fff; padding: 14px 16px; border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,.28); transform: translateY(calc(100% + 40px)); transition: transform .25s ease; z-index: 50; }
+    .toast.show { transform: none; }
+    .toast .t { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .toast .t::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #F05A44; }
+    .toast.good .t::before { background: #3CCB7F; }
+    .toast .d { color: #CFCFCF; font-size: 12.5px; word-break: break-word; }
+
+    @media (max-width: 1280px) { .app { grid-template-columns: 56px 420px 1fr; } }
+    @media (max-width: 980px) { .app { grid-template-columns: 1fr; } .rail, .chat { display: none; } .stage { padding: 0 8px 8px; } }
+  </style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="hb" viewBox="0 0 34 34"><rect x="0" y="0" width="5" height="4.5"/><rect x="0" y="6.5" width="5" height="4.5"/><rect x="0" y="13" width="5" height="21"/><rect x="7" y="0" width="7" height="4.5"/><rect x="7" y="6.5" width="7" height="4.5"/><rect x="7" y="13" width="7" height="21"/><rect x="16" y="0" width="18" height="11"/><rect x="16" y="13" width="18" height="21"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <nav class="rail" aria-label="Primary">
+    <svg class="logo" aria-label="Hebbia"><use href="#hb" fill="#111"/></svg>
+    <button class="new" title="New"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <a href="#" title="Automations"><svg class="i" viewBox="0 0 24 24"><path d="M13 3 5 14h6l-1 7 8-11h-6z"/></svg></a>
+    <a href="#" title="Agents"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><circle cx="8" cy="15" r="3.5"/><circle cx="16" cy="15" r="3.5"/></svg></a>
+    <a href="#" class="on" title="Matrix"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 10v10"/></svg></a>
+    <a href="#" title="Search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg></a>
+    <a href="#" title="Tools"><svg class="i" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8V20h3.2l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg></a>
+    <div class="bottom">
+      <a href="#" title="Help"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.5a2.3 2.3 0 0 1 4.4.8c0 1.6-2.2 2-2.2 3.2M12 16.6v.1"/></svg></a>
+      <div class="me" title="Jordan Ellis">JE</div>
+    </div>
+  </nav>
+
+  <section class="chat" aria-label="Hebbia Max">
+    <header>Project Keystone <span class="sep">›</span> FinTech Coverage <span class="dots">···</span></header>
+    <div class="thread" id="thread">
+      <div class="msg-user"><div>Which companies have both a divestiture in play and a Buy-Side / Consolidator profile?</div></div>
+      <div class="msg-ai">
+        <div class="see-work">See my work <svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m9 6 6 6-6 6"/></svg></div>
+        <p>Only one company in the matrix screens as both an active divestor and a consolidator: <b>Halcyon Remit.</b></p>
+        <ul>
+          <li><b>Divestiture in play:</b> exiting its legacy agent-location network; a definitive sale agreement was referenced on the Q2 call, pending regulatory approvals.</li>
+          <li><b>Consolidator profile:</b> the pending ~$500M BorderLink acquisition, currently delayed by a suspended state money-transmitter approval, plus a stated M&amp;A agenda in the S-4.</li>
+        </ul>
+        <p>Three other names show portfolio-action signals but screen as sell-side or special-committee situations rather than acquirers: Quarry Commerce, Brightwater Card and Wren Payments.</p>
+        <div class="ai-actions">
+          <svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V6a1 1 0 0 1 1-1h9"/></svg>
+          <svg class="i" viewBox="0 0 24 24"><path d="M7 11v9H4v-9zM7 11l4-7a2 2 0 0 1 2 2v4h5a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 16.8 20H7"/></svg>
+          <svg class="i" viewBox="0 0 24 24"><path d="M17 13V4h3v9zM17 13l-4 7a2 2 0 0 1-2-2v-4H6a2 2 0 0 1-2-2.3l1.2-6A2 2 0 0 1 7.2 4H17"/></svg>
+          <span>Export</span>
+          <span class="src"><span class="dot"></span>Sources</span>
+        </div>
+      </div>
+    </div>
+    <div class="suggest" id="suggest">
+      <button type="button" data-q="Add a column for who's already advising.">Add a column for who's already advising.</button>
+      <button type="button" data-q="Which of these have an activist on the register?">Which of these have an activist on the register?</button>
+    </div>
+    <form class="composer" id="composer" autocomplete="off">
+      <span class="plus"><svg class="i" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg></span>
+      <input id="ask" type="text" placeholder="Ask a follow-up" aria-label="Ask a follow-up">
+      <button class="send" id="send" type="submit" disabled aria-label="Send"><svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
+    </form>
+  </section>
+
+  <main class="stage">
+    <div class="mx-title">
+      <svg class="mxi" viewBox="0 0 16 16" fill="#3D5AFE"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      <span id="mx-name">Payments &amp; FinTech Coverage — Origination Signal Matrix</span>
+      <span class="dots">···</span>
+      <div class="avatars"><span style="background:#8C6B4F">MR</span><span style="background:#7F9A5A">C</span><span style="background:#8F8FD8">S</span></div>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <button class="tb" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add row</button>
+        <button class="tb" type="button" id="add-col"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M10 4v16M14.5 12h3M16 10.5v3"/></svg>Add column</button>
+        <div class="tb-right">
+          <button class="iconbtn" type="button" aria-label="Search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg></button>
+          <div class="seg" role="group" aria-label="Row height">
+            <button type="button" data-density="compact" class="on" title="Compact"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M4 14h16"/></svg></button>
+            <button type="button" data-density="expanded" title="Expanded"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16"/></svg></button>
+          </div>
+          <button class="pillbtn" type="button">Schedule</button>
+          <button class="pillbtn" type="button">Share</button>
+        </div>
+      </div>
+      <div class="colpop" id="colpop" role="dialog" aria-label="Add column">
+        <div class="hd">New column</div>
+        <div class="bd">
+          <label for="col-name">Column name</label>
+          <input id="col-name" type="text">
+          <label for="col-prompt">Question</label>
+          <textarea id="col-prompt"></textarea>
+          <div class="row2">
+            <div><label for="col-type">Format</label><select id="col-type"><option value="list">List</option><option value="text">Text</option><option value="tag">Single select</option></select></div>
+            <div><label for="col-scope">Run on</label><select id="col-scope"><option value="all">All rows</option><option value="selected">Selected rows</option></select></div>
+          </div>
+        </div>
+        <div class="ft"><button class="btn" type="button" id="col-cancel">Cancel</button><button class="btn primary" type="button" id="col-run">Add column</button></div>
+      </div>
+      <div class="grid-wrap" id="wrap">
+        <table class="mx" id="mx"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+      </div>
+      <div class="footer" id="footer"></div>
+      <aside class="drawer" id="drawer" aria-label="Sources">
+        <header><div class="pdf">PDF</div><b id="dr-title"></b><button class="x" id="dr-close" aria-label="Close">×</button></header>
+        <div class="body" id="dr-body"></div>
+        <div class="srclist" id="dr-list"></div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<div class="menu" id="menu" role="menu">
+  <button type="button" data-act="verify"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.2 2.3 2.3 4.7-4.8"/></svg>Verify content</button>
+  <button type="button" data-act="assign"><svg class="i" viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20a6.5 6.5 0 0 1 13 0M18 8v6M15 11h6"/></svg>Assign reviewer</button>
+  <button type="button" data-act="rerun"><svg class="i" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5"/></svg>Re-run</button>
+  <hr>
+  <button type="button" data-act="sources"><svg class="i" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>View sources</button>
+</div>
+<div class="toast" id="toast"><div class="t" id="toast-t"></div><div class="d" id="toast-d"></div></div>
+
+<script>
+(function () {
+  var ICONS = {
+    entity: '<svg class="i" viewBox="0 0 24 24"><path d="M4 20V6l7-3v17M11 9h9v11M7 8h1M7 12h1M7 16h1M14 13h3M14 16h3"/></svg>',
+    documents: '<svg class="i" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>',
+    tag: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m9 11 3 3 3-3"/></svg>',
+    text: '<svg class="i" viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h9"/></svg>',
+    list: '<svg class="i" viewBox="0 0 24 24"><path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01"/></svg>',
+    warn: '<svg class="i" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.1"/></svg>',
+    clock: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+    check: '<svg class="verified-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>'
+  };
+  var PEERS = { co_arp: { col: 'portfolioActions', name: 'Maya', color: '#7F9A5A' }, co_bwc: { col: 'scorecard', name: 'Sam', color: '#8F8FD8' } };
+
+  var state = { matrix: null, density: 'compact', selected: {}, extra: null, running: false, menuRow: null, verified: {} };
+  var el = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function toast(title, detail, good) {
+    var t = el('toast');
+    el('toast-t').textContent = title;
+    el('toast-d').textContent = detail || '';
+    t.classList.toggle('good', !!good);
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(function () { t.classList.remove('show'); }, good ? 4500 : 9000);
+  }
+
+  function selectedIds() { return Object.keys(state.selected).filter(function (k) { return state.selected[k]; }); }
+
+  function renderHead() {
+    var cols = state.matrix.columns;
+    var anySel = selectedIds().length > 0;
+    var h = '<tr><th class="num"><span class="cb' + (anySel ? ' on' : '') + '" id="cb-all"></span></th>';
+    cols.forEach(function (c) {
+      var cls = c.type === 'entity' ? 'co' : c.type === 'documents' ? 'docs' : c.type === 'tag' ? 'tagc' : 'txt';
+      h += '<th class="' + cls + '"><div class="h">' + ICONS[c.type] + esc(c.label) + '</div></th>';
+    });
+    if (state.extra) h += '<th class="adv fresh"><div class="h">' + ICONS.list + esc(state.extra.label) + '</div></th>';
+    h += '<th class="filler"></th></tr>';
+    el('thead').innerHTML = h;
+    el('cb-all').onclick = function () {
+      var all = !anySel;
+      state.selected = {};
+      if (all) state.matrix.rows.forEach(function (r) { state.selected[r.id] = true; });
+      render();
+    };
+  }
+
+  function docChip(d) {
+    return '<button type="button" class="dchip" data-doc="' + esc(d.id) + '" title="' + esc(d.title) + '"><span class="pdf">PDF</span><span>' + esc(d.title) + '</span></button>';
+  }
+
+  function advCell(row) {
+    var ex = state.extra;
+    var c = ex.cells[row.id];
+    var peer = '';
+    if (!c || c.status === 'pending') return '<td class="adv"><div class="shim"></div><div class="shim s2"></div></td>';
+    if (c.status === 'failed') return '<td class="adv"><div class="cell-fail">' + ICONS.warn + 'Couldn\u2019t complete</div></td>';
+    var picked = state.menuRow === row.id ? ' picked' : '';
+    if (!c.items.length) return '<td class="adv reveal' + picked + '" data-row="' + row.id + '"><span class="none-found">' + esc(c.empty) + '</span></td>';
+    var inner = c.items.map(function (it, i) {
+      return '<div class="bul"><span class="clip"><b>' + esc(it.label) + ':</b> ' + esc(it.detail) + '</span>' + (i === 0 && c.items.length > 1 ? '<span class="plusn">+' + (c.items.length - 1) + '</span>' : '') + (i === 0 && state.verified[row.id] ? ICONS.check : '') + '</div>';
+    }).join('');
+    return '<td class="adv' + (c.fresh ? ' reveal' : '') + picked + peer + '" data-row="' + row.id + '">' + inner + '</td>';
+  }
+
+  function renderBody() {
+    var rows = state.matrix.rows;
+    var h = '';
+    rows.forEach(function (r, i) {
+      var peer = PEERS[r.id];
+      var pc = function (col) { return peer && peer.col === col ? ' peer" data-peer="' + peer.name + '" style="--pc:' + peer.color : ''; };
+      h += '<tr data-id="' + r.id + '" class="' + (state.selected[r.id] ? 'sel' : '') + '">' +
+        '<td class="num"><span class="n">' + (i + 1) + '</span><span class="cb' + (state.selected[r.id] ? ' on' : '') + '" data-cb="' + r.id + '"></span></td>' +
+        '<td class="co"><span class="entity"><span class="lg" style="background:' + r.logo.bg + '">' + esc(r.logo.glyph) + '</span><b>' + esc(r.name) + '</b><small>' + esc(r.ticker) + '</small></span></td>' +
+        '<td class="docs"><div class="docchips">' + r.documents.map(docChip).join('').replace(/(<\/button>)(<button[\s\S]*)$/, function (m, a, rest) { return a + '<span class="rest">' + rest + '</span>'; }) + '<span class="more">+' + (r.documents.length - 1) + '</span></div></td>' +
+        '<td class="tagc"><span class="tag ' + r.subSector.tone + '">' + esc(r.subSector.label) + '</span></td>' +
+        '<td class="txt' + pc('portfolioActions') + '"><div class="clip">' + esc(r.portfolioActions) + '</div></td>' +
+        '<td class="tagc' + pc('scorecard') + '"><span class="tag ' + r.scorecard.tone + '">' + esc(r.scorecard.label) + '</span></td>' +
+        (state.extra ? advCell(r) : '') +
+        '<td class="filler"></td></tr>';
+    });
+    el('tbody').innerHTML = h;
+    el('mx').classList.toggle('expanded', state.density === 'expanded');
+    el('mx').classList.toggle('selecting', selectedIds().length > 0);
+    document.querySelectorAll('.mx:not(.expanded) .docchips .rest').forEach(function (n) { n.style.display = 'none'; });
+    document.querySelectorAll('.mx.expanded .docchips .rest').forEach(function (n) { n.style.display = 'contents'; });
+  }
+
+  function renderFooter() {
+    var f = el('footer');
+    var n = state.matrix.rows.length;
+    var ex = state.extra;
+    var right = '<span class="right">' + n + ' rows · ' + (state.matrix.columns.length + (ex ? 1 : 0)) + ' columns</span>';
+    if (ex && ex.phase === 'running') {
+      f.innerHTML = '<span class="proc"><span class="sp"></span>' + ex.pending + ' of ' + ex.total + ' rows processing</span><span class="clock">' + ICONS.clock + ex.eta + 's remaining</span>' + right;
+    } else if (ex && ex.phase === 'failed') {
+      f.innerHTML = '<span class="fail">' + ICONS.warn + 'Column run failed · ' + esc(ex.runId || '') + '</span>' + right;
+    } else {
+      f.innerHTML = '<span class="ok">All rows up to date</span>' + right;
+    }
+  }
+
+  function render() { renderHead(); renderBody(); renderFooter(); }
+
+  /* Chat */
+  function addUser(text) {
+    var d = document.createElement('div');
+    d.className = 'msg-user';
+    d.innerHTML = '<div>' + esc(text) + '</div>';
+    el('thread').appendChild(d);
+    scrollThread();
+  }
+  function addAi(html) {
+    var d = document.createElement('div');
+    d.className = 'msg-ai';
+    d.innerHTML = html;
+    el('thread').appendChild(d);
+    scrollThread();
+    return d;
+  }
+  function addThinking() {
+    var d = document.createElement('div');
+    d.className = 'thinking';
+    d.innerHTML = '<span>Thinking</span><div class="ring"></div>';
+    el('thread').appendChild(d);
+    scrollThread();
+    return d;
+  }
+  function scrollThread() { var t = el('thread'); t.scrollTop = t.scrollHeight; }
+
+  function ask(text) {
+    if (state.running) return;
+    addUser(text);
+    el('ask').value = '';
+    el('send').disabled = true;
+    el('suggest').style.display = 'none';
+    var think = addThinking();
+    var wantsAdvisors = /advis|banker|bank/i.test(text);
+    setTimeout(function () {
+      think.remove();
+      if (!wantsAdvisors) {
+        addAi('<p>None of the indexed filings for these 12 companies disclose a 13D filer other than <b>Crestline Capital</b> at Parallax Processing (SC 13D, May 21, 2026).</p>');
+        return;
+      }
+      var col = state.matrix.suggestedColumn;
+      addAi('<div class="see-work">See my work <svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px"><path d="m9 6 6 6-6 6"/></svg></div>' +
+        '<p>Adding an <b>' + esc(col.label) + '</b> column across all ' + state.matrix.rows.length + ' companies. I\u2019ll pull advisor and counsel mentions from each company\u2019s 8-Ks, proxies and deal filings, and cite the passage for every name.</p>');
+      runColumn({ label: col.label, prompt: col.prompt, type: col.type }, [], 'chat');
+    }, 1300);
+  }
+
+  /* Column run */
+  function runColumn(column, rowIds, origin) {
+    var rows = rowIds.length ? state.matrix.rows.filter(function (r) { return rowIds.indexOf(r.id) !== -1; }) : state.matrix.rows;
+    state.running = true;
+    state.menuRow = null;
+    state.extra = { label: column.label, cells: {}, phase: 'running', total: rows.length, pending: rows.length, eta: 24, runId: null };
+    rows.forEach(function (r) { state.extra.cells[r.id] = { status: 'pending' }; });
+    state.matrix.rows.forEach(function (r) { if (!state.extra.cells[r.id]) state.extra.cells[r.id] = { status: 'done', items: [], empty: 'Not run' }; });
+    render();
+    var wrap = el('wrap');
+    wrap.scrollTo({ left: wrap.scrollWidth, behavior: 'smooth' });
+    var tick = setInterval(function () {
+      if (state.extra.phase !== 'running') return clearInterval(tick);
+      state.extra.eta = Math.max(3, state.extra.eta - 1);
+      renderFooter();
+    }, 1000);
+
+    fetch('/api/7a925867/matrix/columns/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        matrixId: state.matrix.id,
+        column: column,
+        rowIds: rowIds,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org-28d150729ae44170b6218c52d4f561bc',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (r) {
+        clearInterval(tick);
+        if (!r.ok || !r.body.success) return fail(r.body, rows, origin);
+        succeed(r.body, rows, origin);
+      })
+      .catch(function (err) {
+        clearInterval(tick);
+        fail({ error: err.message, errorClass: 'NetworkError' }, rows, origin);
+      });
+  }
+
+  function succeed(body, rows, origin) {
+    var byRow = {};
+    body.cells.forEach(function (c) { byRow[c.rowId] = c; });
+    var i = 0;
+    (function next() {
+      if (i >= rows.length) {
+        state.extra.phase = 'done';
+        state.running = false;
+        renderFooter();
+        var counts = {};
+        var covered = 0;
+        body.cells.forEach(function (c) {
+          if (c.items.length) covered++;
+          c.items.forEach(function (it) { counts[it.label] = (counts[it.label] || 0) + 1; });
+        });
+        var top = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+        if (origin === 'chat') {
+          addAi('<p>Done. <b>' + covered + ' of ' + rows.length + '</b> companies have an advisor on record in their filings' +
+            (top && counts[top] > 1 ? '; <b>' + esc(top) + '</b> appears ' + counts[top] + ' times' : '') +
+            '. Every name is cited to the filing \u2014 click a cell to verify or open the source.</p>');
+        }
+        toast('Column complete', body.summary.citations + ' citations across ' + body.summary.rows + ' rows', true);
+        return;
+      }
+      var r = rows[i++];
+      var c = byRow[r.id];
+      state.extra.cells[r.id] = { status: 'done', items: c.items, empty: c.empty, fresh: true };
+      state.extra.pending = rows.length - i;
+      state.extra.eta = Math.max(1, Math.round(state.extra.pending * 0.4));
+      renderBody();
+      renderFooter();
+      setTimeout(next, 140);
+    })();
+  }
+
+  function fail(body, rows, origin) {
+    state.running = false;
+    state.extra.phase = 'failed';
+    state.extra.runId = body.requestId;
+    if (body.errorClass === 'ValidationError') {
+      state.extra = null;
+      render();
+      toast('Can\u2019t add column', body.error);
+      return;
+    }
+    rows.forEach(function (r) { state.extra.cells[r.id] = { status: 'failed' }; });
+    render();
+    if (origin === 'chat') {
+      addAi('<p class="err-line">I couldn\u2019t finish the <b>' + esc(state.extra.label) + '</b> column \u2014 the run stopped before any rows were written. Existing columns weren\u2019t changed.</p>');
+    }
+    toast('Column run failed', (body.errorClass || 'Error') + ': ' + (body.error || 'Unknown error') + (body.requestId ? ' \u00b7 ' + body.requestId : ''));
+  }
+
+  /* Cell menu + sources */
+  function openMenu(td) {
+    var id = td.getAttribute('data-row');
+    state.menuRow = id;
+    renderBody();
+    var fresh = document.querySelector('td.adv[data-row="' + id + '"]');
+    var rect = fresh.getBoundingClientRect();
+    var m = el('menu');
+    m.classList.add('show');
+    var left = Math.min(rect.left, window.innerWidth - 240);
+    var top = rect.bottom + 6;
+    if (top + 200 > window.innerHeight) top = rect.top - 200;
+    m.style.left = left + 'px';
+    m.style.top = top + 'px';
+  }
+  function closeMenu() { el('menu').classList.remove('show'); if (state.menuRow) { state.menuRow = null; renderBody(); } }
+
+  function openSources(rowId, idx) {
+    var cell = state.extra.cells[rowId];
+    var row = state.matrix.rows.filter(function (r) { return r.id === rowId; })[0];
+    var item = cell.items[idx || 0];
+    var c = item.citation;
+    el('dr-title').textContent = c.docTitle;
+    var q = esc(c.quote);
+    el('dr-body').innerHTML = '<div class="meta"><span class="tag gray">' + esc(row.name) + '</span>Page ' + c.page + ' · ' + esc(c.section) + '</div>' +
+      '<div class="paper"><div class="pg"><span>' + esc(row.name.toUpperCase()) + '</span><span>' + c.page + '</span></div>' +
+      '<div class="ghost" style="width:92%"></div><div class="ghost" style="width:86%"></div><div class="ghost" style="width:64%"></div>' +
+      '<p style="margin:14px 0 6px;font-weight:bold">' + esc(c.section) + '</p><p style="margin:0 0 12px"><mark>' + q + '</mark></p>' +
+      '<div class="ghost" style="width:95%"></div><div class="ghost" style="width:90%"></div><div class="ghost" style="width:72%"></div><div class="ghost" style="width:88%"></div></div>';
+    el('dr-list').innerHTML = cell.items.map(function (it, i) {
+      return '<button type="button" data-i="' + i + '" class="' + (i === (idx || 0) ? 'on' : '') + '"><b>' + esc(it.label) + '</b> · ' + esc(it.citation.docTitle) + ', p. ' + it.citation.page + '</button>';
+    }).join('');
+    el('dr-list').querySelectorAll('button').forEach(function (b) { b.onclick = function () { openSources(rowId, Number(b.getAttribute('data-i'))); }; });
+    el('drawer').classList.add('show');
+  }
+
+  function openDocument(docId) {
+    var row = state.matrix.rows.filter(function (r) { return r.documents.some(function (d) { return d.id === docId; }); })[0];
+    var d = row.documents.filter(function (x) { return x.id === docId; })[0];
+    el('dr-title').textContent = d.title;
+    el('dr-body').innerHTML = '<div class="meta"><span class="tag gray">' + esc(d.type) + '</span>Filed ' + esc(d.filed) + (d.ingest === 'ocr' ? ' · Scanned (OCR)' : '') + '</div>' +
+      '<div class="paper"><div class="pg"><span>' + esc(row.name.toUpperCase()) + '</span><span>1</span></div>' +
+      '<p style="margin:0 0 12px;font-weight:bold;text-align:center">' + esc(d.type) + '</p>' +
+      ['96%', '90%', '94%', '70%', '92%', '88%', '60%', '95%', '82%'].map(function (w) { return '<div class="ghost" style="width:' + w + '"></div>'; }).join('') + '</div>';
+    el('dr-list').innerHTML = '';
+    el('drawer').classList.add('show');
+  }
+
+  /* Wiring */
+  el('ask').addEventListener('input', function () { el('send').disabled = !el('ask').value.trim() || state.running; });
+  el('composer').addEventListener('submit', function (e) { e.preventDefault(); var v = el('ask').value.trim(); if (v) ask(v); });
+  el('suggest').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-q]');
+    if (!b) return;
+    el('ask').value = b.getAttribute('data-q');
+    el('send').disabled = false;
+    el('ask').focus();
+  });
+
+  document.querySelectorAll('.seg button').forEach(function (b) {
+    b.onclick = function () {
+      state.density = b.getAttribute('data-density');
+      document.querySelectorAll('.seg button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      renderBody();
+    };
+  });
+
+  el('add-col').onclick = function () {
+    var p = el('colpop');
+    if (p.classList.contains('show')) { p.classList.remove('show'); return; }
+    var col = state.matrix.suggestedColumn;
+    el('col-name').value = col.label;
+    el('col-prompt').value = col.prompt;
+    el('col-type').value = col.type;
+    el('col-scope').value = selectedIds().length ? 'selected' : 'all';
+    el('col-scope').options[1].textContent = 'Selected rows (' + selectedIds().length + ')';
+    el('col-scope').options[1].disabled = !selectedIds().length;
+    p.classList.add('show');
+    el('col-name').focus();
+  };
+  el('col-cancel').onclick = function () { el('colpop').classList.remove('show'); };
+  el('col-run').onclick = function () {
+    if (state.running) return;
+    var column = { label: el('col-name').value, prompt: el('col-prompt').value, type: el('col-type').value };
+    var ids = el('col-scope').value === 'selected' ? selectedIds() : [];
+    el('colpop').classList.remove('show');
+    runColumn(column, ids, 'toolbar');
+  };
+
+  el('tbody').addEventListener('click', function (e) {
+    var cb = e.target.closest('[data-cb]');
+    if (cb) { var id = cb.getAttribute('data-cb'); state.selected[id] = !state.selected[id]; render(); return; }
+    var dc = e.target.closest('[data-doc]');
+    if (dc) { openDocument(dc.getAttribute('data-doc')); return; }
+    var td = e.target.closest('td.adv[data-row]');
+    if (td) { e.stopPropagation(); openMenu(td); }
+  });
+  el('menu').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    if (!b) return;
+    var rowId = state.menuRow;
+    var act = b.getAttribute('data-act');
+    el('menu').classList.remove('show');
+    if (act === 'sources') openSources(rowId, 0);
+    if (act === 'verify') { state.verified[rowId] = true; toast('Marked as verified', 'Cell verified by Jordan Ellis', true); }
+    if (act === 'assign') toast('Reviewer assigned', 'Maya Rao will review this cell', true);
+    if (act === 'rerun') runColumn({ label: state.extra.label, prompt: state.matrix.suggestedColumn.prompt, type: 'list' }, [rowId], 'cell');
+    state.menuRow = null;
+    renderBody();
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#menu') && !e.target.closest('td.adv')) closeMenu();
+    if (!e.target.closest('#colpop') && !e.target.closest('#add-col')) el('colpop').classList.remove('show');
+  });
+  el('dr-close').onclick = function () { el('drawer').classList.remove('show'); };
+
+  fetch('/api/7a925867/matrix')
+    .then(function (r) { return r.json(); })
+    .then(function (m) { state.matrix = m; render(); })
+    .catch(function () { toast('Couldn\u2019t load matrix', 'Refresh to try again.'); });
+})();
+</script>
+</body>
+</html>
