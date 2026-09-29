@@ -94,6 +94,7 @@ describe('Interactive Brokers order preview', () => {
     expect(result.venueQuotes.map((quote) => quote.venue)).toEqual(SMART_VENUES);
     expect(result.bestVenue).toBe(expectedVenue);
     expect(result.nbbo).toEqual({ bid: bestBid, ask: bestAsk });
+    expect(result.nbbo.bid).toBeLessThan(result.nbbo.ask);
     expect(result.estimatedPrice).toBe(bestAsk);
     expect(result.commissionUsd).toBe(1);
     expect(result.estimatedTotalUsd).toBe(Math.round((100 * bestAsk + 1) * 100) / 100);

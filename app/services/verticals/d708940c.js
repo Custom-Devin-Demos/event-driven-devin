@@ -84,13 +84,13 @@ async function quoteVenue(symbol, venue) {
 
   const hash = hashVenueQuote(`${symbol}:${venue}`);
   const basePrice = SYMBOLS[symbol].basePrice;
-  const bid = roundToCents(basePrice + (hash % 2) / 100);
-  const spread = ((hash >>> 3) % 3) + 1;
+  const bid = roundToCents(basePrice - (hash % 3) / 100);
+  const ask = roundToCents(basePrice + 0.01 + ((hash >>> 3) % 3) / 100);
 
   return {
     venue,
     bid,
-    ask: roundToCents(bid + spread / 100),
+    ask,
     bidSize: ((hash >>> 6) % 20 + 1) * 100,
     askSize: ((hash >>> 11) % 20 + 1) * 100,
   };
