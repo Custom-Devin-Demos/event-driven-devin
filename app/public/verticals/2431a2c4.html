@@ -185,8 +185,16 @@
       summaryAmount.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
       summaryDate.textContent = dateFmt.format(new Date());
     }
-    fromAccount.addEventListener('change', renderSummary);
-    toAccount.addEventListener('change', renderSummary);
+    function onAccountChange() {
+      if (result.classList.contains('notice') && fromAccount.value !== toAccount.value) {
+        result.className = 'result-box';
+        result.textContent = '';
+        status.textContent = idleStatus;
+      }
+      renderSummary();
+    }
+    fromAccount.addEventListener('change', onAccountChange);
+    toAccount.addEventListener('change', onAccountChange);
     amountInput.addEventListener('input', renderSummary);
     form.addEventListener('reset', () => {
       result.className = 'result-box';
