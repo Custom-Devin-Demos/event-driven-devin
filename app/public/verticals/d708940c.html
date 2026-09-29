@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Brokers LLC | Lower Costs. Better Returns.</title>
+  <link rel="icon" href="https://www.interactivebrokers.com/images/web/favicons/home-screen-icon-128x128.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ib-red: #d91222; --ib-red-dark: #a61729; --ib-blue: #1257bf; --ib-sky: #317ef2; --bg: #15181e; --card: #1b2230; --card-2: #202838; --line: rgba(252,252,252,.12); --text: #fcfcfc; --muted: rgba(252,252,252,.72); --ink: #454545; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Proxima Nova", Figtree, Arial, Verdana, sans-serif; font-size: 16px; line-height: 22px; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; }
+    .container { max-width: 1320px; margin: 0 auto; padding: 0 24px; }
+    .center { text-align: center; }
+
+    .bandaid { background: var(--ib-blue); color: #fff; font-size: 14px; font-weight: 600; }
+    .bandaid .container { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; height: 36px; }
+    .bandaid .pill { border: 1px solid #fff; padding: 2px 10px; font-size: 13px; font-weight: 600; }
+    .bandaid .disc { position: absolute; right: 24px; font-size: 12px; text-decoration: underline; }
+
+    header { background: #fff; color: #000; }
+    header .container { max-width: none; padding: 0 40px; display: flex; justify-content: space-between; align-items: flex-start; height: 112px; }
+    .brand { padding-top: 26px; }
+    .brand img { height: 34px; display: block; }
+    .brand-text { display: none; font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .brand-text span { color: var(--ib-red); }
+    .head-right { display: flex; flex-direction: column; align-items: flex-end; }
+    .head-actions { display: flex; align-items: center; gap: 8px; padding-top: 22px; }
+    .head-actions svg { margin-right: 18px; }
+    .btn-outline-red { border: 1px solid var(--ib-red); color: var(--ib-red); padding: 8px 16px; line-height: 18px; }
+    .btn-red { background: var(--ib-red); color: #fff; padding: 8px 16px; line-height: 18px; border: 1px solid var(--ib-red); }
+    .btn-red:hover { background: var(--ib-red-dark); }
+    nav.main { display: flex; gap: 0; margin-top: 14px; }
+    nav.main a { padding: 0 15px 12px; font-size: 16px; line-height: 18px; display: flex; align-items: center; gap: 6px; }
+    nav.main a::after { content: ""; width: 6px; height: 6px; border-right: 1.5px solid #000; border-bottom: 1.5px solid #000; transform: rotate(45deg) translateY(-3px); }
+    nav.main .lang { border: 1.5px solid #000; border-radius: 4px; padding: 0 8px; height: 18px; font-size: 11px; margin-left: 12px; }
+    nav.main .lang::after { display: none; }
+
+    .hero { position: relative; padding-top: 64px; overflow: hidden; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 10px; border: 1px solid rgba(252,252,252,.3); background: rgba(252,252,252,.05); border-radius: 100px; padding: 9px 24px; font-size: 14px; line-height: 18px; }
+    .hero-badge .new { background: var(--ib-red); border-radius: 100px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .hero h1 { font-size: 56px; line-height: 61.6px; font-weight: 600; margin-top: 24px; }
+    .hero .sub { font-size: 24px; line-height: 36px; margin: 24px auto 0; max-width: 900px; }
+    .hero .sub strong { font-weight: 600; }
+    .btn-primary { display: inline-block; background: var(--ib-red); color: #fff; padding: 10px 48px; font-size: 16px; line-height: 22px; border: 0; font-family: inherit; cursor: pointer; }
+    .btn-primary:hover { background: var(--ib-red-dark); }
+    .hero .cta { margin-top: 24px; }
+    .hero .disc-link { margin-top: 24px; font-size: 14px; opacity: .75; }
+    .hero-art { position: relative; margin-top: 16px; height: 440px; }
+    .hero-art .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    .hero-art .fg { position: relative; display: block; margin: 0 auto; height: 100%; width: auto; padding: 24px 0 32px; filter: drop-shadow(0 24px 40px rgba(0,0,0,.6)); }
+
+    .awards { padding: 32px 0 60px; }
+    .awards h3 { font-size: 28px; line-height: 36px; font-weight: 600; }
+    .award-row { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 24px; }
+    .award-row img { height: 34px; margin-bottom: 16px; opacity: .72; }
+    .award-row p { font-size: 18px; line-height: 26px; }
+    .chev { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 16px; line-height: 24px; }
+    .chev::after { content: ""; width: 16px; height: 16px; border-radius: 50%; background: #fcfcfc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 4.5L10 8l-3.5 3.5' stroke='%2315181e' stroke-width='2' fill='none'/%3E%3C/svg%3E") center/16px no-repeat; }
+    .awards .links { margin-top: 36px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; line-height: 22px; font-weight: 600; }
+    .eyebrow img { width: 22px; height: 22px; }
+    .sec-h { font-size: 48px; line-height: 52.8px; font-weight: 600; margin-top: 20px; }
+    .sec-sub { font-size: 22px; line-height: 33px; margin-top: 16px; }
+    section.pad { padding: 72px 0; }
+
+    .markets { position: relative; padding: 40px 0 300px; overflow: hidden; }
+    .markets .bgimg { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; min-width: 1400px; height: auto; z-index: 0; }
+    .markets .container { position: relative; z-index: 1; }
+    .mkt-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 32px; max-width: 700px; margin: 26px auto 0; font-size: 28px; line-height: 36px; }
+    .markets .chev { margin-top: 28px; }
+
+    .ticket { padding: 64px 0 80px; background: linear-gradient(180deg, var(--bg) 0%, #181d27 100%); }
+    .ticket-card { max-width: 1000px; margin: 36px auto 0; background: var(--card); text-align: left; }
+    .ticket-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--line); }
+    .ticket-head .t { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .ticket-head .live { font-size: 12px; font-weight: 600; background: rgba(49,126,242,.18); color: #8db6f7; padding: 3px 10px; border-radius: 100px; }
+    .ticket-head .acct { font-size: 13px; color: var(--muted); }
+    form#order-form { display: grid; grid-template-columns: 1.3fr 1fr .9fr .9fr .9fr 1.5fr; gap: 16px; padding: 22px 24px 8px; }
+    .fld label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    .fld select, .fld input { width: 100%; height: 42px; background: #10141b; border: 1px solid rgba(252,252,252,.18); color: var(--text); font: inherit; font-size: 15px; padding: 0 12px; outline: none; border-radius: 0; }
+    .fld select { appearance: none; background: #10141b url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23fcfcfc' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center; padding-right: 32px; }
+    .fld select:focus, .fld input:focus { border-color: var(--ib-sky); }
+    .fld input:disabled { opacity: .45; }
+    .side-toggle { display: flex; height: 42px; }
+    .side-toggle label { flex: 1; margin: 0; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(252,252,252,.18); cursor: pointer; font-size: 14px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text); }
+    .side-toggle input { display: none; }
+    .side-toggle input:checked + span { display: contents; }
+    .side-toggle label.buy.on { background: #1a64d6; border-color: #1a64d6; }
+    .side-toggle label.sell.on { background: var(--ib-red); border-color: var(--ib-red); }
+    .ticket-foot { display: flex; justify-content: space-between; align-items: center; padding: 14px 24px 22px; gap: 20px; }
+    .ticket-foot .note { font-size: 13px; color: var(--muted); max-width: 600px; }
+    #preview-button { min-width: 200px; }
+    #preview-button:disabled { opacity: .7; cursor: progress; }
+    .success { display: none; margin: 0 24px 20px; background: rgba(20,164,77,.14); border-left: 4px solid #14a44d; padding: 12px 16px; font-size: 14px; color: #c9f1d6; }
+    .success.show { display: block; }
+    .loading { display: none; padding: 26px 24px 30px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; align-items: center; gap: 14px; }
+    .loading.show { display: flex; }
+    .spinner { width: 22px; height: 22px; border: 3px solid rgba(252,252,252,.2); border-top-color: var(--ib-red); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .results { display: none; border-top: 1px solid var(--line); }
+    .results.show { display: block; }
+    .summary { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid var(--line); }
+    .summary div { padding: 18px 24px; border-right: 1px solid var(--line); }
+    .summary div:last-child { border-right: 0; }
+    .summary small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 6px; }
+    .summary b { font-size: 22px; font-weight: 400; }
+    table.venues { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.venues th { text-align: right; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 10px 24px; background: var(--card-2); }
+    table.venues td { text-align: right; padding: 8px 24px; border-top: 1px solid rgba(252,252,252,.06); font-variant-numeric: tabular-nums; }
+    table.venues th:first-child, table.venues td:first-child { text-align: left; }
+    table.venues tr.best td { background: rgba(49,126,242,.14); }
+    table.venues .bid { color: #4fd18b; } table.venues .ask { color: #ff6b6b; }
+    .tag-best { font-size: 11px; font-weight: 700; background: var(--ib-sky); color: #fff; padding: 1px 6px; margin-left: 8px; }
+    .timing { padding: 12px 24px 18px; font-size: 13px; color: var(--muted); }
+
+    .money-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 700px; margin: 40px auto 0; }
+    .money-cards .c { background: var(--card); padding: 44px 24px 40px; }
+    .money-cards .ph { font-size: 26px; line-height: 26px; }
+    .money-cards .rate { font-size: 52px; line-height: 64px; font-weight: 600; }
+    .money-cards .rate small { font-size: 28px; font-weight: 600; margin-right: 8px; }
+    .money-cards .pd { font-size: 18px; line-height: 24px; margin: 6px auto 24px; max-width: 220px; }
+    .pricing-h { font-size: 28px; line-height: 36px; font-weight: 600; margin-top: 44px; }
+    .pricing { max-width: 700px; margin: 28px auto 0; background: var(--card); padding: 34px 40px 36px; }
+    .pricing .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; text-align: left; }
+    .pricing .pill { display: block; width: fit-content; margin: 0 auto 16px; background: rgba(252,252,252,.08); border-radius: 100px; padding: 3px 12px; font-size: 13px; font-weight: 600; }
+    .pricing h4 { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 14px; }
+    .pricing h4 .lite { color: var(--ib-sky); } .pricing h4 .pro { color: #ff4d5a; }
+    .pricing ul { list-style: none; }
+    .pricing li { padding-left: 26px; position: relative; margin: 10px 0; font-size: 16px; line-height: 22px; }
+    .pricing li::before { content: ""; position: absolute; left: 2px; top: 3px; width: 6px; height: 12px; border-right: 2px solid var(--ib-red); border-bottom: 2px solid var(--ib-red); transform: rotate(40deg); }
+    .pricing li b { font-weight: 600; }
+    .pricing .chev { margin-top: 26px; }
+
+    .tools .links { display: flex; justify-content: center; gap: 24px; margin-top: 16px; }
+    .tools img.devices { display: block; margin: 36px auto 0; max-width: 1000px; width: 100%; }
+
+    .quote { max-width: 800px; margin: 0 auto; background: var(--card); padding: 36px 48px 40px; }
+    .quote .mark { font-size: 64px; line-height: 40px; font-weight: 700; }
+    .quote h2 { font-size: 28px; line-height: 36px; font-weight: 300; font-style: italic; margin-top: 12px; }
+    .quote p { margin-top: 12px; font-size: 16px; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 44px 20px; max-width: 1100px; margin: 40px auto 0; }
+    .stats p { font-size: 16px; line-height: 22px; }
+    .stats h3 { font-size: 40px; line-height: 48px; font-weight: 300; }
+    .glance { display: inline-block; margin-top: 16px; background: rgba(252,252,252,.08); border-radius: 100px; padding: 4px 12px; font-size: 13px; font-weight: 600; }
+
+    .join { position: relative; padding: 80px 0 90px; overflow: hidden; }
+    .join .bgimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; }
+    .join .container { position: relative; }
+    .join .acct-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 32px; margin-top: 16px; }
+    .join h3 { font-size: 22px; font-weight: 600; margin-top: 56px; }
+
+    .disclosures { background: #1b1f27; padding: 36px 0 40px; font-size: 14px; line-height: 20px; color: var(--muted); }
+    .disclosures .container { max-width: 1140px; }
+    .disclosures b { color: #fff; display: block; margin-bottom: 12px; }
+    .disclosures ol { padding-left: 28px; } .disclosures li { margin: 8px 0; }
+
+    footer { background: #eff0f0; color: var(--ink); padding: 50px 0 60px; font-size: 14px; line-height: 20px; }
+    footer .container { max-width: none; padding: 0 32px; }
+    footer .legal p { margin-bottom: 12px; }
+    footer .legal a, footer .affil a { text-decoration: underline; }
+    .foot-cols { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #dadcdd; margin-top: 28px; padding-top: 24px; }
+    .foot-cols h5 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #333; }
+    .foot-cols a { display: block; margin: 6px 0; }
+    .foot-links { border-top: 1px solid #dadcdd; border-bottom: 1px solid #dadcdd; margin-top: 30px; padding: 14px 0; text-align: center; }
+    .foot-links a { margin: 0 10px; }
+    .affil { text-align: center; margin-top: 50px; line-height: 24px; }
+    .affil b { color: #333; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 460px; background: #fff; color: #222; border-left: 5px solid var(--ib-red); box-shadow: 0 8px 30px rgba(0,0,0,.35); padding: 16px 20px; font-size: 14px; opacity: 0; visibility: hidden; transform: translateY(20px); transition: all .3s; z-index: 50; }
+    .toast.show { opacity: 1; visibility: visible; transform: none; }
+    .toast strong { display: block; margin-bottom: 4px; color: var(--ib-red); }
+  </style>
+</head>
+<body>
+  <div class="bandaid"><div class="container">
+    <span>Will the Fed cut rates at its next meeting?&nbsp; Yes 62%, No 38%</span>
+    <a class="pill" href="#">View Prediction Markets</a>
+    <a class="disc" href="#">Disclosure</a>
+  </div></div>
+
+  <header><div class="container">
+    <a class="brand" href="/ibkr">
+      <img src="https://www.interactivebrokers.com/images/common/logos/ibkr/interactive-brokers.svg" alt="Interactive Brokers" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <span class="brand-text">Interactive<span>Brokers</span></span>
+    </a>
+    <div class="head-right">
+      <div class="head-actions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.4"><circle cx="10" cy="10" r="7"/><path d="M15.5 15.5L22 22"/></svg>
+        <a class="btn-outline-red" href="#">Log In</a>
+        <a class="btn-red" href="#ticket">Open Account</a>
+      </div>
+      <nav class="main">
+        <a href="#">Why IBKR</a><a href="#">Products</a><a href="#">Platforms</a><a href="#">Accounts</a><a href="#">Pricing</a><a href="#">Education</a><a href="#">Support</a><a href="#">About Us</a><a class="lang" href="#">文A</a>
+      </nav>
+    </div>
+  </div></header>
+
+  <section class="hero center">
+    <div class="container">
+      <a class="hero-badge" href="#">
+        <img src="https://www.interactivebrokers.com/images/web/icon-ratio-ai-sparkle.svg" width="20" height="20" alt="" onerror="this.style.display='none'">
+        <span class="new">New</span>
+        <span>AI-assisted analysis with ChatGPT, Claude, Grok, Perplexity, and AI tools that support Model Context Protocol (MCP).</span>
+      </a>
+      <h1>Lower Costs. Better Returns.</h1>
+      <p class="sub">Earn <strong>up to USD 3.38%</strong><sup>1</sup> on uninvested cash, <strong>pay up to 54% less</strong><sup>2</sup> on margin, and trade with <strong>commissions starting at $0</strong><sup>3</sup> across <strong>170+ markets worldwide</strong>.</p>
+      <p class="cta"><a class="btn-primary" href="#ticket">Get Started</a></p>
+      <p class="disc-link">&#9432;&nbsp; Lower Cost Disclosure</p>
+    </div>
+    <div class="hero-art">
+      <img class="bg" src="https://www.interactivebrokers.com/images/dam/home/hero-bg-ibkr-home-xl.jpg" alt="" onerror="this.onerror=null;this.src='https://www.interactivebrokers.com/images/dam/home/hero-bg-ibkr-home.jpg';">
+      <img class="fg" src="https://www.interactivebrokers.com/images/dam/home/hero-ibkr-home-xl.png" alt="IBKR Trading Platforms" onerror="this.onerror=null;this.src='https://www.interactivebrokers.com/images/dam/home/hero-ibkr-home.png';">
+    </div>
+  </section>
+
+  <section class="awards center">
+    <div class="container">
+      <h3>Awarded by Industry Leaders. Year After Year.</h3>
+      <div class="award-row">
+        <div><img src="https://www.interactivebrokers.com/images/web/logo-awards-section-broker-chooser.svg?v1" alt="BrokerChooser" onerror="this.style.display='none'"><p>Best Online Broker<br>Best Broker for Margin Trading</p></div>
+        <div><img src="https://www.interactivebrokers.com/images/web/logo-awards-section-stockbrokers.svg" alt="StockBrokers.com" onerror="this.style.display='none'"><p>#1 Professional Trading<br>#1 International Trading</p></div>
+        <div><img src="https://www.interactivebrokers.com/images/web/logo-awards-section-investopedia.svg" alt="Investopedia" onerror="this.style.display='none'"><p>Best for Advanced Traders<br>Best for International Trading</p></div>
+      </div>
+      <div class="links"><a class="chev" href="#">View Awards</a><span style="font-weight:600">Switch to IBKR with Ease. &nbsp; <a class="chev" href="#">Learn How Transfers Work</a></span></div>
+    </div>
+  </section>
+
+  <section class="ticket center" id="ticket">
+    <div class="container">
+      <span class="eyebrow"><img src="https://www.interactivebrokers.com/images/web/icon-ratio-trading.svg" alt="" onerror="this.style.display='none'">IB SmartRouting<sup style="font-size:11px">SM</sup></span>
+      <h2 class="sec-h">Preview a Trade. See Best Execution.</h2>
+      <p class="sec-sub">SMART routing scans 16 venues for the best available price<br>before your order ever leaves the ticket.</p>
+
+      <div class="ticket-card">
+        <div class="ticket-head">
+          <span class="t">Order Ticket <span class="live">Paper Trading</span></span>
+          <span class="acct">Account DU4829173 · IBKR Pro · Margin</span>
+        </div>
+        <form id="order-form" novalidate>
+          <div class="fld">
+            <label for="symbol">Symbol</label>
+            <select id="symbol">
+              <option value="AAPL" selected>AAPL · Apple Inc.</option>
+              <option value="NVDA">NVDA · NVIDIA Corp.</option>
+              <option value="MSFT">MSFT · Microsoft Corp.</option>
+              <option value="TSLA">TSLA · Tesla, Inc.</option>
+              <option value="SPY">SPY · SPDR S&amp;P 500 ETF</option>
+              <option value="IBKR">IBKR · Interactive Brokers</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label>Action</label>
+            <div class="side-toggle">
+              <label class="buy on"><input type="radio" name="side" value="BUY" checked>Buy</label>
+              <label class="sell"><input type="radio" name="side" value="SELL">Sell</label>
+            </div>
+          </div>
+          <div class="fld">
+            <label for="quantity">Quantity</label>
+            <input id="quantity" type="number" min="1" max="10000" step="1" value="100" required>
+          </div>
+          <div class="fld">
+            <label for="orderType">Order Type</label>
+            <select id="orderType"><option value="MKT" selected>MKT</option><option value="LMT">LMT</option></select>
+          </div>
+          <div class="fld">
+            <label for="limitPrice">Limit Price</label>
+            <input id="limitPrice" type="number" min="0.01" step="0.01" placeholder="—" disabled>
+          </div>
+          <div class="fld">
+            <label for="routing">Destination</label>
+            <select id="routing">
+              <option value="smart" selected>SMART (Best Execution)</option>
+              <option value="nasdaq">Directed — NASDAQ</option>
+              <option value="nyse">Directed — NYSE</option>
+              <option value="lite">IBKR Lite (commission-free)</option>
+            </select>
+          </div>
+        </form>
+        <div class="ticket-foot">
+          <p class="note">Preview shows the consolidated NBBO, the venue SMART would route to, and estimated commissions. No order is transmitted.</p>
+          <button class="btn-primary" id="preview-button" type="submit" form="order-form">Preview Order</button>
+        </div>
+        <div class="success" id="preview-success" role="status"></div>
+        <div class="loading" id="loading"><span class="spinner"></span><span>Polling market centers for the best available price…</span></div>
+        <div class="results" id="results">
+          <div class="summary">
+            <div><small>Best Venue</small><b id="r-venue">—</b></div>
+            <div><small>NBBO Bid / Ask</small><b id="r-nbbo">—</b></div>
+            <div><small>Est. Price</small><b id="r-price">—</b></div>
+            <div><small>Commission</small><b id="r-comm">—</b></div>
+            <div><small>Est. Total</small><b id="r-total">—</b></div>
+          </div>
+          <table class="venues">
+            <thead><tr><th>Venue</th><th>Bid Size</th><th>Bid</th><th>Ask</th><th>Ask Size</th></tr></thead>
+            <tbody id="venue-rows"></tbody>
+          </table>
+          <div class="timing" id="r-timing"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="markets center">
+    <img class="bgimg" src="https://www.interactivebrokers.com/images/dam/home/bg-global-markets.jpg" alt="" onerror="this.style.display='none'">
+    <div class="container">
+      <span class="eyebrow"><img src="https://www.interactivebrokers.com/images/web/icon-ratio-markets.svg" alt="" onerror="this.style.display='none'">Products</span>
+      <h2 class="sec-h">Access 170+ Markets in One Platform</h2>
+      <div class="mkt-list"><a href="#">Stocks</a><a href="#">ETFs</a><a href="#">Options</a><a href="#">Futures</a><a href="#">Bonds</a><a href="#">Prediction Markets</a><a href="#">Currencies</a><a href="#">Mutual Funds</a><a href="#">US Spot Gold</a></div>
+      <a class="chev" href="#">Explore Products</a>
+    </div>
+  </section>
+
+  <section class="pad center" style="padding-top:24px">
+    <div class="container">
+      <h2 class="sec-h" style="margin-top:0">Your Money Works Harder Here</h2>
+      <div class="money-cards">
+        <div class="c"><p class="ph">Earn interest up to</p><p class="rate"><small>USD</small>3.38%</p><p class="pd">on uninvested cash. Automatically.</p><a class="chev" href="#">Compare Interest Rates</a></div>
+        <div class="c"><p class="ph">Borrow for as low as</p><p class="rate"><small>USD</small>4.38%</p><p class="pd">Among the lowest margin rates globally.</p><a class="chev" href="#">Compare Margin Rates</a></div>
+      </div>
+      <h3 class="pricing-h">Pricing for Any Trading Style</h3>
+      <div class="pricing">
+        <div class="cols">
+          <div><span class="pill">Occasional Traders</span><h4>IBKR <span class="lite">LITE</span></h4>
+            <ul><li><b>$0</b><sup>3</sup> <b>Commissions</b> on US stocks and ETFs</li><li>Margin as low as <b>USD 6.38%</b></li><li>Interest up to <b>USD 2.38%</b></li></ul></div>
+          <div><span class="pill">Active Traders</span><h4>IBKR <span class="pro">PRO</span></h4>
+            <ul><li><b>$0.005 per share</b><sup>4</sup> on US Stocks and ETFs</li><li>Margin as low as <b>USD 4.38%</b></li><li>Interest up to <b>USD 3.38%</b></li><li>Enhanced price execution</li><li>Extra protection on uninvested cash<sup>5</sup></li></ul></div>
+        </div>
+        <a class="chev" href="#">See Pricing Details</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="pad center tools">
+    <div class="container">
+      <span class="eyebrow"><img src="https://www.interactivebrokers.com/images/web/icon-ratio-trading.svg" alt="" onerror="this.style.display='none'">IBKR Platforms</span>
+      <h2 class="sec-h">Institutional-Grade Tools.<br>Built for You.</h2>
+      <p class="sec-sub" style="font-size:20px;line-height:30px">Lightning-fast, advanced trading platforms<br>for precision and insight — on any device.</p>
+      <div class="links"><a class="chev" href="#">IBKR Desktop</a><a class="chev" href="#">Client Portal</a><a class="chev" href="#">IBKR Mobile</a><a class="chev" href="#">Trader Workstation</a></div>
+      <img class="devices" src="https://www.interactivebrokers.com/images/dam/home/professional-trading-tools.png" alt="IBKR trading platforms on desktop, tablet and mobile" onerror="this.style.display='none'">
+    </div>
+  </section>
+
+  <section class="pad center">
+    <div class="container">
+      <span class="eyebrow"><img src="https://www.interactivebrokers.com/images/web/icon-ratio-ai-sparkle.svg" alt="" onerror="this.style.display='none'">Integrated</span>
+      <h2 class="sec-h">AI Assists. You Decide.</h2>
+      <p class="sec-sub" style="font-size:20px;line-height:30px;max-width:720px;margin-left:auto;margin-right:auto">Connect AI platforms that support Model Context Protocol (MCP), including ChatGPT, Claude, Grok, and Perplexity directly to your IBKR account to analyze portfolios, research opportunities, and generate trade instructions.</p>
+      <p style="margin-top:16px"><a class="chev" href="#">Learn About AI Integration</a></p>
+    </div>
+  </section>
+
+  <section class="center" style="padding:24px 0 72px">
+    <div class="container"><div class="quote">
+      <div class="mark">&ldquo;</div>
+      <h2>"In all, IBKR tops our list of brokerages: it is the highest-rated broker at BrokerChooser."</h2>
+      <p>- BrokerChooser | April 7, 2026</p>
+    </div></div>
+  </section>
+
+  <section class="pad center">
+    <div class="container">
+      <span class="eyebrow"><img src="https://www.interactivebrokers.com/images/web/icon-ratio-authentication.svg" alt="" onerror="this.style.display='none'">Financial Strength</span>
+      <h2 class="sec-h">Security You Can Trust</h2>
+      <p class="sec-sub" style="font-size:20px;line-height:30px">Your assets are backed by strong capital, automated risk controls,<br>and a commitment to transparency.</p>
+      <span class="glance">IBKR at a Glance</span>
+      <div class="stats">
+        <div><p>Trusted by over</p><h3>5 Million</h3><p>clients worldwide<sup>6</sup></p></div>
+        <div><p>Executing more than</p><h3>4 Million</h3><p>trades daily<sup>6</sup></p></div>
+        <div><p>Nasdaq-listed</p><h3>IBKR</h3></div>
+        <div><p>Member of the</p><h3>S&amp;P500</h3></div>
+        <div><p>Client assets<sup>6</sup> over</p><h3>$903 Billion</h3></div>
+        <div><p>Total equity<sup>6</sup> exceeding</p><h3>$22 Billion</h3></div>
+        <div><p>Over</p><h3>$5 Million</h3><p>in account protection coverage for uninvested cash<sup>5</sup></p></div>
+        <div><p>Nearly</p><h3>50 Years</h3><p>of Innovation</p></div>
+      </div>
+      <p style="margin-top:40px"><a class="chev" href="#">IBKR Strength and Security</a></p>
+    </div>
+  </section>
+
+  <section class="join center">
+    <img class="bgimg" src="https://www.interactivebrokers.com/images/dam/home/bg-page-cta.jpg" alt="" onerror="this.style.display='none'">
+    <div class="container">
+      <span class="eyebrow">Get Started</span>
+      <h2 class="sec-h">Join 5 Million Clients Worldwide</h2>
+      <p class="sec-sub">Apply in minutes and experience<br>the global advantage of Interactive Brokers.</p>
+      <p style="margin-top:24px"><a class="btn-primary" href="#ticket">Start Trading</a></p>
+      <h3>View Accounts Designed for Your Goals</h3>
+      <div class="acct-links"><a class="chev" href="#">Individual Account</a><a class="chev" href="#">Joint or Trust Account</a><a class="chev" href="#">Retirement Account</a><a class="chev" href="#">Non-Professional Advisor</a><a class="chev" href="#">Institutional Accounts</a></div>
+    </div>
+  </section>
+
+  <section class="disclosures"><div class="container">
+    <b>Disclosures</b>
+    <ol>
+      <li>Restrictions apply. See additional information on interest rates.</li>
+      <li>For complete information, see our margin rate comparison.</li>
+      <li>IBKR Lite provides commission-free trades in US exchange-listed stocks and ETFs. For complete information, see ibkr.com/commissions.</li>
+      <li>Fixed rate pricing. For more information, see pricing.</li>
+      <li>Participation in the Insured Bank Deposit Sweep Program required; restrictions apply.</li>
+      <li>Interactive Brokers Group and its affiliates. The number of client accounts displayed includes all account types across all IBG affiliates.</li>
+    </ol>
+  </div></section>
+
+  <footer>
+    <div class="container">
+      <div class="legal">
+        <p>Interactive Brokers<sup>®</sup>, IB<sup>SM</sup>, InteractiveBrokers.com<sup>®</sup>, Interactive Analytics<sup>®</sup>, IB Options Analytics<sup>SM</sup>, IB SmartRouting<sup>SM</sup>, PortfolioAnalyst<sup>®</sup>, IB Trader Workstation<sup>SM</sup> and One World, One Account<sup>SM</sup> are service marks and/or trademarks of Interactive Brokers LLC. Any trading symbols displayed are for illustrative purposes only and are not intended to portray recommendations.</p>
+        <p>The risk of loss in online trading of stocks, options, futures, currencies, foreign equities, and fixed income can be substantial.</p>
+        <p>Options involve risk and are not suitable for all investors. For more information read the <a href="#">Characteristics and Risks of Standardized Options</a>. Before trading, clients must read the relevant risk disclosure statements on our <a href="#">Warnings and Disclosures page</a>.</p>
+      </div>
+      <div class="foot-cols">
+        <div><h5>Account</h5><a href="#">Log In</a><a href="#">Open an Account</a><a href="#">Finish an Application</a><a href="#">Account Types</a><a href="#">Free Trial</a><a href="#">Refer a Friend</a></div>
+        <div><h5>Support</h5><a href="#">Fund Your Account</a><a href="#">For Individuals</a><a href="#">For Institutions</a><a href="#">Institutional Sales Contacts</a><a href="#">Browse our FAQs</a><a href="#">System Status</a></div>
+        <div><h5>About Us</h5><a href="#">Awards</a><a href="#">Careers</a><a href="#">Information and History</a><a href="#">Investor Relations</a><a href="#">News @ IBKR</a><a href="#">Press and Media</a></div>
+        <div><h5>Connect with Us</h5><a href="#">Discover IBKR on Social Media</a><a href="#">Facebook</a><a href="#">Instagram</a><a href="#">LinkedIn</a><a href="#">X (Twitter)</a><a href="#">YouTube</a></div>
+      </div>
+      <div class="foot-links"><a href="#">Accessibility Policy</a>|<a href="#">Anti-Fraud Notice</a>|<a href="#">Customer Relationship Summary</a>|<a href="#">Warning on Frauds and Scams</a>|<a href="#">Forms and Disclosures</a>|<a href="#">Privacy</a>|<a href="#">Site Map</a></div>
+      <div class="affil">
+        <b>Interactive Brokers LLC</b><br>
+        Is a member <a href="#">NYSE</a> - <a href="#">FINRA</a> - <a href="#">SIPC</a> and regulated by the US Securities and Exchange Commission and the Commodity Futures Trading Commission.<br>
+        <b>Headquarters:</b> One Pickwick Plaza, Greenwich, CT 06830 USA
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't preview your order</strong><span id="toast-copy"></span></div>
+
+  <script>
+    var identityReady = fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var form = document.getElementById('order-form');
+    var button = document.getElementById('preview-button');
+    var orderType = document.getElementById('orderType');
+    var limitPrice = document.getElementById('limitPrice');
+    var results = document.getElementById('results');
+    var loading = document.getElementById('loading');
+    var success = document.getElementById('preview-success');
+    var rows = document.getElementById('venue-rows');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+
+    document.querySelectorAll('.side-toggle input').forEach(function (input) {
+      input.addEventListener('change', function () {
+        document.querySelectorAll('.side-toggle label').forEach(function (l) {
+          l.classList.toggle('on', l.querySelector('input').checked);
+        });
+      });
+    });
+
+    orderType.addEventListener('change', function () {
+      var isLimit = orderType.value === 'LMT';
+      limitPrice.disabled = !isLimit;
+      limitPrice.required = isLimit;
+      limitPrice.placeholder = isLimit ? '0.00' : '—';
+      if (!isLimit) limitPrice.value = '';
+    });
+
+    function showToast(text) {
+      document.getElementById('toast-copy').textContent = text;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+
+    function usd(n) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    function render(body) {
+      document.getElementById('r-venue').textContent = body.bestVenue;
+      document.getElementById('r-nbbo').textContent = body.nbbo.bid.toFixed(2) + ' / ' + body.nbbo.ask.toFixed(2);
+      document.getElementById('r-price').textContent = usd(body.estimatedPrice);
+      document.getElementById('r-comm').textContent = usd(body.commissionUsd);
+      document.getElementById('r-total').textContent = usd(body.estimatedTotalUsd);
+      rows.innerHTML = '';
+      body.venueQuotes.forEach(function (q) {
+        var tr = document.createElement('tr');
+        if (q.venue === body.bestVenue) tr.className = 'best';
+        tr.innerHTML = '<td></td><td></td><td class="bid"></td><td class="ask"></td><td></td>';
+        var cells = tr.children;
+        cells[0].textContent = q.venue;
+        if (q.venue === body.bestVenue) {
+          var tag = document.createElement('span');
+          tag.className = 'tag-best';
+          tag.textContent = 'SMART';
+          cells[0].appendChild(tag);
+        }
+        cells[1].textContent = Number(q.bidSize).toLocaleString('en-US');
+        cells[2].textContent = q.bid.toFixed(2);
+        cells[3].textContent = q.ask.toFixed(2);
+        cells[4].textContent = Number(q.askSize).toLocaleString('en-US');
+        rows.appendChild(tr);
+      });
+      document.getElementById('r-timing').textContent = body.venuesPolled + ' venue' + (body.venuesPolled === 1 ? '' : 's') +
+        ' polled · ' + body.routing.label + ' · preview ' + body.previewId + ' · ' + (body.durationMs / 1000).toFixed(2) + 's';
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      if (button.disabled || !form.reportValidity()) return;
+
+      button.disabled = true;
+      button.textContent = 'Previewing…';
+      success.classList.remove('show');
+      results.classList.remove('show');
+      loading.classList.add('show');
+
+      await identityReady;
+
+      var payload = {
+        symbol: document.getElementById('symbol').value,
+        side: document.querySelector('.side-toggle input:checked').value,
+        quantity: Number(document.getElementById('quantity').value),
+        orderType: orderType.value,
+        limitPrice: orderType.value === 'LMT' ? Number(limitPrice.value) : undefined,
+        routing: document.getElementById('routing').value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+
+      fetch('/api/d708940c/order-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.body.success) {
+            showToast((result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error') +
+              ' · ' + (result.body.code || 'ORDER_PREVIEW_FAILED'));
+            return;
+          }
+          var body = result.body;
+          success.textContent = 'Order preview ' + body.previewId + ' ready — ' + body.side + ' ' + body.quantity + ' ' +
+            body.symbol.key + ' ' + body.orderType + ' via ' + body.routing.label + ', best price at ' + body.bestVenue + '.';
+          success.classList.add('show');
+          render(body);
+          results.classList.add('show');
+        })
+        .catch(function (error) {
+          showToast('NetworkError: ' + error.message);
+        })
+        .finally(function () {
+          loading.classList.remove('show');
+          button.disabled = false;
+          button.textContent = 'Preview Order';
+        });
+    });
+  </script>
+</body>
+</html>
