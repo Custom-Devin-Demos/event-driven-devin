@@ -185,13 +185,8 @@
       summaryAmount.textContent = Number.isFinite(amount) ? usd.format(amount) : '—';
       summaryDate.textContent = dateFmt.format(new Date());
     }
-    function keepAccountsDistinct(changed, other) {
-      if (changed.value !== other.value) return;
-      const alternative = Array.from(other.options).find((option) => option.value !== changed.value);
-      if (alternative) other.value = alternative.value;
-    }
-    fromAccount.addEventListener('change', () => { keepAccountsDistinct(fromAccount, toAccount); renderSummary(); });
-    toAccount.addEventListener('change', () => { keepAccountsDistinct(toAccount, fromAccount); renderSummary(); });
+    fromAccount.addEventListener('change', renderSummary);
+    toAccount.addEventListener('change', renderSummary);
     amountInput.addEventListener('input', renderSummary);
     form.addEventListener('reset', () => {
       result.className = 'result-box';
