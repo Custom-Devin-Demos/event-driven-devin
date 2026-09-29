@@ -12,8 +12,30 @@ describe('Sentry customer identity mapping', () => {
     expect(isInstantPathEvent(alertData)).toBe(true);
   });
 
+  test.each([
+    { tags: [['alert_path', 'latency']] },
+    { tags: [{ key: 'alert_path', value: 'latency' }] },
+    { tags: [{ alert_path: 'latency' }] },
+  ])('recognizes latency-path tag shape %p', (alertData) => {
+    expect(isInstantPathEvent(alertData)).toBe(true);
+  });
+
   test('does not recognize a different alert path', () => {
     expect(isInstantPathEvent({ tags: [['alert_path', 'webhook']] })).toBe(false);
+  });
+
+  test.each([
+    'reportLatencyBreach(app/services/verticals/ef51d258)',
+    'reportLatencyBreach(app/services/verticals/f887d0be)',
+  ])('recognizes a tagless latency-breach issue webhook by culprit %p', (culprit) => {
+    expect(isInstantPathEvent({ culprit, tags: [] })).toBe(true);
+  });
+
+  test('does not treat an unrelated culprit with another alert path as direct-alerted', () => {
+    expect(isInstantPathEvent({
+      culprit: 'verifyIdentity(app.services.verticals.b25c3f24)',
+      tags: [['alert_path', 'other']],
+    })).toBe(false);
   });
 
   test('recognizes a tagless Rippling issue webhook by its culprit module path', () => {
