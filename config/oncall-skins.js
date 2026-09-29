@@ -2651,6 +2651,24 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Online Grocery Orders & Pickup',
     disclaimer: '',
   },
+  '0a7b0167': {
+    slug: '0a7b0167',
+    company: 'Watershed',
+    brandMark: 'W',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '0a7b0167.html', title: 'Carbon removal & costs | Reduction Plan – Watershed' },
+    theme: {
+      '--accent': '#265CFF',
+      '--ink': '#0D2467',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#041330',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Watershed Support',
+    supportCenterSub: 'Reduction Plan & Marketplace',
+    disclaimer: 'NOT ACTUALLY A WATERSHED SITE — internal demo only, not affiliated with, endorsed by, or a real Watershed product.',
+  },
 };
 
 function getOncallSkin(slug) {
