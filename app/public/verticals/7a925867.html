@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACME — Contract Review Summary · Matrix – Hebbia</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --chrome: #0E0B0B;
+      --rail: #FAF9F6;
+      --cream: #F4F1EB;
+      --accent: #465BFF;
+      --accent-soft: #EEF0FF;
+      --ink: #0E0B0B;
+      --ink-2: #3B3838;
+      --muted: #6E6B68;
+      --hairline: #E7E5E1;
+      --hairline-2: #F0EEEA;
+      --surface: #FFFFFF;
+      --red: #B42318; --red-bg: #FEF3F2;
+      --amber: #8A5A00; --amber-bg: #FFF6DD;
+      --green: #18794E; --green-bg: #EAF6EF;
+      --slate: #475467; --slate-bg: #F2F4F7;
+      --sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--surface); font-size: 13px; line-height: 18px; -webkit-font-smoothing: antialiased; }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    .app { display: grid; grid-template-columns: 236px 1fr; height: 100vh; }
+
+    /* Left rail */
+    .rail { background: var(--rail); border-right: 1px solid var(--hairline); display: flex; flex-direction: column; padding: 14px 10px; min-height: 0; }
+    .wordmark { display: flex; align-items: center; gap: 10px; padding: 4px 8px 16px; }
+    .wordmark svg { width: 16px; height: 19px; }
+    .wordmark span { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+    .new-btn { display: flex; align-items: center; gap: 8px; margin: 0 4px 14px; padding: 8px 10px; border: 1px solid var(--hairline); background: var(--surface); border-radius: 8px; font-weight: 500; cursor: pointer; }
+    .new-btn kbd { margin-left: auto; font-family: var(--sans); font-size: 11px; color: var(--muted); }
+    .nav a { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 7px; color: var(--ink-2); font-weight: 500; }
+    .nav a:hover { background: #F1EFEA; }
+    .nav a.active { background: #ECEAE4; color: var(--ink); }
+    .nav svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; flex: none; }
+    .rail-label { margin: 18px 10px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    .recent { overflow: auto; min-height: 0; }
+    .recent a { display: block; padding: 6px 10px; border-radius: 7px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .recent a:hover { background: #F1EFEA; }
+    .recent a.active { color: var(--ink); font-weight: 500; }
+    .me { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 8px 2px; border-top: 1px solid var(--hairline); }
+    .avatar { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 600; color: #fff; flex: none; }
+    .me .who { line-height: 16px; }
+    .me .who small { display: block; color: var(--muted); font-size: 11px; }
+
+    /* Main */
+    .main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .topbar { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 20px; border-bottom: 1px solid var(--hairline); flex: none; }
+    .crumbs { display: flex; align-items: center; gap: 8px; color: var(--muted); min-width: 0; }
+    .crumbs b { color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .crumbs .sep { color: #C9C6C1; }
+    .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .stack { display: flex; }
+    .stack .avatar { width: 24px; height: 24px; border: 2px solid #fff; margin-left: -6px; font-size: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface); font-weight: 500; cursor: pointer; white-space: nowrap; }
+    .btn:hover { background: #FAFAF8; }
+    .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .btn.primary { background: var(--chrome); color: #fff; border-color: var(--chrome); }
+    .btn.primary:hover { background: #2A2626; }
+    .btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.accent:hover { background: #3346E6; }
+    .btn[hidden] { display: none; }
+    .btn[disabled] { opacity: 0.55; cursor: default; }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--hairline); flex: none; }
+    .toolbar .title { font-size: 17px; font-weight: 600; letter-spacing: -0.2px; margin-right: 8px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 999px; background: var(--slate-bg); color: var(--slate); font-size: 12px; font-weight: 500; }
+    .toolbar .spacer { flex: 1; }
+
+    .grid-wrap { flex: 1; overflow: auto; min-height: 0; position: relative; }
+    table.matrix { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; }
+    .matrix th, .matrix td { border-right: 1px solid var(--hairline-2); border-bottom: 1px solid var(--hairline-2); text-align: left; vertical-align: top; }
+    .matrix thead th { position: sticky; top: 0; z-index: 2; background: #FBFAF8; height: 38px; padding: 0 12px; vertical-align: middle; font-weight: 600; color: var(--ink-2); border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+    .matrix thead th .h { display: flex; align-items: center; gap: 7px; }
+    .matrix thead th .h svg { width: 13px; height: 13px; stroke: var(--muted); fill: none; stroke-width: 1.8; flex: none; }
+    .matrix thead th.new-col { background: var(--accent-soft); color: #2B3AC7; }
+    .matrix thead th.new-col svg { stroke: #2B3AC7; }
+    .matrix .rownum { width: 44px; min-width: 44px; color: var(--muted); text-align: center; padding: 14px 0; font-variant-numeric: tabular-nums; }
+    .matrix thead .rownum { padding: 0; left: 0; z-index: 3; }
+    .matrix .doc { position: sticky; left: 44px; z-index: 1; background: #fff; width: 290px; min-width: 290px; max-width: 290px; padding: 12px; }
+    .matrix thead .doc { z-index: 3; background: #FBFAF8; }
+    .matrix td.rownum { position: sticky; left: 0; background: #fff; z-index: 1; }
+    .doc-cell { display: flex; gap: 10px; align-items: flex-start; }
+    .file { width: 26px; height: 30px; border-radius: 4px; background: #FDECEC; color: #C2361D; font-size: 8.5px; font-weight: 700; display: grid; place-items: end center; padding-bottom: 4px; flex: none; position: relative; }
+    .file::after { content: ''; position: absolute; top: 0; right: 0; border-width: 0 8px 8px 0; border-style: solid; border-color: #fff #fff #F6C7C1 #F6C7C1; }
+    .doc-name { font-weight: 500; line-height: 17px; }
+    .doc-meta { color: var(--muted); font-size: 11.5px; margin-top: 3px; display: flex; gap: 6px; align-items: center; }
+    .tag-ocr { font-size: 10.5px; padding: 0 6px; border-radius: 4px; background: var(--slate-bg); color: var(--slate); font-weight: 500; }
+    .matrix .cell { width: 168px; min-width: 168px; max-width: 168px; }
+    .matrix td.cell { padding: 12px; color: var(--ink-2); }
+    .matrix .cell.wide { width: 300px; min-width: 300px; max-width: 300px; }
+    .matrix tbody tr:hover td { background: #FCFBF9; }
+    .matrix td.cell.new { background: #FAFAFF; cursor: pointer; }
+    .matrix td.cell.new:hover { background: #F2F4FF; }
+    .matrix td.cell.selected { box-shadow: inset 0 0 0 2px var(--accent); }
+    .matrix td.filler, .matrix th.filler { width: auto; border-right: none; }
+    .cite { display: inline-grid; place-items: center; min-width: 16px; height: 16px; padding: 0 4px; margin-left: 4px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 10.5px; font-weight: 600; vertical-align: 1px; }
+    .flag { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 5px; font-size: 11.5px; font-weight: 600; margin-bottom: 6px; }
+    .flag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .flag.consent { background: var(--red-bg); color: var(--red); }
+    .flag.termination { background: var(--amber-bg); color: var(--amber); }
+    .flag.notice { background: var(--slate-bg); color: var(--slate); }
+    .flag.none { background: var(--green-bg); color: var(--green); }
+    .shimmer { height: 10px; border-radius: 4px; background: linear-gradient(90deg, #EEF0FF 0%, #DDE2FF 50%, #EEF0FF 100%); background-size: 200% 100%; animation: sh 1.2s linear infinite; margin: 4px 0 8px; }
+    .shimmer.short { width: 55%; }
+    @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    .reading { font-size: 11.5px; color: #5363E8; }
+    .cell-error { color: var(--red); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+    .cell-error svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .add-col-th { width: 150px; }
+    .add-col-th button { border: none; background: none; color: var(--muted); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0; }
+    .add-col-th button:hover { color: var(--ink); }
+
+    .statusbar { flex: none; height: 34px; border-top: 1px solid var(--hairline); display: flex; align-items: center; gap: 16px; padding: 0 20px; color: var(--muted); font-size: 12px; }
+    .statusbar .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; }
+    .statusbar .demo-note { margin-left: auto; font-size: 11px; color: #9A9794; }
+
+    /* Drawer */
+    .scrim { position: fixed; inset: 0; background: rgba(14, 11, 11, 0.18); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 20; }
+    .scrim.show { opacity: 1; pointer-events: auto; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; background: #fff; border-left: 1px solid var(--hairline); box-shadow: -12px 0 32px rgba(0,0,0,0.08); transform: translateX(100%); transition: transform .22s ease; z-index: 21; display: flex; flex-direction: column; }
+    .drawer.show { transform: translateX(0); }
+    .drawer header { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--hairline); }
+    .drawer header h2 { margin: 0; font-size: 15px; font-weight: 600; }
+    .drawer header .x { margin-left: auto; border: none; background: none; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 4px; }
+    .steps { display: flex; gap: 6px; padding: 12px 20px 0; }
+    .steps span { flex: 1; height: 3px; border-radius: 3px; background: var(--hairline); }
+    .steps span.on { background: var(--accent); }
+    .drawer .body { padding: 18px 20px; overflow: auto; flex: 1; }
+    .drawer footer { padding: 14px 20px; border-top: 1px solid var(--hairline); display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+    .drawer footer .hint { margin-right: auto; color: var(--muted); font-size: 12px; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-weight: 600; margin-bottom: 7px; }
+    .field .sub { color: var(--muted); font-weight: 400; font-size: 12px; margin: -3px 0 8px; }
+    .field input[type=text], .field textarea, .field select { width: 100%; border: 1px solid var(--hairline); border-radius: 8px; padding: 9px 11px; background: #fff; outline: none; }
+    .field textarea { min-height: 96px; resize: vertical; line-height: 19px; }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .templates { display: grid; gap: 8px; }
+    .tpl { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: 9px; cursor: pointer; background: #fff; text-align: left; width: 100%; }
+    .tpl:hover { border-color: #C9CFFF; }
+    .tpl.on { border-color: var(--accent); background: #FAFAFF; box-shadow: 0 0 0 3px var(--accent-soft); }
+    .tpl .ic { width: 26px; height: 26px; border-radius: 7px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; flex: none; }
+    .tpl .ic svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .tpl b { display: block; font-weight: 600; }
+    .tpl small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .review { border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; }
+    .review .row { display: flex; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--hairline-2); }
+    .review .row:last-child { border-bottom: none; }
+    .review .row .k { width: 110px; color: var(--muted); flex: none; }
+    .review .row .v { flex: 1; color: var(--ink-2); }
+    .doclist { margin-top: 14px; border: 1px solid var(--hairline); border-radius: 10px; max-height: 380px; overflow: auto; }
+    .doclist label { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--hairline-2); font-weight: 400; margin: 0; cursor: pointer; }
+    .doclist label:last-child { border-bottom: none; }
+    .doclist input { accent-color: var(--accent); }
+    .doclist .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Citation panel */
+    .src-doc { font-weight: 600; margin-bottom: 4px; }
+    .src-meta { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+    .answer { padding: 12px 14px; border-radius: 10px; background: #FBFAF8; border: 1px solid var(--hairline); margin-bottom: 16px; color: var(--ink-2); }
+    .page { border: 1px solid var(--hairline); border-radius: 8px; padding: 18px 20px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, serif; font-size: 13px; line-height: 21px; color: #3a3a3a; }
+    .page .pg { font-family: var(--sans); font-size: 11px; color: var(--muted); margin-bottom: 10px; display: flex; justify-content: space-between; }
+    .page .ghost { height: 8px; background: #F1F0ED; border-radius: 3px; margin: 7px 0; }
+    .page mark { background: #E3E7FF; box-shadow: 0 0 0 3px #E3E7FF; border-radius: 2px; color: #1C1C1C; }
+
+    .toast { position: fixed; right: 24px; bottom: 24px; max-width: 420px; background: #1C1818; color: #fff; padding: 14px 16px; border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.28); transform: translateY(calc(100% + 40px)); transition: transform .25s ease; z-index: 40; }
+    .toast.show { transform: translateY(0); }
+    .toast .title { font-weight: 600; margin-bottom: 4px; }
+    .toast .detail { color: #D6D2CD; font-size: 12.5px; word-break: break-word; }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .rail { display: none; }
+      .drawer { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <a href="#" class="wordmark" aria-label="Hebbia">
+      <svg viewBox="0 0 19 22" aria-hidden="true" fill="currentColor"><rect x="1" y="1" width="4" height="20" rx="1"></rect><rect x="8" y="1" width="4" height="20" rx="1"></rect><rect x="15" y="1" width="3" height="20" rx="1"></rect></svg>
+      <span>Hebbia</span>
+    </a>
+    <button class="new-btn" type="button" data-inert>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      New <kbd>⌘K</kbd>
+    </button>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>Max</a>
+      <a href="#" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16M15 4v16"/></svg>Matrix</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 7h10M4 17h6M18 4v6M15 7h6M14 17h7"/></svg>Skills &amp; Agents</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Projects</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M9 7V3M15 7V3M7 7h10v4a5 5 0 01-10 0zM12 16v5"/></svg>Integrations</a>
+    </nav>
+    <div class="rail-label">Project Alpha</div>
+    <div class="recent">
+      <a href="#" class="active">ACME — Contract Review Summary</a>
+      <a href="#">ACME FY 2025 Customer Concentration Analysis</a>
+      <a href="#">QoE EBITDA adjustments benchmarking</a>
+      <a href="#">Summarize buyer feedback from R1 Process Letter</a>
+      <a href="#">AI Infrastructure M&amp;A Activity</a>
+      <a href="#">Investment Thesis</a>
+      <a href="#">7.12.17 Investment Highlights Drafting</a>
+    </div>
+    <div class="me">
+      <div class="avatar" style="background:#465BFF">SP</div>
+      <div class="who">Sam Patel<small>Associate · M&amp;A</small></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">
+        <span>Project Alpha</span><span class="sep">/</span><span>Matrix</span><span class="sep">/</span><b id="matrix-name">ACME — Contract Review Summary</b>
+      </div>
+      <div class="right">
+        <div class="stack">
+          <div class="avatar" style="background:#0E0B0B">JL</div>
+          <div class="avatar" style="background:#18794E">MK</div>
+          <div class="avatar" style="background:#8A5A00">RT</div>
+        </div>
+        <button class="btn" type="button" data-inert>
+          <svg viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v13"/></svg>Share
+        </button>
+        <button class="btn" type="button" data-inert>
+          <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Export
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="title">Contract Review Summary</div>
+      <span class="pill" id="count-pill">8 documents · 4 columns</span>
+      <span class="pill" id="room-pill">ACME Industrial Holdings · Sell-side VDR</span>
+      <div class="spacer"></div>
+      <button class="btn" type="button" data-inert>
+        <svg viewBox="0 0 24 24"><path d="M3 5h18M6 12h12M10 19h4"/></svg>Filter
+      </button>
+      <button class="btn" type="button" data-inert>
+        <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>Ask Max
+      </button>
+      <button class="btn" type="button" data-inert>
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add documents
+      </button>
+      <button class="btn primary" type="button" id="add-column">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16M18.5 10v4M16.5 12h4"/></svg>Add column
+      </button>
+    </div>
+
+    <div class="grid-wrap">
+      <table class="matrix" id="matrix">
+        <thead><tr id="head-row"></tr></thead>
+        <tbody id="body-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="statusbar">
+      <span><span class="dot"></span>All documents indexed</span>
+      <span id="status-cites">Every cell links back to its source passage</span>
+      <span class="demo-note">Illustrative demo environment · fictional data</span>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer" id="col-drawer" aria-label="Add column">
+  <header>
+    <h2 id="col-drawer-title">Add column</h2>
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+  </header>
+  <div class="steps"><span class="on" id="step-1"></span><span id="step-2"></span></div>
+  <div class="body" id="col-step-question">
+    <div class="field">
+      <label>Start from a template</label>
+      <div class="templates" id="templates"></div>
+    </div>
+    <div class="field">
+      <label for="col-name">Column name</label>
+      <input type="text" id="col-name" placeholder="e.g. Change of control provisions">
+    </div>
+    <div class="field">
+      <label for="col-prompt">Question</label>
+      <div class="sub">Matrix asks this of every document and cites the passage behind each answer.</div>
+      <textarea id="col-prompt" placeholder="What do you want to know about each document?"></textarea>
+    </div>
+  </div>
+  <div class="body" id="col-step-review" hidden>
+    <div class="review">
+      <div class="row"><div class="k">Column</div><div class="v" id="rv-name"></div></div>
+      <div class="row"><div class="k">Question</div><div class="v" id="rv-prompt"></div></div>
+      <div class="row"><div class="k">Output</div><div class="v" id="rv-format"></div></div>
+      <div class="row"><div class="k">Sources</div><div class="v">Full document text, including OCR'd exhibits</div></div>
+    </div>
+    <div class="doclist" id="doclist"></div>
+  </div>
+  <footer>
+    <span class="hint" id="col-hint">Step 1 of 2</span>
+    <button class="btn" type="button" id="col-back" hidden>Back</button>
+    <button class="btn primary" type="button" id="col-next" disabled>Continue</button>
+    <button class="btn accent" type="button" id="col-run" hidden>Run on 8 documents</button>
+  </footer>
+</aside>
+
+<aside class="drawer" id="src-drawer" aria-label="Source">
+  <header>
+    <h2>Source</h2>
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+  </header>
+  <div class="body" id="src-body"></div>
+</aside>
+
+<div class="toast" id="toast">
+  <div class="title" id="toast-title">Something went wrong</div>
+  <div class="detail" id="toast-detail"></div>
+</div>
+
+<script>
+(function () {
+  var ICONS = {
+    text: '<svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg>',
+    date: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+    classification: '<svg viewBox="0 0 24 24"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
+    doc: '<svg viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8z"/><path d="M14 3v5h5"/></svg>',
+  };
+  var FORMAT_LABELS = { text: 'Short answer with citations', classification: 'Classification + rationale, with citations', date: 'Date' };
+
+  var state = { matrix: null, template: null, running: false, added: null, selectedCell: null };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); };
+
+  var toastTimer = null;
+  function showToast(title, detail) {
+    $('toast-title').textContent = title;
+    $('toast-detail').textContent = detail;
+    $('toast').classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $('toast').classList.remove('show'); }, 6000);
+  }
+
+  function renderHead() {
+    var m = state.matrix;
+    var html = '<th class="rownum">#</th><th class="doc"><div class="h">' + ICONS.doc + 'Document</div></th>';
+    m.columns.forEach(function (c) {
+      html += '<th class="cell"><div class="h">' + ICONS[c.format] + esc(c.label) + '</div></th>';
+    });
+    if (state.added) {
+      html += '<th class="cell wide new-col"><div class="h">' + ICONS[state.added.format] + esc(state.added.label) + '</div></th>';
+    }
+    html += '<th class="add-col-th"><button type="button" id="add-column-inline">+ Add column</button></th><th class="filler"></th>';
+    $('head-row').innerHTML = html;
+    $('add-column-inline').addEventListener('click', openColumnDrawer);
+    $('count-pill').textContent = m.rows.length + ' documents · ' + (m.columns.length + (state.added ? 1 : 0)) + ' columns';
+  }
+
+  function newCellHtml(row) {
+    var a = state.added;
+    if (!a) return '';
+    if (a.status === 'running') {
+      return '<td class="cell wide new"><div class="shimmer"></div><div class="shimmer short"></div><div class="reading">Reading ' + row.pageCount + ' pages…</div></td>';
+    }
+    if (a.status === 'error') {
+      return '<td class="cell wide new"><div class="cell-error"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>Couldn’t complete</div></td>';
+    }
+    var cell = a.cells[row.id];
+    if (!cell) return '<td class="cell wide new"></td>';
+    var cites = cell.citations.map(function (c) { return '<span class="cite">' + c.index + '</span>'; }).join('');
+    var sel = state.selectedCell === row.id ? ' selected' : '';
+    return '<td class="cell wide new' + sel + '" data-cell="' + row.id + '"><span class="flag ' + cell.flag + '">' + esc(cell.flagLabel) + '</span><div>' + esc(cell.value) + cites + '</div></td>';
+  }
+
+  function renderBody() {
+    var m = state.matrix;
+    $('body-rows').innerHTML = m.rows.map(function (row, i) {
+      var html = '<td class="rownum">' + (i + 1) + '</td>';
+      html += '<td class="doc"><div class="doc-cell"><div class="file">PDF</div><div><div class="doc-name">' + esc(row.name.replace(/\.pdf$/, '')) + '</div><div class="doc-meta">' + row.pageCount + ' pages' + (row.source === 'scanned' ? ' <span class="tag-ocr">Scanned · OCR</span>' : '') + '</div></div></div></td>';
+      m.columns.forEach(function (c) { html += '<td class="cell">' + esc(row.cells[c.key]) + '</td>'; });
+      html += newCellHtml(row);
+      html += '<td class="add-col-th"></td><td class="filler"></td>';
+      return '<tr>' + html + '</tr>';
+    }).join('');
+  }
+
+  function render() { renderHead(); renderBody(); }
+
+  function closeDrawers() {
+    $('scrim').classList.remove('show');
+    $('col-drawer').classList.remove('show');
+    $('src-drawer').classList.remove('show');
+    if (state.selectedCell) { state.selectedCell = null; renderBody(); }
+  }
+
+  function setStep(n) {
+    $('col-step-question').hidden = n !== 1;
+    $('col-step-review').hidden = n !== 2;
+    $('step-2').classList.toggle('on', n === 2);
+    $('col-next').hidden = n !== 1;
+    $('col-back').hidden = n !== 2;
+    $('col-run').hidden = n !== 2;
+    $('col-hint').textContent = 'Step ' + n + ' of 2';
+    $('col-drawer-title').textContent = n === 1 ? 'Add column' : 'Review and run';
+  }
+
+  function syncNext() {
+    $('col-next').disabled = !(state.template && $('col-name').value.trim() && $('col-prompt').value.trim());
+  }
+
+  function renderTemplates() {
+    $('templates').innerHTML = state.matrix.templates.map(function (t) {
+      return '<button type="button" class="tpl' + (state.template && state.template.key === t.key ? ' on' : '') + '" data-tpl="' + t.key + '"><span class="ic">' + ICONS[t.format] + '</span><span><b>' + esc(t.label) + '</b><small>' + esc(t.prompt) + '</small></span></button>';
+    }).join('');
+  }
+
+  function openColumnDrawer() {
+    if (state.running) return;
+    state.template = null;
+    $('col-name').value = '';
+    $('col-prompt').value = '';
+    renderTemplates();
+    setStep(1);
+    syncNext();
+    $('scrim').classList.add('show');
+    $('col-drawer').classList.add('show');
+  }
+
+  function toReview() {
+    $('rv-name').textContent = $('col-name').value.trim();
+    $('rv-prompt').textContent = $('col-prompt').value.trim();
+    $('rv-format').textContent = FORMAT_LABELS[state.template.format] || state.template.format;
+    $('doclist').innerHTML = state.matrix.rows.map(function (r) {
+      return '<label><input type="checkbox" checked value="' + r.id + '"><span class="nm">' + esc(r.name.replace(/\.pdf$/, '')) + '</span><span class="doc-meta">' + r.pageCount + ' pp</span></label>';
+    }).join('');
+    updateRunLabel();
+    setStep(2);
+  }
+
+  function selectedDocIds() {
+    return Array.prototype.map.call(document.querySelectorAll('#doclist input:checked'), function (i) { return i.value; });
+  }
+
+  function updateRunLabel() {
+    var n = selectedDocIds().length;
+    $('col-run').textContent = 'Run on ' + n + ' document' + (n === 1 ? '' : 's');
+    $('col-run').disabled = n === 0;
+  }
+
+  function runColumn() {
+    if (state.running) return;
+    state.running = true;
+    var column = {
+      templateKey: state.template.key,
+      label: $('col-name').value.trim(),
+      prompt: $('col-prompt').value.trim(),
+    };
+    var ids = selectedDocIds();
+    state.added = { label: column.label, format: state.template.format, status: 'running', cells: {} };
+    state.matrix.rows = state.matrix.allRows.filter(function (r) { return ids.indexOf(r.id) !== -1; });
+    closeDrawers();
+    render();
+    var wrap = document.querySelector('.grid-wrap');
+    wrap.scrollTo({ left: wrap.scrollWidth, behavior: 'smooth' });
+    $('status-cites').textContent = 'Running “' + column.label + '” across ' + ids.length + ' documents…';
+
+    fetch('/api/7a925867/matrix/columns/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        matrixId: state.matrix.id,
+        column: column,
+        documentIds: ids,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org-28d150729ae44170b6218c52d4f561bc',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      }),
+    })
+      .then(function (res) { return res.json().then(function (body) { return { ok: res.ok, body: body }; }); })
+      .then(function (result) {
+        if (!result.ok || result.body.error) {
+          state.added.status = 'error';
+          render();
+          $('status-cites').textContent = 'Column run failed · ' + (result.body.requestId || '');
+          showToast('Matrix couldn’t finish this column',
+            (result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error')
+            + ' · Run ' + (result.body.requestId || 'unavailable'));
+          return;
+        }
+        state.added.status = 'done';
+        result.body.cells.forEach(function (c) { state.added.cells[c.docId] = c; });
+        render();
+        var s = result.body.summary;
+        $('status-cites').textContent = s.documents + ' documents · ' + s.flagged + ' flagged · ' + s.citations + ' citations';
+        showToast('Column complete', s.flagged + ' of ' + s.documents + ' agreements flagged for “' + result.body.column.label + '”');
+      })
+      .catch(function (err) {
+        state.added.status = 'error';
+        render();
+        showToast('Network error', err.message);
+      })
+      .finally(function () { state.running = false; });
+  }
+
+  function openSource(docId) {
+    var row = state.matrix.rows.filter(function (r) { return r.id === docId; })[0];
+    var cell = state.added && state.added.cells[docId];
+    if (!row || !cell) return;
+    state.selectedCell = docId;
+    renderBody();
+    var c = cell.citations[0];
+    $('src-body').innerHTML =
+      '<div class="src-doc">' + esc(row.name) + '</div>' +
+      '<div class="src-meta">Page ' + c.page + ' of ' + row.pageCount + ' · Section ' + esc(c.section) + '</div>' +
+      '<div class="answer"><span class="flag ' + cell.flag + '">' + esc(cell.flagLabel) + '</span><div>' + esc(cell.value) + '<span class="cite">1</span></div></div>' +
+      '<div class="page"><div class="pg"><span>§ ' + esc(c.section) + '</span><span>p. ' + c.page + '</span></div>' +
+      '<div class="ghost"></div><div class="ghost" style="width:92%"></div><div class="ghost" style="width:80%"></div>' +
+      '<p><mark>' + esc(c.quote) + '</mark></p>' +
+      '<div class="ghost"></div><div class="ghost" style="width:86%"></div><div class="ghost" style="width:64%"></div></div>';
+    $('scrim').classList.add('show');
+    $('src-drawer').classList.add('show');
+  }
+
+  document.addEventListener('click', function (e) {
+    var tpl = e.target.closest('[data-tpl]');
+    if (tpl) {
+      var t = state.matrix.templates.filter(function (x) { return x.key === tpl.getAttribute('data-tpl'); })[0];
+      state.template = t;
+      $('col-name').value = t.label;
+      $('col-prompt').value = t.prompt;
+      renderTemplates();
+      syncNext();
+      return;
+    }
+    var cell = e.target.closest('[data-cell]');
+    if (cell) { openSource(cell.getAttribute('data-cell')); return; }
+    if (e.target.closest('[data-close]') || e.target === $('scrim')) { closeDrawers(); return; }
+    var a = e.target.closest('a, [data-inert]');
+    if (a) e.preventDefault();
+  });
+
+  $('add-column').addEventListener('click', openColumnDrawer);
+  $('col-next').addEventListener('click', toReview);
+  $('col-back').addEventListener('click', function () { setStep(1); });
+  $('col-run').addEventListener('click', runColumn);
+  $('col-name').addEventListener('input', syncNext);
+  $('col-prompt').addEventListener('input', syncNext);
+  $('doclist').addEventListener('change', updateRunLabel);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawers(); });
+
+  fetch('/api/7a925867/matrix')
+    .then(function (r) { return r.json(); })
+    .then(function (m) {
+      m.allRows = m.rows.slice();
+      state.matrix = m;
+      $('matrix-name').textContent = m.name;
+      $('room-pill').textContent = m.dataRoom;
+      render();
+    })
+    .catch(function (err) { showToast('Couldn’t load this matrix', err.message); });
+})();
+</script>
+</body>
+</html>
