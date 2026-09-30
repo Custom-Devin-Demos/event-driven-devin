@@ -2566,6 +2566,23 @@ const ONCALL_SKINS = {
     supportCenterSub: 'Subscription Support & Incident Intake',
     disclaimer: 'NOT ACTUALLY AN ECONOMIST SITE — internal demo only, not affiliated with, endorsed by, or a real Economist product.',
   },
+  'fdc02991': {
+    slug: 'fdc02991',
+    company: 'DIRECTV',
+    brandMark: 'D',
+    vertical: 'telco',
+    oncallOnly: true,
+    page: { file: 'fdc02991.html', title: 'Change your package | DIRECTV' },
+    theme: {
+      '--accent': '#006DFF',
+      '--ink': '#121212',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#102641',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'DIRECTV Support',
+    disclaimer: 'NOT ACTUALLY A DIRECTV SITE — internal demo only, not affiliated with, endorsed by, or a real DIRECTV product.',
+  },
   'cc824d2a': {
     slug: 'cc824d2a',
     company: 'PIMCO',
