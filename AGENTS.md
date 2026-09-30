@@ -48,6 +48,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Tax Revenue Portal — Pay Taxes** (generic demo brand, unlisted — direct URL only) | `/tax-portal`, `/3640b94c` | `app/public/verticals/3640b94c.html` | `POST /api/3640b94c/payment` | `app/services/verticals/3640b94c.js` |
 | **FPL My Account — NextEra Energy** (Flutter app, unlisted — direct URL only) | `/fpl`, `/nextera`, `/b425648c` (landing), `/b425648c/app` (app) | `app/public/verticals/b425648c.html`, `app/public/verticals/b425648c-app/` | `POST /api/b425648c/mobile/error`, `POST /api/b425648c/outage/report` | `app/services/verticals/b425648c.js` |
 | **BNY NEXEN — Digital Asset Custody** (Vite/React app, unlisted — direct URL only) | `/bny`, `/nexen`, `/9bfabd45` (all redirect), `/9bfabd45/app` (app) | `app/public/verticals/9bfabd45-app/` | `POST /api/9bfabd45/error` | `app/services/verticals/9bfabd45.js` |
+| **S&P Capital IQ Pro — Market Monitor** (Vite/React app, unlisted — direct URL only) | `/capitaliq`, `/capital-iq`, `/c28a3fe9` (all redirect), `/c28a3fe9/app` (app) | `app/public/verticals/c28a3fe9-app/` | `POST /api/c28a3fe9/index-detail` | `app/services/verticals/c28a3fe9.js`, `app/services/verticals/c28a3fe9-listings.js` |
 | **State Street — Client Banking Portal** (unlisted — direct URL only) | `/statestreet`, `/4da81799` | `app/public/verticals/4da81799.html` | `POST /api/4da81799/transfer` | `app/services/verticals/4da81799.js` |
 | **BAC Credomatic — Banca en Línea** (unlisted — direct URL only) | `/bac`, `/baccredomatic` | `app/public/verticals/bac.html` | `POST /api/bac/transferencia` | `app/services/verticals/bac.js` |
 | **Banamex — Banca en Línea** (unlisted — direct URL only) | `/banamex`, `/citibanamex` | `app/public/verticals/banamex.html` | `POST /api/banamex/traspaso` | `app/services/verticals/banamex.js` |
@@ -278,6 +279,16 @@ The digital asset custody feature is deliberately *not* the incident: it is the 
 Identity: the client may forward `devinEmail` / `devinUserId` / `devinOrgId`, and the service resolves an email to an org member with `DEVIN_SERVICE_KEY_9BFABD45` when no user id was sent; with nothing from the client it falls back to the demo owner (Hannah Huh, `U0B2YAUPSHL`), who is also the `slackMemberId` on every card. `CUSTOMER_ALERT_IDENTITY` maps `customer-9bfabd45-web` to the NEXEN `APP_REMEDIATION_DIRECTIVE` (reconcile the chart series with the allocation data, replace the undefined dereference with explicit handling, add frontend and backend coverage for the chart series, refresh the hosted build). Regression coverage lives in `tests/9bfabd45-error.test.js`.
 
 Refresh the hosted build: in `COG-GTM/bny/frontend`, `npx vite build --base=/9bfabd45/app/`, then copy `dist/` into `app/public/verticals/9bfabd45-app/`.
+
+### S&P Capital IQ Pro Market Monitor scenario (c28a3fe9, Vite/React build)
+
+The Capital IQ vertical (slug `c28a3fe9`, unlisted on the hub) has no landing page: `/capitaliq`, `/capital-iq` and `/c28a3fe9` redirect to `/c28a3fe9/app`, a prebuilt Vite/React app in `app/public/verticals/c28a3fe9-app/` (SPA fallback in `app/routes/verticals/c28a3fe9.js`). The frontend source is `rdf004/s-and-p-event-driven-demo`; the defect lives here, not in the build.
+
+Clicking a Global Indices row `POST`s `{ ticker, devinEmail, devinUserId, devinOrgId }` to `/api/c28a3fe9/index-detail`. `buildIndexDetail` in `app/services/verticals/c28a3fe9.js` looks the ticker up in `LISTINGS` (`app/services/verticals/c28a3fe9-listings.js`), whose Americas keys (`.DJI`, `.SPX`, ...) do not match the `INDICES` tickers (`^DJI`, `^SPX`, ...), so every **Americas** row throws `TypeError: Cannot read properties of undefined (reading 'exchange')`; Europe and Asia rows load. The failure is captured to Sentry (`alert_path: instant`), posted as the alert card and handed to a Devin session that fixes this repo; the route answers `500` and the app shows its error toast.
+
+Identity: the page forwards the hub's `devinEmail` / `devinUserId` / `devinOrgId` from same-origin localStorage; an email without a user id is resolved to an org member, and with no hub sign-in the on-call and session owner fall back to Roshan Fernando (`U09SE7WP21F`). Regression coverage lives in `tests/c28a3fe9-index-detail.test.js`.
+
+Refresh the hosted build: in `rdf004/s-and-p-event-driven-demo`, `VITE_INDEX_DETAIL_ENDPOINT=/api/c28a3fe9/index-detail npx vite build --base=/c28a3fe9/app/ --sourcemap false`, then replace `app/public/verticals/c28a3fe9-app/` with `dist/`.
 
 ### Samsara Fleet mobile scenario (26a3d261, SwiftUI, external repo)
 
