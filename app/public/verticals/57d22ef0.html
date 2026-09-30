@@ -863,10 +863,13 @@
               devinEmail: localStorage.getItem('devinEmail') || '',
             }),
           });
-          const data = await response.json();
+          await response.json();
           if (!response.ok) throw new Error('transfer failed');
+          const slow = performance.now() - started > 4000;
           result.className = 'result-box success';
-          result.textContent = 'Your transfer is being processed. It is taking longer than usual — you will see it in your account activity shortly.';
+          result.textContent = slow
+            ? 'Your transfer is being processed. It is taking longer than usual — you will see it in your account activity shortly.'
+            : 'Your transfer has been scheduled. You will see it in your account activity shortly.';
         } catch (error) {
           result.className = 'result-box error';
           result.textContent =
