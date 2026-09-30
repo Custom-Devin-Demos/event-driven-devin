@@ -560,8 +560,11 @@
       $('promptSend').addEventListener('click', function () { if (prompt.value.trim()) location.hash = 'pagos'; });
 
       /* ---------- merchant + recent links ---------- */
+      var merchantGen = 0;
       function loadMerchant() {
+        var gen = ++merchantGen;
         return fetch('/api/t1/merchant').then(function (r) { return r.json(); }).then(function (d) {
+          if (gen !== merchantGen) return;
           var m = d.merchant || {};
           if (m.businessName) $('storeName').textContent = m.businessName;
           if (m.initials) $('storeInitials').textContent = m.initials;
@@ -580,7 +583,7 @@
             });
             body.appendChild(tr);
           });
-        }).catch(function () { $('recentLinks').innerHTML = '<tr><td colspan="5">Sin links recientes</td></tr>'; });
+        }).catch(function () { if (gen === merchantGen) $('recentLinks').innerHTML = '<tr><td colspan="5">Sin links recientes</td></tr>'; });
       }
       loadMerchant();
 
