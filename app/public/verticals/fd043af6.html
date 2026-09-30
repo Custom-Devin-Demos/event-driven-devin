@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strategic Education Inc.</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #0047BB;
+      --blue-2: #024EBE;
+      --blue-light: #5793EC;
+      --cta: #DD2A3F;
+      --cta-dark: #B81F32;
+      --chrome: #101820;
+      --ink: #212529;
+      --surface: #ffffff;
+      --panel: #F2F2F0;
+      --panel-2: #E0E0DF;
+      --hairline: #DDDDDD;
+      --muted: #5F6368;
+      --green: #1E6B3A;
+      --green-bg: #E9F5EC;
+      --sans: 'proxima-nova', 'Montserrat', Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--surface);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .wrap { max-width: 1300px; margin: 0 auto; padding: 0 64px; }
+
+    .site-header { background: #fff; position: relative; z-index: 5; }
+    .header-inner { display: flex; align-items: center; min-height: 84px; }
+    .logo img { display: block; height: 46px; }
+    .logo .fallback { display: none; font-weight: 700; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; line-height: 1.1; }
+    .primary-nav { margin-left: auto; display: flex; gap: 28px; }
+    .primary-nav a {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #000; font-size: 15px; font-weight: 700; text-decoration: none;
+    }
+    .primary-nav a::after {
+      content: ''; width: 6px; height: 6px;
+      border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+      transform: translateY(-2px) rotate(45deg);
+    }
+
+    .hero {
+      position: relative;
+      background: linear-gradient(90deg, #fff 0%, #f4f4f4 100%);
+      min-height: 478px;
+      overflow: hidden;
+    }
+    .hero-photo {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 50%;
+      border-radius: 0 50% 50% 0 / 0 50% 50% 0;
+      overflow: hidden;
+      background: #1c2530;
+    }
+    .hero-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 30% center; display: block; }
+    .hero-copy {
+      position: relative;
+      margin-left: 54.5%;
+      max-width: 470px;
+      padding: 88px 0 72px;
+    }
+    .hero h1 { margin: 0; font-size: 46px; font-weight: 300; line-height: 1.6; letter-spacing: -.2px; }
+    .hero h1 strong { display: block; color: var(--blue); font-weight: 600; }
+    .hero p { margin: 30px 0 0; font-size: 19px; line-height: 1.75; }
+    .gradient-bar { height: 21px; background: linear-gradient(90deg, #0047BB 0%, #024EBE 30%, #A2C4FA 55%, #3F7FE0 75%, #0047BB 100%); }
+
+    .brand-slider { background: #fff; padding: 36px 0; }
+    .slider-row { display: flex; align-items: center; gap: 24px; }
+    .slider-arrow { flex: 0 0 auto; width: 24px; height: 24px; border: 0; background: none; color: #444; cursor: pointer; font-size: 26px; line-height: 1; padding: 0; }
+    .slider-logos { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; justify-items: center; gap: 24px; }
+    .slider-logos img { max-width: 160px; max-height: 50px; }
+
+    .charge { background: var(--chrome); color: #fff; text-align: center; padding: 80px 0 90px; }
+    .charge h2 { margin: 0 auto; max-width: 640px; font-size: 34px; font-weight: 300; line-height: 1.65; }
+    .charge h2 strong { color: var(--blue-light); font-weight: 600; margin-right: 10px; }
+    .charge p { margin: 8px auto 0; max-width: 620px; font-size: 17px; line-height: 1.6; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; max-width: 980px; margin: 70px auto 0; }
+    .stat-num { font-size: 64px; font-weight: 300; line-height: 1; color: #fff; }
+    .stat-num span { color: var(--blue-light); font-weight: 600; }
+    .stat-label { margin-top: 12px; font-size: 17px; color: #D5DAE1; }
+
+    .fifty { background: var(--panel-2); padding: 76px 0; }
+    .fifty-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+    .fifty h2 { margin: 0 0 18px; font-size: 34px; font-weight: 300; }
+    .fifty h2 strong { font-weight: 700; }
+    .fifty p { margin: 0 0 18px; font-size: 17px; line-height: 1.6; }
+    .fifty-media img { display: block; width: 100%; box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 38px; padding: 8px 16px;
+      border: 0; border-radius: 2px;
+      background: var(--cta); color: #fff;
+      font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer;
+    }
+    .btn:hover { background: var(--cta-dark); }
+    .btn:disabled { opacity: .7; cursor: progress; }
+
+    .match { background: #fff; padding: 76px 0; }
+    .section-title { margin: 0 0 12px; text-align: center; font-size: 36px; font-weight: 300; }
+    .section-title strong { color: var(--blue); font-weight: 600; }
+    .section-sub { margin: 0 auto 40px; max-width: 700px; text-align: center; font-size: 17px; line-height: 1.6; }
+    .match-grid { display: grid; grid-template-columns: 420px minmax(0, 1fr); gap: 32px; align-items: start; }
+    .panel { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.16); padding: 28px; }
+    .panel h3 { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+    .panel .intro { margin: 0 0 20px; color: #3B3F44; font-size: 14px; line-height: 22px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; }
+    .field input, .field select {
+      width: 100%; min-height: 46px; padding: 10px 14px;
+      border: 1px solid #9AA0A6; border-radius: 0; background: #fff; color: var(--ink); font-size: 15px;
+    }
+    .field select {
+      appearance: none; -webkit-appearance: none; padding-right: 40px;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23212529' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") right 14px center no-repeat;
+    }
+    .field input:focus, .field select:focus { outline: 2px solid rgba(0,71,187,.35); outline-offset: 1px; border-color: var(--blue); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .hint { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 18px; }
+    .panel .btn { width: 100%; min-height: 46px; margin-top: 6px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+    .btn.loading .spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .results-area { min-height: 420px; }
+    .empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+      min-height: 420px; padding: 32px; background: var(--panel); color: var(--muted);
+    }
+    .empty img { width: 64px; height: 64px; margin-bottom: 16px; }
+    .empty strong { color: var(--ink); font-size: 18px; margin-bottom: 6px; }
+    .loading-state { display: none; min-height: 420px; padding: 32px; background: var(--panel); }
+    .loading-state.show { display: block; }
+    .loading-state h4 { margin: 0 0 6px; font-size: 18px; }
+    .loading-state p { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+    .progress { height: 6px; background: #D6D9DE; overflow: hidden; }
+    .progress div { height: 100%; width: 35%; background: var(--blue); animation: slide 1.4s ease-in-out infinite; }
+    @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+    .results { display: none; }
+    .results.show { display: block; }
+    .success {
+      display: none; margin-bottom: 18px; padding: 14px 18px;
+      border-left: 5px solid var(--green); background: var(--green-bg); color: var(--green);
+      font-size: 14px; font-weight: 600;
+    }
+    .success.show { display: block; }
+    .rec { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+    .rec div { background: var(--panel); border-bottom: 4px solid var(--blue); padding: 14px 16px; min-width: 0; }
+    .rec small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .rec b { display: block; margin-top: 4px; font-size: 18px; line-height: 1.3; overflow-wrap: anywhere; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 10px 12px; border-bottom: 2px solid var(--hairline); color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-align: left; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid var(--hairline); font-size: 14px; vertical-align: top; }
+    td.inst { font-weight: 700; color: var(--blue); white-space: nowrap; }
+    td.num { text-align: right; white-space: nowrap; }
+    tr.best td { background: #EEF4FF; }
+
+    .work { background: #fff; padding: 20px 0 76px; }
+    .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .card { box-shadow: 0 2px 10px rgba(0,0,0,.16); padding: 76px 28px 30px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .card h3 { margin: 0 0 18px; font-size: 20px; font-weight: 700; }
+    .card p { margin: 0 0 24px; font-size: 17px; line-height: 1.8; flex: 1; }
+
+    .celebrate { background: var(--panel); padding: 76px 0; }
+    .celebrate h2 { margin: 0 0 24px; text-align: center; font-size: 36px; font-weight: 300; }
+    .celebrate h2 strong { font-weight: 700; }
+    .celebrate .section-sub { margin-bottom: 44px; }
+    .cel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+    .cel-grid img { display: block; width: 100%; }
+    .uni-links a { display: block; padding: 22px 10px; border-bottom: 2px solid #555; color: var(--blue); font-size: 18px; font-weight: 700; text-decoration: none; }
+
+    .site-footer { background: var(--chrome); color: #fff; padding: 52px 0 60px; }
+    .footer-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr .8fr; gap: 32px; }
+    .footer-grid img { height: 44px; }
+    .footer-grid small { display: block; margin-top: 20px; font-size: 14px; }
+    .footer-grid h5 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+    .footer-grid a { display: block; margin-bottom: 8px; color: #fff; font-size: 16px; text-decoration: none; }
+    .disclaimer { margin-top: 36px; color: #8C96A3; font-size: 12px; }
+
+    .toast {
+      position: fixed; right: 24px; bottom: 24px; z-index: 50; max-width: 420px;
+      padding: 16px 18px; background: #fff; border-left: 5px solid var(--cta); box-shadow: 0 8px 28px rgba(0,0,0,.25);
+      font-size: 14px; transform: translateY(160%); visibility: hidden; transition: transform .25s ease, visibility .25s;
+    }
+    .toast.show { transform: none; visibility: visible; }
+    .toast strong { display: block; margin-bottom: 4px; color: var(--cta); }
+
+    @media (max-width: 1000px) {
+      .wrap { padding: 0 24px; }
+      .primary-nav { display: none; }
+      .hero-photo { position: relative; width: 100%; height: 300px; border-radius: 0; }
+      .hero-copy { margin: 0; padding: 36px 24px 48px; }
+      .slider-logos { grid-template-columns: repeat(2, 1fr); }
+      .stats, .fifty-grid, .match-grid, .cards, .cel-grid, .footer-grid { grid-template-columns: 1fr; }
+      .rec { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a href="#" class="logo" aria-label="Strategic Education, Inc.">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/Header_Logo_SEI.svg" alt="Strategic Education Inc." onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="fallback">Strategic<br>Education<br>Inc.</span>
+      </a>
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="#match">Workforce Solutions</a>
+        <a href="#work">Resources</a>
+        <a href="#work">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-photo">
+      <img src="https://www.strategiceducation.com/content/dam/strategiceducation/hero_images/Hero_Enterprise_Desktop.webp" alt="Graduate celebrating at commencement" onerror="this.style.display='none'">
+    </div>
+    <div class="hero-copy">
+      <h1>Empowering minds,<strong>elevating lives</strong></h1>
+      <p>Education drives economic mobility. We create innovative, career-relevant learning experiences that prepare our learners for the workforce – today and in the future.</p>
+    </div>
+  </section>
+  <div class="gradient-bar"></div>
+
+  <section class="brand-slider" aria-label="Our institutions">
+    <div class="wrap slider-row">
+      <button class="slider-arrow" type="button" aria-label="Previous">&#8249;</button>
+      <div class="slider-logos">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/slider/Logo_02_SU_200x72.svg" alt="Strayer University" onerror="this.replaceWith(document.createTextNode('Strayer University'))">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/slider/Logo_03_CU_200x72.svg" alt="Capella University" onerror="this.replaceWith(document.createTextNode('Capella University'))">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/slider/Torrens_6.25.svg" alt="Torrens University Australia" onerror="this.replaceWith(document.createTextNode('Torrens University'))">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/slider/Sophia_Learning_horizontal_6.25.svg" alt="Sophia Learning" onerror="this.replaceWith(document.createTextNode('Sophia Learning'))">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/slider/JWMI_6.25.svg" alt="Jack Welch Management Institute" onerror="this.replaceWith(document.createTextNode('Jack Welch Management Institute'))">
+      </div>
+      <button class="slider-arrow" type="button" aria-label="Next">&#8250;</button>
+    </div>
+  </section>
+
+  <section class="charge">
+    <div class="wrap">
+      <h2><strong>Strategic Education, Inc.</strong> is leading the charge for modern, future-proof learning</h2>
+      <p>With roots in education that span more than a century, we know where learning has been and we’re shaping where it’s going next.</p>
+      <div class="stats">
+        <div><div class="stat-num">130<span>+</span></div><div class="stat-label">years of experience</div></div>
+        <div><div class="stat-num">1,400<span>+</span></div><div class="stat-label">employer partners across the U.S.</div></div>
+        <div><div class="stat-num">100K<span>+</span></div><div class="stat-label">students globally</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fifty">
+    <div class="wrap fifty-grid">
+      <div>
+        <h2>Partnership is <strong>powerful</strong></h2>
+        <p>Customize your choices. From our wholly owned tuition assistance platform to accredited degrees, non-degree skill pathways, coding schools and more. We partner with employers to create tailored workforce solutions to tackle evolving skills gaps and drive employee career growth.</p>
+        <p>Together, we’ll create a dynamic learning environment where every role has the potential to evolve and every learned skill opens new doors.</p>
+        <a class="btn" href="#match">Explore Workforce Solutions</a>
+      </div>
+      <div class="fifty-media">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/50-50/hp.50.2.1440.webp" alt="Employer and employee shaking hands" onerror="this.parentNode.style.display='none'">
+      </div>
+    </div>
+  </section>
+
+  <section class="match" id="match">
+    <div class="wrap">
+      <h2 class="section-title">Find programs for <strong>your workforce</strong></h2>
+      <p class="section-sub">Tell us about your team and we’ll match accredited degrees, skills pathways and bootcamps from across the Strategic Education network to your education benefit.</p>
+      <div class="match-grid">
+        <form class="panel" id="match-form" novalidate>
+          <h3>Workforce Solutions program match</h3>
+          <p class="intro">Matches draw from every institution in your selected partner network, with an estimate of eligible learners on your team.</p>
+          <div class="field">
+            <label for="company">Company name</label>
+            <input id="company" name="company" value="Acme Logistics" maxlength="120" required>
+          </div>
+          <div class="field">
+            <label for="email">Work email</label>
+            <input id="email" name="email" type="email" value="benefits@acme.example" required>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="teamSize">Team size</label>
+              <input id="teamSize" name="teamSize" type="number" min="1" max="100000" value="250" required>
+            </div>
+            <div class="field">
+              <label for="focusArea">Focus area</label>
+              <select id="focusArea" name="focusArea">
+                <option value="business" selected>Business &amp; Leadership</option>
+                <option value="technology">Technology &amp; Data</option>
+                <option value="healthcare">Healthcare &amp; Nursing</option>
+                <option value="education">Education &amp; Human Services</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="network">Partner network</label>
+            <select id="network" name="network">
+              <option value="all" selected>All SEI institutions (recommended)</option>
+              <option value="strayer">Strayer University only</option>
+              <option value="capella">Capella University only</option>
+              <option value="sophia">Sophia Learning only</option>
+              <option value="hackbright">Hackbright Academy only</option>
+            </select>
+            <p class="hint">The full network searches all 13 Strategic Education institutions and brands.</p>
+          </div>
+          <button class="btn" type="submit" id="match-button"><span class="spinner"></span><span id="match-label">Find matching programs</span></button>
+        </form>
+
+        <div class="results-area">
+          <div class="empty" id="empty">
+            <img src="https://www.strategiceducation.com/content/dam/strategiceducation/icons/Icon_GradCap.svg" alt="" onerror="this.style.display='none'">
+            <strong>Your program matches will appear here</strong>
+            <span>Choose a focus area and partner network, then select “Find matching programs”.</span>
+          </div>
+          <div class="loading-state" id="loading">
+            <h4>Searching partner catalogs…</h4>
+            <p id="loading-copy">Checking program availability across the Strategic Education network.</p>
+            <div class="progress"><div></div></div>
+          </div>
+          <div class="results" id="results">
+            <div class="success" id="match-success"></div>
+            <div class="rec" id="rec"></div>
+            <div class="panel" style="padding:0;overflow-x:auto">
+              <table>
+                <thead><tr><th>Institution</th><th>Program</th><th>Credential</th><th>Format</th><th style="text-align:right">Annual tuition</th></tr></thead>
+                <tbody id="match-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="work" id="work">
+    <div class="wrap">
+      <h2 class="section-title" style="margin-bottom:40px">Our work <strong>in action</strong></h2>
+      <div class="cards">
+        <div class="card"><h3>About us</h3><p>Our mission drives everything we do.</p><a class="btn" href="#">Learn more</a></div>
+        <div class="card"><h3>For investors</h3><p>News, updates and our quarterly results.</p><a class="btn" href="#">Get more info</a></div>
+        <div class="card"><h3>The newsroom</h3><p>Our latest developments and media coverage.</p><a class="btn" href="#">Stay up to date</a></div>
+        <div class="card"><h3>Careers</h3><p>Transforming education requires highly talented people.</p><a class="btn" href="#">Join our team</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="celebrate">
+    <div class="wrap">
+      <h2><strong>Celebrating</strong> our students' achievements</h2>
+      <p class="section-sub">Learn more about graduation ceremonies across our universities.</p>
+      <div class="cel-grid">
+        <img src="https://www.strategiceducation.com/content/dam/strategiceducation/50-50/GradCeremonies-dt.webp" alt="Graduation ceremony" onerror="this.style.display='none'">
+        <div class="uni-links">
+          <a href="#">Strayer University »</a>
+          <a href="#">Capella University »</a>
+          <a href="#">Jack Welch Management Institute »</a>
+          <a href="#">Torrens University »</a>
+          <a href="#">Media Design School »</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="gradient-bar"></div>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <img src="https://www.strategiceducation.com/content/dam/strategiceducation/logo/Footer_Logo_SEI.svg" alt="Strategic Education Inc" onerror="this.style.display='none'">
+          <small>© 2026 Strategic Education, Inc.</small>
+        </div>
+        <div><h5>Select Offerings</h5><a href="#">Workforce Edge</a><a href="#">Strayer University</a><a href="#">Capella University</a><a href="#">Torrens University</a><a href="#">Jack Welch Management Institute</a><a href="#">Sophia</a><a href="#">Hackbright Academy</a><a href="#">Devmountain</a></div>
+        <div><h5>About Us</h5><a href="#">Our History</a><a href="#">Careers</a><a href="#">For Investors</a><a href="#">Annual Report</a><a href="#">Insights</a><a href="#">Graduation Ceremonies</a><a href="#">Contact</a></div>
+        <div><h5>Legal</h5><a href="#">Cookie Policy</a><a href="#">Privacy</a><a href="#">Your Privacy Choices</a></div>
+        <div><h5>Follow Us</h5><a href="#">LinkedIn</a><a href="#">X</a></div>
+      </div>
+      <p class="disclaimer">NOT ACTUALLY A STRATEGIC EDUCATION SITE — internal demo only, not affiliated with, endorsed by, or a real Strategic Education, Inc. product.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert"><strong>We couldn't match programs</strong><span id="toast-copy"></span></div>
+
+  <script>
+    fetch('/api/config')
+      .then(function (response) { return response.json(); })
+      .then(function (config) {
+        if (config.lockOrg && config.defaultOrgId) localStorage.setItem('devinOrgId', config.defaultOrgId);
+        if (config.lockUser && config.defaultUserId) localStorage.setItem('devinUserId', config.defaultUserId);
+      })
+      .catch(function () {});
+
+    var form = document.getElementById('match-form');
+    var button = document.getElementById('match-button');
+    var label = document.getElementById('match-label');
+    var empty = document.getElementById('empty');
+    var loading = document.getElementById('loading');
+    var loadingCopy = document.getElementById('loading-copy');
+    var results = document.getElementById('results');
+    var success = document.getElementById('match-success');
+    var rec = document.getElementById('rec');
+    var rows = document.getElementById('match-rows');
+    var toast = document.getElementById('toast');
+    var toastTimer;
+
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function usd(value) {
+      return '$' + Number(value).toLocaleString('en-US', { maximumFractionDigits: 0 });
+    }
+    function showToast(message) {
+      document.getElementById('toast-copy').textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 6000);
+    }
+
+    function render(body) {
+      var best = body.recommendation;
+      rec.innerHTML =
+        '<div><small>Institutions searched</small><b>' + esc(body.institutionsSearched) + '</b></div>' +
+        '<div><small>Programs matched</small><b>' + esc(body.totalPrograms) + '</b></div>' +
+        '<div><small>Eligible learners (est.)</small><b>' + esc(Number(body.estimatedEligibleLearners).toLocaleString('en-US')) + '</b></div>' +
+        '<div><small>Best value</small><b>' + (best ? esc(best.institution) : '—') + '</b></div>';
+      var html = '';
+      (body.matches || []).forEach(function (match) {
+        match.programs.forEach(function (program, index) {
+          var isBest = best && best.institutionKey === match.institutionKey && best.program === program.program;
+          html += '<tr class="' + (isBest ? 'best' : '') + '">' +
+            '<td class="inst">' + (index === 0 ? esc(match.institution) : '') + '</td>' +
+            '<td>' + esc(program.program) + (isBest ? ' <strong style="color:var(--green)">· Best value</strong>' : '') + '</td>' +
+            '<td>' + esc(program.credential) + '</td>' +
+            '<td>' + esc(program.format) + '</td>' +
+            '<td class="num">' + usd(program.annualTuitionUsd) + '</td></tr>';
+        });
+      });
+      rows.innerHTML = html || '<tr><td colspan="5">No programs in this network match the selected focus area.</td></tr>';
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      toast.classList.remove('show');
+      success.classList.remove('show');
+      results.classList.remove('show');
+      empty.style.display = 'none';
+      loading.classList.add('show');
+      var networkSelect = document.getElementById('network');
+      loadingCopy.textContent = 'Checking program availability across ' + networkSelect.options[networkSelect.selectedIndex].text.replace(' (recommended)', '') + '.';
+      button.disabled = true;
+      button.classList.add('loading');
+      label.textContent = 'Matching programs…';
+
+      var payload = {
+        company: document.getElementById('company').value,
+        email: document.getElementById('email').value,
+        teamSize: Number(document.getElementById('teamSize').value),
+        focusArea: document.getElementById('focusArea').value,
+        network: networkSelect.value,
+        devinUserId: localStorage.getItem('devinUserId') || '',
+        devinOrgId: localStorage.getItem('devinOrgId') || 'org_69IXJFLrljx8zSAw',
+        devinEmail: localStorage.getItem('devinEmail') || '',
+      };
+
+      fetch('/api/fd043af6/program-match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (response) {
+          return response.json().then(function (body) { return { ok: response.ok, body: body }; });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.body.success) {
+            empty.style.display = '';
+            showToast((result.body.errorClass || 'Error') + ': ' + (result.body.error || 'Unknown error') +
+              ' · ' + (result.body.code || 'PROGRAM_MATCH_FAILED'));
+            return;
+          }
+          var body = result.body;
+          success.textContent = 'Match ' + body.matchId + ' ready — ' + body.totalPrograms + ' ' + body.focusArea.label +
+            ' programs across ' + body.matches.length + ' institutions for ' + body.company + ' (' + body.network.label + ').';
+          success.classList.add('show');
+          render(body);
+          results.classList.add('show');
+        })
+        .catch(function (error) {
+          empty.style.display = '';
+          showToast('NetworkError: ' + error.message);
+        })
+        .finally(function () {
+          loading.classList.remove('show');
+          button.disabled = false;
+          button.classList.remove('loading');
+          label.textContent = 'Find matching programs';
+        });
+    });
+  </script>
+</body>
+</html>
