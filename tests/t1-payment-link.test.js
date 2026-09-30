@@ -1,4 +1,4 @@
-/* global describe, expect, test, jest, beforeEach */
+/* global describe, expect, test, jest, beforeEach, afterEach */
 
 jest.mock('../app/services/devin-session', () => ({
   createSessionAndAlert: jest.fn(() => Promise.resolve({ triggered: false })),
@@ -29,6 +29,8 @@ const {
 } = require('../app/services/verticals/t1');
 const t1Routes = require('../app/routes/verticals/t1');
 const t1Customer = require('../config/customers/t1');
+const { isInstantPathEvent } = require('../app/routes/sentry-webhook');
+const SEED_RECENT_LINKS = RECENT_LINKS.map((link) => ({ ...link }));
 
 const VALID_LINK = {
   amount: 1250,
@@ -80,6 +82,10 @@ beforeEach(() => {
   Sentry.captureException.mockClear();
 });
 
+afterEach(() => {
+  RECENT_LINKS.splice(0, RECENT_LINKS.length, ...SEED_RECENT_LINKS.map((link) => ({ ...link })));
+});
+
 describe('T1 Pagos payment links', () => {
   test('SPEI link creation fails on the migrated provider code and raises an alert', async () => {
     await expect(createPaymentLink(VALID_LINK)).rejects.toThrow(
@@ -98,6 +104,7 @@ describe('T1 Pagos payment links', () => {
   test('card-only link creation succeeds without an SPEI field or alert', async () => {
     const result = await createPaymentLink({
       ...VALID_LINK,
+      concept: '  Mensualidad Yoga Flow  ',
       methods: { card: true, msi: false, spei: false },
     });
 
@@ -105,8 +112,31 @@ describe('T1 Pagos payment links', () => {
     expect(result.link.url).toMatch(/^https:\/\/payments\.t1\.com\/l\/T1L-[A-Z0-9]{5}$/);
     expect(result.link).not.toHaveProperty('spei');
     expect(result.link.methods).toEqual([PAYMENT_METHODS.card.label]);
+    expect(RECENT_LINKS[0]).toMatchObject({
+      code: result.link.code,
+      concept: 'Mensualidad Yoga Flow',
+      amount: 1250,
+      currency: 'MXN',
+      status: 'activo',
+      createdAt: result.createdAt,
+    });
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('caps the recent-link list at ten entries', async () => {
+    RECENT_LINKS.splice(0, RECENT_LINKS.length, ...Array.from({ length: 10 }, (_, index) => ({
+      ...SEED_RECENT_LINKS[0],
+      code: `T1L-${index}`,
+    })));
+
+    const result = await createPaymentLink({
+      ...VALID_LINK,
+      methods: { card: true, msi: false, spei: false },
+    });
+
+    expect(RECENT_LINKS).toHaveLength(10);
+    expect(RECENT_LINKS[0].code).toBe(result.link.code);
   });
 
   test('MSI card links include all installment terms', async () => {
@@ -252,6 +282,9 @@ describe('T1 Pagos payment links', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.link.url).toMatch(/^https:\/\/payments\.t1\.com\/l\/T1L-[A-Z0-9]{5}$/);
     expect(response.body.link).not.toHaveProperty('spei');
+
+    const dashboard = await request('GET', '/api/t1/merchant');
+    expect(dashboard.body.recentLinks[0].code).toBe(response.body.link.code);
   });
 
   test('payment-link route maps service errors and validation to their API responses', async () => {
@@ -283,5 +316,22 @@ describe('T1 Pagos payment links', () => {
       triggerMode: 'api',
       aliases: ['t1pagos', 't1tienda'],
     });
+  });
+
+  test('the Sentry webhook treats T1 events as already alerted', () => {
+    expect(isInstantPathEvent({
+      tags: [['alert_path', 'instant'], ['service', 't1-pagos-payment-links']],
+      culprit: '',
+    })).toBe(true);
+
+    expect(isInstantPathEvent({
+      tags: [],
+      culprit: 'app/services/verticals/t1.js — createPaymentLink',
+    })).toBe(true);
+
+    expect(isInstantPathEvent({
+      tags: [],
+      culprit: 'app/services/other.js — handleCallback',
+    })).toBe(false);
   });
 });

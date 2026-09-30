@@ -236,6 +236,15 @@ async function createPaymentLink(data = {}) {
 
     const duration = Date.now() - startTime;
     const createdAt = new Date().toISOString();
+    RECENT_LINKS.unshift({
+      code,
+      concept: selectedMethods.concept,
+      amount: selectedMethods.amount,
+      currency: 'MXN',
+      status: 'activo',
+      createdAt,
+    });
+    RECENT_LINKS.length = Math.min(RECENT_LINKS.length, 10);
     incrementMetric('t1_payment_link.success', { route: ROUTE, methods: methodsTag });
     recordTiming('t1_payment_link.latency', duration, { route: ROUTE });
 

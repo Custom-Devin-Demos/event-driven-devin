@@ -513,7 +513,11 @@
       function $(id) { return document.getElementById(id); }
       function stored(key) { return localStorage.getItem(key) || ''; }
       function money(n) { return '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-      function parseAmount(v) { var n = Number.parseFloat(String(v).replace(/[^0-9.]/g, '')); return Number.isFinite(n) ? n : Number.NaN; }
+      function parseAmount(v) {
+        var s = String(v).trim();
+        if (!/^(\d{1,3}(,\d{3})+|\d+)(\.\d{1,2})?$/.test(s)) return Number.NaN;
+        return Number.parseFloat(s.replace(/,/g, ''));
+      }
 
       /* ---------- routing ---------- */
       function show(name) {
@@ -556,26 +560,29 @@
       $('promptSend').addEventListener('click', function () { if (prompt.value.trim()) location.hash = 'pagos'; });
 
       /* ---------- merchant + recent links ---------- */
-      fetch('/api/t1/merchant').then(function (r) { return r.json(); }).then(function (d) {
-        var m = d.merchant || {};
-        if (m.businessName) $('storeName').textContent = m.businessName;
-        if (m.initials) $('storeInitials').textContent = m.initials;
-        if (m.owner) $('ownerName').textContent = m.owner;
-        if (m.ownerInitials) $('ownerInitials').textContent = m.ownerInitials;
-        if (m.onboardingTotal) $('onboardStep').textContent = m.onboardingStep + '/' + m.onboardingTotal;
-        var body = $('recentLinks');
-        body.textContent = '';
-        (d.recentLinks || []).forEach(function (l) {
-          var tr = document.createElement('tr');
-          [[l.code, 'mono'], [l.concept], [money(l.amount) + ' MXN'], [l.status, 'status'], [new Date(l.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })]].forEach(function (c) {
-            var td = document.createElement('td');
-            if (c[1] === 'status') { var s = document.createElement('span'); s.className = 'status ' + c[0]; s.textContent = c[0]; td.appendChild(s); }
-            else { td.textContent = c[0]; if (c[1]) td.className = c[1]; }
-            tr.appendChild(td);
+      function loadMerchant() {
+        return fetch('/api/t1/merchant').then(function (r) { return r.json(); }).then(function (d) {
+          var m = d.merchant || {};
+          if (m.businessName) $('storeName').textContent = m.businessName;
+          if (m.initials) $('storeInitials').textContent = m.initials;
+          if (m.owner) $('ownerName').textContent = m.owner;
+          if (m.ownerInitials) $('ownerInitials').textContent = m.ownerInitials;
+          if (m.onboardingTotal) $('onboardStep').textContent = m.onboardingStep + '/' + m.onboardingTotal;
+          var body = $('recentLinks');
+          body.textContent = '';
+          (d.recentLinks || []).forEach(function (l) {
+            var tr = document.createElement('tr');
+            [[l.code, 'mono'], [l.concept], [money(l.amount) + ' MXN'], [l.status, 'status'], [new Date(l.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })]].forEach(function (c) {
+              var td = document.createElement('td');
+              if (c[1] === 'status') { var s = document.createElement('span'); s.className = 'status ' + c[0]; s.textContent = c[0]; td.appendChild(s); }
+              else { td.textContent = c[0]; if (c[1]) td.className = c[1]; }
+              tr.appendChild(td);
+            });
+            body.appendChild(tr);
           });
-          body.appendChild(tr);
-        });
-      }).catch(function () { $('recentLinks').innerHTML = '<tr><td colspan="5">Sin links recientes</td></tr>'; });
+        }).catch(function () { $('recentLinks').innerHTML = '<tr><td colspan="5">Sin links recientes</td></tr>'; });
+      }
+      loadMerchant();
 
       /* ---------- create form + live preview ---------- */
       var amountEl = $('amount'), conceptEl = $('concept'), mCard = $('mCard'), mMsi = $('mMsi'), mSpei = $('mSpei');
@@ -730,6 +737,7 @@
             wrap.appendChild(ul);
             renderResult('success', 'Link de pago creado', link.concept + ' \u00b7 ' + money(link.amount) + ' ' + (link.currency || 'MXN'), wrap);
             toast('Tu link de pago est\u00e1 listo para compartir.');
+            loadMerchant();
           })
           .catch(function (err) { renderResult('error', 'Error de red', err.message); })
           .finally(function () { btn.disabled = false; btn.textContent = 'Crear enlace'; });
