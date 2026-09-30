@@ -1313,6 +1313,22 @@ const ONCALL_SKINS = {
     supportCenter: 'T-Systems Service Desk',
     disclaimer: 'NOT ACTUALLY A T-SYSTEMS SITE — internal demo only, not affiliated with, endorsed by, or a real T-Systems / Deutsche Telekom product.',
   },
+  'c7bbced4': {
+    slug: 'c7bbced4',
+    company: 'Nebius',
+    brandMark: 'N',
+    vertical: 'hightech',
+    page: { file: 'c7bbced4.html', title: 'Reserve GPU cluster | Nebius AI Cloud' },
+    theme: {
+      '--accent': '#052B42',
+      '--ink': '#052B42',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#052B42',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Nebius Support',
+    disclaimer: 'NOT ACTUALLY A NEBIUS SITE — internal demo only, not affiliated with, endorsed by, or a real Nebius product.',
+  },
   '1c4b185f': {
     slug: '1c4b185f',
     company: 'Stellantis Financial Services',
