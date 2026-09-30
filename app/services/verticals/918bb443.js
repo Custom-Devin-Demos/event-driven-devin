@@ -168,7 +168,7 @@ function formatUploadResult(upload, template, mappings, validation) {
  */
 async function processTemplateUpload(data) {
   const startTime = Date.now();
-  const requestId = uuidv4();
+  const requestId = data.requestId || uuidv4();
 
   logger.info('Processing template upload', {
     requestId,
@@ -207,7 +207,7 @@ async function processTemplateUpload(data) {
     });
 
     Sentry.captureException(error, {
-      tags: { route: ROUTE, service: SERVICE },
+      tags: { route: ROUTE, service: SERVICE, alert_path: 'instant' },
       extra: {
         requestId,
         uploadId: data.upload.uploadId,

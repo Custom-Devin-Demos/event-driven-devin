@@ -77,6 +77,7 @@ describe('template studio upload (918bb443)', () => {
     expect(alert.service).toBe('918bb443-api');
     expect(alert.customer).toBeUndefined();
     expect(alert.culprit).toContain('processTemplateUpload');
+    expect(Sentry.captureException.mock.calls[0][1].tags.alert_path).toBe('instant');
   });
 
   test('unknown uploads return 404 without raising an alert', async () => {

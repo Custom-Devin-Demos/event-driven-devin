@@ -399,6 +399,19 @@
     }
 
     function fail(check, body) {
+      if (body.transport) {
+        setCheck(check.id, 'failed', 'Failed', 'Template intake service could not be reached');
+        CHECKS.slice(CHECKS.indexOf(check) + 1).forEach(function (c) { setCheck(c.id, 'skipped', 'Not run'); });
+        $('runPill').className = 'pill red'; $('runPill').textContent = 'Checks interrupted';
+        $('stagePill').className = 'pill'; $('stagePill').textContent = 'Staged';
+        $('resultBox').className = 'result-box'; $('resultBox').style.display = 'block';
+        $('resultTitle').textContent = 'Connection lost — upload not sent';
+        $('resultMsg').textContent = 'We couldn\'t reach the template intake service. Check your connection and retry; your staged file is unchanged.';
+        $('resultDetail').style.display = 'none';
+        $('resultRef').textContent = '';
+        showToast('Upload interrupted', 'Template intake service could not be reached.');
+        return;
+      }
       setCheck(check.id, 'failed', 'Failed', 'Template could not be identified against the Groupe library');
       var idx = CHECKS.indexOf(check);
       CHECKS.slice(idx + 1).forEach(function (c) { setCheck(c.id, 'skipped', 'Not run'); });
@@ -448,7 +461,7 @@
             if (apiResult && apiResult.ok && c.id === 'publish') c.detail = 'Handed to Q4 Vertuo Launch — Press Office';
             return animateBar(c.id, 0, 100, c.ms).then(function () { setCheck(c.id, 'done', 'Passed', c.detail || ''); });
           }
-          var req = callUpload().catch(function () { return { ok: false, body: { error: 'Network error contacting template intake service' } }; });
+          var req = callUpload().catch(function () { return { ok: false, body: { transport: true } }; });
           return animateBar(c.id, 0, 72, c.ms).then(function () { return req; }).then(function (res) {
             apiResult = res;
             if (!res.ok || !res.body.success) {

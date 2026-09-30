@@ -52,6 +52,7 @@ router.post('/api/918bb443/templates/upload', async (req, res) => {
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,
+      requestId: req.requestId,
     });
     return res.json(result);
   } catch (error) {
