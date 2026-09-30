@@ -13,10 +13,6 @@ const {
   SCENARIO: NEXEN_SCENARIO,
 } = require('../services/verticals/9bfabd45');
 const {
-  APP_REMEDIATION_DIRECTIVE: CAPITAL_IQ_REMEDIATION_DIRECTIVE,
-  SCENARIO: CAPITAL_IQ_SCENARIO,
-} = require('../services/verticals/c28a3fe9');
-const {
   APP_REMEDIATION_DIRECTIVE: PLAN_PRICING_REMEDIATION_DIRECTIVE,
   SCENARIO: PLAN_PRICING_SCENARIO,
 } = require('../services/verticals/a75ccde9');
@@ -388,22 +384,6 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-9bfabd45-web',
       service: 'customer-9bfabd45-web',
       scenario: NEXEN_SCENARIO,
-    },
-  },
-  // S&P Capital IQ Pro Market Monitor (github.com/rdf004/s-and-p-event-driven-demo):
-  // a Vite/React SPA hosted at /c28a3fe9/app. Reports arrive via
-  // /api/c28a3fe9/error; remediation lands in the Market Monitor repo.
-  'c28a3fe9': {
-    customer: 'c28a3fe9',
-    verticalLabel: 'S&P Capital IQ Pro',
-    service: 'customer-c28a3fe9-web',
-    project: 'capital-iq-market-monitor',
-    release: 'capital-iq-demo@0.1.0',
-    promptAppendix: CAPITAL_IQ_REMEDIATION_DIRECTIVE,
-    tagOverrides: {
-      customer: 'customer-c28a3fe9-web',
-      service: 'customer-c28a3fe9-web',
-      scenario: CAPITAL_IQ_SCENARIO,
     },
   },
   'a75ccde9': {
