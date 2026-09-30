@@ -2686,6 +2686,25 @@ const ONCALL_SKINS = {
     supportCenter: 'Northern Trust Private Passport Help Center',
     disclaimer: 'NOT ACTUALLY A NORTHERN TRUST SITE — internal demo only, not affiliated with, endorsed by, or a real Northern Trust product.',
   },
+  '8138f16b': {
+    slug: '8138f16b',
+    company: 'QBE Insurance',
+    brandMark: 'Q',
+    vertical: 'insurance',
+    oncallOnly: true,
+    page: { file: '8138f16b.html', title: 'c.change | Lodge a Claim' },
+    theme: {
+      '--accent': '#2e5ea8',
+      '--ink': '#1a1a1a',
+      '--surface': '#e6e4e7',
+      '--chrome-bg': '#003494',
+      '--chrome-text': '#FFFFFF',
+    },
+    devinSession: { auto: true },
+    supportCenter: 'QBE Broker Support',
+    supportCenterSub: 'c.change Partner Portal',
+    disclaimer: 'NOT ACTUALLY A QBE SITE — internal demo only, not affiliated with, endorsed by, or a real QBE Insurance product.',
+  },
 };
 
 function getOncallSkin(slug) {

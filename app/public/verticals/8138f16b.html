@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>c.change | Lodge a Claim</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --cc-navy: #003494;
+      --cc-bar: #2e5ea8;
+      --cc-bar-light: #3161b2;
+      --cc-orange: #ec932b;
+      --cc-caption: #394792;
+      --cc-panel: #e6e4e7;
+      --cc-grey-head: #c4c4c8;
+      --cc-ink: #1a1a1a;
+      --cc-muted: #636363;
+      --cc-field-border: #7f9db9;
+    }
+
+    body {
+      margin: 0;
+      background: #fff;
+      color: var(--cc-ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    a { color: var(--cc-caption); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .cc-shell { max-width: 960px; margin: 0 auto; }
+
+    /* ---------- Masthead ---------- */
+    .cc-masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px 4px 28px;
+      min-height: 58px;
+    }
+    .cc-logo { display: flex; align-items: center; }
+    .cc-logo img { display: block; width: 114px; height: 47px; }
+    .cc-logo-fallback {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-family: Arial, sans-serif;
+      font-size: 22px;
+      color: #1c4e9c;
+      letter-spacing: -0.3px;
+    }
+    .cc-logo-fallback .chev { display: inline-flex; gap: 2px; }
+    .cc-logo-fallback .chev i {
+      display: block; width: 0; height: 0;
+      border-top: 11px solid transparent; border-bottom: 11px solid transparent;
+    }
+    .cc-logo-fallback .chev i:first-child { border-right: 14px solid #1c7fd6; }
+    .cc-logo-fallback .chev i:last-child { border-left: 14px solid #f28c00; }
+
+    .cc-account { display: flex; align-items: flex-start; gap: 14px; }
+    .cc-logout {
+      margin-top: 10px;
+      background: linear-gradient(#f7a64a, #ec8a1e);
+      border: 1px solid #d07512;
+      color: #fff;
+      font-size: 10px;
+      padding: 5px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: Arial, sans-serif;
+    }
+    .cc-profile {
+      display: grid;
+      grid-template-columns: auto auto;
+      column-gap: 10px;
+      font-size: 11px;
+      color: var(--cc-caption);
+      border-left: 1px solid #d5d8e4;
+      padding-left: 8px;
+    }
+    .cc-profile .k { color: var(--cc-caption); text-align: right; }
+    .cc-profile .k.dim { color: #8a93c0; }
+    .cc-profile .v { color: #1c4e9c; }
+
+    /* ---------- Nav bar ---------- */
+    .cc-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--cc-navy);
+      color: #fff;
+      font-size: 11px;
+      height: 20px;
+      padding: 0 6px;
+    }
+    .cc-nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; }
+    .cc-nav li + li::before { content: '|'; color: #b8c4e6; margin: 0 6px; }
+    .cc-nav a { color: #fff; }
+    .cc-nav a.active { color: #ffc27a; }
+    .cc-quick { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .cc-quick input {
+      width: 140px; height: 15px; border: 0; padding: 0 4px;
+      font-size: 11px; font-family: Arial, sans-serif;
+    }
+    .cc-quick a { color: #fff; }
+
+    /* ---------- Content frame ---------- */
+    .cc-frame { position: relative; margin: 0 6px; }
+    .cc-titlerow {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 4px 10px 0 12px;
+    }
+    .cc-screen-title {
+      background: linear-gradient(var(--cc-bar-light), #24519c);
+      background-image:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 3px),
+        linear-gradient(var(--cc-bar-light), #24519c);
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 3px 60px 3px 8px;
+    }
+    .cc-policyno {
+      font-family: Verdana, Arial, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      padding-bottom: 3px;
+    }
+    .cc-body {
+      background: var(--cc-panel);
+      margin: 0 10px 0 12px;
+      padding: 10px 12px 14px;
+      min-height: 380px;
+    }
+
+    .cc-tabs { display: flex; gap: 2px; border-bottom: 3px solid var(--cc-orange); margin: -2px -12px 10px; padding: 0 0 0 0; }
+    .cc-tab {
+      background: var(--cc-navy);
+      color: #fff;
+      font-weight: bold;
+      font-size: 12px;
+      padding: 3px 22px;
+      font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+    .cc-tab.active { background: var(--cc-orange); }
+
+    .cc-intro { margin: 0 0 12px; }
+
+    .cc-grid { display: grid; grid-template-columns: 1fr 1fr 170px; gap: 14px; align-items: start; }
+
+    .cc-fieldrow { display: grid; grid-template-columns: 128px 1fr; align-items: center; margin-bottom: 6px; }
+    .cc-label {
+      font-family: Tahoma, Verdana, Arial, sans-serif;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .cc-label .req { color: #c0392b; }
+    select, input[type="text"], input[type="number"], textarea {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      border: 1px solid var(--cc-field-border);
+      background: #fff;
+      padding: 2px 3px;
+      height: 21px;
+      width: 100%;
+      color: var(--cc-ink);
+    }
+    textarea { height: 52px; resize: vertical; }
+    .cc-hint { color: var(--cc-muted); font-size: 11px; }
+
+    .cc-panel { border: 2px solid var(--cc-orange); background: var(--cc-panel); }
+    .cc-panel-head {
+      background: var(--cc-orange);
+      color: #fff;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 2px 6px 3px;
+      font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+    .cc-panel-body { padding: 6px 6px 4px; }
+    .cc-panel.grey { border-color: var(--cc-grey-head); }
+    .cc-panel.grey .cc-panel-head { background: var(--cc-grey-head); }
+    .cc-panel.grey .cc-fieldrow { grid-template-columns: 110px 1fr; }
+    .cc-ro { font-size: 12px; min-height: 21px; display: flex; align-items: center; }
+
+    .cc-summary { background: #fff; border: 1px solid #b9b9b9; padding: 8px; }
+    .cc-summary table { width: 100%; border-collapse: collapse; }
+    .cc-summary td { padding: 3px 0; font-size: 11px; }
+    .cc-summary td:last-child { text-align: right; }
+    .cc-summary tr.strong td { font-weight: bold; font-size: 12px; }
+
+    .cc-actions-row { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+    .cc-greybtn {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      background: linear-gradient(#fdfdfd, #e2e2e2);
+      border: 1px solid #7a7a7a;
+      border-radius: 3px;
+      padding: 3px 14px;
+      cursor: pointer;
+    }
+    .cc-status { font-family: Tahoma, Verdana, Arial, sans-serif; font-weight: bold; }
+    .cc-wait { display: none; color: var(--cc-caption); font-size: 11px; margin-top: 8px; }
+    .cc-wait.show { display: block; }
+
+    /* ---------- Bottom action bar ---------- */
+    .cc-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 60px;
+      align-items: center;
+      margin: 0 10px 0 12px;
+      background-color: var(--cc-bar);
+      background-image:
+        repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 3px);
+      color: #fff;
+      height: 22px;
+      font-size: 13px;
+    }
+    .cc-bar a, .cc-bar button {
+      color: #fff;
+      text-align: center;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+    }
+    .cc-bar button {
+      background: #2e5ea8;
+      border: 0;
+      padding: 0;
+      height: 100%;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .cc-bar button:disabled { cursor: progress; color: #c9d6ee; }
+    .cc-version { color: #a9bde3; font-size: 11px; text-align: right; padding-right: 8px; }
+
+    .cc-footer { color: #8b8b8b; font-size: 10px; padding: 8px 22px 24px; display: flex; justify-content: space-between; }
+
+    /* ---------- Result panels (classic error / confirmation screens) ---------- */
+    .result-box { display: none; }
+    .result-box.error, .result-box.success {
+      display: block;
+      position: absolute;
+      left: 12px; right: 10px; top: 26px;
+      bottom: 0;
+      background: #fff;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+    }
+    .cc-err-head {
+      background-color: var(--cc-bar);
+      background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px);
+      color: #fff; font-weight: bold; font-size: 13px; padding: 2px 6px;
+    }
+    .cc-err-body { flex: 1; padding: 6px 8px 12px; font-size: 12px; }
+    .cc-err-body p { margin: 0 0 14px; }
+    .cc-err-body p.b { font-weight: bold; }
+    .cc-err-body table { border-collapse: collapse; margin-bottom: 14px; }
+    .cc-err-body td { padding: 0 6px 0 0; font-size: 12px; }
+    .cc-err-body td.k { font-weight: bold; width: 180px; }
+    .cc-err-foot {
+      background-color: var(--cc-bar);
+      background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 3px);
+      text-align: center; height: 22px; line-height: 22px;
+    }
+    .cc-err-foot button {
+      background: transparent; border: 0; color: #fff; font-size: 13px; cursor: pointer; font-family: Arial, sans-serif;
+    }
+
+    @media (max-width: 720px) {
+      .cc-masthead { padding: 6px 10px; flex-wrap: wrap; gap: 6px; }
+      .cc-profile { display: none; }
+      .cc-nav { height: auto; flex-wrap: wrap; padding: 4px 6px; gap: 4px; }
+      .cc-quick input { width: 110px; }
+      .cc-frame { margin: 0; }
+      .cc-titlerow { padding: 4px 8px 0; flex-wrap: wrap; gap: 4px; }
+      .cc-screen-title { padding-right: 20px; }
+      .cc-body { margin: 0 8px; padding: 10px 8px 14px; }
+      .cc-tabs { margin: -2px -8px 10px; overflow-x: auto; }
+      .cc-tab { padding: 3px 10px; white-space: nowrap; }
+      .cc-grid { grid-template-columns: 1fr; }
+      .cc-fieldrow { grid-template-columns: 1fr; gap: 2px; }
+      .cc-panel.grey .cc-fieldrow { grid-template-columns: 110px 1fr; }
+      select, input[type="text"], input[type="number"], textarea { height: 32px; font-size: 14px; }
+      textarea { height: 64px; }
+      .cc-bar { margin: 0 8px; height: auto; grid-template-columns: repeat(4, 1fr); }
+      .cc-bar a { padding: 12px 0; }
+      .cc-bar button { min-height: 44px; }
+      .cc-version { display: none; }
+      .result-box.error, .result-box.success { left: 8px; right: 8px; }
+      .cc-footer { flex-direction: column; gap: 4px; padding-bottom: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cc-shell">
+    <header class="cc-masthead">
+      <a class="cc-logo" href="#" aria-label="c.change home">
+        <img src="https://cchange.qbe.com/images/cchange_mm.gif" alt="c.change"
+             onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-flex';">
+        <span class="cc-logo-fallback"><span class="chev"><i></i><i></i></span>c.ch@nge</span>
+      </a>
+      <div class="cc-account">
+        <button type="button" class="cc-logout">Logout</button>
+        <div class="cc-profile">
+          <span class="k">My profile</span><span class="v">Alex Morgan</span>
+          <span class="k"></span><span class="v">Harbourside Insurance Brokers</span>
+          <span class="k dim">modify&raquo;</span><span class="v">a.morgan@harbourside-brokers.example</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="cc-nav" aria-label="c.change">
+      <ul>
+        <li><a href="#">home</a></li>
+        <li><a href="#">writenow</a></li>
+        <li><a href="#" class="active">claimwrite</a></li>
+        <li><a href="#">writepay</a></li>
+        <li><a href="#">help</a></li>
+        <li><a href="#">admin</a></li>
+        <li><a href="#">complaint</a></li>
+      </ul>
+      <div class="cc-quick">
+        <span>quick inquiry</span>
+        <input type="text" aria-label="Quick inquiry">
+        <a href="#">go&raquo;</a>
+      </div>
+    </nav>
+
+    <main class="cc-frame">
+      <form id="claimForm" autocomplete="off">
+        <div class="cc-titlerow">
+          <div class="cc-screen-title">Lodge a Claim</div>
+          <div class="cc-policyno">Policy No.<span id="policyNo">30A831609HPK</span></div>
+        </div>
+
+        <div class="cc-body">
+          <div class="cc-tabs" role="tablist">
+            <span class="cc-tab">Policy</span>
+            <span class="cc-tab">Customer</span>
+            <span class="cc-tab active">Incident</span>
+            <span class="cc-tab">Documents</span>
+            <span class="cc-tab">Confirm</span>
+          </div>
+
+          <p class="cc-intro">Please enter the details of the loss for the policy selected below. Fields marked <span style="color:#c0392b">*</span> are mandatory.<br>
+            An express claim number will be issued once the claim has been lodged with QBE.</p>
+
+          <div class="cc-fieldrow" style="max-width:560px">
+            <label class="cc-label" for="policyId">Policy:<span class="req">*</span></label>
+            <select id="policyId">
+              <option value="POL-5002" data-no="30A831609HPK" data-product="Home &amp; Contents (HPK)" data-insured="B MARTINEZ" data-situation="14 WARATAH ST, BALMAIN NSW 2041" data-excess="1000" data-period="14/05/2026 &ndash; 14/05/2027" data-status="In Force">30A831609HPK &mdash; Home &amp; Contents &mdash; B MARTINEZ</option>
+              <option value="POL-5001" data-no="40M517204MVA" data-product="Private Motor (MVA)" data-insured="A CHEN" data-situation="2019 TOYOTA RAV4 GXL &mdash; CKJ42L" data-excess="500" data-period="02/11/2025 &ndash; 02/11/2026" data-status="In Force">40M517204MVA &mdash; Private Motor &mdash; A CHEN</option>
+              <option value="POL-5004" data-no="40C228871MPA" data-product="Commercial Motor (MPA)" data-insured="D PARK PLUMBING PTY LTD" data-situation="2021 ISUZU NPR 45-155 &mdash; XR91PK" data-excess="250" data-period="01/07/2026 &ndash; 01/07/2027" data-status="In Force &mdash; Fleet">40C228871MPA &mdash; Commercial Motor &mdash; D PARK PLUMBING</option>
+            </select>
+          </div>
+
+          <div class="cc-grid" style="margin-top:10px">
+            <div class="cc-panel">
+              <div class="cc-panel-head">Incident Details</div>
+              <div class="cc-panel-body">
+                <div class="cc-fieldrow">
+                  <label class="cc-label" for="claimType">Cause of Loss:<span class="req">*</span></label>
+                  <select id="claimType">
+                    <option value="weather">Storm / Weather Damage</option>
+                    <option value="theft">Theft / Burglary</option>
+                    <option value="collision">Motor Vehicle Collision</option>
+                    <option value="liability">Third Party Liability</option>
+                  </select>
+                </div>
+                <div class="cc-fieldrow">
+                  <label class="cc-label" for="lossDate">Date of Loss:<span class="req">*</span></label>
+                  <input type="text" id="lossDate" value="">
+                </div>
+                <div class="cc-fieldrow">
+                  <label class="cc-label" for="amount">Estimated Loss:<span class="req">*</span></label>
+                  <input type="number" id="amount" value="8400" min="1" step="0.01" required>
+                </div>
+                <div class="cc-fieldrow" style="align-items:start">
+                  <label class="cc-label" for="description" style="padding-top:3px">Description:<span class="req">*</span></label>
+                  <textarea id="description" required>Roof sheeting lifted during overnight storm, water through ceiling in rear bedroom and lounge.</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="cc-panel grey">
+              <div class="cc-panel-head">Policy Summary</div>
+              <div class="cc-panel-body">
+                <div class="cc-fieldrow"><span class="cc-label">Insured:</span><span class="cc-ro" id="sumInsured">B MARTINEZ</span></div>
+                <div class="cc-fieldrow"><span class="cc-label">Product:</span><span class="cc-ro" id="sumProduct">Home &amp; Contents (HPK)</span></div>
+                <div class="cc-fieldrow"><span class="cc-label">Situation:</span><span class="cc-ro" id="sumSituation">14 WARATAH ST, BALMAIN NSW 2041</span></div>
+                <div class="cc-fieldrow"><span class="cc-label">Period:</span><span class="cc-ro" id="sumPeriod">14/05/2026 &ndash; 14/05/2027</span></div>
+                <div class="cc-fieldrow"><span class="cc-label">Status:</span><span class="cc-ro" id="sumStatus">In Force</span></div>
+              </div>
+            </div>
+
+            <div class="cc-summary" aria-live="polite">
+              <table>
+                <tr class="strong"><td>Estimated Loss</td><td id="sumAmount">$8,400.00</td></tr>
+                <tr><td>Policy Excess</td><td id="sumExcess">$1,000.00</td></tr>
+                <tr><td>GST Registered</td><td>No</td></tr>
+                <tr class="strong"><td>Net Claimable</td><td id="sumNet">$7,400.00</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="cc-actions-row">
+            <button type="button" class="cc-greybtn">Upload Document</button>
+            <span class="cc-status">No Supporting Documents Attached</span>
+          </div>
+          <div class="cc-wait" id="ccWait">Lodging claim with QBE &mdash; please wait, do not press Back or Refresh&hellip;</div>
+        </div>
+
+        <div class="cc-bar">
+          <a href="#">Back</a>
+          <a href="#">Abandon</a>
+          <a href="#">Options</a>
+          <button type="submit" id="submitBtn">Lodge Claim</button>
+          <span class="cc-version">6.4.0</span>
+        </div>
+      </form>
+
+      <div id="result" class="result-box" role="status" aria-live="polite"></div>
+    </main>
+
+    <div class="cc-footer">
+      <span>&copy; QBE Insurance (Australia) Limited</span>
+      <span>c.change &mdash; Partner Portal</span>
+    </div>
+  </div>
+
+  <script>
+    /* Ensure locked-mode config is in localStorage for direct navigation */
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    (function () {
+      var form = document.getElementById('claimForm');
+      var policyId = document.getElementById('policyId');
+      var claimType = document.getElementById('claimType');
+      var amount = document.getElementById('amount');
+      var description = document.getElementById('description');
+      var lossDate = document.getElementById('lossDate');
+      var result = document.getElementById('result');
+      var wait = document.getElementById('ccWait');
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function ddmmyyyy(d) { return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear(); }
+      function money(v) { return '$' + v.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function randomId(len) {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var out = '';
+        for (var i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+        return out;
+      }
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      var yesterday = new Date(Date.now() - 86400000);
+      lossDate.value = ddmmyyyy(yesterday);
+
+      function updateSummary() {
+        var opt = policyId.options[policyId.selectedIndex];
+        var excess = parseFloat(opt.dataset.excess) || 0;
+        var value = parseFloat(amount.value);
+        document.getElementById('policyNo').textContent = opt.dataset.no;
+        document.getElementById('sumInsured').textContent = opt.dataset.insured;
+        document.getElementById('sumProduct').textContent = opt.dataset.product;
+        document.getElementById('sumSituation').innerHTML = opt.dataset.situation;
+        document.getElementById('sumPeriod').innerHTML = opt.dataset.period;
+        document.getElementById('sumStatus').innerHTML = opt.dataset.status;
+        document.getElementById('sumExcess').textContent = money(excess);
+        document.getElementById('sumAmount').textContent = Number.isFinite(value) ? money(value) : '—';
+        document.getElementById('sumNet').textContent = Number.isFinite(value) ? money(Math.max(value - excess, 0)) : '—';
+      }
+      form.addEventListener('input', updateSummary);
+      form.addEventListener('change', updateSummary);
+      updateSummary();
+
+      function classicPanel(title, bodyHtml, exitLabel) {
+        return '<div class="cc-err-head">' + title + '</div>' +
+          '<div class="cc-err-body">' + bodyHtml + '</div>' +
+          '<div class="cc-err-foot"><button type="button" id="ccExit">' + exitLabel + '</button></div>';
+      }
+
+      function showError(message, requestId) {
+        var now = new Date();
+        var ts = ddmmyyyy(now) + ' at ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+        var ref = 'QBEAU-' + (requestId ? String(requestId).replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase() : String(Math.floor(1000 + Math.random() * 9000)));
+        result.className = 'result-box error';
+        result.innerHTML = classicPanel('Error',
+          '<p>An error has occurred:</p>' +
+          '<p class="b">There has been an error processing your request.</p>' +
+          '<p class="b">' + esc(message) + '</p>' +
+          '<table>' +
+            '<tr><td class="k">Timestamp</td><td>: ' + ts + '</td></tr>' +
+            '<tr><td class="k">Broking System Id</td><td>: CCHANGE</td></tr>' +
+            '<tr><td class="k">Intermediary Code</td><td>: HARBRK0417</td></tr>' +
+            '<tr><td class="k">TE Reference Number</td><td>: ' + esc(ref) + '</td></tr>' +
+            '<tr><td class="k">Session Id</td><td>: ' + randomId(20) + '</td></tr>' +
+          '</table>' +
+          '<p>Click Exit to return to the Broking System</p>', 'Exit');
+        document.getElementById('ccExit').addEventListener('click', function () { result.className = 'result-box'; result.innerHTML = ''; });
+      }
+
+      function showSuccess(d) {
+        var claimNo = 'C' + String(d.claimId || '').replace(/-/g, '').slice(0, 9).toUpperCase();
+        result.className = 'result-box success';
+        result.innerHTML = classicPanel('Claim Lodged',
+          '<p class="b">Your claim has been lodged successfully.</p>' +
+          '<table>' +
+            '<tr><td class="k">Express Claim Number</td><td>: ' + esc(claimNo) + '</td></tr>' +
+            '<tr><td class="k">Policy Number</td><td>: ' + esc(document.getElementById('policyNo').textContent) + '</td></tr>' +
+            '<tr><td class="k">Estimated Loss</td><td>: ' + money(Number(d.claimAmount) || 0) + '</td></tr>' +
+            '<tr><td class="k">Excess</td><td>: ' + money(Number(d.deductible) || 0) + '</td></tr>' +
+          '</table>' +
+          '<p>A QBE claims consultant will contact the insured within 1 business day.</p>', 'Close');
+        document.getElementById('ccExit').addEventListener('click', function () { result.className = 'result-box'; result.innerHTML = ''; });
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Lodging…';
+        wait.classList.add('show');
+        result.className = 'result-box';
+        result.innerHTML = '';
+        try {
+          var res = await fetch('/api/insurance/claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              policyId: policyId.value,
+              claimType: claimType.value,
+              amount: parseFloat(amount.value),
+              description: description.value,
+              devinUserId: localStorage.getItem('devinUserId') || '',
+              devinOrgId: localStorage.getItem('devinOrgId') || '',
+              devinEmail: localStorage.getItem('devinEmail') || '',
+            }),
+          });
+          var d = {};
+          try { d = await res.json(); } catch (_) {}
+          if (!res.ok) {
+            showError(d.error || 'The claim could not be lodged at this time. Please try again later.', d.requestId);
+          } else {
+            showSuccess(d);
+          }
+        } catch (_) {
+          showError('The claim could not be lodged at this time. Please try again later.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Lodge Claim';
+          wait.classList.remove('show');
+        }
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
