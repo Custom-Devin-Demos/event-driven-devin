@@ -100,6 +100,9 @@ const PRODUCT_CLASSES = [
   },
 ];
 
+const MAX_LINE_AMOUNT = 1e9;
+const MAX_QUANTITY = 1e6;
+
 const TAXABILITY_MATRIX = {
   // Content release 2024.Q3 taxability drivers
   ELECTRONIC_SOFTWARE: { taxable: true, exemptIn: ['CA'] },
@@ -161,16 +164,17 @@ function validateInput(data) {
     });
   }
 
-  if (typeof data.amount !== 'number' || !Number.isFinite(data.amount) || data.amount <= 0) {
-    throw Object.assign(new Error('Amount must be a finite number greater than zero'), {
+  if (typeof data.amount !== 'number' || !Number.isFinite(data.amount) || data.amount <= 0
+    || data.amount > MAX_LINE_AMOUNT) {
+    throw Object.assign(new Error(`Amount must be greater than zero and at most ${MAX_LINE_AMOUNT}`), {
       name: 'ValidationError',
       code: 'INVALID_AMOUNT',
       status: 400,
     });
   }
 
-  if (!Number.isInteger(data.quantity) || data.quantity < 1) {
-    throw Object.assign(new Error('Quantity must be an integer of at least one'), {
+  if (!Number.isInteger(data.quantity) || data.quantity < 1 || data.quantity > MAX_QUANTITY) {
+    throw Object.assign(new Error(`Quantity must be an integer between 1 and ${MAX_QUANTITY}`), {
       name: 'ValidationError',
       code: 'INVALID_QUANTITY',
       status: 400,

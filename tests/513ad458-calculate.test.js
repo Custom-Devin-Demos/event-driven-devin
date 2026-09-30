@@ -77,7 +77,7 @@ describe('Vertex Cloud tax calculation', () => {
     expect(recordTiming).not.toHaveBeenCalled();
   });
 
-  test.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, '125000'])(
+  test.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY, '125000', 1e307])(
     'calculateTax rejects invalid amount %s before alerting',
     async (amount) => {
       await expect(calculateTax({ ...DEFAULT_TAX_DATA, productClass: 'TPP', amount }))
@@ -94,7 +94,7 @@ describe('Vertex Cloud tax calculation', () => {
     },
   );
 
-  test.each([0, 1.5, -1])('calculateTax rejects invalid quantity %s', async (quantity) => {
+  test.each([0, 1.5, -1, 1e7])('calculateTax rejects invalid quantity %s', async (quantity) => {
     await expect(calculateTax({ ...DEFAULT_TAX_DATA, productClass: 'TPP', quantity }))
       .rejects.toMatchObject({
         name: 'ValidationError',
