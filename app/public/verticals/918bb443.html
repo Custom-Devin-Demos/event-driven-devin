@@ -400,13 +400,13 @@
 
     function fail(check, body) {
       if (body.transport) {
-        setCheck(check.id, 'failed', 'Failed', 'Template intake service could not be reached');
+        setCheck(check.id, 'failed', 'Failed', 'No response from template intake service');
         CHECKS.slice(CHECKS.indexOf(check) + 1).forEach(function (c) { setCheck(c.id, 'skipped', 'Not run'); });
         $('runPill').className = 'pill red'; $('runPill').textContent = 'Checks interrupted';
         $('stagePill').className = 'pill'; $('stagePill').textContent = 'Staged';
         $('resultBox').className = 'result-box'; $('resultBox').style.display = 'block';
-        $('resultTitle').textContent = 'Connection lost — upload not sent';
-        $('resultMsg').textContent = 'We couldn\'t reach the template intake service. Check your connection and retry; your staged file is unchanged.';
+        $('resultTitle').textContent = 'Connection interrupted — upload status unknown';
+        $('resultMsg').textContent = 'We didn\'t get a response from the template intake service. Check your connection before retrying; your staged file is unchanged.';
         $('resultDetail').style.display = 'none';
         $('resultRef').textContent = '';
         showToast('Upload interrupted', 'Template intake service could not be reached.');
