@@ -680,7 +680,7 @@
           </div>
           <div class="transfer-card">
             <h3>Make a transfer</h3>
-            <p class="note">Choose the accounts and amount, then continue to review.</p>
+            <p class="note">Choose the accounts and amount, then select Transfer now.</p>
             <form id="transferForm">
               <div class="form-group">
                 <label for="fromAccount">From</label>
@@ -795,19 +795,18 @@
       const status = document.getElementById('requestStatus');
       let inFlight = false;
 
-      function fmt(v) {
-        const n = parseFloat(v);
-        return isNaN(n) ? '$0.00' : '$' + n.toFixed(2);
+      function fmt(n) {
+        return Number.isFinite(n) ? '$' + n.toFixed(2) : '$0.00';
       }
       function updateSummary() {
         document.getElementById('sumFrom').textContent =
           fromAccount.options[fromAccount.selectedIndex].text;
         document.getElementById('sumTo').textContent =
           toAccount.options[toAccount.selectedIndex].text;
-        document.getElementById('sumAmount').textContent = fmt(amount.value);
+        document.getElementById('sumAmount').textContent = fmt(amount.valueAsNumber);
       }
       function amountValid() {
-        const value = parseFloat(amount.value);
+        const value = amount.valueAsNumber;
         return Number.isFinite(value) && value >= 1;
       }
       function syncGuard() {
@@ -863,7 +862,7 @@
             body: JSON.stringify({
               fromAccount: fromAccount.value,
               toAccount: toAccount.value,
-              amount: parseFloat(amount.value),
+              amount: amount.valueAsNumber,
               accountTier: accountTier.value,
               userId: 'usr_alice_chen',
               devinUserId: localStorage.getItem('devinUserId') || '',
