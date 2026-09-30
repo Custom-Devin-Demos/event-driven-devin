@@ -2705,6 +2705,23 @@ const ONCALL_SKINS = {
     supportCenterSub: 'c.change Partner Portal',
     disclaimer: 'NOT ACTUALLY A QBE SITE — internal demo only, not affiliated with, endorsed by, or a real QBE Insurance product.',
   },
+  '143165b5': {
+    slug: '143165b5',
+    company: 'Gap',
+    brandMark: 'G',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '143165b5.html', title: 'Checkout | Gap' },
+    theme: {
+      '--accent': '#05274C',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#000000',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Gap Customer Service',
+    disclaimer: 'NOT ACTUALLY A GAP SITE — internal demo only, not affiliated with, endorsed by, or a real Gap product.',
+  },
 };
 
 function getOncallSkin(slug) {
