@@ -193,3 +193,90 @@ describe('HCPS claims inquiry (95d1a7d1)', () => {
     });
   });
 });
+
+describe('HCPS claims inquiry v1 contract (95d1a7d1)', () => {
+  let server;
+  const headers = { 'X-User-Id': 'TESTUSER' };
+
+  function getJsonWithHeaders(path, extraHeaders) {
+    const { port } = server.address();
+    return new Promise((resolve, reject) => {
+      http.get({ port, path, headers: extraHeaders }, (res) => {
+        let raw = '';
+        res.on('data', (chunk) => { raw += chunk; });
+        res.on('end', () => resolve({ status: res.statusCode, body: JSON.parse(raw) }));
+      }).on('error', reject);
+    });
+  }
+
+  beforeAll((done) => {
+    const app = express();
+    app.use(express.json());
+    app.use(router);
+    server = http.createServer(app);
+    server.listen(0, done);
+  });
+
+  afterAll((done) => {
+    server.close(done);
+  });
+
+  beforeEach(() => {
+    createSessionAndAlert.mockClear();
+  });
+
+  test('claim detail follows the v1 shape with two-decimal money strings', async () => {
+    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101', headers);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({
+      claimId: 'CLM0000101',
+      memberType: 'INDIVIDUAL',
+      provider: { id: 'PRV0001177', name: 'RIVERSIDE FAMILY MEDICINE' },
+      status: 'CLOSED',
+      financial: { charged: '263.00', allowed: '169.00', paid: '139.00', memberResponsibility: '30.00' },
+      message: 'CLAIM FOUND - INQUIRY COMPLETE',
+    });
+  });
+
+  test('missing X-User-Id is a 401 in the contract error envelope', async () => {
+    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101', {});
+    expect(res.status).toBe(401);
+    expect(res.body.error).toMatchObject({ code: 401, returnCode: 8, type: 'ValidationError' });
+  });
+
+  test('unknown claim maps RC 4 to 404', async () => {
+    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000999', headers);
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatchObject({ code: 404, returnCode: 4, type: 'NotFoundError' });
+  });
+
+  test('runtime failures map RC 8 to 500 with the exception type', async () => {
+    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000417', headers);
+    expect(res.status).toBe(500);
+    expect(res.body.error).toMatchObject({ code: 500, returnCode: 8, type: 'TypeError' });
+    expect(createSessionAndAlert).toHaveBeenCalledTimes(1);
+    expect(createSessionAndAlert.mock.calls[0][0].customer).toBe('95d1a7d1');
+  });
+
+  test('positions page mirrors POSMAP columns and paging', async () => {
+    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101/positions?page=1&pageSize=1', headers);
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ page: 1, pageSize: 1, hasMore: true, totalReturned: 1 });
+    expect(res.body.items[0]).toEqual({
+      serviceCode: '99213',
+      serviceDate: '2026-08-14',
+      charged: '215.00',
+      allowed: '142.60',
+      paid: '112.60',
+      status: 'CLOSED',
+    });
+  });
+
+  test('history is ordered by service date then time descending', async () => {
+    const res = await getJsonWithHeaders('/api/95d1a7d1/v1/claims/CLM0000101/history', headers);
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((row) => row.serviceDate)).toEqual(['2026-08-29', '2026-08-21', '2026-08-15']);
+    expect(res.body.items[0]).toMatchObject({ claimType: 'PAY', charged: '263.00', paid: '139.00' });
+    expect(res.body.hasMore).toBe(false);
+  });
+});
