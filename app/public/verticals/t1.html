@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>T1 &mdash; Vende, cobra y env&iacute;a a todo M&eacute;xico</title>
+  <link rel="icon" type="image/png" href="https://www.t1.com/favicon.png?v=2" onerror="this.onerror=null;this.href='/favicon.png';">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --t1-red: #DB3B2B; --t1-coral: #E26153; --t1-coral-soft: #EA8E84; --t1-blush: #F9D2D2; --t1-blush-2: #FEF4F4; --t1-blush-3: #FFEAEA;
+      --ink: #1A1A1A; --text: #4C4C4C; --muted: #6B7280; --line: #E5E5E5; --line-2: #E7E7E7; --canvas: #F8F8F8; --surface: #FFFFFF;
+      --danger: #B42318; --danger-bg: #FEF3F2; --danger-border: #FECDCA;
+      --success: #067647; --success-bg: #ECFDF3; --success-border: #ABEFC6;
+      --inter: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+      --manrope: 'Manrope', 'Inter', sans-serif;
+      --sora: 'Sora', 'Inter', sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--inter); color: var(--ink); background: var(--surface); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+    button { font-family: inherit; cursor: pointer; }
+    a { color: inherit; }
+    [hidden] { display: none !important; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .fade { animation: fadeUp 0.45s ease-out both; }
+
+    /* ---------- T1 Tienda (marketing) ---------- */
+    .mk-header { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); }
+    .mk-header .inner { max-width: 1040px; margin: 0 auto; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem; }
+    .mk-header img.logo { height: 28px; display: block; }
+    .mk-nav { display: flex; align-items: center; gap: 1.5rem; font-size: 0.875rem; font-weight: 500; color: var(--text); }
+    .mk-nav button.link, .mk-nav a { background: none; border: none; color: var(--text); text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+    .mk-nav button.link:hover, .mk-nav a:hover { color: var(--t1-red); }
+    .pill { background: var(--t1-coral); color: #fff; border: none; border-radius: 12px; padding: 0.6rem 0.95rem; font-weight: 600; font-size: 0.875rem; box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+    .pill:hover { background: var(--t1-red); }
+    .icon-btn.burger { display: none; }
+    @media (max-width: 760px) { .mk-nav .hide-sm { display: none; } }
+
+    .hero { position: relative; overflow: hidden; padding: 4.5rem 1.25rem 5.5rem; text-align: center; }
+    .hero { isolation: isolate; }
+    .hero::before { content: ''; position: absolute; inset: -10% -10% 0; background: radial-gradient(48% 46% at 50% 45%, rgba(226,97,83,0.62) 0%, rgba(234,142,132,0.45) 40%, rgba(249,210,210,0.4) 66%, rgba(255,255,255,0) 100%); z-index: -1; }
+    .hero h1 { font-family: var(--sora); font-weight: 400; font-size: clamp(2.3rem, 5.4vw, 3.3rem); line-height: 1.12; letter-spacing: -0.02em; color: var(--ink); }
+    .hero h1 span { color: var(--t1-coral); }
+    .hero p.lead { margin-top: 0.9rem; font-size: 1rem; color: var(--ink); }
+    .prompt { max-width: 460px; margin: 2rem auto 0; background: #fff; border-radius: 20px; box-shadow: 0 8px 30px rgba(219,59,43,0.10), 0 1px 2px rgba(0,0,0,0.04); padding: 1rem 1rem 0.75rem; text-align: left; }
+    .prompt textarea { width: 100%; min-height: 64px; border: none; resize: none; font-family: var(--inter); font-size: 0.95rem; color: var(--ink); outline: none; }
+    .prompt textarea::placeholder { color: #9CA3AF; }
+    .prompt .row { display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; }
+    .prompt .count { font-size: 0.72rem; color: #9CA3AF; margin-right: auto; }
+    .round { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line); background: #fff; }
+    .round.send { background: var(--t1-coral); border: none; opacity: 0.45; }
+    .round.send.ready { opacity: 1; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: center; margin-top: 1rem; }
+    .chip { background: rgba(255,255,255,0.55); border: none; border-radius: 10px; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 500; color: var(--text); }
+    .chip:hover, .chip.on { background: #fff; color: var(--t1-red); }
+    .stats { margin-top: 5rem; font-size: 0.85rem; font-weight: 500; color: var(--text); display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+    .eco { max-width: 1040px; margin: 0 auto; padding: 3rem 1.25rem 4rem; text-align: center; }
+    .eco h2 { font-family: var(--sora); font-weight: 400; font-size: clamp(1.7rem, 3.6vw, 2.25rem); letter-spacing: -0.02em; }
+    .eco p.sub { color: var(--text); margin-top: 0.5rem; }
+    .eco-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 2.25rem; text-align: left; }
+    @media (max-width: 860px) { .eco-grid { grid-template-columns: 1fr; } }
+    .eco-card { border: 1px solid var(--line); border-radius: 20px; padding: 1.6rem 1.5rem 1.4rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1.4rem; background: linear-gradient(180deg, #fff 0%, var(--t1-blush-2) 100%); }
+    .eco-card img.brand { height: 30px; }
+    .eco-card p { color: var(--text); font-size: 0.92rem; margin-top: 0.9rem; }
+    .eco-card ul { list-style: none; margin-top: 1rem; display: grid; gap: 0.5rem; font-size: 0.88rem; color: var(--ink); }
+    .eco-card li { display: flex; gap: 0.5rem; align-items: center; }
+    .eco-card li::before { content: ''; width: 16px; height: 16px; border-radius: 50%; background: var(--t1-blush) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.2l2.2 2.2 4.8-4.8' fill='none' stroke='%23DB3B2B' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; flex: none; }
+    .eco-card button { align-self: flex-start; background: none; border: none; color: var(--t1-red); font-weight: 600; font-size: 0.92rem; display: flex; align-items: center; gap: 0.35rem; }
+    .eco-card button:hover { text-decoration: underline; }
+
+    .mk-footer { background: #1A1A1A; color: #D1D5DB; padding: 2.5rem 1.25rem; font-size: 0.82rem; }
+    .mk-footer .inner { max-width: 1040px; margin: 0 auto; display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
+    .mk-footer .t1w { font-family: var(--sora); font-weight: 600; font-size: 1.4rem; color: #fff; }
+
+    /* ---------- T1 Pagos (app) ---------- */
+    .app { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; background: var(--canvas); font-family: var(--manrope); }
+    @media (max-width: 900px) { .app { grid-template-columns: 1fr; } .side { display: none; } .side.open { display: block; position: fixed; inset: 0 30% 0 0; z-index: 40; box-shadow: 0 10px 40px rgba(0,0,0,0.2); } .icon-btn.burger { display: grid; } }
+    .side { background: #fff; border-right: 1px solid var(--line); padding: 1.25rem 0.9rem; }
+    .side img.logo { height: 30px; margin: 0 0.5rem 1.6rem; }
+    .side a { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.75rem; border-radius: 10px; font-size: 0.86rem; font-weight: 600; color: var(--text); text-decoration: none; cursor: pointer; }
+    .side a svg { width: 18px; height: 18px; flex: none; }
+    .side a:hover { background: var(--t1-blush-2); }
+    .side a.active { background: var(--t1-blush); color: var(--t1-red); }
+    .topbar { height: 68px; background: #fff; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 1.25rem; position: sticky; top: 0; z-index: 10; }
+    .topbar .left { display: flex; align-items: center; gap: 0.9rem; }
+    .store-switch { display: flex; align-items: center; gap: 0.45rem; border: 1px solid var(--line); border-radius: 10px; padding: 0.3rem 0.6rem 0.3rem 0.35rem; font-size: 0.82rem; font-weight: 600; color: var(--text); background: #fff; }
+    .badge-sq { width: 28px; height: 28px; border-radius: 8px; background: #5FAE6A; color: #fff; font-weight: 700; font-size: 0.72rem; display: grid; place-items: center; }
+    .topbar .right { display: flex; align-items: center; gap: 1rem; }
+    .icon-btn { background: none; border: none; color: var(--text); display: grid; place-items: center; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--t1-red); color: #fff; font-weight: 700; font-size: 0.85rem; display: grid; place-items: center; }
+    .who { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    @media (max-width: 600px) { .who, .store-switch .name { display: none; } }
+    main.content { padding: 1.75rem clamp(1rem, 3vw, 2.25rem) 4rem; max-width: 1200px; width: 100%; }
+    .card { background: #fff; border: 1px solid var(--line-2); border-radius: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+
+    .onboard { display: flex; align-items: center; gap: 1.5rem; padding: 1.4rem 1.6rem; flex-wrap: wrap; }
+    .ring { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--t1-red) 0 25%, #E0E0E0 25% 100%); flex: none; }
+    .ring span { width: 76px; height: 76px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-weight: 700; font-size: 1.3rem; color: var(--ink); }
+    .onboard h3 { font-size: 1.35rem; font-weight: 700; color: var(--text); }
+    .onboard p { color: var(--text); font-size: 1rem; }
+    .onboard .grow { flex: 1; min-width: 200px; }
+    .btn-red { background: var(--t1-red); color: #fff; border: none; border-radius: 14px; padding: 0.8rem 1.6rem; font-weight: 700; font-size: 0.95rem; font-family: var(--manrope); }
+    .btn-red:hover { background: #C53324; }
+    .btn-red:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-ghost { background: #fff; color: var(--t1-red); border: 1px solid var(--t1-red); border-radius: 14px; padding: 0.75rem 1.4rem; font-weight: 700; font-size: 0.92rem; font-family: var(--manrope); }
+    .btn-ghost:hover { background: var(--t1-blush-2); }
+
+    h2.page-title { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; color: var(--text); margin: 2rem 0 1.1rem; letter-spacing: -0.01em; }
+    .start-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.25rem; }
+    @media (max-width: 1000px) { .start-grid { grid-template-columns: 1fr; } }
+    .feature { padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
+    .mock { border: 1px solid var(--line); border-radius: 12px; background: #fff; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; min-height: 210px; font-family: var(--inter); }
+    .mock .l { padding: 1rem; border-right: 1px solid var(--line); }
+    .mock .l .shop { font-size: 0.68rem; color: var(--muted); }
+    .mock .l .ttl { font-size: 0.75rem; margin-top: 0.4rem; }
+    .mock .l .amt { font-size: 1.15rem; font-weight: 700; }
+    .mock .l .amt small { font-size: 0.6rem; font-weight: 600; }
+    .mock .l img { width: 96px; height: 72px; object-fit: cover; object-position: center 35%; border-radius: 6px; margin-top: 0.7rem; display: block; }
+    .mock .r { display: grid; place-items: center; text-align: center; padding: 1rem; font-size: 0.72rem; color: var(--muted); }
+    .mock .r .ok { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #22A45D; display: grid; place-items: center; margin: 0 auto 0.4rem; color: #22A45D; font-weight: 700; }
+    .feature h3 { font-size: 1.6rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.8rem; }
+    .feature p { color: var(--text); font-size: 1.02rem; }
+    .linkish { background: none; border: none; color: var(--text); font-weight: 700; font-size: 1.05rem; font-family: var(--manrope); align-self: flex-start; }
+    .linkish:hover { color: var(--t1-red); }
+    .mini { padding: 1.3rem 1.4rem; }
+    .mini h4 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+    .mini .kpi { font-size: 1.7rem; font-weight: 800; color: var(--ink); }
+    .mini .kpi small { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+    .mini p { font-size: 0.85rem; color: var(--muted); }
+    .stack { display: grid; gap: 1.25rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th { text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--line); }
+    td { padding: 0.8rem 1.2rem; border-bottom: 1px solid #F1F1F1; color: var(--text); }
+    tbody tr:last-child td { border-bottom: none; }
+    td.mono { font-family: var(--mono); font-size: 0.78rem; }
+    .status { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+    .status.activo { background: var(--t1-blush-3); color: var(--t1-red); }
+    .status.pagado { background: var(--success-bg); color: var(--success); }
+
+    /* ---------- Crear link de pago ---------- */
+    .create-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr); gap: 1.5rem; align-items: start; }
+    @media (max-width: 1000px) { .create-grid { grid-template-columns: 1fr; } }
+    .form-card { padding: 1.6rem clamp(1.1rem, 3vw, 2.25rem) 1.8rem; }
+    .back { display: flex; align-items: center; gap: 1rem; background: none; border: none; font-family: var(--manrope); font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 600; color: var(--text); margin-bottom: 1.4rem; }
+    .back svg { width: 26px; height: 26px; }
+    .lbl-strong { font-size: 1.15rem; font-weight: 600; color: var(--ink); }
+    .amount { display: flex; align-items: baseline; justify-content: center; gap: 0.6rem; margin: 1.3rem 0 1.7rem; font-family: var(--manrope); font-weight: 800; }
+    .amount .cur { font-size: clamp(2.6rem, 6vw, 3.6rem); color: var(--ink); }
+    .amount input { width: 8ch; min-width: 4ch; max-width: 100%; border: none; outline: none; font-family: var(--manrope); font-weight: 800; font-size: clamp(2.6rem, 6vw, 3.6rem); color: var(--ink); background: transparent; text-align: left; letter-spacing: 0.02em; }
+    .amount input::placeholder { color: var(--ink); }
+    .field-lbl { font-size: 1rem; font-weight: 500; color: var(--ink); margin-bottom: 0.45rem; display: block; }
+    .field { width: 100%; border: 1px solid #D9D9D9; border-radius: 14px; padding: 0.85rem 1.1rem; font-family: var(--inter); font-size: 1.05rem; color: var(--ink); outline: none; }
+    .field::placeholder { color: #9CA3AF; }
+    .field:focus { border-color: var(--t1-coral); box-shadow: 0 0 0 3px rgba(226,97,83,0.15); }
+    .help { font-size: 0.92rem; color: var(--text); margin-top: 0.45rem; font-family: var(--inter); }
+    .add-img { background: none; border: none; font-family: var(--manrope); font-size: 1rem; font-weight: 600; color: var(--text); margin: 1.6rem 0 1.4rem; }
+    .add-img:hover { color: var(--t1-red); }
+    .img-chosen { display: flex; align-items: center; gap: 0.8rem; margin: 1.2rem 0; }
+    .img-chosen img { width: 76px; height: 56px; object-fit: cover; object-position: center 40%; border-radius: 10px; }
+    .img-chosen button { background: none; border: none; color: var(--t1-red); font-weight: 600; font-size: 0.85rem; }
+    hr.sep { border: none; border-top: 1px solid #DDDDDD; margin: 0.4rem 0 1.6rem; }
+    .methods-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; }
+    .methods { border: 1px solid #E0E0E0; border-radius: 16px; overflow: hidden; font-family: var(--inter); }
+    .method { padding: 1.1rem 1.4rem; border-bottom: 1px solid #E5E5E5; }
+    .method:last-child { border-bottom: none; }
+    .method label.row { display: flex; align-items: center; gap: 1rem; cursor: pointer; font-size: 1rem; color: var(--ink); }
+    .method label.row.disabled { color: #A3A3A3; cursor: not-allowed; }
+    .method .limits { font-size: 0.92rem; color: var(--text); margin-top: 0.8rem; }
+    .cbx { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border-radius: 5px; border: 1.5px solid #CFCFCF; background: #fff; display: grid; place-items: center; flex: none; cursor: inherit; }
+    .cbx:checked { background: var(--t1-red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.8 8.3l2.7 2.7 5.7-5.7' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px no-repeat; border-color: var(--t1-red); }
+    .cbx:disabled { background: #F4F4F4; border-color: #E2E2E2; }
+    .brands { margin-left: auto; display: flex; align-items: center; gap: 0.35rem; }
+    .brands .b { height: 20px; display: grid; place-items: center; font-weight: 800; font-size: 0.72rem; border-radius: 3px; }
+    .b.visa { color: #1A1F71; font-style: italic; font-size: 0.95rem; letter-spacing: -0.02em; }
+    .b.mc { width: 30px; position: relative; }
+    .b.mc::before, .b.mc::after { content: ''; position: absolute; top: 1px; width: 18px; height: 18px; border-radius: 50%; }
+    .b.mc::before { left: 0; background: #EB001B; } .b.mc::after { right: 0; background: #F79E1B; mix-blend-mode: multiply; }
+    .b.amex { background: #2E77BC; color: #fff; padding: 0 4px; font-size: 0.55rem; line-height: 1; width: 28px; }
+    .b.carnet { color: #D2232A; font-size: 0.55rem; letter-spacing: 0.05em; }
+    .b.spei { color: #1B2A72; font-size: 0.9rem; font-style: italic; letter-spacing: 0.02em; display: flex !important; align-items: center; gap: 2px; white-space: nowrap; }
+    .b.spei span { color: #7AB8E6; }
+    .actions { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.6rem; flex-wrap: wrap; }
+    .result { margin-top: 1.2rem; border-radius: 14px; padding: 1rem 1.2rem; font-family: var(--inter); font-size: 0.9rem; }
+    .result.error { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); }
+    .result.warn { background: #FFFAEB; border: 1px solid #FEDF89; color: #B54708; }
+    .result.success { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+    .result .t { font-weight: 700; margin-bottom: 0.2rem; }
+    .result .d { font-family: var(--mono); font-size: 0.78rem; word-break: break-word; }
+    .result .url { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; flex-wrap: wrap; }
+    .result .url code { background: #fff; border: 1px solid var(--success-border); border-radius: 8px; padding: 0.35rem 0.6rem; font-family: var(--mono); font-size: 0.8rem; color: var(--ink); }
+    .result .url button { background: var(--success); color: #fff; border: none; border-radius: 8px; padding: 0.35rem 0.7rem; font-size: 0.78rem; font-weight: 600; }
+    .result ul { margin: 0.5rem 0 0 1.1rem; font-size: 0.82rem; }
+
+    .preview { padding: 1.4rem 1.5rem 1.6rem; position: sticky; top: 88px; }
+    .preview h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+    .tabs { display: flex; gap: 1.2rem; border-bottom: 1px solid var(--line); margin: 0.8rem 0 1.1rem; font-size: 0.82rem; font-weight: 600; }
+    .tabs span { padding-bottom: 0.5rem; color: #A3A3A3; }
+    .tabs span.on { color: var(--t1-red); box-shadow: inset 0 -2px 0 var(--t1-red); }
+    .browser { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; }
+    .browser .bar { height: 26px; background: #EFEFEF; display: flex; align-items: center; gap: 5px; padding: 0 10px; }
+    .browser .bar i { width: 8px; height: 8px; border-radius: 50%; background: #D4D4D4; display: block; }
+    .browser .bar em { margin-left: 10px; font-style: normal; font-family: var(--mono); font-size: 0.66rem; color: var(--muted); }
+    .checkout { display: grid; grid-template-columns: 1fr 1fr; min-height: 280px; font-family: var(--inter); }
+    @media (max-width: 520px) { .checkout { grid-template-columns: 1fr; } }
+    .checkout .l { padding: 1.1rem; border-right: 1px solid var(--line); }
+    .checkout .shop { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--muted); }
+    .checkout .concept { font-size: 0.85rem; margin-top: 0.7rem; color: var(--ink); min-height: 1.2em; }
+    .checkout .amt { font-size: 1.5rem; font-weight: 700; color: var(--ink); }
+    .checkout .amt small { font-size: 0.7rem; font-weight: 600; }
+    .checkout .l img { width: 100%; max-width: 170px; height: 110px; object-fit: cover; object-position: center 40%; border-radius: 8px; margin-top: 0.8rem; display: block; }
+    .checkout .legal { font-size: 0.62rem; color: var(--muted); margin-top: 1rem; }
+    .checkout .r { padding: 1.1rem; display: flex; flex-direction: column; gap: 0.55rem; font-size: 0.74rem; color: var(--text); }
+    .checkout .r .opt { border: 1px solid var(--line); border-radius: 8px; padding: 0.5rem 0.6rem; display: flex; justify-content: space-between; align-items: center; }
+    .checkout .r .opt.off { opacity: 0.35; }
+    .checkout .r .pay { margin-top: auto; background: var(--t1-red); color: #fff; border-radius: 8px; text-align: center; padding: 0.55rem; font-weight: 700; }
+    .preview .foot { font-size: 0.78rem; color: var(--muted); margin-top: 0.9rem; }
+
+    .fab { position: fixed; right: 22px; bottom: 22px; width: 60px; height: 60px; border-radius: 50%; background: var(--t1-red); border: none; box-shadow: 0 10px 24px rgba(219,59,43,0.35); display: grid; place-items: center; z-index: 50; }
+    .fab:hover { background: #C53324; }
+    .drawer { position: fixed; right: 22px; bottom: 96px; width: min(360px, calc(100vw - 44px)); z-index: 50; padding: 1.3rem 1.3rem 1.2rem; font-family: var(--manrope); }
+    .drawer h4 { font-size: 1rem; font-weight: 700; color: var(--ink); }
+    .drawer p.sub { font-size: 0.8rem; color: var(--muted); margin: 0.25rem 0 0.9rem; }
+    .drawer label { display: block; font-size: 0.76rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+    .drawer input { width: 100%; border: 1px solid #D9D9D9; border-radius: 10px; padding: 0.55rem 0.75rem; font-family: var(--inter); font-size: 0.88rem; margin-bottom: 0.7rem; outline: none; }
+    .drawer input:focus { border-color: var(--t1-coral); }
+    .drawer .btn-red { width: 100%; padding: 0.65rem; font-size: 0.88rem; border-radius: 12px; }
+    .id-status { display: flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; color: var(--text); margin-bottom: 0.8rem; flex-wrap: wrap; }
+    .id-status code { font-family: var(--mono); font-size: 0.74rem; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #A3A3A3; flex: none; }
+    .dot.ok { background: #22A45D; } .dot.warn { background: var(--t1-coral); }
+    .id-msg { font-size: 0.76rem; margin-top: 0.55rem; }
+    .id-msg.err { color: var(--danger); } .id-msg.ok { color: var(--success); }
+    .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #1A1A1A; color: #fff; padding: 0.7rem 1.1rem; border-radius: 12px; font-size: 0.85rem; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,0.25); max-width: calc(100vw - 32px); }
+    .demo-back { display: inline-block; margin-top: 1.5rem; font-size: 0.8rem; color: var(--muted); text-decoration: none; }
+    .demo-back:hover { color: var(--t1-red); }
+  </style>
+</head>
+<body>
+
+  <!-- =================== T1 Tienda (marketing) =================== -->
+  <div id="view-tienda">
+    <header class="mk-header">
+      <div class="inner">
+        <a href="#tienda" aria-label="T1 Tienda"><img class="logo" src="/verticals/t1/t1-tienda.svg" alt="T1 tienda"></a>
+        <nav class="mk-nav">
+          <button type="button" class="link hide-sm">Ecosistema &#8964;</button>
+          <button type="button" class="link hide-sm">&iquest;Qu&eacute; es T1?</button>
+          <a href="#tienda" class="hide-sm">Planes</a>
+          <a href="#pagos" class="hide-sm">Iniciar sesi&oacute;n</a>
+          <button type="button" class="pill" data-go="pagos">Empieza gratis</button>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1 class="fade">Crea tu tienda en <span>segundos</span></h1>
+      <p class="lead fade">T1 te ayuda a vender, cobrar y enviar a todo M&eacute;xico. Todo en uno.</p>
+      <div class="prompt fade">
+        <textarea id="storePrompt" maxlength="500" placeholder="Quiero vender ropa y accesorios para mujer"></textarea>
+        <div class="row">
+          <span class="count" id="promptCount">0/500</span>
+          <button type="button" class="round" aria-label="Dictar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4C4C4C" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          </button>
+          <button type="button" class="round send" id="promptSend" aria-label="Enviar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="chips">
+        <button type="button" class="chip">Moda</button>
+        <button type="button" class="chip">Deportes</button>
+        <button type="button" class="chip">Belleza</button>
+        <button type="button" class="chip">Joyer&iacute;a</button>
+        <button type="button" class="chip">Electr&oacute;nica</button>
+        <button type="button" class="chip">Hogar</button>
+      </div>
+      <div class="stats"><span>+25,000 tiendas</span><span>&bull;</span><span>+30M de env&iacute;os</span><span>&bull;</span><span>+200M transacciones</span></div>
+    </section>
+
+    <section class="eco">
+      <h2>El ecosistema del comercio moderno, todo en uno.</h2>
+      <p class="sub">Vende, cobra y env&iacute;a en un solo lugar. Todo integrado con inteligencia artificial.</p>
+      <div class="eco-grid">
+        <div class="eco-card">
+          <div>
+            <img class="brand" src="/verticals/t1/t1-tienda.svg" alt="T1 tienda">
+            <p>Comienza a vender en Sears y Sanborns, y conecta m&aacute;s de 10 marketplaces.</p>
+            <ul><li>Dise&ntilde;o de tienda con IA</li><li>Gestiona inventarios y precios</li><li>Reportes detallados</li></ul>
+          </div>
+          <button type="button" data-go="pagos">Crear mi tienda &rsaquo;</button>
+        </div>
+        <div class="eco-card">
+          <div>
+            <img class="brand" src="/verticals/t1/t1-pagos.svg" alt="T1 pagos">
+            <p>Recibe pagos de forma r&aacute;pida y segura con tarjetas, transferencias y m&aacute;s.</p>
+            <ul><li>Link de pago</li><li>Panel de contracargos</li><li>Ofrece meses sin intereses</li></ul>
+          </div>
+          <button type="button" data-go="crear" id="ecoCreateLink">Crear link de pago &rsaquo;</button>
+        </div>
+        <div class="eco-card">
+          <div>
+            <img class="brand" src="/verticals/t1/t1-envios.svg" alt="T1 env&iacute;os">
+            <p>Env&iacute;a a todo M&eacute;xico con las mejores paqueter&iacute;as y los mejores precios.</p>
+            <ul><li>Cotiza y crea gu&iacute;as de env&iacute;o</li><li>Rastreo en tiempo real</li><li>Administra tus incidencias</li></ul>
+          </div>
+          <button type="button" data-go="pagos">Cotizar env&iacute;o &rsaquo;</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mk-footer">
+      <div class="inner">
+        <span class="t1w">T1</span>
+        <span>T1tienda &middot; T1pagos &middot; T1env&iacute;os &middot; T1score</span>
+        <span>&copy; 2026 T1. Demostraci&oacute;n interna &mdash; no procesa pagos reales.</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- =================== T1 Pagos (app) =================== -->
+  <div id="view-app" class="app" hidden>
+    <aside class="side" id="side">
+      <img class="logo" src="/verticals/t1/t1-pagos.svg" alt="T1 pagos">
+      <a data-go="pagos" id="navHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7h13l-3-3M17 17H4l3 3"/></svg>Transacciones</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1 1-1.8 2.5-1.8s2.5.8 2.5 2-1 1.7-2.5 2-2.5.9-2.5 2 1 2 2.5 2 2.5-.8 2.5-1.8"/></svg>Contracargos</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>Finanzas</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Reportes</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4"/></svg>Desarrolladores</a>
+      <a data-go="crear" id="navLinks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>Link de Pago</a>
+      <a href="/" class="demo-back">&larr; Todos los demos</a>
+    </aside>
+
+    <div>
+      <div class="topbar">
+        <div class="left">
+          <button type="button" class="icon-btn burger" id="burger" aria-label="Men&uacute;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4C4C4C" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+          <div class="store-switch"><span class="badge-sq" id="storeInitials">GY</span><span class="name" id="storeName">Gaby Yoga Studio</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4C4C4C" stroke-width="2"><path d="M7 9l5-5 5 5M7 15l5 5 5-5"/></svg></div>
+        </div>
+        <div class="right">
+          <button type="button" class="icon-btn" aria-label="Apps"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4C4C4C" stroke-width="1.6"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></svg></button>
+          <span class="who" id="ownerName">Arturo L&oacute;pez</span>
+          <span class="avatar" id="ownerInitials">AL</span>
+        </div>
+      </div>
+
+      <!-- Dashboard -->
+      <main class="content" id="view-pagos">
+        <div class="card onboard fade">
+          <div class="ring"><span id="onboardStep">1/4</span></div>
+          <div class="grow">
+            <h3>Completa tus datos</h3>
+            <p>Completa tu registro para recibir transacciones reales</p>
+          </div>
+          <button type="button" class="btn-red">Completar datos</button>
+        </div>
+
+        <h2 class="page-title">Comienza a usar T1 Pagos</h2>
+        <div class="start-grid">
+          <div class="card feature fade">
+            <div class="mock" aria-hidden="true">
+              <div class="l">
+                <div class="shop">&#9636; Mi Tienda</div>
+                <div class="ttl">Mensualidad Yoga Flow</div>
+                <div class="amt">$1,000.00 <small>MXN</small></div>
+                <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80" alt="">
+              </div>
+              <div class="r"><div><div class="ok">&#10003;</div><strong style="color:#1A1A1A">Pago realizado con &eacute;xito</strong><br>Tu pago se ver&aacute; reflejado en tu cuenta T1Pagos</div></div>
+            </div>
+            <h3>Link de Pago
+              <svg width="40" height="26" viewBox="0 0 40 26" fill="none" stroke="#1A1A1A" stroke-width="2.4"><circle cx="14" cy="13" r="9"/><circle cx="26" cy="13" r="9"/></svg>
+            </h3>
+            <p>Comparte un enlace de pago</p>
+            <button type="button" class="linkish" data-go="crear" id="createFirstLink">Crea tu primer link &rarr;</button>
+          </div>
+          <div class="stack">
+            <div class="card mini fade">
+              <h4>Ventas de septiembre</h4>
+              <div class="kpi">$18,450.00 <small>MXN</small></div>
+              <p>27 pagos recibidos &middot; 64% con tarjeta, 36% por SPEI</p>
+            </div>
+            <div class="card mini fade">
+              <h4>Pr&oacute;ximo dep&oacute;sito</h4>
+              <div class="kpi">$4,120.00 <small>MXN</small></div>
+              <p>Tarjeta: D+1 &middot; Transferencia SPEI: mismo d&iacute;a</p>
+            </div>
+            <div class="card mini fade">
+              <h4>Meses sin intereses</h4>
+              <p>Ofrece 3, 6, 9 y 12 MSI en compras desde $300.00 MXN con tarjetas participantes.</p>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="page-title" style="font-size:1.35rem">Links de pago recientes</h2>
+        <div class="card" style="overflow:hidden">
+          <table>
+            <thead><tr><th>Link</th><th>Concepto</th><th>Monto</th><th>Estado</th><th>Creado</th></tr></thead>
+            <tbody id="recentLinks"><tr><td colspan="5">Cargando&hellip;</td></tr></tbody>
+          </table>
+        </div>
+      </main>
+
+      <!-- Crear link de pago -->
+      <main class="content" id="view-crear" hidden>
+        <div class="create-grid">
+          <div class="card form-card fade">
+            <button type="button" class="back" data-go="pagos"><svg viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>Crear link de pago</button>
+
+            <form id="linkForm" novalidate>
+              <div class="lbl-strong">Ingresa el monto y concepto de pago</div>
+              <div class="amount">
+                <span class="cur">$</span>
+                <input id="amount" inputmode="decimal" autocomplete="off" placeholder="00.00" value="1,250.00" aria-label="Monto">
+              </div>
+
+              <label class="field-lbl" for="concept">Concepto de pago</label>
+              <input class="field" id="concept" maxlength="80" placeholder="Ej.: Anualidad, Consulta" value="Mensualidad Yoga Flow &mdash; octubre">
+              <div class="help">Tus clientes ver&aacute;n este nombre en el link y en su recibo.</div>
+
+              <button type="button" class="add-img" id="addImg">+ Agregar imagen (opcional)</button>
+              <div class="img-chosen" id="imgChosen" hidden>
+                <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=80" alt="Imagen del link">
+                <span style="font-size:0.9rem;color:#4C4C4C">clase-yoga.jpg</span>
+                <button type="button" id="removeImg">Quitar</button>
+              </div>
+
+              <hr class="sep">
+              <div class="methods-title">M&eacute;todos de pago aceptados</div>
+              <div class="methods">
+                <div class="method">
+                  <label class="row"><input type="checkbox" class="cbx" id="mCard" checked> Tarjetas de cr&eacute;dito o d&eacute;bito
+                    <span class="brands" aria-hidden="true"><span class="b visa">VISA</span><span class="b mc"></span><span class="b amex">AM<br>EX</span><span class="b carnet">CARNET</span></span>
+                  </label>
+                  <div class="limits">El monto debe estar entre $1.00 y $250,000.00 MXN para tarjeta</div>
+                </div>
+                <div class="method">
+                  <label class="row" id="msiRow"><input type="checkbox" class="cbx" id="mMsi"> Ofrecer pagos a MSI</label>
+                  <div class="limits" id="msiHint">3, 6, 9 y 12 meses sin intereses en compras desde $300.00 MXN</div>
+                </div>
+                <div class="method">
+                  <label class="row"><input type="checkbox" class="cbx" id="mSpei" checked> Transferencia bancaria
+                    <span class="brands" aria-hidden="true"><span class="b spei"><span>&#8942;&#8942;</span>SPEI</span></span>
+                  </label>
+                  <div class="limits">El monto debe estar entre $10.00 y $99,999.00 MXN para transferencia</div>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button type="button" class="btn-ghost" data-go="pagos">Cancelar</button>
+                <button type="submit" class="btn-red" id="createBtn">Crear enlace</button>
+              </div>
+            </form>
+            <div id="result" class="result" hidden></div>
+          </div>
+
+          <div class="card preview fade">
+            <h3>Vista previa</h3>
+            <div class="tabs"><span class="on">P&aacute;gina de pago</span><span>Despu&eacute;s del pago</span></div>
+            <div class="browser">
+              <div class="bar"><i></i><i></i><i></i><em>payments.t1.com/l/&hellip;</em></div>
+              <div class="checkout">
+                <div class="l">
+                  <div class="shop"><span class="badge-sq" style="width:20px;height:20px;font-size:0.55rem;border-radius:5px">GY</span> Gaby Yoga Studio</div>
+                  <div class="concept" id="pvConcept"></div>
+                  <div class="amt"><span id="pvAmount">$0.00</span> <small>MXN</small></div>
+                  <img id="pvImg" src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80" alt="" hidden>
+                  <div class="legal">T&eacute;rminos y condiciones &middot; Aviso de privacidad</div>
+                </div>
+                <div class="r">
+                  <strong style="color:#1A1A1A;font-size:0.8rem">&iquest;C&oacute;mo quieres pagar?</strong>
+                  <div class="opt" id="pvCard"><span>Tarjeta de cr&eacute;dito o d&eacute;bito</span><span>&rsaquo;</span></div>
+                  <div class="opt" id="pvMsi"><span>Meses sin intereses</span><span id="pvMsiTxt"></span></div>
+                  <div class="opt" id="pvSpei"><span>Transferencia SPEI</span><span>&rsaquo;</span></div>
+                  <div class="pay">Pagar <span id="pvPay"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="foot">Puedes habilitar m&aacute;s m&eacute;todos de pago dentro de la configuraci&oacute;n de m&eacute;todos de pago.</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Demo identity (support bubble) -->
+  <button type="button" class="fab" id="fab" aria-label="Configuraci&oacute;n de la demo">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.2 6.5L4 19.5l1.5-4.3A7.5 7.5 0 1 1 20 11.5z"/><circle cx="14.5" cy="13.5" r="3.2"/><path d="M16.8 15.8l2 2"/></svg>
+  </button>
+  <div class="card drawer" id="drawer" hidden>
+    <h4>Identidad de la demo</h4>
+    <p class="sub">El correo <strong>@devindemos.com</strong> define a qui&eacute;n se menciona como guardia en Slack y con qu&eacute; usuario se crea la sesi&oacute;n de Devin.</p>
+    <div class="id-status"><span class="dot" id="identityDot"></span><span id="identityText">Cargando&hellip;</span><code id="identityEmailOut"></code></div>
+    <label for="identityEmail">Correo</label>
+    <input type="email" id="identityEmail" placeholder="nombre@devindemos.com" autocomplete="off">
+    <label for="identityOrg">Organizaci&oacute;n en Devin</label>
+    <input type="text" id="identityOrg" placeholder="Nombre de la organizaci&oacute;n" autocomplete="off">
+    <button type="button" class="btn-red" id="identityBtn">Conectar identidad</button>
+    <div id="identityMsg" class="id-msg"></div>
+  </div>
+  <div class="toast" id="toast" hidden></div>
+
+  <script>
+    (function () {
+      var ENDPOINT = '/api/t1/payment-links';
+      var views = { tienda: 'view-tienda', pagos: 'view-pagos', crear: 'view-crear' };
+
+      function $(id) { return document.getElementById(id); }
+      function stored(key) { return localStorage.getItem(key) || ''; }
+      function money(n) { return '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+      function parseAmount(v) { var n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : NaN; }
+
+      /* ---------- routing ---------- */
+      function show(name) {
+        if (!views[name]) name = 'tienda';
+        var inApp = name !== 'tienda';
+        $('view-tienda').hidden = inApp;
+        $('view-app').hidden = !inApp;
+        $('view-pagos').hidden = name !== 'pagos';
+        $('view-crear').hidden = name !== 'crear';
+        $('navHome').className = name === 'pagos' ? 'active' : '';
+        $('navLinks').className = name === 'crear' ? 'active' : '';
+        $('side').classList.remove('open');
+        document.title = name === 'tienda' ? 'Crea tu tienda en l\u00ednea en minutos | T1 Tienda'
+          : (name === 'crear' ? 'Crear link de pago | T1 Pagos' : 'Inicio | T1 Pagos');
+        window.scrollTo(0, 0);
+      }
+      function route() { show((location.hash || '#tienda').slice(1)); }
+      window.addEventListener('hashchange', route);
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-go]');
+        if (!el) return;
+        e.preventDefault();
+        location.hash = el.getAttribute('data-go');
+      });
+      $('burger').addEventListener('click', function () { $('side').classList.toggle('open'); });
+      route();
+
+      /* ---------- landing prompt ---------- */
+      var prompt = $('storePrompt');
+      prompt.addEventListener('input', function () {
+        $('promptCount').textContent = prompt.value.length + '/500';
+        $('promptSend').classList.toggle('ready', prompt.value.trim().length > 0);
+      });
+      document.querySelectorAll('.chip').forEach(function (c) {
+        c.addEventListener('click', function () {
+          prompt.value = 'Quiero vender productos de ' + c.textContent.toLowerCase();
+          prompt.dispatchEvent(new Event('input'));
+        });
+      });
+      $('promptSend').addEventListener('click', function () { if (prompt.value.trim()) location.hash = 'pagos'; });
+
+      /* ---------- merchant + recent links ---------- */
+      fetch('/api/t1/merchant').then(function (r) { return r.json(); }).then(function (d) {
+        var m = d.merchant || {};
+        if (m.businessName) $('storeName').textContent = m.businessName;
+        if (m.initials) $('storeInitials').textContent = m.initials;
+        if (m.owner) $('ownerName').textContent = m.owner;
+        if (m.ownerInitials) $('ownerInitials').textContent = m.ownerInitials;
+        if (m.onboardingTotal) $('onboardStep').textContent = m.onboardingStep + '/' + m.onboardingTotal;
+        var body = $('recentLinks');
+        body.textContent = '';
+        (d.recentLinks || []).forEach(function (l) {
+          var tr = document.createElement('tr');
+          [[l.code, 'mono'], [l.concept], [money(l.amount) + ' MXN'], [l.status, 'status'], [new Date(l.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })]].forEach(function (c) {
+            var td = document.createElement('td');
+            if (c[1] === 'status') { var s = document.createElement('span'); s.className = 'status ' + c[0]; s.textContent = c[0]; td.appendChild(s); }
+            else { td.textContent = c[0]; if (c[1]) td.className = c[1]; }
+            tr.appendChild(td);
+          });
+          body.appendChild(tr);
+        });
+      }).catch(function () { $('recentLinks').innerHTML = '<tr><td colspan="5">Sin links recientes</td></tr>'; });
+
+      /* ---------- create form + live preview ---------- */
+      var amountEl = $('amount'), conceptEl = $('concept'), mCard = $('mCard'), mMsi = $('mMsi'), mSpei = $('mSpei');
+      function fitAmount() { amountEl.style.width = Math.max(4, (amountEl.value || amountEl.placeholder).length + 0.4) + 'ch'; }
+      function syncPreview() {
+        fitAmount();
+        var amt = parseAmount(amountEl.value);
+        $('pvAmount').textContent = money(isNaN(amt) ? 0 : amt);
+        $('pvPay').textContent = money(isNaN(amt) ? 0 : amt);
+        $('pvConcept').textContent = conceptEl.value || 'Concepto de pago';
+        mMsi.disabled = !mCard.checked;
+        if (!mCard.checked) mMsi.checked = false;
+        $('msiRow').classList.toggle('disabled', !mCard.checked);
+        $('pvCard').classList.toggle('off', !mCard.checked);
+        $('pvMsi').classList.toggle('off', !mMsi.checked);
+        $('pvSpei').classList.toggle('off', !mSpei.checked);
+        $('pvMsiTxt').textContent = mMsi.checked && !isNaN(amt) ? 'desde ' + money(amt / 12) + '/mes' : '';
+      }
+      [amountEl, conceptEl].forEach(function (el) { el.addEventListener('input', syncPreview); });
+      [mCard, mMsi, mSpei].forEach(function (el) { el.addEventListener('change', syncPreview); });
+      amountEl.addEventListener('focus', function () { if (amountEl.value === '0.00') amountEl.value = ''; });
+      amountEl.addEventListener('blur', function () {
+        var n = parseAmount(amountEl.value);
+        if (!isNaN(n)) amountEl.value = n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        syncPreview();
+      });
+      $('addImg').addEventListener('click', function () { $('imgChosen').hidden = false; $('addImg').hidden = true; $('pvImg').hidden = false; });
+      $('removeImg').addEventListener('click', function () { $('imgChosen').hidden = true; $('addImg').hidden = false; $('pvImg').hidden = true; });
+      syncPreview();
+
+      var toastTimer;
+      function toast(msg) {
+        var t = $('toast');
+        t.textContent = msg; t.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.hidden = true; }, 6000);
+      }
+
+      function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+      function renderResult(kind, title, detail, extra) {
+        var box = $('result');
+        box.textContent = '';
+        box.className = 'result ' + kind;
+        box.hidden = false;
+        box.appendChild(el('div', 't', title));
+        if (detail) box.appendChild(el('div', 'd', detail));
+        if (extra) box.appendChild(extra);
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      /* ---------- identity (same contract as the other demos) ---------- */
+      var config = {};
+      var identityPending = Promise.resolve();
+      var emailInput = $('identityEmail'), orgInput = $('identityOrg'), identityBtn = $('identityBtn'), identityMsg = $('identityMsg');
+      function renderIdentity() {
+        var email = stored('devinEmail'), userId = stored('devinUserId');
+        $('identityEmailOut').textContent = email;
+        if (email && userId) { $('identityDot').className = 'dot ok'; $('identityText').textContent = 'Guardia y sesi\u00f3n:'; }
+        else if (email) { $('identityDot').className = 'dot warn'; $('identityText').textContent = 'Correo guardado sin usuario de Devin:'; }
+        else { $('identityDot').className = 'dot warn'; $('identityText').textContent = 'Sin identidad configurada'; }
+      }
+      $('fab').addEventListener('click', function () { $('drawer').hidden = !$('drawer').hidden; });
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        config = cfg || {};
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+        if (cfg.lockOrg) {
+          orgInput.value = cfg.defaultOrgName || stored('devinOrgName') || '';
+          orgInput.disabled = true;
+          orgInput.title = 'Organizaci\u00f3n fijada por la configuraci\u00f3n del servidor';
+        } else if (!orgInput.value) {
+          orgInput.value = stored('devinOrgName') || cfg.defaultOrgName || '';
+        }
+        renderIdentity();
+      }).catch(renderIdentity);
+      emailInput.value = stored('devinEmail');
+      orgInput.value = stored('devinOrgName');
+      renderIdentity();
+
+      identityBtn.addEventListener('click', function () {
+        var email = emailInput.value.trim(), orgName = orgInput.value.trim();
+        identityMsg.className = 'id-msg'; identityMsg.textContent = '';
+        if (!email) { identityMsg.className = 'id-msg err'; identityMsg.textContent = 'Ingresa el correo de la persona de guardia.'; return; }
+        var payload = { email: email };
+        if (config.lockOrg && config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        else if (orgName) payload.orgName = orgName;
+        else if (config.defaultOrgId) payload.orgId = config.defaultOrgId;
+        identityBtn.disabled = true; identityBtn.textContent = 'Conectando\u2026';
+        identityPending = fetch('/api/resolve-identity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+          .then(function (response) { return response.json().then(function (data) { return { ok: response.ok, data: data }; }); })
+          .then(function (res) {
+            if (!res.ok) { identityMsg.className = 'id-msg err'; identityMsg.textContent = res.data.error || 'No fue posible resolver la identidad.'; return; }
+            if (config.lockUser && res.data.userId && res.data.userId !== stored('devinUserId')) {
+              identityMsg.className = 'id-msg err'; identityMsg.textContent = 'Este despliegue est\u00e1 fijado a otro usuario de Devin; usa el correo de esa persona.'; return;
+            }
+            localStorage.setItem('devinEmail', email);
+            if (orgName && !config.lockOrg) localStorage.setItem('devinOrgName', orgName);
+            if (res.data.orgId && !config.lockOrg) localStorage.setItem('devinOrgId', res.data.orgId);
+            if (res.data.userId && !config.lockUser) localStorage.setItem('devinUserId', res.data.userId);
+            identityMsg.className = 'id-msg ok'; identityMsg.textContent = 'Identidad conectada.';
+            renderIdentity();
+          })
+          .catch(function (err) { identityMsg.className = 'id-msg err'; identityMsg.textContent = err.message; })
+          .finally(function () { identityBtn.disabled = false; identityBtn.textContent = 'Conectar identidad'; });
+      });
+
+      /* ---------- submit ---------- */
+      $('linkForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var btn = $('createBtn');
+        btn.disabled = true; btn.textContent = 'Creando\u2026';
+        $('result').hidden = true;
+        identityPending.then(function () {
+          return fetch(ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              amount: parseAmount(amountEl.value),
+              concept: conceptEl.value,
+              methods: { card: mCard.checked, msi: mMsi.checked, spei: mSpei.checked },
+              devinUserId: stored('devinUserId'),
+              devinOrgId: stored('devinOrgId'),
+              devinEmail: stored('devinEmail')
+            })
+          });
+        })
+          .then(function (response) { return response.json().then(function (data) { return { status: response.status, ok: response.ok, data: data }; }); })
+          .then(function (res) {
+            var d = res.data || {};
+            if (res.status === 400) { renderResult('warn', 'Revisa los datos del link', d.error); return; }
+            if (!res.ok) {
+              renderResult('error', 'No pudimos crear tu link de pago', (d.errorClass || 'Error') + ': ' + (d.error || '') + (d.linkId ? '  \u00b7  ref ' + d.linkId : ''));
+              toast('Error al crear el link de pago \u2014 nuestro equipo ya fue notificado.');
+              return;
+            }
+            var link = d.link || {};
+            var wrap = el('div');
+            var urlRow = el('div', 'url');
+            urlRow.appendChild(el('code', null, link.url));
+            var copy = el('button', null, 'Copiar link');
+            copy.type = 'button';
+            copy.addEventListener('click', function () {
+              if (navigator.clipboard) navigator.clipboard.writeText(link.url).catch(function () {});
+              copy.textContent = 'Copiado';
+            });
+            urlRow.appendChild(copy);
+            wrap.appendChild(urlRow);
+            var ul = el('ul');
+            ul.appendChild(el('li', null, 'M\u00e9todos: ' + (link.methods || []).join(', ')));
+            if (link.installments) ul.appendChild(el('li', null, 'MSI: ' + link.installments.map(function (i) { return i.months + ' \u00d7 ' + money(i.monthly); }).join(' \u00b7 ')));
+            if (link.spei) ul.appendChild(el('li', null, 'CLABE SPEI: ' + link.spei.clabe + ' (' + link.spei.bank + ')'));
+            wrap.appendChild(ul);
+            renderResult('success', 'Link de pago creado', link.concept + ' \u00b7 ' + money(link.amount) + ' ' + (link.currency || 'MXN'), wrap);
+            toast('Tu link de pago est\u00e1 listo para compartir.');
+          })
+          .catch(function (err) { renderResult('error', 'Error de red', err.message); })
+          .finally(function () { btn.disabled = false; btn.textContent = 'Crear enlace'; });
+      });
+    })();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
