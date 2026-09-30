@@ -283,6 +283,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | QBE North America Claims (qbe) | `/qbe` | "Submit Claim" (QBE-PA-4417293 collision claim) | `Cannot read properties of undefined (reading 'collisionDeductible')` |
 | NAB Internet Banking (nab) | `/nab` | "Pay now" (082-001 40817266 Pay Anyone payment) | `Cannot read properties of undefined (reading 'dailyLimit')` |
 | Elevance Health — Anthem Enrollment (9fdcf315) | `/elevance`, `/anthem`, `/9fdcf315` | "Enroll" (default household includes an 8-year-old child → embedded pediatric dental rider missing from the plan catalog; adults-only household or swapping in Anthem Dental Family Prime → success; no medical plan or unsupported state → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'planName')` |
+| T1 Pagos — Crear link de pago | `/t1`, `/t1pagos`, `/t1tienda` | Click "Crear enlace" with "Tarjetas de crédito o débito" and "Transferencia bancaria" checked → TypeError; uncheck "Transferencia bancaria" → success | `Cannot read properties of undefined (reading 'clabePrefix')`; invalid inputs return 400 ValidationError responses without an alert |
 
 ### API Testing (curl)
 
@@ -364,6 +365,11 @@ curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Ty
 # → TypeError 500 ENROLLMENT_FAILED; drop the child from household → success; no medical planId → 400 NO_MEDICAL_PLAN; bad state → 400 INVALID_STATE
 # GET /api/9fdcf315/plans lists the plan catalog and supported states.
 curl -s -X POST http://localhost:3000/api/9fdcf315/enroll -H 'Content-Type: application/json' -d '{}' # all defaults
+
+# Custom — T1 Pagos — checked card + SPEI triggers the migrated provider TypeError; card-only succeeds; invalid input returns 400
+curl -s -X POST http://localhost:3000/api/t1/payment-links -H 'Content-Type: application/json' -d '{"amount":1250,"concept":"Mensualidad Yoga Flow","methods":{"card":true,"msi":false,"spei":true}}'
+curl -s -X POST http://localhost:3000/api/t1/payment-links -H 'Content-Type: application/json' -d '{"amount":1250,"concept":"Mensualidad Yoga Flow","methods":{"card":true,"msi":false,"spei":false}}'
+curl -s -X POST http://localhost:3000/api/t1/payment-links -H 'Content-Type: application/json' -d '{"amount":1250,"concept":"","methods":{"card":true,"msi":false,"spei":false}}'
 ```
 
 ## Common Issues & Troubleshooting
