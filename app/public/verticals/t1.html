@@ -23,6 +23,7 @@
     button { font-family: inherit; cursor: pointer; }
     a { color: inherit; }
     [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
     .fade { animation: fadeUp 0.45s ease-out both; }
 
@@ -259,6 +260,7 @@
       <h1 class="fade">Crea tu tienda en <span>segundos</span></h1>
       <p class="lead fade">T1 te ayuda a vender, cobrar y enviar a todo M&eacute;xico. Todo en uno.</p>
       <div class="prompt fade">
+        <label for="storePrompt" class="sr-only">Describe tu tienda</label>
         <textarea id="storePrompt" maxlength="500" placeholder="Quiero vender ropa y accesorios para mujer"></textarea>
         <div class="row">
           <span class="count" id="promptCount">0/500</span>
@@ -423,7 +425,7 @@
 
               <button type="button" class="add-img" id="addImg">+ Agregar imagen (opcional)</button>
               <div class="img-chosen" id="imgChosen" hidden>
-                <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=80" alt="Imagen del link">
+                <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=300&q=80" alt="Clase de yoga">
                 <span style="font-size:0.9rem;color:#4C4C4C">clase-yoga.jpg</span>
                 <button type="button" id="removeImg">Quitar</button>
               </div>
@@ -511,7 +513,7 @@
       function $(id) { return document.getElementById(id); }
       function stored(key) { return localStorage.getItem(key) || ''; }
       function money(n) { return '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-      function parseAmount(v) { var n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isFinite(n) ? n : NaN; }
+      function parseAmount(v) { var n = Number.parseFloat(String(v).replace(/[^0-9.]/g, '')); return Number.isFinite(n) ? n : Number.NaN; }
 
       /* ---------- routing ---------- */
       function show(name) {
@@ -581,8 +583,8 @@
       function syncPreview() {
         fitAmount();
         var amt = parseAmount(amountEl.value);
-        $('pvAmount').textContent = money(isNaN(amt) ? 0 : amt);
-        $('pvPay').textContent = money(isNaN(amt) ? 0 : amt);
+        $('pvAmount').textContent = money(Number.isNaN(amt) ? 0 : amt);
+        $('pvPay').textContent = money(Number.isNaN(amt) ? 0 : amt);
         $('pvConcept').textContent = conceptEl.value || 'Concepto de pago';
         mMsi.disabled = !mCard.checked;
         if (!mCard.checked) mMsi.checked = false;
@@ -590,14 +592,14 @@
         $('pvCard').classList.toggle('off', !mCard.checked);
         $('pvMsi').classList.toggle('off', !mMsi.checked);
         $('pvSpei').classList.toggle('off', !mSpei.checked);
-        $('pvMsiTxt').textContent = mMsi.checked && !isNaN(amt) ? 'desde ' + money(amt / 12) + '/mes' : '';
+        $('pvMsiTxt').textContent = mMsi.checked && !Number.isNaN(amt) ? 'desde ' + money(amt / 12) + '/mes' : '';
       }
       [amountEl, conceptEl].forEach(function (el) { el.addEventListener('input', syncPreview); });
       [mCard, mMsi, mSpei].forEach(function (el) { el.addEventListener('change', syncPreview); });
       amountEl.addEventListener('focus', function () { if (amountEl.value === '0.00') amountEl.value = ''; });
       amountEl.addEventListener('blur', function () {
         var n = parseAmount(amountEl.value);
-        if (!isNaN(n)) amountEl.value = n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (!Number.isNaN(n)) amountEl.value = n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         syncPreview();
       });
       $('addImg').addEventListener('click', function () { $('imgChosen').hidden = false; $('addImg').hidden = true; $('pvImg').hidden = false; });
