@@ -2599,6 +2599,23 @@ const ONCALL_SKINS = {
     supportCenter: 'DIRECTV Support',
     disclaimer: 'NOT ACTUALLY A DIRECTV SITE — internal demo only, not affiliated with, endorsed by, or a real DIRECTV product.',
   },
+  '57d22ef0': {
+    slug: '57d22ef0',
+    company: 'Bank of America',
+    brandMark: 'B',
+    vertical: 'banking',
+    oncallOnly: true,
+    page: { file: '57d22ef0.html', title: 'Transfer Money | Bank of America' },
+    theme: {
+      '--accent': '#0053C2',
+      '--ink': '#000000',
+      '--surface': '#FFFFFF',
+      '--chrome-bg': '#012169',
+      '--chrome-text': '#FFFFFF',
+    },
+    supportCenter: 'Bank of America Customer Service',
+    disclaimer: 'NOT ACTUALLY A BANK OF AMERICA SITE — internal demo only, not affiliated with, endorsed by, or a real Bank of America product.',
+  },
   'cc824d2a': {
     slug: 'cc824d2a',
     company: 'PIMCO',
