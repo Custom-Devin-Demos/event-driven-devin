@@ -1,3 +1,4 @@
+const { randomInt } = require('node:crypto');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../telemetry/logger');
 const { incrementMetric, recordTiming } = require('../../telemetry/datadog');
@@ -169,7 +170,7 @@ function generateLinkCode() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let suffix = '';
   for (let index = 0; index < 5; index += 1) {
-    suffix += characters[Math.floor(Math.random() * characters.length)];
+    suffix += characters[randomInt(characters.length)];
   }
   return `T1L-${suffix}`;
 }
@@ -205,7 +206,7 @@ async function createPaymentLink(data = {}) {
   });
 
   try {
-    await new Promise((resolve) => setTimeout(resolve, 80 + Math.random() * 120));
+    await new Promise((resolve) => setTimeout(resolve, 80 + randomInt(120)));
 
     const code = generateLinkCode();
     const link = {

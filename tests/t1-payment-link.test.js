@@ -23,10 +23,12 @@ const {
   MERCHANT,
   PAYMENT_METHODS,
   RECENT_LINKS,
+  CLABE_PROVIDERS,
   ValidationError,
   clabeCheckDigit,
 } = require('../app/services/verticals/t1');
 const t1Routes = require('../app/routes/verticals/t1');
+const t1Customer = require('../config/customers/t1');
 
 const VALID_LINK = {
   amount: 1250,
@@ -58,7 +60,13 @@ function request(method, path, body) {
         let responseBody = '';
         res.on('data', (chunk) => { responseBody += chunk; });
         res.on('end', () => {
-          server.close(() => resolve({ status: res.statusCode, body: JSON.parse(responseBody) }));
+          const contentType = res.headers['content-type'] || '';
+          const response = {
+            status: res.statusCode,
+            body: contentType.includes('application/json') ? JSON.parse(responseBody) : responseBody,
+            contentType,
+          };
+          server.close(() => resolve(response));
         });
       });
       req.on('error', (error) => server.close(() => reject(error)));
@@ -176,6 +184,44 @@ describe('T1 Pagos payment links', () => {
   test('calculates a valid CLABE check digit', () => {
     expect(clabeCheckDigit('00201007777777777')).toBe('1');
     expect(`${'00201007777777777'}${clabeCheckDigit('00201007777777777')}`).toBe('002010077777777771');
+    expect(() => clabeCheckDigit('123')).toThrow(TypeError);
+  });
+
+  test('creates an SPEI CLABE when its provider is registered', async () => {
+    const existingProvider = CLABE_PROVIDERS.stp_v2;
+    CLABE_PROVIDERS.stp_v2 = CLABE_PROVIDERS.stp;
+
+    try {
+      const result = await createPaymentLink({
+        ...VALID_LINK,
+        methods: { card: false, msi: false, spei: true },
+      });
+
+      expect(result.link.spei.clabe).toHaveLength(18);
+      expect(result.link.spei.clabe.endsWith(clabeCheckDigit(result.link.spei.clabe.slice(0, 17)))).toBe(true);
+      expect(result.link.spei.bank).toBe('STP');
+      expect(result.link.spei.reference).toBeTruthy();
+    } finally {
+      if (existingProvider === undefined) {
+        delete CLABE_PROVIDERS.stp_v2;
+      } else {
+        CLABE_PROVIDERS.stp_v2 = existingProvider;
+      }
+    }
+  });
+
+  test('rethrows unexpected validation input errors without alerting', async () => {
+    await expect(createPaymentLink(null)).rejects.toThrow(TypeError);
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+  });
+
+  test('logs alert-pipeline failures without replacing the payment-link error', async () => {
+    createSessionAndAlert.mockRejectedValueOnce(new Error('Alert unavailable'));
+    await expect(createPaymentLink(VALID_LINK)).rejects.toThrow(
+      "Cannot read properties of undefined (reading 'clabePrefix')",
+    );
+    await Promise.resolve();
   });
 
   test('merchant endpoint returns the payment-link dashboard data', async () => {
@@ -187,6 +233,25 @@ describe('T1 Pagos payment links', () => {
       paymentMethods: PAYMENT_METHODS,
       recentLinks: RECENT_LINKS,
     });
+  });
+
+  test('serves the T1 page', async () => {
+    const response = await request('GET', '/t1');
+
+    expect(response.status).toBe(200);
+    expect(response.contentType).toContain('text/html');
+  });
+
+  test('payment-link route returns successful card-only links', async () => {
+    const response = await request('POST', '/api/t1/payment-links', {
+      ...VALID_LINK,
+      methods: { card: true, msi: false, spei: false },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.link.url).toMatch(/^https:\/\/payments\.t1\.com\/l\/T1L-[A-Z0-9]{5}$/);
+    expect(response.body.link).not.toHaveProperty('spei');
   });
 
   test('payment-link route maps service errors and validation to their API responses', async () => {
@@ -209,6 +274,14 @@ describe('T1 Pagos payment links', () => {
       error: 'Ingresa el concepto de pago.',
       errorClass: 'ValidationError',
       code: 'INVALID_PAYMENT_LINK',
+    });
+  });
+
+  test('customer configuration provides T1 aliases and API trigger mode', () => {
+    expect(t1Customer).toEqual({
+      label: 'T1 Pagos — Link de pago',
+      triggerMode: 'api',
+      aliases: ['t1pagos', 't1tienda'],
     });
   });
 });
