@@ -700,7 +700,7 @@
               <div class="form-row">
                 <div class="form-group">
                   <label for="amount">Amount</label>
-                  <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$0.00" />
+                  <input type="number" id="amount" value="500" min="1" step="0.01" placeholder="$0.00" required />
                 </div>
                 <div class="form-group">
                   <label for="accountTier">Relationship tier</label>
@@ -711,8 +711,8 @@
                   </select>
                 </div>
               </div>
-              <button type="submit" class="btn btn-primary btn-transfer" id="submitBtn">Continue to review</button>
-              <p class="request-status" id="requestStatus" role="status">No transfer is made until you confirm.</p>
+              <button type="submit" class="btn btn-primary btn-transfer" id="submitBtn">Transfer now</button>
+              <p class="request-status" id="requestStatus" role="status">Your transfer is submitted as soon as you select Transfer now.</p>
             </form>
             <div class="summary" aria-label="Transfer summary">
               <h4>Transfer summary</h4>
@@ -806,21 +806,28 @@
           toAccount.options[toAccount.selectedIndex].text;
         document.getElementById('sumAmount').textContent = fmt(amount.value);
       }
+      function amountValid() {
+        const value = parseFloat(amount.value);
+        return Number.isFinite(value) && value >= 1;
+      }
       function syncGuard() {
         if (inFlight) return;
         if (fromAccount.value === toAccount.value) {
           submitBtn.disabled = true;
           status.textContent = 'Choose a different destination account to continue.';
+        } else if (!amountValid()) {
+          submitBtn.disabled = true;
+          status.textContent = 'Enter an amount of at least $1.00 to continue.';
         } else {
           submitBtn.disabled = false;
-          status.textContent = 'No transfer is made until you confirm.';
+          status.textContent = 'Your transfer is submitted as soon as you select Transfer now.';
         }
       }
       [fromAccount, toAccount, amount].forEach(function (el) {
         el.addEventListener('change', updateSummary);
         el.addEventListener('input', updateSummary);
       });
-      [fromAccount, toAccount].forEach(function (el) {
+      [fromAccount, toAccount, amount].forEach(function (el) {
         el.addEventListener('change', syncGuard);
         el.addEventListener('input', syncGuard);
       });
@@ -837,8 +844,9 @@
         event.preventDefault();
         const result = document.getElementById('result');
         const started = performance.now();
-        if (inFlight || fromAccount.value === toAccount.value) return;
+        if (inFlight || fromAccount.value === toAccount.value || !amountValid()) return;
         inFlight = true;
+        let succeeded = false;
         submitBtn.disabled = true;
         submitBtn.textContent = 'Processing…';
         form.setAttribute('aria-busy', 'true');
@@ -866,6 +874,7 @@
           await response.json();
           if (!response.ok) throw new Error('transfer failed');
           const slow = performance.now() - started > 4000;
+          succeeded = true;
           result.className = 'result-box success';
           result.textContent = slow
             ? 'Your transfer is being processed. It is taking longer than usual — you will see it in your account activity shortly.'
@@ -878,10 +887,11 @@
           clearInterval(timer);
           form.removeAttribute('aria-busy');
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Continue to review';
+          submitBtn.textContent = 'Transfer now';
           inFlight = false;
           syncGuard();
-          status.textContent = `Completed in ${((performance.now() - started) / 1000).toFixed(1)}s`;
+          const elapsed = ((performance.now() - started) / 1000).toFixed(1);
+          status.textContent = succeeded ? `Completed in ${elapsed}s` : `Not completed · ${elapsed}s`;
         }
       });
     </script>
