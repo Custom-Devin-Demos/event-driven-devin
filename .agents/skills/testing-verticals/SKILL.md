@@ -280,6 +280,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | Capital One Travel (b014618f) | `/b014618f`, `/capitalone` | "Book now" (Venture X card selected by default — its `venture_x_premium` rewards program is missing from the redemption map; error shows in an inline red panel, not a toast; selecting Venture or SavorOne → green confirmation panel) | `Cannot read properties of undefined (reading 'milesIncrement')` |
 | U.S. Bank Business Bill Pay (4f9ede2a) | `/4f9ede2a`, `/usbank` | "Pay" on the SwiftHost Web Services row ($2,876.00 routes onto the same-day ACH rail, which has no remittance format registered; error shows in an inline red panel below the table; rows under $2,500 e.g. ABC Print → green confirmation panel; vendors with no unpaid bills → 400 ValidationError panel, no alert) | `Cannot read properties of undefined (reading 'railName')` |
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
+| Permira Advisors LLC (0fb68d91) | `/0fb68d91`, `/permira` | Strategy filter → "Energy Transition" (the filter sends `energy transition`, which has no entry in `STRATEGY_PROFILES`; Flagship/Ascent/PGO1 and every other filter/sort succeed; unknown filter values → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'label')` |
 | QBE North America Claims (qbe) | `/qbe` | "Submit Claim" (QBE-PA-4417293 collision claim) | `Cannot read properties of undefined (reading 'collisionDeductible')` |
 | NAB Internet Banking (nab) | `/nab` | "Pay now" (082-001 40817266 Pay Anyone payment) | `Cannot read properties of undefined (reading 'dailyLimit')` |
 | Elevance Health — Anthem Enrollment (9fdcf315) | `/elevance`, `/anthem`, `/9fdcf315` | "Enroll" (default household includes an 8-year-old child → embedded pediatric dental rider missing from the plan catalog; adults-only household or swapping in Anthem Dental Family Prime → success; no medical plan or unsupported state → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'planName')` |
@@ -356,6 +357,9 @@ curl -s -X POST http://localhost:3000/api/a7fb8819/submit-pay-run -H 'Content-Ty
 
 # Custom — Capital One Travel (b014618f) — venture-x triggers TypeError; venture/savorone succeed
 curl -s -X POST http://localhost:3000/api/b014618f/redeem-miles -H 'Content-Type: application/json' -d '{"cardProduct":"venture-x","bookingType":"hotel","tripTotalUsd":1284.50,"milesApplied":90000,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org_69IXJFLrljx8zSAw"}'
+
+# Custom — Permira Advisors LLC (0fb68d91) — Energy Transition strategy triggers TypeError; flagship/ascent/pgo1 succeed
+curl -s -X POST http://localhost:3000/api/0fb68d91/portfolio/search -H 'Content-Type: application/json' -d '{"filters":{"strategy":["energy transition"]}}'
 
 # Custom — United Airlines (4ada28b9)
 curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Type: application/json' -d '{"origin":"EWR","destination":"LAX","cabin":"economy","passengers":1,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-2cd0ade21d8d4c5886fcea1b701c34e0"}'
