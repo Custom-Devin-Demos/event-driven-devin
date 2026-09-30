@@ -76,9 +76,11 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **PG&E Outage Center — address outage status** (unlisted — direct URL only; clone of the public pgealerts.alerts.pge.com lookup, no sign-in) | `/b6f570dc`, `/b6f570dc/outage-status` | `app/public/verticals/b6f570dc.html` | `GET /api/b6f570dc/addresses`, `GET /api/b6f570dc/situation`, `POST /api/b6f570dc/outage-status`, `POST /api/b6f570dc/outage-status/reset` | `app/services/verticals/b6f570dc.js`, `app/services/verticals/b6f570dc-grid.js` |
 | **Verizon — Wireless Checkout** (unlisted — direct URL only) | `/verizon`, `/4e150e99` | `app/public/verticals/4e150e99.html` | `GET /api/4e150e99/catalog`, `POST /api/4e150e99/checkout` | `app/services/verticals/4e150e99.js` |
 | **Elevance Health — Anthem Individual & Family enrollment** (unlisted — direct URL only) | `/elevance`, `/anthem`, `/9fdcf315` | `app/public/verticals/9fdcf315.html` | `GET /api/9fdcf315/plans`, `POST /api/9fdcf315/enroll` | `app/services/verticals/9fdcf315.js` |
-| **Vertex Inc — Vertex Cloud platform tax determination** (unlisted — direct URL only) | `/vertex`, `/513ad458` | `app/public/verticals/513ad458.html` | `GET /api/513ad458/jurisdictions`, `GET /api/513ad458/product-classes`, `POST /api/513ad458/calculate` | `app/services/verticals/513ad458.js` |
+| **Vertex Inc — Vertex Cloud platform tax determination** (unlisted — direct URL only) | `/vertex`, `/513ad458` | `app/public/verticals/513ad458.html`, `/vertex/dashboard/billing` | `GET /api/513ad458/jurisdictions`, `GET /api/513ad458/product-classes`, `GET /api/513ad458/invoices`, `POST /api/513ad458/calculate` | `app/services/verticals/513ad458.js`, `app/services/verticals/513ad458-invoices.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
+
+The Vertex invoice register is available at `/vertex/dashboard/billing` and `GET /api/513ad458/invoices`; its account book is `config/seeds/513ad458-accounts.json`, and the tax golden cases are in `tests/fixtures/513ad458-tax-fixtures.json`. `legacy/vertex-report-engine` keeps a separate, hand-maintained flat per-account copy of the tax rules without jurisdiction or province data.
 
 ## Group home page showcase (/lifeco)
 

@@ -4,8 +4,16 @@ const {
   JURISDICTIONS,
   PRODUCT_CLASSES,
 } = require('../../services/verticals/513ad458');
+const { listInvoices } = require('../../services/verticals/513ad458-invoices');
+const path = require('path');
 
 const router = express.Router();
+
+const billingPage = path.join(__dirname, '..', '..', 'public', 'verticals', '513ad458-billing.html');
+
+router.get(['/vertex/dashboard/billing', '/513ad458/dashboard/billing'], (_req, res) => {
+  res.sendFile(billingPage);
+});
 
 router.get('/api/513ad458/jurisdictions', (_req, res) => {
   res.json({
@@ -18,6 +26,11 @@ router.get('/api/513ad458/jurisdictions', (_req, res) => {
 
 router.get('/api/513ad458/product-classes', (_req, res) => {
   res.json({ productClasses: PRODUCT_CLASSES });
+});
+
+router.get('/api/513ad458/invoices', (_req, res) => {
+  const { bookPeriod, invoices } = listInvoices();
+  res.json({ bookPeriod, invoices });
 });
 
 router.post('/api/513ad458/calculate', async (req, res) => {
