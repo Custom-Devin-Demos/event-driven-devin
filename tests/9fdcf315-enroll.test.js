@@ -121,7 +121,7 @@ describe('Anthem enrollment', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
-  test.each(['', 'not-a-date'])('processEnrollment rejects invalid coverageStart "%s" without triggering telemetry or a Devin session', async (coverageStart) => {
+  test.each(['', 'not-a-date', '2027-02-30', '2027-02-29'])('processEnrollment rejects invalid coverageStart "%s" without triggering telemetry or a Devin session', async (coverageStart) => {
     jest.clearAllMocks();
 
     await expect(processEnrollment({ ...DEFAULT_ENROLLMENT, coverageStart }))
@@ -133,6 +133,20 @@ describe('Anthem enrollment', () => {
 
     expect(createSessionAndAlert).not.toHaveBeenCalled();
     expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('processEnrollment accepts a leap-day coverageStart in a leap year', async () => {
+    jest.clearAllMocks();
+
+    const result = await processEnrollment({
+      ...DEFAULT_ENROLLMENT,
+      household: ADULT_ONLY_HOUSEHOLD,
+      coverageStart: '2028-02-29',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.coverageStart).toBe('2028-02-29');
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
   });
 
   test('processEnrollment rejects with the planted TypeError and triggers a Devin session', async () => {

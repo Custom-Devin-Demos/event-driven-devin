@@ -131,8 +131,17 @@ async function processEnrollment(data) {
     });
   }
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.coverageStart || '')
-    || Number.isNaN(Date.parse(data.coverageStart))) {
+  const startMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data.coverageStart || '');
+  const startParts = startMatch
+    ? { y: Number(startMatch[1]), m: Number(startMatch[2]), day: Number(startMatch[3]) }
+    : null;
+  const startDate = startParts
+    ? new Date(Date.UTC(startParts.y, startParts.m - 1, startParts.day))
+    : null;
+  if (!startDate
+    || startDate.getUTCFullYear() !== startParts.y
+    || startDate.getUTCMonth() !== startParts.m - 1
+    || startDate.getUTCDate() !== startParts.day) {
     throw Object.assign(new Error('Invalid coverage start date'), {
       name: 'ValidationError',
       code: 'INVALID_COVERAGE_START',
