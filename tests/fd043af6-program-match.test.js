@@ -179,6 +179,8 @@ describe('Strategic Education program match', () => {
       { focusArea: 'underwater-basket-weaving' },
       { network: 'ivy-league' },
       { company: '   ' },
+      { company: null, network: 'strayer' },
+      { company: 123, network: 'strayer' },
     ];
 
     for (const body of invalidRequests) {

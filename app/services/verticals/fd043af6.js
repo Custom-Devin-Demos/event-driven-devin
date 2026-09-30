@@ -580,7 +580,9 @@ async function matchPrograms(data = {}) {
   const requestData = data && typeof data === 'object' ? data : {};
   const normalized = {
     ...requestData,
-    company: String(requestData.company === undefined ? 'Acme Logistics' : requestData.company).trim(),
+    company: requestData.company === undefined
+      ? 'Acme Logistics'
+      : (typeof requestData.company === 'string' ? requestData.company.trim() : requestData.company),
     email: String(requestData.email === undefined ? 'benefits@acme.example' : requestData.email).trim(),
     teamSize: Number(requestData.teamSize === undefined ? 250 : requestData.teamSize),
     focusArea: String(requestData.focusArea || 'business').trim().toLowerCase(),
