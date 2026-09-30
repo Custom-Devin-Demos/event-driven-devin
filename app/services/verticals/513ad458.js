@@ -75,6 +75,53 @@ const JURISDICTIONS = {
       { authority: 'HMRC', rate: 0.20 },
     ],
   },
+  'CA-ON': {
+    name: 'Canada — Ontario',
+    country: 'CA',
+    currency: 'CAD',
+    taxType: 'HST',
+    authorities: [
+      { authority: 'HST (Ontario)', rate: 0.13 },
+    ],
+  },
+  'CA-NS': {
+    name: 'Canada — Nova Scotia',
+    country: 'CA',
+    currency: 'CAD',
+    taxType: 'HST',
+    authorities: [
+      { authority: 'HST (Nova Scotia)', rate: 0.15 },
+    ],
+  },
+  'CA-BC': {
+    name: 'Canada — British Columbia',
+    country: 'CA',
+    currency: 'CAD',
+    taxType: 'GST/PST',
+    authorities: [
+      { authority: 'GST (CRA)', rate: 0.05 },
+      { authority: 'PST (British Columbia)', rate: 0.07 },
+    ],
+  },
+  'CA-QC': {
+    name: 'Canada — Quebec',
+    country: 'CA',
+    currency: 'CAD',
+    taxType: 'GST/QST',
+    authorities: [
+      { authority: 'GST (CRA)', rate: 0.05 },
+      { authority: 'QST (Revenu Québec)', rate: 0.09975 },
+    ],
+  },
+  'CA-AB': {
+    name: 'Canada — Alberta',
+    country: 'CA',
+    currency: 'CAD',
+    taxType: 'GST',
+    authorities: [
+      { authority: 'GST (CRA)', rate: 0.05 },
+    ],
+  },
 };
 
 const PRODUCT_CLASSES = [
