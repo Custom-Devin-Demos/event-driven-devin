@@ -74,6 +74,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **Nordstrom — Homepage & Shopping Bag checkout** (unlisted — direct URL only; bag icon in the header opens a 4-item Shopping Bag drawer, Check Out fails) | `/d3e3804d` | `app/public/verticals/d3e3804d.html` | `GET /api/d3e3804d/catalog`, `POST /api/d3e3804d/checkout` | `app/services/verticals/d3e3804d.js`, `app/services/verticals/d3e3804d-fulfillment.js` |
 | **PG&E Outage Center — address outage status** (unlisted — direct URL only; clone of the public pgealerts.alerts.pge.com lookup, no sign-in) | `/b6f570dc`, `/b6f570dc/outage-status` | `app/public/verticals/b6f570dc.html` | `GET /api/b6f570dc/addresses`, `GET /api/b6f570dc/situation`, `POST /api/b6f570dc/outage-status`, `POST /api/b6f570dc/outage-status/reset` | `app/services/verticals/b6f570dc.js`, `app/services/verticals/b6f570dc-grid.js` |
 | **Verizon — Wireless Checkout** (unlisted — direct URL only) | `/verizon`, `/4e150e99` | `app/public/verticals/4e150e99.html` | `GET /api/4e150e99/catalog`, `POST /api/4e150e99/checkout` | `app/services/verticals/4e150e99.js` |
+| **Vertex Inc — Vertex Cloud platform tax determination** (unlisted — direct URL only) | `/vertex`, `/513ad458` | `app/public/verticals/513ad458.html` | `GET /api/513ad458/jurisdictions`, `GET /api/513ad458/product-classes`, `POST /api/513ad458/calculate` | `app/services/verticals/513ad458.js` |
 
 Each vertical follows the same flow: **User action → Bug triggers → Sentry/Datadog capture → Slack alert → Devin investigates → PR created**.
 
