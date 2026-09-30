@@ -17,6 +17,7 @@ const {
   SCENARIO: PLAN_PRICING_SCENARIO,
 } = require('../services/verticals/a75ccde9');
 const { APP_REMEDIATION_DIRECTIVE: NVIDIA_REMEDIATION_DIRECTIVE } = require('../services/verticals/315f52fe');
+const { APP_REMEDIATION_DIRECTIVE: WESTPAC_IOS_REMEDIATION_DIRECTIVE, APP_SCENARIO: WESTPAC_IOS_SCENARIO } = require('../services/verticals/westpac');
 
 const router = express.Router();
 
@@ -153,7 +154,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c'];
 
 // Alert paths where the service already alerts directly (instant errors and
 // latency-budget breaches); the webhook must not raise a second alert.
@@ -426,6 +427,22 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-315f52fe-ios',
       service: 'customer-315f52fe-ios',
       scenario: 'play-ultimate-rig-profile',
+    },
+  },
+  // Westpac Mobile native SwiftUI app (github.com/COG-GTM/event-driven-ios),
+  // iOS only. Reports arrive via /api/westpac/ios/error; remediation lands in
+  // the Swift repo and is verified on the iOS simulator from a macOS session.
+  'westpac-ios': {
+    customer: 'westpac',
+    verticalLabel: 'Westpac Mobile',
+    service: 'customer-westpac-ios',
+    project: 'westpac-mobile-ios',
+    release: 'westpac-mobile-ios@1.0.0',
+    promptAppendix: WESTPAC_IOS_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-westpac-ios',
+      service: 'customer-westpac-ios',
+      scenario: WESTPAC_IOS_SCENARIO,
     },
   },
 };
