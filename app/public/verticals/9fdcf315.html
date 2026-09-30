@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review &amp; Enroll | Individual &amp; Family Plans | Anthem</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #286ce2;
+      --blue-dark: #2052a8;
+      --blue-light: #118ad7;
+      --blue-tint: #f0f5ff;
+      --navy: #1a3673;
+      --green-top: #2c915b;
+      --green-bottom: #187d47;
+      --gold-top: #f4ba01;
+      --gold-bottom: #fea503;
+      --text: #333333;
+      --text-muted: #646464;
+      --border: #e1e1e1;
+      --bg: #f7f7f7;
+      --danger: #cb0042;
+      --danger-bg: #fff2f5;
+      --success: #187d47;
+      --success-bg: #effaf3;
+      --sans: 'Lato', Arial, sans-serif;
+      --serif: 'Bitter', Georgia, serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); color: var(--text); background: #fff; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+    a { color: var(--blue); }
+    .wrap { max-width: 1112px; margin: 0 auto; padding: 0 24px; }
+
+    /* Utility bar */
+    .utility { background: linear-gradient(90deg, var(--blue-light), var(--blue)); color: #fff; height: 32px; font-size: 13px; font-weight: 700; }
+    .utility .wrap { display: flex; align-items: center; justify-content: space-between; height: 100%; }
+    .utility nav { display: flex; gap: 28px; }
+    .utility a { color: #fff; text-decoration: none; }
+    .utility .right { display: flex; gap: 44px; align-items: center; }
+    .caret::after { content: ''; display: inline-block; margin-left: 6px; border: 4px solid transparent; border-top-color: currentColor; transform: translateY(2px); }
+
+    /* Header */
+    header.main { background: linear-gradient(#fff, #f7f7f7); border-bottom: 1px solid var(--border); }
+    header.main .wrap { display: flex; align-items: center; height: 72px; gap: 32px; }
+    .logo img { height: 26px; display: block; }
+    .logo-fallback { display: none; font: 900 26px var(--sans); color: #1355e9; }
+    header.main nav { display: flex; gap: 22px; font-size: 13px; font-weight: 700; flex: 1; }
+    header.main nav a { color: var(--text); text-decoration: none; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px; border-radius: 8px; font: 700 16px var(--sans); color: #fff; border: 0; cursor: pointer; text-decoration: none; }
+    .btn-green { background: linear-gradient(-180deg, var(--green-top), var(--green-bottom)); }
+    .btn-blue { background: var(--blue); }
+    .btn-blue:hover { background: var(--blue-dark); }
+    .btn-gold { background: linear-gradient(-180deg, var(--gold-top), var(--gold-bottom)); color: #000; }
+    .btn-gold:hover { filter: brightness(0.96); }
+    .btn-outline { background: #fff; color: var(--blue); border: 1px solid var(--blue); height: 32px; font-size: 14px; padding: 0 12px; }
+    .header-ctas { display: flex; gap: 16px; }
+
+    /* Hero */
+    .hero { background: var(--blue); color: #fff; }
+    .hero .wrap { display: flex; align-items: stretch; justify-content: space-between; gap: 32px; min-height: 172px; }
+    .hero .copy { padding: 32px 0; max-width: 620px; }
+    .hero h1 { font: 600 36px/1.25 var(--serif); margin-bottom: 10px; }
+    .hero p { font-size: 17px; }
+    .hero .agent { margin-top: 14px; font-size: 15px; }
+    .hero .agent a { color: #fff; font-weight: 700; }
+    .hero .panel { background: var(--blue-dark); padding: 26px 18px; width: 232px; display: flex; flex-direction: column; justify-content: center; }
+    .hero .panel .label { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
+    .hero .panel .value { font: 700 30px var(--serif); margin: 2px 0; }
+    .hero .panel .sub { font-size: 13px; opacity: .9; }
+
+    /* Stepper + breadcrumbs */
+    .crumbs { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 20px 24px 8px; }
+    .crumbs a { text-decoration: none; font-weight: 700; }
+    .crumbs .sep { margin: 0 8px; color: var(--text-muted); }
+    .stepper { display: flex; gap: 0; margin: 18px 0 8px; counter-reset: step; }
+    .step { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: var(--text-muted); position: relative; padding-top: 34px; }
+    .step::before { counter-increment: step; content: counter(step); position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 26px; height: 26px; border-radius: 50%; border: 2px solid #c8c8c8; background: #fff; line-height: 22px; font-size: 13px; z-index: 1; }
+    .step::after { content: ''; position: absolute; top: 12px; left: -50%; width: 100%; height: 2px; background: #c8c8c8; }
+    .step:first-child::after { display: none; }
+    .step.done, .step.active { color: var(--blue); }
+    .step.done::before { content: '\2713'; background: var(--blue); border-color: var(--blue); color: #fff; }
+    .step.done::after, .step.active::after { background: var(--blue); }
+    .step.active::before { border-color: var(--blue); color: var(--blue); }
+
+    /* Layout */
+    main .wrap { display: grid; grid-template-columns: 1fr 344px; gap: 28px; padding-top: 18px; padding-bottom: 48px; }
+    h2 { font: 700 26px var(--serif); margin: 8px 0 14px; }
+    h3 { font: 600 19px var(--serif); }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,.06); padding: 20px 22px; margin-bottom: 20px; }
+    .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .muted { color: var(--text-muted); font-size: 14px; }
+
+    .member { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--border); }
+    .member:first-of-type { border-top: 0; }
+    .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--blue-tint); color: var(--blue); display: flex; align-items: center; justify-content: center; font-weight: 900; }
+    .member .who { flex: 1; }
+    .member .who strong { display: block; font-size: 16px; }
+    .link-btn { background: none; border: 0; color: var(--blue); font: 700 14px var(--sans); cursor: pointer; text-decoration: underline; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    label.field { font-size: 14px; font-weight: 700; display: block; }
+    select, input[type=date] { width: 100%; margin-top: 6px; height: 42px; border: 1px solid #949494; border-radius: 4px; padding: 0 10px; font: 16px var(--sans); color: var(--text); background: #fff; }
+
+    .plan { display: grid; grid-template-columns: 56px 1fr auto; gap: 16px; align-items: center; padding: 16px 0; border-top: 1px solid var(--border); }
+    .plan:first-of-type { border-top: 0; padding-top: 4px; }
+    .plan-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--blue-tint); display: flex; align-items: center; justify-content: center; }
+    .plan-icon svg { width: 28px; height: 28px; fill: var(--blue); }
+    .plan .kind { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+    .plan .name { font: 600 18px var(--serif); margin: 2px 0; }
+    .tier { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 10px; margin-right: 6px; }
+    .tier.gold { background: #fff4d6; color: #7a5a00; }
+    .tier.net { background: var(--blue-tint); color: var(--blue-dark); }
+    .plan .price { text-align: right; font: 700 20px var(--sans); }
+    .plan .price small { display: block; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+    .plan select { margin-top: 8px; height: 36px; font-size: 14px; max-width: 360px; }
+
+    /* Summary */
+    .summary { position: sticky; top: 16px; }
+    .summary .line { display: flex; justify-content: space-between; font-size: 15px; padding: 6px 0; }
+    .summary .total { border-top: 2px solid var(--text); margin-top: 8px; padding-top: 12px; font-weight: 900; font-size: 18px; }
+    .summary .btn-gold { width: 100%; height: 48px; margin-top: 18px; font-size: 17px; }
+    .summary .btn-gold:disabled { opacity: .6; cursor: default; }
+    .fine { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
+    .processing { display: none; align-items: center; gap: 10px; justify-content: center; margin-top: 18px; font-size: 15px; font-weight: 700; color: var(--blue); }
+    .processing.visible { display: flex; }
+    .spinner { width: 20px; height: 20px; border: 3px solid var(--blue-tint); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-box { display: none; margin-top: 18px; border-radius: 8px; padding: 16px; font-size: 14px; }
+    .result-box.error { display: block; background: var(--danger-bg); border: 1px solid var(--danger); border-left-width: 6px; }
+    .result-box.success { display: block; background: var(--success-bg); border: 1px solid var(--success); border-left-width: 6px; }
+    .result-box h3 { font-size: 17px; margin-bottom: 6px; }
+    .result-box.error h3 { color: var(--danger); }
+    .result-box.success h3 { color: var(--success); }
+    .result-box code { font-size: 12px; background: rgba(0,0,0,.05); padding: 2px 4px; border-radius: 3px; word-break: break-word; }
+    .error-meta { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; font-size: 11px; color: var(--text-muted); font-family: monospace; }
+
+
+    /* Footer */
+    footer { background: var(--navy); color: #fff; padding: 36px 0 28px; font-size: 13px; }
+    footer .cols { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+    footer a { color: #fff; text-decoration: none; margin-right: 18px; }
+    footer .elevance { display: flex; align-items: center; gap: 12px; margin-top: 18px; opacity: .95; }
+    footer .elevance img { height: 22px; background: #fff; padding: 4px 8px; border-radius: 4px; }
+    footer .legal { margin-top: 18px; color: #c9d3e8; max-width: 860px; }
+    footer .devin a { color: #fff; text-decoration: underline; margin: 0; }
+
+    @media (max-width: 900px) {
+      header.main nav, .utility nav { display: none; }
+      .hero .panel { display: none; }
+      main .wrap { grid-template-columns: 1fr; }
+      .summary { position: static; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility">
+    <div class="wrap">
+      <nav><a href="#" class="caret">For Employers</a><a href="#" class="caret">For Producers</a><a href="#">For Providers</a></nav>
+      <div class="right"><a href="#">&#128269;&nbsp; Search</a><a href="#">Espa&ntilde;ol</a></div>
+    </div>
+  </div>
+
+  <header class="main">
+    <div class="wrap">
+      <a class="logo" href="#" aria-label="Anthem Blue Cross Blue Shield">
+        <img src="https://www.anthem.com/content/dam/digital/logos/wcs-logos/wcs/anthem-bcbs-logo-wcs-2023.svg" alt="Anthem Blue Cross Blue Shield" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <span class="logo-fallback">Anthem</span>
+      </a>
+      <nav><a href="#" class="caret">Insurance Plans</a><a href="#" class="caret">Member Support</a><a href="#" class="caret">Health &amp; Wellness Resources</a></nav>
+      <div class="header-ctas"><a href="#" class="btn btn-green">Find Care</a><a href="#" class="btn btn-blue">Log In</a></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="copy">
+        <h1>Review and Enroll in Your 2027 Individual and Family Plan</h1>
+        <p>You&rsquo;re almost done. Confirm your household and plan selections, then submit your application to Anthem.</p>
+        <div class="agent">Need help? Talk to a licensed agent: <a href="#">833-901-1364</a> (TTY: 711)</div>
+      </div>
+      <div class="panel">
+        <div class="label">Estimated monthly premium</div>
+        <div class="value" id="heroTotal">$0.00</div>
+        <div class="sub">Coverage starts Jan 1, 2027</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="crumbs">
+      <div><a href="#">Home</a><span class="sep">&rsaquo;</span><a href="#">Individual &amp; Family Plans</a><span class="sep">&rsaquo;</span><span>Review &amp; Enroll</span></div>
+      <div class="muted">Application ID <strong>IFP-2027-IN-448193</strong> &middot; Open Enrollment ends Jan 15, 2027</div>
+    </div>
+    <div class="stepper">
+      <div class="step done">Find Plans</div>
+      <div class="step done">Compare &amp; Select</div>
+      <div class="step done">Household</div>
+      <div class="step active">Review &amp; Enroll</div>
+      <div class="step">Pay First Premium</div>
+    </div>
+  </div>
+
+  <main>
+    <div class="wrap">
+      <div>
+        <h2>Who&rsquo;s covered</h2>
+        <div class="card">
+          <div id="householdList"></div>
+          <div class="row">
+            <label class="field">State
+              <select id="stateSelect">
+                <option value="IN" selected>Indiana</option>
+                <option value="OH">Ohio</option>
+                <option value="GA">Georgia</option>
+                <option value="VA">Virginia</option>
+                <option value="CO">Colorado</option>
+                <option value="NY">New York</option>
+                <option value="CA">California</option>
+              </select>
+            </label>
+            <label class="field">Coverage start date
+              <input type="date" id="coverageStart" value="2027-01-01">
+            </label>
+          </div>
+        </div>
+
+        <h2>Your plans</h2>
+        <div class="card">
+          <div class="plan">
+            <div class="plan-icon"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg></div>
+            <div>
+              <div class="kind">Medical</div>
+              <div class="name">Anthem Gold PPO 1000</div>
+              <span class="tier gold">Gold</span><span class="tier net">Pathway PPO</span>
+              <div class="muted" style="margin-top:6px">$1,000 deductible &middot; $25 PCP copay &middot; $8,000 out-of-pocket max</div>
+            </div>
+            <div class="price">$612.40<small>per month</small></div>
+          </div>
+          <div class="plan">
+            <div class="plan-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.5 2 6 3.6 5 6c-.8 2 .1 4.4.9 6.3.6 1.6.7 3.3 1 5 .3 2 .9 4.7 2.2 4.7 1.5 0 1.4-3.4 2.9-5.6 1.5 2.2 1.4 5.6 2.9 5.6 1.3 0 1.9-2.7 2.2-4.7.3-1.7.4-3.4 1-5 .8-1.9 1.7-4.3.9-6.3-1-2.4-3.5-4-7-4z"/></svg></div>
+            <div>
+              <div class="kind">Dental</div>
+              <div class="name" id="dentalName">Anthem Essential Choice Dental (Adult)</div>
+              <span class="tier net">Dental Prime</span>
+              <div><select id="dentalSelect" aria-label="Dental plan">
+                <option value="ANT-DEN-ESSENTIAL" selected>Anthem Essential Choice Dental (Adult) &mdash; $38.20/mo</option>
+                <option value="ANT-DEN-FAMILY">Anthem Dental Family Prime &mdash; $64.75/mo</option>
+              </select></div>
+            </div>
+            <div class="price" id="dentalPrice">$38.20<small>per month</small></div>
+          </div>
+          <div class="plan">
+            <div class="plan-icon"><svg viewBox="0 0 24 24"><path d="M12 5C6.5 5 2.3 8.6 1 12c1.3 3.4 5.5 7 11 7s9.7-3.6 11-7c-1.3-3.4-5.5-7-11-7zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7A2.5 2.5 0 1 0 12 14.5 2.5 2.5 0 0 0 12 9.5z"/></svg></div>
+            <div>
+              <div class="kind">Vision</div>
+              <div class="name">Blue View Vision</div>
+              <span class="tier net">Blue View Vision</span>
+              <div class="muted" style="margin-top:6px">$10 eye exam copay &middot; $130 frame allowance</div>
+            </div>
+            <div class="price">$12.60<small>per month</small></div>
+          </div>
+        </div>
+
+      </div>
+
+      <aside>
+        <div class="card summary">
+          <h3 style="margin-bottom:10px">Enrollment summary</h3>
+          <div id="summaryLines"></div>
+          <div class="line total"><span>Monthly premium</span><span id="summaryTotal">$0.00</span></div>
+          <div class="muted" style="margin-top:6px" id="summaryHousehold"></div>
+          <form id="enrollForm" onsubmit="submitEnrollment(event)">
+            <button type="submit" class="btn btn-gold" id="enrollBtn">Submit Enrollment</button>
+          </form>
+          <div class="processing" id="processingIndicator"><div class="spinner"></div><span>Submitting your application&hellip;</span></div>
+          <div class="result-box" id="resultBox"></div>
+          <p class="fine">By submitting, you confirm the information above is accurate and authorize Anthem to process your application. Premiums shown before any advance premium tax credit.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="cols">
+        <div><a href="#">Privacy</a><a href="#">Terms of Use</a><a href="#">Accessibility</a><a href="#">Nondiscrimination Notice</a><a href="#">Language Access</a></div>
+        <div class="devin">Powered by <a href="https://devin.ai" target="_blank">Devin</a></div>
+      </div>
+      <div class="elevance">
+        <img src="https://www.elevancehealth.com/content/dam/elevance-health-non-index/logos/Apex-Header.svg" alt="Elevance Health" onerror="this.style.display='none'">
+        <span>Anthem is an Elevance Health company.</span>
+      </div>
+      <p class="legal">Anthem Blue Cross and Blue Shield is the trade name of Anthem Insurance Companies, Inc., an independent licensee of the Blue Cross and Blue Shield Association. ANTHEM is a registered trademark of Anthem Insurance Companies, Inc. &copy; 2026 Elevance Health. Demo environment &mdash; no real applications are submitted.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      if (localStorage.getItem('devinOrgId') && localStorage.getItem('devinUserId')) return;
+      fetch('/api/config').then(function (r) { return r.json(); }).then(function (cfg) {
+        if (cfg.lockOrg && cfg.defaultOrgId) localStorage.setItem('devinOrgId', cfg.defaultOrgId);
+        if (cfg.lockUser && cfg.defaultUserId) localStorage.setItem('devinUserId', cfg.defaultUserId);
+      }).catch(function () {});
+    })();
+  </script>
+  <script>
+    var DENTAL = {
+      'ANT-DEN-ESSENTIAL': { name: 'Anthem Essential Choice Dental (Adult)', premium: 38.20 },
+      'ANT-DEN-FAMILY': { name: 'Anthem Dental Family Prime', premium: 64.75 }
+    };
+    var household = [
+      { relationship: 'self', name: 'Jordan Mitchell', age: 41 },
+      { relationship: 'spouse', name: 'Taylor Mitchell', age: 39 },
+      { relationship: 'child', name: 'Avery Mitchell', age: 8 }
+    ];
+    var RELATIONSHIP_LABEL = { self: 'Primary applicant', spouse: 'Spouse', child: 'Dependent child' };
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+    function money(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+    function selectedItems() {
+      var dentalId = document.getElementById('dentalSelect').value;
+      return [
+        { planId: 'ANT-MED-GOLD-PPO', premium: 612.40, label: 'Anthem Gold PPO 1000' },
+        { planId: dentalId, premium: DENTAL[dentalId].premium, label: DENTAL[dentalId].name },
+        { planId: 'ANT-VIS-BLUEVIEW', premium: 12.60, label: 'Blue View Vision' }
+      ];
+    }
+
+    function renderHousehold() {
+      var list = document.getElementById('householdList');
+      list.innerHTML = household.map(function (m, i) {
+        var initials = m.name.split(' ').map(function (p) { return p[0]; }).join('');
+        var remove = m.relationship === 'self' ? '' : '<button type="button" class="link-btn" onclick="removeMember(' + i + ')">Remove</button>';
+        return '<div class="member"><div class="avatar">' + escapeHtml(initials) + '</div>' +
+          '<div class="who"><strong>' + escapeHtml(m.name) + '</strong><span class="muted">' + RELATIONSHIP_LABEL[m.relationship] + ' &middot; Age ' + m.age + '</span></div>' + remove + '</div>';
+      }).join('');
+    }
+
+    function removeMember(i) {
+      household.splice(i, 1);
+      renderHousehold();
+      renderSummary();
+    }
+
+    function renderSummary() {
+      var items = selectedItems();
+      var total = items.reduce(function (s, it) { return s + it.premium; }, 0);
+      document.getElementById('summaryLines').innerHTML = items.map(function (it) {
+        return '<div class="line"><span>' + escapeHtml(it.label) + '</span><span>' + money(it.premium) + '</span></div>';
+      }).join('');
+      document.getElementById('summaryTotal').textContent = money(total);
+      document.getElementById('heroTotal').textContent = money(total);
+      document.getElementById('summaryHousehold').textContent = household.length + (household.length === 1 ? ' person' : ' people') + ' covered';
+      var dentalId = document.getElementById('dentalSelect').value;
+      document.getElementById('dentalName').textContent = DENTAL[dentalId].name;
+      document.getElementById('dentalPrice').innerHTML = money(DENTAL[dentalId].premium) + '<small>per month</small>';
+    }
+
+    document.getElementById('dentalSelect').addEventListener('change', renderSummary);
+
+    function submitEnrollment(e) {
+      e.preventDefault();
+      var btn = document.getElementById('enrollBtn');
+      var processing = document.getElementById('processingIndicator');
+      var resultBox = document.getElementById('resultBox');
+      resultBox.className = 'result-box';
+      resultBox.innerHTML = '';
+      btn.disabled = true;
+      btn.style.display = 'none';
+      processing.classList.add('visible');
+
+      fetch('/api/9fdcf315/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 'usr_anthem_demo',
+          devinUserId: localStorage.getItem('devinUserId') || '',
+          devinOrgId: localStorage.getItem('devinOrgId') || '',
+          devinEmail: localStorage.getItem('devinEmail') || '',
+          items: selectedItems().map(function (it) { return { planId: it.planId, premium: it.premium }; }),
+          state: document.getElementById('stateSelect').value,
+          household: household.map(function (m) { return { relationship: m.relationship, age: m.age }; }),
+          coverageStart: document.getElementById('coverageStart').value
+        })
+      })
+      .then(function (res) {
+        return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+      })
+      .then(function (result) {
+        processing.classList.remove('visible');
+        if (!result.ok || !result.data.success) {
+          resultBox.className = 'result-box error';
+          resultBox.innerHTML =
+            '<h3>We couldn&rsquo;t submit your application</h3>' +
+            '<p>Something went wrong while finalizing your enrollment. Please try again or call 833-901-1364.<br><br><code>' + escapeHtml(result.data.error || 'Unknown error') + '</code></p>' +
+            '<div class="error-meta">' +
+            '<span>Error: ' + escapeHtml(result.data.errorClass || 'InternalError') + '</span>' +
+            '<span>Code: ' + escapeHtml(result.data.code || 'INTERNAL_ERROR') + '</span>' +
+            '<span>Request: ' + escapeHtml(result.data.requestId || 'N/A') + '</span>' +
+            '<span>Time: ' + new Date().toISOString() + '</span>' +
+            '</div>';
+        } else {
+          resultBox.className = 'result-box success';
+          resultBox.innerHTML =
+            '<h3>Application submitted</h3>' +
+            '<p>Confirmation <strong>' + escapeHtml(result.data.enrollmentId) + '</strong>.<br>' +
+            escapeHtml(result.data.carrierName) + ' via ' + escapeHtml(result.data.exchange) + ' &middot; ' +
+            money(result.data.monthlyPremium) + '/month starting ' + escapeHtml(result.data.coverageStart) + '.</p>';
+        }
+        btn.style.display = 'flex';
+        btn.disabled = false;
+      })
+      .catch(function (err) {
+        processing.classList.remove('visible');
+        resultBox.className = 'result-box error';
+        resultBox.innerHTML =
+          '<h3>Network error</h3>' +
+          '<p>Unable to reach Anthem.<br><br><code>' + escapeHtml(err.message) + '</code></p>' +
+          '<div class="error-meta"><span>Time: ' + new Date().toISOString() + '</span></div>';
+        btn.style.display = 'flex';
+        btn.disabled = false;
+      });
+    }
+
+    renderHousehold();
+    renderSummary();
+  </script>
+  <script src="/session-cap-banner.js"></script>
+</body>
+</html>
