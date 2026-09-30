@@ -282,6 +282,7 @@ Custom verticals use hex-slug URLs. Errors display as a bottom-right toast notif
 | The Home Depot (a69bcc34) | `/a69bcc34`, `/homedepot` | "Checkout" (cart with the `HDCC25` promo code applied) | `Cannot read properties of undefined (reading 'freeThreshold')` |
 | QBE North America Claims (qbe) | `/qbe` | "Submit Claim" (QBE-PA-4417293 collision claim) | `Cannot read properties of undefined (reading 'collisionDeductible')` |
 | NAB Internet Banking (nab) | `/nab` | "Pay now" (082-001 40817266 Pay Anyone payment) | `Cannot read properties of undefined (reading 'dailyLimit')` |
+| Elevance Health — Anthem Enrollment (9fdcf315) | `/elevance`, `/anthem`, `/9fdcf315` | "Enroll" (default household includes an 8-year-old child → embedded pediatric dental rider missing from the plan catalog; adults-only household or swapping in Anthem Dental Family Prime → success; no medical plan or unsupported state → 400 ValidationError, no alert) | `Cannot read properties of undefined (reading 'planName')` |
 
 ### API Testing (curl)
 
@@ -358,6 +359,11 @@ curl -s -X POST http://localhost:3000/api/b014618f/redeem-miles -H 'Content-Type
 
 # Custom — United Airlines (4ada28b9)
 curl -s -X POST http://localhost:3000/api/4ada28b9/search-flights -H 'Content-Type: application/json' -d '{"origin":"EWR","destination":"LAX","cabin":"economy","passengers":1,"devinUserId":"clerk-user_2eG9PmvFhmV7fNu7TNuSRGeGPpV","devinOrgId":"org-2cd0ade21d8d4c5886fcea1b701c34e0"}'
+
+# Custom — Elevance Health / Anthem Enrollment (9fdcf315) — default body embeds the pediatric dental rider (child age 8)
+# → TypeError 500 ENROLLMENT_FAILED; drop the child from household → success; no medical planId → 400 NO_MEDICAL_PLAN; bad state → 400 INVALID_STATE
+# GET /api/9fdcf315/plans lists the plan catalog and supported states.
+curl -s -X POST http://localhost:3000/api/9fdcf315/enroll -H 'Content-Type: application/json' -d '{}' # all defaults
 ```
 
 ## Common Issues & Troubleshooting
