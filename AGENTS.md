@@ -30,7 +30,7 @@ The app hosts 10 verticals, each accessible at its own URL:
 | **HUB24 Adviser Fee Arrangement** (unlisted — direct URL only) | `/hub24` | `app/public/verticals/hub24.html` | `POST /api/hub24/fee-arrangement` | `app/services/verticals/hub24.js` |
 | **CFS Lump Sum Withdrawal** (unlisted — direct URL only) | `/cfs` | `app/public/verticals/cfs.html` | `POST /api/cfs/withdrawal` | `app/services/verticals/cfs.js` |
 | **NRMA Insurance Home Claim** (unlisted — direct URL only) | `/nrma`, `/iag` | `app/public/verticals/nrma.html` | `POST /api/nrma/claim` | `app/services/verticals/nrma.js` |
-| **Westpac Card Dispute** (unlisted — direct URL only) | `/westpac` | `app/public/verticals/westpac.html` | `POST /api/westpac/dispute` | `app/services/verticals/westpac.js` |
+| **Westpac Card Dispute** (unlisted — direct URL only) | `/westpac` | `app/public/verticals/westpac.html` | `POST /api/westpac/dispute`, `POST /api/westpac/ios/error` (native iOS report bridge) | `app/services/verticals/westpac.js` |
 | **S&P Global RatingsDirect Scorecard** (unlisted — direct URL only) | `/ratingsdirect`, `/sp-ratings`, `/spratings` | `app/public/verticals/ratingsdirect.html` | `POST /api/ratingsdirect/scorecard` | `app/services/verticals/ratingsdirect.js` |
 | **NAB Internet Banking** (unlisted — direct URL only) | `/nab` | `app/public/verticals/nab.html` | `POST /api/nab/payment` | `app/services/verticals/nab.js` |
 | **CommBank NetBank — Pay anyone** (unlisted — direct URL only) | `/cba`, `/commbank`, `/netbank` | `app/public/verticals/cba.html` | `POST /api/cba/payment` | `app/services/verticals/cba.js` |
@@ -228,6 +228,18 @@ The app plants a registry mismatch: every membership tier is scheduled onto a cl
 Identity is pinned, not derived from the app: this demo was commissioned by Shawn, so `OWNER` in the service (`shawn@cognition.ai`, Slack `U08RSEMUV3L`, his Devin user id, the NVIDIA org id) is passed to `createSessionAndAlert` on every report — the card @-mentions him and the Devin session is created as him. The app still forwards `devinEmail` / `devinUserId` / `devinOrgId`, but the sign-in email is synthetic and only survives on the card as `extra.reporterEmail`; it never redirects ownership. `CUSTOMER_ALERT_IDENTITY` maps `customer-315f52fe-ios` to the NVIDIA `APP_REMEDIATION_DIRECTIVE` (register the missing rig profiles, make the lookup throw a typed error instead of crashing on a gap, add a tier × device completeness test, verify one commit on the iOS simulator, stop for human approval before merge). Regression coverage lives in `tests/315f52fe-ios-error.test.js`.
 
 **One failure, one alert.** Every report that reaches `POST /api/315f52fe/ios/error` raises a Slack alert and a Devin session, so a reproduction run must not report. The directive tells the remediation session to reproduce with failure reporting off (`scripts/verify-ios.sh` in the app repo disables it by default; `GFN_DISABLE_FAILURE_REPORTS=1` in the app environment otherwise), and only the presenter's live run — `REPORT_FAILURES=1 scripts/verify-ios.sh`, or a plain Xcode launch — reports. A remediation session that reproduces with reporting on opens a second alert and a second session for the same defect, which then reproduces again: that loop is what this rule prevents.
+
+### Westpac Mobile card dispute scenario (native SwiftUI iOS, external repo)
+
+The Westpac Mobile report bridge is for the native SwiftUI app in `COG-GTM/event-driven-ios` (iOS
+only, no web or Android build). The app reports Lodge dispute failures to
+`POST /api/westpac/ios/error` with `source: westpac-mobile/ios` and
+`service: customer-westpac-ios`; the report is routed directly through Sentry, Slack, and a Devin
+session while the Sentry webhook skips the duplicate via the instant-path marker. Identity is
+client-forwarded from the app (`devinUserId`, `devinOrgId`, and `devinEmail`), never pinned to a
+named person. The remediation directive points to the external Swift repo, and reproductions must
+disable failure reporting with `WBC_DISABLE_FAILURE_REPORTS=1`. Regression coverage lives in
+`tests/westpac-ios-error.test.js`.
 
 ### ComEd Report Outage scenario (d08b052d, Flutter, external repo)
 
