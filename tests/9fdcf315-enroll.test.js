@@ -69,6 +69,72 @@ describe('Anthem enrollment', () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
+  test.each([0, -10])('processEnrollment rejects a mismatched premium %s without triggering telemetry or a Devin session', async (premium) => {
+    jest.clearAllMocks();
+
+    await expect(processEnrollment({
+      ...DEFAULT_ENROLLMENT,
+      items: [{ planId: 'ANT-MED-GOLD-PPO', premium }],
+    })).rejects.toMatchObject({
+      name: 'ValidationError',
+      code: 'PREMIUM_MISMATCH',
+      status: 400,
+    });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test('processEnrollment rejects an uncatalogued planId without triggering telemetry or a Devin session', async () => {
+    jest.clearAllMocks();
+
+    await expect(processEnrollment({
+      ...DEFAULT_ENROLLMENT,
+      items: [
+        { planId: 'ANT-MED-GOLD-PPO', premium: 612.40 },
+        { planId: 'ANT-EHB-PEDDENTAL', premium: 0 },
+      ],
+    })).rejects.toMatchObject({
+      name: 'ValidationError',
+      code: 'UNKNOWN_PLAN',
+      status: 400,
+    });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    [[]],
+    [[{ relationship: 'child', age: 8 }]],
+  ])('processEnrollment rejects a household without a primary applicant %j without triggering telemetry or a Devin session', async (household) => {
+    jest.clearAllMocks();
+
+    await expect(processEnrollment({ ...DEFAULT_ENROLLMENT, household }))
+      .rejects.toMatchObject({
+        name: 'ValidationError',
+        code: 'NO_PRIMARY_APPLICANT',
+        status: 400,
+      });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
+  test.each(['', 'not-a-date'])('processEnrollment rejects invalid coverageStart "%s" without triggering telemetry or a Devin session', async (coverageStart) => {
+    jest.clearAllMocks();
+
+    await expect(processEnrollment({ ...DEFAULT_ENROLLMENT, coverageStart }))
+      .rejects.toMatchObject({
+        name: 'ValidationError',
+        code: 'INVALID_COVERAGE_START',
+        status: 400,
+      });
+
+    expect(createSessionAndAlert).not.toHaveBeenCalled();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   test('processEnrollment rejects with the planted TypeError and triggers a Devin session', async () => {
     await expect(processEnrollment(DEFAULT_ENROLLMENT))
       .rejects.toThrow(/reading 'planName'/);

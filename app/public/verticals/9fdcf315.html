@@ -183,7 +183,7 @@
       <div class="panel">
         <div class="label">Estimated monthly premium</div>
         <div class="value" id="heroTotal">$0.00</div>
-        <div class="sub">Coverage starts Jan 1, 2027</div>
+        <div class="sub" id="heroStart">Coverage starts Jan 1, 2027</div>
       </div>
     </div>
   </section>
@@ -221,7 +221,7 @@
               </select>
             </label>
             <label class="field">Coverage start date
-              <input type="date" id="coverageStart" value="2027-01-01">
+              <input type="date" id="coverageStart" value="2027-01-01" required>
             </label>
           </div>
         </div>
@@ -324,6 +324,20 @@
     }
     function money(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    function formatCoverageStart(v) {
+      var parts = /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v.split('-') : null;
+      if (!parts) return '';
+      var month = parseInt(parts[1], 10);
+      var day = parseInt(parts[2], 10);
+      if (month < 1 || month > 12 || day < 1 || day > 31) return '';
+      return MONTHS[month - 1] + ' ' + day + ', ' + parts[0];
+    }
+    function renderCoverageStart() {
+      var formatted = formatCoverageStart(document.getElementById('coverageStart').value);
+      document.getElementById('heroStart').textContent = formatted ? 'Coverage starts ' + formatted : '';
+    }
+
     function selectedItems() {
       var dentalId = document.getElementById('dentalSelect').value;
       return [
@@ -364,6 +378,8 @@
     }
 
     document.getElementById('dentalSelect').addEventListener('change', renderSummary);
+    document.getElementById('coverageStart').addEventListener('change', renderCoverageStart);
+    document.getElementById('coverageStart').addEventListener('input', renderCoverageStart);
 
     function submitEnrollment(e) {
       e.preventDefault();
@@ -412,7 +428,7 @@
             '<h3>Application submitted</h3>' +
             '<p>Confirmation <strong>' + escapeHtml(result.data.enrollmentId) + '</strong>.<br>' +
             escapeHtml(result.data.carrierName) + ' via ' + escapeHtml(result.data.exchange) + ' &middot; ' +
-            money(result.data.monthlyPremium) + '/month starting ' + escapeHtml(result.data.coverageStart) + '.</p>';
+            money(result.data.monthlyPremium) + '/month starting ' + escapeHtml(formatCoverageStart(result.data.coverageStart)) + '.</p>';
         }
         btn.style.display = 'flex';
         btn.disabled = false;
@@ -431,6 +447,7 @@
 
     renderHousehold();
     renderSummary();
+    renderCoverageStart();
   </script>
   <script src="/session-cap-banner.js"></script>
 </body>

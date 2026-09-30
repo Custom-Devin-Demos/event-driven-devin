@@ -22,7 +22,7 @@ router.post('/api/9fdcf315/enroll', async (req, res) => {
         { relationship: 'spouse', age: 39 },
         { relationship: 'child', age: 8 },
       ],
-      coverageStart: req.body.coverageStart || '2027-01-01',
+      coverageStart: req.body.coverageStart === undefined ? '2027-01-01' : req.body.coverageStart,
       devinUserId: req.body.devinUserId,
       devinOrgId: req.body.devinOrgId,
       devinEmail: req.body.devinEmail,

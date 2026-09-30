@@ -92,6 +92,24 @@ async function processEnrollment(data) {
     });
   }
 
+  for (const item of data.items || []) {
+    const plan = PLAN_CATALOG.find((p) => p.id === item.planId);
+    if (!plan) {
+      throw Object.assign(new Error(`Unknown plan: ${item.planId}`), {
+        name: 'ValidationError',
+        code: 'UNKNOWN_PLAN',
+        status: 400,
+      });
+    }
+    if (item.premium !== plan.premium) {
+      throw Object.assign(new Error(`Premium for ${item.planId} does not match the rated plan premium`), {
+        name: 'ValidationError',
+        code: 'PREMIUM_MISMATCH',
+        status: 400,
+      });
+    }
+  }
+
   const hasMedicalPlan = (data.items || []).some((item) => {
     const plan = PLAN_CATALOG.find((p) => p.id === item.planId);
     return plan && plan.category === 'medical';
@@ -100,6 +118,24 @@ async function processEnrollment(data) {
     throw Object.assign(new Error('Enrollment requires a medical plan selection'), {
       name: 'ValidationError',
       code: 'NO_MEDICAL_PLAN',
+      status: 400,
+    });
+  }
+
+  const household = Array.isArray(data.household) ? data.household : [];
+  if (!household.some((member) => member.relationship === 'self')) {
+    throw Object.assign(new Error('Enrollment requires a primary applicant'), {
+      name: 'ValidationError',
+      code: 'NO_PRIMARY_APPLICANT',
+      status: 400,
+    });
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.coverageStart || '')
+    || Number.isNaN(Date.parse(data.coverageStart))) {
+    throw Object.assign(new Error('Invalid coverage start date'), {
+      name: 'ValidationError',
+      code: 'INVALID_COVERAGE_START',
       status: 400,
     });
   }
