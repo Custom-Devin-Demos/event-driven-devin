@@ -13,6 +13,10 @@ const {
   SCENARIO: NEXEN_SCENARIO,
 } = require('../services/verticals/9bfabd45');
 const {
+  APP_REMEDIATION_DIRECTIVE: CAPITAL_IQ_REMEDIATION_DIRECTIVE,
+  SCENARIO: CAPITAL_IQ_SCENARIO,
+} = require('../services/verticals/c28a3fe9');
+const {
   APP_REMEDIATION_DIRECTIVE: PLAN_PRICING_REMEDIATION_DIRECTIVE,
   SCENARIO: PLAN_PRICING_SCENARIO,
 } = require('../services/verticals/a75ccde9');
@@ -154,7 +158,7 @@ function isSyntheticProbeEvent(alertData) {
  * fallback does not raise a second alert or Devin session.
  */
 // Verticals whose instant path already alerts; issue webhooks carry no event tags, so match on the culprit's module path.
-const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'verticals/t1.js'];
+const INSTANT_PATH_SLUGS = ['a7fb8819', 'f8555891', '5b7227b4', '315f52fe', 'westpac/ios', '35c30158', '4da81799', 'ce04d113', 'e4282626', '5275ac3e', 'a693dab5', '9bfabd45', 'c28a3fe9', 'a75ccde9', 'b4c3a7fc', '0eda990f', '2eb494c7', 'a1066f3a', 'fe0957f8', '6f38d771', '64e85fcf', 'cb48a22d', 'eda0e2e5', 'e33c0578', '2589dca4', '1d7f8961', '50753c43', '7c6a6ef9/coverage', 'buildcoveragesummary', 'verticals/bac', 'verticals/banamex', 'verticals/d7c4a1b9', 'verticals.d7c4a1b9', '4157609f', 'e57f4315', 'bd631c20', '1182181f', '26af2083', '246706c4', '8c0320af', '0a6f5e56', 'a70e8270', 'adbe35bc', '4e150e99', '9fdcf315', '513ad458', '8d3527ab', '0b0875b5', '631ad31e', 'b2085c10', 'ef51d258', 'f887d0be', 'd3e3804d', 'b6f570dc', 'd708940c', '04525b56', '918bb443', 'b19cd3b6', 'fd043af6', 'verticals/t1.js'];
 
 // Alert paths where the service already alerts directly (instant errors and
 // latency-budget breaches); the webhook must not raise a second alert.
@@ -384,6 +388,22 @@ const CUSTOMER_ALERT_IDENTITY = {
       customer: 'customer-9bfabd45-web',
       service: 'customer-9bfabd45-web',
       scenario: NEXEN_SCENARIO,
+    },
+  },
+  // S&P Capital IQ Pro Market Monitor (github.com/rdf004/s-and-p-event-driven-demo):
+  // a Vite/React SPA hosted at /c28a3fe9/app. Reports arrive via
+  // /api/c28a3fe9/error; remediation lands in the Market Monitor repo.
+  'c28a3fe9': {
+    customer: 'c28a3fe9',
+    verticalLabel: 'S&P Capital IQ Pro',
+    service: 'customer-c28a3fe9-web',
+    project: 'capital-iq-market-monitor',
+    release: 'capital-iq-demo@0.1.0',
+    promptAppendix: CAPITAL_IQ_REMEDIATION_DIRECTIVE,
+    tagOverrides: {
+      customer: 'customer-c28a3fe9-web',
+      service: 'customer-c28a3fe9-web',
+      scenario: CAPITAL_IQ_SCENARIO,
     },
   },
   'a75ccde9': {
